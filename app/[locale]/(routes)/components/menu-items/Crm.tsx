@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Coins } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 import { usePathname, useRouter } from "next/navigation";
 
@@ -22,25 +23,17 @@ const CrmModuleMenu = ({ open, localizations }: Props) => {
   const isPath = pathname.includes("crm");
 
   return (
-    <div
-      className={`flex flex-row items-center mx-auto p-2 ${
-        isPath ? "text-muted-foreground" : null
-      }`}
-    >
       <DropdownMenu>
-        <DropdownMenuTrigger
-          className={
-            open
-              ? "w-full hover:bg-slate-700 hover:text-gray-200 hover:transition hover:duration-150 rounded-md mx-auto"
-              : ""
-          }
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant={isPath ? "secondary" : "ghost"}
+          className="w-full justify-start gap-2"
         >
-          <div className="flex gap-2 p-2">
-            <Coins />
+          <Coins className="size-4" />
             <span className={open ? "" : "hidden"}>{localizations.title}</span>
-          </div>
+        </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[250px] ml-10">
+      <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuItem onClick={() => router.push("/crm/dashboard")}>
             Dashboard
           </DropdownMenuItem>
@@ -50,7 +43,6 @@ const CrmModuleMenu = ({ open, localizations }: Props) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
   );
 };
 

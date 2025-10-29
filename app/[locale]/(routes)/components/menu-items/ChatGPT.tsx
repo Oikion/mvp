@@ -3,8 +3,8 @@
 import { Bot } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
 import React from "react";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   open: boolean;
@@ -14,15 +14,16 @@ const ChatGPTModuleMenu = ({ open }: Props) => {
   const pathname = usePathname();
   const isPath = pathname.includes("openAi");
   return (
-    <div className="flex flex-row items-center mx-auto p-2">
-      <Link
-        href={"/openAi"}
-        className={`flex gap-2 p-2 ${isPath ? "text-muted-foreground" : null}`}
-      >
-        <Bot className="w-6" />
+    <Button
+      asChild
+      variant={isPath ? "secondary" : "ghost"}
+      className="w-full justify-start gap-2"
+    >
+      <Link href={"/openAi"}>
+        <Bot className="size-4" />
         <span className={open ? "" : "hidden"}>ChatGPT</span>
       </Link>
-    </div>
+    </Button>
   );
 };
 

@@ -7,6 +7,7 @@ import { SetLanguage } from "@/components/SetLanguage";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CommandComponent } from "@/components/CommandComponent";
 import SupportComponent from "@/components/support";
+import MobileSidebar from "./MobileSidebar";
 
 type Props = {
   id: string;
@@ -19,10 +20,12 @@ type Props = {
 const Header = ({ id, name, email, avatar, lang }: Props) => {
   return (
     <>
-      <div className="flex h-20 justify-between items-center p-5 space-x-5">
-        <div className="flex justify-center ">
+      <div className="flex h-16 items-center justify-between p-5">
+        <div className="flex items-center gap-4">
+          <MobileSidebar />
           <FulltextSearch />
         </div>
+
         <div className="flex items-center gap-3">
           <CommandComponent />
           <SetLanguage userId={id} />

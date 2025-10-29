@@ -65,8 +65,10 @@ export default async function AppLayout({
   //console.log(typeof build, "build");
   return (
     <div className="flex h-screen overflow-hidden">
+      <div className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-50">
       <SideBar build={build} />
-      <div className="flex flex-col h-full w-full overflow-hidden">
+      </div>
+      <main className="md:pl-72 w-full h-full flex flex-col overflow-hidden">
         <Header
           id={session.user.id as string}
           name={session.user.name as string}
@@ -76,7 +78,7 @@ export default async function AppLayout({
         />
         <div className="flex-grow overflow-y-auto h-full p-5">{children}</div>
         <Footer />
-      </div>
+      </main>
     </div>
   );
 }

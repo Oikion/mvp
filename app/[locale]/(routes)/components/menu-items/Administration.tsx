@@ -1,6 +1,7 @@
 import { Wrench } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   open: boolean;
@@ -11,15 +12,16 @@ const AdministrationMenu = ({ open, title }: Props) => {
   const pathname = usePathname();
   const isPath = pathname.includes("admin");
   return (
-    <div className="flex flex-row items-center mx-auto p-2">
-      <Link
-        href={"/admin"}
-        className={`flex gap-2 p-2 ${isPath ? "text-muted-foreground" : null}`}
-      >
-        <Wrench className="w-6" />
+    <Button
+      asChild
+      variant={isPath ? "secondary" : "ghost"}
+      className="w-full justify-start gap-2"
+    >
+      <Link href={"/admin"}>
+        <Wrench className="size-4" />
         <span className={open ? "" : "hidden"}>{title}</span>
       </Link>
-    </div>
+    </Button>
   );
 };
 
