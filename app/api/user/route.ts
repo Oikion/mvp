@@ -49,6 +49,8 @@ export async function POST(req: Request) {
           password: await hash(password, 12),
         },
       });
+      
+      // First user doesn't need admin notification
       return NextResponse.json(user);
     } else {
       //There is at least one user in the system, so create user with no admin rights and set userStatus to PENDING

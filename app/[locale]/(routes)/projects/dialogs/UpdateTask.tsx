@@ -94,7 +94,6 @@ const UpdateTaskDialog = ({
   }
 
   //Actions
-  console.log("BoardId:", boardId);
 
   const onSubmit = async (data: UpdatedTaskForm) => {
     setIsLoading(true);
@@ -205,10 +204,8 @@ const UpdateTaskDialog = ({
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value}
-                        //@ts-ignore
-                        //TODO: fix this
-                        onSelect={field.onChange}
+                        selected={field.value as Date | undefined}
+                        onSelect={(date) => field.onChange(date)}
                         disabled={(date) => date < new Date("1900-01-01")}
                         initialFocus
                       />

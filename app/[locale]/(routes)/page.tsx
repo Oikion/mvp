@@ -17,7 +17,6 @@ import Link from "next/link";
 import { getDictionary } from "@/dictionaries";
 
 import Container from "./components/ui/Container";
-import NotionsBox from "./components/dasboard/notions";
 import LoadingBox from "./components/dasboard/loading-box";
 import StorageQuota from "./components/dasboard/storage-quota";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,11 +46,8 @@ const DashboardPage = async () => {
 
   const userId = session?.user?.id;
 
-  //Get user language
-  const lang = session?.user?.userLanguage;
-
-  //Fetch translations from dictionary
-  const dict = await getDictionary(lang as "en" | "cz" | "de" | "uk"); //Fetch data for dashboard
+  //Fetch translations from dictionary (English only for now)
+  const dict = await getDictionary(); //Fetch data for dashboard
 
   const modules = await getModules();
   const leads = await getLeadsCount();
@@ -75,9 +71,7 @@ const DashboardPage = async () => {
   const projectsModule = modules.find((module) => module.name === "projects");
   const documentsModule = modules.find((module) => module.name === "documents");
   const employeesModule = modules.find((module) => module.name === "employees");
-  const secondBrainModule = modules.find(
-    (module) => module.name === "secondBrain"
-  );
+  
 
   return (
     <Container
@@ -144,7 +138,7 @@ const DashboardPage = async () => {
           crmModule?.enabled && (
             <>
               <DashboardCard
-                href="/crm/accounts"
+                href="/crm/clients"
                 title={dict.DashboardPage.accounts}
                 IconComponent={LandmarkIcon}
                 content={accounts}
@@ -156,23 +150,13 @@ const DashboardPage = async () => {
                 content={opportunities}
               />
               <DashboardCard
-                href="/crm/contacts"
+                href="/crm/client-contacts"
                 title={dict.DashboardPage.contacts}
                 IconComponent={Contact}
                 content={contacts}
               />
-              <DashboardCard
-                href="/crm/leads"
-                title={dict.DashboardPage.leads}
-                IconComponent={CoinsIcon}
-                content={leads}
-              />
-              <DashboardCard
-                href="/crm/contracts"
-                title={dict.ModuleMenu.crm.contracts}
-                IconComponent={FilePenLine}
-                content={contracts}
-              />
+              {/* Leads deprecated in Real Estate CRM */}
+              {/* Contracts deprecated in Real Estate CRM */}
             </>
           )
         }
@@ -217,11 +201,7 @@ const DashboardPage = async () => {
 
         <StorageQuota actual={storage} title={dict.DashboardPage.storage} />
 
-        {secondBrainModule?.enabled && (
-          <Suspense fallback={<LoadingBox />}>
-            <NotionsBox />
-          </Suspense>
-        )}
+        
       </div>
     </Container>
   );

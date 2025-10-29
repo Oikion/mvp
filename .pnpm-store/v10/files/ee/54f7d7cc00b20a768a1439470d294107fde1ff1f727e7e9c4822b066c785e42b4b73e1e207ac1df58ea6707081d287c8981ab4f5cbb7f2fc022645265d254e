@@ -1,0 +1,13 @@
+'use strict';
+
+var utilUserAgentNode = require('@aws-sdk/util-user-agent-node');
+var awsCrt = require('aws-crt');
+
+utilUserAgentNode.crtAvailability.isCrtAvailable = true;
+
+Object.keys(awsCrt).forEach(function (k) {
+	if (k !== 'default' && !Object.prototype.hasOwnProperty.call(exports, k)) Object.defineProperty(exports, k, {
+		enumerable: true,
+		get: function () { return awsCrt[k]; }
+	});
+});

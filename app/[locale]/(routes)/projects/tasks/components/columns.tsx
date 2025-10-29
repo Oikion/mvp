@@ -54,11 +54,7 @@ export const columns: ColumnDef<Task>[] = [
 
     cell: ({ row }) => (
       <div className="w-[180px]">
-        {
-          //@ts-ignore
-          //TODO: fix this
-          row.getValue("assigned_user")?.name ?? "Unassigned"
-        }
+        {row.original.assigned_user?.name ?? "Unassigned"}
       </div>
     ),
     enableSorting: false,

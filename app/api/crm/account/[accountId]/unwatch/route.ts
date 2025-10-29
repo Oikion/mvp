@@ -17,7 +17,7 @@ export async function POST(req: Request, props: { params: Promise<{ accountId: s
   const accountId = params.accountId;
 
   try {
-    await prismadb.crm_Accounts.update({
+    await prismadb.clients.update({
       where: {
         id: accountId,
       },
@@ -29,8 +29,9 @@ export async function POST(req: Request, props: { params: Promise<{ accountId: s
         },
       },
     });
-    return NextResponse.json({ message: "Board watched" }, { status: 200 });
+    return NextResponse.json({ message: "Client unwatched" }, { status: 200 });
   } catch (error) {
     console.log(error);
+    return NextResponse.json({ error: "Failed to unwatch client" }, { status: 500 });
   }
 }

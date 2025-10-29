@@ -33,7 +33,6 @@ import { Textarea } from "@/components/ui/textarea";
 import fetcher from "@/lib/fetcher";
 import useSWR from "swr";
 import SuspenseLoading from "@/components/loadings/suspense";
-import { crm_Accounts } from "@prisma/client";
 
 interface UpdateAccountFormProps {
   //TODO: fix this any
@@ -49,10 +48,6 @@ export function UpdateAccountForm({
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
-  const { data: industries, isLoading: isLoadingIndustries } = useSWR(
-    "/api/crm/industries",
-    fetcher
-  );
   const { data: users, isLoading: isLoadingUsers } = useSWR(
     "/api/user",
     fetcher
@@ -124,20 +119,35 @@ export function UpdateAccountForm({
   });
 
   const onSubmit = async (data: NewAccountFormValues) => {
-    //console.log(data);
     setIsLoading(true);
     try {
-      await axios.put("/api/crm/account", data);
-      toast({
-        title: "Success",
-        description: "Account updated successfully",
+      await axios.put("/api/crm/clients", {
+        id: data.id,
+        client_name: data.name,
+        primary_email: data.email,
+        office_phone: data.office_phone,
+        website: data.website,
+        fax: data.fax,
+        company_id: data.company_id,
+        vat: data.vat,
+        billing_street: data.billing_street,
+        billing_postal_code: data.billing_postal_code,
+        billing_city: data.billing_city,
+        billing_state: data.billing_state,
+        billing_country: data.billing_country,
+        shipping_street: data.shipping_street,
+        shipping_postal_code: data.shipping_postal_code,
+        shipping_city: data.shipping_city,
+        shipping_state: data.shipping_state,
+        shipping_country: data.shipping_country,
+        description: data.description,
+        assigned_to: data.assigned_to,
+        client_status: data.status?.toUpperCase() || undefined,
+        member_of: data.member_of,
       });
+      toast({ title: "Success", description: "Client updated successfully" });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.response?.data,
-      });
+      toast({ variant: "destructive", title: "Error", description: error?.response?.data });
     } finally {
       setIsLoading(false);
       open(false);
@@ -145,15 +155,13 @@ export function UpdateAccountForm({
     }
   };
 
-  if (isLoadingIndustries || isLoadingUsers)
+  if (isLoadingUsers)
     return (
       <div>
         <SuspenseLoading />
       </div>
     );
-
-  if (!industries || !users || !initialData)
-    return <div>Something went wrong, there is no data for form</div>;
+  if (!users || !initialData) return <div>Something went wrong, there is no data for form</div>;
 
   return (
     <Form {...form}>
@@ -177,7 +185,7 @@ export function UpdateAccountForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Account name</FormLabel>
+                  <FormLabel>Client name</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
@@ -500,33 +508,7 @@ export function UpdateAccountForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="industry"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Choose industry</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select new account industry" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="flex overflow-y-auto h-56">
-                        {industries.map((industry: any) => (
-                          <SelectItem key={industry.id} value={industry.id}>
-                            {industry.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* industry removed */}
               <FormField
                 control={form.control}
                 name="assigned_to"

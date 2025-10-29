@@ -101,7 +101,25 @@ export function NewContactForm({
   const onSubmit = async (data: NewAccountFormValues) => {
     setIsLoading(true);
     try {
-      await axios.post("/api/crm/contacts", data);
+      await axios.post("/api/crm/client-contacts", {
+        assigned_to: data.assigned_to,
+        assigned_client: data.assigned_account,
+        birthday_day: data.birthday_day,
+        birthday_month: data.birthday_month,
+        birthday_year: data.birthday_year,
+        description: data.description,
+        email: data.email,
+        personal_email: data.personal_email,
+        contact_first_name: data.first_name,
+        contact_last_name: data.last_name,
+        office_phone: data.office_phone,
+        mobile_phone: data.mobile_phone,
+        website: data.website,
+        status: data.status,
+        contact_type: undefined,
+        relationship_to_client: undefined,
+        type: data.type,
+      });
       toast({
         title: "Success",
         description: "Contact created successfully",
@@ -407,7 +425,7 @@ export function NewContactForm({
                   name="assigned_account"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Assign an Account</FormLabel>
+                  <FormLabel>Assign a Client</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -420,7 +438,7 @@ export function NewContactForm({
                         <SelectContent className="flex overflow-y-auto h-56">
                           {accounts.map((account) => (
                             <SelectItem key={account.id} value={account.id}>
-                              {account.name}
+                              {account.name || account.client_name}
                             </SelectItem>
                           ))}
                         </SelectContent>

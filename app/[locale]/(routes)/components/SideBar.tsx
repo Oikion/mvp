@@ -14,11 +14,8 @@ const SideBar = async ({ build }: { build: number }) => {
 
   if (!modules) return null;
 
-  //Get user language
-  const lang = session.user.userLanguage;
-
-  //Fetch translations from dictionary
-  const dict = await getDictionary(lang as "en" | "cz" | "de");
+  //Fetch translations from dictionary (English only for now)
+  const dict = await getDictionary();
 
   if (!dict) return null;
 

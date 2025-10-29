@@ -3,14 +3,13 @@
 import React, { useEffect, useState } from "react";
 
 import ProjectModuleMenu from "./menu-items/Projects";
-import SecondBrainModuleMenu from "./menu-items/SecondBrain";
 import InvoicesModuleMenu from "./menu-items/Invoices";
 import ReportsModuleMenu from "./menu-items/Reports";
 import DocumentsModuleMenu from "./menu-items/Documents";
 import ChatGPTModuleMenu from "./menu-items/ChatGPT";
 import EmployeesModuleMenu from "./menu-items/Employees";
-import DataboxModuleMenu from "./menu-items/Databoxes";
 import CrmModuleMenu from "./menu-items/Crm";
+import MlsModuleMenu from "./menu-items/Mls";
 
 import AdministrationMenu from "./menu-items/Administration";
 import DashboardMenu from "./menu-items/Dashboard";
@@ -67,6 +66,7 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
           ) ? (
             <CrmModuleMenu open={open} localizations={dict.ModuleMenu.crm} />
           ) : null}
+          <MlsModuleMenu open={open} localizations={dict.ModuleMenu.mls ?? { title: "Properties", properties: "Properties" }} />
           {modules.find(
             (menuItem: any) => menuItem.name === "projects" && menuItem.enabled
           ) ? (
@@ -77,12 +77,7 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
           ) ? (
             <EmailsModuleMenu open={open} title={dict.ModuleMenu.emails} />
           ) : null}
-          {modules.find(
-            (menuItem: any) =>
-              menuItem.name === "secondBrain" && menuItem.enabled
-          ) ? (
-            <SecondBrainModuleMenu open={open} />
-          ) : null}
+          
           {modules.find(
             (menuItem: any) => menuItem.name === "employee" && menuItem.enabled
           ) ? (
@@ -105,11 +100,6 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
               open={open}
               title={dict.ModuleMenu.documents}
             />
-          ) : null}
-          {modules.find(
-            (menuItem: any) => menuItem.name === "databox" && menuItem.enabled
-          ) ? (
-            <DataboxModuleMenu open={open} />
           ) : null}
           {modules.find(
             (menuItem: any) => menuItem.name === "openai" && menuItem.enabled

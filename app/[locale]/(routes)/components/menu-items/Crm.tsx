@@ -44,27 +44,9 @@ const CrmModuleMenu = ({ open, localizations }: Props) => {
           <DropdownMenuItem onClick={() => router.push("/crm/dashboard")}>
             Dashboard
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/crm/dashboard/user")}>
-            My Dashboard
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/crm")}>
-            Overview
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push("/crm/accounts")}>
+          <DropdownMenuItem onClick={() => router.push("/crm/clients")}>
             {localizations.accounts}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/crm/contacts")}>
-            {localizations.contacts}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/crm/leads")}>
-            {localizations.leads}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/crm/opportunities")}>
-            {localizations.opportunities}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/crm/contracts")}>
-            {localizations.contracts}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

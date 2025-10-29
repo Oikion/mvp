@@ -1,6 +1,6 @@
 import { prismadb } from "@/lib/prisma";
 
 export const getOpportunitiesCount = async () => {
-  const data = await prismadb.crm_Opportunities.count();
-  return data;
+  // Opportunities removed in Real Estate CRM
+  return 0;
 };

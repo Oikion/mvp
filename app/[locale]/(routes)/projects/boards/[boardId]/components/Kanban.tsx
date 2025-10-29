@@ -7,7 +7,7 @@ import {
   Droppable,
   Draggable,
   DropResult,
-} from "react-beautiful-dnd";
+} from "@hello-pangea/dnd";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Check, EyeIcon, Pencil, PlusCircle, PlusIcon } from "lucide-react";
@@ -47,7 +47,7 @@ import NewSectionForm from "../forms/NewSection";
 import UpdateTaskDialog from "../../../dialogs/UpdateTask";
 import { getTaskDone } from "../../../actions/get-task-done";
 
-let timer: any;
+let timer: ReturnType<typeof setTimeout> | undefined;
 const timeout = 1000;
 
 interface Task {
@@ -84,8 +84,6 @@ const Kanban = (props: any) => {
 
   const onDragEnd = async ({ source, destination }: DropResult) => {
     if (!destination) return;
-    console.log(source, "source - onDragEnd");
-    console.log(destination, "destination - onDragEnd");
     const sourceColIndex = data.findIndex(
       (e: any) => e.id === source.droppableId
     );
@@ -160,7 +158,7 @@ const Kanban = (props: any) => {
     e: ChangeEvent<HTMLInputElement>,
     sectionId: string
   ) => {
-    clearTimeout(timer);
+    if (timer) clearTimeout(timer);
     const newTitle = e.target.value;
     const newData = [...data];
     const index = newData.findIndex((e) => e.id === sectionId);
@@ -187,24 +185,17 @@ const Kanban = (props: any) => {
     //console.log(sectionId, "sectionId - createTask");
     //const task = await addTask(boardId, sectionId);
     try {
-      const task = await axios.post(
+      await axios.post(
         `/api/projects/tasks/create-task/${boardId}`,
         {
           section: sectionId,
         }
       );
-      //console.log(task, "task - createTask");
-      const newData = [...data];
-      //console.log(newData, "newData - createTask");
-      const index = newData.findIndex((e) => e.id === sectionId);
-      newData[index].tasks.unshift(task);
-      setData(newData);
       toast({
         title: "Task created",
         description: "New task saved in database",
       });
     } catch (error) {
-      console.log(error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -258,7 +249,6 @@ const Kanban = (props: any) => {
         description: "Task deleted successfully",
       });
     } catch (error) {
-      console.log(error);
       toast({
         variant: "destructive",
         title: "Task deleted",
@@ -400,9 +390,12 @@ const Kanban = (props: any) => {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  cursor={
-                                    snapshot.isDragging ? "grabbing" : "grab"
-                                  }
+                                  style={{
+                                    ...provided.draggableProps.style,
+                                    cursor: snapshot.isDragging
+                                      ? "grabbing"
+                                      : "grab",
+                                  }}
                                   className="flex flex-col overflow-hidden items-start justify-center text-xs p-3 mb-2  rounded-md border  shadow-md "
                                   type="button"
                                 >

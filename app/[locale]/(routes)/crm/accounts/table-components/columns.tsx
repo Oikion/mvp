@@ -48,7 +48,7 @@ export const columns: ColumnDef<Account>[] = [
     ),
 
     cell: ({ row }) => (
-      <Link href={`/crm/accounts/${row.original?.id}`}>
+      <Link href={`/crm/clients/${row.original?.id}`}>
         <div className="w-[250px]">
           {
             //@ts-ignore

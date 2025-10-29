@@ -6,12 +6,16 @@
   "ModuleMenu": {
     "dashboard": "Dashboard",
     "crm": {
-      "title": "Sales",
-      "accounts": "Companies",
+      "title": "Clients",
+      "accounts": "Clients",
       "opportunities": "Opportunities",
-      "contacts": "Contacts",
+      "contacts": "Client Contacts",
       "leads": "Leads",
       "contracts": "Contracts"
+    },
+    "mls": {
+      "title": "Properties",
+      "properties": "Properties"
     },
     "projects": "Projects",
     "emails": "E-mails",
@@ -46,6 +50,6 @@
     "locale": "{locale, select, de {German} en {English} cz {Czech} uk {Ukrainian} other {Unknown}}"
   },
   "CrmModuleMenuComponent": {
-    "menuTitle": "Sales"
+    "menuTitle": "Clients"
   }
 }

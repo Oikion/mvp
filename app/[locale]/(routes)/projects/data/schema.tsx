@@ -7,9 +7,13 @@ export const taskSchema = z.object({
   title: z.string(),
   description: z.string(),
   visibility: z.string(),
-  assigned_user: z.object({
-    name: z.string(),
-  }),
+  updatedAt: z.union([z.string(), z.date()]),
+  assigned_user: z
+    .object({
+      name: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export type Task = z.infer<typeof taskSchema>;

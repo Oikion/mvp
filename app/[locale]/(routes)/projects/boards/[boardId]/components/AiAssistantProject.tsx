@@ -29,7 +29,6 @@ const AiAssistantProject = ({
         description: "AI Assistant just send your report to your mailbox",
       });
     } catch (error) {
-      console.log(error, "error from AI Assistant");
       toast({
         variant: "destructive",
         title: "Error",

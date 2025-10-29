@@ -5,7 +5,7 @@ import axios from "axios";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import {
   crm_Opportunities,

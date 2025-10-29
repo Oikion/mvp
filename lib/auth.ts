@@ -3,7 +3,7 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcrypt";
+import { compare } from "bcryptjs";
 import { newUserNotify } from "./new-user-notify";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
@@ -66,7 +66,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("User not found, please register first");
         }
 
-        const isCorrectPassword = await bcrypt.compare(
+        const isCorrectPassword = await compare(
           trimmedPassword,
           user.password
         );
@@ -91,22 +91,30 @@ export const authOptions: NextAuthOptions = {
 
       if (!user) {
         try {
+          // Check if this is the first user in the system
+          const userCount = await prismadb.users.count();
+          const isFirstUser = userCount === 0;
+          
           const newUser = await prismadb.users.create({
             data: {
               email: token.email,
               name: token.name,
               avatar: token.picture,
-              is_admin: false,
+              is_admin: isFirstUser, // First user becomes admin
               is_account_admin: false,
               lastLoginAt: new Date(),
-              userStatus:
-                process.env.NEXT_PUBLIC_APP_URL === "https://demo.nextcrm.io"
+              userStatus: isFirstUser 
+                ? "ACTIVE" // First user is automatically active
+                : process.env.NEXT_PUBLIC_APP_URL === "https://demo.nextcrm.io"
                   ? "ACTIVE"
                   : "PENDING",
             },
           });
 
-          await newUserNotify(newUser);
+          // Only notify admins if this is NOT the first user
+          if (!isFirstUser) {
+            await newUserNotify(newUser);
+          }
 
           //Put new created user data in session
           session.user.id = newUser.id;
@@ -114,7 +122,7 @@ export const authOptions: NextAuthOptions = {
           session.user.email = newUser.email;
           session.user.avatar = newUser.avatar;
           session.user.image = newUser.avatar;
-          session.user.isAdmin = false;
+          session.user.isAdmin = newUser.is_admin; // Use the actual admin status
           session.user.userLanguage = newUser.userLanguage;
           session.user.userStatus = newUser.userStatus;
           session.user.lastLoginAt = newUser.lastLoginAt;

@@ -45,10 +45,10 @@ const AccountsView = ({ data, crmData }: any) => {
         <div className="flex justify-between">
           <div>
             <CardTitle
-              onClick={() => router.push("/crm/accounts")}
+              onClick={() => router.push("/crm/clients")}
               className="cursor-pointer"
             >
-              Accounts
+              Clients
             </CardTitle>
             <CardDescription></CardDescription>
           </div>
@@ -62,7 +62,7 @@ const AccountsView = ({ data, crmData }: any) => {
               </Button>
               <SheetContent className="min-w-[1000px] space-y-2">
                 <SheetHeader>
-                  <SheetTitle>Create new Account</SheetTitle>
+                  <SheetTitle>Create new Client</SheetTitle>
                 </SheetHeader>
                 <div className="h-full overflow-y-auto">
                   <NewAccountForm

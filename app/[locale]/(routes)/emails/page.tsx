@@ -19,11 +19,8 @@ const EmailRoute = async () => {
       },
     };
   }
-  //Get user language
-  const lang = session.user.userLanguage;
-
-  //Fetch translations from dictionary
-  const dict = await getDictionary(lang as "en" | "cz" | "de");
+  //Fetch translations from dictionary (English only for now)
+  const dict = await getDictionary();
 
   const layout = (await cookies()).get("react-resizable-panels:layout");
   const collapsed = (await cookies()).get("react-resizable-panels:collapsed");

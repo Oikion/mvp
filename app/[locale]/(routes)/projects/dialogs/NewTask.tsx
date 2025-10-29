@@ -85,7 +85,6 @@ const NewTaskDialog = ({ users, boards }: Props) => {
   //Actions
 
   const onSubmit = async (data: NewAccountFormValues) => {
-    console.log(data);
     setIsLoading(true);
     try {
       await axios.post(`/api/projects/tasks/create-task`, data);
@@ -200,15 +199,13 @@ const NewTaskDialog = ({ users, boards }: Props) => {
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              //@ts-ignore
-                              //TODO: fix this
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date("1900-01-01")}
-                              initialFocus
-                            />
+                          <Calendar
+                            mode="single"
+                            selected={field.value as Date | undefined}
+                            onSelect={(date) => field.onChange(date)}
+                            disabled={(date) => date < new Date("1900-01-01")}
+                            initialFocus
+                          />
                           </PopoverContent>
                         </Popover>
                         <FormMessage />

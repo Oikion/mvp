@@ -13,13 +13,13 @@ export async function DELETE(req: Request, props: { params: Promise<{ accountId:
   }
 
   try {
-    await prismadb.crm_Accounts.delete({
+    await prismadb.clients.delete({
       where: {
         id: params.accountId,
       },
     });
 
-    return NextResponse.json({ message: "Account deleted" }, { status: 200 });
+    return NextResponse.json({ message: "Client deleted" }, { status: 200 });
   } catch (error) {
     console.log("[ACCOUNT_DELETE]", error);
     return new NextResponse("Initial error", { status: 500 });

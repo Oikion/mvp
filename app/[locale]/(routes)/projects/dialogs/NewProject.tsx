@@ -69,7 +69,6 @@ const NewProjectDialog = () => {
   //Actions
 
   const onSubmit = async (data: NewAccountFormValues) => {
-    console.log(data);
     setIsLoading(true);
     try {
       await axios.post("/api/projects/", data);

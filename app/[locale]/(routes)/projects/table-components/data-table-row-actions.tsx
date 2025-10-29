@@ -62,7 +62,6 @@ export function DataTableRowActions<TData>({
         variant: "destructive",
         title: "Error, project not deleted. Please try again.",
       });
-      console.log(error);
     } finally {
       toast({
         title: "Success",
@@ -83,7 +82,6 @@ export function DataTableRowActions<TData>({
         variant: "destructive",
         title: "Error, project not watched. Please try again.",
       });
-      console.log(error);
     } finally {
       toast({
         title: "Success",
@@ -102,7 +100,6 @@ export function DataTableRowActions<TData>({
         variant: "destructive",
         title: "Error, project not watched. Please try again.",
       });
-      console.log(error);
     } finally {
       toast({
         title: "Success",

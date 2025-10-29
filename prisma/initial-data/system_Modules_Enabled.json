@@ -20,7 +20,7 @@
   {
     "v": 0,
     "name": "secondBrain",
-    "enabled": true,
+    "enabled": false,
     "position": 4
   },
   {
@@ -49,14 +49,8 @@
   },
   {
     "v": 0,
-    "name": "databox",
-    "enabled": false,
-    "position": 9
-  },
-  {
-    "v": 0,
     "name": "openai",
     "enabled": true,
-    "position": 10
+    "position": 9
   }
 ]
