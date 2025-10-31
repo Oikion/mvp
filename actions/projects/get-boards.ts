@@ -15,7 +15,13 @@ export const getBoards = async (userId: string) => {
         },
       ],
     },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      visibility: true,
+      updatedAt: true,
+      createdAt: true,
       assigned_user: {
         select: {
           name: true,
@@ -25,6 +31,7 @@ export const getBoards = async (userId: string) => {
     orderBy: {
       updatedAt: "desc",
     },
+    take: 100, // Add reasonable limit to prevent over-fetching
   });
   return data;
 };

@@ -5,7 +5,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { crm_Opportunities } from "@prisma/client";
 import {
   CalendarDays,
   ClipboardList,

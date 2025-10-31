@@ -16,14 +16,16 @@ const Container = ({
   children,
 }: ContainerProps) => {
   return (
-    <div className="flex-1 space-y-4 p-4 pt-0 h-full overflow-hidden">
-      <Heading
-        title={title}
-        description={description}
-        visibility={visibility}
-      />
-      <Separator />
-      <div className="text-sm h-full overflow-auto pb-32 space-y-5">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+      <div className="shrink-0 space-y-4">
+        <Heading
+          title={title}
+          description={description}
+          visibility={visibility}
+        />
+        <Separator />
+      </div>
+      <div className="flex-1 overflow-y-auto min-h-0 pb-8 space-y-5 text-sm">
         {children}
       </div>
     </div>

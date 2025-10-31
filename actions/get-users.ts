@@ -13,11 +13,17 @@ export const getUsers = async () => {
 //Get active users for Selects in app etc
 export const getActiveUsers = async () => {
   const data = await prismadb.users.findMany({
-    orderBy: {
-      created_on: "desc",
-    },
     where: {
       userStatus: "ACTIVE",
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      avatar: true,
+    },
+    orderBy: {
+      created_on: "desc",
     },
   });
   return data;

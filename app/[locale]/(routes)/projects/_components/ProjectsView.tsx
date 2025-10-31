@@ -24,8 +24,11 @@ const ProjectsView = async () => {
 
   const userId = session.user.id;
 
-  const users = await getActiveUsers();
-  const boards: any = await getBoards(userId!);
+  // Parallelize queries for better performance
+  const [users, boards] = await Promise.all([
+    getActiveUsers(),
+    getBoards(userId!),
+  ]);
 
   return (
     <>

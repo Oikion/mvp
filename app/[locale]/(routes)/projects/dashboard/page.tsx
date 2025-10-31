@@ -12,10 +12,14 @@ import { Sections } from "@prisma/client";
 const ProjectDashboard = async () => {
   const session = await getServerSession(authOptions);
   const user = session?.user;
-  const dashboardData: any = await getTasksPastDue();
-  const activeUsers: any = await getActiveUsers();
-  const boards = await getBoards(user?.id!);
-  const sections: Sections[] = await getSections();
+
+  // Parallelize all queries for better performance
+  const [dashboardData, activeUsers, boards, sections] = await Promise.all([
+    getTasksPastDue(),
+    getActiveUsers(),
+    getBoards(user?.id!),
+    getSections(),
+  ]);
 
   if (!dashboardData) {
     return <div>DashBoard data not found</div>;
@@ -32,7 +36,7 @@ const ProjectDashboard = async () => {
         dashboardData={dashboardData}
         users={activeUsers}
         boards={boards}
-        sections={sections}
+        sections={sections as Sections[]}
       />
     </Container>
   );

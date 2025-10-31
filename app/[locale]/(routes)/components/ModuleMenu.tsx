@@ -3,9 +3,7 @@
 import React, { useEffect, useState } from "react";
 
 import ProjectModuleMenu from "./menu-items/Projects";
-import InvoicesModuleMenu from "./menu-items/Invoices";
 import ReportsModuleMenu from "./menu-items/Reports";
-import DocumentsModuleMenu from "./menu-items/Documents";
 import ChatGPTModuleMenu from "./menu-items/ChatGPT";
 import EmployeesModuleMenu from "./menu-items/Employees";
 import CrmModuleMenu from "./menu-items/Crm";
@@ -13,7 +11,6 @@ import MlsModuleMenu from "./menu-items/Mls";
 
 import AdministrationMenu from "./menu-items/Administration";
 import DashboardMenu from "./menu-items/Dashboard";
-import EmailsModuleMenu from "./menu-items/Emails";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChevronsLeft } from "lucide-react";
@@ -82,11 +79,6 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
           ) ? (
             <ProjectModuleMenu open={open} title={dict.ModuleMenu.projects} />
           ) : null}
-          {modules.find(
-            (menuItem: any) => menuItem.name === "emails" && menuItem.enabled
-          ) ? (
-            <EmailsModuleMenu open={open} title={dict.ModuleMenu.emails} />
-          ) : null}
           
           {modules.find(
             (menuItem: any) => menuItem.name === "employee" && menuItem.enabled
@@ -94,22 +86,9 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
             <EmployeesModuleMenu open={open} />
           ) : null}
           {modules.find(
-            (menuItem: any) => menuItem.name === "invoice" && menuItem.enabled
-          ) ? (
-            <InvoicesModuleMenu open={open} title={dict.ModuleMenu.invoices} />
-          ) : null}
-          {modules.find(
             (menuItem: any) => menuItem.name === "reports" && menuItem.enabled
           ) ? (
             <ReportsModuleMenu open={open} title={dict.ModuleMenu.reports} />
-          ) : null}
-          {modules.find(
-            (menuItem: any) => menuItem.name === "documents" && menuItem.enabled
-          ) ? (
-            <DocumentsModuleMenu
-              open={open}
-              title={dict.ModuleMenu.documents}
-            />
           ) : null}
           {modules.find(
             (menuItem: any) => menuItem.name === "openai" && menuItem.enabled

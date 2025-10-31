@@ -28,11 +28,15 @@ const BoardPage = async (props: BoardDetailProps) => {
   const session = await getServerSession(authOptions);
   const user = session?.user;
   const { boardId } = params;
-  const board: any = await getBoard(boardId);
-  const boards = await getBoards(user?.id!);
-  const users: Users[] = await getActiveUsers();
-  const sections: any = await getBoardSections(boardId);
-  const kanbanData = await getKanbanData(boardId);
+
+  // Parallelize all queries for better performance
+  const [board, boards, users, sections, kanbanData] = await Promise.all([
+    getBoard(boardId),
+    getBoards(user?.id!),
+    getActiveUsers(),
+    getBoardSections(boardId),
+    getKanbanData(boardId),
+  ]);
 
   //console.log(board, "board");
   return (

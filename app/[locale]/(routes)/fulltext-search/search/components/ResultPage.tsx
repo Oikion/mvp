@@ -24,12 +24,8 @@ const ResultPage = ({ results, search }: Props) => {
         <pre>{JSON.stringify(search, null, 2)}</pre>
       </div>
       <div className="flex flex-row gap-2">
-        <h1>Search results in CRM Opportunities: </h1>
-        <p>{results?.data?.opportunities?.length}</p>
-      </div>
-      <div className="flex flex-row gap-2">
-        <h1>Search results in CRM Acocunts: </h1>
-        <p>{results?.data?.accounts?.length}</p>
+        <h1>Search results in CRM Clients: </h1>
+        <p>{results?.data?.clients?.length}</p>
       </div>
       <div className="flex flex-row gap-2">
         <h1>Search results in CRM contacts: </h1>

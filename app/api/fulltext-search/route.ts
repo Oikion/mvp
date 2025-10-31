@@ -17,35 +17,24 @@ export async function POST(req: Request) {
   //return new NextResponse("Done", { status: 200 });
 
   try {
-    //Search in modul CRM (Oppotunities)
-    const resultsCrmOpportunities = await prismadb.crm_Opportunities.findMany({
+    //Search in modul CRM (Clients)
+    const resultsCrmClients = await prismadb.clients.findMany({
       where: {
         OR: [
           { description: { contains: search, mode: "insensitive" } },
-          { name: { contains: search, mode: "insensitive" } },
+          { client_name: { contains: search, mode: "insensitive" } },
+          { primary_email: { contains: search, mode: "insensitive" } },
           // add more fields as needed
         ],
       },
     });
 
-    //Search in modul CRM (Accounts)
-    const resultsCrmAccounts = await prismadb.crm_Accounts.findMany({
+    //Search in modul CRM (Client Contacts)
+    const resultsCrmContacts = await prismadb.client_Contacts.findMany({
       where: {
         OR: [
-          { description: { contains: search, mode: "insensitive" } },
-          { name: { contains: search, mode: "insensitive" } },
-          { email: { contains: search, mode: "insensitive" } },
-          // add more fields as needed
-        ],
-      },
-    });
-
-    //Search in modul CRM (Contacts)
-    const resultsCrmContacts = await prismadb.crm_Contacts.findMany({
-      where: {
-        OR: [
-          { last_name: { contains: search, mode: "insensitive" } },
-          { first_name: { contains: search, mode: "insensitive" } },
+          { contact_last_name: { contains: search, mode: "insensitive" } },
+          { contact_first_name: { contains: search, mode: "insensitive" } },
           { email: { contains: search, mode: "insensitive" } },
           // add more fields as needed
         ],
@@ -86,8 +75,7 @@ export async function POST(req: Request) {
     });
 
     const data = {
-      opportunities: resultsCrmOpportunities,
-      accounts: resultsCrmAccounts,
+      clients: resultsCrmClients,
       contacts: resultsCrmContacts,
       users: resultsUser,
       tasks: resultsTasks,

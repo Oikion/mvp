@@ -6,7 +6,7 @@ const Footer = async () => {
   const nextVersion = await getNextVersion();
   //console.log(nextVersion, "nextVersion");
   return (
-    <footer className="flex flex-row h-8 justify-end items-center w-full text-xs text-gray-500 p-5">
+    <footer className="flex flex-row h-8 shrink-0 justify-end items-center w-full text-xs text-gray-500 p-5">
       <div className="hidden md:flex pr-5">
         <Link href="/">
           <h1 className="text-gray-600">

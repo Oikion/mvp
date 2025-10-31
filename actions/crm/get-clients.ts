@@ -1,9 +1,14 @@
 import { prismadb } from "@/lib/prisma";
-import { getCacheStrategy } from "@/lib/prisma-cache";
 
 export const getClients = async () => {
   const data = await prismadb.clients.findMany({
-    include: {
+    select: {
+      id: true,
+      client_name: true,
+      primary_email: true,
+      client_status: true,
+      createdAt: true,
+      assigned_to: true,
       assigned_to_user: {
         select: {
           name: true,
@@ -14,12 +19,13 @@ export const getClients = async () => {
           contact_first_name: true,
           contact_last_name: true,
         },
+        take: 10, // Limit contacts per client to reduce data transfer
       },
     },
     orderBy: {
       createdAt: "desc",
     },
-    ...getCacheStrategy(30, ["clients:list"]),
+    take: 500, // Add reasonable limit to prevent over-fetching
   });
   // Map to legacy fields expected by existing UI until refactor completes
   return data.map((c: any) => ({

@@ -48,7 +48,6 @@ model Clients {
   website              String?
 
   // Relations
-  invoices             Invoices[]
   documentsIDs         String[]
   assigned_documents   Documents[]        @relation("DocumentsToClients")
   contacts             Client_Contacts[]
@@ -56,6 +55,11 @@ model Clients {
   crm_accounts_tasks   crm_Accounts_Tasks[]
   watchers             String[]
   watching_users       Users[]            @relation("watching_accounts")
+
+  // Performance indexes for frequently queried fields
+  @@index([client_status])
+  @@index([createdAt])
+  @@index([assigned_to])
 }
 
 enum ClientType {
@@ -113,6 +117,11 @@ model Client_Contacts {
   assigned_client        Clients?            @relation(fields: [clientsIDs], references: [id])
   documentsIDs           String[]
   assigned_documents     Documents[]         @relation("DocumentsToClientContacts")
+
+  // Performance indexes for frequently queried fields
+  @@index([clientsIDs])
+  @@index([assigned_to])
+  @@index([created_on])
 }
 
 enum ClientContactType {
@@ -145,6 +154,10 @@ model Boards {
   assigned_user  Users?   @relation("assigned_user", fields: [user], references: [id])
   watchers_users Users[]  @relation("watching_users")
   sections       Sections[] @relation("SectionsToBoards")
+
+  // Performance indexes for frequently queried fields
+  @@index([user])
+  @@index([createdAt])
 }
 
 model Employees {
@@ -199,84 +212,6 @@ model MyAccount {
   bank_SWIFT           String?
 }
 
-model Invoices {
-  id                            String          @id @default(uuid())
-  date_created                  DateTime        @default(now())
-  last_updated                  DateTime        @updatedAt
-  last_updated_by               String?
-  date_received                 DateTime?       @default(now())
-  date_of_case                  DateTime?
-  date_tax                      DateTime?
-  date_due                      DateTime?
-  description                   String?
-  document_type                 String?
-  favorite                      Boolean?        @default(false)
-  variable_symbol               String?
-  constant_symbol               String?
-  specific_symbol               String?
-  order_number                  String?
-  internal_number               String?
-  invoice_number                String?
-  invoice_amount                String?
-  invoice_file_mimeType         String
-  invoice_file_url              String
-  invoice_items                 Json?
-  invoice_type                  String?
-  invoice_currency              String?
-  invoice_language              String?
-  partner                       String?
-  partner_street                String?
-  partner_city                  String?
-  partner_zip                   String?
-  partner_country               String?
-  partner_country_code          String?
-  partner_business_street       String?
-  partner_business_city         String?
-  partner_business_zip          String?
-  partner_business_country      String?
-  partner_business_country_code String?
-  partner_VAT_number            String?
-  partner_TAX_number            String?
-  partner_TAX_local_number      String?
-  partner_phone_prefix          String?
-  partner_phone_number          String?
-  partner_fax_prefix            String?
-  partner_fax_number            String?
-  partner_email                 String?
-  partner_website               String?
-  partner_is_person             Boolean?
-  partner_bank                  String?
-  partner_account_number        String?
-  partner_account_bank_number   String?
-  partner_IBAN                  String?
-  partner_SWIFT                 String?
-  partner_BIC                   String?
-  rossum_status                 String?
-  rossum_annotation_id          String?
-  rossum_annotation_url          String?
-  rossum_document_id            String?
-  rossum_document_url            String?
-  rossum_annotation_json_url     String?
-  rossum_annotation_xml_url       String?
-  money_s3_url                  String?
-  status                        String?
-  invoice_state_id              String?
-  assigned_user_id              String?
-  assigned_account_id           String?
-  visibility                    Boolean         @default(true)
-  invoice_states                invoice_States? @relation(fields: [invoice_state_id], references: [id])
-  users                         Users?          @relation(fields: [assigned_user_id], references: [id])
-  accounts                      Clients?        @relation(fields: [assigned_account_id], references: [id])
-  connected_documents           String[]
-  documents                     Documents[]     @relation("DocumentsToInvoices")
-}
-
-model invoice_States {
-  id                String     @id @default(uuid())
-  name              String
-  assigned_invoices Invoices[]
-}
-
 model Documents {
   id                     String              @id @default(uuid())
   date_created           DateTime?           @default(now())
@@ -298,12 +233,10 @@ model Documents {
   size                   Int?
   assigned_user          String?
   connected_documents    String[]
-  invoiceIDs             String[]
   contactsIDs            String[]
   tasksIDs               String[]
   crm_accounts_tasksIDs  String[]
   accountsIDs            String[]
-  invoices               Invoices[]          @relation("DocumentsToInvoices")
   contacts               Client_Contacts[]   @relation("DocumentsToClientContacts")
   tasks                  Tasks[]             @relation("DocumentsToTasks")
   crm_accounts_tasks     crm_Accounts_Tasks[] @relation("DocumentsToCrmAccountsTasks")
@@ -312,6 +245,11 @@ model Documents {
   assigned_to_user       Users?              @relation("assigned_to_user", fields: [assigned_user], references: [id])
   documents_type         Documents_Types?    @relation(fields: [document_type], references: [id])
   document_system_type   DocumentSystemType? @default(OTHER)
+
+  // Performance indexes for frequently queried fields
+  @@index([date_created])
+  @@index([assigned_user])
+  @@index([created_by_user])
 }
 
 enum DocumentSystemType {
@@ -368,6 +306,12 @@ model Tasks {
   assigned_section Sections?       @relation(fields: [section], references: [id])
   //Staus
   taskStatus       taskStatus?     @default(ACTIVE)
+
+  // Performance indexes for frequently queried fields
+  @@index([user])
+  @@index([section])
+  @@index([createdAt])
+  @@index([taskStatus])
 }
 
 model crm_Accounts_Tasks {
@@ -453,7 +397,6 @@ model Users {
   assigned_property_contacts Property_Contacts[]
   
   openAi_key           openAi_keys[]
-  assigned_invoices    Invoices[]
   boards               Boards[]              @relation("assigned_user")
   watching_boardsIDs   String[]
   watching_boards      Boards[]             @relation("watching_users")
@@ -461,6 +404,10 @@ model Users {
   watching_accounts    Clients[]             @relation("watching_accounts")
   watching_propertiesIDs String[]
   watching_properties  Properties[]          @relation("watching_properties")
+
+  // Performance indexes for frequently queried fields
+  @@index([userStatus])
+  @@index([email])
 }
 
 enum Language {

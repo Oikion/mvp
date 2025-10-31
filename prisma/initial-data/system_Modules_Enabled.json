@@ -10,38 +10,18 @@
     "position": 2
   },
   {
-    "name": "emails",
+    "name": "employee",
     "enabled": false,
     "position": 3
   },
   {
-    "name": "secondBrain",
-    "enabled": false,
-    "position": 4
-  },
-  {
-    "name": "employee",
-    "enabled": false,
-    "position": 5
-  },
-  {
-    "name": "invoice",
-    "enabled": true,
-    "position": 6
-  },
-  {
     "name": "reports",
     "enabled": true,
-    "position": 7
-  },
-  {
-    "name": "documents",
-    "enabled": true,
-    "position": 8
+    "position": 4
   },
   {
     "name": "openai",
     "enabled": true,
-    "position": 9
+    "position": 5
   }
 ]

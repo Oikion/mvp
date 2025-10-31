@@ -2,17 +2,11 @@ import { getTask } from "@/actions/projects/get-task";
 import React from "react";
 import moment from "moment";
 
-import { getDocuments } from "@/actions/documents/get-documents";
 import { getTaskComments } from "@/actions/projects/get-task-comments";
-import { getTaskDocuments } from "@/actions/projects/get-task-documents";
 
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 import { TeamConversations } from "./components/team-conversation";
-import { TaskDataTable } from "./components/data-table";
-import { columns } from "./components/columns";
-import { columnsTask } from "./components/columns-task";
 
 import TaskViewActions from "./components/TaskViewActions";
 import {
@@ -42,13 +36,9 @@ const TaskPage = async (props: TaskPageProps) => {
 
   const { taskId } = params;
   const task: any = await getTask(taskId);
-  const taskDocuments: any = await getTaskDocuments(taskId);
-  const documents: any = await getDocuments();
   const comments: any = await getTaskComments(taskId);
   const activeUsers: any = await getActiveUsers();
   const boards = await getBoards(user?.id!);
-
-  //console.log(taskDocuments, "taskDocuments");
 
   return (
     <div className="flex flex-col md:flex-row w-full px-2 space-x-2 ">
@@ -159,18 +149,6 @@ const TaskPage = async (props: TaskPageProps) => {
             </CardFooter>
           </Card>
         </div>
-        {/*         <pre>
-          <code>{JSON.stringify(taskDocuments, null, 2)}</code>
-        </pre> */}
-        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight py-5">
-          Task documents ({taskDocuments.length})
-        </h4>
-        <TaskDataTable data={taskDocuments} columns={columnsTask} />
-        <Separator />
-        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight py-5">
-          Available documents ({documents.length})
-        </h4>
-        <TaskDataTable data={documents} columns={columns} />
       </div>
 
       <div className="w-full md:w-1/3">

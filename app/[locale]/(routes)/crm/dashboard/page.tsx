@@ -4,8 +4,11 @@ import { getAllCrmData } from "@/actions/crm/get-crm-data";
 import { getClients } from "@/actions/crm/get-clients";
 
 const CrmDashboardPage = async () => {
-  const crmData = await getAllCrmData();
-  const clients = await getClients();
+  // Parallelize queries for better performance
+  const [crmData, clients] = await Promise.all([
+    getAllCrmData(),
+    getClients(),
+  ]);
 
   return (
     <Container

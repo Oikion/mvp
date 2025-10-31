@@ -9,12 +9,9 @@ import {
   Coins, 
   Building, 
   Users, 
-  Mail, 
   Settings, 
   Bot, 
-  FolderOpen,
   ServerIcon,
-  FileCheck,
   FileBarChart,
   Wrench
 } from "lucide-react"
@@ -82,13 +79,6 @@ export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
       icon: ServerIcon,
       isActive: pathname.includes("/projects"),
     }] : []),
-    // Add Emails module if enabled
-    ...(modules.some((m: any) => m.name === "emails" && m.enabled) ? [{
-      title: dict.ModuleMenu.emails,
-      url: "/emails",
-      icon: Mail,
-      isActive: pathname.includes("/emails"),
-    }] : []),
     // Add Employees module if enabled
     ...(modules.some((m: any) => m.name === "employee" && m.enabled) ? [{
       title: "Employees",
@@ -96,26 +86,12 @@ export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
       icon: Users,
       isActive: pathname.includes("/employees"),
     }] : []),
-    // Add Invoices module if enabled
-    ...(modules.some((m: any) => m.name === "invoice" && m.enabled) ? [{
-      title: dict.ModuleMenu.invoices,
-      url: "/invoice",
-      icon: FileCheck,
-      isActive: pathname.includes("/invoice"),
-    }] : []),
     // Add Reports module if enabled
     ...(modules.some((m: any) => m.name === "reports" && m.enabled) ? [{
       title: dict.ModuleMenu.reports,
       url: "/reports",
       icon: FileBarChart,
       isActive: pathname.includes("/reports"),
-    }] : []),
-    // Add Documents module if enabled
-    ...(modules.some((m: any) => m.name === "documents" && m.enabled) ? [{
-      title: dict.ModuleMenu.documents,
-      url: "/documents",
-      icon: FolderOpen,
-      isActive: pathname.includes("/documents"),
     }] : []),
     // Add ChatGPT module if enabled
     ...(modules.some((m: any) => m.name === "openai" && m.enabled) ? [{
