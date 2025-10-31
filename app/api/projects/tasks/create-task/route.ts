@@ -90,6 +90,15 @@ export async function POST(req: Request) {
       },
     });
 
+    // Invalidate cache
+    const { invalidateCache } = await import("@/lib/cache-invalidate");
+    await invalidateCache([
+      "tasks:list",
+      "dashboard:tasks-count",
+      user ? `user:${user}` : "",
+      section ? `task:${task.id}` : "",
+    ].filter(Boolean));
+
     //Notification to user who is not a task creator
     if (user !== session.user.id) {
       try {

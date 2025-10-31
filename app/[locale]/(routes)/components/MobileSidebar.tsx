@@ -1,18 +1,18 @@
-import { Menu } from "lucide-react";
+// MobileSidebar is deprecated - the shadcn sidebar handles mobile responsiveness automatically
+// This component is kept for backwards compatibility but is no longer used
+// The SidebarTrigger in the layout handles mobile sidebar toggling
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import SideBar from "./SideBar";
+import { Menu } from "lucide-react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const MobileSidebar = () => {
+  // Use the built-in SidebarTrigger which handles mobile automatically
   return (
-    <Sheet>
-      <SheetTrigger className="md:hidden pr-4 hover:opacity-75 transition">
-        <Menu />
-      </SheetTrigger>
-      <SheetContent side="left" className="p-0 bg-white">
-        <SideBar build={0} />
-      </SheetContent>
-    </Sheet>
+    <div className="md:hidden">
+      <SidebarTrigger className="hover:opacity-75 transition">
+        <Menu className="h-5 w-5" />
+      </SidebarTrigger>
+    </div>
   );
 };
 

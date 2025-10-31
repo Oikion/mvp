@@ -1,4 +1,5 @@
 import { prismadb } from "@/lib/prisma";
+import { getCacheStrategy } from "@/lib/prisma-cache";
 
 export const getTaskDocuments = async (taskId: string) => {
   const data = await prismadb.documents.findMany({
@@ -19,6 +20,7 @@ export const getTaskDocuments = async (taskId: string) => {
         },
       },
     },
+    ...getCacheStrategy(30, ["documents:list", `task:${taskId}`]),
   });
   /*   const data = await prismadb.tasks.findMany({
     where: {

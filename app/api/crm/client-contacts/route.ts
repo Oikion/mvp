@@ -3,6 +3,7 @@ import { prismadb } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import sendEmail from "@/lib/sendmail";
+import { invalidateCache } from "@/lib/cache-invalidate";
 
 // Create client contact
 export async function POST(req: Request) {
@@ -40,7 +41,6 @@ export async function POST(req: Request) {
 
     const newContact = await prismadb.client_Contacts.create({
       data: {
-        v: 0,
         createdBy: userId,
         updatedBy: userId,
         ...(assigned_client !== null && assigned_client !== undefined
@@ -72,6 +72,14 @@ export async function POST(req: Request) {
         type,
       },
     });
+
+    // Invalidate cache
+    await invalidateCache([
+      "contacts:list",
+      "dashboard:contacts-count",
+      assigned_client ? `account:${assigned_client}` : "",
+      assigned_to ? `user:${assigned_to}` : "",
+    ].filter(Boolean));
 
     if (assigned_to !== userId) {
       const notifyRecipient = await prismadb.users.findFirst({
@@ -139,7 +147,6 @@ export async function PUT(req: Request) {
     const newContact = await prismadb.client_Contacts.update({
       where: { id },
       data: {
-        v: 0,
         updatedBy: userId,
         ...(assigned_client !== null && assigned_client !== undefined
           ? {
@@ -168,6 +175,14 @@ export async function PUT(req: Request) {
         type,
       },
     });
+
+    // Invalidate cache
+    await invalidateCache([
+      "contacts:list",
+      `contact:${id}`,
+      assigned_client ? `account:${assigned_client}` : "",
+      assigned_to ? `user:${assigned_to}` : "",
+    ].filter(Boolean));
 
     return NextResponse.json({ newContact }, { status: 200 });
   } catch (error) {

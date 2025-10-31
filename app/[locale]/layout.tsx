@@ -86,7 +86,7 @@ export default async function RootLayout(props: Props) {
         <meta property="og:title" content="NextCRM" />
         <meta
           property="og:description"
-          content="NextCRM is an open source CRM build on top of NextJS. Technology stack: NextJS with Typescrtipt, MongoDB, TailwindCSS, React, Prisma, shadCN, resend.com, react.email and more."
+          content="NextCRM is an open source CRM build on top of NextJS. Technology stack: NextJS with Typescrtipt, PostgreSQL, TailwindCSS, React, Prisma, shadCN, resend.com, react.email and more."
         />
         <meta property="og:image" content="https://nextcrm.io/api/og" />
 
@@ -96,7 +96,7 @@ export default async function RootLayout(props: Props) {
         <meta name="twitter:title" content="NextCRM" />
         <meta
           name="twitter:description"
-          content="NextCRM is an open source CRM build on top of NextJS. Technology stack: NextJS with Typescrtipt, MongoDB, TailwindCSS, React, Prisma, shadCN, resend.com, react.email and more."
+          content="NextCRM is an open source CRM build on top of NextJS. Technology stack: NextJS with Typescrtipt, PostgreSQL, TailwindCSS, React, Prisma, shadCN, resend.com, react.email and more."
         />
         <meta name="twitter:image" content="https://nextcrm.io/api/og" />
       </head>

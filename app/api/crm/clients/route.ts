@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { invalidateCache } from "@/lib/cache-invalidate";
 
 // Create new client
 export async function POST(req: Request) {
@@ -40,7 +41,6 @@ export async function POST(req: Request) {
 
     const newClient = await prismadb.clients.create({
       data: {
-        v: 0,
         createdBy: session.user.id,
         updatedBy: session.user.id,
         client_name,
@@ -69,6 +69,9 @@ export async function POST(req: Request) {
         member_of,
       },
     });
+
+    // Invalidate cache
+    await invalidateCache(["clients:list", "dashboard:accounts-count", assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
 
     return NextResponse.json({ newClient }, { status: 200 });
   } catch (error) {
@@ -116,7 +119,6 @@ export async function PUT(req: Request) {
     const updatedClient = await prismadb.clients.update({
       where: { id },
       data: {
-        v: 0,
         updatedBy: session.user.id,
         client_name,
         primary_email,
@@ -144,6 +146,9 @@ export async function PUT(req: Request) {
         member_of,
       },
     });
+
+    // Invalidate cache
+    await invalidateCache(["clients:list", `account:${id}`, assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
 
     return NextResponse.json({ updatedClient }, { status: 200 });
   } catch (error) {

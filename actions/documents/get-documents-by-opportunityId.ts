@@ -1,4 +1,5 @@
 import { prismadb } from "@/lib/prisma";
+import { getCacheStrategy } from "@/lib/prisma-cache";
 
 export const getDocumentsByOpportunityId = async (opportunityId: string) => {
   const data = await prismadb.documents.findMany({
@@ -22,6 +23,7 @@ export const getDocumentsByOpportunityId = async (opportunityId: string) => {
     orderBy: {
       date_created: "desc",
     },
+    ...getCacheStrategy(30, ["documents:list", `opportunity:${opportunityId}`]),
   });
   return data;
 };

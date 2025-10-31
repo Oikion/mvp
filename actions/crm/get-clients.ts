@@ -1,4 +1,5 @@
 import { prismadb } from "@/lib/prisma";
+import { getCacheStrategy } from "@/lib/prisma-cache";
 
 export const getClients = async () => {
   const data = await prismadb.clients.findMany({
@@ -18,6 +19,7 @@ export const getClients = async () => {
     orderBy: {
       createdAt: "desc",
     },
+    ...getCacheStrategy(30, ["clients:list"]),
   });
   // Map to legacy fields expected by existing UI until refactor completes
   return data.map((c: any) => ({

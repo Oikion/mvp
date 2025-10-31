@@ -1,50 +1,27 @@
-import { getServerSession } from "next-auth";
+// app/[locale]/(routes)/layout.tsx
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import Link from "next/link"
+import { AppSidebar } from "./components/AppSidebar"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { Separator } from "@/components/ui/separator"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
+import getAllCommits from "@/actions/github/get-repo-commits"
+import { getModules } from "@/actions/get-modules"
+import { getDictionary } from "@/dictionaries"
+import Footer from "./components/Footer"
 
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
-
-import Header from "./components/Header";
-import SideBar from "./components/SideBar";
-import Footer from "./components/Footer";
-import getAllCommits from "@/actions/github/get-repo-commits";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL! || "http://localhost:3000"
-  ),
-  title: "",
-  description: "",
-  openGraph: {
-    images: [
-      {
-        url: "/images/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: [
-      {
-        url: "/images/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "",
-      },
-    ],
-  },
-};
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
-
-  //console.log(session, "session");
 
   if (!session) {
     return redirect("/sign-in");
@@ -61,24 +38,48 @@ export default async function AppLayout({
   }
 
   const build = await getAllCommits();
+  const modules = await getModules();
+  const dict = await getDictionary();
 
-  //console.log(typeof build, "build");
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-50">
-      <SideBar build={build} />
-      </div>
-      <main className="md:pl-72 w-full h-full flex flex-col overflow-hidden">
-        <Header
-          id={session.user.id as string}
-          name={session.user.name as string}
-          email={session.user.email as string}
-          avatar={session.user.image as string}
-          lang={session.user.userLanguage as string}
+    <div className="flex h-screen w-full overflow-hidden">
+      <SidebarProvider defaultOpen={true}>
+        <AppSidebar 
+          modules={modules} 
+          dict={dict} 
+          build={build}
+          user={{
+            name: session.user.name as string,
+            email: session.user.email as string,
+            avatar: session.user.image as string,
+          }}
         />
-        <div className="flex-grow overflow-y-auto h-full p-5">{children}</div>
+        <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink asChild>
+                    <Link href="/">Dashboard</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Current Page</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          {children}
+        </div>
         <Footer />
-      </main>
+      </SidebarInset>
+    </SidebarProvider>
     </div>
   );
 }

@@ -7,7 +7,7 @@
 </p>
 
 <!-- <p align="center">
-NextCRM is a CRM build on top of the Next.JS 14 using TypeScript, great UI library shadcn, Prisma and MongoDB as a database. Upload things as a S3 blob for document storage.
+NextCRM is a CRM build on top of the Next.JS 14 using TypeScript, great UI library shadcn, Prisma and PostgreSQL as a database. Upload things as a S3 blob for document storage.
 </p> -->
 
 <p align="center">
@@ -46,7 +46,7 @@ You can try it here [demo.nextcrm.io](https://demo.nextcrm.io), login via Google
 ### Platforms
 
 - [Vercel](https://vercel.com/) – Easily preview & deploy changes with git
-- [Mongo DB Atlas](https://mongodb.com/) – A database platform for seamless, scalable data management
+- [Prisma Postgres](https://www.prisma.io/postgres) – A database platform for seamless, scalable data management
 - [Resend](https://resend.com/) – A powerful email framework for streamlined email development together with [react.email](https://react.email)
 
 ### Data fetching
@@ -130,7 +130,7 @@ Available soon at: http://docs.nextcrm.io
 
    **.env**
 
-   > > - You will need mongodb URI string for Prisma ORM
+   > > - You will need PostgreSQL connection string for Prisma ORM
 
    **.env.local**
 

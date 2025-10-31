@@ -7,11 +7,11 @@ Seed data is used to populate the database with initial data.
 const moduleData = require("../initial-data/system_Modules_Enabled.json");
 //GPT Models
 const gptModelsData = require("../initial-data/gpt_Models.json");
-//CRM
-const crmOpportunityTypeData = require("../initial-data/crm_Opportunities_Type.json");
-const crmOpportunitySaleStagesData = require("../initial-data/crm_Opportunities_Sales_Stages.json");
-const crmCampaignsData = require("../initial-data/crm_campaigns.json");
-const crmIndustryTypeData = require("../initial-data/crm_Industry_Type.json");
+//CRM (legacy models - commented out as they don't exist in current schema)
+// const crmOpportunityTypeData = require("../initial-data/crm_Opportunities_Type.json");
+// const crmOpportunitySaleStagesData = require("../initial-data/crm_Opportunities_Sales_Stages.json");
+// const crmCampaignsData = require("../initial-data/crm_campaigns.json");
+// const crmIndustryTypeData = require("../initial-data/crm_Industry_Type.json");
 
 const prisma = new PrismaClient();
 
@@ -31,51 +31,47 @@ async function main() {
     console.log("Modules already seeded");
   }
 
-  //Seed CRM Opportunity Types
-  const crmOpportunityType = await prisma.crm_Opportunities_Type.findMany();
+  //Seed CRM Opportunity Types (legacy models - commented out as they don't exist in current schema)
+  // const crmOpportunityType = await prisma.crm_Opportunities_Type.findMany();
+  // if (crmOpportunityType.length === 0) {
+  //   await prisma.crm_Opportunities_Type.createMany({
+  //     data: crmOpportunityTypeData,
+  //   });
+  //   console.log("Opportunity Types seeded successfully");
+  // } else {
+  //   console.log("Opportunity Types already seeded");
+  // }
 
-  if (crmOpportunityType.length === 0) {
-    await prisma.crm_Opportunities_Type.createMany({
-      data: crmOpportunityTypeData,
-    });
-    console.log("Opportunity Types seeded successfully");
-  } else {
-    console.log("Opportunity Types already seeded");
-  }
+  // const crmOpportunitySaleStages =
+  //   await prisma.crm_Opportunities_Sales_Stages.findMany();
+  // if (crmOpportunitySaleStages.length === 0) {
+  //   await prisma.crm_Opportunities_Sales_Stages.createMany({
+  //     data: crmOpportunitySaleStagesData,
+  //   });
+  //   console.log("Opportunity Sales Stages seeded successfully");
+  // } else {
+  //   console.log("Opportunity Sales Stages already seeded");
+  // }
 
-  const crmOpportunitySaleStages =
-    await prisma.crm_Opportunities_Sales_Stages.findMany();
+  // const crmCampaigns = await prisma.crm_campaigns.findMany();
+  // if (crmCampaigns.length === 0) {
+  //   await prisma.crm_campaigns.createMany({
+  //     data: crmCampaignsData,
+  //   });
+  //   console.log("Campaigns seeded successfully");
+  // } else {
+  //   console.log("Campaigns already seeded");
+  // }
 
-  if (crmOpportunitySaleStages.length === 0) {
-    await prisma.crm_Opportunities_Sales_Stages.createMany({
-      data: crmOpportunitySaleStagesData,
-    });
-    console.log("Opportunity Sales Stages seeded successfully");
-  } else {
-    console.log("Opportunity Sales Stages already seeded");
-  }
-
-  const crmCampaigns = await prisma.crm_campaigns.findMany();
-
-  if (crmCampaigns.length === 0) {
-    await prisma.crm_campaigns.createMany({
-      data: crmCampaignsData,
-    });
-    console.log("Campaigns seeded successfully");
-  } else {
-    console.log("Campaigns already seeded");
-  }
-
-  const crmIndustryType = await prisma.crm_Industry_Type.findMany();
-
-  if (crmIndustryType.length === 0) {
-    await prisma.crm_Industry_Type.createMany({
-      data: crmIndustryTypeData,
-    });
-    console.log("Industry Types seeded successfully");
-  } else {
-    console.log("Industry Types already seeded");
-  }
+  // const crmIndustryType = await prisma.crm_Industry_Type.findMany();
+  // if (crmIndustryType.length === 0) {
+  //   await prisma.crm_Industry_Type.createMany({
+  //     data: crmIndustryTypeData,
+  //   });
+  //   console.log("Industry Types seeded successfully");
+  // } else {
+  //   console.log("Industry Types already seeded");
+  // }
 
   //Seed GPT Models
   const gptModels = await prisma.gpt_models.findMany();

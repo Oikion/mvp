@@ -1,4 +1,5 @@
 import { prismadb } from "@/lib/prisma";
+import { getCacheStrategy } from "@/lib/prisma-cache";
 
 export const getProperties = async () => {
   const client: any = prismadb as any;
@@ -11,6 +12,7 @@ export const getProperties = async () => {
       assigned_to_user: { select: { name: true } },
     },
     orderBy: { createdAt: "desc" },
+    ...getCacheStrategy(30, ["properties:list"]),
   });
   return data;
 };

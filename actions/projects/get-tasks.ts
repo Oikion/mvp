@@ -1,6 +1,7 @@
 import { authOptions } from "@/lib/auth";
 import { prismadb } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+import { getCacheStrategy } from "@/lib/prisma-cache";
 
 export const getTasks = async () => {
   const session = await getServerSession(authOptions);
@@ -60,6 +61,7 @@ export const getTasks = async () => {
       },
     },
     orderBy: { createdAt: "desc" },
+    ...getCacheStrategy(30, ["tasks:list", userId ? `user:${userId}` : "tasks:public"]),
   });
   return data;
 };

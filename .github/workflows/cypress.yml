@@ -11,15 +11,14 @@ jobs:
       fail-fast: false # https://github.com/cypress-io/github-action/issues/48
       matrix:
         containers: [1, 2] # Uses 2 parallel instances
-        mongodb-version: ["4.2", "4.4", "5.0", "6.0"]
     steps:
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.10.0
+      - name: Start PostgreSQL
+        uses: ankane/setup-postgres@v1
         with:
-          mongodb-version: ${{ matrix.mongodb-version }}
-          mongodb-username: nextcrm
-          mongodb-password: nextcrm
-          mongodb-db: nextcrm
+          postgres-version: 16
+          database: nextcrm
+          user: nextcrm
+          password: nextcrm
 
       - name: Checkout
         uses: actions/checkout@v3
