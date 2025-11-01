@@ -37,3 +37,28 @@ export async function getCurrentUserSafe() {
   }
 }
 
+/**
+ * Get the current organization ID from Clerk authentication
+ * Returns the organization ID or throws an error if not authenticated or no organization
+ */
+export async function getCurrentOrgId() {
+  const { orgId } = await auth();
+
+  if (!orgId) {
+    throw new Error("User not associated with an organization");
+  }
+
+  return orgId;
+}
+
+/**
+ * Get the current organization ID safely (returns null instead of throwing)
+ */
+export async function getCurrentOrgIdSafe() {
+  try {
+    return await getCurrentOrgId();
+  } catch {
+    return null;
+  }
+}
+

@@ -49,8 +49,14 @@ export function ProfileForm({ data }: ProfileFormProps) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: data
-      ? { ...data }
+      ? {
+          id: data.id || "",
+          name: data.name ?? "",
+          username: data.username ?? "",
+          account_name: data.account_name ?? "",
+        }
       : {
+          id: "",
           name: "",
           username: "",
           account_name: "",

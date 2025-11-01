@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       // First user doesn't need admin notification
       return NextResponse.json(user);
     } else {
-      //There is at least one user in the system, so create user with no admin rights and set userStatus to PENDING
+      //There is at least one user in the system, so create user with no admin rights and set userStatus to ACTIVE
       const user = await prismadb.users.create({
         data: {
           name,
@@ -63,18 +63,13 @@ export async function POST(req: Request) {
           is_admin: false,
           email,
           userLanguage: language,
-          userStatus:
-            process.env.NEXT_PUBLIC_APP_URL === "https://demo.nextcrm.io"
-              ? "ACTIVE"
-              : "PENDING",
+          userStatus: "ACTIVE", // Always create users as ACTIVE - no admin approval needed
           password: await hash(password, 12),
         },
       });
 
-      /*
-      Function will send email to all admins about new user registration which is in PENDING state and need to be activated
-    */
-      newUserNotify(user);
+      // Admin notification disabled - users are automatically active
+      // newUserNotify(user);
 
       return NextResponse.json(user);
     }

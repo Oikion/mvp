@@ -1,7 +1,10 @@
 import { prismadb } from "@/lib/prisma";
+import { getCurrentOrgId } from "@/lib/get-current-user";
 
 export const getClients = async () => {
+  const organizationId = await getCurrentOrgId();
   const data = await prismadb.clients.findMany({
+    where: { organizationId },
     select: {
       id: true,
       client_name: true,

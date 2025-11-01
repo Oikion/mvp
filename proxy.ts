@@ -21,21 +21,39 @@ const isPublicRoute = createRouteMatcher([
 export const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   const pathname = req.nextUrl.pathname;
 
-  // Skip API routes and static files - let them pass through
-  if (
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/_next") ||
-    pathname.includes(".")
-  ) {
-    return intlMiddleware(req);
-  }
-
   // Handle root redirect to default locale
   if (pathname === "/") {
     return intlMiddleware(req);
   }
 
-  // Protect non-public routes
+  // For API routes, ensure Clerk middleware runs but don't redirect
+  // Let the API route handle authentication errors
+  // IMPORTANT: Check API routes BEFORE static file checks
+  if (pathname.startsWith("/api")) {
+    // Check if it's a public API route
+    if (isPublicRoute(req)) {
+      // For public API routes, just pass through - Clerk middleware already ran
+      return NextResponse.next();
+    }
+    // For protected API routes, ensure auth context is available
+    // Clerk middleware will set up the auth context, but we don't redirect here
+    // The API route handler will check auth and return appropriate errors
+    await auth();
+    // Note: We don't check authResult.userId here - let the API route handle it
+    // This ensures Clerk's auth() function works in API routes
+    return NextResponse.next();
+  }
+
+  // Handle static files and Next.js internals - let them pass through
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.includes(".") ||
+    pathname.startsWith("/favicon.ico")
+  ) {
+    return intlMiddleware(req);
+  }
+
+  // Protect non-public routes for pages
   if (!isPublicRoute(req)) {
     const authResult = await auth();
 
@@ -55,6 +73,15 @@ export const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
 });
 
 export const config = {
-  matcher: ["/((?!api|_next|.*\\..*).*)"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder files
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };
 

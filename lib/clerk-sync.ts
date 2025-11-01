@@ -85,18 +85,14 @@ export async function syncClerkUser(clerkUserId: string) {
       is_admin: isFirstUser,
       is_account_admin: false,
       lastLoginAt: new Date(),
-      userStatus: isFirstUser
-        ? "ACTIVE"
-        : process.env.NEXT_PUBLIC_APP_URL === "https://demo.nextcrm.io"
-          ? "ACTIVE"
-          : "PENDING",
+      userStatus: "ACTIVE", // Always create users as ACTIVE - no admin approval needed
     },
   });
 
-  // Notify admins if this is NOT the first user
-  if (!isFirstUser) {
-    await newUserNotify(newUser);
-  }
+  // Admin notification disabled - users are automatically active
+  // if (!isFirstUser) {
+  //   await newUserNotify(newUser);
+  // }
 
   return newUser;
 }

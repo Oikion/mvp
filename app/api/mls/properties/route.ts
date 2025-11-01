@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const body = await req.json();
     const {
       property_name,
@@ -30,6 +31,7 @@ export async function POST(req: Request) {
         v: 0,
         createdBy: user.id,
         updatedBy: user.id,
+        organizationId,
         property_name,
         primary_email,
         property_type,
@@ -58,6 +60,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const body = await req.json();
     const {
       id,
@@ -78,6 +81,15 @@ export async function PUT(req: Request) {
       description,
       assigned_to,
     } = body;
+
+    // Verify the property belongs to the current organization before updating
+    const existingProperty = await prismadb.properties.findFirst({
+      where: { id, organizationId },
+    });
+
+    if (!existingProperty) {
+      return new NextResponse("Property not found or access denied", { status: 404 });
+    }
 
     const updatedProperty = await prismadb.properties.update({
       where: { id },
@@ -111,7 +123,10 @@ export async function PUT(req: Request) {
 export async function GET() {
   try {
     await getCurrentUser();
-    const properties = await prismadb.properties.findMany({});
+    const organizationId = await getCurrentOrgId();
+    const properties = await prismadb.properties.findMany({
+      where: { organizationId },
+    });
     return NextResponse.json(properties, { status: 200 });
   } catch (error) {
     console.log("[PROPERTIES_GET]", error);

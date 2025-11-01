@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const body = await req.json();
     const {
       client_name,
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
       data: {
         createdBy: user.id,
         updatedBy: user.id,
+        organizationId,
         client_name,
         primary_email,
         client_type,
@@ -77,6 +79,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const body = await req.json();
     const {
       id,
@@ -105,6 +108,15 @@ export async function PUT(req: Request) {
       assigned_to,
       member_of,
     } = body;
+
+    // Verify the client belongs to the current organization before updating
+    const existingClient = await prismadb.clients.findFirst({
+      where: { id, organizationId },
+    });
+
+    if (!existingClient) {
+      return new NextResponse("Client not found or access denied", { status: 404 });
+    }
 
     const updatedClient = await prismadb.clients.update({
       where: { id },
@@ -149,7 +161,10 @@ export async function PUT(req: Request) {
 export async function GET() {
   try {
     await getCurrentUser();
-    const clients = await prismadb.clients.findMany({});
+    const organizationId = await getCurrentOrgId();
+    const clients = await prismadb.clients.findMany({
+      where: { organizationId },
+    });
     return NextResponse.json(clients, { status: 200 });
   } catch (error) {
     console.log("[CLIENTS_GET]", error);

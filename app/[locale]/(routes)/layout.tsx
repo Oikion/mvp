@@ -24,12 +24,14 @@ export default async function AppLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     const { locale } = await params;
     return redirect(`/${locale}/sign-in`);
   }
+
+  const { locale } = await params;
 
   // Get or sync user from database
   let user = await getCurrentUserSafe();
@@ -46,14 +48,19 @@ export default async function AppLayout({
     }
   }
 
-  const { locale } = await params;
-
-  if (user?.userStatus === "PENDING") {
-    return redirect(`/${locale}/pending`);
-  }
+  // PENDING status check removed - users are automatically active
+  // if (user?.userStatus === "PENDING") {
+  //   return redirect(`/${locale}/pending`);
+  // }
 
   if (user?.userStatus === "INACTIVE") {
     return redirect(`/${locale}/inactive`);
+  }
+
+  // Check if user has an organization - redirect to create if not
+  // Allow organization routes to render without orgId
+  if (!orgId) {
+    return redirect(`/${locale}/create-organization`);
   }
 
   const build = await getAllCommits();

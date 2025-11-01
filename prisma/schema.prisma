@@ -17,6 +17,7 @@ model Clients {
   updatedAt            DateTime?          @updatedAt
   updatedBy            String?
   assigned_to          String?
+  organizationId      String?
 
   // Core client identity
   client_name          String
@@ -60,6 +61,7 @@ model Clients {
   @@index([client_status])
   @@index([createdAt])
   @@index([assigned_to])
+  @@index([organizationId])
 }
 
 enum ClientType {
@@ -469,6 +471,7 @@ model Properties {
   updatedAt            DateTime?    @updatedAt
   updatedBy            String?
   assigned_to          String?
+  organizationId      String?
 
   // Core property identity
   property_name        String
@@ -498,6 +501,12 @@ model Properties {
   assigned_to_user     Users?       @relation(fields: [assigned_to], references: [id])
   watchers             String[]
   watching_users       Users[]      @relation("watching_properties")
+
+  // Performance indexes for frequently queried fields
+  @@index([property_status])
+  @@index([createdAt])
+  @@index([assigned_to])
+  @@index([organizationId])
 }
 
 enum PropertyType {

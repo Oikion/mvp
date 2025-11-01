@@ -16,6 +16,7 @@ import {
   FileBarChart,
   Wrench
 } from "lucide-react"
+import { OrganizationSwitcher } from "@clerk/nextjs"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -28,6 +29,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useClerkTheme } from "@/lib/clerk-theme"
 
 interface AppSidebarProps {
   modules: any
@@ -43,6 +45,7 @@ interface AppSidebarProps {
 export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
   const pathname = usePathname()
   const locale = useLocale()
+  const { appearance } = useClerkTheme()
 
   // Transform your modules into the sidebar structure with proper active state detection
   const navMainItems = React.useMemo(() => [
@@ -124,17 +127,25 @@ export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <div className="size-4 font-bold">O</div>
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{process.env.NEXT_PUBLIC_APP_NAME}</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
+            <div className="w-full">
+              <OrganizationSwitcher
+                appearance={{
+                  ...appearance,
+                  elements: {
+                    ...appearance?.elements,
+                    organizationSwitcherTrigger: "w-full justify-start px-2 py-1.5 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md transition-colors",
+                    organizationSwitcherPopoverCard: "shadow-lg",
+                  },
+                }}
+                hidePersonal
+                createOrganizationMode="navigation"
+                createOrganizationUrl={`/${locale}/create-organization`}
+                organizationProfileMode="navigation"
+                organizationProfileUrl={`/${locale}/organization`}
+                afterCreateOrganizationUrl={`/${locale}`}
+                afterSelectOrganizationUrl={`/${locale}`}
+              />
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
