@@ -11,8 +11,7 @@ import DeleteProjectDialog from "./dialogs/DeleteProject";
 import { getKanbanData } from "@/actions/projects/get-kanban-data";
 import Kanban from "./components/Kanban";
 import { getBoards } from "@/actions/projects/get-boards";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { Users } from "@prisma/client";
 import AiAssistantProject from "./components/AiAssistantProject";
 import { Lock } from "lucide-react";
@@ -25,14 +24,13 @@ export const maxDuration = 300;
 
 const BoardPage = async (props: BoardDetailProps) => {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
+  const user = await getCurrentUser();
   const { boardId } = params;
 
   // Parallelize all queries for better performance
   const [board, boards, users, sections, kanbanData] = await Promise.all([
     getBoard(boardId),
-    getBoards(user?.id!),
+    getBoards(user.id),
     getActiveUsers(),
     getBoardSections(boardId),
     getKanbanData(boardId),
@@ -53,7 +51,7 @@ const BoardPage = async (props: BoardDetailProps) => {
             users={users}
             sections={sections}
           />
-          <AiAssistantProject session={session} boardId={boardId} />
+          <AiAssistantProject user={user} boardId={boardId} />
         </div>
         <div>
           <DeleteProjectDialog

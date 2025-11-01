@@ -1,38 +1,33 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  const { title, description, visibility } = body;
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!title) {
-    return new NextResponse("Missing project name", { status: 400 });
-  }
-
-  if (!description) {
-    return new NextResponse("Missing project description", { status: 400 });
-  }
-
   try {
+    const user = await getCurrentUser();
+    const body = await req.json();
+    const { title, description, visibility } = body;
+
+    if (!title) {
+      return new NextResponse("Missing project name", { status: 400 });
+    }
+
+    if (!description) {
+      return new NextResponse("Missing project description", { status: 400 });
+    }
+
     const boardsCount = await prismadb.boards.count();
 
     const newBoard = await prismadb.boards.create({
       data: {
         v: 0,
-        user: session.user.id,
+        user: user.id,
         title: title,
         description: description,
         position: boardsCount > 0 ? boardsCount : 0,
         visibility: visibility,
-        sharedWith: [session.user.id],
-        createdBy: session.user.id,
+        sharedWith: [user.id],
+        createdBy: user.id,
       },
     });
 
@@ -53,23 +48,19 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  const { id, title, description, visibility } = body;
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!title) {
-    return new NextResponse("Missing project name", { status: 400 });
-  }
-
-  if (!description) {
-    return new NextResponse("Missing project description", { status: 400 });
-  }
-
   try {
+    const user = await getCurrentUser();
+    const body = await req.json();
+    const { id, title, description, visibility } = body;
+
+    if (!title) {
+      return new NextResponse("Missing project name", { status: 400 });
+    }
+
+    if (!description) {
+      return new NextResponse("Missing project description", { status: 400 });
+    }
+
     await prismadb.boards.update({
       where: {
         id,
@@ -78,7 +69,7 @@ export async function PUT(req: Request) {
         title: title,
         description: description,
         visibility: visibility,
-        updatedBy: session.user.id,
+        updatedBy: user.id,
         updatedAt: new Date(),
       },
     });

@@ -20,8 +20,7 @@ import {
 import { Calendar, Shield, User } from "lucide-react";
 import { getActiveUsers } from "@/actions/get-users";
 import { getBoards } from "@/actions/projects/get-boards";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 type TaskPageProps = {
   params: Promise<{
@@ -31,14 +30,13 @@ type TaskPageProps = {
 
 const TaskPage = async (props: TaskPageProps) => {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
+  const user = await getCurrentUser();
 
   const { taskId } = params;
   const task: any = await getTask(taskId);
   const comments: any = await getTaskComments(taskId);
   const activeUsers: any = await getActiveUsers();
-  const boards = await getBoards(user?.id!);
+  const boards = await getBoards(user.id);
 
   return (
     <div className="flex flex-col md:flex-row w-full px-2 space-x-2 ">

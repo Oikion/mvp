@@ -1,34 +1,33 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 //Update task API endpoint
 export async function PUT(req: Request) {
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  console.log(body, "body");
-  const { id, section } = body;
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!id) {
-    return new NextResponse("Missing board id", { status: 400 });
-  }
-
-  if (!section) {
-    return new NextResponse("Missing section id", { status: 400 });
-  }
-
   try {
+    const user = await getCurrentUser();
+    const body = await req.json();
+    console.log(body, "body");
+    const { id, section } = body;
+
+    if (!user) {
+      return new NextResponse("Unauthenticated", { status: 401 });
+    }
+
+    if (!id) {
+      return new NextResponse("Missing board id", { status: 400 });
+    }
+
+    if (!section) {
+      return new NextResponse("Missing section id", { status: 400 });
+    }
+
     await prismadb.tasks.update({
       where: {
         id: id,
       },
       data: {
-        updatedBy: session.user.id,
+        updatedBy: user.id,
         section: section,
       },
     });
@@ -41,20 +40,20 @@ export async function PUT(req: Request) {
 
 //Delete task API endpoint
 export async function DELETE(req: Request) {
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  console.log(body, "body");
-  const { id, section } = body;
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!id) {
-    return new NextResponse("Missing board id", { status: 400 });
-  }
-
   try {
+    const user = await getCurrentUser();
+    const body = await req.json();
+    console.log(body, "body");
+    const { id, section } = body;
+
+    if (!user) {
+      return new NextResponse("Unauthenticated", { status: 401 });
+    }
+
+    if (!id) {
+      return new NextResponse("Missing board id", { status: 400 });
+    }
+
     //Find data for current task by ID
     /*     const currentTask = await Tasks.findById(taskId); */
     const currentTask = await prismadb.tasks.findUnique({
@@ -106,7 +105,7 @@ export async function DELETE(req: Request) {
           id: tasks[key].id,
         },
         data: {
-          updatedBy: session.user.id,
+          updatedBy: user.id,
           position: position,
         },
       });

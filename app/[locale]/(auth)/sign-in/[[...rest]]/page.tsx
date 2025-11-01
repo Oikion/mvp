@@ -1,4 +1,4 @@
-import { LoginComponent } from "./components/LoginComponent";
+import { LoginComponent } from "../components/LoginComponent";
 
 const SignInPage = async () => {
   return (
@@ -16,3 +16,5 @@ const SignInPage = async () => {
 };
 
 export default SignInPage;
+
+

@@ -4,20 +4,18 @@ import ProjectDashboardCockpit from "./components/ProjectDasboard";
 import { getTasksPastDue } from "@/actions/projects/get-tasks-past-due";
 import { getActiveUsers } from "@/actions/get-users";
 import { getBoards } from "@/actions/projects/get-boards";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { getSections } from "@/actions/projects/get-sections";
 import { Sections } from "@prisma/client";
 
 const ProjectDashboard = async () => {
-  const session = await getServerSession(authOptions);
-  const user = session?.user;
+  const user = await getCurrentUser();
 
   // Parallelize all queries for better performance
   const [dashboardData, activeUsers, boards, sections] = await Promise.all([
     getTasksPastDue(),
     getActiveUsers(),
-    getBoards(user?.id!),
+    getBoards(user.id),
     getSections(),
   ]);
 

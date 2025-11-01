@@ -1,33 +1,24 @@
 import React from "react";
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-
+import { getCurrentUser } from "@/lib/get-current-user";
 import { getActiveUsers } from "@/actions/get-users";
 import { getBoards } from "@/actions/projects/get-boards";
-
-import { authOptions } from "@/lib/auth";
-
 import NewTaskDialog from "../dialogs/NewTask";
 import NewProjectDialog from "../dialogs/NewProject";
-
 import { Button } from "@/components/ui/button";
 import H2Title from "@/components/typography/h2";
-
 import { ProjectsDataTable } from "../table-components/data-table";
 import { columns } from "../table-components/columns";
 import AiAssistant from "./AiAssistant";
 
 const ProjectsView = async () => {
-  const session = await getServerSession(authOptions);
-
-  if (!session) return null;
-
-  const userId = session.user.id;
+  const user = await getCurrentUser();
+  const userId = user.id;
 
   // Parallelize queries for better performance
   const [users, boards] = await Promise.all([
     getActiveUsers(),
-    getBoards(userId!),
+    getBoards(userId),
   ]);
 
   return (
@@ -44,7 +35,7 @@ const ProjectsView = async () => {
         <Button asChild>
           <Link href="/projects/dashboard">Dashboard</Link>
         </Button>
-        <AiAssistant session={session} />
+        <AiAssistant user={user} />
       </div>
       <div className="pt-2 space-y-3">
         <H2Title>Projects</H2Title>

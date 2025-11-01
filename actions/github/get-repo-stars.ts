@@ -1,6 +1,11 @@
 import axios, { AxiosResponse } from "axios";
 
 export default async function getGithubRepoStars(): Promise<number> {
+  // Skip API call if token is not configured
+  if (!process.env.NEXT_PUBLIC_GITHUB_TOKEN) {
+    return 0;
+  }
+
   try {
     const response: AxiosResponse<any> = await axios.get(
       process.env.NEXT_PUBLIC_GITHUB_REPO_API ||
@@ -12,12 +17,10 @@ export default async function getGithubRepoStars(): Promise<number> {
         },
       }
     );
-    //console.log(response, "response");
     const stars = response.data;
-    //console.log(stars.stargazers_count);
-    return stars.stargazers_count;
+    return stars.stargazers_count || 0;
   } catch (error) {
-    console.error("Error fetching commits:", error);
+    // Silently fail - GitHub token may be invalid or rate limited
     return 0;
   }
 }

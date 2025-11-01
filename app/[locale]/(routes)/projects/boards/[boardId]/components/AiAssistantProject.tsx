@@ -1,29 +1,25 @@
 "use client";
 
 import { useState } from "react";
-
-import { getUserAiTasks } from "@/actions/cron/get-user-ai-tasks";
-
+import { getAiReport } from "@/actions/ai/projects/boards/getAiReport";
 import { Icons } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { getAiReport } from "@/actions/ai/projects/boards/getAiReport";
 
 const AiAssistantProject = ({
-  session,
+  user,
   boardId,
 }: {
-  session: any;
+  user: any;
   boardId: string;
 }) => {
   const [loading, setLoading] = useState(false);
-
   const { toast } = useToast();
 
   const handleAiAssistant = async () => {
     setLoading(true);
     try {
-      await getAiReport(session, boardId);
+      await getAiReport(user, boardId);
       toast({
         title: "Success",
         description: "AI Assistant just send your report to your mailbox",

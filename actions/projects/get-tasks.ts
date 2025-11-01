@@ -1,10 +1,9 @@
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
 
 export const getTasks = async () => {
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id;
+  const user = await getCurrentUser();
+  const userId = user.id;
 
   const boards = await prismadb.boards.findMany({
     where: {

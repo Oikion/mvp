@@ -4,26 +4,23 @@ import { MailComponent } from "./components/mail";
 import { accounts, mails } from "@/app/[locale]/(routes)/emails/data";
 import Container from "../components/ui/Container";
 import SuspenseLoading from "@/components/loadings/suspense";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { getDictionary } from "@/dictionaries";
+import { redirect } from "next/navigation";
 
 const EmailRoute = async () => {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
+  try {
+    await getCurrentUser();
+  } catch (error) {
+    return redirect("/sign-in");
   }
+  
   //Fetch translations from dictionary (English only for now)
   const dict = await getDictionary();
 
-  const layout = (await cookies()).get("react-resizable-panels:layout");
-  const collapsed = (await cookies()).get("react-resizable-panels:collapsed");
+  const cookieStore = await cookies();
+  const layout = cookieStore.get("react-resizable-panels:layout");
+  const collapsed = cookieStore.get("react-resizable-panels:collapsed");
   //console.log(layout, collapsed, "layout, collapsed");
 
   const defaultLayout = layout ? JSON.parse(layout.value) : undefined;

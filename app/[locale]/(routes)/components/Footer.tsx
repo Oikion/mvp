@@ -1,5 +1,6 @@
 import getNextVersion from "@/actions/system/get-next-version";
-import Link from "next/link";
+import { Link } from "@/navigation";
+import ExternalLink from "next/link";
 import React from "react";
 
 const Footer = async () => {
@@ -21,19 +22,19 @@ const Footer = async () => {
           {nextVersion.substring(1, 7) || process.env.NEXT_PUBLIC_NEXT_VERSION}
         </span>
         +
-        <Link href={"https://ui.shadcn.com/"}>
+        <ExternalLink href={"https://ui.shadcn.com/"}>
           <span className="rounded-md mr-2">shadcnUI</span>
-        </Link>{" "}
+        </ExternalLink>{" "}
         hosted by:
         <span className="text-bold underline">
-          <Link href="https://www.vercel.com">Vercel</Link>
+          <ExternalLink href="https://www.vercel.com">Vercel</ExternalLink>
         </span>
       </div>
       <div className="hidden md:flex space-x-2">
         Supported by:
-        <Link className="pl-1 font-bold" href="https://www.softbase.cz">
+        <ExternalLink className="pl-1 font-bold" href="https://www.softbase.cz">
           SoftBase s.r.o.
-        </Link>
+        </ExternalLink>
       </div>
     </footer>
   );

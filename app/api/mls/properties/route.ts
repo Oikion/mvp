@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 
-// Create new property
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) return new NextResponse("Unauthenticated", { status: 401 });
   try {
+    const user = await getCurrentUser();
     const body = await req.json();
     const {
       property_name,
@@ -31,8 +28,8 @@ export async function POST(req: Request) {
     const newProperty = await prismadb.properties.create({
       data: {
         v: 0,
-        createdBy: session.user.id,
-        updatedBy: session.user.id,
+        createdBy: user.id,
+        updatedBy: user.id,
         property_name,
         primary_email,
         property_type,
@@ -58,11 +55,9 @@ export async function POST(req: Request) {
   }
 }
 
-// Update property
 export async function PUT(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) return new NextResponse("Unauthenticated", { status: 401 });
   try {
+    const user = await getCurrentUser();
     const body = await req.json();
     const {
       id,
@@ -87,7 +82,7 @@ export async function PUT(req: Request) {
     const updatedProperty = await prismadb.properties.update({
       where: { id },
       data: {
-        updatedBy: session.user.id,
+        updatedBy: user.id,
         property_name,
         primary_email,
         property_type,
@@ -113,11 +108,9 @@ export async function PUT(req: Request) {
   }
 }
 
-// GET all properties
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session) return new NextResponse("Unauthenticated", { status: 401 });
   try {
+    await getCurrentUser();
     const properties = await prismadb.properties.findMany({});
     return NextResponse.json(properties, { status: 200 });
   } catch (error) {

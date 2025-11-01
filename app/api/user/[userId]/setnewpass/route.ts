@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { hash } from "bcryptjs";
 
 export async function PUT(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
+  const user = await getCurrentUser();
   const { password, cpassword } = await req.json();
 
-  if (!session) {
+  if (!user) {
     return new NextResponse("Unauthenticated", { status: 401 });
   }
 
@@ -25,7 +24,7 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
     return new NextResponse("Passwords do not match", { status: 400 });
   }
 
-  if (session.user.email === "demo@nextcrm.io") {
+  if (user.email === "demo@nextcrm.io") {
     return new NextResponse(
       "Hey, don't be a fool! There are so many works done! Thanks!",
       {

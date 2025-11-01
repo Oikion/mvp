@@ -10,6 +10,7 @@ import { createTranslator, NextIntlClientProvider } from "next-intl";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/app/providers/ThemeProvider";
+import { ClerkThemeProvider } from "@/lib/clerk-theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -101,11 +102,13 @@ export default async function RootLayout(props: Props) {
         <meta name="twitter:image" content="https://nextcrm.io/api/og" />
       </head>
       <body className={inter.className + " min-h-screen"}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            {children}
-          </ThemeProvider>
-        </NextIntlClientProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ClerkThemeProvider>
+            <NextIntlClientProvider locale={locale} messages={messages}>
+              {children}
+            </NextIntlClientProvider>
+          </ClerkThemeProvider>
+        </ThemeProvider>
         <Toaster />
         <SonnerToaster />
       </body>

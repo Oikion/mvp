@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { authOptions } from "@/lib/auth";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import TryAgain from "./components/TryAgain";
@@ -15,16 +14,16 @@ const PendingPage = async () => {
     },
   });
 
-  const session = await getServerSession(authOptions);
+  const user = await getCurrentUser();
 
-  if (session?.user.userStatus !== "PENDING") {
+  if (user.userStatus !== "PENDING") {
     return redirect("/");
   }
 
   return (
     <div className="flex flex-col space-y-5 justify-center items-center max-w-3xl border rounded-md p-10 shadow-md">
       {/*       <pre>
-        <code>{JSON.stringify(session, null, 2)}</code>
+        <code>{JSON.stringify(user, null, 2)}</code>
       </pre> */}
       <div className="flex flex-col">
         <h1 className="text-3xl">

@@ -372,6 +372,7 @@ enum ActiveStatus {
 
 model Users {
   id                   String                @id @default(uuid())
+  clerkUserId          String?               @unique
   account_name         String?
   avatar               String?
   email                String                @unique
@@ -408,6 +409,7 @@ model Users {
   // Performance indexes for frequently queried fields
   @@index([userStatus])
   @@index([email])
+  @@index([clerkUserId])
 }
 
 enum Language {

@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-
+import { getCurrentUser } from "@/lib/get-current-user";
 import NewTaskFromCRMEmail from "@/emails/NewTaskFromCRM";
 import NewTaskFromProject from "@/emails/NewTaskFromProject";
 import resendHelper from "@/lib/resend";
@@ -12,32 +10,26 @@ import resendHelper from "@/lib/resend";
 TODO: there is second route for creating task in board, but it is the same as this one. Consider merging them (/api/projects/tasks/create-task/[boardId]). 
 */
 export async function POST(req: Request) {
-  /*
-  Resend.com function init - this is a helper function that will be used to send emails
-  */
   const resend = await resendHelper();
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  const {
-    title,
-    user,
-    board,
-    priority,
-    content,
-    notionUrl,
-    account,
-    dueDateAt,
-  } = body;
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!title || !user || !board || !priority || !content) {
-    return new NextResponse("Missing one of the task data ", { status: 400 });
-  }
-
+  
   try {
+    const currentUser = await getCurrentUser();
+    const body = await req.json();
+    const {
+      title,
+      user,
+      board,
+      priority,
+      content,
+      notionUrl,
+      account,
+      dueDateAt,
+    } = body;
+
+    if (!title || !user || !board || !priority || !content) {
+      return new NextResponse("Missing one of the task data ", { status: 400 });
+    }
+
     //Get first section from board where position is smallest
     const sectionId = await prismadb.sections.findFirst({
       where: {
@@ -72,8 +64,8 @@ export async function POST(req: Request) {
         content: contentUpdated,
         dueDateAt: dueDateAt,
         section: sectionId.id,
-        createdBy: session.user.id,
-        updatedBy: session.user.id,
+        createdBy: currentUser.id,
+        updatedBy: currentUser.id,
         position: tasksCount > 0 ? tasksCount : 0,
         user: user,
         taskStatus: "ACTIVE",
@@ -100,7 +92,7 @@ export async function POST(req: Request) {
     ].filter(Boolean));
 
     //Notification to user who is not a task creator
-    if (user !== session.user.id) {
+    if (user !== currentUser.id) {
       try {
         const notifyRecipient = await prismadb.users.findUnique({
           where: { id: user },
@@ -110,8 +102,6 @@ export async function POST(req: Request) {
           where: { id: board },
         });
 
-        //console.log(notifyRecipient, "notifyRecipient");
-
         await resend.emails.send({
           from:
             process.env.NEXT_PUBLIC_APP_NAME +
@@ -120,12 +110,12 @@ export async function POST(req: Request) {
             ">",
           to: notifyRecipient?.email!,
           subject:
-            session.user.userLanguage === "en"
+            currentUser.userLanguage === "en"
               ? `New task -  ${title}.`
               : `Nový úkol - ${title}.`,
-          text: "", // Add this line to fix the types issue
+          text: "",
           react: NewTaskFromProject({
-            taskFromUser: session.user.name!,
+            taskFromUser: currentUser.name!,
             username: notifyRecipient?.name!,
             userLanguage: notifyRecipient?.userLanguage!,
             taskData: task,

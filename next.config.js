@@ -6,11 +6,23 @@ const withNextIntl = require("next-intl/plugin")(
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      "localhost",
-      "res.cloudinary.com",
-      "lh3.googleusercontent.com",
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
+  },
+  turbopack: {
+    root: __dirname,
   },
 };
 

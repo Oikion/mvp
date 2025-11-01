@@ -9,8 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { signOut } from "next-auth/react";
-
+import { useClerk } from "@clerk/nextjs";
 import { LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -25,6 +24,7 @@ type Props = {
 
 const AvatarDropdown = ({ avatar, userId, name, email }: Props) => {
   const router = useRouter();
+  const { signOut } = useClerk();
   const setAvatar = useAvatarStore((state) => state.setAvatar);
   const getAvatar = useAvatarStore((state) => state.avatar);
   const [newAvatar, setNewAvatar] = useState(getAvatar);
@@ -37,7 +37,6 @@ const AvatarDropdown = ({ avatar, userId, name, email }: Props) => {
     setNewAvatar(getAvatar);
   }, [getAvatar]);
 
-  //console.log(newAvatar, "newAvatar");
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>

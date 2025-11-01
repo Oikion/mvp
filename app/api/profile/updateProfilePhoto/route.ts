@@ -1,35 +1,22 @@
-import { authOptions } from "@/lib/auth";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { NextResponse } from "next/server";
 
 export async function PUT(req: Request) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return NextResponse.json(
-      { message: "Unauthorized" },
-      {
-        status: 401,
-      }
-    );
-  }
-
-  const body = await req.json();
-
-  if (!body.avatar) {
-    return NextResponse.json(
-      { message: "No avatar provided" },
-      {
-        status: 400,
-      }
-    );
-  }
-
   try {
+    const user = await getCurrentUser();
+    const body = await req.json();
+
+    if (!body.avatar) {
+      return NextResponse.json(
+        { message: "No avatar provided" },
+        { status: 400 }
+      );
+    }
+
     await prismadb.users.update({
       where: {
-        id: session.user.id,
+        id: user.id,
       },
       data: {
         avatar: body.avatar,
@@ -40,13 +27,11 @@ export async function PUT(req: Request) {
       { message: "Profile photo updated" },
       { status: 200 }
     );
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
+    console.log(error);
     return NextResponse.json(
       { message: "Error updating profile photo" },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

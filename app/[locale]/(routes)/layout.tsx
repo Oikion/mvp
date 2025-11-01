@@ -1,8 +1,7 @@
 // app/[locale]/(routes)/layout.tsx
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
-import Link from "next/link"
+import { Link } from "@/navigation"
 import { AppSidebar } from "./components/AppSidebar"
 import {
   SidebarInset,
@@ -15,26 +14,46 @@ import getAllCommits from "@/actions/github/get-repo-commits"
 import { getModules } from "@/actions/get-modules"
 import { getDictionary } from "@/dictionaries"
 import Footer from "./components/Footer"
+import { getCurrentUserSafe, getCurrentUser } from "@/lib/get-current-user"
+import { syncClerkUser } from "@/lib/clerk-sync"
 
 export default async function AppLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
-  const session = await getServerSession(authOptions);
+  const { userId } = await auth();
 
-  if (!session) {
-    return redirect("/sign-in");
+  if (!userId) {
+    const { locale } = await params;
+    return redirect(`/${locale}/sign-in`);
   }
 
-  const user = session?.user;
+  // Get or sync user from database
+  let user = await getCurrentUserSafe();
+  
+  if (!user) {
+    // Sync user if not found in database
+    try {
+      await syncClerkUser(userId);
+      user = await getCurrentUser();
+    } catch (error) {
+      console.error("Error syncing user:", error);
+      const { locale } = await params;
+      return redirect(`/${locale}/sign-in`);
+    }
+  }
+
+  const { locale } = await params;
 
   if (user?.userStatus === "PENDING") {
-    return redirect("/pending");
+    return redirect(`/${locale}/pending`);
   }
 
   if (user?.userStatus === "INACTIVE") {
-    return redirect("/inactive");
+    return redirect(`/${locale}/inactive`);
   }
 
   const build = await getAllCommits();
@@ -49,9 +68,9 @@ export default async function AppLayout({
           dict={dict} 
           build={build}
           user={{
-            name: session.user.name as string,
-            email: session.user.email as string,
-            avatar: session.user.image as string,
+            name: user.name as string,
+            email: user.email as string,
+            avatar: user.avatar as string,
           }}
         />
         <SidebarInset className="flex flex-col h-screen overflow-hidden">

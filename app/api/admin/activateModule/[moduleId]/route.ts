@@ -1,18 +1,14 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 export async function POST(req: Request, props: { params: Promise<{ moduleId: string }> }) {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
+  
   try {
-    const user = await prismadb.system_Modules_Enabled.update({
+    await getCurrentUser();
+
+    const module = await prismadb.system_Modules_Enabled.update({
       where: {
         id: params.moduleId,
       },
@@ -21,9 +17,9 @@ export async function POST(req: Request, props: { params: Promise<{ moduleId: st
       },
     });
 
-    return NextResponse.json(user);
+    return NextResponse.json(module);
   } catch (error) {
-    console.log("[USERACTIVATE_POST]", error);
+    console.log("[MODULE_ACTIVATE_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

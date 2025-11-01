@@ -1,22 +1,19 @@
-import { authOptions } from "@/lib/auth";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request, props: { params: Promise<{ accountId: string }> }) {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
-  }
-
-  if (!params.accountId) {
-    return new NextResponse("Missing account ID", { status: 400 });
-  }
-
-  const accountId = params.accountId;
-
+  
   try {
+    const user = await getCurrentUser();
+
+    if (!params.accountId) {
+      return new NextResponse("Missing account ID", { status: 400 });
+    }
+
+    const accountId = params.accountId;
+
     await prismadb.clients.update({
       where: {
         id: accountId,
@@ -24,7 +21,7 @@ export async function POST(req: Request, props: { params: Promise<{ accountId: s
       data: {
         watching_users: {
           connect: {
-            id: session.user.id,
+            id: user.id,
           },
         },
       },

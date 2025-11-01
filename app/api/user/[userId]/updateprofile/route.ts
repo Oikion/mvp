@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { hash } from "bcryptjs";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 export async function PUT(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
-  const { name, username, account_name } = await req.json();
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!params.userId) {
-    return new NextResponse("No user ID provided", { status: 400 });
-  }
-
+  
   try {
+    await getCurrentUser();
+    const { name, username, account_name } = await req.json();
+
+    if (!params.userId) {
+      return new NextResponse("No user ID provided", { status: 400 });
+    }
+
     const newUserPass = await prismadb.users.update({
       data: {
         name: name,

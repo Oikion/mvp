@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
 
 export async function DELETE(req: Request, props: { params: Promise<{ accountId: string }> }) {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
+  
   try {
+    await getCurrentUser();
     await prismadb.clients.delete({
       where: {
         id: params.accountId,

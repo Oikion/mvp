@@ -23,12 +23,12 @@ import {
 } from "@/components/ui/command";
 import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
-
-import { signOut } from "next-auth/react";
+import { useClerk } from "@clerk/nextjs";
 
 export function CommandComponent() {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
+  const { signOut } = useClerk();
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -48,12 +48,13 @@ export function CommandComponent() {
       }
       if (e.key === "k" && e.metaKey) {
         signOut();
+        setOpen(false);
       }
     };
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, [router]);
+  }, [router, signOut]);
 
   return (
     <div className="hidden lg:block">
@@ -67,20 +68,6 @@ export function CommandComponent() {
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
-          {/*           <CommandGroup heading="Suggestions">
-            <CommandItem>
-              <Calendar className="mr-2 h-4 w-4" />
-              <span>Calendar</span>
-            </CommandItem>
-            <CommandItem>
-              <Smile className="mr-2 h-4 w-4" />
-              <span>Search Emoji</span>
-            </CommandItem>
-            <CommandItem>
-              <Calculator className="mr-2 h-4 w-4" />
-              <span>Calculator</span>
-            </CommandItem>
-          </CommandGroup> */}
           <CommandSeparator />
           <CommandGroup heading="Settings">
             <CommandItem onClick={() => redirect("/")}>

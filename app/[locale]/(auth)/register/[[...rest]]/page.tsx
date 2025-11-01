@@ -1,4 +1,4 @@
-import { RegisterComponent } from "./components/RegisterComponent";
+import { RegisterComponent } from "../components/RegisterComponent";
 
 const RegisterPage = async () => {
   return (
@@ -14,3 +14,5 @@ const RegisterPage = async () => {
 };
 
 export default RegisterPage;
+
+

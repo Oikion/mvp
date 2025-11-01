@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-
+import { getCurrentUser } from "@/lib/get-current-user";
 import NewTaskCommentEmail from "@/emails/NewTaskComment";
 import resendHelper from "@/lib/resend";
 
@@ -11,28 +9,22 @@ export async function POST(
   props: { params: Promise<{ taskId: string }> }
 ) {
   const params = await props.params;
-  /*
-  Resend.com function init - this is a helper function that will be used to send emails
-  */
   const resend = await resendHelper();
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  const { comment } = body;
-  const { taskId } = params;
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!taskId) {
-    return new NextResponse("Missing taskId", { status: 400 });
-  }
-
-  if (!comment) {
-    return new NextResponse("Missing comment", { status: 400 });
-  }
-
+  
   try {
+    const user = await getCurrentUser();
+    const body = await req.json();
+    const { comment } = body;
+    const { taskId } = params;
+
+    if (!taskId) {
+      return new NextResponse("Missing taskId", { status: 400 });
+    }
+
+    if (!comment) {
+      return new NextResponse("Missing comment", { status: 400 });
+    }
+
     const task = await prismadb.tasks.findUnique({
       where: { id: taskId },
     });
@@ -41,22 +33,15 @@ export async function POST(
       return new NextResponse("Task not found", { status: 404 });
     }
 
-    //console.log(task, "task");
-
     if (!task.section) {
       return new NextResponse("Task section not found", { status: 404 });
     }
 
-    //TODO: this can be done in a single query if there will be boardID in task
     const section = await prismadb.sections.findUnique({
       where: { id: task.section },
     });
 
-    //console.log(section, "section");
-
     if (section) {
-      //If there is a section, it is task from Projects if there is no section it is task from CRM
-      //ADD USER TO WATCHERS - on Board
       await prismadb.boards.update({
         where: {
           id: section.board,
@@ -64,7 +49,7 @@ export async function POST(
         data: {
           watchers_users: {
             connect: {
-              id: session.user.id,
+              id: user.id,
             },
           },
         },
@@ -75,15 +60,14 @@ export async function POST(
           v: 0,
           comment: comment,
           task: taskId,
-          user: session.user.id,
+          user: user.id,
         },
       });
 
       const emailRecipients = await prismadb.users.findMany({
         where: {
-          //Send to all users watching the board except the user who created the comment
           id: {
-            not: session.user.id,
+            not: user.id,
           },
           watching_boardsIDs: {
             has: section.board,
@@ -91,25 +75,21 @@ export async function POST(
         },
       });
 
-      // Add the task creator to the email recipients
       if (task.createdBy) {
         const taskCreator = await prismadb.users.findUnique({
           where: { id: task.createdBy },
         });
         if (taskCreator) {
-          emailRecipients.push(taskCreator); // Add the task creator to the recipients
+          emailRecipients.push(taskCreator);
         }
       }
 
-      //Create notifications for every user watching the board except the user who created the comment
       for (const userID of emailRecipients) {
-        const user = await prismadb.users.findUnique({
+        const recipientUser = await prismadb.users.findUnique({
           where: {
             id: userID.id,
           },
         });
-
-        //console.log("Comment send to user: ", user?.email);
 
         await resend.emails.send({
           from:
@@ -117,16 +97,16 @@ export async function POST(
             " <" +
             process.env.EMAIL_FROM +
             ">",
-          to: user?.email!,
+          to: recipientUser?.email!,
           subject:
-            session.user.userLanguage === "en"
+            user.userLanguage === "en"
               ? `New comment  on task ${task.title}.`
               : `Nový komentář k úkolu ${task.title}.`,
-          text: "", // Add this line to fix the types issue
+          text: "",
           react: NewTaskCommentEmail({
-            commentFromUser: session.user.name!,
-            username: user?.name!,
-            userLanguage: user?.userLanguage!,
+            commentFromUser: user.name!,
+            username: recipientUser?.name!,
+            userLanguage: recipientUser?.userLanguage!,
             taskId: task.id,
             comment: comment,
           }),
@@ -134,19 +114,16 @@ export async function POST(
       }
       return NextResponse.json(newComment, { status: 200 });
     } else {
-      //
       const newComment = await prismadb.tasksComments.create({
         data: {
           v: 0,
           comment: comment,
           task: taskId,
-          user: session.user.id,
+          user: user.id,
         },
       });
       return NextResponse.json(newComment, { status: 200 });
     }
-
-    /*      */
   } catch (error) {
     console.log("[COMMENTS_POST]", error);
     return new NextResponse("Initial error", { status: 500 });

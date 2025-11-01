@@ -1,18 +1,16 @@
 import { prismadb } from "@/lib/prisma";
 import Container from "../components/ui/Container";
 import Chat from "./components/Chat";
-
 import { Suspense } from "react";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import Link from "next/link";
 
 const ProfilePage = async () => {
-  const user = await getServerSession(authOptions);
+  const user = await getCurrentUser();
 
   const openAiKeyUser = await prismadb.openAi_keys.findFirst({
     where: {
-      user: user?.user?.id,
+      user: user.id,
     },
   });
 

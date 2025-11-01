@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 export async function POST(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
+  
   try {
+    await getCurrentUser();
+    
     const user = await prismadb.users.update({
       where: {
         id: params.userId,

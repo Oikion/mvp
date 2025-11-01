@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 
-// Create new client
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
   try {
+    const user = await getCurrentUser();
     const body = await req.json();
     const {
       client_name,
@@ -41,8 +36,8 @@ export async function POST(req: Request) {
 
     const newClient = await prismadb.clients.create({
       data: {
-        createdBy: session.user.id,
-        updatedBy: session.user.id,
+        createdBy: user.id,
+        updatedBy: user.id,
         client_name,
         primary_email,
         client_type,
@@ -70,7 +65,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // Invalidate cache
     await invalidateCache(["clients:list", "dashboard:accounts-count", assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
 
     return NextResponse.json({ newClient }, { status: 200 });
@@ -80,13 +74,9 @@ export async function POST(req: Request) {
   }
 }
 
-// Update client
 export async function PUT(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
   try {
+    const user = await getCurrentUser();
     const body = await req.json();
     const {
       id,
@@ -119,7 +109,7 @@ export async function PUT(req: Request) {
     const updatedClient = await prismadb.clients.update({
       where: { id },
       data: {
-        updatedBy: session.user.id,
+        updatedBy: user.id,
         client_name,
         primary_email,
         client_type,
@@ -147,7 +137,6 @@ export async function PUT(req: Request) {
       },
     });
 
-    // Invalidate cache
     await invalidateCache(["clients:list", `account:${id}`, assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
 
     return NextResponse.json({ updatedClient }, { status: 200 });
@@ -157,13 +146,9 @@ export async function PUT(req: Request) {
   }
 }
 
-// GET all clients
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
   try {
+    await getCurrentUser();
     const clients = await prismadb.clients.findMany({});
     return NextResponse.json(clients, { status: 200 });
   } catch (error) {

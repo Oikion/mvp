@@ -2,8 +2,9 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { Link } from "@/navigation"
 import { usePathname } from "next/navigation"
+import { useLocale } from "next-intl"
 import { 
   Home, 
   Coins, 
@@ -41,14 +42,15 @@ interface AppSidebarProps {
 
 export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
   const pathname = usePathname()
+  const locale = useLocale()
 
   // Transform your modules into the sidebar structure with proper active state detection
-  const navMainItems = [
+  const navMainItems = React.useMemo(() => [
     {
       title: dict.ModuleMenu.dashboard,
       url: "/",
       icon: Home,
-      isActive: pathname === "/",
+      isActive: pathname === `/${locale}` || pathname === `/${locale}/`,
     },
     // Add CRM module if enabled
     ...(modules.some((m: any) => m.name === "crm" && m.enabled) ? [{
@@ -107,7 +109,7 @@ export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
       icon: Wrench,
       isActive: pathname.includes("/admin"),
     },
-  ]
+  ], [pathname, locale, modules, dict])
 
   const navSecondaryItems = [
     {

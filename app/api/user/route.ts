@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { hash } from "bcryptjs";
 import { newUserNotify } from "@/lib/new-user-notify";
 
@@ -86,13 +85,13 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
   try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return new NextResponse("Unauthenticated", { status: 401 });
+    }
+
     const users = await prismadb.users.findMany({});
 
     return NextResponse.json(users);

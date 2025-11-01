@@ -1,22 +1,15 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  const data = body;
-
-  const search = data.data;
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  //return new NextResponse("Done", { status: 200 });
-
   try {
+    await getCurrentUser();
+    const body = await req.json();
+    const data = body;
+
+    const search = data.data;
+
     //Search in modul CRM (Clients)
     const resultsCrmClients = await prismadb.clients.findMany({
       where: {

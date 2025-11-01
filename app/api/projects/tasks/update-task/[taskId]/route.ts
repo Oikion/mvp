@@ -1,52 +1,38 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-
+import { getCurrentUser } from "@/lib/get-current-user";
 import NewTaskFromProject from "@/emails/NewTaskFromProject";
 import resendHelper from "@/lib/resend";
 import UpdatedTaskFromProject from "@/emails/UpdatedTaskFromProject";
 
-//Create new task in project route
-/*
-TODO: there is second route for creating task in board, but it is the same as this one. Consider merging them (/api/projects/tasks/create-task/[boardId]). 
-*/
 export async function PUT(req: Request, props: { params: Promise<{ taskId: string }> }) {
   const params = await props.params;
-  /*
-  Resend.com function init - this is a helper function that will be used to send emails
-  */
   const resend = await resendHelper();
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  //console.log(body, "body");
-  const {
-    title,
-    user,
-    board,
-    boardId,
-    priority,
-    content,
-    notionUrl,
-    dueDateAt,
-  } = body;
-
-  const taskId = params.taskId;
-
-  if (!taskId) {
-    return new NextResponse("Missing task id", { status: 400 });
-  }
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!title || !user || !priority || !content) {
-    return new NextResponse("Missing one of the task data ", { status: 400 });
-  }
-
+  
   try {
-    //Get first section from board where position is smallest
+    const user = await getCurrentUser();
+    const body = await req.json();
+    const {
+      title,
+      user: assignedUser,
+      board,
+      boardId,
+      priority,
+      content,
+      notionUrl,
+      dueDateAt,
+    } = body;
+
+    const taskId = params.taskId;
+
+    if (!taskId) {
+      return new NextResponse("Missing task id", { status: 400 });
+    }
+
+    if (!title || !assignedUser || !priority || !content) {
+      return new NextResponse("Missing one of the task data ", { status: 400 });
+    }
+
     const sectionId = await prismadb.sections.findFirst({
       where: {
         board: board,
@@ -59,12 +45,6 @@ export async function PUT(req: Request, props: { params: Promise<{ taskId: strin
     if (!sectionId) {
       return new NextResponse("No section found", { status: 400 });
     }
-
-    const tasksCount = await prismadb.tasks.count({
-      where: {
-        section: sectionId.id,
-      },
-    });
 
     let contentUpdated = content;
 
@@ -80,13 +60,12 @@ export async function PUT(req: Request, props: { params: Promise<{ taskId: strin
         priority: priority,
         title: title,
         content: contentUpdated,
-        updatedBy: user,
+        updatedBy: assignedUser,
         dueDateAt: dueDateAt,
-        user: user,
+        user: assignedUser,
       },
     });
 
-    //Update Board updated at field
     await prismadb.boards.update({
       where: {
         id: boardId,
@@ -96,20 +75,15 @@ export async function PUT(req: Request, props: { params: Promise<{ taskId: strin
       },
     });
 
-    //Notification to user who is not a task creator
-    if (user !== session.user.id) {
-      console.log("User property:", user);
-      console.log("Board property:", boardId);
+    if (assignedUser !== user.id) {
       try {
         const notifyRecipient = await prismadb.users.findUnique({
-          where: { id: user },
+          where: { id: assignedUser },
         });
 
         const boardData = await prismadb.boards.findUnique({
           where: { id: boardId },
         });
-
-        //console.log(notifyRecipient, "notifyRecipient");
 
         await resend.emails.send({
           from:
@@ -119,12 +93,12 @@ export async function PUT(req: Request, props: { params: Promise<{ taskId: strin
             ">",
           to: notifyRecipient?.email!,
           subject:
-            session.user.userLanguage === "en"
+            user.userLanguage === "en"
               ? `Task -  ${title} - was updated.`
               : `Úkol - ${title} - byl aktualizován.`,
-          text: "", // Add this line to fix the types issue
+          text: "",
           react: UpdatedTaskFromProject({
-            taskFromUser: session.user.name!,
+            taskFromUser: user.name!,
             username: notifyRecipient?.name!,
             userLanguage: notifyRecipient?.userLanguage!,
             taskData: task,
@@ -139,7 +113,7 @@ export async function PUT(req: Request, props: { params: Promise<{ taskId: strin
 
     return NextResponse.json({ status: 200 });
   } catch (error) {
-    console.log("[NEW_BOARD_POST]", error);
+    console.log("[UPDATE_TASK_PUT]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

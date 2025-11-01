@@ -1,6 +1,6 @@
 import { Home } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/navigation";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 import React from "react";
@@ -12,7 +12,8 @@ type Props = {
 
 const DashboardMenu = ({ open, title }: Props) => {
   const pathname = usePathname();
-  const isPath = pathname === "/";
+  const locale = useLocale();
+  const isPath = pathname === `/${locale}` || pathname === `/${locale}/`;
   return (
     <Button
       asChild

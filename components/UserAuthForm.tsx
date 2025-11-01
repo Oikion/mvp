@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { signIn } from "next-auth/react";
+import { useSignIn } from "@clerk/nextjs";
 import * as React from "react";
 import { FC } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,15 +11,20 @@ interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const UserAuthForm: FC<UserAuthFormProps> = ({ className, ...props }) => {
   const toast = useToast();
+  const { signIn, isLoaded } = useSignIn();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   const loginWithGoogle = async () => {
+    if (!isLoaded) return;
     setIsLoading(true);
 
     try {
-      await signIn("google");
+      await signIn.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/sso-callback",
+        redirectUrlComplete: process.env.NEXT_PUBLIC_APP_URL || "/",
+      });
     } catch (error) {
-    } finally {
       setIsLoading(false);
     }
   };
@@ -30,7 +35,7 @@ const UserAuthForm: FC<UserAuthFormProps> = ({ className, ...props }) => {
         type="button"
         className="max-w-sm w-full bg-slate-200"
         onClick={loginWithGoogle}
-        disabled={isLoading}
+        disabled={isLoading || !isLoaded}
       >
         {isLoading ? null : (
           <svg
@@ -59,7 +64,6 @@ const UserAuthForm: FC<UserAuthFormProps> = ({ className, ...props }) => {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               fill="#EA4335"
             />
-            <path d="M1 1h22v22H1z" fill="none" />
           </svg>
         )}
         Google

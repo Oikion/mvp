@@ -1,32 +1,22 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-
+import { getCurrentUser } from "@/lib/get-current-user";
 import NewTaskFromCRMEmail from "@/emails/NewTaskFromCRM";
 import NewTaskFromCRMToWatchersEmail from "@/emails/NewTaskFromCRMToWatchers";
 import resendHelper from "@/lib/resend";
 
-//Create new task from CRM in project route
 export async function POST(req: Request) {
-  /*
-  Resend.com function init - this is a helper function that will be used to send emails
-  */
   const resend = await resendHelper();
-
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  const { title, user, priority, content, account, dueDateAt } = body;
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!title || !user || !priority || !content || !account) {
-    return new NextResponse("Missing one of the task data ", { status: 400 });
-  }
-
+  
   try {
+    const user = await getCurrentUser();
+    const body = await req.json();
+    const { title, user: assignedUser, priority, content, account, dueDateAt } = body;
+
+    if (!title || !assignedUser || !priority || !content || !account) {
+      return new NextResponse("Missing one of the task data ", { status: 400 });
+    }
+
     const task = await prismadb.crm_Accounts_Tasks.create({
       data: {
         v: 0,
@@ -35,21 +25,18 @@ export async function POST(req: Request) {
         content,
         account,
         dueDateAt,
-        createdBy: user,
-        updatedBy: user,
-        user: user,
+        createdBy: assignedUser,
+        updatedBy: assignedUser,
+        user: assignedUser,
         taskStatus: "ACTIVE",
       },
     });
 
-    //Notification to user who is not a task creator or Account watcher
-    if (user !== session.user.id) {
+    if (assignedUser !== user.id) {
       try {
         const notifyRecipient = await prismadb.users.findUnique({
-          where: { id: user },
+          where: { id: assignedUser },
         });
-
-        //console.log(notifyRecipient, "notifyRecipient");
 
         await resend.emails.send({
           from:
@@ -59,60 +46,57 @@ export async function POST(req: Request) {
             ">",
           to: notifyRecipient?.email!,
           subject:
-            session.user.userLanguage === "en"
+            user.userLanguage === "en"
               ? `New task -  ${title}.`
               : `Nový úkol - ${title}.`,
-          text: "", // Add this line to fix the types issue
+          text: "",
           react: NewTaskFromCRMEmail({
-            taskFromUser: session.user.name!,
+            taskFromUser: user.name!,
             username: notifyRecipient?.name!,
             userLanguage: notifyRecipient?.userLanguage!,
             taskData: task,
           }),
         });
-        //console.log("Email sent to user: ", notifyRecipient?.email!);
       } catch (error) {
         console.log(error);
       }
     }
 
-    //Notification to user who are account watchers
     try {
       const emailRecipients = await prismadb.users.findMany({
         where: {
-          //Send to all users watching the board except the user who created the comment
           id: {
-            not: session.user.id,
+            not: user.id,
           },
           watching_accountsIDs: {
             has: account,
           },
         },
       });
-      //Create notifications for every user watching the specific account except the user who created the task
+      
       for (const userID of emailRecipients) {
-        const user = await prismadb.users.findUnique({
+        const recipientUser = await prismadb.users.findUnique({
           where: {
             id: userID.id,
           },
         });
-        console.log("Send email to user: ", user?.email!);
+        console.log("Send email to user: ", recipientUser?.email!);
         await resend.emails.send({
           from:
             process.env.NEXT_PUBLIC_APP_NAME +
             " <" +
             process.env.EMAIL_FROM +
             ">",
-          to: user?.email!,
+          to: recipientUser?.email!,
           subject:
-            session.user.userLanguage === "en"
+            user.userLanguage === "en"
               ? `New task -  ${title}.`
               : `Nový úkol - ${title}.`,
-          text: "", // Add this line to fix the types issue
+          text: "",
           react: NewTaskFromCRMToWatchersEmail({
-            taskFromUser: session.user.name!,
-            username: user?.name!,
-            userLanguage: user?.userLanguage!,
+            taskFromUser: user.name!,
+            username: recipientUser?.name!,
+            userLanguage: recipientUser?.userLanguage!,
             taskData: task,
           }),
         });
@@ -123,7 +107,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ status: 200 });
   } catch (error) {
-    console.log("[NEW_BOARD_POST]", error);
+    console.log("[NEW_CRM_TASK_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

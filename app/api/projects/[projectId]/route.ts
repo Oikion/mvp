@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
 
 export async function DELETE(req: Request, props: { params: Promise<{ projectId: string }> }) {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
-  if (!params.projectId) {
-    return new NextResponse("Missing project ID", { status: 400 });
-  }
-  const boardId = params.projectId;
-
+  
   try {
+    await getCurrentUser();
+    
+    if (!params.projectId) {
+      return new NextResponse("Missing project ID", { status: 400 });
+    }
+    const boardId = params.projectId;
+
     const sections = await prismadb.sections.findMany({
       where: {
         board: boardId,

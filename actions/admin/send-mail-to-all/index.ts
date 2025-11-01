@@ -1,6 +1,5 @@
 "use server";
 
-import { getServerSession } from "next-auth";
 import { render } from "@react-email/render";
 
 import { SendMailToAll } from "./schema";
@@ -8,22 +7,22 @@ import { InputType, ReturnType } from "./types";
 
 import { prismadb } from "@/lib/prisma";
 import resendHelper from "@/lib/resend";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { createSafeAction } from "@/lib/create-safe-action";
 import MessageToAllUsers from "@/emails/admin/MessageToAllUser";
 import sendEmail from "@/lib/sendmail";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const session = await getServerSession(authOptions);
+  const user = await getCurrentUser();
 
-  if (!session) {
+  if (!user) {
     return {
       error: "You must be authenticated.",
     };
   }
 
   //Only admin can send mail to all users
-  if (!session.user.isAdmin) {
+  if (!user.is_admin) {
     return {
       error: "You are not authorized to perform this action.",
     };

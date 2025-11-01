@@ -1,19 +1,14 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import sendEmail from "@/lib/sendmail";
 import { invalidateCache } from "@/lib/cache-invalidate";
 
-// Create client contact
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
   try {
+    const user = await getCurrentUser();
     const body = await req.json();
-    const userId = session.user.id;
+    const userId = user.id;
 
     if (!body) {
       return new NextResponse("No form data", { status: 400 });
@@ -73,7 +68,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // Invalidate cache
     await invalidateCache([
       "contacts:list",
       "dashboard:contacts-count",
@@ -110,15 +104,12 @@ export async function POST(req: Request) {
   }
 }
 
-// Update client contact
 export async function PUT(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
   try {
+    const user = await getCurrentUser();
     const body = await req.json();
-    const userId = session.user.id;
+    const userId = user.id;
+    
     if (!body) {
       return new NextResponse("No form data", { status: 400 });
     }
@@ -176,7 +167,6 @@ export async function PUT(req: Request) {
       },
     });
 
-    // Invalidate cache
     await invalidateCache([
       "contacts:list",
       `contact:${id}`,
@@ -190,5 +180,3 @@ export async function PUT(req: Request) {
     return new NextResponse("Initial error", { status: 500 });
   }
 }
-
-

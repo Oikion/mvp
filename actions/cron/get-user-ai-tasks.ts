@@ -2,15 +2,11 @@
 
 import dayjs from "dayjs";
 import axios from "axios";
-
 import { prismadb } from "@/lib/prisma";
 import resendHelper from "@/lib/resend";
 import AiTasksReportEmail from "@/emails/AiTasksReport";
 
-export async function getUserAiTasks(session: any) {
-  /*
-  Resend.com function init - this is a helper function that will be used to send emails
-  */
+export async function getUserAiTasks(user: any) {
   const resend = await resendHelper();
 
   const today = dayjs().startOf("day");
@@ -18,19 +14,19 @@ export async function getUserAiTasks(session: any) {
 
   let prompt = "";
 
-  const user = await prismadb.users.findUnique({
+  const dbUser = await prismadb.users.findUnique({
     where: {
-      id: session.user.id,
+      id: user.id,
     },
   });
 
-  if (!user) return { message: "No user found" };
+  if (!dbUser) return { message: "No user found" };
 
   const getTaskPastDue = await prismadb.tasks.findMany({
     where: {
       AND: [
         {
-          user: session.user.id,
+          user: user.id,
           taskStatus: "ACTIVE",
           dueDateAt: {
             lte: new Date(),
@@ -44,12 +40,11 @@ export async function getUserAiTasks(session: any) {
     where: {
       AND: [
         {
-          user: session.user.is,
+          user: user.id,
           taskStatus: "ACTIVE",
           dueDateAt: {
-            //lte: dayjs().add(7, "day").toDate(),
-            gt: today.toDate(), // Due date is greater than or equal to today
-            lt: nextWeek.toDate(), // Due date is less than next week (not including today)
+            gt: today.toDate(),
+            lt: nextWeek.toDate(),
           },
         },
       ],
@@ -60,7 +55,7 @@ export async function getUserAiTasks(session: any) {
     return { message: "No tasks found" };
   }
 
-  switch (user.userLanguage) {
+  switch (dbUser.userLanguage) {
     case "en":
       prompt = `Hi, Iam ${process.env.NEXT_PUBLIC_APP_URL} API Bot.
       \n\n
@@ -123,7 +118,7 @@ export async function getUserAiTasks(session: any) {
       `${process.env.NEXT_PUBLIC_APP_URL}/api/openai/create-chat-completion`,
       {
         prompt: prompt,
-        userId: session.user.id,
+        userId: user.id,
       },
       {
         headers: {
@@ -133,31 +128,26 @@ export async function getUserAiTasks(session: any) {
     )
     .then((res) => res.data);
 
-  //console.log(getAiResponse, "getAiResponse");
-  //console.log(getAiResponse.response.message.content, "getAiResponse");
-
-  //skip if api response is error
   if (getAiResponse.error) {
     console.log("Error from OpenAI API");
   } else {
     try {
       const data = await resend.emails.send({
         from: process.env.EMAIL_FROM!,
-        to: user.email!,
+        to: dbUser.email!,
         subject: `${process.env.NEXT_PUBLIC_APP_NAME} OpenAI Project manager assistant from: ${process.env.NEXT_PUBLIC_APP_URL}`,
         text: getAiResponse.response.message.content,
         react: AiTasksReportEmail({
-          username: session.user.name,
-          avatar: session.user.avatar,
-          userLanguage: session.user.userLanguage,
+          username: dbUser.name,
+          avatar: dbUser.avatar,
+          userLanguage: dbUser.userLanguage,
           data: getAiResponse.response.message.content,
         }),
       });
-      //console.log(data, "Email sent");
     } catch (error) {
       console.log(error, "Error from get-user-ai-tasks");
     }
   }
 
-  return { user: user.email };
+  return { user: dbUser.email };
 }

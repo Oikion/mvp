@@ -1,39 +1,25 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-
+import { getCurrentUser } from "@/lib/get-current-user";
 import NewTaskFromProject from "@/emails/NewTaskFromProject";
 import resendHelper from "@/lib/resend";
 
 export async function POST(req: Request, props: { params: Promise<{ boardId: string }> }) {
   const params = await props.params;
-  /*
-  Resend.com function init - this is a helper function that will be used to send emails
-  */
   const resend = await resendHelper();
-  const session = await getServerSession(authOptions);
-  const body = await req.json();
-  const { boardId } = params;
-  const { title, priority, content, section, user, dueDateAt } = body;
+  
+  try {
+    const currentUser = await getCurrentUser();
+    const body = await req.json();
+    const { boardId } = params;
+    const { title, priority, content, section, user, dueDateAt } = body;
 
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
+    if (!section) {
+      return new NextResponse("Missing section id", { status: 400 });
+    }
 
-  /*  if (!boardId) {
-    return new NextResponse("Missing board id", { status: 400 });
-  } */
-
-  if (!section) {
-    return new NextResponse("Missing section id", { status: 400 });
-  }
-
-  //console.log(section, "section");
-
-  //This is when user click on "Add new task" button in project board DnD section
-  if (!title || !user || !priority || !content) {
-    try {
+    //This is when user click on "Add new task" button in project board DnD section
+    if (!title || !user || !priority || !content) {
       const tasksCount = await prismadb.tasks.count({
         where: {
           section: section,
@@ -47,10 +33,10 @@ export async function POST(req: Request, props: { params: Promise<{ boardId: str
           title: "New task",
           content: "",
           section: section,
-          createdBy: session.user.id,
-          updatedBy: session.user.id,
+          createdBy: currentUser.id,
+          updatedBy: currentUser.id,
           position: tasksCount > 0 ? tasksCount : 0,
-          user: session.user.id,
+          user: currentUser.id,
           taskStatus: "ACTIVE",
         },
       });
@@ -66,13 +52,8 @@ export async function POST(req: Request, props: { params: Promise<{ boardId: str
       });
 
       return NextResponse.json({ status: 200 });
-    } catch (error) {
-      console.log("[NEW_TASK_IN_PROJECT_POST]", error);
-      return new NextResponse("Initial error", { status: 500 });
-    }
-  } else {
-    //This is when user click on "Add new task" button in project board page
-    try {
+    } else {
+      //This is when user click on "Add new task" button in project board page
       const tasksCount = await prismadb.tasks.count({
         where: {
           section: section,
@@ -95,11 +76,8 @@ export async function POST(req: Request, props: { params: Promise<{ boardId: str
         },
       });
 
-      //console.log(user, "user");
-      //console.log(session.user.id, "session.user.id");
-
       //Notification to user who is not a task creator
-      if (user !== session.user.id) {
+      if (user !== currentUser.id) {
         try {
           const notifyRecipient = await prismadb.users.findUnique({
             where: { id: user },
@@ -109,8 +87,6 @@ export async function POST(req: Request, props: { params: Promise<{ boardId: str
             where: { id: boardId },
           });
 
-          //console.log(notifyRecipient, "notifyRecipient");
-
           await resend.emails.send({
             from:
               process.env.NEXT_PUBLIC_APP_NAME +
@@ -119,12 +95,12 @@ export async function POST(req: Request, props: { params: Promise<{ boardId: str
               ">",
             to: notifyRecipient?.email!,
             subject:
-              session.user.userLanguage === "en"
+              currentUser.userLanguage === "en"
                 ? `New task -  ${title}.`
                 : `Nový úkol - ${title}.`,
-            text: "", // Add this line to fix the types issue
+            text: "",
             react: NewTaskFromProject({
-              taskFromUser: session.user.name!,
+              taskFromUser: currentUser.name!,
               username: notifyRecipient?.name!,
               userLanguage: notifyRecipient?.userLanguage!,
               taskData: task,
@@ -137,9 +113,9 @@ export async function POST(req: Request, props: { params: Promise<{ boardId: str
         }
       }
       return NextResponse.json({ status: 200 });
-    } catch (error) {
-      console.log("[NEW_TASK_IN_PROJECT_POST]", error);
-      return new NextResponse("Initial error", { status: 500 });
     }
+  } catch (error) {
+    console.log("[NEW_TASK_IN_PROJECT_POST]", error);
+    return new NextResponse("Initial error", { status: 500 });
   }
 }

@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { authOptions } from "@/lib/auth";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import TryAgain from "./components/TryAgain";
@@ -13,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const PendingPage = async () => {
+const InactivePage = async () => {
   const adminUsers: Users[] = await prismadb.users.findMany({
     where: {
       is_admin: true,
@@ -21,9 +20,9 @@ const PendingPage = async () => {
     },
   });
 
-  const session = await getServerSession(authOptions);
+  const user = await getCurrentUser();
 
-  if (session?.user.userStatus !== "INACTIVE") {
+  if (user.userStatus !== "INACTIVE") {
     return redirect("/");
   }
 
@@ -67,4 +66,4 @@ const PendingPage = async () => {
   );
 };
 
-export default PendingPage;
+export default InactivePage;
