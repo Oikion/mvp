@@ -31,13 +31,16 @@ export async function POST(req: Request) {
     Check if user is first user in the system. If yes, then create user with admin rights. If not, then create user with no admin rights.
     */
 
+    // Generate username from email if not provided
+    const generatedUsername = username || email.split("@")[0] || `user_${Date.now()}`;
+    
     const isFirstUser = await prismadb.users.findMany({});
     if (isFirstUser.length === 0) {
       //There is no user in the system, so create user with admin rights and set userStatus to ACTIVE
       const user = await prismadb.users.create({
         data: {
           name,
-          username,
+          username: generatedUsername,
           avatar: "",
           account_name: "",
           is_account_admin: false,
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
       const user = await prismadb.users.create({
         data: {
           name,
-          username,
+          username: generatedUsername,
           avatar: "",
           account_name: "",
           is_account_admin: false,

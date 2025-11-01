@@ -55,10 +55,13 @@ export async function POST(req: Request) {
         }
       );
     } else {
+      // Generate username from email if not provided
+      const generatedUsername = email.split("@")[0] || `user_${Date.now()}`;
+      
       const newUser = await prismadb.users.create({
         data: {
           name,
-          username: "",
+          username: generatedUsername,
           avatar: "",
           account_name: "",
           is_account_admin: false,

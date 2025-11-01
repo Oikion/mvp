@@ -7,6 +7,7 @@ import { ProfilePhotoForm } from "./components/ProfilePhotoForm";
 
 import H4Title from "@/components/typography/h4";
 import { OpenAiForm } from "./components/OpenAiForm";
+import { DeleteAccountForm } from "./components/DeleteAccountForm";
 
 const ProfilePage = async () => {
   const data = await getUser();
@@ -37,6 +38,11 @@ const ProfilePage = async () => {
 
         <H4Title>OpenAI Integration</H4Title>
         <OpenAiForm userId={data.id} />
+
+        <H4Title>Delete Account</H4Title>
+        <div className="p-5">
+          <DeleteAccountForm userId={data.id} username={data.username} />
+        </div>
       </div>
     </Container>
   );

@@ -22,6 +22,9 @@ export async function syncClerkUser(clerkUserId: string) {
     : clerkUser.firstName || clerkUser.lastName || clerkUser.username || email?.split("@")[0] || "User";
   const avatar = clerkUser.imageUrl || null;
   
+  // Generate username if not provided - use Clerk username or create from email
+  const username = clerkUser.username || email?.split("@")[0] || `user_${clerkUserId.substring(0, 8)}`;
+  
   // Get language from publicMetadata (set during sign-up via additionalFields)
   const language = (clerkUser.publicMetadata?.language as string) || "en";
   // Validate language is one of the allowed values
@@ -49,6 +52,7 @@ export async function syncClerkUser(clerkUserId: string) {
       data: {
         email,
         name,
+        username: username || existingByClerkId.username,
         avatar,
         userLanguage: userLanguage as "en" | "cz" | "de" | "uk",
         lastLoginAt: new Date(),
@@ -63,6 +67,7 @@ export async function syncClerkUser(clerkUserId: string) {
       data: {
         clerkUserId,
         name: name || existingByEmail.name,
+        username: username || existingByEmail.username,
         avatar: avatar || existingByEmail.avatar,
         userLanguage: userLanguage as "en" | "cz" | "de" | "uk",
         lastLoginAt: new Date(),
@@ -80,6 +85,7 @@ export async function syncClerkUser(clerkUserId: string) {
       clerkUserId,
       email,
       name,
+      username,
       avatar,
       userLanguage: userLanguage as "en" | "cz" | "de" | "uk",
       is_admin: isFirstUser,
