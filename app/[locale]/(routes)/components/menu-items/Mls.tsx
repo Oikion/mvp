@@ -35,10 +35,6 @@ const MlsModuleMenu = ({
         </Button>
         </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuItem onClick={() => router.push("/mls/dashboard")}>
-          Dashboard
-        </DropdownMenuItem>
-          <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/mls/properties")}>
           {localizations?.properties ?? "Properties"}
         </DropdownMenuItem>

@@ -4,6 +4,23 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Button Component - Oikion Design System
+ * 
+ * Standard shadcn button with:
+ * - Clean, flat design
+ * - All states: default, hover, focus (visible ring), active, disabled
+ * - Variants: default, secondary, destructive, success, outline, ghost, link
+ * - Smooth transitions
+ * - Accessibility: aria attributes, keyboard focus states
+ * - WCAG contrast ratios ensured (WCAG AA compliant)
+ * - Theme-aware colors via CSS variables
+ * 
+ * @example
+ * <Button variant="default" size="default">Click me</Button>
+ * <Button variant="success">Success</Button>
+ * <Button variant="destructive">Delete</Button>
+ */
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
@@ -12,10 +29,12 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        success:
+          "bg-success text-success-foreground hover:bg-success/90",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
@@ -46,6 +65,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        role="button"
+        tabIndex={props.disabled ? -1 : 0}
+        aria-disabled={props.disabled}
         {...props}
       />
     )

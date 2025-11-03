@@ -1,40 +1,31 @@
 import getNextVersion from "@/actions/system/get-next-version";
 import { Link } from "@/navigation";
-import ExternalLink from "next/link";
 import React from "react";
 
 const Footer = async () => {
   const nextVersion = await getNextVersion();
-  //console.log(nextVersion, "nextVersion");
+  
+  // Format version properly - replace spaces with dots if needed
+  const formatVersion = (version: string | undefined) => {
+    if (!version) return "0.0.1-alpha";
+    // Replace spaces with dots in version format
+    return version.replace(/\s+/g, ".").replace(/\.+/g, ".");
+  };
+  
+  const appVersion = formatVersion(process.env.NEXT_PUBLIC_APP_V || "0.0.1-alpha");
+  
   return (
-    <footer className="flex flex-row h-8 shrink-0 justify-end items-center w-full text-xs text-gray-500 p-5">
-      <div className="hidden md:flex pr-5">
+    <footer className="flex flex-row h-8 shrink-0 justify-end items-center w-full text-xs text-muted-foreground p-5">
+      <div className="hidden md:flex items-center space-x-2">
         <Link href="/">
-          <h1 className="text-gray-600">
-            {" "}
-            {process.env.NEXT_PUBLIC_APP_NAME} - {process.env.NEXT_PUBLIC_APP_V}
-          </h1>
+          <span className="text-xs text-muted-foreground">
+            {process.env.NEXT_PUBLIC_APP_NAME || "Oikion"} – {appVersion}
+          </span>
         </Link>
-      </div>
-      <div className="hidden md:flex space-x-2 pr-2">
-        powered by Next.js
+        <span>powered by Next.js</span>
         <span className="bg-black rounded-md text-white px-1 mx-1">
           {nextVersion.substring(1, 7) || process.env.NEXT_PUBLIC_NEXT_VERSION}
         </span>
-        +
-        <ExternalLink href={"https://ui.shadcn.com/"}>
-          <span className="rounded-md mr-2">shadcnUI</span>
-        </ExternalLink>{" "}
-        hosted by:
-        <span className="text-bold underline">
-          <ExternalLink href="https://www.vercel.com">Vercel</ExternalLink>
-        </span>
-      </div>
-      <div className="hidden md:flex space-x-2">
-        Supported by:
-        <ExternalLink className="pl-1 font-bold" href="https://www.softbase.cz">
-          SoftBase s.r.o.
-        </ExternalLink>
       </div>
     </footer>
   );

@@ -12,7 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { columns } from "../accounts/table-components/columns";
-import { NewAccountForm } from "../accounts/components/NewAccountForm";
+import { NewClientWizard } from "../clients/components/NewClientWizard";
 import { AccountDataTable } from "../accounts/table-components/data-table";
 import { useRouter } from "next/navigation";
 import {
@@ -65,8 +65,7 @@ const AccountsView = ({ data, crmData }: any) => {
                   <SheetTitle>Create new Client</SheetTitle>
                 </SheetHeader>
                 <div className="h-full overflow-y-auto">
-                  <NewAccountForm
-                    industries={industries}
+                  <NewClientWizard
                     users={users}
                     onFinish={() => setOpen(false)}
                   />

@@ -12,7 +12,7 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/app/providers/ThemeProvider";
 import { ClerkThemeProvider } from "@/lib/clerk-theme-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 type Props = {
   children: ReactNode;
@@ -101,8 +101,8 @@ export default async function RootLayout(props: Props) {
         />
         <meta name="twitter:image" content="https://nextcrm.io/api/og" />
       </head>
-      <body className={inter.className + " min-h-screen"}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <body className={`${inter.variable} font-sans min-h-screen`}>
+        <ThemeProvider defaultTheme="system" enableSystem>
           <ClerkThemeProvider>
             <NextIntlClientProvider locale={locale} messages={messages}>
               {children}

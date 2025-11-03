@@ -1,18 +1,27 @@
-import { RegisterComponent } from "../components/RegisterComponent";
+"use client";
 
-const RegisterPage = async () => {
+import { SignUp } from "@clerk/nextjs";
+import { useParams } from "next/navigation";
+import { useClerkTheme } from "@/lib/clerk-theme";
+
+// Using Clerk's account portal with virtual routing
+// This uses Clerk's hosted pages which handle social auth automatically
+export default function RegisterPage() {
+  const params = useParams();
+  const locale = params.locale as string || "en";
+  const { appearance } = useClerkTheme();
+
   return (
-    <div className="flex flex-col w-full h-full overflow-auto p-10 space-y-5">
-      <div className="">
-        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-          Welcome to {process.env.NEXT_PUBLIC_APP_NAME}
-        </h1>
-      </div>
-      <RegisterComponent />
+    <div className="flex justify-center items-center min-h-screen">
+      <SignUp
+        routing="path" // Uses path-based routing with Clerk's account portal features
+        path={`/${locale}/register`}
+        signInUrl={`/${locale}/sign-in`}
+        afterSignUpUrl={`/${locale}/create-organization`}
+        appearance={appearance}
+      />
     </div>
   );
-};
-
-export default RegisterPage;
+}
 
 

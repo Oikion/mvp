@@ -1,0 +1,548 @@
+{
+  "RootLayout": {
+    "title": "NextCRM",
+    "description": "Το NextCRM είναι ένα open source CRM χτισμένο πάνω στο NextJS."
+  },
+  "CrmClientsPage": {
+    "description": "Διαχειριστείτε τους πελάτες σας"
+  },
+  "MlsPropertiesPage": {
+    "description": "Διαχείριση ακινήτων MLS"
+  },
+  "EstateFilesPage": {
+    "description": "Κοινός χώρος για κοινά ακίνητα - Δημιουργήστε φακέλους ακινήτων για να ομαδοποιήσετε σχετικά ακίνητα μαζί"
+  },
+  "ReportsPage": {
+    "description": "Προκαθορισμένες αναφορές για κάθε module. Χρησιμοποιούμε το Tremor για απεικόνιση.",
+    "newUsersByMonthOverall": "Νέοι χρήστες ανά μήνα (Σύνολο)",
+    "newUsersByMonth": "Νέοι χρήστες ανά μήνα",
+    "newUsersByMonth2023": "Νέοι χρήστες ανά μήνα (2023)",
+    "newUsersByMonth2024": "Νέοι χρήστες ανά μήνα (2024)",
+    "tasksByMonth2023": "Νέες εργασίες ανά μήνα (2023)"
+  },
+  "ModuleMenu": {
+    "dashboard": "Πίνακας Ελέγχου",
+    "crm": {
+      "title": "Πελάτες",
+      "accounts": "Πελάτες",
+      "opportunities": "Ευκαιρίες",
+      "contacts": "Επαφές Πελατών",
+      "leads": "Leads",
+      "contracts": "Συμβάσεις"
+    },
+    "mls": {
+      "title": "Ακίνητα",
+      "properties": "Ακίνητα"
+    },
+    "estateFiles": "Φάκελοι Ακινήτων",
+    "emails": "E-mail",
+    "tasks": "Εργασίες",
+    "invoices": "Τιμολόγια",
+    "reports": "Αναφορές",
+    "documents": "Έγγραφα",
+    "storage": "Αποθήκευση",
+    "settings": "Διαχείριση",
+    "employees": "Υπάλληλοι",
+    "chatGPT": "ChatGPT",
+    "support": "Υποστήριξη"
+  },
+  "DashboardPage": {
+    "containerTitle": "Πίνακας Ελέγχου",
+    "containerDescription": "Καλώς ήρθατε στο NextCRM, εδώ μπορείτε να δείτε όλες τις σημαντικές πληροφορίες για την επιχείρησή σας.",
+    "totalRevenue": "Συνολικό εισόδημα",
+    "expectedRevenue": "Αναμενόμενο εισόδημα",
+    "activeUsers": "Ενεργοί χρήστες",
+    "accounts": "Εταιρείες",
+    "opportunities": "Συναλλαγές",
+    "contacts": "Επαφές",
+    "leads": "Leads",
+    "estateFiles": "Φάκελοι Ακινήτων",
+    "tasks": "Εργασίες",
+    "myTasks": "Οι εργασίες μου",
+    "invoices": "Τιμολόγια",
+    "documents": "Έγγραφα",
+    "storage": "Αποθήκευση",
+    "employees": "Υπάλληλοι"
+  },
+  "RegisterComponent": {
+    "cardTitle": "Δημιουργία νέου λογαριασμού",
+    "cardDescription": "Δημιουργήστε λογαριασμό με σύνδεση μέσω",
+    "label": "Γλώσσα",
+    "locale": "{locale, select, de {Γερμανικά} en {Αγγλικά} cz {Τσεχικά} uk {Ουκρανικά} el {Ελληνικά} other {Άγνωστο}}"
+  },
+  "CrmModuleMenuComponent": {
+    "menuTitle": "Πελάτες"
+  },
+  "CrmForm": {
+    "title": "Νέος Πελάτης",
+    "quickAddTitle": "Γρήγορη Προσθήκη Πελάτη",
+    "steps": {
+      "basics": "Βασικά",
+      "contact": "Επικοινωνία",
+      "legal": "Νομικά",
+      "preferences": "Ανάγκες / Προτιμήσεις",
+      "financing": "Χρηματοδότηση",
+      "consent": "Συναίνεση & GDPR"
+    },
+    "stepDescriptions": {
+      "basics": "Βασικές πληροφορίες πελάτη",
+      "contact": "Προτιμήσεις επικοινωνίας",
+      "legal": "Νομικά στοιχεία (προαιρετικά)",
+      "preferences": "Ανάγκες και προτιμήσεις ακινήτου",
+      "financing": "Στοιχεία χρηματοδότησης",
+      "consent": "Συναίνεση και προσωπικά δεδομένα"
+    },
+    "fields": {
+      "personType": "Τύπος πελάτη",
+      "personTypePlaceholder": "Επιλέξτε τύπο",
+      "fullName": "Ονοματεπώνυμο",
+      "fullNamePlaceholder": "Όνομα Επώνυμο",
+      "companyName": "Επωνυμία Εταιρείας",
+      "companyNamePlaceholder": "Όνομα εταιρείας",
+      "primaryPhone": "Κύριο τηλέφωνο",
+      "primaryPhonePlaceholder": "+30 210 1234567",
+      "primaryEmail": "Κύριο email",
+      "primaryEmailPlaceholder": "email@example.com",
+      "secondaryPhone": "Εναλλακτικό τηλέφωνο",
+      "secondaryEmail": "Εναλλακτικό email",
+      "intent": "Σκοπός",
+      "intentPlaceholder": "Επιλέξτε σκοπό",
+      "channels": "Προτίμηση επικοινωνίας",
+      "channelsPlaceholder": "Επιλέξτε κανάλια",
+      "language": "Γλώσσα",
+      "afm": "ΑΦΜ",
+      "afmPlaceholder": "9 ψηφία",
+      "doy": "ΔΟΥ",
+      "doyPlaceholder": "Επιλέξτε ΔΟΥ",
+      "idDoc": "ΑΔΤ/Διαβατήριο",
+      "companyGemi": "ΓΕΜΗ",
+      "companyGemiPlaceholder": "Αριθμός ΓΕΜΗ",
+      "purpose": "Σκοπός ακινήτου",
+      "purposePlaceholder": "Επιλέξτε σκοπό",
+      "areas": "Περιοχές ενδιαφέροντος",
+      "areasPlaceholder": "Επιλέξτε περιοχές",
+      "budgetMin": "Ελάχιστος προϋπολογισμός",
+      "budgetMax": "Μέγιστος προϋπολογισμός",
+      "timeline": "Πότε;",
+      "timelinePlaceholder": "Επιλέξτε χρονοδιάγραμμα",
+      "financingType": "Τύπος χρηματοδότησης",
+      "financingTypePlaceholder": "Επιλέξτε τύπο",
+      "preapprovalBank": "Τράπεζα προέγκρισης",
+      "needsMortgageHelp": "Χρειάζεται βοήθεια με στεγαστικό",
+      "notes": "Σημειώσεις",
+      "gdprConsent": "Συναίνεση GDPR",
+      "allowMarketing": "Επιτρέπω μάρκετινγκ",
+      "leadSource": "Πηγή",
+      "leadSourcePlaceholder": "Πώς μας βρήκετε;",
+      "agentOwner": "Ανατεθειμένος πράκτορας"
+    },
+    "personType": {
+      "INDIVIDUAL": "Ιδιώτης",
+      "COMPANY": "Εταιρεία",
+      "INVESTOR": "Επενδυτής",
+      "BROKER": "Μεσίτης"
+    },
+    "intents": {
+      "BUY": "Αγορά",
+      "RENT": "Ενοικίαση",
+      "SELL": "Πώληση",
+      "LEASE": "Εκμίσθωση",
+      "INVEST": "Επένδυση"
+    },
+    "channels": {
+      "CALL": "Κλήση",
+      "SMS": "SMS",
+      "WHATSAPP": "WhatsApp",
+      "VIBER": "Viber",
+      "EMAIL": "Email"
+    },
+    "purpose": {
+      "RESIDENTIAL": "Κατοικία",
+      "COMMERCIAL": "Επαγγελματικό",
+      "LAND": "Γη",
+      "PARKING": "Χώρος Parking",
+      "OTHER": "Άλλο"
+    },
+    "timeline": {
+      "IMMEDIATE": "Άμεσα",
+      "ONE_THREE_MONTHS": "1-3 μήνες",
+      "THREE_SIX_MONTHS": "3-6 μήνες",
+      "SIX_PLUS_MONTHS": "6+ μήνες"
+    },
+    "financingType": {
+      "CASH": "Μετρητά",
+      "MORTGAGE": "Στεγαστικό",
+      "PREAPPROVAL_PENDING": "Εκκρεμεί προέγκριση"
+    },
+    "leadSource": {
+      "REFERRAL": "Σύσταση",
+      "WEB": "Ιστοσελίδα",
+      "PORTAL": "Πύλη",
+      "WALK_IN": "Προσωπική επίσκεψη",
+      "SOCIAL": "Κοινωνικά δίκτυα"
+    },
+    "validation": {
+      "personTypeRequired": "Ο τύπος πελάτη είναι υποχρεωτικός",
+      "nameRequired": "Το όνομα είναι υποχρεωτικό",
+      "phoneOrEmailRequired": "Το τηλέφωνο ή το email είναι υποχρεωτικό",
+      "intentRequired": "Ο σκοπός είναι υποχρεωτικός",
+      "afmInvalid": "Το ΑΦΜ πρέπει να έχει 9 ψηφία",
+      "emailInvalid": "Μη έγκυρο email"
+    },
+    "buttons": {
+      "saveDraft": "Αποθήκευση πρόχειρου",
+      "continueToFull": "Συνέχεια σε πλήρη φόρμα",
+      "previous": "Προηγούμενο",
+      "next": "Επόμενο",
+      "submit": "Δημιουργία Πελάτη",
+      "quickAdd": "Γρήγορη Προσθήκη"
+    },
+    "autosave": {
+      "saving": "Αποθήκευση...",
+      "saved": "Αποθηκεύτηκε",
+      "failed": "Αποτυχία αποθήκευσης"
+    }
+  },
+  "PropertyForm": {
+    "title": "Νέο Ακίνητο",
+    "quickAddTitle": "Γρήγορη Προσθήκη Ακινήτου",
+    "steps": {
+      "basics": "Βασικά",
+      "location": "Τοποθεσία",
+      "surfaces": "Επιφάνειες & Όροφοι",
+      "characteristics": "Χαρακτηριστικά",
+      "condition": "Κατάσταση & Έτος",
+      "legal": "Νομιμότητα & Έγγραφα",
+      "amenities": "Παροχές & Extras",
+      "pricing": "Τιμή & Διαθεσιμότητα",
+      "media": "Media & Δημοσίευση"
+    },
+    "stepDescriptions": {
+      "basics": "Βασικές πληροφορίες ακινήτου",
+      "location": "Τοποθεσία ακινήτου",
+      "surfaces": "Επιφάνειες και όροφοι",
+      "characteristics": "Χαρακτηριστικά ακινήτου",
+      "condition": "Κατάσταση και έτος κατασκευής",
+      "legal": "Νομικά στοιχεία (προαιρετικά)",
+      "amenities": "Παροχές και επιπλέον χαρακτηριστικά",
+      "pricing": "Τιμή και διαθεσιμότητα",
+      "media": "Φωτογραφίες και δημοσίευση"
+    },
+    "fields": {
+      "propertyType": "Τύπος ακινήτου",
+      "propertyTypePlaceholder": "Επιλέξτε τύπο",
+      "transactionType": "Τύπος συναλλαγής",
+      "transactionTypePlaceholder": "Επιλέξτε τύπο",
+      "status": "Κατάσταση",
+      "statusPlaceholder": "Επιλέξτε κατάσταση",
+      "isExclusive": "Αποκλειστικότητα",
+      "municipality": "Δήμος",
+      "municipalityPlaceholder": "Επιλέξτε δήμο",
+      "area": "Περιοχή/Γειτονιά",
+      "areaPlaceholder": "Επιλέξτε περιοχή",
+      "postalCode": "ΤΚ",
+      "postalCodePlaceholder": "5 ψηφία",
+      "addressPrivacyLevel": "Επίπεδο προστασίας διεύθυνσης",
+      "addressPrivacyLevelPlaceholder": "Επιλέξτε επίπεδο",
+      "sizeNetSqm": "Καθαρά τ.μ.",
+      "sizeGrossSqm": "Μεικτά τ.μ.",
+      "floor": "Όροφος",
+      "floorPlaceholder": "Επιλέξτε όροφο",
+      "floorsTotal": "Σύνολο ορόφων κτιρίου",
+      "plotSizeSqm": "Εμβαδόν",
+      "insideCityPlan": "Εντός/Εκτός σχεδίου",
+      "buildCoefficient": "Συντελεστής δόμησης",
+      "frontageM": "Πρόσοψη (μέτρα)",
+      "bedrooms": "Υπνοδωμάτια",
+      "bathrooms": "Μπάνια",
+      "heatingType": "Τύπος θέρμανσης",
+      "heatingTypePlaceholder": "Επιλέξτε τύπο",
+      "energyCertClass": "ΠΕΑ",
+      "energyCertClassPlaceholder": "Επιλέξτε κλάση",
+      "yearBuilt": "Έτος κατασκευής",
+      "renovatedYear": "Έτος ανακαίνισης",
+      "condition": "Κατάσταση",
+      "conditionPlaceholder": "Επιλέξτε κατάσταση",
+      "elevator": "Ανελκυστήρας",
+      "buildingPermitNo": "Αριθμός άδειας οικοδομής",
+      "buildingPermitYear": "Έτος άδειας",
+      "landRegistryKaek": "ΚΑΕΚ",
+      "legalizationStatus": "Κατάσταση νομιμοποίησης",
+      "legalizationStatusPlaceholder": "Επιλέξτε κατάσταση",
+      "etaireiaDiaxeirisis": "Εταιρεία διαχείρισης",
+      "monthlyCommonCharges": "Κοινόχρηστα (€/μήνα)",
+      "amenities": "Παροχές",
+      "amenitiesPlaceholder": "Επιλέξτε παροχές",
+      "orientation": "Προσανατολισμός",
+      "orientationPlaceholder": "Επιλέξτε προσανατολισμό",
+      "furnished": "Επιπλωμένο",
+      "furnishedPlaceholder": "Επιλέξτε",
+      "accessibility": "Προσβασιμότητα",
+      "price": "Τιμή",
+      "priceType": "Τύπος τιμής",
+      "priceTypePlaceholder": "Επιλέξτε τύπο",
+      "availableFrom": "Διαθέσιμο από",
+      "acceptsPets": "Δέχεται κατοικίδια",
+      "minLeaseMonths": "Ελάχιστοι μήνες ενοικίασης",
+      "photos": "Φωτογραφίες",
+      "virtualTourUrl": "URL εικονικής περιήγησης",
+      "portalVisibility": "Ορατότητα σε portals",
+      "portalVisibilityPlaceholder": "Επιλέξτε ορατότητα"
+    },
+    "propertyType": {
+      "APARTMENT": "Διαμέρισμα",
+      "HOUSE": "Μονοκατοικία",
+      "MAISONETTE": "Μεζονέτα",
+      "COMMERCIAL": "Επαγγελματικός χώρος",
+      "WAREHOUSE": "Αποθήκη",
+      "PARKING": "Parking",
+      "PLOT": "Οικόπεδο",
+      "FARM": "Αγροτεμάχιο",
+      "INDUSTRIAL": "Βιομηχανικό",
+      "OTHER": "Άλλο"
+    },
+    "transactionType": {
+      "SALE": "Πώληση",
+      "RENTAL": "Ενοικίαση",
+      "SHORT_TERM": "Βραχυχρόνια",
+      "EXCHANGE": "Αντιπαροχή"
+    },
+    "status": {
+      "AVAILABLE": "Διαθέσιμο",
+      "RESERVED": "Δεσμευμένο",
+      "NEGOTIATION": "Σε διαπραγμάτευση",
+      "RENTED": "Μισθωμένο",
+      "SOLD": "Πωλημένο"
+    },
+    "addressPrivacyLevel": {
+      "EXACT": "Ακριβής διεύθυνση",
+      "PARTIAL": "Μερική",
+      "HIDDEN": "Κρυφή"
+    },
+    "floor": {
+      "BASEMENT": "Υπόγειο",
+      "GROUND": "Ισόγειο",
+      "1ST": "1ος",
+      "2ND": "2ος",
+      "3RD": "3ος",
+      "4TH": "4ος",
+      "5TH": "5ος",
+      "6TH": "6ος",
+      "7TH": "7ος",
+      "8TH": "8ος",
+      "9TH": "9ος",
+      "10TH": "10ος",
+      "PENTHOUSE": "Ρετιρέ"
+    },
+    "heatingType": {
+      "AUTONOMOUS": "Αυτόνομη",
+      "CENTRAL": "Κεντρική",
+      "NATURAL_GAS": "Φυσικό αέριο",
+      "HEAT_PUMP": "Αντλία θερμότητας",
+      "ELECTRIC": "Ηλεκτρική",
+      "NONE": "Χωρίς"
+    },
+    "energyCertClass": {
+      "A_PLUS": "A+",
+      "A": "A",
+      "B": "B",
+      "C": "C",
+      "D": "D",
+      "E": "E",
+      "F": "F",
+      "G": "G",
+      "H": "H",
+      "IN_PROGRESS": "Σε εξέλιξη"
+    },
+    "condition": {
+      "EXCELLENT": "Άριστη",
+      "VERY_GOOD": "Πολύ καλή",
+      "GOOD": "Καλή",
+      "NEEDS_RENOVATION": "Χρειάζεται ανακαίνιση"
+    },
+    "legalizationStatus": {
+      "LEGALIZED": "Τακτοποιημένο Ν.4178/4495",
+      "IN_PROGRESS": "Σε εξέλιξη",
+      "UNDECLARED": "Μη δηλωμένο"
+    },
+    "amenities": {
+      "AC": "Κλιματισμός",
+      "FIREPLACE": "Τζάκι",
+      "PARKING": "Parking",
+      "STORAGE": "Αποθήκη",
+      "SOLAR": "Ηλιακός",
+      "DOUBLE_GLAZING": "Διπλά τζάμια",
+      "VIEW": "Θέα",
+      "BALCONY": "Βεράντα",
+      "GARDEN": "Κήπος",
+      "PET_FRIENDLY": "Pet-friendly",
+      "FRONTAGE": "Πρόσοψη"
+    },
+    "orientation": {
+      "N": "Βόρεια",
+      "S": "Νότια",
+      "E": "Ανατολικά",
+      "W": "Δυτικά"
+    },
+    "furnished": {
+      "NO": "Όχι",
+      "PARTIALLY": "Μερικώς",
+      "FULLY": "Πλήρως"
+    },
+    "priceType": {
+      "RENTAL": "€ ενοικίασης",
+      "SALE": "€ πώλησης",
+      "PER_ACRE": "€ ανά στρέμμα",
+      "PER_SQM": "€ ανά τ.μ."
+    },
+    "portalVisibility": {
+      "PRIVATE": "Ιδιωτικό",
+      "SELECTED": "Επιλεγμένα portals",
+      "PUBLIC": "Παντού"
+    },
+    "validation": {
+      "propertyTypeRequired": "Ο τύπος ακινήτου είναι υποχρεωτικός",
+      "transactionTypeRequired": "Ο τύπος συναλλαγής είναι υποχρεωτικός",
+      "municipalityRequired": "Ο δήμος είναι υποχρεωτικός",
+      "areaOrPostalCodeRequired": "Η περιοχή ή το ΤΚ είναι υποχρεωτικό",
+      "sizeRequired": "Το μέγεθος είναι υποχρεωτικό",
+      "priceRequired": "Η τιμή είναι υποχρεωτική",
+      "postalCodeInvalid": "Το ΤΚ πρέπει να έχει 5 ψηφία"
+    },
+    "buttons": {
+      "saveDraft": "Αποθήκευση πρόχειρου",
+      "continueToFull": "Συνέχεια σε πλήρη φόρμα",
+      "previous": "Προηγούμενο",
+      "next": "Επόμενο",
+      "submit": "Δημιουργία Ακινήτου",
+      "quickAdd": "Γρήγορη Προσθήκη"
+    },
+    "autosave": {
+      "saving": "Αποθήκευση...",
+      "saved": "Αποθηκεύτηκε",
+      "failed": "Αποτυχία αποθήκευσης"
+    }
+  },
+  "QuickAdd": {
+    "client": {
+      "title": "Γρήγορη Προσθήκη Πελάτη",
+      "description": "Συμπληρώστε τα βασικά στοιχεία για να δημιουργήσετε γρήγορα έναν πελάτη"
+    },
+    "property": {
+      "title": "Γρήγορη Προσθήκη Ακινήτου",
+      "description": "Συμπληρώστε τα βασικά στοιχεία για να δημιουργήσετε γρήγορα ένα ακίνητο"
+    }
+  },
+  "common": {
+    "cancel": "Ακύρωση",
+    "creating": "Δημιουργία...",
+    "success": "Επιτυχία",
+    "error": "Σφάλμα",
+    "clientCreated": "Πελάτης δημιουργήθηκε επιτυχώς",
+    "propertyCreated": "Ακίνητο δημιουργήθηκε επιτυχώς",
+    "somethingWentWrong": "Κάτι πήγε στραβά",
+    "clientCreationFailed": "Αποτυχία δημιουργίας πελάτη",
+    "propertyCreationFailed": "Αποτυχία δημιουργίας ακινήτου",
+    "selectAgent": "Επιλέξτε πράκτορα",
+    "rowsPerPage": "Γραμμές ανά σελίδα",
+    "pageOf": "Σελίδα {page} από {count}",
+    "selectedRows": "{selected} από {total} γραμμή(ες) επιλέχθηκαν.",
+    "goFirstPage": "Μετάβαση στην πρώτη σελίδα",
+    "goPrevPage": "Μετάβαση στην προηγούμενη σελίδα",
+    "goNextPage": "Μετάβαση στην επόμενη σελίδα",
+    "goLastPage": "Μετάβαση στην τελευταία σελίδα",
+    "reset": "Επαναφορά",
+    "view": "Προβολή",
+    "toggleColumns": "Εναλλαγή στηλών",
+    "filterPlaceholder": "Φιλτράρετε πελάτες ..."
+  },
+  "CrmAccountsTable": {
+    "created": "Δημιουργήθηκε",
+    "assignedTo": "Ανατέθηκε σε",
+    "name": "Όνομα",
+    "email": "E-mail",
+    "accountContact": "Επαφή λογαριασμού",
+    "status": "Κατάσταση",
+    "unassigned": "Χωρίς ανάθεση"
+  },
+  "MlsPropertiesTable": {
+    "created": "Δημιουργήθηκε",
+    "assignedTo": "Ανατέθηκε σε",
+    "name": "Όνομα",
+    "price": "Τιμή",
+    "type": "Τύπος",
+    "status": "Κατάσταση",
+    "unassigned": "Χωρίς ανάθεση",
+    "filterPlaceholder": "Φιλτράρετε ακίνητα ..."
+  },
+  "EstateFilesTable": {
+    "lastUpdated": "Τελευταία ενημέρωση",
+    "assignedTo": "Ανατέθηκε σε",
+    "name": "Όνομα",
+    "description": "Περιγραφή",
+    "visibility": "Ορατότητα",
+    "unassigned": "Χωρίς ανάθεση",
+    "filterPlaceholder": "Φιλτράρετε φακέλους ακινήτων..."
+  },
+  "Navigation": {
+    "upgradeToPro": "Αναβάθμιση σε Pro",
+    "account": "Λογαριασμός",
+    "billing": "Χρέωση",
+    "notifications": "Ειδοποιήσεις",
+    "theme": "Θέμα",
+    "language": "Γλώσσα",
+    "logOut": "Αποσύνδεση",
+    "languageChanged": "Η γλώσσα άλλαξε σε {language}",
+    "languageChangeFailed": "Αποτυχία αλλαγής γλώσσας",
+    "themes": {
+      "light": "Φωτεινό",
+      "dark": "Σκοτεινό",
+      "pearlSand": "Pearl Sand",
+      "twilightLavender": "Twilight Lavender",
+      "system": "Σύστημα"
+    },
+    "languages": {
+      "en": "Αγγλικά",
+      "cz": "Τσεχικά",
+      "de": "Γερμανικά",
+      "uk": "Ουκρανικά",
+      "el": "Ελληνικά"
+    }
+  },
+  "Command": {
+    "press": "Πατήστε",
+    "placeholder": "Πληκτρολογήστε εντολή ή αναζήτηση...",
+    "noResults": "Δεν βρέθηκαν αποτελέσματα.",
+    "settings": "Ρυθμίσεις",
+    "dashboard": "Πίνακας Ελέγχου",
+    "profileSettings": "Ρυθμίσεις προφίλ",
+    "logout": "Αποσύνδεση"
+  },
+  "Admin": {
+    "title": "Διαχείριση",
+    "accessDenied": "Δεν είστε διαχειριστής, η πρόσβαση δεν επιτρέπεται",
+    "accessNotAllowed": "Η πρόσβαση δεν επιτρέπεται",
+    "setupDescription": "Εδώ μπορείτε να ρυθμίσετε την εγκατάσταση NextCRM σας",
+    "usersAdministration": "Διαχείριση χρηστών",
+    "modulesAdministration": "Διαχείριση modules",
+    "manageUsersDescription": "Εδώ μπορείτε να διαχειριστείτε τους χρήστες του NextCRM σας",
+    "inviteNewUser": "Πρόσκληση νέου χρήστη στο NextCRM",
+    "manageModulesDescription": "Εδώ μπορείτε να διαχειριστείτε τα modules του NextCRM σας"
+  },
+  "AvatarDropdown": {
+    "todoDashboard": "Πίνακας εργασιών",
+    "profileSettings": "Ρυθμίσεις προφίλ",
+    "signOut": "Αποσύνδεση"
+  }
+  ,
+  "ChatGPTPage": {
+    "title": "Βοηθός AI",
+    "description": "Ρωτήστε ό,τι χρειάζεστε",
+    "missingKeyTitle": "Δεν βρέθηκε κλειδί OpenAI",
+    "missingKeyPrompt": "Προσθέστε το κλειδί OpenAI στις",
+    "profileSettings": "ρυθμίσεις προφίλ",
+    "toUseAssistant": "για να χρησιμοποιήσετε τον βοηθό",
+    "loading": "Φόρτωση..."
+  }
+}
+

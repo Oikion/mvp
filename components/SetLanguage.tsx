@@ -35,13 +35,13 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import LoadingModal from "./modals/loading-modal";
+import { availableLocales } from "@/lib/locales";
 
-const languages = [
-  { label: "English", value: "en" },
-  { label: "Czech", value: "cz" },
-  { label: "German", value: "de" },
-  { label: "Ukrainian", value: "uk" },
-] as const;
+// Dynamically generate languages list from available locales
+const languages = availableLocales.map((locale) => ({
+  label: locale.name,
+  value: locale.code,
+}));
 
 const FormSchema = z.object({
   language: z.string({

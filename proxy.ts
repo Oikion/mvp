@@ -1,20 +1,21 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
+import { availableLocales } from "@/lib/locales";
 
 // Configure next-intl middleware for locale routing
 const intlMiddleware = createMiddleware({
-  locales: ["en"],
+  locales: availableLocales.map((l) => l.code),
   defaultLocale: "en",
   localePrefix: "always",
 });
 
 // Define public routes that don't require authentication
+// Note: SSO callbacks are handled automatically by Clerk's virtual routing
 const isPublicRoute = createRouteMatcher([
   "/:locale/sign-in(.*)",
   "/:locale/sign-up(.*)",
   "/:locale/register(.*)",
-  "/:locale/sso-callback(.*)",
   "/api/webhooks(.*)",
 ]);
 
@@ -45,6 +46,7 @@ export const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   }
 
   // Handle static files and Next.js internals - let them pass through
+  // Apply intlMiddleware first to set up locale context
   if (
     pathname.startsWith("/_next") ||
     pathname.includes(".") ||
@@ -53,14 +55,24 @@ export const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
     return intlMiddleware(req);
   }
 
+  // For page routes, run intlMiddleware FIRST to extract locale and set up context
+  // This ensures the locale is properly available in the request/response
+  const intlResponse = intlMiddleware(req);
+  
+  // If intlMiddleware returns a redirect (e.g., locale normalization), return it
+  if (intlResponse && (intlResponse.status === 307 || intlResponse.status === 308)) {
+    return intlResponse;
+  }
+
   // Protect non-public routes for pages
   if (!isPublicRoute(req)) {
     const authResult = await auth();
 
     if (!authResult.userId) {
       // Extract locale from pathname or use default
+      const availableLocaleCodes = availableLocales.map((l) => l.code);
       const locale =
-        pathname.split("/")[1] && ["en"].includes(pathname.split("/")[1])
+        pathname.split("/")[1] && availableLocaleCodes.includes(pathname.split("/")[1])
           ? pathname.split("/")[1]
           : "en";
       const signInUrl = new URL(`/${locale}/sign-in`, req.url);
@@ -68,8 +80,8 @@ export const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
     }
   }
 
-  // Apply next-intl middleware for locale routing
-  return intlMiddleware(req);
+  // Return the intlMiddleware response which has the locale context set up
+  return intlResponse || NextResponse.next();
 });
 
 export const config = {

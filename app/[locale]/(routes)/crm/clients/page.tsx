@@ -5,18 +5,21 @@ import Container from "../../components/ui/Container";
 import SuspenseLoading from "@/components/loadings/suspense";
 import { getAllCrmData } from "@/actions/crm/get-crm-data";
 import { getClients } from "@/actions/crm/get-clients";
+import { getDictionary } from "@/dictionaries";
 
-const ClientsPage = async () => {
+const ClientsPage = async ({ params }: { params: Promise<{ locale: string }> }) => {
   // Parallelize queries for better performance
-  const [crmData, clients] = await Promise.all([
+  const { locale } = await params;
+  const [crmData, clients, dict] = await Promise.all([
     getAllCrmData(),
     getClients(),
+    getDictionary(locale),
   ]);
 
   return (
     <Container
-      title="Clients"
-      description={"Manage your real estate clients"}
+      title={dict.ModuleMenu.crm.accounts}
+      description={dict.CrmClientsPage.description}
     >
       <Suspense fallback={<SuspenseLoading />}>
         <AccountsView crmData={crmData} data={clients} />

@@ -50,7 +50,7 @@ export const getSearch = async (search: string) => {
     },
   });
 
-  const reslutsProjects = await prismadb.boards.findMany({
+  const resultsEstateFiles = await prismadb.estateFiles.findMany({
     where: {
       OR: [
         { title: { contains: search, mode: "insensitive" } },
@@ -67,7 +67,7 @@ export const getSearch = async (search: string) => {
       contacts: resultsCrmContacts,
       users: resultsUser,
       tasks: resultsTasks,
-      projects: reslutsProjects,
+      estateFiles: resultsEstateFiles,
     },
   };
 

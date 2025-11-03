@@ -13,6 +13,7 @@ import { useClerk } from "@clerk/nextjs";
 import { LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import useAvatarStore from "@/store/useAvatarStore";
 
 type Props = {
@@ -25,6 +26,7 @@ type Props = {
 const AvatarDropdown = ({ avatar, userId, name, email }: Props) => {
   const router = useRouter();
   const { signOut } = useClerk();
+  const t = useTranslations();
   const setAvatar = useAvatarStore((state) => state.setAvatar);
   const getAvatar = useAvatarStore((state) => state.avatar);
   const [newAvatar, setNewAvatar] = useState(getAvatar);
@@ -58,22 +60,17 @@ const AvatarDropdown = ({ avatar, userId, name, email }: Props) => {
 
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/projects/dashboard")}>
-          Todo dashboard
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => router.push(`/crm/dashboard/${userId}`)}
-        >
-          Sales dashboard
+          {t("AvatarDropdown.todoDashboard")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/profile")}>
           <Settings className="w-4 h-4 inline-block mr-2 stroke-current text-gray-500" />
-          <span>Profile settings</span>
+          <span>{t("AvatarDropdown.profileSettings")}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()}>
           <LogOut className="w-4 h-4 inline-block mr-2 stroke-current text-gray-500" />
-          <span>Sign out</span>
+          <span>{t("AvatarDropdown.signOut")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -23,6 +23,33 @@ model Clients {
   client_name          String
   primary_email        String?
 
+  // Greece-specific client fields
+  person_type          PersonType?
+  full_name            String?
+  company_name         String?
+  primary_phone        String?
+  secondary_phone      String?
+  secondary_email      String?
+  intent               ClientIntent?
+  channels             String[]           // CALL, SMS, WHATSAPP, VIBER, EMAIL
+  language             Language?          @default(en)
+  afm                  String?            // Greek tax ID (9 digits)
+  doy                  String?            // Greek tax office
+  id_doc               String?            // ID/Passport
+  company_gemi         String?            // Greek business registry
+  purpose              PropertyPurpose?
+  areas_of_interest    Json?               // Array of areas
+  budget_min           Decimal?
+  budget_max           Decimal?
+  timeline             Timeline?
+  financing_type       FinancingType?
+  preapproval_bank     String?
+  needs_mortgage_help  Boolean?           @default(false)
+  gdpr_consent         Boolean?           @default(false)
+  allow_marketing      Boolean?           @default(false)
+  lead_source          LeadSource?
+  draft_status         Boolean?           @default(false)
+
   // Real-estate specific fields
   client_type          ClientType?
   client_status        ClientStatus?      @default(LEAD)
@@ -56,6 +83,7 @@ model Clients {
   crm_accounts_tasks   crm_Accounts_Tasks[]
   watchers             String[]
   watching_users       Users[]            @relation("watching_accounts")
+  linked_properties    Client_Properties[]
 
   // Performance indexes for frequently queried fields
   @@index([client_status])
@@ -78,6 +106,50 @@ enum ClientStatus {
   INACTIVE
   CONVERTED
   LOST
+}
+
+enum PersonType {
+  INDIVIDUAL
+  COMPANY
+  INVESTOR
+  BROKER
+}
+
+enum ClientIntent {
+  BUY
+  RENT
+  SELL
+  LEASE
+  INVEST
+}
+
+enum PropertyPurpose {
+  RESIDENTIAL
+  COMMERCIAL
+  LAND
+  PARKING
+  OTHER
+}
+
+enum Timeline {
+  IMMEDIATE
+  ONE_THREE_MONTHS
+  THREE_SIX_MONTHS
+  SIX_PLUS_MONTHS
+}
+
+enum FinancingType {
+  CASH
+  MORTGAGE
+  PREAPPROVAL_PENDING
+}
+
+enum LeadSource {
+  REFERRAL
+  WEB
+  PORTAL
+  WALK_IN
+  SOCIAL
 }
 
 // Removed legacy crm_ Leads and related enums
@@ -135,7 +207,7 @@ enum ClientContactType {
 
 // Removed legacy crm_Contracts and related enum
 
-model Boards {
+model EstateFiles {
   id                String    @id @default(uuid())
   description       String
   favourite         Boolean?
@@ -151,11 +223,11 @@ model Boards {
   updatedAt         DateTime? @updatedAt
   updatedBy         String?
 
-  //Create watechers field for board. It will be array of users
+  //Create watchers field for estate file. It will be array of users
   watchers       String[]
   assigned_user  Users?   @relation("assigned_user", fields: [user], references: [id])
   watchers_users Users[]  @relation("watching_users")
-  sections       Sections[] @relation("SectionsToBoards")
+  sections       Sections[] @relation("SectionsToEstateFiles")
 
   // Performance indexes for frequently queried fields
   @@index([user])
@@ -269,12 +341,12 @@ model Documents_Types {
 }
 
 model Sections {
-  id       String  @id @default(uuid())
-  board    String
-  title    String
-  position Int?
-  tasks    Tasks[]
-  boards   Boards? @relation("SectionsToBoards", fields: [board], references: [id])
+  id          String       @id @default(uuid())
+  board       String
+  title       String
+  position    Int?
+  tasks       Tasks[]
+  estateFiles EstateFiles? @relation("SectionsToEstateFiles", fields: [board], references: [id])
 }
 
 // Removed legacy crm_Industry_Type
@@ -400,9 +472,9 @@ model Users {
   assigned_property_contacts Property_Contacts[]
   
   openAi_key           openAi_keys[]
-  boards               Boards[]              @relation("assigned_user")
-  watching_boardsIDs   String[]
-  watching_boards      Boards[]             @relation("watching_users")
+  estateFiles          EstateFiles[]        @relation("assigned_user")
+  watching_estateFilesIDs String[]
+  watching_estateFiles EstateFiles[]        @relation("watching_users")
   watching_accountsIDs String[]
   watching_accounts    Clients[]             @relation("watching_accounts")
   watching_propertiesIDs String[]
@@ -419,6 +491,7 @@ enum Language {
   en
   de
   uk
+  el
 }
 
 model system_Modules_Enabled {
@@ -483,6 +556,44 @@ model Properties {
   property_preferences Json?
   communication_notes  Json?
 
+  // Greece-specific property fields
+  transaction_type     TransactionType?
+  is_exclusive         Boolean?           @default(false)
+  municipality         String?
+  area                 String?
+  postal_code          String?
+  address_privacy_level AddressPrivacyLevel?
+  size_net_sqm         Decimal?
+  size_gross_sqm       Decimal?
+  floor                String?            // BASEMENT, GROUND, 1ST, ..., PENTHOUSE
+  floors_total         Int?
+  plot_size_sqm        Decimal?
+  inside_city_plan     Boolean?
+  build_coefficient    Decimal?
+  coverage_ratio       Decimal?
+  frontage_m           Decimal?
+  heating_type         HeatingType?
+  energy_cert_class    EnergyCertClass?
+  renovated_year       Int?
+  condition            PropertyCondition?
+  elevator             Boolean?
+  building_permit_no   String?
+  building_permit_year Int?
+  land_registry_kaek   String?
+  legalization_status  LegalizationStatus?
+  etaireia_diaxeirisis String?
+  monthly_common_charges Decimal?
+  amenities            Json?              // Array: AC, FIREPLACE, PARKING, etc.
+  orientation          Json?              // Array: N, S, E, W
+  furnished            FurnishedStatus?
+  accessibility        String?
+  price_type           PriceType?
+  available_from       DateTime?
+  accepts_pets         Boolean?
+  min_lease_months     Int?
+  portal_visibility    PortalVisibility?
+  draft_status         Boolean?           @default(false)
+
   // Address and details
   address_street       String?
   address_city         String?
@@ -501,6 +612,7 @@ model Properties {
   assigned_to_user     Users?       @relation(fields: [assigned_to], references: [id])
   watchers             String[]
   watching_users       Users[]      @relation("watching_properties")
+  linked_clients       Client_Properties[]
 
   // Performance indexes for frequently queried fields
   @@index([property_status])
@@ -525,6 +637,73 @@ enum PropertyStatus {
   WITHDRAWN
 }
 
+enum TransactionType {
+  SALE
+  RENTAL
+  SHORT_TERM
+  EXCHANGE
+}
+
+enum AddressPrivacyLevel {
+  EXACT
+  PARTIAL
+  HIDDEN
+}
+
+enum HeatingType {
+  AUTONOMOUS
+  CENTRAL
+  NATURAL_GAS
+  HEAT_PUMP
+  ELECTRIC
+  NONE
+}
+
+enum EnergyCertClass {
+  A_PLUS
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+  H
+  IN_PROGRESS
+}
+
+enum PropertyCondition {
+  EXCELLENT
+  VERY_GOOD
+  GOOD
+  NEEDS_RENOVATION
+}
+
+enum LegalizationStatus {
+  LEGALIZED
+  IN_PROGRESS
+  UNDECLARED
+}
+
+enum FurnishedStatus {
+  NO
+  PARTIALLY
+  FULLY
+}
+
+enum PriceType {
+  RENTAL
+  SALE
+  PER_ACRE
+  PER_SQM
+}
+
+enum PortalVisibility {
+  PRIVATE
+  SELECTED
+  PUBLIC
+}
+
 model Property_Contacts {
   id                 String   @id @default(uuid())
   property           String?
@@ -541,4 +720,19 @@ model Property_Contacts {
 
   assigned_to_user   Users?   @relation(fields: [assigned_to], references: [id])
   assigned_property  Properties? @relation(fields: [property], references: [id])
+}
+
+// Many-to-many relationship between Clients and Properties
+model Client_Properties {
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+  clientId   String
+  propertyId String
+  
+  client     Clients   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  property   Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, propertyId])
+  @@index([clientId])
+  @@index([propertyId])
 }

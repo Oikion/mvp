@@ -1,7 +1,7 @@
 import { prismadb } from "@/lib/prisma";
 
 export const getKanbanData = async (boardId: string) => {
-  const board = await prismadb.boards.findUnique({
+  const board = await prismadb.estateFiles.findUnique({
     where: {
       id: boardId,
     },

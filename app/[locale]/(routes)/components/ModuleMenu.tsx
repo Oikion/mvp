@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 
-import ProjectModuleMenu from "./menu-items/Projects";
+import EstateFilesModuleMenu from "./menu-items/Projects";
 import ReportsModuleMenu from "./menu-items/Reports";
 import ChatGPTModuleMenu from "./menu-items/ChatGPT";
 import EmployeesModuleMenu from "./menu-items/Employees";
@@ -77,7 +77,7 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
           {modules.find(
             (menuItem: any) => menuItem.name === "projects" && menuItem.enabled
           ) ? (
-            <ProjectModuleMenu open={open} title={dict.ModuleMenu.projects} />
+            <EstateFilesModuleMenu open={open} title={dict.ModuleMenu.estateFiles} />
           ) : null}
           
           {modules.find(

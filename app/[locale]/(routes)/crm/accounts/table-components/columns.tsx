@@ -1,6 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 
 import { statuses } from "../table-data/data";
 import { Account } from "../table-data/schema";
@@ -12,9 +13,10 @@ import Link from "next/link";
 export const columns: ColumnDef<Account>[] = [
   {
     accessorKey: "createdAt",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Created" />
-    ),
+    header: ({ column }) => {
+      const t = useTranslations();
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.created")} />
+    },
     cell: ({ row }) => (
       <div className="">
         {moment(row.getValue("createdAt")).format("YY/MM/DD-HH:mm")}
@@ -25,16 +27,17 @@ export const columns: ColumnDef<Account>[] = [
   },
   {
     accessorKey: "assigned_to_user",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Assigned to" />
-    ),
+    header: ({ column }) => {
+      const t = useTranslations();
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.assignedTo")} />
+    },
 
     cell: ({ row }) => (
       <div className="w-[150px]">
         {
           //@ts-ignore
           //TODO: fix this
-          row.getValue("assigned_to_user")?.name ?? "Unassigned"
+          row.getValue("assigned_to_user")?.name ?? t("CrmAccountsTable.unassigned")
         }
       </div>
     ),
@@ -43,9 +46,10 @@ export const columns: ColumnDef<Account>[] = [
   },
   {
     accessorKey: "name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" />
-    ),
+    header: ({ column }) => {
+      const t = useTranslations();
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.name")} />
+    },
 
     cell: ({ row }) => (
       <Link href={`/crm/clients/${row.original?.id}`}>
@@ -63,9 +67,10 @@ export const columns: ColumnDef<Account>[] = [
   },
   {
     accessorKey: "email",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="E-mail" />
-    ),
+    header: ({ column }) => {
+      const t = useTranslations();
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.email")} />
+    },
 
     cell: ({ row }) => <div className="w-[150px]">{row.getValue("email")}</div>,
     enableSorting: true,
@@ -73,9 +78,10 @@ export const columns: ColumnDef<Account>[] = [
   },
   {
     accessorKey: "contacts",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Account contact" />
-    ),
+    header: ({ column }) => {
+      const t = useTranslations();
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.accountContact")} />
+    },
 
     cell: ({ row }) => (
       <div className="w-[150px]">
@@ -89,9 +95,10 @@ export const columns: ColumnDef<Account>[] = [
   },
   {
     accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
-    ),
+    header: ({ column }) => {
+      const t = useTranslations();
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.status")} />
+    },
     cell: ({ row }) => {
       const status = statuses.find(
         (status) => status.value === row.getValue("status")

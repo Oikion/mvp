@@ -1,7 +1,7 @@
 import { prismadb } from "@/lib/prisma";
 
 export const getBoard = async (id: string) => {
-  const board = await prismadb.boards.findFirst({
+  const board = await prismadb.estateFiles.findFirst({
     where: {
       id: id,
     },

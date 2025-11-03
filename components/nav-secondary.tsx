@@ -3,7 +3,6 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { type LucideIcon } from "lucide-react"
 
 import {
   SidebarGroup,
@@ -13,29 +12,44 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
+interface NavSecondaryItem {
+  title: string
+  url: string
+  icon: any
+}
+
+function NavSecondaryMenuItem({ item }: { readonly item: NavSecondaryItem }) {
+  const iconRef = React.useRef<any>(null)
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton 
+        asChild 
+        size="sm"
+        onMouseEnter={() => iconRef.current?.startAnimation?.()}
+        onMouseLeave={() => iconRef.current?.stopAnimation?.()}
+      >
+        <Link href={item.url}>
+          <item.icon ref={iconRef} size={16} className="mr-1" />
+          <span>{item.title}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  )
+}
+
 export function NavSecondary({
   items,
   ...props
 }: {
-  items: {
-    title: string
-    url: string
-    icon: LucideIcon
-  }[]
+  readonly items: NavSecondaryItem[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild size="sm">
-                <Link href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+          {items.map((item, index) => (
+            <NavSecondaryMenuItem key={item.url || `${item.title}-${index}`} item={item} />
           ))}
         </SidebarMenu>
       </SidebarGroupContent>

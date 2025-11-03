@@ -30,7 +30,6 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { Button } from "@/components/ui/button";
 import { Divide, PanelTopClose, PanelTopOpen } from "lucide-react";
 import RightViewModal from "@/components/modals/right-view-modal";
-import { NewAccountForm } from "../components/NewAccountForm";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

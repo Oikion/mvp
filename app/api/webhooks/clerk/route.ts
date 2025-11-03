@@ -50,6 +50,7 @@ export async function POST(req: Request) {
   // Handle the webhook
   const eventType = evt.type;
 
+  // User events
   if (eventType === "user.created" || eventType === "user.updated") {
     const { id } = evt.data;
     await syncClerkUser(id);
@@ -58,6 +59,36 @@ export async function POST(req: Request) {
   if (eventType === "user.deleted") {
     const { id } = evt.data;
     await deleteClerkUser(id);
+  }
+
+  // Organization events - log for auditing/debugging
+  // Organizations are managed entirely through Clerk, so we don't need to sync them
+  // but we log these events for debugging and auditing purposes
+  if (
+    eventType === "organization.created" ||
+    eventType === "organization.updated" ||
+    eventType === "organization.deleted"
+  ) {
+    const organization = evt.data;
+    console.log(`Organization ${eventType}:`, {
+      id: organization.id,
+      name: organization.name,
+      slug: organization.slug,
+    });
+  }
+
+  // Organization membership events - log for auditing
+  if (
+    eventType === "organizationMembership.created" ||
+    eventType === "organizationMembership.updated" ||
+    eventType === "organizationMembership.deleted"
+  ) {
+    const membership = evt.data;
+    console.log(`Organization membership ${eventType}:`, {
+      organizationId: membership.organization?.id,
+      userId: membership.publicUserData?.userId,
+      role: membership.role,
+    });
   }
 
   return new Response("Webhook processed", { status: 200 });

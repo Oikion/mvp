@@ -17,14 +17,34 @@
       "title": "Properties",
       "properties": "Properties"
     },
-    "projects": "Projects",
+    "estateFiles": "Estate Files",
     "emails": "E-mails",
     "tasks": "Tasks",
     "invoices": "Invoices",
     "reports": "Reports",
     "documents": "Documents",
     "storage": "Storage",
-    "settings": "Administration"
+    "settings": "Administration",
+    "employees": "Employees",
+    "chatGPT": "ChatGPT",
+    "support": "Support"
+  },
+  "CrmClientsPage": {
+    "description": "Manage your real estate clients"
+  },
+  "MlsPropertiesPage": {
+    "description": "Manage MLS properties"
+  },
+  "EstateFilesPage": {
+    "description": "Shared space for common properties - Create estate files to group related properties together"
+  },
+  "ReportsPage": {
+    "description": "Predefined reports for each module. We use Tremor for data visualization.",
+    "newUsersByMonthOverall": "Number of new users by month (Overall)",
+    "newUsersByMonth": "New users by month",
+    "newUsersByMonth2023": "Number of new users by month (2023)",
+    "newUsersByMonth2024": "Number of new users by month (2024)",
+    "tasksByMonth2023": "New tasks by month (2023)"
   },
   "DashboardPage": {
     "containerTitle": "Dashboard",
@@ -36,9 +56,10 @@
     "opportunities": "Deals",
     "contacts": "Contacts",
     "leads": "Leads",
-    "projects": "Projects",
+    "estateFiles": "Estate Files",
     "tasks": "Tasks",
     "myTasks": "My tasks",
+    "employees": "Employees",
     "invoices": "Invoices",
     "documents": "Documents",
     "storage": "Storage"
@@ -51,5 +72,216 @@
   },
   "CrmModuleMenuComponent": {
     "menuTitle": "Clients"
+  },
+  "CrmForm": {
+    "title": "New Client",
+    "quickAddTitle": "Quick Add Client",
+    "fields": {
+      "personType": "Client Type",
+      "personTypePlaceholder": "Select type",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "First Last",
+      "companyName": "Company Name",
+      "companyNamePlaceholder": "Company name",
+      "primaryPhone": "Primary Phone",
+      "primaryPhonePlaceholder": "+1 555 1234567",
+      "primaryEmail": "Primary Email",
+      "primaryEmailPlaceholder": "email@example.com",
+      "intent": "Intent",
+      "intentPlaceholder": "Select intent",
+      "agentOwner": "Assigned Agent"
+    },
+    "personType": {
+      "INDIVIDUAL": "Individual",
+      "COMPANY": "Company",
+      "INVESTOR": "Investor",
+      "BROKER": "Broker"
+    },
+    "intents": {
+      "BUY": "Buy",
+      "RENT": "Rent",
+      "SELL": "Sell",
+      "LEASE": "Lease",
+      "INVEST": "Invest"
+    },
+    "validation": {
+      "personTypeRequired": "Client type is required",
+      "nameRequired": "Name is required",
+      "phoneOrEmailRequired": "Phone or email is required",
+      "intentRequired": "Intent is required"
+    },
+    "buttons": {
+      "quickAdd": "Create"
+    }
+  },
+  "PropertyForm": {
+    "title": "New Property",
+    "quickAddTitle": "Quick Add Property",
+    "fields": {
+      "propertyType": "Property Type",
+      "propertyTypePlaceholder": "Select type",
+      "transactionType": "Transaction Type",
+      "transactionTypePlaceholder": "Select type",
+      "municipality": "Municipality",
+      "municipalityPlaceholder": "Enter municipality",
+      "area": "Area/Neighborhood",
+      "areaPlaceholder": "Enter area",
+      "postalCode": "Postal Code",
+      "postalCodePlaceholder": "5 digits",
+      "sizeNetSqm": "Net sq.m.",
+      "plotSizeSqm": "Plot Size",
+      "price": "Price",
+      "agentOwner": "Assigned Agent"
+    },
+    "propertyType": {
+      "APARTMENT": "Apartment",
+      "HOUSE": "House",
+      "MAISONETTE": "Maisonette",
+      "COMMERCIAL": "Commercial",
+      "WAREHOUSE": "Warehouse",
+      "PARKING": "Parking",
+      "PLOT": "Plot",
+      "FARM": "Farm",
+      "INDUSTRIAL": "Industrial",
+      "OTHER": "Other"
+    },
+    "transactionType": {
+      "SALE": "Sale",
+      "RENTAL": "Rental",
+      "SHORT_TERM": "Short Term",
+      "EXCHANGE": "Exchange"
+    },
+    "validation": {
+      "propertyTypeRequired": "Property type is required",
+      "transactionTypeRequired": "Transaction type is required",
+      "municipalityRequired": "Municipality is required",
+      "areaOrPostalCodeRequired": "Area or postal code is required",
+      "sizeRequired": "Size is required",
+      "priceRequired": "Price is required"
+    },
+    "buttons": {
+      "quickAdd": "Create"
+    }
+  },
+  "QuickAdd": {
+    "client": {
+      "title": "Quick Add Client",
+      "description": "Fill in the basic information to quickly create a client"
+    },
+    "property": {
+      "title": "Quick Add Property",
+      "description": "Fill in the basic information to quickly create a property"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "success": "Success",
+    "error": "Error",
+    "clientCreated": "Client created successfully",
+    "propertyCreated": "Property created successfully",
+    "somethingWentWrong": "Something went wrong",
+    "clientCreationFailed": "Failed to create client",
+    "propertyCreationFailed": "Failed to create property",
+    "selectAgent": "Select agent",
+    "rowsPerPage": "Rows per page",
+    "pageOf": "Page {page} of {count}",
+    "selectedRows": "{selected} of {total} row(s) selected.",
+    "goFirstPage": "Go to first page",
+    "goPrevPage": "Go to previous page",
+    "goNextPage": "Go to next page",
+    "goLastPage": "Go to last page",
+    "reset": "Reset",
+    "view": "View",
+    "toggleColumns": "Toggle columns",
+    "filterPlaceholder": "Filter leads ..."
+  },
+  "CrmAccountsTable": {
+    "created": "Created",
+    "assignedTo": "Assigned to",
+    "name": "Name",
+    "email": "E-mail",
+    "accountContact": "Account contact",
+    "status": "Status",
+    "unassigned": "Unassigned"
+  },
+  "MlsPropertiesTable": {
+    "created": "Created",
+    "assignedTo": "Assigned to",
+    "name": "Name",
+    "price": "Price",
+    "type": "Type",
+    "status": "Status",
+    "unassigned": "Unassigned",
+    "filterPlaceholder": "Filter properties ..."
+  },
+  "EstateFilesTable": {
+    "lastUpdated": "Last Updated",
+    "assignedTo": "Assigned to",
+    "name": "Name",
+    "description": "Description",
+    "visibility": "Visibility",
+    "unassigned": "Unassigned",
+    "filterPlaceholder": "Filter estate files..."
+  },
+  "Navigation": {
+    "upgradeToPro": "Upgrade to Pro",
+    "account": "Account",
+    "billing": "Billing",
+    "notifications": "Notifications",
+    "theme": "Theme",
+    "language": "Language",
+    "logOut": "Log out",
+    "languageChanged": "Language changed to {language}",
+    "languageChangeFailed": "Failed to change language",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "pearlSand": "Pearl Sand",
+      "twilightLavender": "Twilight Lavender",
+      "system": "System"
+    },
+    "languages": {
+      "en": "English",
+      "cz": "Czech",
+      "de": "German",
+      "uk": "Ukrainian",
+      "el": "Greek"
+    }
+  },
+  "Command": {
+    "press": "Press",
+    "placeholder": "Type a command or search...",
+    "noResults": "No results found.",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "profileSettings": "Profile settings",
+    "logout": "Logout"
+  },
+  "Admin": {
+    "title": "Administration",
+    "accessDenied": "You are not admin, access not allowed",
+    "accessNotAllowed": "Access not allowed",
+    "setupDescription": "Here you can setup your NextCRM instance",
+    "usersAdministration": "Users administration",
+    "modulesAdministration": "Modules administration",
+    "manageUsersDescription": "Here you can manage your NextCRM users",
+    "inviteNewUser": "Invite new user to NextCRM",
+    "manageModulesDescription": "Here you can manage your NextCRM modules"
+  },
+  "AvatarDropdown": {
+    "todoDashboard": "Todo dashboard",
+    "profileSettings": "Profile settings",
+    "signOut": "Sign out"
+  }
+  ,
+  "ChatGPTPage": {
+    "title": "AI assistant",
+    "description": "Ask anything you need to know",
+    "missingKeyTitle": "OpenAI key not found",
+    "missingKeyPrompt": "Please add your OpenAI key in your",
+    "profileSettings": "profile settings page",
+    "toUseAssistant": "to use the assistant",
+    "loading": "Loading..."
   }
 }

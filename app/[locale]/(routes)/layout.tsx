@@ -16,6 +16,7 @@ import { getDictionary } from "@/dictionaries"
 import Footer from "./components/Footer"
 import { getCurrentUserSafe, getCurrentUser } from "@/lib/get-current-user"
 import { syncClerkUser } from "@/lib/clerk-sync"
+import { FloatingQuickAddButtons } from "@/components/FloatingQuickAddButtons"
 
 export default async function AppLayout({
   children,
@@ -41,11 +42,40 @@ export default async function AppLayout({
     try {
       await syncClerkUser(userId);
       user = await getCurrentUser();
-    } catch (error) {
+    } catch (error: any) {
+      // If Clerk user doesn't exist, sign out and redirect to sign-in
+      // This handles cases where Clerk user was deleted but session still exists
+      const errorMessage = error?.message || "";
+      const errorCode = error?.code || "";
+      const errorStatus = error?.status;
+      
+      // Check various ways the error might indicate user not found
+      if (
+        errorMessage.includes("Clerk user not found") ||
+        errorMessage.includes("not found") ||
+        errorCode === "not_found" ||
+        errorStatus === 404 ||
+        error?.errors?.[0]?.code === "not_found"
+      ) {
+        const { locale } = await params;
+        // Redirect to sign-in - this will clear the session
+        return redirect(`/${locale}/sign-in`);
+      }
+      
+      // Log other errors for debugging
       console.error("Error syncing user:", error);
+      
+      // For other errors, also redirect to sign-in to be safe
       const { locale } = await params;
       return redirect(`/${locale}/sign-in`);
     }
+  }
+  
+  // Additional safety check: if user was found but has no clerkUserId, 
+  // it might have been deleted, redirect to sign-in
+  if (user && !user.clerkUserId) {
+    const { locale } = await params;
+    return redirect(`/${locale}/sign-in`);
   }
 
   // PENDING status check removed - users are automatically active
@@ -65,7 +95,7 @@ export default async function AppLayout({
 
   const build = await getAllCommits();
   const modules = await getModules();
-  const dict = await getDictionary();
+  const dict = await getDictionary(locale);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -80,7 +110,7 @@ export default async function AppLayout({
             avatar: user.avatar as string,
           }}
         />
-        <SidebarInset className="flex flex-col h-screen overflow-hidden">
+        <SidebarInset className="flex flex-col h-screen overflow-hidden bg-surface-2">
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
@@ -104,6 +134,7 @@ export default async function AppLayout({
           {children}
         </div>
         <Footer />
+        <FloatingQuickAddButtons />
       </SidebarInset>
     </SidebarProvider>
     </div>

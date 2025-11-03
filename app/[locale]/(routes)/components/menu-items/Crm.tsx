@@ -34,10 +34,6 @@ const CrmModuleMenu = ({ open, localizations }: Props) => {
         </Button>
         </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuItem onClick={() => router.push("/crm/dashboard")}>
-            Dashboard
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => router.push("/crm/clients")}>
             {localizations.accounts}
           </DropdownMenuItem>

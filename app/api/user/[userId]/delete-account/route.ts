@@ -107,7 +107,7 @@ export async function DELETE(
 
           // Delete the organization from Clerk
           try {
-            await clerk.organizations.deleteOrganization({ organizationId: orgId });
+            await clerk.organizations.deleteOrganization(orgId);
           } catch (orgError: any) {
             // If organization already deleted or doesn't exist (404), that's fine
             if (orgError?.status === 404) {
@@ -124,8 +124,8 @@ export async function DELETE(
     }
 
     // Delete user's personal data
-    // Delete all boards created by the user
-    await prismadb.boards.deleteMany({
+    // Delete all estate files created by the user
+    await prismadb.estateFiles.deleteMany({
       where: {
         user: currentUser.id,
       },

@@ -4,7 +4,7 @@ export const getBoards = async (userId: string) => {
   if (!userId) {
     return null;
   }
-  const data = await prismadb.boards.findMany({
+  const data = await prismadb.estateFiles.findMany({
     where: {
       OR: [
         {

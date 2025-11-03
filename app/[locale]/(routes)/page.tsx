@@ -32,13 +32,14 @@ import { getActiveUsersCount } from "@/actions/dashboard/get-active-users-count"
 
 import { getExpectedRevenue } from "@/actions/crm/opportunity/get-expected-revenue";
 
-const DashboardPage = async () => {
+const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }) => {
   try {
     const user = await getCurrentUser();
     const userId = user.id;
 
-    //Fetch translations from dictionary (English only for now)
-    const dict = await getDictionary(); //Fetch data for dashboard
+    const { locale } = await params;
+    // Fetch translations based on current locale
+    const dict = await getDictionary(locale); //Fetch data for dashboard
 
     // Parallelize all dashboard queries for significantly better performance
     const [
@@ -70,9 +71,7 @@ const DashboardPage = async () => {
     return (
       <Container
         title={dict.DashboardPage.containerTitle}
-        description={
-          "Welcome to NextCRM cockpit, here you can see your company overview"
-        }
+        description={dict.DashboardPage.containerDescription}
       >
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <Suspense fallback={<LoadingBox />}>
@@ -113,7 +112,7 @@ const DashboardPage = async () => {
             employeesModule?.enabled && (
               <DashboardCard
                 href="/employees"
-                title="Employees"
+                title={dict.DashboardPage.employees}
                 IconComponent={Users2Icon}
                 content={employees.length}
               />
@@ -141,19 +140,19 @@ const DashboardPage = async () => {
           {projectsModule?.enabled && (
             <>
               <DashboardCard
-                href="/projects"
-                title={dict.DashboardPage.projects}
+                href="/estate-files"
+                title={dict.DashboardPage.estateFiles}
                 IconComponent={CoinsIcon}
                 content={projects}
               />
               <DashboardCard
-                href="/projects/tasks"
+                href="/estate-files/tasks"
                 title={dict.DashboardPage.tasks}
                 IconComponent={CoinsIcon}
                 content={tasks}
               />
               <DashboardCard
-                href={`/projects/tasks/${userId}`}
+                href={`/estate-files/tasks/${userId}`}
                 title={dict.DashboardPage.myTasks}
                 IconComponent={CoinsIcon}
                 content={usersTasks}

@@ -85,7 +85,7 @@ export async function POST(
 
         if (isCurrentUserAdmin && adminMembers.length === 1) {
           try {
-            const org = await clerk.organizations.getOrganization({ organizationId: orgId });
+            const org = await clerk.organizations.getOrganization(orgId);
             orgsToDelete.push({
               id: orgId,
               name: org.name,

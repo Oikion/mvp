@@ -6,29 +6,62 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
   const params = await props.params;
   
   try {
-    await getCurrentUser();
+    // Get the current authenticated user from database
+    const currentUser = await getCurrentUser();
     const { language } = await req.json();
 
-    if (!params.userId) {
-      return new NextResponse("No user ID provided", { status: 400 });
-    }
-
     if (!language) {
-      return new NextResponse("No language provided", { status: 400 });
+      return NextResponse.json(
+        { error: "No language provided" },
+        { status: 400 }
+      );
     }
 
-    const newUserLanguage = await prismadb.users.update({
+    // Validate that the language is one of the available locales
+    const validLanguages = ["en", "el"];
+    if (!validLanguages.includes(language)) {
+      return NextResponse.json(
+        { error: `Invalid language. Must be one of: ${validLanguages.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    // Use the current user's database ID, not the userId from params
+    // This ensures we're updating the correct user and prevents unauthorized updates
+    const updatedUser = await prismadb.users.update({
       data: {
         userLanguage: language,
       },
       where: {
-        id: params.userId,
+        id: currentUser.id,
       },
     });
 
-    return NextResponse.json({ language: language }, { status: 200 });
-  } catch (error) {
-    console.log("[NEWUSER_LANG_PUT]", error);
-    return new NextResponse("Initial error", { status: 500 });
+    return NextResponse.json(
+      { language: language, userId: updatedUser.id },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("[NEWUSER_LANG_PUT]", error);
+    
+    // Provide more specific error messages
+    if (error?.message === "User not authenticated") {
+      return NextResponse.json(
+        { error: "User not authenticated" },
+        { status: 401 }
+      );
+    }
+    
+    if (error?.message === "User not found in database") {
+      return NextResponse.json(
+        { error: "User not found in database" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: error?.message || "Failed to update user language" },
+      { status: 500 }
+    );
   }
 }

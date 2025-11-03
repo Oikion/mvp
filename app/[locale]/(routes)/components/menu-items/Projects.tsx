@@ -9,9 +9,9 @@ type Props = {
   title: string;
 };
 
-const ProjectModuleMenu = ({ open, title }: Props) => {
+const EstateFilesModuleMenu = ({ open, title }: Props) => {
   const pathname = usePathname();
-  const isPath = pathname.includes("projects");
+  const isPath = pathname.includes("estate-files");
 
   return (
     <Button
@@ -19,7 +19,7 @@ const ProjectModuleMenu = ({ open, title }: Props) => {
       variant={isPath ? "secondary" : "ghost"}
       className="w-full justify-start gap-2"
     >
-      <Link href={"/projects"}>
+      <Link href={"/estate-files"}>
         <ServerIcon className="size-4" />
         <span className={open ? "" : "hidden"}>{title}</span>
       </Link>
@@ -27,4 +27,4 @@ const ProjectModuleMenu = ({ open, title }: Props) => {
   );
 };
 
-export default ProjectModuleMenu;
+export default EstateFilesModuleMenu;

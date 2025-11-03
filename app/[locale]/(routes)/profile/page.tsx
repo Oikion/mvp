@@ -5,7 +5,7 @@ import { ProfileForm } from "./components/ProfileForm";
 import { PasswordChangeForm } from "./components/PasswordChange";
 import { ProfilePhotoForm } from "./components/ProfilePhotoForm";
 
-import H4Title from "@/components/typography/h4";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { OpenAiForm } from "./components/OpenAiForm";
 import { DeleteAccountForm } from "./components/DeleteAccountForm";
 
@@ -21,28 +21,54 @@ const ProfilePage = async () => {
       title="Profile"
       description={"Here you can edit your user profile"}
     >
-      <div>
+      <div className="space-y-6">
         {/*         <pre>
           <code>{JSON.stringify(data, null, 2)}</code>
         </pre> */}
-        <H4Title>Profile photo</H4Title>
-        <ProfilePhotoForm data={data} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile photo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProfilePhotoForm data={data} />
+          </CardContent>
+        </Card>
 
-        <H4Title>Profile</H4Title>
-        <ProfileForm data={data} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProfileForm data={data} />
+          </CardContent>
+        </Card>
 
-        <H4Title>Password change</H4Title>
-        <PasswordChangeForm userId={data.id} />
+        <Card>
+          <CardHeader>
+            <CardTitle>Password change</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PasswordChangeForm userId={data.id} />
+          </CardContent>
+        </Card>
 
-        
+        <Card>
+          <CardHeader>
+            <CardTitle>OpenAI Integration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <OpenAiForm userId={data.id} />
+          </CardContent>
+        </Card>
 
-        <H4Title>OpenAI Integration</H4Title>
-        <OpenAiForm userId={data.id} />
-
-        <H4Title>Delete Account</H4Title>
-        <div className="p-5">
-          <DeleteAccountForm userId={data.id} username={data.username} />
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Delete Account</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DeleteAccountForm userId={data.id} username={data.username} />
+          </CardContent>
+        </Card>
       </div>
     </Container>
   );

@@ -3,7 +3,7 @@
 import { z } from "zod";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useToast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const typeOptions = [
   { value: "RESIDENTIAL", label: "Residential" },
@@ -34,6 +35,8 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [clients, setClients] = useState<any[]>([]);
+  const [loadingClients, setLoadingClients] = useState(true);
 
   const formSchema = z.object({
     property_name: z.string().min(3),
@@ -50,14 +53,62 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
     lot_size: z.coerce.number().min(0).optional(),
     year_built: z.coerce.number().int().optional(),
     description: z.string().optional(),
+    clientIds: z.array(z.string()).optional().default([]),
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({ resolver: zodResolver(formSchema) });
+  const form = useForm<z.infer<typeof formSchema>>({ 
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      clientIds: [],
+    },
+  });
+
+  // Fetch clients on component mount
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const response = await axios.get("/api/crm/clients");
+        setClients(response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch clients:", error);
+      } finally {
+        setLoadingClients(false);
+      }
+    };
+    fetchClients();
+  }, []);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      await axios.post("/api/mls/properties", data);
+      // Create the property first
+      const propertyResponse = await axios.post("/api/mls/properties", {
+        property_name: data.property_name,
+        property_type: data.property_type,
+        property_status: data.property_status,
+        address_street: data.address_street,
+        address_city: data.address_city,
+        address_state: data.address_state,
+        address_zip: data.address_zip,
+        price: data.price,
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
+        square_feet: data.square_feet,
+        lot_size: data.lot_size,
+        year_built: data.year_built,
+        description: data.description,
+      });
+
+      const propertyId = propertyResponse.data.newProperty.id;
+
+      // Link clients if any are selected
+      if (data.clientIds && data.clientIds.length > 0) {
+        await axios.put("/api/crm/clients/link-properties", {
+          propertyId,
+          clientIds: data.clientIds,
+        });
+      }
+
       toast({ title: "Success", description: "Property created successfully" });
     } catch (e) {
       toast({ variant: "destructive", title: "Error", description: "Failed to create property" });
@@ -189,6 +240,60 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
               <FormMessage />
             </FormItem>
           )} />
+          
+          <div className="pt-4 border-t">
+            <div className="text-sm text-muted-foreground mb-4">
+              Link this property to clients. You can link clients later as well.
+            </div>
+            {loadingClients ? (
+              <div className="text-sm text-muted-foreground">Loading clients...</div>
+            ) : clients.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No clients available. Create clients first.</div>
+            ) : (
+              <FormField
+                control={form.control}
+                name="clientIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link to Clients</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md p-4">
+                        {clients.map((client) => (
+                          <div key={client.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`client-${client.id}`}
+                              checked={field.value?.includes(client.id) || false}
+                              onCheckedChange={(checked) => {
+                                const currentValues = field.value || [];
+                                if (checked) {
+                                  field.onChange([...currentValues, client.id]);
+                                } else {
+                                  field.onChange(currentValues.filter((id) => id !== client.id));
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor={`client-${client.id}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                            >
+                              <div className="font-medium">{client.client_name}</div>
+                              {client.primary_email && (
+                                <div className="text-xs text-muted-foreground">{client.primary_email}</div>
+                              )}
+                              {client.client_status && (
+                                <div className="text-xs text-muted-foreground capitalize">{client.client_status.toLowerCase()}</div>
+                              )}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
         </div>
         <div className="grid gap-2 py-5"><Button disabled={isLoading} type="submit">Create property</Button></div>
       </form>

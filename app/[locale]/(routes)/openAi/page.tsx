@@ -4,9 +4,12 @@ import Chat from "./components/Chat";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/get-current-user";
 import Link from "next/link";
+import { getDictionary } from "@/dictionaries";
 
-const ProfilePage = async () => {
+const ProfilePage = async ({ params }: { params: Promise<{ locale: string }> }) => {
   const user = await getCurrentUser();
+  const { locale } = await params;
+  const dict = await getDictionary(locale);
 
   const openAiKeyUser = await prismadb.openAi_keys.findFirst({
     where: {
@@ -25,17 +28,17 @@ const ProfilePage = async () => {
   if (process.env.OPENAI_API_KEY && !openAiKeyUser && !openAiKeySystem)
     return (
       <Container
-        title="Ai assistant"
-        description={"Ask anything you need to know"}
+        title={dict.ChatGPTPage.title}
+        description={dict.ChatGPTPage.description}
       >
         <div>
-          <h1>Open AI key not found</h1>
+          <h1>{dict.ChatGPTPage.missingKeyTitle}</h1>
           <p>
-            Please add your open ai key in your
+            {dict.ChatGPTPage.missingKeyPrompt}{" "}
             <Link href={"/profile"} className="text-blue-500">
-              profile settings page{" "}
+              {dict.ChatGPTPage.profileSettings}{" "}
             </Link>
-            to use the assistant
+            {dict.ChatGPTPage.toUseAssistant}
           </p>
         </div>
       </Container>
@@ -43,10 +46,10 @@ const ProfilePage = async () => {
 
   return (
     <Container
-      title="Ai assistant"
-      description={"Ask anything you need to know"}
+      title={dict.ChatGPTPage.title}
+      description={dict.ChatGPTPage.description}
     >
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>{dict.ChatGPTPage.loading}</div>}>
         <Chat />
       </Suspense>
     </Container>

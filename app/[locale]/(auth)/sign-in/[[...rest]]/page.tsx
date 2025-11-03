@@ -1,20 +1,27 @@
-import { LoginComponent } from "../components/LoginComponent";
+"use client";
 
-const SignInPage = async () => {
+import { SignIn } from "@clerk/nextjs";
+import { useParams } from "next/navigation";
+import { useClerkTheme } from "@/lib/clerk-theme";
+
+// Using Clerk's account portal with virtual routing
+// This uses Clerk's hosted pages which handle social auth automatically
+export default function SignInPage() {
+  const params = useParams();
+  const locale = params.locale as string || "en";
+  const { appearance } = useClerkTheme();
+
   return (
-    <div className="h-full">
-      <div className="py-10">
-        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-          Welcome to {process.env.NEXT_PUBLIC_APP_NAME}
-        </h1>
-      </div>
-      <div>
-        <LoginComponent />
-      </div>
+    <div className="flex justify-center items-center min-h-screen">
+      <SignIn
+        routing="path" // Uses path-based routing with Clerk's account portal features
+        path={`/${locale}/sign-in`}
+        signUpUrl={`/${locale}/register`}
+        afterSignInUrl={`/${locale}`}
+        appearance={appearance}
+      />
     </div>
   );
-};
-
-export default SignInPage;
+}
 
 

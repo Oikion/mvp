@@ -5,15 +5,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { NewPropertyForm } from "../properties/components/NewPropertyForm";
+import { NewPropertyWizard } from "../properties/components/NewPropertyWizard";
 import { PropertyDataTable } from "../properties/table-components/data-table";
 import { columns } from "../properties/table-components/columns";
+import axios from "axios";
 
 export default function PropertiesView({ data }: { data: any[] }) {
   const [open, setOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
 
-  useEffect(() => setIsMounted(true), []);
+  useEffect(() => {
+    setIsMounted(true);
+    // Fetch users for the wizard
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("/api/user");
+        setUsers(response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      }
+    };
+    fetchUsers();
+  }, []);
+  
   if (!isMounted) return null;
 
   return (
@@ -31,7 +46,10 @@ export default function PropertiesView({ data }: { data: any[] }) {
                   <SheetTitle>Create new Property</SheetTitle>
                 </SheetHeader>
                 <div className="h-full overflow-y-auto">
-                  <NewPropertyForm onFinish={() => setOpen(false)} />
+                  <NewPropertyWizard
+                    users={users}
+                    onFinish={() => setOpen(false)}
+                  />
                 </div>
               </SheetContent>
             </Sheet>

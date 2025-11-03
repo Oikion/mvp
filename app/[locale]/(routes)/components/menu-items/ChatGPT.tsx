@@ -3,6 +3,7 @@
 import { Bot } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import React from "react";
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +14,8 @@ type Props = {
 const ChatGPTModuleMenu = ({ open }: Props) => {
   const pathname = usePathname();
   const isPath = pathname.includes("openAi");
+  const t = useTranslations();
+
   return (
     <Button
       asChild
@@ -21,7 +24,7 @@ const ChatGPTModuleMenu = ({ open }: Props) => {
     >
       <Link href={"/openAi"}>
         <Bot className="size-4" />
-        <span className={open ? "" : "hidden"}>ChatGPT</span>
+        <span className={open ? "" : "hidden"}>{t("ModuleMenu.chatGPT")}</span>
       </Link>
     </Button>
   );

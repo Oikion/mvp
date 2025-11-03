@@ -8,15 +8,16 @@ import { getCurrentUser } from "@/lib/get-current-user";
 import { getDictionary } from "@/dictionaries";
 import { redirect } from "next/navigation";
 
-const EmailRoute = async () => {
+const EmailRoute = async ({ params }: { params: Promise<{ locale: string }> }) => {
   try {
     await getCurrentUser();
   } catch (error) {
     return redirect("/sign-in");
   }
   
-  //Fetch translations from dictionary (English only for now)
-  const dict = await getDictionary();
+  const { locale } = await params;
+  //Fetch translations from dictionary
+  const dict = await getDictionary(locale);
 
   const cookieStore = await cookies();
   const layout = cookieStore.get("react-resizable-panels:layout");
