@@ -60,6 +60,7 @@ export function FloatingQuickAddButtons() {
             users={users}
             onContinueToFull={(clientId) => {
               toast({
+                variant: "success",
                 title: t("common.success"),
                 description: t("common.clientCreated"),
               });
@@ -85,6 +86,7 @@ export function FloatingQuickAddButtons() {
             users={users}
             onContinueToFull={(propertyId) => {
               toast({
+                variant: "success",
                 title: t("common.success"),
                 description: t("common.propertyCreated"),
               });

@@ -55,6 +55,7 @@ export function OpenAiForm({ userId }: { userId: string }) {
       await axios.post(`/api/user/${userId}/setOpenAi`, data);
       //TODO: send data to the server
       toast({
+        variant: "success",
         title: "You submitted the following values:",
         description: (
           <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">

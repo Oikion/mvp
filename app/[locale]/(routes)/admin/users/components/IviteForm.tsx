@@ -61,6 +61,7 @@ export function InviteForm() {
         });
       } else {
         toast({
+          variant: "success",
           title: "Success!",
           description: "User invited successfully.",
         });

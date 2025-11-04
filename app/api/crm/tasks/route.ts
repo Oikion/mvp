@@ -18,9 +18,9 @@ export async function DELETE(req: Request) {
       },
     });
 
-    await prismadb.tasksComments.deleteMany({
+    await prismadb.crm_Accounts_Tasks_Comments.deleteMany({
       where: {
-        task: id,
+        crm_account_task: id,
       },
     });
 

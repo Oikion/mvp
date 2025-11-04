@@ -123,6 +123,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
       const propertyId = response.data.newProperty.id;
 
       toast({
+        variant: "success",
         title: t("common.success"),
         description: t("common.propertyCreated"),
       });

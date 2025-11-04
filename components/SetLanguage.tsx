@@ -67,6 +67,7 @@ export function SetLanguage({ userId }: Props) {
     try {
       await axios.put(`/api/user/${userId}/set-language`, data);
       toast({
+        variant: "success",
         title: "Success",
         description: "You change user language to: " + data.language,
       });

@@ -145,7 +145,7 @@ export function UpdateAccountForm({
         client_status: data.status?.toUpperCase() || undefined,
         member_of: data.member_of,
       });
-      toast({ title: "Success", description: "Client updated successfully" });
+      toast({ variant: "success", title: "Success", description: "Client updated successfully" });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error?.response?.data });
     } finally {

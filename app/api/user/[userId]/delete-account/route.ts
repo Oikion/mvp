@@ -124,19 +124,6 @@ export async function DELETE(
     }
 
     // Delete user's personal data
-    // Delete all estate files created by the user
-    await prismadb.estateFiles.deleteMany({
-      where: {
-        user: currentUser.id,
-      },
-    });
-
-    // Delete all tasks assigned to the user
-    await prismadb.tasks.deleteMany({
-      where: {
-        user: currentUser.id,
-      },
-    });
 
     // Delete all CRM tasks assigned to the user
     await prismadb.crm_Accounts_Tasks.deleteMany({
@@ -180,25 +167,29 @@ export async function DELETE(
       },
     });
 
-    // Delete the user from the database
+    // Delete the user from Clerk FIRST (before database deletion to avoid auth issues)
+    // This will also remove them from any remaining organizations
+    try {
+      await clerk.users.deleteUser(clerkUserId);
+      console.log("[DELETE_ACCOUNT] User deleted from Clerk successfully");
+    } catch (clerkError: any) {
+      // If user already deleted in Clerk (404), that's fine
+      if (clerkError?.status === 404) {
+        console.log("[DELETE_ACCOUNT] User already deleted from Clerk");
+      } else {
+        // Log but continue - we'll still try to delete from database
+        console.error("[DELETE_ACCOUNT] Error deleting user from Clerk:", clerkError);
+        // Don't throw - we want to continue with database cleanup
+      }
+    }
+
+    // Delete the user from the database (after Clerk deletion to avoid auth conflicts)
     await prismadb.users.delete({
       where: {
         id: currentUser.id,
       },
     });
-
-    // Delete the user from Clerk (this will also remove them from any remaining organizations)
-    try {
-      await clerk.users.deleteUser(clerkUserId);
-    } catch (clerkError: any) {
-      // If user already deleted in Clerk (404), that's fine - we've already deleted from DB
-      if (clerkError?.status === 404) {
-        console.log("User already deleted from Clerk");
-      } else {
-        // Log but don't fail - we've already deleted from database
-        console.error("Error deleting user from Clerk:", clerkError);
-      }
-    }
+    console.log("[DELETE_ACCOUNT] User deleted from database successfully");
 
     return NextResponse.json({
       message: "Account deleted successfully",

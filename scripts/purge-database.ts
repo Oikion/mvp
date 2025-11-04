@@ -41,7 +41,7 @@ async function confirmPurge(): Promise<boolean> {
   console.log("  - All organizations (from Clerk)");
   console.log("  - All clients/accounts");
   console.log("  - All properties");
-  console.log("  - All tasks and projects");
+  console.log("  - All CRM tasks");
   console.log("  - All documents");
   console.log("  - All other related data\n");
 
@@ -78,17 +78,7 @@ async function purgeDatabase() {
   try {
     // Delete in order to respect foreign key constraints
 
-    // 1. Delete task comments
-    try {
-      const count = await prismadb.tasksComments.deleteMany({});
-      results.deleted.tasksComments = count.count;
-      console.log(`✓ Deleted ${count.count} task comments`);
-    } catch (error: any) {
-      results.errors.push({ model: "tasksComments", error: error.message });
-      console.error(`✗ Error deleting task comments: ${error.message}`);
-    }
-
-    // 2. Delete CRM account tasks
+    // 1. Delete CRM account tasks
     try {
       const count = await prismadb.crm_Accounts_Tasks.deleteMany({});
       results.deleted.crm_Accounts_Tasks = count.count;
@@ -98,37 +88,7 @@ async function purgeDatabase() {
       console.error(`✗ Error deleting CRM account tasks: ${error.message}`);
     }
 
-    // 3. Delete regular tasks
-    try {
-      const count = await prismadb.tasks.deleteMany({});
-      results.deleted.tasks = count.count;
-      console.log(`✓ Deleted ${count.count} tasks`);
-    } catch (error: any) {
-      results.errors.push({ model: "tasks", error: error.message });
-      console.error(`✗ Error deleting tasks: ${error.message}`);
-    }
-
-    // 4. Delete sections
-    try {
-      const count = await prismadb.sections.deleteMany({});
-      results.deleted.sections = count.count;
-      console.log(`✓ Deleted ${count.count} sections`);
-    } catch (error: any) {
-      results.errors.push({ model: "sections", error: error.message });
-      console.error(`✗ Error deleting sections: ${error.message}`);
-    }
-
-    // 5. Delete estate files
-    try {
-      const count = await prismadb.estateFiles.deleteMany({});
-      results.deleted.estateFiles = count.count;
-      console.log(`✓ Deleted ${count.count} estate files`);
-    } catch (error: any) {
-      results.errors.push({ model: "estateFiles", error: error.message });
-      console.error(`✗ Error deleting estate files: ${error.message}`);
-    }
-
-    // 6. Delete client-property relationships
+    // 2. Delete client-property relationships
     try {
       const count = await prismadb.client_Properties.deleteMany({});
       results.deleted.client_Properties = count.count;

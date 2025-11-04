@@ -91,7 +91,7 @@ export async function POST(req: Request) {
 
       await sendEmail({
         from: process.env.EMAIL_FROM as string,
-        to: notifyRecipient.email || "info@softbase.cz",
+        to: notifyRecipient.email || "delivered@resend.dev",
         subject:
           notifyRecipient.userLanguage === "en"
             ? `New contact ${first_name} ${last_name} has been added to the system and assigned to you.`

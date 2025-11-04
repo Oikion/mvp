@@ -27,11 +27,19 @@ export interface InputProps extends React.ComponentProps<"input"> {
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, error, warning, success, validationMessage, ...props }, ref) => {
+  ({ className, type, error, warning, success, validationMessage, value, ...props }, ref) => {
     const hasError = !!error
     const hasWarning = !!warning
     const hasSuccess = success
     const validationText = error || warning || validationMessage
+    
+    // Ensure value is always a string to prevent uncontrolled/controlled warning
+    // File inputs should not have a value prop (they're always uncontrolled)
+    const isFileInput = type === 'file'
+    const inputValue = value === undefined || value === null ? '' : value
+    const inputProps = isFileInput 
+      ? { ...props } 
+      : { ...props, value: inputValue }
     
     return (
       <div className="w-full">
@@ -52,7 +60,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         ref={ref}
             aria-invalid={hasError}
             aria-describedby={validationText ? `${props.id || 'input'}-validation` : undefined}
-        {...props}
+        {...inputProps}
       />
           {hasError && (
             <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-error" aria-hidden="true" />

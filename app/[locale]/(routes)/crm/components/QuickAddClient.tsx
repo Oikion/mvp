@@ -116,6 +116,7 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
       const clientId = response.data.newClient.id;
 
       toast({
+        variant: "success",
         title: t("common.success"),
         description: t("common.clientCreated"),
       });

@@ -121,6 +121,7 @@ export function NewContactForm({
         type: data.type,
       });
       toast({
+        variant: "success",
         title: "Success",
         description: "Contact created successfully",
       });

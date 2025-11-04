@@ -113,6 +113,8 @@
     --warning-foreground: 0 0% 9%;
     --success: 142 71% 45%;
     --success-foreground: 0 0% 98%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 98%;
     
     /* Destructive (maps to error) */
     --destructive: 0 84.2% 60.2%;
@@ -200,6 +202,8 @@
     --warning-foreground: 0 0% 9%;
     --success: 142 65% 50%;
     --success-foreground: 0 0% 98%;
+    --info: 217 91% 65%;
+    --info-foreground: 0 0% 98%;
     
     /* Destructive (maps to error) */
     --destructive: 0 62.8% 30.6%;
@@ -286,6 +290,8 @@
     --warning-foreground: 0 0% 9%;
     --success: 142 71% 45%;
     --success-foreground: 0 0% 98%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 98%;
     
     /* Destructive */
     --destructive: 0 84.2% 60.2%;
@@ -372,6 +378,8 @@
     --warning-foreground: 0 0% 9%;
     --success: 142 65% 50%;
     --success-foreground: 0 0% 98%;
+    --info: 217 91% 65%;
+    --info-foreground: 0 0% 98%;
     
     /* Destructive */
     --destructive: 0 62.8% 30.6%;
@@ -674,4 +682,33 @@
     color: hsl(var(--secondary-foreground)) !important;
   }
 
+}
+
+/* Custom Scrollbar - Hidden but scrollable */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Ensure scrolling still works */
+html,
+body {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }

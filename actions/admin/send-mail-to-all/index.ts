@@ -69,7 +69,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         //send via sendmail
         await sendEmail({
           from: process.env.EMAIL_FROM as string,
-          to: user.email || "info@softbase.cz",
+          to: user.email || "delivered@resend.dev",
           subject: title,
           text: message,
           html: await emailHtml,

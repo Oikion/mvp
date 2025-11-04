@@ -81,6 +81,7 @@ export function CreateOrganizationForm() {
       }
 
       toast({
+        variant: "success",
         title: "Success",
         description: "Organization created successfully!",
       });

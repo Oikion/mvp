@@ -47,32 +47,10 @@ export async function POST(req: Request) {
       },
     });
 
-    const resultsTasks = await prismadb.tasks.findMany({
-      where: {
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { content: { contains: search, mode: "insensitive" } },
-          // add more fields as needed
-        ],
-      },
-    });
-
-    const resultsEstateFiles = await prismadb.estateFiles.findMany({
-      where: {
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { description: { contains: search, mode: "insensitive" } },
-          // add more fields as needed
-        ],
-      },
-    });
-
     const data = {
       clients: resultsCrmClients,
       contacts: resultsCrmContacts,
       users: resultsUser,
-      tasks: resultsTasks,
-      estateFiles: resultsEstateFiles,
     };
 
     return NextResponse.json({ data }, { status: 200 });

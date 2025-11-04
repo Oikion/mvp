@@ -14,8 +14,9 @@ import {
 
 interface NavSecondaryItem {
   title: string
-  url: string
+  url?: string
   icon: any
+  onClick?: () => void
 }
 
 function NavSecondaryMenuItem({ item }: { readonly item: NavSecondaryItem }) {
@@ -23,6 +24,7 @@ function NavSecondaryMenuItem({ item }: { readonly item: NavSecondaryItem }) {
 
   return (
     <SidebarMenuItem>
+      {item.url ? (
       <SidebarMenuButton 
         asChild 
         size="sm"
@@ -34,6 +36,17 @@ function NavSecondaryMenuItem({ item }: { readonly item: NavSecondaryItem }) {
           <span>{item.title}</span>
         </Link>
       </SidebarMenuButton>
+      ) : (
+        <SidebarMenuButton 
+          size="sm"
+          onMouseEnter={() => iconRef.current?.startAnimation?.()}
+          onMouseLeave={() => iconRef.current?.stopAnimation?.()}
+          onClick={item.onClick}
+        >
+          <item.icon ref={iconRef} size={16} className="mr-1" />
+          <span>{item.title}</span>
+        </SidebarMenuButton>
+      )}
     </SidebarMenuItem>
   )
 }

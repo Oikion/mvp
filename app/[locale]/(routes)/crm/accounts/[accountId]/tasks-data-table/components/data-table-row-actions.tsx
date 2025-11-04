@@ -45,6 +45,7 @@ export function DataTableRowActions<TData>({
         },
       });
       toast({
+        variant: "success",
         title: "Task deleted",
         description: "Task deleted successfully",
       });

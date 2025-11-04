@@ -136,6 +136,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
       await axios.delete(`/api/user/${userId}/delete-account`);
 
       toast({
+        variant: "success",
         title: "Account deleted",
         description: "Your account has been successfully deleted.",
       });

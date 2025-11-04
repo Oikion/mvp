@@ -65,6 +65,7 @@ export function TeamConversations({
       setIsLoading(true);
       await axios.post(`/api/crm/tasks/addCommentToTask/${taskId}`, data);
       toast({
+        variant: "success",
         title: "Success, comment added.",
       });
     } catch (error) {

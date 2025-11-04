@@ -109,7 +109,7 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
         });
       }
 
-      toast({ title: "Success", description: "Property created successfully" });
+      toast({ variant: "success", title: "Success", description: "Property created successfully" });
     } catch (e) {
       toast({ variant: "destructive", title: "Error", description: "Failed to create property" });
     } finally {

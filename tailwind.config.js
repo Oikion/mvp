@@ -38,7 +38,7 @@ module.exports = {
 			},
 			/**
 			 * State Colors
-			 * error, warning, success with foreground variants
+			 * error, warning, success, info with foreground variants
 			 */
 			error: {
 				DEFAULT: 'hsl(var(--error))',
@@ -51,6 +51,10 @@ module.exports = {
 			success: {
 				DEFAULT: 'hsl(var(--success))',
 				foreground: 'hsl(var(--success-foreground))',
+			},
+			info: {
+				DEFAULT: 'hsl(var(--info))',
+				foreground: 'hsl(var(--info-foreground))',
 			},
 			/**
 			 * Button-specific colors - Theme-aware button colors

@@ -304,6 +304,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
       });
 
       toast({
+        variant: "success",
         title: t("CrmForm.buttons.submit", "Success"),
         description: "Πελάτης δημιουργήθηκε επιτυχώς",
       });
@@ -920,4 +921,3 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
     </Form>
   );
 }
-

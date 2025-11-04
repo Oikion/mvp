@@ -38,6 +38,7 @@ export function DataTableRowActions<TData>({
   const onCopy = (id: string) => {
     navigator.clipboard.writeText(id);
     toast({
+      variant: "info",
       title: "Copied",
       description: "The URL has been copied to your clipboard.",
     });
@@ -50,6 +51,7 @@ export function DataTableRowActions<TData>({
       await axios.delete(`/api/user/${data.id}`);
       router.refresh();
       toast({
+        variant: "success",
         title: "Success",
         description: "User has been deleted",
       });
@@ -71,6 +73,7 @@ export function DataTableRowActions<TData>({
       await axios.post(`/api/user/activate/${data.id}`);
       router.refresh();
       toast({
+        variant: "success",
         title: "Success",
         description: "User has been activated.",
       });
@@ -93,6 +96,7 @@ export function DataTableRowActions<TData>({
       await axios.post(`/api/user/deactivate/${data.id}`);
       router.refresh();
       toast({
+        variant: "success",
         title: "Success",
         description: "User has been deactivated.",
       });
@@ -114,6 +118,7 @@ export function DataTableRowActions<TData>({
       await axios.post(`/api/user/deactivateAdmin/${data.id}`);
       router.refresh();
       toast({
+        variant: "success",
         title: "Success",
         description: "User Admin rights has been deactivated.",
       });
@@ -136,6 +141,7 @@ export function DataTableRowActions<TData>({
       await axios.post(`/api/user/activateAdmin/${data.id}`);
       router.refresh();
       toast({
+        variant: "success",
         title: "Success",
         description: "User Admin rights has been activated.",
       });

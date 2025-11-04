@@ -4,12 +4,12 @@ import {
   CoinsIcon,
   Contact,
   DollarSignIcon,
-  FactoryIcon,
-  FilePenLine,
-  HeartHandshakeIcon,
   LandmarkIcon,
   UserIcon,
   Users2Icon,
+  Building2,
+  Users,
+  TrendingUp,
 } from "lucide-react";
 import { Link } from "@/navigation";
 
@@ -17,20 +17,22 @@ import { getDictionary } from "@/dictionaries";
 
 import Container from "./components/ui/Container";
 import LoadingBox from "./components/dasboard/loading-box";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { QuickViewList } from "./components/dashboard/QuickViewList";
+import { BarChartDemo } from "@/components/tremor/BarChart";
 
-import {
-  getTasksCount,
-  getUsersTasksCount,
-} from "@/actions/dashboard/get-tasks-count";
 import { getModules } from "@/actions/get-modules";
 import { getEmployees } from "@/actions/get-empoloyees";
-import { getBoardsCount } from "@/actions/dashboard/get-boards-count";
 import { getContactCount } from "@/actions/dashboard/get-contacts-count";
 import { getAccountsCount } from "@/actions/dashboard/get-accounts-count";
 import { getActiveUsersCount } from "@/actions/dashboard/get-active-users-count";
+import { getRecentProperties } from "@/actions/dashboard/get-recent-properties";
+import { getRecentClients } from "@/actions/dashboard/get-recent-clients";
+import { getClientsByStatus } from "@/actions/reports/get-clients-stats";
+import { getPropertiesByStatus } from "@/actions/reports/get-properties-stats";
+import { getPropertiesCount } from "@/actions/reports/get-properties-stats";
+import { getClientsCount } from "@/actions/reports/get-clients-stats";
 
-import { getExpectedRevenue } from "@/actions/crm/opportunity/get-expected-revenue";
 
 const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }) => {
   try {
@@ -44,27 +46,32 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
     // Parallelize all dashboard queries for significantly better performance
     const [
       modules,
-      tasks,
       employees,
-      projects,
       contacts,
       users,
       accounts,
-      usersTasks,
+      recentClients,
+      recentProperties,
+      clientsByStatus,
+      propertiesByStatus,
+      propertiesCount,
+      clientsCount,
     ] = await Promise.all([
       getModules(),
-      getTasksCount(),
       getEmployees(),
-      getBoardsCount(),
       getContactCount(),
       getActiveUsersCount(),
       getAccountsCount(),
-      getUsersTasksCount(userId),
+      getRecentClients(5),
+      getRecentProperties(5),
+      getClientsByStatus(),
+      getPropertiesByStatus(),
+      getPropertiesCount(),
+      getClientsCount(),
     ]);
 
     //Find which modules are enabled
     const crmModule = modules.find((module) => module.name === "crm");
-    const projectsModule = modules.find((module) => module.name === "projects");
     const employeesModule = modules.find((module) => module.name === "employees");
     
 
@@ -73,7 +80,13 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
         title={dict.DashboardPage.containerTitle}
         description={dict.DashboardPage.containerDescription}
       >
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-8">
+          {/* Section 1: At a Glance */}
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight mb-4">
+              At a Glance
+            </h2>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
           <Suspense fallback={<LoadingBox />}>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -83,7 +96,10 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
                 <DollarSignIcon className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-medium">{"0"}</div>
+                    <div className="text-2xl font-bold">{"0"}</div>
+                    <CardDescription className="text-xs mt-1">
+                      Total revenue
+                    </CardDescription>
               </CardContent>
             </Card>
           </Suspense>
@@ -93,10 +109,13 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
                 <CardTitle className="text-sm font-medium">
                   {dict.DashboardPage.expectedRevenue}
                 </CardTitle>
-                <DollarSignIcon className="w-4 h-4 text-muted-foreground" />
+                    <TrendingUp className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-medium">{"0"}</div>
+                    <div className="text-2xl font-bold">{"0"}</div>
+                    <CardDescription className="text-xs mt-1">
+                      Expected revenue
+                    </CardDescription>
               </CardContent>
             </Card>
           </Suspense>
@@ -107,20 +126,7 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
             IconComponent={UserIcon}
             content={users}
           />
-          {
-            //show crm module only if enabled is true
-            employeesModule?.enabled && (
-              <DashboardCard
-                href="/employees"
-                title={dict.DashboardPage.employees}
-                IconComponent={Users2Icon}
-                content={employees.length}
-              />
-            )
-          }
-          {
-            //show crm module only if enabled is true
-            crmModule?.enabled && (
+              {crmModule?.enabled && (
               <>
                 <DashboardCard
                   href="/crm/clients"
@@ -135,32 +141,81 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
                   content={contacts}
                 />
               </>
-            )
-          }
-          {projectsModule?.enabled && (
-            <>
-              <DashboardCard
-                href="/estate-files"
-                title={dict.DashboardPage.estateFiles}
-                IconComponent={CoinsIcon}
-                content={projects}
-              />
-              <DashboardCard
-                href="/estate-files/tasks"
-                title={dict.DashboardPage.tasks}
-                IconComponent={CoinsIcon}
-                content={tasks}
-              />
-              <DashboardCard
-                href={`/estate-files/tasks/${userId}`}
-                title={dict.DashboardPage.myTasks}
-                IconComponent={CoinsIcon}
-                content={usersTasks}
-              />
-            </>
-          )}
-
+              )}
+              {employeesModule?.enabled && (
+                <DashboardCard
+                  href="/employees"
+                  title={dict.DashboardPage.employees}
+                  IconComponent={Users2Icon}
+                  content={employees.length}
+                />
+              )}
+            </div>
+          </div>
           
+          {/* Section 2: Recent Activity */}
+          <div>
+             <h2 className="text-xl font-semibold tracking-tight mb-4">
+              Recent Activity
+            </h2>
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+              {crmModule?.enabled && (
+                <QuickViewList
+                  title="Recent Clients"
+                  items={recentClients}
+                  viewAllHref="/crm/clients"
+                  icon={<Users className="h-5 w-5 text-muted-foreground" />}
+                />
+              )}
+              <QuickViewList
+                title="Recent Properties"
+                items={recentProperties}
+                viewAllHref="/mls/properties"
+                icon={<Building2 className="h-5 w-5 text-muted-foreground" />}
+              />
+            </div>
+          </div>
+
+          {/* Section 3: Analytics Overview */}
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight mb-4">
+              Analytics Overview
+            </h2>
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+              {crmModule?.enabled && clientsByStatus.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Clients by Status</CardTitle>
+                    <CardDescription>
+                      Distribution of {clientsCount} clients across different statuses
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <BarChartDemo
+                      chartData={clientsByStatus}
+                      title="Clients by Status"
+                    />
+                  </CardContent>
+                </Card>
+              )}
+              {propertiesByStatus.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Properties by Status</CardTitle>
+                    <CardDescription>
+                      Distribution of {propertiesCount} properties across different statuses
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <BarChartDemo
+                      chartData={propertiesByStatus}
+                      title="Properties by Status"
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
         </div>
       </Container>
     );
@@ -182,15 +237,15 @@ const DashboardCard = ({
   IconComponent: any;
   content: number;
 }) => (
-  <Link href={href || "#"}>
+  <Link href={href || "#"} className="h-full">
     <Suspense fallback={<LoadingBox />}>
-      <Card>
+      <Card className="hover:shadow-md transition-shadow h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
           <IconComponent className="w-4 h-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-medium">{content}</div>
+          <div className="text-2xl font-bold">{content}</div>
         </CardContent>
       </Card>
     </Suspense>

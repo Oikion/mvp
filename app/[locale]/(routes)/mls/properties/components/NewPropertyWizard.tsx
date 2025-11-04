@@ -374,6 +374,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
       });
 
       toast({
+        variant: "success",
         title: "Success",
         description: "Ακίνητο δημιουργήθηκε επιτυχώς",
       });

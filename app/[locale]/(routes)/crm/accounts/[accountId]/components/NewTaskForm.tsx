@@ -95,6 +95,7 @@ const NewTaskForm = ({ account, onFinish }: NewTaskFormProps) => {
     try {
       await axios.post(`/api/crm/account/${account?.id}/task/create`, data);
       toast({
+        variant: "success",
         title: "Success",
         description: `New task: ${data.title}, created successfully`,
       });

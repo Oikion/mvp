@@ -6,18 +6,19 @@ import { usePathname } from "next/navigation"
 import { useLocale } from "next-intl"
 
 import { HouseIcon } from "@/components/ui/HouseIcon"
-import { BlocksIcon } from "@/components/ui/BlocksIcon"
 import { UsersRoundIcon } from "@/components/ui/UsersRoundIcon"
 import { SettingsIcon } from "@/components/ui/SettingsIcon"
 import { SparklesIcon } from "@/components/ui/SparklesIcon"
 import { ChartBarIcon } from "@/components/ui/ChartBarIcon"
 import { DashboardIcon } from "@/components/ui/DashboardIcon"
 import { ContactRoundIcon } from "@/components/ui/ContactRoundIcon"
+import { FeedbackIcon } from "@/components/ui/FeedbackIcon"
 
 import { OrganizationSwitcher } from "@clerk/nextjs"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { NavSecondary } from "@/components/nav-secondary"
+import FeedbackSheet from "./FeedbackSheet"
 import {
   Sidebar,
   SidebarContent,
@@ -44,6 +45,7 @@ export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
   const pathname = usePathname()
   const locale = useLocale()
   const { appearance } = useClerkTheme()
+  const [feedbackOpen, setFeedbackOpen] = React.useState(false)
   
   // Map locale to Clerk locale format
   const clerkLocale = getClerkLocale(locale)
@@ -76,13 +78,6 @@ export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
         { title: dict.ModuleMenu.mls.properties, url: "/mls/properties" },
       ]
     },
-    // Add Estate Files module if enabled
-    ...(modules.some((m: any) => m.name === "projects" && m.enabled) ? [{
-      title: dict.ModuleMenu.estateFiles,
-      url: "/estate-files",
-      icon: BlocksIcon,
-      isActive: pathname.includes("/estate-files"),
-    }] : []),
     // Add Employees module if enabled
     ...(modules.some((m: any) => m.name === "employee" && m.enabled) ? [{
       title: dict.ModuleMenu.employees,
@@ -113,13 +108,13 @@ export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
     },
   ], [pathname, locale, modules, dict])
 
-  const navSecondaryItems = [
+  const navSecondaryItems = React.useMemo(() => [
     {
-      title: dict.ModuleMenu.support,
-      url: "#",
-      icon: SettingsIcon,
+      title: dict.ModuleMenu.feedback,
+      icon: FeedbackIcon,
+      onClick: () => setFeedbackOpen(true),
     },
-  ]
+  ], [dict, setFeedbackOpen])
 
   return (
     <Sidebar variant="inset">
@@ -173,6 +168,7 @@ export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
       <SidebarFooter>
         <NavUser user={user} />
       </SidebarFooter>
+      <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </Sidebar>
   )
 }

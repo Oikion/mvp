@@ -17,6 +17,7 @@ const OnTestButton = () => {
       const response = await axios.get("/api/cron/send-daily-task-ai");
       //console.log(response, "response");
       toast({
+        variant: "success",
         title: "GPT model tested",
         description: response.data.message,
       });

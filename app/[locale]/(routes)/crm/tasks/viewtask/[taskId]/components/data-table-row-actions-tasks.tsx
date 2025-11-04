@@ -26,7 +26,6 @@ import { useRouter } from "next/navigation";
 import DocumentViewModal from "@/components/modals/document-view-modal";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import axios from "axios";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -47,26 +46,12 @@ export function DataTableRowActionsTasks<TData>({
   const { toast } = useToast();
 
   const onDisconnect = async () => {
-    setLoading(true);
-    try {
-      await axios.post(`/api/estate-files/tasks/${document.id}/disconnect`, {
-        taskId: params?.taskId!,
-      });
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description:
-          "Something went wrong, while disconnecting document from task",
-      });
-    } finally {
-      toast({
-        title: "Success",
-        description: "Document was disconnected from task",
-      });
-      router.refresh();
-      setLoading(false);
-    }
+    // TODO: Implement disconnect functionality for CRM tasks
+    toast({
+      variant: "info",
+      title: "Not implemented",
+      description: "Document disconnect functionality needs to be implemented for CRM tasks",
+    });
   };
 
   return (

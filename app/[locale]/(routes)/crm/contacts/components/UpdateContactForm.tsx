@@ -102,6 +102,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
     try {
       await axios.put("/api/crm/contacts", data);
       toast({
+        variant: "success",
         title: "Success",
         description: "Contact updated successfully",
       });

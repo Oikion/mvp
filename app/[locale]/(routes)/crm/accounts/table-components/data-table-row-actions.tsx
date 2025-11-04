@@ -44,6 +44,7 @@ export function DataTableRowActions<TData>({
     try {
       await axios.delete(`/api/crm/account/${account.id}`);
       toast({
+        variant: "success",
         title: "Success",
         description: "Opportunity has been deleted",
       });
@@ -73,6 +74,7 @@ export function DataTableRowActions<TData>({
       console.log(error);
     } finally {
       toast({
+        variant: "success",
         title: "Success",
         description: `You are now Account: ${account.name}, watcher`,
       });
@@ -92,6 +94,7 @@ export function DataTableRowActions<TData>({
       console.log(error);
     } finally {
       toast({
+        variant: "success",
         title: "Success",
         description: `You are no longer Project: ${account.name}, watcher`,
       });

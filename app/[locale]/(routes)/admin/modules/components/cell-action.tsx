@@ -40,6 +40,7 @@ export const CellAction = ({ data }: CellActionProps) => {
       await axios.post(`/api/admin/activateModule/${data.id}`);
       router.refresh();
       toast({
+        variant: "success",
         title: "Success",
         description: "Module has been activated.",
       });
@@ -58,6 +59,7 @@ export const CellAction = ({ data }: CellActionProps) => {
       await axios.post(`/api/admin/deactivateModule/${data.id}`);
       router.refresh();
       toast({
+        variant: "success",
         title: "Success",
         description: "Module has been deactivated.",
       });
@@ -77,6 +79,7 @@ export const CellAction = ({ data }: CellActionProps) => {
       setDeleteDialogOpen(false);
       router.refresh();
       toast({
+        variant: "success",
         title: "Success",
         description: "Module has been deleted.",
       });

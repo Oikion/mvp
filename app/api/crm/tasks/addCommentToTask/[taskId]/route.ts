@@ -30,11 +30,10 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
       return new NextResponse("Task not found", { status: 404 });
     }
 
-    const newComment = await prismadb.tasksComments.create({
+    const newComment = await prismadb.crm_Accounts_Tasks_Comments.create({
       data: {
-        v: 0,
         comment: comment,
-        task: taskId,
+        crm_account_task: taskId,
         user: user.id,
       },
     });

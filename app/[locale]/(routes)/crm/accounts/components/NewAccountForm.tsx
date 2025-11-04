@@ -221,6 +221,7 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
       }
 
       toast({
+        variant: "success",
         title: "Success",
         description: "Client created successfully",
       });

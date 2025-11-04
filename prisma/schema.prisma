@@ -207,33 +207,6 @@ enum ClientContactType {
 
 // Removed legacy crm_Contracts and related enum
 
-model EstateFiles {
-  id                String    @id @default(uuid())
-  description       String
-  favourite         Boolean?
-  favouritePosition Int?
-  icon              String?
-  position          Int?
-  title             String
-  user              String
-  visibility        String?
-  sharedWith        String[]
-  createdAt         DateTime? @default(now())
-  createdBy         String?
-  updatedAt         DateTime? @updatedAt
-  updatedBy         String?
-
-  //Create watchers field for estate file. It will be array of users
-  watchers       String[]
-  assigned_user  Users?   @relation("assigned_user", fields: [user], references: [id])
-  watchers_users Users[]  @relation("watching_users")
-  sections       Sections[] @relation("SectionsToEstateFiles")
-
-  // Performance indexes for frequently queried fields
-  @@index([user])
-  @@index([createdAt])
-}
-
 model Employees {
   id     String  @id @default(uuid())
   avatar String
@@ -308,11 +281,9 @@ model Documents {
   assigned_user          String?
   connected_documents    String[]
   contactsIDs            String[]
-  tasksIDs               String[]
   crm_accounts_tasksIDs  String[]
   accountsIDs            String[]
   contacts               Client_Contacts[]   @relation("DocumentsToClientContacts")
-  tasks                  Tasks[]             @relation("DocumentsToTasks")
   crm_accounts_tasks     crm_Accounts_Tasks[] @relation("DocumentsToCrmAccountsTasks")
   accounts               Clients[]            @relation("DocumentsToClients")
   created_by             Users?              @relation("created_by_user", fields: [created_by_user], references: [id])
@@ -340,15 +311,6 @@ model Documents_Types {
   assigned_documents Documents[]
 }
 
-model Sections {
-  id          String       @id @default(uuid())
-  board       String
-  title       String
-  position    Int?
-  tasks       Tasks[]
-  estateFiles EstateFiles? @relation("SectionsToEstateFiles", fields: [board], references: [id])
-}
-
 // Removed legacy crm_Industry_Type
 
 model modulStatus {
@@ -357,76 +319,35 @@ model modulStatus {
   isVisible Boolean
 }
 
-model Tasks {
-  id               String          @id @default(uuid())
-  content          String?
-  createdAt        DateTime?       @default(now())
-  createdBy        String?
-  updatedAt        DateTime?       @updatedAt
-  updatedBy        String?
-  dueDateAt        DateTime?       @default(now())
-  lastEditedAt     DateTime?       @default(now()) @updatedAt
-  position         Int
-  priority         String
-  section          String?
-  tags             Json?
-  title            String
-  likes            Int?            @default(0)
-  user             String?
-  documentIDs      String[]
-  comments         tasksComments[]
-  documents        Documents[]     @relation("DocumentsToTasks")
-  assigned_user    Users?          @relation(fields: [user], references: [id])
-  assigned_section Sections?       @relation(fields: [section], references: [id])
-  //Staus
-  taskStatus       taskStatus?     @default(ACTIVE)
-
-  // Performance indexes for frequently queried fields
-  @@index([user])
-  @@index([section])
-  @@index([createdAt])
-  @@index([taskStatus])
-}
-
 model crm_Accounts_Tasks {
-  id            String          @id @default(uuid())
+  id            String                      @id @default(uuid())
   content       String?
-  createdAt     DateTime?       @default(now())
+  createdAt     DateTime?                   @default(now())
   createdBy     String?
-  updatedAt     DateTime?       @updatedAt
+  updatedAt     DateTime?                   @updatedAt
   updatedBy     String?
-  dueDateAt     DateTime?       @default(now())
+  dueDateAt     DateTime?                   @default(now())
   priority      String
   tags          Json?
   title         String
-  likes         Int?            @default(0)
+  likes         Int?                        @default(0)
   user          String?
-  comments      tasksComments[]
-  documents     Documents[]     @relation("DocumentsToCrmAccountsTasks")
-  assigned_user Users?          @relation(fields: [user], references: [id])
+  comments      crm_Accounts_Tasks_Comments[] @relation("CommentsToCrmTasks")
+  documents     Documents[]                 @relation("DocumentsToCrmAccountsTasks")
+  assigned_user Users?                      @relation(fields: [user], references: [id])
   //CRM assigments
   account       String?
-  crm_accounts  Clients?        @relation(fields: [account], references: [id])
-  //Staus
-  taskStatus    taskStatus?     @default(ACTIVE)
+  crm_accounts  Clients?                    @relation(fields: [account], references: [id])
 }
 
-model tasksComments {
-  id                             String              @id @default(uuid())
-  comment                        String
-  createdAt                      DateTime            @default(now())
-  task                           String
-  user                           String
-  assigned_crm_account_task      String?
-  assigned_crm_account_task_task crm_Accounts_Tasks? @relation(fields: [assigned_crm_account_task], references: [id])
-  assigned_task                  Tasks?              @relation(fields: [task], references: [id], onDelete: Cascade)
-  assigned_user                  Users?              @relation(fields: [user], references: [id])
-}
-
-enum taskStatus {
-  ACTIVE
-  PENDING
-  COMPLETE
+model crm_Accounts_Tasks_Comments {
+  id                      String              @id @default(uuid())
+  comment                 String
+  createdAt               DateTime            @default(now())
+  crm_account_task       String
+  user                    String
+  assigned_crm_account_task crm_Accounts_Tasks? @relation("CommentsToCrmTasks", fields: [crm_account_task], references: [id], onDelete: Cascade)
+  assigned_user           Users?              @relation(fields: [user], references: [id])
 }
 
 model TodoList {
@@ -459,11 +380,10 @@ model Users {
   username             String?
   userStatus           ActiveStatus          @default(PENDING)
   userLanguage         Language              @default(en)
-  tasksComment         tasksComments[]
   created_by_documents Documents[]           @relation("created_by_user")
   assigned_documents   Documents[]           @relation("assigned_to_user")
-  tasks                Tasks[]
   crm_accounts_tasks   crm_Accounts_Tasks[]
+  crm_accounts_tasks_comments crm_Accounts_Tasks_Comments[]
   accounts             Clients[]
   // MLS relations
   properties           Properties[]
@@ -472,13 +392,11 @@ model Users {
   assigned_property_contacts Property_Contacts[]
   
   openAi_key           openAi_keys[]
-  estateFiles          EstateFiles[]        @relation("assigned_user")
-  watching_estateFilesIDs String[]
-  watching_estateFiles EstateFiles[]        @relation("watching_users")
   watching_accountsIDs String[]
   watching_accounts    Clients[]             @relation("watching_accounts")
   watching_propertiesIDs String[]
   watching_properties  Properties[]          @relation("watching_properties")
+  feedback             Feedback[]
 
   // Performance indexes for frequently queried fields
   @@index([userStatus])
@@ -735,4 +653,46 @@ model Client_Properties {
   @@unique([clientId, propertyId])
   @@index([clientId])
   @@index([propertyId])
+}
+
+// Feedback model for user feedback submissions
+model Feedback {
+  id                   String    @id @default(uuid())
+  createdAt            DateTime  @default(now())
+  
+  // User information
+  userId               String?
+  userEmail            String?
+  userName             String?
+  organizationId       String?
+  
+  // Feedback content
+  feedbackType         String    // bug, feature, general, question, other
+  feedback             String    @db.Text
+  
+  // Technical details
+  url                  String?
+  userAgent            String?   @db.Text
+  browserName          String?
+  browserVersion       String?
+  osName               String?
+  osVersion            String?
+  screenResolution     String?
+  
+  // Bug report specific (optional)
+  hasScreenshot        Boolean   @default(false)
+  hasConsoleLogs       Boolean   @default(false)
+  consoleLogsCount     Int?      @default(0)
+  
+  // Metadata
+  emailSent            Boolean   @default(false)
+  emailSentAt          DateTime?
+  
+  // Relations
+  user                 Users?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([feedbackType])
+  @@index([organizationId])
 }

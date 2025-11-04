@@ -47,6 +47,7 @@ const SetGptModel = ({ models }: any) => {
     try {
       await updateModel(data.model);
       toast({
+        variant: "success",
         title: "GPT model updated",
       });
     } catch (error) {

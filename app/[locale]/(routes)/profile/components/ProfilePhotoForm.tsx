@@ -46,6 +46,7 @@ export function ProfilePhotoForm({ data }: ProfileFormProps) {
       setAvatarStore(avatarUrl);
       await axios.put("/api/profile/updateProfilePhoto", { avatar: avatarUrl });
       toast({
+        variant: "success",
         title: "Profile photo updated.",
         description: "Your profile photo has been updated.",
         duration: 5000,

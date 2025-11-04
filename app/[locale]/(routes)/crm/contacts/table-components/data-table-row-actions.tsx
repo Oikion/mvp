@@ -48,6 +48,7 @@ export function DataTableRowActions<TData>({
     try {
       await axios.delete(`/api/crm/contacts/${contact?.id}`);
       toast({
+        variant: "success",
         title: "Success",
         description: "Opportunity has been deleted",
       });
