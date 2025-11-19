@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       const data = await resend.emails.send({
         from: process.env.EMAIL_FROM!,
         to: user.email,
-        subject: "NextCRM - Password reset",
+        subject: "Oikion - Password reset",
         text: "", // Add this line to fix the types issue
         //react: DemoTemplate({ firstName: "John" }),
         react: PasswordResetEmail({

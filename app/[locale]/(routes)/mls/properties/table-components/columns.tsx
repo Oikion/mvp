@@ -27,7 +27,8 @@ export const columns: ColumnDef<any>[] = [
     },
     cell: ({ row }) => {
       const t = useTranslations();
-      return <div className="w-[150px]">{row.getValue("assigned_to_user")?.name ?? t("MlsPropertiesTable.unassigned")}</div>
+      const assignedUser = row.getValue("assigned_to_user") as { name?: string } | null | undefined;
+      return <div className="w-[150px]">{assignedUser?.name ?? t("MlsPropertiesTable.unassigned")}</div>
     },
     enableSorting: true,
     enableHiding: true,

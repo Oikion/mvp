@@ -18,8 +18,8 @@ const ClientsPage = async ({ params }: { params: Promise<{ locale: string }> }) 
 
   return (
     <Container
-      title={dict.ModuleMenu.crm.accounts}
-      description={dict.CrmClientsPage.description}
+      title={dict.navigation.ModuleMenu.crm.accounts}
+      description={dict.crm.CrmClientsPage.description}
     >
       <Suspense fallback={<SuspenseLoading />}>
         <AccountsView crmData={crmData} data={clients} />

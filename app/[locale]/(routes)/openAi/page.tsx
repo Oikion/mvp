@@ -28,17 +28,17 @@ const ProfilePage = async ({ params }: { params: Promise<{ locale: string }> }) 
   if (process.env.OPENAI_API_KEY && !openAiKeyUser && !openAiKeySystem)
     return (
       <Container
-        title={dict.ChatGPTPage.title}
-        description={dict.ChatGPTPage.description}
+        title={dict.chatgpt.title}
+        description={dict.chatgpt.description}
       >
         <div>
-          <h1>{dict.ChatGPTPage.missingKeyTitle}</h1>
+          <h1>{dict.chatgpt.missingKeyTitle}</h1>
           <p>
-            {dict.ChatGPTPage.missingKeyPrompt}{" "}
+            {dict.chatgpt.missingKeyPrompt}{" "}
             <Link href={"/profile"} className="text-blue-500">
-              {dict.ChatGPTPage.profileSettings}{" "}
+              {dict.chatgpt.profileSettings}{" "}
             </Link>
-            {dict.ChatGPTPage.toUseAssistant}
+            {dict.chatgpt.toUseAssistant}
           </p>
         </div>
       </Container>
@@ -46,10 +46,10 @@ const ProfilePage = async ({ params }: { params: Promise<{ locale: string }> }) 
 
   return (
     <Container
-      title={dict.ChatGPTPage.title}
-      description={dict.ChatGPTPage.description}
+      title={dict.chatgpt.title}
+      description={dict.chatgpt.description}
     >
-      <Suspense fallback={<div>{dict.ChatGPTPage.loading}</div>}>
+      <Suspense fallback={<div>{dict.chatgpt.loading}</div>}>
         <Chat />
       </Suspense>
     </Container>

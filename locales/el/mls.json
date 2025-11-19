@@ -1,0 +1,242 @@
+{
+  "MlsPropertiesPage": {
+    "description": "Διαχείριση ακινήτων MLS"
+  },
+  "PropertyForm": {
+    "title": "Νέο Ακίνητο",
+    "quickAddTitle": "Γρήγορη Προσθήκη Ακινήτου",
+    "steps": {
+      "basics": "Βασικά",
+      "location": "Τοποθεσία",
+      "surfaces": "Επιφάνειες & Όροφοι",
+      "characteristics": "Χαρακτηριστικά",
+      "condition": "Κατάσταση & Έτος",
+      "legal": "Νομιμότητα & Έγγραφα",
+      "amenities": "Παροχές & Extras",
+      "pricing": "Τιμή & Διαθεσιμότητα",
+      "media": "Media & Δημοσίευση"
+    },
+    "stepDescriptions": {
+      "basics": "Βασικές πληροφορίες ακινήτου",
+      "location": "Τοποθεσία ακινήτου",
+      "surfaces": "Επιφάνειες και όροφοι",
+      "characteristics": "Χαρακτηριστικά ακινήτου",
+      "condition": "Κατάσταση και έτος κατασκευής",
+      "legal": "Νομικά στοιχεία (προαιρετικά)",
+      "amenities": "Παροχές και επιπλέον χαρακτηριστικά",
+      "pricing": "Τιμή και διαθεσιμότητα",
+      "media": "Φωτογραφίες και δημοσίευση"
+    },
+    "fields": {
+      "propertyType": "Τύπος ακινήτου",
+      "propertyTypePlaceholder": "Επιλέξτε τύπο",
+      "transactionType": "Τύπος συναλλαγής",
+      "transactionTypePlaceholder": "Επιλέξτε τύπο",
+      "status": "Κατάσταση",
+      "statusPlaceholder": "Επιλέξτε κατάσταση",
+      "isExclusive": "Αποκλειστικότητα",
+      "municipality": "Δήμος",
+      "municipalityPlaceholder": "Επιλέξτε δήμο",
+      "area": "Περιοχή/Γειτονιά",
+      "areaPlaceholder": "Επιλέξτε περιοχή",
+      "postalCode": "ΤΚ",
+      "postalCodePlaceholder": "5 ψηφία",
+      "addressPrivacyLevel": "Επίπεδο προστασίας διεύθυνσης",
+      "addressPrivacyLevelPlaceholder": "Επιλέξτε επίπεδο",
+      "sizeNetSqm": "Καθαρά τ.μ.",
+      "sizeGrossSqm": "Μεικτά τ.μ.",
+      "floor": "Όροφος",
+      "floorPlaceholder": "Επιλέξτε όροφο",
+      "floorsTotal": "Σύνολο ορόφων κτιρίου",
+      "plotSizeSqm": "Εμβαδόν",
+      "insideCityPlan": "Εντός/Εκτός σχεδίου",
+      "buildCoefficient": "Συντελεστής δόμησης",
+      "frontageM": "Πρόσοψη (μέτρα)",
+      "bedrooms": "Υπνοδωμάτια",
+      "bathrooms": "Μπάνια",
+      "heatingType": "Τύπος θέρμανσης",
+      "heatingTypePlaceholder": "Επιλέξτε τύπο",
+      "energyCertClass": "ΠΕΑ",
+      "energyCertClassPlaceholder": "Επιλέξτε κλάση",
+      "yearBuilt": "Έτος κατασκευής",
+      "renovatedYear": "Έτος ανακαίνισης",
+      "condition": "Κατάσταση",
+      "conditionPlaceholder": "Επιλέξτε κατάσταση",
+      "elevator": "Ανελκυστήρας",
+      "buildingPermitNo": "Αριθμός άδειας οικοδομής",
+      "buildingPermitYear": "Έτος άδειας",
+      "landRegistryKaek": "ΚΑΕΚ",
+      "legalizationStatus": "Κατάσταση νομιμοποίησης",
+      "legalizationStatusPlaceholder": "Επιλέξτε κατάσταση",
+      "etaireiaDiaxeirisis": "Εταιρεία διαχείρισης",
+      "monthlyCommonCharges": "Κοινόχρηστα (€/μήνα)",
+      "amenities": "Παροχές",
+      "amenitiesPlaceholder": "Επιλέξτε παροχές",
+      "orientation": "Προσανατολισμός",
+      "orientationPlaceholder": "Επιλέξτε προσανατολισμό",
+      "furnished": "Επιπλωμένο",
+      "furnishedPlaceholder": "Επιλέξτε",
+      "accessibility": "Προσβασιμότητα",
+      "price": "Τιμή",
+      "priceType": "Τύπος τιμής",
+      "priceTypePlaceholder": "Επιλέξτε τύπο",
+      "availableFrom": "Διαθέσιμο από",
+      "acceptsPets": "Δέχεται κατοικίδια",
+      "minLeaseMonths": "Ελάχιστοι μήνες ενοικίασης",
+      "photos": "Φωτογραφίες",
+      "virtualTourUrl": "URL εικονικής περιήγησης",
+      "portalVisibility": "Ορατότητα σε portals",
+      "portalVisibilityPlaceholder": "Επιλέξτε ορατότητα"
+    },
+    "propertyType": {
+      "APARTMENT": "Διαμέρισμα",
+      "HOUSE": "Μονοκατοικία",
+      "MAISONETTE": "Μεζονέτα",
+      "COMMERCIAL": "Επαγγελματικός χώρος",
+      "WAREHOUSE": "Αποθήκη",
+      "PARKING": "Parking",
+      "PLOT": "Οικόπεδο",
+      "FARM": "Αγροτεμάχιο",
+      "INDUSTRIAL": "Βιομηχανικό",
+      "OTHER": "Άλλο"
+    },
+    "transactionType": {
+      "SALE": "Πώληση",
+      "RENTAL": "Ενοικίαση",
+      "SHORT_TERM": "Βραχυχρόνια",
+      "EXCHANGE": "Αντιπαροχή"
+    },
+    "status": {
+      "AVAILABLE": "Διαθέσιμο",
+      "RESERVED": "Δεσμευμένο",
+      "NEGOTIATION": "Σε διαπραγμάτευση",
+      "RENTED": "Μισθωμένο",
+      "SOLD": "Πωλημένο"
+    },
+    "addressPrivacyLevel": {
+      "EXACT": "Ακριβής διεύθυνση",
+      "PARTIAL": "Μερική",
+      "HIDDEN": "Κρυφή"
+    },
+    "floor": {
+      "BASEMENT": "Υπόγειο",
+      "GROUND": "Ισόγειο",
+      "1ST": "1ος",
+      "2ND": "2ος",
+      "3RD": "3ος",
+      "4TH": "4ος",
+      "5TH": "5ος",
+      "6TH": "6ος",
+      "7TH": "7ος",
+      "8TH": "8ος",
+      "9TH": "9ος",
+      "10TH": "10ος",
+      "PENTHOUSE": "Ρετιρέ"
+    },
+    "heatingType": {
+      "AUTONOMOUS": "Αυτόνομη",
+      "CENTRAL": "Κεντρική",
+      "NATURAL_GAS": "Φυσικό αέριο",
+      "HEAT_PUMP": "Αντλία θερμότητας",
+      "ELECTRIC": "Ηλεκτρική",
+      "NONE": "Χωρίς"
+    },
+    "energyCertClass": {
+      "A_PLUS": "A+",
+      "A": "A",
+      "B": "B",
+      "C": "C",
+      "D": "D",
+      "E": "E",
+      "F": "F",
+      "G": "G",
+      "H": "H",
+      "IN_PROGRESS": "Σε εξέλιξη"
+    },
+    "condition": {
+      "EXCELLENT": "Άριστη",
+      "VERY_GOOD": "Πολύ καλή",
+      "GOOD": "Καλή",
+      "NEEDS_RENOVATION": "Χρειάζεται ανακαίνιση"
+    },
+    "legalizationStatus": {
+      "LEGALIZED": "Τακτοποιημένο Ν.4178/4495",
+      "IN_PROGRESS": "Σε εξέλιξη",
+      "UNDECLARED": "Μη δηλωμένο"
+    },
+    "amenities": {
+      "AC": "Κλιματισμός",
+      "FIREPLACE": "Τζάκι",
+      "PARKING": "Parking",
+      "STORAGE": "Αποθήκη",
+      "SOLAR": "Ηλιακός",
+      "DOUBLE_GLAZING": "Διπλά τζάμια",
+      "VIEW": "Θέα",
+      "BALCONY": "Βεράντα",
+      "GARDEN": "Κήπος",
+      "PET_FRIENDLY": "Pet-friendly",
+      "FRONTAGE": "Πρόσοψη"
+    },
+    "orientation": {
+      "N": "Βόρεια",
+      "S": "Νότια",
+      "E": "Ανατολικά",
+      "W": "Δυτικά"
+    },
+    "furnished": {
+      "NO": "Όχι",
+      "PARTIALLY": "Μερικώς",
+      "FULLY": "Πλήρως"
+    },
+    "priceType": {
+      "RENTAL": "€ ενοικίασης",
+      "SALE": "€ πώλησης",
+      "PER_ACRE": "€ ανά στρέμμα",
+      "PER_SQM": "€ ανά τ.μ."
+    },
+    "portalVisibility": {
+      "PRIVATE": "Ιδιωτικό",
+      "SELECTED": "Επιλεγμένα portals",
+      "PUBLIC": "Παντού"
+    },
+    "validation": {
+      "propertyTypeRequired": "Ο τύπος ακινήτου είναι υποχρεωτικός",
+      "transactionTypeRequired": "Ο τύπος συναλλαγής είναι υποχρεωτικός",
+      "municipalityRequired": "Ο δήμος είναι υποχρεωτικός",
+      "areaOrPostalCodeRequired": "Η περιοχή ή το ΤΚ είναι υποχρεωτικό",
+      "sizeRequired": "Το μέγεθος είναι υποχρεωτικό",
+      "priceRequired": "Η τιμή είναι υποχρεωτική",
+      "postalCodeInvalid": "Το ΤΚ πρέπει να έχει 5 ψηφία"
+    },
+    "buttons": {
+      "saveDraft": "Αποθήκευση πρόχειρου",
+      "continueToFull": "Συνέχεια σε πλήρη φόρμα",
+      "previous": "Προηγούμενο",
+      "next": "Επόμενο",
+      "submit": "Δημιουργία Ακινήτου",
+      "quickAdd": "Γρήγορη Προσθήκη"
+    },
+    "autosave": {
+      "saving": "Αποθήκευση...",
+      "saved": "Αποθηκεύτηκε",
+      "failed": "Αποτυχία αποθήκευσης"
+    }
+  },
+  "QuickAdd": {
+    "property": {
+      "title": "Γρήγορη Προσθήκη Ακινήτου",
+      "description": "Συμπληρώστε τα βασικά στοιχεία για να δημιουργήσετε γρήγορα ένα ακίνητο"
+    }
+  },
+  "MlsPropertiesTable": {
+    "created": "Δημιουργήθηκε",
+    "assignedTo": "Ανατέθηκε σε",
+    "name": "Όνομα",
+    "price": "Τιμή",
+    "type": "Τύπος",
+    "status": "Κατάσταση",
+    "unassigned": "Χωρίς ανάθεση",
+    "filterPlaceholder": "Φιλτράρετε ακίνητα ..."
+  }
+}
+

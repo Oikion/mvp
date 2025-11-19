@@ -1,131 +1,272 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { invalidateCache } from "@/lib/cache-invalidate";
+
+// Valid enum values
+const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
+const VALID_HEATING_TYPES = new Set(["AUTONOMOUS", "CENTRAL", "NATURAL_GAS", "HEAT_PUMP", "ELECTRIC", "NONE"]);
+const VALID_PROPERTY_STATUSES = new Set(["ACTIVE", "PENDING", "SOLD", "OFF_MARKET", "WITHDRAWN"]);
+
+// Map form property_status values to Prisma enum values
+const PROPERTY_STATUS_MAP: Record<string, string> = {
+  "AVAILABLE": "ACTIVE",
+  "RESERVED": "PENDING",
+  "NEGOTIATION": "PENDING",
+  "RENTED": "ACTIVE",
+  "SOLD": "SOLD",
+};
+
+// Helper function to convert string to number or null
+function toNumber(value: any): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") return value;
+  const num = Number(value);
+  return Number.isNaN(num) ? null : num;
+}
+
+// Helper function to convert string to DateTime or null
+function toDateTime(value: any): Date | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (value instanceof Date) return value;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+// Helper function to convert empty string to null
+function nullIfEmpty(value: any): any {
+  if (value === "") return null;
+  return value;
+}
+
+// Helper function to build validated property data
+function buildPropertyData(body: any, user: any, organizationId: string, isUpdate: boolean = false) {
+  const {
+    property_name,
+    primary_email,
+    property_type,
+    property_status,
+    transaction_type,
+    is_exclusive,
+    municipality,
+    area,
+    postal_code,
+    address_privacy_level,
+    address_street,
+    address_city,
+    address_state,
+    address_zip,
+    size_net_sqm,
+    size_gross_sqm,
+    floor,
+    floors_total,
+    plot_size_sqm,
+    inside_city_plan,
+    build_coefficient,
+    coverage_ratio,
+    frontage_m,
+    bedrooms,
+    bathrooms,
+    heating_type,
+    energy_cert_class,
+    year_built,
+    renovated_year,
+    condition,
+    elevator,
+    building_permit_no,
+    building_permit_year,
+    land_registry_kaek,
+    legalization_status,
+    etaireia_diaxeirisis,
+    monthly_common_charges,
+    amenities,
+    orientation,
+    furnished,
+    accessibility,
+    price,
+    price_type,
+    available_from,
+    accepts_pets,
+    min_lease_months,
+    portal_visibility,
+    square_feet,
+    lot_size,
+    description,
+    assigned_to,
+    draft_status,
+  } = body;
+
+  const data: any = {};
+
+  if (!isUpdate) {
+    data.createdBy = user.id;
+    data.organizationId = organizationId;
+  }
+  data.updatedBy = user.id;
+
+  // String fields - convert empty strings to null
+  if (property_name !== undefined) data.property_name = nullIfEmpty(property_name);
+  if (primary_email !== undefined) data.primary_email = nullIfEmpty(primary_email);
+  if (municipality !== undefined) data.municipality = nullIfEmpty(municipality);
+  if (area !== undefined) data.area = nullIfEmpty(area);
+  if (postal_code !== undefined) data.postal_code = nullIfEmpty(postal_code);
+  if (address_street !== undefined) data.address_street = nullIfEmpty(address_street);
+  if (address_city !== undefined) data.address_city = nullIfEmpty(address_city);
+  if (address_state !== undefined) data.address_state = nullIfEmpty(address_state);
+  if (address_zip !== undefined) data.address_zip = nullIfEmpty(address_zip);
+  if (floor !== undefined) data.floor = nullIfEmpty(floor);
+  if (building_permit_no !== undefined) data.building_permit_no = nullIfEmpty(building_permit_no);
+  if (land_registry_kaek !== undefined) data.land_registry_kaek = nullIfEmpty(land_registry_kaek);
+  if (etaireia_diaxeirisis !== undefined) data.etaireia_diaxeirisis = nullIfEmpty(etaireia_diaxeirisis);
+  if (accessibility !== undefined) data.accessibility = nullIfEmpty(accessibility);
+  if (description !== undefined) data.description = nullIfEmpty(description);
+  if (assigned_to !== undefined) data.assigned_to = nullIfEmpty(assigned_to);
+
+  // Enum fields - validate before setting
+  if (property_type !== undefined && property_type !== null && property_type !== "") {
+    data.property_type = property_type;
+  }
+  if (property_status !== undefined && property_status !== null && property_status !== "") {
+    // Map form values to Prisma enum values
+    const mappedStatus = PROPERTY_STATUS_MAP[property_status] || property_status;
+    if (VALID_PROPERTY_STATUSES.has(mappedStatus)) {
+      data.property_status = mappedStatus;
+    }
+  }
+  if (transaction_type !== undefined && transaction_type !== null && transaction_type !== "") {
+    data.transaction_type = transaction_type;
+  }
+  if (address_privacy_level !== undefined && address_privacy_level !== null && address_privacy_level !== "") {
+    data.address_privacy_level = address_privacy_level;
+  }
+  if (heating_type !== undefined && heating_type !== null && heating_type !== "" && VALID_HEATING_TYPES.has(heating_type)) {
+    data.heating_type = heating_type;
+  }
+  if (energy_cert_class !== undefined && energy_cert_class !== null && energy_cert_class !== "") {
+    data.energy_cert_class = energy_cert_class;
+  }
+  // Validate condition - only set if it's a valid PropertyCondition
+  if (condition !== undefined && condition !== null && condition !== "") {
+    if (VALID_PROPERTY_CONDITIONS.has(condition)) {
+      data.condition = condition;
+    }
+  }
+  if (legalization_status !== undefined && legalization_status !== null && legalization_status !== "") {
+    data.legalization_status = legalization_status;
+  }
+  if (furnished !== undefined && furnished !== null && furnished !== "") {
+    data.furnished = furnished;
+  }
+  if (price_type !== undefined && price_type !== null && price_type !== "") {
+    data.price_type = price_type;
+  }
+  if (portal_visibility !== undefined && portal_visibility !== null && portal_visibility !== "") {
+    data.portal_visibility = portal_visibility;
+  }
+
+  // Boolean fields
+  if (is_exclusive !== undefined) data.is_exclusive = is_exclusive === true || is_exclusive === "true";
+  if (inside_city_plan !== undefined) data.inside_city_plan = inside_city_plan === true || inside_city_plan === "true";
+  if (elevator !== undefined) data.elevator = elevator === true || elevator === "true";
+  if (accepts_pets !== undefined) data.accepts_pets = accepts_pets === true || accepts_pets === "true";
+  if (draft_status !== undefined) {
+    data.draft_status = draft_status === true || draft_status === "true";
+  } else if (!isUpdate) {
+    data.draft_status = false;
+  }
+
+  // Number fields - convert strings to numbers or null
+  if (size_net_sqm !== undefined) data.size_net_sqm = toNumber(size_net_sqm);
+  if (size_gross_sqm !== undefined) data.size_gross_sqm = toNumber(size_gross_sqm);
+  if (floors_total !== undefined) data.floors_total = toNumber(floors_total);
+  if (plot_size_sqm !== undefined) data.plot_size_sqm = toNumber(plot_size_sqm);
+  if (build_coefficient !== undefined) data.build_coefficient = toNumber(build_coefficient);
+  if (coverage_ratio !== undefined) data.coverage_ratio = toNumber(coverage_ratio);
+  if (frontage_m !== undefined) data.frontage_m = toNumber(frontage_m);
+  if (bedrooms !== undefined) data.bedrooms = toNumber(bedrooms);
+  if (bathrooms !== undefined) data.bathrooms = toNumber(bathrooms);
+  if (year_built !== undefined) data.year_built = toNumber(year_built);
+  if (renovated_year !== undefined) data.renovated_year = toNumber(renovated_year);
+  if (building_permit_year !== undefined) data.building_permit_year = toNumber(building_permit_year);
+  if (monthly_common_charges !== undefined) data.monthly_common_charges = toNumber(monthly_common_charges);
+  if (price !== undefined) data.price = toNumber(price);
+  if (min_lease_months !== undefined) data.min_lease_months = toNumber(min_lease_months);
+  if (square_feet !== undefined) data.square_feet = toNumber(square_feet);
+  if (lot_size !== undefined) data.lot_size = toNumber(lot_size);
+
+  // DateTime fields
+  if (available_from !== undefined) {
+    const dateValue = toDateTime(available_from);
+    if (dateValue) data.available_from = dateValue;
+  }
+
+  // JSON fields (arrays)
+  if (amenities !== undefined && amenities !== null) {
+    data.amenities = Array.isArray(amenities) ? amenities : null;
+  }
+  if (orientation !== undefined && orientation !== null) {
+    data.orientation = Array.isArray(orientation) ? orientation : null;
+  }
+
+  return data;
+}
 
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();
-    const {
-      property_name,
-      primary_email,
-      property_type,
-      property_status,
-      transaction_type,
-      is_exclusive,
-      municipality,
-      area,
-      postal_code,
-      address_privacy_level,
-      address_street,
-      address_city,
-      address_state,
-      address_zip,
-      size_net_sqm,
-      size_gross_sqm,
-      floor,
-      floors_total,
-      plot_size_sqm,
-      inside_city_plan,
-      build_coefficient,
-      coverage_ratio,
-      frontage_m,
-      bedrooms,
-      bathrooms,
-      heating_type,
-      energy_cert_class,
-      year_built,
-      renovated_year,
-      condition,
-      elevator,
-      building_permit_no,
-      building_permit_year,
-      land_registry_kaek,
-      legalization_status,
-      etaireia_diaxeirisis,
-      monthly_common_charges,
-      amenities,
-      orientation,
-      furnished,
-      accessibility,
-      price,
-      price_type,
-      available_from,
-      accepts_pets,
-      min_lease_months,
-      portal_visibility,
-      square_feet,
-      lot_size,
-      description,
-      assigned_to,
-      draft_status,
-    } = body;
+    
+    const { id } = body; // Check if updating existing draft
 
-    const newProperty = await prismadb.properties.create({
-      data: {
-        v: 0,
-        createdBy: user.id,
-        updatedBy: user.id,
-        organizationId,
-        property_name,
-        primary_email,
-        property_type,
-        property_status,
-        transaction_type,
-        is_exclusive,
-        municipality,
-        area,
-        postal_code,
-        address_privacy_level,
-        address_street,
-        address_city,
-        address_state,
-        address_zip,
-        size_net_sqm,
-        size_gross_sqm,
-        floor,
-        floors_total,
-        plot_size_sqm,
-        inside_city_plan,
-        build_coefficient,
-        coverage_ratio,
-        frontage_m,
-        bedrooms,
-        bathrooms,
-        heating_type,
-        energy_cert_class,
-        year_built,
-        renovated_year,
-        condition,
-        elevator,
-        building_permit_no,
-        building_permit_year,
-        land_registry_kaek,
-        legalization_status,
-        etaireia_diaxeirisis,
-        monthly_common_charges,
-        amenities,
-        orientation,
-        furnished,
-        accessibility,
-        price,
-        price_type,
-        available_from,
-        accepts_pets,
-        min_lease_months,
-        portal_visibility,
-        square_feet,
-        lot_size,
-        description,
-        assigned_to,
-        draft_status: draft_status ?? false,
-      },
-    });
-    return NextResponse.json({ newProperty }, { status: 200 });
+    // Build validated data
+    const data = buildPropertyData(body, user, organizationId, !!id);
+
+    // Ensure property_name exists
+    if (!data.property_name) {
+      data.property_name = "Untitled Property";
+    }
+
+    let property;
+
+    if (id) {
+      // Update existing draft/property
+      const existingProperty = await prismadb.properties.findFirst({
+        where: { id, organizationId },
+      });
+
+      if (!existingProperty) {
+        return NextResponse.json(
+          { error: "Property not found or access denied" },
+          { status: 404 }
+        );
+      }
+
+      property = await prismadb.properties.update({
+        where: { id },
+        data,
+      });
+    } else {
+      // Create new property
+      property = await prismadb.properties.create({
+        data,
+      });
+    }
+
+    await invalidateCache([
+      "properties:list",
+      id ? `property:${id}` : "",
+      data.assigned_to ? `user:${data.assigned_to}` : "",
+    ].filter(Boolean));
+
+    return NextResponse.json({ newProperty: property }, { status: 200 });
   } catch (error) {
-    console.log("[NEW_PROPERTY_POST]", error);
-    return new NextResponse("Initial error", { status: 500 });
+    console.error("[NEW_PROPERTY_POST]", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: "Failed to create property", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
@@ -134,61 +275,14 @@ export async function PUT(req: Request) {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();
-    const {
-      id,
-      property_name,
-      primary_email,
-      property_type,
-      property_status,
-      transaction_type,
-      is_exclusive,
-      municipality,
-      area,
-      postal_code,
-      address_privacy_level,
-      address_street,
-      address_city,
-      address_state,
-      address_zip,
-      size_net_sqm,
-      size_gross_sqm,
-      floor,
-      floors_total,
-      plot_size_sqm,
-      inside_city_plan,
-      build_coefficient,
-      coverage_ratio,
-      frontage_m,
-      bedrooms,
-      bathrooms,
-      heating_type,
-      energy_cert_class,
-      year_built,
-      renovated_year,
-      condition,
-      elevator,
-      building_permit_no,
-      building_permit_year,
-      land_registry_kaek,
-      legalization_status,
-      etaireia_diaxeirisis,
-      monthly_common_charges,
-      amenities,
-      orientation,
-      furnished,
-      accessibility,
-      price,
-      price_type,
-      available_from,
-      accepts_pets,
-      min_lease_months,
-      portal_visibility,
-      square_feet,
-      lot_size,
-      description,
-      assigned_to,
-      draft_status,
-    } = body;
+    const { id } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Property ID is required" },
+        { status: 400 }
+      );
+    }
 
     // Verify the property belongs to the current organization before updating
     const existingProperty = await prismadb.properties.findFirst({
@@ -196,71 +290,34 @@ export async function PUT(req: Request) {
     });
 
     if (!existingProperty) {
-      return new NextResponse("Property not found or access denied", { status: 404 });
+      return NextResponse.json(
+        { error: "Property not found or access denied" },
+        { status: 404 }
+      );
     }
+
+    // Build validated data
+    const data = buildPropertyData(body, user, organizationId, true);
 
     const updatedProperty = await prismadb.properties.update({
       where: { id },
-      data: {
-        updatedBy: user.id,
-        property_name,
-        primary_email,
-        property_type,
-        property_status,
-        transaction_type,
-        is_exclusive,
-        municipality,
-        area,
-        postal_code,
-        address_privacy_level,
-        address_street,
-        address_city,
-        address_state,
-        address_zip,
-        size_net_sqm,
-        size_gross_sqm,
-        floor,
-        floors_total,
-        plot_size_sqm,
-        inside_city_plan,
-        build_coefficient,
-        coverage_ratio,
-        frontage_m,
-        bedrooms,
-        bathrooms,
-        heating_type,
-        energy_cert_class,
-        year_built,
-        renovated_year,
-        condition,
-        elevator,
-        building_permit_no,
-        building_permit_year,
-        land_registry_kaek,
-        legalization_status,
-        etaireia_diaxeirisis,
-        monthly_common_charges,
-        amenities,
-        orientation,
-        furnished,
-        accessibility,
-        price,
-        price_type,
-        available_from,
-        accepts_pets,
-        min_lease_months,
-        portal_visibility,
-        square_feet,
-        lot_size,
-        description,
-        assigned_to,
-        draft_status: draft_status !== undefined ? draft_status : undefined,
-      },
+      data,
     });
+
+    await invalidateCache([
+      "properties:list",
+      `property:${id}`,
+      data.assigned_to ? `user:${data.assigned_to}` : "",
+    ].filter(Boolean));
+
     return NextResponse.json({ updatedProperty }, { status: 200 });
   } catch (error) {
-    console.log("[UPDATE_PROPERTY_PUT]", error);
-    return new NextResponse("Initial error", { status: 500 });
+    console.error("[UPDATE_PROPERTY_PUT]", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: "Failed to update property", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
@@ -273,9 +330,11 @@ export async function GET() {
     });
     return NextResponse.json(properties, { status: 200 });
   } catch (error) {
-    console.log("[PROPERTIES_GET]", error);
-    return new NextResponse("Initial error", { status: 500 });
+    console.error("[PROPERTIES_GET]", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: "Failed to fetch properties", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
-
-

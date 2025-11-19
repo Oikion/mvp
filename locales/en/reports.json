@@ -1,0 +1,17 @@
+{
+  "description": "Predefined reports for each module. We use Tremor for data visualization.",
+  "newUsersByMonthOverall": "Number of new users by month (Overall)",
+  "newUsersByMonth": "New users by month",
+  "newUsersByMonth2023": "Number of new users by month (2023)",
+  "newUsersByMonth2024": "Number of new users by month (2024)",
+  "tasksByMonth2023": "New tasks by month (2023)",
+  "totalClients": "Total Clients",
+  "totalProperties": "Total Properties",
+  "clientsInOrganization": "Clients in your organization",
+  "propertiesInOrganization": "Properties in your organization",
+  "clientsByStatus": "Clients by Status",
+  "propertiesByStatus": "Properties by Status",
+  "clientsDistribution": "Distribution of clients across different statuses",
+  "propertiesDistribution": "Distribution of properties across different statuses"
+}
+

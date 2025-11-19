@@ -7,7 +7,11 @@ export const accountSchema = z.object({
   id: z.string(),
   createdAt: z.date().optional(),
   name: z.string(),
-  assigned_to_user: z.object({}).optional(),
+  assigned_to_user: z.object({
+    id: z.string().optional(),
+    name: z.string().optional(),
+    email: z.string().optional(),
+  }).nullable().optional(),
   contacts: z
     .array(
       z.object({

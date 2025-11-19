@@ -1,0 +1,46 @@
+{
+  "page": {
+    "title": "Ημερολόγιο",
+    "description": "Διαχειριστείτε τα συμβάντα του ημερολογίου σας και δείτε τις εργασίες σας",
+    "loadingCalendar": "Φόρτωση ημερολογίου..."
+  },
+  "calendarView": {
+    "title": "Ημερολόγιο",
+    "selectDate": "Επιλέξτε ημερομηνία",
+    "loading": "Φόρτωση...",
+    "noEventsOrTasks": "Δεν υπάρχουν συμβάντα ή εργασίες προγραμματισμένες για αυτή την ημέρα"
+  },
+  "eventCreateForm": {
+    "newEvent": "Νέο Συμβάν",
+    "createCalendarEvent": "Δημιουργία Συμβάντος Ημερολογίου",
+    "addNewEvent": "Προσθέστε ένα νέο συμβάν στο ημερολόγιό σας.",
+    "title": "Τίτλος",
+    "titlePlaceholder": "Τίτλος συμβάντος",
+    "titleRequired": "Ο τίτλος είναι υποχρεωτικός",
+    "description": "Περιγραφή",
+    "descriptionPlaceholder": "Περιγραφή συμβάντος",
+    "startTime": "Ώρα Έναρξης",
+    "endTime": "Ώρα Λήξης",
+    "pickDate": "Επιλέξτε ημερομηνία",
+    "location": "Τοποθεσία",
+    "locationPlaceholder": "Τοποθεσία συμβάντος",
+    "cancel": "Ακύρωση",
+    "creating": "Δημιουργία...",
+    "createEvent": "Δημιουργία Συμβάντος",
+    "eventCreatedSuccess": "Το συμβάν δημιουργήθηκε με επιτυχία",
+    "failedToCreateEvent": "Αποτυχία δημιουργίας συμβάντος"
+  },
+  "createBookingButton": {
+    "createEvent": "Δημιουργία Συμβάντος",
+    "createCalendarEvent": "Δημιουργία Συμβάντος Ημερολογίου",
+    "scheduleAppointment": "Προγραμματίστε ένα ραντεβού για αυτόν τον πελάτη/ακίνητο",
+    "createNewEvent": "Δημιουργήστε ένα νέο συμβάν ημερολογίου"
+  },
+  "taskEventCard": {
+    "synced": "Συγχρονισμένο",
+    "assignedTo": "Ανατεθειμένο σε: {name}",
+    "account": "Λογαριασμός: {name}",
+    "viewTask": "Προβολή Εργασίας"
+  }
+}
+

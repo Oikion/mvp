@@ -35,14 +35,14 @@ import {
 
 const createQuickAddSchema = (t: (key: string) => string) => z.object({
   person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"], {
-    required_error: t("CrmForm.validation.personTypeRequired"),
+    required_error: t("crm.CrmForm.validation.personTypeRequired"),
   }),
   full_name: z.string().optional(),
   company_name: z.string().optional(),
   primary_phone: z.string().optional(),
   primary_email: z.string().email().optional().or(z.literal("")),
   intent: z.enum(["BUY", "RENT", "SELL", "LEASE", "INVEST"], {
-    required_error: t("CrmForm.validation.intentRequired"),
+    required_error: t("crm.CrmForm.validation.intentRequired"),
   }),
   assigned_to: z.string().min(1, t("common.selectAgent")),
 }).refine(
@@ -51,7 +51,7 @@ const createQuickAddSchema = (t: (key: string) => string) => z.object({
   },
   {
     path: ["primary_email"],
-    message: t("CrmForm.validation.phoneOrEmailRequired"),
+    message: t("crm.CrmForm.validation.phoneOrEmailRequired"),
   }
 ).refine(
   (data) => {
@@ -65,7 +65,7 @@ const createQuickAddSchema = (t: (key: string) => string) => z.object({
   },
   {
     path: ["full_name"],
-    message: t("CrmForm.validation.nameRequired"),
+    message: t("crm.CrmForm.validation.nameRequired"),
   }
 );
 
@@ -146,9 +146,9 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-[500px]">
         <SheetHeader>
-          <SheetTitle>{t("QuickAdd.client.title")}</SheetTitle>
+          <SheetTitle>{t("crm.QuickAdd.client.title")}</SheetTitle>
           <SheetDescription>
-            {t("QuickAdd.client.description")}
+            {t("crm.QuickAdd.client.description")}
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -158,18 +158,18 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
               name="person_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.personType")} *</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.personType")} *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("CrmForm.fields.personTypePlaceholder")} />
+                        <SelectValue placeholder={t("crm.CrmForm.fields.personTypePlaceholder")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="INDIVIDUAL">{t("CrmForm.personType.INDIVIDUAL")}</SelectItem>
-                      <SelectItem value="COMPANY">{t("CrmForm.personType.COMPANY")}</SelectItem>
-                      <SelectItem value="INVESTOR">{t("CrmForm.personType.INVESTOR")}</SelectItem>
-                      <SelectItem value="BROKER">{t("CrmForm.personType.BROKER")}</SelectItem>
+                      <SelectItem value="INDIVIDUAL">{t("crm.CrmForm.personType.INDIVIDUAL")}</SelectItem>
+                      <SelectItem value="COMPANY">{t("crm.CrmForm.personType.COMPANY")}</SelectItem>
+                      <SelectItem value="INVESTOR">{t("crm.CrmForm.personType.INVESTOR")}</SelectItem>
+                      <SelectItem value="BROKER">{t("crm.CrmForm.personType.BROKER")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -183,9 +183,9 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
                 name="full_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.fullName")} *</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.fullName")} *</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder={t("CrmForm.fields.fullNamePlaceholder")} {...field} />
+                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.fullNamePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -199,9 +199,9 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
                 name="company_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.companyName")} *</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.companyName")} *</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder={t("CrmForm.fields.companyNamePlaceholder")} {...field} />
+                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.companyNamePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -215,9 +215,9 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
                 name="primary_phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.primaryPhone")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.primaryPhone")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder={t("CrmForm.fields.primaryPhonePlaceholder")} {...field} />
+                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.primaryPhonePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -228,9 +228,9 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
                 name="primary_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.primaryEmail")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.primaryEmail")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} type="email" placeholder={t("CrmForm.fields.primaryEmailPlaceholder")} {...field} />
+                      <Input disabled={isLoading} type="email" placeholder={t("crm.CrmForm.fields.primaryEmailPlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -243,19 +243,19 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
               name="intent"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.intent")} *</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.intent")} *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("CrmForm.fields.intentPlaceholder")} />
+                        <SelectValue placeholder={t("crm.CrmForm.fields.intentPlaceholder")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="BUY">{t("CrmForm.intents.BUY")}</SelectItem>
-                      <SelectItem value="RENT">{t("CrmForm.intents.RENT")}</SelectItem>
-                      <SelectItem value="SELL">{t("CrmForm.intents.SELL")}</SelectItem>
-                      <SelectItem value="LEASE">{t("CrmForm.intents.LEASE")}</SelectItem>
-                      <SelectItem value="INVEST">{t("CrmForm.intents.INVEST")}</SelectItem>
+                      <SelectItem value="BUY">{t("crm.CrmForm.intents.BUY")}</SelectItem>
+                      <SelectItem value="RENT">{t("crm.CrmForm.intents.RENT")}</SelectItem>
+                      <SelectItem value="SELL">{t("crm.CrmForm.intents.SELL")}</SelectItem>
+                      <SelectItem value="LEASE">{t("crm.CrmForm.intents.LEASE")}</SelectItem>
+                      <SelectItem value="INVEST">{t("crm.CrmForm.intents.INVEST")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -268,7 +268,7 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
               name="assigned_to"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.agentOwner")} *</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.agentOwner")} *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -298,7 +298,7 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
                 {t("common.cancel")}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? t("common.creating") : t("CrmForm.buttons.quickAdd")}
+                {isLoading ? t("common.creating") : t("crm.CrmForm.buttons.quickAdd")}
               </Button>
             </div>
           </form>

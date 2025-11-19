@@ -2,6 +2,7 @@
 
 import React from "react";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 
 import { useRouter } from "next/navigation";
 
@@ -46,6 +47,7 @@ export function UpdateAccountForm({
 }: UpdateAccountFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations("CrmForm");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   const { data: users, isLoading: isLoadingUsers } = useSWR(
@@ -167,7 +169,7 @@ export function UpdateAccountForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full h-full px-10"
+        className="w-full h-full px-10 bg-background"
       >
         {/*    <div>
           <pre>
@@ -178,7 +180,7 @@ export function UpdateAccountForm({
           <code>{JSON.stringify(initialData, null, 2)}</code>
         </pre> */}
 
-        <div className=" w-[800px] text-sm">
+        <div className="w-[800px] text-sm text-foreground">
           <div className="pb-5 space-y-2">
             <FormField
               control={form.control}
@@ -189,7 +191,7 @@ export function UpdateAccountForm({
                   <FormControl>
                     <Input
                       disabled={isLoading}
-                      placeholder="NextCRM Inc."
+                      placeholder={t("fields.companyNamePlaceholder")}
                       {...field}
                     />
                   </FormControl>

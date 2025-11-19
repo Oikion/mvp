@@ -1,0 +1,12 @@
+{
+  "title": "Administration",
+  "accessDenied": "You are not admin, access not allowed",
+  "accessNotAllowed": "Access not allowed",
+  "setupDescription": "Here you can setup your Oikion instance",
+  "usersAdministration": "Users administration",
+  "modulesAdministration": "Modules administration",
+  "manageUsersDescription": "Here you can manage your Oikion users",
+  "inviteNewUser": "Invite new user to Oikion",
+  "manageModulesDescription": "Here you can manage your Oikion modules"
+}
+

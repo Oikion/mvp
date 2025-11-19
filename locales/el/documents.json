@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "Έγγραφα",
+    "description": "Διαχειριστείτε και μοιραστείτε τα έγγραφά σας με πελάτες, ακίνητα και συμβάντα"
+  },
+  "documentGrid": {
+    "documentsCount": "{count} έγγραφο",
+    "documentsCountPlural": "{count} έγγραφα",
+    "uploadDocument": "Ανέβασμα Εγγράφου",
+    "noDocuments": "Δεν βρέθηκαν έγγραφα. Ανεβάστε το πρώτο σας έγγραφο για να ξεκινήσετε.",
+    "deleteConfirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το έγγραφο;",
+    "failedToDelete": "Αποτυχία διαγραφής εγγράφου",
+    "documentDeleted": "Το έγγραφο διαγράφηκε"
+  },
+  "documentFilters": {
+    "filters": "Φίλτρα",
+    "clear": "Καθαρισμός",
+    "search": "Αναζήτηση",
+    "searchPlaceholder": "Αναζήτηση εγγράφων...",
+    "client": "Πελάτης",
+    "allClients": "Όλοι οι πελάτες",
+    "property": "Ακίνητο",
+    "allProperties": "Όλα τα ακίνητα"
+  },
+  "documentCard": {
+    "shared": "Κοινόχρηστο",
+    "protected": "Προστατευμένο",
+    "view": "Προβολή",
+    "share": "Κοινοποίηση",
+    "views": "{count} προβολή",
+    "viewsPlural": "{count} προβολές"
+  },
+  "uploadModal": {
+    "uploadDocument": "Ανέβασμα Εγγράφου",
+    "file": "Αρχείο",
+    "dropFileHere": "Αφήστε το αρχείο εδώ",
+    "dragDropOrClick": "Σύρετε και αφήστε ένα αρχείο εδώ ή κάντε κλικ για επιλογή",
+    "documentName": "Όνομα Εγγράφου *",
+    "documentNamePlaceholder": "Εισάγετε όνομα εγγράφου",
+    "description": "Περιγραφή",
+    "descriptionPlaceholder": "Προσθέστε μια περιγραφή... Πληκτρολογήστε @ για να αναφέρετε πελάτες, ακίνητα, συμβάντα ή εργασίες",
+    "linkToEntities": "Σύνδεση με Οντότητες",
+    "cancel": "Ακύρωση",
+    "uploading": "Ανέβασμα...",
+    "upload": "Ανέβασμα",
+    "selectFileAndName": "Παρακαλώ επιλέξτε ένα αρχείο και εισάγετε όνομα εγγράφου",
+    "documentUploadedSuccess": "Το έγγραφο ανέβηκε με επιτυχία",
+    "failedToUpload": "Αποτυχία ανεβάσματος εγγράφου"
+  }
+}
+

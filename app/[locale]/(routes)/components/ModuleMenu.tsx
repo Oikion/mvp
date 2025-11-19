@@ -7,6 +7,7 @@ import ChatGPTModuleMenu from "./menu-items/ChatGPT";
 import EmployeesModuleMenu from "./menu-items/Employees";
 import CrmModuleMenu from "./menu-items/Crm";
 import MlsModuleMenu from "./menu-items/Mls";
+import DocumentsMenu from "./menu-items/Documents";
 
 import AdministrationMenu from "./menu-items/Administration";
 import DashboardMenu from "./menu-items/Dashboard";
@@ -61,16 +62,16 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
           </h1>
         </div>
       <div className="space-y-1 pt-6">
-          <DashboardMenu open={open} title={dict.ModuleMenu.dashboard} />
+          <DashboardMenu open={open} title={dict.navigation.ModuleMenu.dashboard} />
           {modules.find(
             (menuItem: any) => menuItem.name === "crm" && menuItem.enabled
           ) ? (
-            <CrmModuleMenu open={open} localizations={dict.ModuleMenu.crm} />
+            <CrmModuleMenu open={open} localizations={dict.navigation.ModuleMenu.crm} />
           ) : null}
         <MlsModuleMenu
           open={open}
           localizations={
-            dict.ModuleMenu.mls ?? { title: "Properties", properties: "Properties" }
+            dict.navigation.ModuleMenu.mls ?? { title: "Properties", properties: "Properties" }
           }
         />
           {modules.find(
@@ -81,14 +82,15 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
           {modules.find(
             (menuItem: any) => menuItem.name === "reports" && menuItem.enabled
           ) ? (
-            <ReportsModuleMenu open={open} title={dict.ModuleMenu.reports} />
+            <ReportsModuleMenu open={open} title={dict.navigation.ModuleMenu.reports} />
           ) : null}
           {modules.find(
             (menuItem: any) => menuItem.name === "openai" && menuItem.enabled
           ) ? (
             <ChatGPTModuleMenu open={open} />
           ) : null}
-          <AdministrationMenu open={open} title={dict.ModuleMenu.settings} />
+          <DocumentsMenu open={open} title={dict.navigation.ModuleMenu.documents} />
+          <AdministrationMenu open={open} title={dict.navigation.ModuleMenu.settings} />
       </div>
       <div
         className={cn("flex w-full items-center justify-center", {

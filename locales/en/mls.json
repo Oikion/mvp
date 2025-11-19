@@ -1,0 +1,71 @@
+{
+  "MlsPropertiesPage": {
+    "description": "Manage MLS properties"
+  },
+  "PropertyForm": {
+    "title": "New Property",
+    "quickAddTitle": "Quick Add Property",
+    "fields": {
+      "propertyType": "Property Type",
+      "propertyTypePlaceholder": "Select type",
+      "transactionType": "Transaction Type",
+      "transactionTypePlaceholder": "Select type",
+      "municipality": "Municipality",
+      "municipalityPlaceholder": "Enter municipality",
+      "area": "Area/Neighborhood",
+      "areaPlaceholder": "Enter area",
+      "postalCode": "Postal Code",
+      "postalCodePlaceholder": "5 digits",
+      "sizeNetSqm": "Net sq.m.",
+      "plotSizeSqm": "Plot Size",
+      "price": "Price",
+      "agentOwner": "Assigned Agent"
+    },
+    "propertyType": {
+      "APARTMENT": "Apartment",
+      "HOUSE": "House",
+      "MAISONETTE": "Maisonette",
+      "COMMERCIAL": "Commercial",
+      "WAREHOUSE": "Warehouse",
+      "PARKING": "Parking",
+      "PLOT": "Plot",
+      "FARM": "Farm",
+      "INDUSTRIAL": "Industrial",
+      "OTHER": "Other"
+    },
+    "transactionType": {
+      "SALE": "Sale",
+      "RENTAL": "Rental",
+      "SHORT_TERM": "Short Term",
+      "EXCHANGE": "Exchange"
+    },
+    "validation": {
+      "propertyTypeRequired": "Property type is required",
+      "transactionTypeRequired": "Transaction type is required",
+      "municipalityRequired": "Municipality is required",
+      "areaOrPostalCodeRequired": "Area or postal code is required",
+      "sizeRequired": "Size is required",
+      "priceRequired": "Price is required"
+    },
+    "buttons": {
+      "quickAdd": "Create"
+    }
+  },
+  "QuickAdd": {
+    "property": {
+      "title": "Quick Add Property",
+      "description": "Fill in the basic information to quickly create a property"
+    }
+  },
+  "MlsPropertiesTable": {
+    "created": "Created",
+    "assignedTo": "Assigned to",
+    "name": "Name",
+    "price": "Price",
+    "type": "Type",
+    "status": "Status",
+    "unassigned": "Unassigned",
+    "filterPlaceholder": "Filter properties ..."
+  }
+}
+

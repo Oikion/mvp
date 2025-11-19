@@ -57,7 +57,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
-  const { signOut, userId } = useClerk()
+  const { signOut } = useClerk()
   const { setTheme, theme } = useTheme()
   const locale = useLocale()
   const pathname = usePathname()

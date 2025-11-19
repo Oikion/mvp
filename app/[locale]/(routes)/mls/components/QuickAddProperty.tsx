@@ -33,7 +33,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const createQuickAddSchema = (t: (key: string) => string) => z.object({
+const createQuickAddSchema = (t: (key: string) => string, tCommon: (key: string) => string) => z.object({
   property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"], {
     required_error: t("PropertyForm.validation.propertyTypeRequired"),
   }),
@@ -46,7 +46,7 @@ const createQuickAddSchema = (t: (key: string) => string) => z.object({
   size_net_sqm: z.coerce.number().optional(),
   plot_size_sqm: z.coerce.number().optional(),
   price: z.coerce.number().min(0, t("PropertyForm.validation.priceRequired")),
-  assigned_to: z.string().min(1, t("common.selectAgent")),
+  assigned_to: z.string().min(1, tCommon("selectAgent")),
 }).refine(
   (data) => {
     return !!(data.area && data.area.length) || !!(data.postal_code && data.postal_code.length);
@@ -85,9 +85,10 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const t = useTranslations();
+  const t = useTranslations("mls");
+  const tCommon = useTranslations("common");
   
-  const quickAddSchema = createQuickAddSchema(t);
+  const quickAddSchema = createQuickAddSchema(t, tCommon);
   type QuickAddFormValues = z.infer<typeof quickAddSchema>;
 
   const form = useForm<QuickAddFormValues>({
@@ -124,8 +125,8 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
 
       toast({
         variant: "success",
-        title: t("common.success"),
-        description: t("common.propertyCreated"),
+        title: tCommon("success"),
+        description: tCommon("propertyCreated"),
       });
 
       form.reset();
@@ -138,11 +139,11 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
       }
     } catch (error: any) {
       console.error("Error creating property:", error);
-      const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || t("common.somethingWentWrong");
+      const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || tCommon("somethingWentWrong");
       toast({
         variant: "destructive",
-        title: t("common.error"),
-        description: typeof errorMessage === 'string' ? errorMessage : t("common.propertyCreationFailed"),
+        title: tCommon("error"),
+        description: typeof errorMessage === 'string' ? errorMessage : tCommon("propertyCreationFailed"),
       });
     } finally {
       setIsLoading(false);
@@ -322,7 +323,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("common.selectAgent")} />
+                        <SelectValue placeholder={tCommon("selectAgent")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="overflow-y-auto h-56">
@@ -345,10 +346,10 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
               >
-                {t("common.cancel")}
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? t("common.creating") : t("PropertyForm.buttons.quickAdd")}
+                {isLoading ? tCommon("creating") : t("PropertyForm.buttons.quickAdd")}
               </Button>
             </div>
           </form>

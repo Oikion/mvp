@@ -53,12 +53,16 @@ export async function POST(req: Request) {
   // User events
   if (eventType === "user.created" || eventType === "user.updated") {
     const { id } = evt.data;
-    await syncClerkUser(id);
+    if (id) {
+      await syncClerkUser(id);
+    }
   }
 
   if (eventType === "user.deleted") {
     const { id } = evt.data;
-    await deleteClerkUser(id);
+    if (id) {
+      await deleteClerkUser(id);
+    }
   }
 
   // Organization events - log for auditing/debugging
@@ -70,11 +74,17 @@ export async function POST(req: Request) {
     eventType === "organization.deleted"
   ) {
     const organization = evt.data;
-    console.log(`Organization ${eventType}:`, {
-      id: organization.id,
-      name: organization.name,
-      slug: organization.slug,
-    });
+    if (eventType === "organization.deleted") {
+      console.log(`Organization ${eventType}:`, {
+        id: organization.id,
+      });
+    } else {
+      console.log(`Organization ${eventType}:`, {
+        id: organization.id,
+        name: "name" in organization ? organization.name : undefined,
+        slug: "slug" in organization ? organization.slug : undefined,
+      });
+    }
   }
 
   // Organization membership events - log for auditing
@@ -86,7 +96,7 @@ export async function POST(req: Request) {
     const membership = evt.data;
     console.log(`Organization membership ${eventType}:`, {
       organizationId: membership.organization?.id,
-      userId: membership.publicUserData?.userId,
+      userId: membership.public_user_data?.user_id,
       role: membership.role,
     });
   }

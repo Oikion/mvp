@@ -32,34 +32,34 @@ const ReportsPage = async ({ params }: { params: Promise<{ locale: string }> }) 
 
   return (
     <Container
-      title={dict.ModuleMenu.reports}
-      description={dict.ReportsPage.description}
+      title={dict.navigation.ModuleMenu.reports}
+      description={dict.reports.description}
     >
       <div className="space-y-6 pt-5">
         {/* Summary Cards */}
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+              <CardTitle className="text-sm font-medium">{dict.reports.totalClients}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{clientsCount}</div>
               <CardDescription className="text-xs mt-1">
-                Clients in your organization
+                {dict.reports.clientsInOrganization}
               </CardDescription>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
+              <CardTitle className="text-sm font-medium">{dict.reports.totalProperties}</CardTitle>
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{propertiesCount}</div>
               <CardDescription className="text-xs mt-1">
-                Properties in your organization
+                {dict.reports.propertiesInOrganization}
               </CardDescription>
             </CardContent>
           </Card>
@@ -70,13 +70,13 @@ const ReportsPage = async ({ params }: { params: Promise<{ locale: string }> }) 
           {clientsByStatus.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Clients by Status</CardTitle>
-                <CardDescription>Distribution of clients across different statuses</CardDescription>
+                <CardTitle>{dict.reports.clientsByStatus}</CardTitle>
+                <CardDescription>{dict.reports.clientsDistribution}</CardDescription>
               </CardHeader>
               <CardContent>
                 <BarChartDemo
                   chartData={clientsByStatus}
-                  title="Clients by Status"
+                  title={dict.reports.clientsByStatus}
                 />
               </CardContent>
             </Card>
@@ -85,13 +85,13 @@ const ReportsPage = async ({ params }: { params: Promise<{ locale: string }> }) 
           {propertiesByStatus.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Properties by Status</CardTitle>
-                <CardDescription>Distribution of properties across different statuses</CardDescription>
+                <CardTitle>{dict.reports.propertiesByStatus}</CardTitle>
+                <CardDescription>{dict.reports.propertiesDistribution}</CardDescription>
               </CardHeader>
               <CardContent>
                 <BarChartDemo
                   chartData={propertiesByStatus}
-                  title="Properties by Status"
+                  title={dict.reports.propertiesByStatus}
                 />
               </CardContent>
             </Card>

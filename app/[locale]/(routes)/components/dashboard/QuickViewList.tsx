@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -53,26 +54,17 @@ const getClientStatusColor = (status: string): string => {
   return colors[status] || "bg-gray-500";
 };
 
-const getPropertyStatusLabel = (status: string): string => {
-  const labels: Record<string, string> = {
-    ACTIVE: "Active",
-    PENDING: "Pending",
-    SOLD: "Sold",
-    OFF_MARKET: "Off Market",
-    WITHDRAWN: "Withdrawn",
-  };
-  return labels[status] || status;
+const getPropertyStatusLabel = (status: string, t: (key: string) => string): string => {
+  const statusKey = `common.statusLabels.property.${status}`;
+  const translated = t(statusKey);
+  // If translation returns the key itself, it means the key doesn't exist, fallback to status
+  return translated !== statusKey ? translated : status;
 };
 
-const getClientStatusLabel = (status: string): string => {
-  const labels: Record<string, string> = {
-    LEAD: "Lead",
-    ACTIVE: "Active",
-    INACTIVE: "Inactive",
-    CONVERTED: "Converted",
-    LOST: "Lost",
-  };
-  return labels[status] || status;
+const getClientStatusLabel = (status: string, t: (key: string) => string): string => {
+  const statusKey = `common.statusLabels.client.${status}`;
+  const translated = t(statusKey);
+  return translated !== statusKey ? translated : status;
 };
 
 export const QuickViewList: React.FC<QuickViewListProps> = ({
@@ -83,11 +75,14 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
   getStatusLabel,
   getStatusColor,
 }) => {
+  const t = useTranslations();
+  const tCommon = useTranslations("common");
+  const tDashboard = useTranslations("dashboard");
   const isProperties = viewAllHref.includes("mls");
   
   const getStatusInfo = (item: QuickViewItem) => {
     const status = item.property_status || item.client_status || item.status;
-    if (!status) return { label: "N/A", color: "bg-gray-500" };
+    if (!status) return { label: tCommon("statusLabels.na"), color: "bg-gray-500" };
     
     if (getStatusLabel && getStatusColor) {
       return {
@@ -98,12 +93,12 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
     
     if (isProperties) {
       return {
-        label: getPropertyStatusLabel(status),
+        label: getPropertyStatusLabel(status, tCommon),
         color: getPropertyStatusColor(status),
       };
     } else {
       return {
-        label: getClientStatusLabel(status),
+        label: getClientStatusLabel(status, tCommon),
         color: getClientStatusColor(status),
       };
     }
@@ -118,7 +113,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href={viewAllHref} className="flex items-center gap-1">
-            View All
+            {tCommon("viewAll")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
@@ -126,13 +121,15 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
       <CardContent>
         {items.length === 0 ? (
           <div className="text-sm text-muted-foreground py-4 text-center">
-            No {title.toLowerCase()} found
+            {isProperties 
+              ? tDashboard("noRecentProperties")
+              : tDashboard("noRecentClients")}
           </div>
         ) : (
           <div className="space-y-2">
             {items.map((item) => {
               const statusInfo = getStatusInfo(item);
-              const displayName = item.name || item.property_name || item.client_name || "Unnamed";
+              const displayName = item.name || item.property_name || item.client_name || tCommon("unnamed");
               const displayEmail = item.email || item.primary_email;
               
               return (
@@ -156,7 +153,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
                           <span className="truncate max-w-[150px]">{displayEmail}</span>
                         )}
                         {item.assigned_to_user?.name && (
-                          <span className="truncate">Assigned: {item.assigned_to_user.name}</span>
+                          <span className="truncate">{tCommon("assigned")} {item.assigned_to_user.name}</span>
                         )}
                         <span>{moment(item.createdAt).format("MMM DD, YYYY")}</span>
                       </div>

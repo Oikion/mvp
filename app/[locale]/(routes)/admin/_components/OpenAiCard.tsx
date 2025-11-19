@@ -33,7 +33,6 @@ const OpenAiCard = async () => {
     if (!parsed.id) {
       await prismadb.systemServices.create({
         data: {
-          v: 0,
           name: "openAiKey",
           serviceKey: parsed.serviceKey,
         },

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { crm_Accounts } from "@prisma/client";
+import { Clients } from "@prisma/client";
 
 import {
   Card,
@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 //TODO:
 interface TasksViewProps {
   data: any;
-  account: crm_Accounts | null;
+  account: Clients | null;
 }
 
 const AccountsTasksView = ({ data, account }: TasksViewProps) => {

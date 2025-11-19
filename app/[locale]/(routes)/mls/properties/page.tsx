@@ -12,7 +12,7 @@ export default async function PropertiesPage({ params }: { params: Promise<{ loc
     getDictionary(locale),
   ]);
   return (
-    <Container title={dict.ModuleMenu.mls.title} description={dict.MlsPropertiesPage.description}>
+    <Container title={dict.navigation.ModuleMenu.mls.title} description={dict.mls.MlsPropertiesPage.description}>
       <Suspense fallback={<SuspenseLoading />}> 
         <PropertiesView data={properties} />
       </Suspense>

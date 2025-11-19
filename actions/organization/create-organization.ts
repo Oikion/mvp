@@ -12,7 +12,7 @@ export async function createOrganizationAction(name: string, slug?: string) {
       return { error: "User not authenticated" };
     }
 
-    const clerk = clerkClient();
+    const clerk = clerkClient() as any;
 
     // Create the organization
     const organization = await clerk.organizations.createOrganization({

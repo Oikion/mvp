@@ -1,0 +1,65 @@
+{
+  "CrmClientsPage": {
+    "description": "Manage your real estate clients"
+  },
+  "CrmModuleMenuComponent": {
+    "menuTitle": "Clients"
+  },
+  "CrmForm": {
+    "title": "New Client",
+    "quickAddTitle": "Quick Add Client",
+    "fields": {
+      "personType": "Client Type",
+      "personTypePlaceholder": "Select type",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "First Last",
+      "companyName": "Company Name",
+      "companyNamePlaceholder": "Company name",
+      "primaryPhone": "Primary Phone",
+      "primaryPhonePlaceholder": "+1 555 1234567",
+      "primaryEmail": "Primary Email",
+      "primaryEmailPlaceholder": "email@example.com",
+      "intent": "Intent",
+      "intentPlaceholder": "Select intent",
+      "agentOwner": "Assigned Agent"
+    },
+    "personType": {
+      "INDIVIDUAL": "Individual",
+      "COMPANY": "Company",
+      "INVESTOR": "Investor",
+      "BROKER": "Broker"
+    },
+    "intents": {
+      "BUY": "Buy",
+      "RENT": "Rent",
+      "SELL": "Sell",
+      "LEASE": "Lease",
+      "INVEST": "Invest"
+    },
+    "validation": {
+      "personTypeRequired": "Client type is required",
+      "nameRequired": "Name is required",
+      "phoneOrEmailRequired": "Phone or email is required",
+      "intentRequired": "Intent is required"
+    },
+    "buttons": {
+      "quickAdd": "Create"
+    }
+  },
+  "QuickAdd": {
+    "client": {
+      "title": "Quick Add Client",
+      "description": "Fill in the basic information to quickly create a client"
+    }
+  },
+  "CrmAccountsTable": {
+    "created": "Created",
+    "assignedTo": "Assigned to",
+    "name": "Name",
+    "email": "E-mail",
+    "accountContact": "Account contact",
+    "status": "Status",
+    "unassigned": "Unassigned"
+  }
+}
+

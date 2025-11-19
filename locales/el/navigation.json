@@ -1,0 +1,68 @@
+{
+  "ModuleMenu": {
+    "dashboard": "Πίνακας Ελέγχου",
+    "crm": {
+      "title": "Πελάτες",
+      "accounts": "Πελάτες",
+      "opportunities": "Ευκαιρίες",
+      "contacts": "Επαφές Πελατών",
+      "leads": "Leads",
+      "contracts": "Συμβάσεις"
+    },
+    "mls": {
+      "title": "Ακίνητα",
+      "properties": "Ακίνητα"
+    },
+    "emails": "E-mail",
+    "tasks": "Εργασίες",
+    "invoices": "Τιμολόγια",
+    "reports": "Αναφορές",
+    "documents": "Έγγραφα",
+    "storage": "Αποθήκευση",
+    "settings": "Διαχείριση",
+    "employees": "Υπάλληλοι",
+    "chatGPT": "ChatGPT",
+    "feedback": "Ανατροφοδότηση",
+    "calendar": "Ημερολόγιο"
+  },
+  "Navigation": {
+    "upgradeToPro": "Αναβάθμιση σε Pro",
+    "account": "Λογαριασμός",
+    "billing": "Χρέωση",
+    "notifications": "Ειδοποιήσεις",
+    "theme": "Θέμα",
+    "language": "Γλώσσα",
+    "logOut": "Αποσύνδεση",
+    "languageChanged": "Η γλώσσα άλλαξε σε {language}",
+    "languageChangeFailed": "Αποτυχία αλλαγής γλώσσας",
+    "themes": {
+      "light": "Φωτεινό",
+      "dark": "Σκοτεινό",
+      "pearlSand": "Pearl Sand",
+      "twilightLavender": "Twilight Lavender",
+      "system": "Σύστημα"
+    },
+    "languages": {
+      "en": "Αγγλικά",
+      "cz": "Τσεχικά",
+      "de": "Γερμανικά",
+      "uk": "Ουκρανικά",
+      "el": "Ελληνικά"
+    }
+  },
+  "Command": {
+    "press": "Πατήστε",
+    "placeholder": "Πληκτρολογήστε εντολή ή αναζήτηση...",
+    "noResults": "Δεν βρέθηκαν αποτελέσματα.",
+    "settings": "Ρυθμίσεις",
+    "dashboard": "Πίνακας Ελέγχου",
+    "profileSettings": "Ρυθμίσεις προφίλ",
+    "logout": "Αποσύνδεση"
+  },
+  "AvatarDropdown": {
+    "todoDashboard": "Πίνακας εργασιών",
+    "profileSettings": "Ρυθμίσεις προφίλ",
+    "signOut": "Αποσύνδεση"
+  }
+}
+

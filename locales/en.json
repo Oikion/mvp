@@ -1,7 +1,7 @@
 {
   "RootLayout": {
-    "title": "NextCRM",
-    "description": "NextCRM is an open source CRM build on top of NextJS."
+    "title": "Oikion",
+    "description": "Oikion is the operating system for Greek real-estate agencies. MLS, CRM, and Socials in one web app."
   },
   "ModuleMenu": {
     "dashboard": "Dashboard",
@@ -26,7 +26,8 @@
     "settings": "Administration",
     "employees": "Employees",
     "chatGPT": "ChatGPT",
-    "feedback": "Feedback"
+    "feedback": "Feedback",
+    "calendar": "Calendar"
   },
   "CrmClientsPage": {
     "description": "Manage your real estate clients"
@@ -45,7 +46,7 @@
   "DashboardPage": {
     "containerTitle": "Dashboard",
     "totalRevenue": "Total revenue",
-    "containerDescription": "Welcome to NextCRM, here you can see all important information about your business.",
+    "containerDescription": "Welcome to Oikion, here you can see all important information about your real estate agency.",
     "expectedRevenue": "Expected revenue",
     "activeUsers": "Active users",
     "accounts": "Companies",
@@ -246,12 +247,12 @@
     "title": "Administration",
     "accessDenied": "You are not admin, access not allowed",
     "accessNotAllowed": "Access not allowed",
-    "setupDescription": "Here you can setup your NextCRM instance",
+    "setupDescription": "Here you can setup your Oikion instance",
     "usersAdministration": "Users administration",
     "modulesAdministration": "Modules administration",
-    "manageUsersDescription": "Here you can manage your NextCRM users",
-    "inviteNewUser": "Invite new user to NextCRM",
-    "manageModulesDescription": "Here you can manage your NextCRM modules"
+    "manageUsersDescription": "Here you can manage your Oikion users",
+    "inviteNewUser": "Invite new user to Oikion",
+    "manageModulesDescription": "Here you can manage your Oikion modules"
   },
   "AvatarDropdown": {
     "todoDashboard": "Todo dashboard",
@@ -304,5 +305,38 @@
       "feedbackTypeRequired": "Please select a feedback type.",
       "feedbackRequired": "Feedback must be at least 10 characters."
     }
+  },
+  "SetLanguage": {
+    "selectLanguage": "Select language",
+    "searchLanguage": "Search language ...",
+    "noLanguageFound": "No language found.",
+    "languageRequired": "Please select a language.",
+    "changingLanguage": "Changing Oikion language",
+    "languageChangedTo": "You change user language to: {language}",
+    "selectLanguagePlaceholder": "Select language"
+  },
+  "Email": {
+    "inviteUser": {
+      "previewText": "You have been invited by {invitedBy} to Oikion app",
+      "heading": "You have been invited to cooperate on something special",
+      "hello": "Hello {username},",
+      "invitedBy": "{invitedBy} has invited you to the",
+      "appName": "app:",
+      "acceptInvitation": "To accept this invitation, click the button below. And use this password to login:",
+      "joinTeam": "Join the team",
+      "orCopyUrl": "or copy and paste this URL into your browser:",
+      "invitationIntended": "This invitation was intended for",
+      "notExpecting": "If you were not expecting this invitation, you can ignore this email. If you are concerned about your account's safety, please reply to this email to get in touch with us."
+    },
+    "passwordReset": {
+      "subject": "Oikion - Password reset"
+    },
+    "adminMessage": {
+      "contactEmail": "info@oikion.dev"
+    }
+  },
+  "Validation": {
+    "assignedAgentRequired": "Assigned agent is required",
+    "emailInvalid": "Invalid email"
   }
 }

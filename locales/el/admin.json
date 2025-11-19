@@ -1,0 +1,12 @@
+{
+  "title": "Διαχείριση",
+  "accessDenied": "Δεν είστε διαχειριστής, η πρόσβαση δεν επιτρέπεται",
+  "accessNotAllowed": "Η πρόσβαση δεν επιτρέπεται",
+  "setupDescription": "Εδώ μπορείτε να ρυθμίσετε την εγκατάσταση Oikion σας",
+  "usersAdministration": "Διαχείριση χρηστών",
+  "modulesAdministration": "Διαχείριση modules",
+  "manageUsersDescription": "Εδώ μπορείτε να διαχειριστείτε τους χρήστες του Oikion σας",
+  "inviteNewUser": "Πρόσκληση νέου χρήστη στο Oikion",
+  "manageModulesDescription": "Εδώ μπορείτε να διαχειριστείτε τα modules του Oikion σας"
+}
+

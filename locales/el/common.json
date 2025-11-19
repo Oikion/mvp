@@ -1,0 +1,48 @@
+{
+  "cancel": "Ακύρωση",
+  "creating": "Δημιουργία...",
+  "success": "Επιτυχία",
+  "error": "Σφάλμα",
+  "clientCreated": "Πελάτης δημιουργήθηκε επιτυχώς",
+  "propertyCreated": "Ακίνητο δημιουργήθηκε επιτυχώς",
+  "somethingWentWrong": "Κάτι πήγε στραβά",
+  "clientCreationFailed": "Αποτυχία δημιουργίας πελάτη",
+  "propertyCreationFailed": "Αποτυχία δημιουργίας ακινήτου",
+  "selectAgent": "Επιλέξτε πράκτορα",
+  "rowsPerPage": "Γραμμές ανά σελίδα",
+  "pageOf": "Σελίδα {page} από {count}",
+  "selectedRows": "{selected} από {total} γραμμή(ες) επιλέχθηκαν.",
+  "goFirstPage": "Μετάβαση στην πρώτη σελίδα",
+  "goPrevPage": "Μετάβαση στην προηγούμενη σελίδα",
+  "goNextPage": "Μετάβαση στην επόμενη σελίδα",
+  "goLastPage": "Μετάβαση στην τελευταία σελίδα",
+  "reset": "Επαναφορά",
+  "view": "Προβολή",
+  "toggleColumns": "Εναλλαγή στηλών",
+  "filterPlaceholder": "Φιλτράρετε πελάτες ...",
+  "viewAll": "Προβολή όλων",
+  "assigned": "Ανατέθηκε:",
+  "unnamed": "Χωρίς όνομα",
+  "statusLabels": {
+    "property": {
+      "ACTIVE": "Ενεργό",
+      "PENDING": "Εκκρεμές",
+      "SOLD": "Πωλημένο",
+      "OFF_MARKET": "Εκτός αγοράς",
+      "WITHDRAWN": "Αποσυρμένο",
+      "AVAILABLE": "Διαθέσιμο",
+      "RESERVED": "Δεσμευμένο",
+      "NEGOTIATION": "Σε διαπραγμάτευση",
+      "RENTED": "Μισθωμένο"
+    },
+    "client": {
+      "LEAD": "Lead",
+      "ACTIVE": "Ενεργός",
+      "INACTIVE": "Ανενεργός",
+      "CONVERTED": "Μετατραπείς",
+      "LOST": "Χαμένος"
+    },
+    "na": "Δ/Υ"
+  }
+}
+

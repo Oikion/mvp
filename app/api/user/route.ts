@@ -93,8 +93,14 @@ export async function GET() {
     const users = await prismadb.users.findMany({});
 
     return NextResponse.json(users);
-  } catch (error) {
+  } catch (error: any) {
     console.log("[USERS_GET]", error);
-    return new NextResponse("Initial error", { status: 500 });
+    
+    // Handle authentication errors properly
+    if (error?.message === "User not authenticated" || error?.message === "User not found in database") {
+      return new NextResponse("Unauthenticated", { status: 401 });
+    }
+    
+    return new NextResponse("Internal error", { status: 500 });
   }
 }

@@ -1,0 +1,10 @@
+{
+  "title": "Βοηθός AI",
+  "description": "Ρωτήστε ό,τι χρειάζεστε",
+  "missingKeyTitle": "Δεν βρέθηκε κλειδί OpenAI",
+  "missingKeyPrompt": "Προσθέστε το κλειδί OpenAI στις",
+  "profileSettings": "ρυθμίσεις προφίλ",
+  "toUseAssistant": "για να χρησιμοποιήσετε τον βοηθό",
+  "loading": "Φόρτωση..."
+}
+

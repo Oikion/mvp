@@ -49,12 +49,12 @@ const SidebarLayout = React.forwardRef<HTMLDivElement, SidebarLayoutProps>(
 )
 SidebarLayout.displayName = "SidebarLayout"
 
-export interface SidebarProps extends React.HTMLAttributes<HTMLAsideElement> {
+export interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
   collapsed?: boolean
   onToggle?: () => void
 }
 
-const Sidebar = React.forwardRef<HTMLAsideElement, SidebarProps>(
+const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
   ({ className, collapsed, children, ...props }, ref) => {
     return (
       <aside

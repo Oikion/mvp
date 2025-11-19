@@ -1,0 +1,48 @@
+{
+  "cancel": "Cancel",
+  "creating": "Creating...",
+  "success": "Success",
+  "error": "Error",
+  "clientCreated": "Client created successfully",
+  "propertyCreated": "Property created successfully",
+  "somethingWentWrong": "Something went wrong",
+  "clientCreationFailed": "Failed to create client",
+  "propertyCreationFailed": "Failed to create property",
+  "selectAgent": "Select agent",
+  "rowsPerPage": "Rows per page",
+  "pageOf": "Page {page} of {count}",
+  "selectedRows": "{selected} of {total} row(s) selected.",
+  "goFirstPage": "Go to first page",
+  "goPrevPage": "Go to previous page",
+  "goNextPage": "Go to next page",
+  "goLastPage": "Go to last page",
+  "reset": "Reset",
+  "view": "View",
+  "toggleColumns": "Toggle columns",
+  "filterPlaceholder": "Filter leads ...",
+  "viewAll": "View All",
+  "assigned": "Assigned:",
+  "unnamed": "Unnamed",
+  "statusLabels": {
+    "property": {
+      "ACTIVE": "Active",
+      "PENDING": "Pending",
+      "SOLD": "Sold",
+      "OFF_MARKET": "Off Market",
+      "WITHDRAWN": "Withdrawn",
+      "AVAILABLE": "Available",
+      "RESERVED": "Reserved",
+      "NEGOTIATION": "In Negotiation",
+      "RENTED": "Rented"
+    },
+    "client": {
+      "LEAD": "Lead",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "CONVERTED": "Converted",
+      "LOST": "Lost"
+    },
+    "na": "N/A"
+  }
+}
+

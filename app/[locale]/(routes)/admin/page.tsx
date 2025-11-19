@@ -16,11 +16,11 @@ const AdminPage = async () => {
   if (!user?.is_admin) {
     return (
       <Container
-        title={t("Admin.title")}
-        description={t("Admin.accessDenied")}
+        title={t("admin.title")}
+        description={t("admin.accessDenied")}
       >
         <div className="flex w-full h-full items-center justify-center">
-          {t("Admin.accessNotAllowed")}
+          {t("admin.accessNotAllowed")}
         </div>
       </Container>
     );
@@ -28,15 +28,15 @@ const AdminPage = async () => {
 
   return (
     <Container
-      title={t("Admin.title")}
-      description={t("Admin.setupDescription")}
+      title={t("admin.title")}
+      description={t("admin.setupDescription")}
     >
       <div className="space-x-2">
         <Button asChild>
-          <Link href="/admin/users">{t("Admin.usersAdministration")}</Link>
+          <Link href="/admin/users">{t("admin.usersAdministration")}</Link>
         </Button>
         <Button asChild>
-          <Link href="/admin/modules">{t("Admin.modulesAdministration")}</Link>
+          <Link href="/admin/modules">{t("admin.modulesAdministration")}</Link>
         </Button>
       </div>
       <div className="flex flex-row flex-wrap space-y-2 md:space-y-0 gap-2">

@@ -46,17 +46,20 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false);
 
+  // Ensure value is always an array
+  const safeValue = Array.isArray(value) ? value : [];
+
   const handleSelect = (currentValue: string) => {
     onChange(
-      value.includes(currentValue)
-        ? value.filter((val) => val !== currentValue)
-        : [...value, currentValue]
+      safeValue.includes(currentValue)
+        ? safeValue.filter((val) => val !== currentValue)
+        : [...safeValue, currentValue]
     );
   };
 
   const handleRemove = (valToRemove: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange(value.filter((val) => val !== valToRemove));
+    onChange(safeValue.filter((val) => val !== valToRemove));
   };
 
   return (
@@ -69,13 +72,13 @@ export function MultiSelect({
           disabled={disabled}
           className={cn(
             "w-full justify-between min-h-10 h-auto",
-            !value.length && "text-muted-foreground",
+            !safeValue.length && "text-muted-foreground",
             className
           )}
         >
           <div className="flex flex-wrap gap-1 flex-1">
-            {value.length > 0 ? (
-              value.map((val) => {
+            {safeValue.length > 0 ? (
+              safeValue.map((val) => {
                 const option = options.find((opt) => opt.value === val);
                 return (
                   <Badge
@@ -123,7 +126,7 @@ export function MultiSelect({
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
-                    value.includes(option.value) ? "opacity-100" : "opacity-0"
+                    safeValue.includes(option.value) ? "opacity-100" : "opacity-0"
                   )}
                 />
                 {option.label}

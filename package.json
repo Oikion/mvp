@@ -5,10 +5,11 @@
   "scripts": {
     "dev": "node server.js",
     "dev:http": "next dev",
-    "build": "prisma generate --no-engine && prisma db push && prisma db seed && next build",
+    "build": "prisma generate --no-engine && next build",
     "start": "next start",
     "lint": "next lint",
-    "purge-db": "ts-node scripts/purge-database.ts"
+    "purge-db": "ts-node scripts/purge-database.ts",
+    "db:seed": "prisma db seed"
   },
   "prisma": {
     "seed": "ts-node ./prisma/seeds/seed.ts"
@@ -46,6 +47,9 @@
     "@react-email/render": "^1.0.2",
     "@tanstack/react-table": "^8.20.5",
     "@tremor/react": "^3.18.4",
+    "@upstash/ratelimit": "^2.0.7",
+    "@vercel/blob": "^2.0.0",
+    "@vercel/kv": "^1.0.1",
     "ai": "^3.4.33",
     "autoprefixer": "^10.4.20",
     "aws-crt": "^1.23.0",
@@ -62,6 +66,7 @@
     "eslint-config-next": "16.0.1",
     "framer-motion": "^12.23.24",
     "geist": "^1.3.1",
+    "googleapis": "^164.1.0",
     "html2canvas": "^1.4.1",
     "imap": "^0.8.19",
     "jotai": "^2.10.2",
@@ -110,6 +115,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "cypress": "^13.15.2",
+    "prettier": "^3.6.2",
     "prisma": "^6.18.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"

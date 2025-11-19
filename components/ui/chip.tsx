@@ -21,9 +21,7 @@ import { cn } from "@/lib/utils"
  * <Chip variant="filter" onRemove={() => {}}>Filter</Chip>
  */
 const chipVariants = cva(
-  "inline-flex items-center gap-1.5 rounded-md text-xs font-medium transition-all duration-fast ease-in-out",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-  "disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center gap-1.5 rounded-md text-xs font-medium transition-all duration-fast ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {

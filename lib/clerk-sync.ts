@@ -194,13 +194,6 @@ export async function syncClerkUser(clerkUserId: string) {
     // Re-throw if it's not a unique constraint error or we couldn't recover
     throw error;
   }
-
-  // Admin notification disabled - users are automatically active
-  // if (!isFirstUser) {
-  //   await newUserNotify(newUser);
-  // }
-
-  return newUser;
 }
 
 /**
@@ -309,7 +302,7 @@ export async function deleteUserOwnedOrganizations(clerkUserId: string) {
               // Get organization details before deletion for logging
               let orgDetails;
               try {
-                orgDetails = await clerk.organizations.getOrganization(organizationId);
+                orgDetails = await clerk.organizations.getOrganization({ organizationId });
               } catch (getError: any) {
                 // If we can't get org details, still try to delete
                 console.warn(`[DELETE_ORG] Could not fetch org details for ${organizationId}`);
@@ -325,7 +318,7 @@ export async function deleteUserOwnedOrganizations(clerkUserId: string) {
               // Note: Clerk may have eventual consistency, so this is informational only
               setTimeout(async () => {
                 try {
-                  await clerk.organizations.getOrganization(organizationId);
+                  await clerk.organizations.getOrganization({ organizationId });
                   console.warn(`[DELETE_ORG] WARNING: Organization ${organizationId} still exists after deletion (may be eventual consistency)`);
                 } catch (verifyError: any) {
                   if (verifyError?.status === 404 || verifyError?.code === "not_found") {

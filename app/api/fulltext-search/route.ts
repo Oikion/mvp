@@ -6,9 +6,8 @@ export async function POST(req: Request) {
   try {
     await getCurrentUser();
     const body = await req.json();
-    const data = body;
 
-    const search = data.data;
+    const search = body.data;
 
     //Search in modul CRM (Clients)
     const resultsCrmClients = await prismadb.clients.findMany({

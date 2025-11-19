@@ -32,9 +32,8 @@ export async function POST(req: Request) {
       industry,
     } = body;
 
-    const newAccount = await prismadb.crm_Accounts.create({
+    const newAccount = await (prismadb as any).crm_Accounts.create({
       data: {
-        v: 0,
         createdBy: user.id,
         updatedBy: user.id,
         name,
@@ -101,12 +100,11 @@ export async function PUT(req: Request) {
       industry,
     } = body;
 
-    const newAccount = await prismadb.crm_Accounts.update({
+    const newAccount = await (prismadb as any).crm_Accounts.update({
       where: {
         id,
       },
       data: {
-        v: 0,
         updatedBy: user.id,
         name,
         office_phone,
@@ -144,7 +142,7 @@ export async function PUT(req: Request) {
 export async function GET(req: Request) {
   try {
     await getCurrentUser();
-    const accounts = await prismadb.crm_Accounts.findMany({});
+    const accounts = await (prismadb as any).crm_Accounts.findMany({});
     return NextResponse.json(accounts, { status: 200 });
   } catch (error) {
     console.log("[ACCOUNTS_GET]", error);

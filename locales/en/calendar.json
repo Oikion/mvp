@@ -1,0 +1,46 @@
+{
+  "page": {
+    "title": "Calendar",
+    "description": "Manage your calendar events and view your tasks",
+    "loadingCalendar": "Loading calendar..."
+  },
+  "calendarView": {
+    "title": "Calendar",
+    "selectDate": "Select a date",
+    "loading": "Loading...",
+    "noEventsOrTasks": "No events or tasks scheduled for this day"
+  },
+  "eventCreateForm": {
+    "newEvent": "New Event",
+    "createCalendarEvent": "Create Calendar Event",
+    "addNewEvent": "Add a new event to your calendar.",
+    "title": "Title",
+    "titlePlaceholder": "Event title",
+    "titleRequired": "Title is required",
+    "description": "Description",
+    "descriptionPlaceholder": "Event description",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "pickDate": "Pick a date",
+    "location": "Location",
+    "locationPlaceholder": "Event location",
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "createEvent": "Create Event",
+    "eventCreatedSuccess": "Event created successfully",
+    "failedToCreateEvent": "Failed to create event"
+  },
+  "createBookingButton": {
+    "createEvent": "Create Event",
+    "createCalendarEvent": "Create Calendar Event",
+    "scheduleAppointment": "Schedule an appointment for this client/property",
+    "createNewEvent": "Create a new calendar event"
+  },
+  "taskEventCard": {
+    "synced": "Synced",
+    "assignedTo": "Assigned to: {name}",
+    "account": "Account: {name}",
+    "viewTask": "View Task"
+  }
+}
+

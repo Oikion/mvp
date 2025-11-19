@@ -12,7 +12,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ contactId:
       return new NextResponse("contact ID is required", { status: 400 });
     }
 
-    await prismadb.crm_Contacts.delete({
+    await (prismadb as any).crm_Contacts.delete({
       where: {
         id: params.contactId,
       },

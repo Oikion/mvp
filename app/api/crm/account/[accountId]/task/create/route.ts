@@ -19,7 +19,6 @@ export async function POST(req: Request) {
 
     const task = await prismadb.crm_Accounts_Tasks.create({
       data: {
-        v: 0,
         priority: priority,
         title: title,
         content,
@@ -28,7 +27,6 @@ export async function POST(req: Request) {
         createdBy: assignedUser,
         updatedBy: assignedUser,
         user: assignedUser,
-        taskStatus: "ACTIVE",
       },
     });
 

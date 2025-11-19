@@ -44,7 +44,6 @@ export async function POST(req: Request, props: { params: Promise<{ userId: stri
     } else {
       const setOpenAiKey = await prismadb.openAi_keys.create({
         data: {
-          v: 0,
           api_key: secretKey,
           organization_id: organizationId,
           user: userId,

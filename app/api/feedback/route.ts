@@ -1,5 +1,5 @@
 import resendHelper from "@/lib/resend";
-import { getCurrentUserSafe } from "@/lib/get-current-user";
+import { getCurrentUserSafe, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { NextResponse } from "next/server";
 import FeedbackEmail from "@/emails/Feedback";
 import { prismadb } from "@/lib/prisma";
@@ -78,6 +78,7 @@ export async function POST(req: Request) {
   
   try {
     const currentUser = await getCurrentUserSafe();
+    const organizationId = await getCurrentOrgIdSafe();
     const body = await req.json();
     
     if (!body) {
@@ -136,9 +137,9 @@ export async function POST(req: Request) {
         feedbackTypeLabel,
         feedback,
         userId: currentUser?.id,
-        userName: currentUser?.name,
-        userEmail: currentUser?.email,
-        organizationId: currentUser?.organizationId,
+        userName: currentUser?.name || undefined,
+        userEmail: currentUser?.email || undefined,
+        organizationId: organizationId || undefined,
         url,
         browserName,
         browserVersion,
@@ -250,7 +251,7 @@ export async function POST(req: Request) {
           userId: currentUser?.id,
           userEmail: currentUser?.email,
           userName: currentUser?.name,
-          organizationId: currentUser?.organizationId,
+          organizationId: organizationId,
           feedbackType: feedbackType || "general",
           feedback: feedback,
           url: url,

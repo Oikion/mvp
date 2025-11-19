@@ -3,15 +3,52 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 
+// Valid enum values
+const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
+const VALID_HEATING_TYPES = new Set(["AUTONOMOUS", "CENTRAL", "NATURAL_GAS", "HEAT_PUMP", "ELECTRIC", "NONE"]);
+const VALID_PROPERTY_STATUSES = new Set(["ACTIVE", "PENDING", "SOLD", "OFF_MARKET", "WITHDRAWN"]);
+
+// Map form property_status values to Prisma enum values
+const PROPERTY_STATUS_MAP: Record<string, string> = {
+  "AVAILABLE": "ACTIVE",
+  "RESERVED": "PENDING",
+  "NEGOTIATION": "PENDING",
+  "RENTED": "ACTIVE",
+  "SOLD": "SOLD",
+};
+
+// Helper function to convert string to number or null
+function toNumber(value: any): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") return value;
+  const num = Number(value);
+  return Number.isNaN(num) ? null : num;
+}
+
+// Helper function to convert string to DateTime or null
+function toDateTime(value: any): Date | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (value instanceof Date) return value;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+// Helper function to convert empty string to null
+function nullIfEmpty(value: any): any {
+  if (value === "") return null;
+  return value;
+}
+
 export async function POST(req: Request) {
+  let data: any = {};
   try {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();
     
-    // Extract all possible fields (including new Greece-specific ones)
+    // Extract all possible fields
     const {
-      id, // If provided, update existing draft
+      id,
       property_name,
       primary_email,
       property_type,
@@ -65,64 +102,111 @@ export async function POST(req: Request) {
       assigned_to,
     } = body;
 
-    // Build data object with only provided fields
-    const data: any = {
+    // Build data object with validated and converted fields
+    data = {
       updatedBy: user.id,
-      draft_status: true, // Always mark as draft
+      draft_status: true,
     };
 
-    // Only include fields that are provided (not undefined)
-    if (property_name !== undefined) data.property_name = property_name;
-    if (primary_email !== undefined) data.primary_email = primary_email;
-    if (property_type !== undefined) data.property_type = property_type;
-    if (property_status !== undefined) data.property_status = property_status;
-    if (transaction_type !== undefined) data.transaction_type = transaction_type;
-    if (is_exclusive !== undefined) data.is_exclusive = is_exclusive;
-    if (municipality !== undefined) data.municipality = municipality;
-    if (area !== undefined) data.area = area;
-    if (postal_code !== undefined) data.postal_code = postal_code;
-    if (address_privacy_level !== undefined) data.address_privacy_level = address_privacy_level;
-    if (address_street !== undefined) data.address_street = address_street;
-    if (address_city !== undefined) data.address_city = address_city;
-    if (address_state !== undefined) data.address_state = address_state;
-    if (address_zip !== undefined) data.address_zip = address_zip;
-    if (size_net_sqm !== undefined) data.size_net_sqm = size_net_sqm;
-    if (size_gross_sqm !== undefined) data.size_gross_sqm = size_gross_sqm;
-    if (floor !== undefined) data.floor = floor;
-    if (floors_total !== undefined) data.floors_total = floors_total;
-    if (plot_size_sqm !== undefined) data.plot_size_sqm = plot_size_sqm;
-    if (inside_city_plan !== undefined) data.inside_city_plan = inside_city_plan;
-    if (build_coefficient !== undefined) data.build_coefficient = build_coefficient;
-    if (coverage_ratio !== undefined) data.coverage_ratio = coverage_ratio;
-    if (frontage_m !== undefined) data.frontage_m = frontage_m;
-    if (bedrooms !== undefined) data.bedrooms = bedrooms;
-    if (bathrooms !== undefined) data.bathrooms = bathrooms;
-    if (heating_type !== undefined) data.heating_type = heating_type;
-    if (energy_cert_class !== undefined) data.energy_cert_class = energy_cert_class;
-    if (year_built !== undefined) data.year_built = year_built;
-    if (renovated_year !== undefined) data.renovated_year = renovated_year;
-    if (condition !== undefined) data.condition = condition;
-    if (elevator !== undefined) data.elevator = elevator;
-    if (building_permit_no !== undefined) data.building_permit_no = building_permit_no;
-    if (building_permit_year !== undefined) data.building_permit_year = building_permit_year;
-    if (land_registry_kaek !== undefined) data.land_registry_kaek = land_registry_kaek;
-    if (legalization_status !== undefined) data.legalization_status = legalization_status;
-    if (etaireia_diaxeirisis !== undefined) data.etaireia_diaxeirisis = etaireia_diaxeirisis;
-    if (monthly_common_charges !== undefined) data.monthly_common_charges = monthly_common_charges;
-    if (amenities !== undefined) data.amenities = amenities;
-    if (orientation !== undefined) data.orientation = orientation;
-    if (furnished !== undefined) data.furnished = furnished;
-    if (accessibility !== undefined) data.accessibility = accessibility;
-    if (price !== undefined) data.price = price;
-    if (price_type !== undefined) data.price_type = price_type;
-    if (available_from !== undefined) data.available_from = available_from;
-    if (accepts_pets !== undefined) data.accepts_pets = accepts_pets;
-    if (min_lease_months !== undefined) data.min_lease_months = min_lease_months;
-    if (portal_visibility !== undefined) data.portal_visibility = portal_visibility;
-    if (square_feet !== undefined) data.square_feet = square_feet;
-    if (lot_size !== undefined) data.lot_size = lot_size;
-    if (description !== undefined) data.description = description;
-    if (assigned_to !== undefined) data.assigned_to = assigned_to;
+    // String fields - convert empty strings to null
+    if (property_name !== undefined) data.property_name = nullIfEmpty(property_name) || "Draft Property";
+    if (primary_email !== undefined) data.primary_email = nullIfEmpty(primary_email);
+    if (municipality !== undefined) data.municipality = nullIfEmpty(municipality);
+    if (area !== undefined) data.area = nullIfEmpty(area);
+    if (postal_code !== undefined) data.postal_code = nullIfEmpty(postal_code);
+    if (address_street !== undefined) data.address_street = nullIfEmpty(address_street);
+    if (address_city !== undefined) data.address_city = nullIfEmpty(address_city);
+    if (address_state !== undefined) data.address_state = nullIfEmpty(address_state);
+    if (address_zip !== undefined) data.address_zip = nullIfEmpty(address_zip);
+    if (floor !== undefined) data.floor = nullIfEmpty(floor);
+    if (building_permit_no !== undefined) data.building_permit_no = nullIfEmpty(building_permit_no);
+    if (land_registry_kaek !== undefined) data.land_registry_kaek = nullIfEmpty(land_registry_kaek);
+    if (etaireia_diaxeirisis !== undefined) data.etaireia_diaxeirisis = nullIfEmpty(etaireia_diaxeirisis);
+    if (accessibility !== undefined) data.accessibility = nullIfEmpty(accessibility);
+    if (description !== undefined) data.description = nullIfEmpty(description);
+    if (assigned_to !== undefined) data.assigned_to = nullIfEmpty(assigned_to);
+
+    // Enum fields - validate before setting
+    if (property_type !== undefined && property_type !== null && property_type !== "") {
+      data.property_type = property_type;
+    }
+    if (property_status !== undefined && property_status !== null && property_status !== "") {
+      // Map form values to Prisma enum values
+      const mappedStatus = PROPERTY_STATUS_MAP[property_status] || property_status;
+      if (VALID_PROPERTY_STATUSES.has(mappedStatus)) {
+        data.property_status = mappedStatus;
+      }
+    }
+    if (transaction_type !== undefined && transaction_type !== null && transaction_type !== "") {
+      data.transaction_type = transaction_type;
+    }
+    if (address_privacy_level !== undefined && address_privacy_level !== null && address_privacy_level !== "") {
+      data.address_privacy_level = address_privacy_level;
+    }
+    if (heating_type !== undefined && heating_type !== null && heating_type !== "" && VALID_HEATING_TYPES.has(heating_type)) {
+      data.heating_type = heating_type;
+    }
+    if (energy_cert_class !== undefined && energy_cert_class !== null && energy_cert_class !== "") {
+      data.energy_cert_class = energy_cert_class;
+    }
+    // Validate condition - only set if it's a valid PropertyCondition, not a HeatingType
+    if (condition !== undefined && condition !== null && condition !== "") {
+      if (VALID_PROPERTY_CONDITIONS.has(condition)) {
+        data.condition = condition;
+      }
+      // If it's a heating type being sent as condition, ignore it
+    }
+    if (legalization_status !== undefined && legalization_status !== null && legalization_status !== "") {
+      data.legalization_status = legalization_status;
+    }
+    if (furnished !== undefined && furnished !== null && furnished !== "") {
+      data.furnished = furnished;
+    }
+    if (price_type !== undefined && price_type !== null && price_type !== "") {
+      data.price_type = price_type;
+    }
+    if (portal_visibility !== undefined && portal_visibility !== null && portal_visibility !== "") {
+      data.portal_visibility = portal_visibility;
+    }
+
+    // Boolean fields
+    if (is_exclusive !== undefined) data.is_exclusive = is_exclusive === true || is_exclusive === "true";
+    if (inside_city_plan !== undefined) data.inside_city_plan = inside_city_plan === true || inside_city_plan === "true";
+    if (elevator !== undefined) data.elevator = elevator === true || elevator === "true";
+    if (accepts_pets !== undefined) data.accepts_pets = accepts_pets === true || accepts_pets === "true";
+
+    // Number fields - convert strings to numbers or null
+    if (size_net_sqm !== undefined) data.size_net_sqm = toNumber(size_net_sqm);
+    if (size_gross_sqm !== undefined) data.size_gross_sqm = toNumber(size_gross_sqm);
+    if (floors_total !== undefined) data.floors_total = toNumber(floors_total);
+    if (plot_size_sqm !== undefined) data.plot_size_sqm = toNumber(plot_size_sqm);
+    if (build_coefficient !== undefined) data.build_coefficient = toNumber(build_coefficient);
+    if (coverage_ratio !== undefined) data.coverage_ratio = toNumber(coverage_ratio);
+    if (frontage_m !== undefined) data.frontage_m = toNumber(frontage_m);
+    if (bedrooms !== undefined) data.bedrooms = toNumber(bedrooms);
+    if (bathrooms !== undefined) data.bathrooms = toNumber(bathrooms);
+    if (year_built !== undefined) data.year_built = toNumber(year_built);
+    if (renovated_year !== undefined) data.renovated_year = toNumber(renovated_year);
+    if (building_permit_year !== undefined) data.building_permit_year = toNumber(building_permit_year);
+    if (monthly_common_charges !== undefined) data.monthly_common_charges = toNumber(monthly_common_charges);
+    if (price !== undefined) data.price = toNumber(price);
+    if (min_lease_months !== undefined) data.min_lease_months = toNumber(min_lease_months);
+    if (square_feet !== undefined) data.square_feet = toNumber(square_feet);
+    if (lot_size !== undefined) data.lot_size = toNumber(lot_size);
+
+    // DateTime fields
+    if (available_from !== undefined) {
+      const dateValue = toDateTime(available_from);
+      if (dateValue) data.available_from = dateValue;
+    }
+
+    // JSON fields (arrays)
+    if (amenities !== undefined && amenities !== null) {
+      data.amenities = Array.isArray(amenities) ? amenities : null;
+    }
+    if (orientation !== undefined && orientation !== null) {
+      data.orientation = Array.isArray(orientation) ? orientation : null;
+    }
 
     let property;
 
@@ -133,7 +217,10 @@ export async function POST(req: Request) {
       });
 
       if (!existingProperty) {
-        return new NextResponse("Property not found or access denied", { status: 404 });
+        return NextResponse.json(
+          { error: "Property not found or access denied" },
+          { status: 404 }
+        );
       }
 
       property = await prismadb.properties.update({
@@ -142,7 +229,6 @@ export async function POST(req: Request) {
       });
     } else {
       // Create new draft
-      data.v = 0;
       data.createdBy = user.id;
       data.organizationId = organizationId;
       
@@ -164,9 +250,46 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ property }, { status: 200 });
   } catch (error: any) {
-    console.log("[PROPERTY_DRAFT_POST]", error);
-    const errorMessage = error?.message || "Failed to save draft";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    console.error("[PROPERTY_DRAFT_POST]", error);
+    
+    // Extract more detailed error information
+    let errorMessage = "Failed to save draft";
+    let errorDetails: any = null;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      errorDetails = {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      };
+    }
+    
+    // Check if it's a Prisma validation error
+    if (error?.code === "P2002") {
+      errorMessage = "A property with this information already exists";
+    } else if (error?.code === "P2003") {
+      errorMessage = "Invalid reference to related record";
+    } else if (error?.meta?.target) {
+      errorMessage = `Validation error on field: ${error.meta.target.join(", ")}`;
+    }
+    
+    // Log the full error for debugging
+    console.error("[PROPERTY_DRAFT_POST] Full error:", {
+      error,
+      errorMessage,
+      errorDetails,
+      dataKeys: Object.keys(data || {}),
+    });
+    
+    return NextResponse.json(
+      { 
+        error: errorMessage, 
+        details: errorDetails || errorMessage,
+        code: error?.code,
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -174,4 +297,3 @@ export async function PUT(req: Request) {
   // PUT is same as POST for drafts - updates existing or creates new
   return POST(req);
 }
-

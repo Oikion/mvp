@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "Documents",
+    "description": "Manage and share your documents with clients, properties, and events"
+  },
+  "documentGrid": {
+    "documentsCount": "{count} document",
+    "documentsCountPlural": "{count} documents",
+    "uploadDocument": "Upload Document",
+    "noDocuments": "No documents found. Upload your first document to get started.",
+    "deleteConfirm": "Are you sure you want to delete this document?",
+    "failedToDelete": "Failed to delete document",
+    "documentDeleted": "Document deleted"
+  },
+  "documentFilters": {
+    "filters": "Filters",
+    "clear": "Clear",
+    "search": "Search",
+    "searchPlaceholder": "Search documents...",
+    "client": "Client",
+    "allClients": "All clients",
+    "property": "Property",
+    "allProperties": "All properties"
+  },
+  "documentCard": {
+    "shared": "Shared",
+    "protected": "Protected",
+    "view": "View",
+    "share": "Share",
+    "views": "{count} view",
+    "viewsPlural": "{count} views"
+  },
+  "uploadModal": {
+    "uploadDocument": "Upload Document",
+    "file": "File",
+    "dropFileHere": "Drop the file here",
+    "dragDropOrClick": "Drag & drop a file here, or click to select",
+    "documentName": "Document Name *",
+    "documentNamePlaceholder": "Enter document name",
+    "description": "Description",
+    "descriptionPlaceholder": "Add a description... Type @ to mention clients, properties, events, or tasks",
+    "linkToEntities": "Link to Entities",
+    "cancel": "Cancel",
+    "uploading": "Uploading...",
+    "upload": "Upload",
+    "selectFileAndName": "Please select a file and enter a document name",
+    "documentUploadedSuccess": "Document uploaded successfully",
+    "failedToUpload": "Failed to upload document"
+  }
+}
+

@@ -1,6 +1,6 @@
-import axios from "axios";
 import { notFound } from "next/navigation";
 import { createTranslator } from "next-intl";
+import { Metadata } from "next";
 
 import "@/app/[locale]/globals.css";
 import Footer from "@/app/[locale]/(routes)/components/Footer";
@@ -8,6 +8,10 @@ import Footer from "@/app/[locale]/(routes)/components/Footer";
 type Props = {
   params: Promise<{ locale: string }>;
 };
+
+const metadataBaseUrl = new URL(
+  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+);
 
 async function getLocales(locale: string) {
   try {
@@ -17,7 +21,7 @@ async function getLocales(locale: string) {
   }
 }
 
-export async function generateMetadata(props: Props) {
+export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
 
   const {
@@ -27,6 +31,7 @@ export async function generateMetadata(props: Props) {
   const messages = await getLocales(locale);
   const t = createTranslator({ locale, messages });
   return {
+    metadataBase: metadataBaseUrl,
     title: t("RootLayout.title"),
     description: t("RootLayout.description"),
   };

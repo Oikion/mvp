@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -43,9 +44,9 @@ const languages = availableLocales.map((locale) => ({
   value: locale.code,
 }));
 
-const FormSchema = z.object({
+const FormSchema = (t: (key: string) => string) => z.object({
   language: z.string({
-    required_error: "Please select a language.",
+    required_error: t("setLanguage.languageRequired"),
   }),
 });
 
@@ -55,27 +56,29 @@ type Props = {
 
 export function SetLanguage({ userId }: Props) {
   const router = useRouter();
+  const t = useTranslations();
+  const tCommon = useTranslations("common");
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const form = useForm<z.infer<ReturnType<typeof FormSchema>>>({
+    resolver: zodResolver(FormSchema(t)),
   });
 
   const [isLoading, setIsLoading] = useState(false);
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
+  async function onSubmit(data: z.infer<ReturnType<typeof FormSchema>>) {
     setIsLoading(true);
     try {
       await axios.put(`/api/user/${userId}/set-language`, data);
       toast({
         variant: "success",
-        title: "Success",
-        description: "You change user language to: " + data.language,
+        title: tCommon("success"),
+        description: t("setLanguage.languageChangedTo", { language: data.language }),
       });
     } catch (e) {
       console.log(e, "error");
       toast({
-        title: "Error",
-        description: "Something went wrong.",
+        title: tCommon("error"),
+        description: tCommon("somethingWentWrong"),
         variant: "destructive",
       });
     } finally {
@@ -88,7 +91,7 @@ export function SetLanguage({ userId }: Props) {
     return (
       <LoadingModal
         isOpen={isLoading}
-        description="Changing NextCRM language"
+        description={t("setLanguage.changingLanguage")}
       />
     );
   }
@@ -119,16 +122,16 @@ export function SetLanguage({ userId }: Props) {
                         ? languages.find(
                             (language) => language.value === field.value
                           )?.label
-                        : "Select language"}
+                        : t("setLanguage.selectLanguagePlaceholder")}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-[200px] p-0">
                   <Command>
-                    <CommandInput placeholder="Search language ..." />
+                    <CommandInput placeholder={t("setLanguage.searchLanguage")} />
                     <CommandList>
-                      <CommandEmpty>No language found.</CommandEmpty>
+                      <CommandEmpty>{t("setLanguage.noLanguageFound")}</CommandEmpty>
                       <CommandGroup>
                         {languages.map((language) => (
                           <CommandItem

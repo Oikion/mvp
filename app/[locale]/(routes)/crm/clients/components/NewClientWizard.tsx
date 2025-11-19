@@ -32,7 +32,39 @@ import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { ConditionalFormSection } from "@/components/form/conditional-section";
 import { AutosaveIndicator, AutosaveStatus } from "@/components/form/autosave-indicator";
 import useDebounce from "@/hooks/useDebounce";
-import greekTranslations from "@/locales/el.json";
+// Import all translation files for the new structure
+import commonEl from "@/locales/el/common.json";
+import crmEl from "@/locales/el/crm.json";
+import mlsEl from "@/locales/el/mls.json";
+import validationEl from "@/locales/el/validation.json";
+import rootEl from "@/locales/el/root.json";
+import navigationEl from "@/locales/el/navigation.json";
+import dashboardEl from "@/locales/el/dashboard.json";
+import reportsEl from "@/locales/el/reports.json";
+import adminEl from "@/locales/el/admin.json";
+import emailEl from "@/locales/el/email.json";
+import setLanguageEl from "@/locales/el/setLanguage.json";
+import feedbackEl from "@/locales/el/feedback.json";
+import chatgptEl from "@/locales/el/chatgpt.json";
+import registerEl from "@/locales/el/register.json";
+
+// Merge all translations into a single object matching the new structure
+const greekTranslations: any = {
+  common: commonEl,
+  crm: crmEl,
+  mls: mlsEl,
+  validation: validationEl,
+  RootLayout: rootEl,
+  navigation: navigationEl,
+  dashboard: dashboardEl,
+  reports: reportsEl,
+  admin: adminEl,
+  email: emailEl,
+  setLanguage: setLanguageEl,
+  feedback: feedbackEl,
+  chatgpt: chatgptEl,
+  register: registerEl,
+};
 
 // Translation helper
 const t = (key: string, fallback: string = ""): string => {
@@ -61,14 +93,14 @@ type Props = {
 const formSchema = z.object({
   // Step 1: Βασικά
   person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"], {
-    required_error: t("CrmForm.validation.personTypeRequired", "Ο τύπος πελάτη είναι υποχρεωτικός"),
+    required_error: t("crm.crm.CrmForm.validation.personTypeRequired", "Ο τύπος πελάτη είναι υποχρεωτικός"),
   }),
   full_name: z.string().optional(),
   company_name: z.string().optional(),
   primary_phone: z.string().optional(),
-  primary_email: z.string().email(t("CrmForm.validation.emailInvalid", "Μη έγκυρο email")).optional().or(z.literal("")),
+  primary_email: z.string().email(t("validation.emailInvalid", "Μη έγκυρο email")).optional().or(z.literal("")),
   intent: z.enum(["BUY", "RENT", "SELL", "LEASE", "INVEST"], {
-    required_error: t("CrmForm.validation.intentRequired", "Ο σκοπός είναι υποχρεωτικός"),
+    required_error: t("crm.crm.CrmForm.validation.intentRequired", "Ο σκοπός είναι υποχρεωτικός"),
   }),
   
   // Step 2: Επικοινωνία
@@ -100,7 +132,7 @@ const formSchema = z.object({
   gdpr_consent: z.boolean().optional().default(false),
   allow_marketing: z.boolean().optional().default(false),
   lead_source: z.enum(["REFERRAL", "WEB", "PORTAL", "WALK_IN", "SOCIAL"]).optional(),
-  assigned_to: z.string().min(1, "Assigned agent is required"),
+  assigned_to: z.string().min(1, t("validation.assignedAgentRequired", "Ο ανατεθειμένος πράκτορας είναι υποχρεωτικός")),
 }).refine(
   (data) => {
     // Require phone OR email
@@ -108,7 +140,7 @@ const formSchema = z.object({
   },
   {
     path: ["primary_email"],
-    message: t("CrmForm.validation.phoneOrEmailRequired", "Το τηλέφωνο ή το email είναι υποχρεωτικό"),
+    message: t("crm.CrmForm.validation.phoneOrEmailRequired", "Το τηλέφωνο ή το email είναι υποχρεωτικό"),
   }
 ).refine(
   (data) => {
@@ -123,7 +155,7 @@ const formSchema = z.object({
   },
   {
     path: ["full_name"],
-    message: t("CrmForm.validation.nameRequired", "Το όνομα είναι υποχρεωτικό"),
+    message: t("crm.CrmForm.validation.nameRequired", "Το όνομα είναι υποχρεωτικό"),
   }
 ).refine(
   (data) => {
@@ -135,7 +167,7 @@ const formSchema = z.object({
   },
   {
     path: ["afm"],
-    message: t("CrmForm.validation.afmInvalid", "Το ΑΦΜ πρέπει να έχει 9 ψηφία"),
+    message: t("crm.CrmForm.validation.afmInvalid", "Το ΑΦΜ πρέπει να έχει 9 ψηφία"),
   }
 );
 
@@ -151,11 +183,11 @@ const STEPS = [
 ];
 
 const CHANNEL_OPTIONS: MultiSelectOption[] = [
-  { value: "CALL", label: t("CrmForm.channels.CALL", "Κλήση") },
-  { value: "SMS", label: t("CrmForm.channels.SMS", "SMS") },
-  { value: "WHATSAPP", label: t("CrmForm.channels.WHATSAPP", "WhatsApp") },
-  { value: "VIBER", label: t("CrmForm.channels.VIBER", "Viber") },
-  { value: "EMAIL", label: t("CrmForm.channels.EMAIL", "Email") },
+  { value: "CALL", label: t("crm.CrmForm.channels.CALL", "Κλήση") },
+  { value: "SMS", label: t("crm.CrmForm.channels.SMS", "SMS") },
+  { value: "WHATSAPP", label: t("crm.CrmForm.channels.WHATSAPP", "WhatsApp") },
+  { value: "VIBER", label: t("crm.CrmForm.channels.VIBER", "Viber") },
+  { value: "EMAIL", label: t("crm.CrmForm.channels.EMAIL", "Email") },
 ];
 
 export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
@@ -236,7 +268,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
       Object.keys(currentData).forEach((key) => {
         const typedKey = key as keyof FormValues;
         if (JSON.stringify(currentData[typedKey]) !== JSON.stringify(lastSavedData[typedKey])) {
-          changedData[typedKey] = currentData[typedKey];
+          (changedData as any)[typedKey] = currentData[typedKey];
         }
       });
       
@@ -305,7 +337,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
 
       toast({
         variant: "success",
-        title: t("CrmForm.buttons.submit", "Success"),
+        title: t("crm.CrmForm.buttons.submit", "Success"),
         description: "Πελάτης δημιουργήθηκε επιτυχώς",
       });
       
@@ -338,18 +370,18 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="person_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.personType", "Τύπος πελάτη")} *</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.personType", "Τύπος πελάτη")} *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("CrmForm.fields.personTypePlaceholder", "Επιλέξτε τύπο")} />
+                        <SelectValue placeholder={t("crm.CrmForm.fields.personTypePlaceholder", "Επιλέξτε τύπο")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="INDIVIDUAL">{t("CrmForm.personType.INDIVIDUAL", "Ιδιώτης")}</SelectItem>
-                      <SelectItem value="COMPANY">{t("CrmForm.personType.COMPANY", "Εταιρεία")}</SelectItem>
-                      <SelectItem value="INVESTOR">{t("CrmForm.personType.INVESTOR", "Επενδυτής")}</SelectItem>
-                      <SelectItem value="BROKER">{t("CrmForm.personType.BROKER", "Μεσίτης")}</SelectItem>
+                      <SelectItem value="INDIVIDUAL">{t("crm.CrmForm.personType.INDIVIDUAL", "Ιδιώτης")}</SelectItem>
+                      <SelectItem value="COMPANY">{t("crm.CrmForm.personType.COMPANY", "Εταιρεία")}</SelectItem>
+                      <SelectItem value="INVESTOR">{t("crm.CrmForm.personType.INVESTOR", "Επενδυτής")}</SelectItem>
+                      <SelectItem value="BROKER">{t("crm.CrmForm.personType.BROKER", "Μεσίτης")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -363,9 +395,9 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="full_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.fullName", "Ονοματεπώνυμο")} *</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.fullName", "Ονοματεπώνυμο")} *</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder={t("CrmForm.fields.fullNamePlaceholder", "Όνομα Επώνυμο")} {...field} />
+                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.fullNamePlaceholder", "Όνομα Επώνυμο")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -379,9 +411,9 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="company_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.companyName", "Επωνυμία Εταιρείας")} *</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.companyName", "Επωνυμία Εταιρείας")} *</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder={t("CrmForm.fields.companyNamePlaceholder", "Όνομα εταιρείας")} {...field} />
+                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.companyNamePlaceholder", "Όνομα εταιρείας")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -395,9 +427,9 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="primary_phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.primaryPhone", "Κύριο τηλέφωνο")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.primaryPhone", "Κύριο τηλέφωνο")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder={t("CrmForm.fields.primaryPhonePlaceholder", "+30 210 1234567")} {...field} />
+                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.primaryPhonePlaceholder", "+30 210 1234567")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -408,9 +440,9 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="primary_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.primaryEmail", "Κύριο email")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.primaryEmail", "Κύριο email")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} type="email" placeholder={t("CrmForm.fields.primaryEmailPlaceholder", "email@example.com")} {...field} />
+                      <Input disabled={isLoading} type="email" placeholder={t("crm.CrmForm.fields.primaryEmailPlaceholder", "email@example.com")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -423,19 +455,19 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="intent"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.intent", "Σκοπός")} *</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.intent", "Σκοπός")} *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("CrmForm.fields.intentPlaceholder", "Επιλέξτε σκοπό")} />
+                        <SelectValue placeholder={t("crm.CrmForm.fields.intentPlaceholder", "Επιλέξτε σκοπό")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="BUY">{t("CrmForm.intents.BUY", "Αγορά")}</SelectItem>
-                      <SelectItem value="RENT">{t("CrmForm.intents.RENT", "Ενοικίαση")}</SelectItem>
-                      <SelectItem value="SELL">{t("CrmForm.intents.SELL", "Πώληση")}</SelectItem>
-                      <SelectItem value="LEASE">{t("CrmForm.intents.LEASE", "Εκμίσθωση")}</SelectItem>
-                      <SelectItem value="INVEST">{t("CrmForm.intents.INVEST", "Επένδυση")}</SelectItem>
+                      <SelectItem value="BUY">{t("crm.CrmForm.intents.BUY", "Αγορά")}</SelectItem>
+                      <SelectItem value="RENT">{t("crm.CrmForm.intents.RENT", "Ενοικίαση")}</SelectItem>
+                      <SelectItem value="SELL">{t("crm.CrmForm.intents.SELL", "Πώληση")}</SelectItem>
+                      <SelectItem value="LEASE">{t("crm.CrmForm.intents.LEASE", "Εκμίσθωση")}</SelectItem>
+                      <SelectItem value="INVEST">{t("crm.CrmForm.intents.INVEST", "Επένδυση")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -454,7 +486,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="secondary_phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.secondaryPhone", "Εναλλακτικό τηλέφωνο")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.secondaryPhone", "Εναλλακτικό τηλέφωνο")}</FormLabel>
                     <FormControl>
                       <Input disabled={isLoading} placeholder="+30 210 1234567" {...field} />
                     </FormControl>
@@ -467,7 +499,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="secondary_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.secondaryEmail", "Εναλλακτικό email")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.secondaryEmail", "Εναλλακτικό email")}</FormLabel>
                     <FormControl>
                       <Input disabled={isLoading} type="email" placeholder="email@example.com" {...field} />
                     </FormControl>
@@ -482,13 +514,13 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="channels"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.channels", "Προτίμηση επικοινωνίας")}</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.channels", "Προτίμηση επικοινωνίας")}</FormLabel>
                   <FormControl>
                     <MultiSelect
                       options={CHANNEL_OPTIONS}
                       value={field.value || []}
                       onChange={field.onChange}
-                      placeholder={t("CrmForm.fields.channelsPlaceholder", "Επιλέξτε κανάλια")}
+                      placeholder={t("crm.CrmForm.fields.channelsPlaceholder", "Επιλέξτε κανάλια")}
                     />
                   </FormControl>
                   <FormMessage />
@@ -501,7 +533,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="language"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.language", "Γλώσσα")}</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.language", "Γλώσσα")}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value || "el"}>
                     <FormControl>
                       <SelectTrigger>
@@ -529,9 +561,9 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="afm"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.afm", "ΑΦΜ")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.afm", "ΑΦΜ")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder={t("CrmForm.fields.afmPlaceholder", "9 ψηφία")} maxLength={9} {...field} />
+                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.afmPlaceholder", "9 ψηφία")} maxLength={9} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -542,11 +574,11 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="doy"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.doy", "ΔΟΥ")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.doy", "ΔΟΥ")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t("CrmForm.fields.doyPlaceholder", "Επιλέξτε ΔΟΥ")} />
+                          <SelectValue placeholder={t("crm.CrmForm.fields.doyPlaceholder", "Επιλέξτε ΔΟΥ")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -566,7 +598,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="id_doc"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.idDoc", "ΑΔΤ/Διαβατήριο")}</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.idDoc", "ΑΔΤ/Διαβατήριο")}</FormLabel>
                   <FormControl>
                     <Input disabled={isLoading} placeholder="Αριθμός ταυτότητας" {...field} />
                   </FormControl>
@@ -581,9 +613,9 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="company_gemi"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.companyGemi", "ΓΕΜΗ")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.companyGemi", "ΓΕΜΗ")}</FormLabel>
                     <FormControl>
-                      <Input disabled={isLoading} placeholder={t("CrmForm.fields.companyGemiPlaceholder", "Αριθμός ΓΕΜΗ")} {...field} />
+                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.companyGemiPlaceholder", "Αριθμός ΓΕΜΗ")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -601,19 +633,19 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="purpose"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.purpose", "Σκοπός ακινήτου")}</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.purpose", "Σκοπός ακινήτου")}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("CrmForm.fields.purposePlaceholder", "Επιλέξτε σκοπό")} />
+                        <SelectValue placeholder={t("crm.CrmForm.fields.purposePlaceholder", "Επιλέξτε σκοπό")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="RESIDENTIAL">{t("CrmForm.purpose.RESIDENTIAL", "Κατοικία")}</SelectItem>
-                      <SelectItem value="COMMERCIAL">{t("CrmForm.purpose.COMMERCIAL", "Επαγγελματικό")}</SelectItem>
-                      <SelectItem value="LAND">{t("CrmForm.purpose.LAND", "Γη")}</SelectItem>
-                      <SelectItem value="PARKING">{t("CrmForm.purpose.PARKING", "Χώρος Parking")}</SelectItem>
-                      <SelectItem value="OTHER">{t("CrmForm.purpose.OTHER", "Άλλο")}</SelectItem>
+                      <SelectItem value="RESIDENTIAL">{t("crm.CrmForm.purpose.RESIDENTIAL", "Κατοικία")}</SelectItem>
+                      <SelectItem value="COMMERCIAL">{t("crm.CrmForm.purpose.COMMERCIAL", "Επαγγελματικό")}</SelectItem>
+                      <SelectItem value="LAND">{t("crm.CrmForm.purpose.LAND", "Γη")}</SelectItem>
+                      <SelectItem value="PARKING">{t("crm.CrmForm.purpose.PARKING", "Χώρος Parking")}</SelectItem>
+                      <SelectItem value="OTHER">{t("crm.CrmForm.purpose.OTHER", "Άλλο")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -624,21 +656,35 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
             <FormField
               control={form.control}
               name="areas_of_interest"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("CrmForm.fields.areas", "Περιοχές ενδιαφέροντος")}</FormLabel>
-                  <FormControl>
-                    <Input disabled={isLoading} placeholder="Π.χ. Κέντρο, Νότια Προάστια" {...field} 
-                      onChange={(e) => {
-                        const areas = e.target.value.split(",").map(a => a.trim()).filter(Boolean);
-                        field.onChange(areas);
-                      }}
-                      value={field.value?.join(", ") || ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Ensure field.value is always an array
+                let valueArray: string[] = [];
+                if (Array.isArray(field.value)) {
+                  valueArray = field.value;
+                } else if (typeof field.value === 'string' && field.value) {
+                  valueArray = [field.value];
+                }
+                
+                const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  const areas = e.target.value.split(",").map(a => a.trim()).filter(Boolean);
+                  field.onChange(areas);
+                };
+                
+                return (
+                  <FormItem>
+                    <FormLabel>{t("crm.CrmForm.fields.areas", "Περιοχές ενδιαφέροντος")}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        disabled={isLoading} 
+                        placeholder="Π.χ. Κέντρο, Νότια Προάστια"
+                        onChange={handleChange}
+                        value={valueArray.join(", ") || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -647,7 +693,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="budget_min"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.budgetMin", "Ελάχιστος προϋπολογισμός")} (€)</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.budgetMin", "Ελάχιστος προϋπολογισμός")} (€)</FormLabel>
                     <FormControl>
                       <Input disabled={isLoading} type="number" placeholder="0" {...field} 
                         onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
@@ -663,7 +709,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                 name="budget_max"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.budgetMax", "Μέγιστος προϋπολογισμός")} (€)</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.budgetMax", "Μέγιστος προϋπολογισμός")} (€)</FormLabel>
                     <FormControl>
                       <Input disabled={isLoading} type="number" placeholder="0" {...field}
                         onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
@@ -681,18 +727,18 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="timeline"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.timeline", "Πότε;")}</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.timeline", "Πότε;")}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("CrmForm.fields.timelinePlaceholder", "Επιλέξτε χρονοδιάγραμμα")} />
+                        <SelectValue placeholder={t("crm.CrmForm.fields.timelinePlaceholder", "Επιλέξτε χρονοδιάγραμμα")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="IMMEDIATE">{t("CrmForm.timeline.IMMEDIATE", "Άμεσα")}</SelectItem>
-                      <SelectItem value="ONE_THREE_MONTHS">{t("CrmForm.timeline.ONE_THREE_MONTHS", "1-3 μήνες")}</SelectItem>
-                      <SelectItem value="THREE_SIX_MONTHS">{t("CrmForm.timeline.THREE_SIX_MONTHS", "3-6 μήνες")}</SelectItem>
-                      <SelectItem value="SIX_PLUS_MONTHS">{t("CrmForm.timeline.SIX_PLUS_MONTHS", "6+ μήνες")}</SelectItem>
+                      <SelectItem value="IMMEDIATE">{t("crm.CrmForm.timeline.IMMEDIATE", "Άμεσα")}</SelectItem>
+                      <SelectItem value="ONE_THREE_MONTHS">{t("crm.CrmForm.timeline.ONE_THREE_MONTHS", "1-3 μήνες")}</SelectItem>
+                      <SelectItem value="THREE_SIX_MONTHS">{t("crm.CrmForm.timeline.THREE_SIX_MONTHS", "3-6 μήνες")}</SelectItem>
+                      <SelectItem value="SIX_PLUS_MONTHS">{t("crm.CrmForm.timeline.SIX_PLUS_MONTHS", "6+ μήνες")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -719,17 +765,17 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="financing_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.financingType", "Τύπος χρηματοδότησης")}</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.financingType", "Τύπος χρηματοδότησης")}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("CrmForm.fields.financingTypePlaceholder", "Επιλέξτε τύπο")} />
+                        <SelectValue placeholder={t("crm.CrmForm.fields.financingTypePlaceholder", "Επιλέξτε τύπο")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="CASH">{t("CrmForm.financingType.CASH", "Μετρητά")}</SelectItem>
-                      <SelectItem value="MORTGAGE">{t("CrmForm.financingType.MORTGAGE", "Στεγαστικό")}</SelectItem>
-                      <SelectItem value="PREAPPROVAL_PENDING">{t("CrmForm.financingType.PREAPPROVAL_PENDING", "Εκκρεμεί προέγκριση")}</SelectItem>
+                      <SelectItem value="CASH">{t("crm.CrmForm.financingType.CASH", "Μετρητά")}</SelectItem>
+                      <SelectItem value="MORTGAGE">{t("crm.CrmForm.financingType.MORTGAGE", "Στεγαστικό")}</SelectItem>
+                      <SelectItem value="PREAPPROVAL_PENDING">{t("crm.CrmForm.financingType.PREAPPROVAL_PENDING", "Εκκρεμεί προέγκριση")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -742,7 +788,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="preapproval_bank"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.preapprovalBank", "Τράπεζα προέγκρισης")}</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.preapprovalBank", "Τράπεζα προέγκρισης")}</FormLabel>
                   <FormControl>
                     <Input disabled={isLoading} placeholder="Όνομα τράπεζας" {...field} />
                   </FormControl>
@@ -760,7 +806,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>{t("CrmForm.fields.needsMortgageHelp", "Χρειάζεται βοήθεια με στεγαστικό")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.needsMortgageHelp", "Χρειάζεται βοήθεια με στεγαστικό")}</FormLabel>
                   </div>
                 </FormItem>
               )}
@@ -771,7 +817,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.notes", "Σημειώσεις")}</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.notes", "Σημειώσεις")}</FormLabel>
                   <FormControl>
                     <Textarea disabled={isLoading} placeholder="Επιπλέον σημειώσεις..." {...field} />
                   </FormControl>
@@ -794,7 +840,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>{t("CrmForm.fields.gdprConsent", "Συναίνεση GDPR")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.gdprConsent", "Συναίνεση GDPR")}</FormLabel>
                   </div>
                 </FormItem>
               )}
@@ -809,7 +855,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>{t("CrmForm.fields.allowMarketing", "Επιτρέπω μάρκετινγκ")}</FormLabel>
+                    <FormLabel>{t("crm.CrmForm.fields.allowMarketing", "Επιτρέπω μάρκετινγκ")}</FormLabel>
                   </div>
                 </FormItem>
               )}
@@ -820,19 +866,19 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="lead_source"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.leadSource", "Πηγή")}</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.leadSource", "Πηγή")}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t("CrmForm.fields.leadSourcePlaceholder", "Πώς μας βρήκετε;")} />
+                        <SelectValue placeholder={t("crm.CrmForm.fields.leadSourcePlaceholder", "Πώς μας βρήκετε;")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="REFERRAL">{t("CrmForm.leadSource.REFERRAL", "Σύσταση")}</SelectItem>
-                      <SelectItem value="WEB">{t("CrmForm.leadSource.WEB", "Ιστοσελίδα")}</SelectItem>
-                      <SelectItem value="PORTAL">{t("CrmForm.leadSource.PORTAL", "Πύλη")}</SelectItem>
-                      <SelectItem value="WALK_IN">{t("CrmForm.leadSource.WALK_IN", "Προσωπική επίσκεψη")}</SelectItem>
-                      <SelectItem value="SOCIAL">{t("CrmForm.leadSource.SOCIAL", "Κοινωνικά δίκτυα")}</SelectItem>
+                      <SelectItem value="REFERRAL">{t("crm.CrmForm.leadSource.REFERRAL", "Σύσταση")}</SelectItem>
+                      <SelectItem value="WEB">{t("crm.CrmForm.leadSource.WEB", "Ιστοσελίδα")}</SelectItem>
+                      <SelectItem value="PORTAL">{t("crm.CrmForm.leadSource.PORTAL", "Πύλη")}</SelectItem>
+                      <SelectItem value="WALK_IN">{t("crm.CrmForm.leadSource.WALK_IN", "Προσωπική επίσκεψη")}</SelectItem>
+                      <SelectItem value="SOCIAL">{t("crm.CrmForm.leadSource.SOCIAL", "Κοινωνικά δίκτυα")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -845,7 +891,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               name="assigned_to"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.agentOwner", "Ανατεθειμένος πράκτορας")} *</FormLabel>
+                  <FormLabel>{t("crm.CrmForm.fields.agentOwner", "Ανατεθειμένος πράκτορας")} *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -879,7 +925,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
           {/* Progress Bar */}
           <div className="pb-6">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xl font-semibold">{t("CrmForm.title", "Νέος Πελάτης")}</h2>
+              <h2 className="text-xl font-semibold">{t("crm.CrmForm.title", "Νέος Πελάτης")}</h2>
               <AutosaveIndicator status={autosaveStatus} />
             </div>
             <ProgressBar steps={STEPS} currentStep={currentStep} />
@@ -904,15 +950,15 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               onClick={handlePrevious}
               disabled={currentStep === 1 || isLoading}
             >
-              {t("CrmForm.buttons.previous", "Προηγούμενο")}
+              {t("crm.CrmForm.buttons.previous", "Προηγούμενο")}
             </Button>
             {currentStep < STEPS.length ? (
               <Button type="button" onClick={handleNext} disabled={isLoading}>
-                {t("CrmForm.buttons.next", "Επόμενο")}
+                {t("crm.CrmForm.buttons.next", "Επόμενο")}
               </Button>
             ) : (
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Δημιουργία..." : t("CrmForm.buttons.submit", "Δημιουργία Πελάτη")}
+                {isLoading ? "Δημιουργία..." : t("crm.CrmForm.buttons.submit", "Δημιουργία Πελάτη")}
               </Button>
             )}
           </div>

@@ -84,6 +84,7 @@ model Clients {
   watchers             String[]
   watching_users       Users[]            @relation("watching_accounts")
   linked_properties    Client_Properties[]
+  linkedEvents         CalComEvent[]      @relation("EventToClients")
 
   // Performance indexes for frequently queried fields
   @@index([client_status])
@@ -291,10 +292,29 @@ model Documents {
   documents_type         Documents_Types?    @relation(fields: [document_type], references: [id])
   document_system_type   DocumentSystemType? @default(OTHER)
 
+  // Papermark integration fields
+  shareableLink           String?             @unique
+  linkEnabled            Boolean             @default(false)
+  passwordProtected      Boolean             @default(false)
+  passwordHash           String?
+  expiresAt              DateTime?
+  linkedPropertiesIds    String[]
+  linkedProperties        Properties[]       @relation("DocumentsToProperties")
+  linkedCalComEventsIds  String[]
+  linkedCalComEvents      CalComEvent[]      @relation("DocumentsToCalComEvents")
+  linkedTasksIds         String[]
+  linkedTasks             crm_Accounts_Tasks[] @relation("DocumentsToTasksExplicit")
+  mentions                Json?              // Merged mentions: {clients: [...], properties: [...], events: [...], tasks: [...]}
+  viewsCount              Int                 @default(0)
+  lastViewedAt           DateTime?
+  views                   DocumentView[]
+
   // Performance indexes for frequently queried fields
   @@index([date_created])
   @@index([assigned_user])
   @@index([created_by_user])
+  @@index([shareableLink])
+  @@index([linkEnabled])
 }
 
 enum DocumentSystemType {
@@ -334,10 +354,14 @@ model crm_Accounts_Tasks {
   user          String?
   comments      crm_Accounts_Tasks_Comments[] @relation("CommentsToCrmTasks")
   documents     Documents[]                 @relation("DocumentsToCrmAccountsTasks")
+  linkedDocuments Documents[]              @relation("DocumentsToTasksExplicit")
   assigned_user Users?                      @relation(fields: [user], references: [id])
   //CRM assigments
   account       String?
   crm_accounts  Clients?                    @relation(fields: [account], references: [id])
+  // Cal.com integration
+  calcomEventId String?
+  calcomEvent   CalComEvent?                 @relation(fields: [calcomEventId], references: [id])
 }
 
 model crm_Accounts_Tasks_Comments {
@@ -395,8 +419,10 @@ model Users {
   watching_accountsIDs String[]
   watching_accounts    Clients[]             @relation("watching_accounts")
   watching_propertiesIDs String[]
-  watching_properties  Properties[]          @relation("watching_properties")
+  watching_properties  Properties[]            @relation("watching_properties")
   feedback             Feedback[]
+  
+  documentViews        DocumentView[]
 
   // Performance indexes for frequently queried fields
   @@index([userStatus])
@@ -531,6 +557,8 @@ model Properties {
   watchers             String[]
   watching_users       Users[]      @relation("watching_properties")
   linked_clients       Client_Properties[]
+  linkedDocuments      Documents[]  @relation("DocumentsToProperties")
+  linkedEvents         CalComEvent[] @relation("EventToProperties")
 
   // Performance indexes for frequently queried fields
   @@index([property_status])
@@ -695,4 +723,56 @@ model Feedback {
   @@index([createdAt])
   @@index([feedbackType])
   @@index([organizationId])
+}
+
+// Calendar Events Model
+model CalComEvent {
+  id              String   @id @default(uuid())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  calcomEventId   Int      @unique // Unique event ID
+  calcomUserId    Int      @default(0) // Not used anymore, kept for compatibility
+  organizationId  String?  // Organization context
+  
+  // Event details
+  title           String?
+  description     String?  @db.Text
+  startTime       DateTime
+  endTime         DateTime
+  location        String?
+  status          String?  // scheduled, cancelled, completed
+  
+  // CRM Relations
+  eventType       String?  // "property_viewing", "client_consultation", etc.
+  attendeeEmail   String?  // For client bookings
+  attendeeName    String?  // For client bookings
+  notes           String?  @db.Text
+  
+  // Relations
+  linkedTasks     crm_Accounts_Tasks[]
+  linkedDocuments Documents[]  @relation("DocumentsToCalComEvents")
+  linkedClients   Clients[]     @relation("EventToClients")
+  linkedProperties Properties[] @relation("EventToProperties")
+  
+  @@index([calcomEventId])
+  @@index([organizationId])
+  @@index([startTime])
+  @@index([eventType])
+}
+
+// Document analytics - tracks views for Papermark-style analytics
+model DocumentView {
+  id          String    @id @default(uuid())
+  documentId  String
+  document    Documents @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  viewedAt    DateTime  @default(now())
+  viewerIp    String?
+  viewerUserAgent String?  @db.Text
+  viewerUserId String?
+  viewerUser  Users?    @relation(fields: [viewerUserId], references: [id], onDelete: SetNull)
+  
+  @@index([documentId])
+  @@index([viewedAt])
+  @@index([viewerUserId])
 }

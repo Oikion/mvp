@@ -1,0 +1,21 @@
+{
+  "inviteUser": {
+    "previewText": "You have been invited by {invitedBy} to Oikion app",
+    "heading": "You have been invited to cooperate on something special",
+    "hello": "Hello {username},",
+    "invitedBy": "{invitedBy} has invited you to the",
+    "appName": "app:",
+    "acceptInvitation": "To accept this invitation, click the button below. And use this password to login:",
+    "joinTeam": "Join the team",
+    "orCopyUrl": "or copy and paste this URL into your browser:",
+    "invitationIntended": "This invitation was intended for",
+    "notExpecting": "If you were not expecting this invitation, you can ignore this email. If you are concerned about your account's safety, please reply to this email to get in touch with us."
+  },
+  "passwordReset": {
+    "subject": "Oikion - Password reset"
+  },
+  "adminMessage": {
+    "contactEmail": "info@oikion.dev"
+  }
+}
+

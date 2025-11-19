@@ -32,15 +32,18 @@ export const columns: ColumnDef<Account>[] = [
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.assignedTo")} />
     },
 
-    cell: ({ row }) => (
-      <div className="w-[150px]">
-        {
-          //@ts-ignore
-          //TODO: fix this
-          row.getValue("assigned_to_user")?.name ?? t("CrmAccountsTable.unassigned")
-        }
-      </div>
-    ),
+    cell: ({ row }) => {
+      const t = useTranslations();
+      return (
+        <div className="w-[150px]">
+          {
+            //@ts-ignore
+            //TODO: fix this
+            row.getValue("assigned_to_user")?.name ?? t("CrmAccountsTable.unassigned")
+          }
+        </div>
+      );
+    },
     enableSorting: true,
     enableHiding: true,
   },

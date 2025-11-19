@@ -1,0 +1,68 @@
+{
+  "ModuleMenu": {
+    "dashboard": "Dashboard",
+    "crm": {
+      "title": "Clients",
+      "accounts": "Clients",
+      "opportunities": "Opportunities",
+      "contacts": "Client Contacts",
+      "leads": "Leads",
+      "contracts": "Contracts"
+    },
+    "mls": {
+      "title": "Properties",
+      "properties": "Properties"
+    },
+    "emails": "E-mails",
+    "tasks": "Tasks",
+    "invoices": "Invoices",
+    "reports": "Reports",
+    "documents": "Documents",
+    "storage": "Storage",
+    "settings": "Administration",
+    "employees": "Employees",
+    "chatGPT": "ChatGPT",
+    "feedback": "Feedback",
+    "calendar": "Calendar"
+  },
+  "Navigation": {
+    "upgradeToPro": "Upgrade to Pro",
+    "account": "Account",
+    "billing": "Billing",
+    "notifications": "Notifications",
+    "theme": "Theme",
+    "language": "Language",
+    "logOut": "Log out",
+    "languageChanged": "Language changed to {language}",
+    "languageChangeFailed": "Failed to change language",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "pearlSand": "Pearl Sand",
+      "twilightLavender": "Twilight Lavender",
+      "system": "System"
+    },
+    "languages": {
+      "en": "English",
+      "cz": "Czech",
+      "de": "German",
+      "uk": "Ukrainian",
+      "el": "Greek"
+    }
+  },
+  "Command": {
+    "press": "Press",
+    "placeholder": "Type a command or search...",
+    "noResults": "No results found.",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "profileSettings": "Profile settings",
+    "logout": "Logout"
+  },
+  "AvatarDropdown": {
+    "todoDashboard": "Todo dashboard",
+    "profileSettings": "Profile settings",
+    "signOut": "Sign out"
+  }
+}
+

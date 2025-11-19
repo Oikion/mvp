@@ -32,7 +32,7 @@ import { useToast } from "@/components/ui/use-toast";
 import fetcher from "@/lib/fetcher";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { crm_Accounts } from "@prisma/client";
+import { Clients } from "@prisma/client";
 import axios from "axios";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -45,7 +45,7 @@ import useSWR from "swr";
 import { z } from "zod";
 
 interface NewTaskFormProps {
-  account: crm_Accounts | null;
+  account: Clients | null;
   onFinish: () => void;
 }
 

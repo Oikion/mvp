@@ -10,14 +10,61 @@ import { useToast } from "@/components/ui/use-toast";
 import { useTranslations } from "next-intl";
 import axios from "axios";
 
+// Hook to detect if any dialog/modal is open
+function useIsModalOpen() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const checkForOpenModals = () => {
+      // Check for Radix UI Dialog overlays with data-state="open"
+      const dialogOverlays = document.querySelectorAll('[data-radix-dialog-overlay][data-state="open"]');
+      // Check for AlertModal or other modal components
+      const alertModals = document.querySelectorAll('[role="dialog"]');
+      
+      const hasOpenModal = 
+        dialogOverlays.length > 0 || 
+        Array.from(alertModals).some(el => {
+          const style = globalThis.getComputedStyle(el);
+          return style.display !== 'none' && style.visibility !== 'hidden';
+        });
+      
+      setIsModalOpen(hasOpenModal);
+    };
+
+    // Check initially
+    checkForOpenModals();
+
+    // Use MutationObserver to watch for changes
+    const observer = new MutationObserver(checkForOpenModals);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-state', 'style', 'class'],
+    });
+
+    // Also check periodically as a fallback
+    const interval = setInterval(checkForOpenModals, 100);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+    };
+  }, []);
+
+  return isModalOpen;
+}
+
 export function FloatingQuickAddButtons() {
   const pathname = usePathname();
   const { toast } = useToast();
-  const t = useTranslations();
+  const tCommon = useTranslations("common");
+  const tCrm = useTranslations("crm");
+  const tMls = useTranslations("mls");
   const [clientOpen, setClientOpen] = useState(false);
   const [propertyOpen, setPropertyOpen] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
+  const isModalOpen = useIsModalOpen();
 
   // Determine if we should show CRM or MLS buttons
   const isCrmRoute = pathname?.includes("/crm");
@@ -31,8 +78,6 @@ export function FloatingQuickAddButtons() {
         setUsers(response.data || []);
       } catch (error) {
         console.error("Failed to fetch users:", error);
-      } finally {
-        setLoadingUsers(false);
       }
     };
     fetchUsers();
@@ -42,17 +87,22 @@ export function FloatingQuickAddButtons() {
     return null;
   }
 
+  // Hide quick-add buttons when any modal is open
+  if (isModalOpen) {
+    return null;
+  }
+
   return (
     <>
       {isCrmRoute && (
         <>
           <Button
             onClick={() => setClientOpen(true)}
-            className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
+            className="fixed bottom-6 right-6 z-[60] h-14 w-14 rounded-full shadow-lg"
             size="icon"
           >
             <Plus className="h-6 w-6" />
-            <span className="sr-only">{t("QuickAdd.client.title")}</span>
+            <span className="sr-only">{tCrm("QuickAdd.client.title")}</span>
           </Button>
           <QuickAddClient
             open={clientOpen}
@@ -61,8 +111,8 @@ export function FloatingQuickAddButtons() {
             onContinueToFull={(clientId) => {
               toast({
                 variant: "success",
-                title: t("common.success"),
-                description: t("common.clientCreated"),
+                title: tCommon("success"),
+                description: tCommon("clientCreated"),
               });
               // Could navigate to edit page here if needed
             }}
@@ -74,11 +124,11 @@ export function FloatingQuickAddButtons() {
         <>
           <Button
             onClick={() => setPropertyOpen(true)}
-            className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
+            className="fixed bottom-6 right-6 z-[60] h-14 w-14 rounded-full shadow-lg"
             size="icon"
           >
             <Plus className="h-6 w-6" />
-            <span className="sr-only">{t("QuickAdd.property.title")}</span>
+            <span className="sr-only">{tMls("QuickAdd.property.title")}</span>
           </Button>
           <QuickAddProperty
             open={propertyOpen}
@@ -87,8 +137,8 @@ export function FloatingQuickAddButtons() {
             onContinueToFull={(propertyId) => {
               toast({
                 variant: "success",
-                title: t("common.success"),
-                description: t("common.propertyCreated"),
+                title: tCommon("success"),
+                description: tCommon("propertyCreated"),
               });
               // Could navigate to edit page here if needed
             }}

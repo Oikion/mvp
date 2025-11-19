@@ -1,0 +1,38 @@
+{
+  "title": "Feedback",
+  "versionInfo": {
+    "title": "Version {version}",
+    "description": "This is the very first version of Oikion. As we're just getting started, some actions might not work perfectly or could cause unexpected results. If you encounter any issues, please let us know through this feedback form. Your patience and feedback help us improve the app for everyone."
+  },
+  "fields": {
+    "feedbackType": "What type of feedback is this?",
+    "feedbackTypePlaceholder": "Select feedback type",
+    "feedback": "Your Feedback",
+    "feedbackPlaceholder": "Please share your thoughts, report a bug, suggest a feature, or ask a question..."
+  },
+  "types": {
+    "bug": "Bug Report",
+    "feature": "Feature Request",
+    "general": "General Feedback",
+    "question": "Question",
+    "other": "Other"
+  },
+  "descriptions": {
+    "feedbackType": "Choose the category that best describes your feedback",
+    "feedback": "Be as detailed as possible so we can better understand and address your feedback"
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "submit": "Submit Feedback",
+    "sending": "Sending..."
+  },
+  "messages": {
+    "success": "Thank you for your feedback. We appreciate your help in making Oikion better!",
+    "error": "Something went wrong. Please try again later."
+  },
+  "validation": {
+    "feedbackTypeRequired": "Please select a feedback type.",
+    "feedbackRequired": "Feedback must be at least 10 characters."
+  }
+}
+

@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { EditPropertyForm } from "./EditPropertyForm";
+import { CreateBookingButton } from "@/components/calendar/CreateBookingButton";
 
 export default function PropertyView({ data }: { data: any }) {
   const [open, setOpen] = useState(false);
@@ -25,7 +26,14 @@ export default function PropertyView({ data }: { data: any }) {
         <div>
           <CardTitle>{data.property_name}</CardTitle>
         </div>
-        <div>
+        <div className="flex gap-2">
+          <CreateBookingButton
+            propertyId={data.id}
+            eventType="property-viewing"
+            prefilledData={{
+              notes: `Property: ${data.property_name}${data.address_street ? ` - ${data.address_street}` : ''}`,
+            }}
+          />
           <Sheet open={open} onOpenChange={() => setOpen(false)}>
             <Button onClick={() => setOpen(true)}>Edit</Button>
             <SheetContent className="min-w-[900px] space-y-2">

@@ -1,8 +1,11 @@
 import { prismadb } from "@/lib/prisma";
+import { getCurrentOrgId } from "@/lib/get-current-user";
 
 export const getAccountsByContactId = async (contactId: string) => {
-  const data = await prismadb.crm_Accounts.findMany({
+  const organizationId = await getCurrentOrgId();
+  const data = await prismadb.clients.findMany({
     where: {
+      organizationId,
       contacts: {
         some: {
           id: contactId,
@@ -17,8 +20,8 @@ export const getAccountsByContactId = async (contactId: string) => {
       },
       contacts: {
         select: {
-          first_name: true,
-          last_name: true,
+          contact_first_name: true,
+          contact_last_name: true,
         },
       },
     },

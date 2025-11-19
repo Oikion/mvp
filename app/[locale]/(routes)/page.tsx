@@ -77,28 +77,28 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
 
     return (
       <Container
-        title={dict.DashboardPage.containerTitle}
-        description={dict.DashboardPage.containerDescription}
+        title={dict.dashboard.containerTitle}
+        description={dict.dashboard.containerDescription}
       >
         <div className="space-y-8">
           {/* Section 1: At a Glance */}
           <div>
             <h2 className="text-xl font-semibold tracking-tight mb-4">
-              At a Glance
+              {dict.dashboard.atAGlance}
             </h2>
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
           <Suspense fallback={<LoadingBox />}>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {dict.DashboardPage.totalRevenue}
+                  {dict.dashboard.totalRevenue}
                 </CardTitle>
                 <DollarSignIcon className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                     <div className="text-2xl font-bold">{"0"}</div>
                     <CardDescription className="text-xs mt-1">
-                      Total revenue
+                      {dict.dashboard.totalRevenueDescription}
                     </CardDescription>
               </CardContent>
             </Card>
@@ -107,14 +107,14 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {dict.DashboardPage.expectedRevenue}
+                  {dict.dashboard.expectedRevenue}
                 </CardTitle>
                     <TrendingUp className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                     <div className="text-2xl font-bold">{"0"}</div>
                     <CardDescription className="text-xs mt-1">
-                      Expected revenue
+                      {dict.dashboard.expectedRevenueDescription}
                     </CardDescription>
               </CardContent>
             </Card>
@@ -122,7 +122,7 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
 
           <DashboardCard
             href="/admin/users"
-            title={dict.DashboardPage.activeUsers}
+            title={dict.dashboard.activeUsers}
             IconComponent={UserIcon}
             content={users}
           />
@@ -130,13 +130,13 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
               <>
                 <DashboardCard
                   href="/crm/clients"
-                  title={dict.DashboardPage.accounts}
+                  title={dict.dashboard.accounts}
                   IconComponent={LandmarkIcon}
                   content={accounts}
                 />
                 <DashboardCard
                   href="/crm/client-contacts"
-                  title={dict.DashboardPage.contacts}
+                  title={dict.dashboard.contacts}
                   IconComponent={Contact}
                   content={contacts}
                 />
@@ -145,7 +145,7 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
               {employeesModule?.enabled && (
                 <DashboardCard
                   href="/employees"
-                  title={dict.DashboardPage.employees}
+                  title={dict.dashboard.employees}
                   IconComponent={Users2Icon}
                   content={employees.length}
                 />
@@ -156,19 +156,19 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
           {/* Section 2: Recent Activity */}
           <div>
              <h2 className="text-xl font-semibold tracking-tight mb-4">
-              Recent Activity
+              {dict.dashboard.recentActivity}
             </h2>
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
               {crmModule?.enabled && (
                 <QuickViewList
-                  title="Recent Clients"
+                  title={dict.dashboard.recentClients}
                   items={recentClients}
                   viewAllHref="/crm/clients"
                   icon={<Users className="h-5 w-5 text-muted-foreground" />}
                 />
               )}
               <QuickViewList
-                title="Recent Properties"
+                title={dict.dashboard.recentProperties}
                 items={recentProperties}
                 viewAllHref="/mls/properties"
                 icon={<Building2 className="h-5 w-5 text-muted-foreground" />}
@@ -179,21 +179,21 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
           {/* Section 3: Analytics Overview */}
           <div>
             <h2 className="text-xl font-semibold tracking-tight mb-4">
-              Analytics Overview
+              {dict.dashboard.analyticsOverview}
             </h2>
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
               {crmModule?.enabled && clientsByStatus.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Clients by Status</CardTitle>
+                    <CardTitle>{dict.dashboard.clientsByStatus}</CardTitle>
                     <CardDescription>
-                      Distribution of {clientsCount} clients across different statuses
+                      {dict.dashboard.clientsDistribution.replace("{count}", clientsCount.toString())}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <BarChartDemo
                       chartData={clientsByStatus}
-                      title="Clients by Status"
+                      title={dict.dashboard.clientsByStatus}
                     />
                   </CardContent>
                 </Card>
@@ -201,15 +201,15 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
               {propertiesByStatus.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Properties by Status</CardTitle>
+                    <CardTitle>{dict.dashboard.propertiesByStatus}</CardTitle>
                     <CardDescription>
-                      Distribution of {propertiesCount} properties across different statuses
+                      {dict.dashboard.propertiesDistribution.replace("{count}", propertiesCount.toString())}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <BarChartDemo
                       chartData={propertiesByStatus}
-                      title="Properties by Status"
+                      title={dict.dashboard.propertiesByStatus}
                     />
                   </CardContent>
                 </Card>

@@ -1,0 +1,7 @@
+{
+  "cardTitle": "Create new account",
+  "cardDescription": "Create account by login with",
+  "label": "Language",
+  "locale": "{locale, select, de {German} en {English} cz {Czech} uk {Ukrainian} other {Unknown}}"
+}
+

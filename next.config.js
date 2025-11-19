@@ -3,6 +3,8 @@ const withNextIntl = require("next-intl/plugin")(
   "./i18n.ts"
 );
 
+const path = require("path");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -30,7 +32,7 @@ const nextConfig = {
     ],
   },
   turbopack: {
-    root: __dirname,
+    root: path.resolve(__dirname),
   },
 };
 

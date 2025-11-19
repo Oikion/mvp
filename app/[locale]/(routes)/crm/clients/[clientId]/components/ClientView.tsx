@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { UpdateAccountForm } from "../../../accounts/components/UpdateAccountForm";
+import { CreateBookingButton } from "@/components/calendar/CreateBookingButton";
 
 export default function ClientView({ data }: { data: any }) {
   const [open, setOpen] = useState(false);
@@ -25,7 +26,14 @@ export default function ClientView({ data }: { data: any }) {
         <div>
           <CardTitle>{data.client_name}</CardTitle>
         </div>
-        <div>
+        <div className="flex gap-2">
+          <CreateBookingButton
+            clientId={data.id}
+            prefilledData={{
+              name: data.client_name || undefined,
+              email: data.primary_email || undefined,
+            }}
+          />
           <Sheet open={open} onOpenChange={() => setOpen(false)}>
             <Button onClick={() => setOpen(true)}>Edit</Button>
             <SheetContent className="min-w-[900px] space-y-2">

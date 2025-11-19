@@ -1,13 +1,12 @@
 import { prismadb } from "@/lib/prisma";
 
 export const getContact = async (contactId: string) => {
-  const data = await prismadb.crm_Contacts.findFirst({
+  const data = await prismadb.client_Contacts.findFirst({
     where: {
       id: contactId,
     },
     include: {
-      assigned_opportunities: true,
-      assigned_accounts: true,
+      assigned_client: true,
     },
   });
   return data;

@@ -23,13 +23,13 @@ export async function GET(request: Request) {
     const hasTitle = searchParams.has("title");
     const title = hasTitle
       ? searchParams.get("title")?.slice(0, 200)
-      : "NextCRM";
+      : "Oikion";
 
     const hasDescription = searchParams.has("description");
 
     const description = hasDescription
       ? searchParams.get("description")?.slice(0, 200)
-      : "NextCRM is an open source CRM build on top of NextJS. Technology stack: NextJS with Typescrtipt, PostgreSQL, TailwindCSS, React, Prisma, shadCN, resend.com, react.email and more. ";
+      : "Oikion is the operating system for Greek real-estate agencies. MLS, CRM, and Socials in one web app.";
 
     return new ImageResponse(
       (
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
               <SiOpenai size={50} color={"white"} />
             </span>
 
-            <p tw="text-neutral-300 pb-10">https://demo.nextcrm.io</p>
+            <p tw="text-neutral-300 pb-10">{websiteUrl}</p>
           </div>
         </div>
       ),

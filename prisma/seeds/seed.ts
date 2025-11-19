@@ -1,5 +1,6 @@
-//import { PrismaClient } from "@prisma/client";
 const { PrismaClient } = require("@prisma/client");
+const { withAccelerate } = require("@prisma/extension-accelerate");
+
 /*
 Seed data is used to populate the database with initial data.
 */
@@ -13,7 +14,22 @@ const gptModelsData = require("../initial-data/gpt_Models.json");
 // const crmCampaignsData = require("../initial-data/crm_campaigns.json");
 // const crmIndustryTypeData = require("../initial-data/crm_Industry_Type.json");
 
-const prisma = new PrismaClient();
+// Create Prisma client with Accelerate support (same pattern as lib/prisma.ts)
+function createPrismaClient() {
+  const basePrisma = new PrismaClient();
+  
+  // Add Accelerate extension if DATABASE_URL uses Prisma Accelerate connection string
+  const databaseUrl = process.env.DATABASE_URL || "";
+  const isAccelerateConnection = databaseUrl.startsWith("prisma://") || databaseUrl.startsWith("prisma+postgres://");
+  
+  if (isAccelerateConnection) {
+    return basePrisma.$extends(withAccelerate());
+  }
+  
+  return basePrisma;
+}
+
+const prisma = createPrismaClient();
 
 async function main() {
   // Your seeding logic here using Prisma Client
@@ -84,6 +100,7 @@ async function main() {
   } else {
     console.log("GPT Models already seeded");
   }
+
 
   console.log("-------- Seed DB completed --------");
 }

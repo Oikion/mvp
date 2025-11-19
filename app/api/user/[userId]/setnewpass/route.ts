@@ -24,7 +24,7 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
     return new NextResponse("Passwords do not match", { status: 400 });
   }
 
-  if (user.email === "demo@nextcrm.io") {
+  if (user.email === "demo@oikion.dev") {
     return new NextResponse(
       "Hey, don't be a fool! There are so many works done! Thanks!",
       {

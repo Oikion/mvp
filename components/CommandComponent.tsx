@@ -61,30 +61,30 @@ export function CommandComponent() {
   return (
     <div className="hidden lg:block">
       <p className="text-sm text-muted-foreground">
-        {t("Command.press")}{" "}
+        {t("navigation.Command.press")}{" "}
         <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
           <span className="text-xs">⌘</span>J
         </kbd>
       </p>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder={t("Command.placeholder")} />
+        <CommandInput placeholder={t("navigation.Command.placeholder")} />
         <CommandList>
-          <CommandEmpty>{t("Command.noResults")}</CommandEmpty>
+          <CommandEmpty>{t("navigation.Command.noResults")}</CommandEmpty>
           <CommandSeparator />
-          <CommandGroup heading={t("Command.settings")}>
+          <CommandGroup heading={t("navigation.Command.settings")}>
             <CommandItem onClick={() => redirect("/")}>
               <User className="mr-2 h-4 w-4" />
-              <span>{t("Command.dashboard")}</span>
+              <span>{t("navigation.Command.dashboard")}</span>
               <CommandShortcut>Shift + ⌘ + D</CommandShortcut>
             </CommandItem>
             <CommandItem onClick={() => redirect("/profile")}>
               <Settings className="mr-2 h-4 w-4" />
-              <span>{t("Command.profileSettings")}</span>
+              <span>{t("navigation.Command.profileSettings")}</span>
               <CommandShortcut>Shift + ⌘ + P</CommandShortcut>
             </CommandItem>
             <CommandItem onClick={() => signOut()}>
               <LogOut className="mr-2 h-4 w-4" />
-              <span>{t("Command.logout")}</span>
+              <span>{t("navigation.Command.logout")}</span>
               <CommandShortcut>⌘k</CommandShortcut>
             </CommandItem>
           </CommandGroup>

@@ -1,7 +1,7 @@
 {
   "RootLayout": {
-    "title": "NextCRM",
-    "description": "Το NextCRM είναι ένα open source CRM χτισμένο πάνω στο NextJS."
+    "title": "Oikion",
+    "description": "Το Oikion είναι το λειτουργικό σύστημα για τα μεσιτικά γραφεία της Ελλάδας. MLS, CRM και Socials σε μια εφαρμογή."
   },
   "CrmClientsPage": {
     "description": "Διαχειριστείτε τους πελάτες σας"
@@ -40,11 +40,12 @@
     "settings": "Διαχείριση",
     "employees": "Υπάλληλοι",
     "chatGPT": "ChatGPT",
-    "feedback": "Ανατροφοδότηση"
+    "feedback": "Ανατροφοδότηση",
+    "calendar": "Ημερολόγιο"
   },
   "DashboardPage": {
     "containerTitle": "Πίνακας Ελέγχου",
-    "containerDescription": "Καλώς ήρθατε στο NextCRM, εδώ μπορείτε να δείτε όλες τις σημαντικές πληροφορίες για την επιχείρησή σας.",
+    "containerDescription": "Καλώς ήρθατε στο Oikion, εδώ μπορείτε να δείτε όλες τις σημαντικές πληροφορίες για το μεσιτικό γραφείο σας.",
     "totalRevenue": "Συνολικό εισόδημα",
     "expectedRevenue": "Αναμενόμενο εισόδημα",
     "activeUsers": "Ενεργοί χρήστες",
@@ -127,13 +128,13 @@
       "allowMarketing": "Επιτρέπω μάρκετινγκ",
       "leadSource": "Πηγή",
       "leadSourcePlaceholder": "Πώς μας βρήκετε;",
-      "agentOwner": "Ανατεθειμένος πράκτορας"
+      "agentOwner": "Ανατεθειμένος πράκτορας/μεσίτης"
     },
     "personType": {
       "INDIVIDUAL": "Ιδιώτης",
       "COMPANY": "Εταιρεία",
       "INVESTOR": "Επενδυτής",
-      "BROKER": "Μεσίτης"
+      "BROKER": "Μεσίτης/Πράκτορας"
     },
     "intents": {
       "BUY": "Αγορά",
@@ -506,12 +507,12 @@
     "title": "Διαχείριση",
     "accessDenied": "Δεν είστε διαχειριστής, η πρόσβαση δεν επιτρέπεται",
     "accessNotAllowed": "Η πρόσβαση δεν επιτρέπεται",
-    "setupDescription": "Εδώ μπορείτε να ρυθμίσετε την εγκατάσταση NextCRM σας",
+    "setupDescription": "Εδώ μπορείτε να ρυθμίσετε την εγκατάσταση Oikion σας",
     "usersAdministration": "Διαχείριση χρηστών",
     "modulesAdministration": "Διαχείριση modules",
-    "manageUsersDescription": "Εδώ μπορείτε να διαχειριστείτε τους χρήστες του NextCRM σας",
-    "inviteNewUser": "Πρόσκληση νέου χρήστη στο NextCRM",
-    "manageModulesDescription": "Εδώ μπορείτε να διαχειριστείτε τα modules του NextCRM σας"
+    "manageUsersDescription": "Εδώ μπορείτε να διαχειριστείτε τους χρήστες του Oikion σας",
+    "inviteNewUser": "Πρόσκληση νέου χρήστη στο Oikion",
+    "manageModulesDescription": "Εδώ μπορείτε να διαχειριστείτε τα modules του Oikion σας"
   },
   "AvatarDropdown": {
     "todoDashboard": "Πίνακας εργασιών",
@@ -564,6 +565,39 @@
       "feedbackTypeRequired": "Παρακαλούμε επιλέξτε τύπο ανατροφοδότησης.",
       "feedbackRequired": "Η ανατροφοδότηση πρέπει να έχει τουλάχιστον 10 χαρακτήρες."
     }
+  },
+  "SetLanguage": {
+    "selectLanguage": "Επιλέξτε γλώσσα",
+    "searchLanguage": "Αναζήτηση γλώσσας ...",
+    "noLanguageFound": "Δεν βρέθηκε γλώσσα.",
+    "languageRequired": "Παρακαλούμε επιλέξτε γλώσσα.",
+    "changingLanguage": "Αλλαγή γλώσσας Oikion",
+    "languageChangedTo": "Η γλώσσα χρήστη άλλαξε σε: {language}",
+    "selectLanguagePlaceholder": "Επιλέξτε γλώσσα"
+  },
+  "Email": {
+    "inviteUser": {
+      "previewText": "Έχετε προσκληθεί από τον/την {invitedBy} στην εφαρμογή Oikion",
+      "heading": "Έχετε προσκληθεί να συνεργαστείτε σε κάτι ξεχωριστό",
+      "hello": "Γεια σας {username},",
+      "invitedBy": "Ο/Η {invitedBy} σας προσκάλεσε στην",
+      "appName": "εφαρμογή:",
+      "acceptInvitation": "Για να αποδεχτείτε αυτή την πρόσκληση, κάντε κλικ στο παρακάτω κουμπί. Και χρησιμοποιήστε αυτόν τον κωδικό πρόσβασης για σύνδεση:",
+      "joinTeam": "Ενταξή στην ομάδα",
+      "orCopyUrl": "ή αντιγράψτε και επικολλήστε αυτό το URL στον περιηγητή σας:",
+      "invitationIntended": "Αυτή η πρόσκληση προοριζόταν για",
+      "notExpecting": "Εάν δεν περιμένατε αυτή την πρόσκληση, μπορείτε να αγνοήσετε αυτό το email. Εάν ανησυχείτε για την ασφάλεια του λογαριασμού σας, παρακαλούμε απαντήστε σε αυτό το email για να επικοινωνήσετε μαζί μας."
+    },
+    "passwordReset": {
+      "subject": "Oikion - Επαναφορά κωδικού πρόσβασης"
+    },
+    "adminMessage": {
+      "contactEmail": "info@oikion.dev"
+    }
+  },
+  "Validation": {
+    "assignedAgentRequired": "Ο ανατεθειμένος πράκτορας είναι υποχρεωτικός",
+    "emailInvalid": "Μη έγκυρο email"
   }
 }
 

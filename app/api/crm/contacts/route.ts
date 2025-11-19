@@ -38,9 +38,8 @@ export async function POST(req: Request) {
       type,
     } = body;
 
-    const newContact = await prismadb.crm_Contacts.create({
+    const newContact = await (prismadb as any).crm_Contacts.create({
       data: {
-        v: 0,
         createdBy: userId,
         updatedBy: userId,
         ...(assigned_account !== null && assigned_account !== undefined
@@ -146,12 +145,11 @@ export async function PUT(req: Request) {
       type,
     } = body;
 
-    const newContact = await prismadb.crm_Contacts.update({
+    const newContact = await (prismadb as any).crm_Contacts.update({
       where: {
         id,
       },
       data: {
-        v: 0,
         updatedBy: userId,
         ...(assigned_account !== null && assigned_account !== undefined
           ? {
