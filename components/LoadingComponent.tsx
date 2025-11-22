@@ -1,8 +1,10 @@
+import { Spinner } from "@/components/ui/spinner";
+
 const LoadingComponent = () => {
   return (
-    <div className="flex w-full h-full items-center justify-center gap-5">
-      <span className="border px-4 py-2 rounded-full animate-spin">N</span>
-      <span className="animate-pulse">Loading ...</span>
+    <div className="flex w-full h-full flex-col items-center justify-center gap-4 min-h-[200px]">
+      <Spinner size="xl" />
+      <p className="text-muted-foreground text-sm animate-pulse font-medium">Loading...</p>
     </div>
   );
 };

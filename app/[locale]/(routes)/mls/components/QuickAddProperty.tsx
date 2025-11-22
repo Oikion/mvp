@@ -47,32 +47,36 @@ const createQuickAddSchema = (t: (key: string) => string, tCommon: (key: string)
   plot_size_sqm: z.coerce.number().optional(),
   price: z.coerce.number().min(0, t("PropertyForm.validation.priceRequired")),
   assigned_to: z.string().min(1, tCommon("selectAgent")),
-}).refine(
-  (data) => {
-    return !!(data.area && data.area.length) || !!(data.postal_code && data.postal_code.length);
-  },
-  {
-    path: ["area"],
-    message: t("PropertyForm.validation.areaOrPostalCodeRequired"),
+}).superRefine((data, ctx) => {
+  // Validate area/postal code
+  if (!data.area && !data.postal_code) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: t("PropertyForm.validation.areaOrPostalCodeRequired"),
+      path: ["area"],
+    });
   }
-).refine(
-  (data) => {
-    const isResidentialOrCommercial = ["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE"].includes(data.property_type);
-    const isLand = ["PLOT", "FARM"].includes(data.property_type);
-    
-    if (isResidentialOrCommercial) {
-      return !!(data.size_net_sqm && data.size_net_sqm > 0);
-    }
-    if (isLand) {
-      return !!(data.plot_size_sqm && data.plot_size_sqm > 0);
-    }
-    return true;
-  },
-  {
-    path: ["size_net_sqm"],
-    message: t("PropertyForm.validation.sizeRequired"),
+
+  // Validate size based on type
+  const isResidentialOrCommercial = ["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE"].includes(data.property_type);
+  const isLand = ["PLOT", "FARM"].includes(data.property_type);
+
+  if (isResidentialOrCommercial && (!data.size_net_sqm || data.size_net_sqm <= 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: t("PropertyForm.validation.sizeRequired"),
+      path: ["size_net_sqm"],
+    });
   }
-);
+
+  if (isLand && (!data.plot_size_sqm || data.plot_size_sqm <= 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: t("PropertyForm.validation.sizeRequired"),
+      path: ["plot_size_sqm"],
+    });
+  }
+});
 
 type Props = {
   open: boolean;
@@ -87,7 +91,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
   const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations("mls");
   const tCommon = useTranslations("common");
-  
+
   const quickAddSchema = createQuickAddSchema(t, tCommon);
   type QuickAddFormValues = z.infer<typeof quickAddSchema>;
 
@@ -220,13 +224,13 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
               control={form.control}
               name="municipality"
               render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("PropertyForm.fields.municipality")} *</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} placeholder={t("PropertyForm.fields.municipalityPlaceholder")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                <FormItem>
+                  <FormLabel>{t("PropertyForm.fields.municipality")} *</FormLabel>
+                  <FormControl>
+                    <Input disabled={isLoading} placeholder={t("PropertyForm.fields.municipalityPlaceholder")} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
 

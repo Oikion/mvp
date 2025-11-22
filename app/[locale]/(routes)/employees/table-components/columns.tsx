@@ -120,7 +120,7 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const lastLogin = row.getValue("lastLoginAt") as Date | null | undefined;
       return (
-        <div className="min-w-[150px]">
+        <div className="whitespace-nowrap">
           {lastLogin
             ? moment(lastLogin).format("YYYY/MM/DD HH:mm")
             : "Never"}
@@ -136,7 +136,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Created" />
     ),
     cell: ({ row }) => (
-      <div className="w-[130px]">
+      <div className="whitespace-nowrap">
         {moment(row.getValue("created_on")).format("YYYY/MM/DD")}
       </div>
     ),

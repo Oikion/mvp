@@ -14,7 +14,7 @@ export const columns: ColumnDef<Account>[] = [
   {
     accessorKey: "createdAt",
     header: ({ column }) => {
-      const t = useTranslations();
+      const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.created")} />
     },
     cell: ({ row }) => (
@@ -28,14 +28,14 @@ export const columns: ColumnDef<Account>[] = [
   {
     accessorKey: "assigned_to_user",
     header: ({ column }) => {
-      const t = useTranslations();
+      const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.assignedTo")} />
     },
 
     cell: ({ row }) => {
-      const t = useTranslations();
+      const t = useTranslations("crm");
       return (
-        <div className="w-[150px]">
+        <div className="whitespace-nowrap">
           {
             //@ts-ignore
             //TODO: fix this
@@ -50,13 +50,13 @@ export const columns: ColumnDef<Account>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => {
-      const t = useTranslations();
+      const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.name")} />
     },
 
     cell: ({ row }) => (
       <Link href={`/crm/clients/${row.original?.id}`}>
-        <div className="w-[250px]">
+        <div className="whitespace-nowrap">
           {
             //@ts-ignore
             //TODO: fix this
@@ -71,23 +71,25 @@ export const columns: ColumnDef<Account>[] = [
   {
     accessorKey: "email",
     header: ({ column }) => {
-      const t = useTranslations();
+      const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.email")} />
     },
 
-    cell: ({ row }) => <div className="w-[150px]">{row.getValue("email")}</div>,
+    cell: ({ row }) => (
+      <div className="whitespace-nowrap">{row.getValue("email")}</div>
+    ),
     enableSorting: true,
     enableHiding: true,
   },
   {
     accessorKey: "contacts",
     header: ({ column }) => {
-      const t = useTranslations();
+      const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.accountContact")} />
     },
 
     cell: ({ row }) => (
-      <div className="w-[150px]">
+      <div>
         {row.original.contacts?.map(
           (contact: any) => contact.first_name + " " + contact.last_name
         )}
@@ -99,7 +101,7 @@ export const columns: ColumnDef<Account>[] = [
   {
     accessorKey: "status",
     header: ({ column }) => {
-      const t = useTranslations();
+      const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.status")} />
     },
     cell: ({ row }) => {
@@ -112,9 +114,9 @@ export const columns: ColumnDef<Account>[] = [
       }
 
       return (
-        <div className="flex w-[100px] items-center">
+        <div className="flex items-center gap-2 whitespace-nowrap">
           {status.icon && (
-            <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+            <status.icon className="h-4 w-4 text-muted-foreground" />
           )}
           <span>{status.label}</span>
         </div>

@@ -6,11 +6,15 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
   const params = await props.params;
   
   try {
-    await getCurrentUser();
+    const currentUser = await getCurrentUser();
     const { name, username, account_name } = await req.json();
 
     if (!params.userId) {
       return new NextResponse("No user ID provided", { status: 400 });
+    }
+
+    if (currentUser.id !== params.userId && !currentUser.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
     }
 
     const newUserPass = await prismadb.users.update({

@@ -11,6 +11,9 @@ export async function POST(req: Request) {
   
   try {
     const user = await getCurrentUser();
+    if (!user.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
     const body = await req.json();
     const { name, email, language } = body;
 

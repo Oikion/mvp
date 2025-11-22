@@ -1,7 +1,18 @@
 import { prismadb } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+
+import { getCurrentUser } from "@/lib/get-current-user";
 
 //Get all users  for admin module
 export const getUsers = async () => {
+  const { userId } = await auth();
+  if (!userId) return [];
+
+  const currentUser = await getCurrentUser();
+  if (!currentUser?.is_admin) {
+    throw new Error("Forbidden");
+  }
+
   const data = await prismadb.users.findMany({
     orderBy: {
       created_on: "desc",
@@ -12,6 +23,9 @@ export const getUsers = async () => {
 
 //Get active users for Selects in app etc
 export const getActiveUsers = async () => {
+  const { userId } = await auth();
+  if (!userId) return [];
+
   const data = await prismadb.users.findMany({
     where: {
       userStatus: "ACTIVE",
@@ -31,6 +45,9 @@ export const getActiveUsers = async () => {
 
 //Get new users by month for chart
 export const getUsersByMonthAndYear = async (year: number) => {
+  const { userId } = await auth();
+  if (!userId) return {};
+
   const users = await prismadb.users.findMany({
     select: {
       created_on: true,
@@ -66,6 +83,9 @@ export const getUsersByMonthAndYear = async (year: number) => {
 
 //Get new users by month for chart
 export const getUsersByMonth = async () => {
+  const { userId } = await auth();
+  if (!userId) return {};
+
   const users = await prismadb.users.findMany({
     select: {
       created_on: true,
@@ -97,6 +117,9 @@ export const getUsersByMonth = async () => {
 };
 
 export const getUsersCountOverall = async () => {
+  const { userId } = await auth();
+  if (!userId) return [];
+
   const users = await prismadb.users.findMany({
     select: {
       created_on: true,

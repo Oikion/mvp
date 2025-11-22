@@ -13,9 +13,10 @@ export async function GET(
 ) {
   try {
     await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const params = await props.params;
     
-    const document = await getDocument(params.documentId);
+    const document = await getDocument(params.documentId, organizationId);
     
     if (!document) {
       return new NextResponse("Document not found", { status: 404 });
@@ -50,8 +51,8 @@ export async function PUT(
     } = body;
 
     // Get existing document
-    const existingDocument = await prismadb.documents.findUnique({
-      where: { id: params.documentId },
+    const existingDocument = await prismadb.documents.findFirst({
+      where: { id: params.documentId, organizationId },
     });
 
     if (!existingDocument) {
@@ -119,10 +120,11 @@ export async function DELETE(
 ) {
   try {
     await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const params = await props.params;
 
-    const document = await prismadb.documents.findUnique({
-      where: { id: params.documentId },
+    const document = await prismadb.documents.findFirst({
+      where: { id: params.documentId, organizationId },
     });
 
     if (!document) {

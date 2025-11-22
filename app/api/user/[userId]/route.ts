@@ -7,8 +7,11 @@ export async function GET(req: Request, props: { params: Promise<{ userId: strin
   const params = await props.params;
   
   try {
-    await getCurrentUser();
-    
+    const currentUser = await getCurrentUser();
+    if (currentUser.id !== params.userId && !currentUser.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+
     const user = await prismadb.users.findMany({
       where: {
         id: params.userId,
@@ -26,7 +29,10 @@ export async function DELETE(req: Request, props: { params: Promise<{ userId: st
   const params = await props.params;
   
   try {
-    await getCurrentUser();
+    const currentUser = await getCurrentUser();
+    if (!currentUser.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
     
     // First, get the user to retrieve their clerkUserId
     const userToDelete = await prismadb.users.findUnique({

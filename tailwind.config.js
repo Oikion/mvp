@@ -25,11 +25,60 @@ module.exports = {
 			sans: ['var(--font-sans)', 'Inter', 'system-ui', 'sans-serif'],
 		},
   		colors: {
+  			border: 'hsl(var(--border))',
+  			input: 'hsl(var(--input))',
+  			ring: 'hsl(var(--ring))',
+  			background: 'hsl(var(--background))',
+  			foreground: 'hsl(var(--foreground))',
+  			primary: {
+  				DEFAULT: 'hsl(var(--primary))',
+  				foreground: 'hsl(var(--primary-foreground))'
+  			},
+  			secondary: {
+  				DEFAULT: 'hsl(var(--secondary))',
+  				foreground: 'hsl(var(--secondary-foreground))'
+  			},
+  			destructive: {
+  				DEFAULT: 'hsl(var(--destructive))',
+  				foreground: 'hsl(var(--destructive-foreground))'
+  			},
+  			muted: {
+  				DEFAULT: 'hsl(var(--muted))',
+  				foreground: 'hsl(var(--muted-foreground))'
+  			},
+  			accent: {
+  				DEFAULT: 'hsl(var(--accent))',
+  				foreground: 'hsl(var(--accent-foreground))'
+  			},
+  			popover: {
+  				DEFAULT: 'hsl(var(--popover))',
+  				foreground: 'hsl(var(--popover-foreground))'
+  			},
+  			card: {
+  				DEFAULT: 'hsl(var(--card))',
+  				foreground: 'hsl(var(--card-foreground))'
+  			},
+            // Chart colors
+            chart: {
+                1: 'hsl(var(--chart-1))',
+                2: 'hsl(var(--chart-2))',
+                3: 'hsl(var(--chart-3))',
+                4: 'hsl(var(--chart-4))',
+                5: 'hsl(var(--chart-5))',
+            },
+            // Sidebar
+            sidebar: {
+                DEFAULT: 'hsl(var(--sidebar-background))',
+                foreground: 'hsl(var(--sidebar-foreground))',
+                primary: 'hsl(var(--sidebar-primary))',
+                'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+                accent: 'hsl(var(--sidebar-accent))',
+                'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+                border: 'hsl(var(--sidebar-border))',
+                ring: 'hsl(var(--sidebar-ring))',
+            },
 			/**
-			 * Oikion Design System - Surface Colors
-			 * surface-1: Page background (lowest elevation)
-			 * surface-2: Card background (medium elevation)
-			 * surface-3: Elevated card background (highest elevation)
+			 * Oikion Design System - Surface Colors (Legacy Support)
 			 */
 			surface: {
 				1: 'hsl(var(--surface-1))',
@@ -38,7 +87,6 @@ module.exports = {
 			},
 			/**
 			 * State Colors
-			 * error, warning, success, info with foreground variants
 			 */
 			error: {
 				DEFAULT: 'hsl(var(--error))',
@@ -57,8 +105,7 @@ module.exports = {
 				foreground: 'hsl(var(--info-foreground))',
 			},
 			/**
-			 * Button-specific colors - Theme-aware button colors
-			 * These override default colors for buttons to match theme aesthetics
+			 * Button-specific colors (Legacy Support)
 			 */
 			'button-primary': {
 				DEFAULT: 'hsl(var(--button-primary))',
@@ -77,7 +124,7 @@ module.exports = {
 				foreground: 'hsl(var(--button-destructive-foreground))',
 			},
 			/**
-			 * Text Colors
+			 * Text Colors (Legacy Support)
 			 */
 			'text-primary': 'hsl(var(--text-primary))',
 			'text-secondary': 'hsl(var(--text-secondary))',
@@ -138,83 +185,24 @@ module.exports = {
   					strong: '#f9fafb',
   					inverted: '#000000'
   				}
-  			},
-  			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
-  			},
-  			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
-  			},
-  			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
-  			},
-  			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
-  			},
-  			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
-  			},
-  			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
-  			},
-  			sidebar: {
-  				DEFAULT: 'hsl(var(--sidebar-background))',
-  				foreground: 'hsl(var(--sidebar-foreground))',
-  				primary: 'hsl(var(--sidebar-primary))',
-  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-  				accent: 'hsl(var(--sidebar-accent))',
-  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-  				border: 'hsl(var(--sidebar-border))',
-  				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
 		/**
 		 * Oikion Design System - Elevation/Shadow System
-		 * 5 levels of elevation for proper visual hierarchy
-		 * Theme-aware shadows adapt to light/dark modes
 		 */
   		boxShadow: {
 			'elevation-0': 'none',
-			'elevation-1': '0 1px 2px 0 rgba(0, 0, 0, 0.05)', /* Subtle card shadow - light mode */
-			'elevation-2': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)', /* Card */
-			'elevation-3': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)', /* Modal/popover */
-			'elevation-4': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)', /* Top layer */
-			/**
-			 * Skeuomorphic button shadows - Theme-aware
-			 * Light themes: inner shadows only (no outer shadows)
-			 * Dark themes: darker inner shadows only
-			 */
-			'skeuo': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -3px 6px 0 rgba(0, 0, 0, 0.3)', /* Light mode - inner highlight + inner bottom shadow only */
-			'skeuo-secondary': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -2px 4px 0 rgba(0, 0, 0, 0.4)', /* Light mode secondary - reduced bottom shadow with 60% transparency */
-			'dark-skeuo': 'inset 0 -4px 8px 0 rgba(0, 0, 0, 0.95)', /* Dark mode - very dark, highly opaque inner shadow only */
-			'dark-skeuo-secondary': 'inset 0 -3px 6px 0 rgba(0, 0, 0, 0.4)', /* Dark mode secondary - reduced bottom shadow with 60% transparency */
-			/**
-			 * Skeuomorphic shadows for pressed/active state (flatter, inverted appearance)
-			 */
+			'elevation-1': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+			'elevation-2': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+			'elevation-3': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+			'elevation-4': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            // Legacy shadow support
+			'skeuo': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -3px 6px 0 rgba(0, 0, 0, 0.3)', 
+			'skeuo-secondary': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -2px 4px 0 rgba(0, 0, 0, 0.4)',
+			'dark-skeuo': 'inset 0 -4px 8px 0 rgba(0, 0, 0, 0.95)',
+			'dark-skeuo-secondary': 'inset 0 -3px 6px 0 rgba(0, 0, 0, 0.4)',
 			'skeuo-pressed': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.2), inset 0 -1px 2px 0 rgba(255, 255, 255, 0.15)',
 			'dark-skeuo-pressed': 'inset 0 2px 6px 0 rgba(0, 0, 0, 0.8), inset 0 -1px 2px 0 rgba(255, 255, 255, 0.02)',
-			/**
-			 * Dark mode shadows (more intense)
-			 */
-			'dark-elevation-1': '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
-			'dark-elevation-2': '0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4)',
-			'dark-elevation-3': '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5)',
-			'dark-elevation-4': '0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.6)',
 			/**
 			 * Tremor compatibility
 			 */
@@ -227,7 +215,6 @@ module.exports = {
   		},
 		/**
 		 * Oikion Design System - Spacing Scale
-		 * Based on 4px base unit for consistency
 		 */
 		spacing: {
 			'0.5': '0.125rem', /* 2px */
@@ -246,60 +233,26 @@ module.exports = {
 		},
 		/**
 		 * Oikion Design System - Typography Scale
-		 * Typography scale - Uses Inter for all text
 		 */
   		fontSize: {
-			/**
-			 * Heading scales
-			 */
 			'h1': ['3rem', { lineHeight: '1.2', fontWeight: '700' }], /* 48px */
 			'h2': ['2.25rem', { lineHeight: '1.2', fontWeight: '600' }], /* 36px */
 			'h3': ['1.875rem', { lineHeight: '1.3', fontWeight: '600' }], /* 30px */
 			'h4': ['1.5rem', { lineHeight: '1.4', fontWeight: '600' }], /* 24px */
-			/**
-			 * Body text
-			 */
 			'body': ['1rem', { lineHeight: '1.5', fontWeight: '400' }], /* 16px */
 			'caption': ['0.875rem', { lineHeight: '1.4', fontWeight: '400' }], /* 14px */
-			/**
-			 * Tremor compatibility
-			 */
-  			'tremor-label': [
-  				'0.75rem'
-  			],
-  			'tremor-default': [
-  				'0.875rem',
-  				{
-  					lineHeight: '1.25rem'
-  				}
-  			],
-  			'tremor-title': [
-  				'1.125rem',
-  				{
-  					lineHeight: '1.75rem'
-  				}
-  			],
-  			'tremor-metric': [
-  				'1.875rem',
-  				{
-  					lineHeight: '2.25rem'
-  				}
-  			]
+  			'tremor-label': ['0.75rem'],
+  			'tremor-default': ['0.875rem', { lineHeight: '1.25rem' }],
+  			'tremor-title': ['1.125rem', { lineHeight: '1.75rem' }],
+  			'tremor-metric': ['1.875rem', { lineHeight: '2.25rem' }]
   		},
-		/**
-		 * Oikion Design System - Border Radius Scale
-		 * Small: 4px, Medium: 8px, Large: 12px, XL: 16px, 2XL: 24px
-		 */
 		borderRadius: {
-			'sm': '4px', /* Small */
-			'md': '8px', /* Medium */
-			'lg': '12px', /* Large */
-			'xl': '16px', /* XL */
-			'2xl': '24px', /* 2XL */
-			/**
-			 * Dynamic radius based on CSS variable
-			 */
-			'base': 'var(--radius)',
+			'sm': 'calc(var(--radius) - 2px)',
+			'md': 'calc(var(--radius) - 2px)', // Should be roughly 6px if radius is 0.5rem (8px) -> wait, standard is sm/md/lg. Let's stick to variables or rems.
+            'lg': 'var(--radius)',
+            'xl': 'calc(var(--radius) + 4px)',
+            '2xl': 'calc(var(--radius) + 8px)',
+            
 			/**
 			 * Tremor compatibility
 			 */
@@ -309,24 +262,13 @@ module.exports = {
   		},
   		keyframes: {
   			'accordion-down': {
-  				from: {
-  					height: 0
-  				},
-  				to: {
-  					height: 'var(--radix-accordion-content-height)'
-  				}
+  				from: { height: 0 },
+  				to: { height: 'var(--radix-accordion-content-height)' }
   			},
   			'accordion-up': {
-  				from: {
-  					height: 'var(--radix-accordion-content-height)'
-  				},
-  				to: {
-  					height: 0
-  				}
-			},
-			/**
-			 * Oikion Design System - Standard Animations
-			 */
+  				from: { height: 'var(--radix-accordion-content-height)' },
+  				to: { height: 0 }
+  			},
 			fadeIn: {
 				from: { opacity: '0' },
 				to: { opacity: '1' },
@@ -343,35 +285,25 @@ module.exports = {
 				from: { transform: 'translateY(-10px)', opacity: '0' },
 				to: { transform: 'translateY(0)', opacity: '1' },
 			},
+            // New animations
+            "slide-up-fade": {
+                from: { opacity: 0, transform: 'translateY(10px)' },
+                to: { opacity: 1, transform: 'translateY(0)' }
+            },
+            "scale-in": {
+                from: { opacity: 0, transform: 'scale(0.95)' },
+                to: { opacity: 1, transform: 'scale(1)' }
+            }
 		},
-		/**
-		 * Oikion Design System - Transition Durations
-		 * Fast: 150ms, Default: 200ms, Slow: 300ms
-		 */
-		transitionDuration: {
-			'fast': '150ms',
-			'default': '200ms',
-			'slow': '300ms',
-		},
-		/**
-		 * Oikion Design System - Transition Timing Functions
-		 * ease-in-out: default, ease-out: hover, ease-in: active
-		 */
-		transitionTimingFunction: {
-			'ease-in-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
-			'ease-out': 'cubic-bezier(0, 0, 0.2, 1)',
-			'ease-in': 'cubic-bezier(0.4, 0, 1, 1)',
-  		},
-  		animation: {
+		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
 			'accordion-up': 'accordion-up 0.2s ease-out',
-			/**
-			 * Standard transitions for interactive elements
-			 */
 			'fade-in': 'fadeIn 200ms ease-in-out',
 			'fade-out': 'fadeOut 200ms ease-in-out',
 			'slide-up': 'slideUp 200ms ease-out',
 			'slide-down': 'slideDown 200ms ease-out',
+            'slide-up-fade': 'slide-up-fade 0.3s ease-out',
+            'scale-in': 'scale-in 0.2s ease-out',
   		}
   	}
   },

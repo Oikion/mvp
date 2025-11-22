@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { prismaForOrg } from "@/lib/tenant";
 
 export async function POST(req: Request) {
   try {
     await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const body = await req.json();
 
-    const search = body.data;
+    const search = body.data || body.query;
+
+    if (!search || search.length < 2) {
+      return NextResponse.json({ data: {} }, { status: 200 });
+    }
+
+    const db = prismaForOrg(organizationId);
 
     //Search in modul CRM (Clients)
-    const resultsCrmClients = await prismadb.clients.findMany({
+    const resultsCrmClients = await db.clients.findMany({
       where: {
         OR: [
           { description: { contains: search, mode: "insensitive" } },
@@ -19,10 +27,11 @@ export async function POST(req: Request) {
           // add more fields as needed
         ],
       },
+      take: 5,
     });
 
     //Search in modul CRM (Client Contacts)
-    const resultsCrmContacts = await prismadb.client_Contacts.findMany({
+    const resultsCrmContacts = await db.client_Contacts.findMany({
       where: {
         OR: [
           { contact_last_name: { contains: search, mode: "insensitive" } },
@@ -31,6 +40,7 @@ export async function POST(req: Request) {
           // add more fields as needed
         ],
       },
+      take: 5,
     });
 
     //Search in local user database
@@ -44,6 +54,7 @@ export async function POST(req: Request) {
           // add more fields as needed
         ],
       },
+      take: 5,
     });
 
     const data = {

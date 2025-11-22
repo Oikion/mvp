@@ -6,7 +6,10 @@ export async function POST(req: Request, props: { params: Promise<{ userId: stri
   const params = await props.params;
   
   try {
-    await getCurrentUser();
+    const currentUser = await getCurrentUser();
+    if (!currentUser.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
     
     const user = await prismadb.users.update({
       where: {

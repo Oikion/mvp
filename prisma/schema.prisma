@@ -17,7 +17,7 @@ model Clients {
   updatedAt            DateTime?          @updatedAt
   updatedBy            String?
   assigned_to          String?
-  organizationId      String?
+  organizationId      String             @default("00000000-0000-0000-0000-000000000000")
 
   // Core client identity
   client_name          String
@@ -164,6 +164,7 @@ model Client_Contacts {
   birthday               String?
   created_by             String?
   createdBy              String?
+  organizationId        String            @default("00000000-0000-0000-0000-000000000000")
   created_on             DateTime?           @default(now())
   cratedAt               DateTime?           @default(now())
   last_activity          DateTime?           @default(now())
@@ -197,6 +198,7 @@ model Client_Contacts {
   @@index([clientsIDs])
   @@index([assigned_to])
   @@index([created_on])
+  @@index([organizationId])
 }
 
 enum ClientContactType {
@@ -224,6 +226,7 @@ model ImageUpload {
 model MyAccount {
   id                   String  @id @default(uuid())
   company_name         String
+  organizationId       String            @default("00000000-0000-0000-0000-000000000000")
   is_person            Boolean @default(false)
   email                String?
   email_accountant     String?
@@ -258,6 +261,8 @@ model MyAccount {
   bank_code            String?
   bank_IBAN            String?
   bank_SWIFT           String?
+
+  @@index([organizationId])
 }
 
 model Documents {
@@ -269,6 +274,7 @@ model Documents {
   document_name          String
   created_by_user        String?
   createdBy              String?
+  organizationId        String            @default("00000000-0000-0000-0000-000000000000")
   description            String?
   document_type          String?
   favourite              Boolean?
@@ -313,6 +319,7 @@ model Documents {
   @@index([date_created])
   @@index([assigned_user])
   @@index([created_by_user])
+  @@index([organizationId])
   @@index([shareableLink])
   @@index([linkEnabled])
 }
@@ -356,12 +363,15 @@ model crm_Accounts_Tasks {
   documents     Documents[]                 @relation("DocumentsToCrmAccountsTasks")
   linkedDocuments Documents[]              @relation("DocumentsToTasksExplicit")
   assigned_user Users?                      @relation(fields: [user], references: [id])
+  organizationId String @default("00000000-0000-0000-0000-000000000000")
   //CRM assigments
   account       String?
   crm_accounts  Clients?                    @relation(fields: [account], references: [id])
   // Cal.com integration
   calcomEventId String?
   calcomEvent   CalComEvent?                 @relation(fields: [calcomEventId], references: [id])
+
+  @@index([organizationId])
 }
 
 model crm_Accounts_Tasks_Comments {
@@ -370,8 +380,11 @@ model crm_Accounts_Tasks_Comments {
   createdAt               DateTime            @default(now())
   crm_account_task       String
   user                    String
+  organizationId        String            @default("00000000-0000-0000-0000-000000000000")
   assigned_crm_account_task crm_Accounts_Tasks? @relation("CommentsToCrmTasks", fields: [crm_account_task], references: [id], onDelete: Cascade)
   assigned_user           Users?              @relation(fields: [user], references: [id])
+
+  @@index([organizationId])
 }
 
 model TodoList {
@@ -488,7 +501,7 @@ model Properties {
   updatedAt            DateTime?    @updatedAt
   updatedBy            String?
   assigned_to          String?
-  organizationId      String?
+  organizationId      String             @default("00000000-0000-0000-0000-000000000000")
 
   // Core property identity
   property_name        String
@@ -692,7 +705,7 @@ model Feedback {
   userId               String?
   userEmail            String?
   userName             String?
-  organizationId       String?
+  organizationId       String            @default("00000000-0000-0000-0000-000000000000")
   
   // Feedback content
   feedbackType         String    // bug, feature, general, question, other
@@ -733,7 +746,7 @@ model CalComEvent {
   
   calcomEventId   Int      @unique // Unique event ID
   calcomUserId    Int      @default(0) // Not used anymore, kept for compatibility
-  organizationId  String?  // Organization context
+  organizationId  String   @default("00000000-0000-0000-0000-000000000000") // Organization context
   
   // Event details
   title           String?

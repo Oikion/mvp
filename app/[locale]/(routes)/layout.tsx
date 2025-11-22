@@ -17,6 +17,7 @@ import Footer from "./components/Footer"
 import { getCurrentUserSafe, getCurrentUser } from "@/lib/get-current-user"
 import { syncClerkUser } from "@/lib/clerk-sync"
 import { FloatingQuickAddButtons } from "@/components/FloatingQuickAddButtons"
+import { GlobalSearch } from "@/components/GlobalSearch"
 
 export default async function AppLayout({
   children,
@@ -135,6 +136,7 @@ export default async function AppLayout({
         </div>
         <Footer />
         <FloatingQuickAddButtons />
+        <GlobalSearch />
       </SidebarInset>
     </SidebarProvider>
     </div>

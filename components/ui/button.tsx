@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
  * - Clean, flat design
  * - All states: default, hover, focus (visible ring), active, disabled
  * - Variants: default, secondary, destructive, success, outline, ghost, link
- * - Smooth transitions
+ * - Smooth transitions and micro-interactions (active scale)
  * - Accessibility: aria attributes, keyboard focus states
  * - WCAG contrast ratios ensured (WCAG AA compliant)
  * - Theme-aware colors via CSS variables
@@ -22,17 +22,17 @@ import { cn } from "@/lib/utils"
  * <Button variant="destructive">Delete</Button>
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md",
         success:
-          "bg-success text-success-foreground hover:bg-success/90",
+          "bg-success text-success-foreground shadow-sm hover:bg-success/90 hover:shadow-md",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         outline:
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         ghost: "hover:bg-accent hover:text-accent-foreground",

@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/get-current-user";
-import { prismadb } from "@/lib/prisma";
+import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
+import { prismaForOrg } from "@/lib/tenant";
 
-export async function DELETE(req: Request, props: { params: Promise<{ accountId: string }> }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ accountId: string }> }) {
   const params = await props.params;
   
+  if (!params.accountId) {
+    return NextResponse.json({ error: "Account ID is required" }, { status: 400 });
+  }
+
   try {
     await getCurrentUser();
-    await prismadb.clients.delete({
+    const organizationId = await getCurrentOrgId();
+    const prismaTenant = prismaForOrg(organizationId);
+
+    await prismaTenant.clients.delete({
       where: {
         id: params.accountId,
       },

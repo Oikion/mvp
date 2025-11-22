@@ -17,6 +17,14 @@ export async function POST(req: Request) {
       return new NextResponse("Password does not match", { status: 401 });
     }
 
+    const userCount = await prismadb.users.count();
+    if (userCount > 0) {
+      const requester = await getCurrentUser();
+      if (!requester.is_admin) {
+        return new NextResponse("Forbidden", { status: 403 });
+      }
+    }
+
     const checkexisting = await prismadb.users.findFirst({
       where: {
         email: email,
@@ -27,15 +35,10 @@ export async function POST(req: Request) {
       return new NextResponse("User already exist", { status: 401 });
     }
 
-    /*
-    Check if user is first user in the system. If yes, then create user with admin rights. If not, then create user with no admin rights.
-    */
-
     // Generate username from email if not provided
     const generatedUsername = username || email.split("@")[0] || `user_${Date.now()}`;
     
-    const isFirstUser = await prismadb.users.findMany({});
-    if (isFirstUser.length === 0) {
+    if (userCount === 0) {
       //There is no user in the system, so create user with admin rights and set userStatus to ACTIVE
       const user = await prismadb.users.create({
         data: {
@@ -86,8 +89,8 @@ export async function GET() {
   try {
     const user = await getCurrentUser();
 
-    if (!user) {
-      return new NextResponse("Unauthenticated", { status: 401 });
+    if (!user?.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
     }
 
     const users = await prismadb.users.findMany({});

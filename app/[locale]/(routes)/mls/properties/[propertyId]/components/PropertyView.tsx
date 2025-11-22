@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import moment from "moment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,17 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { EditPropertyForm } from "./EditPropertyForm";
 import { CreateBookingButton } from "@/components/calendar/CreateBookingButton";
 
-export default function PropertyView({ data }: { data: any }) {
-  const [open, setOpen] = useState(false);
+const formatDateTime = (value?: Date | string | null) => {
+  if (!value) return "N/A";
+  return moment(value).format("DD/MM/YYYY, HH:mm:ss");
+};
+
+export default function PropertyView({ data, defaultEditOpen = false }: { data: any; defaultEditOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultEditOpen);
+
+  useEffect(() => {
+    setOpen(defaultEditOpen);
+  }, [defaultEditOpen]);
 
   const Row = ({ label, value }: { label: string; value: any }) => (
     <div className="-mx-2 flex items-start justify-between space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">
@@ -34,7 +44,7 @@ export default function PropertyView({ data }: { data: any }) {
               notes: `Property: ${data.property_name}${data.address_street ? ` - ${data.address_street}` : ''}`,
             }}
           />
-          <Sheet open={open} onOpenChange={() => setOpen(false)}>
+          <Sheet open={open} onOpenChange={setOpen}>
             <Button onClick={() => setOpen(true)}>Edit</Button>
             <SheetContent className="min-w-[900px] space-y-2">
               <SheetHeader>
@@ -59,8 +69,8 @@ export default function PropertyView({ data }: { data: any }) {
           <Row label="Square feet" value={data.square_feet} />
           <Row label="Lot size" value={data.lot_size} />
           <Row label="Year built" value={data.year_built} />
-          <Row label="Created" value={new Date(data.createdAt).toLocaleString()} />
-          <Row label="Updated" value={data.updatedAt ? new Date(data.updatedAt).toLocaleString() : "N/A"} />
+          <Row label="Created" value={formatDateTime(data.createdAt)} />
+          <Row label="Updated" value={formatDateTime(data.updatedAt)} />
         </div>
         <div>
           <Row label="Description" value={data.description} />

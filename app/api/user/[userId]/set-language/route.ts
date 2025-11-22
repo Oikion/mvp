@@ -26,6 +26,10 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
       );
     }
 
+    if (currentUser.id !== params.userId && !currentUser.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+
     // Use the current user's database ID, not the userId from params
     // This ensures we're updating the correct user and prevents unauthorized updates
     const updatedUser = await prismadb.users.update({
@@ -33,7 +37,7 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
         userLanguage: language,
       },
       where: {
-        id: currentUser.id,
+        id: params.userId,
       },
     });
 

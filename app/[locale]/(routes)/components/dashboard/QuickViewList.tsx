@@ -1,12 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowRight, Loader2, MoreHorizontal } from "lucide-react";
 import moment from "moment";
+import { useToast } from "@/components/ui/use-toast";
 
 interface QuickViewItem {
   id: string;
@@ -55,14 +63,14 @@ const getClientStatusColor = (status: string): string => {
 };
 
 const getPropertyStatusLabel = (status: string, t: (key: string) => string): string => {
-  const statusKey = `common.statusLabels.property.${status}`;
+  const statusKey = `statusLabels.property.${status}`;
   const translated = t(statusKey);
   // If translation returns the key itself, it means the key doesn't exist, fallback to status
   return translated !== statusKey ? translated : status;
 };
 
 const getClientStatusLabel = (status: string, t: (key: string) => string): string => {
-  const statusKey = `common.statusLabels.client.${status}`;
+  const statusKey = `statusLabels.client.${status}`;
   const translated = t(statusKey);
   return translated !== statusKey ? translated : status;
 };
@@ -75,10 +83,12 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
   getStatusLabel,
   getStatusColor,
 }) => {
-  const t = useTranslations();
   const tCommon = useTranslations("common");
   const tDashboard = useTranslations("dashboard");
   const isProperties = viewAllHref.includes("mls");
+  const router = useRouter();
+  const { toast } = useToast();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   
   const getStatusInfo = (item: QuickViewItem) => {
     const status = item.property_status || item.client_status || item.status;
@@ -104,6 +114,41 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
     }
   };
 
+  const handleDelete = async (item: QuickViewItem, displayName: string) => {
+    const deleteEndpoint = isProperties ? `/api/mls/properties/${item.id}` : `/api/crm/account/${item.id}`;
+    const shouldDelete = window.confirm(
+      tDashboard("deleteConfirmation", { name: displayName })
+    );
+    if (!shouldDelete) return;
+
+    setDeletingId(item.id);
+    try {
+      const response = await fetch(deleteEndpoint, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete");
+      }
+
+      toast({
+        title: tCommon("success"),
+        description: isProperties ? tDashboard("propertyDeleted") : tDashboard("clientDeleted"),
+      });
+
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to delete item", error);
+      toast({
+        variant: "destructive",
+        title: tCommon("error"),
+        description: tDashboard("deleteError"),
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
@@ -126,40 +171,72 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
               : tDashboard("noRecentClients")}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {items.map((item) => {
               const statusInfo = getStatusInfo(item);
               const displayName = item.name || item.property_name || item.client_name || tCommon("unnamed");
               const displayEmail = item.email || item.primary_email;
+              const viewHref = isProperties ? `/mls/properties/${item.id}` : `/crm/clients/${item.id}`;
+              const editHref = `${viewHref}?action=edit`;
+              const isDeleting = deletingId === item.id;
               
               return (
-                <Link
+                <div
                   key={item.id}
-                  href={isProperties ? `/mls/properties/${item.id}` : `/crm/clients/${item.id}`}
-                  className="block"
+                  className="rounded-lg border bg-card p-3 shadow-sm"
                 >
-                  <div className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent transition-colors">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-medium text-sm truncate">{displayName}</p>
-                        <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${statusInfo.color} text-white whitespace-nowrap`}
-                        >
-                          {statusInfo.label}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-                        {displayEmail && (
-                          <span className="truncate max-w-[150px]">{displayEmail}</span>
-                        )}
-                        {item.assigned_to_user?.name && (
-                          <span className="truncate">{tCommon("assigned")} {item.assigned_to_user.name}</span>
-                        )}
-                        <span>{moment(item.createdAt).format("MMM DD, YYYY")}</span>
-                      </div>
-                    </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium text-sm truncate">{displayName}</p>
+                    <span
+                      className={`px-2 py-0.5 text-xs rounded-full ${statusInfo.color} text-white whitespace-nowrap`}
+                    >
+                      {statusInfo.label}
+                    </span>
                   </div>
-                </Link>
+                  <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                    {displayEmail && (
+                      <span className="truncate max-w-[150px]">{displayEmail}</span>
+                    )}
+                    {item.assigned_to_user?.name && (
+                      <span className="truncate">
+                        {tCommon("assigned")} {item.assigned_to_user.name}
+                      </span>
+                    )}
+                    <span>{moment(item.createdAt).format("MMM DD, YYYY")}</span>
+                  </div>
+                  <div className="mt-3 flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">{tCommon("actions")}</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuItem asChild>
+                          <Link href={viewHref} className="w-full">
+                            {tCommon("view")}
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={editHref} className="w-full">
+                            {tCommon("edit")}
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => handleDelete(item, displayName)}
+                          disabled={isDeleting}
+                        >
+                          {isDeleting && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          {tCommon("delete")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
               );
             })}
           </div>

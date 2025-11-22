@@ -26,7 +26,7 @@ export const columns: ColumnDef<AdminUser>[] = [
       <DataTableColumnHeader column={column} title="Date created" />
     ),
     cell: ({ row }) => (
-      <div className="w-[130px]">
+      <div className="whitespace-nowrap">
         {moment(row.getValue("created_on")).format("YYYY/MM/DD-HH:mm")}
       </div>
     ),
@@ -39,7 +39,7 @@ export const columns: ColumnDef<AdminUser>[] = [
       <DataTableColumnHeader column={column} title="Last login" />
     ),
     cell: ({ row }) => (
-      <div className="min-w-[150px]">
+      <div className="whitespace-nowrap">
         {/*   {moment(row.getValue("lastLoginAt")).format("YYYY/MM/DD-HH:mm")} */}
         {formatDistanceToNowStrict(
           new Date(row.original.lastLoginAt || new Date()),

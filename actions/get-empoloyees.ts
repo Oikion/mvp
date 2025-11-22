@@ -1,6 +1,11 @@
-import { prismadb } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+
+import { getOrgMembersFromDb } from "@/lib/org-members";
 
 export const getEmployees = async () => {
-  const data = await prismadb.employees.findMany({});
-  return data;
+  const { userId } = await auth();
+  if (!userId) return [];
+
+  const { users } = await getOrgMembersFromDb();
+  return users;
 };

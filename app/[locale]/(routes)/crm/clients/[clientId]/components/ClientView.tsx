@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import moment from "moment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,17 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { UpdateAccountForm } from "../../../accounts/components/UpdateAccountForm";
 import { CreateBookingButton } from "@/components/calendar/CreateBookingButton";
 
-export default function ClientView({ data }: { data: any }) {
-  const [open, setOpen] = useState(false);
+const formatDateTime = (value?: Date | string | null) => {
+  if (!value) return "N/A";
+  return moment(value).format("DD/MM/YYYY, HH:mm:ss");
+};
+
+export default function ClientView({ data, defaultEditOpen = false }: { data: any; defaultEditOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultEditOpen);
+
+  useEffect(() => {
+    setOpen(defaultEditOpen);
+  }, [defaultEditOpen]);
 
   const Row = ({ label, value }: { label: string; value: any }) => (
     <div className="-mx-2 flex items-start justify-between space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">
@@ -34,7 +44,7 @@ export default function ClientView({ data }: { data: any }) {
               email: data.primary_email || undefined,
             }}
           />
-          <Sheet open={open} onOpenChange={() => setOpen(false)}>
+          <Sheet open={open} onOpenChange={setOpen}>
             <Button onClick={() => setOpen(true)}>Edit</Button>
             <SheetContent className="min-w-[900px] space-y-2">
               <SheetHeader>
@@ -84,8 +94,8 @@ export default function ClientView({ data }: { data: any }) {
           <Row label="Type" value={data.client_type} />
           <Row label="Status" value={data.client_status} />
           <Row label="Assigned to" value={data.assigned_to_user?.name} />
-          <Row label="Created" value={new Date(data.createdAt).toLocaleString()} />
-          <Row label="Updated" value={data.updatedAt ? new Date(data.updatedAt).toLocaleString() : "N/A"} />
+          <Row label="Created" value={formatDateTime(data.createdAt)} />
+          <Row label="Updated" value={formatDateTime(data.updatedAt)} />
         </div>
         <div>
           <Row label="Description" value={data.description} />

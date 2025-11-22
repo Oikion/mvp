@@ -47,7 +47,7 @@ export function UpdateAccountForm({
 }: UpdateAccountFormProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const t = useTranslations("CrmForm");
+  const t = useTranslations("crm.CrmForm");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   const { data: users, isLoading: isLoadingUsers } = useSWR(

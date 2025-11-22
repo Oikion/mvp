@@ -6,12 +6,16 @@ export async function POST(req: Request, props: { params: Promise<{ userId: stri
   const params = await props.params;
   
   try {
-    await getCurrentUser();
+    const currentUser = await getCurrentUser();
     
     const userId = params.userId;
 
     if (!userId) {
       return new NextResponse("No userID, userId is required", { status: 401 });
+    }
+
+    if (currentUser.id !== userId && !currentUser.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
     }
 
     const { organizationId, secretKey } = await req.json();

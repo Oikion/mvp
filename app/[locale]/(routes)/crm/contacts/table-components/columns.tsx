@@ -38,7 +38,7 @@ export const columns: ColumnDef<Opportunity>[] = [
       <DataTableColumnHeader column={column} title="Date created" />
     ),
     cell: ({ row }) => (
-      <div className="w-[80px]">
+      <div className="whitespace-nowrap">
         {moment(row.getValue("created_on")).format("YY-MM-DD")}
       </div>
     ),
@@ -52,7 +52,7 @@ export const columns: ColumnDef<Opportunity>[] = [
     ),
 
     cell: ({ row }) => (
-      <div className="w-[150px]">
+      <div className="whitespace-nowrap">
         {
           //@ts-ignore
           //TODO: fix this
@@ -70,7 +70,7 @@ export const columns: ColumnDef<Opportunity>[] = [
     ),
 
     cell: ({ row }) => (
-      <div className="min-w-[150px]">
+      <div className="whitespace-nowrap">
         {
           //@ts-ignore
           row.original.assigned_accounts?.name ?? "Unassigned"

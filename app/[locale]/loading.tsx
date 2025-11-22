@@ -1,9 +1,9 @@
-import LoadingComponent from "@/components/LoadingComponent";
+import { PageLoader } from "@/components/ui/page-loader";
 
 export default function loading() {
   return (
-    <div className="flex w-full h-screen justify-center items-center">
-      <LoadingComponent />
+    <div className="w-full h-full min-h-screen bg-background">
+      <PageLoader />
     </div>
   );
 }

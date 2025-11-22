@@ -48,10 +48,6 @@ export function CommandComponent() {
         router.push("/profile");
         setOpen(false);
       }
-      if (e.key === "k" && e.metaKey) {
-        signOut();
-        setOpen(false);
-      }
     };
 
     document.addEventListener("keydown", down);

@@ -10,7 +10,8 @@ import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { useTranslations } from "next-intl";
 
 export function DataTableToolbar<TData>({ table }: { table: Table<TData> }) {
-  const t = useTranslations();
+  const t = useTranslations("mls");
+  const commonT = useTranslations("common");
   const isFiltered = table.getState().columnFilters.length > 0;
   return (
     <div className="flex items-center justify-between">
@@ -26,7 +27,7 @@ export function DataTableToolbar<TData>({ table }: { table: Table<TData> }) {
         )}
         {isFiltered && (
           <Button variant="ghost" onClick={() => table.resetColumnFilters()} className="h-8 px-2 lg:px-3">
-            {t("common.reset")}
+            {commonT("reset")}
             <Cross2Icon className="ml-2 h-4 w-4" />
           </Button>
         )}

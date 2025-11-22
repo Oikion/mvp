@@ -1,9 +1,10 @@
 import { prismadb } from "@/lib/prisma";
 
-export async function getDocument(documentId: string) {
-  const document = await prismadb.documents.findUnique({
+export async function getDocument(documentId: string, organizationId: string) {
+  const document = await prismadb.documents.findFirst({
     where: {
       id: documentId,
+      organizationId,
     },
     include: {
       accounts: {
@@ -76,7 +77,7 @@ export async function getDocument(documentId: string) {
 }
 
 export async function getDocumentByShareLink(shareableLink: string) {
-  const document = await prismadb.documents.findUnique({
+  const document = await prismadb.documents.findFirst({
     where: {
       shareableLink,
     },

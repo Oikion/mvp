@@ -18,7 +18,7 @@ export const columns: ColumnDef<Task>[] = [
       <DataTableColumnHeader column={column} title="Due date" />
     ),
     cell: ({ row }) => (
-      <div className="w-[80px]">
+      <div className="whitespace-nowrap">
         {moment(row.getValue("dueDateAt")).format("YY-MM-DD")}
       </div>
     ),
@@ -32,7 +32,7 @@ export const columns: ColumnDef<Task>[] = [
     ),
 
     cell: ({ row }) => (
-      <div className="w-[180px]">
+      <div className="whitespace-nowrap">
         {
           //@ts-ignore
           //TODO: fix this
@@ -78,9 +78,9 @@ export const columns: ColumnDef<Task>[] = [
       }
 
       return (
-        <div className="flex w-[100px] items-center">
+        <div className="flex items-center gap-2 whitespace-nowrap">
           {status.icon && (
-            <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+            <status.icon className="h-4 w-4 text-muted-foreground" />
           )}
           <span>{status.label}</span>
         </div>

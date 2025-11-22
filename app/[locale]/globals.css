@@ -2,138 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes dialog-overlay-show {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes dialog-overlay-hide {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes dialog-content-show {
-  from {
-    transform: translateX(100%);
-  }
-
-  to {
-    transform: translateX(0%);
-  }
-}
-
-@keyframes dialog-content-hide {
-  from {
-    transform: translateX(0%);
-  }
-  to {
-    transform: translateX(100%);
-  }
-}
-
-.dropBox {
-  @apply flex flex-col overflow-hidden items-start justify-center text-xs p-2 m-2 rounded-md border border-slate-300 shadow-md;
-}
-
 @layer base {
-  /**
-   * Oikion Design System - Theme Variables
-   * 
-   * Each theme defines:
-   * - Surface hierarchy: surface-1 (page bg), surface-2 (card bg), surface-3 (elevated card)
-   * - Color palette: primary, secondary, accent
-   * - Text colors: text-primary, text-secondary
-   * - State colors: error, warning, success
-   * - UI colors: border, input, ring, muted, popover, card
-   * 
-   * All colors use HSL format for easy theme switching
-   */
+  :root {
+    /* Modern Minimal - Light (Zinc-based) */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
 
-  /* Light Theme - Clean, bright, crisp with cream → soft white → bright white hierarchy */
-  :root,
-  [data-theme="light"] {
-    /* Surface hierarchy */
-    --surface-1: 30 10% 97.8%; /* Cream background (#FAFAF8) - not used directly */
-    --surface-2: 30 8% 96.1%; /* Soft white/Light beige (#F5F5F3) - page bg and sidebar */
-    --surface-3: 0 0% 100%; /* Bright white (#FFFFFF) - top layer (cards) */
-    
-    /* Base colors */
-    --background: 30 8% 96.1%;
-    --foreground: 0 0% 3.9%;
-    
-    /* Card & popover */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 240 10% 3.9%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
+    --popover-foreground: 240 10% 3.9%;
     
-    /* Primary colors */
-    --primary: 0 0% 9%;
+    --primary: 240 5.9% 10%;
     --primary-foreground: 0 0% 98%;
     
-    /* Button colors - Theme-aware for Light theme */
-    --button-primary: 0 0% 9%;
-    --button-primary-foreground: 0 0% 98%;
-    --button-secondary: 0 0% 96.1%;
-    --button-secondary-foreground: 0 0% 9%;
-    --button-success: 142 71% 45%;
-    --button-success-foreground: 0 0% 98%;
-    --button-destructive: 0 84.2% 60.2%;
-    --button-destructive-foreground: 0 0% 98%;
-    
-    /* Secondary colors */
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    
-    /* Accent colors */
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    
-    /* Muted colors */
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    
-    /* Border & input */
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 63.9%;
-    
-    /* State colors */
-    --error: 0 84.2% 60.2%;
-    --error-foreground: 0 0% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 9%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 98%;
-    --info: 217 91% 60%;
-    --info-foreground: 0 0% 98%;
-    
-    /* Destructive (maps to error) */
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     
-    /* Text colors */
-    --text-primary: 0 0% 3.9%;
-    --text-secondary: 0 0% 45.1%;
-    
-    /* Chart colors - Theme-aware for Light theme */
-    /* Primary chart color: Blue/Indigo for professional look */
-    --chart-primary: 217 91% 60%; /* #3B82F6 - Blue */
-    --chart-secondary: 142 71% 45%; /* #10B981 - Green */
-    --chart-accent: 38 92% 50%; /* #F59E0B - Amber */
-    --chart-tertiary: 262 83% 58%; /* #8B5CF6 - Purple */
-    --chart-quaternary: 0 84% 60%; /* #EF4444 - Red */
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+
+    --radius: 0.5rem;
+
+    /* Legacy Surface Support (Mapped to new tokens) */
+    --surface-1: 0 0% 100%; /* Background */
+    --surface-2: 240 4.8% 95.9%; /* Secondary/Muted */
+    --surface-3: 0 0% 100%; /* Card */
+
+    /* Chart Colors */
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
     
     /* Sidebar */
-    --sidebar-background: 30 8% 96.1%; /* Use surface-2 (secondary layer) */
+    --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -142,87 +57,73 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
     
-    /* Border radius */
-    --radius: 0.5rem;
+    /* Button Specifics (Legacy Support) */
+    --button-primary: 240 5.9% 10%;
+    --button-primary-foreground: 0 0% 98%;
+    --button-secondary: 240 4.8% 95.9%;
+    --button-secondary-foreground: 240 5.9% 10%;
+    --button-success: 142 76% 36%;
+    --button-success-foreground: 355 100% 100%;
+    --button-destructive: 0 84.2% 60.2%;
+    --button-destructive-foreground: 0 0% 98%;
+    
+    /* Status Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 355 100% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 89%;
+    --error: 0 84.2% 60.2%;
+    --error-foreground: 0 0% 98%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 98%;
+
+    --text-primary: 240 10% 3.9%;
+    --text-secondary: 240 3.8% 46.1%;
   }
 
-  /* Dark Theme - Darker surfaces, not pure black, maintain readability */
-  .dark,
-  [data-theme="dark"] {
-    /* Surface hierarchy */
-    --surface-1: 0 0% 8.2%; /* Medium dark (#151515) */
-    --surface-2: 0 0% 3.9%; /* Darkest (#0A0A0A) */
-    --surface-3: 0 0% 12.2%; /* Elevated (#1F1F1F) */
-    
-    /* Base colors */
-    --background: 0 0% 3.9%;
+  .dark, [data-theme="dark"] {
+    --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     
-    /* Card & popover */
-    --card: 0 0% 3.9%;
+    --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
+
+    --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
     
-    /* Primary colors */
     --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    
-    /* Button colors - Theme-aware for Dark theme */
-    --button-primary: 0 0% 98%;
-    --button-primary-foreground: 0 0% 9%;
-    --button-secondary: 0 0% 18%;
-    --button-secondary-foreground: 0 0% 95%;
-    --button-success: 142 55% 42%; /* Darker green */
-    --button-success-foreground: 142 30% 92%; /* Light green text */
-    --button-destructive: 0 60% 45%; /* Darker red */
-    --button-destructive-foreground: 0 10% 95%; /* Light text */
-    
-    /* Secondary colors */
-    --secondary: 0 0% 14.9%;
+    --primary-foreground: 240 5.9% 10%;
+
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     
-    /* Accent colors */
-    --accent: 0 0% 14.9%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
     
-    /* Muted colors */
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    
-    /* Border & input */
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 14.9%;
-    
-    /* State colors */
-    --error: 0 62.8% 30.6%;
-    --error-foreground: 0 0% 98%;
-    --warning: 38 85% 55%;
-    --warning-foreground: 0 0% 9%;
-    --success: 142 65% 50%;
-    --success-foreground: 0 0% 98%;
-    --info: 217 91% 65%;
-    --info-foreground: 0 0% 98%;
-    
-    /* Destructive (maps to error) */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     
-    /* Text colors */
-    --text-primary: 0 0% 98%;
-    --text-secondary: 0 0% 63.9%;
-    
-    /* Chart colors - Theme-aware for Dark theme */
-    /* Primary chart color: Lighter blue for dark backgrounds */
-    --chart-primary: 217 91% 65%; /* Lighter blue */
-    --chart-secondary: 142 65% 55%; /* Lighter green */
-    --chart-accent: 38 92% 60%; /* Lighter amber */
-    --chart-tertiary: 262 83% 70%; /* Lighter purple */
-    --chart-quaternary: 0 84% 65%; /* Lighter red */
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+
+    /* Legacy Surface Support */
+    --surface-1: 240 10% 3.9%;
+    --surface-2: 240 3.7% 15.9%;
+    --surface-3: 240 4% 22%;
+
+    /* Chart */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
     
     /* Sidebar */
-    --sidebar-background: 0 0% 8.2%; /* Use surface-2 (secondary layer) */
+    --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -231,184 +132,114 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
     
-    /* Border radius */
-    --radius: 0.5rem;
+     /* Button Specifics (Dark) */
+    --button-primary: 0 0% 98%;
+    --button-primary-foreground: 240 5.9% 10%;
+    --button-secondary: 240 3.7% 15.9%;
+    --button-secondary-foreground: 0 0% 98%;
+    --button-success: 142 70% 50%;
+    --button-success-foreground: 144 70% 10%;
+    --button-destructive: 0 62.8% 30.6%;
+    --button-destructive-foreground: 0 85.7% 97.3%;
+
+    --text-primary: 0 0% 98%;
+    --text-secondary: 240 5% 64.9%;
   }
 
-  /* Pearl Sand Theme - Warm pastel beige/taupe accents, darker easy-reading mode */
+  /* Pearl Sand Theme - Dusty Beige */
   [data-theme="pearl-sand"] {
-    /* Surface hierarchy - Darker for easy reading */
-    --surface-1: 30 12% 92%; /* Softer beige */
-    --surface-2: 30 15% 88%; /* Medium beige (#E0D9D0) */
-    --surface-3: 30 18% 85%; /* Darker beige (#D9D0C5) */
+    --background: 35 15% 95%; /* Dustier, slightly darker background */
+    --foreground: 30 10% 20%;
     
-    /* Base colors */
-    --background: 30 15% 88%;
-    --foreground: 30 10% 15%;
+    --card: 35 15% 97%;
+    --card-foreground: 30 10% 20%;
     
-    /* Card & popover */
-    --card: 30 18% 85%;
-    --card-foreground: 30 10% 15%;
-    --popover: 30 18% 85%;
-    --popover-foreground: 30 10% 15%;
+    --popover: 35 15% 97%;
+    --popover-foreground: 30 10% 20%;
     
-    /* Primary colors - Warm taupe */
-    --primary: 30 18% 35%; /* Muted brown */
-    --primary-foreground: 30 10% 95%;
+    --primary: 35 15% 30%; /* Desaturated, earthy primary */
+    --primary-foreground: 35 20% 97%;
     
-    /* Button colors - Theme-aware for Pearl Sand */
-    --button-primary: 30 18% 32%; /* Darker taupe */
-    --button-primary-foreground: 30 10% 95%; /* Light beige text */
-    --button-secondary: 30 15% 82%; /* Medium beige */
-    --button-secondary-foreground: 30 10% 18%; /* Dark taupe text */
-    --button-success: 142 60% 38%; /* Darker green */
-    --button-success-foreground: 142 30% 92%; /* Light green text */
-    --button-destructive: 0 75% 52%; /* Darker red */
-    --button-destructive-foreground: 0 10% 95%; /* Light text */
+    --secondary: 35 10% 90%;
+    --secondary-foreground: 35 15% 30%;
     
-    /* Secondary colors */
-    --secondary: 30 15% 82%;
-    --secondary-foreground: 30 10% 18%;
+    --muted: 35 10% 92%;
+    --muted-foreground: 30 10% 45%;
     
-    /* Accent colors - Beige/taupe */
-    --accent: 30 20% 72%; /* #D4C4B0 */
-    --accent-foreground: 30 10% 15%;
+    --accent: 35 15% 92%;
+    --accent-foreground: 35 15% 30%;
     
-    /* Muted colors */
-    --muted: 30 15% 82%;
-    --muted-foreground: 30 10% 50%;
+    --destructive: 0 70% 55%; /* Slightly muted destructive */
+    --destructive-foreground: 35 20% 97%;
     
-    /* Border & input */
-    --border: 30 12% 75%;
-    --input: 30 12% 75%;
-    --ring: 30 20% 72%;
+    --border: 35 15% 86%;
+    --input: 35 15% 86%;
+    --ring: 35 15% 30%;
     
-    /* State colors */
-    --error: 0 84.2% 60.2%;
-    --error-foreground: 0 0% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 9%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 98%;
-    --info: 217 91% 60%;
-    --info-foreground: 0 0% 98%;
-    
-    /* Destructive */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    
-    /* Text colors */
-    --text-primary: 30 10% 15%;
-    --text-secondary: 30 10% 50%;
-    
-    /* Chart colors - Theme-aware for Pearl Sand theme */
-    /* Warm colors matching the beige/taupe palette */
-    --chart-primary: 30 50% 45%; /* Warm brown */
-    --chart-secondary: 142 60% 40%; /* Muted green */
-    --chart-accent: 38 70% 45%; /* Muted amber */
-    --chart-tertiary: 30 40% 55%; /* Taupe */
-    --chart-quaternary: 0 65% 55%; /* Muted red */
-    
-    /* Sidebar */
-    --sidebar-background: 30 15% 88%; /* Use surface-2 (secondary layer) */
-    --sidebar-foreground: 30 10% 30%;
-    --sidebar-primary: 30 18% 35%;
-    --sidebar-primary-foreground: 30 10% 95%;
-    --sidebar-accent: 30 15% 82%;
-    --sidebar-accent-foreground: 30 10% 18%;
-    --sidebar-border: 30 12% 75%;
-    --sidebar-ring: 30 20% 72%;
-    
-    /* Border radius */
-    --radius: 0.5rem;
+    --sidebar-background: 35 15% 93%;
+    --sidebar-foreground: 30 10% 25%;
+    --sidebar-primary: 35 15% 30%;
+    --sidebar-primary-foreground: 35 20% 97%;
+    --sidebar-accent: 35 10% 88%;
+    --sidebar-accent-foreground: 35 15% 30%;
+    --sidebar-border: 35 15% 84%;
+
+    /* Compatibility Mapping */
+    --surface-1: 35 15% 95%;
+    --surface-2: 35 15% 93%;
+    --surface-3: 35 15% 97%;
+
+    /* Explicit Text Overrides */
+    --text-primary: 30 10% 20%;
+    --text-secondary: 30 10% 45%;
   }
 
-  /* Twilight Lavender Theme - Muted violet/lavender accents, dark theme */
+  /* Twilight Lavender Theme - Dark Cool/Purple */
   [data-theme="twilight-lavender"] {
-    /* Surface hierarchy - Dark variant */
-    --surface-1: 270 12% 10%;
-    --surface-2: 270 15% 7%; /* Very dark (#0F0D14) */
-    --surface-3: 270 10% 13%;
+    --background: 265 20% 10%;
+    --foreground: 260 20% 98%;
     
-    /* Base colors */
-    --background: 270 15% 7%;
-    --foreground: 270 10% 95%;
+    --card: 265 20% 12%;
+    --card-foreground: 260 20% 98%;
     
-    /* Card & popover */
-    --card: 270 12% 10%;
-    --card-foreground: 270 10% 95%;
-    --popover: 270 12% 10%;
-    --popover-foreground: 270 10% 95%;
+    --popover: 265 20% 12%;
+    --popover-foreground: 260 20% 98%;
     
-    /* Primary colors - Muted violet */
-    --primary: 260 30% 65%; /* Lighter violet for dark theme */
-    --primary-foreground: 270 15% 7%;
+    --primary: 265 70% 70%;
+    --primary-foreground: 265 20% 10%;
     
-    /* Button colors - Theme-aware for Twilight Lavender */
-    --button-primary: 260 25% 50%; /* Darker violet for buttons */
-    --button-primary-foreground: 260 20% 90%; /* Light lavender text */
-    --button-secondary: 270 12% 18%; /* Dark purple-gray */
-    --button-secondary-foreground: 270 10% 90%; /* Light text */
-    --button-success: 142 55% 40%; /* Darker green */
-    --button-success-foreground: 142 30% 92%; /* Light green text */
-    --button-destructive: 0 60% 45%; /* Darker red */
-    --button-destructive-foreground: 0 10% 95%; /* Light text */
+    --secondary: 265 20% 20%;
+    --secondary-foreground: 260 20% 98%;
     
-    /* Secondary colors */
-    --secondary: 270 12% 15%;
-    --secondary-foreground: 270 10% 95%;
+    --muted: 265 20% 20%;
+    --muted-foreground: 265 20% 70%;
     
-    /* Accent colors - Lavender */
-    --accent: 260 25% 55%; /* Softer lavender */
-    --accent-foreground: 270 10% 95%;
+    --accent: 265 20% 20%;
+    --accent-foreground: 260 20% 98%;
     
-    /* Muted colors */
-    --muted: 270 12% 15%;
-    --muted-foreground: 270 10% 65%;
-    
-    /* Border & input */
-    --border: 270 12% 20%;
-    --input: 270 12% 20%;
-    --ring: 260 30% 65%;
-    
-    /* State colors */
-    --error: 0 62.8% 30.6%;
-    --error-foreground: 0 0% 98%;
-    --warning: 38 85% 55%;
-    --warning-foreground: 0 0% 9%;
-    --success: 142 65% 50%;
-    --success-foreground: 0 0% 98%;
-    --info: 217 91% 65%;
-    --info-foreground: 0 0% 98%;
-    
-    /* Destructive */
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 260 20% 98%;
     
-    /* Text colors */
-    --text-primary: 270 10% 95%;
-    --text-secondary: 270 10% 65%;
+    --border: 265 20% 20%;
+    --input: 265 20% 20%;
+    --ring: 265 70% 70%;
+
+    --sidebar-background: 265 20% 8%;
+    --sidebar-foreground: 260 20% 90%;
+    --sidebar-primary: 265 70% 70%;
+    --sidebar-primary-foreground: 265 20% 10%;
+    --sidebar-accent: 265 20% 20%;
+    --sidebar-accent-foreground: 260 20% 98%;
+    --sidebar-border: 265 20% 20%;
+
+    /* Compatibility Mapping */
+    --surface-1: 265 20% 10%;
+    --surface-2: 265 20% 12%;
+    --surface-3: 265 20% 14%;
     
-    /* Chart colors - Theme-aware for Twilight Lavender theme */
-    /* Muted violet/lavender palette for dark theme */
-    --chart-primary: 260 40% 70%; /* Light lavender */
-    --chart-secondary: 142 55% 50%; /* Muted green */
-    --chart-accent: 38 75% 60%; /* Muted amber */
-    --chart-tertiary: 270 35% 65%; /* Lavender */
-    --chart-quaternary: 0 65% 55%; /* Muted red */
-    
-    /* Sidebar */
-    --sidebar-background: 270 15% 7%; /* Use surface-2 (secondary layer) */
-    --sidebar-foreground: 270 10% 85%;
-    --sidebar-primary: 260 30% 65%;
-    --sidebar-primary-foreground: 270 15% 7%;
-    --sidebar-accent: 270 12% 15%;
-    --sidebar-accent-foreground: 270 10% 95%;
-    --sidebar-border: 270 12% 20%;
-    --sidebar-ring: 260 30% 65%;
-    
-    /* Border radius */
-    --radius: 0.5rem;
+    /* Explicit Text Overrides */
+    --text-primary: 260 20% 98%;
+    --text-secondary: 265 20% 70%;
   }
 }
 
@@ -417,298 +248,57 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    background-color: hsl(var(--surface-2));
-    color: hsl(var(--text-primary));
-  }
-  
-  /**
-   * Typography System
-   * Body text uses Inter for readability
-   */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-sans);
-    font-weight: 700;
-    line-height: 1.2;
-    color: hsl(var(--text-primary));
-  }
-  
-  h1 {
-    font-size: 3rem; /* 48px */
-    font-weight: 700;
-    line-height: 1.2;
-  }
-  
-  h2 {
-    font-size: 2.25rem; /* 36px */
-    font-weight: 600;
-    line-height: 1.2;
-  }
-  
-  h3 {
-    font-size: 1.875rem; /* 30px */
-    font-weight: 600;
-    line-height: 1.3;
-  }
-  
-  h4 {
-    font-size: 1.5rem; /* 24px */
-    font-weight: 600;
-    line-height: 1.4;
-  }
-  
-  p {
-    font-size: 1rem; /* 16px */
-    line-height: 1.5;
-    font-weight: 400;
-  }
-  
-  small, .caption {
-    font-size: 0.875rem; /* 14px */
-    line-height: 1.4;
-    font-weight: 400;
-    color: hsl(var(--text-secondary));
+    @apply bg-background text-foreground antialiased;
   }
 }
 
-/* Clerk Component Styling - Match Oikion Design System */
-@layer components {
-  /* Organization Switcher Trigger - Add margins so it doesn't stick to sides */
-  [data-clerk-element="organizationSwitcherTrigger"],
-  .cl-organizationSwitcherTrigger,
-  button[data-clerk-element="organizationSwitcherTrigger"],
-  .cl-organizationSwitcherTrigger button {
-    margin-left: 0.5rem !important;
-    margin-right: 0.5rem !important;
-    width: calc(100% - 1rem) !important;
-    padding: 0.5rem 0.75rem !important;
-    border-radius: 0.375rem !important;
-    transition: all 150ms ease-in-out !important;
-  }
-
-  /* Organization Switcher Trigger hover - match sidebar accent */
-  [data-clerk-element="organizationSwitcherTrigger"]:hover,
-  .cl-organizationSwitcherTrigger:hover,
-  button[data-clerk-element="organizationSwitcherTrigger"]:hover {
-    background-color: hsl(var(--sidebar-accent)) !important;
-    color: hsl(var(--sidebar-accent-foreground)) !important;
-  }
-
-  /* Organization Switcher Popover - Match our popover styling */
-  [data-clerk-element="organizationSwitcherPopoverCard"],
-  .cl-organizationSwitcherPopoverCard,
-  [role="dialog"] .cl-card,
-  .cl-organizationSwitcherPopoverCard .cl-card {
-    background-color: hsl(var(--surface-2)) !important;
-    border-color: hsl(var(--border)) !important;
-    border-radius: 0.5rem !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
-  }
-
-  [data-theme="dark"] [data-clerk-element="organizationSwitcherPopoverCard"],
-  [data-theme="dark"] .cl-organizationSwitcherPopoverCard,
-  [data-theme="twilight-lavender"] [data-clerk-element="organizationSwitcherPopoverCard"],
-  [data-theme="twilight-lavender"] .cl-organizationSwitcherPopoverCard {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4) !important;
-  }
-
-  /* Create Organization Button - Primary button styling with proper margins */
-  [data-clerk-element="organizationSwitcherPopoverActionButton"],
-  .cl-organizationSwitcherPopoverActionButton,
-  button[aria-label*="Create"],
-  button[aria-label*="create"],
-  .cl-organizationSwitcherPopoverCard button:last-child:not([aria-label*="Manage"]):not([aria-label*="manage"]) {
-    background-color: hsl(var(--primary)) !important;
-    color: hsl(var(--primary-foreground)) !important;
-    border-radius: 0.375rem !important;
-    padding: 0.5rem 1rem !important;
-    border: none !important;
-    margin-top: 0.5rem !important;
-    margin-bottom: 0.5rem !important;
-    margin-left: 0.75rem !important;
-    margin-right: 0.75rem !important;
-    width: calc(100% - 1.5rem) !important;
-    transition: all 150ms ease-in-out !important;
-    cursor: pointer !important;
-    font-weight: 500 !important;
-    font-size: 0.875rem !important;
-  }
-
-  /* Hover state - ensure visibility and proper contrast */
-  [data-clerk-element="organizationSwitcherPopoverActionButton"]:hover,
-  .cl-organizationSwitcherPopoverActionButton:hover,
-  button[aria-label*="Create"]:hover,
-  button[aria-label*="create"]:hover {
-    background-color: hsl(var(--primary)) !important;
-    opacity: 0.9 !important;
-  }
-
-  /* Create Organization Button Text */
-  [data-clerk-element="organizationSwitcherPopoverActionButton"] *,
-  .cl-organizationSwitcherPopoverActionButton *,
-  button[aria-label*="Create"] *,
-  button[aria-label*="create"] * {
-    color: hsl(var(--primary-foreground)) !important;
-  }
-
-  [data-clerk-element="organizationSwitcherPopoverActionButtonText"],
-  .cl-organizationSwitcherPopoverActionButtonText {
-    color: hsl(var(--primary-foreground)) !important;
-    font-weight: 500 !important;
-    font-size: 0.875rem !important;
-  }
-
-  /* Manage Button - Ghost variant styling */
-  [data-clerk-element="organizationSwitcherPopoverManageButton"],
-  .cl-organizationSwitcherPopoverManageButton,
-  button[aria-label*="Manage"],
-  button[aria-label*="manage"],
-  .cl-organizationSwitcherPopoverCard button:has([aria-label*="Manage"]),
-  .cl-organizationSwitcherPopoverCard button:has([aria-label*="manage"]) {
-    background-color: transparent !important;
-    color: hsl(var(--foreground)) !important;
-    border: none !important;
-    border-radius: 0.375rem !important;
-    padding: 0.5rem 0.75rem !important;
-    transition: all 150ms ease-in-out !important;
-    cursor: pointer !important;
-    font-weight: 500 !important;
-    font-size: 0.875rem !important;
-  }
-
-  /* Manage Button hover - ghost button hover effect */
-  [data-clerk-element="organizationSwitcherPopoverManageButton"]:hover,
-  .cl-organizationSwitcherPopoverManageButton:hover,
-  button[aria-label*="Manage"]:hover,
-  button[aria-label*="manage"]:hover {
-    background-color: hsl(var(--accent)) !important;
-    color: hsl(var(--accent-foreground)) !important;
-  }
-
-  /* Destructive Actions - Delete/Leave buttons */
-  [data-clerk-element="organizationSwitcherPopoverDestructiveButton"],
-  .cl-organizationSwitcherPopoverDestructiveButton,
-  button[aria-label*="Delete"],
-  button[aria-label*="delete"],
-  button[aria-label*="Leave"],
-  button[aria-label*="leave"],
-  button[type="button"]:has([aria-label*="Delete"]),
-  button[type="button"]:has([aria-label*="Leave"]) {
-    background-color: hsl(var(--destructive)) !important;
-    color: hsl(var(--destructive-foreground)) !important;
-    border-radius: 0.375rem !important;
-    padding: 0.5rem 1rem !important;
-    border: none !important;
-    transition: all 150ms ease-in-out !important;
-    cursor: pointer !important;
-    font-weight: 500 !important;
-    font-size: 0.875rem !important;
-  }
-
-  /* Destructive button hover */
-  [data-clerk-element="organizationSwitcherPopoverDestructiveButton"]:hover,
-  .cl-organizationSwitcherPopoverDestructiveButton:hover,
-  button[aria-label*="Delete"]:hover,
-  button[aria-label*="Leave"]:hover {
-    background-color: hsl(var(--destructive)) !important;
-    opacity: 0.9 !important;
-  }
-
-  /* Override Clerk organization preview button background */
-  [data-clerk-element="organizationSwitcherPreviewButton"],
-  .cl-organizationSwitcherPreviewButton,
-  button[data-clerk-element="organizationSwitcherPreviewButton"],
-  div[data-clerk-element="organizationSwitcherPreviewButton"] {
-    background: transparent !important;
-    background-color: transparent !important;
-  }
-
-  /* Override Clerk organization list items background (Oikion button) - exclude Create and Manage */
-  [data-clerk-element="organizationSwitcherPopoverActionButton"]:not([data-clerk-element*="createOrganization"]):not([data-clerk-element*="manageOrganization"]),
-  .cl-organizationSwitcherPopoverActionButton:not(.cl-organizationSwitcherPopoverActionButton__createOrganization):not(.cl-organizationSwitcherPopoverActionButton__manageOrganization),
-  button[data-clerk-element="organizationSwitcherPopoverActionButton"]:not([data-clerk-element*="createOrganization"]):not([data-clerk-element*="manageOrganization"]) {
-    background: transparent !important;
-    background-color: transparent !important;
-  }
-
-  /* Clerk Social Buttons - Secondary styling */
-  [data-clerk-element="socialButtonsBlockButton"],
-  .cl-socialButtonsBlockButton,
-  button[data-clerk-element="socialButtonsBlockButton"],
-  .cl-socialButtonsBlockButton button,
-  button.cl-socialButtonsBlockButton {
-    background-color: hsl(var(--secondary)) !important;
-    color: hsl(var(--secondary-foreground)) !important;
-    border: none !important;
-    border-radius: 0.375rem !important;
-    padding: 0.5rem 1rem !important;
-    font-weight: 500 !important;
-    font-size: 0.875rem !important;
-    transition: all 150ms ease-in-out !important;
-    cursor: pointer !important;
-  }
-
-  /* Hover state */
-  [data-clerk-element="socialButtonsBlockButton"]:hover,
-  .cl-socialButtonsBlockButton:hover,
-  button[data-clerk-element="socialButtonsBlockButton"]:hover,
-  .cl-socialButtonsBlockButton button:hover,
-  button.cl-socialButtonsBlockButton:hover {
-    background-color: hsl(var(--secondary)) !important;
-    opacity: 0.8 !important;
-  }
-
-  /* Social button text styling */
-  [data-clerk-element="socialButtonsBlockButtonText"],
-  .cl-socialButtonsBlockButtonText,
-  .cl-socialButtonsBlockButtonText__google,
-  .cl-socialButtonsBlockButtonText__github,
-  .cl-socialButtonsBlockButtonText__microsoft,
-  .cl-socialButtonsBlockButtonText__apple,
-  .cl-socialButtonsBlockButtonText__facebook,
-  .cl-socialButtonsBlockButtonText__discord,
-  [class*="cl-socialButtonsBlockButtonText"],
-  [class*="socialButtonsBlockButtonText"] {
-    color: hsl(var(--secondary-foreground)) !important;
-    font-weight: 500 !important;
-    font-size: 0.875rem !important;
-  }
-
-  /* Social button text in all variants */
-  .cl-socialButtonsBlockButtonText *,
-  [data-clerk-element="socialButtonsBlockButtonText"] *,
-  button[data-clerk-element="socialButtonsBlockButton"] *,
-  .cl-socialButtonsBlockButton * {
-    color: hsl(var(--secondary-foreground)) !important;
-  }
-
+/* Animations */
+@keyframes accordion-down {
+  from { height: 0 }
+  to { height: var(--radix-accordion-content-height) }
 }
 
-/* Custom Scrollbar - Hidden but scrollable */
-/* Webkit browsers (Chrome, Safari, Edge) */
-::-webkit-scrollbar {
-  width: 0px;
-  height: 0px;
-  background: transparent;
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height) }
+  to { height: 0 }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+@keyframes fade-in {
+  from { opacity: 0 }
+  to { opacity: 1 }
 }
 
-::-webkit-scrollbar-thumb {
-  background: transparent;
+@keyframes fade-out {
+  from { opacity: 1 }
+  to { opacity: 0 }
 }
 
-/* Firefox */
-* {
-  scrollbar-width: none;
-  -ms-overflow-style: none; /* IE and Edge */
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(10px) }
+  to { opacity: 1; transform: translateY(0) }
 }
 
-/* Ensure scrolling still works */
-html,
-body {
-  overflow: auto;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+@keyframes slide-right-fade {
+    from { opacity: 0; transform: translateX(-10px) }
+    to { opacity: 1; transform: translateX(0) }
+}
+
+@keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95) }
+    to { opacity: 1; transform: scale(1) }
+}
+
+/* Utility for micro-interactions */
+@layer utilities {
+  .animate-in-fast {
+    animation: fade-in 0.2s ease-out, slide-up-fade 0.3s ease-out;
+  }
+  
+  .hover-lift {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  }
 }

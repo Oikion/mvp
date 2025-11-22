@@ -45,29 +45,33 @@ const createQuickAddSchema = (t: (key: string) => string) => z.object({
     required_error: t("crm.CrmForm.validation.intentRequired"),
   }),
   assigned_to: z.string().min(1, t("common.selectAgent")),
-}).refine(
-  (data) => {
-    return !!(data.primary_phone && data.primary_phone.length) || !!(data.primary_email && data.primary_email.length);
-  },
-  {
-    path: ["primary_email"],
-    message: t("crm.CrmForm.validation.phoneOrEmailRequired"),
+}).superRefine((data, ctx) => {
+  // Validate phone/email
+  if (!data.primary_phone && !data.primary_email) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: t("crm.CrmForm.validation.phoneOrEmailRequired"),
+      path: ["primary_email"],
+    });
   }
-).refine(
-  (data) => {
-    if (data.person_type === "INDIVIDUAL") {
-      return !!(data.full_name && data.full_name.length);
-    }
-    if (data.person_type === "COMPANY") {
-      return !!(data.company_name && data.company_name.length);
-    }
-    return true;
-  },
-  {
-    path: ["full_name"],
-    message: t("crm.CrmForm.validation.nameRequired"),
+
+  // Validate name based on type
+  if (data.person_type === "INDIVIDUAL" && !data.full_name) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: t("crm.CrmForm.validation.nameRequired"),
+      path: ["full_name"],
+    });
   }
-);
+
+  if (data.person_type === "COMPANY" && !data.company_name) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: t("crm.CrmForm.validation.nameRequired"),
+      path: ["company_name"],
+    });
+  }
+});
 
 type Props = {
   open: boolean;
@@ -81,7 +85,7 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations();
-  
+
   const quickAddSchema = createQuickAddSchema(t);
   type QuickAddFormValues = z.infer<typeof quickAddSchema>;
 
@@ -103,7 +107,7 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
   const onSubmit = async (data: QuickAddFormValues) => {
     setIsLoading(true);
     try {
-      const client_name = data.person_type === "COMPANY" 
+      const client_name = data.person_type === "COMPANY"
         ? data.company_name || "Unnamed Company"
         : data.full_name || "Unnamed Client";
 

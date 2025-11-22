@@ -11,10 +11,11 @@ export async function POST(
 ) {
   try {
     await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const params = await props.params;
 
-    const document = await prismadb.documents.findUnique({
-      where: { id: params.documentId },
+    const document = await prismadb.documents.findFirst({
+      where: { id: params.documentId, organizationId },
     });
 
     if (!document) {
@@ -25,7 +26,7 @@ export async function POST(
     const shareableLink = document.shareableLink || createShareLink();
 
     const updated = await prismadb.documents.update({
-      where: { id: params.documentId },
+      where: { id: params.documentId, organizationId },
       data: {
         shareableLink,
         linkEnabled: true,
@@ -47,13 +48,14 @@ export async function PUT(
 ) {
   try {
     await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const params = await props.params;
 
     const body = await req.json();
     const { passwordProtected, password, expiresAt, linkEnabled } = body;
 
-    const document = await prismadb.documents.findUnique({
-      where: { id: params.documentId },
+    const document = await prismadb.documents.findFirst({
+      where: { id: params.documentId, organizationId },
     });
 
     if (!document) {
@@ -68,7 +70,7 @@ export async function PUT(
     }
 
     const updated = await prismadb.documents.update({
-      where: { id: params.documentId },
+      where: { id: params.documentId, organizationId },
       data: {
         linkEnabled: linkEnabled !== undefined ? linkEnabled : document.linkEnabled,
         passwordProtected: passwordProtected !== undefined ? passwordProtected : document.passwordProtected,
@@ -92,10 +94,11 @@ export async function DELETE(
 ) {
   try {
     await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const params = await props.params;
 
     const updated = await prismadb.documents.update({
-      where: { id: params.documentId },
+      where: { id: params.documentId, organizationId },
       data: {
         linkEnabled: false,
       },

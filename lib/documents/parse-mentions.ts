@@ -1,3 +1,4 @@
+import type { PrismaClient } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 
 export interface ParsedMention {
@@ -73,7 +74,8 @@ export function parseMentionsFromText(text: string): ParsedMention[] {
  */
 export async function resolveMentions(
   mentions: ParsedMention[],
-  organizationId: string
+  organizationId: string,
+  prismaClient: PrismaClient = prismadb
 ): Promise<ParsedMentions> {
   const resolved: ParsedMentions = {
     clients: [],
@@ -91,7 +93,7 @@ export async function resolveMentions(
   // Resolve clients
   if (clientMentions.length > 0) {
     const clientNames = clientMentions.map((m) => m.name);
-    const clients = await prismadb.clients.findMany({
+    const clients = await prismaClient.clients.findMany({
       where: {
         organizationId,
         client_name: {
@@ -113,7 +115,7 @@ export async function resolveMentions(
   // Resolve properties
   if (propertyMentions.length > 0) {
     const propertyNames = propertyMentions.map((m) => m.name);
-    const properties = await prismadb.properties.findMany({
+    const properties = await prismaClient.properties.findMany({
       where: {
         organizationId,
         property_name: {
@@ -135,7 +137,7 @@ export async function resolveMentions(
   // Resolve calendar events (CalComEvent)
   if (eventMentions.length > 0) {
     const eventTitles = eventMentions.map((m) => m.name);
-    const events = await (prismadb as any).calComEvent.findMany({
+    const events = await (prismaClient as any).calComEvent.findMany({
       where: {
         organizationId,
         title: {
@@ -157,7 +159,7 @@ export async function resolveMentions(
   // Resolve tasks (crm_Accounts_Tasks)
   if (taskMentions.length > 0) {
     const taskTitles = taskMentions.map((m) => m.name);
-    const tasks = await prismadb.crm_Accounts_Tasks.findMany({
+    const tasks = await prismaClient.crm_Accounts_Tasks.findMany({
       where: {
         title: {
           in: taskTitles,
@@ -193,7 +195,8 @@ export async function mergeMentions(
     eventIds?: string[];
     taskIds?: string[];
   },
-  organizationId: string
+  organizationId: string,
+  prismaClient: PrismaClient = prismadb
 ): Promise<ParsedMentions> {
   const merged: ParsedMentions = {
     clients: [...parsedMentions.clients],
@@ -204,7 +207,7 @@ export async function mergeMentions(
 
   // Add explicit client associations
   if (explicitAssociations.clientIds && explicitAssociations.clientIds.length > 0) {
-    const explicitClients = await prismadb.clients.findMany({
+    const explicitClients = await prismaClient.clients.findMany({
       where: {
         id: { in: explicitAssociations.clientIds },
         organizationId,
@@ -225,7 +228,7 @@ export async function mergeMentions(
 
   // Add explicit property associations
   if (explicitAssociations.propertyIds && explicitAssociations.propertyIds.length > 0) {
-    const explicitProperties = await prismadb.properties.findMany({
+    const explicitProperties = await prismaClient.properties.findMany({
       where: {
         id: { in: explicitAssociations.propertyIds },
         organizationId,
@@ -245,7 +248,7 @@ export async function mergeMentions(
 
   // Add explicit event associations
   if (explicitAssociations.eventIds && explicitAssociations.eventIds.length > 0) {
-    const explicitEvents = await (prismadb as any).calComEvent.findMany({
+    const explicitEvents = await (prismaClient as any).calComEvent.findMany({
       where: {
         id: { in: explicitAssociations.eventIds },
         organizationId,
@@ -265,7 +268,7 @@ export async function mergeMentions(
 
   // Add explicit task associations
   if (explicitAssociations.taskIds && explicitAssociations.taskIds.length > 0) {
-    const explicitTasks = await prismadb.crm_Accounts_Tasks.findMany({
+    const explicitTasks = await prismaClient.crm_Accounts_Tasks.findMany({
       where: {
         id: { in: explicitAssociations.taskIds },
       },

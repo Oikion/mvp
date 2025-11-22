@@ -20,8 +20,8 @@ export default function PropertiesView({ data }: { data: any[] }) {
     // Fetch users for the wizard
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("/api/user");
-        setUsers(response.data || []);
+        const response = await axios.get("/api/org/users");
+        setUsers(response.data?.users || []);
       } catch (error) {
         console.error("Failed to fetch users:", error);
       }

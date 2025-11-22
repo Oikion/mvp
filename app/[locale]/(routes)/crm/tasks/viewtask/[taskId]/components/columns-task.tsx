@@ -20,7 +20,7 @@ export const columnsTask: ColumnDef<Task>[] = [
     ),
 
     cell: ({ row }) => (
-      <div className="w-[150px]">
+      <div className="whitespace-nowrap">
         {
           //@ts-ignore
           //TODO: fix this - must change schema but problem is if value is null now. You must change db

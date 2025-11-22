@@ -1,7 +1,14 @@
 import { prismadb } from "@/lib/prisma";
+import { getCurrentOrgId } from "@/lib/get-current-user";
 
 export const getClientContacts = async () => {
+  const organizationId = await getCurrentOrgId();
   const data = await prismadb.client_Contacts.findMany({
+    where: {
+      assigned_client: {
+        organizationId: organizationId,
+      },
+    },
     include: {
       assigned_to_user: {
         select: {

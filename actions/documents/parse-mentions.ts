@@ -1,9 +1,11 @@
+import type { PrismaClient } from "@prisma/client";
 import {
   parseMentionsFromText,
   resolveMentions,
   mergeMentions,
   type ParsedMentions,
 } from "@/lib/documents/parse-mentions";
+import { prismadb } from "@/lib/prisma";
 
 /**
  * Parse mentions from document description text
@@ -13,7 +15,8 @@ import {
  */
 export async function parseDocumentMentions(
   description: string | null | undefined,
-  organizationId: string
+  organizationId: string,
+  prismaClient: PrismaClient = prismadb
 ): Promise<ParsedMentions> {
   if (!description) {
     return {
@@ -25,7 +28,7 @@ export async function parseDocumentMentions(
   }
 
   const mentions = parseMentionsFromText(description);
-  const resolved = await resolveMentions(mentions, organizationId);
+  const resolved = await resolveMentions(mentions, organizationId, prismaClient);
 
   return resolved;
 }
@@ -45,13 +48,23 @@ export async function mergeDocumentMentions(
     eventIds?: string[];
     taskIds?: string[];
   },
-  organizationId: string
+  organizationId: string,
+  prismaClient: PrismaClient = prismadb
 ): Promise<ParsedMentions> {
   // Parse inline mentions from description
-  const parsedMentions = await parseDocumentMentions(description, organizationId);
+  const parsedMentions = await parseDocumentMentions(
+    description,
+    organizationId,
+    prismaClient
+  );
 
   // Merge with explicit associations
-  const merged = await mergeMentions(parsedMentions, explicitAssociations, organizationId);
+  const merged = await mergeMentions(
+    parsedMentions,
+    explicitAssociations,
+    organizationId,
+    prismaClient
+  );
 
   return merged;
 }

@@ -18,7 +18,7 @@ export const columns: ColumnDef<Task>[] = [
     ),
 
     cell: ({ row }) => (
-      <div className="w-[150px]">
+      <div className="whitespace-nowrap">
         {
           //@ts-ignore
           //TODO: fix this

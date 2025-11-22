@@ -24,6 +24,10 @@
   "clientsDistribution": "Distribution of {count} clients across different statuses",
   "propertiesDistribution": "Distribution of {count} properties across different statuses",
   "noRecentClients": "No recent clients found",
-  "noRecentProperties": "No recent properties found"
+  "noRecentProperties": "No recent properties found",
+  "deleteConfirmation": "Delete {name}? This action cannot be undone.",
+  "clientDeleted": "Client deleted successfully.",
+  "propertyDeleted": "Property deleted successfully.",
+  "deleteError": "We couldn't delete this record. Try again."
 }
 

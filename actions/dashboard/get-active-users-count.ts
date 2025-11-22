@@ -1,10 +1,7 @@
-import { prismadb } from "@/lib/prisma";
+import { getOrgMembersFromDb } from "@/lib/org-members";
+import { Users } from "@prisma/client";
 
 export const getActiveUsersCount = async () => {
-  const data = await prismadb.users.count({
-    where: {
-      userStatus: "ACTIVE",
-    },
-  });
-  return data;
+  const { users } = await getOrgMembersFromDb();
+  return (users as Users[]).filter((user) => user.userStatus === "ACTIVE").length;
 };

@@ -78,12 +78,15 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
         // For public API routes, just pass through - Clerk middleware already ran
         return response;
       }
-      
+
+      if (!authResult.userId) {
+        return NextResponse.json(
+          { error: 'Unauthenticated' },
+          { status: 401 }
+        );
+      }
+
       // For protected API routes, ensure auth context is available
-      // Clerk middleware will set up the auth context, but we don't redirect here
-      // The API route handler will check auth and return appropriate errors
-      // Note: We don't check authResult.userId here - let the API route handle it
-      // This ensures Clerk's auth() function works in API routes
       return response;
     } catch (error) {
       // If rate limiting fails, log error but allow request through
@@ -95,7 +98,13 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
         return NextResponse.next();
       }
       
-      await auth();
+      const authResult = await auth();
+      if (!isPublicRoute(req) && !authResult.userId) {
+        return NextResponse.json(
+          { error: 'Unauthenticated' },
+          { status: 401 }
+        );
+      }
       return NextResponse.next();
     }
   }

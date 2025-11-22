@@ -1,6 +1,7 @@
 import { getDocument } from "@/actions/documents/get-document";
 import { notFound } from "next/navigation";
 import { DocumentDetail } from "./components/DocumentDetail";
+import { getCurrentOrgId } from "@/lib/get-current-user";
 
 export default async function DocumentDetailPage({
   params,
@@ -13,7 +14,8 @@ export default async function DocumentDetailPage({
   const search = await searchParams;
   const activeTab = typeof search.tab === "string" ? search.tab : "details";
 
-  const document = await getDocument(documentId);
+  const organizationId = await getCurrentOrgId();
+  const document = await getDocument(documentId, organizationId);
 
   if (!document) {
     notFound();

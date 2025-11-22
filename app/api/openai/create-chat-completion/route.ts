@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 import { openAiHelper } from "@/lib/openai";
 
 export async function POST(req: Request) {
+  const user = await getCurrentUser();
   const body = await req.json();
-  const { prompt, userId } = body;
+  const { prompt } = body;
 
-  const openai = await openAiHelper(userId);
+  const openai = await openAiHelper(user.id);
 
   if (!openai) {
     return new NextResponse("No openai key found", { status: 500 });

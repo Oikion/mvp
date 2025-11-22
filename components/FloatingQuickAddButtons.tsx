@@ -16,18 +16,17 @@ function useIsModalOpen() {
 
   useEffect(() => {
     const checkForOpenModals = () => {
-      // Check for Radix UI Dialog overlays with data-state="open"
-      const dialogOverlays = document.querySelectorAll('[data-radix-dialog-overlay][data-state="open"]');
-      // Check for AlertModal or other modal components
-      const alertModals = document.querySelectorAll('[role="dialog"]');
-      
-      const hasOpenModal = 
-        dialogOverlays.length > 0 || 
-        Array.from(alertModals).some(el => {
-          const style = globalThis.getComputedStyle(el);
-          return style.display !== 'none' && style.visibility !== 'hidden';
-        });
-      
+      const openModalSelectors = [
+        '[data-radix-dialog-overlay][data-state="open"]',
+        '[data-radix-dialog-content][data-state="open"]',
+        '[data-radix-alert-dialog-content][data-state="open"]',
+        '[data-radix-drawer-content][data-state="open"]',
+      ];
+
+      const hasOpenModal = openModalSelectors.some(
+        (selector) => document.querySelector(selector) !== null,
+      );
+
       setIsModalOpen(hasOpenModal);
     };
 
@@ -74,8 +73,8 @@ export function FloatingQuickAddButtons() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("/api/user");
-        setUsers(response.data || []);
+        const response = await axios.get("/api/org/users");
+        setUsers(response.data?.users || []);
       } catch (error) {
         console.error("Failed to fetch users:", error);
       }
@@ -87,23 +86,20 @@ export function FloatingQuickAddButtons() {
     return null;
   }
 
-  // Hide quick-add buttons when any modal is open
-  if (isModalOpen) {
-    return null;
-  }
-
   return (
     <>
       {isCrmRoute && (
         <>
-          <Button
-            onClick={() => setClientOpen(true)}
-            className="fixed bottom-6 right-6 z-[60] h-14 w-14 rounded-full shadow-lg"
-            size="icon"
-          >
-            <Plus className="h-6 w-6" />
-            <span className="sr-only">{tCrm("QuickAdd.client.title")}</span>
-          </Button>
+          {!isModalOpen && (
+            <Button
+              onClick={() => setClientOpen(true)}
+              className="fixed bottom-6 right-6 z-[60] h-14 w-14 rounded-full shadow-lg"
+              size="icon"
+            >
+              <Plus className="h-6 w-6" />
+              <span className="sr-only">{tCrm("QuickAdd.client.title")}</span>
+            </Button>
+          )}
           <QuickAddClient
             open={clientOpen}
             onOpenChange={setClientOpen}
@@ -122,14 +118,16 @@ export function FloatingQuickAddButtons() {
 
       {isMlsRoute && (
         <>
-          <Button
-            onClick={() => setPropertyOpen(true)}
-            className="fixed bottom-6 right-6 z-[60] h-14 w-14 rounded-full shadow-lg"
-            size="icon"
-          >
-            <Plus className="h-6 w-6" />
-            <span className="sr-only">{tMls("QuickAdd.property.title")}</span>
-          </Button>
+          {!isModalOpen && (
+            <Button
+              onClick={() => setPropertyOpen(true)}
+              className="fixed bottom-6 right-6 z-[60] h-14 w-14 rounded-full shadow-lg"
+              size="icon"
+            >
+              <Plus className="h-6 w-6" />
+              <span className="sr-only">{tMls("QuickAdd.property.title")}</span>
+            </Button>
+          )}
           <QuickAddProperty
             open={propertyOpen}
             onOpenChange={setPropertyOpen}

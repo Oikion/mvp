@@ -16,6 +16,10 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
     return new NextResponse("No user ID provided", { status: 400 });
   }
 
+  if (user.id !== params.userId && !user.is_admin) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+
   if (!password || !cpassword) {
     return new NextResponse("No password provided", { status: 400 });
   }
