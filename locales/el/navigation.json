@@ -1,6 +1,14 @@
 {
   "ModuleMenu": {
+    "categories": {
+      "overview": "Επισκόπηση",
+      "coreBusiness": "Βασικές Λειτουργίες",
+      "network": "Δίκτυο",
+      "tools": "Εργαλεία",
+      "organization": "Οργανισμός"
+    },
     "dashboard": "Πίνακας Ελέγχου",
+    "feed": "Επερχόμενα",
     "crm": {
       "title": "Πελάτες",
       "accounts": "Πελάτες",
@@ -13,13 +21,24 @@
       "title": "Ακίνητα",
       "properties": "Ακίνητα"
     },
+    "social": {
+      "title": "Κοινωνικά",
+      "socialFeed": "Κοινωνική Ροή",
+      "connections": "Συνδέσεις",
+      "audiences": "Κοινά",
+      "sharedWithMe": "Μοιράστηκαν μαζί μου",
+      "deals": "Συνεργασίες",
+      "publicProfile": "Δημόσιο Προφίλ"
+    },
     "emails": "E-mail",
     "tasks": "Εργασίες",
     "invoices": "Τιμολόγια",
     "reports": "Αναφορές",
     "documents": "Έγγραφα",
+    "documentsAll": "Όλα τα Έγγραφα",
+    "documentsTemplates": "Πρότυπα",
     "storage": "Αποθήκευση",
-    "settings": "Διαχείριση",
+    "settings": "Ρυθμίσεις",
     "employees": "Υπάλληλοι",
     "chatGPT": "ChatGPT",
     "feedback": "Ανατροφοδότηση",

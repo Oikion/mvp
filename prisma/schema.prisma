@@ -11,48 +11,48 @@ datasource db {
 }
 
 model Clients {
-  id                   String             @id @default(uuid())
-  createdAt            DateTime           @default(now())
-  createdBy            String?
-  updatedAt            DateTime?          @updatedAt
-  updatedBy            String?
-  assigned_to          String?
-  organizationId      String             @default("00000000-0000-0000-0000-000000000000")
+  id             String    @id @default(uuid())
+  createdAt      DateTime  @default(now())
+  createdBy      String?
+  updatedAt      DateTime? @updatedAt
+  updatedBy      String?
+  assigned_to    String?
+  organizationId String    @default("00000000-0000-0000-0000-000000000000")
 
   // Core client identity
-  client_name          String
-  primary_email        String?
+  client_name   String
+  primary_email String?
 
   // Greece-specific client fields
-  person_type          PersonType?
-  full_name            String?
-  company_name         String?
-  primary_phone        String?
-  secondary_phone      String?
-  secondary_email      String?
-  intent               ClientIntent?
-  channels             String[]           // CALL, SMS, WHATSAPP, VIBER, EMAIL
-  language             Language?          @default(en)
-  afm                  String?            // Greek tax ID (9 digits)
-  doy                  String?            // Greek tax office
-  id_doc               String?            // ID/Passport
-  company_gemi         String?            // Greek business registry
-  purpose              PropertyPurpose?
-  areas_of_interest    Json?               // Array of areas
-  budget_min           Decimal?
-  budget_max           Decimal?
-  timeline             Timeline?
-  financing_type       FinancingType?
-  preapproval_bank     String?
-  needs_mortgage_help  Boolean?           @default(false)
-  gdpr_consent         Boolean?           @default(false)
-  allow_marketing      Boolean?           @default(false)
-  lead_source          LeadSource?
-  draft_status         Boolean?           @default(false)
+  person_type         PersonType?
+  full_name           String?
+  company_name        String?
+  primary_phone       String?
+  secondary_phone     String?
+  secondary_email     String?
+  intent              ClientIntent?
+  channels            String[] // CALL, SMS, WHATSAPP, VIBER, EMAIL
+  language            Language?        @default(en)
+  afm                 String? // Greek tax ID (9 digits)
+  doy                 String? // Greek tax office
+  id_doc              String? // ID/Passport
+  company_gemi        String? // Greek business registry
+  purpose             PropertyPurpose?
+  areas_of_interest   Json? // Array of areas
+  budget_min          Decimal?
+  budget_max          Decimal?
+  timeline            Timeline?
+  financing_type      FinancingType?
+  preapproval_bank    String?
+  needs_mortgage_help Boolean?         @default(false)
+  gdpr_consent        Boolean?         @default(false)
+  allow_marketing     Boolean?         @default(false)
+  lead_source         LeadSource?
+  draft_status        Boolean?         @default(false)
 
   // Real-estate specific fields
   client_type          ClientType?
-  client_status        ClientStatus?      @default(LEAD)
+  client_status        ClientStatus? @default(LEAD)
   property_preferences Json?
   communication_notes  Json?
 
@@ -76,15 +76,17 @@ model Clients {
   website              String?
 
   // Relations
-  documentsIDs         String[]
-  assigned_documents   Documents[]        @relation("DocumentsToClients")
-  contacts             Client_Contacts[]
-  assigned_to_user     Users?             @relation(fields: [assigned_to], references: [id])
-  crm_accounts_tasks   crm_Accounts_Tasks[]
-  watchers             String[]
-  watching_users       Users[]            @relation("watching_accounts")
-  linked_properties    Client_Properties[]
-  linkedEvents         CalComEvent[]      @relation("EventToClients")
+  documentsIDs       String[]
+  assigned_documents Documents[]          @relation("DocumentsToClients")
+  contacts           Client_Contacts[]
+  assigned_to_user   Users?               @relation(fields: [assigned_to], references: [id])
+  crm_accounts_tasks crm_Accounts_Tasks[]
+  watchers           String[]
+  watching_users     Users[]              @relation("watching_accounts")
+  linked_properties  Client_Properties[]
+  linkedEvents       CalComEvent[]        @relation("EventToClients")
+  deals              Deal[]
+  comments           ClientComment[]
 
   // Performance indexes for frequently queried fields
   @@index([client_status])
@@ -158,17 +160,17 @@ enum LeadSource {
 // Removed legacy Opportunities and Campaigns related models and enums
 
 model Client_Contacts {
-  id                     String              @id @default(uuid())
+  id                     String             @id @default(uuid())
   client                 String?
   assigned_to            String?
   birthday               String?
   created_by             String?
   createdBy              String?
-  organizationId        String            @default("00000000-0000-0000-0000-000000000000")
-  created_on             DateTime?           @default(now())
-  cratedAt               DateTime?           @default(now())
-  last_activity          DateTime?           @default(now())
-  updatedAt              DateTime?           @updatedAt
+  organizationId         String             @default("00000000-0000-0000-0000-000000000000")
+  created_on             DateTime?          @default(now())
+  cratedAt               DateTime?          @default(now())
+  last_activity          DateTime?          @default(now())
+  updatedAt              DateTime?          @updatedAt
   updatedBy              String?
   last_activity_by       String?
   description            String?
@@ -180,19 +182,19 @@ model Client_Contacts {
   mobile_phone           String?
   website                String?
   position               String?
-  status                 Boolean             @default(true)
+  status                 Boolean            @default(true)
   // Real-estate specific
   contact_type           ClientContactType?
   relationship_to_client String?
-  type                   String?             @default("Customer")
+  type                   String?            @default("Customer")
   tags                   String[]
   notes                  String[]
-  assigned_to_user       Users?              @relation("assigned_contacts", fields: [assigned_to], references: [id])
-  crate_by_user          Users?              @relation("created_contacts", fields: [created_by], references: [id])
+  assigned_to_user       Users?             @relation("assigned_contacts", fields: [assigned_to], references: [id])
+  crate_by_user          Users?             @relation("created_contacts", fields: [created_by], references: [id])
   clientsIDs             String?
-  assigned_client        Clients?            @relation(fields: [clientsIDs], references: [id])
+  assigned_client        Clients?           @relation(fields: [clientsIDs], references: [id])
   documentsIDs           String[]
-  assigned_documents     Documents[]         @relation("DocumentsToClientContacts")
+  assigned_documents     Documents[]        @relation("DocumentsToClientContacts")
 
   // Performance indexes for frequently queried fields
   @@index([clientsIDs])
@@ -226,7 +228,7 @@ model ImageUpload {
 model MyAccount {
   id                   String  @id @default(uuid())
   company_name         String
-  organizationId       String            @default("00000000-0000-0000-0000-000000000000")
+  organizationId       String  @default("00000000-0000-0000-0000-000000000000")
   is_person            Boolean @default(false)
   email                String?
   email_accountant     String?
@@ -266,15 +268,15 @@ model MyAccount {
 }
 
 model Documents {
-  id                     String              @id @default(uuid())
-  date_created           DateTime?           @default(now())
-  createdAt              DateTime?           @default(now())
-  last_updated           DateTime?           @updatedAt
-  updatedAt              DateTime?           @updatedAt
+  id                     String               @id @default(uuid())
+  date_created           DateTime?            @default(now())
+  createdAt              DateTime?            @default(now())
+  last_updated           DateTime?            @updatedAt
+  updatedAt              DateTime?            @updatedAt
   document_name          String
   created_by_user        String?
   createdBy              String?
-  organizationId        String            @default("00000000-0000-0000-0000-000000000000")
+  organizationId         String               @default("00000000-0000-0000-0000-000000000000")
   description            String?
   document_type          String?
   favourite              Boolean?
@@ -290,30 +292,30 @@ model Documents {
   contactsIDs            String[]
   crm_accounts_tasksIDs  String[]
   accountsIDs            String[]
-  contacts               Client_Contacts[]   @relation("DocumentsToClientContacts")
+  contacts               Client_Contacts[]    @relation("DocumentsToClientContacts")
   crm_accounts_tasks     crm_Accounts_Tasks[] @relation("DocumentsToCrmAccountsTasks")
   accounts               Clients[]            @relation("DocumentsToClients")
-  created_by             Users?              @relation("created_by_user", fields: [created_by_user], references: [id])
-  assigned_to_user       Users?              @relation("assigned_to_user", fields: [assigned_user], references: [id])
-  documents_type         Documents_Types?    @relation(fields: [document_type], references: [id])
-  document_system_type   DocumentSystemType? @default(OTHER)
+  created_by             Users?               @relation("created_by_user", fields: [created_by_user], references: [id])
+  assigned_to_user       Users?               @relation("assigned_to_user", fields: [assigned_user], references: [id])
+  documents_type         Documents_Types?     @relation(fields: [document_type], references: [id])
+  document_system_type   DocumentSystemType?  @default(OTHER)
 
   // Papermark integration fields
-  shareableLink           String?             @unique
-  linkEnabled            Boolean             @default(false)
-  passwordProtected      Boolean             @default(false)
-  passwordHash           String?
-  expiresAt              DateTime?
-  linkedPropertiesIds    String[]
-  linkedProperties        Properties[]       @relation("DocumentsToProperties")
-  linkedCalComEventsIds  String[]
-  linkedCalComEvents      CalComEvent[]      @relation("DocumentsToCalComEvents")
-  linkedTasksIds         String[]
-  linkedTasks             crm_Accounts_Tasks[] @relation("DocumentsToTasksExplicit")
-  mentions                Json?              // Merged mentions: {clients: [...], properties: [...], events: [...], tasks: [...]}
-  viewsCount              Int                 @default(0)
-  lastViewedAt           DateTime?
-  views                   DocumentView[]
+  shareableLink         String?              @unique
+  linkEnabled           Boolean              @default(false)
+  passwordProtected     Boolean              @default(false)
+  passwordHash          String?
+  expiresAt             DateTime?
+  linkedPropertiesIds   String[]
+  linkedProperties      Properties[]         @relation("DocumentsToProperties")
+  linkedCalComEventsIds String[]
+  linkedCalComEvents    CalComEvent[]        @relation("DocumentsToCalComEvents")
+  linkedTasksIds        String[]
+  linkedTasks           crm_Accounts_Tasks[] @relation("DocumentsToTasksExplicit")
+  mentions              Json? // Merged mentions: {clients: [...], properties: [...], events: [...], tasks: [...]}
+  viewsCount            Int                  @default(0)
+  lastViewedAt          DateTime?
+  views                 DocumentView[]
 
   // Performance indexes for frequently queried fields
   @@index([date_created])
@@ -338,6 +340,32 @@ model Documents_Types {
   assigned_documents Documents[]
 }
 
+// Document Templates for Greek Real Estate
+model DocumentTemplate {
+  id            String       @id @default(uuid())
+  name          String       // Internal reference name
+  nameEn        String       // English display name
+  nameEl        String       // Greek display name
+  description   String?      @db.Text
+  descriptionEl String?      @db.Text
+  templateType  TemplateType
+  placeholders  Json         // Array of placeholder definitions
+  docxUrl       String?      // Static DOCX template URL
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([templateType])
+  @@index([isActive])
+}
+
+enum TemplateType {
+  BROKERAGE_MANDATE      // Εντολή Ανάθεσης Μεσιτείας
+  LEASE_AGREEMENT        // Ιδιωτικό Συμφωνητικό Μίσθωσης
+  HANDOVER_PROTOCOL      // Πρωτόκολλο Παράδοσης-Παραλαβής
+  VIEWING_CONFIRMATION   // Βεβαίωση Επίσκεψης Ακινήτου
+}
+
 // Removed legacy crm_Industry_Type
 
 model modulStatus {
@@ -347,42 +375,42 @@ model modulStatus {
 }
 
 model crm_Accounts_Tasks {
-  id            String                      @id @default(uuid())
-  content       String?
-  createdAt     DateTime?                   @default(now())
-  createdBy     String?
-  updatedAt     DateTime?                   @updatedAt
-  updatedBy     String?
-  dueDateAt     DateTime?                   @default(now())
-  priority      String
-  tags          Json?
-  title         String
-  likes         Int?                        @default(0)
-  user          String?
-  comments      crm_Accounts_Tasks_Comments[] @relation("CommentsToCrmTasks")
-  documents     Documents[]                 @relation("DocumentsToCrmAccountsTasks")
-  linkedDocuments Documents[]              @relation("DocumentsToTasksExplicit")
-  assigned_user Users?                      @relation(fields: [user], references: [id])
-  organizationId String @default("00000000-0000-0000-0000-000000000000")
+  id              String                        @id @default(uuid())
+  content         String?
+  createdAt       DateTime?                     @default(now())
+  createdBy       String?
+  updatedAt       DateTime?                     @updatedAt
+  updatedBy       String?
+  dueDateAt       DateTime?                     @default(now())
+  priority        String
+  tags            Json?
+  title           String
+  likes           Int?                          @default(0)
+  user            String?
+  comments        crm_Accounts_Tasks_Comments[] @relation("CommentsToCrmTasks")
+  documents       Documents[]                   @relation("DocumentsToCrmAccountsTasks")
+  linkedDocuments Documents[]                   @relation("DocumentsToTasksExplicit")
+  assigned_user   Users?                        @relation(fields: [user], references: [id])
+  organizationId  String                        @default("00000000-0000-0000-0000-000000000000")
   //CRM assigments
-  account       String?
-  crm_accounts  Clients?                    @relation(fields: [account], references: [id])
+  account         String?
+  crm_accounts    Clients?                      @relation(fields: [account], references: [id])
   // Cal.com integration
-  calcomEventId String?
-  calcomEvent   CalComEvent?                 @relation(fields: [calcomEventId], references: [id])
+  calcomEventId   String?
+  calcomEvent     CalComEvent?                  @relation(fields: [calcomEventId], references: [id])
 
   @@index([organizationId])
 }
 
 model crm_Accounts_Tasks_Comments {
-  id                      String              @id @default(uuid())
-  comment                 String
-  createdAt               DateTime            @default(now())
-  crm_account_task       String
-  user                    String
-  organizationId        String            @default("00000000-0000-0000-0000-000000000000")
+  id                        String              @id @default(uuid())
+  comment                   String
+  createdAt                 DateTime            @default(now())
+  crm_account_task          String
+  user                      String
+  organizationId            String              @default("00000000-0000-0000-0000-000000000000")
   assigned_crm_account_task crm_Accounts_Tasks? @relation("CommentsToCrmTasks", fields: [crm_account_task], references: [id], onDelete: Cascade)
-  assigned_user           Users?              @relation(fields: [user], references: [id])
+  assigned_user             Users?              @relation(fields: [user], references: [id])
 
   @@index([organizationId])
 }
@@ -403,39 +431,64 @@ enum ActiveStatus {
 }
 
 model Users {
-  id                   String                @id @default(uuid())
-  clerkUserId          String?               @unique
-  account_name         String?
-  avatar               String?
-  email                String                @unique
-  is_account_admin     Boolean               @default(false)
-  is_admin             Boolean               @default(false)
-  created_on           DateTime              @default(now())
-  lastLoginAt          DateTime?
-  name                 String?
-  password             String?
-  username             String?
-  userStatus           ActiveStatus          @default(PENDING)
-  userLanguage         Language              @default(en)
-  created_by_documents Documents[]           @relation("created_by_user")
-  assigned_documents   Documents[]           @relation("assigned_to_user")
-  crm_accounts_tasks   crm_Accounts_Tasks[]
+  id                          String                        @id @default(uuid())
+  clerkUserId                 String?                       @unique
+  account_name                String?
+  avatar                      String?
+  email                       String                        @unique
+  is_account_admin            Boolean                       @default(false)
+  is_admin                    Boolean                       @default(false)
+  created_on                  DateTime                      @default(now())
+  lastLoginAt                 DateTime?
+  name                        String?
+  password                    String?
+  username                    String?
+  userStatus                  ActiveStatus                  @default(PENDING)
+  userLanguage                Language                      @default(en)
+  created_by_documents        Documents[]                   @relation("created_by_user")
+  assigned_documents          Documents[]                   @relation("assigned_to_user")
+  crm_accounts_tasks          crm_Accounts_Tasks[]
   crm_accounts_tasks_comments crm_Accounts_Tasks_Comments[]
-  accounts             Clients[]
+  accounts                    Clients[]
   // MLS relations
-  properties           Properties[]
-  assigned_contacts    Client_Contacts[]     @relation("assigned_contacts")
-  crated_contacts      Client_Contacts[]     @relation("created_contacts")
-  assigned_property_contacts Property_Contacts[]
-  
-  openAi_key           openAi_keys[]
-  watching_accountsIDs String[]
-  watching_accounts    Clients[]             @relation("watching_accounts")
+  properties                  Properties[]
+  assigned_contacts           Client_Contacts[]             @relation("assigned_contacts")
+  crated_contacts             Client_Contacts[]             @relation("created_contacts")
+  assigned_property_contacts  Property_Contacts[]
+
+  openAi_key             openAi_keys[]
+  watching_accountsIDs   String[]
+  watching_accounts      Clients[]     @relation("watching_accounts")
   watching_propertiesIDs String[]
-  watching_properties  Properties[]            @relation("watching_properties")
-  feedback             Feedback[]
-  
-  documentViews        DocumentView[]
+  watching_properties    Properties[]  @relation("watching_properties")
+  feedback               Feedback[]
+
+  documentViews  DocumentView[]
+  assignedEvents CalComEvent[]  @relation("AssignedEvents")
+  notifications  Notification[]
+
+  // Social Profile relations
+  agentProfile       AgentProfile?
+  followers          AgentConnection[] @relation("following")
+  following          AgentConnection[] @relation("follower")
+  sharedByMe         SharedEntity[]    @relation("sharedBy")
+  sharedWithMe       SharedEntity[]    @relation("sharedWith")
+  dealsAsPropertyAgent Deal[]          @relation("propertyAgent")
+  dealsAsClientAgent   Deal[]          @relation("clientAgent")
+
+  // Social Feed relations
+  socialPosts         SocialPost[]        @relation("socialPosts")
+  socialPostLikes     SocialPostLike[]    @relation("socialPostLikes")
+  socialPostComments  SocialPostComment[] @relation("socialPostComments")
+  propertyComments    PropertyComment[]
+  clientComments      ClientComment[]
+
+  // Notification Settings
+  notificationSettings UserNotificationSettings?
+
+  // Audience relations
+  createdAudiences  Audience[]       @relation("audienceCreator")
+  audienceMemberships AudienceMember[]
 
   // Performance indexes for frequently queried fields
   @@index([userStatus])
@@ -457,8 +510,6 @@ model system_Modules_Enabled {
   enabled  Boolean
   position Int
 }
-
- 
 
 model openAi_keys {
   id              String @id @default(uuid())
@@ -495,17 +546,17 @@ enum gptStatus {
 // MLS: Properties and Property_Contacts
 
 model Properties {
-  id                   String       @id @default(uuid())
-  createdAt            DateTime     @default(now())
-  createdBy            String?
-  updatedAt            DateTime?    @updatedAt
-  updatedBy            String?
-  assigned_to          String?
-  organizationId      String             @default("00000000-0000-0000-0000-000000000000")
+  id             String    @id @default(uuid())
+  createdAt      DateTime  @default(now())
+  createdBy      String?
+  updatedAt      DateTime? @updatedAt
+  updatedBy      String?
+  assigned_to    String?
+  organizationId String    @default("00000000-0000-0000-0000-000000000000")
 
   // Core property identity
-  property_name        String
-  primary_email        String?
+  property_name String
+  primary_email String?
 
   // MLS specific fields
   property_type        PropertyType?
@@ -514,70 +565,108 @@ model Properties {
   communication_notes  Json?
 
   // Greece-specific property fields
-  transaction_type     TransactionType?
-  is_exclusive         Boolean?           @default(false)
-  municipality         String?
-  area                 String?
-  postal_code          String?
-  address_privacy_level AddressPrivacyLevel?
-  size_net_sqm         Decimal?
-  size_gross_sqm       Decimal?
-  floor                String?            // BASEMENT, GROUND, 1ST, ..., PENTHOUSE
-  floors_total         Int?
-  plot_size_sqm        Decimal?
-  inside_city_plan     Boolean?
-  build_coefficient    Decimal?
-  coverage_ratio       Decimal?
-  frontage_m           Decimal?
-  heating_type         HeatingType?
-  energy_cert_class    EnergyCertClass?
-  renovated_year       Int?
-  condition            PropertyCondition?
-  elevator             Boolean?
-  building_permit_no   String?
-  building_permit_year Int?
-  land_registry_kaek   String?
-  legalization_status  LegalizationStatus?
-  etaireia_diaxeirisis String?
+  transaction_type       TransactionType?
+  is_exclusive           Boolean?             @default(false)
+  municipality           String?
+  area                   String?
+  postal_code            String?
+  address_privacy_level  AddressPrivacyLevel?
+  size_net_sqm           Decimal?
+  size_gross_sqm         Decimal?
+  floor                  String? // BASEMENT, GROUND, 1ST, ..., PENTHOUSE
+  floors_total           Int?
+  plot_size_sqm          Decimal?
+  inside_city_plan       Boolean?
+  build_coefficient      Decimal?
+  coverage_ratio         Decimal?
+  frontage_m             Decimal?
+  heating_type           HeatingType?
+  energy_cert_class      EnergyCertClass?
+  renovated_year         Int?
+  condition              PropertyCondition?
+  elevator               Boolean?
+  building_permit_no     String?
+  building_permit_year   Int?
+  land_registry_kaek     String?
+  legalization_status    LegalizationStatus?
+  etaireia_diaxeirisis   String?
   monthly_common_charges Decimal?
-  amenities            Json?              // Array: AC, FIREPLACE, PARKING, etc.
-  orientation          Json?              // Array: N, S, E, W
-  furnished            FurnishedStatus?
-  accessibility        String?
-  price_type           PriceType?
-  available_from       DateTime?
-  accepts_pets         Boolean?
-  min_lease_months     Int?
-  portal_visibility    PortalVisibility?
-  draft_status         Boolean?           @default(false)
+  amenities              Json? // Array: AC, FIREPLACE, PARKING, etc.
+  orientation            Json? // Array: N, S, E, W
+  furnished              FurnishedStatus?
+  accessibility          String?
+  price_type             PriceType?
+  available_from         DateTime?
+  accepts_pets           Boolean?
+  min_lease_months       Int?
+  portal_visibility      PortalVisibility?
+  draft_status           Boolean?             @default(false)
 
   // Address and details
-  address_street       String?
-  address_city         String?
-  address_state        String?
-  address_zip          String?
-  price                Int?
-  bedrooms             Int?
-  bathrooms            Float?
-  square_feet          Int?
-  lot_size             Float?
-  year_built           Int?
-  description          String?
+  address_street String?
+  address_city   String?
+  address_state  String?
+  address_zip    String?
+  price          Int?
+  bedrooms       Int?
+  bathrooms      Float?
+  square_feet    Int?
+  lot_size       Float?
+  year_built     Int?
+  description    String?
 
   // Relations
-  contacts             Property_Contacts[]
-  assigned_to_user     Users?       @relation(fields: [assigned_to], references: [id])
-  watchers             String[]
-  watching_users       Users[]      @relation("watching_properties")
-  linked_clients       Client_Properties[]
-  linkedDocuments      Documents[]  @relation("DocumentsToProperties")
-  linkedEvents         CalComEvent[] @relation("EventToProperties")
+  contacts         Property_Contacts[]
+  assigned_to_user Users?              @relation(fields: [assigned_to], references: [id])
+  watchers         String[]
+  watching_users   Users[]             @relation("watching_properties")
+  linked_clients   Client_Properties[]
+  linkedDocuments  Documents[]         @relation("DocumentsToProperties")
+  linkedEvents     CalComEvent[]       @relation("EventToProperties")
+  deals            Deal[]
+  showcasedOn      ProfileShowcaseProperty[]
+  comments         PropertyComment[]
 
   // Performance indexes for frequently queried fields
   @@index([property_status])
   @@index([createdAt])
   @@index([assigned_to])
   @@index([organizationId])
+  @@index([portal_visibility])
+}
+
+// Property Comments - for shared property collaboration
+model PropertyComment {
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  propertyId String
+  userId     String
+  content    String   @db.Text
+
+  property Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user     Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Client Comments - for shared client collaboration
+model ClientComment {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  clientId  String
+  userId    String
+  content   String   @db.Text
+
+  client Clients @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user   Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 enum PropertyType {
@@ -586,6 +675,15 @@ enum PropertyType {
   LAND
   RENTAL
   VACATION
+  APARTMENT
+  HOUSE
+  MAISONETTE
+  WAREHOUSE
+  PARKING
+  PLOT
+  FARM
+  INDUSTRIAL
+  OTHER
 }
 
 enum PropertyStatus {
@@ -664,7 +762,7 @@ enum PortalVisibility {
 }
 
 model Property_Contacts {
-  id                 String   @id @default(uuid())
+  id                 String    @id @default(uuid())
   property           String?
   assigned_to        String?
   created_on         DateTime? @default(now())
@@ -677,8 +775,8 @@ model Property_Contacts {
   contact_last_name  String
   contact_type       String?
 
-  assigned_to_user   Users?   @relation(fields: [assigned_to], references: [id])
-  assigned_property  Properties? @relation(fields: [property], references: [id])
+  assigned_to_user  Users?      @relation(fields: [assigned_to], references: [id])
+  assigned_property Properties? @relation(fields: [property], references: [id])
 }
 
 // Many-to-many relationship between Clients and Properties
@@ -687,9 +785,9 @@ model Client_Properties {
   createdAt  DateTime @default(now())
   clientId   String
   propertyId String
-  
-  client     Clients   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  property   Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  client   Clients    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  property Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@unique([clientId, propertyId])
   @@index([clientId])
@@ -698,40 +796,40 @@ model Client_Properties {
 
 // Feedback model for user feedback submissions
 model Feedback {
-  id                   String    @id @default(uuid())
-  createdAt            DateTime  @default(now())
-  
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
   // User information
-  userId               String?
-  userEmail            String?
-  userName             String?
-  organizationId       String            @default("00000000-0000-0000-0000-000000000000")
-  
+  userId         String?
+  userEmail      String?
+  userName       String?
+  organizationId String  @default("00000000-0000-0000-0000-000000000000")
+
   // Feedback content
-  feedbackType         String    // bug, feature, general, question, other
-  feedback             String    @db.Text
-  
+  feedbackType String // bug, feature, general, question, other
+  feedback     String @db.Text
+
   // Technical details
-  url                  String?
-  userAgent            String?   @db.Text
-  browserName          String?
-  browserVersion       String?
-  osName               String?
-  osVersion            String?
-  screenResolution     String?
-  
+  url              String?
+  userAgent        String? @db.Text
+  browserName      String?
+  browserVersion   String?
+  osName           String?
+  osVersion        String?
+  screenResolution String?
+
   // Bug report specific (optional)
-  hasScreenshot        Boolean   @default(false)
-  hasConsoleLogs       Boolean   @default(false)
-  consoleLogsCount     Int?      @default(0)
-  
+  hasScreenshot    Boolean @default(false)
+  hasConsoleLogs   Boolean @default(false)
+  consoleLogsCount Int?    @default(0)
+
   // Metadata
-  emailSent            Boolean   @default(false)
-  emailSentAt          DateTime?
-  
+  emailSent   Boolean   @default(false)
+  emailSentAt DateTime?
+
   // Relations
-  user                 Users?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([createdAt])
   @@index([feedbackType])
@@ -740,52 +838,544 @@ model Feedback {
 
 // Calendar Events Model
 model CalComEvent {
-  id              String   @id @default(uuid())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  calcomEventId   Int      @unique // Unique event ID
-  calcomUserId    Int      @default(0) // Not used anymore, kept for compatibility
-  organizationId  String   @default("00000000-0000-0000-0000-000000000000") // Organization context
-  
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  calcomEventId  Int    @unique // Unique event ID
+  calcomUserId   Int    @default(0) // Not used anymore, kept for compatibility
+  organizationId String @default("00000000-0000-0000-0000-000000000000") // Organization context
+
   // Event details
-  title           String?
-  description     String?  @db.Text
-  startTime       DateTime
-  endTime         DateTime
-  location        String?
-  status          String?  // scheduled, cancelled, completed
-  
+  title       String?
+  description String?  @db.Text
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  status      String? // scheduled, cancelled, completed
+
+  // Enhanced fields
+  eventType       CalendarEventType? // Enum for event types
+  reminderMinutes Int[] // Array of minutes before event to send reminders
+  remindersSent   Json? // Tracks which reminders have been sent
+  recurrenceRule  String? // For future recurring events support
+  assignedUserId  String? // Link to Users for event ownership
+  documentIds     String[] // Array of document IDs
+
   // CRM Relations
-  eventType       String?  // "property_viewing", "client_consultation", etc.
-  attendeeEmail   String?  // For client bookings
-  attendeeName    String?  // For client bookings
-  notes           String?  @db.Text
-  
+  attendeeEmail String? // For client bookings
+  attendeeName  String? // For client bookings
+  notes         String? @db.Text
+
   // Relations
-  linkedTasks     crm_Accounts_Tasks[]
-  linkedDocuments Documents[]  @relation("DocumentsToCalComEvents")
-  linkedClients   Clients[]     @relation("EventToClients")
-  linkedProperties Properties[] @relation("EventToProperties")
-  
+  assignedUser     Users?               @relation("AssignedEvents", fields: [assignedUserId], references: [id])
+  linkedTasks      crm_Accounts_Tasks[]
+  linkedDocuments  Documents[]          @relation("DocumentsToCalComEvents")
+  linkedClients    Clients[]            @relation("EventToClients")
+  linkedProperties Properties[]         @relation("EventToProperties")
+  reminders        CalendarReminder[]
+
   @@index([calcomEventId])
   @@index([organizationId])
   @@index([startTime])
   @@index([eventType])
+  @@index([assignedUserId])
+}
+
+enum CalendarEventType {
+  PROPERTY_VIEWING
+  CLIENT_CONSULTATION
+  MEETING
+  REMINDER
+  TASK_DEADLINE
+  OTHER
+}
+
+// Calendar Reminders Model
+model CalendarReminder {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  eventId          String
+  reminderMinutes  Int // Minutes before event to send reminder
+  scheduledFor     DateTime // When reminder should be sent
+  sentAt           DateTime? // When reminder was actually sent
+  status           ReminderStatus   @default(PENDING)
+  notificationType NotificationType @default(EMAIL)
+  organizationId   String           @default("00000000-0000-0000-0000-000000000000")
+
+  // Relations
+  event CalComEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([scheduledFor])
+  @@index([status])
+  @@index([organizationId])
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum NotificationType {
+  EMAIL
+  IN_APP
 }
 
 // Document analytics - tracks views for Papermark-style analytics
 model DocumentView {
-  id          String    @id @default(uuid())
-  documentId  String
-  document    Documents @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  viewedAt    DateTime  @default(now())
-  viewerIp    String?
-  viewerUserAgent String?  @db.Text
-  viewerUserId String?
-  viewerUser  Users?    @relation(fields: [viewerUserId], references: [id], onDelete: SetNull)
-  
+  id              String    @id @default(uuid())
+  documentId      String
+  document        Documents @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  viewedAt        DateTime  @default(now())
+  viewerIp        String?
+  viewerUserAgent String?   @db.Text
+  viewerUserId    String?
+  viewerUser      Users?    @relation(fields: [viewerUserId], references: [id], onDelete: SetNull)
+
   @@index([documentId])
   @@index([viewedAt])
   @@index([viewerUserId])
+}
+
+// Notifications Model - In-app notification center
+model Notification {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId         String // User who receives the notification
+  organizationId String @default("00000000-0000-0000-0000-000000000000")
+
+  // Notification content
+  type    NotificationCategory
+  title   String
+  message String               @db.Text
+  read    Boolean              @default(false)
+  readAt  DateTime?
+
+  // Entity references (for deep linking)
+  entityType NotificationEntityType?
+  entityId   String?
+
+  // Actor who triggered the notification (optional)
+  actorId   String?
+  actorName String? // Denormalized for performance
+
+  // Additional metadata
+  metadata Json? // Store additional context (e.g., account name, event details)
+
+  // Relations
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([read])
+  @@index([createdAt])
+  @@index([type])
+  @@index([actorId])
+}
+
+enum NotificationCategory {
+  // Account/Client notifications
+  ACCOUNT_UPDATED
+  ACCOUNT_DELETED
+  ACCOUNT_TASK_CREATED
+  ACCOUNT_TASK_UPDATED
+  CLIENT_CREATED           // New client added to org
+  CLIENT_ASSIGNED          // Client assigned to you
+  
+  // Property notifications
+  PROPERTY_UPDATED
+  PROPERTY_DELETED
+  PROPERTY_CREATED         // New property added to org
+  PROPERTY_ASSIGNED        // Property assigned to you
+  
+  // Calendar notifications
+  CALENDAR_REMINDER
+  CALENDAR_EVENT_CREATED
+  CALENDAR_EVENT_UPDATED
+  CALENDAR_EVENT_CANCELLED
+  CALENDAR_EVENT_INVITED   // Invited to an event
+  
+  // Document notifications
+  DOCUMENT_SHARED
+  DOCUMENT_VIEWED          // Someone viewed your shared document
+  
+  // Social Feed notifications
+  SOCIAL_POST_LIKED        // Someone liked your post
+  SOCIAL_POST_COMMENTED    // Someone commented on your post
+  SOCIAL_POST_MENTIONED    // Mentioned in a post/comment
+  
+  // Sharing notifications
+  ENTITY_SHARED_WITH_YOU   // Property/Client/Document shared with you
+  ENTITY_SHARE_ACCEPTED    // Your shared entity was accepted
+  
+  // Connection notifications
+  CONNECTION_REQUEST       // Someone wants to connect
+  CONNECTION_ACCEPTED      // Your connection request was accepted
+  
+  // Deal notifications
+  DEAL_PROPOSED            // Someone proposed a deal
+  DEAL_UPDATED             // Deal status changed
+  DEAL_ACCEPTED            // Deal was accepted
+  DEAL_COMPLETED           // Deal completed
+  
+  // Task notifications
+  TASK_ASSIGNED            // Task assigned to you
+  TASK_COMMENT_ADDED       // Comment on your task
+  TASK_DUE_SOON            // Task due date approaching
+  
+  // System notifications
+  SYSTEM
+  WELCOME                  // Welcome notification for new users
+}
+
+enum NotificationEntityType {
+  ACCOUNT
+  PROPERTY
+  CALENDAR_EVENT
+  TASK
+  DOCUMENT
+  SOCIAL_POST
+  DEAL
+  CONNECTION
+  USER
+}
+
+// ============================================
+// SOCIAL PROFILES - Agent Public Profiles
+// ============================================
+
+// Profile visibility levels:
+// - PERSONAL: Only the owner can see their profile (hidden from everyone)
+// - SECURE: Only registered/logged-in users can view the profile
+// - PUBLIC: Anyone can view the profile (even without an account)
+enum ProfileVisibility {
+  PERSONAL
+  SECURE
+  PUBLIC
+}
+
+model AgentProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Public profile fields
+  slug            String   @unique // URL-friendly username
+  bio             String?  @db.Text
+  publicPhone     String?
+  publicEmail     String?
+  specializations String[] // RESIDENTIAL, COMMERCIAL, LAND, etc.
+  serviceAreas    String[] // Areas/neighborhoods
+  languages       String[]
+  yearsExperience Int?
+  certifications  String[]
+  socialLinks     Json? // {linkedin, facebook, instagram}
+  visibility      ProfileVisibility @default(PERSONAL)
+
+  // Privacy settings
+  hideFromAgentSearch Boolean @default(false) // Hide from "Find Agents" list
+
+  // Showcase properties relation
+  showcaseProperties ProfileShowcaseProperty[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([visibility])
+  @@index([hideFromAgentSearch])
+}
+
+// ============================================
+// SOCIAL PROFILES - Profile Showcase Properties
+// ============================================
+
+model ProfileShowcaseProperty {
+  id         String   @id @default(uuid())
+  profileId  String
+  propertyId String
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  profile    AgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  property   Properties   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, propertyId])
+  @@index([profileId])
+  @@index([order])
+}
+
+// ============================================
+// SOCIAL PROFILES - Agent Connections (Follow System)
+// ============================================
+
+model AgentConnection {
+  id          String           @id @default(uuid())
+  followerId  String
+  followingId String
+  status      ConnectionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  follower  Users @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following Users @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@index([status])
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+// ============================================
+// SOCIAL PROFILES - Collaborative Sharing
+// ============================================
+
+model SharedEntity {
+  id           String           @id @default(uuid())
+  entityType   SharedEntityType
+  entityId     String
+  sharedById   String
+  sharedWithId String
+  permissions  SharePermission  @default(VIEW_COMMENT)
+  message      String?
+  createdAt    DateTime         @default(now())
+
+  // Audience tracking (if shared via audience)
+  audienceId String?
+  audience   Audience? @relation(fields: [audienceId], references: [id], onDelete: SetNull)
+
+  sharedBy   Users @relation("sharedBy", fields: [sharedById], references: [id], onDelete: Cascade)
+  sharedWith Users @relation("sharedWith", fields: [sharedWithId], references: [id], onDelete: Cascade)
+
+  @@unique([entityType, entityId, sharedWithId])
+  @@index([sharedWithId])
+  @@index([entityType, entityId])
+  @@index([sharedById])
+  @@index([audienceId])
+}
+
+enum SharedEntityType {
+  PROPERTY
+  CLIENT
+  DOCUMENT
+}
+
+enum SharePermission {
+  VIEW_ONLY
+  VIEW_COMMENT
+}
+
+// ============================================
+// DEALS - Commission Splitting (Διαμοιρασμός)
+// ============================================
+
+model Deal {
+  id             String  @id @default(uuid())
+  organizationId String? // Optional - cross-org deals have null
+
+  // Linked entities
+  propertyId String
+  property   Properties @relation(fields: [propertyId], references: [id])
+  clientId   String
+  client     Clients    @relation(fields: [clientId], references: [id])
+
+  // Agents involved
+  propertyAgentId String // Agent who owns the property listing
+  clientAgentId   String // Agent who brings the client
+  propertyAgent   Users  @relation("propertyAgent", fields: [propertyAgentId], references: [id])
+  clientAgent     Users  @relation("clientAgent", fields: [clientAgentId], references: [id])
+
+  // Commission split (percentages, must sum to 100)
+  propertyAgentSplit Decimal    @default(50) // e.g., 50%
+  clientAgentSplit   Decimal    @default(50) // e.g., 50%
+  totalCommission    Decimal? // Total commission amount
+  commissionCurrency String     @default("EUR")
+
+  // Deal lifecycle
+  status       DealStatus @default(PROPOSED)
+  proposedById String // Who initiated the deal
+  title        String?
+  notes        String?    @db.Text
+  closedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+  @@index([clientId])
+  @@index([propertyAgentId])
+  @@index([clientAgentId])
+  @@index([status])
+  @@index([organizationId])
+}
+
+enum DealStatus {
+  PROPOSED // Initial state
+  NEGOTIATING // Agents discussing split
+  ACCEPTED // Both agents agreed
+  IN_PROGRESS // Deal is being worked
+  COMPLETED // Successfully closed
+  CANCELLED // Deal fell through
+}
+
+// ============================================
+// SOCIAL FEED - LinkedIn-style Posts
+// ============================================
+
+model SocialPost {
+  id             String   @id @default(uuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organizationId String
+
+  // Author
+  authorId String
+  author   Users  @relation("socialPosts", fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Post content
+  postType String // "property", "client", "text"
+  content  String? @db.Text
+
+  // Linked entity (if sharing a property or client)
+  linkedEntityId       String?
+  linkedEntityType     String? // "property" or "client"
+  linkedEntityTitle    String?
+  linkedEntitySubtitle String?
+  linkedEntityMetadata Json?
+
+  // Engagement
+  likes    SocialPostLike[]
+  comments SocialPostComment[]
+
+  @@index([organizationId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([postType])
+}
+
+model SocialPostLike {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  postId    String
+  userId    String
+
+  post SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user Users      @relation("socialPostLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model SocialPostComment {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postId    String
+  userId    String
+  content   String   @db.Text
+
+  post SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user Users      @relation("socialPostComments", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================
+// USER NOTIFICATION SETTINGS
+// ============================================
+
+model UserNotificationSettings {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   Users  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Social notifications (posts, comments, likes, mentions)
+  socialEmailEnabled Boolean @default(true)
+  socialInAppEnabled Boolean @default(true)
+
+  // CRM notifications (Clients & Properties updates, assignments)
+  crmEmailEnabled Boolean @default(true)
+  crmInAppEnabled Boolean @default(true)
+
+  // Calendar notifications (event reminders, invitations)
+  calendarEmailEnabled Boolean @default(true)
+  calendarInAppEnabled Boolean @default(true)
+
+  // Tasks notifications (assignments, comments, due dates)
+  tasksEmailEnabled Boolean @default(true)
+  tasksInAppEnabled Boolean @default(true)
+
+  // Deals notifications (proposals, status changes)
+  dealsEmailEnabled Boolean @default(true)
+  dealsInAppEnabled Boolean @default(true)
+
+  // Documents notifications (shares, views)
+  documentsEmailEnabled Boolean @default(true)
+  documentsInAppEnabled Boolean @default(true)
+
+  // System notifications (account & admin)
+  systemEmailEnabled Boolean @default(true)
+  systemInAppEnabled Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ============================================
+// AUDIENCES - Agent Grouping for Sharing
+// ============================================
+
+model Audience {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Ownership
+  createdById String
+  createdBy   Users  @relation("audienceCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Org-level vs personal
+  organizationId String? // null = personal audience
+  isAutoSync     Boolean @default(false) // If true, auto-syncs org members
+
+  // Relations
+  members      AudienceMember[]
+  sharedVia    SharedEntity[]
+
+  @@index([createdById])
+  @@index([organizationId])
+}
+
+model AudienceMember {
+  id         String   @id @default(uuid())
+  audienceId String
+  userId     String
+  addedAt    DateTime @default(now())
+
+  audience Audience @relation(fields: [audienceId], references: [id], onDelete: Cascade)
+  user     Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([audienceId, userId])
+  @@index([audienceId])
+  @@index([userId])
 }

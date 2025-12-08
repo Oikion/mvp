@@ -234,6 +234,17 @@
       "el": "Greek"
     }
   },
+  "Notifications": {
+    "markAllRead": "Mark all as read",
+    "viewAll": "View all notifications",
+    "noNotifications": "No notifications",
+    "noNotificationsDesc": "You don't have any notifications yet.",
+    "noUnread": "You're all caught up!",
+    "unread": "unread",
+    "allRead": "All caught up",
+    "all": "All",
+    "new": "New"
+  },
   "Command": {
     "press": "Press",
     "placeholder": "Type a command or search...",
@@ -243,16 +254,47 @@
     "profileSettings": "Profile settings",
     "logout": "Logout"
   },
+  "admin": {
+    "title": "Administration",
+    "accessDenied": "You are not an organization admin",
+    "accessNotAllowed": "Access not allowed",
+    "setupDescription": "Manage your organization settings and members",
+    "usersAdministration": "Team Members",
+    "modulesAdministration": "Modules",
+    "manageUsersDescription": "Here you can manage your Oikion users",
+    "manageOrgMembersDescription": "Manage organization members and their roles",
+    "inviteNewUser": "Invite new user to Oikion",
+    "inviteNewMember": "Invite new team member",
+    "manageModulesDescription": "Configure which modules are visible in your organization",
+    "noOrganizationContext": "No organization context. Please select an organization.",
+    "organization": "Organization",
+    "noOrganization": "No Organization",
+    "createdOn": "Created on",
+    "teamMembers": "Team Members",
+    "activeMembers": "Active members in your organization",
+    "manageMembers": "Manage members",
+    "yourRole": "Your Role",
+    "organizationAdmin": "Organization Admin",
+    "fullAccessDescription": "Full access to organization settings and members",
+    "quickLinks": "Quick Links",
+    "organizationSettings": "Organization Settings",
+    "organizationSettingsDescription": "Update organization details and preferences",
+    "teamManagement": "Team Management",
+    "teamManagementDescription": "Invite members, manage roles and permissions"
+  },
   "Admin": {
     "title": "Administration",
-    "accessDenied": "You are not admin, access not allowed",
+    "accessDenied": "You are not an organization admin",
     "accessNotAllowed": "Access not allowed",
-    "setupDescription": "Here you can setup your Oikion instance",
-    "usersAdministration": "Users administration",
-    "modulesAdministration": "Modules administration",
+    "setupDescription": "Manage your organization settings and members",
+    "usersAdministration": "Team Members",
+    "modulesAdministration": "Modules",
     "manageUsersDescription": "Here you can manage your Oikion users",
+    "manageOrgMembersDescription": "Manage organization members and their roles",
     "inviteNewUser": "Invite new user to Oikion",
-    "manageModulesDescription": "Here you can manage your Oikion modules"
+    "inviteNewMember": "Invite new team member",
+    "manageModulesDescription": "Configure which modules are visible in your organization",
+    "noOrganizationContext": "No organization context. Please select an organization."
   },
   "AvatarDropdown": {
     "todoDashboard": "Todo dashboard",

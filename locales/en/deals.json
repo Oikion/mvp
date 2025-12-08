@@ -1,0 +1,142 @@
+{
+  "title": "Deals",
+  "description": "Manage collaborative deals and commission splits (Διαμοιρασμός)",
+  "tabs": {
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "active": "Active",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "sections": {
+    "pending": {
+      "title": "Pending Deals",
+      "description": "Deal proposals waiting for acceptance or under negotiation"
+    },
+    "accepted": {
+      "title": "Accepted Deals",
+      "description": "Deals that have been accepted by both agents"
+    },
+    "active": {
+      "title": "Active Deals",
+      "description": "Deals currently in progress"
+    },
+    "completed": {
+      "title": "Completed Deals",
+      "description": "Successfully closed deals"
+    },
+    "cancelled": {
+      "title": "Cancelled Deals",
+      "description": "Deals that were cancelled"
+    }
+  },
+  "status": {
+    "PROPOSED": "Proposal",
+    "NEGOTIATING": "Negotiating",
+    "ACCEPTED": "Accepted",
+    "IN_PROGRESS": "In Progress",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled"
+  },
+  "list": {
+    "empty": "No deals in this category.",
+    "awaitingResponse": "Awaiting Your Response",
+    "propertyValue": "Property Value",
+    "createdAgo": "Created {time} ago",
+    "closedAgo": "Closed {time} ago"
+  },
+  "createDialog": {
+    "newDeal": "New Deal",
+    "title": "Create New Deal",
+    "description": "Propose a new collaborative deal with another agent",
+    "loading": "Loading...",
+    "property": "Property",
+    "selectProperty": "Select a property",
+    "client": "Client",
+    "selectClient": "Select a client",
+    "partnerAgent": "Partner Agent",
+    "selectPartner": "Select partner agent",
+    "noConnections": "You need connections to create deals.",
+    "findAgents": "Find agents",
+    "yourRole": "Your Role",
+    "propertyAgent": "Property Agent",
+    "propertyAgentDesc": "I bring the property",
+    "clientAgent": "Client Agent",
+    "clientAgentDesc": "I bring the client",
+    "commissionSplit": "Commission Split (Διαμοιρασμός)",
+    "you": "You",
+    "partner": "Partner",
+    "propertyShort": "Property",
+    "clientShort": "Client",
+    "totalCommission": "Total Commission (Optional)",
+    "commissionPlaceholder": "e.g., 10000",
+    "notes": "Notes (Optional)",
+    "notesPlaceholder": "Any additional details about this deal...",
+    "cancel": "Cancel",
+    "proposeDeal": "Propose Deal",
+    "missingInfo": "Missing Information",
+    "missingInfoDescription": "Please fill in all required fields."
+  },
+  "detail": {
+    "acceptDeal": "Accept Deal",
+    "startProgress": "Start Progress",
+    "completeDeal": "Complete Deal",
+    "cancel": "Cancel",
+    "awaitingResponse": "Awaiting Your Response",
+    "commissionSplit": {
+      "title": "Commission Split (Διαμοιρασμός)",
+      "description": "Agreement on how the commission will be divided",
+      "propertyAgent": "Property Agent",
+      "clientAgent": "Client Agent",
+      "totalCommission": "Total Commission",
+      "proposeDifferent": "Propose Different Split",
+      "proposeThis": "Propose This Split"
+    },
+    "property": "Property",
+    "client": "Client",
+    "viewClient": "View Client",
+    "notes": "Notes",
+    "timeline": {
+      "title": "Timeline",
+      "created": "Created",
+      "closed": "Closed"
+    },
+    "cancelDialog": {
+      "title": "Cancel This Deal?",
+      "description": "Are you sure you want to cancel this deal? This action cannot be undone.",
+      "keepDeal": "Keep Deal",
+      "cancelDeal": "Cancel Deal"
+    },
+    "completeDialog": {
+      "title": "Complete This Deal?",
+      "description": "Congratulations! Enter the final commission amount to close this deal.",
+      "finalCommission": "Final Commission Amount",
+      "enterAmount": "Enter amount",
+      "splitBreakdown": "Split breakdown:",
+      "cancel": "Cancel",
+      "complete": "Complete Deal"
+    }
+  },
+  "toast": {
+    "dealProposed": "Deal Proposed",
+    "dealProposedDesc": "Your deal proposal has been sent!",
+    "dealAccepted": "Deal Accepted",
+    "dealAcceptedDesc": "You have accepted this deal!",
+    "dealCancelled": "Deal Cancelled",
+    "dealCancelledDesc": "The deal has been cancelled.",
+    "counterProposalSent": "Counter-proposal Sent",
+    "counterProposalSentDesc": "Your proposed split has been sent to the other agent.",
+    "dealInProgress": "Deal In Progress",
+    "dealInProgressDesc": "The deal is now marked as in progress.",
+    "dealCompleted": "Deal Completed! 🎉",
+    "dealCompletedDesc": "Congratulations on closing this deal!",
+    "error": "Error",
+    "createError": "Failed to create deal",
+    "acceptError": "Failed to accept deal",
+    "cancelError": "Failed to cancel deal",
+    "proposeError": "Failed to propose new split",
+    "updateError": "Failed to update deal",
+    "completeError": "Failed to complete deal"
+  }
+}
+

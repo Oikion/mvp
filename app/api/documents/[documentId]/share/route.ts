@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { createShareLink } from "@/lib/documents/create-share-link";
 import { hash, compare } from "bcryptjs";
@@ -11,7 +11,10 @@ export async function POST(
 ) {
   try {
     await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
     const params = await props.params;
 
     const document = await prismadb.documents.findFirst({
@@ -48,7 +51,10 @@ export async function PUT(
 ) {
   try {
     await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
     const params = await props.params;
 
     const body = await req.json();
@@ -94,7 +100,10 @@ export async function DELETE(
 ) {
   try {
     await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
     const params = await props.params;
 
     const updated = await prismadb.documents.update({

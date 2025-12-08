@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { getOrgMembersFromDb } from "@/lib/org-members";
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 interface SanitizedUser {
   id: string;
@@ -15,7 +16,17 @@ interface SanitizedUser {
 export async function GET() {
   try {
     const currentUser = await getCurrentUser();
-    const { organizationId, memberships, users } = await getOrgMembersFromDb({
+    // Use getCurrentOrgId instead of destructuring from getOrgMembersFromDb result
+    // because getOrgMembersFromDb internally calls getCurrentOrgId if not provided,
+    // but we want to be explicit about the org context source.
+    const organizationId = await getCurrentOrgIdSafe();
+    
+    if (!organizationId) {
+        return new NextResponse("Organization ID is missing", { status: 400 });
+    }
+
+    const { memberships, users } = await getOrgMembersFromDb({
+      organizationId,
       select: {
         id: true,
         clerkUserId: true,
@@ -43,7 +54,7 @@ export async function GET() {
         name: dbUser?.name ?? member.publicUserData?.firstName ?? null,
         email: dbUser?.email ?? member.publicUserData?.identifier ?? null,
         avatar:
-          dbUser?.avatar ?? member.publicUserData?.profileImageUrl ?? null,
+          dbUser?.avatar ?? (member.publicUserData as any)?.imageUrl ?? null,
         userLanguage: dbUser?.userLanguage ?? null,
         userStatus: dbUser?.userStatus ?? null,
         role: member.role ?? null,
@@ -62,4 +73,3 @@ export async function GET() {
     });
   }
 }
-

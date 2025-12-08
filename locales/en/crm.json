@@ -21,6 +21,10 @@
       "primaryEmailPlaceholder": "email@example.com",
       "intent": "Intent",
       "intentPlaceholder": "Select intent",
+      "budgetMin": "Min Budget",
+      "budgetMax": "Max Budget",
+      "notes": "Quick Notes",
+      "notesPlaceholder": "Add a quick note about this client...",
       "agentOwner": "Assigned Agent"
     },
     "personType": {
@@ -59,7 +63,50 @@
     "email": "E-mail",
     "accountContact": "Account contact",
     "status": "Status",
-    "unassigned": "Unassigned"
+    "unassigned": "Unassigned",
+    "statusUpdated": "Status updated successfully",
+    "filterPlaceholder": "Filter clients...",
+    "details": "View Details",
+    "scheduleEvent": "Schedule Event",
+    "scheduleEventTitle": "Schedule Event",
+    "scheduleEventDesc": "Schedule an event for this client",
+    "share": "Share"
+  },
+  "Tabs": {
+    "agencyClients": "Agency Clients",
+    "sharedWithMe": "Shared With Me",
+    "agencyClientsDescription": "Clients managed by your agency",
+    "sharedClientsDescription": "Clients shared with you by connections"
+  },
+  "Stats": {
+    "totalClients": "Total Clients",
+    "activeClients": "Active Clients",
+    "new30d": "New (30d)",
+    "sharedWithYou": "Shared With You",
+    "allContacts": "All contacts",
+    "currentlyActive": "Currently active",
+    "addedThisMonth": "Added this month",
+    "fromConnections": "From connections",
+    "addClient": "Add Client",
+    "findAgents": "Find Agents",
+    "noClientsYet": "Start building your client base",
+    "noActiveClients": "No active clients yet",
+    "noRecentActivity": "No new clients this month",
+    "connectToReceive": "Connect with agents for leads"
+  },
+  "EmptyState": {
+    "noAgencyClients": "No agency clients yet",
+    "createFirstClient": "Create your first client to get started",
+    "noSharedClients": "No clients shared with you",
+    "connectToReceive": "Connect with other agents to receive shared clients",
+    "noResults": "No results found"
+  },
+  "SharedView": {
+    "shared": "Shared",
+    "sharedBy": "Shared by",
+    "canComment": "Can comment",
+    "viewOnly": "View only",
+    "viewProfile": "View Profile"
   }
 }
 

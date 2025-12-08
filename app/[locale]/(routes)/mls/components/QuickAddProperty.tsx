@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/sheet";
 
 const createQuickAddSchema = (t: (key: string) => string, tCommon: (key: string) => string) => z.object({
+  property_name: z.string().optional(),
   property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"], {
     required_error: t("PropertyForm.validation.propertyTypeRequired"),
   }),
@@ -45,6 +46,8 @@ const createQuickAddSchema = (t: (key: string) => string, tCommon: (key: string)
   postal_code: z.string().optional(),
   size_net_sqm: z.coerce.number().optional(),
   plot_size_sqm: z.coerce.number().optional(),
+  bedrooms: z.coerce.number().optional(),
+  floor: z.string().optional(),
   price: z.coerce.number().min(0, t("PropertyForm.validation.priceRequired")),
   assigned_to: z.string().min(1, tCommon("selectAgent")),
 }).superRefine((data, ctx) => {
@@ -98,6 +101,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
   const form = useForm<QuickAddFormValues>({
     resolver: zodResolver(quickAddSchema),
     defaultValues: {
+      property_name: "",
       property_type: undefined,
       transaction_type: undefined,
       municipality: "",
@@ -105,6 +109,8 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
       postal_code: "",
       size_net_sqm: undefined,
       plot_size_sqm: undefined,
+      bedrooms: undefined,
+      floor: undefined,
       price: undefined,
       assigned_to: "",
     },
@@ -112,12 +118,16 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
 
   const propertyType = form.watch("property_type");
   const isResidentialOrCommercial = ["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE"].includes(propertyType || "");
+  const isResidential = ["APARTMENT", "HOUSE", "MAISONETTE"].includes(propertyType || "");
+  const isApartment = propertyType === "APARTMENT";
   const isLand = ["PLOT", "FARM"].includes(propertyType || "");
 
   const onSubmit = async (data: QuickAddFormValues) => {
     setIsLoading(true);
     try {
-      const property_name = `${data.property_type || "Property"} - ${data.municipality || ""} ${data.area || ""}`.trim();
+      // Use provided name or generate one
+      const property_name = data.property_name?.trim() 
+        || `${data.property_type || "Property"} - ${data.municipality || ""} ${data.area || ""}`.trim();
 
       const response = await axios.post("/api/mls/properties", {
         ...data,
@@ -165,6 +175,24 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
         </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-6">
+            <FormField
+              control={form.control}
+              name="property_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("PropertyForm.fields.propertyName")}</FormLabel>
+                  <FormControl>
+                    <Input 
+                      disabled={isLoading} 
+                      placeholder={t("PropertyForm.fields.propertyNamePlaceholder")} 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -280,6 +308,61 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
                   </FormItem>
                 )}
               />
+            )}
+
+            {isResidential && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="bedrooms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("PropertyForm.fields.bedrooms")}</FormLabel>
+                      <FormControl>
+                        <Input disabled={isLoading} type="number" placeholder="0" {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {isApartment && (
+                  <FormField
+                    control={form.control}
+                    name="floor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("PropertyForm.fields.floor")}</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t("PropertyForm.fields.floorPlaceholder")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="BASEMENT">{t("PropertyForm.floor.BASEMENT")}</SelectItem>
+                            <SelectItem value="GROUND">{t("PropertyForm.floor.GROUND")}</SelectItem>
+                            <SelectItem value="1ST">{t("PropertyForm.floor.1ST")}</SelectItem>
+                            <SelectItem value="2ND">{t("PropertyForm.floor.2ND")}</SelectItem>
+                            <SelectItem value="3RD">{t("PropertyForm.floor.3RD")}</SelectItem>
+                            <SelectItem value="4TH">{t("PropertyForm.floor.4TH")}</SelectItem>
+                            <SelectItem value="5TH">{t("PropertyForm.floor.5TH")}</SelectItem>
+                            <SelectItem value="6TH">{t("PropertyForm.floor.6TH")}</SelectItem>
+                            <SelectItem value="7TH">{t("PropertyForm.floor.7TH")}</SelectItem>
+                            <SelectItem value="8TH">{t("PropertyForm.floor.8TH")}</SelectItem>
+                            <SelectItem value="9TH">{t("PropertyForm.floor.9TH")}</SelectItem>
+                            <SelectItem value="10TH">{t("PropertyForm.floor.10TH")}</SelectItem>
+                            <SelectItem value="PENTHOUSE">{t("PropertyForm.floor.PENTHOUSE")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
             )}
 
             {isLand && (

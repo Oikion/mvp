@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     const db = prismaForOrg(organizationId);
 
-    // Search Properties (MLS)
+    // Search Properties (MLS) with linked entities
     let properties: any[] = [];
     try {
       properties = await db.properties.findMany({
@@ -37,6 +37,27 @@ export async function POST(req: Request) {
             { primary_email: { contains: query, mode: "insensitive" } },
           ],
         },
+        include: {
+          linked_clients: {
+            include: {
+              client: {
+                select: { id: true, client_name: true },
+              },
+            },
+            take: 3,
+          },
+          linkedEvents: {
+            select: { id: true, title: true, startTime: true },
+            take: 3,
+            orderBy: { startTime: "desc" },
+          },
+          _count: {
+            select: {
+              linked_clients: true,
+              linkedEvents: true,
+            },
+          },
+        },
         take: 5,
         orderBy: { updatedAt: "desc" },
       });
@@ -44,7 +65,7 @@ export async function POST(req: Request) {
       console.error("[GLOBAL_SEARCH] Properties search error:", error);
     }
 
-    // Search Clients (CRM)
+    // Search Clients (CRM) with linked entities
     let clients: any[] = [];
     try {
       clients = await db.clients.findMany({
@@ -55,29 +76,30 @@ export async function POST(req: Request) {
             { description: { contains: query, mode: "insensitive" } },
           ],
         },
-        take: 10, // Increased limit to ensure we get results
+        include: {
+          linked_properties: {
+            include: {
+              property: {
+                select: { id: true, property_name: true },
+              },
+            },
+            take: 3,
+          },
+          linkedEvents: {
+            select: { id: true, title: true, startTime: true },
+            take: 3,
+            orderBy: { startTime: "desc" },
+          },
+          _count: {
+            select: {
+              linked_properties: true,
+              linkedEvents: true,
+            },
+          },
+        },
+        take: 10,
         orderBy: { updatedAt: "desc" },
       });
-
-      // Debug logging (remove in production)
-      if (process.env.NODE_ENV === "development") {
-        console.log("[GLOBAL_SEARCH] Query:", query);
-        console.log("[GLOBAL_SEARCH] Organization ID:", organizationId);
-        console.log("[GLOBAL_SEARCH] Clients found:", clients.length);
-        if (clients.length > 0) {
-          console.log("[GLOBAL_SEARCH] Sample client names:", clients.map((c: any) => ({
-            name: c.client_name,
-            orgId: c.organizationId
-          })).slice(0, 5));
-        } else {
-          // Try a direct query to see if clients exist at all
-          const allClients = await db.clients.findMany({ take: 5 });
-          console.log("[GLOBAL_SEARCH] Total clients in org:", allClients.length);
-          if (allClients.length > 0) {
-            console.log("[GLOBAL_SEARCH] Sample all client names:", allClients.map((c: any) => c.client_name));
-          }
-        }
-      }
     } catch (error) {
       console.error("[GLOBAL_SEARCH] Clients search error:", error);
     }
@@ -92,6 +114,11 @@ export async function POST(req: Request) {
             { contact_last_name: { contains: query, mode: "insensitive" } },
             { email: { contains: query, mode: "insensitive" } },
           ],
+        },
+        include: {
+          assigned_client: {
+            select: { id: true, client_name: true },
+          },
         },
         take: 5,
         orderBy: { updatedAt: "desc" },
@@ -110,6 +137,15 @@ export async function POST(req: Request) {
             { description: { contains: query, mode: "insensitive" } },
           ],
         },
+        include: {
+          _count: {
+            select: {
+              accounts: true,
+              linkedProperties: true,
+              linkedCalComEvents: true,
+            },
+          },
+        },
         take: 5,
         orderBy: { updatedAt: "desc" },
       });
@@ -117,10 +153,9 @@ export async function POST(req: Request) {
       console.error("[GLOBAL_SEARCH] Documents search error:", error);
     }
 
-    // Search Calendar Events (wrap in try-catch in case model isn't available)
+    // Search Calendar Events with linked entities
     let events: any[] = [];
     try {
-      // Check if calComEvent exists on the db object
       const calComEventModel = (db as any).calComEvent;
       if (calComEventModel && typeof calComEventModel.findMany === "function") {
         events = await calComEventModel.findMany({
@@ -134,13 +169,28 @@ export async function POST(req: Request) {
               { notes: { contains: query, mode: "insensitive" } },
             ],
           },
+          include: {
+            linkedClients: {
+              select: { id: true, client_name: true },
+              take: 3,
+            },
+            linkedProperties: {
+              select: { id: true, property_name: true },
+              take: 3,
+            },
+            _count: {
+              select: {
+                linkedClients: true,
+                linkedProperties: true,
+              },
+            },
+          },
           take: 5,
           orderBy: { startTime: "desc" },
         });
       }
     } catch (eventError: any) {
       console.error("[GLOBAL_SEARCH] Calendar events search error:", eventError?.message || eventError);
-      // Continue without events if there's an error
       events = [];
     }
 
@@ -172,12 +222,71 @@ export async function POST(req: Request) {
       return obj;
     };
 
+    // Transform results to include relationship data
+    const transformedProperties = properties.map((p: any) => ({
+      ...p,
+      relationships: {
+        clients: {
+          count: p._count?.linked_clients || 0,
+          preview: p.linked_clients?.map((lc: any) => lc.client) || [],
+        },
+        events: {
+          count: p._count?.linkedEvents || 0,
+          preview: p.linkedEvents || [],
+        },
+      },
+    }));
+
+    const transformedClients = clients.map((c: any) => ({
+      ...c,
+      relationships: {
+        properties: {
+          count: c._count?.linked_properties || 0,
+          preview: c.linked_properties?.map((lp: any) => lp.property) || [],
+        },
+        events: {
+          count: c._count?.linkedEvents || 0,
+          preview: c.linkedEvents || [],
+        },
+      },
+    }));
+
+    const transformedContacts = contacts.map((c: any) => ({
+      ...c,
+      relationships: {
+        client: c.assigned_client || null,
+      },
+    }));
+
+    const transformedDocuments = documents.map((d: any) => ({
+      ...d,
+      relationships: {
+        clients: { count: d._count?.accounts || 0 },
+        properties: { count: d._count?.linkedProperties || 0 },
+        events: { count: d._count?.linkedCalComEvents || 0 },
+      },
+    }));
+
+    const transformedEvents = events.map((e: any) => ({
+      ...e,
+      relationships: {
+        clients: {
+          count: e._count?.linkedClients || 0,
+          preview: e.linkedClients || [],
+        },
+        properties: {
+          count: e._count?.linkedProperties || 0,
+          preview: e.linkedProperties || [],
+        },
+      },
+    }));
+
     return NextResponse.json({
-      properties: serializePrismaObject(properties),
-      clients: serializePrismaObject(clients),
-      contacts: serializePrismaObject(contacts),
-      documents: serializePrismaObject(documents),
-      events: serializePrismaObject(events),
+      properties: serializePrismaObject(transformedProperties),
+      clients: serializePrismaObject(transformedClients),
+      contacts: serializePrismaObject(transformedContacts),
+      documents: serializePrismaObject(transformedDocuments),
+      events: serializePrismaObject(transformedEvents),
     });
   } catch (error) {
     console.error("[GLOBAL_SEARCH_POST]", error);

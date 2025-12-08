@@ -6,10 +6,18 @@
     "title": "New Property",
     "quickAddTitle": "Quick Add Property",
     "fields": {
+      "propertyName": "Property Name",
+      "propertyNamePlaceholder": "e.g. Cozy Downtown Apartment",
       "propertyType": "Property Type",
       "propertyTypePlaceholder": "Select type",
+      "status": "Status",
+      "statusPlaceholder": "Select status",
       "transactionType": "Transaction Type",
       "transactionTypePlaceholder": "Select type",
+      "street": "Street",
+      "city": "City",
+      "state": "State",
+      "zip": "ZIP",
       "municipality": "Municipality",
       "municipalityPlaceholder": "Enter municipality",
       "area": "Area/Neighborhood",
@@ -17,9 +25,32 @@
       "postalCode": "Postal Code",
       "postalCodePlaceholder": "5 digits",
       "sizeNetSqm": "Net sq.m.",
+      "squareFeet": "Square Feet",
+      "lotSize": "Lot Size",
       "plotSizeSqm": "Plot Size",
       "price": "Price",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "floor": "Floor",
+      "floorPlaceholder": "Select floor",
+      "yearBuilt": "Year Built",
+      "description": "Description",
       "agentOwner": "Assigned Agent"
+    },
+    "floor": {
+      "BASEMENT": "Basement",
+      "GROUND": "Ground",
+      "1ST": "1st",
+      "2ND": "2nd",
+      "3RD": "3rd",
+      "4TH": "4th",
+      "5TH": "5th",
+      "6TH": "6th",
+      "7TH": "7th",
+      "8TH": "8th",
+      "9TH": "9th",
+      "10TH": "10th",
+      "PENTHOUSE": "Penthouse"
     },
     "propertyType": {
       "APARTMENT": "Apartment",
@@ -31,13 +62,28 @@
       "PLOT": "Plot",
       "FARM": "Farm",
       "INDUSTRIAL": "Industrial",
-      "OTHER": "Other"
+      "OTHER": "Other",
+      "RESIDENTIAL": "Residential",
+      "LAND": "Land",
+      "RENTAL": "Rental",
+      "VACATION": "Vacation"
     },
     "transactionType": {
       "SALE": "Sale",
       "RENTAL": "Rental",
       "SHORT_TERM": "Short Term",
       "EXCHANGE": "Exchange"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "PENDING": "Pending",
+      "SOLD": "Sold",
+      "OFF_MARKET": "Off Market",
+      "WITHDRAWN": "Withdrawn",
+      "AVAILABLE": "Available",
+      "RESERVED": "Reserved",
+      "NEGOTIATION": "Negotiation",
+      "RENTED": "Rented"
     },
     "validation": {
       "propertyTypeRequired": "Property type is required",
@@ -48,7 +94,8 @@
       "priceRequired": "Price is required"
     },
     "buttons": {
-      "quickAdd": "Create"
+      "quickAdd": "Create",
+      "update": "Update property"
     }
   },
   "QuickAdd": {
@@ -65,7 +112,51 @@
     "type": "Type",
     "status": "Status",
     "unassigned": "Unassigned",
-    "filterPlaceholder": "Filter properties ..."
+    "filterPlaceholder": "Filter properties ...",
+    "statusUpdated": "Status updated successfully",
+    "priceUpdated": "Price updated successfully",
+    "invalidPrice": "Invalid price format",
+    "details": "Details",
+    "scheduleEvent": "Schedule Event",
+    "scheduleEventTitle": "Schedule Event",
+    "scheduleEventDesc": "Schedule an appointment or event for this property",
+    "share": "Share Property"
+  },
+  "Tabs": {
+    "agencyProperties": "Agency Properties",
+    "sharedWithMe": "Shared With Me",
+    "agencyPropertiesDescription": "Properties managed by your agency",
+    "sharedPropertiesDescription": "Properties shared with you by connections"
+  },
+  "Stats": {
+    "totalProperties": "Total Properties",
+    "activeProperties": "Active Properties",
+    "portfolioValue": "Portfolio Value",
+    "sharedWithYou": "Shared With You",
+    "allTimeProperties": "All time properties",
+    "currentlyOnMarket": "Currently on market",
+    "totalListingValue": "Total listing value",
+    "fromConnections": "From connections",
+    "addProperty": "Add Property",
+    "findAgents": "Find Agents",
+    "noPropertiesYet": "Start building your portfolio",
+    "noActiveListings": "List a property to get started",
+    "addPropertiesToTrack": "Add properties to track value",
+    "connectToReceive": "Connect with agents to receive listings"
+  },
+  "EmptyState": {
+    "noAgencyProperties": "No agency properties yet",
+    "createFirstProperty": "Create your first property to get started",
+    "noSharedProperties": "No properties shared with you",
+    "connectToReceive": "Connect with other agents to receive shared properties",
+    "noResults": "No results found"
+  },
+  "SharedView": {
+    "shared": "Shared",
+    "sharedBy": "Shared by",
+    "canComment": "Can comment",
+    "viewOnly": "View only",
+    "viewDetails": "View Details",
+    "unnamedProperty": "Unnamed Property"
   }
 }
-

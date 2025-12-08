@@ -69,7 +69,52 @@ function getHSLValue(varName: string): string {
 }
 
 /**
- * Get theme-specific Clerk variables
+ * Calculate relative luminance for contrast checking
+ * Returns a value between 0 (black) and 1 (white)
+ */
+function getLuminance(hex: string): number {
+  const rgb = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  if (!rgb) return 0;
+  
+  const [r, g, b] = rgb.slice(1).map((x) => {
+    const val = Number.parseInt(x, 16) / 255;
+    return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4);
+  });
+  
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * Calculate contrast ratio between two colors
+ * WCAG AA requires 4.5:1 for normal text, 3:1 for large text
+ */
+function getContrastRatio(color1: string, color2: string): number {
+  const lum1 = getLuminance(color1);
+  const lum2 = getLuminance(color2);
+  const lighter = Math.max(lum1, lum2);
+  const darker = Math.min(lum1, lum2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/**
+ * Ensure text color has sufficient contrast against background
+ * Returns a color that meets WCAG AA standards (4.5:1 for normal text)
+ */
+function ensureContrast(textColor: string, backgroundColor: string, minRatio: number = 4.5): string {
+  const ratio = getContrastRatio(textColor, backgroundColor);
+  if (ratio >= minRatio) return textColor;
+  
+  // If contrast is insufficient, adjust the text color
+  // For light backgrounds, use darker text; for dark backgrounds, use lighter text
+  const bgLum = getLuminance(backgroundColor);
+  const isLightBg = bgLum > 0.5;
+  
+  // Return high-contrast colors
+  return isLightBg ? "#000000" : "#ffffff";
+}
+
+/**
+ * Get theme-specific Clerk variables with improved contrast
  * Includes all necessary Clerk appearance variables for proper theming
  */
 function getThemeVariables(theme: string): Record<string, string> {
@@ -95,10 +140,10 @@ function getThemeVariables(theme: string): Record<string, string> {
         ...baseVars,
         colorPrimary: getColor("--primary") || "#1a1a1a",
         colorBackground: getVar("--surface-3") || getVar("--card") || "#ffffff",
-        colorText: getVar("--foreground") || "hsl(0, 0%, 3.9%)", // Dark text for light theme
+        colorText: getVar("--foreground") || "hsl(0, 0%, 3.9%)",
         colorTextSecondary: getVar("--text-secondary") || "hsl(0, 0%, 45.1%)",
         colorInputBackground: getVar("--input") || getVar("--surface-3") || "#ffffff",
-        colorInputText: getVar("--foreground") || "hsl(0, 0%, 3.9%)", // Dark text for inputs
+        colorInputText: getVar("--foreground") || "hsl(0, 0%, 3.9%)",
         colorInputBorder: getVar("--border") || "hsl(0, 0%, 89.8%)",
         colorNeutral: getVar("--muted") || "hsl(0, 0%, 96.1%)",
         colorAlphaShade: getVar("--muted") || "hsl(0, 0%, 96.1%)",
@@ -109,10 +154,10 @@ function getThemeVariables(theme: string): Record<string, string> {
     case "dark":
       return {
         ...baseVars,
-        colorPrimary: getColor("--primary") || "#2243db",
+        colorPrimary: getColor("--primary") || "#ffffff",
         colorBackground: getVar("--surface-3") || getVar("--card") || "hsl(0, 0%, 14.9%)",
         colorText: getVar("--foreground") || "hsl(0, 0%, 98%)",
-        colorTextSecondary: getVar("--text-secondary") || "hsl(0, 0%, 63.9%)",
+        colorTextSecondary: getVar("--text-secondary") || "hsl(0, 0%, 70%)",
         colorInputBackground: getVar("--input") || getVar("--surface-3") || "hsl(0, 0%, 14.9%)",
         colorInputText: getVar("--foreground") || "hsl(0, 0%, 98%)",
         colorInputBorder: getVar("--border") || "hsl(0, 0%, 27.3%)",
@@ -126,32 +171,32 @@ function getThemeVariables(theme: string): Record<string, string> {
       return {
         ...baseVars,
         colorPrimary: getColor("--primary") || "#6b5d4f",
-        colorBackground: getVar("--surface-3") || getVar("--card") || "hsl(30, 18%, 85%)",
-        colorText: getVar("--foreground") || "hsl(30, 10%, 15%)",
-        colorTextSecondary: getVar("--text-secondary") || "hsl(30, 10%, 50%)",
+        colorBackground: getVar("--surface-3") || getVar("--card") || "hsl(35, 15%, 97%)",
+        colorText: getVar("--foreground") || "hsl(30, 10%, 20%)",
+        colorTextSecondary: getVar("--text-secondary") || "hsl(30, 10%, 45%)",
         colorInputBackground: getVar("--input") || getVar("--surface-3") || "#ffffff",
-        colorInputText: getVar("--foreground") || "hsl(30, 10%, 15%)",
-        colorInputBorder: getVar("--border") || "hsl(30, 12%, 75%)",
-        colorNeutral: getVar("--muted") || "hsl(30, 15%, 82%)",
-        colorAlphaShade: getVar("--muted") || "hsl(30, 15%, 82%)",
+        colorInputText: getVar("--foreground") || "hsl(30, 10%, 20%)",
+        colorInputBorder: getVar("--border") || "hsl(35, 15%, 75%)",
+        colorNeutral: getVar("--muted") || "hsl(35, 10%, 92%)",
+        colorAlphaShade: getVar("--muted") || "hsl(35, 10%, 92%)",
         colorShimmer: "rgba(0, 0, 0, 0.03)",
-        colorBorder: getVar("--border") || "hsl(30, 12%, 75%)",
+        colorBorder: getVar("--border") || "hsl(35, 15%, 75%)",
       };
 
     case "twilight-lavender":
       return {
         ...baseVars,
         colorPrimary: getColor("--primary") || "#9d7cd8",
-        colorBackground: getVar("--surface-3") || getVar("--card") || "hsl(270, 12%, 10%)",
-        colorText: getVar("--foreground") || "hsl(270, 10%, 95%)",
-        colorTextSecondary: getVar("--text-secondary") || "hsl(270, 10%, 65%)",
-        colorInputBackground: getVar("--input") || getVar("--surface-3") || "hsl(270, 12%, 20%)",
-        colorInputText: getVar("--foreground") || "hsl(270, 10%, 95%)",
-        colorInputBorder: getVar("--border") || "hsl(270, 12%, 20%)",
-        colorNeutral: getVar("--muted") || "hsl(270, 12%, 15%)",
-        colorAlphaShade: getVar("--muted") || "hsl(270, 12%, 15%)",
+        colorBackground: getVar("--surface-3") || getVar("--card") || "hsl(265, 20%, 14%)",
+        colorText: getVar("--foreground") || "hsl(260, 20%, 98%)",
+        colorTextSecondary: getVar("--text-secondary") || "hsl(265, 20%, 75%)",
+        colorInputBackground: getVar("--input") || getVar("--surface-3") || "hsl(265, 20%, 20%)",
+        colorInputText: getVar("--foreground") || "hsl(260, 20%, 98%)",
+        colorInputBorder: getVar("--border") || "hsl(265, 20%, 30%)",
+        colorNeutral: getVar("--muted") || "hsl(265, 20%, 20%)",
+        colorAlphaShade: getVar("--muted") || "hsl(265, 20%, 20%)",
         colorShimmer: "rgba(255, 255, 255, 0.05)",
-        colorBorder: getVar("--border") || "hsl(270, 12%, 20%)",
+        colorBorder: getVar("--border") || "hsl(265, 20%, 30%)",
       };
 
     default:
@@ -173,14 +218,13 @@ function getThemeVariables(theme: string): Record<string, string> {
 }
 
 /**
- * Create Clerk appearance object based on current theme
+ * Create Clerk appearance object based on current theme with improved contrast
  */
 function createClerkAppearance(theme: string | undefined): any {
   const variables = getThemeVariables(theme || "light");
   const isDarkTheme = theme === "dark" || theme === "twilight-lavender";
 
-  // Use surface-3 (top layer/cards) for Clerk component backgrounds
-  // Ensure we get actual values, not empty strings
+  // Get background colors
   const surface3 = getHSLValueRaw("--surface-3");
   const card = getHSLValueRaw("--card");
   const cardBg = surface3 
@@ -189,105 +233,170 @@ function createClerkAppearance(theme: string | undefined): any {
     ? `hsl(${card})` 
     : variables.colorBackground;
   
-  // Ensure we have valid colors - if CSS variables aren't loaded, use theme defaults
+  // Get text colors with contrast checking
   const cardForeground = getHSLValueRaw("--card-foreground");
   const foreground = getHSLValueRaw("--foreground");
-  const cardFg = cardForeground
-    ? `hsl(${cardForeground})`
-    : foreground
-    ? `hsl(${foreground})`
-    : variables.colorText || (theme === "light" ? "hsl(0, 0%, 3.9%)" : theme === "dark" || theme === "twilight-lavender" ? "hsl(0, 0%, 98%)" : "hsl(30, 10%, 15%)"); // Explicit fallback
+  const cardFgRaw = cardForeground || foreground || "";
+  const cardFg = cardFgRaw
+    ? `hsl(${cardFgRaw})`
+    : variables.colorText;
+  
+  // Ensure text has sufficient contrast
+  const cardBgRaw = surface3 || card || "";
+  const cardBgHex = cardBgRaw ? hslToHex(cardBgRaw) : (isDarkTheme ? "#1f1f1f" : "#ffffff");
+  const cardFgHex = cardFgRaw ? hslToHex(cardFgRaw) : (isDarkTheme ? "#fafafa" : "#0a0a0a");
+  const cardFgContrast = ensureContrast(cardFgHex, cardBgHex);
+  const cardFgFinal = cardFgContrast !== cardFgHex ? cardFgContrast : cardFg;
   
   const textSecondaryVar = getHSLValueRaw("--text-secondary");
-  const textSecondary = textSecondaryVar
-    ? `hsl(${textSecondaryVar})`
+  const textSecondaryRaw = textSecondaryVar || "";
+  const textSecondary = textSecondaryRaw
+    ? `hsl(${textSecondaryRaw})`
     : variables.colorTextSecondary;
   
+  // Ensure borders are visible
   const border = getHSLValueRaw("--border");
   const borderColor = border
     ? `hsl(${border})`
     : variables.colorBorder;
 
-  // Update variables to use surface-3 for background and ensure proper text colors
+  // Update variables with contrast-corrected colors
   const updatedVariables = {
     ...variables,
-    colorBackground: cardBg, // Use card/surface-3 background for Clerk components
-    colorText: cardFg, // Ensure text color matches card foreground - CRITICAL for visibility
-    colorTextSecondary: textSecondary, // Ensure secondary text color is set
+    colorBackground: cardBg,
+    colorText: cardFgFinal,
+    colorTextSecondary: textSecondary,
   };
 
-  // Get button colors for proper styling - using standard theme colors
-  const buttonPrimary = getHSLValueRaw("--primary")
-    ? `hsl(${getHSLValueRaw("--primary")})`
+  // Get button colors with proper contrast
+  const buttonPrimaryRaw = getHSLValueRaw("--primary");
+  const buttonPrimary = buttonPrimaryRaw
+    ? `hsl(${buttonPrimaryRaw})`
     : variables.colorPrimary;
-  const buttonPrimaryFg = getHSLValueRaw("--primary-foreground")
-    ? `hsl(${getHSLValueRaw("--primary-foreground")})`
-    : cardFg;
-  const buttonSecondary = getHSLValueRaw("--secondary")
-    ? `hsl(${getHSLValueRaw("--secondary")})`
+  const buttonPrimaryHex = buttonPrimaryRaw ? hslToHex(buttonPrimaryRaw) : (isDarkTheme ? "#fafafa" : "#1a1a1a");
+  
+  const buttonPrimaryFgRaw = getHSLValueRaw("--primary-foreground");
+  const buttonPrimaryFg = buttonPrimaryFgRaw
+    ? `hsl(${buttonPrimaryFgRaw})`
+    : cardFgFinal;
+  const buttonPrimaryFgHex = buttonPrimaryFgRaw ? hslToHex(buttonPrimaryFgRaw) : (isDarkTheme ? "#0a0a0a" : "#fafafa");
+  
+  // Ensure button text has sufficient contrast
+  const buttonPrimaryFgContrast = ensureContrast(buttonPrimaryFgHex, buttonPrimaryHex, 4.5);
+  const buttonPrimaryFgFinal = buttonPrimaryFgContrast !== buttonPrimaryFgHex 
+    ? buttonPrimaryFgContrast 
+    : buttonPrimaryFg;
+  
+  const buttonSecondaryRaw = getHSLValueRaw("--secondary");
+  const buttonSecondary = buttonSecondaryRaw
+    ? `hsl(${buttonSecondaryRaw})`
     : variables.colorNeutral;
-  const buttonSecondaryFg = getHSLValueRaw("--secondary-foreground")
-    ? `hsl(${getHSLValueRaw("--secondary-foreground")})`
-    : cardFg;
-  const buttonDestructive = getHSLValueRaw("--destructive")
-    ? `hsl(${getHSLValueRaw("--destructive")})`
+  const buttonSecondaryHex = buttonSecondaryRaw ? hslToHex(buttonSecondaryRaw) : (isDarkTheme ? "#262626" : "#f5f5f5");
+  
+  const buttonSecondaryFgRaw = getHSLValueRaw("--secondary-foreground");
+  const buttonSecondaryFg = buttonSecondaryFgRaw
+    ? `hsl(${buttonSecondaryFgRaw})`
+    : cardFgFinal;
+  const buttonSecondaryFgHex = buttonSecondaryFgRaw ? hslToHex(buttonSecondaryFgRaw) : (isDarkTheme ? "#fafafa" : "#0a0a0a");
+  
+  // Ensure secondary button text has sufficient contrast
+  const buttonSecondaryFgContrast = ensureContrast(buttonSecondaryFgHex, buttonSecondaryHex, 4.5);
+  const buttonSecondaryFgFinal = buttonSecondaryFgContrast !== buttonSecondaryFgHex
+    ? buttonSecondaryFgContrast
+    : buttonSecondaryFg;
+  
+  const buttonDestructiveRaw = getHSLValueRaw("--destructive");
+  const buttonDestructive = buttonDestructiveRaw
+    ? `hsl(${buttonDestructiveRaw})`
     : variables.colorDanger;
-  const buttonDestructiveFg = getHSLValueRaw("--destructive-foreground")
-    ? `hsl(${getHSLValueRaw("--destructive-foreground")})`
+  const buttonDestructiveHex = buttonDestructiveRaw ? hslToHex(buttonDestructiveRaw) : "#ef4444";
+  
+  const buttonDestructiveFgRaw = getHSLValueRaw("--destructive-foreground");
+  const buttonDestructiveFg = buttonDestructiveFgRaw
+    ? `hsl(${buttonDestructiveFgRaw})`
     : "#ffffff";
+  const buttonDestructiveFgHex = buttonDestructiveFgRaw ? hslToHex(buttonDestructiveFgRaw) : "#ffffff";
+  
+  // Ensure destructive button text has sufficient contrast
+  const buttonDestructiveFgContrast = ensureContrast(buttonDestructiveFgHex, buttonDestructiveHex, 4.5);
+  const buttonDestructiveFgFinal = buttonDestructiveFgContrast !== buttonDestructiveFgHex
+    ? buttonDestructiveFgContrast
+    : buttonDestructiveFg;
 
-  // Get surface-2 for popover background (matches our popover component)
+  // Get surface-2 for popover background
   const surface2 = getHSLValueRaw("--surface-2");
   const popoverBg = surface2 
     ? `hsl(${surface2})` 
     : cardBg;
   
-  // Get accent color for ghost button hover
-  const accent = getHSLValueRaw("--accent")
-    ? `hsl(${getHSLValueRaw("--accent")})`
+  // Get accent color for hover states
+  const accent = getHSLValueRaw("--accent");
+  const accentColor = accent
+    ? `hsl(${accent})`
     : variables.colorNeutral;
+
+  // Get input colors with contrast checking
+  const inputBgRaw = getHSLValueRaw("--input");
+  const inputBg = inputBgRaw
+    ? `hsl(${inputBgRaw})`
+    : variables.colorInputBackground;
+  const inputBgHex = inputBgRaw ? hslToHex(inputBgRaw) : (isDarkTheme ? "#262626" : "#f5f5f5");
+  
+  const inputTextRaw = getHSLValueRaw("--foreground");
+  const inputText = inputTextRaw
+    ? `hsl(${inputTextRaw})`
+    : variables.colorInputText;
+  const inputTextHex = inputTextRaw ? hslToHex(inputTextRaw) : (isDarkTheme ? "#fafafa" : "#0a0a0a");
+  
+  // Ensure input text has sufficient contrast
+  const inputTextContrast = ensureContrast(inputTextHex, inputBgHex, 4.5);
+  const inputTextFinal = inputTextContrast !== inputTextHex ? inputTextContrast : inputText;
 
   return {
     ...(isDarkTheme && { baseTheme: dark }),
-    variables: updatedVariables,
+    variables: {
+      ...updatedVariables,
+      colorInputBackground: inputBg,
+      colorInputText: inputTextFinal,
+      colorInputBorder: borderColor,
+    },
     elements: {
       rootBox: {
         backgroundColor: cardBg,
-        color: cardFg,
+        color: cardFgFinal,
       },
       card: {
         backgroundColor: cardBg,
-        color: cardFg,
+        color: cardFgFinal,
         borderColor: borderColor,
       },
       cardBox: {
         backgroundColor: cardBg,
-        color: cardFg,
+        color: cardFgFinal,
         borderColor: borderColor,
       },
       modalContent: {
         backgroundColor: cardBg,
-        color: cardFg,
+        color: cardFgFinal,
       },
       modalContentBox: {
         backgroundColor: cardBg,
-        color: cardFg,
+        color: cardFgFinal,
       },
-      // Popover styling - matches our design system (surface-2, elevation-2)
+      // Popover styling with improved contrast
       organizationSwitcherPopoverCard: {
         backgroundColor: popoverBg,
-        color: cardFg,
+        color: cardFgFinal,
         borderColor: borderColor,
         borderRadius: "0.5rem",
         boxShadow: isDarkTheme 
           ? "0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4)"
           : "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)",
       },
-      // Create organization button - styled as primary button
-      // Note: Hover states and margins are handled via CSS in globals.css for better control
+      // Create organization button with proper contrast
       organizationSwitcherPopoverActionButton: {
         backgroundColor: buttonPrimary,
-        color: buttonPrimaryFg,
+        color: buttonPrimaryFgFinal,
         borderRadius: "0.375rem",
         padding: "0.5rem 1rem",
         border: "none",
@@ -299,14 +408,14 @@ function createClerkAppearance(theme: string | undefined): any {
         marginRight: "0.75rem",
       },
       organizationSwitcherPopoverActionButtonText: {
-        color: buttonPrimaryFg,
+        color: buttonPrimaryFgFinal,
         fontWeight: "500",
         fontSize: "0.875rem",
       },
-      // Manage button - styled as ghost button
+      // Manage button with proper contrast
       organizationSwitcherPopoverManageButton: {
         backgroundColor: "transparent",
-        color: cardFg,
+        color: cardFgFinal,
         borderRadius: "0.375rem",
         padding: "0.5rem 0.75rem",
         border: "none",
@@ -314,14 +423,14 @@ function createClerkAppearance(theme: string | undefined): any {
         cursor: "pointer",
       },
       organizationSwitcherPopoverManageButtonText: {
-        color: cardFg,
+        color: cardFgFinal,
         fontWeight: "500",
         fontSize: "0.875rem",
       },
-      // Destructive actions (delete, leave) - styled as destructive button
+      // Destructive actions with proper contrast
       organizationSwitcherPopoverDestructiveButton: {
         backgroundColor: buttonDestructive,
-        color: buttonDestructiveFg,
+        color: buttonDestructiveFgFinal,
         borderRadius: "0.375rem",
         padding: "0.5rem 1rem",
         border: "none",
@@ -329,13 +438,13 @@ function createClerkAppearance(theme: string | undefined): any {
         cursor: "pointer",
       },
       organizationSwitcherPopoverDestructiveButtonText: {
-        color: buttonDestructiveFg,
+        color: buttonDestructiveFgFinal,
         fontWeight: "500",
         fontSize: "0.875rem",
       },
-      // Organization switcher trigger - add margins so it doesn't stick to sides
+      // Organization switcher trigger
       organizationSwitcherTrigger: {
-        color: cardFg,
+        color: cardFgFinal,
         backgroundColor: "transparent",
         marginLeft: "0.5rem",
         marginRight: "0.5rem",
@@ -343,10 +452,10 @@ function createClerkAppearance(theme: string | undefined): any {
       },
       organizationPreview: {
         backgroundColor: "transparent",
-        color: cardFg,
+        color: cardFgFinal,
       },
       organizationPreviewMainIdentifier: {
-        color: cardFg,
+        color: cardFgFinal,
         fontWeight: "600",
       },
       organizationPreviewSecondaryIdentifier: {
@@ -368,28 +477,130 @@ function createClerkAppearance(theme: string | undefined): any {
       },
       badge: {
         backgroundColor: cardBg,
-        color: cardFg,
+        color: cardFgFinal,
       },
       text: {
-        color: cardFg,
+        color: cardFgFinal,
       },
       formFieldLabel: {
-        color: cardFg,
+        color: cardFgFinal,
+        fontWeight: "500",
       },
       formFieldInput: {
-        backgroundColor: variables.colorInputBackground,
-        color: variables.colorInputText,
-        borderColor: variables.colorInputBorder,
+        backgroundColor: inputBg,
+        color: inputTextFinal,
+        borderColor: borderColor,
       },
-      // Clerk uses these class names for text elements
-      organizationSwitcherPopoverActionButton__text: {
-        color: buttonSecondaryFg,
+      formFieldInputShowPasswordButton: {
+        color: cardFgFinal,
       },
+      formFieldInputShowPasswordIcon: {
+        color: cardFgFinal,
+      },
+      // Social buttons with proper contrast
+      socialButtonsBlockButton: {
+        backgroundColor: buttonSecondary,
+        color: buttonSecondaryFgFinal,
+        borderRadius: "0.375rem",
+        padding: "0.5rem 1rem",
+        border: `1px solid ${borderColor}`,
+        transition: "all 150ms ease-in-out",
+        cursor: "pointer",
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      socialButtonsBlockButtonText: {
+        color: buttonSecondaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      socialButton: {
+        backgroundColor: buttonSecondary,
+        color: buttonSecondaryFgFinal,
+        borderRadius: "0.375rem",
+        padding: "0.5rem 1rem",
+        border: `1px solid ${borderColor}`,
+        transition: "all 150ms ease-in-out",
+        cursor: "pointer",
+      },
+      socialButtonText: {
+        color: buttonSecondaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      socialButtonIcon: {
+        color: buttonSecondaryFgFinal,
+      },
+      // Button variants with proper contrast
+      formButtonPrimary: {
+        backgroundColor: buttonPrimary,
+        color: buttonPrimaryFgFinal,
+        borderRadius: "0.375rem",
+        padding: "0.5rem 1rem",
+        border: "none",
+        transition: "all 150ms ease-in-out",
+        cursor: "pointer",
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      formButtonPrimaryText: {
+        color: buttonPrimaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      formButtonSecondary: {
+        backgroundColor: buttonSecondary,
+        color: buttonSecondaryFgFinal,
+        borderRadius: "0.375rem",
+        padding: "0.5rem 1rem",
+        border: `1px solid ${borderColor}`,
+        transition: "all 150ms ease-in-out",
+        cursor: "pointer",
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      formButtonSecondaryText: {
+        color: buttonSecondaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      // All social button text variants
+      "socialButtonsBlockButtonText__google": {
+        color: buttonSecondaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      "socialButtonsBlockButtonText__github": {
+        color: buttonSecondaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      "socialButtonsBlockButtonText__microsoft": {
+        color: buttonSecondaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      "socialButtonsBlockButtonText__apple": {
+        color: buttonSecondaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      "socialButtonsBlockButtonText__facebook": {
+        color: buttonSecondaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      "socialButtonsBlockButtonText__discord": {
+        color: buttonSecondaryFgFinal,
+        fontWeight: "500",
+        fontSize: "0.875rem",
+      },
+      // Text elements with proper contrast
       organizationSwitcherPopoverActionButtonText__text: {
-        color: buttonSecondaryFg,
+        color: buttonPrimaryFgFinal,
       },
       organizationPreviewMainIdentifier__text: {
-        color: cardFg,
+        color: cardFgFinal,
       },
       organizationPreviewSecondaryIdentifier__text: {
         color: textSecondary,
@@ -399,78 +610,6 @@ function createClerkAppearance(theme: string | undefined): any {
       },
       organizationSwitcherPopoverFooterActionText__text: {
         color: textSecondary,
-      },
-      // General text styling
-      organizationSwitcherPopoverActionButtonText__text__primary: {
-        color: buttonSecondaryFg,
-      },
-      organizationSwitcherPopoverActionButtonText__text__secondary: {
-        color: textSecondary,
-      },
-      // Social buttons - styled as secondary buttons
-      socialButtonsBlockButton: {
-        backgroundColor: buttonSecondary,
-        color: buttonSecondaryFg,
-        borderRadius: "0.375rem",
-        padding: "0.5rem 1rem",
-        border: "none",
-        transition: "all 150ms ease-in-out",
-        cursor: "pointer",
-        fontWeight: "500",
-        fontSize: "0.875rem",
-      },
-      socialButtonsBlockButtonText: {
-        color: buttonSecondaryFg,
-        fontWeight: "500",
-        fontSize: "0.875rem",
-      },
-      socialButton: {
-        backgroundColor: buttonSecondary,
-        color: buttonSecondaryFg,
-        borderRadius: "0.375rem",
-        padding: "0.5rem 1rem",
-        border: "none",
-        transition: "all 150ms ease-in-out",
-        cursor: "pointer",
-      },
-      socialButtonText: {
-        color: buttonSecondaryFg,
-        fontWeight: "500",
-        fontSize: "0.875rem",
-      },
-      socialButtonIcon: {
-        color: buttonSecondaryFg,
-      },
-      // All social button text variants
-      "socialButtonsBlockButtonText__google": {
-        color: buttonSecondaryFg,
-        fontWeight: "500",
-        fontSize: "0.875rem",
-      },
-      "socialButtonsBlockButtonText__github": {
-        color: buttonSecondaryFg,
-        fontWeight: "500",
-        fontSize: "0.875rem",
-      },
-      "socialButtonsBlockButtonText__microsoft": {
-        color: buttonSecondaryFg,
-        fontWeight: "500",
-        fontSize: "0.875rem",
-      },
-      "socialButtonsBlockButtonText__apple": {
-        color: buttonSecondaryFg,
-        fontWeight: "500",
-        fontSize: "0.875rem",
-      },
-      "socialButtonsBlockButtonText__facebook": {
-        color: buttonSecondaryFg,
-        fontWeight: "500",
-        fontSize: "0.875rem",
-      },
-      "socialButtonsBlockButtonText__discord": {
-        color: buttonSecondaryFg,
-        fontWeight: "500",
-        fontSize: "0.875rem",
       },
     },
   };
@@ -492,7 +631,6 @@ export function useClerkTheme() {
     const currentTheme = theme === "system" ? resolvedTheme : theme;
     
     // Increased delay to ensure CSS variables are fully applied
-    // Also force a re-render to ensure CSS variables are read correctly
     const timer = setTimeout(() => {
       setAppearance(createClerkAppearance(currentTheme));
     }, 150);
@@ -505,4 +643,3 @@ export function useClerkTheme() {
     mounted,
   };
 }
-

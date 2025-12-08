@@ -1,9 +1,10 @@
-import { PageLoader } from "@/components/ui/page-loader";
+import { AppSkeletonLayout } from "@/components/skeletons/AppSkeletonLayout"
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton"
 
-export default function loading() {
+export default function Loading() {
   return (
-    <div className="w-full h-full min-h-screen bg-background">
-      <PageLoader />
-    </div>
+    <AppSkeletonLayout>
+      <DashboardSkeleton />
+    </AppSkeletonLayout>
   );
 }

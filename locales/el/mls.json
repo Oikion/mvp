@@ -28,6 +28,8 @@
       "media": "Φωτογραφίες και δημοσίευση"
     },
     "fields": {
+      "propertyName": "Όνομα ακινήτου",
+      "propertyNamePlaceholder": "π.χ. Άνετο διαμέρισμα στο κέντρο",
       "propertyType": "Τύπος ακινήτου",
       "propertyTypePlaceholder": "Επιλέξτε τύπο",
       "transactionType": "Τύπος συναλλαγής",
@@ -108,11 +110,15 @@
       "EXCHANGE": "Αντιπαροχή"
     },
     "status": {
+      "ACTIVE": "Ενεργό",
+      "PENDING": "Σε εκκρεμότητα",
+      "SOLD": "Πωλημένο",
+      "OFF_MARKET": "Εκτός αγοράς",
+      "WITHDRAWN": "Αποσύρθηκε",
       "AVAILABLE": "Διαθέσιμο",
       "RESERVED": "Δεσμευμένο",
       "NEGOTIATION": "Σε διαπραγμάτευση",
-      "RENTED": "Μισθωμένο",
-      "SOLD": "Πωλημένο"
+      "RENTED": "Μισθωμένο"
     },
     "addressPrivacyLevel": {
       "EXACT": "Ακριβής διεύθυνση",
@@ -237,7 +243,51 @@
     "type": "Τύπος",
     "status": "Κατάσταση",
     "unassigned": "Χωρίς ανάθεση",
-    "filterPlaceholder": "Φιλτράρετε ακίνητα ..."
+    "filterPlaceholder": "Φιλτράρετε ακίνητα ...",
+    "details": "Λεπτομέρειες",
+    "statusUpdated": "Η κατάσταση ενημερώθηκε επιτυχώς",
+    "priceUpdated": "Η τιμή ενημερώθηκε επιτυχώς",
+    "invalidPrice": "Μη έγκυρη μορφή τιμής",
+    "scheduleEvent": "Προγραμματισμός Συνάντησης",
+    "scheduleEventTitle": "Προγραμματισμός Συνάντησης",
+    "scheduleEventDesc": "Προγραμματίστε μια συνάντηση ή εκδήλωση για αυτό το ακίνητο",
+    "share": "Κοινοποίηση Ακινήτου"
+  },
+  "Tabs": {
+    "agencyProperties": "Ακίνητα Γραφείου",
+    "sharedWithMe": "Κοινόχρηστα",
+    "agencyPropertiesDescription": "Ακίνητα που διαχειρίζεται το γραφείο σας",
+    "sharedPropertiesDescription": "Ακίνητα που μοιράστηκαν μαζί σας από συνδέσεις"
+  },
+  "Stats": {
+    "totalProperties": "Σύνολο Ακινήτων",
+    "activeProperties": "Ενεργά Ακίνητα",
+    "portfolioValue": "Αξία Χαρτοφυλακίου",
+    "sharedWithYou": "Κοινόχρηστα",
+    "allTimeProperties": "Όλα τα ακίνητα",
+    "currentlyOnMarket": "Τρέχοντα στην αγορά",
+    "totalListingValue": "Συνολική αξία καταχωρήσεων",
+    "fromConnections": "Από συνδέσεις",
+    "addProperty": "Προσθήκη Ακινήτου",
+    "findAgents": "Εύρεση Πρακτόρων",
+    "noPropertiesYet": "Ξεκινήστε να χτίζετε το χαρτοφυλάκιό σας",
+    "noActiveListings": "Καταχωρήστε ένα ακίνητο",
+    "addPropertiesToTrack": "Προσθέστε ακίνητα για παρακολούθηση",
+    "connectToReceive": "Συνδεθείτε με πράκτορες για καταχωρήσεις"
+  },
+  "EmptyState": {
+    "noAgencyProperties": "Δεν υπάρχουν ακίνητα γραφείου",
+    "createFirstProperty": "Δημιουργήστε το πρώτο σας ακίνητο",
+    "noSharedProperties": "Δεν υπάρχουν κοινόχρηστα ακίνητα",
+    "connectToReceive": "Συνδεθείτε με άλλους πράκτορες για να λάβετε κοινόχρηστα ακίνητα",
+    "noResults": "Δεν βρέθηκαν αποτελέσματα"
+  },
+  "SharedView": {
+    "shared": "Κοινόχρηστο",
+    "sharedBy": "Κοινοποιήθηκε από",
+    "canComment": "Σχολιασμός",
+    "viewOnly": "Μόνο προβολή",
+    "viewDetails": "Προβολή Λεπτομερειών",
+    "unnamedProperty": "Ακίνητο χωρίς όνομα"
   }
 }
-

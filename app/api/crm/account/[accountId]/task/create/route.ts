@@ -1,21 +1,29 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import NewTaskFromCRMEmail from "@/emails/NewTaskFromCRM";
 import NewTaskFromCRMToWatchersEmail from "@/emails/NewTaskFromCRMToWatchers";
 import resendHelper from "@/lib/resend";
+import { notifyAccountWatchers } from "@/lib/notify-watchers";
 
 export async function POST(req: Request) {
   const resend = await resendHelper();
   
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const body = await req.json();
     const { title, user: assignedUser, priority, content, account, dueDateAt } = body;
 
     if (!title || !assignedUser || !priority || !content || !account) {
       return new NextResponse("Missing one of the task data ", { status: 400 });
     }
+
+    // Get account name for notifications
+    const accountData = await prismadb.clients.findUnique({
+      where: { id: account },
+      select: { client_name: true },
+    });
 
     const task = await prismadb.crm_Accounts_Tasks.create({
       data: {
@@ -29,6 +37,21 @@ export async function POST(req: Request) {
         user: assignedUser,
       },
     });
+
+    // Create in-app notifications for watchers
+    await notifyAccountWatchers(
+      account,
+      organizationId,
+      "ACCOUNT_TASK_CREATED",
+      `New task created for "${accountData?.client_name || "Account"}"`,
+      `${user.name || user.email} created a new task: "${title}"`,
+      {
+        taskId: task.id,
+        taskTitle: title,
+        createdBy: user.id,
+        createdByName: user.name || user.email,
+      }
+    );
 
     if (assignedUser !== user.id) {
       try {

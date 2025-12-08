@@ -9,8 +9,10 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 import moment from "moment";
 import Link from "next/link";
+import { AssignedUserCell } from "./cells/AssignedUserCell";
+import { StatusCell } from "./cells/StatusCell";
 
-export const columns: ColumnDef<Account>[] = [
+export const getColumns = (users: any[] = []): ColumnDef<Account>[] => [
   {
     accessorKey: "createdAt",
     header: ({ column }) => {
@@ -33,15 +35,12 @@ export const columns: ColumnDef<Account>[] = [
     },
 
     cell: ({ row }) => {
-      const t = useTranslations("crm");
       return (
-        <div className="whitespace-nowrap">
-          {
-            //@ts-ignore
-            //TODO: fix this
-            row.getValue("assigned_to_user")?.name ?? t("CrmAccountsTable.unassigned")
-          }
-        </div>
+        <AssignedUserCell
+          clientId={row.original.id}
+          assignedTo={(row.original as any).assigned_to}
+          users={users}
+        />
       );
     },
     enableSorting: true,
@@ -105,21 +104,11 @@ export const columns: ColumnDef<Account>[] = [
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.status")} />
     },
     cell: ({ row }) => {
-      const status = statuses.find(
-        (status) => status.value === row.getValue("status")
-      );
-
-      if (!status) {
-        return null;
-      }
-
       return (
-        <div className="flex items-center gap-2 whitespace-nowrap">
-          {status.icon && (
-            <status.icon className="h-4 w-4 text-muted-foreground" />
-          )}
-          <span>{status.label}</span>
-        </div>
+        <StatusCell
+          clientId={row.original.id}
+          status={(row.original as any).client_status || row.getValue("status")}
+        />
       );
     },
     filterFn: (row, id, value) => {
@@ -131,3 +120,5 @@ export const columns: ColumnDef<Account>[] = [
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
 ];
+
+export const columns = getColumns([]);

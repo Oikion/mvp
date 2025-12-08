@@ -1,9 +1,5 @@
-import LoadingComponent from "@/components/LoadingComponent";
+import { FormSkeleton } from "@/components/skeletons/FormSkeleton"
 
-export default function loading() {
-  return (
-    <div className="flex w-full h-screen justify-center items-center">
-      <LoadingComponent />
-    </div>
-  );
+export default function Loading() {
+  return <FormSkeleton />
 }

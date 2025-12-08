@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,27 +40,27 @@ interface QuickViewListProps {
   getStatusColor?: (status: string) => string;
 }
 
-// Status color mapping
-const getPropertyStatusColor = (status: string): string => {
-  const colors: Record<string, string> = {
-    ACTIVE: "bg-green-500",
-    PENDING: "bg-yellow-500",
-    SOLD: "bg-blue-500",
-    OFF_MARKET: "bg-gray-500",
-    WITHDRAWN: "bg-red-500",
+// Status color mapping (returning variant names for Badge)
+const getPropertyStatusVariant = (status: string): string => {
+  const variants: Record<string, string> = {
+    ACTIVE: "success",
+    PENDING: "warning",
+    SOLD: "info",
+    OFF_MARKET: "secondary",
+    WITHDRAWN: "destructive",
   };
-  return colors[status] || "bg-gray-500";
+  return variants[status] || "secondary";
 };
 
-const getClientStatusColor = (status: string): string => {
-  const colors: Record<string, string> = {
-    LEAD: "bg-blue-500",
-    ACTIVE: "bg-green-500",
-    INACTIVE: "bg-gray-500",
-    CONVERTED: "bg-purple-500",
-    LOST: "bg-red-500",
+const getClientStatusVariant = (status: string): string => {
+  const variants: Record<string, string> = {
+    LEAD: "info",
+    ACTIVE: "success",
+    INACTIVE: "secondary",
+    CONVERTED: "purple",
+    LOST: "destructive",
   };
-  return colors[status] || "bg-gray-500";
+  return variants[status] || "secondary";
 };
 
 const getPropertyStatusLabel = (status: string, t: (key: string) => string): string => {
@@ -92,24 +93,27 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
   
   const getStatusInfo = (item: QuickViewItem) => {
     const status = item.property_status || item.client_status || item.status;
-    if (!status) return { label: tCommon("statusLabels.na"), color: "bg-gray-500" };
+    if (!status) return { label: tCommon("statusLabels.na"), variant: "secondary" };
     
     if (getStatusLabel && getStatusColor) {
+      // If parent provides custom logic, we assume it returns a class string or variant
+      // We'll map it to a variant if it matches known ones, or pass as class if needed (though Badge variant is preferred)
+      // For now, assuming parent logic is compatible or we use it as variant
       return {
         label: getStatusLabel(item),
-        color: getStatusColor(status),
+        variant: getStatusColor(status),
       };
     }
     
     if (isProperties) {
       return {
         label: getPropertyStatusLabel(status, tCommon),
-        color: getPropertyStatusColor(status),
+        variant: getPropertyStatusVariant(status),
       };
     } else {
       return {
         label: getClientStatusLabel(status, tCommon),
-        color: getClientStatusColor(status),
+        variant: getClientStatusVariant(status),
       };
     }
   };
@@ -187,11 +191,12 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-medium text-sm truncate">{displayName}</p>
-                    <span
-                      className={`px-2 py-0.5 text-xs rounded-full ${statusInfo.color} text-white whitespace-nowrap`}
+                    <Badge
+                      variant={statusInfo.variant as any}
+                      className="whitespace-nowrap"
                     >
                       {statusInfo.label}
-                    </span>
+                    </Badge>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                     {displayEmail && (
@@ -245,4 +250,3 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
     </Card>
   );
 };
-

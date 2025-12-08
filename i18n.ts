@@ -17,6 +17,10 @@ import chatgptEn from "./locales/en/chatgpt.json";
 import registerEn from "./locales/en/register.json";
 import calendarEn from "./locales/en/calendar.json";
 import documentsEn from "./locales/en/documents.json";
+import notificationsEn from "./locales/en/notifications.json";
+import feedEn from "./locales/en/feed.json";
+import socialFeedEn from "./locales/en/socialFeed.json";
+import templatesEn from "./locales/en/templates.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -34,6 +38,10 @@ import chatgptEl from "./locales/el/chatgpt.json";
 import registerEl from "./locales/el/register.json";
 import calendarEl from "./locales/el/calendar.json";
 import documentsEl from "./locales/el/documents.json";
+import notificationsEl from "./locales/el/notifications.json";
+import feedEl from "./locales/el/feed.json";
+import socialFeedEl from "./locales/el/socialFeed.json";
+import templatesEl from "./locales/el/templates.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -61,6 +69,14 @@ function loadMessages(locale: string) {
     messages.register = registerEl;
     messages.calendar = calendarEl;
     messages.documents = documentsEl;
+    messages.feed = feedEl;
+    messages.socialFeed = socialFeedEl;
+    messages.templates = templatesEl;
+    // Spread notifications contents directly into messages (for backward compatibility)
+    Object.assign(messages, notificationsEl);
+    // Also keep it nested for namespace access (useTranslations("notifications"))
+    messages.notifications = notificationsEl;
+    messages.Notifications = notificationsEl; // Capital N for compatibility
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -85,6 +101,14 @@ function loadMessages(locale: string) {
     messages.register = registerEn;
     messages.calendar = calendarEn;
     messages.documents = documentsEn;
+    messages.feed = feedEn;
+    messages.socialFeed = socialFeedEn;
+    messages.templates = templatesEn;
+    // Spread notifications contents directly into messages (for backward compatibility)
+    Object.assign(messages, notificationsEn);
+    // Also keep it nested for namespace access (useTranslations("notifications"))
+    messages.notifications = notificationsEn;
+    messages.Notifications = notificationsEn; // Capital N for compatibility
   }
 
   return messages;

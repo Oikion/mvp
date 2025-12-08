@@ -196,6 +196,8 @@
 
   /* Twilight Lavender Theme - Dark Cool/Purple */
   [data-theme="twilight-lavender"] {
+    color-scheme: dark;
+    
     --background: 265 20% 10%;
     --foreground: 260 20% 98%;
     
@@ -241,6 +243,29 @@
     --text-primary: 260 20% 98%;
     --text-secondary: 265 20% 70%;
   }
+}
+
+/* Twilight Lavender scrollbar - applied outside @layer for higher specificity */
+[data-theme="twilight-lavender"] [data-sidebar="content"] {
+  scrollbar-width: thin !important;
+  scrollbar-color: hsl(265 20% 30% / 0.5) transparent !important;
+}
+
+[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar {
+  width: 4px !important;
+}
+
+[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-thumb {
+  background-color: hsl(265 20% 30% / 0.5) !important;
+  border-radius: 2px !important;
+}
+
+[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(265 20% 40% / 0.7) !important;
 }
 
 @layer base {
@@ -301,4 +326,249 @@
     transform: translateY(-2px);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   }
+
+  /* Smooth scale on hover */
+  .hover-scale {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+  .hover-scale:active {
+    transform: scale(0.98);
+  }
+
+  /* Glow effect on hover */
+  .hover-glow {
+    transition: box-shadow 0.3s ease-out;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(var(--primary), 0.15), 0 0 40px rgba(var(--primary), 0.1);
+  }
+
+  /* Button press effect */
+  .press-effect {
+    transition: transform 0.1s ease-out;
+  }
+  .press-effect:active {
+    transform: scale(0.97);
+  }
+
+  /* Card shine effect on hover */
+  .shine-effect {
+    position: relative;
+    overflow: hidden;
+  }
+  .shine-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transition: left 0.5s ease-out;
+    pointer-events: none;
+  }
+  .shine-effect:hover::before {
+    left: 100%;
+  }
+
+  /* Subtle border glow */
+  .border-glow {
+    transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+  .border-glow:hover {
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.1);
+  }
+
+  /* Smooth focus ring animation */
+  .focus-ring-animated:focus-visible {
+    outline: none;
+    animation: focus-ring-pulse 0.3s ease-out;
+  }
+
+  /* Text gradient animation */
+  .text-gradient-animated {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)),
+      hsl(var(--primary) / 0.7),
+      hsl(var(--primary))
+    );
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 3s linear infinite;
+  }
+
+  /* Stagger children animation helper */
+  .stagger-children > * {
+    opacity: 0;
+    animation: slide-up-fade 0.4s ease-out forwards;
+  }
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+  .stagger-children > *:nth-child(7) { animation-delay: 300ms; }
+  .stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+  .stagger-children > *:nth-child(9) { animation-delay: 400ms; }
+  .stagger-children > *:nth-child(10) { animation-delay: 450ms; }
+
+  /* Notification badge pulse */
+  .badge-pulse {
+    animation: badge-pulse 2s infinite;
+  }
+
+  /* Skeleton shimmer */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Icon spin on hover */
+  .icon-spin-hover:hover svg,
+  .icon-spin-hover:hover [data-icon] {
+    animation: icon-spin 0.5s ease-out;
+  }
+
+  /* Smooth underline animation */
+  .underline-animated {
+    position: relative;
+  }
+  .underline-animated::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: hsl(var(--primary));
+    transition: width 0.3s ease-out;
+  }
+  .underline-animated:hover::after {
+    width: 100%;
+  }
+}
+
+/* Additional keyframes */
+@keyframes focus-ring-pulse {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--ring) / 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.3);
+  }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes badge-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes icon-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+/* Sidebar Scrollbar Styles - Minimal & Theme-Aware */
+[data-sidebar="sidebar"] [data-sidebar="content"],
+[data-sidebar="content"] {
+  /* Firefox scrollbar */
+  scrollbar-width: thin !important;
+  scrollbar-color: hsl(var(--sidebar-border) / 0.3) transparent !important;
+}
+
+/* WebKit browsers (Chrome, Safari, Edge) */
+[data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar,
+[data-sidebar="content"]::-webkit-scrollbar {
+  width: 4px !important;
+}
+
+[data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-track,
+[data-sidebar="content"]::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+[data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
+[data-sidebar="content"]::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--sidebar-border) / 0.3) !important;
+  border-radius: 2px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+[data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
+[data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--sidebar-border) / 0.6) !important;
+}
+
+/* Dark mode adjustments */
+.dark [data-sidebar="sidebar"] [data-sidebar="content"],
+.dark [data-sidebar="content"],
+[data-theme="dark"] [data-sidebar="sidebar"] [data-sidebar="content"],
+[data-theme="dark"] [data-sidebar="content"],
+[data-theme="twilight-lavender"] [data-sidebar="sidebar"] [data-sidebar="content"],
+[data-theme="twilight-lavender"] [data-sidebar="content"] {
+  scrollbar-color: hsl(var(--sidebar-border) / 0.4) transparent !important;
+}
+
+.dark [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
+.dark [data-sidebar="content"]::-webkit-scrollbar-thumb,
+[data-theme="dark"] [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
+[data-theme="dark"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
+[data-theme="twilight-lavender"] [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
+[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--sidebar-border) / 0.4) !important;
+}
+
+.dark [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
+.dark [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
+[data-theme="twilight-lavender"] [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
+[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--sidebar-border) / 0.7) !important;
 }

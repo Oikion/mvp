@@ -1,12 +1,26 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
 const VALID_HEATING_TYPES = new Set(["AUTONOMOUS", "CENTRAL", "NATURAL_GAS", "HEAT_PUMP", "ELECTRIC", "NONE"]);
 const VALID_PROPERTY_STATUSES = new Set(["ACTIVE", "PENDING", "SOLD", "OFF_MARKET", "WITHDRAWN"]);
+const VALID_PROPERTY_TYPES = new Set([
+  "RESIDENTIAL", "COMMERCIAL", "LAND", "RENTAL", "VACATION",
+  "APARTMENT", "HOUSE", "MAISONETTE", "WAREHOUSE", "PARKING",
+  "PLOT", "FARM", "INDUSTRIAL", "OTHER"
+]);
+const VALID_ENERGY_CERT_CLASSES = new Set([
+  "A_PLUS", "A", "B", "C", "D", "E", "F", "G", "H", "IN_PROGRESS"
+]);
+const VALID_TRANSACTION_TYPES = new Set(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]);
+const VALID_ADDRESS_PRIVACY_LEVELS = new Set(["EXACT", "PARTIAL", "HIDDEN"]);
+const VALID_LEGALIZATION_STATUSES = new Set(["LEGALIZED", "IN_PROGRESS", "UNDECLARED"]);
+const VALID_FURNISHED_STATUSES = new Set(["NO", "PARTIALLY", "FULLY"]);
+const VALID_PRICE_TYPES = new Set(["RENTAL", "SALE", "PER_ACRE", "PER_SQM"]);
+const VALID_PORTAL_VISIBILITIES = new Set(["PRIVATE", "SELECTED", "PUBLIC"]);
 
 // Map form property_status values to Prisma enum values
 const PROPERTY_STATUS_MAP: Record<string, string> = {
@@ -43,7 +57,15 @@ export async function POST(req: Request) {
   let data: any = {};
   try {
     const user = await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrgIdSafe();
+    
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 400 }
+      );
+    }
+
     const body = await req.json();
     
     // Extract all possible fields
@@ -128,7 +150,11 @@ export async function POST(req: Request) {
 
     // Enum fields - validate before setting
     if (property_type !== undefined && property_type !== null && property_type !== "") {
-      data.property_type = property_type;
+      // Only set if it's a valid PropertyType enum value
+      if (VALID_PROPERTY_TYPES.has(property_type)) {
+        data.property_type = property_type;
+      }
+      // Otherwise, ignore invalid values (might be location string sent by mistake)
     }
     if (property_status !== undefined && property_status !== null && property_status !== "") {
       // Map form values to Prisma enum values
@@ -138,16 +164,25 @@ export async function POST(req: Request) {
       }
     }
     if (transaction_type !== undefined && transaction_type !== null && transaction_type !== "") {
-      data.transaction_type = transaction_type;
+      if (VALID_TRANSACTION_TYPES.has(transaction_type)) {
+        data.transaction_type = transaction_type;
+      }
     }
     if (address_privacy_level !== undefined && address_privacy_level !== null && address_privacy_level !== "") {
-      data.address_privacy_level = address_privacy_level;
+      if (VALID_ADDRESS_PRIVACY_LEVELS.has(address_privacy_level)) {
+        data.address_privacy_level = address_privacy_level;
+      }
     }
     if (heating_type !== undefined && heating_type !== null && heating_type !== "" && VALID_HEATING_TYPES.has(heating_type)) {
       data.heating_type = heating_type;
     }
     if (energy_cert_class !== undefined && energy_cert_class !== null && energy_cert_class !== "") {
-      data.energy_cert_class = energy_cert_class;
+      // Only set if it's a valid EnergyCertClass enum value (string, not number)
+      const energyClassStr = String(energy_cert_class);
+      if (VALID_ENERGY_CERT_CLASSES.has(energyClassStr)) {
+        data.energy_cert_class = energyClassStr;
+      }
+      // Otherwise, ignore invalid values (might be number sent by mistake)
     }
     // Validate condition - only set if it's a valid PropertyCondition, not a HeatingType
     if (condition !== undefined && condition !== null && condition !== "") {
@@ -157,16 +192,24 @@ export async function POST(req: Request) {
       // If it's a heating type being sent as condition, ignore it
     }
     if (legalization_status !== undefined && legalization_status !== null && legalization_status !== "") {
-      data.legalization_status = legalization_status;
+      if (VALID_LEGALIZATION_STATUSES.has(legalization_status)) {
+        data.legalization_status = legalization_status;
+      }
     }
     if (furnished !== undefined && furnished !== null && furnished !== "") {
-      data.furnished = furnished;
+      if (VALID_FURNISHED_STATUSES.has(furnished)) {
+        data.furnished = furnished;
+      }
     }
     if (price_type !== undefined && price_type !== null && price_type !== "") {
-      data.price_type = price_type;
+      if (VALID_PRICE_TYPES.has(price_type)) {
+        data.price_type = price_type;
+      }
     }
     if (portal_visibility !== undefined && portal_visibility !== null && portal_visibility !== "") {
-      data.portal_visibility = portal_visibility;
+      if (VALID_PORTAL_VISIBILITIES.has(portal_visibility)) {
+        data.portal_visibility = portal_visibility;
+      }
     }
 
     // Boolean fields

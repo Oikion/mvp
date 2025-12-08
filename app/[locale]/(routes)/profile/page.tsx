@@ -1,16 +1,19 @@
 import { getUser } from "@/actions/get-user";
+import { getMyAgentProfile } from "@/actions/social/profile";
 
 import Container from "../components/ui/Container";
-import { ProfileForm } from "./components/ProfileForm";
-import { PasswordChangeForm } from "./components/PasswordChange";
-import { ProfilePhotoForm } from "./components/ProfilePhotoForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Bell, Shield } from "lucide-react";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { OpenAiForm } from "./components/OpenAiForm";
-import { DeleteAccountForm } from "./components/DeleteAccountForm";
+import { ProfileTab } from "./components/ProfileTab";
+import { NotificationsTab } from "./components/NotificationsTab";
+import { PrivacySecurityTab } from "./components/PrivacySecurityTab";
 
 const ProfilePage = async () => {
-  const data = await getUser();
+  const [data, agentProfile] = await Promise.all([
+    getUser(),
+    getMyAgentProfile(),
+  ]);
 
   if (!data) {
     return <div>No user data.</div>;
@@ -18,58 +21,37 @@ const ProfilePage = async () => {
 
   return (
     <Container
-      title="Profile"
-      description={"Here you can edit your user profile"}
+      title="Settings"
+      description="Manage your account settings and preferences"
     >
-      <div className="space-y-6">
-        {/*         <pre>
-          <code>{JSON.stringify(data, null, 2)}</code>
-        </pre> */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile photo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProfilePhotoForm data={data} />
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsTrigger value="profile" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            <span className="hidden sm:inline">Notifications</span>
+          </TabsTrigger>
+          <TabsTrigger value="privacy" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            <span className="hidden sm:inline">Privacy & Security</span>
+          </TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProfileForm data={data} />
-          </CardContent>
-        </Card>
+        <TabsContent value="profile">
+          <ProfileTab user={data} />
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Password change</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PasswordChangeForm userId={data.id} />
-          </CardContent>
-        </Card>
+        <TabsContent value="notifications">
+          <NotificationsTab />
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>OpenAI Integration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <OpenAiForm userId={data.id} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Delete Account</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DeleteAccountForm userId={data.id} username={data.username} />
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="privacy">
+          <PrivacySecurityTab user={data} agentProfile={agentProfile} />
+        </TabsContent>
+      </Tabs>
     </Container>
   );
 };

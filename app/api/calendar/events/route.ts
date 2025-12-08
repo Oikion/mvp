@@ -6,6 +6,122 @@ import {
   canViewCalendar,
   canCreateEvent,
 } from '@/lib/calendar-permissions';
+import { createRemindersForEvent } from '@/lib/calendar-reminders';
+import { prismaForOrg } from '@/lib/tenant';
+import { format } from 'date-fns';
+
+/**
+ * Create notifications for calendar event creation
+ */
+async function createEventNotifications(
+  event: any,
+  organizationId: string,
+  creatorId: string,
+  creatorName: string,
+  clientIds?: string[],
+  propertyIds?: string[]
+) {
+  try {
+    const db = prismaForOrg(organizationId);
+    const eventDate = format(new Date(event.startTime), 'PPp');
+    
+    // Build notification message with linked entities
+    const linkedEntities: string[] = [];
+    
+    // Get client names if linked
+    if (clientIds && clientIds.length > 0) {
+      const clients = await prismadb.clients.findMany({
+        where: { id: { in: clientIds } },
+        select: { client_name: true },
+      });
+      if (clients.length > 0) {
+        linkedEntities.push(`Clients: ${clients.map(c => c.client_name).join(', ')}`);
+      }
+    }
+    
+    // Get property names if linked
+    if (propertyIds && propertyIds.length > 0) {
+      const properties = await prismadb.properties.findMany({
+        where: { id: { in: propertyIds } },
+        select: { property_name: true },
+      });
+      if (properties.length > 0) {
+        linkedEntities.push(`Properties: ${properties.map(p => p.property_name).join(', ')}`);
+      }
+    }
+    
+    const linkedInfo = linkedEntities.length > 0 
+      ? ` | ${linkedEntities.join(' | ')}`
+      : '';
+    
+    // Create notification for the assigned user (if different from creator)
+    if (event.assignedUserId && event.assignedUserId !== creatorId) {
+      await db.notification.create({
+        data: {
+          userId: event.assignedUserId,
+          organizationId,
+          type: 'CALENDAR_EVENT_CREATED',
+          title: `New Event: ${event.title}`,
+          message: `${creatorName} created "${event.title}" scheduled for ${eventDate}${linkedInfo}`,
+          entityType: 'CALENDAR_EVENT',
+          entityId: event.id,
+          metadata: {
+            eventTitle: event.title,
+            eventDate: event.startTime,
+            createdBy: creatorId,
+            createdByName: creatorName,
+            linkedClients: clientIds || [],
+            linkedProperties: propertyIds || [],
+          },
+        },
+      });
+    }
+    
+    // If there are linked clients, notify their assigned agents (if they have one)
+    if (clientIds && clientIds.length > 0) {
+      const clients = await prismadb.clients.findMany({
+        where: { id: { in: clientIds } },
+        select: { assigned_to: true, client_name: true },
+      });
+      
+      const agentIds = Array.from(new Set(
+        clients
+          .filter(c => c.assigned_to && c.assigned_to !== creatorId && c.assigned_to !== event.assignedUserId)
+          .map(c => c.assigned_to!)
+      ));
+      
+      for (const agentId of agentIds) {
+        const linkedClientNames = clients
+          .filter(c => c.assigned_to === agentId)
+          .map(c => c.client_name)
+          .join(', ');
+          
+        await db.notification.create({
+          data: {
+            userId: agentId,
+            organizationId,
+            type: 'CALENDAR_EVENT_CREATED',
+            title: `Event for your client: ${event.title}`,
+            message: `${creatorName} created "${event.title}" linked to your client(s): ${linkedClientNames}. Scheduled for ${eventDate}`,
+            entityType: 'CALENDAR_EVENT',
+            entityId: event.id,
+            metadata: {
+              eventTitle: event.title,
+              eventDate: event.startTime,
+              createdBy: creatorId,
+              createdByName: creatorName,
+              linkedClients: clientIds,
+            },
+          },
+        });
+      }
+    }
+    
+  } catch (error) {
+    console.error('[CREATE_EVENT_NOTIFICATIONS]', error);
+    // Don't throw - notifications are non-critical
+  }
+}
 
 /**
  * GET /api/calendar/events
@@ -113,12 +229,14 @@ export async function GET(req: Request) {
     // Transform database events to match CalendarEvent interface
     const transformedEvents = events.map((event) => ({
       id: event.calcomEventId,
+      eventId: event.id, // Include the database ID for navigation
       title: event.title || 'Untitled Event',
       description: event.description || undefined,
       startTime: event.startTime.toISOString(),
       endTime: event.endTime.toISOString(),
       location: event.location || undefined,
       status: event.status || undefined,
+      eventType: event.eventType || undefined,
     }));
 
     return NextResponse.json({
@@ -150,8 +268,14 @@ export async function POST(req: Request) {
       endTime,
       location,
       userId: targetUserId,
-      clientId,
-      propertyId,
+      clientIds,
+      propertyIds,
+      documentIds,
+      taskIds,
+      eventType,
+      assignedUserId,
+      reminderMinutes,
+      recurrenceRule,
     } = body;
 
     if (!title || !startTime || !endTime) {
@@ -162,7 +286,7 @@ export async function POST(req: Request) {
     }
 
     // Check permissions
-    const hasPermission = await canCreateEvent(targetUserId);
+    const hasPermission = await canCreateEvent(targetUserId || assignedUserId);
     if (!hasPermission) {
       return NextResponse.json(
         { error: 'Unauthorized to create events for this user' },
@@ -171,11 +295,42 @@ export async function POST(req: Request) {
     }
 
     // Determine target user
-    const userId = targetUserId || currentUser.id;
+    const userId = targetUserId || assignedUserId || currentUser.id;
     const organizationId = await getCurrentOrgIdSafe();
+
+    if (!organizationId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Generate a unique event ID (using timestamp in seconds)
     const eventId = Math.abs(Math.floor(Date.now() / 1000));
+
+    // Build relations
+    const relations: any = {};
+    
+    if (clientIds && Array.isArray(clientIds) && clientIds.length > 0) {
+      relations.linkedClients = {
+        connect: clientIds.map((id: string) => ({ id })),
+      };
+    }
+
+    if (propertyIds && Array.isArray(propertyIds) && propertyIds.length > 0) {
+      relations.linkedProperties = {
+        connect: propertyIds.map((id: string) => ({ id })),
+      };
+    }
+
+    if (documentIds && Array.isArray(documentIds) && documentIds.length > 0) {
+      relations.linkedDocuments = {
+        connect: documentIds.map((id: string) => ({ id })),
+      };
+    }
+
+    if (taskIds && Array.isArray(taskIds) && taskIds.length > 0) {
+      relations.linkedTasks = {
+        connect: taskIds.map((id: string) => ({ id })),
+      };
+    }
 
     // Create event in database
     const event = await prismadb.calComEvent.create({
@@ -189,18 +344,28 @@ export async function POST(req: Request) {
         endTime: new Date(endTime),
         location: location || null,
         status: 'scheduled',
-        ...(clientId && {
-          linkedClients: {
-            connect: { id: clientId },
-          },
-        }),
-        ...(propertyId && {
-          linkedProperties: {
-            connect: { id: propertyId },
-          },
-        }),
+        eventType: eventType || null,
+        assignedUserId: assignedUserId || userId || null,
+        reminderMinutes: reminderMinutes && Array.isArray(reminderMinutes) ? reminderMinutes : [],
+        recurrenceRule: recurrenceRule || null,
+        ...relations,
       },
     });
+
+    // Create reminders if specified
+    if (reminderMinutes && Array.isArray(reminderMinutes) && reminderMinutes.length > 0) {
+      await createRemindersForEvent(event.id, reminderMinutes, organizationId);
+    }
+
+    // Create notifications for linked entities (async, non-blocking)
+    createEventNotifications(
+      event,
+      organizationId,
+      currentUser.id,
+      currentUser.name || currentUser.email,
+      clientIds,
+      propertyIds
+    ).catch(err => console.error('[EVENT_NOTIFICATIONS_ERROR]', err));
 
     return NextResponse.json({ 
       event,

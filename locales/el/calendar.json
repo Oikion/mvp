@@ -8,7 +8,16 @@
     "title": "Ημερολόγιο",
     "selectDate": "Επιλέξτε ημερομηνία",
     "loading": "Φόρτωση...",
-    "noEventsOrTasks": "Δεν υπάρχουν συμβάντα ή εργασίες προγραμματισμένες για αυτή την ημέρα"
+    "noEventsOrTasks": "Δεν υπάρχουν συμβάντα ή εργασίες προγραμματισμένες για αυτή την ημέρα",
+    "dayView": "Προβολή Ημέρας",
+    "monthView": "Προβολή Μήνα",
+    "failedToFetchEvents": "Αποτυχία φόρτωσης συμβάντων"
+  },
+  "eventActions": {
+    "openMenu": "Άνοιγμα μενού",
+    "view": "Προβολή",
+    "edit": "Επεξεργασία",
+    "delete": "Διαγραφή"
   },
   "eventCreateForm": {
     "newEvent": "Νέο Συμβάν",
@@ -24,11 +33,32 @@
     "pickDate": "Επιλέξτε ημερομηνία",
     "location": "Τοποθεσία",
     "locationPlaceholder": "Τοποθεσία συμβάντος",
+    "eventType": "Τύπος Συμβάντος",
+    "selectEventType": "Επιλέξτε τύπο συμβάντος",
+    "assignedUser": "Ανατεθειμένος Χρήστης",
+    "selectUser": "Επιλέξτε χρήστη",
+    "linkClients": "Σύνδεση Πελατών",
+    "linkProperties": "Σύνδεση Ιδιοκτησιών",
+    "linkDocuments": "Σύνδεση Εγγράφων",
+    "reminders": "Υπενθυμίσεις",
+    "remindersDescription": "Επιλέξτε πότε να λάβετε ειδοποιήσεις υπενθύμισης",
+    "beforeEvent": "πριν το συμβάν",
     "cancel": "Ακύρωση",
     "creating": "Δημιουργία...",
     "createEvent": "Δημιουργία Συμβάντος",
     "eventCreatedSuccess": "Το συμβάν δημιουργήθηκε με επιτυχία",
     "failedToCreateEvent": "Αποτυχία δημιουργίας συμβάντος"
+  },
+  "selectors": {
+    "selectClients": "Επιλέξτε πελάτες...",
+    "searchClients": "Αναζήτηση πελατών...",
+    "noClientsFound": "Δεν βρέθηκαν πελάτες",
+    "selectProperties": "Επιλέξτε ιδιοκτησίες...",
+    "searchProperties": "Αναζήτηση ιδιοκτησιών...",
+    "noPropertiesFound": "Δεν βρέθηκαν ιδιοκτησίες",
+    "selectDocuments": "Επιλέξτε έγγραφα...",
+    "searchDocuments": "Αναζήτηση εγγράφων...",
+    "noDocumentsFound": "Δεν βρέθηκαν έγγραφα"
   },
   "createBookingButton": {
     "createEvent": "Δημιουργία Συμβάντος",
@@ -41,6 +71,71 @@
     "assignedTo": "Ανατεθειμένο σε: {name}",
     "account": "Λογαριασμός: {name}",
     "viewTask": "Προβολή Εργασίας"
+  },
+  "eventEditForm": {
+    "editCalendarEvent": "Επεξεργασία Συμβάντος Ημερολογίου",
+    "updateEventDetails": "Ενημέρωση λεπτομερειών συμβάντος",
+    "updating": "Ενημέρωση...",
+    "updateEvent": "Ενημέρωση Συμβάντος",
+    "eventUpdatedSuccess": "Το συμβάν ενημερώθηκε με επιτυχία"
+  },
+  "eventDetail": {
+    "loading": "Φόρτωση συμβάντος...",
+    "notFound": "Το συμβάν δεν βρέθηκε",
+    "edit": "Επεξεργασία",
+    "delete": "Διαγραφή",
+    "confirmDelete": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το συμβάν;",
+    "eventDeleted": "Το συμβάν διαγράφηκε με επιτυχία",
+    "description": "Περιγραφή",
+    "linkedClients": "Συνδεδεμένοι Πελάτες",
+    "linkedProperties": "Συνδεδεμένες Ιδιοκτησίες",
+    "linkedDocuments": "Συνδεδεμένα Έγγραφα",
+    "reminders": "Υπενθυμίσεις",
+    "beforeEvent": "πριν το συμβάν"
+  },
+  "eventPage": {
+    "untitledEvent": "Ανώνυμο Συμβάν",
+    "eventDetails": "Λεπτομέρειες και πληροφορίες συμβάντος",
+    "loading": "Φόρτωση συμβάντος...",
+    "notFound": "Το συμβάν δεν βρέθηκε",
+    "failedToLoad": "Αποτυχία φόρτωσης συμβάντος",
+    "backToCalendar": "Πίσω στο Ημερολόγιο",
+    "backToDetails": "Πίσω στις Λεπτομέρειες",
+    "edit": "Επεξεργασία",
+    "delete": "Διαγραφή",
+    "deleting": "Διαγραφή...",
+    "cancel": "Ακύρωση",
+    "confirmDelete": "Διαγραφή Συμβάντος",
+    "deleteConfirmationMessage": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το συμβάν; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "eventDeleted": "Το συμβάν διαγράφηκε με επιτυχία",
+    "failedToDelete": "Αποτυχία διαγραφής συμβάντος",
+    "description": "Περιγραφή",
+    "startTime": "Ώρα Έναρξης",
+    "endTime": "Ώρα Λήξης",
+    "duration": "Διάρκεια",
+    "minutes": "λεπτά",
+    "hours": "ώρες",
+    "days": "ημέρες",
+    "location": "Τοποθεσία",
+    "assignedTo": "Ανατεθειμένο Σε",
+    "notes": "Σημειώσεις",
+    "linkedClients": "Συνδεδεμένοι Πελάτες",
+    "linkedProperties": "Συνδεδεμένες Ιδιοκτησίες",
+    "linkedDocuments": "Συνδεδεμένα Έγγραφα",
+    "linkedTasks": "Συνδεδεμένες Εργασίες",
+    "forClient": "Για πελάτη",
+    "reminders": "Υπενθυμίσεις",
+    "beforeEvent": "πριν το συμβάν",
+    "scheduledFor": "Προγραμματισμένο για",
+    "sentAt": "Απεστάλη στις",
+    "eventTypes": {
+      "propertyViewing": "Επίσκεψη Ιδιοκτησίας",
+      "clientConsultation": "Συμβουλευτική Πελάτη",
+      "meeting": "Συνάντηση",
+      "reminder": "Υπενθύμιση",
+      "taskDeadline": "Προθεσμία Εργασίας",
+      "other": "Άλλο"
+    }
   }
 }
 

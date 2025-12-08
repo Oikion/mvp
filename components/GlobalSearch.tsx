@@ -11,6 +11,8 @@ import {
   Search,
   Loader2,
   Calendar,
+  ChevronRight,
+  Link2,
 } from "lucide-react";
 import {
   CommandDialog,
@@ -19,26 +21,35 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
-import useDebounce from "@/hooks/useDebounce";
+import { Badge } from "@/components/ui/badge";
+import { useGlobalSearch, type SearchResult } from "@/hooks/swr";
 
-interface SearchResult {
+interface RelationshipPreview {
   id: string;
-  type: "property" | "client" | "contact" | "document" | "event";
-  title: string;
-  subtitle?: string;
-  url: string;
+  name?: string;
+  title?: string;
+  client_name?: string;
+  property_name?: string;
+  startTime?: string;
+}
+
+interface Relationships {
+  clients?: { count: number; preview?: RelationshipPreview[] };
+  properties?: { count: number; preview?: RelationshipPreview[] };
+  events?: { count: number; preview?: RelationshipPreview[] };
+  client?: { id: string; client_name: string } | null;
 }
 
 export function GlobalSearch() {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-  const [results, setResults] = React.useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [expandedResult, setExpandedResult] = React.useState<string | null>(null);
   const router = useRouter();
   const t = useTranslations("navigation");
-  const debouncedQuery = useDebounce(query, 300);
+
+  // Use SWR for search with built-in debounce and caching
+  const { results, isLoading, debouncedQuery } = useGlobalSearch(query);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -58,122 +69,14 @@ export function GlobalSearch() {
   React.useEffect(() => {
     if (!open) {
       setQuery("");
-      setResults([]);
-      return;
+      setExpandedResult(null);
     }
   }, [open]);
-
-  React.useEffect(() => {
-    if (!debouncedQuery || debouncedQuery.length < 2) {
-      setResults([]);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    fetch("/api/global-search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: debouncedQuery }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Search failed: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const formattedResults: SearchResult[] = [];
-        
-        // Format properties
-        if (data.properties && Array.isArray(data.properties)) {
-          data.properties.forEach((prop: any) => {
-            formattedResults.push({
-              id: prop.id,
-              type: "property",
-              title: prop.property_name || "Unnamed Property",
-              subtitle: prop.area || prop.municipality || undefined,
-              url: `/mls/properties/${prop.id}`,
-            });
-          });
-        }
-
-        // Format clients
-        if (data.clients && Array.isArray(data.clients)) {
-          data.clients.forEach((client: any) => {
-            formattedResults.push({
-              id: client.id,
-              type: "client",
-              title: client.client_name || "Unnamed Client",
-              subtitle: client.primary_email || undefined,
-              url: `/crm/clients/${client.id}`,
-            });
-          });
-        }
-
-        // Format contacts
-        if (data.contacts && Array.isArray(data.contacts)) {
-          data.contacts.forEach((contact: any) => {
-            const fullName = `${contact.contact_first_name || ""} ${contact.contact_last_name || ""}`.trim();
-            formattedResults.push({
-              id: contact.id,
-              type: "contact",
-              title: fullName || "Unnamed Contact",
-              subtitle: contact.email || undefined,
-              url: `/crm/contacts/${contact.id}`,
-            });
-          });
-        }
-
-        // Format documents
-        if (data.documents && Array.isArray(data.documents)) {
-          data.documents.forEach((doc: any) => {
-            formattedResults.push({
-              id: doc.id,
-              type: "document",
-              title: doc.document_name || "Unnamed Document",
-              subtitle: doc.description || undefined,
-              url: `/documents/${doc.id}`,
-            });
-          });
-        }
-
-        // Format calendar events
-        if (data.events && Array.isArray(data.events)) {
-          data.events.forEach((event: any) => {
-            const eventDate = event.startTime 
-              ? new Date(event.startTime).toLocaleDateString()
-              : undefined;
-            const subtitleParts = [];
-            if (eventDate) subtitleParts.push(eventDate);
-            if (event.location) subtitleParts.push(event.location);
-            if (event.attendeeName) subtitleParts.push(event.attendeeName);
-            
-            formattedResults.push({
-              id: event.id,
-              type: "event",
-              title: event.title || "Untitled Event",
-              subtitle: subtitleParts.length > 0 ? subtitleParts.join(" • ") : undefined,
-              url: `/calendar`,
-            });
-          });
-        }
-
-        setResults(formattedResults);
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Search error:", error);
-        setResults([]);
-        setIsLoading(false);
-      });
-  }, [debouncedQuery]);
 
   const handleSelect = (result: SearchResult) => {
     router.push(result.url);
     setOpen(false);
     setQuery("");
-    setResults([]);
   };
 
   const getIcon = (type: SearchResult["type"]) => {
@@ -219,6 +122,169 @@ export function GlobalSearch() {
     return acc;
   }, {} as Record<string, SearchResult[]>);
 
+  // Get total relationship count for a result
+  const getTotalRelationships = (relationships?: Relationships): number => {
+    if (!relationships) return 0;
+    let total = 0;
+    if (relationships.clients?.count) total += relationships.clients.count;
+    if (relationships.properties?.count) total += relationships.properties.count;
+    if (relationships.events?.count) total += relationships.events.count;
+    if (relationships.client) total += 1;
+    return total;
+  };
+
+  // Render relationship badges
+  const renderRelationshipBadges = (relationships?: Relationships) => {
+    if (!relationships) return null;
+
+    const badges = [];
+
+    if (relationships.clients?.count && relationships.clients.count > 0) {
+      badges.push(
+        <Badge
+          key="clients"
+          variant="secondary"
+          className="text-[10px] px-1.5 py-0 h-4 gap-0.5"
+        >
+          <User className="h-2.5 w-2.5" />
+          {relationships.clients.count}
+        </Badge>
+      );
+    }
+
+    if (relationships.properties?.count && relationships.properties.count > 0) {
+      badges.push(
+        <Badge
+          key="properties"
+          variant="secondary"
+          className="text-[10px] px-1.5 py-0 h-4 gap-0.5"
+        >
+          <Building2 className="h-2.5 w-2.5" />
+          {relationships.properties.count}
+        </Badge>
+      );
+    }
+
+    if (relationships.events?.count && relationships.events.count > 0) {
+      badges.push(
+        <Badge
+          key="events"
+          variant="secondary"
+          className="text-[10px] px-1.5 py-0 h-4 gap-0.5"
+        >
+          <Calendar className="h-2.5 w-2.5" />
+          {relationships.events.count}
+        </Badge>
+      );
+    }
+
+    if (relationships.client) {
+      badges.push(
+        <Badge
+          key="client"
+          variant="outline"
+          className="text-[10px] px-1.5 py-0 h-4 gap-0.5"
+        >
+          <User className="h-2.5 w-2.5" />
+          {relationships.client.client_name}
+        </Badge>
+      );
+    }
+
+    if (badges.length === 0) return null;
+
+    return (
+      <div className="flex items-center gap-1 mt-1">
+        <Link2 className="h-3 w-3 text-muted-foreground" />
+        {badges}
+      </div>
+    );
+  };
+
+  // Render expandable relationship preview
+  const renderRelationshipPreview = (result: SearchResult) => {
+    const relationships = result.relationships as Relationships | undefined;
+    if (!relationships) return null;
+
+    const totalLinks = getTotalRelationships(relationships);
+    if (totalLinks === 0) return null;
+
+    const previewItems: {
+      label: string;
+      items: { id: string; name: string; url: string }[];
+    }[] = [];
+
+    if (
+      relationships.clients?.preview &&
+      relationships.clients.preview.length > 0
+    ) {
+      previewItems.push({
+        label: "Linked Clients",
+        items: relationships.clients.preview.map((c) => ({
+          id: c.id,
+          name: c.client_name || c.name || "Unknown",
+          url: `/crm/clients/${c.id}`,
+        })),
+      });
+    }
+
+    if (
+      relationships.properties?.preview &&
+      relationships.properties.preview.length > 0
+    ) {
+      previewItems.push({
+        label: "Linked Properties",
+        items: relationships.properties.preview.map((p) => ({
+          id: p.id,
+          name: p.property_name || p.name || "Unknown",
+          url: `/mls/properties/${p.id}`,
+        })),
+      });
+    }
+
+    if (
+      relationships.events?.preview &&
+      relationships.events.preview.length > 0
+    ) {
+      previewItems.push({
+        label: "Linked Events",
+        items: relationships.events.preview.map((e) => ({
+          id: e.id,
+          name: e.title || "Untitled Event",
+          url: `/calendar/events/${e.id}`,
+        })),
+      });
+    }
+
+    if (previewItems.length === 0) return null;
+
+    return (
+      <div className="pl-6 py-1 space-y-1 border-l-2 border-muted ml-2">
+        {previewItems.map((group) => (
+          <div key={group.label} className="space-y-0.5">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+              {group.label}
+            </span>
+            {group.items.map((item) => (
+              <div
+                key={item.id}
+                className="text-xs text-muted-foreground hover:text-foreground cursor-pointer flex items-center gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(item.url);
+                  setOpen(false);
+                }}
+              >
+                <ChevronRight className="h-3 w-3" />
+                {item.name}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
@@ -226,7 +292,7 @@ export function GlobalSearch() {
         value={query}
         onValueChange={setQuery}
       />
-      <CommandList>
+      <CommandList className="max-h-[400px]">
         {isLoading && (
           <div className="flex items-center justify-center py-6">
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -241,7 +307,6 @@ export function GlobalSearch() {
         {!isLoading && results.length > 0 && (
           <>
             {Object.entries(groupedResults).map(([type, typeResults]) => {
-              const Icon = getIcon(type as SearchResult["type"]);
               return (
                 <CommandGroup
                   key={type}
@@ -249,22 +314,47 @@ export function GlobalSearch() {
                 >
                   {typeResults.map((result) => {
                     const ResultIcon = getIcon(result.type);
+                    const hasRelationships =
+                      getTotalRelationships(result.relationships as Relationships) > 0;
+                    const isExpanded = expandedResult === result.id;
+
                     return (
-                      <CommandItem
-                        key={result.id}
-                        value={`${result.type}-${result.id}`}
-                        onSelect={() => handleSelect(result)}
-                      >
-                        <ResultIcon className="mr-2 h-4 w-4" />
-                        <div className="flex flex-col">
-                          <span>{result.title}</span>
-                          {result.subtitle && (
-                            <span className="text-xs text-muted-foreground">
-                              {result.subtitle}
-                            </span>
-                          )}
-                        </div>
-                      </CommandItem>
+                      <div key={result.id}>
+                        <CommandItem
+                          value={`${result.type}-${result.id}`}
+                          onSelect={() => handleSelect(result)}
+                          className="flex items-start"
+                        >
+                          <ResultIcon className="mr-2 h-4 w-4 mt-0.5 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="truncate">{result.title}</span>
+                              {hasRelationships && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedResult(isExpanded ? null : result.id);
+                                  }}
+                                  className="shrink-0 p-0.5 hover:bg-accent rounded"
+                                >
+                                  <ChevronRight
+                                    className={`h-3 w-3 transition-transform ${
+                                      isExpanded ? "rotate-90" : ""
+                                    }`}
+                                  />
+                                </button>
+                              )}
+                            </div>
+                            {result.subtitle && (
+                              <span className="text-xs text-muted-foreground block truncate">
+                                {result.subtitle}
+                              </span>
+                            )}
+                            {renderRelationshipBadges(result.relationships as Relationships)}
+                          </div>
+                        </CommandItem>
+                        {isExpanded && renderRelationshipPreview(result)}
+                      </div>
                     );
                   })}
                 </CommandGroup>
@@ -276,4 +366,3 @@ export function GlobalSearch() {
     </CommandDialog>
   );
 }
-

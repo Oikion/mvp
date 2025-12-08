@@ -7,8 +7,11 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { useTranslations } from "next-intl";
 import { DataTableRowActions } from "./data-table-row-actions";
 import { statuses } from "../table-data/data";
+import { StatusCell } from "./cells/StatusCell";
+import { AssignedUserCell } from "./cells/AssignedUserCell";
+import { PriceCell } from "./cells/PriceCell";
 
-export const columns: ColumnDef<any>[] = [
+export const getColumns = (users: any[] = []): ColumnDef<any>[] => [
   {
     accessorKey: "createdAt",
     header: ({ column }) => {
@@ -26,12 +29,12 @@ export const columns: ColumnDef<any>[] = [
       return <DataTableColumnHeader column={column} title={t("MlsPropertiesTable.assignedTo")} />
     },
     cell: ({ row }) => {
-      const t = useTranslations("mls");
-      const assignedUser = row.getValue("assigned_to_user") as { name?: string } | null | undefined;
       return (
-        <div className="whitespace-nowrap">
-          {assignedUser?.name ?? t("MlsPropertiesTable.unassigned")}
-        </div>
+        <AssignedUserCell
+          propertyId={row.original.id}
+          assignedTo={(row.original as any).assigned_to}
+          users={users}
+        />
       );
     },
     enableSorting: true,
@@ -55,11 +58,16 @@ export const columns: ColumnDef<any>[] = [
     accessorKey: "price",
     header: ({ column }) => {
       const t = useTranslations("mls");
-      return <DataTableColumnHeader column={column} title={t("MlsPropertiesTable.price")} />
+      return <DataTableColumnHeader column={column} title={`${t("MlsPropertiesTable.price")} €`} />
     },
-    cell: ({ row }) => (
-      <div className="whitespace-nowrap">{row.getValue("price") ?? "-"}</div>
-    ),
+    cell: ({ row }) => {
+      return (
+        <PriceCell
+          propertyId={row.original.id}
+          price={row.getValue("price") as number | null | undefined}
+        />
+      );
+    },
   },
   {
     accessorKey: "property_type",
@@ -78,19 +86,18 @@ export const columns: ColumnDef<any>[] = [
       return <DataTableColumnHeader column={column} title={t("MlsPropertiesTable.status")} />
     },
     cell: ({ row }) => {
-      const s = statuses.find((x) => x.value === row.getValue("property_status"));
-      if (!s) return null;
-      const Icon = s.icon as any;
       return (
-        <div className="flex items-center gap-2 whitespace-nowrap">
-          {Icon ? <Icon className="h-4 w-4 text-muted-foreground" /> : null}
-          <span>{s.label}</span>
-        </div>
+        <StatusCell
+          propertyId={row.original.id}
+          status={(row.original as any).property_status || row.getValue("property_status")}
+        />
       );
     },
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   { id: "actions", cell: ({ row }) => <DataTableRowActions row={row} /> },
 ];
+
+export const columns = getColumns([]);
 
 

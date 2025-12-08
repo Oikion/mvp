@@ -1,6 +1,11 @@
 {
   "containerTitle": "Πίνακας Ελέγχου",
   "containerDescription": "Καλώς ήρθατε στο Oikion, εδώ μπορείτε να δείτε όλες τις σημαντικές πληροφορίες για το μεσιτικό γραφείο σας.",
+  "fromLastMonth": "από τον προηγούμενο μήνα",
+  "fromLastPeriod": "από την προηγούμενη περίοδο",
+  "noChangeFromLastMonth": "Καμία αλλαγή από τον προηγούμενο μήνα",
+  "currentlyActiveUsers": "Τρέχοντες ενεργοί χρήστες",
+  "currentlyActive": "τρέχοντες ενεργοί",
   "totalRevenue": "Συνολικό εισόδημα",
   "totalRevenueDescription": "Συνολικό εισόδημα",
   "expectedRevenue": "Αναμενόμενο εισόδημα",
@@ -17,6 +22,8 @@
   "atAGlance": "Με μια ματιά",
   "recentActivity": "Πρόσφατη Δραστηριότητα",
   "analyticsOverview": "Επισκόπηση Αναλυτικών",
+  "activityTimeline": "Μηνιαία δραστηριότητα",
+  "activityTimelineDescription": "Νέοι πελάτες και ακίνητα ανά μήνα.",
   "recentClients": "Πρόσφατοι Πελάτες",
   "recentProperties": "Πρόσφατα Ακίνητα",
   "clientsByStatus": "Πελάτες ανά Κατάσταση",
@@ -28,6 +35,9 @@
   "deleteConfirmation": "Να διαγραφεί ο/η {name}; Η ενέργεια δεν μπορεί να αναιρεθεί.",
   "clientDeleted": "Ο πελάτης διαγράφηκε με επιτυχία.",
   "propertyDeleted": "Το ακίνητο διαγράφηκε με επιτυχία.",
-  "deleteError": "Δεν ήταν δυνατή η διαγραφή. Προσπαθήστε ξανά."
+  "deleteError": "Δεν ήταν δυνατή η διαγραφή. Προσπαθήστε ξανά.",
+  "noActivityData": "Δεν υπάρχουν δεδομένα δραστηριότητας για αυτή την περίοδο.",
+  "clientsLabel": "Πελάτες",
+  "propertiesLabel": "Ακίνητα"
 }
 

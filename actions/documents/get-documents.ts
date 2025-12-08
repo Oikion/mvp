@@ -1,5 +1,5 @@
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export interface DocumentFilters {
   clientId?: string;
@@ -10,37 +10,15 @@ export interface DocumentFilters {
 }
 
 export async function getDocuments(filters?: DocumentFilters) {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
   
   if (!organizationId) {
     throw new Error("Organization ID is required");
   }
 
-  // Build organization filter
+  // Build organization filter - Documents have organizationId directly
   const orgFilter = {
-    OR: [
-      {
-        accounts: {
-          some: {
-            organizationId,
-          },
-        },
-      },
-      {
-        linkedProperties: {
-          some: {
-            organizationId,
-          },
-        },
-      },
-      {
-        linkedCalComEvents: {
-          some: {
-            organizationId,
-          },
-        },
-      },
-    ],
+    organizationId,
   };
 
   // Build additional filters

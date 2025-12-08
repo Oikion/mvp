@@ -44,6 +44,9 @@ const createQuickAddSchema = (t: (key: string) => string) => z.object({
   intent: z.enum(["BUY", "RENT", "SELL", "LEASE", "INVEST"], {
     required_error: t("crm.CrmForm.validation.intentRequired"),
   }),
+  budget_min: z.coerce.number().optional(),
+  budget_max: z.coerce.number().optional(),
+  notes: z.string().optional(),
   assigned_to: z.string().min(1, t("common.selectAgent")),
 }).superRefine((data, ctx) => {
   // Validate phone/email
@@ -98,6 +101,9 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
       primary_phone: "",
       primary_email: "",
       intent: undefined,
+      budget_min: undefined,
+      budget_max: undefined,
+      notes: "",
       assigned_to: "",
     },
   });
@@ -262,6 +268,67 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
                       <SelectItem value="INVEST">{t("crm.CrmForm.intents.INVEST")}</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="budget_min"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("crm.CrmForm.fields.budgetMin")} (€)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        disabled={isLoading} 
+                        type="number" 
+                        placeholder="0" 
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="budget_max"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("crm.CrmForm.fields.budgetMax")} (€)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        disabled={isLoading} 
+                        type="number" 
+                        placeholder="0" 
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("crm.CrmForm.fields.notes")}</FormLabel>
+                  <FormControl>
+                    <Input 
+                      disabled={isLoading} 
+                      placeholder={t("crm.CrmForm.fields.notesPlaceholder")} 
+                      {...field} 
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

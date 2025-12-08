@@ -1,0 +1,122 @@
+{
+  "title": "Profile Settings",
+  "publicProfile": {
+    "title": "Public Profile",
+    "description": "Preview and manage your public agent profile",
+    "noUserData": "No user data."
+  },
+  "tabs": {
+    "profileInfo": "Profile Info",
+    "showcase": "Showcase",
+    "socialLinks": "Social Links"
+  },
+  "visibility": {
+    "title": "Profile Visibility",
+    "description": "Control who can see your profile",
+    "personal": {
+      "label": "Personal",
+      "description": "Hidden from everyone"
+    },
+    "secure": {
+      "label": "Secure",
+      "description": "Only registered users can view"
+    },
+    "public": {
+      "label": "Public",
+      "description": "Anyone can view"
+    }
+  },
+  "profileUrl": {
+    "title": "Profile URL",
+    "description": "Your public profile address based on your username",
+    "hint": "Your profile URL is based on your username. To change it, update your username in",
+    "accountSettings": "account settings"
+  },
+  "contact": {
+    "title": "Contact Information",
+    "publicEmail": "Public Email",
+    "publicEmailPlaceholder": "your@email.com",
+    "publicPhone": "Public Phone",
+    "publicPhonePlaceholder": "+30 210 1234567",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell potential clients about yourself...",
+    "bioCharacters": "{count}/1000 characters",
+    "yearsExperience": "Years of Experience"
+  },
+  "expertise": {
+    "title": "Expertise",
+    "specializations": "Specializations",
+    "languages": "Languages",
+    "serviceAreas": "Service Areas",
+    "serviceAreaPlaceholder": "e.g., Kolonaki",
+    "certifications": "Certifications",
+    "certificationPlaceholder": "e.g., Licensed Agent"
+  },
+  "specializations": {
+    "residential": "Residential",
+    "commercial": "Commercial",
+    "land": "Land",
+    "rentals": "Rentals",
+    "investments": "Investments",
+    "luxury": "Luxury",
+    "newConstruction": "New Construction"
+  },
+  "social": {
+    "title": "Social Media Links",
+    "description": "Add links to your social media profiles"
+  },
+  "showcase": {
+    "title": "Showcase Properties",
+    "description": "Select properties to feature on your public profile",
+    "empty": "No properties in your showcase yet.",
+    "emptyHint": "Add properties from the available list below to showcase them on your public profile.",
+    "available": "Available Properties",
+    "noAvailable": "No properties available to add",
+    "noAvailableHint": "All your active properties are already in your showcase, or you don't have any active listings.",
+    "addToShowcase": "Add to Showcase",
+    "removeFromShowcase": "Remove from Showcase",
+    "featured": "Featured"
+  },
+  "actions": {
+    "saveProfile": "Save Profile",
+    "edit": "Edit",
+    "preview": "Preview"
+  },
+  "toast": {
+    "saved": "Profile Saved",
+    "savedPersonal": "Your profile is hidden.",
+    "savedSecure": "Your profile is visible to registered users only.",
+    "savedPublic": "Your profile is now live and visible to everyone!",
+    "error": "Error",
+    "errorSave": "Failed to update profile. Please try again.",
+    "showcaseAdded": "Property Added",
+    "showcaseAddedDesc": "Property has been added to your showcase.",
+    "showcaseRemoved": "Property Removed",
+    "showcaseRemovedDesc": "Property has been removed from your showcase.",
+    "showcaseError": "Failed to update showcase"
+  },
+  "preview": {
+    "liveProfile": "Live Profile",
+    "profileHidden": "Profile Hidden",
+    "profileHiddenDesc": "Your profile visibility is set to Personal. Make it Secure or Public to view your profile.",
+    "viewLiveProfile": "View Live Profile",
+    "experience": "years experience",
+    "contactAgent": "Contact Agent",
+    "showcaseEmpty": "No featured properties",
+    "previewMode": "Preview Mode - This is how visitors will see your profile",
+    "editProfile": "Edit Profile",
+    "profilePreview": "Profile Preview",
+    "createPublicProfile": "Create Your Public Profile",
+    "createPublicProfileDesc": "Set up your public profile to showcase your properties and connect with other agents.",
+    "yourProfileUrl": "Your profile URL:",
+    "urlHint": "This URL is based on your username. To change it, update your username in",
+    "noShowcaseProperties": "You haven't added properties to your showcase yet.",
+    "noShowcaseHint": "Add properties from the edit mode.",
+    "aboutMe": "About me",
+    "properties": "Properties",
+    "propertiesCount": "properties",
+    "sale": "Sale",
+    "rental": "Rental",
+    "sqm": "sqm"
+  }
+}

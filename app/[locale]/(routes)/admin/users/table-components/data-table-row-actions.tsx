@@ -1,6 +1,7 @@
 "use client";
 
 import { Row } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -16,9 +18,9 @@ import { useRouter } from "next/navigation";
 import AlertModal from "@/components/modals/alert-modal";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import axios from "axios";
+import { useOrganization } from "@clerk/nextjs";
 
-import { Copy, Edit, MoreHorizontal, Trash } from "lucide-react";
+import { Copy, MoreHorizontal, Shield, ShieldOff, UserMinus } from "lucide-react";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -27,177 +29,179 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
+  const t = useTranslations("admin");
   const router = useRouter();
   const data = adminUserSchema.parse(row.original);
+  const { organization } = useOrganization();
 
-  const [open, setOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [updateOpen, setUpdateOpen] = useState(false);
 
   const { toast } = useToast();
+
   const onCopy = (id: string) => {
     navigator.clipboard.writeText(id);
     toast({
       variant: "info",
-      title: "Copied",
-      description: "The URL has been copied to your clipboard.",
+      title: t("copied"),
+      description: t("userIdCopied"),
     });
   };
 
-  //Action triggered when the delete button is clicked to delete the store
-  const onDelete = async () => {
+  // Remove member from organization
+  const onRemoveMember = async () => {
+    if (!organization) return;
+
     try {
       setLoading(true);
-      await axios.delete(`/api/user/${data.id}`);
-      router.refresh();
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "User has been deleted",
-      });
-    } catch (error) {
+      
+      const members = await organization.getMemberships();
+      const memberToRemove = members.data?.find(
+        (m) => m.publicUserData?.userId === (row.original as any).clerkUserId
+      );
+
+      if (memberToRemove) {
+        await memberToRemove.destroy();
+        router.refresh();
+        toast({
+          variant: "success",
+          title: t("success"),
+          description: t("memberRemoved"),
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: t("error"),
+          description: t("memberNotFound"),
+        });
+      }
+    } catch (error: any) {
+      console.error("Remove member error:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Something went wrong: " + error + ". Please try again.",
+        title: t("error"),
+        description: error?.errors?.[0]?.message || t("somethingWentWrong"),
       });
     } finally {
       setLoading(false);
-      setOpen(false);
+      setRemoveOpen(false);
     }
   };
 
-  const onActivate = async () => {
+  // Update member role to admin
+  const onPromoteToAdmin = async () => {
+    if (!organization) return;
+
     try {
       setLoading(true);
-      await axios.post(`/api/user/activate/${data.id}`);
-      router.refresh();
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "User has been activated.",
-      });
-    } catch (error) {
+      
+      const members = await organization.getMemberships();
+      const memberToUpdate = members.data?.find(
+        (m) => m.publicUserData?.userId === (row.original as any).clerkUserId
+      );
+
+      if (memberToUpdate) {
+        await memberToUpdate.update({ role: "org:admin" });
+        router.refresh();
+        toast({
+          variant: "success",
+          title: t("success"),
+          description: t("memberPromoted"),
+        });
+      }
+    } catch (error: any) {
+      console.error("Promote to admin error:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description:
-          "Something went wrong while activating user. Please try again.",
+        title: t("error"),
+        description: error?.errors?.[0]?.message || t("somethingWentWrong"),
       });
     } finally {
       setLoading(false);
-      setOpen(false);
     }
   };
 
-  const onDeactivate = async () => {
+  // Update member role to member (demote from admin)
+  const onDemoteFromAdmin = async () => {
+    if (!organization) return;
+
     try {
       setLoading(true);
-      await axios.post(`/api/user/deactivate/${data.id}`);
-      router.refresh();
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "User has been deactivated.",
-      });
-    } catch (error) {
+      
+      const members = await organization.getMemberships();
+      const memberToUpdate = members.data?.find(
+        (m) => m.publicUserData?.userId === (row.original as any).clerkUserId
+      );
+
+      if (memberToUpdate) {
+        await memberToUpdate.update({ role: "org:member" });
+        router.refresh();
+        toast({
+          variant: "success",
+          title: t("success"),
+          description: t("memberDemoted"),
+        });
+      }
+    } catch (error: any) {
+      console.error("Demote from admin error:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description:
-          "Something went wrong while deactivating user. Please try again.",
+        title: t("error"),
+        description: error?.errors?.[0]?.message || t("somethingWentWrong"),
       });
     } finally {
       setLoading(false);
-      setOpen(false);
-    }
-  };
-  const onDeactivateAdmin = async () => {
-    try {
-      setLoading(true);
-      await axios.post(`/api/user/deactivateAdmin/${data.id}`);
-      router.refresh();
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "User Admin rights has been deactivated.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description:
-          "Something went wrong while deactivating user as a admin. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-      setOpen(false);
     }
   };
 
-  const onActivateAdmin = async () => {
-    try {
-      setLoading(true);
-      await axios.post(`/api/user/activateAdmin/${data.id}`);
-      router.refresh();
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "User Admin rights has been activated.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description:
-          "Something went wrong while activating uses as a admin. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-      setOpen(false);
-    }
-  };
+  const isCurrentUserAdmin = data.orgRole === "org:admin";
 
   return (
     <>
       <AlertModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        onConfirm={onDelete}
+        isOpen={removeOpen}
+        onClose={() => setRemoveOpen(false)}
+        onConfirm={onRemoveMember}
         loading={loading}
+        title={t("removeMemberTitle")}
+        description={t("removeMemberDescription")}
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant={"ghost"} className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t("openMenu")}</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("actions")}</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => onCopy(data?.id)}>
             <Copy className="mr-2 w-4 h-4" />
-            Copy ID
+            {t("copyId")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onActivate()}>
-            <Edit className="mr-2 w-4 h-4" />
-            Activate
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onDeactivate()}>
-            <Edit className="mr-2 w-4 h-4" />
-            Deactivate
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onActivateAdmin()}>
-            <Edit className="mr-2 w-4 h-4" />
-            Activate Admin rights
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onDeactivateAdmin()}>
-            <Edit className="mr-2 w-4 h-4" />
-            Deactivate Admin rights
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            <Trash className="mr-2 w-4 h-4" />
-            Delete
+          
+          <DropdownMenuSeparator />
+          
+          {!isCurrentUserAdmin ? (
+            <DropdownMenuItem onClick={onPromoteToAdmin} disabled={loading}>
+              <Shield className="mr-2 w-4 h-4" />
+              {t("promoteToAdmin")}
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onClick={onDemoteFromAdmin} disabled={loading}>
+              <ShieldOff className="mr-2 w-4 h-4" />
+              {t("removeAdminRole")}
+            </DropdownMenuItem>
+          )}
+          
+          <DropdownMenuSeparator />
+          
+          <DropdownMenuItem 
+            onClick={() => setRemoveOpen(true)}
+            className="text-destructive focus:text-destructive"
+          >
+            <UserMinus className="mr-2 w-4 h-4" />
+            {t("removeFromOrg")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -10,6 +10,8 @@ const TENANT_MODELS: Record<string, string> = {
   calComEvent: "organizationId",
   myAccount: "organizationId",
   feedback: "organizationId",
+  notification: "organizationId",
+  calendarReminder: "organizationId",
 };
 
 const GUARDED_METHODS = new Set([
@@ -40,7 +42,7 @@ function ensureOrgInData(
   data: Record<string, any> | undefined,
   field: string,
   orgId: string
-) {
+): Record<string, any> | Record<string, any>[] {
   if (!data) {
     return { [field]: orgId };
   }
@@ -136,6 +138,18 @@ export function prismaForOrg(orgId: string) {
 
       const orgField = TENANT_MODELS[propName];
       const model = (target as any)[propName];
+      
+      // If model doesn't exist or is not a valid Prisma delegate, return it as-is
+      // Prisma delegates are objects with methods like findMany, create, etc.
+      if (!model) {
+        return model;
+      }
+      
+      // Check if it's a Prisma delegate (has common Prisma methods)
+      if (typeof model !== 'object' || typeof model.findMany !== 'function') {
+        return model;
+      }
+      
       return wrapModel(model, orgField, orgId);
     },
   }) as typeof prismadb;

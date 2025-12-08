@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
+import { notifyPropertyCreated, notifyPropertyWatchers } from "@/lib/notifications";
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
@@ -214,7 +215,15 @@ function buildPropertyData(body: any, user: any, organizationId: string, isUpdat
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrgIdSafe();
+    
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 400 }
+      );
+    }
+
     const body = await req.json();
     
     const { id } = body; // Check if updating existing draft
@@ -259,6 +268,19 @@ export async function POST(req: Request) {
       data.assigned_to ? `user:${data.assigned_to}` : "",
     ].filter(Boolean));
 
+    // Notify organization about new property (only for non-draft and new properties)
+    if (!id && !data.draft_status) {
+      await notifyPropertyCreated({
+        entityType: "PROPERTY",
+        entityId: property.id,
+        entityName: property.property_name || "Untitled Property",
+        creatorId: user.id,
+        creatorName: user.name || user.email || "Someone",
+        organizationId,
+        assignedToId: data.assigned_to,
+      });
+    }
+
     return NextResponse.json({ newProperty: property }, { status: 200 });
   } catch (error) {
     console.error("[NEW_PROPERTY_POST]", error);
@@ -273,7 +295,15 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const user = await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrgIdSafe();
+    
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 400 }
+      );
+    }
+
     const body = await req.json();
     const { id } = body;
 
@@ -310,6 +340,19 @@ export async function PUT(req: Request) {
       data.assigned_to ? `user:${data.assigned_to}` : "",
     ].filter(Boolean));
 
+    // Notify watchers about the update
+    await notifyPropertyWatchers(
+      id,
+      organizationId,
+      "PROPERTY_UPDATED",
+      `Property "${updatedProperty.property_name}" was updated`,
+      `${user.name || user.email} updated the property "${updatedProperty.property_name}"`,
+      {
+        updatedBy: user.id,
+        updatedByName: user.name || user.email,
+      }
+    );
+
     return NextResponse.json({ updatedProperty }, { status: 200 });
   } catch (error) {
     console.error("[UPDATE_PROPERTY_PUT]", error);
@@ -324,7 +367,15 @@ export async function PUT(req: Request) {
 export async function GET() {
   try {
     await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrgIdSafe();
+    
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 400 }
+      );
+    }
+
     const properties = await prismadb.properties.findMany({
       where: { organizationId },
     });

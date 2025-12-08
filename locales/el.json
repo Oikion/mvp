@@ -494,6 +494,17 @@
       "el": "Ελληνικά"
     }
   },
+  "Notifications": {
+    "markAllRead": "Σήμανση όλων ως αναγνωσμένα",
+    "viewAll": "Προβολή όλων των ειδοποιήσεων",
+    "noNotifications": "Δεν υπάρχουν ειδοποιήσεις",
+    "noNotificationsDesc": "Δεν έχετε ειδοποιήσεις ακόμα.",
+    "noUnread": "Είστε ενημερωμένοι!",
+    "unread": "μη αναγνωσμένες",
+    "allRead": "Όλα είναι ενημερωμένα",
+    "all": "Όλα",
+    "new": "Νέα"
+  },
   "Command": {
     "press": "Πατήστε",
     "placeholder": "Πληκτρολογήστε εντολή ή αναζήτηση...",
@@ -503,16 +514,47 @@
     "profileSettings": "Ρυθμίσεις προφίλ",
     "logout": "Αποσύνδεση"
   },
+  "admin": {
+    "title": "Διαχείριση",
+    "accessDenied": "Δεν είστε διαχειριστής οργανισμού",
+    "accessNotAllowed": "Η πρόσβαση δεν επιτρέπεται",
+    "setupDescription": "Διαχειριστείτε τις ρυθμίσεις και τα μέλη του οργανισμού σας",
+    "usersAdministration": "Μέλη Ομάδας",
+    "modulesAdministration": "Modules",
+    "manageUsersDescription": "Εδώ μπορείτε να διαχειριστείτε τους χρήστες του Oikion σας",
+    "manageOrgMembersDescription": "Διαχείριση μελών και ρόλων οργανισμού",
+    "inviteNewUser": "Πρόσκληση νέου χρήστη στο Oikion",
+    "inviteNewMember": "Πρόσκληση νέου μέλους ομάδας",
+    "manageModulesDescription": "Ρυθμίστε ποια modules είναι ορατά στον οργανισμό σας",
+    "noOrganizationContext": "Δεν υπάρχει πλαίσιο οργανισμού. Παρακαλούμε επιλέξτε οργανισμό.",
+    "organization": "Οργανισμός",
+    "noOrganization": "Χωρίς Οργανισμό",
+    "createdOn": "Δημιουργήθηκε",
+    "teamMembers": "Μέλη Ομάδας",
+    "activeMembers": "Ενεργά μέλη στον οργανισμό σας",
+    "manageMembers": "Διαχείριση μελών",
+    "yourRole": "Ο Ρόλος σας",
+    "organizationAdmin": "Διαχειριστής Οργανισμού",
+    "fullAccessDescription": "Πλήρης πρόσβαση στις ρυθμίσεις και τα μέλη του οργανισμού",
+    "quickLinks": "Γρήγοροι Σύνδεσμοι",
+    "organizationSettings": "Ρυθμίσεις Οργανισμού",
+    "organizationSettingsDescription": "Ενημέρωση στοιχείων και προτιμήσεων οργανισμού",
+    "teamManagement": "Διαχείριση Ομάδας",
+    "teamManagementDescription": "Πρόσκληση μελών, διαχείριση ρόλων και δικαιωμάτων"
+  },
   "Admin": {
     "title": "Διαχείριση",
-    "accessDenied": "Δεν είστε διαχειριστής, η πρόσβαση δεν επιτρέπεται",
+    "accessDenied": "Δεν είστε διαχειριστής οργανισμού",
     "accessNotAllowed": "Η πρόσβαση δεν επιτρέπεται",
-    "setupDescription": "Εδώ μπορείτε να ρυθμίσετε την εγκατάσταση Oikion σας",
-    "usersAdministration": "Διαχείριση χρηστών",
-    "modulesAdministration": "Διαχείριση modules",
+    "setupDescription": "Διαχειριστείτε τις ρυθμίσεις και τα μέλη του οργανισμού σας",
+    "usersAdministration": "Μέλη Ομάδας",
+    "modulesAdministration": "Modules",
     "manageUsersDescription": "Εδώ μπορείτε να διαχειριστείτε τους χρήστες του Oikion σας",
+    "manageOrgMembersDescription": "Διαχείριση μελών και ρόλων οργανισμού",
     "inviteNewUser": "Πρόσκληση νέου χρήστη στο Oikion",
-    "manageModulesDescription": "Εδώ μπορείτε να διαχειριστείτε τα modules του Oikion σας"
+    "inviteNewMember": "Πρόσκληση νέου μέλους ομάδας",
+    "manageModulesDescription": "Ρυθμίστε ποια modules είναι ορατά στον οργανισμό σας",
+    "noOrganizationContext": "Δεν υπάρχει πλαίσιο οργανισμού. Παρακαλούμε επιλέξτε οργανισμό."
   },
   "AvatarDropdown": {
     "todoDashboard": "Πίνακας εργασιών",

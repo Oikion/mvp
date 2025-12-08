@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
+import { notifyAccountWatchers as notifyWatchersLegacy } from "@/lib/notify-watchers";
+import { notifyClientCreated, notifyAccountWatchers } from "@/lib/notifications";
 
 export async function POST(req: Request) {
   try {
@@ -118,6 +120,19 @@ export async function POST(req: Request) {
     });
 
     await invalidateCache(["clients:list", "dashboard:accounts-count", assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
+
+    // Notify organization about new client (only for non-draft clients)
+    if (!draft_status) {
+      await notifyClientCreated({
+        entityType: "CLIENT",
+        entityId: newClient.id,
+        entityName: client_name,
+        creatorId: user.id,
+        creatorName: user.name || user.email || "Someone",
+        organizationId,
+        assignedToId: assigned_to,
+      });
+    }
 
     return NextResponse.json({ newClient }, { status: 200 });
   } catch (error: any) {
@@ -251,6 +266,19 @@ export async function PUT(req: Request) {
     });
 
     await invalidateCache(["clients:list", `account:${id}`, assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
+
+    // Notify watchers about the update using new notification system
+    await notifyAccountWatchers(
+      id,
+      organizationId,
+      "ACCOUNT_UPDATED",
+      `Client "${updatedClient.client_name}" was updated`,
+      `${user.name || user.email} updated the client "${updatedClient.client_name}"`,
+      {
+        updatedBy: user.id,
+        updatedByName: user.name || user.email,
+      }
+    );
 
     return NextResponse.json({ updatedClient }, { status: 200 });
   } catch (error) {

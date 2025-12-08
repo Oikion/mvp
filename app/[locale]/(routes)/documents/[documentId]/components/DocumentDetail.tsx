@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Share2 } from "lucide-react";
+import { ArrowLeft, Download, Share2, Users } from "lucide-react";
 import { useRouter } from "@/navigation";
 import { MentionDisplay } from "../../components/MentionDisplay";
 import { ShareSettings } from "../../components/ShareSettings";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ShareModal } from "@/components/social/ShareModal";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
   const [linkEnabled, setLinkEnabled] = useState(document.linkEnabled || false);
   const [passwordProtected, setPasswordProtected] = useState(document.passwordProtected || false);
   const [expiresAt, setExpiresAt] = useState<Date | null>(document.expiresAt ? new Date(document.expiresAt) : null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const handleEnableShare = async () => {
     const response = await fetch(`/api/documents/${document.id}/share`, {
@@ -164,9 +166,30 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         </TabsContent>
 
         <TabsContent value="share" className="space-y-4">
+          {/* Share with Connections */}
           <Card>
             <CardHeader>
-              <CardTitle>Share Settings</CardTitle>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle className="text-lg">Share with Connections</CardTitle>
+                    <CardDescription>Send this document to agents in your network</CardDescription>
+                  </div>
+                </div>
+                <Button variant="outline" onClick={() => setShareModalOpen(true)}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Public Link Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Public Link Settings</CardTitle>
+              <CardDescription>Generate a shareable link for anyone</CardDescription>
             </CardHeader>
             <CardContent>
               <ShareSettings
@@ -238,6 +261,15 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Share Modal */}
+      <ShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        entityType="DOCUMENT"
+        entityId={document.id}
+        entityName={document.document_name}
+      />
     </div>
   );
 }

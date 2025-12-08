@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import NewTaskCommentEmail from "@/emails/NewTaskComment";
 import resendHelper from "@/lib/resend";
+import { notifyTaskCommented } from "@/lib/notifications";
 
 export async function POST(req: Request, props: { params: Promise<{ taskId: string }> }) {
   const params = await props.params;
@@ -10,6 +11,7 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
   
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const body = await req.json();
     const { comment } = body;
     const { taskId } = params;
@@ -24,6 +26,11 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
 
     const task = await prismadb.crm_Accounts_Tasks.findUnique({
       where: { id: taskId },
+      include: {
+        crm_accounts: {
+          select: { id: true, client_name: true },
+        },
+      },
     });
 
     if (!task) {
@@ -35,8 +42,24 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
         comment: comment,
         crm_account_task: taskId,
         user: user.id,
+        organizationId,
       },
     });
+
+    // Notify the task assignee about the comment (if not self-commenting)
+    if (task.user && task.user !== user.id) {
+      await notifyTaskCommented({
+        taskId,
+        taskTitle: task.title,
+        accountId: task.crm_accounts?.id,
+        accountName: task.crm_accounts?.client_name,
+        actorId: user.id,
+        actorName: user.name || user.email || "Someone",
+        recipientId: task.user,
+        organizationId,
+        commentContent: comment,
+      });
+    }
 
     return NextResponse.json(newComment, { status: 200 });
   } catch (error) {

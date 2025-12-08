@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MoreHorizontal, PowerIcon, PowerOffIcon, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -31,6 +32,7 @@ interface CellActionProps {
 }
 
 export const CellAction = ({ data }: CellActionProps) => {
+  const t = useTranslations("admin");
   const { toast } = useToast();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -41,15 +43,14 @@ export const CellAction = ({ data }: CellActionProps) => {
       router.refresh();
       toast({
         variant: "success",
-        title: "Success",
-        description: "Module has been activated.",
+        title: t("success"),
+        description: t("moduleActivated"),
       });
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description:
-          "Something went wrong while activating module. Please try again.",
+        title: t("error"),
+        description: t("moduleActivateError"),
       });
     }
   };
@@ -60,15 +61,14 @@ export const CellAction = ({ data }: CellActionProps) => {
       router.refresh();
       toast({
         variant: "success",
-        title: "Success",
-        description: "Module has been deactivated.",
+        title: t("success"),
+        description: t("moduleDeactivated"),
       });
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description:
-          "Something went wrong while deactivating module. Please try again.",
+        title: t("error"),
+        description: t("moduleDeactivateError"),
       });
     }
   };
@@ -80,15 +80,14 @@ export const CellAction = ({ data }: CellActionProps) => {
       router.refresh();
       toast({
         variant: "success",
-        title: "Success",
-        description: "Module has been deleted.",
+        title: t("success"),
+        description: t("moduleDeleted"),
       });
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description:
-          "Something went wrong while deleting module. Please try again.",
+        title: t("error"),
+        description: t("moduleDeleteError"),
       });
     }
   };
@@ -98,22 +97,22 @@ export const CellAction = ({ data }: CellActionProps) => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant={"ghost"} className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t("openMenu")}</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("actions")}</DropdownMenuLabel>
           {!data.enabled && (
             <DropdownMenuItem onClick={() => onActivate()}>
               <PowerIcon className="mr-2 w-4 h-4" />
-              Activate
+              {t("activate")}
             </DropdownMenuItem>
           )}
           {data.enabled && (
             <DropdownMenuItem onClick={() => onDeactivate()}>
               <PowerOffIcon className="mr-2 w-4 h-4" />
-              Deactivate
+              {t("deactivate")}
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
@@ -122,17 +121,16 @@ export const CellAction = ({ data }: CellActionProps) => {
             className="text-destructive focus:text-destructive"
           >
             <Trash2 className="mr-2 w-4 h-4" />
-            Delete
+            {t("delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogTitle>{t("areYouSure")}</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete the{" "}
-              <strong>{data.name}</strong> module.
+              {t("deleteModuleWarning", { name: data.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -140,10 +138,10 @@ export const CellAction = ({ data }: CellActionProps) => {
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button variant="destructive" onClick={onDelete}>
-              Delete
+              {t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

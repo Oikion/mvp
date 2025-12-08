@@ -1,6 +1,8 @@
 {
+  "getStarted": "Get Started",
   "cancel": "Cancel",
   "creating": "Creating...",
+  "loading": "Loading...",
   "success": "Success",
   "error": "Error",
   "clientCreated": "Client created successfully",

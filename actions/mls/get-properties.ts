@@ -12,6 +12,17 @@ export const getProperties = async () => {
     where: { organizationId },
     include: {
       assigned_to_user: { select: { name: true } },
+      linkedDocuments: {
+        where: {
+          document_file_mimeType: {
+            startsWith: "image/",
+          },
+        },
+        select: {
+          document_file_url: true,
+        },
+        take: 1,
+      },
     },
     orderBy: { createdAt: "desc" },
   });

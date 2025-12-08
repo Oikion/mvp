@@ -1,0 +1,42 @@
+{
+  "title": "Shared With Me",
+  "description": "View properties, clients, and documents shared by your connections",
+  "tabs": {
+    "all": "All",
+    "properties": "Properties",
+    "clients": "Clients",
+    "documents": "Documents"
+  },
+  "sections": {
+    "all": {
+      "title": "All Shared Items",
+      "description": "Everything your connections have shared with you"
+    },
+    "properties": {
+      "title": "Shared Properties",
+      "description": "Property listings shared by your connections"
+    },
+    "clients": {
+      "title": "Shared Clients",
+      "description": "Client profiles shared by your connections"
+    },
+    "documents": {
+      "title": "Shared Documents",
+      "description": "Documents shared by your connections"
+    }
+  },
+  "empty": {
+    "generic": "Nothing has been shared with you yet.",
+    "properties": "No properties have been shared with you yet.",
+    "clients": "No clients have been shared with you yet.",
+    "documents": "No documents have been shared with you yet.",
+    "hint": "Connect with other agents to start collaborating."
+  },
+  "card": {
+    "sharedBy": "Shared by",
+    "canComment": "Can comment",
+    "viewOnly": "View only",
+    "ago": "ago"
+  }
+}
+

@@ -314,6 +314,18 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
     }
   };
 
+  const handleStepClick = async (stepId: number) => {
+    if (stepId < currentStep) {
+      setCurrentStep(stepId);
+      return;
+    }
+    
+    const isValid = await validateStep(currentStep);
+    if (isValid) {
+      setCurrentStep(stepId);
+    }
+  };
+
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
@@ -323,34 +335,33 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      // Determine client_name based on person_type
-      const client_name = data.person_type === "COMPANY" 
-        ? data.company_name || "Unnamed Company"
-        : data.full_name || "Unnamed Client";
-
-      await axios.post("/api/crm/clients", {
-        ...data,
-        client_name,
-        draft_status: false, // Final submission
-        id: draftId, // Update draft if exists
-      });
-
+      // If we have a draft, update it to final; otherwise create new
+      if (draftId) {
+        await axios.put(`/api/crm/clients/${draftId}`, {
+          ...data,
+          draft_status: false,
+        });
+      } else {
+        await axios.post("/api/crm/clients", {
+          ...data,
+          draft_status: false,
+        });
+      }
+      
       toast({
         variant: "success",
-        title: t("crm.CrmForm.buttons.submit", "Success"),
-        description: "Πελάτης δημιουργήθηκε επιτυχώς",
+        title: t("common.success", "Επιτυχία"),
+        description: t("common.clientCreated", "Ο πελάτης δημιουργήθηκε επιτυχώς"),
       });
       
-      form.reset();
       router.refresh();
       onFinish();
-    } catch (error: any) {
-      console.error("Error creating client:", error);
-      const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || "Κάτι πήγε στραβά";
+    } catch (error) {
+      console.error("Failed to create client:", error);
       toast({
         variant: "destructive",
-        title: "Σφάλμα",
-        description: typeof errorMessage === 'string' ? errorMessage : "Αποτυχία δημιουργίας πελάτη",
+        title: t("common.error", "Σφάλμα"),
+        description: t("common.clientCreationFailed", "Αποτυχία δημιουργίας πελάτη"),
       });
     } finally {
       setIsLoading(false);
@@ -360,559 +371,334 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
   const renderStepContent = () => {
     const personType = form.watch("person_type");
     const intent = form.watch("intent");
+    const showFinancing = intent === "BUY" || intent === "INVEST";
 
     switch (currentStep) {
       case 1:
         return (
           <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="person_type"
-              render={({ field }) => (
+            <FormField control={form.control} name="person_type" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.personType", "Τύπος πελάτη")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder={t("crm.CrmForm.fields.personTypePlaceholder", "Επιλέξτε τύπο")} /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="INDIVIDUAL">{t("crm.CrmForm.personType.INDIVIDUAL", "Ιδιώτης")}</SelectItem>
+                    <SelectItem value="COMPANY">{t("crm.CrmForm.personType.COMPANY", "Εταιρεία")}</SelectItem>
+                    <SelectItem value="INVESTOR">{t("crm.CrmForm.personType.INVESTOR", "Επενδυτής")}</SelectItem>
+                    <SelectItem value="BROKER">{t("crm.CrmForm.personType.BROKER", "Μεσίτης/Πράκτορας")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            
+            <ConditionalFormSection condition={personType === "INDIVIDUAL" || personType === "INVESTOR" || personType === "BROKER"}>
+              <FormField control={form.control} name="full_name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.personType", "Τύπος πελάτη")} *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("crm.CrmForm.fields.personTypePlaceholder", "Επιλέξτε τύπο")} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="INDIVIDUAL">{t("crm.CrmForm.personType.INDIVIDUAL", "Ιδιώτης")}</SelectItem>
-                      <SelectItem value="COMPANY">{t("crm.CrmForm.personType.COMPANY", "Εταιρεία")}</SelectItem>
-                      <SelectItem value="INVESTOR">{t("crm.CrmForm.personType.INVESTOR", "Επενδυτής")}</SelectItem>
-                      <SelectItem value="BROKER">{t("crm.CrmForm.personType.BROKER", "Μεσίτης")}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>{t("crm.CrmForm.fields.fullName", "Ονοματεπώνυμο")}</FormLabel>
+                  <FormControl><Input {...field} placeholder={t("crm.CrmForm.fields.fullNamePlaceholder", "Όνομα Επώνυμο")} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
-            
-            <ConditionalFormSection condition={personType === "INDIVIDUAL"}>
-              <FormField
-                control={form.control}
-                name="full_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.fullName", "Ονοματεπώνυμο")} *</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.fullNamePlaceholder", "Όνομα Επώνυμο")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              )} />
             </ConditionalFormSection>
             
             <ConditionalFormSection condition={personType === "COMPANY"}>
-              <FormField
-                control={form.control}
-                name="company_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.companyName", "Επωνυμία Εταιρείας")} *</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.companyNamePlaceholder", "Όνομα εταιρείας")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </ConditionalFormSection>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="primary_phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.primaryPhone", "Κύριο τηλέφωνο")}</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.primaryPhonePlaceholder", "+30 210 1234567")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="primary_email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.primaryEmail", "Κύριο email")}</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} type="email" placeholder={t("crm.CrmForm.fields.primaryEmailPlaceholder", "email@example.com")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="intent"
-              render={({ field }) => (
+              <FormField control={form.control} name="company_name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.intent", "Σκοπός")} *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("crm.CrmForm.fields.intentPlaceholder", "Επιλέξτε σκοπό")} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="BUY">{t("crm.CrmForm.intents.BUY", "Αγορά")}</SelectItem>
-                      <SelectItem value="RENT">{t("crm.CrmForm.intents.RENT", "Ενοικίαση")}</SelectItem>
-                      <SelectItem value="SELL">{t("crm.CrmForm.intents.SELL", "Πώληση")}</SelectItem>
-                      <SelectItem value="LEASE">{t("crm.CrmForm.intents.LEASE", "Εκμίσθωση")}</SelectItem>
-                      <SelectItem value="INVEST">{t("crm.CrmForm.intents.INVEST", "Επένδυση")}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>{t("crm.CrmForm.fields.companyName", "Επωνυμία Εταιρείας")}</FormLabel>
+                  <FormControl><Input {...field} placeholder={t("crm.CrmForm.fields.companyNamePlaceholder", "Όνομα εταιρείας")} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
+              )} />
+            </ConditionalFormSection>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="primary_phone" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("crm.CrmForm.fields.primaryPhone", "Κύριο τηλέφωνο")}</FormLabel>
+                  <FormControl><Input {...field} placeholder={t("crm.CrmForm.fields.primaryPhonePlaceholder", "+30 210 1234567")} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="primary_email" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("crm.CrmForm.fields.primaryEmail", "Κύριο email")}</FormLabel>
+                  <FormControl><Input {...field} type="email" placeholder={t("crm.CrmForm.fields.primaryEmailPlaceholder", "email@example.com")} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <FormField control={form.control} name="intent" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.intent", "Σκοπός")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder={t("crm.CrmForm.fields.intentPlaceholder", "Επιλέξτε σκοπό")} /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="BUY">{t("crm.CrmForm.intents.BUY", "Αγορά")}</SelectItem>
+                    <SelectItem value="RENT">{t("crm.CrmForm.intents.RENT", "Ενοικίαση")}</SelectItem>
+                    <SelectItem value="SELL">{t("crm.CrmForm.intents.SELL", "Πώληση")}</SelectItem>
+                    <SelectItem value="LEASE">{t("crm.CrmForm.intents.LEASE", "Εκμίσθωση")}</SelectItem>
+                    <SelectItem value="INVEST">{t("crm.CrmForm.intents.INVEST", "Επένδυση")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
           </div>
         );
-
+      
       case 2:
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="secondary_phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.secondaryPhone", "Εναλλακτικό τηλέφωνο")}</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} placeholder="+30 210 1234567" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="secondary_email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.secondaryEmail", "Εναλλακτικό email")}</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} type="email" placeholder="email@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="secondary_phone" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("crm.CrmForm.fields.secondaryPhone", "Εναλλακτικό τηλέφωνο")}</FormLabel>
+                  <FormControl><Input {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="secondary_email" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("crm.CrmForm.fields.secondaryEmail", "Εναλλακτικό email")}</FormLabel>
+                  <FormControl><Input {...field} type="email" /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
             </div>
+            
+            <FormField control={form.control} name="channels" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.channels", "Προτίμηση επικοινωνίας")}</FormLabel>
+                <FormControl>
+                  <MultiSelect 
+                    options={CHANNEL_OPTIONS} 
+                    value={field.value || []} 
+                    onChange={field.onChange}
+                    placeholder={t("crm.CrmForm.fields.channelsPlaceholder", "Επιλέξτε κανάλια")}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
 
-            <FormField
-              control={form.control}
-              name="channels"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.channels", "Προτίμηση επικοινωνίας")}</FormLabel>
-                  <FormControl>
-                    <MultiSelect
-                      options={CHANNEL_OPTIONS}
-                      value={field.value || []}
-                      onChange={field.onChange}
-                      placeholder={t("crm.CrmForm.fields.channelsPlaceholder", "Επιλέξτε κανάλια")}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="language"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.language", "Γλώσσα")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || "el"}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="el">Ελληνικά</SelectItem>
-                      <SelectItem value="en">English</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormField control={form.control} name="language" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.language", "Γλώσσα")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="el">Ελληνικά</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
           </div>
         );
-
+      
       case 3:
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="afm"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.afm", "ΑΦΜ")}</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.afmPlaceholder", "9 ψηφία")} maxLength={9} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="doy"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.doy", "ΔΟΥ")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("crm.CrmForm.fields.doyPlaceholder", "Επιλέξτε ΔΟΥ")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {DOY_OPTIONS.map((doy) => (
-                          <SelectItem key={doy} value={doy}>{doy}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="id_doc"
-              render={({ field }) => (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="afm" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.idDoc", "ΑΔΤ/Διαβατήριο")}</FormLabel>
-                  <FormControl>
-                    <Input disabled={isLoading} placeholder="Αριθμός ταυτότητας" {...field} />
-                  </FormControl>
+                  <FormLabel>{t("crm.CrmForm.fields.afm", "ΑΦΜ")}</FormLabel>
+                  <FormControl><Input {...field} placeholder={t("crm.CrmForm.fields.afmPlaceholder", "9 ψηφία")} maxLength={9} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
-
-            <ConditionalFormSection condition={personType === "COMPANY"}>
-              <FormField
-                control={form.control}
-                name="company_gemi"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.companyGemi", "ΓΕΜΗ")}</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} placeholder={t("crm.CrmForm.fields.companyGemiPlaceholder", "Αριθμός ΓΕΜΗ")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </ConditionalFormSection>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="purpose"
-              render={({ field }) => (
+              )} />
+              <FormField control={form.control} name="doy" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.purpose", "Σκοπός ακινήτου")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("crm.CrmForm.fields.purposePlaceholder", "Επιλέξτε σκοπό")} />
-                      </SelectTrigger>
-                    </FormControl>
+                  <FormLabel>{t("crm.CrmForm.fields.doy", "ΔΟΥ")}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder={t("crm.CrmForm.fields.doyPlaceholder", "Επιλέξτε ΔΟΥ")} /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="RESIDENTIAL">{t("crm.CrmForm.purpose.RESIDENTIAL", "Κατοικία")}</SelectItem>
-                      <SelectItem value="COMMERCIAL">{t("crm.CrmForm.purpose.COMMERCIAL", "Επαγγελματικό")}</SelectItem>
-                      <SelectItem value="LAND">{t("crm.CrmForm.purpose.LAND", "Γη")}</SelectItem>
-                      <SelectItem value="PARKING">{t("crm.CrmForm.purpose.PARKING", "Χώρος Parking")}</SelectItem>
-                      <SelectItem value="OTHER">{t("crm.CrmForm.purpose.OTHER", "Άλλο")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="areas_of_interest"
-              render={({ field }) => {
-                // Ensure field.value is always an array
-                let valueArray: string[] = [];
-                if (Array.isArray(field.value)) {
-                  valueArray = field.value;
-                } else if (typeof field.value === 'string' && field.value) {
-                  valueArray = [field.value];
-                }
-                
-                const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                  const areas = e.target.value.split(",").map(a => a.trim()).filter(Boolean);
-                  field.onChange(areas);
-                };
-                
-                return (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.areas", "Περιοχές ενδιαφέροντος")}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        disabled={isLoading} 
-                        placeholder="Π.χ. Κέντρο, Νότια Προάστια"
-                        onChange={handleChange}
-                        value={valueArray.join(", ") || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="budget_min"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.budgetMin", "Ελάχιστος προϋπολογισμός")} (€)</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} type="number" placeholder="0" {...field} 
-                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="budget_max"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("crm.CrmForm.fields.budgetMax", "Μέγιστος προϋπολογισμός")} (€)</FormLabel>
-                    <FormControl>
-                      <Input disabled={isLoading} type="number" placeholder="0" {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="timeline"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.timeline", "Πότε;")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("crm.CrmForm.fields.timelinePlaceholder", "Επιλέξτε χρονοδιάγραμμα")} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="IMMEDIATE">{t("crm.CrmForm.timeline.IMMEDIATE", "Άμεσα")}</SelectItem>
-                      <SelectItem value="ONE_THREE_MONTHS">{t("crm.CrmForm.timeline.ONE_THREE_MONTHS", "1-3 μήνες")}</SelectItem>
-                      <SelectItem value="THREE_SIX_MONTHS">{t("crm.CrmForm.timeline.THREE_SIX_MONTHS", "3-6 μήνες")}</SelectItem>
-                      <SelectItem value="SIX_PLUS_MONTHS">{t("crm.CrmForm.timeline.SIX_PLUS_MONTHS", "6+ μήνες")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case 5:
-        // Only show if intent is BUY or INVEST
-        if (intent !== "BUY" && intent !== "INVEST") {
-          return (
-            <div className="text-sm text-muted-foreground py-8 text-center">
-              Αυτό το βήμα δεν είναι απαραίτητο για τον επιλεγμένο σκοπό.
-            </div>
-          );
-        }
-
-        return (
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="financing_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.financingType", "Τύπος χρηματοδότησης")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("crm.CrmForm.fields.financingTypePlaceholder", "Επιλέξτε τύπο")} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="CASH">{t("crm.CrmForm.financingType.CASH", "Μετρητά")}</SelectItem>
-                      <SelectItem value="MORTGAGE">{t("crm.CrmForm.financingType.MORTGAGE", "Στεγαστικό")}</SelectItem>
-                      <SelectItem value="PREAPPROVAL_PENDING">{t("crm.CrmForm.financingType.PREAPPROVAL_PENDING", "Εκκρεμεί προέγκριση")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="preapproval_bank"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.preapprovalBank", "Τράπεζα προέγκρισης")}</FormLabel>
-                  <FormControl>
-                    <Input disabled={isLoading} placeholder="Όνομα τράπεζας" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="needs_mortgage_help"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>{t("crm.CrmForm.fields.needsMortgageHelp", "Χρειάζεται βοήθεια με στεγαστικό")}</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.notes", "Σημειώσεις")}</FormLabel>
-                  <FormControl>
-                    <Textarea disabled={isLoading} placeholder="Επιπλέον σημειώσεις..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case 6:
-        return (
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="gdpr_consent"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>{t("crm.CrmForm.fields.gdprConsent", "Συναίνεση GDPR")}</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="allow_marketing"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>{t("crm.CrmForm.fields.allowMarketing", "Επιτρέπω μάρκετινγκ")}</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="lead_source"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.leadSource", "Πηγή")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("crm.CrmForm.fields.leadSourcePlaceholder", "Πώς μας βρήκετε;")} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="REFERRAL">{t("crm.CrmForm.leadSource.REFERRAL", "Σύσταση")}</SelectItem>
-                      <SelectItem value="WEB">{t("crm.CrmForm.leadSource.WEB", "Ιστοσελίδα")}</SelectItem>
-                      <SelectItem value="PORTAL">{t("crm.CrmForm.leadSource.PORTAL", "Πύλη")}</SelectItem>
-                      <SelectItem value="WALK_IN">{t("crm.CrmForm.leadSource.WALK_IN", "Προσωπική επίσκεψη")}</SelectItem>
-                      <SelectItem value="SOCIAL">{t("crm.CrmForm.leadSource.SOCIAL", "Κοινωνικά δίκτυα")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="assigned_to"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("crm.CrmForm.fields.agentOwner", "Ανατεθειμένος πράκτορας")} *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Επιλέξτε πράκτορα" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="overflow-y-auto h-56">
-                      {users.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.name || user.email}
-                        </SelectItem>
+                      {DOY_OPTIONS.map((doy) => (
+                        <SelectItem key={doy} value={doy}>{doy}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
+              )} />
+            </div>
+            
+            <FormField control={form.control} name="id_doc" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.idDoc", "ΑΔΤ/Διαβατήριο")}</FormLabel>
+                <FormControl><Input {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            
+            <ConditionalFormSection condition={personType === "COMPANY"}>
+              <FormField control={form.control} name="company_gemi" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("crm.CrmForm.fields.companyGemi", "ΓΕΜΗ")}</FormLabel>
+                  <FormControl><Input {...field} placeholder={t("crm.CrmForm.fields.companyGemiPlaceholder", "Αριθμός ΓΕΜΗ")} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </ConditionalFormSection>
           </div>
         );
-
+      
+      case 4:
+        return (
+          <div className="space-y-4">
+            <FormField control={form.control} name="purpose" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.purpose", "Σκοπός ακινήτου")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder={t("crm.CrmForm.fields.purposePlaceholder", "Επιλέξτε σκοπό")} /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="RESIDENTIAL">{t("crm.CrmForm.purpose.RESIDENTIAL", "Κατοικία")}</SelectItem>
+                    <SelectItem value="COMMERCIAL">{t("crm.CrmForm.purpose.COMMERCIAL", "Επαγγελματικό")}</SelectItem>
+                    <SelectItem value="LAND">{t("crm.CrmForm.purpose.LAND", "Γη")}</SelectItem>
+                    <SelectItem value="PARKING">{t("crm.CrmForm.purpose.PARKING", "Χώρος Parking")}</SelectItem>
+                    <SelectItem value="OTHER">{t("crm.CrmForm.purpose.OTHER", "Άλλο")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="budget_min" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("crm.CrmForm.fields.budgetMin", "Ελάχιστος προϋπολογισμός")}</FormLabel>
+                  <FormControl><Input {...field} type="number" /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="budget_max" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("crm.CrmForm.fields.budgetMax", "Μέγιστος προϋπολογισμός")}</FormLabel>
+                  <FormControl><Input {...field} type="number" /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+            
+            <FormField control={form.control} name="timeline" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.timeline", "Πότε;")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder={t("crm.CrmForm.fields.timelinePlaceholder", "Επιλέξτε χρονοδιάγραμμα")} /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="IMMEDIATE">{t("crm.CrmForm.timeline.IMMEDIATE", "Άμεσα")}</SelectItem>
+                    <SelectItem value="ONE_THREE_MONTHS">{t("crm.CrmForm.timeline.ONE_THREE_MONTHS", "1-3 μήνες")}</SelectItem>
+                    <SelectItem value="THREE_SIX_MONTHS">{t("crm.CrmForm.timeline.THREE_SIX_MONTHS", "3-6 μήνες")}</SelectItem>
+                    <SelectItem value="SIX_PLUS_MONTHS">{t("crm.CrmForm.timeline.SIX_PLUS_MONTHS", "6+ μήνες")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+        );
+      
+      case 5:
+        if (!showFinancing) {
+          return <p className="text-muted-foreground text-sm py-4">Η χρηματοδότηση αφορά μόνο Αγορά ή Επένδυση.</p>;
+        }
+        return (
+          <div className="space-y-4">
+            <FormField control={form.control} name="financing_type" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.financingType", "Τύπος χρηματοδότησης")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder={t("crm.CrmForm.fields.financingTypePlaceholder", "Επιλέξτε τύπο")} /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="CASH">{t("crm.CrmForm.financingType.CASH", "Μετρητά")}</SelectItem>
+                    <SelectItem value="MORTGAGE">{t("crm.CrmForm.financingType.MORTGAGE", "Στεγαστικό")}</SelectItem>
+                    <SelectItem value="PREAPPROVAL_PENDING">{t("crm.CrmForm.financingType.PREAPPROVAL_PENDING", "Εκκρεμεί προέγκριση")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            
+            <FormField control={form.control} name="preapproval_bank" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.preapprovalBank", "Τράπεζα προέγκρισης")}</FormLabel>
+                <FormControl><Input {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            
+            <FormField control={form.control} name="needs_mortgage_help" render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                <FormLabel className="!mt-0">{t("crm.CrmForm.fields.needsMortgageHelp", "Χρειάζεται βοήθεια με στεγαστικό")}</FormLabel>
+              </FormItem>
+            )} />
+            
+            <FormField control={form.control} name="notes" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.notes", "Σημειώσεις")}</FormLabel>
+                <FormControl><Textarea {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+        );
+      
+      case 6:
+        return (
+          <div className="space-y-4">
+            <FormField control={form.control} name="gdpr_consent" render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                <FormLabel className="!mt-0">{t("crm.CrmForm.fields.gdprConsent", "Συναίνεση GDPR")}</FormLabel>
+              </FormItem>
+            )} />
+            
+            <FormField control={form.control} name="allow_marketing" render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                <FormLabel className="!mt-0">{t("crm.CrmForm.fields.allowMarketing", "Επιτρέπω μάρκετινγκ")}</FormLabel>
+              </FormItem>
+            )} />
+            
+            <FormField control={form.control} name="lead_source" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.leadSource", "Πηγή")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder={t("crm.CrmForm.fields.leadSourcePlaceholder", "Πώς μας βρήκετε;")} /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="REFERRAL">{t("crm.CrmForm.leadSource.REFERRAL", "Σύσταση")}</SelectItem>
+                    <SelectItem value="WEB">{t("crm.CrmForm.leadSource.WEB", "Ιστοσελίδα")}</SelectItem>
+                    <SelectItem value="PORTAL">{t("crm.CrmForm.leadSource.PORTAL", "Πύλη")}</SelectItem>
+                    <SelectItem value="WALK_IN">{t("crm.CrmForm.leadSource.WALK_IN", "Προσωπική επίσκεψη")}</SelectItem>
+                    <SelectItem value="SOCIAL">{t("crm.CrmForm.leadSource.SOCIAL", "Κοινωνικά δίκτυα")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            
+            <FormField control={form.control} name="assigned_to" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("crm.CrmForm.fields.agentOwner", "Ανατεθειμένος πράκτορας/μεσίτης")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder={t("common.selectAgent", "Επιλέξτε πράκτορα")} /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>{user.name || user.email}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -928,7 +714,11 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               <h2 className="text-xl font-semibold">{t("crm.CrmForm.title", "Νέος Πελάτης")}</h2>
               <AutosaveIndicator status={autosaveStatus} />
             </div>
-            <ProgressBar steps={STEPS} currentStep={currentStep} />
+            <ProgressBar 
+              steps={STEPS} 
+              currentStep={currentStep} 
+              onStepClick={handleStepClick}
+            />
           </div>
 
           {/* Step Content */}

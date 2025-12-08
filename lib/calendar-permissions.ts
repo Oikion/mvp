@@ -219,3 +219,95 @@ export async function canSyncTasksToCalendar(
   }
 }
 
+/**
+ * Check if user can edit a specific event
+ * Users can edit events assigned to them
+ * Agency owners can edit all events in their organization
+ */
+export async function canEditEvent(eventId: string): Promise<boolean> {
+  try {
+    const currentUser = await getCurrentUser();
+    const currentOrgId = await getCurrentOrgIdSafe();
+
+    const event = await prismadb.calComEvent.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!event) {
+      return false;
+    }
+
+    // Check organization match
+    if (event.organizationId !== currentOrgId) {
+      return false;
+    }
+
+    // Agency owners can edit all events in their organization
+    if (currentUser.is_account_admin || currentUser.is_admin) {
+      return true;
+    }
+
+    // Regular users can edit events assigned to them or events they created
+    if (event.assignedUserId === currentUser.id) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Check if user can delete a specific event
+ * Users can delete events assigned to them
+ * Agency owners can delete all events in their organization
+ */
+export async function canDeleteEvent(eventId: string): Promise<boolean> {
+  try {
+    const currentUser = await getCurrentUser();
+    const currentOrgId = await getCurrentOrgIdSafe();
+
+    const event = await prismadb.calComEvent.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!event) {
+      return false;
+    }
+
+    // Check organization match
+    if (event.organizationId !== currentOrgId) {
+      return false;
+    }
+
+    // Agency owners can delete all events in their organization
+    if (currentUser.is_account_admin || currentUser.is_admin) {
+      return true;
+    }
+
+    // Regular users can delete events assigned to them
+    if (event.assignedUserId === currentUser.id) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Check if user can manage reminders for an event
+ * Users can manage reminders for events assigned to them
+ * Agency owners can manage reminders for all events in their organization
+ */
+export async function canManageReminders(eventId: string): Promise<boolean> {
+  try {
+    // Same permissions as editing events
+    return await canEditEvent(eventId);
+  } catch (error) {
+    return false;
+  }
+}
+

@@ -22,14 +22,19 @@ import {
 } from "@/components/ui/sidebar"
 
 interface NavMainItem {
+  title: string
+  url: string
+  icon: any
+  isActive?: boolean
+  items?: {
     title: string
     url: string
-  icon: any
-    isActive?: boolean
-    items?: {
-      title: string
-      url: string
-    }[]
+  }[]
+}
+
+interface NavGroup {
+  label: string
+  items: NavMainItem[]
 }
 
 function NavMainMenuItem({ item }: { readonly item: NavMainItem }) {
@@ -37,59 +42,63 @@ function NavMainMenuItem({ item }: { readonly item: NavMainItem }) {
 
   return (
     <Collapsible asChild defaultOpen={item.isActive}>
-            <SidebarMenuItem>
+      <SidebarMenuItem>
         <SidebarMenuButton 
           asChild 
           tooltip={item.title}
           onMouseEnter={() => iconRef.current?.startAnimation?.()}
           onMouseLeave={() => iconRef.current?.stopAnimation?.()}
         >
-                <Link href={item.url}>
+          <Link href={item.url}>
             <item.icon ref={iconRef} size={16} className="mr-1" />
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-              {item.items?.length ? (
-                <>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuAction className="data-[state=open]:rotate-90">
-                      <ChevronRight />
-                      <span className="sr-only">Toggle</span>
-                    </SidebarMenuAction>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.items?.map((subItem, subIndex) => (
-                        <SidebarMenuSubItem key={subItem.url || `${subItem.title}-${subIndex}`}>
-                          <SidebarMenuSubButton asChild>
-                            <Link href={subItem.url}>
-                              <span>{subItem.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </>
-              ) : null}
-            </SidebarMenuItem>
-          </Collapsible>
+            <span>{item.title}</span>
+          </Link>
+        </SidebarMenuButton>
+        {item.items?.length ? (
+          <>
+            <CollapsibleTrigger asChild>
+              <SidebarMenuAction className="data-[state=open]:rotate-90">
+                <ChevronRight />
+                <span className="sr-only">Toggle</span>
+              </SidebarMenuAction>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                {item.items?.map((subItem, subIndex) => (
+                  <SidebarMenuSubItem key={subItem.url || `${subItem.title}-${subIndex}`}>
+                    <SidebarMenuSubButton asChild>
+                      <Link href={subItem.url}>
+                        <span>{subItem.title}</span>
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                ))}
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </>
+        ) : null}
+      </SidebarMenuItem>
+    </Collapsible>
   )
 }
 
 export function NavMain({
-  items,
+  groups,
 }: {
-  readonly items: NavMainItem[]
+  readonly groups: NavGroup[]
 }) {
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item, index) => (
-          <NavMainMenuItem key={item.url || `${item.title}-${index}`} item={item} />
-        ))}
-      </SidebarMenu>
-    </SidebarGroup>
+    <>
+      {groups.map((group, groupIndex) => (
+        <SidebarGroup key={group.label || `group-${groupIndex}`}>
+          <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+          <SidebarMenu>
+            {group.items.map((item, index) => (
+              <NavMainMenuItem key={item.url || `${item.title}-${index}`} item={item} />
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
   )
 }

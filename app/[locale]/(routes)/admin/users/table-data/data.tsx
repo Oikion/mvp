@@ -17,15 +17,15 @@ export const statuses = [
     icon: PauseIcon,
   },
 ];
-export const isAdmin = [
+export const roles = [
   {
-    value: "true",
-    label: "True",
+    value: "org:admin",
+    label: "Admin",
     icon: PlayIcon,
   },
   {
-    value: "false",
-    label: "False",
+    value: "org:member",
+    label: "Member",
     icon: StopIcon,
   },
 ];

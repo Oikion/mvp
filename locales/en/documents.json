@@ -10,7 +10,8 @@
     "noDocuments": "No documents found. Upload your first document to get started.",
     "deleteConfirm": "Are you sure you want to delete this document?",
     "failedToDelete": "Failed to delete document",
-    "documentDeleted": "Document deleted"
+    "documentDeleted": "Document deleted",
+    "failedToUpload": "Failed to upload document"
   },
   "documentFilters": {
     "filters": "Filters",

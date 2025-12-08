@@ -8,7 +8,16 @@
     "title": "Calendar",
     "selectDate": "Select a date",
     "loading": "Loading...",
-    "noEventsOrTasks": "No events or tasks scheduled for this day"
+    "noEventsOrTasks": "No events or tasks scheduled for this day",
+    "dayView": "Day View",
+    "monthView": "Month View",
+    "failedToFetchEvents": "Failed to fetch events"
+  },
+  "eventActions": {
+    "openMenu": "Open menu",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "eventCreateForm": {
     "newEvent": "New Event",
@@ -24,11 +33,32 @@
     "pickDate": "Pick a date",
     "location": "Location",
     "locationPlaceholder": "Event location",
+    "eventType": "Event Type",
+    "selectEventType": "Select event type",
+    "assignedUser": "Assigned User",
+    "selectUser": "Select user",
+    "linkClients": "Link Clients",
+    "linkProperties": "Link Properties",
+    "linkDocuments": "Link Documents",
+    "reminders": "Reminders",
+    "remindersDescription": "Select when to receive reminder notifications",
+    "beforeEvent": "before event",
     "cancel": "Cancel",
     "creating": "Creating...",
     "createEvent": "Create Event",
     "eventCreatedSuccess": "Event created successfully",
     "failedToCreateEvent": "Failed to create event"
+  },
+  "selectors": {
+    "selectClients": "Select clients...",
+    "searchClients": "Search clients...",
+    "noClientsFound": "No clients found",
+    "selectProperties": "Select properties...",
+    "searchProperties": "Search properties...",
+    "noPropertiesFound": "No properties found",
+    "selectDocuments": "Select documents...",
+    "searchDocuments": "Search documents...",
+    "noDocumentsFound": "No documents found"
   },
   "createBookingButton": {
     "createEvent": "Create Event",
@@ -41,6 +71,71 @@
     "assignedTo": "Assigned to: {name}",
     "account": "Account: {name}",
     "viewTask": "View Task"
+  },
+  "eventEditForm": {
+    "editCalendarEvent": "Edit Calendar Event",
+    "updateEventDetails": "Update event details",
+    "updating": "Updating...",
+    "updateEvent": "Update Event",
+    "eventUpdatedSuccess": "Event updated successfully"
+  },
+  "eventDetail": {
+    "loading": "Loading event...",
+    "notFound": "Event not found",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this event?",
+    "eventDeleted": "Event deleted successfully",
+    "description": "Description",
+    "linkedClients": "Linked Clients",
+    "linkedProperties": "Linked Properties",
+    "linkedDocuments": "Linked Documents",
+    "reminders": "Reminders",
+    "beforeEvent": "before event"
+  },
+  "eventPage": {
+    "untitledEvent": "Untitled Event",
+    "eventDetails": "Event details and information",
+    "loading": "Loading event...",
+    "notFound": "Event not found",
+    "failedToLoad": "Failed to load event",
+    "backToCalendar": "Back to Calendar",
+    "backToDetails": "Back to Details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete Event",
+    "deleteConfirmationMessage": "Are you sure you want to delete this event? This action cannot be undone.",
+    "eventDeleted": "Event deleted successfully",
+    "failedToDelete": "Failed to delete event",
+    "description": "Description",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "duration": "Duration",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days",
+    "location": "Location",
+    "assignedTo": "Assigned To",
+    "notes": "Notes",
+    "linkedClients": "Linked Clients",
+    "linkedProperties": "Linked Properties",
+    "linkedDocuments": "Linked Documents",
+    "linkedTasks": "Linked Tasks",
+    "forClient": "For client",
+    "reminders": "Reminders",
+    "beforeEvent": "before event",
+    "scheduledFor": "Scheduled for",
+    "sentAt": "Sent at",
+    "eventTypes": {
+      "propertyViewing": "Property Viewing",
+      "clientConsultation": "Client Consultation",
+      "meeting": "Meeting",
+      "reminder": "Reminder",
+      "taskDeadline": "Task Deadline",
+      "other": "Other"
+    }
   }
 }
 

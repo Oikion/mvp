@@ -62,6 +62,7 @@
       "preapprovalBank": "Τράπεζα προέγκρισης",
       "needsMortgageHelp": "Χρειάζεται βοήθεια με στεγαστικό",
       "notes": "Σημειώσεις",
+      "notesPlaceholder": "Προσθέστε μια γρήγορη σημείωση...",
       "gdprConsent": "Συναίνεση GDPR",
       "allowMarketing": "Επιτρέπω μάρκετινγκ",
       "leadSource": "Πηγή",
@@ -148,7 +149,50 @@
     "email": "E-mail",
     "accountContact": "Επαφή λογαριασμού",
     "status": "Κατάσταση",
-    "unassigned": "Χωρίς ανάθεση"
+    "unassigned": "Χωρίς ανάθεση",
+    "statusUpdated": "Η κατάσταση ενημερώθηκε επιτυχώς",
+    "filterPlaceholder": "Φιλτράρισμα πελατών...",
+    "details": "Προβολή Λεπτομερειών",
+    "scheduleEvent": "Προγραμματισμός Συνάντησης",
+    "scheduleEventTitle": "Προγραμματισμός Συνάντησης",
+    "scheduleEventDesc": "Προγραμματίστε μια συνάντηση για αυτόν τον πελάτη",
+    "share": "Κοινοποίηση"
+  },
+  "Tabs": {
+    "agencyClients": "Πελάτες Γραφείου",
+    "sharedWithMe": "Κοινόχρηστοι",
+    "agencyClientsDescription": "Πελάτες που διαχειρίζεται το γραφείο σας",
+    "sharedClientsDescription": "Πελάτες που μοιράστηκαν μαζί σας από συνδέσεις"
+  },
+  "Stats": {
+    "totalClients": "Σύνολο Πελατών",
+    "activeClients": "Ενεργοί Πελάτες",
+    "new30d": "Νέοι (30ημ)",
+    "sharedWithYou": "Κοινόχρηστοι",
+    "allContacts": "Όλες οι επαφές",
+    "currentlyActive": "Τρέχοντες ενεργοί",
+    "addedThisMonth": "Προστέθηκαν αυτόν τον μήνα",
+    "fromConnections": "Από συνδέσεις",
+    "addClient": "Προσθήκη Πελάτη",
+    "findAgents": "Εύρεση Πρακτόρων",
+    "noClientsYet": "Ξεκινήστε να χτίζετε τη βάση πελατών",
+    "noActiveClients": "Κανένας ενεργός πελάτης",
+    "noRecentActivity": "Δεν υπάρχουν νέοι πελάτες",
+    "connectToReceive": "Συνδεθείτε με πράκτορες για leads"
+  },
+  "EmptyState": {
+    "noAgencyClients": "Δεν υπάρχουν πελάτες γραφείου",
+    "createFirstClient": "Δημιουργήστε τον πρώτο σας πελάτη",
+    "noSharedClients": "Δεν υπάρχουν κοινόχρηστοι πελάτες",
+    "connectToReceive": "Συνδεθείτε με άλλους πράκτορες για να λάβετε κοινόχρηστους πελάτες",
+    "noResults": "Δεν βρέθηκαν αποτελέσματα"
+  },
+  "SharedView": {
+    "shared": "Κοινόχρηστο",
+    "sharedBy": "Κοινοποιήθηκε από",
+    "canComment": "Σχολιασμός",
+    "viewOnly": "Μόνο προβολή",
+    "viewProfile": "Προβολή Προφίλ"
   }
 }
 

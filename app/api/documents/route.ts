@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { getDocuments } from "@/actions/documents/get-documents";
 import { createDocument } from "@/actions/documents/create-document";
 import { invalidateCache } from "@/lib/cache-invalidate";
@@ -32,7 +32,14 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrgIdSafe();
+    
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 400 }
+      );
+    }
 
     const formData = await req.formData();
     const file = formData.get("file") as File;

@@ -79,25 +79,42 @@ export function DocumentGrid({ documents, mentionOptions: mentionOptionsData }: 
     eventIds?: string[];
     taskIds?: string[];
   }) => {
-    const formData = new FormData();
-    formData.append("file", data.file);
-    formData.append("document_name", data.document_name);
-    if (data.description) formData.append("description", data.description);
-    if (data.clientIds) formData.append("clientIds", JSON.stringify(data.clientIds));
-    if (data.propertyIds) formData.append("propertyIds", JSON.stringify(data.propertyIds));
-    if (data.eventIds) formData.append("eventIds", JSON.stringify(data.eventIds));
-    if (data.taskIds) formData.append("taskIds", JSON.stringify(data.taskIds));
+    try {
+      const formData = new FormData();
+      formData.append("file", data.file);
+      formData.append("document_name", data.document_name);
+      if (data.description) formData.append("description", data.description);
+      if (data.clientIds) formData.append("clientIds", JSON.stringify(data.clientIds));
+      if (data.propertyIds) formData.append("propertyIds", JSON.stringify(data.propertyIds));
+      if (data.eventIds) formData.append("eventIds", JSON.stringify(data.eventIds));
+      if (data.taskIds) formData.append("taskIds", JSON.stringify(data.taskIds));
 
-    const response = await fetch("/api/documents", {
-      method: "POST",
-      body: formData,
-    });
+      const response = await fetch("/api/documents", {
+        method: "POST",
+        body: formData,
+      });
 
-    if (!response.ok) {
-      throw new Error(t("documentGrid.failedToUpload"));
+      if (!response.ok) {
+        // Try to get the actual error message from the API response
+        let errorMessage = t("documentGrid.failedToUpload");
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+          // If parsing fails, use the default message
+        }
+        throw new Error(errorMessage);
+      }
+
+      toast.success(t("uploadModal.documentUploadedSuccess"));
+      router.refresh();
+    } catch (error: any) {
+      console.error("Failed to upload document:", error);
+      toast.error(error.message || t("documentGrid.failedToUpload"));
+      throw error; // Re-throw so UploadModal can handle it
     }
-
-    router.refresh();
   };
 
   const handleView = (id: string) => {

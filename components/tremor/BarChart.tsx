@@ -5,7 +5,10 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { useChartColors } from "@/lib/hooks/use-chart-colors";
 
 const dataFormatter = (number: number) => {
-  // return number no decimal places
+  // return number no decimal places, handle NaN gracefully
+  if (isNaN(number) || number === null || number === undefined) {
+    return "0";
+  }
   return number.toFixed(0);
 };
 

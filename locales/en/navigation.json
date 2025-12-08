@@ -1,6 +1,14 @@
 {
   "ModuleMenu": {
+    "categories": {
+      "overview": "Overview",
+      "coreBusiness": "Core Business",
+      "network": "Network",
+      "tools": "Tools",
+      "organization": "Organization"
+    },
     "dashboard": "Dashboard",
+    "feed": "Upcoming",
     "crm": {
       "title": "Clients",
       "accounts": "Clients",
@@ -13,13 +21,24 @@
       "title": "Properties",
       "properties": "Properties"
     },
+    "social": {
+      "title": "Social",
+      "socialFeed": "Social Feed",
+      "connections": "Connections",
+      "audiences": "Audiences",
+      "sharedWithMe": "Shared With Me",
+      "deals": "Deals",
+      "publicProfile": "Public Profile"
+    },
     "emails": "E-mails",
     "tasks": "Tasks",
     "invoices": "Invoices",
     "reports": "Reports",
     "documents": "Documents",
+    "documentsAll": "All Documents",
+    "documentsTemplates": "Templates",
     "storage": "Storage",
-    "settings": "Administration",
+    "settings": "Settings",
     "employees": "Employees",
     "chatGPT": "ChatGPT",
     "feedback": "Feedback",

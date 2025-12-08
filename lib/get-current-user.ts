@@ -56,7 +56,8 @@ export async function getCurrentOrgId() {
  */
 export async function getCurrentOrgIdSafe() {
   try {
-    return await getCurrentOrgId();
+    const { orgId } = await auth();
+    return orgId;
   } catch {
     return null;
   }

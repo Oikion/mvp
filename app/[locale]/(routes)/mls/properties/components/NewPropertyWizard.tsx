@@ -193,7 +193,7 @@ type FormValues = z.infer<typeof formSchema>;
 const STEPS = [
   { id: 1, title: "Βασικά", description: "Βασικές πληροφορίες ακινήτου" },
   { id: 2, title: "Τοποθεσία", description: "Τοποθεσία ακινήτου" },
-  { id: 3, title: "Επιφάνειες & Όροφοι", description: "Επιφάνειες και όροφοι" },
+  { id: 3, title: "Επιφάνειες & Όροφοι", description: "Επιφάνειες και χαρακτηριστικά βάσει τύπου ακινήτου" },
   { id: 4, title: "Χαρακτηριστικά", description: "Χαρακτηριστικά ακινήτου" },
   { id: 5, title: "Κατάσταση & Έτος", description: "Κατάσταση και έτος κατασκευής" },
   { id: 6, title: "Νομιμότητα & Έγγραφα", description: "Νομικά στοιχεία (προαιρετικά)" },
@@ -451,7 +451,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("mls.PropertyForm.fields.propertyType", "Τύπος ακινήτου")} *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t("mls.PropertyForm.fields.propertyTypePlaceholder", "Επιλέξτε τύπο")} />
@@ -481,7 +481,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("mls.PropertyForm.fields.transactionType", "Τύπος συναλλαγής")} *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t("mls.PropertyForm.fields.transactionTypePlaceholder", "Επιλέξτε τύπο")} />
@@ -506,7 +506,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("mls.PropertyForm.fields.status", "Κατάσταση")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value || "AVAILABLE"}>
+                    <Select onValueChange={field.onChange} value={field.value || "AVAILABLE"}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -594,7 +594,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("mls.PropertyForm.fields.addressPrivacyLevel", "Επίπεδο προστασίας διεύθυνσης")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || "PARTIAL"}>
+                  <Select onValueChange={field.onChange} value={field.value || "PARTIAL"}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
@@ -659,7 +659,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t("mls.PropertyForm.fields.floor", "Όροφος")}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder={t("mls.PropertyForm.fields.floorPlaceholder", "Επιλέξτε όροφο")} />
@@ -718,10 +718,10 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t("mls.PropertyForm.fields.insideCityPlan", "Εντός/Εκτός σχεδίου")} *</FormLabel>
-                        <Select onValueChange={(val) => field.onChange(val === "true")} defaultValue={field.value?.toString()}>
+                        <Select onValueChange={(val) => field.onChange(val === "true")} value={field.value !== undefined ? field.value.toString() : undefined}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue />
+                              <SelectValue placeholder="Επιλέξτε" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -769,7 +769,8 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               </>
             ) : (
               <div className="text-sm text-muted-foreground py-8 text-center">
-                Επιλέξτε τύπο ακινήτου για να εμφανιστούν τα σχετικά πεδία.
+                <p className="mb-2">Τα πεδία εμφανίζονται βάσει του τύπου ακινήτου που επιλέξατε στο βήμα 1.</p>
+                <p>Για parking, βιομηχανικό ή άλλο τύπο, μπορείτε να συνεχίσετε στο επόμενο βήμα.</p>
               </div>
             )}
           </div>
@@ -821,7 +822,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("mls.PropertyForm.fields.heatingType", "Τύπος θέρμανσης")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("mls.PropertyForm.fields.heatingTypePlaceholder", "Επιλέξτε τύπο")} />
@@ -846,7 +847,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("mls.PropertyForm.fields.energyCertClass", "ΠΕΑ")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("mls.PropertyForm.fields.energyCertClassPlaceholder", "Επιλέξτε κλάση")} />
@@ -917,7 +918,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("mls.PropertyForm.fields.condition", "Κατάσταση")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("mls.PropertyForm.fields.conditionPlaceholder", "Επιλέξτε κατάσταση")} />
@@ -1007,7 +1008,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("mls.PropertyForm.fields.legalizationStatus", "Κατάσταση νομιμοποίησης")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t("mls.PropertyForm.fields.legalizationStatusPlaceholder", "Επιλέξτε κατάσταση")} />
@@ -1103,7 +1104,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("mls.PropertyForm.fields.furnished", "Επιπλωμένο")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("mls.PropertyForm.fields.furnishedPlaceholder", "Επιλέξτε")} />
@@ -1162,7 +1163,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("mls.PropertyForm.fields.priceType", "Τύπος τιμής")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("mls.PropertyForm.fields.priceTypePlaceholder", "Επιλέξτε τύπο")} />
@@ -1252,7 +1253,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("mls.PropertyForm.fields.portalVisibility", "Ορατότητα σε portals")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || "PUBLIC"}>
+                  <Select onValueChange={field.onChange} value={field.value || "PUBLIC"}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t("mls.PropertyForm.fields.portalVisibilityPlaceholder", "Επιλέξτε ορατότητα")} />
@@ -1274,7 +1275,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("mls.PropertyForm.fields.agentOwner", "Ανατεθειμένος πράκτορας")} *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Επιλέξτε πράκτορα" />
@@ -1303,6 +1304,32 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     }
   };
 
+  const handleStepClick = async (stepId: number) => {
+    // Allow moving back without validation
+    if (stepId < currentStep) {
+      setCurrentStep(stepId);
+      return;
+    }
+    
+    // Validate current step before moving forward
+    const isValid = await validateStep(currentStep);
+    if (isValid) {
+      // Check if we are trying to skip steps
+      // Ideally we should validate all intermediate steps, but for now let's just allow
+      // navigation if the current step is valid. 
+      // Alternatively, restrict to only next step or previously completed steps.
+      
+      // Logic: Allow jumping to any step if current is valid? 
+      // Or only allow jumping to next step (stepId === currentStep + 1)?
+      // For a "progress bar link", usually you can click previously visited steps.
+      // Jumping ahead is often restricted.
+      
+      // Let's allow clicking any step, but maybe we should enforce sequential progress?
+      // User request "make steps link" implies freedom.
+      setCurrentStep(stepId);
+    }
+  };
+
   return (
     <Form {...form}>
       <form 
@@ -1318,7 +1345,11 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               <h2 className="text-xl font-semibold">{t("mls.PropertyForm.title", "Νέο Ακίνητο")}</h2>
               <AutosaveIndicator status={autosaveStatus} />
             </div>
-            <ProgressBar steps={STEPS} currentStep={currentStep} />
+            <ProgressBar 
+              steps={STEPS} 
+              currentStep={currentStep} 
+              onStepClick={handleStepClick}
+            />
           </div>
 
           {/* Step Content */}

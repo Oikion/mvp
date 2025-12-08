@@ -78,7 +78,7 @@ export async function POST(req: Request) {
   
   try {
     const currentUser = await getCurrentUserSafe();
-    const organizationId = await getCurrentOrgIdSafe();
+    const organizationId = (await getCurrentOrgIdSafe()) || undefined;
     const body = await req.json();
     
     if (!body) {

@@ -50,11 +50,11 @@ export function MultiSelect({
   const safeValue = Array.isArray(value) ? value : [];
 
   const handleSelect = (currentValue: string) => {
-    onChange(
-      safeValue.includes(currentValue)
-        ? safeValue.filter((val) => val !== currentValue)
-        : [...safeValue, currentValue]
-    );
+    const newValue = safeValue.includes(currentValue)
+      ? safeValue.filter((val) => val !== currentValue)
+      : [...safeValue, currentValue];
+    onChange(newValue);
+    // Don't close the popover for multi-select - allow multiple selections
   };
 
   const handleRemove = (valToRemove: string, e: React.MouseEvent) => {
@@ -63,7 +63,7 @@ export function MultiSelect({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -85,24 +85,33 @@ export function MultiSelect({
                     key={val}
                     variant="secondary"
                     className="mr-1 mb-1"
-                    onClick={(e) => handleRemove(val, e)}
                   >
                     {option?.label || val}
-                    <button
-                      className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Remove"
+                      className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer inline-flex items-center justify-center"
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
                           handleRemove(val, e as any);
                         }
                       }}
                       onMouseDown={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        handleRemove(val, e);
                       }}
-                      onClick={(e) => handleRemove(val, e)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemove(val, e);
+                      }}
                     >
                       <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                    </button>
+                    </div>
                   </Badge>
                 );
               })
@@ -113,25 +122,49 @@ export function MultiSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
-        <Command>
+      <PopoverContent 
+        className="w-full p-0" 
+        align="start"
+        onInteractOutside={(e) => {
+          // Allow closing when clicking outside
+        }}
+      >
+        <Command shouldFilter={false}>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandEmpty>{emptyMessage}</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {options.map((option) => (
-              <CommandItem
-                key={option.value}
-                onSelect={() => handleSelect(option.value)}
-              >
-                <Check
+            {options.map((option) => {
+              const isSelected = safeValue.includes(option.value);
+              return (
+                <div
+                  key={option.value}
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSelect(option.value);
+                  }}
+                  onMouseDown={(e) => {
+                    // Prevent cmdk from handling this click
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                   className={cn(
-                    "mr-2 h-4 w-4",
-                    safeValue.includes(option.value) ? "opacity-100" : "opacity-0"
+                    "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                    isSelected && "bg-accent text-accent-foreground"
                   )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      isSelected ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </div>
+              );
+            })}
           </CommandGroup>
         </Command>
       </PopoverContent>

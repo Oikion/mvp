@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,87 +21,27 @@ import { format } from 'date-fns';
 import { EditTaskForm } from '@/components/tasks/EditTaskForm';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useToast } from '@/components/ui/use-toast';
-
-interface Task {
-  id: string;
-  title: string;
-  content: string | null;
-  priority: string;
-  dueDateAt: Date | string | null;
-  createdAt: Date | string | null;
-  updatedAt: Date | string | null;
-  assigned_user: {
-    id: string;
-    name: string | null;
-    email: string;
-    avatar: string | null;
-  } | null;
-  crm_accounts: {
-    id: string;
-    client_name: string;
-    primary_email: string | null;
-  } | null;
-  calcomEvent: {
-    id: string;
-    title: string | null;
-    startTime: Date | string;
-    endTime: Date | string;
-  } | null;
-  crm_Accounts_Tasks_Comments: Array<{
-    id: string;
-    comment: string;
-    createdAt: Date | string;
-    assigned_user: {
-      id: string;
-      name: string | null;
-      email: string;
-      avatar: string | null;
-    } | null;
-  }>;
-}
+import { useTask } from '@/hooks/swr';
 
 export function TaskViewPage({ taskId }: { taskId: string }) {
   const router = useRouter();
   const { toast } = useToast();
-  const [task, setTask] = useState<Task | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
+  // Use SWR for task fetching
+  const { task, isLoading, isNotFound, mutate } = useTask(taskId);
+
+  // Handle 404 redirect
   useEffect(() => {
-    fetchTask();
-  }, [taskId]);
-
-  const fetchTask = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/crm/tasks/${taskId}`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          toast({
-            variant: 'destructive',
-            title: 'Task not found',
-            description: 'The task you are looking for does not exist.',
-          });
-          router.push('/crm/tasks');
-          return;
-        }
-        throw new Error('Failed to fetch task');
-      }
-
-      const data = await response.json();
-      setTask(data);
-    } catch (error) {
-      console.error('Failed to fetch task:', error);
+    if (isNotFound) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load task. Please try again.',
+        title: 'Task not found',
+        description: 'The task you are looking for does not exist.',
       });
-    } finally {
-      setIsLoading(false);
+      router.push('/crm/tasks');
     }
-  };
+  }, [isNotFound, router, toast]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {
@@ -119,7 +59,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
 
   const handleTaskUpdated = () => {
     setIsEditOpen(false);
-    fetchTask();
+    mutate(); // Revalidate SWR cache
     toast({
       title: 'Task updated',
       description: 'The task has been updated successfully.',
@@ -152,6 +92,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
   const dueDate = task.dueDateAt ? new Date(task.dueDateAt) : null;
   const createdDate = task.createdAt ? new Date(task.createdAt) : null;
   const updatedDate = task.updatedAt ? new Date(task.updatedAt) : null;
+  const comments = task.comments ?? [];
 
   return (
     <>
@@ -282,13 +223,13 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
               <CardTitle>Comments</CardTitle>
             </CardHeader>
             <CardContent>
-              {task.crm_Accounts_Tasks_Comments.length === 0 ? (
+              {comments.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
                   No comments yet
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {task.crm_Accounts_Tasks_Comments.map((comment) => (
+                  {comments.map((comment) => (
                     <div key={comment.id} className="space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">
@@ -331,4 +272,3 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
     </>
   );
 }
-

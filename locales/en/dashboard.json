@@ -1,6 +1,11 @@
 {
   "containerTitle": "Dashboard",
   "containerDescription": "Welcome to Oikion, here you can see all important information about your real estate agency.",
+  "fromLastMonth": "from last month",
+  "fromLastPeriod": "from last period",
+  "noChangeFromLastMonth": "No change from last month",
+  "currentlyActiveUsers": "Currently active users",
+  "currentlyActive": "currently active",
   "totalRevenue": "Total revenue",
   "totalRevenueDescription": "Total revenue",
   "expectedRevenue": "Expected revenue",
@@ -17,6 +22,8 @@
   "atAGlance": "At a Glance",
   "recentActivity": "Recent Activity",
   "analyticsOverview": "Analytics Overview",
+  "activityTimeline": "Monthly activity",
+  "activityTimelineDescription": "New clients and properties created per month.",
   "recentClients": "Recent Clients",
   "recentProperties": "Recent Properties",
   "clientsByStatus": "Clients by Status",
@@ -28,6 +35,9 @@
   "deleteConfirmation": "Delete {name}? This action cannot be undone.",
   "clientDeleted": "Client deleted successfully.",
   "propertyDeleted": "Property deleted successfully.",
-  "deleteError": "We couldn't delete this record. Try again."
+  "deleteError": "We couldn't delete this record. Try again.",
+  "noActivityData": "No activity recorded for this period.",
+  "clientsLabel": "Clients",
+  "propertiesLabel": "Properties"
 }
 
