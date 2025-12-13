@@ -26,7 +26,9 @@ export const getProperties = async () => {
     },
     orderBy: { createdAt: "desc" },
   });
-  return data;
+  
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return JSON.parse(JSON.stringify(data));
 };
 
 

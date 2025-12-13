@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 // Helper function to convert string to number or null
 function toNumber(value: any): number | null {
@@ -197,6 +198,10 @@ export async function POST(req: Request) {
       // Create new draft
       data.createdBy = user.id;
       data.organizationId = organizationId;
+      
+      // Generate friendly ID
+      const clientId = await generateFriendlyId(prismadb, "Clients");
+      data.id = clientId;
       
       // Set minimum required fields for draft
       if (!data.client_name) {

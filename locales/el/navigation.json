@@ -42,7 +42,8 @@
     "employees": "Υπάλληλοι",
     "chatGPT": "ChatGPT",
     "feedback": "Ανατροφοδότηση",
-    "calendar": "Ημερολόγιο"
+    "calendar": "Ημερολόγιο",
+    "platformAdmin": "Διαχείριση Πλατφόρμας"
   },
   "Navigation": {
     "upgradeToPro": "Αναβάθμιση σε Pro",

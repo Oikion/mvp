@@ -4,6 +4,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
 import { DealStatus } from "@prisma/client";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 export interface CreateDealInput {
   propertyId: string;
@@ -77,8 +78,12 @@ export async function createDeal(input: CreateDealInput) {
     throw new Error("You must be one of the agents in this deal");
   }
 
+  // Generate friendly ID
+  const dealId = await generateFriendlyId(prismadb, "Deal");
+
   const deal = await prismadb.deal.create({
     data: {
+      id: dealId,
       propertyId: input.propertyId,
       clientId: input.clientId,
       propertyAgentId: input.propertyAgentId,

@@ -6,6 +6,7 @@ import { getTemplates } from "@/actions/templates/get-templates";
 import { DocumentGrid } from "./components/DocumentGrid";
 import { DocumentFilters } from "./components/DocumentFilters";
 import { TemplatesSection } from "./components/TemplatesSection";
+import { QuickUploadZone } from "./components/QuickUploadZone";
 import { getDictionary } from "@/dictionaries";
 import { Separator } from "@/components/ui/separator";
 
@@ -38,6 +39,7 @@ export default async function DocumentsPage({
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {/* Header with Upload Button */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">{dict.documents.page.title}</h1>
@@ -45,6 +47,7 @@ export default async function DocumentsPage({
             {dict.documents.page.description}
           </p>
         </div>
+        <QuickUploadZone />
       </div>
 
       {/* Document Templates Section */}
@@ -62,4 +65,3 @@ export default async function DocumentsPage({
     </div>
   );
 }
-

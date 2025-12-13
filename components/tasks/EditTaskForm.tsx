@@ -66,7 +66,7 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
   const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
 
-  const { data: users, isLoading: isLoadingUsers } = useSWR(
+  const { data: users, isLoading: isLoadingUsers } = useSWR<Array<{ id: string; name: string | null; email: string }>>(
     '/api/user',
     fetcher
   );

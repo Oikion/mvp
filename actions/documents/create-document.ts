@@ -4,6 +4,8 @@ import { mergeDocumentMentions } from "./parse-mentions";
 import { createShareLink } from "@/lib/documents/create-share-link";
 import { uploadToBlob } from "@/lib/vercel-blob";
 import { prismaForOrg, withTenantContext } from "@/lib/tenant";
+import { generateFriendlyId } from "@/lib/friendly-id";
+import { prismadb } from "@/lib/prisma";
 
 export interface CreateDocumentInput {
   document_name: string;
@@ -58,9 +60,13 @@ export async function createDocument(input: CreateDocumentInput) {
     // Generate shareable link if enabled
     const shareableLink = input.linkEnabled ? createShareLink() : null;
 
+    // Generate friendly ID
+    const documentId = await generateFriendlyId(prismadb, "Documents");
+
     // Create document
     const document = await prismaTenant.documents.create({
       data: {
+        id: documentId,
         document_name: input.document_name,
         description: input.description,
         document_file_url: blob.url,

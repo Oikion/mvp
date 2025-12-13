@@ -50,7 +50,7 @@ export function UpdateAccountForm({
   const t = useTranslations("crm.CrmForm");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
-  const { data: users, isLoading: isLoadingUsers } = useSWR(
+  const { data: users, isLoading: isLoadingUsers } = useSWR<{ id: string; name: string | null }[]>(
     "/api/user",
     fetcher
   );
@@ -527,12 +527,11 @@ export function UpdateAccountForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="overflow-y-auto h-56">
-                        {users &&
-                          users.map((user: any) => (
-                            <SelectItem key={user.id} value={user.id}>
-                              {user.name}
-                            </SelectItem>
-                          ))}
+                        {users?.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

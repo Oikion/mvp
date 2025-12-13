@@ -6,6 +6,8 @@
   "fieldsCount": "{count} πεδία",
   "downloadDocx": "Λήψη DOCX",
   "generatePdf": "Δημιουργία PDF",
+  "createDocument": "Δημιουργία Εγγράφου",
+  "generateWord": "Δημιουργία Word",
   "generateDocument": "Δημιουργία Εγγράφου",
   "fillFieldsToGenerate": "Συμπληρώστε τα παρακάτω πεδία για να δημιουργήσετε το έγγραφο. Επιλέξτε ένα ακίνητο ή πελάτη για αυτόματη συμπλήρωση.",
   "selectProperty": "Επιλογή Ακινήτου",
@@ -18,11 +20,14 @@
   "cancel": "Ακύρωση",
   "generating": "Δημιουργία...",
   "generateAndDownload": "Δημιουργία & Λήψη",
+  "outputFormat": "Μορφή Εξόδου",
   "missingRequiredFields": "Παρακαλώ συμπληρώστε όλα τα υποχρεωτικά πεδία",
   "missingFields": "Λείπουν υποχρεωτικά πεδία",
   "failedToLoadTemplate": "Αποτυχία φόρτωσης προτύπου",
   "failedToGeneratePdf": "Αποτυχία δημιουργίας PDF",
+  "failedToGenerateDocument": "Αποτυχία δημιουργίας εγγράφου",
   "pdfGenerated": "Το PDF δημιουργήθηκε με επιτυχία",
+  "docxGenerated": "Το έγγραφο Word δημιουργήθηκε με επιτυχία",
   "templates": {
     "BROKERAGE_MANDATE": {
       "name": "Εντολή Ανάθεσης Μεσιτείας",
@@ -42,4 +47,6 @@
     }
   }
 }
+
+
 

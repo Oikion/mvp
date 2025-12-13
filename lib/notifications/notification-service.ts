@@ -3,6 +3,7 @@
  * Handles all notification creation and management
  */
 
+import { randomUUID } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import {
   CreateNotificationInput,
@@ -20,6 +21,7 @@ export async function createNotification(
   try {
     await prismadb.notification.create({
       data: {
+        id: randomUUID(),
         userId: input.userId,
         organizationId: input.organizationId,
         type: input.type,
@@ -46,7 +48,7 @@ export async function createBulkNotifications(
 ): Promise<void> {
   try {
     // Filter out any duplicate user IDs
-    const uniqueUserIds = [...new Set(input.userIds)];
+    const uniqueUserIds = Array.from(new Set(input.userIds));
 
     if (uniqueUserIds.length === 0) {
       return;
@@ -54,6 +56,7 @@ export async function createBulkNotifications(
 
     await prismadb.notification.createMany({
       data: uniqueUserIds.map((userId) => ({
+        id: randomUUID(),
         userId,
         organizationId: input.organizationId,
         type: input.type,
@@ -219,6 +222,9 @@ export async function cleanupOldNotifications(daysOld: number = 90): Promise<num
     return 0;
   }
 }
+
+
+
 
 
 

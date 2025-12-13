@@ -44,12 +44,12 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const { data: accounts, isLoading: isLoadingAccounts } = useSWR(
+  const { data: accounts, isLoading: isLoadingAccounts } = useSWR<{ id: string; name: string | null }[]>(
     "/api/crm/account",
     fetcher
   );
 
-  const { data: users, isLoading: isLoadingUsers } = useSWR(
+  const { data: users, isLoading: isLoadingUsers } = useSWR<{ id: string; name: string | null }[]>(
     "/api/user",
     fetcher
   );
@@ -132,9 +132,9 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
     (_, i) => i + 1923
   );
 
-  const filteredData = users.filter((item: any) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = users?.filter((item) =>
+    item.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) ?? [];
 
   if (!users || !accounts || !initialData)
     return <div>Something went wrong, there is no data for form</div>;

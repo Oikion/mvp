@@ -11,7 +11,7 @@ datasource db {
 }
 
 model Clients {
-  id             String    @id @default(uuid())
+  id             String    @id
   createdAt      DateTime  @default(now())
   createdBy      String?
   updatedAt      DateTime? @updatedAt
@@ -160,7 +160,7 @@ enum LeadSource {
 // Removed legacy Opportunities and Campaigns related models and enums
 
 model Client_Contacts {
-  id                     String             @id @default(uuid())
+  id                     String             @id
   client                 String?
   assigned_to            String?
   birthday               String?
@@ -268,7 +268,7 @@ model MyAccount {
 }
 
 model Documents {
-  id                     String               @id @default(uuid())
+  id                     String               @id
   date_created           DateTime?            @default(now())
   createdAt              DateTime?            @default(now())
   last_updated           DateTime?            @updatedAt
@@ -375,7 +375,7 @@ model modulStatus {
 }
 
 model crm_Accounts_Tasks {
-  id              String                        @id @default(uuid())
+  id              String                        @id
   content         String?
   createdAt       DateTime?                     @default(now())
   createdBy       String?
@@ -431,7 +431,7 @@ enum ActiveStatus {
 }
 
 model Users {
-  id                          String                        @id @default(uuid())
+  id                          String                        @id
   clerkUserId                 String?                       @unique
   account_name                String?
   avatar                      String?
@@ -445,6 +445,12 @@ model Users {
   username                    String?
   userStatus                  ActiveStatus                  @default(PENDING)
   userLanguage                Language                      @default(en)
+  onboardingCompleted         Boolean                       @default(false)
+  // Privacy consents
+  gdprConsent                 Boolean                       @default(false)
+  marketingConsent            Boolean                       @default(false)
+  analyticsConsent            Boolean                       @default(true)
+  consentTimestamp            DateTime?
   created_by_documents        Documents[]                   @relation("created_by_user")
   assigned_documents          Documents[]                   @relation("assigned_to_user")
   crm_accounts_tasks          crm_Accounts_Tasks[]
@@ -546,7 +552,7 @@ enum gptStatus {
 // MLS: Properties and Property_Contacts
 
 model Properties {
-  id             String    @id @default(uuid())
+  id             String    @id
   createdAt      DateTime  @default(now())
   createdBy      String?
   updatedAt      DateTime? @updatedAt
@@ -762,7 +768,7 @@ enum PortalVisibility {
 }
 
 model Property_Contacts {
-  id                 String    @id @default(uuid())
+  id                 String    @id
   property           String?
   assigned_to        String?
   created_on         DateTime? @default(now())
@@ -838,7 +844,7 @@ model Feedback {
 
 // Calendar Events Model
 model CalComEvent {
-  id        String   @id @default(uuid())
+  id        String   @id
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -944,7 +950,7 @@ model DocumentView {
 
 // Notifications Model - In-app notification center
 model Notification {
-  id        String   @id @default(uuid())
+  id        String   @id
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1033,6 +1039,12 @@ enum NotificationCategory {
   // System notifications
   SYSTEM
   WELCOME                  // Welcome notification for new users
+  
+  // Platform Admin notifications
+  ACCOUNT_WARNING          // Warning from platform admin
+  ACCOUNT_SUSPENSION       // Account suspended by platform admin
+  ACCOUNT_UNSUSPENSION     // Account unsuspended by platform admin
+  ACCOUNT_DELETION_NOTICE  // Account scheduled for deletion
 }
 
 enum NotificationEntityType {
@@ -1183,7 +1195,7 @@ enum SharePermission {
 // ============================================
 
 model Deal {
-  id             String  @id @default(uuid())
+  id             String  @id
   organizationId String? // Optional - cross-org deals have null
 
   // Linked entities
@@ -1236,7 +1248,7 @@ enum DealStatus {
 // ============================================
 
 model SocialPost {
-  id             String   @id @default(uuid())
+  id             String   @id
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   organizationId String
@@ -1288,12 +1300,18 @@ model SocialPostComment {
   userId    String
   content   String   @db.Text
 
+  // Reply support - parentId references the parent comment
+  parentId String?
+  parent   SocialPostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  SocialPostComment[] @relation("CommentReplies")
+
   post SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   user Users      @relation("socialPostComments", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([postId])
   @@index([userId])
   @@index([createdAt])
+  @@index([parentId])
 }
 
 // ============================================
@@ -1344,7 +1362,7 @@ model UserNotificationSettings {
 // ============================================
 
 model Audience {
-  id          String   @id @default(uuid())
+  id          String   @id
   name        String
   description String?  @db.Text
   createdAt   DateTime @default(now())
@@ -1378,4 +1396,17 @@ model AudienceMember {
   @@unique([audienceId, userId])
   @@index([audienceId])
   @@index([userId])
+}
+
+// ============================================
+// ID SEQUENCE - For Friendly ID Generation
+// ============================================
+
+model IdSequence {
+  id        String   @id // Same as prefix for simplicity
+  prefix    String   @unique
+  lastValue Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@index([prefix])
 }

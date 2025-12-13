@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<clients>
+  <client>
+    <client_name>Maria Papadopoulou</client_name>
+    <primary_email>maria.papadopoulou@example.com</primary_email>
+    <primary_phone>+30 210 1234567</primary_phone>
+    <office_phone>+30 210 9876543</office_phone>
+    <client_type>BUYER</client_type>
+    <client_status>ACTIVE</client_status>
+    <person_type>INDIVIDUAL</person_type>
+    <intent>BUY</intent>
+    <billing_street>Ermou 15</billing_street>
+    <billing_city>Athens</billing_city>
+    <billing_state>Attica</billing_state>
+    <billing_postal_code>10563</billing_postal_code>
+    <billing_country>Greece</billing_country>
+    <purpose>RESIDENTIAL</purpose>
+    <budget_min>150000</budget_min>
+    <budget_max>300000</budget_max>
+    <timeline>ONE_THREE_MONTHS</timeline>
+    <financing_type>MORTGAGE</financing_type>
+    <lead_source>WEB</lead_source>
+    <gdpr_consent>true</gdpr_consent>
+    <allow_marketing>true</allow_marketing>
+    <description>Looking for a 2-3 bedroom apartment in central Athens, preferably near metro station.</description>
+  </client>
+  <client>
+    <client_name>Nikos Alexandrou</client_name>
+    <primary_email>n.alexandrou@business.gr</primary_email>
+    <primary_phone>+30 694 5551234</primary_phone>
+    <client_type>INVESTOR</client_type>
+    <client_status>ACTIVE</client_status>
+    <person_type>INDIVIDUAL</person_type>
+    <intent>INVEST</intent>
+    <billing_street>Kifissias Ave 120</billing_street>
+    <billing_city>Marousi</billing_city>
+    <billing_state>Attica</billing_state>
+    <billing_postal_code>15125</billing_postal_code>
+    <billing_country>Greece</billing_country>
+    <purpose>COMMERCIAL</purpose>
+    <budget_min>500000</budget_min>
+    <budget_max>1500000</budget_max>
+    <timeline>THREE_SIX_MONTHS</timeline>
+    <financing_type>CASH</financing_type>
+    <lead_source>REFERRAL</lead_source>
+    <gdpr_consent>true</gdpr_consent>
+    <allow_marketing>false</allow_marketing>
+    <description>Interested in commercial properties with high rental yield potential in northern Athens suburbs.</description>
+  </client>
+  <client>
+    <client_name>ABC Real Estate Ltd</client_name>
+    <primary_email>info@abcrealestate.gr</primary_email>
+    <primary_phone>+30 210 5556789</primary_phone>
+    <office_phone>+30 210 5556780</office_phone>
+    <client_type>SELLER</client_type>
+    <client_status>LEAD</client_status>
+    <person_type>COMPANY</person_type>
+    <intent>SELL</intent>
+    <company_name>ABC Real Estate Ltd</company_name>
+    <vat>EL123456789</vat>
+    <afm>123456789</afm>
+    <doy>A Athens</doy>
+    <company_gemi>1234567890</company_gemi>
+    <billing_street>Stadiou 25</billing_street>
+    <billing_city>Athens</billing_city>
+    <billing_state>Attica</billing_state>
+    <billing_postal_code>10561</billing_postal_code>
+    <billing_country>Greece</billing_country>
+    <lead_source>WALK_IN</lead_source>
+    <gdpr_consent>true</gdpr_consent>
+    <allow_marketing>true</allow_marketing>
+    <description>Corporate client looking to sell portfolio of 5 commercial properties.</description>
+  </client>
+  <client>
+    <client_name>Elena Georgiou</client_name>
+    <primary_email>elena.g@email.com</primary_email>
+    <primary_phone>+30 693 7778899</primary_phone>
+    <client_type>RENTER</client_type>
+    <client_status>ACTIVE</client_status>
+    <person_type>INDIVIDUAL</person_type>
+    <intent>RENT</intent>
+    <billing_street>Vouliagmenis 200</billing_street>
+    <billing_city>Glyfada</billing_city>
+    <billing_state>Attica</billing_state>
+    <billing_postal_code>16674</billing_postal_code>
+    <billing_country>Greece</billing_country>
+    <purpose>RESIDENTIAL</purpose>
+    <budget_min>800</budget_min>
+    <budget_max>1200</budget_max>
+    <timeline>IMMEDIATE</timeline>
+    <lead_source>PORTAL</lead_source>
+    <gdpr_consent>true</gdpr_consent>
+    <allow_marketing>true</allow_marketing>
+    <description>Young professional looking for a modern studio or 1-bedroom apartment in the southern suburbs, pet-friendly preferred.</description>
+  </client>
+  <client>
+    <client_name>Dimitris Konstantinou</client_name>
+    <primary_email>d.konstantinou@mail.gr</primary_email>
+    <primary_phone>+30 697 1112233</primary_phone>
+    <client_type>BUYER</client_type>
+    <client_status>CONVERTED</client_status>
+    <person_type>INDIVIDUAL</person_type>
+    <intent>BUY</intent>
+    <billing_street>Poseidonos 50</billing_street>
+    <billing_city>Piraeus</billing_city>
+    <billing_state>Attica</billing_state>
+    <billing_postal_code>18531</billing_postal_code>
+    <billing_country>Greece</billing_country>
+    <purpose>RESIDENTIAL</purpose>
+    <budget_min>200000</budget_min>
+    <budget_max>350000</budget_max>
+    <timeline>SIX_PLUS_MONTHS</timeline>
+    <financing_type>PREAPPROVAL_PENDING</financing_type>
+    <preapproval_bank>National Bank of Greece</preapproval_bank>
+    <needs_mortgage_help>true</needs_mortgage_help>
+    <lead_source>SOCIAL</lead_source>
+    <gdpr_consent>true</gdpr_consent>
+    <allow_marketing>false</allow_marketing>
+    <description>First-time buyer looking for a family home with garden in Piraeus area. Successfully purchased property in Q3 2024.</description>
+  </client>
+</clients>

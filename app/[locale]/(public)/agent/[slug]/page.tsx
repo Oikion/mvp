@@ -14,32 +14,39 @@ interface AgentPageProps {
 // Generate static params for ISR optimization
 // Note: [slug] route parameter now represents the username
 export async function generateStaticParams() {
-  const profiles = await prismadb.agentProfile.findMany({
-    where: {
-      visibility: "PUBLIC",
-      user: {
-        username: { not: null },
-      },
-    },
-    select: {
-      user: {
-        select: {
-          username: true,
+  try {
+    const profiles = await prismadb.agentProfile.findMany({
+      where: {
+        visibility: "PUBLIC",
+        user: {
+          username: { not: null },
         },
       },
-    },
-  });
+      select: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
+    });
 
-  // Generate for both locales using username as the slug param
-  const params: { slug: string; locale: string }[] = [];
-  for (const profile of profiles) {
-    if (profile.user.username) {
-      params.push({ slug: profile.user.username, locale: "en" });
-      params.push({ slug: profile.user.username, locale: "el" });
+    // Generate for both locales using username as the slug param
+    const params: { slug: string; locale: string }[] = [];
+    for (const profile of profiles) {
+      if (profile.user.username) {
+        params.push({ slug: profile.user.username, locale: "en" });
+        params.push({ slug: profile.user.username, locale: "el" });
+      }
     }
-  }
 
-  return params;
+    return params;
+  } catch (error) {
+    // Return empty array if database is not accessible during build
+    // Pages will be generated on-demand at runtime
+    console.warn("generateStaticParams: Could not fetch agent profiles, will use dynamic rendering");
+    return [];
+  }
 }
 
 export async function generateMetadata({

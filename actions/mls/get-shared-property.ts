@@ -76,7 +76,8 @@ export async function getSharedProperty(propertyId: string) {
     return null;
   }
 
-  return {
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return JSON.parse(JSON.stringify({
     ...property,
     _shareInfo: {
       permissions: share.permissions,
@@ -84,7 +85,7 @@ export async function getSharedProperty(propertyId: string) {
       sharedAt: share.createdAt,
       sharedBy: share.sharedBy,
     },
-  };
+  }));
 }
 
 /**
@@ -104,6 +105,9 @@ export async function hasPropertyShareAccess(propertyId: string): Promise<boolea
 
   return !!share;
 }
+
+
+
 
 
 

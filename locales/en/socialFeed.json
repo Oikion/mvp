@@ -33,7 +33,16 @@
     "postedUpdate": "posted an update",
     "deletePost": "Delete",
     "deleteConfirm": "Are you sure you want to delete this post?",
-    "deleted": "Post deleted"
+    "deleted": "Post deleted",
+    "reply": "Reply",
+    "replyingTo": "Replying to",
+    "writeReply": "Write a reply...",
+    "replyAdded": "Reply added",
+    "writeComment": "Write a comment...",
+    "commentAdded": "Comment added",
+    "commentDeleted": "Comment deleted",
+    "loadMoreComments": "Load more comments",
+    "noComments": "No comments yet. Be the first to comment!"
   },
   "empty": {
     "title": "No posts yet",

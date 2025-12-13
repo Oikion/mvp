@@ -897,7 +897,9 @@ export async function generatePDF(
       throw new Error(`Unknown template type: ${definition.type}`);
   }
 
-  const blob = await pdf(document).toBlob();
+  // Type assertion needed because pdf() expects a specific type from @react-pdf/renderer
+  // but our components are compatible ReactElement types
+  const blob = await pdf(document as React.ReactElement<React.ComponentProps<typeof Document>>).toBlob();
   return blob;
 }
 
@@ -911,4 +913,7 @@ export function generateFilename(
   const sanitizedName = name.replace(/[^a-zA-Z0-9\u0370-\u03FF\s]/g, "").replace(/\s+/g, "_");
   return `${sanitizedName}_${date}.pdf`;
 }
+
+
+
 

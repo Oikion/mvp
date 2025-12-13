@@ -5,6 +5,7 @@ import NewTaskFromCRMEmail from "@/emails/NewTaskFromCRM";
 import NewTaskFromCRMToWatchersEmail from "@/emails/NewTaskFromCRMToWatchers";
 import resendHelper from "@/lib/resend";
 import { notifyAccountWatchers } from "@/lib/notify-watchers";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 export async function POST(req: Request) {
   const resend = await resendHelper();
@@ -25,8 +26,12 @@ export async function POST(req: Request) {
       select: { client_name: true },
     });
 
+    // Generate friendly ID
+    const taskId = await generateFriendlyId(prismadb, "crm_Accounts_Tasks");
+
     const task = await prismadb.crm_Accounts_Tasks.create({
       data: {
+        id: taskId,
         priority: priority,
         title: title,
         content,

@@ -15,6 +15,7 @@ import { UserCogIcon } from "@/components/ui/UserCogIcon"
 import { FeedIcon } from "@/components/ui/FeedIcon"
 import { SocialFeedIcon } from "@/components/ui/SocialFeedIcon"
 import { UsersIcon } from "@/components/ui/UsersIcon"
+import { ShieldIcon } from "@/components/ui/ShieldIcon"
 
 export interface NavItem {
   title: string
@@ -42,6 +43,7 @@ interface NavigationConfigProps {
   pathname: string
   locale: string
   onFeedbackClick?: () => void
+  isPlatformAdmin?: boolean
 }
 
 export function getNavigationConfig({
@@ -50,6 +52,7 @@ export function getNavigationConfig({
   pathname,
   locale,
   onFeedbackClick,
+  isPlatformAdmin = false,
 }: NavigationConfigProps) {
   const categories = dict.navigation.ModuleMenu.categories || {
     overview: "Overview",
@@ -172,21 +175,27 @@ export function getNavigationConfig({
     }] : []),
   ]
 
-  // Organization - Employees, Admin
+  // Organization - Employees, Admin, Platform Admin (if applicable)
   const organizationItems: NavItem[] = [
-    // Add Employees module if enabled
-    ...(modules.some((m: any) => m.name === "employee" && m.enabled) ? [{
+    {
       title: dict.navigation.ModuleMenu.employees,
       url: "/employees",
       icon: UsersRoundIcon,
       isActive: pathname.includes("/employees"),
-    }] : []),
+    },
     {
       title: dict.navigation.ModuleMenu.settings,
       url: "/admin",
       icon: SettingsIcon,
-      isActive: pathname.includes("/admin"),
+      isActive: pathname.includes("/admin") && !pathname.includes("/platform-admin"),
     },
+    // Platform Admin - only visible to platform admins
+    ...(isPlatformAdmin ? [{
+      title: dict.navigation.ModuleMenu.platformAdmin || "Platform Admin",
+      url: "/platform-admin",
+      icon: ShieldIcon,
+      isActive: pathname.includes("/platform-admin"),
+    }] : []),
   ]
 
   const navGroups: NavGroup[] = [

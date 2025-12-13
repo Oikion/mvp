@@ -14,7 +14,6 @@ export interface TemplateListItem {
   nameEl: string;
   descriptionEn: string;
   descriptionEl: string;
-  docxFilename: string;
   placeholderCount: number;
 }
 
@@ -31,7 +30,6 @@ export async function getTemplates(): Promise<TemplateListItem[]> {
     nameEl: def.nameEl,
     descriptionEn: def.descriptionEn,
     descriptionEl: def.descriptionEl,
-    docxFilename: def.docxFilename,
     placeholderCount: def.placeholders.length,
   }));
 }
@@ -45,4 +43,3 @@ export async function getTemplate(
   const definition = getTemplateDefinition(type);
   return definition || null;
 }
-

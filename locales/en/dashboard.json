@@ -38,6 +38,19 @@
   "deleteError": "We couldn't delete this record. Try again.",
   "noActivityData": "No activity recorded for this period.",
   "clientsLabel": "Clients",
-  "propertiesLabel": "Properties"
+  "propertiesLabel": "Properties",
+  "viewAll": "View All",
+  "viewProperties": "View Properties",
+  "viewContacts": "View Contacts",
+  "viewAccounts": "View Companies",
+  "addFirstContact": "Add First Contact",
+  "addFirstAccount": "Add First Company",
+  "addFirstProperty": "Add First Property",
+  "noContactsYet": "Start building your network",
+  "noAccountsYet": "Add your first company",
+  "noRevenueYet": "Revenue will appear when you close deals",
+  "viewTeam": "View Team",
+  "inviteTeamMember": "Invite Team Member",
+  "noTeamMembersYet": "You're the first member"
 }
 

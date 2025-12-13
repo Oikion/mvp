@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<properties>
+  <property>
+    <property_name>Luxury Apartment in Kolonaki</property_name>
+    <property_type>APARTMENT</property_type>
+    <property_status>ACTIVE</property_status>
+    <transaction_type>SALE</transaction_type>
+    <address_street>Skoufa 45</address_street>
+    <address_city>Athens</address_city>
+    <address_state>Attica</address_state>
+    <address_zip>10673</address_zip>
+    <municipality>Athens</municipality>
+    <area>Kolonaki</area>
+    <postal_code>10673</postal_code>
+    <price>450000</price>
+    <price_type>SALE</price_type>
+    <bedrooms>3</bedrooms>
+    <bathrooms>2</bathrooms>
+    <size_net_sqm>120</size_net_sqm>
+    <size_gross_sqm>135</size_gross_sqm>
+    <floor>4TH</floor>
+    <floors_total>6</floors_total>
+    <year_built>2005</year_built>
+    <renovated_year>2020</renovated_year>
+    <heating_type>AUTONOMOUS</heating_type>
+    <energy_cert_class>B</energy_cert_class>
+    <condition>EXCELLENT</condition>
+    <elevator>true</elevator>
+    <furnished>FULLY</furnished>
+    <monthly_common_charges>150</monthly_common_charges>
+    <is_exclusive>true</is_exclusive>
+    <portal_visibility>PUBLIC</portal_visibility>
+    <description>Stunning renovated apartment in the heart of Kolonaki with panoramic city views. Features include hardwood floors, modern kitchen, and two balconies.</description>
+    <primary_email>agent@oikion.dev</primary_email>
+  </property>
+  <property>
+    <property_name>Seaside Villa in Glyfada</property_name>
+    <property_type>HOUSE</property_type>
+    <property_status>ACTIVE</property_status>
+    <transaction_type>SALE</transaction_type>
+    <address_street>Poseidonos Ave 120</address_street>
+    <address_city>Glyfada</address_city>
+    <address_state>Attica</address_state>
+    <address_zip>16674</address_zip>
+    <municipality>Glyfada</municipality>
+    <area>Ano Glyfada</area>
+    <postal_code>16674</postal_code>
+    <price>1200000</price>
+    <price_type>SALE</price_type>
+    <bedrooms>5</bedrooms>
+    <bathrooms>3.5</bathrooms>
+    <size_net_sqm>280</size_net_sqm>
+    <size_gross_sqm>320</size_gross_sqm>
+    <plot_size_sqm>500</plot_size_sqm>
+    <floor>GROUND</floor>
+    <floors_total>2</floors_total>
+    <year_built>2015</year_built>
+    <heating_type>HEAT_PUMP</heating_type>
+    <energy_cert_class>A</energy_cert_class>
+    <condition>EXCELLENT</condition>
+    <elevator>false</elevator>
+    <furnished>NO</furnished>
+    <accepts_pets>true</accepts_pets>
+    <is_exclusive>true</is_exclusive>
+    <portal_visibility>PUBLIC</portal_visibility>
+    <description>Luxurious seaside villa with private garden and pool. Walking distance to the beach. Smart home features throughout.</description>
+    <primary_email>agent@oikion.dev</primary_email>
+  </property>
+  <property>
+    <property_name>Modern Studio for Rent in Exarchia</property_name>
+    <property_type>APARTMENT</property_type>
+    <property_status>ACTIVE</property_status>
+    <transaction_type>RENTAL</transaction_type>
+    <address_street>Themistokleous 58</address_street>
+    <address_city>Athens</address_city>
+    <address_state>Attica</address_state>
+    <address_zip>10681</address_zip>
+    <municipality>Athens</municipality>
+    <area>Exarchia</area>
+    <postal_code>10681</postal_code>
+    <price>650</price>
+    <price_type>RENTAL</price_type>
+    <bedrooms>1</bedrooms>
+    <bathrooms>1</bathrooms>
+    <size_net_sqm>45</size_net_sqm>
+    <size_gross_sqm>50</size_gross_sqm>
+    <floor>2ND</floor>
+    <floors_total>5</floors_total>
+    <year_built>1975</year_built>
+    <renovated_year>2022</renovated_year>
+    <heating_type>ELECTRIC</heating_type>
+    <energy_cert_class>C</energy_cert_class>
+    <condition>VERY_GOOD</condition>
+    <elevator>false</elevator>
+    <furnished>FULLY</furnished>
+    <monthly_common_charges>30</monthly_common_charges>
+    <accepts_pets>false</accepts_pets>
+    <min_lease_months>12</min_lease_months>
+    <is_exclusive>false</is_exclusive>
+    <portal_visibility>PUBLIC</portal_visibility>
+    <description>Newly renovated studio in vibrant Exarchia neighborhood. Perfect for students or young professionals. Close to metro and universities.</description>
+    <primary_email>agent@oikion.dev</primary_email>
+  </property>
+  <property>
+    <property_name>Commercial Space in Piraeus</property_name>
+    <property_type>COMMERCIAL</property_type>
+    <property_status>ACTIVE</property_status>
+    <transaction_type>RENTAL</transaction_type>
+    <address_street>Iroon Polytechniou 25</address_street>
+    <address_city>Piraeus</address_city>
+    <address_state>Attica</address_state>
+    <address_zip>18535</address_zip>
+    <municipality>Piraeus</municipality>
+    <area>Center</area>
+    <postal_code>18535</postal_code>
+    <price>2500</price>
+    <price_type>RENTAL</price_type>
+    <size_net_sqm>180</size_net_sqm>
+    <size_gross_sqm>200</size_gross_sqm>
+    <floor>GROUND</floor>
+    <floors_total>1</floors_total>
+    <year_built>1990</year_built>
+    <renovated_year>2018</renovated_year>
+    <heating_type>CENTRAL</heating_type>
+    <energy_cert_class>D</energy_cert_class>
+    <condition>GOOD</condition>
+    <elevator>false</elevator>
+    <furnished>NO</furnished>
+    <monthly_common_charges>200</monthly_common_charges>
+    <min_lease_months>24</min_lease_months>
+    <is_exclusive>false</is_exclusive>
+    <portal_visibility>PUBLIC</portal_visibility>
+    <description>Prime commercial space on main avenue in Piraeus. High foot traffic area, ideal for retail or offices. Large storefront windows.</description>
+    <primary_email>agent@oikion.dev</primary_email>
+  </property>
+  <property>
+    <property_name>Plot in Rafina</property_name>
+    <property_type>PLOT</property_type>
+    <property_status>ACTIVE</property_status>
+    <transaction_type>SALE</transaction_type>
+    <address_city>Rafina</address_city>
+    <address_state>Attica</address_state>
+    <address_zip>19009</address_zip>
+    <municipality>Rafina-Pikermi</municipality>
+    <area>Rafina</area>
+    <postal_code>19009</postal_code>
+    <price>180000</price>
+    <price_type>SALE</price_type>
+    <plot_size_sqm>800</plot_size_sqm>
+    <build_coefficient>0.8</build_coefficient>
+    <coverage_ratio>60</coverage_ratio>
+    <frontage_m>20</frontage_m>
+    <inside_city_plan>true</inside_city_plan>
+    <legalization_status>LEGALIZED</legalization_status>
+    <is_exclusive>true</is_exclusive>
+    <portal_visibility>PUBLIC</portal_visibility>
+    <description>Beautiful plot with sea views, just 5 minutes from Rafina port. All utilities connected. Building permit ready.</description>
+    <primary_email>agent@oikion.dev</primary_email>
+  </property>
+</properties>

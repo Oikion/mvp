@@ -35,7 +35,7 @@ export const getClientsByStatus = async () => {
 
   return ALL_STATUSES.map((status) => ({
     name: status,
-    Number: statusCounts[status] || 0,
+    value: statusCounts[status] || 0,
   }));
 };
 

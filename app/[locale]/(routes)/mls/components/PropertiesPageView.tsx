@@ -15,10 +15,12 @@ import { StatsCard } from "@/components/ui/stats-card";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { PropertyCard } from "./PropertyCard";
 import { SharedPropertyCard } from "./SharedPropertyCard";
-import { Home, Activity, DollarSign, Search, Building2, Share2 } from "lucide-react";
+import { Home, Activity, DollarSign, Search, Building2, Share2, FileSpreadsheet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { SharedPropertyData } from "@/actions/mls/get-shared-properties";
 import { useOrgUsers } from "@/hooks/swr";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 interface PropertiesPageViewProps {
   agencyProperties: any[];
@@ -35,6 +37,8 @@ export default function PropertiesPageView({
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("agency");
   const t = useTranslations("mls");
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
 
   // Use SWR for fetching org users
   const { users } = useOrgUsers();
@@ -73,7 +77,7 @@ export default function PropertiesPageView({
         <StatsCard
           title={t("Stats.totalProperties")}
           value={totalProperties.toString()}
-          icon={Home}
+          icon={<Home className="h-4 w-4" />}
           description={t("Stats.allTimeProperties")}
           actionLabel={t("Stats.addProperty")}
           emptyMessage={t("Stats.noPropertiesYet")}
@@ -82,7 +86,7 @@ export default function PropertiesPageView({
         <StatsCard
           title={t("Stats.activeProperties")}
           value={activeProperties.toString()}
-          icon={Activity}
+          icon={<Activity className="h-4 w-4" />}
           description={t("Stats.currentlyOnMarket")}
           trendUp={activeProperties > 0}
           actionLabel={t("Stats.addProperty")}
@@ -92,7 +96,7 @@ export default function PropertiesPageView({
         <StatsCard
           title={t("Stats.portfolioValue")}
           value={`€${(totalValue / 1000000).toFixed(1)}M`}
-          icon={DollarSign}
+          icon={<DollarSign className="h-4 w-4" />}
           description={t("Stats.totalListingValue")}
           actionLabel={t("Stats.addProperty")}
           emptyMessage={t("Stats.addPropertiesToTrack")}
@@ -101,7 +105,7 @@ export default function PropertiesPageView({
         <StatsCard
           title={t("Stats.sharedWithYou")}
           value={sharedProperties.length.toString()}
-          icon={Share2}
+          icon={<Share2 className="h-4 w-4" />}
           description={t("Stats.fromConnections")}
           actionHref="/connections"
           actionLabel={t("Stats.findAgents")}
@@ -143,6 +147,12 @@ export default function PropertiesPageView({
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <ViewToggle view={view} setView={setView} />
+                  <Button variant="outline" asChild>
+                    <Link href={`/${locale}/mls/properties/import`}>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Import
+                    </Link>
+                  </Button>
                   <Sheet open={open} onOpenChange={() => setOpen(false)}>
                     <Button onClick={() => setOpen(true)} className="flex-1 sm:flex-none">
                       + {t("PropertyForm.title")}

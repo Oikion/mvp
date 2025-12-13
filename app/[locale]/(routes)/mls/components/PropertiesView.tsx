@@ -57,26 +57,26 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
         <StatsCard
           title="Total Properties"
           value={totalProperties.toString()}
-          icon={Home}
+          icon={<Home className="h-4 w-4" />}
           description="All time properties"
         />
         <StatsCard
           title="Active Properties"
           value={activeProperties.toString()}
-          icon={Activity}
+          icon={<Activity className="h-4 w-4" />}
           description="Currently on market"
           trendUp={true}
         />
         <StatsCard
           title="Portfolio Value"
           value={`€${(totalValue / 1000000).toFixed(1)}M`}
-          icon={DollarSign}
+          icon={<DollarSign className="h-4 w-4" />}
           description="Total listing value"
         />
         <StatsCard
           title="New (30d)"
           value={newProperties.toString()}
-          icon={Calendar}
+          icon={<Calendar className="h-4 w-4" />}
           description="Added this month"
           trend="+2"
           trendUp={true}

@@ -16,6 +16,37 @@
   },
   "adminMessage": {
     "contactEmail": "info@oikion.dev"
+  },
+  "shareEntity": {
+    "property": {
+      "subject": "{senderName} shared a property with you",
+      "previewText": "{senderName} shared a property with you",
+      "heading": "A property has been shared with you",
+      "intro": "{senderName} wants to share a property listing with you.",
+      "viewButton": "View Property"
+    },
+    "client": {
+      "subject": "{senderName} shared a client with you",
+      "previewText": "{senderName} shared a client with you",
+      "heading": "A client has been shared with you",
+      "intro": "{senderName} wants to share a client profile with you.",
+      "viewButton": "View Client"
+    },
+    "post": {
+      "subject": "{senderName} shared a post with you",
+      "previewText": "{senderName} shared a post with you",
+      "heading": "A post has been shared with you",
+      "intro": "{senderName} wants to share a post with you.",
+      "viewButton": "View Post"
+    },
+    "common": {
+      "hello": "Hello {recipientName},",
+      "personalMessage": "Personal message:",
+      "orCopyUrl": "or copy and paste this URL into your browser:",
+      "footer": "This email was sent from Oikion. If you didn't expect this email, you can safely ignore it.",
+      "entityLabel": "Details:",
+      "sentBy": "Sent by {senderName}"
+    }
   }
 }
 

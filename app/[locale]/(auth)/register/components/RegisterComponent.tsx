@@ -15,8 +15,8 @@ export function RegisterComponent() {
         routing="path"
         path={`/${locale}/register`}
         signInUrl={`/${locale}/sign-in`}
-        afterSignUpUrl={`/${locale}/create-organization`}
-        forceRedirectUrl={`/${locale}/create-organization`}
+        afterSignUpUrl={`/${locale}/onboard`}
+        forceRedirectUrl={`/${locale}/onboard`}
         appearance={{
           ...appearance,
           elements: {

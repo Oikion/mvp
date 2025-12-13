@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
@@ -96,6 +97,7 @@ export async function POST(req: Request) {
     // Create the audience
     const audience = await prismadb.audience.create({
       data: {
+        id: randomUUID(),
         name: name.trim(),
         description: description?.trim() || null,
         createdById: currentUser.id,
@@ -151,6 +153,9 @@ export async function POST(req: Request) {
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
+
+
+
 
 
 

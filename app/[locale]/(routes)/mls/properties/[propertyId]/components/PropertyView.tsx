@@ -53,8 +53,8 @@ interface PropertyViewProps {
     address_city?: string | null;
     address_state?: string | null;
     address_zip?: string | null;
-    property_preferences?: Record<string, unknown> | null;
-    communication_notes?: Record<string, unknown> | null;
+    property_preferences?: unknown;
+    communication_notes?: unknown;
     portal_visibility?: string | null;
     assigned_to_user?: { name: string | null } | null;
     createdAt?: string | Date | null;
@@ -328,8 +328,8 @@ export default function PropertyView({
           <div>
             <Row label="Description" value={data.description} />
             <Row label="Address" value={[data.address_street, data.address_city, data.address_state, data.address_zip].filter(Boolean).join(", ")} />
-            <Row label="Preferences" value={data.property_preferences} />
-            <Row label="Notes" value={data.communication_notes} />
+            <Row label="Preferences" value={data.property_preferences as Record<string, unknown> | null | undefined} />
+            <Row label="Notes" value={data.communication_notes as Record<string, unknown> | null | undefined} />
           </div>
         </CardContent>
       </Card>

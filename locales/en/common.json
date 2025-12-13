@@ -1,6 +1,7 @@
 {
   "getStarted": "Get Started",
   "cancel": "Cancel",
+  "confirm": "Confirm",
   "creating": "Creating...",
   "loading": "Loading...",
   "success": "Success",
@@ -23,11 +24,19 @@
   "actions": "Actions",
   "edit": "Edit",
   "delete": "Delete",
+  "share": "Share",
+  "scheduleEvent": "Schedule Event",
+  "update": "Update",
+  "save": "Save",
   "toggleColumns": "Toggle columns",
   "filterPlaceholder": "Filter leads ...",
   "viewAll": "View All",
   "assigned": "Assigned:",
   "unnamed": "Unnamed",
+  "deleteConfirmation": {
+    "title": "Are you sure?",
+    "description": "This action cannot be undone."
+  },
   "statusLabels": {
     "property": {
       "ACTIVE": "Active",

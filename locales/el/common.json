@@ -1,6 +1,7 @@
 {
   "getStarted": "Ξεκινήστε",
   "cancel": "Ακύρωση",
+  "confirm": "Επιβεβαίωση",
   "creating": "Δημιουργία...",
   "loading": "Φόρτωση...",
   "success": "Επιτυχία",
@@ -23,11 +24,19 @@
   "actions": "Ενέργειες",
   "edit": "Επεξεργασία",
   "delete": "Διαγραφή",
+  "share": "Κοινοποίηση",
+  "scheduleEvent": "Προγραμματισμός Συμβάντος",
+  "update": "Ενημέρωση",
+  "save": "Αποθήκευση",
   "toggleColumns": "Εναλλαγή στηλών",
   "filterPlaceholder": "Φιλτράρετε πελάτες ...",
   "viewAll": "Προβολή όλων",
   "assigned": "Ανατέθηκε:",
   "unnamed": "Χωρίς όνομα",
+  "deleteConfirmation": {
+    "title": "Είστε σίγουροι;",
+    "description": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
+  },
   "statusLabels": {
     "property": {
       "ACTIVE": "Ενεργό",

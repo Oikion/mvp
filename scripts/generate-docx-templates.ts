@@ -153,8 +153,12 @@ async function createBrokerageMandate() {
             spacing: { before: 400, after: 200 },
           }),
           new Paragraph({
-            text: "The principal assigns to the above agency the mediation for the sale or rental of the described property.",
-            italics: true,
+            children: [
+              new TextRun({
+                text: "The principal assigns to the above agency the mediation for the sale or rental of the described property.",
+                italics: true,
+              }),
+            ],
             spacing: { after: 400 },
           }),
 
@@ -352,8 +356,12 @@ async function createViewingConfirmation() {
             spacing: { before: 400, after: 200 },
           }),
           new Paragraph({
-            text: "The visitor confirms viewing the above property through the mentioned agency and acknowledges the agency's right to commission in case of an agreement.",
-            italics: true,
+            children: [
+              new TextRun({
+                text: "The visitor confirms viewing the above property through the mentioned agency and acknowledges the agency's right to commission in case of an agreement.",
+                italics: true,
+              }),
+            ],
             spacing: { after: 400 },
           }),
 
@@ -387,4 +395,7 @@ async function main() {
 }
 
 main().catch(console.error);
+
+
+
 

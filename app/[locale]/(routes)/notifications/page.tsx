@@ -22,7 +22,9 @@ export default async function NotificationsPage({
     createdAt: n.createdAt.toISOString(),
     entityType: n.entityType ?? undefined,
     entityId: n.entityId ?? undefined,
-    metadata: n.metadata ?? undefined,
+    metadata: (n.metadata && typeof n.metadata === "object" && !Array.isArray(n.metadata)) 
+      ? n.metadata as Record<string, unknown> 
+      : undefined,
   }));
 
   return <NotificationCenter initialNotifications={serializedNotifications} dict={dict} />;

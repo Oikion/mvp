@@ -158,6 +158,17 @@
     "scheduleEventDesc": "Προγραμματίστε μια συνάντηση για αυτόν τον πελάτη",
     "share": "Κοινοποίηση"
   },
+  "ContactsTable": {
+    "dateCreated": "Ημερομηνία δημιουργίας",
+    "assignedTo": "Ανατέθηκε σε",
+    "assignedAccount": "Ανατεθειμένος λογαριασμός",
+    "firstName": "Όνομα",
+    "lastName": "Επώνυμο",
+    "email": "E-mail",
+    "mobile": "Κινητό",
+    "status": "Κατάσταση",
+    "filterPlaceholder": "Φιλτράρισμα επαφών..."
+  },
   "Tabs": {
     "agencyClients": "Πελάτες Γραφείου",
     "sharedWithMe": "Κοινόχρηστοι",

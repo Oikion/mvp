@@ -55,7 +55,7 @@ const NewTaskForm = ({ account, onFinish }: NewTaskFormProps) => {
   const [date, setDate] = useState<Date>();
   //  const [userSearch, setUserSearch] = useState<string>("");
 
-  const { data: users, isLoading: isLoadingUsers } = useSWR(
+  const { data: users, isLoading: isLoadingUsers } = useSWR<{ id: string; name: string | null }[]>(
     "/api/user",
     fetcher
   );
@@ -232,7 +232,7 @@ const NewTaskForm = ({ account, onFinish }: NewTaskFormProps) => {
                               }, 1000);
                             }}
                           /> */}
-                          {users.map((user: any) => (
+                          {users?.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.name}
                             </SelectItem>

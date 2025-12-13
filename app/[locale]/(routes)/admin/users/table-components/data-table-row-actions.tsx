@@ -2,6 +2,9 @@
 
 import { Row } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useOrganization } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,15 +15,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { adminUserSchema } from "../table-data/schema";
-import { useRouter } from "next/navigation";
-import AlertModal from "@/components/modals/alert-modal";
-import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { useOrganization } from "@clerk/nextjs";
-
-import { Copy, MoreHorizontal, Shield, ShieldOff, UserMinus } from "lucide-react";
+import { adminUserSchema } from "../table-data/schema";
+import { Copy, MoreHorizontal, Shield, ShieldOff, UserMinus, Loader2 } from "lucide-react";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -30,6 +37,7 @@ export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
   const t = useTranslations("admin");
+  const commonT = useTranslations("common");
   const router = useRouter();
   const data = adminUserSchema.parse(row.original);
   const { organization } = useOrganization();
@@ -57,7 +65,7 @@ export function DataTableRowActions<TData>({
       
       const members = await organization.getMemberships();
       const memberToRemove = members.data?.find(
-        (m) => m.publicUserData?.userId === (row.original as any).clerkUserId
+        (m) => m.publicUserData?.userId === (row.original as { clerkUserId?: string }).clerkUserId
       );
 
       if (memberToRemove) {
@@ -75,12 +83,13 @@ export function DataTableRowActions<TData>({
           description: t("memberNotFound"),
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Remove member error:", error);
+      const clerkError = error as { errors?: Array<{ message?: string }> };
       toast({
         variant: "destructive",
         title: t("error"),
-        description: error?.errors?.[0]?.message || t("somethingWentWrong"),
+        description: clerkError?.errors?.[0]?.message || t("somethingWentWrong"),
       });
     } finally {
       setLoading(false);
@@ -97,7 +106,7 @@ export function DataTableRowActions<TData>({
       
       const members = await organization.getMemberships();
       const memberToUpdate = members.data?.find(
-        (m) => m.publicUserData?.userId === (row.original as any).clerkUserId
+        (m) => m.publicUserData?.userId === (row.original as { clerkUserId?: string }).clerkUserId
       );
 
       if (memberToUpdate) {
@@ -109,12 +118,13 @@ export function DataTableRowActions<TData>({
           description: t("memberPromoted"),
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Promote to admin error:", error);
+      const clerkError = error as { errors?: Array<{ message?: string }> };
       toast({
         variant: "destructive",
         title: t("error"),
-        description: error?.errors?.[0]?.message || t("somethingWentWrong"),
+        description: clerkError?.errors?.[0]?.message || t("somethingWentWrong"),
       });
     } finally {
       setLoading(false);
@@ -130,7 +140,7 @@ export function DataTableRowActions<TData>({
       
       const members = await organization.getMemberships();
       const memberToUpdate = members.data?.find(
-        (m) => m.publicUserData?.userId === (row.original as any).clerkUserId
+        (m) => m.publicUserData?.userId === (row.original as { clerkUserId?: string }).clerkUserId
       );
 
       if (memberToUpdate) {
@@ -142,12 +152,13 @@ export function DataTableRowActions<TData>({
           description: t("memberDemoted"),
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Demote from admin error:", error);
+      const clerkError = error as { errors?: Array<{ message?: string }> };
       toast({
         variant: "destructive",
         title: t("error"),
-        description: error?.errors?.[0]?.message || t("somethingWentWrong"),
+        description: clerkError?.errors?.[0]?.message || t("somethingWentWrong"),
       });
     } finally {
       setLoading(false);
@@ -158,23 +169,52 @@ export function DataTableRowActions<TData>({
 
   return (
     <>
-      <AlertModal
-        isOpen={removeOpen}
-        onClose={() => setRemoveOpen(false)}
-        onConfirm={onRemoveMember}
-        loading={loading}
-        title={t("removeMemberTitle")}
-        description={t("removeMemberDescription")}
-      />
+      {/* Remove Member Confirmation Dialog - using standard AlertDialog */}
+      <AlertDialog open={removeOpen} onOpenChange={setRemoveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("removeMemberTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("removeMemberDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>
+              {commonT("cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                onRemoveMember();
+              }}
+              disabled={loading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {commonT("loading")}
+                </>
+              ) : (
+                <>
+                  <UserMinus className="mr-2 h-4 w-4" />
+                  {t("removeFromOrg")}
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant={"ghost"} className="h-8 w-8 p-0">
+          <Button variant="ghost" className="h-8 w-8 p-0">
             <span className="sr-only">{t("openMenu")}</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{t("actions")}</DropdownMenuLabel>
+          <DropdownMenuLabel>{commonT("actions")}</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => onCopy(data?.id)}>
             <Copy className="mr-2 w-4 h-4" />
             {t("copyId")}

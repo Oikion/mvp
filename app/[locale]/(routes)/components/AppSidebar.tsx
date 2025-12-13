@@ -30,9 +30,10 @@ interface AppSidebarProps {
     email: string
     avatar: string
   }
+  isPlatformAdmin?: boolean
 }
 
-export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
+export function AppSidebar({ modules, dict, build, user, isPlatformAdmin = false }: AppSidebarProps) {
   const pathname = usePathname()
   const locale = useLocale()
   const { appearance } = useClerkTheme()
@@ -44,9 +45,10 @@ export function AppSidebar({ modules, dict, build, user }: AppSidebarProps) {
       modules,
       pathname,
       locale,
-      onFeedbackClick: () => setFeedbackOpen(true)
+      onFeedbackClick: () => setFeedbackOpen(true),
+      isPlatformAdmin
     }), 
-    [pathname, locale, modules, dict]
+    [pathname, locale, modules, dict, isPlatformAdmin]
   )
 
   return (

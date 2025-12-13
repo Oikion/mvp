@@ -33,6 +33,12 @@ import documentsEn from "@/locales/en/documents.json";
 import notificationsEn from "@/locales/en/notifications.json";
 import feedEn from "@/locales/en/feed.json";
 import socialFeedEn from "@/locales/en/socialFeed.json";
+import connectionsEn from "@/locales/en/connections.json";
+import dealsEn from "@/locales/en/deals.json";
+import sharedWithMeEn from "@/locales/en/sharedWithMe.json";
+import audiencesEn from "@/locales/en/audiences.json";
+import profileEn from "@/locales/en/profile.json";
+import templatesEn from "@/locales/en/templates.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -53,6 +59,12 @@ import documentsEl from "@/locales/el/documents.json";
 import notificationsEl from "@/locales/el/notifications.json";
 import feedEl from "@/locales/el/feed.json";
 import socialFeedEl from "@/locales/el/socialFeed.json";
+import connectionsEl from "@/locales/el/connections.json";
+import dealsEl from "@/locales/el/deals.json";
+import sharedWithMeEl from "@/locales/el/sharedWithMe.json";
+import audiencesEl from "@/locales/el/audiences.json";
+import profileEl from "@/locales/el/profile.json";
+import templatesEl from "@/locales/el/templates.json";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -91,6 +103,12 @@ function getLocales(locale: string) {
     messages.documents = documentsEl;
     messages.feed = feedEl;
     messages.socialFeed = socialFeedEl;
+    messages.connections = connectionsEl;
+    messages.deals = dealsEl;
+    messages.sharedWithMe = sharedWithMeEl;
+    messages.audiences = audiencesEl;
+    messages.profile = profileEl;
+    messages.templates = templatesEl;
     messages.notifications = notificationsEl;
     messages.Notifications = notificationsEl;
   } else {
@@ -119,6 +137,12 @@ function getLocales(locale: string) {
     messages.documents = documentsEn;
     messages.feed = feedEn;
     messages.socialFeed = socialFeedEn;
+    messages.connections = connectionsEn;
+    messages.deals = dealsEn;
+    messages.sharedWithMe = sharedWithMeEn;
+    messages.audiences = audiencesEn;
+    messages.profile = profileEn;
+    messages.templates = templatesEn;
     messages.notifications = notificationsEn;
     messages.Notifications = notificationsEn;
   }

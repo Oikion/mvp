@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
@@ -134,6 +135,7 @@ export async function POST(req: Request) {
 
     const deal = await prismadb.deal.create({
       data: {
+        id: randomUUID(),
         propertyId,
         clientId,
         propertyAgentId: resolvedPropertyAgentId,

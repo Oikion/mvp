@@ -3,6 +3,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { hash } from "bcryptjs";
 import { newUserNotify } from "@/lib/new-user-notify";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 export async function POST(req: Request) {
   try {
@@ -40,8 +41,12 @@ export async function POST(req: Request) {
     
     if (userCount === 0) {
       //There is no user in the system, so create user with admin rights and set userStatus to ACTIVE
+      // Generate friendly ID
+      const userId = await generateFriendlyId(prismadb, "Users");
+      
       const user = await prismadb.users.create({
         data: {
+          id: userId,
           name,
           username: generatedUsername,
           avatar: "",
@@ -59,8 +64,12 @@ export async function POST(req: Request) {
       return NextResponse.json(user);
     } else {
       //There is at least one user in the system, so create user with no admin rights and set userStatus to ACTIVE
+      // Generate friendly ID
+      const userId = await generateFriendlyId(prismadb, "Users");
+      
       const user = await prismadb.users.create({
         data: {
+          id: userId,
           name,
           username: generatedUsername,
           avatar: "",

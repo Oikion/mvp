@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, FileText, Download, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
 import { format } from "date-fns";
+import { DocumentViewer } from "@/components/documents";
 
 interface SharedDocumentViewerProps {
   linkId: string;
@@ -111,28 +111,12 @@ export function SharedDocumentViewer({
             )}
 
             {/* Document Preview */}
-            <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-              {document.document_file_mimeType === "application/pdf" ? (
-                <iframe
-                  src={document.document_file_url}
-                  className="w-full h-[800px] border-0"
-                  title={document.document_name}
-                />
-              ) : (
-                <div className="p-12 text-center">
-                  <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground mb-4">
-                    Preview not available for this file type.
-                  </p>
-                  <Button
-                    onClick={() => window.open(document.document_file_url, "_blank")}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download to View
-                  </Button>
-                </div>
-              )}
-            </div>
+            <DocumentViewer
+              url={document.document_file_url}
+              mimeType={document.document_file_mimeType}
+              fileName={document.document_name}
+              height="800px"
+            />
 
             {/* View Count */}
             {document.viewsCount > 0 && (

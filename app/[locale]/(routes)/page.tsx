@@ -13,7 +13,7 @@ import { getDictionary } from "@/dictionaries";
 import Container from "./components/ui/Container";
 import LoadingBox from "./components/dasboard/loading-box";
 import { QuickViewList } from "./components/dashboard/QuickViewList";
-import { MetricCard } from "./components/dashboard/MetricCard";
+import { StatsCard } from "@/components/ui/stats-card";
 import { VisitorsChart } from "./components/dashboard/VisitorsChart";
 import { StatsChart } from "./components/dashboard/StatsChart";
 
@@ -87,85 +87,65 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
           {/* Section 1: Metrics Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Suspense fallback={<LoadingBox />}>
-              <MetricCard
+              <StatsCard
                 title={dict.dashboard.totalRevenue}
                 value={`€${totalRevenue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                icon={<DollarSignIcon className="h-4 w-4 text-muted-foreground" />}
-                trend={{
-                  value: revenueTrend.value,
-                  label: dict.dashboard.fromLastMonth,
-                  direction: revenueTrend.direction,
-                }}
-                description={
-                  revenueTrend.direction === "up"
-                    ? `+${revenueTrend.value.toFixed(1)}% ${dict.dashboard.fromLastMonth}`
-                    : revenueTrend.direction === "down"
-                    ? `-${revenueTrend.value.toFixed(1)}% ${dict.dashboard.fromLastMonth}`
-                    : dict.dashboard.noChangeFromLastMonth
-                }
+                icon={<DollarSignIcon className="h-4 w-4" />}
+                trend={revenueTrend.value > 0 ? `${revenueTrend.direction === "up" ? "+" : "-"}${revenueTrend.value.toFixed(1)}%` : undefined}
+                trendUp={revenueTrend.direction === "up"}
+                description={dict.dashboard.fromLastMonth}
+                emptyMessage={dict.dashboard.noRevenueYet}
+                actionHref="/mls/properties"
+                actionLabel={dict.dashboard.addFirstProperty}
+                viewLabel={dict.dashboard.viewProperties}
               />
             </Suspense>
             
             {crmModule?.enabled && (
               <>
                 <Suspense fallback={<LoadingBox />}>
-                  <MetricCard
+                  <StatsCard
                     title={dict.dashboard.contacts}
                     value={contacts.toString()}
-                    icon={<Users className="h-4 w-4 text-muted-foreground" />}
-                    trend={{
-                      value: contactsTrend.value,
-                      label: dict.dashboard.fromLastMonth,
-                      direction: contactsTrend.direction,
-                    }}
-                    description={
-                      contactsTrend.direction === "up"
-                        ? `+${contactsTrend.value.toFixed(1)}% ${dict.dashboard.fromLastMonth}`
-                        : contactsTrend.direction === "down"
-                        ? `-${contactsTrend.value.toFixed(1)}% ${dict.dashboard.fromLastMonth}`
-                        : dict.dashboard.noChangeFromLastMonth
-                    }
+                    icon={<Users className="h-4 w-4" />}
+                    trend={contactsTrend.value > 0 ? `${contactsTrend.direction === "up" ? "+" : "-"}${contactsTrend.value.toFixed(1)}%` : undefined}
+                    trendUp={contactsTrend.direction === "up"}
+                    description={dict.dashboard.fromLastMonth}
+                    emptyMessage={dict.dashboard.noContactsYet}
+                    actionHref="/crm/contacts"
+                    actionLabel={dict.dashboard.addFirstContact}
+                    viewLabel={dict.dashboard.viewContacts}
                   />
                 </Suspense>
                 <Suspense fallback={<LoadingBox />}>
-                  <MetricCard
+                  <StatsCard
                     title={dict.dashboard.accounts}
                     value={accounts.toString()}
-                    icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-                    trend={{
-                      value: accountsTrend.value,
-                      label: dict.dashboard.fromLastMonth,
-                      direction: accountsTrend.direction,
-                    }}
-                    description={
-                      accountsTrend.direction === "up"
-                        ? `+${accountsTrend.value.toFixed(1)}% ${dict.dashboard.fromLastMonth}`
-                        : accountsTrend.direction === "down"
-                        ? `-${accountsTrend.value.toFixed(1)}% ${dict.dashboard.fromLastMonth}`
-                        : dict.dashboard.noChangeFromLastMonth
-                    }
+                    icon={<CreditCard className="h-4 w-4" />}
+                    trend={accountsTrend.value > 0 ? `${accountsTrend.direction === "up" ? "+" : "-"}${accountsTrend.value.toFixed(1)}%` : undefined}
+                    trendUp={accountsTrend.direction === "up"}
+                    description={dict.dashboard.fromLastMonth}
+                    emptyMessage={dict.dashboard.noAccountsYet}
+                    actionHref="/crm/accounts"
+                    actionLabel={dict.dashboard.addFirstAccount}
+                    viewLabel={dict.dashboard.viewAccounts}
                   />
                 </Suspense>
               </>
             )}
 
             <Suspense fallback={<LoadingBox />}>
-              <MetricCard
+              <StatsCard
                 title={dict.dashboard.activeUsers}
                 value={users.toString()}
-                icon={<Activity className="h-4 w-4 text-muted-foreground" />}
-                trend={{
-                  value: usersTrend.value,
-                  label: usersTrend.direction === "neutral" ? dict.dashboard.currentlyActive : dict.dashboard.fromLastPeriod,
-                  direction: usersTrend.direction,
-                }}
-                description={
-                  usersTrend.direction === "neutral"
-                    ? dict.dashboard.currentlyActiveUsers
-                    : usersTrend.direction === "up"
-                    ? `+${usersTrend.value.toFixed(1)}% ${dict.dashboard.fromLastPeriod}`
-                    : `-${usersTrend.value.toFixed(1)}% ${dict.dashboard.fromLastPeriod}`
-                }
+                icon={<Activity className="h-4 w-4" />}
+                trend={usersTrend.value > 0 && usersTrend.direction !== "neutral" ? `${usersTrend.direction === "up" ? "+" : "-"}${usersTrend.value.toFixed(1)}%` : undefined}
+                trendUp={usersTrend.direction === "up"}
+                description={usersTrend.direction === "neutral" ? dict.dashboard.currentlyActiveUsers : dict.dashboard.fromLastPeriod}
+                emptyMessage={dict.dashboard.noTeamMembersYet}
+                actionHref="/employees"
+                actionLabel={dict.dashboard.inviteTeamMember}
+                viewLabel={dict.dashboard.viewTeam}
               />
             </Suspense>
           </div>

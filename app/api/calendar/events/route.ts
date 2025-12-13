@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
 import { prismadb } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/get-current-user';
@@ -9,6 +10,7 @@ import {
 import { createRemindersForEvent } from '@/lib/calendar-reminders';
 import { prismaForOrg } from '@/lib/tenant';
 import { format } from 'date-fns';
+import { generateFriendlyId } from '@/lib/friendly-id';
 
 /**
  * Create notifications for calendar event creation
@@ -58,6 +60,7 @@ async function createEventNotifications(
     if (event.assignedUserId && event.assignedUserId !== creatorId) {
       await db.notification.create({
         data: {
+          id: randomUUID(),
           userId: event.assignedUserId,
           organizationId,
           type: 'CALENDAR_EVENT_CREATED',
@@ -98,6 +101,7 @@ async function createEventNotifications(
           
         await db.notification.create({
           data: {
+            id: randomUUID(),
             userId: agentId,
             organizationId,
             type: 'CALENDAR_EVENT_CREATED',
@@ -332,9 +336,13 @@ export async function POST(req: Request) {
       };
     }
 
+    // Generate friendly ID for the event
+    const friendlyEventId = await generateFriendlyId(prismadb, "CalComEvent");
+
     // Create event in database
     const event = await prismadb.calComEvent.create({
       data: {
+        id: friendlyEventId,
         calcomEventId: eventId,
         calcomUserId: 0, // Not using Cal.com anymore
         organizationId,

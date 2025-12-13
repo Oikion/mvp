@@ -22,7 +22,7 @@ export default async function OrganizationLayout({
 
   // Require organization for organization profile page
   if (!orgId) {
-    return redirect(`/${locale}/create-organization`);
+    return redirect(`/${locale}/onboard`);
   }
 
   // Get or sync user from database

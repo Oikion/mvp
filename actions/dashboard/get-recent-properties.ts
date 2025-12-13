@@ -1,5 +1,6 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId } from "@/lib/get-current-user";
+import { serializePrismaJson } from "@/lib/prisma-serialize";
 
 export const getRecentProperties = async (limit: number = 5) => {
   const organizationId = await getCurrentOrgId();
@@ -16,6 +17,7 @@ export const getRecentProperties = async (limit: number = 5) => {
     orderBy: { createdAt: "desc" },
     take: limit,
   });
-  return data;
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return serializePrismaJson(data);
 };
 

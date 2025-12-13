@@ -74,11 +74,7 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
             dict.navigation.ModuleMenu.mls ?? { title: "Properties", properties: "Properties" }
           }
         />
-          {modules.find(
-            (menuItem: any) => menuItem.name === "employee" && menuItem.enabled
-          ) ? (
-            <EmployeesModuleMenu open={open} />
-          ) : null}
+          <EmployeesModuleMenu open={open} />
           {modules.find(
             (menuItem: any) => menuItem.name === "reports" && menuItem.enabled
           ) ? (

@@ -8,6 +8,21 @@ import resendHelper from "./resend";
 import CalendarReminderEmail from "@/emails/CalendarReminder";
 import { createNotification } from "@/lib/notifications";
 
+/**
+ * Get user notification settings, with defaults if not found
+ */
+async function getUserNotificationSettings(userId: string) {
+  const settings = await prismadb.userNotificationSettings.findUnique({
+    where: { userId },
+  });
+
+  // Return settings with defaults if not found
+  return {
+    calendarEmailEnabled: settings?.calendarEmailEnabled ?? true,
+    calendarInAppEnabled: settings?.calendarInAppEnabled ?? true,
+  };
+}
+
 export interface ReminderConfig {
   eventId: string;
   reminderMinutes: number[];
@@ -160,9 +175,10 @@ export async function sendReminderNotification(
     throw new Error("Event has no assigned user with email");
   }
 
-  try {
-    const resend = await resendHelper();
+  // Check user notification settings
+  const notificationSettings = await getUserNotificationSettings(user.id);
 
+  try {
     // Determine reminder time label
     const minutesLabel =
       reminder.reminderMinutes >= 1440
@@ -171,62 +187,66 @@ export async function sendReminderNotification(
         ? `${Math.floor(reminder.reminderMinutes / 60)} hour(s)`
         : `${reminder.reminderMinutes} minute(s)`;
 
-    await resend.emails.send({
-      from:
-        process.env.NEXT_PUBLIC_APP_NAME +
-        " <" +
-        process.env.EMAIL_FROM +
-        ">",
-      to: user.email,
-      subject:
-        user.userLanguage === "el"
-          ? `Υπενθύμιση: ${event.title || "Συμβάν"} σε ${minutesLabel}`
-          : `Reminder: ${event.title || "Event"} in ${minutesLabel}`,
-      text: "",
-      react: CalendarReminderEmail({
-        eventTitle: event.title || "Untitled Event",
-        eventDescription: event.description || "",
-        startTime: event.startTime,
-        endTime: event.endTime,
-        location: event.location || "",
-        reminderMinutes: reminder.reminderMinutes,
-        minutesLabel,
-        linkedClients: event.linkedClients,
-        linkedProperties: event.linkedProperties,
-        userLanguage: user.userLanguage || "en",
-        eventUrl: `${process.env.NEXT_PUBLIC_APP_URL}/calendar`,
-      }),
-    });
+    // Send email notification only if user has email notifications enabled
+    if (notificationSettings.calendarEmailEnabled) {
+      const resend = await resendHelper();
 
-    // Create in-app notification for calendar reminder
-    try {
-      await createNotification({
-        userId: user.id,
-        organizationId: reminder.organizationId,
-        type: "CALENDAR_REMINDER",
-        title: `Reminder: ${event.title || "Event"} in ${minutesLabel}`,
-        message: `Your event "${event.title || "Untitled Event"}" starts ${minutesLabel} from now.${event.location ? ` Location: ${event.location}` : ""}`,
-        entityType: "CALENDAR_EVENT",
-        entityId: event.id,
-        metadata: {
+      await resend.emails.send({
+        from:
+          process.env.NEXT_PUBLIC_APP_NAME +
+          " <" +
+          process.env.EMAIL_FROM +
+          ">",
+        to: user.email,
+        subject:
+          user.userLanguage === "el"
+            ? `Υπενθύμιση: ${event.title || "Συμβάν"} σε ${minutesLabel}`
+            : `Reminder: ${event.title || "Event"} in ${minutesLabel}`,
+        text: "",
+        react: CalendarReminderEmail({
           eventTitle: event.title || "Untitled Event",
-          startTime: event.startTime.toISOString(),
-          endTime: event.endTime.toISOString(),
+          eventDescription: event.description || "",
+          startTime: event.startTime,
+          endTime: event.endTime,
           location: event.location || "",
           reminderMinutes: reminder.reminderMinutes,
           minutesLabel,
-        },
+          linkedClients: event.linkedClients,
+          linkedProperties: event.linkedProperties,
+          userLanguage: user.userLanguage || "en",
+          eventUrl: `${process.env.NEXT_PUBLIC_APP_URL}/calendar`,
+        }),
       });
-    } catch (error) {
-      console.error("[CREATE_CALENDAR_REMINDER_NOTIFICATION]", error);
-      // Don't fail the reminder if notification creation fails
+    }
+
+    // Create in-app notification only if user has in-app notifications enabled
+    if (notificationSettings.calendarInAppEnabled) {
+      try {
+        await createNotification({
+          userId: user.id,
+          organizationId: reminder.organizationId,
+          type: "CALENDAR_REMINDER",
+          title: `Reminder: ${event.title || "Event"} in ${minutesLabel}`,
+          message: `Your event "${event.title || "Untitled Event"}" starts ${minutesLabel} from now.${event.location ? ` Location: ${event.location}` : ""}`,
+          entityType: "CALENDAR_EVENT",
+          entityId: event.id,
+          metadata: {
+            eventTitle: event.title || "Untitled Event",
+            startTime: event.startTime.toISOString(),
+            endTime: event.endTime.toISOString(),
+            location: event.location || "",
+            reminderMinutes: reminder.reminderMinutes,
+            minutesLabel,
+          },
+        });
+      } catch {
+        // Don't fail the reminder if notification creation fails
+      }
     }
 
     // Mark reminder as sent
     await markReminderSent(reminderId);
   } catch (error) {
-    console.error(`[SEND_REMINDER_NOTIFICATION] Error sending reminder ${reminderId}:`, error);
-    
     // Mark as failed
     await prismadb.calendarReminder.update({
       where: { id: reminderId },

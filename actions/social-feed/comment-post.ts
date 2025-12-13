@@ -15,6 +15,9 @@ export interface Comment {
     avatar?: string;
   };
   isOwn: boolean;
+  parentId?: string | null;
+  replies?: Comment[];
+  replyCount?: number;
 }
 
 interface AddCommentResult {
@@ -34,7 +37,8 @@ interface DeleteCommentResult {
  */
 export async function addComment(
   postId: string,
-  content: string
+  content: string,
+  parentId?: string
 ): Promise<AddCommentResult> {
   const currentUser = await getCurrentUserSafe();
 
@@ -68,12 +72,25 @@ export async function addComment(
       return { success: false, error: "Post not found" };
     }
 
+    // If parentId is provided, verify the parent comment exists
+    let parentComment = null;
+    if (parentId) {
+      parentComment = await prismadb.socialPostComment.findUnique({
+        where: { id: parentId },
+        select: { id: true, userId: true, user: { select: { name: true } } },
+      });
+      if (!parentComment) {
+        return { success: false, error: "Parent comment not found" };
+      }
+    }
+
     // Create comment
     const comment = await prismadb.socialPostComment.create({
       data: {
         postId,
         userId: currentUser.id,
         content: trimmedContent,
+        parentId: parentId || null,
       },
       include: {
         user: {
@@ -86,16 +103,30 @@ export async function addComment(
       },
     });
 
-    // Send notification to post author
-    await notifyPostCommented({
-      postId,
-      postAuthorId: post.authorId,
-      postContent: post.content || undefined,
-      actorId: currentUser.id,
-      actorName: currentUser.name || currentUser.email || "Someone",
-      organizationId: post.organizationId,
-      commentContent: trimmedContent,
-    });
+    // Send notification to post author (only for top-level comments)
+    // For replies, we could send notification to the parent comment author
+    if (!parentId) {
+      await notifyPostCommented({
+        postId,
+        postAuthorId: post.authorId,
+        postContent: post.content || undefined,
+        actorId: currentUser.id,
+        actorName: currentUser.name || currentUser.email || "Someone",
+        organizationId: post.organizationId,
+        commentContent: trimmedContent,
+      });
+    } else if (parentComment && parentComment.userId !== currentUser.id) {
+      // Notify parent comment author about the reply
+      await notifyPostCommented({
+        postId,
+        postAuthorId: parentComment.userId,
+        postContent: `Reply to your comment`,
+        actorId: currentUser.id,
+        actorName: currentUser.name || currentUser.email || "Someone",
+        organizationId: post.organizationId,
+        commentContent: trimmedContent,
+      });
+    }
 
     // Revalidate the feed
     revalidatePath("/social-feed");
@@ -112,6 +143,9 @@ export async function addComment(
           avatar: comment.user.avatar || undefined,
         },
         isOwn: true,
+        parentId: comment.parentId,
+        replies: [],
+        replyCount: 0,
       },
     };
   } catch (error) {
@@ -163,6 +197,7 @@ export async function deleteComment(commentId: string): Promise<DeleteCommentRes
 /**
  * Get comments for a post with pagination
  * Best practice: Use cursor-based pagination for better performance
+ * Returns only top-level comments (parentId is null), with replies nested
  */
 export async function getPostComments(
   postId: string,
@@ -180,9 +215,10 @@ export async function getPostComments(
   const { limit = 10, cursor } = options;
 
   try {
+    // Only get top-level comments (no parentId)
     const [comments, total] = await Promise.all([
       prismadb.socialPostComment.findMany({
-        where: { postId },
+        where: { postId, parentId: null },
         take: limit + 1, // Fetch one extra to check if there's more
         ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
         orderBy: { createdAt: "asc" }, // Oldest first for conversation flow
@@ -194,9 +230,24 @@ export async function getPostComments(
               avatar: true,
             },
           },
+          replies: {
+            orderBy: { createdAt: "asc" },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: { replies: true },
+          },
         },
       }),
-      prismadb.socialPostComment.count({ where: { postId } }),
+      prismadb.socialPostComment.count({ where: { postId, parentId: null } }),
     ]);
 
     const hasMore = comments.length > limit;
@@ -213,8 +264,22 @@ export async function getPostComments(
           avatar: c.user.avatar || undefined,
         },
         isOwn: c.userId === currentUser?.id,
+        parentId: c.parentId,
+        replyCount: c._count.replies,
+        replies: c.replies.map((r) => ({
+          id: r.id,
+          content: r.content,
+          createdAt: r.createdAt.toISOString(),
+          author: {
+            id: r.user.id,
+            name: r.user.name || "Unknown",
+            avatar: r.user.avatar || undefined,
+          },
+          isOwn: r.userId === currentUser?.id,
+          parentId: r.parentId,
+        })),
       })),
-      nextCursor: hasMore ? resultComments[resultComments.length - 1]?.id : undefined,
+      nextCursor: hasMore ? resultComments.at(-1)?.id : undefined,
       hasMore,
       total,
     };

@@ -364,14 +364,14 @@ export function GenerateDocumentModal({
                 <div className="space-y-2">
                   <Label>{t("selectProperty")}</Label>
                   <Select
-                    value={selectedPropertyId}
-                    onValueChange={handlePropertyChange}
+                    value={selectedPropertyId || "none"}
+                    onValueChange={(value) => handlePropertyChange(value === "none" ? "" : value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t("optionalSelectProperty")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">{t("noProperty")}</SelectItem>
+                      <SelectItem value="none">{t("noProperty")}</SelectItem>
                       {properties.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
                           {p.property_name}
@@ -384,14 +384,14 @@ export function GenerateDocumentModal({
                 <div className="space-y-2">
                   <Label>{t("selectClient")}</Label>
                   <Select
-                    value={selectedClientId}
-                    onValueChange={handleClientChange}
+                    value={selectedClientId || "none"}
+                    onValueChange={(value) => handleClientChange(value === "none" ? "" : value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t("optionalSelectClient")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">{t("noClient")}</SelectItem>
+                      <SelectItem value="none">{t("noClient")}</SelectItem>
                       {clients.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
                           {c.client_name}
@@ -456,4 +456,3 @@ export function GenerateDocumentModal({
     </Dialog>
   );
 }
-

@@ -34,6 +34,7 @@ const GUARDED_METHODS = new Set([
 const METHOD_ALIASES: Record<string, string> = {
   findUnique: "findFirst",
   findUniqueOrThrow: "findFirstOrThrow",
+  delete: "deleteMany",
 };
 
 type PrismaDelegate = Record<string, any>;

@@ -45,7 +45,10 @@ export async function getPublicProperty(propertyId: string) {
     },
   });
 
-  return property;
+  if (!property) return null;
+  
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return JSON.parse(JSON.stringify(property));
 }
 
 /**
@@ -132,10 +135,11 @@ export async function getPublicProperties(options?: {
     prismadb.properties.count({ where }),
   ]);
 
-  return {
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return JSON.parse(JSON.stringify({
     properties,
     total,
     hasMore: offset + properties.length < total,
-  };
+  }));
 }
 

@@ -20,7 +20,6 @@ export interface TemplateDefinition {
   descriptionEn: string;
   descriptionEl: string;
   placeholders: TemplatePlaceholder[];
-  docxFilename: string;
 }
 
 export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
@@ -34,7 +33,6 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
       "Authorization form for real estate agent to sell or rent a property on behalf of the owner.",
     descriptionEl:
       "Έντυπο εξουσιοδότησης μεσίτη για πώληση ή ενοικίαση ακινήτου εκ μέρους του ιδιοκτήτη.",
-    docxFilename: "brokerage-mandate.docx",
     placeholders: [
       // Owner Details
       {
@@ -257,7 +255,6 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
     nameEl: "Ιδιωτικό Συμφωνητικό Μίσθωσης Κατοικίας",
     descriptionEn: "Standard rental contract for residential properties in Greece.",
     descriptionEl: "Τυποποιημένο συμβόλαιο μίσθωσης για κατοικίες στην Ελλάδα.",
-    docxFilename: "lease-agreement.docx",
     placeholders: [
       // Landlord Details
       {
@@ -487,7 +484,6 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
       "Document recording the condition of the property at handover, including meter readings and inventory.",
     descriptionEl:
       "Έγγραφο καταγραφής της κατάστασης του ακινήτου κατά την παράδοση, συμπεριλαμβανομένων μετρητών και εξοπλισμού.",
-    docxFilename: "handover-protocol.docx",
     placeholders: [
       // Parties
       {
@@ -684,7 +680,6 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
       "Confirmation that a potential buyer/tenant has viewed the property through the agency.",
     descriptionEl:
       "Βεβαίωση ότι ένας υποψήφιος αγοραστής/ενοικιαστής επισκέφθηκε το ακίνητο μέσω του μεσιτικού γραφείου.",
-    docxFilename: "viewing-confirmation.docx",
     placeholders: [
       // Visitor Details
       {
@@ -835,4 +830,6 @@ export function getTemplateDefinition(type: TemplateType): TemplateDefinition | 
 export function getAllTemplateDefinitions(): TemplateDefinition[] {
   return TEMPLATE_DEFINITIONS;
 }
+
+
 

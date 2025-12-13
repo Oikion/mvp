@@ -1,0 +1,175 @@
+{
+  "header": {
+    "platformAdmin": "Platform Admin",
+    "backToApp": "Back to App",
+    "signOut": "Sign Out"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "organizations": "Organizations"
+  },
+  "accessDenied": {
+    "title": "Access Denied",
+    "description": "You don't have permission to access this area.",
+    "message": "This area is restricted to platform administrators only. If you believe you should have access, please contact a platform administrator.",
+    "goHome": "Go to Homepage",
+    "signInDifferent": "Sign In with Different Account",
+    "contactAdmin": "Need access? Contact the platform administrator."
+  },
+  "dashboard": {
+    "title": "Platform Dashboard",
+    "description": "Overview of platform-wide metrics and activity",
+    "manageUsers": "Manage Users",
+    "viewOrganizations": "View Organizations",
+    "adminInfo": "Admin Information",
+    "adminInfoDescription": "Your current admin session details",
+    "loggedInAs": "Logged in as",
+    "adminId": "Admin ID",
+    "auditNote": "All admin actions are logged for security and compliance purposes."
+  },
+  "metrics": {
+    "totalOrganizations": "Total Organizations",
+    "registeredOrganizations": "Registered organizations",
+    "totalUsers": "Total Users",
+    "allRegisteredUsers": "All registered users",
+    "activeUsers": "Active Users",
+    "last30Days": "Logged in within last 30 days",
+    "newUsers": "New Users",
+    "thisMonth": "Registered this month",
+    "pendingUsers": "Pending Users",
+    "awaitingActivation": "Awaiting activation",
+    "inactiveUsers": "Inactive Users",
+    "suspendedOrDeactivated": "Suspended or deactivated"
+  },
+  "users": {
+    "title": "User Management",
+    "description": "View and manage platform users",
+    "searchPlaceholder": "Search by name, username, or email...",
+    "search": "Search",
+    "filterByStatus": "Filter by status",
+    "showingResults": "Showing {count, plural, =0 {no users} =1 {1 user} other {# users}}",
+    "noResults": "No users found.",
+    "page": "Page {page} of {totalPages}",
+    "previous": "Previous",
+    "next": "Next",
+    "never": "Never",
+    "admin": "Admin",
+    "openMenu": "Open menu",
+    "actionsLabel": "Actions",
+    "columns": {
+      "email": "Email",
+      "name": "Name",
+      "username": "Username",
+      "status": "Status",
+      "organizations": "Orgs",
+      "createdAt": "Created",
+      "lastLogin": "Last Login"
+    },
+    "status": {
+      "all": "All Statuses",
+      "active": "Active",
+      "pending": "Pending",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "warn": "Send Warning",
+      "suspend": "Suspend Account",
+      "unsuspend": "Restore Account",
+      "delete": "Delete Account"
+    }
+  },
+  "organizations": {
+    "title": "Organizations",
+    "description": "View registered organizations",
+    "searchPlaceholder": "Search by name or slug...",
+    "search": "Search",
+    "showingResults": "Showing {count, plural, =0 {no organizations} =1 {1 organization} other {# organizations}}",
+    "noResults": "No organizations found.",
+    "page": "Page {page} of {totalPages}",
+    "previous": "Previous",
+    "next": "Next",
+    "openMenu": "Open menu",
+    "actionsLabel": "Actions",
+    "columns": {
+      "name": "Organization",
+      "members": "Members",
+      "createdAt": "Created",
+      "id": "ID"
+    },
+    "privacyNote": {
+      "title": "Privacy Notice:",
+      "description": "For privacy protection, organization internal data is not accessible. Only basic public information (name, member count, creation date) is shown."
+    },
+    "actions": {
+      "warnAll": "Warn All Members",
+      "suspendAll": "Suspend Organization",
+      "deleteOrg": "Delete Organization"
+    }
+  },
+  "actions": {
+    "error": "Error",
+    "success": "Success",
+    "genericError": "An error occurred. Please try again.",
+    "reasonRequired": "Please provide a reason for this action.",
+    "reasonTooShort": "Reason must be at least 10 characters.",
+    "confirmRequired": "Please type DELETE to confirm.",
+    "cancel": "Cancel",
+    "targetUser": "Target User",
+    "targetOrganization": "Target Organization",
+    "reason": "Reason",
+    "reasonPlaceholder": "Explain the reason for this action...",
+    "reasonNote": "This message will be included in the notification sent to the user.",
+    "reasonNoteOrg": "This message will be sent to all members of the organization.",
+    "optionalNote": "Note (optional)",
+    "optionalNotePlaceholder": "Add an optional note...",
+    "warn": {
+      "title": "Send Warning",
+      "description": "Send a warning notification to this user. The user will receive an in-app notification and email.",
+      "button": "Send Warning",
+      "success": "Warning sent successfully."
+    },
+    "suspend": {
+      "title": "Suspend Account",
+      "description": "Suspend this user's account. They will be unable to log in until their account is restored.",
+      "button": "Suspend Account",
+      "success": "Account suspended successfully."
+    },
+    "unsuspend": {
+      "title": "Restore Account",
+      "description": "Restore this user's account. They will be able to log in and use the platform again.",
+      "button": "Restore Account",
+      "success": "Account restored successfully."
+    },
+    "delete": {
+      "title": "Delete Account",
+      "description": "Permanently delete this user's account. This action cannot be undone.",
+      "button": "Delete Account",
+      "success": "Account deleted successfully.",
+      "confirmLabel": "Type DELETE to confirm",
+      "confirmPlaceholder": "DELETE",
+      "confirmNote": "This action is irreversible. All user data will be permanently removed."
+    },
+    "orgWarnAll": {
+      "title": "Warn All Organization Members",
+      "description": "Send a warning notification to all members of this organization. All members will receive an in-app notification and email.",
+      "button": "Send Warning to All",
+      "success": "Warning sent to all organization members."
+    },
+    "orgSuspend": {
+      "title": "Suspend Organization",
+      "description": "Suspend this organization and all its members. All members will be unable to log in until the organization is restored.",
+      "button": "Suspend Organization",
+      "success": "Organization suspended successfully."
+    },
+    "orgDelete": {
+      "title": "Delete Organization",
+      "description": "Permanently delete this organization. All members will lose access and organization data will be removed.",
+      "button": "Delete Organization",
+      "success": "Organization deleted successfully.",
+      "confirmLabel": "Type DELETE to confirm",
+      "confirmPlaceholder": "DELETE",
+      "confirmNote": "This action is irreversible. All organization data will be permanently removed."
+    }
+  }
+}

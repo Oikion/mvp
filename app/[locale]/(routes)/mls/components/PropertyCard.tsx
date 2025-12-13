@@ -1,14 +1,17 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import axios from "axios";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, MapPin, Home, BedDouble, Bath, Ruler } from "lucide-react";
+import { MapPin, Home, BedDouble, Bath, Ruler, Eye } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { statuses } from "../properties/table-data/data";
 import { usePrefetch } from "@/hooks/swr";
+import { EntityCardActions } from "@/components/entity";
 
 interface PropertyCardProps {
   data: {
@@ -27,6 +30,7 @@ interface PropertyCardProps {
 
 export function PropertyCard({ data }: PropertyCardProps) {
   const t = useTranslations("mls");
+  const router = useRouter();
   const { prefetchProperty, prefetchPropertyLinked } = usePrefetch();
 
   const status = statuses.find((s) => s.value === data.property_status);
@@ -39,9 +43,13 @@ export function PropertyCard({ data }: PropertyCardProps) {
     prefetchPropertyLinked(data.id);
   };
 
+  const handleDelete = async () => {
+    await axios.delete(`/api/mls/properties/${data.id}`);
+  };
+
   return (
     <Card
-      className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full"
+      className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full group"
       onMouseEnter={handleMouseEnter}
     >
       <div className="relative h-48 w-full bg-muted">
@@ -57,7 +65,8 @@ export function PropertyCard({ data }: PropertyCardProps) {
             <Home className="h-12 w-12" />
           </div>
         )}
-        <div className="absolute top-2 right-2">
+        {/* Status badge - left side */}
+        <div className="absolute top-2 left-2">
           {status && (
             <Badge
               variant="secondary"
@@ -67,6 +76,22 @@ export function PropertyCard({ data }: PropertyCardProps) {
               {status.label}
             </Badge>
           )}
+        </div>
+        {/* Actions menu - right side */}
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="bg-background/80 backdrop-blur-sm rounded-md">
+            <EntityCardActions
+              entityType="property"
+              entityId={data.id}
+              entityName={data.property_name}
+              viewHref={`/mls/properties/${data.id}`}
+              onEdit={() => router.push(`/mls/properties/${data.id}?edit=true`)}
+              onDelete={handleDelete}
+              showSchedule
+              showShare
+              onActionComplete={() => router.refresh()}
+            />
+          </div>
         </div>
       </div>
 
@@ -110,7 +135,7 @@ export function PropertyCard({ data }: PropertyCardProps) {
         </div>
         <Link href={`/mls/properties/${data.id}`}>
           <Button variant="outline" size="sm">
-            <Edit className="h-4 w-4 mr-2" />
+            <Eye className="h-4 w-4 mr-2" />
             {t("MlsPropertiesTable.details")}
           </Button>
         </Link>

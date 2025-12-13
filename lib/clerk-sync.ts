@@ -1,6 +1,9 @@
+"use server";
+
 import { prismadb } from "@/lib/prisma";
 import { createClerkClient } from "@clerk/backend";
 import { newUserNotify } from "@/lib/new-user-notify";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 /**
  * Sync a Clerk user with the Prisma Users table
@@ -147,8 +150,14 @@ export async function syncClerkUser(clerkUserId: string) {
   // Create new user (only if no existing user found)
   // Wrap in try-catch to handle race conditions where user might be created between checks
   try {
+    // Generate friendly ID
+    const userId = await generateFriendlyId(prismadb, "Users");
+
+    // Type-safe user creation with onboardingCompleted field
+    // Note: Prisma types may need regeneration after schema changes
     const newUser = await prismadb.users.create({
       data: {
+        id: userId,
         clerkUserId,
         email,
         name,
@@ -159,12 +168,18 @@ export async function syncClerkUser(clerkUserId: string) {
         is_account_admin: false,
         lastLoginAt: new Date(),
         userStatus: "ACTIVE", // Always create users as ACTIVE - no admin approval needed
+        onboardingCompleted: false, // New users must complete onboarding
       },
     });
     return newUser;
-  } catch (error: any) {
+  } catch (error) {
     // If unique constraint error (email or clerkUserId), try to find and return existing user
-    if (error?.code === "P2002") {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
       // Try to find by clerkUserId first
       const existingUser = await prismadb.users.findFirst({
         where: { clerkUserId },
@@ -314,18 +329,8 @@ export async function deleteUserOwnedOrganizations(clerkUserId: string) {
               deletedOrgIds.push(organizationId);
               console.log(`[DELETE_ORG] Successfully deleted organization ${organizationId}${orgDetails ? ` (slug: ${orgDetails.slug})` : ''} owned by user ${clerkUserId}`);
               
-              // Optional: Verify deletion after a short delay
-              // Note: Clerk may have eventual consistency, so this is informational only
-              setTimeout(async () => {
-                try {
-                  await clerk.organizations.getOrganization({ organizationId });
-                  console.warn(`[DELETE_ORG] WARNING: Organization ${organizationId} still exists after deletion (may be eventual consistency)`);
-                } catch (verifyError: any) {
-                  if (verifyError?.status === 404 || verifyError?.code === "not_found") {
-                    console.log(`[DELETE_ORG] Verified: Organization ${organizationId} successfully deleted`);
-                  }
-                }
-              }, 1000);
+              // Note: Verification of deletion is skipped in server context
+              // Clerk handles deletion synchronously, and eventual consistency is handled by Clerk
             } catch (orgError: any) {
               // If organization already deleted or doesn't exist (404), that's fine
               if (orgError?.status === 404 || orgError?.code === "not_found") {

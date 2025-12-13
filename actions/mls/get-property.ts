@@ -13,7 +13,11 @@ export const getProperty = async (propertyId: string) => {
       contacts: true,
     },
   });
-  return data;
+  
+  if (!data) return null;
+  
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return JSON.parse(JSON.stringify(data));
 };
 
 

@@ -29,7 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Copy, Check } from "lucide-react";
 
 const FormSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -55,6 +55,36 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
     orgsToDelete: Array<{ id: string; name: string }>;
   } | null>(null);
   const [step, setStep] = useState<"validation" | "org-warning" | "deleting">("validation");
+  const [copiedUsername, setCopiedUsername] = useState(false);
+  const [copiedConfirmText, setCopiedConfirmText] = useState(false);
+
+  const copyToClipboard = async (text: string, type: "username" | "confirmText") => {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (type === "username") {
+        setCopiedUsername(true);
+        setTimeout(() => setCopiedUsername(false), 2000);
+      } else {
+        setCopiedConfirmText(true);
+        setTimeout(() => setCopiedConfirmText(false), 2000);
+      }
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      textArea.remove();
+      if (type === "username") {
+        setCopiedUsername(true);
+        setTimeout(() => setCopiedUsername(false), 2000);
+      } else {
+        setCopiedConfirmText(true);
+        setTimeout(() => setCopiedConfirmText(false), 2000);
+      }
+    }
+  };
 
   const router = useRouter();
   const { signOut } = useClerk();
@@ -161,8 +191,18 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
     form.reset();
   }
 
+  function handleOpenChange(open: boolean) {
+    setIsDialogOpen(open);
+    // Reset form state when dialog is closed
+    if (!open) {
+      setStep("validation");
+      setOrgCheckResult(null);
+      form.reset();
+    }
+  }
+
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="destructive" type="button">
           Delete Account
@@ -195,13 +235,43 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Enter your username</FormLabel>
-                        <FormControl>
-                          <Input
-                            disabled={isLoading}
-                            placeholder="Enter your username"
-                            {...field}
-                          />
-                        </FormControl>
+                        {username && (
+                          <div className="relative">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-t-md text-sm -mb-px relative z-10">
+                              <code className="font-mono text-primary font-medium">{username}</code>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-5 w-5 p-0 hover:bg-primary/20"
+                                onClick={() => copyToClipboard(username, "username")}
+                              >
+                                {copiedUsername ? (
+                                  <Check className="h-3 w-3 text-green-500" />
+                                ) : (
+                                  <Copy className="h-3 w-3 text-primary" />
+                                )}
+                              </Button>
+                            </div>
+                            <FormControl>
+                              <Input
+                                disabled={isLoading}
+                                placeholder="Enter your username"
+                                className="rounded-tl-none"
+                                {...field}
+                              />
+                            </FormControl>
+                          </div>
+                        )}
+                        {!username && (
+                          <FormControl>
+                            <Input
+                              disabled={isLoading}
+                              placeholder="Enter your username"
+                              {...field}
+                            />
+                          </FormControl>
+                        )}
                         <FormDescription>
                           Please enter your username to confirm account deletion.
                         </FormDescription>
@@ -216,13 +286,32 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Type &quot;delete my account&quot;</FormLabel>
-                        <FormControl>
-                          <Input
-                            disabled={isLoading}
-                            placeholder="delete my account"
-                            {...field}
-                          />
-                        </FormControl>
+                        <div className="relative">
+                          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-t-md text-sm -mb-px relative z-10">
+                            <code className="font-mono text-primary font-medium">delete my account</code>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 w-5 p-0 hover:bg-primary/20"
+                              onClick={() => copyToClipboard("delete my account", "confirmText")}
+                            >
+                              {copiedConfirmText ? (
+                                <Check className="h-3 w-3 text-green-500" />
+                              ) : (
+                                <Copy className="h-3 w-3 text-primary" />
+                              )}
+                            </Button>
+                          </div>
+                          <FormControl>
+                            <Input
+                              disabled={isLoading}
+                              placeholder="delete my account"
+                              className="rounded-tl-none"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
                         <FormDescription>
                           Type &quot;delete my account&quot; to confirm.
                         </FormDescription>

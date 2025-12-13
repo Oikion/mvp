@@ -53,6 +53,8 @@ import {
   ChevronDown,
   ChevronUp,
   X,
+  Reply,
+  CornerDownRight,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -137,6 +139,11 @@ function PostCard({
   const [isAddingComment, setIsAddingComment] = useState(false);
   const [hasMoreComments, setHasMoreComments] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | undefined>();
+  
+  // Reply state
+  const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
+  const [replyInput, setReplyInput] = useState("");
+  const [isAddingReply, setIsAddingReply] = useState(false);
 
   const { toast } = useToast();
 
@@ -230,11 +237,26 @@ function PostCard({
   };
 
   // Delete comment
-  const handleDeleteComment = async (commentId: string) => {
+  const handleDeleteComment = async (commentId: string, isReply = false, parentId?: string) => {
     try {
       const result = await deleteComment(commentId);
       if (result.success) {
-        setComments((prev) => prev.filter((c) => c.id !== commentId));
+        if (isReply && parentId) {
+          // Remove reply from parent comment
+          setComments((prev) =>
+            prev.map((c) =>
+              c.id === parentId
+                ? {
+                    ...c,
+                    replies: c.replies?.filter((r) => r.id !== commentId) || [],
+                    replyCount: (c.replyCount || 1) - 1,
+                  }
+                : c
+            )
+          );
+        } else {
+          setComments((prev) => prev.filter((c) => c.id !== commentId));
+        }
         setCommentCount((prev) => prev - 1);
         toast({
           variant: "success",
@@ -252,6 +274,55 @@ function PostCard({
         title: "Failed to delete comment",
       });
     }
+  };
+
+  // Add reply to a comment
+  const handleAddReply = async (parentCommentId: string) => {
+    if (!replyInput.trim() || isAddingReply) return;
+
+    setIsAddingReply(true);
+    try {
+      const result = await addComment(post.id, replyInput, parentCommentId);
+      if (result.success && result.comment) {
+        // Add reply to the parent comment's replies array
+        setComments((prev) =>
+          prev.map((c) =>
+            c.id === parentCommentId
+              ? {
+                  ...c,
+                  replies: [...(c.replies || []), result.comment!],
+                  replyCount: (c.replyCount || 0) + 1,
+                }
+              : c
+          )
+        );
+        setCommentCount((prev) => prev + 1);
+        setReplyInput("");
+        setReplyingTo(null);
+        toast({
+          variant: "success",
+          title: t?.post?.replyAdded || "Reply added",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: result.error || "Failed to add reply",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to add reply",
+      });
+    } finally {
+      setIsAddingReply(false);
+    }
+  };
+
+  // Cancel replying
+  const cancelReply = () => {
+    setReplyingTo(null);
+    setReplyInput("");
   };
 
   const getActionText = (type: string) => {
@@ -499,37 +570,150 @@ function PostCard({
             {comments.length > 0 && (
               <div className="space-y-3">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="flex items-start gap-2 group">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={comment.author.avatar} />
-                      <AvatarFallback className="text-xs">
-                        {comment.author.name?.charAt(0)?.toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 bg-muted/50 rounded-lg px-3 py-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">{comment.author.name}</span>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(comment.createdAt), {
-                              addSuffix: true,
-                              locale: dateLocale,
-                            })}
-                          </span>
-                          {comment.isOwn && (
+                  <div key={comment.id} className="space-y-2">
+                    {/* Main Comment */}
+                    <div className="flex items-start gap-2 group">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={comment.author.avatar} />
+                        <AvatarFallback className="text-xs">
+                          {comment.author.name?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="bg-muted/50 rounded-lg px-3 py-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-medium text-sm">{comment.author.name}</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(comment.createdAt), {
+                                  addSuffix: true,
+                                  locale: dateLocale,
+                                })}
+                              </span>
+                              {comment.isOwn && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm mt-1 whitespace-pre-wrap">{comment.content}</p>
+                        </div>
+                        {/* Reply button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 mt-1 text-xs text-muted-foreground hover:text-primary"
+                          onClick={() => setReplyingTo({ id: comment.id, authorName: comment.author.name })}
+                        >
+                          <Reply className="h-3 w-3 mr-1" />
+                          {t?.post?.reply || "Reply"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Reply Input (when replying to this comment) */}
+                    {replyingTo?.id === comment.id && (
+                      <div className="ml-10 flex items-start gap-2">
+                        <CornerDownRight className="h-4 w-4 text-muted-foreground mt-2" />
+                        <Avatar className="h-7 w-7">
+                          <AvatarImage src={currentUser?.avatar} />
+                          <AvatarFallback className="text-xs">
+                            {currentUser?.name?.charAt(0)?.toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="text-xs text-muted-foreground mb-1">
+                            {t?.post?.replyingTo || "Replying to"} <span className="font-medium">{replyingTo.authorName}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder={t?.post?.writeReply || "Write a reply..."}
+                              value={replyInput}
+                              onChange={(e) => setReplyInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleAddReply(comment.id);
+                                }
+                                if (e.key === "Escape") {
+                                  cancelReply();
+                                }
+                              }}
+                              disabled={isAddingReply}
+                              className="text-sm h-8"
+                              autoFocus
+                            />
                             <Button
+                              size="sm"
+                              className="h-8"
+                              onClick={() => handleAddReply(comment.id)}
+                              disabled={!replyInput.trim() || isAddingReply}
+                            >
+                              {isAddingReply ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Send className="h-3 w-3" />
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
                               variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => handleDeleteComment(comment.id)}
+                              className="h-8"
+                              onClick={cancelReply}
                             >
                               <X className="h-3 w-3" />
                             </Button>
-                          )}
+                          </div>
                         </div>
                       </div>
-                      <p className="text-sm mt-1 whitespace-pre-wrap">{comment.content}</p>
-                    </div>
+                    )}
+
+                    {/* Replies */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="ml-10 space-y-2">
+                        {comment.replies.map((reply) => (
+                          <div key={reply.id} className="flex items-start gap-2 group">
+                            <CornerDownRight className="h-4 w-4 text-muted-foreground mt-2" />
+                            <Avatar className="h-7 w-7">
+                              <AvatarImage src={reply.author.avatar} />
+                              <AvatarFallback className="text-xs">
+                                {reply.author.name?.charAt(0)?.toUpperCase() || "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 bg-muted/30 rounded-lg px-3 py-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-medium text-sm">{reply.author.name}</span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatDistanceToNow(new Date(reply.createdAt), {
+                                      addSuffix: true,
+                                      locale: dateLocale,
+                                    })}
+                                  </span>
+                                  {reply.isOwn && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      onClick={() => handleDeleteComment(reply.id, true, comment.id)}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-sm mt-1 whitespace-pre-wrap">{reply.content}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
 

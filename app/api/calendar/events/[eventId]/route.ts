@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
@@ -30,6 +31,7 @@ async function createUpdateNotifications(
     if (event.assignedUserId && event.assignedUserId !== updaterId) {
       await db.notification.create({
         data: {
+          id: randomUUID(),
           userId: event.assignedUserId,
           organizationId,
           type: "CALENDAR_EVENT_UPDATED",
@@ -68,6 +70,7 @@ async function createCancellationNotifications(
     if (event.assignedUserId && event.assignedUserId !== cancellerId) {
       await db.notification.create({
         data: {
+          id: randomUUID(),
           userId: event.assignedUserId,
           organizationId,
           type: "CALENDAR_EVENT_CANCELLED",
@@ -102,6 +105,7 @@ async function createCancellationNotifications(
       for (const agentId of Array.from(agentIds)) {
         await db.notification.create({
           data: {
+            id: randomUUID(),
             userId: agentId,
             organizationId,
             type: "CALENDAR_EVENT_CANCELLED",

@@ -124,3 +124,6 @@ export const PriceCell = ({ propertyId, price }: PriceCellProps) => {
 
 
 
+
+
+

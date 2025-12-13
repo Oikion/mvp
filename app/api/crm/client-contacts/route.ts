@@ -3,6 +3,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 import sendEmail from "@/lib/sendmail";
 import { invalidateCache } from "@/lib/cache-invalidate";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 export async function POST(req: Request) {
   try {
@@ -34,8 +35,12 @@ export async function POST(req: Request) {
       type,
     } = body;
 
+    // Generate friendly ID
+    const contactId = await generateFriendlyId(prismadb, "Client_Contacts");
+
     const newContact = await prismadb.client_Contacts.create({
       data: {
+        id: contactId,
         createdBy: userId,
         updatedBy: userId,
         ...(assigned_client !== null && assigned_client !== undefined

@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
+import { serializePrismaJson } from "@/lib/prisma-serialize";
 
 /**
  * Get the current user's showcase properties with order
@@ -53,12 +54,13 @@ export async function getShowcaseProperties() {
     orderBy: { order: "asc" },
   });
 
-  return showcaseProperties.map((sp) => ({
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return serializePrismaJson(showcaseProperties.map((sp) => ({
     id: sp.id,
     propertyId: sp.propertyId,
     order: sp.order,
     property: sp.property,
-  }));
+  })));
 }
 
 /**
@@ -121,7 +123,8 @@ export async function getAvailablePropertiesForShowcase() {
     orderBy: { createdAt: "desc" },
   });
 
-  return properties;
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return serializePrismaJson(properties);
 }
 
 /**
@@ -187,7 +190,8 @@ export async function addShowcaseProperty(propertyId: string) {
     revalidatePath(`/agent/${currentUser.username}`);
   }
 
-  return showcaseProperty;
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return serializePrismaJson(showcaseProperty);
 }
 
 /**
@@ -337,6 +341,7 @@ export async function getPublicShowcaseProperties(slug: string) {
     orderBy: { order: "asc" },
   });
 
-  return showcaseProperties.map((sp) => sp.property);
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return serializePrismaJson(showcaseProperties.map((sp) => sp.property));
 }
 

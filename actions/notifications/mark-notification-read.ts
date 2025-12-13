@@ -3,17 +3,23 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 
+// System-level organization ID for platform admin notifications
+const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
+
 export async function markNotificationRead(notificationId: string) {
   try {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 
-    // Verify the notification belongs to the current user and organization
+    // Verify the notification belongs to the current user
+    // Include both org-specific and system-level notifications
     const notification = await prismadb.notification.findFirst({
       where: {
         id: notificationId,
         userId: user.id,
-        organizationId,
+        organizationId: {
+          in: [organizationId, SYSTEM_ORG_ID],
+        },
       },
     });
 
@@ -21,14 +27,9 @@ export async function markNotificationRead(notificationId: string) {
       throw new Error("Notification not found");
     }
 
-    // Use updateMany to avoid the unique constraint issue with tenant filtering
-    // We already verified ownership above, so this is safe
-    await prismadb.notification.updateMany({
-      where: {
-        id: notificationId,
-        userId: user.id,
-        organizationId,
-      },
+    // Update the notification
+    await prismadb.notification.update({
+      where: { id: notificationId },
       data: {
         read: true,
         readAt: new Date(),
@@ -52,10 +53,13 @@ export async function markAllNotificationsRead() {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 
+    // Mark both org-specific and system-level notifications as read
     await prismadb.notification.updateMany({
       where: {
         userId: user.id,
-        organizationId,
+        organizationId: {
+          in: [organizationId, SYSTEM_ORG_ID],
+        },
         read: false,
       },
       data: {
@@ -70,9 +74,3 @@ export async function markAllNotificationsRead() {
     throw error;
   }
 }
-
-
-
-
-
-

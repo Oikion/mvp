@@ -86,6 +86,23 @@ export function CreateOrganizationForm() {
         description: "Organization created successfully!",
       });
 
+      // Check if user needs to complete onboarding
+      // Fetch user data to check onboarding status
+      try {
+        const userResponse = await fetch("/api/user");
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          if (!userData.onboardingCompleted) {
+            // Redirect to onboarding if not completed
+            router.push(`/${locale}/onboard`);
+            router.refresh();
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Error checking onboarding status:", error);
+      }
+
       // Redirect to dashboard after successful creation
       router.push(`/${locale}`);
       router.refresh();

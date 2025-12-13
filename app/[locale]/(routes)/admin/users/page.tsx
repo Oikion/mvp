@@ -6,7 +6,8 @@ import Container from "../../components/ui/Container";
 import { Separator } from "@/components/ui/separator";
 import { isOrgAdmin } from "@/lib/org-admin";
 import { getOrgMembersFromDb } from "@/lib/org-members";
-import { AdminUserDataTable } from "./table-components/data-table";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { getColumns } from "./table-components/columns";
 import { OrganizationInviteForm } from "./components/OrgInviteForm";
 
 const AdminUsersPage = async () => {
@@ -68,7 +69,12 @@ const AdminUsersPage = async () => {
         </div>
         <Separator />
 
-        <AdminUserDataTable data={usersWithRoles} />
+        <DataTable 
+          data={usersWithRoles} 
+          columns={getColumns(t)}
+          searchKey="name"
+          searchPlaceholder={t("filterPlaceholder") || "Filter users..."}
+        />
       </Container>
     );
   } catch (error) {

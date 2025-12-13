@@ -1,0 +1,169 @@
+{
+  "title": "Καλωσήρθες στο Oikion",
+  "subtitle": "Ας ρυθμίσουμε τα πάντα σε λίγα βήματα",
+  "progress": "Βήμα {current} από {total}",
+  "steps": {
+    "language": {
+      "title": "Επιλέξτε τη Γλώσσα σας",
+      "description": "Επιλέξτε την προτιμώμενη γλώσσα για τη διεπαφή",
+      "proceed": "Συνέχεια"
+    },
+    "welcome": {
+      "greeting": "Καλωσήρθες στο Oikion",
+      "personalGreeting": "Καλωσήρθες, {name}!",
+      "tagline": "Το λειτουργικό σύστημα για μεσιτικά γραφεία",
+      "description": "Χαιρόμαστε που είσαι εδώ. Ας προσαρμόσουμε την εμπειρία σου σε λίγα γρήγορα βήματα.",
+      "getStarted": "Ας Ξεκινήσουμε"
+    },
+    "languageTheme": {
+      "themeTitle": "Διάλεξε το Στυλ Σου",
+      "themeDescription": "Επέλεξε ένα οπτικό θέμα που σου ταιριάζει. Μπορείς να το αλλάξεις οποτεδήποτε.",
+      "themes": {
+        "light": "Φωτεινό",
+        "dark": "Σκοτεινό",
+        "pearl-sand": "Άμμος Μαργαριταριού",
+        "twilight-lavender": "Λεβάντα Λυκόφωτος",
+        "system": "Προεπιλογή Συστήματος"
+      },
+      "themeDescriptions": {
+        "light": "Καθαρό και φωτεινό",
+        "dark": "Ξεκούραστο για τα μάτια",
+        "pearl-sand": "Ζεστό και άνετο",
+        "twilight-lavender": "Ήρεμο και κομψό",
+        "system": "Όπως η συσκευή σου"
+      }
+    },
+    "usernameOrg": {
+      "title": "Ρύθμισε το Προφίλ & τον Χώρο Εργασίας",
+      "description": "Εισάγετε τα στοιχεία σας και δημιουργήστε τον οργανισμό σας.",
+      "nameLabel": "Το Όνομά Σου",
+      "namePlaceholder": "π.χ., Γιάννης Παπαδόπουλος",
+      "usernameTitle": "Το Όνομα Χρήστη Σου",
+      "usernameDescription": "Αυτό θα είναι το μοναδικό σου αναγνωριστικό στο Oikion",
+      "usernameLabel": "Όνομα Χρήστη",
+      "usernamePlaceholder": "π.χ., giannis.papadopoulos",
+      "usernameHint": "Το προφίλ σου: oikion.app/agent/{username}",
+      "usernameAvailable": "Το όνομα χρήστη είναι διαθέσιμο!",
+      "usernameTaken": "Αυτό το όνομα χρήστη χρησιμοποιείται",
+      "usernameChecking": "Έλεγχος...",
+      "usernameInvalid": "2-50 χαρακτήρες, γράμματα, αριθμοί, κάτω παύλες μόνο",
+      "orgTitle": "Ο Οργανισμός Σου",
+      "orgDescription": "Δημιούργησε τον χώρο εργασίας του μεσιτικού σου γραφείου",
+      "orgNameLabel": "Όνομα Οργανισμού",
+      "orgNamePlaceholder": "π.χ., Ακίνητα Ηλιοφάνεια",
+      "orgSlugLabel": "URL Slug",
+      "orgSlugPlaceholder": "akinita-iliofaneia",
+      "orgSlugHint": "Μόνο πεζά γράμματα, αριθμοί και παύλες"
+    },
+    "notifications": {
+      "title": "Μείνε Ενημερωμένος",
+      "description": "Πες μας τι είναι σημαντικό για σένα. Θα φροντίσουμε να μη χάσεις τίποτα.",
+      "question": "Για τι θα ήθελες υπενθυμίσεις;",
+      "options": {
+        "tasks": {
+          "title": "Εργασίες & Προθεσμίες",
+          "description": "Μη χάσεις ποτέ προθεσμία ή follow-up"
+        },
+        "calendar": {
+          "title": "Ραντεβού & Εκδηλώσεις",
+          "description": "Κράτα το πρόγραμμά σου ενημερωμένο"
+        },
+        "deals": {
+          "title": "Ενημερώσεις Συναλλαγών",
+          "description": "Παρακολούθησε την πρόοδο των συναλλαγών"
+        },
+        "team": {
+          "title": "Δραστηριότητα Ομάδας",
+          "description": "Μάθε τι κάνουν οι συνάδελφοί σου"
+        },
+        "documents": {
+          "title": "Έγγραφα",
+          "description": "Όταν κάποιος βλέπει ή μοιράζεται έγγραφα"
+        }
+      },
+      "deliveryTitle": "Πώς θα ήθελες να σε ενημερώνουμε;",
+      "deliveryOptions": {
+        "email": {
+          "title": "Email",
+          "description": "Λάβε ειδοποιήσεις στα εισερχόμενά σου"
+        },
+        "inApp": {
+          "title": "Στην Εφαρμογή",
+          "description": "Δες ειδοποιήσεις όταν είσαι online"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Απόρρητο & Ρυθμίσεις",
+      "description": "Ελέγξτε τις ρυθμίσεις απορρήτου και τις προτιμήσεις σας",
+      "profileVisibility": {
+        "title": "Ορατότητα Προφίλ",
+        "description": "Ποιος μπορεί να δει το δημόσιο προφίλ σας;",
+        "options": {
+          "personal": {
+            "title": "Προσωπικό",
+            "description": "Το προφίλ σας είναι κρυφό από όλους"
+          },
+          "secure": {
+            "title": "Ασφαλές",
+            "description": "Μόνο εγγεγραμμένοι χρήστες μπορούν να δουν το προφίλ σας"
+          },
+          "public": {
+            "title": "Δημόσιο",
+            "description": "Οποιοσδήποτε μπορεί να δει το προφίλ σας"
+          }
+        }
+      },
+      "analytics": {
+        "title": "Αναλύσεις Χρήσης",
+        "description": "Βοηθήστε μας να βελτιώσουμε το Oikion",
+        "label": "Κοινοποίηση ανώνυμων δεδομένων χρήσης"
+      }
+    },
+    "review": {
+      "title": "Όλα Έτοιμα!",
+      "description": "Ορίστε μια περίληψη των ρυθμίσεών σου. Μπορείς πάντα να τις αλλάξεις στις ρυθμίσεις.",
+      "sections": {
+        "profile": "Το Προφίλ Σου",
+        "organization": "Οργανισμός",
+        "preferences": "Προτιμήσεις",
+        "notifications": "Ειδοποιήσεις"
+      },
+      "fields": {
+        "name": "Όνομα",
+        "email": "Email",
+        "username": "Όνομα Χρήστη",
+        "orgName": "Οργανισμός",
+        "language": "Γλώσσα",
+        "theme": "Θέμα",
+        "reminders": "Υπενθυμίσεις",
+        "delivery": "Παράδοση"
+      },
+      "values": {
+        "enabledItems": "{count} τύποι ενεργοί",
+        "emailAndInApp": "Email & Εφαρμογή",
+        "emailOnly": "Μόνο Email",
+        "inAppOnly": "Μόνο στην Εφαρμογή",
+        "none": "Κανένα"
+      }
+    },
+    "complete": {
+      "title": "Όλα Έτοιμα!",
+      "description": "Ο χώρος εργασίας σου είναι έτοιμος. Ας ξεκινήσουμε!",
+      "getStarted": "Είσοδος στο Oikion"
+    }
+  },
+  "navigation": {
+    "back": "Πίσω",
+    "next": "Συνέχεια",
+    "skip": "Παράλειψη",
+    "finish": "Ολοκλήρωση Ρύθμισης"
+  },
+  "errors": {
+    "generic": "Κάτι πήγε στραβά. Παρακαλώ δοκίμασε ξανά.",
+    "usernameCheckFailed": "Αποτυχία ελέγχου διαθεσιμότητας ονόματος χρήστη",
+    "orgCreationFailed": "Αποτυχία δημιουργίας οργανισμού",
+    "completionFailed": "Αποτυχία ολοκλήρωσης ρύθμισης. Παρακαλώ δοκίμασε ξανά."
+  }
+}
+

@@ -1,42 +1,20 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+import moment from "moment";
+import { useTranslations } from "next-intl";
 
 import { Opportunity } from "../table-data/schema";
-import { DataTableColumnHeader } from "./data-table-column-header";
-import { DataTableRowActions } from "./data-table-row-actions";
-import moment from "moment";
+import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { ContactRowActions } from "./ContactRowActions";
 
 export const columns: ColumnDef<Opportunity>[] = [
-  /*   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-[2px]"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-[2px]"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  }, */
   {
     accessorKey: "created_on",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date created" />
-    ),
+    header: ({ column }) => {
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("ContactsTable.dateCreated") || "Date created"} />;
+    },
     cell: ({ row }) => (
       <div className="whitespace-nowrap">
         {moment(row.getValue("created_on")).format("YY-MM-DD")}
@@ -47,17 +25,13 @@ export const columns: ColumnDef<Opportunity>[] = [
   },
   {
     accessorKey: "assigned_to_user",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Assigned to" />
-    ),
-
+    header: ({ column }) => {
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("ContactsTable.assignedTo") || "Assigned to"} />;
+    },
     cell: ({ row }) => (
       <div className="whitespace-nowrap">
-        {
-          //@ts-ignore
-          //TODO: fix this
-          row.getValue("assigned_to_user")?.name ?? "Unassigned"
-        }
+        {(row.getValue("assigned_to_user") as { name?: string } | null)?.name ?? "Unassigned"}
       </div>
     ),
     enableSorting: true,
@@ -65,16 +39,13 @@ export const columns: ColumnDef<Opportunity>[] = [
   },
   {
     accessorKey: "assigned_account",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Assigned account" />
-    ),
-
+    header: ({ column }) => {
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("ContactsTable.assignedAccount") || "Assigned account"} />;
+    },
     cell: ({ row }) => (
       <div className="whitespace-nowrap">
-        {
-          //@ts-ignore
-          row.original.assigned_accounts?.name ?? "Unassigned"
-        }
+        {(row.original as unknown as { assigned_accounts?: { name?: string } }).assigned_accounts?.name ?? "Unassigned"}
       </div>
     ),
     enableSorting: false,
@@ -82,58 +53,61 @@ export const columns: ColumnDef<Opportunity>[] = [
   },
   {
     accessorKey: "first_name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" />
-    ),
-
-    cell: ({ row }) => <div className="">{row.getValue("first_name")}</div>,
+    header: ({ column }) => {
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("ContactsTable.firstName") || "Name"} />;
+    },
+    cell: ({ row }) => <div>{row.getValue("first_name")}</div>,
     enableSorting: true,
     enableHiding: true,
   },
   {
     accessorKey: "last_name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Sure name" />
-    ),
-
-    cell: ({ row }) => <div className="">{row.getValue("last_name")}</div>,
+    header: ({ column }) => {
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("ContactsTable.lastName") || "Last name"} />;
+    },
+    cell: ({ row }) => <div>{row.getValue("last_name")}</div>,
     enableSorting: true,
     enableHiding: true,
   },
   {
     accessorKey: "email",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="E-mail" />
-    ),
-
-    cell: ({ row }) => <div className="">{row.getValue("email")}</div>,
+    header: ({ column }) => {
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("ContactsTable.email") || "E-mail"} />;
+    },
+    cell: ({ row }) => <div>{row.getValue("email")}</div>,
     enableSorting: true,
     enableHiding: true,
   },
   {
     accessorKey: "mobile_phone",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Mobile" />
-    ),
-
-    cell: ({ row }) => <div className="">{row.getValue("mobile_phone")}</div>,
+    header: ({ column }) => {
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("ContactsTable.mobile") || "Mobile"} />;
+    },
+    cell: ({ row }) => <div>{row.getValue("mobile_phone")}</div>,
     enableSorting: true,
     enableHiding: true,
   },
   {
     accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
-    ),
-
-    cell: ({ row }) => (
-      <div className="">{row.original.status ? "Active" : "Inactive"}</div>
-    ),
+    header: ({ column }) => {
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("ContactsTable.status") || "Status"} />;
+    },
+    cell: ({ row }) => {
+      const t = useTranslations("common");
+      return (
+        <div>{row.original.status ? t("statusLabels.client.ACTIVE") || "Active" : t("statusLabels.client.INACTIVE") || "Inactive"}</div>
+      );
+    },
     enableSorting: true,
     enableHiding: true,
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => <ContactRowActions row={row} />,
   },
 ];

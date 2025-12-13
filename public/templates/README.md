@@ -29,3 +29,6 @@ To create custom DOCX templates:
 
 See `/lib/templates/template-definitions.ts` for all available placeholder variables for each template type.
 
+
+
+

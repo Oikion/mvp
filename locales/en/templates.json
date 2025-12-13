@@ -6,6 +6,8 @@
   "fieldsCount": "{count} fields",
   "downloadDocx": "Download DOCX",
   "generatePdf": "Generate PDF",
+  "createDocument": "Create Document",
+  "generateWord": "Generate Word",
   "generateDocument": "Generate Document",
   "fillFieldsToGenerate": "Fill in the fields below to generate your document. Select a property or client to auto-fill available data.",
   "selectProperty": "Select Property",
@@ -18,11 +20,14 @@
   "cancel": "Cancel",
   "generating": "Generating...",
   "generateAndDownload": "Generate & Download",
+  "outputFormat": "Output Format",
   "missingRequiredFields": "Please fill in all required fields",
   "missingFields": "Missing required fields",
   "failedToLoadTemplate": "Failed to load template",
   "failedToGeneratePdf": "Failed to generate PDF",
+  "failedToGenerateDocument": "Failed to generate document",
   "pdfGenerated": "PDF generated successfully",
+  "docxGenerated": "Word document generated successfully",
   "templates": {
     "BROKERAGE_MANDATE": {
       "name": "Brokerage Mandate",
@@ -42,4 +47,6 @@
     }
   }
 }
+
+
 

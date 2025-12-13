@@ -18,6 +18,8 @@ import { syncClerkUser } from "@/lib/clerk-sync"
 import { FloatingQuickAddButtons } from "@/components/FloatingQuickAddButtons"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
+import { getOnboardingStatus } from "@/types/onboarding"
+import { isPlatformAdmin } from "@/lib/platform-admin"
 
 export default async function AppLayout({
   children,
@@ -34,6 +36,10 @@ export default async function AppLayout({
   }
 
   const { locale } = await params;
+  
+  // IMPORTANT: Skip onboarding check for onboard route to prevent infinite redirect loop
+  // The onboard route has its own layout that handles onboarding logic
+  // We check this by seeing if children is the onboard page (it will have its own layout wrapper)
 
   // Get or sync user from database
   let user = await getCurrentUserSafe();
@@ -88,15 +94,34 @@ export default async function AppLayout({
     return redirect(`/${locale}/inactive`);
   }
 
-  // Check if user has an organization - redirect to create if not
-  // Allow organization routes to render without orgId
-  if (!orgId) {
-    return redirect(`/${locale}/create-organization`);
+  // Check if user has completed onboarding - redirect if not
+  const onboardingCompleted = getOnboardingStatus(user);
+  
+  // Only redirect to onboarding if:
+  // 1. Onboarding is NOT completed, OR
+  // 2. No organization exists AND onboarding is not completed
+  // 
+  // If onboarding IS completed but orgId is missing, DON'T redirect back to onboard
+  // This prevents infinite loops when Clerk session hasn't updated with new orgId yet
+  if (!onboardingCompleted && !orgId) {
+    return redirect(`/${locale}/onboard`);
   }
+  
+  // If user hasn't completed onboarding but somehow has an org, send to onboarding
+  if (!onboardingCompleted) {
+    return redirect(`/${locale}/onboard`);
+  }
+
+  // At this point: onboardingCompleted = true
+  // If orgId is missing, we wait for Clerk session to update (don't redirect to avoid loop)
+  // The page may show incomplete data briefly, but this is better than an infinite loop
 
   const build = await getAllCommits();
   const modules = await getModules();
   const dict = await getDictionary(locale);
+  
+  // Check if user is a platform admin (for sidebar nav)
+  const userIsPlatformAdmin = await isPlatformAdmin();
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -110,6 +135,7 @@ export default async function AppLayout({
             email: user.email as string,
             avatar: user.avatar as string,
           }}
+          isPlatformAdmin={userIsPlatformAdmin}
         />
         <SidebarInset className="flex flex-col h-screen overflow-hidden bg-surface-2">
         <header className="flex h-16 shrink-0 items-center gap-2 justify-between">

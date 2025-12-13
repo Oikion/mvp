@@ -2,17 +2,16 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
-
-import { statuses } from "../table-data/data";
-import { Account } from "../table-data/schema";
-import { DataTableColumnHeader } from "./data-table-column-header";
-import { DataTableRowActions } from "./data-table-row-actions";
 import moment from "moment";
 import Link from "next/link";
+
+import { Account } from "../table-data/schema";
+import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { ClientRowActions } from "./ClientRowActions";
 import { AssignedUserCell } from "./cells/AssignedUserCell";
 import { StatusCell } from "./cells/StatusCell";
 
-export const getColumns = (users: any[] = []): ColumnDef<Account>[] => [
+export const getColumns = (users: { id: string; name: string | null }[] = []): ColumnDef<Account>[] => [
   {
     accessorKey: "createdAt",
     header: ({ column }) => {
@@ -33,12 +32,11 @@ export const getColumns = (users: any[] = []): ColumnDef<Account>[] => [
       const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.assignedTo")} />
     },
-
     cell: ({ row }) => {
       return (
         <AssignedUserCell
           clientId={row.original.id}
-          assignedTo={(row.original as any).assigned_to}
+          assignedTo={(row.original as unknown as { assigned_to: string | null }).assigned_to}
           users={users}
         />
       );
@@ -52,15 +50,10 @@ export const getColumns = (users: any[] = []): ColumnDef<Account>[] => [
       const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.name")} />
     },
-
     cell: ({ row }) => (
-      <Link href={`/crm/clients/${row.original?.id}`}>
+      <Link href={`/crm/clients/${row.original.id}`}>
         <div className="whitespace-nowrap">
-          {
-            //@ts-ignore
-            //TODO: fix this
-            row.getValue("name")
-          }
+          {row.getValue("name") as string}
         </div>
       </Link>
     ),
@@ -73,7 +66,6 @@ export const getColumns = (users: any[] = []): ColumnDef<Account>[] => [
       const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.email")} />
     },
-
     cell: ({ row }) => (
       <div className="whitespace-nowrap">{row.getValue("email")}</div>
     ),
@@ -86,11 +78,10 @@ export const getColumns = (users: any[] = []): ColumnDef<Account>[] => [
       const t = useTranslations("crm");
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.accountContact")} />
     },
-
     cell: ({ row }) => (
       <div>
         {row.original.contacts?.map(
-          (contact: any) => contact.first_name + " " + contact.last_name
+          (contact) => contact.first_name + " " + contact.last_name
         )}
       </div>
     ),
@@ -107,7 +98,7 @@ export const getColumns = (users: any[] = []): ColumnDef<Account>[] => [
       return (
         <StatusCell
           clientId={row.original.id}
-          status={(row.original as any).client_status || row.getValue("status")}
+          status={(row.original as unknown as { client_status?: string }).client_status || (row.getValue("status") as string)}
         />
       );
     },
@@ -117,7 +108,7 @@ export const getColumns = (users: any[] = []): ColumnDef<Account>[] => [
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => <ClientRowActions row={row} />,
   },
 ];
 

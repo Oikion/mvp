@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { columns } from "../contacts/table-components/columns";
 import { NewContactForm } from "../contacts/components/NewContactForm";
-import { ContactsDataTable } from "../contacts/table-components/data-table";
+import { DataTable } from "@/components/ui/data-table/data-table";
 import { useRouter } from "next/navigation";
 import {
   Sheet,
@@ -82,7 +82,12 @@ const ContactsView = ({ data, crmData }: any) => {
         {!data || data.length === 0 ? (
           "No assigned contacts found"
         ) : (
-          <ContactsDataTable data={data} columns={columns} />
+          <DataTable 
+            data={data} 
+            columns={columns} 
+            searchKey="first_name"
+            searchPlaceholder="Filter contacts..."
+          />
         )}
       </CardContent>
     </Card>

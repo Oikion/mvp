@@ -2,6 +2,8 @@
 
 import { prismaForOrg } from "@/lib/tenant";
 import { getCurrentOrgId } from "@/lib/get-current-user";
+import { generateFriendlyId, generateFriendlyIds } from "@/lib/friendly-id";
+import { prismadb } from "@/lib/prisma";
 
 export interface CreateNotificationParams {
   userId: string;
@@ -20,14 +22,18 @@ export async function createNotification(params: CreateNotificationParams) {
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
 
+    // Generate friendly ID
+    const notificationId = await generateFriendlyId(prismadb, "Notification");
+
     const notification = await prismaTenant.notification.create({
       data: {
+        id: notificationId,
         userId: params.userId,
         organizationId,
-        type: params.type as any,
+        type: params.type as unknown as import("@prisma/client").NotificationCategory,
         title: params.title,
         message: params.message,
-        entityType: params.entityType as any,
+        entityType: params.entityType as unknown as import("@prisma/client").NotificationEntityType,
         entityId: params.entityId,
         actorId: params.actorId,
         actorName: params.actorName,
@@ -53,14 +59,18 @@ export async function createNotificationsForUsers(
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
 
+    // Generate friendly IDs for all notifications
+    const notificationIds = await generateFriendlyIds(prismadb, "Notification", userIds.length);
+
     const notifications = await prismaTenant.notification.createMany({
-      data: userIds.map((userId) => ({
+      data: userIds.map((userId, index) => ({
+        id: notificationIds[index],
         userId,
         organizationId,
-        type: params.type as any,
+        type: params.type as unknown as import("@prisma/client").NotificationCategory,
         title: params.title,
         message: params.message,
-        entityType: params.entityType as any,
+        entityType: params.entityType as unknown as import("@prisma/client").NotificationEntityType,
         entityId: params.entityId,
         actorId: params.actorId,
         actorName: params.actorName,

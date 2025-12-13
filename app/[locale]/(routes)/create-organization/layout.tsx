@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { getCurrentUserSafe, getCurrentUser } from "@/lib/get-current-user"
 import { syncClerkUser } from "@/lib/clerk-sync"
+import { getOnboardingStatus } from "@/types/onboarding"
 
 export default async function CreateOrganizationLayout({
   children,
@@ -38,13 +39,15 @@ export default async function CreateOrganizationLayout({
     }
   }
 
-  // PENDING status check removed - users are automatically active
-  // if (user?.userStatus === "PENDING") {
-  //   return redirect(`/${locale}/pending`);
-  // }
-
   if (user?.userStatus === "INACTIVE") {
     return redirect(`/${locale}/inactive`);
+  }
+
+  // If user hasn't completed onboarding, redirect to onboarding flow
+  // This ensures users go through the full onboarding experience
+  const onboardingCompleted = getOnboardingStatus(user);
+  if (!onboardingCompleted) {
+    return redirect(`/${locale}/onboard`);
   }
 
   // Render without sidebar - simple layout for organization creation

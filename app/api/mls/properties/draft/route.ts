@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
@@ -274,6 +275,10 @@ export async function POST(req: Request) {
       // Create new draft
       data.createdBy = user.id;
       data.organizationId = organizationId;
+      
+      // Generate friendly ID
+      const propertyId = await generateFriendlyId(prismadb, "Properties");
+      data.id = propertyId;
       
       // Set minimum required fields for draft
       if (!data.property_name) {

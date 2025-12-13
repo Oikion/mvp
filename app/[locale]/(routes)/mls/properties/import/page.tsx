@@ -1,0 +1,137 @@
+import { Metadata } from "next";
+import { getDictionary } from "@/dictionaries";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { PropertyImportWizard } from "./components/PropertyImportWizard";
+import { FileSpreadsheet } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Import Properties",
+  description: "Import properties from CSV or Excel file",
+};
+
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function PropertyImportPage({ params }: PageProps) {
+  const { locale } = await params;
+  const dict = await getDictionary(locale);
+
+  const importDict = dict.import as {
+    ImportWizard: {
+      title: string;
+      titleProperties: string;
+      description: string;
+      progress: string;
+      steps: {
+        upload: { title: string; description: string };
+        mapping: { title: string; description: string };
+        validation: { title: string; description: string };
+        review: { title: string; description: string };
+        complete: { title: string; description: string };
+      };
+      upload: {
+        dropzone: string;
+        supportedFormats: string;
+        maxSize: string;
+        selectedFile: string;
+        removeFile: string;
+        downloadTemplate: string;
+        templateDescription: string;
+      };
+      mapping: {
+        csvColumn: string;
+        targetField: string;
+        preview: string;
+        unmapped: string;
+        required: string;
+        optional: string;
+        autoMapped: string;
+        manuallyMapped: string;
+        noMapping: string;
+        selectField: string;
+        sampleData: string;
+      };
+      validation: {
+        validRows: string;
+        invalidRows: string;
+        totalRows: string;
+        noErrors: string;
+        hasErrors: string;
+        errorDetails: string;
+        row: string;
+        field: string;
+        error: string;
+        value: string;
+        fixHint: string;
+      };
+      review: {
+        previewTitle: string;
+        previewDescription: string;
+        readyToImport: string;
+        willSkip: string;
+        confirmImport: string;
+      };
+      complete: {
+        successTitle: string;
+        successDescription: string;
+        imported: string;
+        skipped: string;
+        failed: string;
+        viewImported: string;
+        importMore: string;
+        done: string;
+      };
+      buttons: {
+        back: string;
+        next: string;
+        import: string;
+        cancel: string;
+        close: string;
+        done: string;
+        retry: string;
+      };
+      errors: {
+        fileRequired: string;
+        invalidFileType: string;
+        fileTooLarge: string;
+        parseError: string;
+        noData: string;
+        importFailed: string;
+        serverError: string;
+        requiredFieldMissing: string;
+        invalidValue: string;
+      };
+    };
+    ImportFields: {
+      property: {
+        groups: Record<string, string>;
+        fields: Record<string, string>;
+        enums: Record<string, Record<string, string>>;
+      };
+    };
+  };
+
+  return (
+    <div className="container max-w-5xl py-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <FileSpreadsheet className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle>{importDict.ImportWizard.titleProperties}</CardTitle>
+              <CardDescription>
+                {importDict.ImportWizard.description.replace("{entity}", "properties")}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <PropertyImportWizard dict={importDict} locale={locale} />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -17,7 +17,8 @@ export default function RegisterPage() {
         routing="path" // Uses path-based routing with Clerk's account portal features
         path={`/${locale}/register`}
         signInUrl={`/${locale}/sign-in`}
-        afterSignUpUrl={`/${locale}/create-organization`}
+        afterSignUpUrl={`/${locale}/onboard`}
+        forceRedirectUrl={`/${locale}/onboard`}
         appearance={appearance}
       />
     </div>

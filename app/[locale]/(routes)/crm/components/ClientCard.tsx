@@ -1,13 +1,16 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import axios from "axios";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, User, ExternalLink } from "lucide-react";
+import { Mail, Phone, Eye } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { usePrefetch } from "@/hooks/swr";
+import { EntityCardActions } from "@/components/entity";
 
 interface Contact {
   first_name?: string;
@@ -28,6 +31,8 @@ interface ClientCardProps {
 
 export function ClientCard({ data }: ClientCardProps) {
   const t = useTranslations("crm");
+  const commonT = useTranslations("common");
+  const router = useRouter();
   const { prefetchClient, prefetchClientLinked } = usePrefetch();
 
   const initials = data.name
@@ -45,9 +50,13 @@ export function ClientCard({ data }: ClientCardProps) {
     prefetchClientLinked(data.id);
   };
 
+  const handleDelete = async () => {
+    await axios.delete(`/api/crm/account/${data.id}`);
+  };
+
   return (
     <Card
-      className="hover:shadow-lg transition-shadow flex flex-col h-full"
+      className="hover:shadow-lg transition-shadow flex flex-col h-full group"
       onMouseEnter={handleMouseEnter}
     >
       <CardHeader className="flex flex-row items-center gap-4 pb-4">
@@ -68,6 +77,20 @@ export function ClientCard({ data }: ClientCardProps) {
             </span>
           </div>
         </div>
+        {/* Actions menu */}
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <EntityCardActions
+            entityType="client"
+            entityId={data.id}
+            entityName={data.name}
+            viewHref={`/crm/clients/${data.id}`}
+            onEdit={() => router.push(`/crm/clients/${data.id}?edit=true`)}
+            onDelete={handleDelete}
+            showSchedule
+            showShare
+            onActionComplete={() => router.refresh()}
+          />
+        </div>
       </CardHeader>
 
       <CardContent className="flex-1 space-y-3 text-sm">
@@ -82,7 +105,7 @@ export function ClientCard({ data }: ClientCardProps) {
         {data.contacts && data.contacts.length > 0 && (
           <div className="pt-2 border-t mt-2">
             <p className="text-xs font-medium mb-1 text-muted-foreground">
-              Contacts:
+              {t("CrmAccountsTable.accountContact")}:
             </p>
             <div className="flex flex-wrap gap-1">
               {data.contacts.slice(0, 3).map((c, i) => (
@@ -103,8 +126,8 @@ export function ClientCard({ data }: ClientCardProps) {
       <CardFooter className="pt-0 flex justify-end">
         <Link href={`/crm/clients/${data.id}`}>
           <Button variant="ghost" size="sm" className="w-full">
-            <ExternalLink className="h-4 w-4 mr-2" />
-            View Profile
+            <Eye className="h-4 w-4 mr-2" />
+            {commonT("view")}
           </Button>
         </Link>
       </CardFooter>

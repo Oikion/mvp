@@ -1,8 +1,11 @@
 "use server";
 
-import { prismaForOrg } from "@/lib/tenant";
+import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { NotificationCategory, Prisma } from "@prisma/client";
+
+// System-level organization ID for platform admin notifications
+const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
 
 export async function getNotifications(options?: {
   limit?: number;
@@ -13,11 +16,14 @@ export async function getNotifications(options?: {
   try {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
-    const prismaTenant = prismaForOrg(organizationId);
 
+    // Include both organization-specific and system-level notifications
+    // Using prismadb directly to avoid tenant filtering for system notifications
     const where: Prisma.NotificationWhereInput = {
       userId: user.id,
-      organizationId,
+      organizationId: {
+        in: [organizationId, SYSTEM_ORG_ID],
+      },
     };
 
     if (options?.unreadOnly) {
@@ -32,7 +38,7 @@ export async function getNotifications(options?: {
       }
     }
 
-    const notifications = await prismaTenant.notification.findMany({
+    const notifications = await prismadb.notification.findMany({
       where,
       orderBy: {
         createdAt: "desc",
@@ -53,12 +59,13 @@ export async function getUnreadCount() {
   try {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
-    const prismaTenant = prismaForOrg(organizationId);
 
-    const count = await prismaTenant.notification.count({
+    const count = await prismadb.notification.count({
       where: {
         userId: user.id,
-        organizationId,
+        organizationId: {
+          in: [organizationId, SYSTEM_ORG_ID],
+        },
         read: false,
       },
     });
@@ -77,11 +84,12 @@ export async function getTotalNotificationsCount(options?: {
   try {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
-    const prismaTenant = prismaForOrg(organizationId);
 
     const where: Prisma.NotificationWhereInput = {
       userId: user.id,
-      organizationId,
+      organizationId: {
+        in: [organizationId, SYSTEM_ORG_ID],
+      },
     };
 
     if (options?.unreadOnly) {
@@ -96,7 +104,7 @@ export async function getTotalNotificationsCount(options?: {
       }
     }
 
-    const count = await prismaTenant.notification.count({ where });
+    const count = await prismadb.notification.count({ where });
     return count;
   } catch (error) {
     console.error("[GET_TOTAL_NOTIFICATIONS_COUNT]", error);

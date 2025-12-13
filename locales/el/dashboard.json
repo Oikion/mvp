@@ -38,6 +38,19 @@
   "deleteError": "Δεν ήταν δυνατή η διαγραφή. Προσπαθήστε ξανά.",
   "noActivityData": "Δεν υπάρχουν δεδομένα δραστηριότητας για αυτή την περίοδο.",
   "clientsLabel": "Πελάτες",
-  "propertiesLabel": "Ακίνητα"
+  "propertiesLabel": "Ακίνητα",
+  "viewAll": "Προβολή Όλων",
+  "viewProperties": "Προβολή Ακινήτων",
+  "viewContacts": "Προβολή Επαφών",
+  "viewAccounts": "Προβολή Εταιρειών",
+  "addFirstContact": "Προσθέστε Πρώτη Επαφή",
+  "addFirstAccount": "Προσθέστε Πρώτη Εταιρεία",
+  "addFirstProperty": "Προσθέστε Πρώτο Ακίνητο",
+  "noContactsYet": "Ξεκινήστε να δημιουργείτε το δίκτυό σας",
+  "noAccountsYet": "Προσθέστε την πρώτη σας εταιρεία",
+  "noRevenueYet": "Τα έσοδα θα εμφανιστούν όταν κλείσετε συμφωνίες",
+  "viewTeam": "Προβολή Ομάδας",
+  "inviteTeamMember": "Πρόσκληση Μέλους",
+  "noTeamMembersYet": "Είστε το πρώτο μέλος"
 }
 

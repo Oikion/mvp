@@ -42,7 +42,8 @@
     "employees": "Employees",
     "chatGPT": "ChatGPT",
     "feedback": "Feedback",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "platformAdmin": "Platform Admin"
   },
   "Navigation": {
     "upgradeToPro": "Upgrade to Pro",

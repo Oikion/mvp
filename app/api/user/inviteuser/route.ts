@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
@@ -63,6 +64,7 @@ export async function POST(req: Request) {
       
       const newUser = await prismadb.users.create({
         data: {
+          id: randomUUID(),
           name,
           username: generatedUsername,
           avatar: "",

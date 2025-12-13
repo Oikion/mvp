@@ -7,16 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NewClientWizard } from "../clients/components/NewClientWizard";
-import { AccountDataTable } from "../accounts/table-components/data-table";
+import { DataTable } from "@/components/ui/data-table/data-table";
 import { getColumns } from "../accounts/table-components/columns";
 import { StatsCard } from "@/components/ui/stats-card";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { ClientCard } from "./ClientCard";
 import { SharedClientCard } from "./SharedClientCard";
-import { Users, UserCheck, UserPlus, Clock, Search, Building2, Share2 } from "lucide-react";
+import { Users, UserCheck, UserPlus, Search, Building2, Share2, FileSpreadsheet } from "lucide-react";
 import moment from "moment";
 import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import type { SharedClientData } from "@/actions/crm/get-shared-clients";
 
 interface ClientsPageViewProps {
@@ -36,6 +38,8 @@ export default function ClientsPageView({
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("agency");
   const t = useTranslations("crm");
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
 
   useEffect(() => {
     setIsMounted(true);
@@ -75,7 +79,7 @@ export default function ClientsPageView({
         <StatsCard
           title={t("Stats.totalClients")}
           value={totalClients.toString()}
-          icon={Users}
+          icon={<Users className="h-4 w-4" />}
           description={t("Stats.allContacts")}
           actionLabel={t("Stats.addClient")}
           emptyMessage={t("Stats.noClientsYet")}
@@ -84,7 +88,7 @@ export default function ClientsPageView({
         <StatsCard
           title={t("Stats.activeClients")}
           value={activeClients.toString()}
-          icon={UserCheck}
+          icon={<UserCheck className="h-4 w-4" />}
           description={t("Stats.currentlyActive")}
           trendUp={activeClients > 0}
           actionLabel={t("Stats.addClient")}
@@ -94,7 +98,7 @@ export default function ClientsPageView({
         <StatsCard
           title={t("Stats.new30d")}
           value={newClients.toString()}
-          icon={UserPlus}
+          icon={<UserPlus className="h-4 w-4" />}
           description={t("Stats.addedThisMonth")}
           trendUp={newClients > 0}
           actionLabel={t("Stats.addClient")}
@@ -104,7 +108,7 @@ export default function ClientsPageView({
         <StatsCard
           title={t("Stats.sharedWithYou")}
           value={sharedClients.length.toString()}
-          icon={Share2}
+          icon={<Share2 className="h-4 w-4" />}
           description={t("Stats.fromConnections")}
           actionHref="/connections"
           actionLabel={t("Stats.findAgents")}
@@ -146,6 +150,12 @@ export default function ClientsPageView({
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <ViewToggle view={view} setView={setView} />
+                  <Button variant="outline" asChild>
+                    <Link href={`/${locale}/crm/clients/import`}>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Import
+                    </Link>
+                  </Button>
                   <Sheet open={open} onOpenChange={() => setOpen(false)}>
                     <Button className="flex-1 sm:flex-none" onClick={() => setOpen(true)}>
                       + {t("CrmForm.title")}
@@ -171,11 +181,11 @@ export default function ClientsPageView({
                   <p className="text-sm mt-1">{t("EmptyState.createFirstClient")}</p>
                 </div>
               ) : view === "list" ? (
-                <AccountDataTable
+                <DataTable
                   data={agencyClients}
                   columns={getColumns(users)}
-                  industries={industries}
-                  users={users}
+                  searchKey="name"
+                  searchPlaceholder={t("CrmAccountsTable.filterPlaceholder")}
                 />
               ) : (
                 <div className="space-y-4">

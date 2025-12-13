@@ -4,6 +4,7 @@ import { getCurrentOrgIdSafe, getCurrentUserSafe } from "@/lib/get-current-user"
 import { prismadb } from "@/lib/prisma";
 import { prismaForOrg } from "@/lib/tenant";
 import { revalidatePath } from "next/cache";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 interface CreateSocialPostInput {
   type: "property" | "client" | "text";
@@ -116,8 +117,12 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
   }
 
   try {
+    // Generate friendly ID
+    const postId = await generateFriendlyId(prismadb, "SocialPost");
+
     const post = await prismadb.socialPost.create({
       data: {
+        id: postId,
         organizationId: orgId,
         authorId: currentUser.id,
         postType: type,

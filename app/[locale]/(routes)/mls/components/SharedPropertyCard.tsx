@@ -146,3 +146,6 @@ export function SharedPropertyCard({ data }: SharedPropertyCardProps) {
 
 
 
+
+
+

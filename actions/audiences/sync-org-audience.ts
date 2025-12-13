@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { getOrgMembersFromDb } from "@/lib/org-members";
@@ -86,6 +87,7 @@ export async function createOrgAutoSyncAudience(
     // Create the audience with auto-sync enabled
     const audience = await prismadb.audience.create({
       data: {
+        id: randomUUID(),
         name: name.trim(),
         description: description?.trim() || null,
         createdById: currentUser.id,

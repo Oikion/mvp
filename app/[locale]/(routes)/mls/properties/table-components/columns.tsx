@@ -3,15 +3,23 @@
 import { ColumnDef } from "@tanstack/react-table";
 import moment from "moment";
 import Link from "next/link";
-import { DataTableColumnHeader } from "./data-table-column-header";
+import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { useTranslations } from "next-intl";
-import { DataTableRowActions } from "./data-table-row-actions";
-import { statuses } from "../table-data/data";
+import { PropertyRowActions } from "./PropertyRowActions";
 import { StatusCell } from "./cells/StatusCell";
 import { AssignedUserCell } from "./cells/AssignedUserCell";
 import { PriceCell } from "./cells/PriceCell";
 
-export const getColumns = (users: any[] = []): ColumnDef<any>[] => [
+export const getColumns = (users: { id: string; name: string | null }[] = []): ColumnDef<{
+  id: string;
+  createdAt: Date;
+  property_name?: string;
+  price?: number | null;
+  property_type?: string | null;
+  property_status?: string | null;
+  assigned_to?: string | null;
+  assigned_to_user?: { name: string | null } | null;
+}>[] => [
   {
     accessorKey: "createdAt",
     header: ({ column }) => {
@@ -32,7 +40,7 @@ export const getColumns = (users: any[] = []): ColumnDef<any>[] => [
       return (
         <AssignedUserCell
           propertyId={row.original.id}
-          assignedTo={(row.original as any).assigned_to}
+          assignedTo={row.original.assigned_to ?? null}
           users={users}
         />
       );
@@ -47,7 +55,7 @@ export const getColumns = (users: any[] = []): ColumnDef<any>[] => [
       return <DataTableColumnHeader column={column} title={t("MlsPropertiesTable.name")} />
     },
     cell: ({ row }) => (
-      <Link href={`/mls/properties/${row.original?.id}`}>
+      <Link href={`/mls/properties/${row.original.id}`}>
         <div className="whitespace-nowrap">{row.getValue("property_name")}</div>
       </Link>
     ),
@@ -89,13 +97,13 @@ export const getColumns = (users: any[] = []): ColumnDef<any>[] => [
       return (
         <StatusCell
           propertyId={row.original.id}
-          status={(row.original as any).property_status || row.getValue("property_status")}
+          status={row.original.property_status || row.getValue("property_status")}
         />
       );
     },
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
-  { id: "actions", cell: ({ row }) => <DataTableRowActions row={row} /> },
+  { id: "actions", cell: ({ row }) => <PropertyRowActions row={row} /> },
 ];
 
 export const columns = getColumns([]);

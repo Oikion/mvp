@@ -4,6 +4,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { notifyAccountWatchers as notifyWatchersLegacy } from "@/lib/notify-watchers";
 import { notifyClientCreated, notifyAccountWatchers } from "@/lib/notifications";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 export async function POST(req: Request) {
   try {
@@ -62,8 +63,12 @@ export async function POST(req: Request) {
       member_of,
     } = body;
 
+    // Generate friendly ID
+    const clientId = await generateFriendlyId(prismadb, "Clients");
+
     const newClient = await prismadb.clients.create({
       data: {
+        id: clientId,
         createdBy: user.id,
         updatedBy: user.id,
         organizationId,

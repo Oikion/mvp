@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 export interface CreateAudienceInput {
   name: string;
@@ -34,9 +35,13 @@ export async function createAudience(
       return { success: false, error: "Audience name is required" };
     }
 
+    // Generate friendly ID
+    const audienceId = await generateFriendlyId(prismadb, "Audience");
+
     // Create the audience
     const audience = await prismadb.audience.create({
       data: {
+        id: audienceId,
         name: name.trim(),
         description: description?.trim() || null,
         createdById: currentUser.id,
@@ -64,6 +69,9 @@ export async function createAudience(
     return { success: false, error: "Failed to create audience" };
   }
 }
+
+
+
 
 
 

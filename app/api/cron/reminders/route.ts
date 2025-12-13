@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getUpcomingReminders, sendReminderNotification } from "@/lib/calendar-reminders";
-import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 
 /**
@@ -41,19 +40,12 @@ export async function GET(req: Request) {
             totalProcessed++;
             await sendReminderNotification(reminder.id);
             totalSent++;
-          } catch (error) {
-            console.error(
-              `[CRON_REMINDERS] Failed to send reminder ${reminder.id}:`,
-              error
-            );
+          } catch {
             totalFailed++;
           }
         }
-      } catch (error) {
-        console.error(
-          `[CRON_REMINDERS] Error processing org ${org.organizationId}:`,
-          error
-        );
+      } catch {
+        // Continue processing other organizations
       }
     }
 
@@ -64,17 +56,19 @@ export async function GET(req: Request) {
       failed: totalFailed,
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
-    console.error("[CRON_REMINDERS]", error);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to process reminders";
     return NextResponse.json(
       {
-        error: error.message || "Failed to process reminders",
+        error: errorMessage,
         timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
   }
 }
+
+
 
 
 

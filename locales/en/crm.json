@@ -72,6 +72,17 @@
     "scheduleEventDesc": "Schedule an event for this client",
     "share": "Share"
   },
+  "ContactsTable": {
+    "dateCreated": "Date created",
+    "assignedTo": "Assigned to",
+    "assignedAccount": "Assigned account",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "E-mail",
+    "mobile": "Mobile",
+    "status": "Status",
+    "filterPlaceholder": "Filter contacts..."
+  },
   "Tabs": {
     "agencyClients": "Agency Clients",
     "sharedWithMe": "Shared With Me",

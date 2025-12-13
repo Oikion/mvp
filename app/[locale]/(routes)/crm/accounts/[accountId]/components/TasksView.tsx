@@ -15,7 +15,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { columns } from "../tasks-data-table/components/columns";
-import { TasksDataTable } from "../tasks-data-table/components/data-table";
+import { DataTable } from "@/components/ui/data-table/data-table";
 
 import NewTaskForm from "./NewTaskForm";
 import {
@@ -87,7 +87,12 @@ const AccountsTasksView = ({ data, account }: TasksViewProps) => {
         {!data || data.length === 0 ? (
           "No assigned tasks found"
         ) : (
-          <TasksDataTable data={data} columns={columns} />
+          <DataTable 
+            data={data} 
+            columns={columns} 
+            searchKey="title"
+            searchPlaceholder="Filter tasks..."
+          />
         )}
       </CardContent>
     </Card>

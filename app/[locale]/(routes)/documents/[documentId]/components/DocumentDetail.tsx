@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Share2, Users } from "lucide-react";
-import { useRouter } from "@/navigation";
+import { ArrowLeft, Download, Share2, Users, Edit } from "lucide-react";
+import { useRouter, Link } from "@/navigation";
 import { MentionDisplay } from "../../components/MentionDisplay";
 import { ShareSettings } from "../../components/ShareSettings";
 import { ShareModal } from "@/components/social/ShareModal";
+import { DocumentViewer } from "@/components/documents";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface DocumentDetailProps {
   document: any;
@@ -19,10 +21,14 @@ interface DocumentDetailProps {
 
 export function DocumentDetail({ document, activeTab = "details" }: DocumentDetailProps) {
   const router = useRouter();
+  const t = useTranslations("documents");
   const [linkEnabled, setLinkEnabled] = useState(document.linkEnabled || false);
   const [passwordProtected, setPasswordProtected] = useState(document.passwordProtected || false);
   const [expiresAt, setExpiresAt] = useState<Date | null>(document.expiresAt ? new Date(document.expiresAt) : null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+
+  // Check if document is editable (HTML content from editor)
+  const isEditable = document.document_file_mimeType === "text/html";
 
   const handleEnableShare = async () => {
     const response = await fetch(`/api/documents/${document.id}/share`, {
@@ -89,9 +95,17 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
           )}
         </div>
         <div className="flex gap-2">
+          {isEditable && (
+            <Button variant="outline" asChild>
+              <Link href={`/documents/editor?id=${document.id}`}>
+                <Edit className="h-4 w-4 mr-2" />
+                {t("edit")}
+              </Link>
+            </Button>
+          )}
           <Button variant="outline" onClick={handleDownload}>
             <Download className="h-4 w-4 mr-2" />
-            Download
+            {t("download")}
           </Button>
         </div>
       </div>
@@ -153,13 +167,14 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
 
           <Card>
             <CardHeader>
-              <CardTitle>Document Preview</CardTitle>
+              <CardTitle>{t("documentPreview")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <iframe
-                src={document.document_file_url}
-                className="w-full h-[600px] border rounded-lg"
-                title={document.document_name}
+              <DocumentViewer
+                url={document.document_file_url}
+                mimeType={document.document_file_mimeType}
+                fileName={document.document_name}
+                height="600px"
               />
             </CardContent>
           </Card>

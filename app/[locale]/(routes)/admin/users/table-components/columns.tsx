@@ -7,7 +7,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { statuses } from "../table-data/data";
 import { AdminUser } from "../table-data/schema";
 import { DataTableRowActions } from "./data-table-row-actions";
-import { DataTableColumnHeader } from "./data-table-column-header";
+import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 
 interface TranslationFn {
   (key: string): string;

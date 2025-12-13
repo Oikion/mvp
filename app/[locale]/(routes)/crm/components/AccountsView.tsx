@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { columns, getColumns } from "../accounts/table-components/columns";
+import { getColumns } from "../accounts/table-components/columns";
 import { NewClientWizard } from "../clients/components/NewClientWizard";
-import { AccountDataTable } from "../accounts/table-components/data-table";
+import { DataTable } from "@/components/ui/data-table/data-table";
 import { useRouter } from "next/navigation";
 import {
   Sheet,
@@ -67,27 +67,27 @@ const AccountsView = ({ data = [], crmData }: any) => {
         <StatsCard
           title="Total Clients"
           value={totalClients.toString()}
-          icon={Users}
+          icon={<Users className="h-4 w-4" />}
           description="All contacts"
         />
         <StatsCard
           title="Active Clients"
           value={activeClients.toString()}
-          icon={UserCheck}
+          icon={<UserCheck className="h-4 w-4" />}
           description="Currently active"
           trendUp={true}
         />
         <StatsCard
           title="New (30d)"
           value={newClients.toString()}
-          icon={UserPlus}
+          icon={<UserPlus className="h-4 w-4" />}
           description="Added this month"
           trendUp={true}
         />
         <StatsCard
           title="Assigned"
           value={assignedClients.toString()}
-          icon={Clock}
+          icon={<Clock className="h-4 w-4" />}
           description="Assigned to agents"
         />
       </div>
@@ -128,11 +128,11 @@ const AccountsView = ({ data = [], crmData }: any) => {
           {!data || data.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">No assigned accounts found</div>
           ) : view === "list" ? (
-            <AccountDataTable
+            <DataTable
               data={data}
               columns={getColumns(users)}
-              industries={industries}
-              users={users}
+              searchKey="name"
+              searchPlaceholder={t("CrmAccountsTable.filterPlaceholder")}
             />
           ) : (
             <div className="space-y-4">
