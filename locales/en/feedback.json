@@ -33,6 +33,41 @@
   "validation": {
     "feedbackTypeRequired": "Please select a feedback type.",
     "feedbackRequired": "Feedback must be at least 10 characters."
+  },
+  "history": {
+    "title": "Feedback History",
+    "description": "View all your past feedback submissions and conversations",
+    "noFeedback": "No feedback submissions yet. Submit your first feedback to see it here!",
+    "hasResponse": "Has Response",
+    "viewChat": "View Chat",
+    "technicalDetails": "Technical Details",
+    "browser": "Browser",
+    "os": "OS",
+    "resolution": "Resolution",
+    "screenshot": "Screenshot",
+    "consoleLogs": "console logs",
+    "emailSent": "Email sent",
+    "status": {
+      "pending": "Pending",
+      "reviewed": "Reviewed",
+      "resolved": "Resolved",
+      "user_replied": "Awaiting Response"
+    }
+  },
+  "chat": {
+    "title": "Feedback Conversation",
+    "description": "Chat with our support team about your feedback",
+    "you": "You",
+    "adminLabel": "Support Team",
+    "placeholder": "Type your message...",
+    "inputHint": "Press Enter to send, Shift+Enter for new line",
+    "noMessages": "No replies yet",
+    "waitingForAdmin": "Our team will respond to your feedback soon",
+    "commentsCount": "{count} messages",
+    "loadError": "Failed to load conversation. Please try again.",
+    "sendError": "Failed to send message. Please try again.",
+    "maxCommentsReached": "Maximum messages reached for this feedback",
+    "back": "Back"
   }
 }
 

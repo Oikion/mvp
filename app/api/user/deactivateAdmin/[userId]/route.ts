@@ -22,7 +22,6 @@ export async function POST(req: Request, props: { params: Promise<{ userId: stri
 
     return NextResponse.json(user);
   } catch (error) {
-    console.log("[USER_ADMIN_DEACTIVATE_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

@@ -29,6 +29,7 @@ import templatesEn from "./locales/en/templates.json";
 import onboardingEn from "./locales/en/onboarding.json";
 import importEn from "./locales/en/import.json";
 import conversionEn from "./locales/en/conversion.json";
+import signInEn from "./locales/en/signIn.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -58,6 +59,7 @@ import templatesEl from "./locales/el/templates.json";
 import onboardingEl from "./locales/el/onboarding.json";
 import importEl from "./locales/el/import.json";
 import conversionEl from "./locales/el/conversion.json";
+import signInEl from "./locales/el/signIn.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -96,6 +98,7 @@ function loadMessages(locale: string) {
     messages.onboarding = onboardingEl;
     messages.import = importEl;
     messages.conversion = conversionEl;
+    messages.signIn = signInEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -136,6 +139,7 @@ function loadMessages(locale: string) {
     messages.onboarding = onboardingEn;
     messages.import = importEn;
     messages.conversion = conversionEn;
+    messages.signIn = signInEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))

@@ -31,6 +31,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { ConditionalFormSection } from "@/components/form/conditional-section";
 import { AutosaveIndicator, AutosaveStatus } from "@/components/form/autosave-indicator";
+import { LocationAutocomplete, LocationData } from "@/components/ui/location-autocomplete";
 import useDebounce from "@/hooks/useDebounce";
 // Import all translation files for the new structure
 import commonEl from "@/locales/el/common.json";
@@ -297,6 +298,71 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     },
   });
 
+  // Load draft data when initialDraftId is provided
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (initialDraftId && !draftId) {
+        try {
+          const response = await axios.get(`/api/mls/properties/${initialDraftId}`);
+          if (response.data?.property) {
+            const draft = response.data.property;
+            // Reset form with draft data
+            form.reset({
+              property_type: draft.property_type || undefined,
+              transaction_type: draft.transaction_type || undefined,
+              property_status: draft.property_status || "AVAILABLE",
+              is_exclusive: draft.is_exclusive || false,
+              municipality: draft.municipality || draft.address_city || "",
+              area: draft.area || draft.address_state || "",
+              postal_code: draft.postal_code || draft.address_postal_code || "",
+              address_privacy_level: draft.address_privacy_level || "PARTIAL",
+              size_net_sqm: draft.size_net_sqm || undefined,
+              size_gross_sqm: draft.size_gross_sqm || undefined,
+              floor: draft.floor || undefined,
+              floors_total: draft.floors_total || undefined,
+              plot_size_sqm: draft.plot_size_sqm || undefined,
+              inside_city_plan: draft.inside_city_plan || undefined,
+              build_coefficient: draft.build_coefficient || undefined,
+              frontage_m: draft.frontage_m || undefined,
+              bedrooms: draft.bedrooms || undefined,
+              bathrooms: draft.bathrooms || undefined,
+              heating_type: draft.heating_type || undefined,
+              energy_cert_class: draft.energy_cert_class || undefined,
+              year_built: draft.year_built || undefined,
+              renovated_year: draft.renovated_year || undefined,
+              condition: draft.condition || undefined,
+              elevator: draft.elevator || false,
+              building_permit_no: draft.building_permit_no || "",
+              building_permit_year: draft.building_permit_year || undefined,
+              land_registry_kaek: draft.land_registry_kaek || "",
+              legalization_status: draft.legalization_status || undefined,
+              etaireia_diaxeirisis: draft.etaireia_diaxeirisis || "",
+              monthly_common_charges: draft.monthly_common_charges || undefined,
+              amenities: Array.isArray(draft.amenities) ? draft.amenities : [],
+              orientation: Array.isArray(draft.orientation) ? draft.orientation : [],
+              furnished: draft.furnished || undefined,
+              accessibility: draft.accessibility || "",
+              price: draft.price || undefined,
+              price_type: draft.price_type || undefined,
+              available_from: draft.available_from ? new Date(draft.available_from).toISOString().split('T')[0] : "",
+              accepts_pets: draft.accepts_pets || false,
+              min_lease_months: draft.min_lease_months || undefined,
+              virtual_tour_url: draft.virtual_tour_url || "",
+              portal_visibility: draft.portal_visibility || "PUBLIC",
+              assigned_to: draft.assigned_to || "",
+            });
+            setDraftId(initialDraftId);
+            setLastSavedData(form.getValues());
+            setHasUserInteracted(true);
+          }
+        } catch (error) {
+          console.error("Failed to load draft:", error);
+        }
+      }
+    };
+    loadDraft();
+  }, [initialDraftId, draftId, form]);
+
   const formValues = form.watch();
   const debouncedValues = useDebounce(JSON.stringify(formValues), 500);
 
@@ -389,12 +455,24 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   const handleNext = async () => {
     const isValid = await validateStep(currentStep);
     if (isValid && currentStep < STEPS.length) {
+      // Save current form state before moving to next step
+      const currentData = form.getValues();
+      if (Object.keys(currentData).length > 0) {
+        await saveDraft(currentData);
+        setLastSavedData(currentData);
+      }
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
+      // Save current form state before moving to previous step
+      const currentData = form.getValues();
+      if (Object.keys(currentData).length > 0) {
+        saveDraft(currentData);
+        setLastSavedData(currentData);
+      }
       setCurrentStep(currentStep - 1);
     }
   };
@@ -438,8 +516,8 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   const renderStepContent = () => {
     const propertyType = form.watch("property_type");
     const transactionType = form.watch("transaction_type");
-    const isResidentialOrCommercial = ["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE"].includes(propertyType || "");
-    const isLand = ["PLOT", "FARM"].includes(propertyType || "");
+    const isResidentialOrCommercial = propertyType ? ["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE"].includes(propertyType) : false;
+    const isLand = propertyType ? ["PLOT", "FARM"].includes(propertyType) : false;
 
     switch (currentStep) {
       case 1:
@@ -543,8 +621,38 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
         );
 
       case 2:
+        const handleLocationSelect = (location: LocationData | string) => {
+          if (typeof location === "object") {
+            // Auto-fill municipality and area from location data
+            if (location.city) {
+              form.setValue("municipality", location.city);
+            }
+            if (location.postalCode) {
+              form.setValue("postal_code", location.postalCode);
+            }
+            // Use the full address for area if city was already used for municipality
+            if (location.address && location.city !== location.address) {
+              const areaFromAddress = location.address.split(",")[0];
+              form.setValue("area", areaFromAddress);
+            }
+          }
+        };
+
         return (
           <div className="space-y-4">
+            {/* Location Search */}
+            <div className="space-y-2">
+              <FormLabel>{t("mls.PropertyForm.fields.locationSearch", "Αναζήτηση τοποθεσίας")}</FormLabel>
+              <LocationAutocomplete
+                onChange={handleLocationSelect}
+                placeholder={t("mls.PropertyForm.fields.locationSearchPlaceholder", "Αναζητήστε διεύθυνση, περιοχή ή ΤΚ...")}
+                disabled={isLoading}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t("mls.PropertyForm.fields.locationSearchHint", "Αναζητήστε και επιλέξτε για αυτόματη συμπλήρωση των παρακάτω πεδίων")}
+              </p>
+            </div>
+
             <FormField
               control={form.control}
               name="municipality"
@@ -614,6 +722,14 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
         );
 
       case 3:
+        // Show message if property_type is not selected yet
+        if (!propertyType) {
+          return (
+            <div className="text-sm text-muted-foreground py-8 text-center">
+              <p className="mb-2">{t("mls.PropertyForm.step3.noPropertyType", "Παρακαλώ επιλέξτε τύπο ακινήτου στο βήμα 1 πρώτα.")}</p>
+            </div>
+          );
+        }
         return (
           <div className="space-y-4">
             {isResidentialOrCommercial ? (
@@ -718,7 +834,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t("mls.PropertyForm.fields.insideCityPlan", "Εντός/Εκτός σχεδίου")} *</FormLabel>
-                        <Select onValueChange={(val) => field.onChange(val === "true")} value={field.value !== undefined ? field.value.toString() : undefined}>
+                        <Select onValueChange={(val) => field.onChange(val === "true")} value={field.value === undefined ? undefined : field.value.toString()}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Επιλέξτε" />
@@ -769,8 +885,8 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               </>
             ) : (
               <div className="text-sm text-muted-foreground py-8 text-center">
-                <p className="mb-2">Τα πεδία εμφανίζονται βάσει του τύπου ακινήτου που επιλέξατε στο βήμα 1.</p>
-                <p>Για parking, βιομηχανικό ή άλλο τύπο, μπορείτε να συνεχίσετε στο επόμενο βήμα.</p>
+                <p className="mb-2">{t("mls.PropertyForm.step3.otherType", "Τα πεδία εμφανίζονται βάσει του τύπου ακινήτου που επιλέξατε στο βήμα 1.")}</p>
+                <p>{t("mls.PropertyForm.step3.otherTypeContinue", "Για parking, βιομηχανικό ή άλλο τύπο, μπορείτε να συνεχίσετε στο επόμενο βήμα.")}</p>
               </div>
             )}
           </div>
@@ -1305,6 +1421,13 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   };
 
   const handleStepClick = async (stepId: number) => {
+    // Save current form state before navigating
+    const currentData = form.getValues();
+    if (Object.keys(currentData).length > 0) {
+      saveDraft(currentData);
+      setLastSavedData(currentData);
+    }
+    
     // Allow moving back without validation
     if (stepId < currentStep) {
       setCurrentStep(stepId);
@@ -1314,18 +1437,6 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     // Validate current step before moving forward
     const isValid = await validateStep(currentStep);
     if (isValid) {
-      // Check if we are trying to skip steps
-      // Ideally we should validate all intermediate steps, but for now let's just allow
-      // navigation if the current step is valid. 
-      // Alternatively, restrict to only next step or previously completed steps.
-      
-      // Logic: Allow jumping to any step if current is valid? 
-      // Or only allow jumping to next step (stepId === currentStep + 1)?
-      // For a "progress bar link", usually you can click previously visited steps.
-      // Jumping ahead is often restricted.
-      
-      // Let's allow clicking any step, but maybe we should enforce sequential progress?
-      // User request "make steps link" implies freedom.
       setCurrentStep(stepId);
     }
   };

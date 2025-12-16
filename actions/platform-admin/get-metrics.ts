@@ -152,3 +152,5 @@ export async function getUserGrowthData(): Promise<UserGrowthData[]> {
     throw new Error("Failed to fetch user growth data");
   }
 }
+
+

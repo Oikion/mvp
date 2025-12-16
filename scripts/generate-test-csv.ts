@@ -193,3 +193,5 @@ fs.writeFileSync(OUTPUT_PATH, csv, "utf-8");
 console.log(`✅ Generated ${OUTPUT_PATH}`);
 console.log(`   Total rows: 500 properties`);
 console.log(`   File size: ${(Buffer.byteLength(csv, "utf-8") / 1024).toFixed(1)} KB`);
+
+

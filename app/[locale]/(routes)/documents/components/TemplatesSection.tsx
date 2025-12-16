@@ -13,10 +13,10 @@ interface TemplatesSectionProps {
 }
 
 const templateColors: Record<TemplateType, string> = {
-  BROKERAGE_MANDATE: "text-blue-500 bg-blue-50 dark:bg-blue-950/50",
-  LEASE_AGREEMENT: "text-green-500 bg-green-50 dark:bg-green-950/50",
-  HANDOVER_PROTOCOL: "text-orange-500 bg-orange-50 dark:bg-orange-950/50",
-  VIEWING_CONFIRMATION: "text-purple-500 bg-purple-50 dark:bg-purple-950/50",
+  BROKERAGE_MANDATE: "text-blue-500 bg-blue-500/10",
+  LEASE_AGREEMENT: "text-green-500 bg-green-500/10",
+  HANDOVER_PROTOCOL: "text-orange-500 bg-orange-500/10",
+  VIEWING_CONFIRMATION: "text-purple-500 bg-purple-500/10",
 };
 
 export function TemplatesSection({ templates }: TemplatesSectionProps) {

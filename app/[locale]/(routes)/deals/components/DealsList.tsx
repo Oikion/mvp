@@ -70,12 +70,12 @@ interface DealsListProps {
 }
 
 const statusColors: Record<string, string> = {
-  PROPOSED: "bg-yellow-100 text-yellow-800",
-  NEGOTIATING: "bg-orange-100 text-orange-800",
-  ACCEPTED: "bg-green-100 text-green-800",
-  IN_PROGRESS: "bg-blue-100 text-blue-800",
-  COMPLETED: "bg-purple-100 text-purple-800",
-  CANCELLED: "bg-gray-100 text-gray-800",
+  PROPOSED: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  NEGOTIATING: "bg-orange-500/15 text-orange-600 dark:text-orange-400",
+  ACCEPTED: "bg-green-500/15 text-green-600 dark:text-green-400",
+  IN_PROGRESS: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  COMPLETED: "bg-purple-500/15 text-purple-600 dark:text-purple-400",
+  CANCELLED: "bg-muted text-muted-foreground",
 };
 
 export function DealsList({ deals, translations: t }: DealsListProps) {
@@ -220,7 +220,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={deal.propertyAgent.avatar || ""} />
-                      <AvatarFallback className="text-xs bg-blue-100 text-blue-600">
+                      <AvatarFallback className="text-xs bg-blue-500/15 text-blue-600 dark:text-blue-400">
                         {deal.propertyAgent.name?.charAt(0) || <User className="h-3 w-3" />}
                       </AvatarFallback>
                     </Avatar>
@@ -239,7 +239,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={deal.clientAgent.avatar || ""} />
-                      <AvatarFallback className="text-xs bg-green-100 text-green-600">
+                      <AvatarFallback className="text-xs bg-green-500/15 text-green-600 dark:text-green-400">
                         {deal.clientAgent.name?.charAt(0) || <User className="h-3 w-3" />}
                       </AvatarFallback>
                     </Avatar>

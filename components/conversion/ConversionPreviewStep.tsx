@@ -59,12 +59,12 @@ export function ConversionPreviewStep({
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4">
-        <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
+        <Card className="border-green-500/30 bg-green-500/10">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <CheckCircle2 className="h-8 w-8 text-green-500" />
               <div>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-400">
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {validRows}
                 </p>
                 <p className="text-sm text-green-600 dark:text-green-500">
@@ -77,7 +77,7 @@ export function ConversionPreviewStep({
 
         <Card className={`${
           hasIssues 
-            ? "border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20" 
+            ? "border-amber-500/30 bg-amber-500/10" 
             : "border-muted"
         }`}>
           <CardContent className="p-4">
@@ -125,9 +125,9 @@ export function ConversionPreviewStep({
       )}
 
       {!hasIssues && (
-        <Alert className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertTitle className="text-green-700 dark:text-green-400">
+        <Alert className="border-green-500/30 bg-green-500/10">
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <AlertTitle className="text-green-600 dark:text-green-400">
             {t("preview.noIssues")}
           </AlertTitle>
         </Alert>
@@ -213,3 +213,5 @@ export function ConversionPreviewStep({
     </div>
   );
 }
+
+

@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
@@ -22,26 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { EventCreateForm } from "@/components/calendar/EventCreateForm";
-import { ShareModal } from "@/components/social/ShareModal";
-import { toast } from "sonner";
+import { useActionModal } from "@/hooks/use-action-modal";
 
 /**
  * Custom action to be added to the card actions menu
@@ -87,10 +66,21 @@ export interface EntityCardActionsProps {
 
 /**
  * Unified card actions component for entity cards.
+ * 
+ * Uses shared modals via Zustand store for optimal performance.
  * Provides consistent View, Edit, Schedule, Share, and Delete actions.
+ * 
+ * IMPORTANT: Requires <SharedActionModals /> to be rendered at the page level.
  * 
  * Usage:
  * ```tsx
+ * // In page component
+ * <PropertiesPageView>
+ *   <PropertyCard ... />
+ *   <SharedActionModals />
+ * </PropertiesPageView>
+ * 
+ * // In card component
  * <EntityCardActions
  *   entityType="property"
  *   entityId={property.id}
@@ -116,13 +106,8 @@ export function EntityCardActions({
   buttonVariant = "ghost",
   buttonSize = "icon",
 }: EntityCardActionsProps) {
-  const router = useRouter();
   const t = useTranslations("common");
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const { openDeleteModal, openShareModal, openScheduleModal } = useActionModal();
 
   const displayName = entityName || t("unnamed");
 
@@ -142,46 +127,36 @@ export function EntityCardActions({
     }
   };
 
-  // Map entity type to share modal entity type
-  const getShareEntityType = (): "PROPERTY" | "CLIENT" => {
-    switch (entityType) {
-      case "property":
-        return "PROPERTY";
-      case "client":
-      case "contact":
-        return "CLIENT";
-      default:
-        return "CLIENT";
-    }
-  };
-
-  // Handle delete
-  const handleDelete = async () => {
+  // Handle delete - open shared modal
+  const handleDeleteClick = () => {
     if (!onDelete) return;
-
-    setIsDeleting(true);
-    try {
-      await onDelete();
-      toast.success(t("success"), {
-        description: `${displayName} ${t("delete").toLowerCase()}d successfully`,
-      });
-      setDeleteDialogOpen(false);
-      onActionComplete?.();
-    } catch (error) {
-      console.error("Delete failed:", error);
-      toast.error(t("error"), {
-        description: t("somethingWentWrong"),
-      });
-    } finally {
-      setIsDeleting(false);
-    }
+    openDeleteModal({
+      entityType,
+      entityId,
+      entityName: displayName,
+      onDelete,
+      onActionComplete,
+    });
   };
 
-  // Handle schedule event created
-  const handleEventCreated = () => {
-    setScheduleDialogOpen(false);
-    onActionComplete?.();
-    router.refresh();
+  // Handle schedule - open shared modal
+  const handleScheduleClick = () => {
+    openScheduleModal({
+      entityType,
+      entityId,
+      entityName: displayName,
+      onActionComplete,
+    });
+  };
+
+  // Handle share - open shared modal
+  const handleShareClick = () => {
+    openShareModal({
+      entityType,
+      entityId,
+      entityName: displayName,
+      onActionComplete,
+    });
   };
 
   const actualViewHref = viewHref || getDefaultViewPath();
@@ -191,158 +166,93 @@ export function EntityCardActions({
   const hasCustomActions = customActions.length > 0;
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant={buttonVariant}
-            size={buttonSize}
-            className={buttonSize === "icon" ? "h-8 w-8" : ""}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">{t("actions")}</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[180px]">
-          {/* View Action */}
-          <DropdownMenuItem asChild>
-            <Link href={actualViewHref}>
-              <Eye className="mr-2 h-4 w-4" />
-              {t("view")}
-            </Link>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant={buttonVariant}
+          size={buttonSize}
+          className={buttonSize === "icon" ? "h-8 w-8" : ""}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+          <span className="sr-only">{t("actions")}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[180px]">
+        {/* View Action */}
+        <DropdownMenuItem asChild>
+          <Link href={actualViewHref}>
+            <Eye className="mr-2 h-4 w-4" />
+            {t("view")}
+          </Link>
+        </DropdownMenuItem>
+
+        {/* Edit Action */}
+        {hasEdit && (
+          <DropdownMenuItem onClick={onEdit}>
+            <Edit className="mr-2 h-4 w-4" />
+            {t("edit")}
           </DropdownMenuItem>
+        )}
 
-          {/* Edit Action */}
-          {hasEdit && (
-            <DropdownMenuItem onClick={onEdit}>
-              <Edit className="mr-2 h-4 w-4" />
-              {t("edit")}
-            </DropdownMenuItem>
-          )}
+        {/* Separator after view/edit */}
+        {(hasOptionalActions || hasCustomActions || hasDelete) && (
+          <DropdownMenuSeparator />
+        )}
 
-          {/* Separator */}
-          {(hasEdit || true) && (hasOptionalActions || hasCustomActions || hasDelete) && (
-            <DropdownMenuSeparator />
-          )}
+        {/* Schedule Action */}
+        {showSchedule && (
+          <DropdownMenuItem onClick={handleScheduleClick}>
+            <CalendarPlus className="mr-2 h-4 w-4" />
+            {t("scheduleEvent")}
+          </DropdownMenuItem>
+        )}
 
-          {/* Schedule Action */}
-          {showSchedule && (
-            <DropdownMenuItem onClick={() => setScheduleDialogOpen(true)}>
-              <CalendarPlus className="mr-2 h-4 w-4" />
-              {t("scheduleEvent")}
-            </DropdownMenuItem>
-          )}
+        {/* Share Action */}
+        {showShare && (
+          <DropdownMenuItem onClick={handleShareClick}>
+            <Share2 className="mr-2 h-4 w-4" />
+            {t("share")}
+          </DropdownMenuItem>
+        )}
 
-          {/* Share Action */}
-          {showShare && (
-            <DropdownMenuItem onClick={() => setShareModalOpen(true)}>
-              <Share2 className="mr-2 h-4 w-4" />
-              {t("share")}
-            </DropdownMenuItem>
-          )}
+        {/* Separator before custom actions */}
+        {hasOptionalActions && (hasCustomActions || hasDelete) && (
+          <DropdownMenuSeparator />
+        )}
 
-          {/* Separator before custom actions */}
-          {hasOptionalActions && (hasCustomActions || hasDelete) && (
-            <DropdownMenuSeparator />
-          )}
+        {/* Custom Actions */}
+        {customActions.map((action) => (
+          <DropdownMenuItem
+            key={action.id}
+            onClick={action.onClick}
+            disabled={action.disabled}
+            className={
+              action.variant === "destructive"
+                ? "text-destructive focus:text-destructive"
+                : ""
+            }
+          >
+            <action.icon className="mr-2 h-4 w-4" />
+            {action.label}
+          </DropdownMenuItem>
+        ))}
 
-          {/* Custom Actions */}
-          {customActions.map((action) => (
-            <DropdownMenuItem
-              key={action.id}
-              onClick={action.onClick}
-              disabled={action.disabled}
-              className={
-                action.variant === "destructive"
-                  ? "text-destructive focus:text-destructive"
-                  : ""
-              }
-            >
-              <action.icon className="mr-2 h-4 w-4" />
-              {action.label}
-            </DropdownMenuItem>
-          ))}
+        {/* Separator before delete */}
+        {hasCustomActions && hasDelete && <DropdownMenuSeparator />}
 
-          {/* Separator before delete */}
-          {hasCustomActions && hasDelete && <DropdownMenuSeparator />}
-
-          {/* Delete Action */}
-          {hasDelete && (
-            <DropdownMenuItem
-              onClick={() => setDeleteDialogOpen(true)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t("delete")}
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Delete Confirmation Dialog */}
-      {hasDelete && (
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {t("deleteConfirmation.title")}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {t("deleteConfirmation.description")}
-                {displayName && ` "${displayName}" will be permanently deleted.`}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>
-                {t("cancel")}
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {isDeleting ? t("loading") : t("delete")}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-
-      {/* Schedule Event Dialog */}
-      {showSchedule && (
-        <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{t("scheduleEvent")}</DialogTitle>
-              <DialogDescription>
-                {`Schedule an event for "${displayName}"`}
-              </DialogDescription>
-            </DialogHeader>
-            <EventCreateForm
-              propertyId={entityType === "property" ? entityId : undefined}
-              clientId={
-                entityType === "client" || entityType === "contact"
-                  ? entityId
-                  : undefined
-              }
-              onSuccess={handleEventCreated}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Share Modal */}
-      {showShare && (
-        <ShareModal
-          open={shareModalOpen}
-          onOpenChange={setShareModalOpen}
-          entityType={getShareEntityType()}
-          entityId={entityId}
-          entityName={displayName}
-        />
-      )}
-    </>
+        {/* Delete Action */}
+        {hasDelete && (
+          <DropdownMenuItem
+            onClick={handleDeleteClick}
+            className="text-destructive focus:text-destructive"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            {t("delete")}
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

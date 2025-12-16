@@ -111,9 +111,9 @@ export function ConversionExportStep({
   return (
     <div className="space-y-6">
       {/* Success Alert */}
-      <Alert className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
-        <CheckCircle2 className="h-4 w-4 text-green-600" />
-        <AlertTitle className="text-green-700 dark:text-green-400">
+      <Alert className="border-green-500/30 bg-green-500/10">
+        <CheckCircle2 className="h-4 w-4 text-green-500" />
+        <AlertTitle className="text-green-600 dark:text-green-400">
           {t("export.success")}
         </AlertTitle>
         <AlertDescription className="text-green-600 dark:text-green-500">
@@ -219,3 +219,5 @@ export function ConversionExportStep({
     </div>
   );
 }
+
+

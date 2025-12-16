@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowRight, Sparkles } from "lucide-react";
+import { Plus, Sparkles, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -17,12 +17,12 @@ interface StatsCardProps {
   actionHref?: string;
   /** CTA label for zero-state */
   actionLabel?: string;
-  /** Label for the action button in non-zero state (defaults to "View All") */
-  viewLabel?: string;
   /** Optional onClick handler for custom actions */
   onAction?: () => void;
   /** Zero-state message when value is 0 */
   emptyMessage?: string;
+  /** Hint message shown when there is data (non-zero state) */
+  hint?: string;
   /** Custom className */
   className?: string;
 }
@@ -36,9 +36,9 @@ export function StatsCard({
   trendUp,
   actionHref,
   actionLabel,
-  viewLabel,
   onAction,
   emptyMessage,
+  hint,
   className,
 }: StatsCardProps) {
   // Determine if we're in a zero-state (value is 0 or "0" or "€0.0M" etc.)
@@ -107,7 +107,7 @@ export function StatsCard({
           </p>
         </div>
         
-        {/* Action button section - always present for consistent height */}
+        {/* Action button (zero state) or hint (non-zero state) */}
         <div className="mt-3 pt-2 min-h-[36px]">
           {hasAction && isZeroState && (
             <Button
@@ -135,31 +135,11 @@ export function StatsCard({
               )}
             </Button>
           )}
-          {hasAction && !isZeroState && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full gap-2 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 group/btn"
-              onClick={(e) => {
-                if (onAction) {
-                  e.preventDefault();
-                  onAction();
-                }
-              }}
-              asChild={!!actionHref && !onAction}
-            >
-              {actionHref && !onAction ? (
-                <Link href={actionHref}>
-                  {viewLabel || "View All"}
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
-                </Link>
-              ) : (
-                <>
-                  {viewLabel || "View All"}
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
-                </>
-              )}
-            </Button>
+          {!isZeroState && hint && (
+            <div className="flex items-start gap-1.5 text-[11px] text-muted-foreground/80 leading-tight">
+              <Lightbulb className="h-3 w-3 mt-0.5 shrink-0 text-amber-500/70" />
+              <span>{hint}</span>
+            </div>
           )}
         </div>
       </CardContent>

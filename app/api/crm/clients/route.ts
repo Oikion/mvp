@@ -140,9 +140,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ newClient }, { status: 200 });
-  } catch (error: any) {
-    console.log("[NEW_CLIENT_POST]", error);
-    const errorMessage = error?.message || "Failed to create client";
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to create client";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
@@ -287,22 +286,94 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ updatedClient }, { status: 200 });
   } catch (error) {
-    console.log("[UPDATE_CLIENT_PUT]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }
 
-export async function GET() {
+/**
+ * GET /api/crm/clients
+ * 
+ * Supports cursor-based pagination for large datasets:
+ * - ?cursor=<clientId> - Start after this client ID
+ * - ?limit=<number> - Number of items per page (default: 50, max: 100)
+ * - ?status=<status> - Filter by client status
+ * - ?search=<query> - Search by client name or email
+ * 
+ * Response includes:
+ * - items: Array of clients
+ * - nextCursor: ID of last item (use for next page), null if no more items
+ * - hasMore: Boolean indicating if more items exist
+ */
+export async function GET(req: Request) {
   try {
     await getCurrentUser();
     const organizationId = await getCurrentOrgId();
+
+    const { searchParams } = new URL(req.url);
+    const cursor = searchParams.get("cursor");
+    const limitParam = searchParams.get("limit");
+    const status = searchParams.get("status");
+    const search = searchParams.get("search");
+
+    // Validate and set limit (default 50, max 100)
+    let limit = 50;
+    if (limitParam) {
+      const parsed = parseInt(limitParam, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        limit = Math.min(parsed, 100);
+      }
+    }
+
+    // Build where clause
+    const where: Record<string, unknown> = { organizationId };
+    
+    if (status) {
+      where.client_status = status;
+    }
+    
+    if (search && search.trim()) {
+      where.OR = [
+        { client_name: { contains: search.trim(), mode: "insensitive" } },
+        { primary_email: { contains: search.trim(), mode: "insensitive" } },
+      ];
+    }
+
+    // Fetch one extra to check if there are more items
     const clients = await prismadb.clients.findMany({
-      where: { organizationId },
+      where,
+      take: limit + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0, // Skip the cursor item itself
+      orderBy: { createdAt: "desc" },
+      include: {
+        assigned_to_user: { select: { name: true } },
+        contacts: {
+          select: {
+            contact_first_name: true,
+            contact_last_name: true,
+          },
+          take: 4,
+        },
+      },
     });
-    return NextResponse.json(clients, { status: 200 });
+
+    // Check if there are more items
+    const hasMore = clients.length > limit;
+    const items = hasMore ? clients.slice(0, -1) : clients;
+    const nextCursor = hasMore ? items[items.length - 1]?.id : null;
+
+    return NextResponse.json({
+      items: JSON.parse(JSON.stringify(items)), // Serialize for client
+      nextCursor,
+      hasMore,
+    }, { status: 200 });
   } catch (error) {
-    console.log("[CLIENTS_GET]", error);
-    return new NextResponse("Initial error", { status: 500 });
+    console.error("[CLIENTS_GET]", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: "Failed to fetch clients", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 

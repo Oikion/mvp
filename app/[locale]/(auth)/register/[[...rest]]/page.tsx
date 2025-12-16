@@ -1,28 +1,17 @@
-"use client";
+import { getDictionary } from "@/dictionaries";
+import { RegisterForm } from "../components/RegisterForm";
 
-import { SignUp } from "@clerk/nextjs";
-import { useParams } from "next/navigation";
-import { useClerkTheme } from "@/lib/clerk-theme";
+interface RegisterPageProps {
+  params: Promise<{ locale: string }>;
+}
 
-// Using Clerk's account portal with virtual routing
-// This uses Clerk's hosted pages which handle social auth automatically
-export default function RegisterPage() {
-  const params = useParams();
-  const locale = params.locale as string || "en";
-  const { appearance } = useClerkTheme();
+export default async function RegisterPage({ params }: RegisterPageProps) {
+  const { locale } = await params;
+  const dict = await getDictionary(locale);
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <SignUp
-        routing="path" // Uses path-based routing with Clerk's account portal features
-        path={`/${locale}/register`}
-        signInUrl={`/${locale}/sign-in`}
-        afterSignUpUrl={`/${locale}/onboard`}
-        forceRedirectUrl={`/${locale}/onboard`}
-        appearance={appearance}
-      />
+    <div className="flex justify-center items-center min-h-screen px-4 py-8">
+      <RegisterForm dict={dict.register} />
     </div>
   );
 }
-
-

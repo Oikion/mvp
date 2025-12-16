@@ -75,7 +75,6 @@ export function SetLanguage({ userId }: Props) {
         description: t("setLanguage.languageChangedTo", { language: data.language }),
       });
     } catch (e) {
-      console.log(e, "error");
       toast({
         title: tCommon("error"),
         description: tCommon("somethingWentWrong"),

@@ -43,7 +43,7 @@ export function ProfilePreview({ profile, dict }: ProfilePreviewProps) {
   return (
     <div className="rounded-xl overflow-hidden border shadow-sm">
       {/* Preview Banner */}
-      <div className="bg-amber-50 dark:bg-amber-950/30 border-b px-4 py-2 text-center">
+      <div className="bg-amber-500/10 border-b px-4 py-2 text-center">
         <span className="text-sm text-amber-700 dark:text-amber-400">
           {t?.preview?.previewMode || "Preview Mode - This is how visitors will see your profile"}
         </span>
@@ -141,7 +141,7 @@ export function ProfilePreview({ profile, dict }: ProfilePreviewProps) {
                           href={socialLinks.linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 rounded-full bg-muted hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                          className="p-2 rounded-full bg-muted hover:bg-blue-500/15 transition-colors"
                         >
                           <Linkedin className="h-4 w-4 text-muted-foreground hover:text-blue-600" />
                         </a>
@@ -171,7 +171,7 @@ export function ProfilePreview({ profile, dict }: ProfilePreviewProps) {
                           href={socialLinks.facebook}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 rounded-full bg-muted hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                          className="p-2 rounded-full bg-muted hover:bg-blue-500/15 transition-colors"
                         >
                           <Globe className="h-4 w-4 text-muted-foreground hover:text-blue-600" />
                         </a>

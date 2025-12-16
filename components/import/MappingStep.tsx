@@ -95,7 +95,7 @@ export function MappingStep({
     <div className="space-y-6">
       {/* Missing Required Fields Warning */}
       {missingRequired.length > 0 && (
-        <Card className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+        <Card className="border-amber-500/30 bg-amber-500/10">
           <CardContent className="flex items-start gap-3 py-4">
             <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
             <div>
@@ -240,3 +240,5 @@ export function MappingStep({
     </div>
   );
 }
+
+

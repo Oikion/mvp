@@ -63,7 +63,6 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
 
     return NextResponse.json(newComment, { status: 200 });
   } catch (error) {
-    console.log("[COMMENTS_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

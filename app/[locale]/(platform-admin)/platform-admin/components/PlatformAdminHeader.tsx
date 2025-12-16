@@ -8,6 +8,7 @@ import {
   Users,
   Building2,
   LogOut,
+  MessageSquare,
 } from "lucide-react";
 import { useClerk } from "@clerk/nextjs";
 import { useRouter, usePathname } from "next/navigation";
@@ -67,6 +68,12 @@ export function PlatformAdminHeader({ adminUser, locale }: PlatformAdminHeaderPr
       label: t("nav.organizations"),
       icon: Building2,
       active: pathname.includes("/platform-admin/organizations"),
+    },
+    {
+      href: `/${locale}/platform-admin/feedback`,
+      label: t("nav.feedback"),
+      icon: MessageSquare,
+      active: pathname.includes("/platform-admin/feedback"),
     },
   ];
 
@@ -171,6 +178,12 @@ export function PlatformAdminHeader({ adminUser, locale }: PlatformAdminHeaderPr
                     {t("nav.organizations")}
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild className="md:hidden">
+                  <Link href={`/${locale}/platform-admin/feedback`}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    {t("nav.feedback")}
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator className="md:hidden" />
                 <DropdownMenuItem asChild className="sm:hidden">
                   <Link href={`/${locale}`}>
@@ -192,3 +205,5 @@ export function PlatformAdminHeader({ adminUser, locale }: PlatformAdminHeaderPr
     </header>
   );
 }
+
+

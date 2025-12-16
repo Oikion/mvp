@@ -37,6 +37,14 @@
     "title": "Είστε σίγουροι;",
     "description": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
   },
+  "locationSearch": {
+    "placeholder": "Αναζητήστε τοποθεσία...",
+    "searching": "Αναζήτηση...",
+    "noResults": "Δεν βρέθηκαν τοποθεσίες",
+    "useManual": "Χειροκίνητη εισαγωγή",
+    "clearLocation": "Καθαρισμός τοποθεσίας",
+    "selectedLocation": "Επιλεγμένη τοποθεσία"
+  },
   "statusLabels": {
     "property": {
       "ACTIVE": "Ενεργό",
@@ -57,6 +65,21 @@
       "LOST": "Χαμένος"
     },
     "na": "Δ/Υ"
+  },
+  "attachments": {
+    "clickToUpload": "Κάντε κλικ για ανέβασμα",
+    "orDragDrop": "ή σύρετε και αποθέστε",
+    "maxSize": "Μέγιστο {size}MB ανά αρχείο",
+    "maxFiles": "Έως {count} αρχεία",
+    "filesAttached": "αρχεία επισυνάπτονται",
+    "fileTooLarge": "Το αρχείο υπερβαίνει το όριο {maxSize}MB",
+    "tooManyFiles": "Επιτρέπονται μέγιστο {max} αρχεία",
+    "uploadError": "Αποτυχία ανεβάσματος αρχείου",
+    "deleted": "Το συνημμένο διαγράφηκε",
+    "deleteError": "Αποτυχία διαγραφής συνημμένου",
+    "download": "Λήψη",
+    "preview": "Προεπισκόπηση",
+    "remove": "Αφαίρεση"
   }
 }
 

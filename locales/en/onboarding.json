@@ -34,19 +34,26 @@
       }
     },
     "usernameOrg": {
-      "title": "Set Up Your Profile & Workspace",
-      "description": "Enter your details and create your organization.",
-      "nameLabel": "Your Name",
-      "namePlaceholder": "e.g., John Doe",
+      "title": "Set Up Your Workspace",
+      "description": "Confirm your details and create your organization.",
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "e.g., John",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "e.g., Doe",
       "usernameTitle": "Your Username",
-      "usernameDescription": "This will be your unique identifier on Oikion",
+      "usernameDescription": "Your unique identifier on Oikion",
       "usernameLabel": "Username",
-      "usernamePlaceholder": "e.g., john.doe",
+      "usernamePlaceholder": "e.g., john_doe",
       "usernameHint": "Your profile: oikion.app/agent/{username}",
       "usernameAvailable": "Username is available!",
       "usernameTaken": "This username is taken",
       "usernameChecking": "Checking...",
       "usernameInvalid": "2-50 characters, letters, numbers, underscores only",
+      "usernameDisplay": "Your Username",
+      "usernameNote": "Username set during registration. Change it in profile settings.",
+      "usernameSetup": "Create Your Username",
+      "usernameSetupDescription": "Choose a unique username for your profile",
+      "usernameRequired": "Please set a username to continue",
       "orgTitle": "Your Organization",
       "orgDescription": "Create your real estate agency workspace",
       "orgNameLabel": "Organization Name",
@@ -150,20 +157,25 @@
     "complete": {
       "title": "You're All Set!",
       "description": "Your workspace is ready. Let's get started!",
-      "getStarted": "Enter Oikion"
+      "getStarted": "Enter Oikion",
+      "redirecting": "Redirecting to your dashboard..."
     }
   },
   "navigation": {
     "back": "Back",
     "next": "Continue",
     "skip": "Skip for now",
-    "finish": "Complete Setup"
+    "finish": "Complete Setup",
+    "completing": "Completing..."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
     "usernameCheckFailed": "Failed to check username availability",
     "orgCreationFailed": "Failed to create organization",
-    "completionFailed": "Failed to complete setup. Please try again."
+    "completionFailed": "Failed to complete setup. Please try again.",
+    "usernameTaken": "This username is already taken. Please choose a different one.",
+    "profileUpdateFailed": "Failed to update profile. Please try again.",
+    "orgSlugTaken": "This organization slug is already taken. Please choose a different one."
   }
 }
 

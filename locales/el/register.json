@@ -1,7 +1,34 @@
 {
+  "title": "Δημιουργία λογαριασμού",
+  "description": "Εισάγετε τα στοιχεία σας για να ξεκινήσετε με το Oikion",
+  "emailLabel": "Email",
+  "emailPlaceholder": "Εισάγετε το email σας",
+  "passwordLabel": "Κωδικός",
+  "passwordPlaceholder": "Δημιουργήστε έναν κωδικό",
+  "confirmPasswordLabel": "Επιβεβαίωση Κωδικού",
+  "confirmPasswordPlaceholder": "Επιβεβαιώστε τον κωδικό σας",
+  "submitButton": "Δημιουργία Λογαριασμού",
+  "submitting": "Δημιουργία λογαριασμού...",
+  "signInLink": "Συνδεθείτε",
+  "signInText": "Έχετε ήδη λογαριασμό;",
+  "orContinueWith": "ή συνεχίστε με email",
+  "googleButton": "Συνέχεια με Google",
+  "verificationTitle": "Επιβεβαιώστε το email σας",
+  "verificationDescription": "Στείλαμε έναν κωδικό επιβεβαίωσης στο {email}",
+  "verificationCodeLabel": "Κωδικός Επιβεβαίωσης",
+  "verificationCodePlaceholder": "Εισάγετε 6ψήφιο κωδικό",
+  "verifyButton": "Επιβεβαίωση Email",
+  "resendCode": "Επαναποστολή κωδικού επιβεβαίωσης",
+  "errors": {
+    "emailRequired": "Το email είναι υποχρεωτικό",
+    "emailInvalid": "Παρακαλώ εισάγετε ένα έγκυρο email",
+    "passwordRequired": "Ο κωδικός είναι υποχρεωτικός",
+    "passwordTooShort": "Ο κωδικός πρέπει να είναι τουλάχιστον 8 χαρακτήρες",
+    "passwordsDontMatch": "Οι κωδικοί δεν ταιριάζουν",
+    "generic": "Κάτι πήγε στραβά. Παρακαλώ δοκιμάστε ξανά."
+  },
   "cardTitle": "Δημιουργία νέου λογαριασμού",
   "cardDescription": "Δημιουργήστε λογαριασμό με σύνδεση μέσω",
   "label": "Γλώσσα",
   "locale": "{locale, select, de {Γερμανικά} en {Αγγλικά} cz {Τσεχικά} uk {Ουκρανικά} el {Ελληνικά} other {Άγνωστο}}"
 }
-

@@ -9,7 +9,7 @@ const updateModel = async (model: any) => {
     },
   });
 
-  const setCronGPT = await prismadb.gpt_models.update({
+  await prismadb.gpt_models.update({
     where: {
       id: model,
     },
@@ -17,7 +17,6 @@ const updateModel = async (model: any) => {
       status: "ACTIVE",
     },
   });
-  console.log("change GPT model to:", setCronGPT);
 };
 
 export default updateModel;

@@ -7,7 +7,7 @@ import type { AdminActionType } from "./platform-admin-utils";
  * Platform Admin Security Layer
  * 
  * This module provides secure utilities for platform-level admin authentication.
- * Platform admins are identified via Clerk publicMetadata.isPlatformAdmin flag.
+ * Platform admins are identified via Clerk privateMetadata.isPlatformAdmin flag.
  * 
  * Security measures:
  * 1. Server-side only - never expose admin status to client
@@ -28,7 +28,7 @@ const CACHE_TTL = 5000; // 5 seconds
  * 
  * This function checks multiple sources in order:
  * 1. Development bypass (only in non-production environments)
- * 2. Clerk publicMetadata.isPlatformAdmin flag
+ * 2. Clerk privateMetadata.isPlatformAdmin flag
  * 
  * @returns Promise<boolean> - true if user is a platform admin
  */
@@ -46,32 +46,47 @@ export async function isPlatformAdmin(): Promise<boolean> {
       return cached.isAdmin;
     }
 
-    // Check development bypass (disabled in production)
-    if (process.env.NODE_ENV !== "production") {
-      const devAdminEmails = process.env.PLATFORM_ADMIN_DEV_EMAILS;
-      if (devAdminEmails) {
-        const clerk = await clerkClient();
-        const user = await clerk.users.getUser(userId);
-        const userEmail = user.emailAddresses?.[0]?.emailAddress;
-        
-        // Normalize both sides: trim whitespace and quotes, lowercase
-        const normalizedUserEmail = userEmail?.toLowerCase().trim();
-        const adminEmailList = devAdminEmails
-          .replace(/"/g, "") // Remove quotes
+    // Check env-based admin emails (works in all environments)
+    // PLATFORM_ADMIN_EMAILS is the secure production list
+    // PLATFORM_ADMIN_DEV_EMAILS is for development only
+    const clerk = await clerkClient();
+    const user = await clerk.users.getUser(userId);
+    const userEmail = user.emailAddresses?.[0]?.emailAddress?.toLowerCase().trim();
+
+    if (userEmail) {
+      // Production admin emails (always checked)
+      const prodAdminEmails = process.env.PLATFORM_ADMIN_EMAILS;
+      if (prodAdminEmails) {
+        const adminEmailList = prodAdminEmails
+          .replace(/"/g, "")
           .split(",")
           .map(e => e.toLowerCase().trim());
         
-        if (normalizedUserEmail && adminEmailList.includes(normalizedUserEmail)) {
+        if (adminEmailList.includes(userEmail)) {
           adminStatusCache.set(userId, { isAdmin: true, timestamp: Date.now() });
           return true;
         }
       }
+
+      // Development bypass (disabled in production)
+      if (process.env.NODE_ENV !== "production") {
+        const devAdminEmails = process.env.PLATFORM_ADMIN_DEV_EMAILS;
+        if (devAdminEmails) {
+          const devEmailList = devAdminEmails
+            .replace(/"/g, "")
+            .split(",")
+            .map(e => e.toLowerCase().trim());
+          
+          if (devEmailList.includes(userEmail)) {
+            adminStatusCache.set(userId, { isAdmin: true, timestamp: Date.now() });
+            return true;
+          }
+        }
+      }
     }
 
-    // Check Clerk publicMetadata for isPlatformAdmin flag
-    const clerk = await clerkClient();
-    const user = await clerk.users.getUser(userId);
-    const isAdmin = user.publicMetadata?.isPlatformAdmin === true;
+    // Check Clerk privateMetadata for isPlatformAdmin flag (more secure than publicMetadata)
+    const isAdmin = user.privateMetadata?.isPlatformAdmin === true;
 
     // Cache the result
     adminStatusCache.set(userId, { isAdmin, timestamp: Date.now() });
@@ -167,3 +182,5 @@ export async function logAdminAction(
   // For now, we just log to console
   // await prismadb.adminAuditLog.create({ data: logEntry });
 }
+
+

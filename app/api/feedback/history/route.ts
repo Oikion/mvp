@@ -30,15 +30,16 @@ export async function GET(req: Request) {
         consoleLogsCount: true,
         emailSent: true,
         emailSentAt: true,
+        status: true,
+        adminResponse: true,
+        respondedAt: true,
       },
     });
 
     return NextResponse.json({ feedback: feedbackHistory }, { status: 200 });
-  } catch (error: any) {
-    console.log("[FEEDBACK_HISTORY_GET]", error);
-    
+  } catch (error: unknown) {
     // If authentication error, return 401
-    if (error?.message?.includes("not authenticated") || error?.message?.includes("not found")) {
+    if (error instanceof Error && (error.message.includes("not authenticated") || error.message.includes("not found"))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     

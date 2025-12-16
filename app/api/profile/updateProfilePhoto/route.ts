@@ -22,13 +22,11 @@ export async function PUT(req: Request) {
         avatar: body.avatar,
       },
     });
-    console.log("Profile photo updated");
     return NextResponse.json(
       { message: "Profile photo updated" },
       { status: 200 }
     );
   } catch (error) {
-    console.log(error);
     return NextResponse.json(
       { message: "Error updating profile photo" },
       { status: 500 }

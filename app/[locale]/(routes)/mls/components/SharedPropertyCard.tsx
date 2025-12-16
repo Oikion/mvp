@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +15,14 @@ import type { SharedPropertyData } from "@/actions/mls/get-shared-properties";
 
 interface SharedPropertyCardProps {
   data: SharedPropertyData;
+  /** Optional index for priority loading of images */
+  index?: number;
 }
 
-export function SharedPropertyCard({ data }: SharedPropertyCardProps) {
+/**
+ * Memoized shared property card component for optimal rendering.
+ */
+export const SharedPropertyCard = memo(function SharedPropertyCard({ data, index = 0 }: SharedPropertyCardProps) {
   const t = useTranslations("mls");
 
   const status = statuses.find((s) => s.value === data.property_status);
@@ -32,6 +38,12 @@ export function SharedPropertyCard({ data }: SharedPropertyCardProps) {
             alt={data.property_name || "Property"}
             fill
             className="object-cover"
+            // Priority load first 8 images
+            priority={index < 8}
+            loading={index >= 8 ? "lazy" : undefined}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDAwUBAAAAAAAAAAAAAQIDAAQRBQYhEhMxQVFh/8QAFQEBAQAAAAAAAAAAAAAAAAAABQb/xAAaEQACAwEBAAAAAAAAAAAAAAABAgADESEx/9oADAMBAAIRAxEAPwC3bapd2+0tVvLe+uYLuOGR45Y5mV0YKSCpByCDwRSlKoqsLqw5nHLmf//Z"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -41,7 +53,7 @@ export function SharedPropertyCard({ data }: SharedPropertyCardProps) {
         <div className="absolute top-2 left-2 z-10">
           <Badge
             variant="secondary"
-            className="flex items-center gap-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
+            className="flex items-center gap-1 bg-amber-500/15 text-amber-600 dark:text-amber-400"
           >
             <Share2 className="h-3 w-3" />
             {t("SharedView.shared")}
@@ -141,9 +153,9 @@ export function SharedPropertyCard({ data }: SharedPropertyCardProps) {
       </CardFooter>
     </Card>
   );
-}
-
-
+}, (prevProps, nextProps) => {
+  return prevProps.data.shareId === nextProps.data.shareId;
+});
 
 
 

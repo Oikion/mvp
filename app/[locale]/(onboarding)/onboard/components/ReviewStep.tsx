@@ -88,13 +88,16 @@ export function ReviewStep({
   const enabledCount = countEnabledNotifications(data.notificationPreferences);
   const deliveryMethod = getDeliveryMethod(data.notificationPreferences, dict.values);
 
+  // Construct full name from firstName and lastName
+  const fullName = `${data.firstName} ${data.lastName}`.trim();
+
   const sections = [
     {
       id: "profile",
       icon: User,
       color: "bg-indigo-600/20 text-indigo-100",
       items: [
-        { label: dict.fields.name, value: data.name },
+        { label: dict.fields.name, value: fullName },
         { label: dict.fields.email, value: data.email },
         { label: dict.fields.username, value: `@${data.username}` },
       ],

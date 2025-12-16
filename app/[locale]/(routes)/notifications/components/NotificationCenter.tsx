@@ -13,6 +13,7 @@ import {
   Filter,
   Loader2,
   ChevronDown,
+  MessageSquareText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -47,6 +48,9 @@ const getNotificationIcon = (type: string) => {
   }
   if (type.includes("DOCUMENT")) {
     return FileText;
+  }
+  if (type.includes("FEEDBACK")) {
+    return MessageSquareText;
   }
   return Bell;
 };
@@ -109,6 +113,9 @@ export function NotificationCenter({ initialNotifications, dict }: NotificationC
         break;
       case "TASK":
         router.push(`/crm/clients/${notification.metadata?.accountId || ""}`);
+        break;
+      case "FEEDBACK":
+        router.push(`/feedback/${notification.entityId}`);
         break;
       default:
         break;

@@ -3,6 +3,14 @@
 import { getCurrentUserSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 
+export interface SocialPostAttachment {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  url: string;
+}
+
 export interface SocialPost {
   id: string;
   type: "property" | "client" | "text";
@@ -23,6 +31,7 @@ export interface SocialPost {
     image?: string;
     metadata?: Record<string, any>;
   };
+  attachments: SocialPostAttachment[];
   likes: number;
   comments: number;
   isLiked?: boolean;
@@ -99,6 +108,15 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
         },
         likes: true,
         comments: true,
+        attachments: {
+          select: {
+            id: true,
+            fileName: true,
+            fileSize: true,
+            fileType: true,
+            url: true,
+          },
+        },
       },
     });
 
@@ -139,6 +157,13 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
         subtitle: post.linkedEntitySubtitle || undefined,
         metadata: post.linkedEntityMetadata as Record<string, any> || undefined,
       } : undefined,
+      attachments: post.attachments?.map((att) => ({
+        id: att.id,
+        fileName: att.fileName,
+        fileSize: att.fileSize,
+        fileType: att.fileType,
+        url: att.url,
+      })) || [],
       likes: post.likes?.length || 0,
       comments: post.comments?.length || 0,
       isLiked: post.likes?.some((like) => like.userId === currentUser.id) || false,

@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -47,14 +48,17 @@ import { useTranslations } from "next-intl";
 import { ClientSelector } from "./ClientSelector";
 import { PropertySelector } from "./PropertySelector";
 import { DocumentSelector } from "./DocumentSelector";
+import { LocationAutocomplete, LocationData } from "./LocationAutocomplete";
+import { InviteeSelector, Invitee } from "./InviteeSelector";
 import { useOrgUsers, useCreateEvent } from "@/hooks/swr";
+import { inviteToEvent } from "@/actions/calendar/invite-to-event";
 
 const createEventFormSchema = (t: (key: string) => string) => z.object({
   title: z.string().min(1, t("eventCreateForm.titleRequired")),
   description: z.string().optional(),
   startTime: z.date(),
   endTime: z.date(),
-  location: z.string().optional(),
+  location: z.union([z.string(), z.custom<LocationData>()]).optional(),
   eventType: z.string().optional(),
   assignedUserId: z.string().optional(),
   clientIds: z.array(z.string()).default([]),
@@ -62,6 +66,7 @@ const createEventFormSchema = (t: (key: string) => string) => z.object({
   documentIds: z.array(z.string()).default([]),
   reminderMinutes: z.array(z.number()).default([]),
   recurrenceRule: z.string().optional(),
+  invitees: z.array(z.custom<Invitee>()).default([]),
 });
 
 interface EventCreateFormProps {
@@ -115,17 +120,23 @@ export function EventCreateForm({ userId, clientId, propertyId, onSuccess }: Eve
       documentIds: [],
       reminderMinutes: [],
       recurrenceRule: undefined,
+      invitees: [],
     },
   });
 
   async function onSubmit(data: EventFormValues) {
     try {
-      await createEvent({
+      // Extract location string from LocationData if needed
+      const locationString = typeof data.location === "string" 
+        ? data.location 
+        : (data.location as LocationData)?.address || "";
+
+      const event = await createEvent({
         title: data.title,
         description: data.description,
         startTime: data.startTime.toISOString(),
         endTime: data.endTime.toISOString(),
-        location: data.location,
+        location: locationString,
         eventType: data.eventType,
         assignedUserId: data.assignedUserId,
         clientIds: data.clientIds,
@@ -134,6 +145,18 @@ export function EventCreateForm({ userId, clientId, propertyId, onSuccess }: Eve
         reminderMinutes: data.reminderMinutes,
         recurrenceRule: data.recurrenceRule,
       });
+
+      // Send invitations if there are invitees
+      if (data.invitees && data.invitees.length > 0 && event?.id) {
+        try {
+          const userIds = data.invitees.map((inv) => inv.userId);
+          await inviteToEvent({ eventId: event.id, userIds });
+          toast.success(t("invitees.notifications.invitationsSent", { count: userIds.length }));
+        } catch (inviteError) {
+          console.error("Failed to send invitations:", inviteError);
+          toast.error(t("invitees.notifications.failedToSend"));
+        }
+      }
 
       toast.success(t("eventCreateForm.eventCreatedSuccess"));
       form.reset();
@@ -355,7 +378,11 @@ export function EventCreateForm({ userId, clientId, propertyId, onSuccess }: Eve
                 <FormItem>
                   <FormLabel>{t("eventCreateForm.location")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t("eventCreateForm.locationPlaceholder")} {...field} />
+                    <LocationAutocomplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder={t("eventCreateForm.locationPlaceholder")}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -437,6 +464,32 @@ export function EventCreateForm({ userId, clientId, propertyId, onSuccess }: Eve
                 </FormItem>
               )}
             />
+
+            <Separator className="my-4" />
+
+            <FormField
+              control={form.control}
+              name="invitees"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="mb-2">
+                    <FormLabel className="text-base">{t("eventCreateForm.invitees")}</FormLabel>
+                    <FormDescription>
+                      {t("eventCreateForm.inviteesDescription")}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <InviteeSelector
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Separator className="my-4" />
 
             <FormField
               control={form.control}

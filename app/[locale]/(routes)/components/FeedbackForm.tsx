@@ -35,8 +35,9 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Icons } from "@/components/ui/icons";
-import { Info, Bug, Sparkles, MessageSquare, HelpCircle, MoreHorizontal, Camera, Terminal, Shield, Clock, History } from "lucide-react";
+import { Info, Bug, Sparkles, MessageSquare, HelpCircle, MoreHorizontal, Camera, Terminal, Shield, Clock, History, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AttachmentUploader, type AttachmentData } from "@/components/attachments";
 import {
   Tooltip,
   TooltipContent,
@@ -106,6 +107,7 @@ interface FeedbackFormProps {
 const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
   const [loading, setLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [attachments, setAttachments] = useState<AttachmentData[]>([]);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -194,6 +196,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
         url: window.location.href,
         timestamp: new Date().toISOString(),
         screenResolution: `${window.screen.width}x${window.screen.height}`,
+        attachmentIds: attachments.map(a => a.id),
         ...(isBugReport && data.consentToCapture && {
           screenshot: screenshot,
           consoleLogs: consoleLogs,
@@ -213,6 +216,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
         description: "Thank you for your feedback. We appreciate your help in making Oikion better!",
       });
       form.reset();
+      setAttachments([]);
       setOpen(false);
     } catch (error) {
       console.error(error);
@@ -336,6 +340,21 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
             </FormItem>
           )}
         />
+
+        {/* Attachments */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Paperclip className="h-4 w-4" />
+            <span>Attachments (optional)</span>
+          </div>
+          <AttachmentUploader
+            entityType="feedback"
+            attachments={attachments}
+            onAttachmentsChange={setAttachments}
+            disabled={loading}
+            maxFiles={3}
+          />
+        </div>
 
         {/* Consent checkbox - only shown for bug reports */}
         {isBugReport && (

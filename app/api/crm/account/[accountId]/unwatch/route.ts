@@ -28,7 +28,6 @@ export async function POST(req: Request, props: { params: Promise<{ accountId: s
     });
     return NextResponse.json({ message: "Client unwatched" }, { status: 200 });
   } catch (error) {
-    console.log(error);
     return NextResponse.json({ error: "Failed to unwatch client" }, { status: 500 });
   }
 }

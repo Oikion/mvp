@@ -1,27 +1,17 @@
-"use client";
+import { getDictionary } from "@/dictionaries";
+import { SignInForm } from "../components/SignInForm";
 
-import { SignIn } from "@clerk/nextjs";
-import { useParams } from "next/navigation";
-import { useClerkTheme } from "@/lib/clerk-theme";
+interface SignInPageProps {
+  params: Promise<{ locale: string }>;
+}
 
-// Using Clerk's account portal with virtual routing
-// This uses Clerk's hosted pages which handle social auth automatically
-export default function SignInPage() {
-  const params = useParams();
-  const locale = params.locale as string || "en";
-  const { appearance } = useClerkTheme();
+export default async function SignInPage({ params }: SignInPageProps) {
+  const { locale } = await params;
+  const dict = await getDictionary(locale);
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <SignIn
-        routing="path" // Uses path-based routing with Clerk's account portal features
-        path={`/${locale}/sign-in`}
-        signUpUrl={`/${locale}/register`}
-        afterSignInUrl={`/${locale}`}
-        appearance={appearance}
-      />
+    <div className="flex justify-center items-center min-h-screen px-4 py-8">
+      <SignInForm dict={dict.signIn} />
     </div>
   );
 }
-
-

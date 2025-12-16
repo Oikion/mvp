@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -13,13 +13,15 @@ import { StatsCard } from "@/components/ui/stats-card";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { ClientCard } from "./ClientCard";
 import { SharedClientCard } from "./SharedClientCard";
-import { Users, UserCheck, UserPlus, Search, Building2, Share2, FileSpreadsheet } from "lucide-react";
+import { Users, UserCheck, UserPlus, Building2, Share2, FileSpreadsheet } from "lucide-react";
 import moment from "moment";
-import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { SharedClientData } from "@/actions/crm/get-shared-clients";
+import { SharedActionModals } from "@/components/entity";
+import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
+import { GridToolbar } from "@/components/ui/grid-toolbar";
 
 interface ClientsPageViewProps {
   agencyClients: any[];
@@ -36,6 +38,7 @@ export default function ClientsPageView({
   const [isMounted, setIsMounted] = useState(false);
   const [view, setView] = useState<"grid" | "list">("list");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [activeTab, setActiveTab] = useState("agency");
   const t = useTranslations("crm");
   const params = useParams();
@@ -45,32 +48,67 @@ export default function ClientsPageView({
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) {
-    return null;
-  }
-
-  const { users, industries } = crmData;
+  const { users } = crmData;
 
   // Stats for agency clients
   const totalClients = agencyClients.length;
-  const activeClients = agencyClients.filter((c: any) => c.status === "Active").length;
-  const newClients = agencyClients.filter((c: any) =>
+  const activeClients = agencyClients.filter((c: { status?: string }) => c.status === "Active").length;
+  const newClients = agencyClients.filter((c: { createdAt?: string | Date }) =>
     moment(c.createdAt).isAfter(moment().subtract(30, "days"))
   ).length;
-  const assignedClients = agencyClients.filter((c: any) => c.assigned_to).length;
 
   // Filter data for grid view
-  const filteredAgencyClients = agencyClients.filter(
-    (item: any) =>
-      item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAgencyClients = useMemo(() => {
+    return agencyClients.filter((item: any) => {
+      // Text search filter
+      const matchesSearch = 
+        item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Status filter (if applicable)
+      const statusFilter = selectedFilters.status || [];
+      const matchesStatus = statusFilter.length === 0 || statusFilter.includes(item.status);
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [agencyClients, searchQuery, selectedFilters]);
 
-  const filteredSharedClients = sharedClients.filter(
-    (item) =>
+  const filteredSharedClients = useMemo(() => {
+    return sharedClients.filter((item) =>
       item.client_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.primary_email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    );
+  }, [sharedClients, searchQuery]);
+
+  // Grid toolbar handlers
+  const handleFilterChange = useCallback((filterId: string, values: string[]) => {
+    setSelectedFilters((prev) => ({
+      ...prev,
+      [filterId]: values,
+    }));
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setSearchQuery("");
+    setSelectedFilters({});
+  }, []);
+
+  // Grid filters config
+  const gridFilters = useMemo(() => [
+    {
+      id: "status",
+      title: t("CrmAccountsTable.status") || "Status",
+      options: [
+        { label: "Active", value: "Active" },
+        { label: "Inactive", value: "Inactive" },
+        { label: "Lead", value: "Lead" },
+      ],
+    },
+  ], [t]);
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -83,6 +121,7 @@ export default function ClientsPageView({
           description={t("Stats.allContacts")}
           actionLabel={t("Stats.addClient")}
           emptyMessage={t("Stats.noClientsYet")}
+          hint={t("Stats.hints.totalClients")}
           onAction={() => setOpen(true)}
         />
         <StatsCard
@@ -93,6 +132,7 @@ export default function ClientsPageView({
           trendUp={activeClients > 0}
           actionLabel={t("Stats.addClient")}
           emptyMessage={t("Stats.noActiveClients")}
+          hint={t("Stats.hints.activeClients")}
           onAction={() => setOpen(true)}
         />
         <StatsCard
@@ -103,6 +143,7 @@ export default function ClientsPageView({
           trendUp={newClients > 0}
           actionLabel={t("Stats.addClient")}
           emptyMessage={t("Stats.noRecentActivity")}
+          hint={t("Stats.hints.new30d")}
           onAction={() => setOpen(true)}
         />
         <StatsCard
@@ -113,6 +154,7 @@ export default function ClientsPageView({
           actionHref="/connections"
           actionLabel={t("Stats.findAgents")}
           emptyMessage={t("Stats.connectToReceive")}
+          hint={t("Stats.hints.sharedWithYou")}
         />
       </div>
 
@@ -189,24 +231,32 @@ export default function ClientsPageView({
                 />
               ) : (
                 <div className="space-y-4">
-                  <div className="relative max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder={t("CrmAccountsTable.filterPlaceholder")}
-                      className="pl-8"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {filteredAgencyClients.map((client: any) => (
-                      <ClientCard key={client.id} data={client} />
-                    ))}
-                  </div>
-                  {filteredAgencyClients.length === 0 && (
+                  <GridToolbar
+                    searchValue={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    searchPlaceholder={t("CrmAccountsTable.filterPlaceholder")}
+                    filters={gridFilters}
+                    selectedFilters={selectedFilters}
+                    onFilterChange={handleFilterChange}
+                    onReset={handleReset}
+                  />
+                  {filteredAgencyClients.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       {t("EmptyState.noResults")}
                     </div>
+                  ) : (
+                    <VirtualizedGrid
+                      items={filteredAgencyClients}
+                      getItemKey={(client: { id: string }) => client.id}
+                      renderItem={(client: any, index: number) => (
+                        <ClientCard data={client} />
+                      )}
+                      rowHeight={280}
+                      gap={16}
+                      columns={{ sm: 1, md: 2, lg: 3, xl: 4 }}
+                      maxHeight="calc(100vh - 400px)"
+                      showScrollToTop
+                    />
                   )}
                 </div>
               )}
@@ -238,24 +288,29 @@ export default function ClientsPageView({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="relative max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder={t("CrmAccountsTable.filterPlaceholder")}
-                      className="pl-8"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {filteredSharedClients.map((client) => (
-                      <SharedClientCard key={client.shareId} data={client} />
-                    ))}
-                  </div>
-                  {filteredSharedClients.length === 0 && (
+                  <GridToolbar
+                    searchValue={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    searchPlaceholder={t("CrmAccountsTable.filterPlaceholder")}
+                    onReset={() => setSearchQuery("")}
+                  />
+                  {filteredSharedClients.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       {t("EmptyState.noResults")}
                     </div>
+                  ) : (
+                    <VirtualizedGrid
+                      items={filteredSharedClients}
+                      getItemKey={(client) => client.shareId}
+                      renderItem={(client, index) => (
+                        <SharedClientCard data={client} />
+                      )}
+                      rowHeight={280}
+                      gap={16}
+                      columns={{ sm: 1, md: 2, lg: 3, xl: 4 }}
+                      maxHeight="calc(100vh - 400px)"
+                      showScrollToTop
+                    />
                   )}
                 </div>
               )}
@@ -263,8 +318,9 @@ export default function ClientsPageView({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Shared modals for delete, share, schedule actions */}
+      <SharedActionModals />
     </div>
   );
 }
-
-

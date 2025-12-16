@@ -197,7 +197,7 @@ export function ConversionUploadStep({
               border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
               transition-colors duration-200
               ${isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50"}
-              ${isUploaded ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}
+              ${isUploaded ? "border-green-500/50 bg-green-500/10" : ""}
               ${isProcessing ? "opacity-50 pointer-events-none" : ""}
             `}
           >
@@ -290,3 +290,5 @@ export function ConversionUploadStep({
     </div>
   );
 }
+
+

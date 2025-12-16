@@ -29,7 +29,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
         <Badge
           key={`client-${client.id}`}
           variant="outline"
-          className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 cursor-pointer"
+          className="bg-blue-500/10 text-blue-600 border-blue-500/30 hover:bg-blue-500/20 dark:text-blue-400 cursor-pointer"
           onClick={() => onMentionClick?.("client", client.id)}
         >
           <Users className="h-3 w-3 mr-1" />
@@ -42,7 +42,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
         <Badge
           key={`property-${property.id}`}
           variant="outline"
-          className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-950 dark:text-green-300 dark:border-green-800 cursor-pointer"
+          className="bg-green-500/10 text-green-600 border-green-500/30 hover:bg-green-500/20 dark:text-green-400 cursor-pointer"
           onClick={() => onMentionClick?.("property", property.id)}
         >
           <Home className="h-3 w-3 mr-1" />
@@ -55,7 +55,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
         <Badge
           key={`event-${event.id}`}
           variant="outline"
-          className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 cursor-pointer"
+          className="bg-purple-500/10 text-purple-600 border-purple-500/30 hover:bg-purple-500/20 dark:text-purple-400 cursor-pointer"
           onClick={() => onMentionClick?.("event", event.id)}
         >
           <Calendar className="h-3 w-3 mr-1" />
@@ -68,7 +68,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
         <Badge
           key={`task-${task.id}`}
           variant="outline"
-          className="bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800 cursor-pointer"
+          className="bg-orange-500/10 text-orange-600 border-orange-500/30 hover:bg-orange-500/20 dark:text-orange-400 cursor-pointer"
           onClick={() => onMentionClick?.("task", task.id)}
         >
           <CheckSquare className="h-3 w-3 mr-1" />

@@ -15,7 +15,8 @@ import {
   Handshake,
   ListTodo,
   Users,
-  Home
+  Home,
+  MessageSquareText
 } from "lucide-react";
 import {
   Popover,
@@ -80,6 +81,10 @@ const getNotificationIcon = (type: string) => {
   if (type.includes("DOCUMENT")) {
     return FileText;
   }
+  // Feedback notifications
+  if (type.includes("FEEDBACK")) {
+    return MessageSquareText;
+  }
   // System/Welcome
   if (type === "WELCOME" || type === "SYSTEM") {
     return CheckCircle2;
@@ -102,6 +107,9 @@ const getNotificationColor = (type: string) => {
   }
   if (type.includes("CALENDAR") || type.includes("REMINDER")) {
     return "text-purple-500";
+  }
+  if (type.includes("FEEDBACK")) {
+    return "text-indigo-500";
   }
   return "text-muted-foreground";
 };
@@ -197,6 +205,9 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
         } else {
           router.push("/connections");
         }
+        break;
+      case "FEEDBACK":
+        router.push(`/feedback/${notification.entityId}`);
         break;
       default:
         router.push("/notifications");

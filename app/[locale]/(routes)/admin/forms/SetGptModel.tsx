@@ -51,7 +51,7 @@ const SetGptModel = ({ models }: any) => {
         title: "GPT model updated",
       });
     } catch (error) {
-      console.log(error);
+      // GPT model update failed silently
     } finally {
       router.refresh();
     }

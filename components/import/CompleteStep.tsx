@@ -42,8 +42,8 @@ export function CompleteStep({
       <Card
         className={
           hasImported
-            ? "border-green-500/50 bg-green-50 dark:bg-green-950/20"
-            : "border-red-500/50 bg-red-50 dark:bg-red-950/20"
+            ? "border-green-500/30 bg-green-500/10"
+            : "border-red-500/30 bg-red-500/10"
         }
       >
         <CardContent className="pt-8 pb-8">
@@ -73,7 +73,7 @@ export function CompleteStep({
           <Card className={result.imported > 0 ? "border-green-500/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-green-100 dark:bg-green-950">
+                <div className="p-2 rounded-full bg-green-500/15">
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
                 </div>
                 <div>
@@ -89,7 +89,7 @@ export function CompleteStep({
           <Card className={result.skipped > 0 ? "border-amber-500/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-950">
+                <div className="p-2 rounded-full bg-amber-500/15">
                   <AlertTriangle className="h-5 w-5 text-amber-500" />
                 </div>
                 <div>
@@ -105,7 +105,7 @@ export function CompleteStep({
           <Card className={result.failed > 0 ? "border-red-500/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-red-100 dark:bg-red-950">
+                <div className="p-2 rounded-full bg-red-500/15">
                   <XCircle className="h-5 w-5 text-red-500" />
                 </div>
                 <div>
@@ -141,3 +141,5 @@ export function CompleteStep({
     </div>
   );
 }
+
+

@@ -65,7 +65,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
-    console.log("[FULLTEXT_SEARCH_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

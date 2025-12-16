@@ -369,7 +369,21 @@ export async function PUT(req: Request) {
   }
 }
 
-export async function GET() {
+/**
+ * GET /api/mls/properties
+ * 
+ * Supports cursor-based pagination for large datasets:
+ * - ?cursor=<propertyId> - Start after this property ID
+ * - ?limit=<number> - Number of items per page (default: 50, max: 100)
+ * - ?status=<status> - Filter by property status
+ * - ?search=<query> - Search by property name
+ * 
+ * Response includes:
+ * - items: Array of properties
+ * - nextCursor: ID of last item (use for next page), null if no more items
+ * - hasMore: Boolean indicating if more items exist
+ */
+export async function GET(req: Request) {
   try {
     await getCurrentUser();
     const organizationId = await getCurrentOrgIdSafe();
@@ -381,10 +395,68 @@ export async function GET() {
       );
     }
 
+    const { searchParams } = new URL(req.url);
+    const cursor = searchParams.get("cursor");
+    const limitParam = searchParams.get("limit");
+    const status = searchParams.get("status");
+    const search = searchParams.get("search");
+
+    // Validate and set limit (default 50, max 100)
+    let limit = 50;
+    if (limitParam) {
+      const parsed = parseInt(limitParam, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        limit = Math.min(parsed, 100);
+      }
+    }
+
+    // Build where clause
+    const where: Record<string, unknown> = { organizationId };
+    
+    if (status && VALID_PROPERTY_STATUSES.has(status)) {
+      where.property_status = status;
+    }
+    
+    if (search && search.trim()) {
+      where.property_name = {
+        contains: search.trim(),
+        mode: "insensitive",
+      };
+    }
+
+    // Fetch one extra to check if there are more items
     const properties = await prismadb.properties.findMany({
-      where: { organizationId },
+      where,
+      take: limit + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0, // Skip the cursor item itself
+      orderBy: { createdAt: "desc" },
+      include: {
+        assigned_to_user: { select: { name: true } },
+        linkedDocuments: {
+          where: {
+            document_file_mimeType: {
+              startsWith: "image/",
+            },
+          },
+          select: {
+            document_file_url: true,
+          },
+          take: 1,
+        },
+      },
     });
-    return NextResponse.json(properties, { status: 200 });
+
+    // Check if there are more items
+    const hasMore = properties.length > limit;
+    const items = hasMore ? properties.slice(0, -1) : properties;
+    const nextCursor = hasMore ? items[items.length - 1]?.id : null;
+
+    return NextResponse.json({
+      items: JSON.parse(JSON.stringify(items)), // Serialize for client
+      nextCursor,
+      hasMore,
+    }, { status: 200 });
   } catch (error) {
     console.error("[PROPERTIES_GET]", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";

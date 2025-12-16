@@ -19,7 +19,6 @@ export async function POST(req: Request, props: { params: Promise<{ moduleId: st
 
     return NextResponse.json(module);
   } catch (error) {
-    console.log("[MODULE_DEACTIVATE_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

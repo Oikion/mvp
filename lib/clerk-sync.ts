@@ -17,12 +17,13 @@ export async function syncClerkUser(clerkUserId: string) {
   let clerkUser;
   try {
     clerkUser = await clerk.users.getUser(clerkUserId);
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle Clerk API errors (e.g., user not found, API errors)
-    const errorStatus = error?.status;
-    const errorCode = error?.code;
-    const errorMessage = error?.message || "";
-    const firstError = error?.errors?.[0];
+    const errorObj = error as { status?: number; code?: string; message?: string; errors?: Array<{ code?: string }> };
+    const errorStatus = errorObj?.status;
+    const errorCode = errorObj?.code;
+    const errorMessage = errorObj?.message || "";
+    const firstError = errorObj?.errors?.[0];
     
     // Check various ways Clerk might indicate user not found
     if (
@@ -32,10 +33,10 @@ export async function syncClerkUser(clerkUserId: string) {
       errorMessage.toLowerCase().includes("not found") ||
       errorMessage.toLowerCase().includes("does not exist")
     ) {
-      const notFoundError = new Error(`Clerk user not found: ${clerkUserId}`);
+      const notFoundError = new Error(`Clerk user not found: ${clerkUserId}`) as Error & { status: number; code: string };
       // Attach error details for better handling upstream
-      (notFoundError as any).status = 404;
-      (notFoundError as any).code = "not_found";
+      notFoundError.status = 404;
+      notFoundError.code = "not_found";
       throw notFoundError;
     }
     // Re-throw other errors
@@ -43,21 +44,28 @@ export async function syncClerkUser(clerkUserId: string) {
   }
 
   if (!clerkUser) {
-    const notFoundError = new Error(`Clerk user not found: ${clerkUserId}`);
+    const notFoundError = new Error(`Clerk user not found: ${clerkUserId}`) as Error & { status: number; code: string };
     // Attach error details for better handling upstream
-    (notFoundError as any).status = 404;
-    (notFoundError as any).code = "not_found";
+    notFoundError.status = 404;
+    notFoundError.code = "not_found";
     throw notFoundError;
   }
 
   const email = clerkUser.emailAddresses[0]?.emailAddress;
-  const name = clerkUser.firstName && clerkUser.lastName
-    ? `${clerkUser.firstName} ${clerkUser.lastName}`
-    : clerkUser.firstName || clerkUser.lastName || clerkUser.username || email?.split("@")[0] || "User";
+  const firstName = clerkUser.firstName || null;
+  const lastName = clerkUser.lastName || null;
+  const name = firstName && lastName
+    ? `${firstName} ${lastName}`
+    : firstName || lastName || clerkUser.username || email?.split("@")[0] || "User";
   const avatar = clerkUser.imageUrl || null;
   
-  // Generate username if not provided - use Clerk username or create from email
-  const username = clerkUser.username || email?.split("@")[0] || `user_${clerkUserId.substring(0, 8)}`;
+  // Username from Clerk (source of truth)
+  // May be null for legacy users created before username was required
+  // These users will be redirected to onboarding to set a username
+  const username = clerkUser.username || null;
+  if (!username) {
+    console.warn(`[clerk-sync] Clerk user ${clerkUserId} has no username. User will be prompted to set one during onboarding.`);
+  }
   
   // Get language from publicMetadata (set during sign-up via additionalFields)
   const language = (clerkUser.publicMetadata?.language as string) || "en";
@@ -85,7 +93,10 @@ export async function syncClerkUser(clerkUserId: string) {
       where: { id: existingByClerkId.id },
       data: {
         email,
+        firstName: firstName || existingByClerkId.firstName,
+        lastName: lastName || existingByClerkId.lastName,
         name,
+        // Use Clerk username if available, otherwise keep existing
         username: username || existingByClerkId.username,
         avatar,
         userLanguage: userLanguage as "en" | "cz" | "de" | "uk" | "el",
@@ -100,7 +111,10 @@ export async function syncClerkUser(clerkUserId: string) {
       where: { id: existingByEmail.id },
       data: {
         clerkUserId,
+        firstName: firstName || existingByEmail.firstName,
+        lastName: lastName || existingByEmail.lastName,
         name: name || existingByEmail.name,
+        // Use Clerk username if available, otherwise keep existing
         username: username || existingByEmail.username,
         avatar: avatar || existingByEmail.avatar,
         userLanguage: userLanguage as "en" | "cz" | "de" | "uk" | "el",
@@ -118,7 +132,10 @@ export async function syncClerkUser(clerkUserId: string) {
       where: { id: existingByEmail.id },
       data: {
         clerkUserId,
+        firstName: firstName || existingByEmail.firstName,
+        lastName: lastName || existingByEmail.lastName,
         name: name || existingByEmail.name,
+        // Use Clerk username if available, otherwise keep existing
         username: username || existingByEmail.username,
         avatar: avatar || existingByEmail.avatar,
         userLanguage: userLanguage as "en" | "cz" | "de" | "uk" | "el",
@@ -134,7 +151,10 @@ export async function syncClerkUser(clerkUserId: string) {
       where: { id: existingByEmail.id },
       data: {
         email,
+        firstName: firstName || existingByEmail.firstName,
+        lastName: lastName || existingByEmail.lastName,
         name,
+        // Use Clerk username if available, otherwise keep existing
         username: username || existingByEmail.username,
         avatar,
         userLanguage: userLanguage as "en" | "cz" | "de" | "uk" | "el",
@@ -160,6 +180,8 @@ export async function syncClerkUser(clerkUserId: string) {
         id: userId,
         clerkUserId,
         email,
+        firstName,
+        lastName,
         name,
         username,
         avatar,
@@ -197,7 +219,10 @@ export async function syncClerkUser(clerkUserId: string) {
           where: { id: existingByEmailRetry.id },
           data: {
             clerkUserId,
+            firstName: firstName || existingByEmailRetry.firstName,
+            lastName: lastName || existingByEmailRetry.lastName,
             name,
+            // Use Clerk username if available, otherwise keep existing
             username: username || existingByEmailRetry.username,
             avatar: avatar || existingByEmailRetry.avatar,
             userLanguage: userLanguage as "en" | "cz" | "de" | "uk" | "el",
@@ -266,10 +291,10 @@ export async function deleteUserOwnedOrganizations(clerkUserId: string) {
       organizationMemberships = await clerk.users.getOrganizationMembershipList({
         userId: clerkUserId,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If user has no organizations or error fetching, return empty array
-      if (error?.status === 404) {
-        console.log(`[DELETE_ORG] User ${clerkUserId} has no organizations`);
+      const errorStatus = (error as { status?: number })?.status;
+      if (errorStatus === 404) {
         return [];
       }
       throw error;
@@ -293,10 +318,10 @@ export async function deleteUserOwnedOrganizations(clerkUserId: string) {
             orgMembers = await clerk.organizations.getOrganizationMembershipList({
               organizationId: organizationId,
             });
-          } catch (memberError: any) {
+          } catch (memberError: unknown) {
             // If organization doesn't exist or can't get members, skip it
-            if (memberError?.status === 404) {
-              console.log(`[DELETE_ORG] Organization ${organizationId} not found, skipping`);
+            const errorStatus = (memberError as { status?: number })?.status;
+            if (errorStatus === 404) {
               continue;
             }
             throw memberError;
@@ -314,62 +339,37 @@ export async function deleteUserOwnedOrganizations(clerkUserId: string) {
 
             // Delete the organization through Clerk API
             try {
-              // Get organization details before deletion for logging
-              let orgDetails;
-              try {
-                orgDetails = await clerk.organizations.getOrganization({ organizationId });
-              } catch (getError: any) {
-                // If we can't get org details, still try to delete
-                console.warn(`[DELETE_ORG] Could not fetch org details for ${organizationId}`);
-              }
-
               // Delete the organization - Clerk should handle this synchronously
               await clerk.organizations.deleteOrganization(organizationId);
               
               deletedOrgIds.push(organizationId);
-              console.log(`[DELETE_ORG] Successfully deleted organization ${organizationId}${orgDetails ? ` (slug: ${orgDetails.slug})` : ''} owned by user ${clerkUserId}`);
               
               // Note: Verification of deletion is skipped in server context
               // Clerk handles deletion synchronously, and eventual consistency is handled by Clerk
-            } catch (orgError: any) {
+            } catch (orgError: unknown) {
               // If organization already deleted or doesn't exist (404), that's fine
-              if (orgError?.status === 404 || orgError?.code === "not_found") {
-                console.log(`[DELETE_ORG] Organization ${organizationId} already deleted or doesn't exist`);
+              const errorStatus = (orgError as { status?: number })?.status;
+              const errorCode = (orgError as { code?: string })?.code;
+              if (errorStatus === 404 || errorCode === "not_found") {
                 deletedOrgIds.push(organizationId); // Still count it as deleted since data is cleaned up
-              } else {
-                console.error(`[DELETE_ORG] Failed to delete organization ${organizationId}:`, orgError);
-                // Log the error but continue with other organizations
-                // The organization might be in a state that prevents deletion
-                console.error(`[DELETE_ORG] Error details:`, {
-                  status: orgError?.status,
-                  code: orgError?.code,
-                  message: orgError?.message,
-                });
               }
+              // Continue with other organizations even if one fails
             }
           }
-        } catch (error: any) {
-          console.error(`[DELETE_ORG] Error processing organization ${organizationId}:`, error);
+        } catch (error) {
           // Continue with other organizations even if one fails
-          // Log detailed error information
-          console.error(`[DELETE_ORG] Error details:`, {
-            organizationId,
-            status: error?.status,
-            code: error?.code,
-            message: error?.message,
-          });
         }
       }
     }
 
     return deletedOrgIds;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle case where user has no organizations or user doesn't exist
-    if (error?.status === 404 || error?.code === "not_found") {
-      console.log(`[DELETE_ORG] User ${clerkUserId} has no organizations or user not found`);
+    const errorStatus = (error as { status?: number })?.status;
+    const errorCode = (error as { code?: string })?.code;
+    if (errorStatus === 404 || errorCode === "not_found") {
       return [];
     }
-    console.error(`[DELETE_ORG] Error deleting organizations for user ${clerkUserId}:`, error);
     throw error;
   }
 }
@@ -385,7 +385,7 @@ export async function deleteOrganizationBySlug(slug: string) {
   try {
     // List all organizations and find by slug
     // Note: Clerk API doesn't have direct slug filtering, so we need to search
-    let foundOrganization: any = null;
+    let foundOrganization: { id: string; slug: string | null } | null = null;
     let hasMore = true;
     let offset = 0;
     const limit = 100;
@@ -406,8 +406,7 @@ export async function deleteOrganizationBySlug(slug: string) {
 
         hasMore = organizationsList.data && organizationsList.data.length === limit;
         offset += limit;
-      } catch (error: any) {
-        console.error(`[DELETE_ORG_BY_SLUG] Error fetching organizations:`, error);
+      } catch (error) {
         hasMore = false;
       }
     }
@@ -418,8 +417,6 @@ export async function deleteOrganizationBySlug(slug: string) {
 
     const organizationId = foundOrganization.id;
 
-    console.log(`[DELETE_ORG_BY_SLUG] Found organization ${organizationId} with slug "${slug}"`);
-
     // Clean up database records
     await cleanupOrganizationData([organizationId]);
 
@@ -429,17 +426,17 @@ export async function deleteOrganizationBySlug(slug: string) {
     // Verify deletion
     await new Promise(resolve => setTimeout(resolve, 500));
     try {
-      await clerk.organizations.getOrganization(organizationId);
+      await clerk.organizations.getOrganization({ organizationId });
       throw new Error(`Organization ${organizationId} still exists after deletion`);
-    } catch (verifyError: any) {
-      if (verifyError?.status === 404 || verifyError?.code === "not_found") {
-        console.log(`[DELETE_ORG_BY_SLUG] Successfully deleted organization "${slug}" (${organizationId})`);
+    } catch (verifyError: unknown) {
+      const errorStatus = (verifyError as { status?: number })?.status;
+      const errorCode = (verifyError as { code?: string })?.code;
+      if (errorStatus === 404 || errorCode === "not_found") {
         return { success: true, organizationId, slug };
       }
       throw verifyError;
     }
-  } catch (error: any) {
-    console.error(`[DELETE_ORG_BY_SLUG] Error deleting organization by slug "${slug}":`, error);
+  } catch (error) {
     throw error;
   }
 }
@@ -475,10 +472,7 @@ async function cleanupOrganizationData(organizationIds: string[]) {
         },
       },
     });
-
-    console.log(`[CLEANUP_ORG_DATA] Cleaned up data for ${organizationIds.length} organizations`);
   } catch (error) {
-    console.error(`[CLEANUP_ORG_DATA] Error cleaning up organization data:`, error);
     // Don't throw - we want to continue even if cleanup fails partially
   }
 }

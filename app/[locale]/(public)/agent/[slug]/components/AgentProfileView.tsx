@@ -139,7 +139,7 @@ export function AgentProfileView({ profile }: AgentProfileViewProps) {
                         href={socialLinks.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 rounded-full bg-gray-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                        className="p-2 rounded-full bg-muted hover:bg-blue-500/15 transition-colors"
                       >
                         <Linkedin className="h-5 w-5 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400" />
                       </a>
@@ -169,7 +169,7 @@ export function AgentProfileView({ profile }: AgentProfileViewProps) {
                         href={socialLinks.facebook}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 rounded-full bg-gray-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                        className="p-2 rounded-full bg-muted hover:bg-blue-500/15 transition-colors"
                       >
                         <Globe className="h-5 w-5 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400" />
                       </a>

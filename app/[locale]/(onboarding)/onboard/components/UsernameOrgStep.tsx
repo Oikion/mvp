@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,8 @@ import { User, Building2, Check, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { generateOrgSlug } from "@/types/onboarding";
-import type { UsernameOrgStepData, UsernameAvailabilityResult } from "@/types/onboarding";
+import { checkUsernameAvailability } from "@/actions/user/check-username";
+import type { UsernameOrgStepData } from "@/types/onboarding";
 
 interface SlugAvailabilityResult {
   available: boolean;
@@ -20,8 +21,10 @@ interface UsernameOrgStepProps {
   dict: {
     title: string;
     description: string;
-    nameLabel: string;
-    namePlaceholder: string;
+    firstNameLabel: string;
+    firstNamePlaceholder: string;
+    lastNameLabel: string;
+    lastNamePlaceholder: string;
     usernameTitle: string;
     usernameDescription: string;
     usernameLabel: string;
@@ -31,6 +34,10 @@ interface UsernameOrgStepProps {
     usernameTaken: string;
     usernameChecking: string;
     usernameInvalid: string;
+    usernameDisplay?: string;
+    usernameNote?: string;
+    usernameSetup?: string;
+    usernameSetupDescription?: string;
     orgTitle: string;
     orgDescription: string;
     orgNameLabel: string;
@@ -42,12 +49,14 @@ interface UsernameOrgStepProps {
   data: UsernameOrgStepData;
   onDataChange: (data: UsernameOrgStepData) => void;
   onValidationChange: (isValid: boolean) => void;
-  /** If true, the name field is hidden because it was already collected during registration */
+  /** If true, the name fields are hidden because they were already collected during registration */
   userHasName?: boolean;
+  /** The initial username from Clerk (to detect if user needs to set one) */
+  initialUsername?: string;
 }
 
-type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 type SlugStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 
 export function UsernameOrgStep({
   dict,
@@ -55,23 +64,38 @@ export function UsernameOrgStep({
   onDataChange,
   onValidationChange,
   userHasName = false,
+  initialUsername = "",
 }: UsernameOrgStepProps) {
-  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [slugStatus, setSlugStatus] = useState<SlugStatus>("idle");
-  const debouncedUsername = useDebounce(data.username, 500);
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const debouncedSlug = useDebounce(data.orgSlug, 500);
+  const debouncedUsername = useDebounce(data.username, 500);
+  
+  // Track if username was originally empty (needs to be set)
+  const usernameNeedsSetup = useRef(!initialUsername);
 
-  // Check username availability
+  // Check username availability (only when username needs to be set)
   useEffect(() => {
     const checkUsername = async () => {
+      // Skip check if username was already set from Clerk
+      if (!usernameNeedsSetup.current) {
+        setUsernameStatus("available");
+        return;
+      }
+
       if (!debouncedUsername || debouncedUsername.length < 2) {
         setUsernameStatus("idle");
         return;
       }
 
-      // Validate format
-      const usernameRegex = /^[a-zA-Z0-9_]{2,50}$/;
+      // Validate format: alphanumeric and underscores only
+      const usernameRegex = /^\w+$/;
       if (!usernameRegex.test(debouncedUsername)) {
+        setUsernameStatus("invalid");
+        return;
+      }
+
+      if (debouncedUsername.length > 50) {
         setUsernameStatus("invalid");
         return;
       }
@@ -79,10 +103,7 @@ export function UsernameOrgStep({
       setUsernameStatus("checking");
 
       try {
-        const response = await fetch(
-          `/api/user/check-username?username=${encodeURIComponent(debouncedUsername)}`
-        );
-        const result: UsernameAvailabilityResult = await response.json();
+        const result = await checkUsernameAvailability(debouncedUsername);
         setUsernameStatus(result.available ? "available" : "taken");
       } catch {
         setUsernameStatus("idle");
@@ -126,19 +147,35 @@ export function UsernameOrgStep({
   // Update validation status
   useEffect(() => {
     // If user already has a name from registration, skip name validation
-    const isNameValid = userHasName || data.name.trim().length >= 2;
-    const isUsernameValid = usernameStatus === "available";
+    const isFirstNameValid = userHasName || data.firstName.trim().length >= 1;
+    const isLastNameValid = userHasName || data.lastName.trim().length >= 1;
+    
+    // Username validation depends on whether it needs to be set
+    let isUsernameValid: boolean;
+    if (usernameNeedsSetup.current) {
+      // Username needs to be set - must be available
+      isUsernameValid = usernameStatus === "available" && data.username.length >= 2;
+    } else {
+      // Username already exists from Clerk
+      isUsernameValid = !!data.username && data.username.length >= 2;
+    }
+    
     const isSlugValid = slugStatus === "available" || (slugStatus === "idle" && data.orgSlug.length >= 2);
     const isOrgNameValid = data.orgName.length >= 2;
-    onValidationChange(isNameValid && isUsernameValid && isSlugValid && isOrgNameValid);
-  }, [usernameStatus, slugStatus, data.name, data.orgName, data.orgSlug, onValidationChange, userHasName]);
+    onValidationChange(isFirstNameValid && isLastNameValid && isUsernameValid && isSlugValid && isOrgNameValid);
+  }, [slugStatus, usernameStatus, data.firstName, data.lastName, data.username, data.orgName, data.orgSlug, onValidationChange, userHasName]);
 
-  const handleNameChange = (value: string) => {
-    onDataChange({ ...data, name: value });
+  const handleFirstNameChange = (value: string) => {
+    onDataChange({ ...data, firstName: value });
+  };
+
+  const handleLastNameChange = (value: string) => {
+    onDataChange({ ...data, lastName: value });
   };
 
   const handleUsernameChange = (value: string) => {
-    const cleanedValue = value.toLowerCase().replaceAll(/[^a-z0-9_]/g, "");
+    // Clean username: lowercase, alphanumeric and underscores only
+    const cleanedValue = value.toLowerCase().replaceAll(/[^\w]/g, "");
     onDataChange({ ...data, username: cleanedValue });
   };
 
@@ -154,35 +191,6 @@ export function UsernameOrgStep({
   const handleOrgSlugChange = (value: string) => {
     const cleanedValue = value.toLowerCase().replaceAll(/[^a-z0-9-]/g, "");
     onDataChange({ ...data, orgSlug: cleanedValue });
-  };
-
-  const getStatusIcon = () => {
-    switch (usernameStatus) {
-      case "checking":
-        return <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />;
-      case "available":
-        return <Check className="w-4 h-4 text-green-500" />;
-      case "taken":
-      case "invalid":
-        return <X className="w-4 h-4 text-destructive" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusMessage = () => {
-    switch (usernameStatus) {
-      case "checking":
-        return dict.usernameChecking;
-      case "available":
-        return dict.usernameAvailable;
-      case "taken":
-        return dict.usernameTaken;
-      case "invalid":
-        return dict.usernameInvalid;
-      default:
-        return "";
-    }
   };
 
   return (
@@ -211,63 +219,124 @@ export function UsernameOrgStep({
               <User className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold">{dict.usernameTitle}</h3>
-              <p className="text-sm text-muted-foreground">{dict.usernameDescription}</p>
+              <h3 className="font-semibold">
+                {usernameNeedsSetup.current 
+                  ? (dict.usernameSetup || "Create Your Username")
+                  : (dict.usernameDisplay || dict.usernameTitle)}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {usernameNeedsSetup.current
+                  ? (dict.usernameSetupDescription || "Choose a unique username for your profile")
+                  : dict.usernameDescription}
+              </p>
             </div>
           </div>
 
           <div className="space-y-4">
-            {/* Display Name - only show if not already collected during registration */}
+            {/* First and Last Name - only show if not already collected during registration */}
             {!userHasName && (
-              <div className="space-y-2">
-                <Label htmlFor="name">{dict.nameLabel}</Label>
-                <Input
-                  id="name"
-                  value={data.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder={dict.namePlaceholder}
-                  className="px-4 h-11"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">{dict.firstNameLabel}</Label>
+                  <Input
+                    id="firstName"
+                    value={data.firstName}
+                    onChange={(e) => handleFirstNameChange(e.target.value)}
+                    placeholder={dict.firstNamePlaceholder}
+                    className="px-4 h-11"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">{dict.lastNameLabel}</Label>
+                  <Input
+                    id="lastName"
+                    value={data.lastName}
+                    onChange={(e) => handleLastNameChange(e.target.value)}
+                    placeholder={dict.lastNamePlaceholder}
+                    className="px-4 h-11"
+                  />
+                </div>
               </div>
             )}
 
-            {/* Username */}
+            {/* Username - Editable if needs setup, Read Only if already set */}
             <div className="space-y-2">
               <Label htmlFor="username">{dict.usernameLabel}</Label>
-              <div className="relative">
-                <Input
-                  id="username"
-                  value={data.username}
-                  onChange={(e) => handleUsernameChange(e.target.value)}
-                  placeholder={dict.usernamePlaceholder}
-                  className={cn(
-                    "px-4 h-11",
-                    usernameStatus === "available" && "border-green-500 focus-visible:ring-green-500",
-                    (usernameStatus === "taken" || usernameStatus === "invalid") &&
-                      "border-destructive focus-visible:ring-destructive"
+              {usernameNeedsSetup.current ? (
+                <>
+                  {/* Editable Username Input */}
+                  <div className="relative">
+                    <Input
+                      id="username"
+                      value={data.username}
+                      onChange={(e) => handleUsernameChange(e.target.value)}
+                      placeholder={dict.usernamePlaceholder}
+                      className={cn(
+                        "px-4 h-11 pr-10",
+                        usernameStatus === "available" && "border-green-500 focus-visible:ring-green-500",
+                        (usernameStatus === "taken" || usernameStatus === "invalid") &&
+                          "border-destructive focus-visible:ring-destructive"
+                      )}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {usernameStatus === "checking" && (
+                        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                      )}
+                      {usernameStatus === "available" && (
+                        <Check className="w-4 h-4 text-green-500" />
+                      )}
+                      {(usernameStatus === "taken" || usernameStatus === "invalid") && (
+                        <X className="w-4 h-4 text-destructive" />
+                      )}
+                    </div>
+                  </div>
+                  {usernameStatus !== "idle" && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={cn(
+                        "text-sm",
+                        usernameStatus === "available" && "text-green-600",
+                        usernameStatus === "taken" && "text-destructive",
+                        usernameStatus === "invalid" && "text-destructive",
+                        usernameStatus === "checking" && "text-muted-foreground"
+                      )}
+                    >
+                      {usernameStatus === "checking" && dict.usernameChecking}
+                      {usernameStatus === "available" && dict.usernameAvailable}
+                      {usernameStatus === "taken" && dict.usernameTaken}
+                      {usernameStatus === "invalid" && dict.usernameInvalid}
+                    </motion.p>
                   )}
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {getStatusIcon()}
-                </div>
-              </div>
-              
-              {usernameStatus !== "idle" && (
-                <motion.p
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={cn(
-                    "text-sm",
-                    usernameStatus === "available" && "text-green-600",
-                    (usernameStatus === "taken" || usernameStatus === "invalid") && "text-destructive",
-                    usernameStatus === "checking" && "text-muted-foreground"
+                  {usernameStatus === "idle" && (
+                    <p className="text-sm text-muted-foreground">{dict.usernameInvalid}</p>
                   )}
-                >
-                  {getStatusMessage()}
-                </motion.p>
+                </>
+              ) : (
+                <>
+                  {/* Read Only Username Display */}
+                  <div className="relative">
+                    <Input
+                      id="username"
+                      value={data.username}
+                      readOnly
+                      disabled
+                      className={cn(
+                        "px-4 h-11 bg-muted/50 border-green-500/50 cursor-not-allowed"
+                      )}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Check className="w-4 h-4 text-green-500" />
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground">
+                    {dict.usernameNote || "Username set during registration. Change it in profile settings."}
+                  </p>
+                </>
               )}
               
-              {data.username && usernameStatus === "available" && (
+              {data.username && (
                 <p className="text-sm text-muted-foreground">
                   {dict.usernameHint.replace("{username}", data.username)}
                 </p>
@@ -361,4 +430,3 @@ export function UsernameOrgStep({
     </div>
   );
 }
-

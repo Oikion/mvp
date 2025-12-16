@@ -60,11 +60,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { createSocialPost, getMyProfileVisibility } from "@/actions/social-feed/create-social-post";
+import { AttachmentUploader, AttachmentList, type AttachmentData } from "@/components/attachments";
 import { deleteSocialPost } from "@/actions/social-feed/delete-social-post";
 import { toggleLikePost } from "@/actions/social-feed/like-post";
 import { addComment, deleteComment, getPostComments, type Comment } from "@/actions/social-feed/comment-post";
 
 type ProfileVisibility = "PERSONAL" | "SECURE" | "PUBLIC";
+
+interface PostAttachment {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  url: string;
+}
 
 export interface SocialPost {
   id: string;
@@ -86,6 +95,7 @@ export interface SocialPost {
     image?: string;
     metadata?: Record<string, any>;
   };
+  attachments?: PostAttachment[];
   likes: number;
   comments: number;
   isLiked?: boolean;
@@ -451,6 +461,14 @@ function PostCard({
       <CardContent className="space-y-3">
         {post.content && <p className="text-sm whitespace-pre-wrap">{post.content}</p>}
 
+        {/* Post Attachments */}
+        {post.attachments && post.attachments.length > 0 && (
+          <AttachmentList
+            attachments={post.attachments}
+            compact
+          />
+        )}
+
         {/* Linked Entity Card */}
         {post.linkedEntity && (
           <Link href={getEntityLink()}>
@@ -757,6 +775,7 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
   const [selectedEntityId, setSelectedEntityId] = useState<string>("");
   const [isPosting, setIsPosting] = useState(false);
   const [profileVisibility, setProfileVisibility] = useState<{ hasProfile: boolean; visibility: ProfileVisibility } | null>(null);
+  const [attachments, setAttachments] = useState<AttachmentData[]>([]);
   
   const t = dict.socialFeed || {};
   const dateLocale = locale === "el" ? el : enUS;
@@ -775,7 +794,7 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
       });
 
   const handleCreatePost = async () => {
-    if (!postContent.trim() && postType === "text") return;
+    if (!postContent.trim() && postType === "text" && attachments.length === 0) return;
     if ((postType === "property" || postType === "client") && !selectedEntityId) return;
 
     setIsPosting(true);
@@ -784,6 +803,7 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
         type: postType,
         content: postContent,
         linkedEntityId: selectedEntityId || undefined,
+        attachmentIds: attachments.map(a => a.id),
       });
 
       toast({
@@ -795,6 +815,7 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
       setPostContent("");
       setPostType("text");
       setSelectedEntityId("");
+      setAttachments([]);
       router.refresh();
     } catch (error) {
       toast({
@@ -882,6 +903,14 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
                   onChange={(e) => setPostContent(e.target.value)}
                   className="min-h-[80px] resize-none"
                 />
+
+                {/* Attachment Uploader */}
+                <AttachmentUploader
+                  entityType="socialPost"
+                  attachments={attachments}
+                  onAttachmentsChange={setAttachments}
+                  disabled={isPosting}
+                />
                 
                 <div className="flex flex-wrap items-center gap-3">
                   <Select value={postType} onValueChange={(v: any) => {
@@ -959,7 +988,7 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
                   
                   <Button 
                     onClick={handleCreatePost} 
-                    disabled={isPosting || (!postContent.trim() && postType === "text") || ((postType === "property" || postType === "client") && !selectedEntityId)}
+                    disabled={isPosting || (!postContent.trim() && postType === "text" && attachments.length === 0) || ((postType === "property" || postType === "client") && !selectedEntityId)}
                   >
                     {isPosting ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />

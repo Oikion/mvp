@@ -56,7 +56,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ links }, { status: 200 });
   } catch (error) {
-    console.log("[LINK_PROPERTIES_POST]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
@@ -95,7 +94,6 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.log("[UNLINK_PROPERTIES_DELETE]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
@@ -153,7 +151,6 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ links }, { status: 200 });
   } catch (error) {
-    console.log("[LINK_CLIENTS_PUT]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }

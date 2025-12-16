@@ -22,7 +22,7 @@ const SearchResult = (props: Props) => {
         setResults(res.data);
       });
     } catch (error) {
-      console.log(error);
+      // Search failed silently
     } finally {
       setIsLoading(false);
     }

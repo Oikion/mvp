@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -13,16 +13,19 @@ import { useTranslations } from "next-intl";
 import { StatsCard } from "@/components/ui/stats-card";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { PropertyCard } from "./PropertyCard";
-import { Home, Activity, DollarSign, Calendar, Search } from "lucide-react";
+import { Home, Activity, DollarSign, Calendar } from "lucide-react";
 import moment from "moment";
-import { Input } from "@/components/ui/input";
 import { useOrgUsers } from "@/hooks/swr";
+import { SharedActionModals } from "@/components/entity";
+import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
+import { GridToolbar } from "@/components/ui/grid-toolbar";
 
 export default function PropertiesView({ data = [] }: { data: any[] }) {
   const [open, setOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [view, setView] = useState<"grid" | "list">("list");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const t = useTranslations("mls");
 
   // Use SWR for fetching org users
@@ -31,13 +34,13 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  
-  if (!isMounted) return null;
 
-  const statusOptions = statuses.map(status => ({
-    ...status,
-    label: t(`PropertyForm.status.${status.value}`)
-  }));
+  const statusOptions = useMemo(() => {
+    return statuses.map(status => ({
+      ...status,
+      label: t(`PropertyForm.status.${status.value}`)
+    }));
+  }, [t]);
 
   // Stats
   const totalProperties = data.length;
@@ -46,9 +49,42 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
   const newProperties = data.filter(p => moment(p.createdAt).isAfter(moment().subtract(30, 'days'))).length;
 
   // Filter data for grid view
-  const filteredData = data.filter(item => 
-    item.property_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      // Text search filter
+      const matchesSearch = item.property_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Status filter
+      const statusFilter = selectedFilters.property_status || [];
+      const matchesStatus = statusFilter.length === 0 || statusFilter.includes(item.property_status);
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [data, searchQuery, selectedFilters]);
+
+  // Grid toolbar handlers
+  const handleFilterChange = useCallback((filterId: string, values: string[]) => {
+    setSelectedFilters((prev) => ({
+      ...prev,
+      [filterId]: values,
+    }));
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setSearchQuery("");
+    setSelectedFilters({});
+  }, []);
+
+  // Grid filters config
+  const gridFilters = useMemo(() => [
+    {
+      id: "property_status",
+      title: t("MlsPropertiesTable.status"),
+      options: statusOptions,
+    },
+  ], [t, statusOptions]);
+  
+  if (!isMounted) return null;
 
   return (
     <div className="space-y-6">
@@ -131,27 +167,38 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
             />
           ) : (
             <div className="space-y-4">
-              <div className="relative max-w-sm">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t("MlsPropertiesTable.filterPlaceholder")}
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+              <GridToolbar
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchPlaceholder={t("MlsPropertiesTable.filterPlaceholder")}
+                filters={gridFilters}
+                selectedFilters={selectedFilters}
+                onFilterChange={handleFilterChange}
+                onReset={handleReset}
+              />
+              {filteredData.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8">No results found</div>
+              ) : (
+                <VirtualizedGrid
+                  items={filteredData}
+                  getItemKey={(property) => property.id}
+                  renderItem={(property, index) => (
+                    <PropertyCard data={property} index={index} />
+                  )}
+                  rowHeight={380}
+                  gap={16}
+                  columns={{ sm: 1, md: 2, lg: 3, xl: 4 }}
+                  maxHeight="calc(100vh - 400px)"
+                  showScrollToTop
                 />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredData.map((property) => (
-                  <PropertyCard key={property.id} data={property} />
-                ))}
-              </div>
-              {filteredData.length === 0 && (
-                 <div className="text-center text-muted-foreground py-8">No results found</div>
               )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Shared modals for delete, share, schedule actions */}
+      <SharedActionModals />
     </div>
   );
 }

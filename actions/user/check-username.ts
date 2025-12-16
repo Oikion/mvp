@@ -1,8 +1,12 @@
 "use server";
 
-import { prismadb } from "@/lib/prisma";
+import { createClerkClient } from "@clerk/backend";
 import type { UsernameAvailabilityResult } from "@/types/onboarding";
 
+/**
+ * Check username availability using Clerk API
+ * Clerk is the source of truth for usernames
+ */
 export async function checkUsernameAvailability(
   username: string
 ): Promise<UsernameAvailabilityResult> {
@@ -22,31 +26,31 @@ export async function checkUsernameAvailability(
     }
 
     // Validate format: alphanumeric and underscores only
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    if (!/^\w+$/.test(username)) {
       return {
         available: false,
         error: "Username can only contain letters, numbers, and underscores",
       };
     }
 
-    // Check if username exists (case-insensitive)
-    const existingUser = await prismadb.users.findFirst({
-      where: {
-        username: {
-          equals: username,
-          mode: "insensitive",
-        },
-      },
+    const clerk = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+
+    // Use Clerk's API to check username availability
+    // Search for users with the exact username (case-insensitive handled by Clerk)
+    const users = await clerk.users.getUserList({
+      username: [username.toLowerCase()],
     });
 
     return {
-      available: !existingUser,
+      available: users.data.length === 0,
     };
-  } catch {
+  } catch (error) {
+    console.error("Failed to check username availability:", error);
     return {
       available: false,
       error: "Failed to check username availability",
     };
   }
 }
-

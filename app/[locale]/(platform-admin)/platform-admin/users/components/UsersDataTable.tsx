@@ -197,14 +197,14 @@ export function UsersDataTable({
     {
       accessorKey: "createdAt",
       header: t("users.columns.createdAt"),
-      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(locale),
     },
     {
       accessorKey: "lastLoginAt",
       header: t("users.columns.lastLogin"),
       cell: ({ row }) => 
         row.original.lastLoginAt 
-          ? new Date(row.original.lastLoginAt).toLocaleDateString()
+          ? new Date(row.original.lastLoginAt).toLocaleDateString(locale)
           : t("users.never"),
     },
     {
@@ -376,3 +376,5 @@ export function UsersDataTable({
     </div>
   );
 }
+
+

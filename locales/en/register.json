@@ -1,7 +1,34 @@
 {
+  "title": "Create your account",
+  "description": "Enter your details to get started with Oikion",
+  "emailLabel": "Email",
+  "emailPlaceholder": "Enter your email",
+  "passwordLabel": "Password",
+  "passwordPlaceholder": "Create a password",
+  "confirmPasswordLabel": "Confirm Password",
+  "confirmPasswordPlaceholder": "Confirm your password",
+  "submitButton": "Create Account",
+  "submitting": "Creating account...",
+  "signInLink": "Sign in",
+  "signInText": "Already have an account?",
+  "orContinueWith": "or continue with email",
+  "googleButton": "Continue with Google",
+  "verificationTitle": "Verify your email",
+  "verificationDescription": "We've sent a verification code to {email}",
+  "verificationCodeLabel": "Verification Code",
+  "verificationCodePlaceholder": "Enter 6-digit code",
+  "verifyButton": "Verify Email",
+  "resendCode": "Resend verification code",
+  "errors": {
+    "emailRequired": "Email is required",
+    "emailInvalid": "Please enter a valid email address",
+    "passwordRequired": "Password is required",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordsDontMatch": "Passwords don't match",
+    "generic": "Something went wrong. Please try again."
+  },
   "cardTitle": "Create new account",
   "cardDescription": "Create account by login with",
   "label": "Language",
   "locale": "{locale, select, de {German} en {English} cz {Czech} uk {Ukrainian} other {Unknown}}"
 }
-

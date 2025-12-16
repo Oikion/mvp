@@ -24,7 +24,6 @@ import { getNavigationConfig } from "@/config/navigation"
 interface AppSidebarProps {
   modules: any
   dict: any
-  build: number
   user: {
     name: string
     email: string
@@ -33,7 +32,7 @@ interface AppSidebarProps {
   isPlatformAdmin?: boolean
 }
 
-export function AppSidebar({ modules, dict, build, user, isPlatformAdmin = false }: AppSidebarProps) {
+export function AppSidebar({ modules, dict, user, isPlatformAdmin = false }: AppSidebarProps) {
   const pathname = usePathname()
   const locale = useLocale()
   const { appearance } = useClerkTheme()

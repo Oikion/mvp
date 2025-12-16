@@ -7,7 +7,6 @@ export async function GET(request: NextRequest) {
   try {
     await getCurrentUser();
     const buckets = await s3Client.send(new ListBucketsCommand({}));
-    console.log(buckets, "s3 buckets");
     return NextResponse.json({ buckets, success: true }, { status: 200 });
   } catch (error) {
     return NextResponse.json("Unauthorized", { status: 401 });

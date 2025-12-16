@@ -3,14 +3,16 @@ import { completeOnboarding } from "@/actions/user/complete-onboarding";
 import type {
   SupportedLanguage,
   OnboardingNotificationSettings,
+  OnboardingPrivacyPreferences,
   OnboardingCompletionResult,
 } from "@/types/onboarding";
 
 interface CompleteOnboardingRequestBody {
-  username: string;
+  // Username is no longer passed - it's managed by Clerk
   name: string;
   language: SupportedLanguage;
   notificationSettings?: OnboardingNotificationSettings;
+  privacyPreferences?: OnboardingPrivacyPreferences;
 }
 
 export async function POST(
@@ -19,20 +21,20 @@ export async function POST(
   try {
     const body = (await req.json()) as CompleteOnboardingRequestBody;
 
-    const { username, name, language, notificationSettings } = body;
+    const { name, language, notificationSettings, privacyPreferences } = body;
 
-    if (!username || !name || !language) {
+    if (!name || !language) {
       return NextResponse.json<{ error: string }>(
-        { error: "Username, name, and language are required" },
+        { error: "Name and language are required" },
         { status: 400 }
       );
     }
 
     const result = await completeOnboarding({
-      username,
       name,
       language,
       notificationSettings,
+      privacyPreferences,
     });
 
     if (!result.success) {
@@ -50,4 +52,3 @@ export async function POST(
     );
   }
 }
-

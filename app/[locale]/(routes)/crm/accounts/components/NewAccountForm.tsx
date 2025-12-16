@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { LocationAutocomplete, LocationData } from "@/components/ui/location-autocomplete";
 
 type Props = {
   industries: any[];
@@ -186,7 +187,6 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
   };
 
   const onSubmit = async (data: FormValues) => {
-    console.log("Form submitted with data:", data);
     setIsLoading(true);
     try {
       // Create the client first
@@ -401,8 +401,39 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
         );
 
       case 3:
+        const handleBillingLocationSelect = (location: LocationData | string) => {
+          if (typeof location === "object") {
+            if (location.address) {
+              const parts = location.address.split(",");
+              form.setValue("billing_street", parts[0]?.trim() || "");
+            }
+            if (location.city) {
+              form.setValue("billing_city", location.city);
+            }
+            if (location.country) {
+              form.setValue("billing_country", location.country);
+            }
+            if (location.postalCode) {
+              form.setValue("billing_postal_code", location.postalCode);
+            }
+          }
+        };
+
         return (
           <div className="space-y-4">
+            {/* Location Search */}
+            <div className="space-y-2">
+              <FormLabel>Search Location</FormLabel>
+              <LocationAutocomplete
+                onChange={handleBillingLocationSelect}
+                placeholder="Search for address..."
+                disabled={isLoading}
+              />
+              <p className="text-xs text-muted-foreground">
+                Search and select to auto-fill the fields below
+              </p>
+            </div>
+
             <FormField
               control={form.control}
               name="billing_street"

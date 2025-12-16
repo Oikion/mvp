@@ -54,7 +54,6 @@ export function ProfilePhotoForm({ data }: ProfileFormProps) {
       setAvatarUrl("");
       router.refresh();
     } catch (e) {
-      console.log(e);
       toast({
         variant: "destructive",
         title: "Error updating profile photo.",

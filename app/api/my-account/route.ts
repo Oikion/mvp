@@ -81,7 +81,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Account created" }, { status: 200 });
   } catch (error) {
-    console.log("[MY_ACCOUNT_POST]", error);
     return NextResponse.json(
       { message: "Unauthorized" },
       { status: 401 }
@@ -177,7 +176,6 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ message: "Account updated" }, { status: 200 });
   } catch (error) {
-    console.log("[MY_ACCOUNT_PUT]", error);
     return NextResponse.json(
       { message: "Unauthorized" },
       { status: 401 }
@@ -191,7 +189,6 @@ export async function GET() {
     const accounts = await prismadb.myAccount.findMany({});
     return NextResponse.json(accounts, { status: 200 });
   } catch (error) {
-    console.log("[MY_ACCOUNT_GET]", error);
     return NextResponse.json(
       { message: "Unauthorized" },
       { status: 401 }

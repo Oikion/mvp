@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 
+/**
+ * Update user profile (name, account_name)
+ * NOTE: Username updates should use /api/user/[userId]/update-username
+ * to properly sync with Clerk
+ */
 export async function PUT(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
   
   try {
     const currentUser = await getCurrentUser();
-    const { name, username, account_name } = await req.json();
+    const { name, account_name } = await req.json();
 
     if (!params.userId) {
       return new NextResponse("No user ID provided", { status: 400 });
@@ -17,10 +22,11 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const newUserPass = await prismadb.users.update({
+    // Update profile fields (NOT username - that's managed via Clerk)
+    const updatedUser = await prismadb.users.update({
       data: {
         name: name,
-        username: username,
+        // Username is NOT updated here - use /api/user/[userId]/update-username
         account_name: account_name,
       },
       where: {
@@ -28,9 +34,9 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
       },
     });
 
-    return NextResponse.json(newUserPass);
+    return NextResponse.json(updatedUser);
   } catch (error) {
-    console.log("[UPDATE_USER_PROFILE_PUT]", error);
-    return new NextResponse("Initial error", { status: 500 });
+    console.error("Error updating profile:", error);
+    return new NextResponse("Failed to update profile", { status: 500 });
   }
 }

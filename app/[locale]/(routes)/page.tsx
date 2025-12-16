@@ -5,7 +5,7 @@ import {
   Building2,
   Users,
   Activity,
-  CreditCard
+  Home
 } from "lucide-react";
 
 import { getDictionary } from "@/dictionaries";
@@ -18,17 +18,15 @@ import { VisitorsChart } from "./components/dashboard/VisitorsChart";
 import { StatsChart } from "./components/dashboard/StatsChart";
 
 import { getModules } from "@/actions/get-modules";
-import { getContactCount } from "@/actions/dashboard/get-contacts-count";
-import { getAccountsCount } from "@/actions/dashboard/get-accounts-count";
 import { getActiveUsersCount } from "@/actions/dashboard/get-active-users-count";
 import { getRecentProperties } from "@/actions/dashboard/get-recent-properties";
 import { getRecentClients } from "@/actions/dashboard/get-recent-clients";
 import { getClientsByStatus, getClientsCount, getClientsByMonth } from "@/actions/reports/get-clients-stats";
 import { getPropertiesByStatus, getPropertiesCount, getPropertiesByMonth } from "@/actions/reports/get-properties-stats";
 import { getTotalRevenue, getRevenueTrend } from "@/actions/dashboard/get-total-revenue";
-import { getContactsTrend } from "@/actions/dashboard/get-contacts-trend";
 import { getAccountsTrend } from "@/actions/dashboard/get-accounts-trend";
 import { getActiveUsersTrend } from "@/actions/dashboard/get-active-users-trend";
+import { getPropertiesTrend } from "@/actions/dashboard/get-properties-trend";
 
 const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }) => {
   try {
@@ -39,9 +37,7 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
 
     const [
       modules,
-      contacts,
       users,
-      accounts,
       recentClients,
       recentProperties,
       clientsByStatus,
@@ -52,14 +48,12 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
       propertiesMonthly,
       totalRevenue,
       revenueTrend,
-      contactsTrend,
-      accountsTrend,
+      clientsTrend,
+      propertiesTrend,
       usersTrend,
     ] = await Promise.all([
       getModules(),
-      getContactCount(),
       getActiveUsersCount(),
-      getAccountsCount(),
       getRecentClients(5),
       getRecentProperties(5),
       getClientsByStatus(),
@@ -70,8 +64,8 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
       getPropertiesByMonth(),
       getTotalRevenue(),
       getRevenueTrend(),
-      getContactsTrend(),
-      getAccountsTrend(),
+      getAccountsTrend(), // This actually counts clients trend
+      getPropertiesTrend(),
       getActiveUsersTrend(),
     ]);
 
@@ -102,37 +96,36 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
             </Suspense>
             
             {crmModule?.enabled && (
-              <>
-                <Suspense fallback={<LoadingBox />}>
-                  <StatsCard
-                    title={dict.dashboard.contacts}
-                    value={contacts.toString()}
-                    icon={<Users className="h-4 w-4" />}
-                    trend={contactsTrend.value > 0 ? `${contactsTrend.direction === "up" ? "+" : "-"}${contactsTrend.value.toFixed(1)}%` : undefined}
-                    trendUp={contactsTrend.direction === "up"}
-                    description={dict.dashboard.fromLastMonth}
-                    emptyMessage={dict.dashboard.noContactsYet}
-                    actionHref="/crm/contacts"
-                    actionLabel={dict.dashboard.addFirstContact}
-                    viewLabel={dict.dashboard.viewContacts}
-                  />
-                </Suspense>
-                <Suspense fallback={<LoadingBox />}>
-                  <StatsCard
-                    title={dict.dashboard.accounts}
-                    value={accounts.toString()}
-                    icon={<CreditCard className="h-4 w-4" />}
-                    trend={accountsTrend.value > 0 ? `${accountsTrend.direction === "up" ? "+" : "-"}${accountsTrend.value.toFixed(1)}%` : undefined}
-                    trendUp={accountsTrend.direction === "up"}
-                    description={dict.dashboard.fromLastMonth}
-                    emptyMessage={dict.dashboard.noAccountsYet}
-                    actionHref="/crm/accounts"
-                    actionLabel={dict.dashboard.addFirstAccount}
-                    viewLabel={dict.dashboard.viewAccounts}
-                  />
-                </Suspense>
-              </>
+              <Suspense fallback={<LoadingBox />}>
+                <StatsCard
+                  title={dict.dashboard.clients}
+                  value={clientsCount.toString()}
+                  icon={<Users className="h-4 w-4" />}
+                  trend={clientsTrend.value > 0 ? `${clientsTrend.direction === "up" ? "+" : "-"}${clientsTrend.value.toFixed(1)}%` : undefined}
+                  trendUp={clientsTrend.direction === "up"}
+                  description={dict.dashboard.fromLastMonth}
+                  emptyMessage={dict.dashboard.noClientsYet}
+                  actionHref="/crm/clients"
+                  actionLabel={dict.dashboard.addFirstClient}
+                  viewLabel={dict.dashboard.viewClients}
+                />
+              </Suspense>
             )}
+
+            <Suspense fallback={<LoadingBox />}>
+              <StatsCard
+                title={dict.dashboard.properties}
+                value={propertiesCount.toString()}
+                icon={<Home className="h-4 w-4" />}
+                trend={propertiesTrend.value > 0 ? `${propertiesTrend.direction === "up" ? "+" : "-"}${propertiesTrend.value.toFixed(1)}%` : undefined}
+                trendUp={propertiesTrend.direction === "up"}
+                description={dict.dashboard.fromLastMonth}
+                emptyMessage={dict.dashboard.noPropertiesYet}
+                actionHref="/mls/properties"
+                actionLabel={dict.dashboard.addFirstProperty}
+                viewLabel={dict.dashboard.viewProperties}
+              />
+            </Suspense>
 
             <Suspense fallback={<LoadingBox />}>
               <StatsCard

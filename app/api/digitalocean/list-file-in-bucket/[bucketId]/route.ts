@@ -20,7 +20,6 @@ export async function GET(request: NextRequest, props: { params: Promise<{ bucke
 
     const bucketParams = { Bucket: bucketId };
     const data = await s3Client.send(new ListObjectsCommand(bucketParams));
-    console.log("Success", data);
 
     return NextResponse.json({ files: data, success: true }, { status: 200 });
   } catch (error) {

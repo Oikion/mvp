@@ -104,7 +104,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ newContact }, { status: 200 });
   } catch (error) {
-    console.log("[NEW_CONTACT_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }
@@ -188,7 +187,6 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ newContact }, { status: 200 });
   } catch (error) {
-    console.log("[UPDATE_CONTACT_PUT]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

@@ -20,7 +20,6 @@ export async function GET(req: Request, props: { params: Promise<{ userId: strin
 
     return NextResponse.json(user);
   } catch (error) {
-    console.log("[USER_GET]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }
@@ -48,10 +47,8 @@ export async function DELETE(req: Request, props: { params: Promise<{ userId: st
     // If user has a Clerk ID, delete their owned organizations first
     if (userToDelete.clerkUserId) {
       try {
-        const deletedOrgIds = await deleteUserOwnedOrganizations(userToDelete.clerkUserId);
-        console.log(`[USER_DELETE] Deleted ${deletedOrgIds.length} organizations owned by user ${params.userId}`);
-      } catch (error: any) {
-        console.error(`[USER_DELETE] Error deleting organizations for user ${params.userId}:`, error);
+        await deleteUserOwnedOrganizations(userToDelete.clerkUserId);
+      } catch (error) {
         // Continue with user deletion even if organization deletion fails
         // This ensures the user can still be deleted
       }
@@ -66,7 +63,6 @@ export async function DELETE(req: Request, props: { params: Promise<{ userId: st
 
     return NextResponse.json(user);
   } catch (error) {
-    console.log("[USER_DELETE]", error);
-    return NextResponse.json({ message: error }, { status: 500 });
+    return NextResponse.json({ message: "Failed to delete user" }, { status: 500 });
   }
 }

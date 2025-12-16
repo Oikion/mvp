@@ -44,6 +44,14 @@ export { useCalendarEvents, getCalendarEventsKey } from "./useCalendarEvents";
 export { useCalendarEvent, getCalendarEventKey } from "./useCalendarEvent";
 export type { CalendarEventDetail } from "./useCalendarEvent";
 
+// Event Invitations
+export {
+  useEventInvitees,
+  useInvitedEvents,
+  usePendingInvitationCount,
+} from "./useEventInvitations";
+export type { EventInvitee, InvitedEvent } from "./useEventInvitations";
+
 // Selector Hooks
 export { useClients } from "./useClients";
 export type { ClientOption } from "./useClients";
@@ -111,6 +119,16 @@ export {
   useLinkPropertiesToClient,
   useUnlinkPropertyFromClient,
 } from "./useLinkMutations";
+
+// ============================================================
+// Paginated Hooks (for infinite scroll)
+// ============================================================
+
+export { usePropertiesPaginated } from "./usePropertiesPaginated";
+export type { PropertyData as PaginatedPropertyData } from "./usePropertiesPaginated";
+
+export { useClientsPaginated } from "./useClientsPaginated";
+export type { ClientData as PaginatedClientData } from "./useClientsPaginated";
 
 // ============================================================
 // Prefetch Utility

@@ -437,7 +437,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                   <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16">
                       <AvatarImage src={agent.avatar || ""} alt={agent.name || ""} />
-                      <AvatarFallback className="bg-blue-100 text-blue-600 text-xl">
+                      <AvatarFallback className="bg-blue-500/15 text-blue-600 dark:text-blue-400 text-xl">
                         {agent.name?.charAt(0) || <User className="h-6 w-6" />}
                       </AvatarFallback>
                     </Avatar>
@@ -452,7 +452,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                   {agentProfile?.publicPhone && (
                     <a
                       href={`tel:${agentProfile.publicPhone}`}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
                     >
                       <Phone className="h-5 w-5 text-blue-600" />
                       <span className="font-medium text-blue-600">

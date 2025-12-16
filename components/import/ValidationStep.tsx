@@ -77,7 +77,7 @@ export function ValidationStep({
         <Card className={validCount > 0 ? "border-green-500/50" : ""}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-green-100 dark:bg-green-950">
+              <div className="p-2 rounded-full bg-green-500/15">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
               </div>
               <div>
@@ -91,7 +91,7 @@ export function ValidationStep({
         <Card className={invalidCount > 0 ? "border-red-500/50" : ""}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-red-100 dark:bg-red-950">
+              <div className="p-2 rounded-full bg-red-500/15">
                 <XCircle className="h-5 w-5 text-red-500" />
               </div>
               <div>
@@ -105,16 +105,16 @@ export function ValidationStep({
 
       {/* Status Message */}
       {!hasErrors ? (
-        <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
+        <Alert className="border-green-500/30 bg-green-500/10">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <AlertDescription className="text-green-700 dark:text-green-400">
+          <AlertDescription className="text-green-600 dark:text-green-400">
             {dict.noErrors}
           </AlertDescription>
         </Alert>
       ) : (
-        <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+        <Alert className="border-amber-500/30 bg-amber-500/10">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <AlertDescription className="text-amber-700 dark:text-amber-400">
+          <AlertDescription className="text-amber-600 dark:text-amber-400">
             {dict.hasErrors.replace("{count}", String(invalidCount))}
             <span className="block text-xs mt-1 opacity-80">{dict.fixHint}</span>
           </AlertDescription>
@@ -172,3 +172,5 @@ export function ValidationStep({
     </div>
   );
 }
+
+

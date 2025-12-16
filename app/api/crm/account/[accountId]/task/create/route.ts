@@ -84,7 +84,7 @@ export async function POST(req: Request) {
           }),
         });
       } catch (error) {
-        console.log(error);
+        // Email sending failed silently
       }
     }
 
@@ -106,7 +106,6 @@ export async function POST(req: Request) {
             id: userID.id,
           },
         });
-        console.log("Send email to user: ", recipientUser?.email!);
         await resend.emails.send({
           from:
             process.env.NEXT_PUBLIC_APP_NAME +
@@ -128,12 +127,11 @@ export async function POST(req: Request) {
         });
       }
     } catch (error) {
-      console.log(error);
+      // Email notifications failed silently
     }
 
     return NextResponse.json({ status: 200 });
   } catch (error) {
-    console.log("[NEW_CRM_TASK_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

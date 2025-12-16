@@ -165,7 +165,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
         return (
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-green-100 text-green-600">
+              <AvatarFallback className="bg-green-500/15 text-green-600 dark:text-green-400">
                 {entity.client_name?.charAt(0) || <User className="h-5 w-5" />}
               </AvatarFallback>
             </Avatar>
@@ -204,7 +204,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
       case "DOCUMENT":
         return (
           <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
+            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-orange-500/15 flex items-center justify-center">
               <FileText className="h-6 w-6 text-orange-600" />
             </div>
             <div className="flex-1 min-w-0">

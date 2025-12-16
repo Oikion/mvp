@@ -113,9 +113,9 @@ export default async function PropertyImportPage({ params }: PageProps) {
   };
 
   return (
-    <div className="container max-w-5xl py-6 space-y-6">
-      <Card>
-        <CardHeader>
+    <div className="container max-w-5xl py-6 h-full flex flex-col overflow-hidden">
+      <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <CardHeader className="flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <FileSpreadsheet className="h-6 w-6 text-primary" />
@@ -128,10 +128,12 @@ export default async function PropertyImportPage({ params }: PageProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 min-h-0">
           <PropertyImportWizard dict={importDict} locale={locale} />
         </CardContent>
       </Card>
     </div>
   );
 }
+
+

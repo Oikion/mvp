@@ -39,13 +39,13 @@ export async function DELETE(
       orgMemberships = await clerk.users.getOrganizationMembershipList({
         userId: clerkUserId,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If user has no organizations or error fetching, continue with user deletion
-      if (error?.status === 404) {
+      const errorStatus = (error as { status?: number })?.status;
+      if (errorStatus === 404) {
         orgMemberships = { data: [] };
       } else {
-        // Log error but continue with deletion
-        console.error("Error fetching user organizations:", error);
+        // Continue with deletion even if error fetching orgs
         orgMemberships = { data: [] };
       }
     }
@@ -61,10 +61,10 @@ export async function DELETE(
           orgMembers = await clerk.organizations.getOrganizationMembershipList({
             organizationId: orgId,
           });
-        } catch (memberError: any) {
+        } catch (memberError: unknown) {
           // If organization doesn't exist or can't get members, skip it
-          if (memberError?.status === 404) {
-            console.log(`Organization ${orgId} not found, skipping`);
+          const errorStatus = (memberError as { status?: number })?.status;
+          if (errorStatus === 404) {
             continue;
           }
           throw memberError; // Re-throw if it's a different error
@@ -108,17 +108,15 @@ export async function DELETE(
           // Delete the organization from Clerk
           try {
             await clerk.organizations.deleteOrganization(orgId);
-          } catch (orgError: any) {
+          } catch (orgError: unknown) {
             // If organization already deleted or doesn't exist (404), that's fine
-            if (orgError?.status === 404) {
-              console.log(`Organization ${orgId} already deleted or doesn't exist`);
-            } else {
+            const errorStatus = (orgError as { status?: number })?.status;
+            if (errorStatus !== 404) {
               throw orgError; // Re-throw if it's a different error
             }
           }
         }
       } catch (error) {
-        console.error(`Error processing organization ${orgId}:`, error);
         // Continue with other organizations even if one fails
       }
     }
@@ -171,14 +169,10 @@ export async function DELETE(
     // This will also remove them from any remaining organizations
     try {
       await clerk.users.deleteUser(clerkUserId);
-      console.log("[DELETE_ACCOUNT] User deleted from Clerk successfully");
-    } catch (clerkError: any) {
+    } catch (clerkError: unknown) {
       // If user already deleted in Clerk (404), that's fine
-      if (clerkError?.status === 404) {
-        console.log("[DELETE_ACCOUNT] User already deleted from Clerk");
-      } else {
-        // Log but continue - we'll still try to delete from database
-        console.error("[DELETE_ACCOUNT] Error deleting user from Clerk:", clerkError);
+      const errorStatus = (clerkError as { status?: number })?.status;
+      if (errorStatus !== 404) {
         // Don't throw - we want to continue with database cleanup
       }
     }
@@ -189,13 +183,11 @@ export async function DELETE(
         id: currentUser.id,
       },
     });
-    console.log("[DELETE_ACCOUNT] User deleted from database successfully");
 
     return NextResponse.json({
       message: "Account deleted successfully",
     });
   } catch (error) {
-    console.log("[DELETE_ACCOUNT]", error);
     return NextResponse.json(
       { error: "Failed to delete account", message: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }

@@ -142,7 +142,13 @@
     "noPropertiesYet": "Start building your portfolio",
     "noActiveListings": "List a property to get started",
     "addPropertiesToTrack": "Add properties to track value",
-    "connectToReceive": "Connect with agents to receive listings"
+    "connectToReceive": "Connect with agents to receive listings",
+    "hints": {
+      "totalProperties": "Add at least 5 properties to view meaningful trends!",
+      "activeProperties": "Keep properties active to attract more buyers.",
+      "portfolioValue": "Track your portfolio growth over time.",
+      "sharedWithYou": "Connect with more agents to expand your network!"
+    }
   },
   "EmptyState": {
     "noAgencyProperties": "No agency properties yet",

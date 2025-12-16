@@ -89,7 +89,6 @@ export async function POST(req: Request) {
       return NextResponse.json(user);
     }
   } catch (error) {
-    console.log("[USERS_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }
@@ -105,11 +104,9 @@ export async function GET() {
     const users = await prismadb.users.findMany({});
 
     return NextResponse.json(users);
-  } catch (error: any) {
-    console.log("[USERS_GET]", error);
-    
+  } catch (error: unknown) {
     // Handle authentication errors properly
-    if (error?.message === "User not authenticated" || error?.message === "User not found in database") {
+    if (error instanceof Error && (error.message === "User not authenticated" || error.message === "User not found in database")) {
       return new NextResponse("Unauthenticated", { status: 401 });
     }
     

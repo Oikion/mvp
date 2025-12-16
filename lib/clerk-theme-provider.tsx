@@ -14,8 +14,8 @@ export function ClerkThemeProvider({ children }: { children: React.ReactNode }) 
       appearance={appearance}
       // Using Clerk's account portal (hosted pages)
       // Redirect to custom onboarding after sign up
-      afterSignInUrl={`/${locale}`}
-      afterSignUpUrl={`/${locale}/onboard`}
+      signInFallbackRedirectUrl={`/${locale}`}
+      signUpFallbackRedirectUrl={`/${locale}/onboard`}
     >
       {children}
     </ClerkProvider>

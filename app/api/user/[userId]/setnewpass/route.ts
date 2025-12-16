@@ -49,7 +49,6 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
 
     return NextResponse.json(newUserPass);
   } catch (error) {
-    console.log("[NEW_USERPASS_PUT]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

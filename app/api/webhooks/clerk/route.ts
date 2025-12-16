@@ -65,41 +65,8 @@ export async function POST(req: Request) {
     }
   }
 
-  // Organization events - log for auditing/debugging
-  // Organizations are managed entirely through Clerk, so we don't need to sync them
-  // but we log these events for debugging and auditing purposes
-  if (
-    eventType === "organization.created" ||
-    eventType === "organization.updated" ||
-    eventType === "organization.deleted"
-  ) {
-    const organization = evt.data;
-    if (eventType === "organization.deleted") {
-      console.log(`Organization ${eventType}:`, {
-        id: organization.id,
-      });
-    } else {
-      console.log(`Organization ${eventType}:`, {
-        id: organization.id,
-        name: "name" in organization ? organization.name : undefined,
-        slug: "slug" in organization ? organization.slug : undefined,
-      });
-    }
-  }
-
-  // Organization membership events - log for auditing
-  if (
-    eventType === "organizationMembership.created" ||
-    eventType === "organizationMembership.updated" ||
-    eventType === "organizationMembership.deleted"
-  ) {
-    const membership = evt.data;
-    console.log(`Organization membership ${eventType}:`, {
-      organizationId: membership.organization?.id,
-      userId: membership.public_user_data?.user_id,
-      role: membership.role,
-    });
-  }
+  // Organization events are managed entirely through Clerk
+  // No additional processing needed for organization.created/updated/deleted
 
   return new Response("Webhook processed", { status: 200 });
 }

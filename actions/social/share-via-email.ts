@@ -231,11 +231,6 @@ export async function shareViaEmail(input: ShareViaEmailInput) {
       }),
     });
 
-    // Log the share for analytics (optional)
-    console.log(
-      `[ShareViaEmail] ${currentUser.email} shared ${input.entityType}:${input.entityId} to ${input.recipientEmail}`
-    );
-
     return { success: true, data: result };
   } catch (error) {
     console.error("[ShareViaEmail] Error sending email:", error);
@@ -276,3 +271,5 @@ export async function shareMultipleViaEmail(
     results,
   };
 }
+
+

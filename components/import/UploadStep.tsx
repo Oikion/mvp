@@ -266,7 +266,7 @@ export function UploadStep({
           isDragActive
             ? "border-primary bg-primary/5"
             : currentFile
-            ? "border-green-500 bg-green-50 dark:bg-green-950/20"
+            ? "border-green-500/50 bg-green-500/10"
             : "border-muted-foreground/25 hover:border-primary/50"
         }`}
       >
@@ -348,3 +348,5 @@ export function UploadStep({
     </div>
   );
 }
+
+

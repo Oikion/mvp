@@ -64,7 +64,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ newAccount }, { status: 200 });
   } catch (error) {
-    console.log("[NEW_ACCOUNT_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }
@@ -134,7 +133,6 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ newAccount }, { status: 200 });
   } catch (error) {
-    console.log("[UPDATE_ACCOUNT_PUT]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }
@@ -145,7 +143,6 @@ export async function GET(req: Request) {
     const accounts = await (prismadb as any).crm_Accounts.findMany({});
     return NextResponse.json(accounts, { status: 200 });
   } catch (error) {
-    console.log("[ACCOUNTS_GET]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

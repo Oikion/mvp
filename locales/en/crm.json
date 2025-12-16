@@ -103,7 +103,13 @@
     "noClientsYet": "Start building your client base",
     "noActiveClients": "No active clients yet",
     "noRecentActivity": "No new clients this month",
-    "connectToReceive": "Connect with agents for leads"
+    "connectToReceive": "Connect with agents for leads",
+    "hints": {
+      "totalClients": "Add at least 5 clients to view meaningful insights!",
+      "activeClients": "Keep clients engaged to close more deals.",
+      "new30d": "Consistent lead generation drives business growth.",
+      "sharedWithYou": "Connect with more agents to receive referrals!"
+    }
   },
   "EmptyState": {
     "noAgencyClients": "No agency clients yet",

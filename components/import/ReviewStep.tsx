@@ -63,10 +63,10 @@ export function ReviewStep({
   return (
     <div className="space-y-6">
       {/* Ready to Import Summary */}
-      <Card className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
+      <Card className="border-green-500/30 bg-green-500/10">
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
+            <div className="p-3 rounded-full bg-green-500/15">
               <CheckCircle2 className="h-8 w-8 text-green-500" />
             </div>
             <div>
@@ -83,7 +83,7 @@ export function ReviewStep({
 
       {/* Skip Warning */}
       {errorCount > 0 && (
-        <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+        <Alert className="border-amber-500/30 bg-amber-500/10">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
           <AlertDescription className="text-amber-700 dark:text-amber-400">
             {dict.willSkip.replace("{count}", String(errorCount))}
@@ -170,3 +170,5 @@ export function ReviewStep({
     </div>
   );
 }
+
+

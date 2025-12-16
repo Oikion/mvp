@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormGrid } from "@/components/ui/form-layout";
+import { LocationAutocomplete, LocationData } from "@/components/ui/location-autocomplete";
 
 const formSchema = z.object({
   id: z.string().min(1),
@@ -115,6 +116,35 @@ export function EditPropertyForm({ initialData }: { initialData: any }) {
               <FormMessage />
             </FormItem>
           )} />
+
+          {/* Location Search */}
+          <div className="col-span-2 space-y-2">
+            <FormLabel>{t("PropertyForm.fields.locationSearch") || "Αναζήτηση τοποθεσίας"}</FormLabel>
+            <LocationAutocomplete
+              onChange={(location: LocationData | string) => {
+                if (typeof location === "object") {
+                  if (location.address) {
+                    const parts = location.address.split(",");
+                    form.setValue("address_street", parts[0]?.trim() || "");
+                  }
+                  if (location.city) {
+                    form.setValue("address_city", location.city);
+                  }
+                  if (location.country) {
+                    form.setValue("address_state", location.country);
+                  }
+                  if (location.postalCode) {
+                    form.setValue("address_zip", location.postalCode);
+                  }
+                }
+              }}
+              placeholder={t("PropertyForm.fields.locationSearchPlaceholder") || "Αναζητήστε διεύθυνση..."}
+              disabled={isLoading}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("PropertyForm.fields.locationSearchHint") || "Αναζητήστε για αυτόματη συμπλήρωση των παρακάτω πεδίων"}
+            </p>
+          </div>
 
           <FormField control={form.control} name="address_street" render={({ field }) => (
             <FormItem>

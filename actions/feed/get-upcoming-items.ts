@@ -108,7 +108,7 @@ export async function getUpcomingItems(): Promise<{
       });
     }
   } catch (error) {
-    console.log("CalComEvent not available:", error);
+    // CalComEvent might not exist yet, skip silently
   }
 
   // Fetch upcoming tasks
@@ -158,7 +158,7 @@ export async function getUpcomingItems(): Promise<{
       });
     }
   } catch (error) {
-    console.log("Tasks not available:", error);
+    // Tasks might not exist yet, skip silently
   }
 
   // Fetch upcoming reminders
@@ -200,7 +200,7 @@ export async function getUpcomingItems(): Promise<{
       });
     }
   } catch (error) {
-    console.log("Reminders not available:", error);
+    // Reminders might not exist yet, skip silently
   }
 
   // Sort and categorize
@@ -215,6 +215,8 @@ export async function getUpcomingItems(): Promise<{
     thisWeek: sortedItems.filter(i => i.isThisWeek && !i.isToday && !i.isTomorrow && !i.isOverdue),
   };
 }
+
+
 
 
 

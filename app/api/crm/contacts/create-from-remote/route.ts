@@ -18,8 +18,6 @@ export async function POST(req: Request) {
 
   const body = await req.json();
 
-  console.log(body, "body");
-
   const { name, surname, email, phone, company, message, tag } = body;
   if (!name || !surname || !email || !phone || !company || !message || !tag) {
     return NextResponse.json(
@@ -42,7 +40,6 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ message: "Contact created" });
   } catch (error) {
-    console.log("Error creating contact:", error);
     return NextResponse.json(
       { error: "Error creating contact" },
       { status: 500 }

@@ -154,7 +154,7 @@ export function OrganizationsDataTable({
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span>{new Date(row.original.createdAt).toLocaleDateString()}</span>
+          <span>{new Date(row.original.createdAt).toLocaleDateString(locale)}</span>
         </div>
       ),
     },
@@ -326,3 +326,5 @@ export function OrganizationsDataTable({
     </div>
   );
 }
+
+

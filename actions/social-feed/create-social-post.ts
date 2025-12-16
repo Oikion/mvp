@@ -10,6 +10,7 @@ interface CreateSocialPostInput {
   type: "property" | "client" | "text";
   content: string;
   linkedEntityId?: string;
+  attachmentIds?: string[];
 }
 
 interface CreateSocialPostResult {
@@ -51,7 +52,7 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
     throw new Error("Not authenticated");
   }
 
-  const { type, content, linkedEntityId } = input;
+  const { type, content, linkedEntityId, attachmentIds } = input;
 
   // Check user's profile visibility
   const profile = await prismadb.agentProfile.findUnique({
@@ -134,6 +135,20 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
         linkedEntityMetadata,
       },
     });
+
+    // Link attachments to the post
+    if (attachmentIds && attachmentIds.length > 0) {
+      await prismadb.attachment.updateMany({
+        where: {
+          id: { in: attachmentIds },
+          uploadedById: currentUser.id,
+          socialPostId: null, // Only link unattached ones
+        },
+        data: {
+          socialPostId: post.id,
+        },
+      });
+    }
 
     revalidatePath("/social-feed");
     

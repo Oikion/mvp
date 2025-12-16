@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { mergeDocumentMentions } from "./parse-mentions";
 import { createShareLink } from "@/lib/documents/create-share-link";
-import { uploadToBlob } from "@/lib/vercel-blob";
+import { uploadDocumentToBlob } from "@/lib/vercel-blob";
 import { prismaForOrg, withTenantContext } from "@/lib/tenant";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { prismadb } from "@/lib/prisma";
@@ -30,15 +30,15 @@ export async function createDocument(input: CreateDocumentInput) {
   const user = await getCurrentUser();
   const organizationId = await getCurrentOrgId();
 
-  // Upload file to Vercel Blob
+  // Upload file to Vercel Blob with organization scoping
   const fileBuffer = input.document_file instanceof File
     ? Buffer.from(await input.document_file.arrayBuffer())
     : input.document_file;
 
-  const blob = await uploadToBlob(input.document_name, fileBuffer, {
+  // Upload to org-scoped path: documents/{organizationId}/{filename}
+  const blob = await uploadDocumentToBlob(organizationId, input.document_name, fileBuffer, {
     contentType: input.document_file_mimeType,
     addRandomSuffix: true,
-    access: "public",
   });
 
   return withTenantContext(organizationId, async () => {

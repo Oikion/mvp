@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { DynamicBreadcrumb } from "./components/DynamicBreadcrumb"
-import getAllCommits from "@/actions/github/get-repo-commits"
 import { getModules } from "@/actions/get-modules"
 import { getDictionary } from "@/dictionaries"
 import Footer from "./components/Footer"
@@ -94,6 +93,13 @@ export default async function AppLayout({
     return redirect(`/${locale}/inactive`);
   }
 
+  // Check if user has a username (required for app access)
+  // Legacy users or users created before "Require username" was enabled in Clerk
+  // must set a username during onboarding
+  if (!user?.username) {
+    return redirect(`/${locale}/onboard`);
+  }
+
   // Check if user has completed onboarding - redirect if not
   const onboardingCompleted = getOnboardingStatus(user);
   
@@ -116,7 +122,6 @@ export default async function AppLayout({
   // If orgId is missing, we wait for Clerk session to update (don't redirect to avoid loop)
   // The page may show incomplete data briefly, but this is better than an infinite loop
 
-  const build = await getAllCommits();
   const modules = await getModules();
   const dict = await getDictionary(locale);
   
@@ -129,7 +134,6 @@ export default async function AppLayout({
         <AppSidebar 
           modules={modules} 
           dict={dict} 
-          build={build}
           user={{
             name: user.name as string,
             email: user.email as string,

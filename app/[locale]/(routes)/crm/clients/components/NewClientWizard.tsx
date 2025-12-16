@@ -232,6 +232,55 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
     },
   });
 
+  // Load draft data when initialDraftId is provided
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (initialDraftId && !draftId) {
+        try {
+          const response = await axios.get(`/api/crm/clients/${initialDraftId}`);
+          if (response.data?.client) {
+            const draft = response.data.client;
+            // Reset form with draft data
+            form.reset({
+              person_type: draft.person_type || undefined,
+              full_name: draft.full_name || "",
+              company_name: draft.company_name || "",
+              primary_phone: draft.primary_phone || "",
+              primary_email: draft.primary_email || "",
+              intent: draft.intent || undefined,
+              secondary_phone: draft.secondary_phone || "",
+              secondary_email: draft.secondary_email || "",
+              channels: Array.isArray(draft.channels) ? draft.channels : [],
+              language: draft.language || "el",
+              afm: draft.afm || "",
+              doy: draft.doy || "",
+              id_doc: draft.id_doc || "",
+              company_gemi: draft.company_gemi || "",
+              purpose: draft.purpose || undefined,
+              areas_of_interest: Array.isArray(draft.areas_of_interest) ? draft.areas_of_interest : [],
+              budget_min: draft.budget_min || undefined,
+              budget_max: draft.budget_max || undefined,
+              timeline: draft.timeline || undefined,
+              financing_type: draft.financing_type || undefined,
+              preapproval_bank: draft.preapproval_bank || "",
+              needs_mortgage_help: draft.needs_mortgage_help || false,
+              notes: draft.notes || "",
+              gdpr_consent: draft.gdpr_consent || false,
+              allow_marketing: draft.allow_marketing || false,
+              lead_source: draft.lead_source || undefined,
+              assigned_to: draft.assigned_to || "",
+            });
+            setDraftId(initialDraftId);
+            setLastSavedData(form.getValues());
+          }
+        } catch (error) {
+          console.error("Failed to load draft:", error);
+        }
+      }
+    };
+    loadDraft();
+  }, [initialDraftId, draftId, form]);
+
   const formValues = form.watch();
   const debouncedValues = useDebounce(JSON.stringify(formValues), 500);
 
@@ -310,11 +359,24 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
   const handleNext = async () => {
     const isValid = await validateStep(currentStep);
     if (isValid && currentStep < STEPS.length) {
+      // Save current form state before moving to next step
+      const currentData = form.getValues();
+      if (Object.keys(currentData).length > 0) {
+        await saveDraft(currentData);
+        setLastSavedData(currentData);
+      }
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handleStepClick = async (stepId: number) => {
+    // Save current form state before navigating
+    const currentData = form.getValues();
+    if (Object.keys(currentData).length > 0) {
+      saveDraft(currentData);
+      setLastSavedData(currentData);
+    }
+    
     if (stepId < currentStep) {
       setCurrentStep(stepId);
       return;
@@ -328,6 +390,12 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
 
   const handlePrevious = () => {
     if (currentStep > 1) {
+      // Save current form state before moving to previous step
+      const currentData = form.getValues();
+      if (Object.keys(currentData).length > 0) {
+        saveDraft(currentData);
+        setLastSavedData(currentData);
+      }
       setCurrentStep(currentStep - 1);
     }
   };

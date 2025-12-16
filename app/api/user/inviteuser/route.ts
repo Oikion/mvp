@@ -99,12 +99,9 @@ export async function POST(req: Request) {
         }),
       });
 
-      console.log(data, "data");
-
       return NextResponse.json(newUser, { status: 200 });
     }
   } catch (error) {
-    console.log("[USERACTIVATE_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

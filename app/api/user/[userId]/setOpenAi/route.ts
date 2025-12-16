@@ -59,7 +59,6 @@ export async function POST(req: Request, props: { params: Promise<{ userId: stri
       });
     }
   } catch (error) {
-    console.log("[USER_UPDATE_OPENAIKEY]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

@@ -8,39 +8,39 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { Users } from "@prisma/client";
 
 interface ProfileFormProps {
-  data: any;
+  data: {
+    id: string;
+    name: string | null;
+    username: string | null;
+    account_name: string | null;
+  };
 }
 
 const FormSchema = z.object({
   id: z.string(),
   name: z.string().min(3).max(50),
-  username: z.string().min(2).max(50),
+  username: z.string().min(2).max(50).regex(/^\w+$/, {
+    message: "Username can only contain letters, numbers, and underscores",
+  }),
   account_name: z.string().min(2).max(50),
 });
 
 export function ProfileForm({ data }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [originalUsername] = useState<string>(data?.username ?? "");
 
   const router = useRouter();
 
@@ -63,27 +63,53 @@ export function ProfileForm({ data }: ProfileFormProps) {
         },
   });
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
+  async function onSubmit(formData: z.infer<typeof FormSchema>) {
     try {
       setIsLoading(true);
-      await axios.put(`/api/user/${data.id}/updateprofile`, data);
-      //TODO: send data to the server
+      
+      const usernameChanged = formData.username !== originalUsername;
+      
+      // If username changed, update it in Clerk first
+      if (usernameChanged) {
+        try {
+          await axios.put(`/api/user/${formData.id}/update-username`, {
+            username: formData.username,
+          });
+        } catch (usernameError) {
+          // Check for specific Clerk errors
+          const errorResponse = usernameError as { response?: { data?: { error?: string } } };
+          const errorMessage = errorResponse?.response?.data?.error || "Failed to update username";
+          
+          toast({
+            variant: "destructive",
+            title: "Username Update Failed",
+            description: errorMessage,
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Update other profile fields (name, account_name)
+      // Username is not sent here as it's managed by Clerk
+      await axios.put(`/api/user/${formData.id}/updateprofile`, {
+        name: formData.name,
+        account_name: formData.account_name,
+      });
+      
       toast({
         variant: "success",
-        title: "You submitted the following values:",
-        description: (
-          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-            <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-          </pre>
-        ),
+        title: "Profile updated",
+        description: usernameChanged 
+          ? "Your profile and username have been updated successfully."
+          : "Your profile has been updated successfully.",
       });
       router.refresh();
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description:
-          "Something went wrong while activating your notion integration.",
+        description: "Something went wrong while updating your profile.",
       });
     } finally {
       setIsLoading(false);
@@ -118,6 +144,9 @@ export function ProfileForm({ data }: ProfileFormProps) {
               <FormControl>
                 <Input disabled={isLoading} placeholder="jdoe" {...field} />
               </FormControl>
+              <FormDescription className="text-xs">
+                Changing your username will update your public profile URL
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -140,8 +169,8 @@ export function ProfileForm({ data }: ProfileFormProps) {
           )}
         />
 
-        <Button className="w-[150px]" type="submit">
-          Update
+        <Button className="w-[150px]" type="submit" disabled={isLoading}>
+          {isLoading ? "Updating..." : "Update"}
         </Button>
       </form>
     </Form>

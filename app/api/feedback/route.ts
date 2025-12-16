@@ -85,15 +85,11 @@ export async function POST(req: Request) {
       return new NextResponse("Missing body", { status: 400 });
     }
     
-    const { feedback, feedbackType, screenshot, consoleLogs, userAgent, url, timestamp, screenResolution } = body;
+    const { feedback, feedbackType, screenshot, consoleLogs, userAgent, url, timestamp, screenResolution, attachmentIds } = body;
 
     if (!feedback) {
       return new NextResponse("Missing feedback", { status: 400 });
     }
-
-    // Debug logging
-    console.log("[FEEDBACK_POST] Console logs received:", consoleLogs ? `${consoleLogs.length} entries` : "none");
-    console.log("[FEEDBACK_POST] Screenshot received:", screenshot ? "yes" : "no");
 
     const feedbackTypeLabels: Record<string, string> = {
       bug: "Bug Report",
@@ -112,7 +108,7 @@ export async function POST(req: Request) {
 
     // Filter console logs to only warnings and errors for email display
     const filteredConsoleLogs = consoleLogs && Array.isArray(consoleLogs)
-      ? consoleLogs.filter((log: any) => {
+      ? consoleLogs.filter((log: { type?: string }) => {
           const logType = log.type?.toLowerCase() || '';
           return logType === 'warning' || logType === 'error' || logType === 'warn' || logType === 'err';
         })
@@ -128,7 +124,13 @@ export async function POST(req: Request) {
     }
 
     // Prepare email with screenshot attachment if available
-    const emailOptions: any = {
+    const emailOptions: {
+      from: string;
+      to: string[];
+      subject: string;
+      react: React.ReactElement;
+      attachments: Array<{ filename: string; content: string }>;
+    } = {
       from: process.env.EMAIL_FROM || "onboarding@resend.dev",
       to: recipients,
       subject: `[${feedbackTypeLabel}] New Feedback from: ${process.env.NEXT_PUBLIC_APP_URL}`,
@@ -157,7 +159,6 @@ export async function POST(req: Request) {
     // Attach screenshot if available (only for bug reports)
     if (screenshot && typeof screenshot === 'string') {
       try {
-        console.log("[FEEDBACK_POST] Processing screenshot for attachment...");
         // Extract base64 data (remove data URL prefix if present)
         const base64Data = screenshot.replace(/^data:image\/\w+;base64,/, "");
         const filename = `screenshot-${Date.now()}.png`;
@@ -166,22 +167,14 @@ export async function POST(req: Request) {
           filename: filename,
           content: base64Data, // Resend expects base64 string, not Buffer
         });
-        
-        console.log(`[FEEDBACK_POST] Screenshot attached: ${filename} (${base64Data.length} chars)`);
       } catch (error) {
-        console.error("[FEEDBACK_POST] Failed to process screenshot:", error);
         // Continue without screenshot if processing fails
       }
-    } else {
-      console.log("[FEEDBACK_POST] No screenshot to attach");
     }
-    
-    console.log(`[FEEDBACK_POST] Total attachments: ${emailOptions.attachments.length}`);
 
     // Attach console logs as .txt file if available (only for bug reports)
     if (consoleLogs && Array.isArray(consoleLogs) && consoleLogs.length > 0) {
       try {
-        console.log("[FEEDBACK_POST] Processing console logs for attachment...");
         // Format all console logs as text
         let logsText = `Console Logs Capture\n`;
         logsText += `===================\n\n`;
@@ -228,25 +221,16 @@ export async function POST(req: Request) {
           filename: filename,
           content: logsBase64, // Resend expects base64 string
         });
-        
-        console.log(`[FEEDBACK_POST] Console logs file attached: ${filename} (${logsBase64.length} chars, ${logsBuffer.length} bytes)`);
       } catch (error) {
-        console.error("[FEEDBACK_POST] Failed to process console logs:", error);
         // Continue without console logs file if processing fails
       }
-    } else {
-      console.log("[FEEDBACK_POST] No console logs to attach");
     }
-
-    console.log(`[FEEDBACK_POST] Sending email to: ${recipients.join(", ")}`);
-    console.log(`[FEEDBACK_POST] Attachments count: ${emailOptions.attachments.length}`);
     
-    const result = await resend.emails.send(emailOptions);
-    console.log("[FEEDBACK_POST] Email sent successfully:", result);
+    await resend.emails.send(emailOptions);
     
-    // Save feedback to database
+    // Save feedback to database (including screenshot and console logs for admin review)
     try {
-      await prismadb.feedback.create({
+      const feedbackRecord = await prismadb.feedback.create({
         data: {
           userId: currentUser?.id,
           userEmail: currentUser?.email,
@@ -264,19 +248,34 @@ export async function POST(req: Request) {
           hasScreenshot: !!screenshot,
           hasConsoleLogs: !!(consoleLogs && Array.isArray(consoleLogs) && consoleLogs.length > 0),
           consoleLogsCount: consoleLogs && Array.isArray(consoleLogs) ? consoleLogs.length : 0,
+          screenshot: screenshot || null, // Store base64 screenshot for admin review
+          consoleLogs: consoleLogs && Array.isArray(consoleLogs) && consoleLogs.length > 0 ? consoleLogs : null,
+          status: "pending",
           emailSent: true,
           emailSentAt: new Date(),
         },
       });
-      console.log("[FEEDBACK_POST] Feedback saved to database");
+
+      // Link attachments to the feedback
+      if (attachmentIds && Array.isArray(attachmentIds) && attachmentIds.length > 0 && currentUser?.id) {
+        await prismadb.attachment.updateMany({
+          where: {
+            id: { in: attachmentIds },
+            uploadedById: currentUser.id,
+            feedbackId: null, // Only link unattached ones
+          },
+          data: {
+            feedbackId: feedbackRecord.id,
+          },
+        });
+      }
     } catch (dbError) {
-      console.error("[FEEDBACK_POST] Failed to save feedback to database:", dbError);
       // Don't fail the request if database save fails
+      console.error("[FEEDBACK_DB_ERROR]", dbError);
     }
     
     return NextResponse.json({ message: "Feedback sent" }, { status: 200 });
   } catch (error) {
-    console.log("[FEEDBACK_POST]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

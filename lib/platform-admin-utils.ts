@@ -45,7 +45,11 @@ export type AdminActionType =
   | "SUSPEND_ACCOUNT"
   | "UNSUSPEND_ACCOUNT"
   | "DELETE_ACCOUNT"
-  | "VIEW_USER_DETAILS";
+  | "VIEW_USER_DETAILS"
+  | "VIEW_FEEDBACK"
+  | "VIEW_FEEDBACK_DETAILS"
+  | "UPDATE_FEEDBACK_STATUS"
+  | "RESPOND_TO_FEEDBACK";
 
 /**
  * Validate that a reason/message is safe and not malicious
@@ -64,3 +68,5 @@ export function sanitizeAdminMessage(message: string): string {
   // Limit length
   return sanitized.slice(0, 1000);
 }
+
+

@@ -78,9 +78,11 @@ export interface OnboardingOrgData {
 export interface OnboardingData {
   // From registration
   email: string;
-  name: string;
-  // User preferences
+  firstName: string;
+  lastName: string;
+  // Username - may be set during Clerk sign-up or during onboarding for legacy users
   username: string;
+  // User preferences
   language: SupportedLanguage;
   theme: SupportedTheme;
   // Organization
@@ -96,14 +98,17 @@ export interface OnboardingData {
  */
 export interface UsernameStepData {
   username: string;
-  name: string;
+  firstName: string;
+  lastName: string;
 }
 
 /**
  * Username and Organization step data
  */
 export interface UsernameOrgStepData {
-  name: string;
+  firstName: string;
+  lastName: string;
+  /** Username - editable if not set from Clerk, read-only if already set */
   username: string;
   orgName: string;
   orgSlug: string;

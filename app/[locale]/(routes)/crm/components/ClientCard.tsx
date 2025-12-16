@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -26,10 +27,15 @@ interface ClientCardProps {
     primary_phone?: string;
     assigned_to_user?: { name: string };
     contacts?: Contact[];
+    updatedAt?: string | Date;
   };
 }
 
-export function ClientCard({ data }: ClientCardProps) {
+/**
+ * Memoized client card component for optimal rendering in virtualized lists.
+ * Only re-renders when the client data changes.
+ */
+export const ClientCard = memo(function ClientCard({ data }: ClientCardProps) {
   const t = useTranslations("crm");
   const commonT = useTranslations("common");
   const router = useRouter();
@@ -45,14 +51,22 @@ export function ClientCard({ data }: ClientCardProps) {
     : "CL";
 
   // Prefetch client data on hover for instant navigation
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     prefetchClient(data.id);
     prefetchClientLinked(data.id);
-  };
+  }, [data.id, prefetchClient, prefetchClientLinked]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     await axios.delete(`/api/crm/account/${data.id}`);
-  };
+  }, [data.id]);
+
+  const handleEdit = useCallback(() => {
+    router.push(`/crm/clients/${data.id}?edit=true`);
+  }, [router, data.id]);
+
+  const handleActionComplete = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   return (
     <Card
@@ -84,11 +98,11 @@ export function ClientCard({ data }: ClientCardProps) {
             entityId={data.id}
             entityName={data.name}
             viewHref={`/crm/clients/${data.id}`}
-            onEdit={() => router.push(`/crm/clients/${data.id}?edit=true`)}
+            onEdit={handleEdit}
             onDelete={handleDelete}
             showSchedule
             showShare
-            onActionComplete={() => router.refresh()}
+            onActionComplete={handleActionComplete}
           />
         </div>
       </CardHeader>
@@ -133,4 +147,12 @@ export function ClientCard({ data }: ClientCardProps) {
       </CardFooter>
     </Card>
   );
-}
+}, (prevProps, nextProps) => {
+  // Only re-render if key data changes
+  return (
+    prevProps.data.id === nextProps.data.id &&
+    prevProps.data.updatedAt === nextProps.data.updatedAt &&
+    prevProps.data.status === nextProps.data.status &&
+    prevProps.data.name === nextProps.data.name
+  );
+});

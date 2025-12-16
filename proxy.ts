@@ -48,28 +48,68 @@ const isPlatformAdminAccessDenied = createRouteMatcher([
   "/:locale/platform-admin/access-denied(.*)",
 ]);
 
+// Landing page route for the main domain (oikion.com without app. prefix)
+const isLandingPageRoute = createRouteMatcher([
+  "/:locale/landing(.*)",
+]);
+
+/**
+ * Check if the request is coming from the main domain (oikion.com)
+ * This serves the public landing page
+ */
+function isMainDomain(req: NextRequest): boolean {
+  const host = req.headers.get("host") || "";
+  
+  // oikion.com or www.oikion.com
+  if (host === "oikion.com" || host === "www.oikion.com") {
+    return true;
+  }
+  
+  return false;
+}
+
 /**
  * Check if user is a platform admin
- * Checks Clerk publicMetadata.isPlatformAdmin flag and dev bypass
+ * Checks env-based admin emails and Clerk privateMetadata.isPlatformAdmin flag
  */
 async function checkPlatformAdmin(userId: string): Promise<boolean> {
   try {
     const clerk = await clerkClient();
     const user = await clerk.users.getUser(userId);
-    
-    // Check dev bypass (only in non-production)
-    if (process.env.NODE_ENV !== "production") {
-      const devAdminEmails = process.env.PLATFORM_ADMIN_DEV_EMAILS;
-      if (devAdminEmails) {
-        const userEmail = user.emailAddresses?.[0]?.emailAddress?.toLowerCase();
-        if (userEmail && devAdminEmails.toLowerCase().split(",").includes(userEmail)) {
+    const userEmail = user.emailAddresses?.[0]?.emailAddress?.toLowerCase().trim();
+
+    if (userEmail) {
+      // Production admin emails (always checked)
+      const prodAdminEmails = process.env.PLATFORM_ADMIN_EMAILS;
+      if (prodAdminEmails) {
+        const adminEmailList = prodAdminEmails
+          .replace(/"/g, "")
+          .split(",")
+          .map(e => e.toLowerCase().trim());
+        
+        if (adminEmailList.includes(userEmail)) {
           return true;
+        }
+      }
+
+      // Development bypass (disabled in production)
+      if (process.env.NODE_ENV !== "production") {
+        const devAdminEmails = process.env.PLATFORM_ADMIN_DEV_EMAILS;
+        if (devAdminEmails) {
+          const devEmailList = devAdminEmails
+            .replace(/"/g, "")
+            .split(",")
+            .map(e => e.toLowerCase().trim());
+          
+          if (devEmailList.includes(userEmail)) {
+            return true;
+          }
         }
       }
     }
     
-    // Check Clerk publicMetadata
-    return user.publicMetadata?.isPlatformAdmin === true;
+    // Check Clerk privateMetadata (more secure than publicMetadata)
+    return user.privateMetadata?.isPlatformAdmin === true;
   } catch (error) {
     console.error("[PLATFORM_ADMIN_MIDDLEWARE_CHECK]", error);
     return false;
@@ -78,6 +118,42 @@ async function checkPlatformAdmin(userId: string): Promise<boolean> {
 
 const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   const pathname = req.nextUrl.pathname;
+
+  // ============================================
+  // DOMAIN DETECTION: Main domain vs App domain
+  // ============================================
+  // If request is to main domain (oikion.com), rewrite to landing page
+  if (isMainDomain(req)) {
+    // Check if already on landing page to avoid infinite loop
+    if (!isLandingPageRoute(req) && !pathname.includes("/landing")) {
+      const pathLocale = pathname.split("/")[1];
+      const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
+      const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
+        ? (pathLocale as "en" | "el")
+        : "el";
+      
+      // Rewrite to landing page (keeps the URL but serves landing content)
+      const landingUrl = new URL(`/${locale}/landing`, req.url);
+      return NextResponse.rewrite(landingUrl);
+    }
+    
+    // Already on landing page or landing route, continue normally
+    const intlResponse = intlMiddleware(req);
+    if (intlResponse && (intlResponse.status === 307 || intlResponse.status === 308)) {
+      return intlResponse;
+    }
+    const response = NextResponse.next();
+    if (intlResponse) {
+      intlResponse.cookies.getAll().forEach((cookie) => {
+        response.cookies.set(cookie.name, cookie.value);
+      });
+    }
+    return response;
+  }
+
+  // ============================================
+  // EXISTING MIDDLEWARE LOGIC BELOW
+  // ============================================
 
   // Handle root redirect to default locale
   if (pathname === "/") {

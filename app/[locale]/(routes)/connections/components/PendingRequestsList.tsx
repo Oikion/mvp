@@ -92,7 +92,7 @@ function PendingRequestItem({
             src={request.user.avatar || ""}
             alt={request.user.name || ""}
           />
-          <AvatarFallback className="bg-orange-100 text-orange-600">
+          <AvatarFallback className="bg-orange-500/15 text-orange-600 dark:text-orange-400">
             {request.user.name?.charAt(0) || <User className="h-5 w-5" />}
           </AvatarFallback>
         </Avatar>

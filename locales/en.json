@@ -380,5 +380,37 @@
   "Validation": {
     "assignedAgentRequired": "Assigned agent is required",
     "emailInvalid": "Invalid email"
+  },
+  "Landing": {
+    "title": "Oikion - The Operating System for Real Estate Agencies",
+    "description": "MLS, CRM, and Socials in one web app for Greek real estate agencies",
+    "header": {
+      "login": "Login"
+    },
+    "hero": {
+      "title": "The Operating System for Real Estate Agencies",
+      "subtitle": "MLS, CRM, and Socials in one unified platform. Manage properties, clients, and your team efficiently.",
+      "cta": "Go to App"
+    },
+    "features": {
+      "title": "Everything You Need",
+      "subtitle": "One platform for all your real estate agency needs",
+      "mls": {
+        "title": "Property Management (MLS)",
+        "description": "List and manage your properties with ease. Filters, search, and quick editing."
+      },
+      "crm": {
+        "title": "Client Management (CRM)",
+        "description": "Track your clients, interactions, and tasks in one place."
+      },
+      "analytics": {
+        "title": "Reports & Analytics",
+        "description": "Monitor your agency's performance with detailed reports and charts."
+      }
+    },
+    "footer": {
+      "rights": "All rights reserved.",
+      "contact": "Contact"
+    }
   }
 }

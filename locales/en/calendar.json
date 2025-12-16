@@ -4,20 +4,82 @@
     "description": "Manage your calendar events and view your tasks",
     "loadingCalendar": "Loading calendar..."
   },
+  "stats": {
+    "upcomingEvents": "Upcoming Events",
+    "upcomingEventsDesc": "Events in the next 7 days",
+    "thisWeek": "This Week",
+    "thisWeekDesc": "Scheduled for this week",
+    "pendingInvitations": "Pending Invitations",
+    "pendingInvitationsDesc": "Awaiting your response",
+    "totalEvents": "Total Events",
+    "totalEventsDesc": "All scheduled events",
+    "noUpcomingEvents": "No upcoming events",
+    "scheduleFirst": "Schedule your first event",
+    "viewAll": "View all"
+  },
+  "tabs": {
+    "myEvents": "My Events",
+    "invitedEvents": "Invited",
+    "allEvents": "All Events"
+  },
+  "views": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "semester": "Semester",
+    "year": "Year",
+    "today": "Today",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "previousSemester": "Previous semester",
+    "nextSemester": "Next semester",
+    "previousYear": "Previous year",
+    "nextYear": "Next year"
+  },
   "calendarView": {
     "title": "Calendar",
     "selectDate": "Select a date",
     "loading": "Loading...",
     "noEventsOrTasks": "No events or tasks scheduled for this day",
     "dayView": "Day View",
+    "weekView": "Week View",
     "monthView": "Month View",
-    "failedToFetchEvents": "Failed to fetch events"
+    "semesterView": "Semester View",
+    "yearView": "Year View",
+    "failedToFetchEvents": "Failed to fetch events",
+    "allDay": "All day",
+    "moreEvents": "+{count} more"
+  },
+  "weekView": {
+    "weekOf": "Week of {date}",
+    "noEvents": "No events this week",
+    "hours": {
+      "am": "AM",
+      "pm": "PM"
+    }
+  },
+  "semesterView": {
+    "semester": "Semester",
+    "firstHalf": "Jan - Jun",
+    "secondHalf": "Jul - Dec",
+    "eventsInPeriod": "{count} events in this period"
+  },
+  "yearView": {
+    "year": "Year {year}",
+    "eventsThisYear": "{count} events this year",
+    "noEventsThisYear": "No events scheduled for this year"
   },
   "eventActions": {
     "openMenu": "Open menu",
     "view": "View",
     "edit": "Edit",
-    "delete": "Delete"
+    "delete": "Delete",
+    "duplicate": "Duplicate",
+    "share": "Share"
   },
   "eventCreateForm": {
     "newEvent": "New Event",
@@ -32,7 +94,8 @@
     "endTime": "End Time",
     "pickDate": "Pick a date",
     "location": "Location",
-    "locationPlaceholder": "Event location",
+    "locationPlaceholder": "Search for a location...",
+    "locationManualEntry": "Or enter manually",
     "eventType": "Event Type",
     "selectEventType": "Select event type",
     "assignedUser": "Assigned User",
@@ -40,6 +103,8 @@
     "linkClients": "Link Clients",
     "linkProperties": "Link Properties",
     "linkDocuments": "Link Documents",
+    "invitees": "Invite People",
+    "inviteesDescription": "Invite organization members or connections to this event",
     "reminders": "Reminders",
     "remindersDescription": "Select when to receive reminder notifications",
     "beforeEvent": "before event",
@@ -48,6 +113,43 @@
     "createEvent": "Create Event",
     "eventCreatedSuccess": "Event created successfully",
     "failedToCreateEvent": "Failed to create event"
+  },
+  "locationSearch": {
+    "placeholder": "Search Greek addresses...",
+    "searching": "Searching...",
+    "noResults": "No locations found",
+    "useManual": "Enter location manually",
+    "clearLocation": "Clear location",
+    "selectedLocation": "Selected location"
+  },
+  "invitees": {
+    "title": "Invitees",
+    "addInvitees": "Add invitees",
+    "searchPlaceholder": "Search people...",
+    "organizationMembers": "Organization Members",
+    "connections": "Connections",
+    "noResults": "No people found",
+    "invited": "Invited",
+    "remove": "Remove",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "tentative": "Tentative"
+    },
+    "actions": {
+      "accept": "Accept",
+      "decline": "Decline",
+      "tentative": "Maybe",
+      "respond": "Respond"
+    },
+    "notifications": {
+      "invitationSent": "Invitation sent",
+      "invitationsSent": "{count} invitations sent",
+      "responseRecorded": "Response recorded",
+      "failedToSend": "Failed to send invitation",
+      "failedToRespond": "Failed to record response"
+    }
   },
   "selectors": {
     "selectClients": "Select clients...",
@@ -59,6 +161,26 @@
     "selectDocuments": "Select documents...",
     "searchDocuments": "Search documents...",
     "noDocumentsFound": "No documents found"
+  },
+  "filters": {
+    "title": "Filters",
+    "eventType": "Event Type",
+    "allTypes": "All types",
+    "assignedTo": "Assigned To",
+    "anyone": "Anyone",
+    "linkedEntity": "Linked Entity",
+    "anyEntity": "Any entity",
+    "dateRange": "Date Range",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "custom": "Custom",
+    "invitationStatus": "Invitation Status",
+    "myEvents": "My Events",
+    "invited": "Invited",
+    "all": "All",
+    "clearFilters": "Clear filters",
+    "activeFilters": "{count} active"
   },
   "createBookingButton": {
     "createEvent": "Create Event",
@@ -90,6 +212,8 @@
     "linkedClients": "Linked Clients",
     "linkedProperties": "Linked Properties",
     "linkedDocuments": "Linked Documents",
+    "invitees": "Invitees",
+    "noInvitees": "No one invited yet",
     "reminders": "Reminders",
     "beforeEvent": "before event"
   },
@@ -136,6 +260,36 @@
       "taskDeadline": "Task Deadline",
       "other": "Other"
     }
+  },
+  "accessibility": {
+    "calendarNavigation": "Calendar navigation",
+    "viewSelector": "Select calendar view",
+    "eventList": "List of events",
+    "createEventButton": "Create new event",
+    "previousPeriod": "Go to previous period",
+    "nextPeriod": "Go to next period",
+    "goToToday": "Go to today",
+    "eventCard": "Event: {title}",
+    "filterToggle": "Toggle filters",
+    "closeDialog": "Close dialog",
+    "selectDate": "Select date: {date}",
+    "selectedDate": "Selected: {date}",
+    "eventCount": "{count} events",
+    "noEvents": "No events"
+  },
+  "errors": {
+    "failedToLoad": "Failed to load calendar data",
+    "failedToCreate": "Failed to create event",
+    "failedToUpdate": "Failed to update event",
+    "failedToDelete": "Failed to delete event",
+    "networkError": "Network error. Please try again.",
+    "unauthorized": "You don't have permission to perform this action",
+    "retry": "Retry"
+  },
+  "empty": {
+    "noEvents": "No events scheduled",
+    "noEventsDescription": "Create your first event to get started",
+    "noInvitations": "No pending invitations",
+    "noInvitationsDescription": "You'll see invitations from others here"
   }
 }
-

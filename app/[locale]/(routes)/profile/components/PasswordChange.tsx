@@ -88,13 +88,13 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
       });
       form.reset();
       router.refresh();
-    } catch (error: any) {
-      console.log(error.response?.data);
+    } catch (error: unknown) {
+      const errorResponse = error as { response?: { data?: string } };
       toast({
         variant: "destructive",
         title: "Error",
         description:
-          error.response?.data ||
+          errorResponse.response?.data ||
           "Something went wrong while changing your password.",
       });
     } finally {

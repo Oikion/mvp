@@ -4,20 +4,82 @@
     "description": "Διαχειριστείτε τα συμβάντα του ημερολογίου σας και δείτε τις εργασίες σας",
     "loadingCalendar": "Φόρτωση ημερολογίου..."
   },
+  "stats": {
+    "upcomingEvents": "Επερχόμενα Συμβάντα",
+    "upcomingEventsDesc": "Συμβάντα τις επόμενες 7 ημέρες",
+    "thisWeek": "Αυτή την Εβδομάδα",
+    "thisWeekDesc": "Προγραμματισμένα αυτή την εβδομάδα",
+    "pendingInvitations": "Εκκρεμείς Προσκλήσεις",
+    "pendingInvitationsDesc": "Αναμένουν την απάντησή σας",
+    "totalEvents": "Συνολικά Συμβάντα",
+    "totalEventsDesc": "Όλα τα προγραμματισμένα συμβάντα",
+    "noUpcomingEvents": "Δεν υπάρχουν επερχόμενα συμβάντα",
+    "scheduleFirst": "Προγραμματίστε το πρώτο σας συμβάν",
+    "viewAll": "Προβολή όλων"
+  },
+  "tabs": {
+    "myEvents": "Τα Συμβάντα μου",
+    "invitedEvents": "Προσκεκλημένος",
+    "allEvents": "Όλα τα Συμβάντα"
+  },
+  "views": {
+    "day": "Ημέρα",
+    "week": "Εβδομάδα",
+    "month": "Μήνας",
+    "semester": "Εξάμηνο",
+    "year": "Έτος",
+    "today": "Σήμερα",
+    "previousDay": "Προηγούμενη ημέρα",
+    "nextDay": "Επόμενη ημέρα",
+    "previousWeek": "Προηγούμενη εβδομάδα",
+    "nextWeek": "Επόμενη εβδομάδα",
+    "previousMonth": "Προηγούμενος μήνας",
+    "nextMonth": "Επόμενος μήνας",
+    "previousSemester": "Προηγούμενο εξάμηνο",
+    "nextSemester": "Επόμενο εξάμηνο",
+    "previousYear": "Προηγούμενο έτος",
+    "nextYear": "Επόμενο έτος"
+  },
   "calendarView": {
     "title": "Ημερολόγιο",
     "selectDate": "Επιλέξτε ημερομηνία",
     "loading": "Φόρτωση...",
     "noEventsOrTasks": "Δεν υπάρχουν συμβάντα ή εργασίες προγραμματισμένες για αυτή την ημέρα",
     "dayView": "Προβολή Ημέρας",
+    "weekView": "Προβολή Εβδομάδας",
     "monthView": "Προβολή Μήνα",
-    "failedToFetchEvents": "Αποτυχία φόρτωσης συμβάντων"
+    "semesterView": "Προβολή Εξαμήνου",
+    "yearView": "Προβολή Έτους",
+    "failedToFetchEvents": "Αποτυχία φόρτωσης συμβάντων",
+    "allDay": "Ολοήμερο",
+    "moreEvents": "+{count} ακόμη"
+  },
+  "weekView": {
+    "weekOf": "Εβδομάδα της {date}",
+    "noEvents": "Δεν υπάρχουν συμβάντα αυτή την εβδομάδα",
+    "hours": {
+      "am": "ΠΜ",
+      "pm": "ΜΜ"
+    }
+  },
+  "semesterView": {
+    "semester": "Εξάμηνο",
+    "firstHalf": "Ιαν - Ιούν",
+    "secondHalf": "Ιούλ - Δεκ",
+    "eventsInPeriod": "{count} συμβάντα σε αυτή την περίοδο"
+  },
+  "yearView": {
+    "year": "Έτος {year}",
+    "eventsThisYear": "{count} συμβάντα φέτος",
+    "noEventsThisYear": "Δεν υπάρχουν συμβάντα προγραμματισμένα για φέτος"
   },
   "eventActions": {
     "openMenu": "Άνοιγμα μενού",
     "view": "Προβολή",
     "edit": "Επεξεργασία",
-    "delete": "Διαγραφή"
+    "delete": "Διαγραφή",
+    "duplicate": "Αντιγραφή",
+    "share": "Κοινοποίηση"
   },
   "eventCreateForm": {
     "newEvent": "Νέο Συμβάν",
@@ -32,7 +94,8 @@
     "endTime": "Ώρα Λήξης",
     "pickDate": "Επιλέξτε ημερομηνία",
     "location": "Τοποθεσία",
-    "locationPlaceholder": "Τοποθεσία συμβάντος",
+    "locationPlaceholder": "Αναζήτηση τοποθεσίας...",
+    "locationManualEntry": "Ή εισάγετε χειροκίνητα",
     "eventType": "Τύπος Συμβάντος",
     "selectEventType": "Επιλέξτε τύπο συμβάντος",
     "assignedUser": "Ανατεθειμένος Χρήστης",
@@ -40,6 +103,8 @@
     "linkClients": "Σύνδεση Πελατών",
     "linkProperties": "Σύνδεση Ιδιοκτησιών",
     "linkDocuments": "Σύνδεση Εγγράφων",
+    "invitees": "Πρόσκληση Ατόμων",
+    "inviteesDescription": "Προσκαλέστε μέλη του οργανισμού ή επαφές σε αυτό το συμβάν",
     "reminders": "Υπενθυμίσεις",
     "remindersDescription": "Επιλέξτε πότε να λάβετε ειδοποιήσεις υπενθύμισης",
     "beforeEvent": "πριν το συμβάν",
@@ -48,6 +113,43 @@
     "createEvent": "Δημιουργία Συμβάντος",
     "eventCreatedSuccess": "Το συμβάν δημιουργήθηκε με επιτυχία",
     "failedToCreateEvent": "Αποτυχία δημιουργίας συμβάντος"
+  },
+  "locationSearch": {
+    "placeholder": "Αναζήτηση ελληνικών διευθύνσεων...",
+    "searching": "Αναζήτηση...",
+    "noResults": "Δεν βρέθηκαν τοποθεσίες",
+    "useManual": "Εισαγωγή τοποθεσίας χειροκίνητα",
+    "clearLocation": "Καθαρισμός τοποθεσίας",
+    "selectedLocation": "Επιλεγμένη τοποθεσία"
+  },
+  "invitees": {
+    "title": "Προσκεκλημένοι",
+    "addInvitees": "Προσθήκη προσκεκλημένων",
+    "searchPlaceholder": "Αναζήτηση ατόμων...",
+    "organizationMembers": "Μέλη Οργανισμού",
+    "connections": "Επαφές",
+    "noResults": "Δεν βρέθηκαν άτομα",
+    "invited": "Προσκεκλημένος",
+    "remove": "Αφαίρεση",
+    "status": {
+      "pending": "Σε αναμονή",
+      "accepted": "Αποδεκτή",
+      "declined": "Απορρίφθηκε",
+      "tentative": "Ίσως"
+    },
+    "actions": {
+      "accept": "Αποδοχή",
+      "decline": "Απόρριψη",
+      "tentative": "Ίσως",
+      "respond": "Απάντηση"
+    },
+    "notifications": {
+      "invitationSent": "Η πρόσκληση στάλθηκε",
+      "invitationsSent": "{count} προσκλήσεις στάλθηκαν",
+      "responseRecorded": "Η απάντηση καταχωρήθηκε",
+      "failedToSend": "Αποτυχία αποστολής πρόσκλησης",
+      "failedToRespond": "Αποτυχία καταγραφής απάντησης"
+    }
   },
   "selectors": {
     "selectClients": "Επιλέξτε πελάτες...",
@@ -59,6 +161,26 @@
     "selectDocuments": "Επιλέξτε έγγραφα...",
     "searchDocuments": "Αναζήτηση εγγράφων...",
     "noDocumentsFound": "Δεν βρέθηκαν έγγραφα"
+  },
+  "filters": {
+    "title": "Φίλτρα",
+    "eventType": "Τύπος Συμβάντος",
+    "allTypes": "Όλοι οι τύποι",
+    "assignedTo": "Ανατεθειμένο Σε",
+    "anyone": "Οποιονδήποτε",
+    "linkedEntity": "Συνδεδεμένη Οντότητα",
+    "anyEntity": "Οποιαδήποτε οντότητα",
+    "dateRange": "Εύρος Ημερομηνιών",
+    "today": "Σήμερα",
+    "thisWeek": "Αυτή την Εβδομάδα",
+    "thisMonth": "Αυτόν τον Μήνα",
+    "custom": "Προσαρμοσμένο",
+    "invitationStatus": "Κατάσταση Πρόσκλησης",
+    "myEvents": "Τα Συμβάντα μου",
+    "invited": "Προσκεκλημένος",
+    "all": "Όλα",
+    "clearFilters": "Καθαρισμός φίλτρων",
+    "activeFilters": "{count} ενεργά"
   },
   "createBookingButton": {
     "createEvent": "Δημιουργία Συμβάντος",
@@ -90,6 +212,8 @@
     "linkedClients": "Συνδεδεμένοι Πελάτες",
     "linkedProperties": "Συνδεδεμένες Ιδιοκτησίες",
     "linkedDocuments": "Συνδεδεμένα Έγγραφα",
+    "invitees": "Προσκεκλημένοι",
+    "noInvitees": "Δεν έχει προσκληθεί κανείς ακόμη",
     "reminders": "Υπενθυμίσεις",
     "beforeEvent": "πριν το συμβάν"
   },
@@ -136,6 +260,36 @@
       "taskDeadline": "Προθεσμία Εργασίας",
       "other": "Άλλο"
     }
+  },
+  "accessibility": {
+    "calendarNavigation": "Πλοήγηση ημερολογίου",
+    "viewSelector": "Επιλογή προβολής ημερολογίου",
+    "eventList": "Λίστα συμβάντων",
+    "createEventButton": "Δημιουργία νέου συμβάντος",
+    "previousPeriod": "Μετάβαση στην προηγούμενη περίοδο",
+    "nextPeriod": "Μετάβαση στην επόμενη περίοδο",
+    "goToToday": "Μετάβαση στο σήμερα",
+    "eventCard": "Συμβάν: {title}",
+    "filterToggle": "Εναλλαγή φίλτρων",
+    "closeDialog": "Κλείσιμο διαλόγου",
+    "selectDate": "Επιλογή ημερομηνίας: {date}",
+    "selectedDate": "Επιλεγμένο: {date}",
+    "eventCount": "{count} συμβάντα",
+    "noEvents": "Κανένα συμβάν"
+  },
+  "errors": {
+    "failedToLoad": "Αποτυχία φόρτωσης δεδομένων ημερολογίου",
+    "failedToCreate": "Αποτυχία δημιουργίας συμβάντος",
+    "failedToUpdate": "Αποτυχία ενημέρωσης συμβάντος",
+    "failedToDelete": "Αποτυχία διαγραφής συμβάντος",
+    "networkError": "Σφάλμα δικτύου. Παρακαλώ δοκιμάστε ξανά.",
+    "unauthorized": "Δεν έχετε άδεια για αυτή την ενέργεια",
+    "retry": "Επανάληψη"
+  },
+  "empty": {
+    "noEvents": "Δεν υπάρχουν προγραμματισμένα συμβάντα",
+    "noEventsDescription": "Δημιουργήστε το πρώτο σας συμβάν για να ξεκινήσετε",
+    "noInvitations": "Δεν υπάρχουν εκκρεμείς προσκλήσεις",
+    "noInvitationsDescription": "Θα δείτε εδώ τις προσκλήσεις από άλλους"
   }
 }
-

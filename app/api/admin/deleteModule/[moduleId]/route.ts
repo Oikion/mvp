@@ -20,7 +20,6 @@ export async function DELETE(req: Request, props: { params: Promise<{ moduleId: 
 
     return NextResponse.json({ message: "Module deleted successfully" });
   } catch (error) {
-    console.log("[MODULE_DELETE]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }

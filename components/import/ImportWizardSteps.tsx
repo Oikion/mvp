@@ -383,7 +383,7 @@ export function ImportWizardSteps({
   ];
 
   return (
-    <div className="flex flex-col gap-6 min-h-[600px]">
+    <div className="flex flex-col gap-6 h-full min-h-0">
       {/* Progress Bar */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -451,7 +451,7 @@ export function ImportWizardSteps({
       </div>
 
       {/* Step Content with Animation */}
-      <div className="relative flex-1 min-h-[400px] overflow-hidden">
+      <div className="relative flex-1 overflow-hidden">
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentStep}
@@ -464,7 +464,7 @@ export function ImportWizardSteps({
               x: { type: "spring", stiffness: 300, damping: 30 },
               opacity: { duration: 0.2 },
             }}
-            className="w-full h-full px-1"
+            className="absolute inset-0 px-1 overflow-y-auto"
           >
             {renderStep()}
           </motion.div>
@@ -534,3 +534,4 @@ export function ImportWizardSteps({
     </div>
   );
 }
+

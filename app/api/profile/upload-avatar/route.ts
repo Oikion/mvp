@@ -47,7 +47,6 @@ export async function POST(req: Request) {
         await deleteFromBlob(currentUser.avatar);
       } catch (e) {
         // Ignore deletion errors, continue with upload
-        console.log("Failed to delete old avatar:", e);
       }
     }
 
@@ -96,7 +95,7 @@ export async function DELETE(req: Request) {
       try {
         await deleteFromBlob(currentUser.avatar);
       } catch (e) {
-        console.log("Failed to delete avatar from blob:", e);
+        // Ignore deletion errors
       }
     }
 
@@ -118,6 +117,8 @@ export async function DELETE(req: Request) {
     );
   }
 }
+
+
 
 
 

@@ -2,14 +2,14 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, addMonths, subMonths } from "date-fns";
 import { el, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { useTranslations, useLocale } from "next-intl";
 import { EventActionsMenu } from "./EventActionsMenu";
+import { cn } from "@/lib/utils";
 
 interface CalendarEvent {
   id: number;
@@ -78,14 +78,19 @@ export function MonthView({
   const isSelected = (day: Date) => selectedDate && isSameDay(day, selectedDate);
   const isCurrentMonth = (day: Date) => isSameMonth(day, currentMonth);
 
+  const weekdayLabels = locale === "el"
+    ? ["Κυρ", "Δευ", "Τρι", "Τετ", "Πεμ", "Παρ", "Σαβ"]
+    : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" role="region" aria-label={t("accessibility.calendarNavigation")}>
       {/* Month Navigation */}
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
           size="icon"
           onClick={() => navigateMonth("prev")}
+          aria-label={t("views.previousMonth")}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -96,21 +101,20 @@ export function MonthView({
           variant="outline"
           size="icon"
           onClick={() => navigateMonth("next")}
+          aria-label={t("views.nextMonth")}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Calendar Grid */}
-      <div className="border rounded-lg">
+      <div className="border rounded-lg" role="grid" aria-label={t("accessibility.eventList")}>
         {/* Weekday Headers */}
-        <div className="grid grid-cols-7 border-b">
-          {(locale === "el" 
-            ? ["Κυρ", "Δευ", "Τρι", "Τετ", "Πεμ", "Παρ", "Σαβ"]
-            : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-          ).map((day) => (
+        <div className="grid grid-cols-7 border-b bg-muted/50" role="row">
+          {weekdayLabels.map((day) => (
             <div
               key={day}
+              role="columnheader"
               className="p-2 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0"
             >
               {day}
@@ -129,36 +133,58 @@ export function MonthView({
             return (
               <div
                 key={idx}
-                className={`min-h-[100px] border-r border-b last:border-r-0 p-1 ${
-                  !isCurrentMonthDay ? "bg-muted/30" : ""
-                } ${isSelectedDay ? "bg-primary/10" : ""} ${
-                  isTodayDay ? "ring-2 ring-primary" : ""
-                }`}
+                onClick={() => onDateSelect(day)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onDateSelect(day);
+                  }
+                }}
+                className={cn(
+                  "min-h-[100px] md:min-h-[120px] border-r border-b last:border-r-0 p-1 text-left transition-colors cursor-pointer",
+                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset",
+                  !isCurrentMonthDay && "bg-muted/30",
+                  isSelectedDay && "bg-primary/10",
+                  isTodayDay && "ring-2 ring-primary ring-inset",
+                  isCurrentMonthDay && "hover:bg-muted/50"
+                )}
+                role="gridcell"
+                aria-label={t("accessibility.selectDate", {
+                  date: format(day, "d MMMM yyyy", { locale: dateLocale }),
+                })}
+                aria-selected={isSelectedDay}
+                tabIndex={isCurrentMonthDay ? 0 : -1}
               >
                 <div
-                  className={`text-sm font-medium mb-1 ${
-                    isTodayDay ? "text-primary font-bold" : ""
-                  } ${!isCurrentMonthDay ? "text-muted-foreground" : ""}`}
+                  className={cn(
+                    "text-sm font-medium mb-1",
+                    isTodayDay && "text-primary font-bold",
+                    !isCurrentMonthDay && "text-muted-foreground"
+                  )}
                 >
                   {format(day, "d")}
                 </div>
-                <div className="space-y-1 max-h-[80px] overflow-y-auto">
+                <div className="space-y-1 max-h-[60px] md:max-h-[80px] overflow-y-auto">
                   {dayEvents.slice(0, 3).map((event) => (
                     <Card
                       key={event.id}
-                      className="p-1.5 hover:shadow-sm transition-shadow cursor-pointer text-xs"
+                      className={cn(
+                        "p-1.5 hover:shadow-sm transition-shadow cursor-pointer text-xs",
+                        "bg-primary/5 border-l-2 border-l-primary"
+                      )}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (event.eventId) {
                           router.push(`/calendar/events/${event.eventId}`);
                         }
                       }}
+                      aria-label={t("accessibility.eventCard", { title: event.title })}
                     >
                       <div className="flex items-start justify-between gap-1">
                         <div className="flex-1 min-w-0">
                           <div className="font-medium truncate">{event.title}</div>
                           <div className="flex items-center gap-1 text-muted-foreground">
-                            <Clock className="h-3 w-3" />
+                            <Clock className="h-3 w-3" aria-hidden="true" />
                             <span className="truncate">
                               {format(new Date(event.startTime), "HH:mm")}
                             </span>
@@ -179,7 +205,7 @@ export function MonthView({
                   ))}
                   {dayEvents.length > 3 && (
                     <div className="text-xs text-muted-foreground px-1">
-                      +{dayEvents.length - 3} more
+                      {t("calendarView.moreEvents", { count: dayEvents.length - 3 })}
                     </div>
                   )}
                 </div>

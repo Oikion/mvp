@@ -39,9 +39,10 @@ export async function POST(
       orgMemberships = await clerk.users.getOrganizationMembershipList({
         userId: clerkUserId,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If user has no organizations or error fetching, return empty list
-      if (error?.status === 404) {
+      const errorStatus = (error as { status?: number })?.status;
+      if (errorStatus === 404) {
         return NextResponse.json({
           hasOnlyAdminOrgs: false,
           orgsToDelete: [],
@@ -63,10 +64,10 @@ export async function POST(
           orgMembers = await clerk.organizations.getOrganizationMembershipList({
             organizationId: orgId,
           });
-        } catch (memberError: any) {
+        } catch (memberError: unknown) {
           // If organization doesn't exist or can't get members, skip it
-          if (memberError?.status === 404) {
-            console.log(`Organization ${orgId} not found, skipping`);
+          const errorStatus = (memberError as { status?: number })?.status;
+          if (errorStatus === 404) {
             continue;
           }
           throw memberError; // Re-throw if it's a different error
@@ -90,11 +91,10 @@ export async function POST(
               id: orgId,
               name: org.name,
             });
-          } catch (orgError: any) {
+          } catch (orgError: unknown) {
             // If organization doesn't exist (404), skip it
-            if (orgError?.status === 404) {
-              console.log(`Organization ${orgId} not found, skipping`);
-            } else {
+            const errorStatus = (orgError as { status?: number })?.status;
+            if (errorStatus !== 404) {
               // For other errors, still add org ID but without name
               orgsToDelete.push({
                 id: orgId,
@@ -104,7 +104,6 @@ export async function POST(
           }
         }
       } catch (error) {
-        console.error(`Error checking organization ${orgId}:`, error);
         // Continue checking other organizations even if one fails
       }
     }
@@ -114,7 +113,6 @@ export async function POST(
       orgsToDelete,
     });
   } catch (error) {
-    console.log("[CHECK_ORGS_BEFORE_DELETE]", error);
     return NextResponse.json(
       { error: "Failed to check organizations" },
       { status: 500 }

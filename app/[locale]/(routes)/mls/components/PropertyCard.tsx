@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -25,10 +26,17 @@ interface PropertyCardProps {
     address_city?: string;
     assigned_to_user?: { name: string };
     linkedDocuments?: Array<{ document_file_url?: string }>;
+    updatedAt?: string | Date;
   };
+  /** Optional index for priority loading of images */
+  index?: number;
 }
 
-export function PropertyCard({ data }: PropertyCardProps) {
+/**
+ * Memoized property card component for optimal rendering in virtualized lists.
+ * Only re-renders when the property data changes.
+ */
+export const PropertyCard = memo(function PropertyCard({ data, index = 0 }: PropertyCardProps) {
   const t = useTranslations("mls");
   const router = useRouter();
   const { prefetchProperty, prefetchPropertyLinked } = usePrefetch();
@@ -43,9 +51,17 @@ export function PropertyCard({ data }: PropertyCardProps) {
     prefetchPropertyLinked(data.id);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     await axios.delete(`/api/mls/properties/${data.id}`);
-  };
+  }, [data.id]);
+
+  const handleEdit = useCallback(() => {
+    router.push(`/mls/properties/${data.id}?edit=true`);
+  }, [router, data.id]);
+
+  const handleActionComplete = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   return (
     <Card
@@ -59,6 +75,15 @@ export function PropertyCard({ data }: PropertyCardProps) {
             alt={data.property_name}
             fill
             className="object-cover"
+            // Priority load first 8 images (typically first 2 rows)
+            priority={index < 8}
+            // Lazy load subsequent images
+            loading={index >= 8 ? "lazy" : undefined}
+            // Use blur placeholder for better UX during loading
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDAwUBAAAAAAAAAAAAAQIDAAQRBQYhEhMxQVFh/8QAFQEBAQAAAAAAAAAAAAAAAAAABQb/xAAaEQACAwEBAAAAAAAAAAAAAAABAgADESEx/9oADAMBAAIRAxEAPwC3bapd2+0tVvLe+uYLuOGR45Y5mV0YKSCpByCDwRSlKoqsLqw5nHLmf//Z"
+            // Optimize image sizes for different viewports
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -85,11 +110,11 @@ export function PropertyCard({ data }: PropertyCardProps) {
               entityId={data.id}
               entityName={data.property_name}
               viewHref={`/mls/properties/${data.id}`}
-              onEdit={() => router.push(`/mls/properties/${data.id}?edit=true`)}
+              onEdit={handleEdit}
               onDelete={handleDelete}
               showSchedule
               showShare
-              onActionComplete={() => router.refresh()}
+              onActionComplete={handleActionComplete}
             />
           </div>
         </div>
@@ -142,4 +167,12 @@ export function PropertyCard({ data }: PropertyCardProps) {
       </CardFooter>
     </Card>
   );
-}
+}, (prevProps, nextProps) => {
+  // Only re-render if the ID or updatedAt changes
+  return (
+    prevProps.data.id === nextProps.data.id &&
+    prevProps.data.updatedAt === nextProps.data.updatedAt &&
+    prevProps.data.property_status === nextProps.data.property_status &&
+    prevProps.data.price === nextProps.data.price
+  );
+});

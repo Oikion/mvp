@@ -36,7 +36,6 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ status: 200 });
   } catch (error) {
-    console.log("[DELETE_CRM_TASK]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

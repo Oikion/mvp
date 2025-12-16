@@ -11,8 +11,10 @@ import type {
 } from "@/types/onboarding";
 
 export interface CompleteOnboardingParams {
-  username: string;
-  name: string;
+  // Username - passed for legacy users who need to set it during onboarding
+  username?: string;
+  firstName: string;
+  lastName: string;
   language: SupportedLanguage;
   notificationSettings?: OnboardingNotificationSettings;
   privacyPreferences?: OnboardingPrivacyPreferences;
@@ -20,7 +22,8 @@ export interface CompleteOnboardingParams {
 
 export interface ValidateOnboardingParams {
   username: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   language: SupportedLanguage;
 }
 
@@ -32,63 +35,41 @@ export async function validateOnboardingData(
   params: ValidateOnboardingParams
 ): Promise<OnboardingCompletionResult> {
   try {
-    const user = await getCurrentUser();
-
-    // Validate username
+    // Validate username exists
     if (!params.username || params.username.trim().length < 2) {
       return {
         success: false,
-        error: "Username must be at least 2 characters",
+        error: "Username is required and must be at least 2 characters.",
       };
     }
 
-    if (params.username.length > 50) {
+    // Validate firstName
+    if (!params.firstName || params.firstName.trim().length < 1) {
       return {
         success: false,
-        error: "Username must be at most 50 characters",
+        error: "First name is required",
       };
     }
 
-    // Validate format
-    if (!/^[a-zA-Z0-9_]+$/.test(params.username)) {
+    if (params.firstName.length > 50) {
       return {
         success: false,
-        error: "Username can only contain letters, numbers, and underscores",
+        error: "First name must be at most 50 characters",
       };
     }
 
-    // Check if username is already taken by another user
-    const existingUser = await prismadb.users.findFirst({
-      where: {
-        username: {
-          equals: params.username,
-          mode: "insensitive",
-        },
-        id: {
-          not: user.id,
-        },
-      },
-    });
-
-    if (existingUser) {
+    // Validate lastName
+    if (!params.lastName || params.lastName.trim().length < 1) {
       return {
         success: false,
-        error: "Username is already taken",
+        error: "Last name is required",
       };
     }
 
-    // Validate name
-    if (!params.name || params.name.trim().length < 2) {
+    if (params.lastName.length > 50) {
       return {
         success: false,
-        error: "Name must be at least 2 characters",
-      };
-    }
-
-    if (params.name.length > 100) {
-      return {
-        success: false,
-        error: "Name must be at most 100 characters",
+        error: "Last name must be at most 50 characters",
       };
     }
 
@@ -119,61 +100,32 @@ export async function completeOnboarding(
   try {
     const user = await getCurrentUser();
 
-    // Validate username
-    if (!params.username || params.username.trim().length < 2) {
+    // Determine the username to use
+    // If params.username is provided (legacy user setting it during onboarding), use that
+    // Otherwise, use the existing user.username from DB
+    const finalUsername = params.username?.trim().toLowerCase() || user.username;
+    
+    // Validate we have a username
+    if (!finalUsername || finalUsername.length < 2) {
       return {
         success: false,
-        error: "Username must be at least 2 characters",
+        error: "Username is required and must be at least 2 characters.",
       };
     }
 
-    if (params.username.length > 50) {
+    // Validate firstName
+    if (!params.firstName || params.firstName.trim().length < 1) {
       return {
         success: false,
-        error: "Username must be at most 50 characters",
+        error: "First name is required",
       };
     }
 
-    // Validate format
-    if (!/^[a-zA-Z0-9_]+$/.test(params.username)) {
+    // Validate lastName
+    if (!params.lastName || params.lastName.trim().length < 1) {
       return {
         success: false,
-        error: "Username can only contain letters, numbers, and underscores",
-      };
-    }
-
-    // Check if username is already taken by another user
-    const existingUser = await prismadb.users.findFirst({
-      where: {
-        username: {
-          equals: params.username,
-          mode: "insensitive",
-        },
-        id: {
-          not: user.id,
-        },
-      },
-    });
-
-    if (existingUser) {
-      return {
-        success: false,
-        error: "Username is already taken",
-      };
-    }
-
-    // Validate name
-    if (!params.name || params.name.trim().length < 2) {
-      return {
-        success: false,
-        error: "Name must be at least 2 characters",
-      };
-    }
-
-    if (params.name.length > 100) {
-      return {
-        success: false,
-        error: "Name must be at most 100 characters",
+        error: "Last name is required",
       };
     }
 
@@ -186,14 +138,19 @@ export async function completeOnboarding(
       };
     }
 
-    // Update user with privacy preferences
+    // Construct full name from first and last name
+    const fullName = `${params.firstName.trim()} ${params.lastName.trim()}`;
+
+    // Update user - include username if it was set during onboarding
     await prismadb.users.update({
       where: {
         id: user.id,
       },
       data: {
-        username: params.username.trim(),
-        name: params.name.trim(),
+        username: finalUsername,
+        firstName: params.firstName.trim(),
+        lastName: params.lastName.trim(),
+        name: fullName,
         userLanguage: params.language,
         onboardingCompleted: true,
         // Privacy preferences
@@ -209,10 +166,11 @@ export async function completeOnboarding(
       },
       update: {
         visibility: profileVisibility,
+        slug: finalUsername,
       },
       create: {
         userId: user.id,
-        slug: params.username.trim().toLowerCase(),
+        slug: finalUsername,
         visibility: profileVisibility,
       },
     });
@@ -267,4 +225,3 @@ export async function completeOnboarding(
     };
   }
 }
-

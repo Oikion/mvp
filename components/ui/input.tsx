@@ -33,13 +33,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const hasSuccess = success
     const validationText = error || warning || validationMessage
     
-    // Ensure value is always a string to prevent uncontrolled/controlled warning
     // File inputs should not have a value prop (they're always uncontrolled)
+    // Only set value if it was explicitly provided (don't interfere with uncontrolled inputs like react-hook-form's register)
     const isFileInput = type === 'file'
-    const inputValue = value === undefined || value === null ? '' : value
-    const inputProps = isFileInput 
-      ? { ...props } 
-      : { ...props, value: inputValue }
+    const shouldControlValue = value !== undefined && !isFileInput
+    const inputProps = shouldControlValue 
+      ? { ...props, value: value ?? '' } 
+      : { ...props }
     
     return (
       <div className="w-full">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -37,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -45,14 +47,17 @@ import { useTranslations } from "next-intl";
 import { ClientSelector } from "./ClientSelector";
 import { PropertySelector } from "./PropertySelector";
 import { DocumentSelector } from "./DocumentSelector";
-import { useOrgUsers, useUpdateEvent } from "@/hooks/swr";
+import { LocationAutocomplete, LocationData } from "./LocationAutocomplete";
+import { InviteeSelector, Invitee } from "./InviteeSelector";
+import { useOrgUsers, useUpdateEvent, useEventInvitees } from "@/hooks/swr";
+import { inviteToEvent, removeEventInvitee } from "@/actions/calendar/invite-to-event";
 
 const createEventFormSchema = (t: (key: string) => string) => z.object({
   title: z.string().min(1, t("eventCreateForm.titleRequired")),
   description: z.string().optional(),
   startTime: z.date(),
   endTime: z.date(),
-  location: z.string().optional(),
+  location: z.union([z.string(), z.custom<LocationData>()]).optional(),
   eventType: z.string().optional(),
   assignedUserId: z.string().optional(),
   clientIds: z.array(z.string()).default([]),
@@ -60,6 +65,7 @@ const createEventFormSchema = (t: (key: string) => string) => z.object({
   documentIds: z.array(z.string()).default([]),
   reminderMinutes: z.array(z.number()).default([]),
   recurrenceRule: z.string().optional(),
+  invitees: z.array(z.custom<Invitee>()).default([]),
 });
 
 interface LinkedEntity {
@@ -111,6 +117,9 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
   // Use SWR for fetching org users
   const { users } = useOrgUsers();
   
+  // Fetch existing invitees
+  const { invitees: existingInvitees, mutate: mutateInvitees } = useEventInvitees({ eventId });
+  
   // Use mutation hook for update
   const { updateEvent, isUpdating } = useUpdateEvent(eventId);
 
@@ -132,17 +141,38 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
       documentIds: initialData?.linkedDocuments?.map((d) => d.id) || [],
       reminderMinutes: initialData?.reminderMinutes || [],
       recurrenceRule: initialData?.recurrenceRule || undefined,
+      invitees: [],
     },
   });
 
+  // Sync invitees when SWR data arrives
+  useEffect(() => {
+    if (existingInvitees && existingInvitees.length > 0) {
+      const transformedInvitees: Invitee[] = existingInvitees.map((inv) => ({
+        userId: inv.userId,
+        name: inv.user.name || inv.user.email,
+        email: inv.user.email,
+        avatar: inv.user.avatar,
+        type: "organization" as const,
+        status: inv.status,
+      }));
+      form.setValue("invitees", transformedInvitees);
+    }
+  }, [existingInvitees, form]);
+
   async function onSubmit(data: EventFormValues) {
     try {
+      // Extract location string from LocationData if needed
+      const locationString = typeof data.location === "string" 
+        ? data.location 
+        : (data.location as LocationData)?.address || "";
+
       await updateEvent({
         title: data.title,
         description: data.description,
         startTime: data.startTime.toISOString(),
         endTime: data.endTime.toISOString(),
-        location: data.location,
+        location: locationString,
         eventType: data.eventType,
         assignedUserId: data.assignedUserId,
         clientIds: data.clientIds,
@@ -151,6 +181,41 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
         reminderMinutes: data.reminderMinutes,
         recurrenceRule: data.recurrenceRule,
       });
+
+      // Handle invitation changes
+      const currentInviteeIds = new Set(data.invitees.map((inv) => inv.userId));
+      const existingInviteeIds = new Set(existingInvitees.map((inv) => inv.userId));
+
+      // Find new invitees to add
+      const newInviteeIds = data.invitees
+        .filter((inv) => !existingInviteeIds.has(inv.userId))
+        .map((inv) => inv.userId);
+
+      // Find invitees to remove
+      const removedInviteeIds = existingInvitees
+        .filter((inv) => !currentInviteeIds.has(inv.userId))
+        .map((inv) => inv.userId);
+
+      // Send new invitations
+      if (newInviteeIds.length > 0) {
+        try {
+          await inviteToEvent({ eventId, userIds: newInviteeIds });
+        } catch (inviteError) {
+          console.error("Failed to send invitations:", inviteError);
+        }
+      }
+
+      // Remove invitees
+      for (const userId of removedInviteeIds) {
+        try {
+          await removeEventInvitee(eventId, userId);
+        } catch (removeError) {
+          console.error("Failed to remove invitee:", removeError);
+        }
+      }
+
+      // Refresh invitees
+      mutateInvitees();
 
       toast.success(t("eventEditForm.eventUpdatedSuccess"));
       onSuccess?.();
@@ -364,7 +429,11 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
                 <FormItem>
                   <FormLabel>{t("eventCreateForm.location")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t("eventCreateForm.locationPlaceholder")} {...field} />
+                    <LocationAutocomplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder={t("eventCreateForm.locationPlaceholder")}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -446,6 +515,33 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
                 </FormItem>
               )}
             />
+
+            <Separator className="my-4" />
+
+            <FormField
+              control={form.control}
+              name="invitees"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="mb-2">
+                    <FormLabel className="text-base">{t("eventCreateForm.invitees")}</FormLabel>
+                    <FormDescription>
+                      {t("eventCreateForm.inviteesDescription")}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <InviteeSelector
+                      value={field.value}
+                      onChange={field.onChange}
+                      showStatus
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Separator className="my-4" />
 
             <FormField
               control={form.control}

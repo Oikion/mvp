@@ -39,6 +39,7 @@ import sharedWithMeEn from "@/locales/en/sharedWithMe.json";
 import audiencesEn from "@/locales/en/audiences.json";
 import profileEn from "@/locales/en/profile.json";
 import templatesEn from "@/locales/en/templates.json";
+import landingEn from "@/locales/en/landing.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -65,6 +66,7 @@ import sharedWithMeEl from "@/locales/el/sharedWithMe.json";
 import audiencesEl from "@/locales/el/audiences.json";
 import profileEl from "@/locales/el/profile.json";
 import templatesEl from "@/locales/el/templates.json";
+import landingEl from "@/locales/el/landing.json";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -111,6 +113,7 @@ function getLocales(locale: string) {
     messages.templates = templatesEl;
     messages.notifications = notificationsEl;
     messages.Notifications = notificationsEl;
+    messages.Landing = landingEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -145,6 +148,7 @@ function getLocales(locale: string) {
     messages.templates = templatesEn;
     messages.notifications = notificationsEn;
     messages.Notifications = notificationsEn;
+    messages.Landing = landingEn;
   }
 
   if (Object.keys(messages).length === 0) {

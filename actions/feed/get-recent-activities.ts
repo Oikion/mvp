@@ -167,7 +167,6 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     }
   } catch (error) {
     // CalComEvent might not exist yet, skip silently
-    console.log("CalComEvent not available:", error);
   }
 
   // Sort all activities by timestamp (most recent first)

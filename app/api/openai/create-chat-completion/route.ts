@@ -26,9 +26,6 @@ export async function POST(req: Request) {
       },
     });
 
-    //console.log("Active GPT Model:", gptModel[0].model);
-
-    //console.log(prompt, "prompt");
     // Ask OpenAI for a chats completion given the prompt
     const response = await openai.chat.completions.create({
       messages: [
@@ -44,7 +41,6 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
-    console.log("[OPENAI_CHAT_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

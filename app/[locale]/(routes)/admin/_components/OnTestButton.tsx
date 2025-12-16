@@ -22,7 +22,6 @@ const OnTestButton = () => {
         description: response.data.message,
       });
     } catch (error) {
-      console.log(error);
       toast({
         variant: "destructive",
         title: "GPT model test failed",

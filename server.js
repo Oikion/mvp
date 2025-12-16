@@ -6,7 +6,7 @@ const path = require('path');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
-const port = 3000;
+const port = Number.parseInt(process.env.PORT || '3000', 10);
 
 // Try to load SSL certificates for HTTPS
 let httpsOptions = null;
@@ -22,11 +22,12 @@ if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
 } else {
   console.warn('⚠ SSL certificates not found. Using HTTP (CAPTCHA may not work).');
   console.warn('  To enable HTTPS:');
-  console.warn('  1. Install mkcert: brew install mkcert (macOS) or visit https://github.com/FiloSottile/mkcert');
+  console.warn('  1. Install mkcert: brew install mkcert (macOS)');
   console.warn('  2. Run: mkcert -install');
-  console.warn('  3. Run: mkcert localhost 127.0.0.1 ::1');
+  console.warn('  3. Run: mkcert localhost app.localhost 127.0.0.1 ::1');
+  console.warn('     (includes app.localhost for local app subdomain testing)');
   console.warn('  4. Move the generated files to project root:');
-  console.warn('     mv localhost.pem localhost-key.pem .');
+  console.warn('     mv localhost+3.pem localhost.pem && mv localhost+3-key.pem localhost-key.pem');
 }
 
 const app = next({ dev, hostname, port });
