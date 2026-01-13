@@ -40,6 +40,7 @@ export async function POST(
     // Add members
     await prismadb.audienceMember.createMany({
       data: memberIds.map((userId: string) => ({
+        id: crypto.randomUUID(),
         audienceId: id,
         userId,
       })),
@@ -50,9 +51,9 @@ export async function POST(
     const updated = await prismadb.audience.findUnique({
       where: { id },
       include: {
-        members: {
+        AudienceMember: {
           include: {
-            user: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -64,12 +65,20 @@ export async function POST(
           orderBy: { addedAt: "desc" },
         },
         _count: {
-          select: { members: true },
+          select: { AudienceMember: true },
         },
       },
     });
 
-    return NextResponse.json(updated);
+    if (!updated) {
+      return new NextResponse("Audience not found", { status: 404 });
+    }
+
+    return NextResponse.json({
+      ...updated,
+      memberCount: updated._count.AudienceMember,
+      members: updated.AudienceMember.map(m => ({ ...m, user: m.Users })),
+    });
   } catch (error) {
     console.error("Error adding audience members:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
@@ -123,9 +132,9 @@ export async function DELETE(
     const updated = await prismadb.audience.findUnique({
       where: { id },
       include: {
-        members: {
+        AudienceMember: {
           include: {
-            user: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -137,17 +146,31 @@ export async function DELETE(
           orderBy: { addedAt: "desc" },
         },
         _count: {
-          select: { members: true },
+          select: { AudienceMember: true },
         },
       },
     });
 
-    return NextResponse.json(updated);
+    if (!updated) {
+      return new NextResponse("Audience not found", { status: 404 });
+    }
+
+    return NextResponse.json({
+      ...updated,
+      memberCount: updated._count.AudienceMember,
+      members: updated.AudienceMember.map(m => ({ ...m, user: m.Users })),
+    });
   } catch (error) {
     console.error("Error removing audience members:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
+
+
+
+
+
+
 
 
 

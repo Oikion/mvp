@@ -32,6 +32,7 @@ export async function createNotification(
         actorId: input.actorId,
         actorName: input.actorName,
         metadata: input.metadata || {},
+        updatedAt: new Date(),
       },
     });
   } catch (error) {
@@ -54,6 +55,7 @@ export async function createBulkNotifications(
       return;
     }
 
+    const now = new Date();
     await prismadb.notification.createMany({
       data: uniqueUserIds.map((userId) => ({
         id: randomUUID(),
@@ -67,6 +69,7 @@ export async function createBulkNotifications(
         actorId: input.actorId,
         actorName: input.actorName,
         metadata: input.metadata || {},
+        updatedAt: now,
       })),
     });
   } catch (error) {

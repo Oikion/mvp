@@ -27,6 +27,8 @@ interface MonthViewProps {
   events: CalendarEvent[];
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
+  onDateOpen?: (date: Date) => void;
+  onWeekOpen?: (anchorDate: Date) => void;
   onEventUpdated?: () => void;
   onEventDeleted?: () => void;
 }
@@ -35,6 +37,8 @@ export function MonthView({
   events,
   selectedDate,
   onDateSelect,
+  onDateOpen,
+  onWeekOpen,
   onEventUpdated,
   onEventDeleted,
 }: MonthViewProps) {
@@ -116,6 +120,7 @@ export function MonthView({
               key={day}
               role="columnheader"
               className="p-2 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0"
+              onDoubleClick={() => onWeekOpen?.(selectedDate)}
             >
               {day}
             </div>
@@ -134,6 +139,7 @@ export function MonthView({
               <div
                 key={idx}
                 onClick={() => onDateSelect(day)}
+                onDoubleClick={() => onDateOpen?.(day)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
@@ -175,8 +181,12 @@ export function MonthView({
                       onClick={(e) => {
                         e.stopPropagation();
                         if (event.eventId) {
-                          router.push(`/calendar/events/${event.eventId}`);
+                          router.push(`/app/calendar/events/${event.eventId}`);
                         }
+                      }}
+                      onDoubleClick={(e) => {
+                        // prevent day drill-down from double-clicking an event card
+                        e.stopPropagation();
                       }}
                       aria-label={t("accessibility.eventCard", { title: event.title })}
                     >

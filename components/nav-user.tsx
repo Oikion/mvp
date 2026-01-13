@@ -12,6 +12,7 @@ import {
   Sun,
   Moon,
   Check,
+  Gift,
 } from "lucide-react"
 
 import {
@@ -176,7 +177,7 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div 
                 className="flex items-center gap-2 px-1 py-1.5 text-left text-sm cursor-pointer hover:bg-accent rounded-md transition-colors"
-                onClick={() => router.push("/profile")}
+                onClick={() => router.push("/app/profile")}
               >
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
@@ -197,17 +198,21 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push("/profile")}>
+              <DropdownMenuItem onClick={() => router.push("/app/profile")}>
                 <BadgeCheck />
                 {t("Navigation.account")}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/profile")}>
+              <DropdownMenuItem onClick={() => router.push("/app/profile")}>
                 <CreditCard />
                 {t("Navigation.billing")}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/notifications")}>
+              <DropdownMenuItem onClick={() => router.push("/app/notifications")}>
                 <Bell />
                 {t("Navigation.notifications")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/app/referral-portal")}>
+                <Gift />
+                {t("Navigation.referrals")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

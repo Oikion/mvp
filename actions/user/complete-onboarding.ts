@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { trackReferral } from "@/actions/referrals/track-referral";
 import type {
   SupportedLanguage,
   OnboardingNotificationSettings,
@@ -18,6 +19,8 @@ export interface CompleteOnboardingParams {
   language: SupportedLanguage;
   notificationSettings?: OnboardingNotificationSettings;
   privacyPreferences?: OnboardingPrivacyPreferences;
+  // Referral code - passed from client if user was referred
+  referralCode?: string;
 }
 
 export interface ValidateOnboardingParams {
@@ -169,9 +172,11 @@ export async function completeOnboarding(
         slug: finalUsername,
       },
       create: {
+        id: crypto.randomUUID(),
         userId: user.id,
         slug: finalUsername,
         visibility: profileVisibility,
+        updatedAt: new Date(),
       },
     });
 
@@ -204,10 +209,25 @@ export async function completeOnboarding(
       },
       update: notificationSettings,
       create: {
+        id: crypto.randomUUID(),
         userId: user.id,
         ...notificationSettings,
+        updatedAt: new Date(),
       },
     });
+
+    // Track referral if code was provided
+    if (params.referralCode) {
+      try {
+        await trackReferral({
+          referralCode: params.referralCode,
+          referredUserId: user.id,
+        });
+      } catch (referralError) {
+        // Don't fail onboarding if referral tracking fails
+        console.error("Failed to track referral:", referralError);
+      }
+    }
 
     // Revalidate paths
     revalidatePath("/");

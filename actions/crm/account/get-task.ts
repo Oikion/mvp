@@ -6,18 +6,18 @@ export const getCrMTask = async (taskId: string) => {
       id: taskId,
     },
     include: {
-      assigned_user: {
+      Users: {
         select: {
           id: true,
           name: true,
         },
       },
-      comments: {
+      crm_Accounts_Tasks_Comments: {
         select: {
           id: true,
           comment: true,
           createdAt: true,
-          assigned_user: {
+          Users: {
             select: {
               id: true,
               name: true,
@@ -28,5 +28,16 @@ export const getCrMTask = async (taskId: string) => {
       },
     },
   });
-  return data;
+  
+  if (!data) return null;
+  
+  // Map to expected interface shape
+  return {
+    ...data,
+    assigned_user: data.Users,
+    comments: data.crm_Accounts_Tasks_Comments.map(c => ({
+      ...c,
+      assigned_user: c.Users,
+    })),
+  };
 };

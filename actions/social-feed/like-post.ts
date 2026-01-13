@@ -58,6 +58,7 @@ export async function toggleLikePost(postId: string): Promise<LikeResult> {
       // Like: Create new like
       await prismadb.socialPostLike.create({
         data: {
+          id: crypto.randomUUID(),
           postId,
           userId: currentUser.id,
         },
@@ -128,7 +129,7 @@ export async function getPostLikers(postId: string, limit: number = 10) {
     take: limit,
     orderBy: { createdAt: "desc" },
     include: {
-      user: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -141,7 +142,7 @@ export async function getPostLikers(postId: string, limit: number = 10) {
   const totalCount = await prismadb.socialPostLike.count({ where: { postId } });
 
   return {
-    users: likers.map((l) => l.user),
+    users: likers.map((l) => l.Users),
     total: totalCount,
     hasMore: totalCount > limit,
   };

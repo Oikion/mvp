@@ -94,7 +94,7 @@ export function CreateOrganizationForm() {
           const userData = await userResponse.json();
           if (!userData.onboardingCompleted) {
             // Redirect to onboarding if not completed
-            router.push(`/${locale}/onboard`);
+            router.push(`/${locale}/app/onboard`);
             router.refresh();
             return;
           }
@@ -104,7 +104,7 @@ export function CreateOrganizationForm() {
       }
 
       // Redirect to dashboard after successful creation
-      router.push(`/${locale}`);
+      router.push(`/${locale}/app`);
       router.refresh();
     } catch (error: any) {
       console.error("Error creating organization:", error);

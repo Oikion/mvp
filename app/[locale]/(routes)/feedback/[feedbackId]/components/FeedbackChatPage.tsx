@@ -23,7 +23,6 @@ import {
   Terminal,
 } from "lucide-react";
 import { format } from "date-fns";
-import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,14 +37,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  useFeedbackComments,
+  useAddFeedbackComment,
+  type FeedbackComment,
+} from "@/hooks/swr/useFeedbackComments";
+import { ChatAttachment } from "@/components/attachments";
 
-interface FeedbackComment {
+interface FeedbackAttachment {
   id: string;
-  createdAt: string;
-  authorId: string;
-  authorType: string;
-  authorName: string | null;
-  content: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  url: string;
 }
 
 interface FeedbackData {
@@ -67,12 +71,15 @@ interface FeedbackData {
   status?: string;
   adminResponse?: string | null;
   respondedAt?: string | null;
+  attachments?: FeedbackAttachment[];
   comments?: FeedbackComment[];
 }
 
 interface FeedbackChatPageProps {
   feedback: FeedbackData;
   locale: string;
+  currentUserId?: string;
+  currentUserName?: string | null;
 }
 
 const feedbackTypeConfig = {
@@ -110,43 +117,64 @@ const statusConfig: Record<string, { label: string; icon: typeof Clock; color: s
   user_replied: { label: "User Replied", icon: MessageCircle, color: "text-purple-600" },
 };
 
-export function FeedbackChatPage({ feedback, locale }: FeedbackChatPageProps) {
+export function FeedbackChatPage({ 
+  feedback, 
+  locale, 
+  currentUserId, 
+  currentUserName 
+}: FeedbackChatPageProps) {
   const router = useRouter();
   const t = useTranslations("feedback");
-  const [comments, setComments] = useState<FeedbackComment[]>(feedback.comments || []);
   const [newMessage, setNewMessage] = useState("");
-  const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const prevCommentsLengthRef = useRef<number>(feedback.comments?.length || 0);
 
-  // Scroll to bottom when comments change
+  // Use SWR hook for real-time comments with polling every 10 seconds
+  const { comments, isLoading, isValidating } = useFeedbackComments(feedback.id, {
+    refreshInterval: 10000, // Poll every 10 seconds for real-time updates
+    isAdmin: false,
+  });
+
+  // Use add comment hook with optimistic updates
+  const { addComment, isAdding } = useAddFeedbackComment(feedback.id, {
+    currentUser: currentUserId ? {
+      id: currentUserId,
+      name: currentUserName || null,
+    } : undefined,
+    authorType: "user",
+    isAdmin: false,
+  });
+
+  // Scroll to bottom when new comments arrive
+  useEffect(() => {
+    if (comments.length > prevCommentsLengthRef.current && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+    prevCommentsLengthRef.current = comments.length;
+  }, [comments.length]);
+
+  // Initial scroll to bottom on mount
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [comments]);
+  }, []);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    setIsSending(true);
     setError(null);
     try {
-      const response = await axios.post(`/api/feedback/${feedback.id}/comments`, {
-        content: newMessage.trim(),
-      });
-      
-      setComments((prev) => [...prev, response.data.comment]);
+      await addComment({ content: newMessage.trim() });
       setNewMessage("");
     } catch (err: unknown) {
       console.error("Failed to send message:", err);
-      if (axios.isAxiosError(err) && err.response?.data?.error === "Maximum comments reached for this feedback") {
+      if (err instanceof Error && err.message === "Maximum comments reached for this feedback") {
         setError(t("chat.maxCommentsReached"));
       } else {
         setError(t("chat.sendError"));
       }
-    } finally {
-      setIsSending(false);
     }
   };
 
@@ -281,6 +309,9 @@ export function FeedbackChatPage({ feedback, locale }: FeedbackChatPageProps) {
               <div className="flex items-center gap-2">
                 <MessageCircle className="h-5 w-5 text-muted-foreground" />
                 <CardTitle className="text-base">{t("chat.title")}</CardTitle>
+                {isValidating && !isLoading && (
+                  <Icons.spinner className="h-3 w-3 animate-spin text-muted-foreground" />
+                )}
               </div>
               <span className="text-xs text-muted-foreground">
                 {comments.length}/100 {t("chat.commentsCount", { count: comments.length }).replace(/\d+/, "")}
@@ -290,115 +321,149 @@ export function FeedbackChatPage({ feedback, locale }: FeedbackChatPageProps) {
           
           {/* Messages Area */}
           <ScrollArea ref={scrollRef} className="flex-1 p-4">
-            <div className="space-y-4">
-              {/* Original Feedback as first message (user's message - right side, primary) */}
-              <div className="flex gap-3 flex-row-reverse">
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-1 text-right">
-                  <div className="flex items-center gap-2 justify-end">
-                    <span className="text-sm font-medium">{t("chat.you")}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatTime(feedback.createdAt)}
-                    </span>
-                  </div>
-                  <div className="rounded-lg p-3 inline-block max-w-[85%] bg-primary text-primary-foreground ml-auto">
-                    <p className="text-sm whitespace-pre-wrap">{feedback.feedback}</p>
-                  </div>
-                </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Icons.spinner className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-
-              {/* Admin Response (if any, shown before comments for legacy support - left side, muted) */}
-              {feedback.adminResponse && (
-                <div className="flex gap-3">
+            ) : (
+              <div className="space-y-4">
+                {/* Original Feedback as first message (user's message - right side, primary) */}
+                <div className="flex gap-3 flex-row-reverse">
                   <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarFallback className="bg-muted text-muted-foreground">
-                      <Shield className="h-4 w-4" />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      <User className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{t("chat.adminLabel")}</span>
-                      {feedback.respondedAt && (
-                        <span className="text-xs text-muted-foreground">
-                          {formatTime(feedback.respondedAt)}
-                        </span>
-                      )}
+                  <div className="flex-1 space-y-1 text-right">
+                    <div className="flex items-center gap-2 justify-end">
+                      <span className="text-sm font-medium">{t("chat.you")}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatTime(feedback.createdAt)}
+                      </span>
                     </div>
-                    <div className="rounded-lg p-3 inline-block max-w-[85%] bg-muted">
-                      <p className="text-sm whitespace-pre-wrap">{feedback.adminResponse}</p>
+                    <div className="rounded-lg p-3 inline-block max-w-[85%] bg-primary text-primary-foreground ml-auto">
+                      <p className="text-sm whitespace-pre-wrap">{feedback.feedback}</p>
+                      {/* Original Feedback Attachments */}
+                      {feedback.attachments && feedback.attachments.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-primary-foreground/20 space-y-2">
+                          {feedback.attachments.map((att) => (
+                            <ChatAttachment
+                              key={att.id}
+                              url={att.url}
+                              fileName={att.fileName}
+                              fileSize={att.fileSize}
+                              fileType={att.fileType}
+                              isOwn={true}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* Comment History */}
-              {comments.map((comment) => (
-                <div
-                  key={comment.id}
-                  className={`flex gap-3 ${
-                    comment.authorType === "user" ? "flex-row-reverse" : ""
-                  }`}
-                >
-                  <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarFallback
-                      className={
-                        comment.authorType === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-muted-foreground"
-                      }
-                    >
-                      {comment.authorType === "admin" ? (
+                {/* Admin Response (if any, shown before comments for legacy support - left side, muted) */}
+                {feedback.adminResponse && (
+                  <div className="flex gap-3">
+                    <Avatar className="h-8 w-8 shrink-0">
+                      <AvatarFallback className="bg-muted text-muted-foreground">
                         <Shield className="h-4 w-4" />
-                      ) : (
-                        <User className="h-4 w-4" />
-                      )}
-                    </AvatarFallback>
-                  </Avatar>
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{t("chat.adminLabel")}</span>
+                        {feedback.respondedAt && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatTime(feedback.respondedAt)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="rounded-lg p-3 inline-block max-w-[85%] bg-muted">
+                        <p className="text-sm whitespace-pre-wrap">{feedback.adminResponse}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Comment History */}
+                {comments.map((comment) => (
                   <div
-                    className={`flex-1 space-y-1 ${
-                      comment.authorType === "user" ? "text-right" : ""
+                    key={comment.id}
+                    className={`flex gap-3 ${
+                      comment.authorType === "user" ? "flex-row-reverse" : ""
                     }`}
                   >
+                    <Avatar className="h-8 w-8 shrink-0">
+                      <AvatarFallback
+                        className={
+                          comment.authorType === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }
+                      >
+                        {comment.authorType === "admin" ? (
+                          <Shield className="h-4 w-4" />
+                        ) : (
+                          <User className="h-4 w-4" />
+                        )}
+                      </AvatarFallback>
+                    </Avatar>
                     <div
-                      className={`flex items-center gap-2 ${
-                        comment.authorType === "user" ? "justify-end" : ""
+                      className={`flex-1 space-y-1 ${
+                        comment.authorType === "user" ? "text-right" : ""
                       }`}
                     >
-                      <span className="text-sm font-medium">
-                        {comment.authorType === "admin" 
-                          ? (comment.authorName || t("chat.adminLabel"))
-                          : t("chat.you")}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(comment.createdAt)}
-                      </span>
-                    </div>
-                    <div
-                      className={`rounded-lg p-3 inline-block max-w-[85%] ${
-                        comment.authorType === "user"
-                          ? "bg-primary text-primary-foreground ml-auto"
-                          : "bg-muted"
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
+                      <div
+                        className={`flex items-center gap-2 ${
+                          comment.authorType === "user" ? "justify-end" : ""
+                        }`}
+                      >
+                        <span className="text-sm font-medium">
+                          {comment.authorType === "admin" 
+                            ? (comment.authorName || t("chat.adminLabel"))
+                            : t("chat.you")}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatTime(comment.createdAt)}
+                        </span>
+                      </div>
+                      <div
+                        className={`rounded-lg p-3 inline-block max-w-[85%] ${
+                          comment.authorType === "user"
+                            ? "bg-primary text-primary-foreground ml-auto"
+                            : "bg-muted"
+                        }`}
+                      >
+                        {comment.content && (
+                          <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
+                        )}
+                        {/* Attachment Display with Image Preview */}
+                        {comment.attachmentUrl && comment.attachmentName && (
+                          <ChatAttachment
+                            url={comment.attachmentUrl}
+                            fileName={comment.attachmentName}
+                            fileSize={comment.attachmentSize || undefined}
+                            fileType={comment.attachmentType || "application/octet-stream"}
+                            isOwn={comment.authorType === "user"}
+                            className={comment.content ? "pt-2 border-t border-current/10" : ""}
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {/* Empty state when no conversation yet */}
-              {comments.length === 0 && !feedback.adminResponse && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">{t("chat.noMessages")}</p>
-                  <p className="text-xs mt-1">{t("chat.waitingForAdmin")}</p>
-                </div>
-              )}
-            </div>
+                {/* Empty state when no conversation yet */}
+                {comments.length === 0 && !feedback.adminResponse && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">{t("chat.noMessages")}</p>
+                    <p className="text-xs mt-1">{t("chat.waitingForAdmin")}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </ScrollArea>
 
           {/* Error message */}
@@ -420,15 +485,15 @@ export function FeedbackChatPage({ feedback, locale }: FeedbackChatPageProps) {
                 onKeyDown={handleKeyDown}
                 placeholder={t("chat.placeholder")}
                 className="min-h-[60px] max-h-[120px] resize-none"
-                disabled={isSending}
+                disabled={isAdding}
               />
               <Button
                 onClick={handleSendMessage}
-                disabled={isSending || !newMessage.trim()}
+                disabled={isAdding || !newMessage.trim()}
                 size="icon"
                 className="h-[60px] w-[60px] shrink-0"
               >
-                {isSending ? (
+                {isAdding ? (
                   <Icons.spinner className="h-5 w-5 animate-spin" />
                 ) : (
                   <Send className="h-5 w-5" />
@@ -444,3 +509,8 @@ export function FeedbackChatPage({ feedback, locale }: FeedbackChatPageProps) {
     </div>
   );
 }
+
+
+
+
+

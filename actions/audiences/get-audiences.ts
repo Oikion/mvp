@@ -1,7 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentUserSafe, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export interface AudienceWithMembers {
   id: string;
@@ -38,8 +38,13 @@ export interface AudienceWithMembers {
  * - Organization-level audiences in the user's org
  */
 export async function getAudiences(): Promise<AudienceWithMembers[]> {
-  const currentUser = await getCurrentUser();
-  const organizationId = await getCurrentOrgId();
+  const currentUser = await getCurrentUserSafe();
+  const organizationId = await getCurrentOrgIdSafe();
+  
+  // Return empty array if no user context (e.g., session not synced yet)
+  if (!currentUser) {
+    return [];
+  }
 
   const audiences = await prismadb.audience.findMany({
     where: {
@@ -51,7 +56,7 @@ export async function getAudiences(): Promise<AudienceWithMembers[]> {
       ],
     },
     include: {
-      createdBy: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -59,9 +64,9 @@ export async function getAudiences(): Promise<AudienceWithMembers[]> {
           avatar: true,
         },
       },
-      members: {
+      AudienceMember: {
         include: {
-          user: {
+          Users: {
             select: {
               id: true,
               name: true,
@@ -73,7 +78,7 @@ export async function getAudiences(): Promise<AudienceWithMembers[]> {
         orderBy: { addedAt: "desc" },
       },
       _count: {
-        select: { members: true },
+        select: { AudienceMember: true },
       },
     },
     orderBy: { createdAt: "desc" },
@@ -88,9 +93,9 @@ export async function getAudiences(): Promise<AudienceWithMembers[]> {
     createdAt: a.createdAt,
     updatedAt: a.updatedAt,
     createdById: a.createdById,
-    createdBy: a.createdBy,
-    memberCount: a._count.members,
-    members: a.members,
+    createdBy: a.Users,
+    memberCount: a._count.AudienceMember,
+    members: a.AudienceMember.map(m => ({ ...m, user: m.Users })),
   }));
 }
 
@@ -98,7 +103,12 @@ export async function getAudiences(): Promise<AudienceWithMembers[]> {
  * Get personal audiences only (created by user, no org)
  */
 export async function getPersonalAudiences(): Promise<AudienceWithMembers[]> {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentUserSafe();
+  
+  // Return empty array if no user context (e.g., session not synced yet)
+  if (!currentUser) {
+    return [];
+  }
 
   const audiences = await prismadb.audience.findMany({
     where: {
@@ -106,7 +116,7 @@ export async function getPersonalAudiences(): Promise<AudienceWithMembers[]> {
       organizationId: null,
     },
     include: {
-      createdBy: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -114,9 +124,9 @@ export async function getPersonalAudiences(): Promise<AudienceWithMembers[]> {
           avatar: true,
         },
       },
-      members: {
+      AudienceMember: {
         include: {
-          user: {
+          Users: {
             select: {
               id: true,
               name: true,
@@ -128,7 +138,7 @@ export async function getPersonalAudiences(): Promise<AudienceWithMembers[]> {
         orderBy: { addedAt: "desc" },
       },
       _count: {
-        select: { members: true },
+        select: { AudienceMember: true },
       },
     },
     orderBy: { createdAt: "desc" },
@@ -143,9 +153,9 @@ export async function getPersonalAudiences(): Promise<AudienceWithMembers[]> {
     createdAt: a.createdAt,
     updatedAt: a.updatedAt,
     createdById: a.createdById,
-    createdBy: a.createdBy,
-    memberCount: a._count.members,
-    members: a.members,
+    createdBy: a.Users,
+    memberCount: a._count.AudienceMember,
+    members: a.AudienceMember.map(m => ({ ...m, user: m.Users })),
   }));
 }
 
@@ -153,14 +163,19 @@ export async function getPersonalAudiences(): Promise<AudienceWithMembers[]> {
  * Get organization audiences only
  */
 export async function getOrgAudiences(): Promise<AudienceWithMembers[]> {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  
+  // Return empty array if no organization context (e.g., session not synced yet)
+  if (!organizationId) {
+    return [];
+  }
 
   const audiences = await prismadb.audience.findMany({
     where: {
       organizationId,
     },
     include: {
-      createdBy: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -168,9 +183,9 @@ export async function getOrgAudiences(): Promise<AudienceWithMembers[]> {
           avatar: true,
         },
       },
-      members: {
+      AudienceMember: {
         include: {
-          user: {
+          Users: {
             select: {
               id: true,
               name: true,
@@ -182,7 +197,7 @@ export async function getOrgAudiences(): Promise<AudienceWithMembers[]> {
         orderBy: { addedAt: "desc" },
       },
       _count: {
-        select: { members: true },
+        select: { AudienceMember: true },
       },
     },
     orderBy: { createdAt: "desc" },
@@ -197,11 +212,17 @@ export async function getOrgAudiences(): Promise<AudienceWithMembers[]> {
     createdAt: a.createdAt,
     updatedAt: a.updatedAt,
     createdById: a.createdById,
-    createdBy: a.createdBy,
-    memberCount: a._count.members,
-    members: a.members,
+    createdBy: a.Users,
+    memberCount: a._count.AudienceMember,
+    members: a.AudienceMember.map(m => ({ ...m, user: m.Users })),
   }));
 }
+
+
+
+
+
+
 
 
 

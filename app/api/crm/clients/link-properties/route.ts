@@ -44,6 +44,7 @@ export async function POST(req: Request) {
             },
           },
           create: {
+            id: crypto.randomUUID(),
             clientId,
             propertyId,
           },
@@ -139,6 +140,7 @@ export async function PUT(req: Request) {
             },
           },
           create: {
+            id: crypto.randomUUID(),
             clientId,
             propertyId,
           },

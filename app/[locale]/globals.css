@@ -103,8 +103,8 @@
     --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
     
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 72% 65%;
+    --destructive-foreground: 0 0% 10%;
     
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
@@ -139,8 +139,8 @@
     --button-secondary-foreground: 0 0% 98%;
     --button-success: 142 70% 50%;
     --button-success-foreground: 144 70% 10%;
-    --button-destructive: 0 62.8% 30.6%;
-    --button-destructive-foreground: 0 85.7% 97.3%;
+    --button-destructive: 0 72% 65%;
+    --button-destructive-foreground: 0 0% 10%;
 
     --text-primary: 0 0% 98%;
     --text-secondary: 240 5% 64.9%;
@@ -219,8 +219,8 @@
     --accent: 265 20% 20%;
     --accent-foreground: 260 20% 98%;
     
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 260 20% 98%;
+    --destructive: 0 72% 65%;
+    --destructive-foreground: 0 0% 10%;
     
     --border: 265 20% 20%;
     --input: 265 20% 20%;

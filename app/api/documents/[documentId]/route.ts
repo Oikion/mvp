@@ -6,6 +6,7 @@ import { Prisma } from "@prisma/client";
 import { mergeDocumentMentions } from "@/actions/documents/parse-mentions";
 import { deleteFromBlob } from "@/lib/vercel-blob";
 import { invalidateCache } from "@/lib/cache-invalidate";
+import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
 
 export async function GET(
   req: Request,
@@ -34,6 +35,10 @@ export async function PUT(
   props: { params: Promise<{ documentId: string }> }
 ) {
   try {
+    // Permission check: Viewers cannot edit documents
+    const permissionError = await requireCanModify();
+    if (permissionError) return permissionError;
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const params = await props.params;
@@ -58,6 +63,13 @@ export async function PUT(
     if (!existingDocument) {
       return new NextResponse("Document not found", { status: 404 });
     }
+
+    // Permission check: Members cannot change assigned user
+    const assignedToError = await checkAssignedToChange(
+      { assigned_to: assigned_user },
+      existingDocument.assigned_user
+    );
+    if (assignedToError) return assignedToError;
 
     // Merge mentions if description changed
     const mergedMentions = await mergeDocumentMentions(
@@ -84,24 +96,24 @@ export async function PUT(
         linkedPropertiesIds: mergedMentions.properties.map((p) => p.id),
         linkedCalComEventsIds: mergedMentions.events.map((e) => e.id),
         linkedTasksIds: mergedMentions.tasks.map((t) => t.id),
-        accounts: {
+        Clients: {
           set: mergedMentions.clients.map((c) => ({ id: c.id })),
         },
-        linkedProperties: {
+        Properties: {
           set: mergedMentions.properties.map((p) => ({ id: p.id })),
         },
-        linkedCalComEvents: {
+        CalComEvent: {
           set: mergedMentions.events.map((e) => ({ id: e.id })),
         },
-        linkedTasks: {
+        crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: {
           set: mergedMentions.tasks.map((t) => ({ id: t.id })),
         },
       },
       include: {
-        accounts: true,
-        linkedProperties: true,
-        linkedCalComEvents: true,
-        linkedTasks: true,
+        Clients: true,
+        Properties: true,
+        CalComEvent: true,
+        crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: true,
       },
     });
 
@@ -119,6 +131,10 @@ export async function DELETE(
   props: { params: Promise<{ documentId: string }> }
 ) {
   try {
+    // Permission check: Viewers cannot delete documents
+    const permissionError = await requireCanModify();
+    if (permissionError) return permissionError;
+
     await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const params = await props.params;

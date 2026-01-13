@@ -41,15 +41,16 @@
   "memberManager": {
     "title": "Manage Members",
     "description": "Add or remove members from",
-    "searchPlaceholder": "Search connections...",
+    "searchPlaceholder": "Search clients...",
     "currentMembers": "Current Members",
     "noMembers": "No members yet",
-    "addFromConnections": "Add from Connections",
-    "noConnections": "You need connections to add members",
-    "noMatchingConnections": "No connections match your search",
-    "allMembersAdded": "All connections are already members",
+    "addFromConnections": "Add from Clients",
+    "noConnections": "No clients available to add",
+    "noMatchingConnections": "No clients match your search",
+    "allMembersAdded": "All clients are already members",
     "add": "Add",
-    "done": "Done"
+    "done": "Done",
+    "addClient": "Add Client"
   },
   "actions": {
     "manageMembers": "Manage Members",

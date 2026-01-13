@@ -31,13 +31,13 @@ export async function GET(req: Request) {
     const connections = await prismadb.agentConnection.findMany({
       where: whereClause,
       include: {
-        follower: {
+        Users_AgentConnection_followerIdToUsers: {
           select: {
             id: true,
             name: true,
             email: true,
             avatar: true,
-            agentProfile: {
+            AgentProfile: {
               select: {
                 slug: true,
                 bio: true,
@@ -47,13 +47,13 @@ export async function GET(req: Request) {
             },
           },
         },
-        following: {
+        Users_AgentConnection_followingIdToUsers: {
           select: {
             id: true,
             name: true,
             email: true,
             avatar: true,
-            agentProfile: {
+            AgentProfile: {
               select: {
                 slug: true,
                 bio: true,
@@ -74,7 +74,9 @@ export async function GET(req: Request) {
       createdAt: conn.createdAt,
       isIncoming: conn.followingId === currentUser.id,
       user:
-        conn.followerId === currentUser.id ? conn.following : conn.follower,
+        conn.followerId === currentUser.id 
+          ? conn.Users_AgentConnection_followingIdToUsers 
+          : conn.Users_AgentConnection_followerIdToUsers,
     }));
 
     return NextResponse.json(transformed);
@@ -131,9 +133,11 @@ export async function POST(req: Request) {
 
     const connection = await prismadb.agentConnection.create({
       data: {
+        id: crypto.randomUUID(),
         followerId: currentUser.id,
         followingId: targetUserId,
         status: "PENDING",
+        updatedAt: new Date(),
       },
     });
 

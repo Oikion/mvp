@@ -35,7 +35,7 @@ export function SharedDocumentViewer({
     // Redirect with password in query params
     const params = new URLSearchParams(searchParams.toString());
     params.set("password", password);
-    router.push(`/documents/share/${linkId}?${params.toString()}`);
+    router.push(`/app/documents/share/${linkId}?${params.toString()}`);
   };
 
   if (requiresPassword || !document) {

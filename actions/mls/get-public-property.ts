@@ -14,12 +14,12 @@ export async function getPublicProperty(propertyId: string) {
       property_status: "ACTIVE",
     },
     include: {
-      assigned_to_user: {
+      Users_Properties_assigned_toToUsers: {
         select: {
           id: true,
           name: true,
           avatar: true,
-          agentProfile: {
+          AgentProfile: {
             select: {
               slug: true,
               publicPhone: true,
@@ -29,7 +29,7 @@ export async function getPublicProperty(propertyId: string) {
           },
         },
       },
-      linkedDocuments: {
+      Documents: {
         where: {
           document_file_mimeType: {
             startsWith: "image/",
@@ -47,8 +47,18 @@ export async function getPublicProperty(propertyId: string) {
 
   if (!property) return null;
   
+  // Map to expected field names for backward compatibility
+  const mappedProperty = {
+    ...property,
+    assigned_to_user: property.Users_Properties_assigned_toToUsers ? {
+      ...property.Users_Properties_assigned_toToUsers,
+      agentProfile: property.Users_Properties_assigned_toToUsers.AgentProfile,
+    } : null,
+    linkedDocuments: property.Documents,
+  };
+  
   // Serialize to plain objects - converts Decimal to number, Date to string
-  return JSON.parse(JSON.stringify(property));
+  return JSON.parse(JSON.stringify(mappedProperty));
 }
 
 /**
@@ -99,16 +109,16 @@ export async function getPublicProperties(options?: {
     };
   }
 
-  const [properties, total] = await Promise.all([
+  const [propertiesRaw, total] = await Promise.all([
     prismadb.properties.findMany({
       where,
       include: {
-        assigned_to_user: {
+        Users_Properties_assigned_toToUsers: {
           select: {
             id: true,
             name: true,
             avatar: true,
-            agentProfile: {
+            AgentProfile: {
               select: {
                 slug: true,
                 visibility: true,
@@ -116,7 +126,7 @@ export async function getPublicProperties(options?: {
             },
           },
         },
-        linkedDocuments: {
+        Documents: {
           where: {
             document_file_mimeType: {
               startsWith: "image/",
@@ -134,6 +144,16 @@ export async function getPublicProperties(options?: {
     }),
     prismadb.properties.count({ where }),
   ]);
+
+  // Map to expected field names for backward compatibility
+  const properties = propertiesRaw.map((p) => ({
+    ...p,
+    assigned_to_user: p.Users_Properties_assigned_toToUsers ? {
+      ...p.Users_Properties_assigned_toToUsers,
+      agentProfile: p.Users_Properties_assigned_toToUsers.AgentProfile,
+    } : null,
+    linkedDocuments: p.Documents,
+  }));
 
   // Serialize to plain objects - converts Decimal to number, Date to string
   return JSON.parse(JSON.stringify({

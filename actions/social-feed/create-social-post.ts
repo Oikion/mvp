@@ -133,6 +133,7 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
         linkedEntityTitle,
         linkedEntitySubtitle,
         linkedEntityMetadata,
+        updatedAt: new Date(),
       },
     });
 

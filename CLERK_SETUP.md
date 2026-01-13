@@ -14,8 +14,8 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 # Clerk Webhook Secret (for webhook verification)
 CLERK_WEBHOOK_SECRET=whsec_...
 
-# Application URLs
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# Application URLs (include /app basePath)
+NEXT_PUBLIC_APP_URL=http://localhost:3000/app
 NEXT_PUBLIC_APP_NAME=Your App Name
 ```
 
@@ -89,19 +89,22 @@ NEXT_PUBLIC_APP_NAME=Your App Name
 ### ClerkProvider Configuration
 - **File**: `lib/clerk-theme-provider.tsx`
 - **Settings**:
-  - `signInUrl`: `/{locale}/sign-in`
-  - `signUpUrl`: `/{locale}/register`
-  - `afterSignInUrl`: `/{locale}`
-  - `afterSignUpUrl`: `/{locale}/create-organization`
+  - `signInFallbackRedirectUrl`: `/{locale}/app` (dashboard)
+  - `signUpFallbackRedirectUrl`: `/{locale}/app/onboard` (onboarding)
+  - `afterSignOutUrl`: `/{locale}` (landing page)
 - ✅ Configured
 
 ## Authentication Flow
 
+We use Clerk's Account Portal (`accounts.oikion.com`) for authentication:
+- Sign-in: `https://accounts.oikion.com/sign-in`
+- Sign-up: `https://accounts.oikion.com/sign-up`
+
 ### Sign Up Flow
-1. User signs up via `RegisterComponent` or social auth
-2. After successful sign-up → Redirected to `/{locale}/create-organization`
-3. User creates organization via `CreateOrganizationForm`
-4. After organization creation → Redirected to `/{locale}` (dashboard)
+1. User signs up via Clerk's Account Portal
+2. After successful sign-up → Redirected to `/{locale}/app/onboard`
+3. User completes onboarding (creates organization, sets preferences)
+4. After onboarding → Redirected to `/{locale}/app` (dashboard)
 
 ### Sign In Flow
 1. User signs in via `LoginComponent` or social auth

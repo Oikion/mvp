@@ -43,11 +43,20 @@
       "unmapped": "Χωρίς αντιστοίχιση",
       "required": "Υποχρεωτικό",
       "optional": "Προαιρετικό",
-      "autoMapped": "Αυτόματη αντιστοίχιση",
+      "autoMapped": "Αντιστοιχισμένα",
       "manuallyMapped": "Χειροκίνητη αντιστοίχιση",
       "noMapping": "Χωρίς αντιστοίχιση",
       "selectField": "Επιλέξτε πεδίο",
-      "sampleData": "Δείγμα δεδομένων από το αρχείο σας"
+      "sampleData": "Δείγμα δεδομένων από το αρχείο σας",
+      "sourceColumns": "Οι Στήλες Σας",
+      "targetFields": "Πεδία Προορισμού",
+      "dragToMap": "Σύρετε στήλες για αντιστοίχιση με πεδία",
+      "clickToUnmap": "Αφήστε τις στήλες εδώ",
+      "highConfidence": "Υψηλή",
+      "mediumConfidence": "Μέτρια",
+      "lowConfidence": "Χαμηλή",
+      "autoMatchedCount": "{count} αντιστοιχισμένα",
+      "unmappedCount": "{count} χωρίς αντιστοίχιση"
     },
     "validation": {
       "validRows": "Έγκυρες γραμμές",
@@ -114,6 +123,7 @@
         "other": "Άλλα"
       },
       "fields": {
+        "id": "Κωδικός Πελάτη",
         "client_name": "Όνομα Πελάτη",
         "primary_email": "Κύριο Email",
         "primary_phone": "Κύριο Τηλέφωνο",
@@ -223,6 +233,7 @@
         "other": "Άλλα"
       },
       "fields": {
+        "id": "Κωδικός Ακινήτου",
         "property_name": "Όνομα Ακινήτου",
         "property_type": "Τύπος Ακινήτου",
         "property_status": "Κατάσταση",
@@ -357,5 +368,11 @@
     }
   }
 }
+
+
+
+
+
+
 
 

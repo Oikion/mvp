@@ -22,7 +22,7 @@ export async function GET(
     // - PUBLIC profiles are visible to everyone
     // - SECURE profiles are only visible to authenticated users
     // - PERSONAL profiles are never visible via this endpoint
-    const profile = await prismadb.agentProfile.findFirst({
+    const profileRaw = await prismadb.agentProfile.findFirst({
       where: {
         slug,
         visibility: isAuthenticated 
@@ -30,12 +30,12 @@ export async function GET(
           : "PUBLIC",
       },
       include: {
-        user: {
+        Users: {
           select: {
             id: true,
             name: true,
             avatar: true,
-            properties: {
+            Properties_Properties_assigned_toToUsers: {
               where: {
                 portal_visibility: "PUBLIC",
                 property_status: "ACTIVE",
@@ -52,7 +52,7 @@ export async function GET(
                 square_feet: true,
                 size_net_sqm: true,
                 transaction_type: true,
-                linkedDocuments: {
+                Documents: {
                   where: {
                     document_file_mimeType: {
                       startsWith: "image/",
@@ -68,16 +68,16 @@ export async function GET(
             },
             _count: {
               select: {
-                properties: {
+                Properties_Properties_assigned_toToUsers: {
                   where: {
                     portal_visibility: "PUBLIC",
                     property_status: "ACTIVE",
                   },
                 },
-                followers: {
+                AgentConnection_AgentConnection_followerIdToUsers: {
                   where: { status: "ACCEPTED" },
                 },
-                following: {
+                AgentConnection_AgentConnection_followingIdToUsers: {
                   where: { status: "ACCEPTED" },
                 },
               },
@@ -87,9 +87,26 @@ export async function GET(
       },
     });
 
-    if (!profile) {
+    if (!profileRaw) {
       return new NextResponse("Profile not found", { status: 404 });
     }
+
+    // Map to expected field names for backward compatibility
+    const profile = {
+      ...profileRaw,
+      user: profileRaw.Users ? {
+        ...profileRaw.Users,
+        properties: profileRaw.Users.Properties_Properties_assigned_toToUsers.map((p) => ({
+          ...p,
+          linkedDocuments: p.Documents,
+        })),
+        _count: {
+          properties: profileRaw.Users._count.Properties_Properties_assigned_toToUsers,
+          followers: profileRaw.Users._count.AgentConnection_AgentConnection_followerIdToUsers,
+          following: profileRaw.Users._count.AgentConnection_AgentConnection_followingIdToUsers,
+        },
+      } : null,
+    };
 
     return NextResponse.json(profile);
   } catch (error) {

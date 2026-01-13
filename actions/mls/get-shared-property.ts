@@ -1,14 +1,19 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUserSafe } from "@/lib/get-current-user";
 
 /**
  * Get a property that has been shared with the current user
  * This allows cross-organization access for sharees
  */
 export async function getSharedProperty(propertyId: string) {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentUserSafe();
+  
+  // Return null if no user context (e.g., session not synced yet)
+  if (!currentUser) {
+    return null;
+  }
 
   // Check if the property is shared with the current user
   const share = await prismadb.sharedEntity.findFirst({
@@ -21,7 +26,7 @@ export async function getSharedProperty(propertyId: string) {
       permissions: true,
       message: true,
       createdAt: true,
-      sharedBy: {
+      Users_SharedEntity_sharedByIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -40,13 +45,13 @@ export async function getSharedProperty(propertyId: string) {
   const property = await prismadb.properties.findUnique({
     where: { id: propertyId },
     include: {
-      assigned_to_user: {
+      Users_Properties_assigned_toToUsers: {
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
-          agentProfile: {
+          AgentProfile: {
             select: {
               slug: true,
               publicPhone: true,
@@ -55,8 +60,8 @@ export async function getSharedProperty(propertyId: string) {
           },
         },
       },
-      contacts: true,
-      linkedDocuments: {
+      Property_Contacts: true,
+      Documents: {
         where: {
           document_file_mimeType: {
             startsWith: "image/",
@@ -77,13 +82,20 @@ export async function getSharedProperty(propertyId: string) {
   }
 
   // Serialize to plain objects - converts Decimal to number, Date to string
+  // Map to expected field names for backward compatibility
   return JSON.parse(JSON.stringify({
     ...property,
+    assigned_to_user: property.Users_Properties_assigned_toToUsers ? {
+      ...property.Users_Properties_assigned_toToUsers,
+      agentProfile: property.Users_Properties_assigned_toToUsers.AgentProfile,
+    } : null,
+    contacts: property.Property_Contacts,
+    linkedDocuments: property.Documents,
     _shareInfo: {
       permissions: share.permissions,
       message: share.message,
       sharedAt: share.createdAt,
-      sharedBy: share.sharedBy,
+      sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
     },
   }));
 }
@@ -92,7 +104,12 @@ export async function getSharedProperty(propertyId: string) {
  * Check if the current user has share access to a property
  */
 export async function hasPropertyShareAccess(propertyId: string): Promise<boolean> {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentUserSafe();
+  
+  // Return false if no user context
+  if (!currentUser) {
+    return false;
+  }
 
   const share = await prismadb.sharedEntity.findFirst({
     where: {
@@ -105,6 +122,12 @@ export async function hasPropertyShareAccess(propertyId: string): Promise<boolea
 
   return !!share;
 }
+
+
+
+
+
+
 
 
 

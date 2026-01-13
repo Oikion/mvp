@@ -56,6 +56,7 @@ export async function syncOrgAudience(
     if (membersToAdd.length > 0) {
       await prismadb.audienceMember.createMany({
         data: membersToAdd.map((userId: string) => ({
+          id: randomUUID(),
           audienceId,
           userId,
         })),
@@ -93,6 +94,7 @@ export async function createOrgAutoSyncAudience(
         createdById: currentUser.id,
         organizationId,
         isAutoSync: true,
+        updatedAt: new Date(),
       },
     });
 
@@ -102,6 +104,7 @@ export async function createOrgAutoSyncAudience(
     if (orgMembers.length > 0) {
       await prismadb.audienceMember.createMany({
         data: orgMembers.map((user: any) => ({
+          id: randomUUID(),
           audienceId: audience.id,
           userId: user.id,
         })),

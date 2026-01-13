@@ -43,20 +43,8 @@ export async function POST(req: Request) {
         id: contactId,
         createdBy: userId,
         updatedBy: userId,
-        ...(assigned_client !== null && assigned_client !== undefined
-          ? {
-              assigned_client: {
-                connect: {
-                  id: assigned_client,
-                },
-              },
-            }
-          : {}),
-        assigned_to_user: {
-          connect: {
-            id: assigned_to,
-          },
-        },
+        clientsIDs: assigned_client || null,
+        assigned_to: assigned_to,
         birthday: birthday_day + "/" + birthday_month + "/" + birthday_year,
         description,
         email,
@@ -143,18 +131,8 @@ export async function PUT(req: Request) {
       where: { id },
       data: {
         updatedBy: userId,
-        ...(assigned_client !== null && assigned_client !== undefined
-          ? {
-              assigned_client: {
-                connect: {
-                  id: assigned_client,
-                },
-              },
-            }
-          : {}),
-        assigned_to_user: {
-          connect: { id: assigned_to },
-        },
+        clientsIDs: assigned_client || undefined,
+        assigned_to: assigned_to,
         birthday: birthday_day + "/" + birthday_month + "/" + birthday_year,
         description,
         email,

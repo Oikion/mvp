@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status") as DealStatus | null;
 
-    const deals = await prismadb.deal.findMany({
+    const dealsRaw = await prismadb.deal.findMany({
       where: {
         OR: [
           { propertyAgentId: currentUser.id },
@@ -20,14 +20,14 @@ export async function GET(req: Request) {
         ...(status && { status }),
       },
       include: {
-        property: {
+        Properties: {
           select: {
             id: true,
             property_name: true,
             property_type: true,
             price: true,
             address_city: true,
-            linkedDocuments: {
+            Documents: {
               where: {
                 document_file_mimeType: { startsWith: "image/" },
               },
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
             },
           },
         },
-        client: {
+        Clients: {
           select: {
             id: true,
             client_name: true,
@@ -44,14 +44,14 @@ export async function GET(req: Request) {
             intent: true,
           },
         },
-        propertyAgent: {
+        Users_Deal_propertyAgentIdToUsers: {
           select: {
             id: true,
             name: true,
             avatar: true,
           },
         },
-        clientAgent: {
+        Users_Deal_clientAgentIdToUsers: {
           select: {
             id: true,
             name: true,
@@ -61,6 +61,18 @@ export async function GET(req: Request) {
       },
       orderBy: { createdAt: "desc" },
     });
+
+    // Map to expected field names
+    const deals = dealsRaw.map((deal) => ({
+      ...deal,
+      property: deal.Properties ? {
+        ...deal.Properties,
+        linkedDocuments: deal.Properties.Documents,
+      } : null,
+      client: deal.Clients,
+      propertyAgent: deal.Users_Deal_propertyAgentIdToUsers,
+      clientAgent: deal.Users_Deal_clientAgentIdToUsers,
+    }));
 
     const enrichedDeals = deals.map((deal) => ({
       ...deal,
@@ -148,6 +160,7 @@ export async function POST(req: Request) {
         title: title || `Deal: ${property.property_name}`,
         notes,
         status: "PROPOSED",
+        updatedAt: new Date(),
       },
     });
 

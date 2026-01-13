@@ -115,6 +115,7 @@ export async function shareEntity(input: ShareEntityInput) {
 
   const shared = await prismadb.sharedEntity.create({
     data: {
+      id: crypto.randomUUID(),
       entityType: input.entityType,
       entityId: input.entityId,
       sharedById: currentUser.id,
@@ -183,7 +184,7 @@ export async function getSharedWithMe(entityType?: SharedEntityType) {
       ...(entityType ? { entityType } : {}),
     },
     include: {
-      sharedBy: {
+      Users_SharedEntity_sharedByIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -210,7 +211,7 @@ export async function getSharedWithMe(entityType?: SharedEntityType) {
               price: true,
               address_city: true,
               address_state: true,
-              linkedDocuments: {
+              Documents: {
                 where: {
                   document_file_mimeType: {
                     startsWith: "image/",
@@ -221,6 +222,10 @@ export async function getSharedWithMe(entityType?: SharedEntityType) {
               },
             },
           });
+          // Map to expected field name
+          if (entity) {
+            entity = { ...entity, linkedDocuments: entity.Documents };
+          }
           break;
         case "CLIENT":
           entity = await prismadb.clients.findUnique({
@@ -251,6 +256,7 @@ export async function getSharedWithMe(entityType?: SharedEntityType) {
 
       return {
         ...share,
+        sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
         entity,
       };
     })
@@ -271,7 +277,7 @@ export async function getMyShares(entityType?: SharedEntityType) {
       ...(entityType ? { entityType } : {}),
     },
     include: {
-      sharedWith: {
+      Users_SharedEntity_sharedWithIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -283,7 +289,11 @@ export async function getMyShares(entityType?: SharedEntityType) {
     orderBy: { createdAt: "desc" },
   });
 
-  return shares;
+  // Map to expected field name
+  return shares.map((share) => ({
+    ...share,
+    sharedWith: share.Users_SharedEntity_sharedWithIdToUsers,
+  }));
 }
 
 /**
@@ -299,7 +309,7 @@ export async function getEntityShares(entityType: SharedEntityType, entityId: st
       sharedById: currentUser.id,
     },
     include: {
-      sharedWith: {
+      Users_SharedEntity_sharedWithIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -310,7 +320,11 @@ export async function getEntityShares(entityType: SharedEntityType, entityId: st
     },
   });
 
-  return shares;
+  // Map to expected field name
+  return shares.map((share) => ({
+    ...share,
+    sharedWith: share.Users_SharedEntity_sharedWithIdToUsers,
+  }));
 }
 
 /**
@@ -345,7 +359,7 @@ export async function getConnectionsForSharing() {
       status: "ACCEPTED",
     },
     include: {
-      follower: {
+      Users_AgentConnection_followerIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -353,7 +367,7 @@ export async function getConnectionsForSharing() {
           avatar: true,
         },
       },
-      following: {
+      Users_AgentConnection_followingIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -365,7 +379,9 @@ export async function getConnectionsForSharing() {
   });
 
   return connections.map((conn) =>
-    conn.followerId === currentUser.id ? conn.following : conn.follower
+    conn.followerId === currentUser.id
+      ? conn.Users_AgentConnection_followingIdToUsers
+      : conn.Users_AgentConnection_followerIdToUsers
   );
 }
 

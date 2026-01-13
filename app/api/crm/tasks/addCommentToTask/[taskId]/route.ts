@@ -27,7 +27,7 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
     const task = await prismadb.crm_Accounts_Tasks.findUnique({
       where: { id: taskId },
       include: {
-        crm_accounts: {
+        Clients: {
           select: { id: true, client_name: true },
         },
       },
@@ -39,6 +39,7 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
 
     const newComment = await prismadb.crm_Accounts_Tasks_Comments.create({
       data: {
+        id: crypto.randomUUID(),
         comment: comment,
         crm_account_task: taskId,
         user: user.id,
@@ -51,8 +52,8 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
       await notifyTaskCommented({
         taskId,
         taskTitle: task.title,
-        accountId: task.crm_accounts?.id,
-        accountName: task.crm_accounts?.client_name,
+        accountId: task.Clients?.id,
+        accountName: task.Clients?.client_name,
         actorId: user.id,
         actorName: user.name || user.email || "Someone",
         recipientId: task.user,

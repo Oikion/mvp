@@ -26,7 +26,9 @@ export function PropertySelector({
       placeholder={t("selectors.selectProperties")}
       searchPlaceholder={t("selectors.searchProperties")}
       emptyMessage={t("selectors.noPropertiesFound")}
-      disabled={disabled || isLoading}
+      loadingMessage={t("selectors.loading")}
+      disabled={disabled}
+      isLoading={isLoading}
     />
   );
 }

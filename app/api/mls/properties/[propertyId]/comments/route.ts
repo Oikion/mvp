@@ -57,7 +57,7 @@ export async function GET(
     const comments = await prismadb.propertyComment.findMany({
       where: { propertyId },
       include: {
-        user: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -69,7 +69,9 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ comments });
+    return NextResponse.json({ 
+      comments: comments.map(c => ({ ...c, user: c.Users }))
+    });
   } catch (error) {
     console.error("[PROPERTY_COMMENTS_GET]", error);
     return NextResponse.json(
@@ -162,12 +164,14 @@ export async function POST(
     // Create comment
     const comment = await prismadb.propertyComment.create({
       data: {
+        id: crypto.randomUUID(),
         propertyId,
         userId: user.id,
         content: content.trim(),
+        updatedAt: new Date(),
       },
       include: {
-        user: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -178,7 +182,7 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({ comment }, { status: 201 });
+    return NextResponse.json({ comment: { ...comment, user: comment.Users } }, { status: 201 });
   } catch (error) {
     console.error("[PROPERTY_COMMENTS_POST]", error);
     return NextResponse.json(
@@ -238,6 +242,12 @@ export async function DELETE(
     );
   }
 }
+
+
+
+
+
+
 
 
 

@@ -37,6 +37,15 @@ export {
 } from "./useClientComments";
 export type { ClientComment } from "./useClientComments";
 
+// Feedback Comments (for real-time chat between users and admins)
+export {
+  useFeedbackComments,
+  useAddFeedbackComment,
+  getFeedbackCommentsKey,
+  useInvalidateFeedbackComments,
+} from "./useFeedbackComments";
+export type { FeedbackComment } from "./useFeedbackComments";
+
 // Calendar Events
 export { useCalendarEvents, getCalendarEventsKey } from "./useCalendarEvents";
 
@@ -63,8 +72,12 @@ export { useDocuments } from "./useDocuments";
 export type { DocumentOption } from "./useDocuments";
 
 // Global Search
-export { useGlobalSearch } from "./useGlobalSearch";
-export type { SearchResult } from "./useGlobalSearch";
+export { 
+  useGlobalSearch, 
+  useGlobalSearchInfinite, 
+  useFilteredSearch 
+} from "./useGlobalSearch";
+export type { SearchResult, SearchEntityType } from "./useGlobalSearch";
 
 // Task
 export { useTask, getTaskKey } from "./useTask";

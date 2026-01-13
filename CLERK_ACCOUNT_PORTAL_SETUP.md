@@ -22,8 +22,8 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 # Clerk Webhook Secret (for webhook verification)
 CLERK_WEBHOOK_SECRET=whsec_...
 
-# Application URLs
-NEXT_PUBLIC_APP_URL=https://localhost:3000  # Use HTTPS for local dev
+# Application URLs (include /app basePath for production)
+NEXT_PUBLIC_APP_URL=https://localhost:3000/app  # Local dev with basePath
 NEXT_PUBLIC_APP_NAME=Your App Name
 ```
 
@@ -48,8 +48,8 @@ NEXT_PUBLIC_APP_NAME=Your App Name
 
 In **Clerk Dashboard** → **Settings** → **Paths**:
 
-- **Sign-in URL**: `/sign-in` (or `/{locale}/sign-in` if using locales)
-- **Sign-up URL**: `/register` (or `/{locale}/register` if using locales)
+- **Sign-in URL**: Uses Account Portal (`https://accounts.oikion.com/sign-in`)
+- **Sign-up URL**: Uses Account Portal (`https://accounts.oikion.com/sign-up`)
 - **After sign-in URL**: `/` (or `/{locale}` if using locales)
 - **After sign-up URL**: `/create-organization` (or `/{locale}/create-organization` if using locales)
 
@@ -136,7 +136,7 @@ Follow similar steps for other OAuth providers. Clerk will provide the callback 
 ### Production
 
 - Configure production domain in Clerk Dashboard
-- Update `NEXT_PUBLIC_APP_URL` to production URL
+- Update `NEXT_PUBLIC_APP_URL` to production URL (e.g., `https://oikion.com/app`)
 - Ensure HTTPS is enabled
 - All features work automatically
 

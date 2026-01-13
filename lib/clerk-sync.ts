@@ -463,15 +463,6 @@ async function cleanupOrganizationData(organizationIds: string[]) {
         },
       },
     });
-
-    // Delete OpenAI keys associated with these organizations
-    await prismadb.openAi_keys.deleteMany({
-      where: {
-        organization_id: {
-          in: organizationIds,
-        },
-      },
-    });
   } catch (error) {
     // Don't throw - we want to continue even if cleanup fails partially
   }

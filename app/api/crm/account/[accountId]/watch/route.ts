@@ -14,18 +14,23 @@ export async function POST(req: Request, props: { params: Promise<{ accountId: s
 
     const accountId = params.accountId;
 
-    await prismadb.clients.update({
-      where: {
-        id: accountId,
-      },
-      data: {
-        watching_users: {
-          connect: {
-            id: user.id,
-          },
-        },
-      },
+    // Get current watchers and add user if not already watching
+    const client = await prismadb.clients.findUnique({
+      where: { id: accountId },
+      select: { watchers: true },
     });
+    
+    const currentWatchers = client?.watchers || [];
+    if (!currentWatchers.includes(user.id)) {
+      await prismadb.clients.update({
+        where: {
+          id: accountId,
+        },
+        data: {
+          watchers: [...currentWatchers, user.id],
+        },
+      });
+    }
     return NextResponse.json({ message: "Client watched" }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Failed to watch client" }, { status: 500 });

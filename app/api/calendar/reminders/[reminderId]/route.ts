@@ -19,7 +19,7 @@ export async function PUT(
     const reminder = await prismadb.calendarReminder.findUnique({
       where: { id: reminderId },
       include: {
-        event: true,
+        CalComEvent: true,
       },
     });
 
@@ -86,7 +86,7 @@ export async function DELETE(
     const reminder = await prismadb.calendarReminder.findUnique({
       where: { id: reminderId },
       include: {
-        event: true,
+        CalComEvent: true,
       },
     });
 
@@ -119,6 +119,12 @@ export async function DELETE(
     );
   }
 }
+
+
+
+
+
+
 
 
 

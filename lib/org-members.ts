@@ -14,11 +14,38 @@ interface OrgMembersResult<TUsers = any> {
   users: TUsers[];
 }
 
-async function fetchOrgMemberships(targetOrgId?: string) {
-  const organizationId = targetOrgId ?? (await getCurrentOrgId());
+interface FetchOrgMembershipsResult {
+  organizationId: string;
+  memberships: ClerkMembership[];
+  clerkUserIds: string[];
+}
+
+async function fetchOrgMemberships(
+  targetOrgId?: string, 
+  options?: { throwOnMissingOrg?: boolean }
+): Promise<FetchOrgMembershipsResult> {
+  let organizationId: string | null = null;
+  
+  if (targetOrgId) {
+    organizationId = targetOrgId;
+  } else {
+    try {
+      organizationId = await getCurrentOrgId();
+    } catch {
+      organizationId = null;
+    }
+  }
 
   if (!organizationId) {
-    throw new Error("Organization context is required for org membership lookup");
+    if (options?.throwOnMissingOrg) {
+      throw new Error("Organization context is required for org membership lookup");
+    }
+    // Return empty result when org is not available (e.g., session not synced yet)
+    return {
+      organizationId: "",
+      memberships: [],
+      clerkUserIds: [],
+    };
   }
 
   const secretKey = process.env.CLERK_SECRET_KEY;
@@ -52,13 +79,18 @@ export async function getOrgMembersFromDb(
   params?: {
     organizationId?: string;
     select?: PrismaSelect;
+    throwOnMissingOrg?: boolean;
   }
 ): Promise<OrgMembersResult<any>> {
-  const { organizationId, memberships, clerkUserIds } = await fetchOrgMemberships(params?.organizationId);
+  const { organizationId, memberships, clerkUserIds } = await fetchOrgMemberships(
+    params?.organizationId,
+    { throwOnMissingOrg: params?.throwOnMissingOrg }
+  );
 
-  if (!clerkUserIds.length) {
+  // Return empty result if no organization context
+  if (!organizationId || !clerkUserIds.length) {
     return {
-      organizationId,
+      organizationId: organizationId || "",
       memberships,
       clerkUserIds,
       users: [],

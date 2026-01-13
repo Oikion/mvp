@@ -41,6 +41,9 @@ interface YearViewProps {
   events: CalendarEvent[];
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
+  onMonthOpen?: (month: Date) => void;
+  onDateOpen?: (date: Date) => void;
+  onWeekOpen?: (anchorDate: Date) => void;
   onEventUpdated?: () => void;
   onEventDeleted?: () => void;
 }
@@ -49,6 +52,9 @@ export function YearView({
   events,
   selectedDate,
   onDateSelect,
+  onMonthOpen,
+  onDateOpen,
+  onWeekOpen,
   onEventUpdated,
   onEventDeleted,
 }: YearViewProps) {
@@ -161,6 +167,7 @@ export function YearView({
                 isCurrentMonth && "ring-2 ring-primary"
               )}
               onClick={() => onDateSelect(month)}
+              onDoubleClick={() => onMonthOpen?.(month)}
             >
               <CardHeader className="py-2 px-3 bg-muted/50">
                 <div className="flex items-center justify-between">
@@ -189,6 +196,11 @@ export function YearView({
                     <div
                       key={idx}
                       className="text-center text-[8px] text-muted-foreground font-medium"
+                      onDoubleClick={(e) => {
+                        // drill down to week view anchored to this month
+                        e.stopPropagation();
+                        onWeekOpen?.(month);
+                      }}
                     >
                       {label}
                     </div>
@@ -212,6 +224,11 @@ export function YearView({
                         onClick={(e) => {
                           e.stopPropagation();
                           onDateSelect(day);
+                        }}
+                        onDoubleClick={(e) => {
+                          // open day view (and prevent month drill-down)
+                          onDateOpen?.(day);
+                          e.stopPropagation();
                         }}
                         disabled={!isCurrentMonthDay}
                         className={cn(
@@ -242,4 +259,10 @@ export function YearView({
     </div>
   );
 }
+
+
+
+
+
+
 

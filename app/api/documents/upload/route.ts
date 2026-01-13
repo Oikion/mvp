@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { uploadDocumentToBlob } from "@/lib/vercel-blob";
+import { compressFile } from "@/lib/image-compression";
 
 export async function POST(req: Request) {
   try {
@@ -21,18 +22,34 @@ export async function POST(req: Request) {
       return new NextResponse("File is required", { status: 400 });
     }
 
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
+    const rawBuffer = Buffer.from(await file.arrayBuffer());
+    
+    // Compress file (images: resize + WebP, text: gzip)
+    const { 
+      buffer: fileBuffer, 
+      mimeType: finalMimeType, 
+      fileName: finalFileName,
+      originalSize,
+      compressedSize,
+      wasCompressed,
+      compressionType 
+    } = await compressFile(rawBuffer, file.type, file.name, "general");
+    
+    if (wasCompressed) {
+      const savings = Math.round((1 - compressedSize / originalSize) * 100);
+      console.log(`[DOCUMENT_UPLOAD] ${compressionType} compression: ${originalSize} -> ${compressedSize} bytes (${savings}% reduction)`);
+    }
 
     // Upload to org-scoped path: documents/{organizationId}/{filename}
-    const blob = await uploadDocumentToBlob(organizationId, file.name, fileBuffer, {
-      contentType: file.type,
+    const blob = await uploadDocumentToBlob(organizationId, finalFileName, fileBuffer, {
+      contentType: finalMimeType,
       addRandomSuffix: true,
     });
 
     return NextResponse.json({
       url: blob.url,
       pathname: blob.pathname,
-      size: fileBuffer.length,
+      size: compressedSize,
       uploadedAt: new Date().toISOString(),
       organizationId,
     });

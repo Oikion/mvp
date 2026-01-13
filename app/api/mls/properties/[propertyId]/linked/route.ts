@@ -67,12 +67,12 @@ export async function GET(
     }
 
     // Fetch linked clients
-    const linkedClients = await prismadb.client_Properties.findMany({
+    const linkedClientsRaw = await prismadb.client_Properties.findMany({
       where: {
         propertyId,
       },
       include: {
-        client: {
+        Clients: {
           select: {
             id: true,
             client_name: true,
@@ -83,7 +83,7 @@ export async function GET(
             intent: true,
             createdAt: true,
             updatedAt: true,
-            assigned_to_user: {
+            Users_Clients_assigned_toToUsers: {
               select: {
                 id: true,
                 name: true,
@@ -97,11 +97,20 @@ export async function GET(
       },
     });
 
+    // Map to expected field names
+    const linkedClients = linkedClientsRaw.map((lc) => ({
+      ...lc,
+      client: lc.Clients ? {
+        ...lc.Clients,
+        assigned_to_user: lc.Clients.Users_Clients_assigned_toToUsers,
+      } : null,
+    }));
+
     // Fetch linked calendar events (use property's org for shared properties)
-    const linkedEvents = await prismadb.calComEvent.findMany({
+    const linkedEventsRaw = await prismadb.calComEvent.findMany({
       where: {
         organizationId: property.organizationId,
-        linkedProperties: {
+        Properties: {
           some: {
             id: propertyId,
           },
@@ -116,14 +125,14 @@ export async function GET(
         location: true,
         status: true,
         eventType: true,
-        assignedUser: {
+        Users: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        linkedClients: {
+        Clients: {
           select: {
             id: true,
             client_name: true,
@@ -134,6 +143,13 @@ export async function GET(
         startTime: "desc",
       },
     });
+
+    // Map to expected field names
+    const linkedEvents = linkedEventsRaw.map((event) => ({
+      ...event,
+      assignedUser: event.Users,
+      linkedClients: event.Clients,
+    }));
 
     // Get upcoming events (future events)
     const now = new Date();

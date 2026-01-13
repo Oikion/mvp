@@ -3,6 +3,13 @@
     "title": "Oikion",
     "description": "Oikion is the operating system for Greek real-estate agencies. MLS, CRM, and Socials in one web app."
   },
+  "auth": {
+    "alreadySignedIn": {
+      "title": "You're already signed in!",
+      "description": "You have an active session. Click below to return to your dashboard.",
+      "goBackButton": "Go back to App"
+    }
+  },
   "ModuleMenu": {
     "dashboard": "Dashboard",
     "crm": {
@@ -25,7 +32,6 @@
     "storage": "Storage",
     "settings": "Administration",
     "employees": "Employees",
-    "chatGPT": "ChatGPT",
     "feedback": "Feedback",
     "calendar": "Calendar"
   },
@@ -300,16 +306,6 @@
     "todoDashboard": "Todo dashboard",
     "profileSettings": "Profile settings",
     "signOut": "Sign out"
-  }
-  ,
-  "ChatGPTPage": {
-    "title": "AI assistant",
-    "description": "Ask anything you need to know",
-    "missingKeyTitle": "OpenAI key not found",
-    "missingKeyPrompt": "Please add your OpenAI key in your",
-    "profileSettings": "profile settings page",
-    "toUseAssistant": "to use the assistant",
-    "loading": "Loading..."
   },
   "FeedbackForm": {
     "title": "Feedback",

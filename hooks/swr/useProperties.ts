@@ -35,9 +35,11 @@ async function propertiesFetcher(url: string): Promise<PropertyOption[]> {
 
   const data = await res.json();
 
-  // Handle both array response and error object response
-  if (Array.isArray(data)) {
-    return data.map((property: PropertiesResponse) => ({
+  // Handle paginated response format { items: [...], nextCursor, hasMore }
+  const items = data.items || data;
+  
+  if (Array.isArray(items)) {
+    return items.map((property: PropertiesResponse) => ({
       value: property.id,
       label: property.property_name || "Unnamed Property",
     }));
@@ -54,11 +56,11 @@ export function useProperties(options: UsePropertiesOptions = {}) {
   const { enabled = true } = options;
 
   const { data, error, isLoading, isValidating, mutate } = useSWR<PropertyOption[]>(
-    enabled ? "/api/mls/properties" : null,
+    enabled ? "/api/mls/properties?minimal=true" : null,
     propertiesFetcher,
     {
-      // Keep data fresh for 1 minute (matches previous manual cache duration)
-      dedupingInterval: 60000,
+      // Keep data fresh for 5 minutes - selector data doesn't change often
+      dedupingInterval: 300000,
       revalidateOnFocus: false,
     }
   );

@@ -17,6 +17,16 @@ export {
   cleanupOldNotifications,
 } from "./notification-service";
 
+// Email notification service
+export {
+  sendNotificationEmail,
+  sendNotificationEmailToUsers,
+  categoryToPreference,
+  isEmailEnabledForCategory,
+  getUserNotificationSettings,
+  type NotificationEmailData,
+} from "./email-service";
+
 // Helper functions for specific scenarios
 export {
   // Social
@@ -42,6 +52,12 @@ export {
   notifyAccountWatchers,
   notifyPropertyWatchers,
 } from "./helpers";
+
+
+
+
+
+
 
 
 

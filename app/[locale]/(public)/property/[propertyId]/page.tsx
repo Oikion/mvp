@@ -71,3 +71,9 @@ export default async function PublicPropertyPage({ params }: PropertyPageProps) 
 
 
 
+
+
+
+
+
+

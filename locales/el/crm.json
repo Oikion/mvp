@@ -67,7 +67,9 @@
       "allowMarketing": "Επιτρέπω μάρκετινγκ",
       "leadSource": "Πηγή",
       "leadSourcePlaceholder": "Πώς μας βρήκετε;",
-      "agentOwner": "Ανατεθειμένος πράκτορας/μεσίτης"
+      "agentOwner": "Ανατεθειμένος πράκτορας/μεσίτης",
+      "specifyOther": "Προσδιορίστε σκοπό",
+      "specifyOtherPlaceholder": "Εισάγετε τον σκοπό..."
     },
     "personType": {
       "INDIVIDUAL": "Ιδιώτης",
@@ -175,14 +177,40 @@
     "agencyClientsDescription": "Πελάτες που διαχειρίζεται το γραφείο σας",
     "sharedClientsDescription": "Πελάτες που μοιράστηκαν μαζί σας από συνδέσεις"
   },
-  "Stats": {
+  "stats": {
     "totalClients": "Σύνολο Πελατών",
     "activeClients": "Ενεργοί Πελάτες",
     "new30d": "Νέοι (30ημ)",
+    "assigned": "Ανατεθειμένοι",
     "sharedWithYou": "Κοινόχρηστοι",
     "allContacts": "Όλες οι επαφές",
     "currentlyActive": "Τρέχοντες ενεργοί",
     "addedThisMonth": "Προστέθηκαν αυτόν τον μήνα",
+    "assignedToAgents": "Ανατεθειμένοι σε πράκτορες",
+    "fromConnections": "Από συνδέσεις",
+    "addClient": "Προσθήκη Πελάτη",
+    "findAgents": "Εύρεση Πρακτόρων",
+    "noClientsYet": "Ξεκινήστε να χτίζετε τη βάση πελατών",
+    "noActiveClients": "Κανένας ενεργός πελάτης",
+    "noRecentActivity": "Δεν υπάρχουν νέοι πελάτες",
+    "connectToReceive": "Συνδεθείτε με πράκτορες για leads",
+    "hints": {
+      "totalClients": "Προσθέστε τουλάχιστον 5 πελάτες για σημαντικές αναλύσεις!",
+      "activeClients": "Κρατήστε τους πελάτες ενεργούς για να κλείσετε συμφωνίες.",
+      "new30d": "Η σταθερή δημιουργία leads οδηγεί σε ανάπτυξη.",
+      "sharedWithYou": "Συνδεθείτε με περισσότερους πράκτορες για συστάσεις!"
+    }
+  },
+  "Stats": {
+    "totalClients": "Σύνολο Πελατών",
+    "activeClients": "Ενεργοί Πελάτες",
+    "new30d": "Νέοι (30ημ)",
+    "assigned": "Ανατεθειμένοι",
+    "sharedWithYou": "Κοινόχρηστοι",
+    "allContacts": "Όλες οι επαφές",
+    "currentlyActive": "Τρέχοντες ενεργοί",
+    "addedThisMonth": "Προστέθηκαν αυτόν τον μήνα",
+    "assignedToAgents": "Ανατεθειμένοι σε πράκτορες",
     "fromConnections": "Από συνδέσεις",
     "addClient": "Προσθήκη Πελάτη",
     "findAgents": "Εύρεση Πρακτόρων",

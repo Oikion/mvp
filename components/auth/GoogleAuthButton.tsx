@@ -2,15 +2,12 @@
 
 import { useSignIn, useSignUp } from "@clerk/nextjs";
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GoogleAuthButtonProps {
-  /** The URL to redirect to after authentication (for sign-up) */
-  readonly redirectUrl: string;
-  /** The URL to redirect to after authentication (for sign-in) */
-  readonly redirectUrlComplete?: string;
   /** Whether this is for sign-up or sign-in */
   readonly mode: "sign-up" | "sign-in";
   /** Button text (optional, defaults based on mode) */
@@ -24,10 +21,12 @@ interface GoogleAuthButtonProps {
 /**
  * Google OAuth authentication button
  * Uses Clerk's authenticateWithRedirect with oauth_google strategy
+ * 
+ * Redirect flow:
+ * - Sign-up: After Google auth → SSO callback → Onboarding
+ * - Sign-in: After Google auth → SSO callback → Dashboard (or Onboarding if not completed)
  */
 export function GoogleAuthButton({
-  redirectUrl,
-  redirectUrlComplete,
   mode,
   buttonText,
   className,
@@ -35,6 +34,8 @@ export function GoogleAuthButton({
 }: GoogleAuthButtonProps) {
   const { signIn, isLoaded: isSignInLoaded } = useSignIn();
   const { signUp, isLoaded: isSignUpLoaded } = useSignUp();
+  const params = useParams();
+  const locale = (params.locale as string) || "el";
   const [isLoading, setIsLoading] = useState(false);
 
   const isLoaded = mode === "sign-in" ? isSignInLoaded : isSignUpLoaded;
@@ -46,16 +47,19 @@ export function GoogleAuthButton({
 
     try {
       if (mode === "sign-up" && signUp) {
+        // Sign-up flow: Google → SSO callback → Onboarding
         await signUp.authenticateWithRedirect({
           strategy: "oauth_google",
-          redirectUrl: "/sso-callback",
-          redirectUrlComplete: redirectUrl,
+          redirectUrl: `/${locale}/app/register/sso-callback`,
+          redirectUrlComplete: `/${locale}/app/onboard`,
         });
       } else if (mode === "sign-in" && signIn) {
+        // Sign-in flow: Google → SSO callback → Dashboard
+        // If user hasn't completed onboarding, the layout will redirect them
         await signIn.authenticateWithRedirect({
           strategy: "oauth_google",
-          redirectUrl: "/sso-callback",
-          redirectUrlComplete: redirectUrlComplete || redirectUrl,
+          redirectUrl: `/${locale}/app/sign-in/sso-callback`,
+          redirectUrlComplete: `/${locale}/app`,
         });
       }
     } catch (error) {
@@ -122,4 +126,3 @@ function GoogleIcon({ className }: { readonly className?: string }) {
 }
 
 export default GoogleAuthButton;
-

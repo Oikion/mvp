@@ -1,7 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentUserSafe, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import type { AudienceWithMembers } from "./get-audiences";
 
 /**
@@ -9,8 +9,13 @@ import type { AudienceWithMembers } from "./get-audiences";
  * Verifies the user has access to this audience
  */
 export async function getAudience(audienceId: string): Promise<AudienceWithMembers | null> {
-  const currentUser = await getCurrentUser();
-  const organizationId = await getCurrentOrgId();
+  const currentUser = await getCurrentUserSafe();
+  const organizationId = await getCurrentOrgIdSafe();
+  
+  // Return null if no user context (e.g., session not synced yet)
+  if (!currentUser) {
+    return null;
+  }
 
   const audience = await prismadb.audience.findFirst({
     where: {
@@ -23,7 +28,7 @@ export async function getAudience(audienceId: string): Promise<AudienceWithMembe
       ],
     },
     include: {
-      createdBy: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -31,9 +36,9 @@ export async function getAudience(audienceId: string): Promise<AudienceWithMembe
           avatar: true,
         },
       },
-      members: {
+      AudienceMember: {
         include: {
-          user: {
+          Users: {
             select: {
               id: true,
               name: true,
@@ -45,7 +50,7 @@ export async function getAudience(audienceId: string): Promise<AudienceWithMembe
         orderBy: { addedAt: "desc" },
       },
       _count: {
-        select: { members: true },
+        select: { AudienceMember: true },
       },
     },
   });
@@ -61,11 +66,17 @@ export async function getAudience(audienceId: string): Promise<AudienceWithMembe
     createdAt: audience.createdAt,
     updatedAt: audience.updatedAt,
     createdById: audience.createdById,
-    createdBy: audience.createdBy,
-    memberCount: audience._count.members,
-    members: audience.members,
+    createdBy: audience.Users,
+    memberCount: audience._count.AudienceMember,
+    members: audience.AudienceMember.map(m => ({ ...m, user: m.Users })),
   };
 }
+
+
+
+
+
+
 
 
 

@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   Building2,
   User,
@@ -13,6 +14,9 @@ import {
   Calendar,
   ChevronRight,
   Link2,
+  Plus,
+  Clock,
+  ArrowRight,
 } from "lucide-react";
 import {
   CommandDialog,
@@ -21,9 +25,14 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
+  CommandShortcut,
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { useGlobalSearch, type SearchResult } from "@/hooks/swr";
+import { Button } from "@/components/ui/button";
+import { useGlobalSearch, type SearchResult, type SearchEntityType } from "@/hooks/swr";
+import { cn } from "@/lib/utils";
+import { useKeyboardShortcuts, isMac } from "@/hooks/use-keyboard-shortcuts";
 
 interface RelationshipPreview {
   id: string;
@@ -41,43 +50,158 @@ interface Relationships {
   client?: { id: string; client_name: string } | null;
 }
 
+type FilterType = "all" | SearchEntityType;
+
+const FILTER_TABS: { value: FilterType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { value: "all", label: "All", icon: Search },
+  { value: "property", label: "Properties", icon: Building2 },
+  { value: "client", label: "Clients", icon: User },
+  { value: "contact", label: "Contacts", icon: Users },
+  { value: "document", label: "Documents", icon: FileText },
+  { value: "event", label: "Events", icon: Calendar },
+];
+
+const QUICK_ACTIONS = [
+  { id: "new-property", label: "New Property", icon: Building2, path: "/app/mls/new", shortcut: "P" },
+  { id: "new-client", label: "New Client", icon: User, path: "/app/crm/new", shortcut: "C" },
+  { id: "new-event", label: "New Event", icon: Calendar, path: "/app/calendar/new", shortcut: "E" },
+  { id: "new-document", label: "Upload Document", icon: FileText, path: "/app/documents/upload", shortcut: "D" },
+];
+
+const NAVIGATION_ITEMS = [
+  { id: "go-properties", label: "Properties", icon: Building2, path: "/app/mls/properties", shortcut: "G P" },
+  { id: "go-clients", label: "Clients", icon: User, path: "/app/crm/clients", shortcut: "G C" },
+  { id: "go-contacts", label: "Contacts", icon: Users, path: "/app/crm/contacts", shortcut: "G O" },
+  { id: "go-documents", label: "Documents", icon: FileText, path: "/app/documents", shortcut: "G D" },
+  { id: "go-calendar", label: "Calendar", icon: Calendar, path: "/app/calendar", shortcut: "G E" },
+];
+
+const RECENT_SEARCHES_KEY = "oikion-recent-searches";
+const MAX_RECENT_SEARCHES = 5;
+
 export function GlobalSearch() {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
+  const [activeFilter, setActiveFilter] = React.useState<FilterType>("all");
   const [expandedResult, setExpandedResult] = React.useState<string | null>(null);
+  const [recentSearches, setRecentSearches] = React.useState<string[]>([]);
   const router = useRouter();
+  const pathname = usePathname();
   const t = useTranslations("navigation");
+  const { setActiveScope } = useKeyboardShortcuts();
+
+  // Get locale from pathname
+  const locale = pathname?.split("/")[1] || "en";
+
+  // Determine which types to search based on filter
+  const searchTypes = activeFilter === "all" ? undefined : [activeFilter];
 
   // Use SWR for search with built-in debounce and caching
-  const { results, isLoading, debouncedQuery } = useGlobalSearch(query);
+  const { results, meta, isLoading, debouncedQuery } = useGlobalSearch(query, {
+    types: searchTypes,
+    limit: 100,
+  });
 
+  // Load recent searches from localStorage
   React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((open) => !open);
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+      if (stored) {
+        try {
+          setRecentSearches(JSON.parse(stored));
+        } catch {
+          // Ignore parse errors
+        }
       }
-      if (e.key === "Escape") {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    }
   }, []);
 
+  // Save recent search
+  const saveRecentSearch = React.useCallback((searchQuery: string) => {
+    if (!searchQuery || searchQuery.length < 2) return;
+    
+    setRecentSearches((prev) => {
+      const updated = [searchQuery, ...prev.filter((s) => s !== searchQuery)].slice(0, MAX_RECENT_SEARCHES);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
+  // CMD/CTRL + K to toggle - override browser behavior
+  useHotkeys(
+    "mod+k",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen((prev) => !prev);
+    },
+    {
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+      preventDefault: true,
+    }
+  );
+
+  // CMD/CTRL + D - override browser bookmark (Safari)
+  useHotkeys(
+    "mod+d",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Do nothing or implement a custom action
+    },
+    {
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+      preventDefault: true,
+    }
+  );
+
+  // Escape to close
+  useHotkeys(
+    "escape",
+    () => {
+      if (open) {
+        setOpen(false);
+      }
+    },
+    {
+      enabled: open,
+      enableOnFormTags: true,
+    }
+  );
+
+  // Update scope when dialog opens/closes
+  React.useEffect(() => {
+    setActiveScope(open ? "search" : "global");
+  }, [open, setActiveScope]);
+
+  // Reset state when closing
   React.useEffect(() => {
     if (!open) {
       setQuery("");
+      setActiveFilter("all");
       setExpandedResult(null);
     }
   }, [open]);
 
-  const handleSelect = (result: SearchResult) => {
-    router.push(result.url);
+  const handleSelect = React.useCallback((result: SearchResult) => {
+    saveRecentSearch(query);
+    router.push(`/${locale}/app${result.url}`);
     setOpen(false);
     setQuery("");
-  };
+  }, [query, locale, router, saveRecentSearch]);
+
+  const handleQuickAction = React.useCallback((path: string) => {
+    router.push(`/${locale}/app${path}`);
+    setOpen(false);
+  }, [locale, router]);
+
+  const handleRecentSearch = React.useCallback((searchQuery: string) => {
+    setQuery(searchQuery);
+  }, []);
 
   const getIcon = (type: SearchResult["type"]) => {
     switch (type) {
@@ -113,14 +237,17 @@ export function GlobalSearch() {
     }
   };
 
-  // Group results by type
-  const groupedResults = results.reduce((acc, result) => {
-    if (!acc[result.type]) {
-      acc[result.type] = [];
-    }
-    acc[result.type].push(result);
-    return acc;
-  }, {} as Record<string, SearchResult[]>);
+  // Group results by type for display
+  const groupedResults = React.useMemo(() => {
+    const groups: Record<string, SearchResult[]> = {};
+    results.forEach((result) => {
+      if (!groups[result.type]) {
+        groups[result.type] = [];
+      }
+      groups[result.type].push(result);
+    });
+    return groups;
+  }, [results]);
 
   // Get total relationship count for a result
   const getTotalRelationships = (relationships?: Relationships): number => {
@@ -201,116 +328,148 @@ export function GlobalSearch() {
     );
   };
 
-  // Render expandable relationship preview
-  const renderRelationshipPreview = (result: SearchResult) => {
-    const relationships = result.relationships as Relationships | undefined;
-    if (!relationships) return null;
-
-    const totalLinks = getTotalRelationships(relationships);
-    if (totalLinks === 0) return null;
-
-    const previewItems: {
-      label: string;
-      items: { id: string; name: string; url: string }[];
-    }[] = [];
-
-    if (
-      relationships.clients?.preview &&
-      relationships.clients.preview.length > 0
-    ) {
-      previewItems.push({
-        label: "Linked Clients",
-        items: relationships.clients.preview.map((c) => ({
-          id: c.id,
-          name: c.client_name || c.name || "Unknown",
-          url: `/crm/clients/${c.id}`,
-        })),
-      });
-    }
-
-    if (
-      relationships.properties?.preview &&
-      relationships.properties.preview.length > 0
-    ) {
-      previewItems.push({
-        label: "Linked Properties",
-        items: relationships.properties.preview.map((p) => ({
-          id: p.id,
-          name: p.property_name || p.name || "Unknown",
-          url: `/mls/properties/${p.id}`,
-        })),
-      });
-    }
-
-    if (
-      relationships.events?.preview &&
-      relationships.events.preview.length > 0
-    ) {
-      previewItems.push({
-        label: "Linked Events",
-        items: relationships.events.preview.map((e) => ({
-          id: e.id,
-          name: e.title || "Untitled Event",
-          url: `/calendar/events/${e.id}`,
-        })),
-      });
-    }
-
-    if (previewItems.length === 0) return null;
-
-    return (
-      <div className="pl-6 py-1 space-y-1 border-l-2 border-muted ml-2">
-        {previewItems.map((group) => (
-          <div key={group.label} className="space-y-0.5">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
-              {group.label}
-            </span>
-            {group.items.map((item) => (
-              <div
-                key={item.id}
-                className="text-xs text-muted-foreground hover:text-foreground cursor-pointer flex items-center gap-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push(item.url);
-                  setOpen(false);
-                }}
-              >
-                <ChevronRight className="h-3 w-3" />
-                {item.name}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const showQuickActions = !query && !isLoading;
+  const showRecentSearches = !query && !isLoading && recentSearches.length > 0;
+  const showResults = debouncedQuery.length >= 2 && !isLoading && results.length > 0;
+  const showEmpty = debouncedQuery.length >= 2 && !isLoading && results.length === 0;
+  const showMinLength = !isLoading && debouncedQuery.length > 0 && debouncedQuery.length < 2;
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput
-        placeholder={t("GlobalSearch.placeholder")}
-        value={query}
-        onValueChange={setQuery}
-      />
-      <CommandList className="max-h-[400px]">
-        {isLoading && (
-          <div className="flex items-center justify-center py-6">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          </div>
-        )}
-        {!isLoading && debouncedQuery.length < 2 && debouncedQuery.length > 0 && (
-          <CommandEmpty>{t("GlobalSearch.minLength")}</CommandEmpty>
-        )}
-        {!isLoading && debouncedQuery.length >= 2 && results.length === 0 && (
-          <CommandEmpty>{t("GlobalSearch.noResults")}</CommandEmpty>
-        )}
-        {!isLoading && results.length > 0 && (
-          <>
-            {Object.entries(groupedResults).map(([type, typeResults]) => {
-              return (
+    <CommandDialog open={open} onOpenChange={setOpen} shouldFilter={false}>
+      <div className="flex flex-col">
+        {/* Search Input */}
+        <CommandInput
+          placeholder={t("GlobalSearch.placeholder")}
+          value={query}
+          onValueChange={setQuery}
+        />
+
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-1 px-3 py-2 border-b overflow-x-auto">
+          {FILTER_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const count = tab.value === "all" 
+              ? meta?.counts?.total 
+              : meta?.counts?.[tab.value as keyof typeof meta.counts];
+            
+            return (
+              <Button
+                key={tab.value}
+                variant={activeFilter === tab.value ? "secondary" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-7 px-2.5 text-xs gap-1.5 shrink-0 cursor-pointer",
+                  activeFilter === tab.value && "bg-accent"
+                )}
+                onClick={() => setActiveFilter(tab.value)}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {tab.label}
+                {count !== undefined && count > 0 && (
+                  <Badge variant="secondary" className="h-4 px-1 text-[10px] ml-0.5">
+                    {count}
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
+        </div>
+
+        {/* Results Area */}
+        <CommandList className="max-h-[400px]">
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex items-center justify-center py-6 gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Searching...</span>
+            </div>
+          )}
+
+          {/* Min Length Message */}
+          {showMinLength && (
+            <CommandEmpty>{t("GlobalSearch.minLength")}</CommandEmpty>
+          )}
+
+          {/* Empty Results */}
+          {showEmpty && (
+            <CommandEmpty>{t("GlobalSearch.noResults")}</CommandEmpty>
+          )}
+
+          {/* Navigation (when no query) */}
+          {showQuickActions && (
+            <CommandGroup heading={t("GlobalSearch.navigation") || "Navigation"}>
+              {NAVIGATION_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <CommandItem
+                    key={item.id}
+                    value={item.id}
+                    onSelect={() => handleQuickAction(item.path)}
+                    className="gap-2 cursor-pointer"
+                  >
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <span>{item.label}</span>
+                    <CommandShortcut>{item.shortcut}</CommandShortcut>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          )}
+
+          {/* Quick Actions (when no query) */}
+          {showQuickActions && (
+            <>
+              <CommandSeparator />
+              <CommandGroup heading={t("GlobalSearch.quickActions") || "Quick Actions"}>
+                {QUICK_ACTIONS.map((action) => {
+                  const Icon = action.icon;
+                  return (
+                    <CommandItem
+                      key={action.id}
+                      value={action.id}
+                      onSelect={() => handleQuickAction(action.path)}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <div className="flex h-6 w-6 items-center justify-center rounded-md border bg-background">
+                        <Plus className="h-3 w-3" />
+                      </div>
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                      <span>{action.label}</span>
+                      <CommandShortcut>{isMac() ? "⌘" : "Ctrl+"}{action.shortcut}</CommandShortcut>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </>
+          )}
+
+          {/* Recent Searches */}
+          {showRecentSearches && (
+            <>
+              <CommandSeparator />
+              <CommandGroup heading="Recent Searches">
+                {recentSearches.map((search, index) => (
+                  <CommandItem
+                    key={`recent-${index}`}
+                    value={`recent-${search}`}
+                    onSelect={() => handleRecentSearch(search)}
+                    className="gap-2 cursor-pointer"
+                  >
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{search}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </>
+          )}
+
+          {/* Search Results */}
+          {showResults && (
+            <>
+              {Object.entries(groupedResults).map(([type, typeResults]) => (
                 <CommandGroup
                   key={type}
-                  heading={getTypeLabel(type as SearchResult["type"])}
+                  heading={`${getTypeLabel(type as SearchResult["type"])} (${meta?.counts?.[type as keyof typeof meta.counts] || typeResults.length})`}
                 >
                   {typeResults.map((result) => {
                     const ResultIcon = getIcon(result.type);
@@ -319,50 +478,72 @@ export function GlobalSearch() {
                     const isExpanded = expandedResult === result.id;
 
                     return (
-                      <div key={result.id}>
-                        <CommandItem
-                          value={`${result.type}-${result.id}`}
-                          onSelect={() => handleSelect(result)}
-                          className="flex items-start"
-                        >
-                          <ResultIcon className="mr-2 h-4 w-4 mt-0.5 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="truncate">{result.title}</span>
-                              {hasRelationships && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setExpandedResult(isExpanded ? null : result.id);
-                                  }}
-                                  className="shrink-0 p-0.5 hover:bg-accent rounded"
-                                >
-                                  <ChevronRight
-                                    className={`h-3 w-3 transition-transform ${
-                                      isExpanded ? "rotate-90" : ""
-                                    }`}
-                                  />
-                                </button>
-                              )}
-                            </div>
-                            {result.subtitle && (
-                              <span className="text-xs text-muted-foreground block truncate">
-                                {result.subtitle}
-                              </span>
+                      <CommandItem
+                        key={result.id}
+                        value={`${result.type}-${result.id}-${result.title}`}
+                        onSelect={() => handleSelect(result)}
+                        className="flex items-start cursor-pointer group"
+                      >
+                        <ResultIcon className="mr-2 h-4 w-4 mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate">{result.title}</span>
+                            {hasRelationships && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setExpandedResult(isExpanded ? null : result.id);
+                                }}
+                                className="shrink-0 p-0.5 hover:bg-accent rounded cursor-pointer"
+                              >
+                                <ChevronRight
+                                  className={cn(
+                                    "h-3 w-3 transition-transform",
+                                    isExpanded && "rotate-90"
+                                  )}
+                                />
+                              </button>
                             )}
-                            {renderRelationshipBadges(result.relationships as Relationships)}
                           </div>
-                        </CommandItem>
-                        {isExpanded && renderRelationshipPreview(result)}
-                      </div>
+                          {result.subtitle && (
+                            <span className="text-xs text-muted-foreground block truncate">
+                              {result.subtitle}
+                            </span>
+                          )}
+                          {renderRelationshipBadges(result.relationships as Relationships)}
+                        </div>
+                        <ArrowRight className="h-3 w-3 ml-2 text-muted-foreground opacity-0 group-aria-selected:opacity-100 transition-opacity" />
+                      </CommandItem>
                     );
                   })}
                 </CommandGroup>
-              );
-            })}
-          </>
-        )}
-      </CommandList>
+              ))}
+            </>
+          )}
+        </CommandList>
+
+        {/* Footer with timing and shortcuts hint */}
+        <div className="flex items-center justify-between px-3 py-2 border-t bg-muted/50 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4">
+            {meta?.timing && (
+              <span>{Math.round(meta.timing)}ms</span>
+            )}
+            {meta?.counts?.total !== undefined && meta.counts.total > 0 && (
+              <span>{meta.counts.total} results</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-background rounded border">↑↓</kbd>
+            <span>navigate</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-background rounded border">↵</kbd>
+            <span>select</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-background rounded border">esc</kbd>
+            <span>close</span>
+          </div>
+        </div>
+      </div>
     </CommandDialog>
   );
 }

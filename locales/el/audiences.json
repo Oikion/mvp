@@ -41,15 +41,16 @@
   "memberManager": {
     "title": "Διαχείριση Μελών",
     "description": "Προσθήκη ή αφαίρεση μελών από",
-    "searchPlaceholder": "Αναζήτηση επαφών...",
+    "searchPlaceholder": "Αναζήτηση πελατών...",
     "currentMembers": "Τρέχοντα Μέλη",
     "noMembers": "Δεν υπάρχουν μέλη ακόμα",
-    "addFromConnections": "Προσθήκη από Επαφές",
-    "noConnections": "Χρειάζεστε επαφές για να προσθέσετε μέλη",
-    "noMatchingConnections": "Δεν βρέθηκαν επαφές που να ταιριάζουν",
-    "allMembersAdded": "Όλες οι επαφές είναι ήδη μέλη",
+    "addFromConnections": "Προσθήκη από Πελάτες",
+    "noConnections": "Δεν υπάρχουν πελάτες για προσθήκη",
+    "noMatchingConnections": "Δεν βρέθηκαν πελάτες που να ταιριάζουν",
+    "allMembersAdded": "Όλοι οι πελάτες είναι ήδη μέλη",
     "add": "Προσθήκη",
-    "done": "Τέλος"
+    "done": "Τέλος",
+    "addClient": "Προσθήκη Πελάτη"
   },
   "actions": {
     "manageMembers": "Διαχείριση Μελών",

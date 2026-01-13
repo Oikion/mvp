@@ -21,9 +21,7 @@ export async function DELETE(_req: Request, props: { params: Promise<{ accountId
       select: {
         id: true,
         client_name: true,
-        watching_users: {
-          select: { id: true },
-        },
+        watchers: true,
       },
     });
 
@@ -34,7 +32,7 @@ export async function DELETE(_req: Request, props: { params: Promise<{ accountId
     });
 
     // Notify watchers about the deletion
-    if (account && account.watching_users && account.watching_users.length > 0) {
+    if (account && account.watchers && account.watchers.length > 0) {
       await notifyAccountWatchers(
         params.accountId,
         organizationId,

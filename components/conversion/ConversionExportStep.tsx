@@ -98,8 +98,8 @@ export function ConversionExportStep({
     sessionStorage.setItem("oikion_converted_data", JSON.stringify(convertedData));
     
     const importPath = entityType === "properties" 
-      ? "/mls/properties/import" 
-      : "/crm/clients/import";
+      ? "/app/mls/import" 
+      : "/app/crm/import";
     
     router.push(importPath);
     
@@ -219,5 +219,11 @@ export function ConversionExportStep({
     </div>
   );
 }
+
+
+
+
+
+
 
 

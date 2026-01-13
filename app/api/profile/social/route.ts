@@ -9,7 +9,7 @@ export async function GET() {
     const profile = await prismadb.agentProfile.findUnique({
       where: { userId: currentUser.id },
       include: {
-        user: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -25,7 +25,8 @@ export async function GET() {
     if (profile) {
       return NextResponse.json({
         ...profile,
-        slug: profile.user.username || profile.slug,
+        user: profile.Users,
+        slug: profile.Users?.username || profile.slug,
       });
     }
 
@@ -91,7 +92,9 @@ export async function POST(req: Request) {
       where: { userId: currentUser.id },
       update: profileData,
       create: {
+        id: crypto.randomUUID(),
         userId: currentUser.id,
+        updatedAt: new Date(),
         ...profileData,
       },
     });

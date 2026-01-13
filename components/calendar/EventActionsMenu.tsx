@@ -226,7 +226,7 @@ export function EventActionsMenu({
             onClick={(e) => {
               e.stopPropagation();
               if (eventId) {
-                router.push(`/calendar/events/${eventId}`);
+                router.push(`/app/calendar/events/${eventId}`);
               }
             }}
           >

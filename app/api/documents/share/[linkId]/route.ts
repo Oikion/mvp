@@ -55,6 +55,7 @@ export async function GET(
 
     await prismadb.documentView.create({
       data: {
+        id: crypto.randomUUID(),
         documentId: document.id,
         viewerIp,
         viewerUserAgent,
@@ -109,6 +110,7 @@ export async function POST(
 
     await prismadb.documentView.create({
       data: {
+        id: crypto.randomUUID(),
         documentId: document.id,
         viewerIp,
         viewerUserAgent,

@@ -102,6 +102,7 @@ export async function addAudienceMembers(
     // Add members
     await prismadb.audienceMember.createMany({
       data: memberIds.map((userId) => ({
+        id: crypto.randomUUID(),
         audienceId,
         userId,
       })),
@@ -161,6 +162,12 @@ export async function removeAudienceMember(
     return { success: false, error: "Failed to remove member" };
   }
 }
+
+
+
+
+
+
 
 
 

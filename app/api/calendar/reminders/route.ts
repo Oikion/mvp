@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     const reminders = await prismadb.calendarReminder.findMany({
       where,
       include: {
-        event: {
+        CalComEvent: {
           select: {
             id: true,
             title: true,
@@ -139,7 +139,7 @@ export async function PUT(req: Request) {
     const reminder = await prismadb.calendarReminder.findUnique({
       where: { id: reminderId },
       include: {
-        event: true,
+        CalComEvent: true,
       },
     });
 
@@ -172,6 +172,12 @@ export async function PUT(req: Request) {
     );
   }
 }
+
+
+
+
+
+
 
 
 

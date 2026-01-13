@@ -13,10 +13,10 @@ export async function GET(
     const params = await props.params;
     const { dealId } = params;
 
-    const deal = await prismadb.deal.findUnique({
+    const dealRaw = await prismadb.deal.findUnique({
       where: { id: dealId },
       include: {
-        property: {
+        Properties: {
           select: {
             id: true,
             property_name: true,
@@ -29,7 +29,7 @@ export async function GET(
             size_net_sqm: true,
             square_feet: true,
             description: true,
-            linkedDocuments: {
+            Documents: {
               where: {
                 document_file_mimeType: { startsWith: "image/" },
               },
@@ -38,7 +38,7 @@ export async function GET(
             },
           },
         },
-        client: {
+        Clients: {
           select: {
             id: true,
             client_name: true,
@@ -48,7 +48,7 @@ export async function GET(
             client_status: true,
           },
         },
-        propertyAgent: {
+        Users_Deal_propertyAgentIdToUsers: {
           select: {
             id: true,
             name: true,
@@ -56,7 +56,7 @@ export async function GET(
             avatar: true,
           },
         },
-        clientAgent: {
+        Users_Deal_clientAgentIdToUsers: {
           select: {
             id: true,
             name: true,
@@ -67,9 +67,21 @@ export async function GET(
       },
     });
 
-    if (!deal) {
+    if (!dealRaw) {
       return new NextResponse("Deal not found", { status: 404 });
     }
+
+    // Map to expected field names
+    const deal = {
+      ...dealRaw,
+      property: dealRaw.Properties ? {
+        ...dealRaw.Properties,
+        linkedDocuments: dealRaw.Properties.Documents,
+      } : null,
+      client: dealRaw.Clients,
+      propertyAgent: dealRaw.Users_Deal_propertyAgentIdToUsers,
+      clientAgent: dealRaw.Users_Deal_clientAgentIdToUsers,
+    };
 
     if (
       deal.propertyAgentId !== currentUser.id &&
@@ -103,8 +115,8 @@ export async function PUT(
     const deal = await prismadb.deal.findUnique({
       where: { id: dealId },
       include: {
-        property: { select: { property_name: true } },
-        client: { select: { client_name: true } },
+        Properties: { select: { property_name: true } },
+        Clients: { select: { client_name: true } },
       },
     });
 
@@ -190,8 +202,8 @@ export async function PUT(
       await notifyDealStatusChanged({
         dealId: deal.id,
         dealTitle: deal.title || undefined,
-        propertyName: deal.property?.property_name || "Property",
-        clientName: deal.client?.client_name || "Client",
+        propertyName: deal.Properties?.property_name || "Property",
+        clientName: deal.Clients?.client_name || "Client",
         actorId: currentUser.id,
         actorName: currentUser.name || currentUser.email || "Someone",
         targetUserId: otherAgentId,

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -21,17 +21,20 @@ import { useTranslations, useLocale } from "next-intl";
 
 import { ViewSelector, CalendarViewMode } from "./ViewSelector";
 import { CalendarFilters, CalendarFiltersState } from "./CalendarFilters";
-import { EventCreateForm } from "./EventCreateForm";
+import { EventCreateForm, EventCreateTrigger, EventCreateSidePanel } from "./EventCreateForm";
 import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
 import { SemesterView } from "./SemesterView";
 import { YearView } from "./YearView";
 import { TaskEventCard } from "./TaskEventCard";
 import { EventActionsMenu } from "./EventActionsMenu";
-import { useCalendarEvents, useOrgUsers } from "@/hooks/swr";
+import { MiniMonthCalendar } from "./MiniMonthCalendar";
+import { DayHourView } from "./DayHourView";
+import { useCalendarEvents, useOrgUsers, useClients, useProperties } from "@/hooks/swr";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ExportButton } from "@/components/export";
 
 interface CalendarEvent {
   id: number;
@@ -63,9 +66,31 @@ interface CalendarTask {
   calcomEventId?: string | null;
 }
 
+const CALENDAR_VIEWMODE_STORAGE_KEY = "oikion.calendar.viewMode";
+const CALENDAR_SELECTED_DATE_STORAGE_KEY = "oikion.calendar.selectedDate";
+
+function isCalendarViewMode(value: string | null): value is CalendarViewMode {
+  return value === "day" || value === "week" || value === "month" || value === "semester" || value === "year";
+}
+
+function parseLocalYyyyMmDd(value: string | null): Date | null {
+  if (!value) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  const d = new Date(year, month - 1, day);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+}
+
 export function CalendarPageView() {
   const t = useTranslations("calendar");
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const dateLocale = locale === "el" ? el : enUS;
 
@@ -74,6 +99,100 @@ export function CalendarPageView() {
   const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
   const [activeTab, setActiveTab] = useState("myEvents");
   const [filters, setFilters] = useState<CalendarFiltersState>({});
+  const [createEventOpen, setCreateEventOpen] = useState(false);
+  const [createEventStartTime, setCreateEventStartTime] = useState<Date | null>(null);
+  const [createEventEndTime, setCreateEventEndTime] = useState<Date | null>(null);
+  const didInitViewModeRef = useRef(false);
+  const didInitSelectedDateRef = useRef(false);
+
+  const handleCreateEventOpenChange = useCallback((open: boolean) => {
+    setCreateEventOpen(open);
+  }, []);
+
+  // Initialize viewMode from URL (?view=day) with localStorage fallback.
+  useEffect(() => {
+    const urlView = searchParams.get("view");
+    if (isCalendarViewMode(urlView)) {
+      setViewMode(urlView);
+      didInitViewModeRef.current = true;
+      return;
+    }
+
+    try {
+      const stored = window.localStorage.getItem(CALENDAR_VIEWMODE_STORAGE_KEY);
+      if (isCalendarViewMode(stored)) {
+        setViewMode(stored);
+      }
+    } catch {
+      // ignore storage errors
+    } finally {
+      didInitViewModeRef.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Initialize selectedDate from URL (?date=YYYY-MM-DD) with localStorage fallback.
+  useEffect(() => {
+    const urlDate = searchParams.get("date");
+    const parsedUrlDate = parseLocalYyyyMmDd(urlDate);
+    if (parsedUrlDate) {
+      setSelectedDate(parsedUrlDate);
+      didInitSelectedDateRef.current = true;
+      return;
+    }
+
+    try {
+      const stored = window.localStorage.getItem(CALENDAR_SELECTED_DATE_STORAGE_KEY);
+      const parsedStoredDate = parseLocalYyyyMmDd(stored);
+      if (parsedStoredDate) {
+        setSelectedDate(parsedStoredDate);
+      }
+    } catch {
+      // ignore storage errors
+    } finally {
+      didInitSelectedDateRef.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist viewMode to URL + localStorage so it survives refresh/navigation.
+  useEffect(() => {
+    if (!didInitViewModeRef.current) return;
+
+    try {
+      window.localStorage.setItem(CALENDAR_VIEWMODE_STORAGE_KEY, viewMode);
+    } catch {
+      // ignore storage errors
+    }
+
+    const current = searchParams.get("view");
+    if (current === viewMode) return;
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("view", viewMode);
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams, viewMode]);
+
+  // Persist selectedDate to URL + localStorage so it survives refresh/navigation.
+  useEffect(() => {
+    if (!didInitSelectedDateRef.current) return;
+
+    const dateParam = format(selectedDate, "yyyy-MM-dd");
+    try {
+      window.localStorage.setItem(CALENDAR_SELECTED_DATE_STORAGE_KEY, dateParam);
+    } catch {
+      // ignore storage errors
+    }
+
+    const current = searchParams.get("date");
+    if (current === dateParam) return;
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("date", dateParam);
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams, selectedDate]);
 
   // Calculate date range for fetching events (dynamic based on view mode)
   const dateRange = useMemo(() => {
@@ -115,6 +234,10 @@ export function CalendarPageView() {
   });
 
   const { users } = useOrgUsers();
+
+  // Prefetch selector data so dropdowns open instantly
+  useClients();
+  useProperties();
 
   // Filter events based on current filters
   const filteredEvents = useMemo(() => {
@@ -229,7 +352,69 @@ export function CalendarPageView() {
   // Handlers
   const handleEventUpdated = () => mutate();
   const handleEventDeleted = () => mutate();
-  const handleEventCreated = () => mutate();
+  const handleEventCreated = () => {
+    mutate();
+    setCreateEventOpen(false);
+    setCreateEventStartTime(null);
+    setCreateEventEndTime(null);
+  };
+
+  const handleEventMove = useCallback(async (eventId: string, newStartTime: Date, newEndTime: Date) => {
+    try {
+      const { useUpdateEvent } = await import("@/hooks/swr");
+      // We need to get the event first to preserve other fields
+      const event = events.find((e) => e.eventId === eventId);
+      if (!event) {
+        throw new Error("Event not found");
+      }
+
+      // Use dynamic import to avoid circular dependencies
+      const response = await fetch(`/api/calendar/events/${eventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startTime: newStartTime.toISOString(),
+          endTime: newEndTime.toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update event");
+      }
+
+      mutate();
+    } catch (error) {
+      console.error("Failed to move event:", error);
+      throw error;
+    }
+  }, [events, mutate]);
+
+  const handleEventResize = useCallback(async (eventId: string, newStartTime: Date, newEndTime: Date) => {
+    try {
+      const event = events.find((e) => e.eventId === eventId);
+      if (!event) {
+        throw new Error("Event not found");
+      }
+
+      const response = await fetch(`/api/calendar/events/${eventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startTime: newStartTime.toISOString(),
+          endTime: newEndTime.toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update event");
+      }
+
+      mutate();
+    } catch (error) {
+      console.error("Failed to resize event:", error);
+      throw error;
+    }
+  }, [events, mutate]);
 
   const navigateToday = () => setSelectedDate(new Date());
 
@@ -239,11 +424,26 @@ export function CalendarPageView() {
     setSelectedDate(newDate);
   };
 
-  // Render day view content
+  const handleCreateEventFromDrag = useCallback((startTime: Date, endTime: Date) => {
+    setCreateEventStartTime(startTime);
+    setCreateEventEndTime(endTime);
+    setCreateEventOpen(true);
+  }, []);
+
+  const handleDraftSelectionChange = useCallback((startTime: Date, endTime: Date) => {
+    setCreateEventStartTime(startTime);
+    setCreateEventEndTime(endTime);
+  }, []);
+
+  const handleDraftSelectionClick = useCallback(() => {
+    setCreateEventOpen(true);
+  }, []);
+
+  // Render day view content with mini calendar and hour view
   const renderDayViewContent = () => (
     <div className="flex flex-col lg:flex-row gap-4 h-full">
-      {/* Calendar sidebar */}
-      <Card className="lg:w-[320px] flex-shrink-0">
+      {/* Mini Calendar sidebar */}
+      <Card className="lg:w-[280px] flex-shrink-0">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <Button
@@ -268,17 +468,15 @@ export function CalendarPageView() {
           </div>
         </CardHeader>
         <CardContent>
-          <MonthView
+          <MiniMonthCalendar
             events={filteredEvents}
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
-            onEventUpdated={handleEventUpdated}
-            onEventDeleted={handleEventDeleted}
           />
         </CardContent>
       </Card>
 
-      {/* Day events */}
+      {/* Day hour view */}
       <Card className="flex-1">
         <CardHeader>
           <CardTitle>
@@ -290,73 +488,39 @@ export function CalendarPageView() {
               : t("calendarView.noEventsOrTasks")}
           </CardDescription>
         </CardHeader>
-        <CardContent className="overflow-auto max-h-[calc(100vh-450px)]">
+        <CardContent className="p-0">
           {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">
               {t("calendarView.loading")}
             </div>
-          ) : dayEvents.length === 0 && dayTasks.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{t("empty.noEvents")}</p>
-              <p className="text-sm mt-1">{t("empty.noEventsDescription")}</p>
-            </div>
           ) : (
-            <div className="space-y-3">
-              {dayEvents.map((event) => (
-                <Card
-                  key={event.id}
-                  className="hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => {
-                    if (event.eventId) {
-                      router.push(`/calendar/events/${event.eventId}`);
-                    }
-                  }}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{event.title}</h4>
-                        {event.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                            {event.description}
-                          </p>
-                        )}
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {format(new Date(event.startTime), "HH:mm")} -{" "}
-                            {format(new Date(event.endTime), "HH:mm")}
-                          </Badge>
-                          {event.location && (
-                            <Badge variant="outline" className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              <span className="truncate max-w-[150px]">{event.location}</span>
-                            </Badge>
-                          )}
-                          {event.eventType && (
-                            <Badge variant="secondary">{event.eventType}</Badge>
-                          )}
-                        </div>
-                      </div>
-                      {event.eventId && (
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <EventActionsMenu
-                            eventId={event.eventId}
-                            event={event}
-                            onEventUpdated={handleEventUpdated}
-                            onEventDeleted={handleEventDeleted}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex flex-col lg:flex-row min-h-[500px]">
+              <div className="flex-1 min-w-0">
+                <DayHourView
+                  events={filteredEvents}
+                  selectedDate={selectedDate}
+                  onDateSelect={setSelectedDate}
+                  onEventUpdated={handleEventUpdated}
+                  onEventDeleted={handleEventDeleted}
+                  onCreateEvent={handleCreateEventFromDrag}
+                  onEventMove={handleEventMove}
+                  onEventResize={handleEventResize}
+                  draftStartTime={createEventStartTime}
+                  draftEndTime={createEventEndTime}
+                  onDraftSelectionChange={handleDraftSelectionChange}
+                  onDraftSelectionClick={handleDraftSelectionClick}
+                />
+              </div>
 
-              {dayTasks.map((task) => (
-                <TaskEventCard key={task.id} task={task} />
-              ))}
+              {createEventOpen && (
+                <EventCreateSidePanel
+                  open={createEventOpen}
+                  onOpenChange={handleCreateEventOpenChange}
+                  onSuccess={handleEventCreated}
+                  defaultStartTime={createEventStartTime}
+                  defaultEndTime={createEventEndTime}
+                />
+              )}
             </div>
           )}
         </CardContent>
@@ -367,7 +531,7 @@ export function CalendarPageView() {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title={t("stats.upcomingEvents")}
           value={stats.upcoming.toString()}
@@ -417,8 +581,28 @@ export function CalendarPageView() {
 
           <div className="flex items-center gap-2 flex-wrap">
             <ViewSelector value={viewMode} onChange={setViewMode} />
-            <EventCreateForm onSuccess={handleEventCreated} />
+            <ExportButton
+              module="calendar"
+              calendarViewOptions
+              filters={{
+                eventType: filters.eventType ? [filters.eventType] : undefined,
+                startDate: dateRange.start.toISOString().split("T")[0],
+                endDate: dateRange.end.toISOString().split("T")[0],
+                month: format(selectedDate, "yyyy-MM"),
+              }}
+            />
+            <EventCreateTrigger onClick={() => setCreateEventOpen(true)} />
           </div>
+          
+          {viewMode !== "day" && (
+            <EventCreateForm
+              open={createEventOpen}
+              onOpenChange={handleCreateEventOpenChange}
+              onSuccess={handleEventCreated}
+              defaultStartTime={createEventStartTime}
+              defaultEndTime={createEventEndTime}
+            />
+          )}
         </div>
 
         {/* Filters */}
@@ -438,19 +622,46 @@ export function CalendarPageView() {
             <CardContent className="p-4 sm:p-6">
               {viewMode === "day" && renderDayViewContent()}
               {viewMode === "week" && (
-                <WeekView
-                  events={filteredEvents}
-                  selectedDate={selectedDate}
-                  onDateSelect={setSelectedDate}
-                  onEventUpdated={handleEventUpdated}
-                  onEventDeleted={handleEventDeleted}
-                />
+                <div className="flex flex-col lg:flex-row gap-4 h-full">
+                  {/* Mini Calendar sidebar for week view */}
+                  <Card className="lg:w-[280px] flex-shrink-0">
+                    <CardContent className="pt-6">
+                      <MiniMonthCalendar
+                        events={filteredEvents}
+                        selectedDate={selectedDate}
+                        onDateSelect={setSelectedDate}
+                      />
+                    </CardContent>
+                  </Card>
+                  {/* Week view */}
+                  <div className="flex-1">
+                    <WeekView
+                      events={filteredEvents}
+                      selectedDate={selectedDate}
+                      onDateSelect={setSelectedDate}
+                      onEventUpdated={handleEventUpdated}
+                      onEventDeleted={handleEventDeleted}
+                      onCreateEvent={handleCreateEventFromDrag}
+                      draftStartTime={createEventStartTime}
+                      draftEndTime={createEventEndTime}
+                      onDraftSelectionClick={() => setCreateEventOpen(true)}
+                    />
+                  </div>
+                </div>
               )}
               {viewMode === "month" && (
                 <MonthView
                   events={filteredEvents}
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
+                  onDateOpen={(date) => {
+                    setSelectedDate(date);
+                    setViewMode("day");
+                  }}
+                  onWeekOpen={(anchorDate) => {
+                    setSelectedDate(anchorDate);
+                    setViewMode("week");
+                  }}
                   onEventUpdated={handleEventUpdated}
                   onEventDeleted={handleEventDeleted}
                 />
@@ -460,6 +671,18 @@ export function CalendarPageView() {
                   events={filteredEvents}
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
+                  onMonthOpen={(month) => {
+                    setSelectedDate(month);
+                    setViewMode("month");
+                  }}
+                  onDateOpen={(date) => {
+                    setSelectedDate(date);
+                    setViewMode("day");
+                  }}
+                  onWeekOpen={(anchorDate) => {
+                    setSelectedDate(anchorDate);
+                    setViewMode("week");
+                  }}
                   onEventUpdated={handleEventUpdated}
                   onEventDeleted={handleEventDeleted}
                 />
@@ -469,6 +692,18 @@ export function CalendarPageView() {
                   events={filteredEvents}
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
+                  onMonthOpen={(month) => {
+                    setSelectedDate(month);
+                    setViewMode("month");
+                  }}
+                  onDateOpen={(date) => {
+                    setSelectedDate(date);
+                    setViewMode("day");
+                  }}
+                  onWeekOpen={(anchorDate) => {
+                    setSelectedDate(anchorDate);
+                    setViewMode("week");
+                  }}
                   onEventUpdated={handleEventUpdated}
                   onEventDeleted={handleEventDeleted}
                 />
@@ -492,19 +727,46 @@ export function CalendarPageView() {
             <CardContent className="p-4 sm:p-6">
               {viewMode === "day" && renderDayViewContent()}
               {viewMode === "week" && (
-                <WeekView
-                  events={filteredEvents}
-                  selectedDate={selectedDate}
-                  onDateSelect={setSelectedDate}
-                  onEventUpdated={handleEventUpdated}
-                  onEventDeleted={handleEventDeleted}
-                />
+                <div className="flex flex-col lg:flex-row gap-4 h-full">
+                  {/* Mini Calendar sidebar for week view */}
+                  <Card className="lg:w-[280px] flex-shrink-0">
+                    <CardContent className="pt-6">
+                      <MiniMonthCalendar
+                        events={filteredEvents}
+                        selectedDate={selectedDate}
+                        onDateSelect={setSelectedDate}
+                      />
+                    </CardContent>
+                  </Card>
+                  {/* Week view */}
+                  <div className="flex-1">
+                    <WeekView
+                      events={filteredEvents}
+                      selectedDate={selectedDate}
+                      onDateSelect={setSelectedDate}
+                      onEventUpdated={handleEventUpdated}
+                      onEventDeleted={handleEventDeleted}
+                      onCreateEvent={handleCreateEventFromDrag}
+                      draftStartTime={createEventStartTime}
+                      draftEndTime={createEventEndTime}
+                      onDraftSelectionClick={() => setCreateEventOpen(true)}
+                    />
+                  </div>
+                </div>
               )}
               {viewMode === "month" && (
                 <MonthView
                   events={filteredEvents}
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
+                  onDateOpen={(date) => {
+                    setSelectedDate(date);
+                    setViewMode("day");
+                  }}
+                  onWeekOpen={(anchorDate) => {
+                    setSelectedDate(anchorDate);
+                    setViewMode("week");
+                  }}
                   onEventUpdated={handleEventUpdated}
                   onEventDeleted={handleEventDeleted}
                 />
@@ -514,6 +776,18 @@ export function CalendarPageView() {
                   events={filteredEvents}
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
+                  onMonthOpen={(month) => {
+                    setSelectedDate(month);
+                    setViewMode("month");
+                  }}
+                  onDateOpen={(date) => {
+                    setSelectedDate(date);
+                    setViewMode("day");
+                  }}
+                  onWeekOpen={(anchorDate) => {
+                    setSelectedDate(anchorDate);
+                    setViewMode("week");
+                  }}
                   onEventUpdated={handleEventUpdated}
                   onEventDeleted={handleEventDeleted}
                 />
@@ -523,6 +797,18 @@ export function CalendarPageView() {
                   events={filteredEvents}
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
+                  onMonthOpen={(month) => {
+                    setSelectedDate(month);
+                    setViewMode("month");
+                  }}
+                  onDateOpen={(date) => {
+                    setSelectedDate(date);
+                    setViewMode("day");
+                  }}
+                  onWeekOpen={(anchorDate) => {
+                    setSelectedDate(anchorDate);
+                    setViewMode("week");
+                  }}
                   onEventUpdated={handleEventUpdated}
                   onEventDeleted={handleEventDeleted}
                 />
@@ -534,4 +820,8 @@ export function CalendarPageView() {
     </div>
   );
 }
+
+
+
+
 

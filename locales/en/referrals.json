@@ -1,0 +1,121 @@
+{
+  "yourReferralCode": "Your Referral Code",
+  "shareCodeDescription": "Share your unique code or link with friends to earn commissions when they sign up.",
+  "referralCode": "Referral Code",
+  "referralLink": "Referral Link",
+  "copyCode": "Copy code",
+  "copyLink": "Copy link",
+  "codeCopied": "Referral code copied to clipboard!",
+  "linkCopied": "Referral link copied to clipboard!",
+  "commissionRate": "Your commission rate",
+  "regenerateCode": "Regenerate Code",
+  "codeRegenerated": "Your referral code has been regenerated!",
+  "stats": {
+    "totalReferrals": "Total Referrals",
+    "converted": "Converted",
+    "pendingEarnings": "Pending Earnings",
+    "totalEarnings": "Total Earnings"
+  },
+  "yourReferrals": "Your Referrals",
+  "referralsDescription": "People who signed up using your referral code",
+  "table": {
+    "user": "User",
+    "status": "Status",
+    "earnings": "Earnings",
+    "date": "Date",
+    "amount": "Amount",
+    "notes": "Notes"
+  },
+  "status": {
+    "pending": "Pending",
+    "converted": "Converted",
+    "cancelled": "Cancelled"
+  },
+  "payoutStatus": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "paid": "Paid",
+    "cancelled": "Cancelled"
+  },
+  "anonymous": "Anonymous User",
+  "noReferrals": "No referrals yet",
+  "shareToGetStarted": "Share your code with friends to start earning!",
+  "payoutHistory": "Payout History",
+  "payoutHistoryDescription": "Your commission payouts from referrals",
+  "errors": {
+    "loadFailed": "Failed to load referral data",
+    "regenerateFailed": "Failed to regenerate code",
+    "applicationFailed": "Failed to submit application",
+    "alreadyApplied": "You have already applied to the referral programme"
+  },
+  "promoBox": {
+    "title": "Referral Programme",
+    "description": "Earn commissions by referring new users to Oikion",
+    "commission": "5%",
+    "commissionLabel": "commission on referrals",
+    "cta": "I want to learn more",
+    "dismiss": {
+      "title": "Hide Referral Programme",
+      "description": "Would you like to hide this promotion?",
+      "never": "I never want to see this again",
+      "later": "Show me next time"
+    }
+  },
+  "portal": {
+    "title": "Referral Programme",
+    "subtitle": "Join our referral programme and start earning",
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Apply to Join",
+        "description": "Submit a quick application to become a referrer"
+      },
+      "step2": {
+        "title": "Get Your Unique Code",
+        "description": "Once approved, you'll receive a unique referral code and link"
+      },
+      "step3": {
+        "title": "Share & Earn",
+        "description": "Share your code with colleagues and earn 5% commission on their subscriptions"
+      }
+    },
+    "benefits": {
+      "title": "Benefits",
+      "item1": "5% commission on all referred user subscriptions",
+      "item2": "Track your referrals and earnings in real-time",
+      "item3": "No limit on the number of referrals",
+      "item4": "Monthly payouts directly to your account"
+    },
+    "application": {
+      "title": "Apply Now",
+      "description": "Fill out this short form to apply to our referral programme",
+      "nameLabel": "Full Name",
+      "namePlaceholder": "Enter your full name",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "your@email.com",
+      "messageLabel": "Why do you want to join?",
+      "messagePlaceholder": "Tell us briefly why you'd like to become a referrer...",
+      "submit": "Submit Application",
+      "submitting": "Submitting..."
+    },
+    "applicationStatus": {
+      "pending": {
+        "title": "Application Pending",
+        "description": "Your application is being reviewed. We'll notify you once it's been processed."
+      },
+      "approved": {
+        "title": "You're a Referrer!",
+        "description": "Your application has been approved. Visit your profile to access your referral code.",
+        "cta": "Go to Referrals"
+      },
+      "denied": {
+        "title": "Application Not Approved",
+        "description": "Unfortunately, your application was not approved at this time. Please contact support for more information."
+      }
+    },
+    "success": {
+      "title": "Application Submitted!",
+      "description": "Thank you for applying to our referral programme. We'll review your application and get back to you soon."
+    }
+  }
+}

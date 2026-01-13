@@ -34,7 +34,7 @@ export async function getMyAgentProfile() {
   const profile = await prismadb.agentProfile.findUnique({
     where: { userId: currentUser.id },
     include: {
-      user: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -50,7 +50,7 @@ export async function getMyAgentProfile() {
   if (profile) {
     return {
       ...profile,
-      slug: profile.user.username || profile.slug,
+      slug: profile.Users?.username || profile.slug,
     };
   }
 
@@ -80,7 +80,7 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
   }
 
   // Then get the profile for that user
-  const profile = await prismadb.agentProfile.findFirst({
+  const profileRaw = await prismadb.agentProfile.findFirst({
     where: {
       userId: user.id,
       // PERSONAL profiles are never visible
@@ -91,7 +91,7 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
         : "PUBLIC",
     },
     include: {
-      user: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -99,10 +99,10 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
           username: true,
           _count: {
             select: {
-              followers: {
+              AgentConnection_AgentConnection_followerIdToUsers: {
                 where: { status: "ACCEPTED" },
               },
-              following: {
+              AgentConnection_AgentConnection_followingIdToUsers: {
                 where: { status: "ACCEPTED" },
               },
             },
@@ -110,10 +110,10 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
         },
       },
       // Get showcased properties with their order
-      showcaseProperties: {
+      ProfileShowcaseProperty: {
         orderBy: { order: "asc" },
         include: {
-          property: {
+          Properties: {
             select: {
               id: true,
               property_name: true,
@@ -126,7 +126,7 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
               bathrooms: true,
               square_feet: true,
               size_net_sqm: true,
-              linkedDocuments: {
+              Documents: {
                 where: {
                   document_file_mimeType: {
                     startsWith: "image/",
@@ -144,24 +144,45 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
     },
   });
 
-  if (!profile) {
+  if (!profileRaw) {
     return null;
   }
+
+  // Map to expected field names for backward compatibility
+  const profile = {
+    ...profileRaw,
+    user: profileRaw.Users ? {
+      ...profileRaw.Users,
+      _count: {
+        followers: profileRaw.Users._count.AgentConnection_AgentConnection_followerIdToUsers,
+        following: profileRaw.Users._count.AgentConnection_AgentConnection_followingIdToUsers,
+      },
+    } : null,
+    showcaseProperties: profileRaw.ProfileShowcaseProperty.map((sp) => ({
+      ...sp,
+      property: sp.Properties ? {
+        ...sp.Properties,
+        // Convert Decimal to number for serialization
+        size_net_sqm: sp.Properties.size_net_sqm ? Number(sp.Properties.size_net_sqm) : null,
+        linkedDocuments: sp.Properties.Documents,
+      } : null,
+    })),
+  };
 
   // Transform the data to match the expected format
   // Properties are now sourced from showcaseProperties instead of user.properties
   // Slug is now derived from username for consistency
   const transformedProfile = {
     ...profile,
-    slug: profile.user.username || profile.slug, // Use username as the URL slug
-    user: {
+    slug: profile.user?.username || profile.slug, // Use username as the URL slug
+    user: profile.user ? {
       ...profile.user,
       properties: profile.showcaseProperties.map((sp) => sp.property),
       _count: {
         ...profile.user._count,
         properties: profile.showcaseProperties.length,
       },
-    },
+    } : null,
   };
 
   return transformedProfile;
@@ -245,8 +266,10 @@ export async function upsertAgentProfile(input: AgentProfileInput) {
   } else {
     const profile = await prismadb.agentProfile.create({
       data: {
+        id: crypto.randomUUID(),
         userId: currentUser.id,
         ...profileData,
+        updatedAt: new Date(),
       },
     });
     revalidatePath("/profile/public");
@@ -296,19 +319,19 @@ export async function searchAgentProfiles(query: string, limit: number = 20) {
         ? { in: ["PUBLIC", "SECURE"] } 
         : "PUBLIC",
       // Only show profiles for users that have a username (required for public URL)
-      user: {
+      Users: {
         username: { not: null },
       },
       OR: [
-        { user: { name: { contains: query, mode: "insensitive" } } },
-        { user: { username: { contains: query, mode: "insensitive" } } },
+        { Users: { name: { contains: query, mode: "insensitive" } } },
+        { Users: { username: { contains: query, mode: "insensitive" } } },
         { bio: { contains: query, mode: "insensitive" } },
         { serviceAreas: { hasSome: [query] } },
         { specializations: { hasSome: [query] } },
       ],
     },
     include: {
-      user: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -316,7 +339,7 @@ export async function searchAgentProfiles(query: string, limit: number = 20) {
           username: true,
           _count: {
             select: {
-              properties: {
+              Properties_Properties_assigned_toToUsers: {
                 where: {
                   portal_visibility: "PUBLIC",
                   property_status: "ACTIVE",
@@ -334,7 +357,7 @@ export async function searchAgentProfiles(query: string, limit: number = 20) {
   // Transform to use username as slug
   return profiles.map((profile) => ({
     ...profile,
-    slug: profile.user.username || profile.slug,
+    slug: profile.Users?.username || profile.slug,
   }));
 }
 

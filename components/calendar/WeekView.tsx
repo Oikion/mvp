@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,12 +19,21 @@ import {
   startOfDay,
   endOfDay,
   setHours,
+  addMinutes,
 } from "date-fns";
 import { el, enUS } from "date-fns/locale";
 import { useTranslations, useLocale } from "next-intl";
 import { EventActionsMenu } from "./EventActionsMenu";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import {
+  DEFAULT_START_HOUR,
+  DEFAULT_END_HOUR,
+  snapPixelsToTime,
+  getEventPosition,
+  timeToPixels,
+  createDateWithTime,
+} from "./calendar-utils";
 
 interface CalendarEvent {
   id: number;
@@ -45,11 +54,22 @@ interface WeekViewProps {
   onWeekChange?: (date: Date) => void;
   onEventUpdated?: () => void;
   onEventDeleted?: () => void;
+  onCreateEvent?: (startTime: Date, endTime: Date) => void;
+  draftStartTime?: Date | null;
+  draftEndTime?: Date | null;
+  onDraftSelectionClick?: () => void;
 }
 
-const HOUR_HEIGHT = 60; // pixels per hour
-const START_HOUR = 6;
-const END_HOUR = 22;
+const START_HOUR = DEFAULT_START_HOUR;
+const END_HOUR = DEFAULT_END_HOUR;
+const MIN_CREATE_MINUTES = 15;
+
+type CreateDragState = {
+  day: Date;
+  startY: number;
+  startTime: Date;
+  endTime: Date;
+};
 
 export function WeekView({
   events,
@@ -58,11 +78,20 @@ export function WeekView({
   onWeekChange,
   onEventUpdated,
   onEventDeleted,
+  onCreateEvent,
+  draftStartTime,
+  draftEndTime,
+  onDraftSelectionClick,
 }: WeekViewProps) {
   const t = useTranslations("calendar");
   const router = useRouter();
   const locale = useLocale();
   const dateLocale = locale === "el" ? el : enUS;
+
+  const [createDrag, setCreateDrag] = useState<CreateDragState | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const createPointerIdRef = useRef<number | null>(null);
+  const createColumnRectRef = useRef<DOMRect | null>(null);
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday start
   const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -71,6 +100,27 @@ export function WeekView({
     start: setHours(startOfDay(selectedDate), START_HOUR),
     end: setHours(startOfDay(selectedDate), END_HOUR),
   });
+
+  // Prevent browser text/element selection while dragging.
+  useEffect(() => {
+    if (!isDragging) return;
+    const body = document.body;
+    const prevUserSelect = body.style.userSelect;
+    const prevWebkitUserSelect = (body.style as unknown as { WebkitUserSelect?: string })
+      .WebkitUserSelect;
+    const prevCursor = body.style.cursor;
+
+    body.style.userSelect = "none";
+    (body.style as unknown as { WebkitUserSelect?: string }).WebkitUserSelect = "none";
+    body.style.cursor = "grabbing";
+
+    return () => {
+      body.style.userSelect = prevUserSelect;
+      (body.style as unknown as { WebkitUserSelect?: string }).WebkitUserSelect =
+        prevWebkitUserSelect ?? "";
+      body.style.cursor = prevCursor;
+    };
+  }, [isDragging]);
 
   const navigateWeek = (direction: "prev" | "next") => {
     const newDate = direction === "next" 
@@ -101,22 +151,107 @@ export function WeekView({
     return eventsByDayAndHour[dayKey] || [];
   };
 
-  const getEventPosition = (event: CalendarEvent) => {
-    const start = new Date(event.startTime);
-    const end = new Date(event.endTime);
-    
-    const startHour = start.getHours() + start.getMinutes() / 60;
-    const endHour = end.getHours() + end.getMinutes() / 60;
-    
-    const top = Math.max(0, (startHour - START_HOUR) * HOUR_HEIGHT);
-    const height = Math.max(30, (endHour - startHour) * HOUR_HEIGHT);
-    
-    return { top, height };
+  const getEventPositionForDay = (event: CalendarEvent, day: Date) => {
+    return getEventPosition(
+      new Date(event.startTime),
+      new Date(event.endTime),
+      START_HOUR
+    );
   };
 
   const weekdayLabels = locale === "el"
     ? ["Δευ", "Τρι", "Τετ", "Πεμ", "Παρ", "Σαβ", "Κυρ"]
     : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  const handleDayColumnPointerDown = useCallback(
+    (day: Date, e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.button !== 0) return;
+      if ((e.target as HTMLElement).closest(".event-card")) return;
+      e.preventDefault();
+
+      const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+      createColumnRectRef.current = rect;
+      createPointerIdRef.current = e.pointerId;
+
+      const rawY = e.clientY - rect.top;
+      const y = Math.max(0, Math.min(rect.height, rawY));
+      const { hours, minutes } = snapPixelsToTime(y, START_HOUR);
+      const startTime = createDateWithTime(day, hours, minutes);
+
+      setCreateDrag({
+        day,
+        startY: y,
+        startTime,
+        endTime: addMinutes(startTime, MIN_CREATE_MINUTES),
+      });
+      setIsDragging(true);
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!createDrag) return;
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
+      const rect = createColumnRectRef.current;
+      if (!rect) return;
+
+      const rawY = e.clientY - rect.top;
+      const y = Math.max(0, Math.min(rect.height, rawY));
+
+      const startY = Math.min(createDrag.startY, y);
+      const endY = Math.max(createDrag.startY, y);
+
+      const { hours: startH, minutes: startM } = snapPixelsToTime(startY, START_HOUR);
+      const { hours: endH, minutes: endM } = snapPixelsToTime(endY, START_HOUR);
+
+      const startTime = createDateWithTime(createDrag.day, startH, startM);
+      let endTime = createDateWithTime(createDrag.day, endH, endM);
+      if (endTime <= startTime) {
+        endTime = addMinutes(startTime, MIN_CREATE_MINUTES);
+      }
+
+      setCreateDrag((prev) =>
+        prev
+          ? {
+              ...prev,
+              startTime,
+              endTime,
+            }
+          : prev
+      );
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
+      if (onCreateEvent) {
+        onCreateEvent(createDrag.startTime, createDrag.endTime);
+      }
+      createPointerIdRef.current = null;
+      createColumnRectRef.current = null;
+      setCreateDrag(null);
+      setIsDragging(false);
+    };
+
+    const handlePointerCancel = (e: PointerEvent) => {
+      if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
+      createPointerIdRef.current = null;
+      createColumnRectRef.current = null;
+      setCreateDrag(null);
+      setIsDragging(false);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerCancel);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerCancel);
+    };
+  }, [createDrag, onCreateEvent]);
 
   return (
     <div className="flex flex-col h-full">
@@ -201,7 +336,11 @@ export function WeekView({
               const dayEvents = getEventsForDay(day);
               
               return (
-                <div key={dayIdx} className="relative border-r last:border-r-0">
+                <div
+                  key={dayIdx}
+                  className="relative border-r last:border-r-0 select-none touch-none"
+                  onPointerDown={(e) => handleDayColumnPointerDown(day, e)}
+                >
                   {/* Hour grid lines */}
                   {hours.map((hour) => (
                     <div
@@ -213,9 +352,66 @@ export function WeekView({
                     />
                   ))}
 
+                  {/* Drag preview for creating */}
+                  {createDrag && isSameDay(createDrag.day, day) && (
+                    <div
+                      className="absolute left-1 right-1 bg-primary/20 border-2 border-dashed border-primary rounded z-20 transition-all duration-75"
+                      style={{
+                        top: `${timeToPixels(
+                          createDrag.startTime.getHours(),
+                          createDrag.startTime.getMinutes(),
+                          START_HOUR
+                        )}px`,
+                        height: `${Math.max(
+                          30,
+                          timeToPixels(
+                            createDrag.endTime.getHours(),
+                            createDrag.endTime.getMinutes(),
+                            START_HOUR
+                          ) -
+                            timeToPixels(
+                              createDrag.startTime.getHours(),
+                              createDrag.startTime.getMinutes(),
+                              START_HOUR
+                            )
+                        )}px`,
+                      }}
+                    >
+                      <div className="p-2 text-xs text-primary font-medium">
+                        {format(createDrag.startTime, "HH:mm")} - {format(createDrag.endTime, "HH:mm")}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Draft selection (persists after form closes) */}
+                  {draftStartTime &&
+                    draftEndTime &&
+                    isSameDay(draftStartTime, day) &&
+                    isSameDay(draftEndTime, day) && (
+                      <Card
+                        className={cn(
+                          "event-card absolute left-1 right-1 p-2 overflow-hidden cursor-pointer z-20",
+                          "bg-primary/10 border-primary/40 border-2 border-dashed",
+                          "select-none touch-none"
+                        )}
+                        style={{
+                          top: `${getEventPosition(draftStartTime, draftEndTime, START_HOUR).top}px`,
+                          height: `${getEventPosition(draftStartTime, draftEndTime, START_HOUR).height}px`,
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDraftSelectionClick?.();
+                        }}
+                      >
+                        <div className="text-xs font-medium text-primary">
+                          {format(draftStartTime, "HH:mm")} - {format(draftEndTime, "HH:mm")}
+                        </div>
+                      </Card>
+                    )}
+
                   {/* Events */}
                   {dayEvents.map((event) => {
-                    const { top, height } = getEventPosition(event);
+                    const { top, height } = getEventPositionForDay(event, day);
                     const startHour = new Date(event.startTime).getHours();
                     
                     // Only show events within the visible hours
@@ -225,14 +421,15 @@ export function WeekView({
                       <Card
                         key={event.id}
                         className={cn(
-                          "absolute left-1 right-1 p-1.5 overflow-hidden cursor-pointer",
+                          "event-card absolute left-1 right-1 p-1.5 overflow-hidden cursor-pointer",
                           "hover:shadow-md transition-shadow z-10",
-                          "bg-primary/10 border-primary/30 border-l-4 border-l-primary"
+                          "bg-primary/10 border-primary/30 border-l-4 border-l-primary",
+                          "select-none touch-none"
                         )}
                         style={{ top: `${top}px`, height: `${height}px` }}
                         onClick={() => {
                           if (event.eventId) {
-                            router.push(`/calendar/events/${event.eventId}`);
+                            router.push(`/app/calendar/events/${event.eventId}`);
                           }
                         }}
                       >
@@ -278,4 +475,8 @@ export function WeekView({
     </div>
   );
 }
+
+
+
+
 

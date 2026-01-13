@@ -70,6 +70,7 @@ export default async function SharedDocumentPage({
 
   await prismadb.documentView.create({
     data: {
+      id: crypto.randomUUID(),
       documentId: document.id,
       viewerIp,
       viewerUserAgent,

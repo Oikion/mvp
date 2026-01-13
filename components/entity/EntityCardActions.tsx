@@ -85,7 +85,7 @@ export interface EntityCardActionsProps {
  *   entityType="property"
  *   entityId={property.id}
  *   entityName={property.name}
- *   viewHref={`/mls/properties/${property.id}`}
+ *   viewHref={`/app/mls/properties/${property.id}`}
  *   onDelete={async () => await deleteProperty(property.id)}
  *   showSchedule
  *   showShare
@@ -115,13 +115,13 @@ export function EntityCardActions({
   const getDefaultViewPath = (): string => {
     switch (entityType) {
       case "property":
-        return `/mls/properties/${entityId}`;
+        return `/app/mls/properties/${entityId}`;
       case "client":
-        return `/crm/clients/${entityId}`;
+        return `/app/crm/clients/${entityId}`;
       case "contact":
-        return `/crm/contacts/${entityId}`;
+        return `/app/crm/contacts/${entityId}`;
       case "audience":
-        return `/audiences/${entityId}`;
+        return `/app/audiences/${entityId}`;
       default:
         return "#";
     }
@@ -255,4 +255,10 @@ export function EntityCardActions({
     </DropdownMenu>
   );
 }
+
+
+
+
+
+
 

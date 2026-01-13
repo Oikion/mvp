@@ -24,7 +24,7 @@ export async function GET(
     const task = await prismadb.crm_Accounts_Tasks.findUnique({
       where: { id: taskId },
       include: {
-        assigned_user: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -32,14 +32,14 @@ export async function GET(
             avatar: true,
           },
         },
-        crm_accounts: {
+        Clients: {
           select: {
             id: true,
             client_name: true,
             primary_email: true,
           },
         },
-        calcomEvent: {
+        CalComEvent: {
           select: {
             id: true,
             title: true,
@@ -47,9 +47,9 @@ export async function GET(
             endTime: true,
           },
         },
-        comments: {
+        crm_Accounts_Tasks_Comments: {
           include: {
-            assigned_user: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -131,7 +131,7 @@ export async function PUT(
         updatedBy: currentUser.id,
       },
       include: {
-        assigned_user: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -139,7 +139,7 @@ export async function PUT(
             avatar: true,
           },
         },
-        crm_accounts: {
+        Clients: {
           select: {
             id: true,
             client_name: true,
@@ -149,7 +149,11 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(updatedTask);
+    return NextResponse.json({
+      ...updatedTask,
+      assigned_user: updatedTask.Users,
+      crm_accounts: updatedTask.Clients,
+    });
   } catch (error: any) {
     console.error('[UPDATE_TASK]', error);
     return NextResponse.json(

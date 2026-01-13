@@ -37,6 +37,10 @@
       "status": "Κατάσταση",
       "statusPlaceholder": "Επιλέξτε κατάσταση",
       "isExclusive": "Αποκλειστικότητα",
+      "street": "Οδός",
+      "city": "Πόλη",
+      "state": "Νομός",
+      "zip": "ΤΚ",
       "municipality": "Δήμος",
       "municipalityPlaceholder": "Επιλέξτε δήμο",
       "area": "Περιοχή/Γειτονιά",
@@ -47,6 +51,8 @@
       "addressPrivacyLevelPlaceholder": "Επιλέξτε επίπεδο",
       "sizeNetSqm": "Καθαρά τ.μ.",
       "sizeGrossSqm": "Μεικτά τ.μ.",
+      "squareFeet": "Τετραγωνικά πόδια",
+      "lotSize": "Εμβαδόν οικοπέδου",
       "floor": "Όροφος",
       "floorPlaceholder": "Επιλέξτε όροφο",
       "floorsTotal": "Σύνολο ορόφων κτιρίου",
@@ -64,6 +70,7 @@
       "renovatedYear": "Έτος ανακαίνισης",
       "condition": "Κατάσταση",
       "conditionPlaceholder": "Επιλέξτε κατάσταση",
+      "description": "Περιγραφή",
       "elevator": "Ανελκυστήρας",
       "buildingPermitNo": "Αριθμός άδειας οικοδομής",
       "buildingPermitYear": "Έτος άδειας",
@@ -89,7 +96,9 @@
       "photos": "Φωτογραφίες",
       "virtualTourUrl": "URL εικονικής περιήγησης",
       "portalVisibility": "Ορατότητα σε portals",
-      "portalVisibilityPlaceholder": "Επιλέξτε ορατότητα"
+      "portalVisibilityPlaceholder": "Επιλέξτε ορατότητα",
+      "specifyOther": "Προσδιορίστε τύπο",
+      "specifyOtherPlaceholder": "Εισάγετε τον τύπο ακινήτου..."
     },
     "propertyType": {
       "APARTMENT": "Διαμέρισμα",
@@ -101,7 +110,11 @@
       "PLOT": "Οικόπεδο",
       "FARM": "Αγροτεμάχιο",
       "INDUSTRIAL": "Βιομηχανικό",
-      "OTHER": "Άλλο"
+      "OTHER": "Άλλο",
+      "RESIDENTIAL": "Κατοικία",
+      "LAND": "Οικόπεδο",
+      "RENTAL": "Ενοικίαση",
+      "VACATION": "Διακοπές"
     },
     "transactionType": {
       "SALE": "Πώληση",
@@ -221,12 +234,18 @@
       "previous": "Προηγούμενο",
       "next": "Επόμενο",
       "submit": "Δημιουργία Ακινήτου",
-      "quickAdd": "Γρήγορη Προσθήκη"
+      "quickAdd": "Γρήγορη Προσθήκη",
+      "update": "Ενημέρωση Ακινήτου"
     },
     "autosave": {
       "saving": "Αποθήκευση...",
       "saved": "Αποθηκεύτηκε",
       "failed": "Αποτυχία αποθήκευσης"
+    },
+    "step3": {
+      "noPropertyType": "Παρακαλώ επιλέξτε τύπο ακινήτου στο βήμα 1 πρώτα.",
+      "otherType": "Τα πεδία εμφανίζονται βάσει του τύπου ακινήτου που επιλέξατε.",
+      "otherTypeContinue": "Για parking, βιομηχανικό ή άλλο τύπο, μπορείτε να συνεχίσετε στο επόμενο βήμα."
     }
   },
   "QuickAdd": {
@@ -259,14 +278,42 @@
     "agencyPropertiesDescription": "Ακίνητα που διαχειρίζεται το γραφείο σας",
     "sharedPropertiesDescription": "Ακίνητα που μοιράστηκαν μαζί σας από συνδέσεις"
   },
+  "stats": {
+    "totalProperties": "Σύνολο Ακινήτων",
+    "activeProperties": "Ενεργά Ακίνητα",
+    "portfolioValue": "Αξία Χαρτοφυλακίου",
+    "new30d": "Νέα (30ημ)",
+    "sharedWithYou": "Κοινόχρηστα",
+    "allListings": "Όλες οι καταχωρήσεις",
+    "allTimeProperties": "Όλα τα ακίνητα",
+    "currentlyOnMarket": "Τρέχοντα στην αγορά",
+    "totalListingValue": "Συνολική αξία καταχωρήσεων",
+    "addedThisMonth": "Προστέθηκαν αυτόν τον μήνα",
+    "fromConnections": "Από συνδέσεις",
+    "addProperty": "Προσθήκη Ακινήτου",
+    "findAgents": "Εύρεση Πρακτόρων",
+    "noPropertiesYet": "Ξεκινήστε να χτίζετε το χαρτοφυλάκιό σας",
+    "noActiveListings": "Καταχωρήστε ένα ακίνητο",
+    "addPropertiesToTrack": "Προσθέστε ακίνητα για παρακολούθηση",
+    "connectToReceive": "Συνδεθείτε με πράκτορες για καταχωρήσεις",
+    "hints": {
+      "totalProperties": "Προσθέστε τουλάχιστον 5 ακίνητα για να δείτε σημαντικές τάσεις!",
+      "activeProperties": "Κρατήστε ακίνητα ενεργά για να προσελκύσετε αγοραστές.",
+      "portfolioValue": "Παρακολουθήστε την ανάπτυξη του χαρτοφυλακίου σας.",
+      "sharedWithYou": "Συνδεθείτε με περισσότερους πράκτορες για να επεκτείνετε το δίκτυό σας!"
+    }
+  },
   "Stats": {
     "totalProperties": "Σύνολο Ακινήτων",
     "activeProperties": "Ενεργά Ακίνητα",
     "portfolioValue": "Αξία Χαρτοφυλακίου",
+    "new30d": "Νέα (30ημ)",
     "sharedWithYou": "Κοινόχρηστα",
+    "allListings": "Όλες οι καταχωρήσεις",
     "allTimeProperties": "Όλα τα ακίνητα",
     "currentlyOnMarket": "Τρέχοντα στην αγορά",
     "totalListingValue": "Συνολική αξία καταχωρήσεων",
+    "addedThisMonth": "Προστέθηκαν αυτόν τον μήνα",
     "fromConnections": "Από συνδέσεις",
     "addProperty": "Προσθήκη Ακινήτου",
     "findAgents": "Εύρεση Πρακτόρων",

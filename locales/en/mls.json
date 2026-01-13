@@ -35,7 +35,9 @@
       "floorPlaceholder": "Select floor",
       "yearBuilt": "Year Built",
       "description": "Description",
-      "agentOwner": "Assigned Agent"
+      "agentOwner": "Assigned Agent",
+      "specifyOther": "Please specify",
+      "specifyOtherPlaceholder": "Enter the property type..."
     },
     "floor": {
       "BASEMENT": "Basement",
@@ -128,15 +130,43 @@
     "agencyPropertiesDescription": "Properties managed by your agency",
     "sharedPropertiesDescription": "Properties shared with you by connections"
   },
-  "Stats": {
+  "stats": {
     "totalProperties": "Total Properties",
     "activeProperties": "Active Properties",
     "portfolioValue": "Portfolio Value",
+    "new30d": "New (30d)",
     "sharedWithYou": "Shared With You",
+    "allListings": "All listings",
     "allTimeProperties": "All time properties",
     "currentlyOnMarket": "Currently on market",
     "totalListingValue": "Total listing value",
     "fromConnections": "From connections",
+    "addedThisMonth": "Added this month",
+    "addProperty": "Add Property",
+    "findAgents": "Find Agents",
+    "noPropertiesYet": "Start building your portfolio",
+    "noActiveListings": "List a property to get started",
+    "addPropertiesToTrack": "Add properties to track value",
+    "connectToReceive": "Connect with agents to receive listings",
+    "hints": {
+      "totalProperties": "Add at least 5 properties to view meaningful trends!",
+      "activeProperties": "Keep properties active to attract more buyers.",
+      "portfolioValue": "Track your portfolio growth over time.",
+      "sharedWithYou": "Connect with more agents to expand your network!"
+    }
+  },
+  "Stats": {
+    "totalProperties": "Total Properties",
+    "activeProperties": "Active Properties",
+    "portfolioValue": "Portfolio Value",
+    "new30d": "New (30d)",
+    "sharedWithYou": "Shared With You",
+    "allListings": "All listings",
+    "allTimeProperties": "All time properties",
+    "currentlyOnMarket": "Currently on market",
+    "totalListingValue": "Total listing value",
+    "fromConnections": "From connections",
+    "addedThisMonth": "Added this month",
     "addProperty": "Add Property",
     "findAgents": "Find Agents",
     "noPropertiesYet": "Start building your portfolio",

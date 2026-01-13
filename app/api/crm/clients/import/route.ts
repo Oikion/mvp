@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
-import { clientImportSchema, type ClientImportData } from "@/lib/import";
-import { generateFriendlyIds, generateFriendlyId } from "@/lib/friendly-id";
+import { clientImportSchema, normalizeClientEnums, type ClientImportData } from "@/lib/import";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 interface ImportError {
   row: number;
@@ -17,6 +17,46 @@ interface ImportResult {
   skipped: number;
   failed: number;
   errors: ImportError[];
+}
+
+/**
+ * Find the next available ID with suffix if the base ID already exists
+ * For example: if "CLI-123" exists, returns "CLI-123-1", if that exists too, returns "CLI-123-2", etc.
+ */
+async function findAvailableIdWithSuffix(
+  baseId: string,
+  organizationId: string
+): Promise<string> {
+  // Check if base ID exists
+  const existing = await prismadb.clients.findFirst({
+    where: { id: baseId, organizationId },
+  });
+
+  if (!existing) {
+    return baseId;
+  }
+
+  // Find all IDs that start with the base ID followed by a dash and number
+  const existingWithSuffix = await prismadb.clients.findMany({
+    where: {
+      organizationId,
+      id: { startsWith: baseId },
+    },
+    select: { id: true },
+  });
+
+  // Extract suffix numbers and find the max
+  let maxSuffix = 0;
+  const regex = new RegExp(String.raw`^${baseId}-(\d+)$`);
+  existingWithSuffix.forEach((c) => {
+    const match = regex.exec(c.id);
+    if (match) {
+      const suffix = Number.parseInt(match[1], 10);
+      if (suffix > maxSuffix) maxSuffix = suffix;
+    }
+  });
+
+  return `${baseId}-${maxSuffix + 1}`;
 }
 
 export async function POST(req: Request) {
@@ -40,14 +80,14 @@ export async function POST(req: Request) {
       errors: [],
     };
 
-    // Process clients in batches to avoid overwhelming the database
-    const BATCH_SIZE = 50;
     const validClients: ClientImportData[] = [];
 
     // Validate all clients first
     for (let i = 0; i < clients.length; i++) {
       const client = clients[i];
-      const validation = clientImportSchema.safeParse(client);
+      // Normalize enum values (handle translations, case variations, etc.)
+      const normalizedClient = normalizeClientEnums(client);
+      const validation = clientImportSchema.safeParse(normalizedClient);
 
       if (validation.success) {
         validClients.push(validation.data);
@@ -64,128 +104,70 @@ export async function POST(req: Request) {
       }
     }
 
-    // Insert valid clients in batches
-    for (let i = 0; i < validClients.length; i += BATCH_SIZE) {
-      const batch = validClients.slice(i, i + BATCH_SIZE);
-
+    // Process clients - we need to handle user-provided IDs individually
+    // to properly check for duplicates and generate suffixes
+    for (const client of validClients) {
       try {
-        // Generate friendly IDs for the batch
-        const clientIds = await generateFriendlyIds(prismadb, "Clients", batch.length);
-
-        const createData = batch.map((client, index) => ({
-          id: clientIds[index],
-          createdBy: user.id,
-          updatedBy: user.id,
-          organizationId,
-          client_name: client.client_name,
-          primary_email: client.primary_email || null,
-          primary_phone: client.primary_phone || null,
-          office_phone: client.office_phone || null,
-          secondary_phone: client.secondary_phone || null,
-          secondary_email: client.secondary_email || null,
-          client_type: client.client_type || null,
-          client_status: client.client_status || "LEAD",
-          person_type: client.person_type || null,
-          intent: client.intent || null,
-          company_name: client.company_name || null,
-          company_id: client.company_id || null,
-          vat: client.vat || null,
-          website: client.website || null,
-          fax: client.fax || null,
-          afm: client.afm || null,
-          doy: client.doy || null,
-          id_doc: client.id_doc || null,
-          company_gemi: client.company_gemi || null,
-          billing_street: client.billing_street || null,
-          billing_city: client.billing_city || null,
-          billing_state: client.billing_state || null,
-          billing_postal_code: client.billing_postal_code || null,
-          billing_country: client.billing_country || null,
-          purpose: client.purpose || null,
-          budget_min: client.budget_min || null,
-          budget_max: client.budget_max || null,
-          timeline: client.timeline || null,
-          financing_type: client.financing_type || null,
-          preapproval_bank: client.preapproval_bank || null,
-          needs_mortgage_help: client.needs_mortgage_help || false,
-          lead_source: client.lead_source || null,
-          gdpr_consent: client.gdpr_consent || false,
-          allow_marketing: client.allow_marketing || false,
-          description: client.description || null,
-          member_of: client.member_of || null,
-          draft_status: false,
-        }));
-
-        // Use createMany for batch insert
-        const created = await prismadb.clients.createMany({
-          data: createData,
-          skipDuplicates: true,
-        });
-
-        result.imported += created.count;
+        // Determine the ID to use
+        let clientId: string;
         
-        // If some were skipped due to duplicates
-        if (created.count < batch.length) {
-          result.skipped += batch.length - created.count;
+        if (client.id && client.id.trim() !== "") {
+          // User provided an ID - check for duplicates and add suffix if needed
+          clientId = await findAvailableIdWithSuffix(client.id.trim(), organizationId);
+        } else {
+          // Generate a new friendly ID
+          clientId = await generateFriendlyId(prismadb, "Clients");
         }
-      } catch (batchError) {
-        console.error("[CLIENT_IMPORT_BATCH_ERROR]", batchError);
-        // If batch fails, try individual inserts
-        for (const client of batch) {
-          try {
-            // Generate friendly ID for individual insert
-            const clientId = await generateFriendlyId(prismadb, "Clients");
-            
-            await prismadb.clients.create({
-              data: {
-                id: clientId,
-                createdBy: user.id,
-                updatedBy: user.id,
-                organizationId,
-                client_name: client.client_name,
-                primary_email: client.primary_email || null,
-                primary_phone: client.primary_phone || null,
-                office_phone: client.office_phone || null,
-                secondary_phone: client.secondary_phone || null,
-                secondary_email: client.secondary_email || null,
-                client_type: client.client_type || null,
-                client_status: client.client_status || "LEAD",
-                person_type: client.person_type || null,
-                intent: client.intent || null,
-                company_name: client.company_name || null,
-                company_id: client.company_id || null,
-                vat: client.vat || null,
-                website: client.website || null,
-                fax: client.fax || null,
-                afm: client.afm || null,
-                doy: client.doy || null,
-                id_doc: client.id_doc || null,
-                company_gemi: client.company_gemi || null,
-                billing_street: client.billing_street || null,
-                billing_city: client.billing_city || null,
-                billing_state: client.billing_state || null,
-                billing_postal_code: client.billing_postal_code || null,
-                billing_country: client.billing_country || null,
-                purpose: client.purpose || null,
-                budget_min: client.budget_min || null,
-                budget_max: client.budget_max || null,
-                timeline: client.timeline || null,
-                financing_type: client.financing_type || null,
-                preapproval_bank: client.preapproval_bank || null,
-                needs_mortgage_help: client.needs_mortgage_help || false,
-                lead_source: client.lead_source || null,
-                gdpr_consent: client.gdpr_consent || false,
-                allow_marketing: client.allow_marketing || false,
-                description: client.description || null,
-                member_of: client.member_of || null,
-                draft_status: false,
-              },
-            });
-            result.imported++;
-          } catch {
-            result.failed++;
-          }
-        }
+        
+        await prismadb.clients.create({
+          data: {
+            id: clientId,
+            createdBy: user.id,
+            updatedBy: user.id,
+            organizationId,
+            client_name: client.client_name,
+            primary_email: client.primary_email || null,
+            primary_phone: client.primary_phone || null,
+            office_phone: client.office_phone || null,
+            secondary_phone: client.secondary_phone || null,
+            secondary_email: client.secondary_email || null,
+            client_type: client.client_type || null,
+            client_status: client.client_status || "LEAD",
+            person_type: client.person_type || null,
+            intent: client.intent || null,
+            company_name: client.company_name || null,
+            company_id: client.company_id || null,
+            vat: client.vat || null,
+            website: client.website || null,
+            fax: client.fax || null,
+            afm: client.afm || null,
+            doy: client.doy || null,
+            id_doc: client.id_doc || null,
+            company_gemi: client.company_gemi || null,
+            billing_street: client.billing_street || null,
+            billing_city: client.billing_city || null,
+            billing_state: client.billing_state || null,
+            billing_postal_code: client.billing_postal_code || null,
+            billing_country: client.billing_country || null,
+            purpose: client.purpose || null,
+            budget_min: client.budget_min || null,
+            budget_max: client.budget_max || null,
+            timeline: client.timeline || null,
+            financing_type: client.financing_type || null,
+            preapproval_bank: client.preapproval_bank || null,
+            needs_mortgage_help: client.needs_mortgage_help || false,
+            lead_source: client.lead_source || null,
+            gdpr_consent: client.gdpr_consent || false,
+            allow_marketing: client.allow_marketing || false,
+            description: client.description || null,
+            member_of: client.member_of || null,
+            draft_status: false,
+          },
+        });
+        result.imported++;
+      } catch (error) {
+        console.error("[CLIENT_IMPORT_ITEM_ERROR]", error);
+        result.failed++;
       }
     }
 
@@ -201,5 +183,11 @@ export async function POST(req: Request) {
     );
   }
 }
+
+
+
+
+
+
 
 

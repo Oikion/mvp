@@ -1,14 +1,19 @@
 "use server";
 
 import { createClerkClient } from "@clerk/backend";
+import { auth } from "@clerk/nextjs/server";
 import type { UsernameAvailabilityResult } from "@/types/onboarding";
 
 /**
  * Check username availability using Clerk API
  * Clerk is the source of truth for usernames
+ * 
+ * @param username - The username to check
+ * @param excludeCurrentUser - If true, the current user's username is considered "available" (for editing own username)
  */
 export async function checkUsernameAvailability(
-  username: string
+  username: string,
+  excludeCurrentUser: boolean = false
 ): Promise<UsernameAvailabilityResult> {
   try {
     if (!username || username.trim().length < 2) {
@@ -43,8 +48,25 @@ export async function checkUsernameAvailability(
       username: [username.toLowerCase()],
     });
 
+    // If no users found with this username, it's available
+    if (users.data.length === 0) {
+      return { available: true };
+    }
+
+    // If we should exclude the current user, check if the found user is the current user
+    if (excludeCurrentUser) {
+      const { userId: currentUserId } = await auth();
+      
+      // If the only user with this username is the current user, it's available (they're keeping their own username)
+      const isOwnUsername = users.data.length === 1 && users.data[0].id === currentUserId;
+      
+      return {
+        available: isOwnUsername,
+      };
+    }
+
     return {
-      available: users.data.length === 0,
+      available: false,
     };
   } catch (error) {
     console.error("Failed to check username availability:", error);

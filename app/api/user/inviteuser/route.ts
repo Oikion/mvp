@@ -83,11 +83,7 @@ export async function POST(req: Request) {
       }
 
       const data = await resend.emails.send({
-        from:
-          process.env.NEXT_PUBLIC_APP_NAME +
-          " <" +
-          process.env.EMAIL_FROM +
-          ">",
+        from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
         to: newUser.email,
         subject: `You have been invited to ${process.env.NEXT_PUBLIC_APP_NAME} `,
         text: message,

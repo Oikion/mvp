@@ -1,8 +1,13 @@
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export const getProperties = async () => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  
+  // Return empty array if no organization context (e.g., session not synced yet)
+  if (!organizationId) {
+    return [];
+  }
   const client: any = prismadb as any;
   const delegate = client?.properties;
   if (!delegate) {
@@ -11,8 +16,8 @@ export const getProperties = async () => {
   const data = await delegate.findMany({
     where: { organizationId },
     include: {
-      assigned_to_user: { select: { name: true } },
-      linkedDocuments: {
+      Users_Properties_assigned_toToUsers: { select: { name: true } },
+      Documents: {
         where: {
           document_file_mimeType: {
             startsWith: "image/",
@@ -27,8 +32,15 @@ export const getProperties = async () => {
     orderBy: { createdAt: "desc" },
   });
   
+  // Map to expected field names for backward compatibility
+  const mappedData = data.map((p: Record<string, unknown>) => ({
+    ...p,
+    assigned_to_user: p.Users_Properties_assigned_toToUsers,
+    linkedDocuments: p.Documents,
+  }));
+  
   // Serialize to plain objects - converts Decimal to number, Date to string
-  return JSON.parse(JSON.stringify(data));
+  return JSON.parse(JSON.stringify(mappedData));
 };
 
 

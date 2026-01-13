@@ -78,11 +78,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
       //send via Resend.com
       await resend.emails.send({
-        from:
-          process.env.NEXT_PUBLIC_APP_NAME +
-          " <" +
-          process.env.EMAIL_FROM +
-          ">",
+        from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
         to: user?.email!,
         subject: title,
         text: message, // Add this line to fix the types issue

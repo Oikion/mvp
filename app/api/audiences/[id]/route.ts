@@ -24,7 +24,7 @@ export async function GET(
         ],
       },
       include: {
-        createdBy: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -32,9 +32,9 @@ export async function GET(
             avatar: true,
           },
         },
-        members: {
+        AudienceMember: {
           include: {
-            user: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -46,7 +46,7 @@ export async function GET(
           orderBy: { addedAt: "desc" },
         },
         _count: {
-          select: { members: true },
+          select: { AudienceMember: true },
         },
       },
     });
@@ -64,9 +64,9 @@ export async function GET(
       createdAt: audience.createdAt,
       updatedAt: audience.updatedAt,
       createdById: audience.createdById,
-      createdBy: audience.createdBy,
-      memberCount: audience._count.members,
-      members: audience.members,
+      createdBy: audience.Users,
+      memberCount: audience._count.AudienceMember,
+      members: audience.AudienceMember.map(m => ({ ...m, user: m.Users })),
     });
   } catch (error) {
     console.error("Error fetching audience:", error);
@@ -121,7 +121,7 @@ export async function PUT(
       where: { id },
       data: updateData,
       include: {
-        createdBy: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -129,9 +129,9 @@ export async function PUT(
             avatar: true,
           },
         },
-        members: {
+        AudienceMember: {
           include: {
-            user: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -142,12 +142,17 @@ export async function PUT(
           },
         },
         _count: {
-          select: { members: true },
+          select: { AudienceMember: true },
         },
       },
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json({
+      ...updated,
+      createdBy: updated.Users,
+      memberCount: updated._count.AudienceMember,
+      members: updated.AudienceMember.map(m => ({ ...m, user: m.Users })),
+    });
   } catch (error) {
     console.error("Error updating audience:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
@@ -192,6 +197,12 @@ export async function DELETE(
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
+
+
+
+
+
+
 
 
 

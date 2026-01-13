@@ -39,7 +39,7 @@ export async function GET(
         status: true,
         adminResponse: true,
         respondedAt: true,
-        comments: {
+        FeedbackComment: {
           orderBy: {
             createdAt: "asc",
           },
@@ -50,6 +50,10 @@ export async function GET(
             authorType: true,
             authorName: true,
             content: true,
+            attachmentUrl: true,
+            attachmentName: true,
+            attachmentSize: true,
+            attachmentType: true,
           },
         },
       },
@@ -70,3 +74,9 @@ export async function GET(
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
+
+
+
+
+
+

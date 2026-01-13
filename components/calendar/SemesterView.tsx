@@ -42,6 +42,9 @@ interface SemesterViewProps {
   events: CalendarEvent[];
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
+  onMonthOpen?: (month: Date) => void;
+  onDateOpen?: (date: Date) => void;
+  onWeekOpen?: (anchorDate: Date) => void;
   onEventUpdated?: () => void;
   onEventDeleted?: () => void;
 }
@@ -50,6 +53,9 @@ export function SemesterView({
   events,
   selectedDate,
   onDateSelect,
+  onMonthOpen,
+  onDateOpen,
+  onWeekOpen,
   onEventUpdated,
   onEventDeleted,
 }: SemesterViewProps) {
@@ -151,7 +157,11 @@ export function SemesterView({
           const eventCount = getEventsForMonth(month);
 
           return (
-            <Card key={month.toISOString()} className="overflow-hidden">
+            <Card
+              key={month.toISOString()}
+              className="overflow-hidden"
+              onDoubleClick={() => onMonthOpen?.(month)}
+            >
               <CardHeader className="py-3 px-4 bg-muted/50">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium">
@@ -171,6 +181,7 @@ export function SemesterView({
                     <div
                       key={idx}
                       className="text-center text-[10px] text-muted-foreground font-medium py-1"
+                      onDoubleClick={() => onWeekOpen?.(month)}
                     >
                       {label}
                     </div>
@@ -192,6 +203,11 @@ export function SemesterView({
                         key={idx}
                         type="button"
                         onClick={() => onDateSelect(day)}
+                        onDoubleClick={(e) => {
+                          // open day view (and prevent month drill-down)
+                          onDateOpen?.(day);
+                          e.stopPropagation();
+                        }}
                         disabled={!isCurrentMonth}
                         className={cn(
                           "aspect-square flex flex-col items-center justify-center rounded-sm text-xs relative",
@@ -242,4 +258,10 @@ export function SemesterView({
     </div>
   );
 }
+
+
+
+
+
+
 

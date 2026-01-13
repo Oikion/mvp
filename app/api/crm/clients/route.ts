@@ -5,9 +5,15 @@ import { invalidateCache } from "@/lib/cache-invalidate";
 import { notifyAccountWatchers as notifyWatchersLegacy } from "@/lib/notify-watchers";
 import { notifyClientCreated, notifyAccountWatchers } from "@/lib/notifications";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { dispatchClientWebhook } from "@/lib/webhooks";
+import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
 
 export async function POST(req: Request) {
   try {
+    // Permission check: Viewers cannot create clients
+    const permissionError = await requireCanModify();
+    if (permissionError) return permissionError;
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();
@@ -137,6 +143,9 @@ export async function POST(req: Request) {
         organizationId,
         assignedToId: assigned_to,
       });
+
+      // Dispatch webhook for external integrations
+      dispatchClientWebhook(organizationId, "client.created", newClient).catch(console.error);
     }
 
     return NextResponse.json({ newClient }, { status: 200 });
@@ -148,6 +157,10 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    // Permission check: Viewers cannot edit clients
+    const permissionError = await requireCanModify();
+    if (permissionError) return permissionError;
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();
@@ -212,6 +225,10 @@ export async function PUT(req: Request) {
     if (!existingClient) {
       return new NextResponse("Client not found or access denied", { status: 404 });
     }
+
+    // Permission check: Members cannot change assigned agent
+    const assignedToError = await checkAssignedToChange(body, existingClient.assigned_to);
+    if (assignedToError) return assignedToError;
 
     const updatedClient = await prismadb.clients.update({
       where: { id },
@@ -284,6 +301,9 @@ export async function PUT(req: Request) {
       }
     );
 
+    // Dispatch webhook for external integrations
+    dispatchClientWebhook(organizationId, "client.updated", updatedClient).catch(console.error);
+
     return NextResponse.json({ updatedClient }, { status: 200 });
   } catch (error) {
     return new NextResponse("Initial error", { status: 500 });
@@ -314,6 +334,34 @@ export async function GET(req: Request) {
     const limitParam = searchParams.get("limit");
     const status = searchParams.get("status");
     const search = searchParams.get("search");
+    const minimal = searchParams.get("minimal") === "true";
+
+    // For minimal mode (selectors), return just id and name - much faster
+    if (minimal) {
+      const where: Record<string, unknown> = { organizationId };
+      if (search && search.trim()) {
+        where.client_name = {
+          contains: search.trim(),
+          mode: "insensitive",
+        };
+      }
+      
+      const clients = await prismadb.clients.findMany({
+        where,
+        select: {
+          id: true,
+          client_name: true,
+        },
+        orderBy: { client_name: "asc" },
+        take: 1000, // Limit for selector use cases
+      });
+
+      return NextResponse.json({
+        items: clients,
+        nextCursor: null,
+        hasMore: false,
+      }, { status: 200 });
+    }
 
     // Validate and set limit (default 50, max 100)
     let limit = 50;
@@ -346,8 +394,8 @@ export async function GET(req: Request) {
       skip: cursor ? 1 : 0, // Skip the cursor item itself
       orderBy: { createdAt: "desc" },
       include: {
-        assigned_to_user: { select: { name: true } },
-        contacts: {
+        Users_Clients_assigned_toToUsers: { select: { name: true } },
+        Client_Contacts: {
           select: {
             contact_first_name: true,
             contact_last_name: true,

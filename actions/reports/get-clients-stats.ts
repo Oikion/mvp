@@ -1,8 +1,10 @@
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export const getClientsCount = async () => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  if (!organizationId) return 0;
+  
   const count = await prismadb.clients.count({
     where: { organizationId },
   });
@@ -10,7 +12,9 @@ export const getClientsCount = async () => {
 };
 
 export const getClientsByStatus = async () => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  if (!organizationId) return [];
+  
   const clients = await prismadb.clients.findMany({
     where: { organizationId },
     select: {
@@ -33,14 +37,19 @@ export const getClientsByStatus = async () => {
     "LOST",
   ];
 
-  return ALL_STATUSES.map((status) => ({
-    name: status,
-    value: statusCounts[status] || 0,
-  }));
+  return ALL_STATUSES.map((status) => {
+    const count = statusCounts[status] || 0;
+    return {
+      name: status,
+      value: typeof count === 'number' && !Number.isNaN(count) ? count : 0,
+    };
+  });
 };
 
 export const getClientsByMonth = async () => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  if (!organizationId) return [];
+  
   const clients = await prismadb.clients.findMany({
     where: { organizationId },
     select: {
@@ -75,7 +84,9 @@ export const getClientsByMonth = async () => {
 };
 
 export const getClientsByMonthAndYear = async (year: number) => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  if (!organizationId) return [];
+  
   const clients = await prismadb.clients.findMany({
     where: { organizationId },
     select: {

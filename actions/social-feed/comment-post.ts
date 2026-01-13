@@ -77,7 +77,7 @@ export async function addComment(
     if (parentId) {
       parentComment = await prismadb.socialPostComment.findUnique({
         where: { id: parentId },
-        select: { id: true, userId: true, user: { select: { name: true } } },
+        select: { id: true, userId: true, Users: { select: { name: true } } },
       });
       if (!parentComment) {
         return { success: false, error: "Parent comment not found" };
@@ -87,13 +87,15 @@ export async function addComment(
     // Create comment
     const comment = await prismadb.socialPostComment.create({
       data: {
+        id: crypto.randomUUID(),
         postId,
         userId: currentUser.id,
         content: trimmedContent,
         parentId: parentId || null,
+        updatedAt: new Date(),
       },
       include: {
-        user: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -138,9 +140,9 @@ export async function addComment(
         content: comment.content,
         createdAt: comment.createdAt.toISOString(),
         author: {
-          id: comment.user.id,
-          name: comment.user.name || "Unknown",
-          avatar: comment.user.avatar || undefined,
+          id: comment.Users?.id || "",
+          name: comment.Users?.name || "Unknown",
+          avatar: comment.Users?.avatar || undefined,
         },
         isOwn: true,
         parentId: comment.parentId,
@@ -223,17 +225,17 @@ export async function getPostComments(
         ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
         orderBy: { createdAt: "asc" }, // Oldest first for conversation flow
         include: {
-          user: {
+          Users: {
             select: {
               id: true,
               name: true,
               avatar: true,
             },
           },
-          replies: {
+          other_SocialPostComment: {
             orderBy: { createdAt: "asc" },
             include: {
-              user: {
+              Users: {
                 select: {
                   id: true,
                   name: true,
@@ -243,7 +245,7 @@ export async function getPostComments(
             },
           },
           _count: {
-            select: { replies: true },
+            select: { other_SocialPostComment: true },
           },
         },
       }),
@@ -259,21 +261,21 @@ export async function getPostComments(
         content: c.content,
         createdAt: c.createdAt.toISOString(),
         author: {
-          id: c.user.id,
-          name: c.user.name || "Unknown",
-          avatar: c.user.avatar || undefined,
+          id: c.Users.id,
+          name: c.Users.name || "Unknown",
+          avatar: c.Users.avatar || undefined,
         },
         isOwn: c.userId === currentUser?.id,
         parentId: c.parentId,
-        replyCount: c._count.replies,
-        replies: c.replies.map((r) => ({
+        replyCount: c._count.other_SocialPostComment,
+        replies: c.other_SocialPostComment.map((r) => ({
           id: r.id,
           content: r.content,
           createdAt: r.createdAt.toISOString(),
           author: {
-            id: r.user.id,
-            name: r.user.name || "Unknown",
-            avatar: r.user.avatar || undefined,
+            id: r.Users.id,
+            name: r.Users.name || "Unknown",
+            avatar: r.Users.avatar || undefined,
           },
           isOwn: r.userId === currentUser?.id,
           parentId: r.parentId,

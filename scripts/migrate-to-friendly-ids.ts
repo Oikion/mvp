@@ -77,7 +77,6 @@ const ENTITY_CONFIGS: EntityConfig[] = [
       { table: "Audience", column: "createdById" },
       { table: "AudienceMember", column: "userId" },
       { table: "UserNotificationSettings", column: "userId" },
-      { table: "openAi_keys", column: "user" },
       { table: "Feedback", column: "userId" },
       { table: "TodoList", column: "user" },
     ],
@@ -254,6 +253,7 @@ async function migrateEntity(config: EntityConfig): Promise<void> {
       id: config.prefix,
       prefix: config.prefix,
       lastValue: records.length,
+      updatedAt: new Date(),
     },
   });
 

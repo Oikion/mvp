@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { prismadb } from '@/lib/prisma';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://oikion.app';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://oikion.com/app';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages - always include
@@ -20,13 +20,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       where: {
         visibility: 'PUBLIC',
         // Only include profiles where user has a username
-        user: {
+        Users: {
           username: { not: null },
         },
       },
       select: {
         updatedAt: true,
-        user: {
+        Users: {
           select: {
             username: true,
           },
@@ -48,9 +48,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Generate agent profile URLs using username
     const agentUrls: MetadataRoute.Sitemap = publicProfiles
-      .filter((profile) => profile.user.username)
+      .filter((profile) => profile.Users?.username)
       .map((profile) => ({
-        url: `${baseUrl}/en/agent/${profile.user.username}`,
+        url: `${baseUrl}/en/agent/${profile.Users?.username}`,
         lastModified: profile.updatedAt,
         changeFrequency: 'weekly',
         priority: 0.8,
@@ -58,9 +58,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Generate Greek locale agent profile URLs
     const agentUrlsGreek: MetadataRoute.Sitemap = publicProfiles
-      .filter((profile) => profile.user.username)
+      .filter((profile) => profile.Users?.username)
       .map((profile) => ({
-        url: `${baseUrl}/el/agent/${profile.user.username}`,
+        url: `${baseUrl}/el/agent/${profile.Users?.username}`,
         lastModified: profile.updatedAt,
         changeFrequency: 'weekly',
         priority: 0.8,

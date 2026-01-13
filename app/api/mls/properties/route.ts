@@ -4,6 +4,8 @@ import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { notifyPropertyCreated, notifyPropertyWatchers } from "@/lib/notifications";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { dispatchPropertyWebhook } from "@/lib/webhooks";
+import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
@@ -215,6 +217,10 @@ function buildPropertyData(body: any, user: any, organizationId: string, isUpdat
 
 export async function POST(req: Request) {
   try {
+    // Permission check: Viewers cannot create properties
+    const permissionError = await requireCanModify();
+    if (permissionError) return permissionError;
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgIdSafe();
     
@@ -284,6 +290,9 @@ export async function POST(req: Request) {
         organizationId,
         assignedToId: data.assigned_to,
       });
+
+      // Dispatch webhook for external integrations
+      dispatchPropertyWebhook(organizationId, "property.created", property).catch(console.error);
     }
 
     return NextResponse.json({ newProperty: property }, { status: 200 });
@@ -299,6 +308,10 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    // Permission check: Viewers cannot edit properties
+    const permissionError = await requireCanModify();
+    if (permissionError) return permissionError;
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgIdSafe();
     
@@ -331,6 +344,10 @@ export async function PUT(req: Request) {
       );
     }
 
+    // Permission check: Members cannot change assigned agent
+    const assignedToError = await checkAssignedToChange(body, existingProperty.assigned_to);
+    if (assignedToError) return assignedToError;
+
     // Build validated data
     const data = buildPropertyData(body, user, organizationId, true);
 
@@ -357,6 +374,9 @@ export async function PUT(req: Request) {
         updatedByName: user.name || user.email,
       }
     );
+
+    // Dispatch webhook for external integrations
+    dispatchPropertyWebhook(organizationId, "property.updated", updatedProperty).catch(console.error);
 
     return NextResponse.json({ updatedProperty }, { status: 200 });
   } catch (error) {
@@ -400,6 +420,34 @@ export async function GET(req: Request) {
     const limitParam = searchParams.get("limit");
     const status = searchParams.get("status");
     const search = searchParams.get("search");
+    const minimal = searchParams.get("minimal") === "true";
+
+    // For minimal mode (selectors), return just id and name - much faster
+    if (minimal) {
+      const where: Record<string, unknown> = { organizationId };
+      if (search && search.trim()) {
+        where.property_name = {
+          contains: search.trim(),
+          mode: "insensitive",
+        };
+      }
+      
+      const properties = await prismadb.properties.findMany({
+        where,
+        select: {
+          id: true,
+          property_name: true,
+        },
+        orderBy: { property_name: "asc" },
+        take: 1000, // Limit for selector use cases
+      });
+
+      return NextResponse.json({
+        items: properties,
+        nextCursor: null,
+        hasMore: false,
+      }, { status: 200 });
+    }
 
     // Validate and set limit (default 50, max 100)
     let limit = 50;
@@ -432,8 +480,8 @@ export async function GET(req: Request) {
       skip: cursor ? 1 : 0, // Skip the cursor item itself
       orderBy: { createdAt: "desc" },
       include: {
-        assigned_to_user: { select: { name: true } },
-        linkedDocuments: {
+        Users_Properties_assigned_toToUsers: { select: { name: true } },
+        Documents: {
           where: {
             document_file_mimeType: {
               startsWith: "image/",

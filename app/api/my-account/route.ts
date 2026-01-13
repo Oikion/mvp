@@ -44,6 +44,7 @@ export async function POST(req: Request) {
 
     await prismadb.myAccount.create({
       data: {
+        id: crypto.randomUUID(),
         company_name,
         is_person,
         email,

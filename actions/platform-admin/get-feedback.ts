@@ -43,8 +43,9 @@ export interface PlatformFeedback {
   hasScreenshot: boolean;
   hasConsoleLogs: boolean;
   consoleLogsCount: number | null;
-  screenshot: string | null;
-  consoleLogs: ConsoleLogEntry[] | null;
+  screenshot: string | null; // Vercel Blob URL (new) or base64 string (legacy)
+  consoleLogs: ConsoleLogEntry[] | null; // @deprecated - legacy JSON, use consoleLogsUrl
+  consoleLogsUrl: string | null; // Vercel Blob URL for console logs text file
   attachments: FeedbackAttachment[];
   status: string;
   reviewedBy: string | null;
@@ -84,6 +85,11 @@ export interface FeedbackCommentData {
   authorType: string;
   authorName: string | null;
   content: string;
+  // Attachment fields
+  attachmentUrl: string | null;
+  attachmentName: string | null;
+  attachmentSize: number | null;
+  attachmentType: string | null;
 }
 
 // Helper function to map feedback entry to PlatformFeedback
@@ -112,6 +118,7 @@ function mapFeedbackEntry(entry: Record<string, unknown>): PlatformFeedback {
     consoleLogsCount: entry.consoleLogsCount as number | null,
     screenshot: entry.screenshot as string | null,
     consoleLogs: entry.consoleLogs as ConsoleLogEntry[] | null,
+    consoleLogsUrl: entry.consoleLogsUrl as string | null,
     attachments: attachments.map((att) => ({
       id: att.id,
       fileName: att.fileName,
@@ -206,10 +213,22 @@ export async function getPlatformFeedback(
       }
     });
 
-    // Get feedback entries
+    // Get feedback entries with attachments
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const feedbackEntries = await (prismadb.feedback as any).findMany({
       where: whereConditions,
+      include: {
+        attachments: {
+          select: {
+            id: true,
+            fileName: true,
+            fileSize: true,
+            fileType: true,
+            url: true,
+            createdAt: true,
+          },
+        },
+      },
       orderBy: {
         [sortBy]: sortOrder,
       },
@@ -253,6 +272,18 @@ export async function getPlatformFeedbackById(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entry = await (prismadb.feedback as any).findUnique({
       where: { id: feedbackId },
+      include: {
+        attachments: {
+          select: {
+            id: true,
+            fileName: true,
+            fileSize: true,
+            fileType: true,
+            url: true,
+            createdAt: true,
+          },
+        },
+      },
     });
 
     if (!entry) {
@@ -403,6 +434,10 @@ export async function getFeedbackComments(
       authorType: comment.authorType as string,
       authorName: comment.authorName as string | null,
       content: comment.content as string,
+      attachmentUrl: comment.attachmentUrl as string | null,
+      attachmentName: comment.attachmentName as string | null,
+      attachmentSize: comment.attachmentSize as number | null,
+      attachmentType: comment.attachmentType as string | null,
     }));
   } catch (error) {
     console.error("[GET_FEEDBACK_COMMENTS]", error);
@@ -410,12 +445,21 @@ export async function getFeedbackComments(
   }
 }
 
+// Attachment data for creating comments
+export interface CommentAttachment {
+  url: string;
+  name: string;
+  size: number;
+  type: string;
+}
+
 /**
  * Add a comment to a feedback entry (from admin)
  */
 export async function addFeedbackComment(
   feedbackId: string,
-  content: string
+  content: string,
+  attachment?: CommentAttachment
 ): Promise<FeedbackCommentData> {
   // Verify admin access
   const admin = await requirePlatformAdmin();
@@ -443,7 +487,7 @@ export async function addFeedbackComment(
     // Log the action
     await logAdminAction(admin.clerkId, "ADD_FEEDBACK_COMMENT" as never, feedbackId, { content: content.substring(0, 100) });
 
-    // Create the comment
+    // Create the comment with optional attachment
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const comment = await (prismadb as any).feedbackComment.create({
       data: {
@@ -453,8 +497,23 @@ export async function addFeedbackComment(
         authorType: "admin",
         authorName: [admin.firstName, admin.lastName].filter(Boolean).join(" ") || "Platform Admin",
         content,
+        // Include attachment data if provided
+        ...(attachment && {
+          attachmentUrl: attachment.url,
+          attachmentName: attachment.name,
+          attachmentSize: attachment.size,
+          attachmentType: attachment.type,
+        }),
       },
     });
+
+    // Build notification message
+    let notificationMessage = content.length > 100 ? content.substring(0, 100) + "..." : content;
+    if (attachment) {
+      notificationMessage = content 
+        ? `${notificationMessage} [Attachment: ${attachment.name}]`
+        : `[Attachment: ${attachment.name}]`;
+    }
 
     // Send notification to the user if they have a userId
     if (feedback.userId) {
@@ -463,7 +522,7 @@ export async function addFeedbackComment(
         organizationId: feedback.organizationId,
         type: "FEEDBACK_RESPONSE" as never, // Type cast to handle enum drift
         title: "New response to your feedback",
-        message: content.length > 100 ? content.substring(0, 100) + "..." : content,
+        message: notificationMessage,
         entityType: "FEEDBACK" as never, // Type cast to handle enum drift
         entityId: feedbackId,
         actorId: admin.id,
@@ -471,6 +530,7 @@ export async function addFeedbackComment(
         metadata: {
           feedbackType: feedback.feedbackType,
           commentId: comment.id,
+          hasAttachment: !!attachment,
         },
       });
     }
@@ -483,6 +543,10 @@ export async function addFeedbackComment(
       authorType: comment.authorType,
       authorName: comment.authorName,
       content: comment.content,
+      attachmentUrl: comment.attachmentUrl || null,
+      attachmentName: comment.attachmentName || null,
+      attachmentSize: comment.attachmentSize || null,
+      attachmentType: comment.attachmentType || null,
     };
   } catch (error) {
     console.error("[ADD_FEEDBACK_COMMENT]", error);
@@ -492,4 +556,10 @@ export async function addFeedbackComment(
     throw new Error("Failed to add feedback comment");
   }
 }
+
+
+
+
+
+
 

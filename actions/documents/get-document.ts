@@ -7,14 +7,14 @@ export async function getDocument(documentId: string, organizationId: string) {
       organizationId,
     },
     include: {
-      accounts: {
+      Clients: {
         select: {
           id: true,
           client_name: true,
           primary_email: true,
         },
       },
-      linkedProperties: {
+      Properties: {
         select: {
           id: true,
           property_name: true,
@@ -22,7 +22,7 @@ export async function getDocument(documentId: string, organizationId: string) {
           address_city: true,
         },
       },
-      linkedCalComEvents: {
+      CalComEvent: {
         select: {
           id: true,
           title: true,
@@ -31,7 +31,7 @@ export async function getDocument(documentId: string, organizationId: string) {
           location: true,
         },
       },
-      linkedTasks: {
+      crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: {
         select: {
           id: true,
           title: true,
@@ -39,7 +39,7 @@ export async function getDocument(documentId: string, organizationId: string) {
           dueDateAt: true,
         },
       },
-      created_by: {
+      Users_Documents_created_by_userToUsers: {
         select: {
           id: true,
           name: true,
@@ -47,7 +47,7 @@ export async function getDocument(documentId: string, organizationId: string) {
           avatar: true,
         },
       },
-      assigned_to_user: {
+      Users_Documents_assigned_userToUsers: {
         select: {
           id: true,
           name: true,
@@ -55,13 +55,13 @@ export async function getDocument(documentId: string, organizationId: string) {
           avatar: true,
         },
       },
-      views: {
+      DocumentView: {
         orderBy: {
           viewedAt: "desc",
         },
         take: 10,
         include: {
-          viewerUser: {
+          Users: {
             select: {
               id: true,
               name: true,
@@ -73,7 +73,22 @@ export async function getDocument(documentId: string, organizationId: string) {
     },
   });
 
-  return document;
+  if (!document) return null;
+
+  // Map to expected field names for backward compatibility
+  return {
+    ...document,
+    accounts: document.Clients,
+    linkedProperties: document.Properties,
+    linkedCalComEvents: document.CalComEvent,
+    linkedTasks: document.crm_Accounts_Tasks_DocumentsToCrmAccountsTasks,
+    created_by: document.Users_Documents_created_by_userToUsers,
+    assigned_to_user: document.Users_Documents_assigned_userToUsers,
+    views: document.DocumentView.map((v) => ({
+      ...v,
+      viewerUser: v.Users,
+    })),
+  };
 }
 
 export async function getDocumentByShareLink(shareableLink: string) {
@@ -82,26 +97,26 @@ export async function getDocumentByShareLink(shareableLink: string) {
       shareableLink,
     },
     include: {
-      accounts: {
+      Clients: {
         select: {
           id: true,
           client_name: true,
         },
       },
-      linkedProperties: {
+      Properties: {
         select: {
           id: true,
           property_name: true,
         },
       },
-      linkedCalComEvents: {
+      CalComEvent: {
         select: {
           id: true,
           title: true,
           startTime: true,
         },
       },
-      linkedTasks: {
+      crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: {
         select: {
           id: true,
           title: true,
@@ -110,6 +125,15 @@ export async function getDocumentByShareLink(shareableLink: string) {
     },
   });
 
-  return document;
+  if (!document) return null;
+
+  // Map to expected field names for backward compatibility
+  return {
+    ...document,
+    accounts: document.Clients,
+    linkedProperties: document.Properties,
+    linkedCalComEvents: document.CalComEvent,
+    linkedTasks: document.crm_Accounts_Tasks_DocumentsToCrmAccountsTasks,
+  };
 }
 

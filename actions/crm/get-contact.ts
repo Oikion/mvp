@@ -6,8 +6,15 @@ export const getContact = async (contactId: string) => {
       id: contactId,
     },
     include: {
-      assigned_client: true,
+      Clients: true,
     },
   });
-  return data;
+  
+  if (!data) return null;
+  
+  // Map to expected interface shape
+  return {
+    ...data,
+    assigned_client: data.Clients,
+  };
 };

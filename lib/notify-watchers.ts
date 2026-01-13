@@ -15,25 +15,21 @@ export async function notifyAccountWatchers(
   try {
     const prismaTenant = prismaForOrg(organizationId);
     
-    // Get the account with watchers
+    // Get the account with watchers (watchers is a String[] of user IDs)
     const account = await prismaTenant.clients.findUnique({
       where: { id: accountId },
       select: {
         id: true,
         client_name: true,
-        watching_users: {
-          select: {
-            id: true,
-          },
-        },
+        watchers: true,
       },
     });
 
-    if (!account || !account.watching_users || account.watching_users.length === 0) {
+    if (!account || !account.watchers || account.watchers.length === 0) {
       return;
     }
 
-    const watcherIds = account.watching_users.map((u) => u.id);
+    const watcherIds = account.watchers;
 
     // Create notifications for all watchers
     await createNotificationsForUsers(watcherIds, {
@@ -52,6 +48,12 @@ export async function notifyAccountWatchers(
     // Don't throw - notifications are non-critical
   }
 }
+
+
+
+
+
+
 
 
 

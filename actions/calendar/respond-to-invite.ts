@@ -28,12 +28,12 @@ export async function respondToEventInvite({ eventId, response }: RespondToInvit
         },
       },
       include: {
-        event: {
+        CalComEvent: {
           select: {
             id: true,
             title: true,
             assignedUserId: true,
-            assignedUser: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -64,7 +64,7 @@ export async function respondToEventInvite({ eventId, response }: RespondToInvit
     });
 
     // Notify the event owner about the response
-    if (invitation.event.assignedUserId && invitation.event.assignedUserId !== currentUser.id) {
+    if (invitation.CalComEvent.assignedUserId && invitation.CalComEvent.assignedUserId !== currentUser.id) {
       const responseText = response === "ACCEPTED" 
         ? "accepted" 
         : response === "DECLINED" 
@@ -72,17 +72,17 @@ export async function respondToEventInvite({ eventId, response }: RespondToInvit
           : "tentatively accepted";
 
       await createNotification({
-        userId: invitation.event.assignedUserId,
+        userId: invitation.CalComEvent.assignedUserId,
         type: "EVENT_RESPONSE",
         title: "Event Response",
-        message: `${currentUser.name || currentUser.email} ${responseText} your invitation to "${invitation.event.title || "an event"}"`,
+        message: `${currentUser.name || currentUser.email} ${responseText} your invitation to "${invitation.CalComEvent.title || "an event"}"`,
         entityType: "EVENT",
         entityId: eventId,
         actorId: currentUser.id,
         actorName: currentUser.name || currentUser.email,
         metadata: {
           response,
-          eventTitle: invitation.event.title,
+          eventTitle: invitation.CalComEvent.title,
         },
       });
     }
@@ -99,4 +99,10 @@ export async function respondToEventInvite({ eventId, response }: RespondToInvit
     throw error;
   }
 }
+
+
+
+
+
+
 

@@ -38,6 +38,7 @@ export async function createNotification(params: CreateNotificationParams) {
         actorId: params.actorId,
         actorName: params.actorName,
         metadata: params.metadata || {},
+        updatedAt: new Date(),
       },
     });
 
@@ -75,6 +76,7 @@ export async function createNotificationsForUsers(
         actorId: params.actorId,
         actorName: params.actorName,
         metadata: params.metadata || {},
+        updatedAt: new Date(),
       })),
     });
 

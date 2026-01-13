@@ -21,8 +21,14 @@ export async function GET() {
     // but we want to be explicit about the org context source.
     const organizationId = await getCurrentOrgIdSafe();
     
+    // Return empty response when org is not available (e.g., session not synced yet)
+    // This is graceful degradation - the UI should handle empty users list
     if (!organizationId) {
-        return new NextResponse("Organization ID is missing", { status: 400 });
+      return NextResponse.json({
+        users: [],
+        currentUserId: currentUser.id,
+        organizationId: null,
+      });
     }
 
     const { memberships, users } = await getOrgMembersFromDb({

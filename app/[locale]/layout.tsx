@@ -26,7 +26,6 @@ import validationEn from "@/locales/en/validation.json";
 import emailEn from "@/locales/en/email.json";
 import setLanguageEn from "@/locales/en/setLanguage.json";
 import feedbackEn from "@/locales/en/feedback.json";
-import chatgptEn from "@/locales/en/chatgpt.json";
 import registerEn from "@/locales/en/register.json";
 import calendarEn from "@/locales/en/calendar.json";
 import documentsEn from "@/locales/en/documents.json";
@@ -39,7 +38,10 @@ import sharedWithMeEn from "@/locales/en/sharedWithMe.json";
 import audiencesEn from "@/locales/en/audiences.json";
 import profileEn from "@/locales/en/profile.json";
 import templatesEn from "@/locales/en/templates.json";
-import landingEn from "@/locales/en/landing.json";
+import websiteEn from "@/locales/en/website.json";
+import authEn from "@/locales/en/auth.json";
+import signInEn from "@/locales/en/signIn.json";
+import referralsEn from "@/locales/en/referrals.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -53,7 +55,6 @@ import validationEl from "@/locales/el/validation.json";
 import emailEl from "@/locales/el/email.json";
 import setLanguageEl from "@/locales/el/setLanguage.json";
 import feedbackEl from "@/locales/el/feedback.json";
-import chatgptEl from "@/locales/el/chatgpt.json";
 import registerEl from "@/locales/el/register.json";
 import calendarEl from "@/locales/el/calendar.json";
 import documentsEl from "@/locales/el/documents.json";
@@ -66,9 +67,17 @@ import sharedWithMeEl from "@/locales/el/sharedWithMe.json";
 import audiencesEl from "@/locales/el/audiences.json";
 import profileEl from "@/locales/el/profile.json";
 import templatesEl from "@/locales/el/templates.json";
-import landingEl from "@/locales/el/landing.json";
+import websiteEl from "@/locales/el/website.json";
+import authEl from "@/locales/el/auth.json";
+import signInEl from "@/locales/el/signIn.json";
+import referralsEl from "@/locales/el/referrals.json";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({ 
+  subsets: ["latin"], 
+  variable: "--font-sans",
+  display: "swap",
+  fallback: ["system-ui", "arial"],
+});
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const metadataBaseUrl = new URL(appBaseUrl);
 
@@ -99,7 +108,6 @@ function getLocales(locale: string) {
     messages.email = emailEl;
     messages.setLanguage = setLanguageEl;
     messages.feedback = feedbackEl;
-    messages.chatgpt = chatgptEl;
     messages.register = registerEl;
     messages.calendar = calendarEl;
     messages.documents = documentsEl;
@@ -113,7 +121,10 @@ function getLocales(locale: string) {
     messages.templates = templatesEl;
     messages.notifications = notificationsEl;
     messages.Notifications = notificationsEl;
-    messages.Landing = landingEl;
+    messages.website = websiteEl;
+    messages.auth = authEl;
+    messages.signIn = signInEl;
+    messages.referrals = referralsEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -134,7 +145,6 @@ function getLocales(locale: string) {
     messages.email = emailEn;
     messages.setLanguage = setLanguageEn;
     messages.feedback = feedbackEn;
-    messages.chatgpt = chatgptEn;
     messages.register = registerEn;
     messages.calendar = calendarEn;
     messages.documents = documentsEn;
@@ -148,7 +158,10 @@ function getLocales(locale: string) {
     messages.templates = templatesEn;
     messages.notifications = notificationsEn;
     messages.Notifications = notificationsEn;
-    messages.Landing = landingEn;
+    messages.website = websiteEn;
+    messages.auth = authEn;
+    messages.signIn = signInEn;
+    messages.referrals = referralsEn;
   }
 
   if (Object.keys(messages).length === 0) {

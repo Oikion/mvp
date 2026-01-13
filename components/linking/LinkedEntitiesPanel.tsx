@@ -88,7 +88,7 @@ function PropertyCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
-      onClick={() => router.push(`/mls/properties/${property.id}`)}
+      onClick={() => router.push(`/app/mls/properties/${property.id}`)}
     >
       {onUnlink && (
         <Button
@@ -155,7 +155,7 @@ function ClientCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
-      onClick={() => router.push(`/crm/clients/${client.id}`)}
+      onClick={() => router.push(`/app/crm/clients/${client.id}`)}
     >
       {onUnlink && (
         <Button
@@ -220,7 +220,7 @@ function EventCard({ event }: { event: LinkedEvent }) {
         "p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group",
         isPast && "opacity-60"
       )}
-      onClick={() => router.push(`/calendar/events/${event.id}`)}
+      onClick={() => router.push(`/app/calendar/events/${event.id}`)}
     >
       <div className="flex items-start gap-3">
         <div
@@ -368,6 +368,10 @@ export function LinkedEntitiesPanel({
     </Card>
   );
 }
+
+
+
+
 
 
 

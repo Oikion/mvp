@@ -2,13 +2,66 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
 
+/**
+ * Entity types that can be searched
+ */
+type SearchEntityType = "property" | "client" | "contact" | "document" | "event";
+
+/**
+ * Request body for search
+ */
+interface SearchRequestBody {
+  query: string;
+  /** Entity types to search (default: all) */
+  types?: SearchEntityType[];
+  /** Page number for pagination (1-indexed, default: 1) */
+  page?: number;
+  /** Items per page (default: 50, max: 100) */
+  limit?: number;
+  /** Whether to include relationship data (default: true) */
+  includeRelationships?: boolean;
+}
+
+/**
+ * Response structure with pagination metadata
+ */
+interface SearchResponse {
+  properties: any[];
+  clients: any[];
+  contacts: any[];
+  documents: any[];
+  events: any[];
+  meta: {
+    query: string;
+    page: number;
+    limit: number;
+    counts: {
+      properties: number;
+      clients: number;
+      contacts: number;
+      documents: number;
+      events: number;
+      total: number;
+    };
+    hasMore: boolean;
+    timing: number;
+  };
+}
+
 export async function POST(req: Request) {
+  const startTime = performance.now();
+  
   try {
     await getCurrentUser();
     const organizationId = await getCurrentOrgId();
-    const body = await req.json();
+    const body: SearchRequestBody = await req.json();
 
     const query = body.query?.trim();
+    const types = body.types || ["property", "client", "contact", "document", "event"];
+    const page = Math.max(1, body.page || 1);
+    const limit = Math.min(100, Math.max(1, body.limit || 50));
+    const includeRelationships = body.includeRelationships !== false;
+    const skip = (page - 1) * limit;
 
     if (!query || query.length < 2) {
       return NextResponse.json({
@@ -17,201 +70,207 @@ export async function POST(req: Request) {
         contacts: [],
         documents: [],
         events: [],
+        meta: {
+          query: query || "",
+          page,
+          limit,
+          counts: { properties: 0, clients: 0, contacts: 0, documents: 0, events: 0, total: 0 },
+          hasMore: false,
+          timing: performance.now() - startTime,
+        },
       });
     }
 
     const db = prismaForOrg(organizationId);
 
-    // Search Properties (MLS) with linked entities
-    let properties: any[] = [];
-    try {
-      properties = await db.properties.findMany({
-        where: {
-          OR: [
-            { property_name: { contains: query, mode: "insensitive" } },
-            { area: { contains: query, mode: "insensitive" } },
-            { municipality: { contains: query, mode: "insensitive" } },
-            { postal_code: { contains: query, mode: "insensitive" } },
-            { address_street: { contains: query, mode: "insensitive" } },
-            { address_city: { contains: query, mode: "insensitive" } },
-            { primary_email: { contains: query, mode: "insensitive" } },
-          ],
-        },
-        include: {
-          linked_clients: {
-            include: {
-              client: {
-                select: { id: true, client_name: true },
-              },
+    // Run searches in parallel for performance
+    const searchPromises: Promise<any>[] = [];
+    const countPromises: Promise<number>[] = [];
+
+    // Properties search
+    if (types.includes("property")) {
+      const propertyWhere = {
+        OR: [
+          { property_name: { contains: query, mode: "insensitive" as const } },
+          { area: { contains: query, mode: "insensitive" as const } },
+          { municipality: { contains: query, mode: "insensitive" as const } },
+          { postal_code: { contains: query, mode: "insensitive" as const } },
+          { address_street: { contains: query, mode: "insensitive" as const } },
+          { address_city: { contains: query, mode: "insensitive" as const } },
+          { primary_email: { contains: query, mode: "insensitive" as const } },
+        ],
+      };
+
+      searchPromises.push(
+        db.properties.findMany({
+          where: propertyWhere,
+          include: includeRelationships ? {
+            Client_Properties: {
+              include: { Clients: { select: { id: true, client_name: true } } },
+              take: 3,
             },
-            take: 3,
-          },
-          linkedEvents: {
-            select: { id: true, title: true, startTime: true },
-            take: 3,
-            orderBy: { startTime: "desc" },
-          },
-          _count: {
-            select: {
-              linked_clients: true,
-              linkedEvents: true,
+            CalComEvent: {
+              select: { id: true, title: true, startTime: true },
+              take: 3,
+              orderBy: { startTime: "desc" },
             },
-          },
-        },
-        take: 5,
-        orderBy: { updatedAt: "desc" },
-      });
-    } catch (error) {
-      console.error("[GLOBAL_SEARCH] Properties search error:", error);
+            _count: { select: { Client_Properties: true, CalComEvent: true } },
+          } : undefined,
+          take: limit,
+          skip,
+          orderBy: { updatedAt: "desc" },
+        }).catch(() => [])
+      );
+      countPromises.push(db.properties.count({ where: propertyWhere }).catch(() => 0));
+    } else {
+      searchPromises.push(Promise.resolve([]));
+      countPromises.push(Promise.resolve(0));
     }
 
-    // Search Clients (CRM) with linked entities
-    let clients: any[] = [];
-    try {
-      clients = await db.clients.findMany({
-        where: {
-          OR: [
-            { client_name: { contains: query, mode: "insensitive" } },
-            { primary_email: { contains: query, mode: "insensitive" } },
-            { description: { contains: query, mode: "insensitive" } },
-          ],
-        },
-        include: {
-          linked_properties: {
-            include: {
-              property: {
-                select: { id: true, property_name: true },
-              },
+    // Clients search
+    if (types.includes("client")) {
+      const clientWhere = {
+        OR: [
+          { client_name: { contains: query, mode: "insensitive" as const } },
+          { primary_email: { contains: query, mode: "insensitive" as const } },
+          { description: { contains: query, mode: "insensitive" as const } },
+        ],
+      };
+
+      searchPromises.push(
+        db.clients.findMany({
+          where: clientWhere,
+          include: includeRelationships ? {
+            Client_Properties: {
+              include: { Properties: { select: { id: true, property_name: true } } },
+              take: 3,
             },
-            take: 3,
-          },
-          linkedEvents: {
-            select: { id: true, title: true, startTime: true },
-            take: 3,
-            orderBy: { startTime: "desc" },
-          },
-          _count: {
-            select: {
-              linked_properties: true,
-              linkedEvents: true,
+            CalComEvent: {
+              select: { id: true, title: true, startTime: true },
+              take: 3,
+              orderBy: { startTime: "desc" },
             },
-          },
-        },
-        take: 10,
-        orderBy: { updatedAt: "desc" },
-      });
-    } catch (error) {
-      console.error("[GLOBAL_SEARCH] Clients search error:", error);
+            _count: { select: { Client_Properties: true, CalComEvent: true } },
+          } : undefined,
+          take: limit,
+          skip,
+          orderBy: { updatedAt: "desc" },
+        }).catch(() => [])
+      );
+      countPromises.push(db.clients.count({ where: clientWhere }).catch(() => 0));
+    } else {
+      searchPromises.push(Promise.resolve([]));
+      countPromises.push(Promise.resolve(0));
     }
 
-    // Search Contacts (CRM)
-    let contacts: any[] = [];
-    try {
-      contacts = await db.client_Contacts.findMany({
-        where: {
-          OR: [
-            { contact_first_name: { contains: query, mode: "insensitive" } },
-            { contact_last_name: { contains: query, mode: "insensitive" } },
-            { email: { contains: query, mode: "insensitive" } },
-          ],
-        },
-        include: {
-          assigned_client: {
-            select: { id: true, client_name: true },
-          },
-        },
-        take: 5,
-        orderBy: { updatedAt: "desc" },
-      });
-    } catch (error) {
-      console.error("[GLOBAL_SEARCH] Contacts search error:", error);
+    // Contacts search
+    if (types.includes("contact")) {
+      const contactWhere = {
+        OR: [
+          { contact_first_name: { contains: query, mode: "insensitive" as const } },
+          { contact_last_name: { contains: query, mode: "insensitive" as const } },
+          { email: { contains: query, mode: "insensitive" as const } },
+        ],
+      };
+
+      searchPromises.push(
+        db.client_Contacts.findMany({
+          where: contactWhere,
+          include: includeRelationships ? {
+            Clients: { select: { id: true, client_name: true } },
+          } : undefined,
+          take: limit,
+          skip,
+          orderBy: { updatedAt: "desc" },
+        }).catch(() => [])
+      );
+      countPromises.push(db.client_Contacts.count({ where: contactWhere }).catch(() => 0));
+    } else {
+      searchPromises.push(Promise.resolve([]));
+      countPromises.push(Promise.resolve(0));
     }
 
-    // Search Documents
-    let documents: any[] = [];
-    try {
-      documents = await db.documents.findMany({
-        where: {
-          OR: [
-            { document_name: { contains: query, mode: "insensitive" } },
-            { description: { contains: query, mode: "insensitive" } },
-          ],
-        },
-        include: {
-          _count: {
-            select: {
-              accounts: true,
-              linkedProperties: true,
-              linkedCalComEvents: true,
-            },
-          },
-        },
-        take: 5,
-        orderBy: { updatedAt: "desc" },
-      });
-    } catch (error) {
-      console.error("[GLOBAL_SEARCH] Documents search error:", error);
+    // Documents search
+    if (types.includes("document")) {
+      const documentWhere = {
+        OR: [
+          { document_name: { contains: query, mode: "insensitive" as const } },
+          { description: { contains: query, mode: "insensitive" as const } },
+        ],
+      };
+
+      searchPromises.push(
+        db.documents.findMany({
+          where: documentWhere,
+          include: includeRelationships ? {
+            _count: { select: { Clients: true, Properties: true, CalComEvent: true } },
+          } : undefined,
+          take: limit,
+          skip,
+          orderBy: { updatedAt: "desc" },
+        }).catch(() => [])
+      );
+      countPromises.push(db.documents.count({ where: documentWhere }).catch(() => 0));
+    } else {
+      searchPromises.push(Promise.resolve([]));
+      countPromises.push(Promise.resolve(0));
     }
 
-    // Search Calendar Events with linked entities
-    let events: any[] = [];
-    try {
+    // Events search
+    if (types.includes("event")) {
       const calComEventModel = (db as any).calComEvent;
       if (calComEventModel && typeof calComEventModel.findMany === "function") {
-        events = await calComEventModel.findMany({
-          where: {
-            OR: [
-              { title: { contains: query, mode: "insensitive" } },
-              { description: { contains: query, mode: "insensitive" } },
-              { location: { contains: query, mode: "insensitive" } },
-              { attendeeName: { contains: query, mode: "insensitive" } },
-              { attendeeEmail: { contains: query, mode: "insensitive" } },
-              { notes: { contains: query, mode: "insensitive" } },
-            ],
-          },
-          include: {
-            linkedClients: {
-              select: { id: true, client_name: true },
-              take: 3,
-            },
-            linkedProperties: {
-              select: { id: true, property_name: true },
-              take: 3,
-            },
-            _count: {
-              select: {
-                linkedClients: true,
-                linkedProperties: true,
-              },
-            },
-          },
-          take: 5,
-          orderBy: { startTime: "desc" },
-        });
+        const eventWhere = {
+          OR: [
+            { title: { contains: query, mode: "insensitive" as const } },
+            { description: { contains: query, mode: "insensitive" as const } },
+            { location: { contains: query, mode: "insensitive" as const } },
+            { attendeeName: { contains: query, mode: "insensitive" as const } },
+            { attendeeEmail: { contains: query, mode: "insensitive" as const } },
+            { notes: { contains: query, mode: "insensitive" as const } },
+          ],
+        };
+
+        searchPromises.push(
+          calComEventModel.findMany({
+            where: eventWhere,
+            include: includeRelationships ? {
+              linkedClients: { select: { id: true, client_name: true }, take: 3 },
+              linkedProperties: { select: { id: true, property_name: true }, take: 3 },
+              _count: { select: { linkedClients: true, linkedProperties: true } },
+            } : undefined,
+            take: limit,
+            skip,
+            orderBy: { startTime: "desc" },
+          }).catch(() => [])
+        );
+        countPromises.push(calComEventModel.count({ where: eventWhere }).catch(() => 0));
+      } else {
+        searchPromises.push(Promise.resolve([]));
+        countPromises.push(Promise.resolve(0));
       }
-    } catch (eventError: any) {
-      console.error("[GLOBAL_SEARCH] Calendar events search error:", eventError?.message || eventError);
-      events = [];
+    } else {
+      searchPromises.push(Promise.resolve([]));
+      countPromises.push(Promise.resolve(0));
     }
 
-    // Helper function to serialize Prisma objects (convert Decimal to number, Date to ISO string)
+    // Execute all searches and counts in parallel
+    const [searchResults, counts] = await Promise.all([
+      Promise.all(searchPromises),
+      Promise.all(countPromises),
+    ]);
+
+    const [properties, clients, contacts, documents, events] = searchResults;
+    const [propertiesCount, clientsCount, contactsCount, documentsCount, eventsCount] = counts;
+
+    // Helper function to serialize Prisma objects
     const serializePrismaObject = (obj: any): any => {
-      if (obj === null || obj === undefined) {
-        return obj;
-      }
-      // Handle Prisma Decimal objects
+      if (obj === null || obj === undefined) return obj;
       if (obj && typeof obj === 'object' && 'toNumber' in obj && typeof obj.toNumber === 'function') {
         return obj.toNumber();
       }
-      // Handle Date objects
-      if (obj instanceof Date) {
-        return obj.toISOString();
-      }
-      // Handle arrays
-      if (Array.isArray(obj)) {
-        return obj.map(serializePrismaObject);
-      }
-      // Handle objects
+      if (obj instanceof Date) return obj.toISOString();
+      if (Array.isArray(obj)) return obj.map(serializePrismaObject);
       if (typeof obj === 'object') {
         const serialized: any = {};
         for (const [key, value] of Object.entries(obj)) {
@@ -222,54 +281,54 @@ export async function POST(req: Request) {
       return obj;
     };
 
-    // Transform results to include relationship data
+    // Transform results
     const transformedProperties = properties.map((p: any) => ({
       ...p,
-      relationships: {
+      relationships: includeRelationships ? {
         clients: {
-          count: p._count?.linked_clients || 0,
-          preview: p.linked_clients?.map((lc: any) => lc.client) || [],
+          count: p._count?.Client_Properties || 0,
+          preview: p.Client_Properties?.map((cp: any) => cp.Clients) || [],
         },
         events: {
-          count: p._count?.linkedEvents || 0,
-          preview: p.linkedEvents || [],
+          count: p._count?.CalComEvent || 0,
+          preview: p.CalComEvent || [],
         },
-      },
+      } : undefined,
     }));
 
     const transformedClients = clients.map((c: any) => ({
       ...c,
-      relationships: {
+      relationships: includeRelationships ? {
         properties: {
-          count: c._count?.linked_properties || 0,
-          preview: c.linked_properties?.map((lp: any) => lp.property) || [],
+          count: c._count?.Client_Properties || 0,
+          preview: c.Client_Properties?.map((cp: any) => cp.Properties) || [],
         },
         events: {
-          count: c._count?.linkedEvents || 0,
-          preview: c.linkedEvents || [],
+          count: c._count?.CalComEvent || 0,
+          preview: c.CalComEvent || [],
         },
-      },
+      } : undefined,
     }));
 
     const transformedContacts = contacts.map((c: any) => ({
       ...c,
-      relationships: {
-        client: c.assigned_client || null,
-      },
+      relationships: includeRelationships ? {
+        client: c.Clients || null,
+      } : undefined,
     }));
 
     const transformedDocuments = documents.map((d: any) => ({
       ...d,
-      relationships: {
-        clients: { count: d._count?.accounts || 0 },
-        properties: { count: d._count?.linkedProperties || 0 },
-        events: { count: d._count?.linkedCalComEvents || 0 },
-      },
+      relationships: includeRelationships ? {
+        clients: { count: d._count?.Clients || 0 },
+        properties: { count: d._count?.Properties || 0 },
+        events: { count: d._count?.CalComEvent || 0 },
+      } : undefined,
     }));
 
     const transformedEvents = events.map((e: any) => ({
       ...e,
-      relationships: {
+      relationships: includeRelationships ? {
         clients: {
           count: e._count?.linkedClients || 0,
           preview: e.linkedClients || [],
@@ -278,16 +337,36 @@ export async function POST(req: Request) {
           count: e._count?.linkedProperties || 0,
           preview: e.linkedProperties || [],
         },
-      },
+      } : undefined,
     }));
 
-    return NextResponse.json({
+    const totalCount = propertiesCount + clientsCount + contactsCount + documentsCount + eventsCount;
+    const totalResults = properties.length + clients.length + contacts.length + documents.length + events.length;
+
+    const response: SearchResponse = {
       properties: serializePrismaObject(transformedProperties),
       clients: serializePrismaObject(transformedClients),
       contacts: serializePrismaObject(transformedContacts),
       documents: serializePrismaObject(transformedDocuments),
       events: serializePrismaObject(transformedEvents),
-    });
+      meta: {
+        query,
+        page,
+        limit,
+        counts: {
+          properties: propertiesCount,
+          clients: clientsCount,
+          contacts: contactsCount,
+          documents: documentsCount,
+          events: eventsCount,
+          total: totalCount,
+        },
+        hasMore: skip + totalResults < totalCount,
+        timing: performance.now() - startTime,
+      },
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("[GLOBAL_SEARCH_POST]", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -297,4 +376,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

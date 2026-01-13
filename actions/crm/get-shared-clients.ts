@@ -1,7 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUserSafe } from "@/lib/get-current-user";
 
 export interface SharedClientData {
   id: string;
@@ -26,7 +26,12 @@ export interface SharedClientData {
 type EnrichedShare = SharedClientData | null;
 
 export const getSharedClients = async (): Promise<SharedClientData[]> => {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentUserSafe();
+  
+  // Return empty array if no user context (e.g., session not synced yet)
+  if (!currentUser) {
+    return [];
+  }
 
   const shares = await prismadb.sharedEntity.findMany({
     where: {
@@ -34,7 +39,7 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
       entityType: "CLIENT",
     },
     include: {
-      sharedBy: {
+      Users_SharedEntity_sharedByIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -76,7 +81,7 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
         sharedAt: share.createdAt,
         permissions: share.permissions,
         message: share.message,
-        sharedBy: share.sharedBy,
+        sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
       } as SharedClientData;
     })
   );

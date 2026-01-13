@@ -52,7 +52,12 @@
     "yearView": "Προβολή Έτους",
     "failedToFetchEvents": "Αποτυχία φόρτωσης συμβάντων",
     "allDay": "Ολοήμερο",
-    "moreEvents": "+{count} ακόμη"
+    "moreEvents": "+{count} ακόμη",
+    "eventUpdated": "Το συμβάν ενημερώθηκε επιτυχώς",
+    "eventMoved": "Το συμβάν μετακινήθηκε επιτυχώς",
+    "eventResized": "Το συμβάν αλλάχθηκε σε μέγεθος επιτυχώς",
+    "failedToMoveEvent": "Αποτυχία μετακίνησης συμβάντος",
+    "failedToResizeEvent": "Αποτυχία αλλαγής μεγέθους συμβάντος"
   },
   "weekView": {
     "weekOf": "Εβδομάδα της {date}",
@@ -98,6 +103,8 @@
     "locationManualEntry": "Ή εισάγετε χειροκίνητα",
     "eventType": "Τύπος Συμβάντος",
     "selectEventType": "Επιλέξτε τύπο συμβάντος",
+    "specifyEventType": "Προσδιορίστε τύπο συμβάντος",
+    "specifyEventTypePlaceholder": "Εισάγετε τον τύπο συμβάντος...",
     "assignedUser": "Ανατεθειμένος Χρήστης",
     "selectUser": "Επιλέξτε χρήστη",
     "linkClients": "Σύνδεση Πελατών",
@@ -112,6 +119,10 @@
     "creating": "Δημιουργία...",
     "createEvent": "Δημιουργία Συμβάντος",
     "eventCreatedSuccess": "Το συμβάν δημιουργήθηκε με επιτυχία",
+    "basicInfo": "Βασικές Πληροφορίες",
+    "dateTime": "Ημερομηνία & Ώρα",
+    "assignment": "Ανάθεση",
+    "linkedEntities": "Συνδεδεμένες Οντότητες",
     "failedToCreateEvent": "Αποτυχία δημιουργίας συμβάντος"
   },
   "locationSearch": {
@@ -160,7 +171,8 @@
     "noPropertiesFound": "Δεν βρέθηκαν ιδιοκτησίες",
     "selectDocuments": "Επιλέξτε έγγραφα...",
     "searchDocuments": "Αναζήτηση εγγράφων...",
-    "noDocumentsFound": "Δεν βρέθηκαν έγγραφα"
+    "noDocumentsFound": "Δεν βρέθηκαν έγγραφα",
+    "loading": "Φόρτωση..."
   },
   "filters": {
     "title": "Φίλτρα",

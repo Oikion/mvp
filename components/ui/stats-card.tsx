@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Sparkles, Lightbulb } from "lucide-react";
+import { Plus, Sparkles, Eye } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -21,8 +21,14 @@ interface StatsCardProps {
   onAction?: () => void;
   /** Zero-state message when value is 0 */
   emptyMessage?: string;
-  /** Hint message shown when there is data (non-zero state) */
-  hint?: string;
+  /** Link to view all items (shown when non-zero) */
+  viewHref?: string;
+  /** Label for view all button */
+  viewLabel?: string;
+  /** Link to add new item (shown when non-zero) */
+  addHref?: string;
+  /** Label for add new button */
+  addLabel?: string;
   /** Custom className */
   className?: string;
 }
@@ -38,7 +44,10 @@ export function StatsCard({
   actionLabel,
   onAction,
   emptyMessage,
-  hint,
+  viewHref,
+  viewLabel,
+  addHref,
+  addLabel,
   className,
 }: StatsCardProps) {
   // Determine if we're in a zero-state (value is 0 or "0" or "€0.0M" etc.)
@@ -107,9 +116,9 @@ export function StatsCard({
           </p>
         </div>
         
-        {/* Action button (zero state) or hint (non-zero state) */}
+        {/* Action buttons */}
         <div className="mt-3 pt-2 min-h-[36px]">
-          {hasAction && isZeroState && (
+          {isZeroState && hasAction && (
             <Button
               variant="outline"
               size="sm"
@@ -135,10 +144,34 @@ export function StatsCard({
               )}
             </Button>
           )}
-          {!isZeroState && hint && (
-            <div className="flex items-start gap-1.5 text-[11px] text-muted-foreground/80 leading-tight">
-              <Lightbulb className="h-3 w-3 mt-0.5 shrink-0 text-amber-500/70" />
-              <span>{hint}</span>
+          {!isZeroState && (viewHref || addHref) && (
+            <div className="flex items-center justify-end gap-2">
+              {viewHref && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                  asChild
+                >
+                  <Link href={viewHref}>
+                    <Eye className="h-3 w-3 mr-1" />
+                    {viewLabel || "View All"}
+                  </Link>
+                </Button>
+              )}
+              {addHref && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                  asChild
+                >
+                  <Link href={addHref}>
+                    <Plus className="h-3 w-3 mr-1" />
+                    {addLabel || "Add New"}
+                  </Link>
+                </Button>
+              )}
             </div>
           )}
         </div>

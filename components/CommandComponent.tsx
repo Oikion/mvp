@@ -45,7 +45,7 @@ export function CommandComponent() {
         setOpen(false);
       }
       if (e.key === "P" && e.metaKey && e.shiftKey) {
-        router.push("/profile");
+        router.push("/app/profile");
         setOpen(false);
       }
     };

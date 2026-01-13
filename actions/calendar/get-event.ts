@@ -1,8 +1,13 @@
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export async function getEvent(eventId: string) {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  
+  // Return null if no organization context (e.g., session not synced yet)
+  if (!organizationId) {
+    return null;
+  }
 
   const event = await prismadb.calComEvent.findFirst({
     where: {
@@ -10,7 +15,7 @@ export async function getEvent(eventId: string) {
       organizationId,
     },
     include: {
-      assignedUser: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -18,23 +23,23 @@ export async function getEvent(eventId: string) {
           avatar: true,
         },
       },
-      linkedTasks: {
+      crm_Accounts_Tasks: {
         include: {
-          assigned_user: {
+          Users: {
             select: { id: true, name: true, email: true },
           },
-          crm_accounts: {
+          Clients: {
             select: { id: true, client_name: true },
           },
         },
       },
-      linkedClients: {
+      Clients: {
         select: { id: true, client_name: true, primary_email: true },
       },
-      linkedProperties: {
+      Properties: {
         select: { id: true, property_name: true, address_street: true, address_city: true },
       },
-      linkedDocuments: {
+      Documents: {
         select: {
           id: true,
           document_name: true,
@@ -42,7 +47,7 @@ export async function getEvent(eventId: string) {
           document_file_mimeType: true,
         },
       },
-      reminders: {
+      CalendarReminder: {
         orderBy: {
           scheduledFor: "asc",
         },
@@ -52,6 +57,12 @@ export async function getEvent(eventId: string) {
 
   return event;
 }
+
+
+
+
+
+
 
 
 

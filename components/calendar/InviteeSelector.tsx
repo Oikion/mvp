@@ -10,7 +10,6 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
@@ -212,11 +211,20 @@ export function InviteeSelector({
                     {filteredOrgInvitees.length > 0 && (
                       <CommandGroup heading={t("organizationMembers")}>
                         {filteredOrgInvitees.map((invitee) => (
-                          <CommandItem
+                          <div
                             key={invitee.userId}
-                            value={invitee.userId}
-                            onSelect={() => handleSelect(invitee)}
-                            className="cursor-pointer"
+                            role="option"
+                            aria-selected={false}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleSelect(invitee);
+                            }}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
                           >
                             <div className="flex items-center gap-2 flex-1">
                               <Avatar className="h-8 w-8">
@@ -238,7 +246,7 @@ export function InviteeSelector({
                               </div>
                               <Building2 className="h-4 w-4 text-muted-foreground ml-auto" />
                             </div>
-                          </CommandItem>
+                          </div>
                         ))}
                       </CommandGroup>
                     )}
@@ -252,11 +260,20 @@ export function InviteeSelector({
                     {filteredConnectionInvitees.length > 0 && (
                       <CommandGroup heading={t("connections")}>
                         {filteredConnectionInvitees.map((invitee) => (
-                          <CommandItem
+                          <div
                             key={invitee.userId}
-                            value={invitee.userId}
-                            onSelect={() => handleSelect(invitee)}
-                            className="cursor-pointer"
+                            role="option"
+                            aria-selected={false}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleSelect(invitee);
+                            }}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
                           >
                             <div className="flex items-center gap-2 flex-1">
                               <Avatar className="h-8 w-8">
@@ -278,7 +295,7 @@ export function InviteeSelector({
                               </div>
                               <Link2 className="h-4 w-4 text-muted-foreground ml-auto" />
                             </div>
-                          </CommandItem>
+                          </div>
                         ))}
                       </CommandGroup>
                     )}
@@ -292,4 +309,10 @@ export function InviteeSelector({
     </div>
   );
 }
+
+
+
+
+
+
 

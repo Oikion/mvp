@@ -105,6 +105,7 @@ export async function warnOrganizationMembers(
             warningDate: new Date().toISOString(),
             organizationName: org.name,
           },
+          updatedAt: new Date(),
         },
       });
 
@@ -112,7 +113,7 @@ export async function warnOrganizationMembers(
       if (resend && user.email) {
         try {
           await resend.emails.send({
-            from: process.env.EMAIL_FROM || "Oikion <noreply@oikion.app>",
+            from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
             to: user.email,
             subject: `Warning: Your Organization "${org.name}"`,
             react: AccountWarning({
@@ -227,6 +228,7 @@ export async function suspendOrganization(
             organizationName: org.name,
             reason: sanitizedReason,
           },
+          updatedAt: new Date(),
         },
       });
 
@@ -234,7 +236,7 @@ export async function suspendOrganization(
       if (resend && user.email) {
         try {
           await resend.emails.send({
-            from: process.env.EMAIL_FROM || "Oikion <noreply@oikion.app>",
+            from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
             to: user.email,
             subject: `Organization Suspended: "${org.name}"`,
             react: AccountSuspension({
@@ -333,6 +335,7 @@ export async function deleteOrganization(
             organizationName: org.name,
             reason: sanitizedReason,
           },
+          updatedAt: new Date(),
         },
       });
 
@@ -340,7 +343,7 @@ export async function deleteOrganization(
       if (resend && user.email) {
         try {
           await resend.emails.send({
-            from: process.env.EMAIL_FROM || "Oikion <noreply@oikion.app>",
+            from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
             to: user.email,
             subject: `Organization Deleted: "${org.name}"`,
             react: AccountDeletion({
@@ -372,5 +375,12 @@ export async function deleteOrganization(
     return { success: false, error: "Failed to delete organization" };
   }
 }
+
+
+
+
+
+
+
 
 

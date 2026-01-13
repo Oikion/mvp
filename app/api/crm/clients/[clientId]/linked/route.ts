@@ -42,12 +42,12 @@ export async function GET(
     }
 
     // Fetch linked properties
-    const linkedProperties = await prismadb.client_Properties.findMany({
+    const linkedPropertiesRaw = await prismadb.client_Properties.findMany({
       where: {
         clientId,
       },
       include: {
-        property: {
+        Properties: {
           select: {
             id: true,
             property_name: true,
@@ -61,7 +61,7 @@ export async function GET(
             bathrooms: true,
             createdAt: true,
             updatedAt: true,
-            assigned_to_user: {
+            Users_Properties_assigned_toToUsers: {
               select: {
                 id: true,
                 name: true,
@@ -75,11 +75,20 @@ export async function GET(
       },
     });
 
+    // Map to expected field names
+    const linkedProperties = linkedPropertiesRaw.map((lp) => ({
+      ...lp,
+      property: lp.Properties ? {
+        ...lp.Properties,
+        assigned_to_user: lp.Properties.Users_Properties_assigned_toToUsers,
+      } : null,
+    }));
+
     // Fetch linked calendar events
-    const linkedEvents = await prismadb.calComEvent.findMany({
+    const linkedEventsRaw = await prismadb.calComEvent.findMany({
       where: {
         organizationId,
-        linkedClients: {
+        Clients: {
           some: {
             id: clientId,
           },
@@ -94,14 +103,14 @@ export async function GET(
         location: true,
         status: true,
         eventType: true,
-        assignedUser: {
+        Users: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        linkedProperties: {
+        Properties: {
           select: {
             id: true,
             property_name: true,
@@ -112,6 +121,13 @@ export async function GET(
         startTime: "desc",
       },
     });
+
+    // Map to expected field names
+    const linkedEvents = linkedEventsRaw.map((event) => ({
+      ...event,
+      assignedUser: event.Users,
+      linkedProperties: event.Properties,
+    }));
 
     // Get upcoming events (future events)
     const now = new Date();
@@ -169,6 +185,12 @@ export async function GET(
     );
   }
 }
+
+
+
+
+
+
 
 
 

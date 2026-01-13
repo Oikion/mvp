@@ -52,7 +52,12 @@
     "yearView": "Year View",
     "failedToFetchEvents": "Failed to fetch events",
     "allDay": "All day",
-    "moreEvents": "+{count} more"
+    "moreEvents": "+{count} more",
+    "eventUpdated": "Event updated successfully",
+    "eventMoved": "Event moved successfully",
+    "eventResized": "Event resized successfully",
+    "failedToMoveEvent": "Failed to move event",
+    "failedToResizeEvent": "Failed to resize event"
   },
   "weekView": {
     "weekOf": "Week of {date}",
@@ -98,6 +103,8 @@
     "locationManualEntry": "Or enter manually",
     "eventType": "Event Type",
     "selectEventType": "Select event type",
+    "specifyEventType": "Specify event type",
+    "specifyEventTypePlaceholder": "Enter the event type...",
     "assignedUser": "Assigned User",
     "selectUser": "Select user",
     "linkClients": "Link Clients",
@@ -112,6 +119,10 @@
     "creating": "Creating...",
     "createEvent": "Create Event",
     "eventCreatedSuccess": "Event created successfully",
+    "basicInfo": "Basic Information",
+    "dateTime": "Date & Time",
+    "assignment": "Assignment",
+    "linkedEntities": "Linked Entities",
     "failedToCreateEvent": "Failed to create event"
   },
   "locationSearch": {
@@ -160,7 +171,8 @@
     "noPropertiesFound": "No properties found",
     "selectDocuments": "Select documents...",
     "searchDocuments": "Search documents...",
-    "noDocumentsFound": "No documents found"
+    "noDocumentsFound": "No documents found",
+    "loading": "Loading..."
   },
   "filters": {
     "title": "Filters",

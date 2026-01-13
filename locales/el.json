@@ -3,6 +3,13 @@
     "title": "Oikion",
     "description": "Το Oikion είναι το λειτουργικό σύστημα για τα μεσιτικά γραφεία της Ελλάδας. MLS, CRM και Socials σε μια εφαρμογή."
   },
+  "auth": {
+    "alreadySignedIn": {
+      "title": "Είστε ήδη συνδεδεμένοι!",
+      "description": "Έχετε ενεργή συνεδρία. Κάντε κλικ παρακάτω για να επιστρέψετε στον πίνακα ελέγχου.",
+      "goBackButton": "Επιστροφή στην εφαρμογή"
+    }
+  },
   "CrmClientsPage": {
     "description": "Διαχειριστείτε τους πελάτες σας"
   },
@@ -39,7 +46,6 @@
     "storage": "Αποθήκευση",
     "settings": "Διαχείριση",
     "employees": "Υπάλληλοι",
-    "chatGPT": "ChatGPT",
     "feedback": "Ανατροφοδότηση",
     "calendar": "Ημερολόγιο"
   },
@@ -560,16 +566,6 @@
     "todoDashboard": "Πίνακας εργασιών",
     "profileSettings": "Ρυθμίσεις προφίλ",
     "signOut": "Αποσύνδεση"
-  }
-  ,
-  "ChatGPTPage": {
-    "title": "Βοηθός AI",
-    "description": "Ρωτήστε ό,τι χρειάζεστε",
-    "missingKeyTitle": "Δεν βρέθηκε κλειδί OpenAI",
-    "missingKeyPrompt": "Προσθέστε το κλειδί OpenAI στις",
-    "profileSettings": "ρυθμίσεις προφίλ",
-    "toUseAssistant": "για να χρησιμοποιήσετε τον βοηθό",
-    "loading": "Φόρτωση..."
   },
   "FeedbackForm": {
     "title": "Ανατροφοδότηση",

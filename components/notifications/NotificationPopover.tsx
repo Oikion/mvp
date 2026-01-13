@@ -160,11 +160,11 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
     if (!notification.entityType || !notification.entityId) {
       // For notifications without specific entities, navigate to appropriate sections
       if (notification.type.includes("CONNECTION")) {
-        router.push("/connections");
+        router.push("/app/connections");
       } else if (notification.type.includes("SOCIAL")) {
-        router.push("/social-feed");
+        router.push("/app/social-feed");
       } else {
-        router.push("/notifications");
+        router.push("/app/notifications");
       }
       setIsOpen(false);
       return;
@@ -172,45 +172,45 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
 
     switch (notification.entityType) {
       case "ACCOUNT":
-        router.push(`/crm/clients/${notification.entityId}`);
+        router.push(`/app/crm/clients/${notification.entityId}`);
         break;
       case "PROPERTY":
-        router.push(`/mls/properties/${notification.entityId}`);
+        router.push(`/app/mls/properties/${notification.entityId}`);
         break;
       case "CALENDAR_EVENT":
-        router.push(`/calendar?eventId=${notification.entityId}`);
+        router.push(`/app/calendar?eventId=${notification.entityId}`);
         break;
       case "TASK":
         if (notification.metadata?.accountId) {
-          router.push(`/crm/clients/${notification.metadata.accountId}`);
+          router.push(`/app/crm/clients/${notification.metadata.accountId}`);
         } else {
-          router.push("/tasks");
+          router.push("/app/crm/tasks");
         }
         break;
       case "DOCUMENT":
-        router.push(`/documents/${notification.entityId}`);
+        router.push(`/app/documents/${notification.entityId}`);
         break;
       case "SOCIAL_POST":
-        router.push(`/social-feed?postId=${notification.entityId}`);
+        router.push(`/app/social-feed?postId=${notification.entityId}`);
         break;
       case "DEAL":
-        router.push(`/deals/${notification.entityId}`);
+        router.push(`/app/deals/${notification.entityId}`);
         break;
       case "CONNECTION":
-        router.push("/connections");
+        router.push("/app/connections");
         break;
       case "USER":
         if (notification.metadata?.slug) {
-          router.push(`/agents/${notification.metadata.slug}`);
+          router.push(`/agent/${notification.metadata.slug}`);
         } else {
-          router.push("/connections");
+          router.push("/app/connections");
         }
         break;
       case "FEEDBACK":
-        router.push(`/feedback/${notification.entityId}`);
+        router.push(`/app/feedback/${notification.entityId}`);
         break;
       default:
-        router.push("/notifications");
+        router.push("/app/notifications");
     }
     setIsOpen(false);
   };
@@ -324,7 +324,7 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
             variant="ghost"
             className="w-full justify-center text-sm"
             onClick={() => {
-              router.push("/notifications");
+              router.push("/app/notifications");
               setIsOpen(false);
             }}
           >

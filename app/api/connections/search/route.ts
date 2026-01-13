@@ -18,10 +18,10 @@ export async function GET(req: Request) {
         // 2. Have not opted out of agent search
         OR: [
           // Users without an agent profile (default discoverable)
-          { agentProfile: null },
+          { AgentProfile: null },
           // Users with a profile that is visible and not hidden from search
           {
-            agentProfile: {
+            AgentProfile: {
               visibility: { in: ["PUBLIC", "SECURE"] },
               hideFromAgentSearch: false,
             },
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
                   { name: { contains: query, mode: "insensitive" } },
                   { email: { contains: query, mode: "insensitive" } },
                   {
-                    agentProfile: {
+                    AgentProfile: {
                       OR: [
                         { bio: { contains: query, mode: "insensitive" } },
                         { serviceAreas: { has: query } },
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
         name: true,
         email: true,
         avatar: true,
-        agentProfile: {
+        AgentProfile: {
           select: {
             slug: true,
             bio: true,
@@ -64,7 +64,7 @@ export async function GET(req: Request) {
         },
         _count: {
           select: {
-            properties: {
+            Properties_Properties_assigned_toToUsers: {
               where: {
                 portal_visibility: "PUBLIC",
                 property_status: "ACTIVE",

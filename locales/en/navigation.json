@@ -40,7 +40,6 @@
     "storage": "Storage",
     "settings": "Settings",
     "employees": "Employees",
-    "chatGPT": "ChatGPT",
     "feedback": "Feedback",
     "calendar": "Calendar",
     "platformAdmin": "Platform Admin"
@@ -50,6 +49,7 @@
     "account": "Account",
     "billing": "Billing",
     "notifications": "Notifications",
+    "referrals": "Referrals",
     "theme": "Theme",
     "language": "Language",
     "logOut": "Log out",
@@ -88,6 +88,8 @@
     "placeholder": "Search properties, clients, contacts, documents, events...",
     "noResults": "No results found.",
     "minLength": "Type at least 2 characters to search",
+    "navigation": "Go to",
+    "quickActions": "Quick Actions",
     "types": {
       "property": "Properties",
       "client": "Clients",

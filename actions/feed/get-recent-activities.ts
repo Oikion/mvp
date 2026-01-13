@@ -33,7 +33,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     take: Math.floor(limit / 4),
     orderBy: { createdAt: "desc" },
     include: {
-      assigned_to_user: {
+      Users_Properties_assigned_toToUsers: {
         select: {
           id: true,
           name: true,
@@ -45,6 +45,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
 
   for (const property of properties) {
     const isUpdated = property.updatedAt && property.updatedAt > property.createdAt;
+    const assignedUser = property.Users_Properties_assigned_toToUsers;
     activities.push({
       id: `property-${property.id}`,
       type: "property",
@@ -52,10 +53,10 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
       title: property.property_name || "Unnamed Property",
       description: property.description || undefined,
       timestamp: (isUpdated ? property.updatedAt : property.createdAt)?.toISOString() || new Date().toISOString(),
-      actor: property.assigned_to_user ? {
-        id: property.assigned_to_user.id,
-        name: property.assigned_to_user.name || "Unknown",
-        avatar: property.assigned_to_user.avatar || undefined,
+      actor: assignedUser ? {
+        id: assignedUser.id,
+        name: assignedUser.name || "Unknown",
+        avatar: assignedUser.avatar || undefined,
       } : undefined,
       entityId: property.id,
       metadata: {
@@ -71,7 +72,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     take: Math.floor(limit / 4),
     orderBy: { createdAt: "desc" },
     include: {
-      assigned_to_user: {
+      Users_Clients_assigned_toToUsers: {
         select: {
           id: true,
           name: true,
@@ -83,6 +84,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
 
   for (const client of clients) {
     const isUpdated = client.updatedAt && client.updatedAt > client.createdAt;
+    const assignedUser = client.Users_Clients_assigned_toToUsers;
     activities.push({
       id: `client-${client.id}`,
       type: "client",
@@ -90,10 +92,10 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
       title: client.client_name || "Unnamed Client",
       description: client.description || undefined,
       timestamp: (isUpdated ? client.updatedAt : client.createdAt)?.toISOString() || new Date().toISOString(),
-      actor: client.assigned_to_user ? {
-        id: client.assigned_to_user.id,
-        name: client.assigned_to_user.name || "Unknown",
-        avatar: client.assigned_to_user.avatar || undefined,
+      actor: assignedUser ? {
+        id: assignedUser.id,
+        name: assignedUser.name || "Unknown",
+        avatar: assignedUser.avatar || undefined,
       } : undefined,
       entityId: client.id,
       metadata: {
@@ -109,7 +111,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     take: Math.floor(limit / 4),
     orderBy: { createdAt: "desc" },
     include: {
-      created_by: {
+      Users_Documents_created_by_userToUsers: {
         select: {
           id: true,
           name: true,
@@ -121,6 +123,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
 
   for (const doc of documents) {
     const isUpdated = doc.updatedAt && doc.createdAt && doc.updatedAt > doc.createdAt;
+    const createdBy = doc.Users_Documents_created_by_userToUsers;
     activities.push({
       id: `document-${doc.id}`,
       type: "document",
@@ -128,10 +131,10 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
       title: doc.document_name || "Unnamed Document",
       description: doc.description || undefined,
       timestamp: (isUpdated ? doc.updatedAt : doc.createdAt)?.toISOString() || new Date().toISOString(),
-      actor: doc.created_by ? {
-        id: doc.created_by.id,
-        name: doc.created_by.name || "Unknown",
-        avatar: doc.created_by.avatar || undefined,
+      actor: createdBy ? {
+        id: createdBy.id,
+        name: createdBy.name || "Unknown",
+        avatar: createdBy.avatar || undefined,
       } : undefined,
       entityId: doc.id,
       metadata: {

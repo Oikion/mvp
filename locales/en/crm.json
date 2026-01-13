@@ -25,7 +25,9 @@
       "budgetMax": "Max Budget",
       "notes": "Quick Notes",
       "notesPlaceholder": "Add a quick note about this client...",
-      "agentOwner": "Assigned Agent"
+      "agentOwner": "Assigned Agent",
+      "specifyOther": "Please specify",
+      "specifyOtherPlaceholder": "Enter the purpose..."
     },
     "personType": {
       "INDIVIDUAL": "Individual",
@@ -89,14 +91,40 @@
     "agencyClientsDescription": "Clients managed by your agency",
     "sharedClientsDescription": "Clients shared with you by connections"
   },
-  "Stats": {
+  "stats": {
     "totalClients": "Total Clients",
     "activeClients": "Active Clients",
     "new30d": "New (30d)",
+    "assigned": "Assigned",
     "sharedWithYou": "Shared With You",
     "allContacts": "All contacts",
     "currentlyActive": "Currently active",
     "addedThisMonth": "Added this month",
+    "assignedToAgents": "Assigned to agents",
+    "fromConnections": "From connections",
+    "addClient": "Add Client",
+    "findAgents": "Find Agents",
+    "noClientsYet": "Start building your client base",
+    "noActiveClients": "No active clients yet",
+    "noRecentActivity": "No new clients this month",
+    "connectToReceive": "Connect with agents for leads",
+    "hints": {
+      "totalClients": "Add at least 5 clients to view meaningful insights!",
+      "activeClients": "Keep clients engaged to close more deals.",
+      "new30d": "Consistent lead generation drives business growth.",
+      "sharedWithYou": "Connect with more agents to receive referrals!"
+    }
+  },
+  "Stats": {
+    "totalClients": "Total Clients",
+    "activeClients": "Active Clients",
+    "new30d": "New (30d)",
+    "assigned": "Assigned",
+    "sharedWithYou": "Shared With You",
+    "allContacts": "All contacts",
+    "currentlyActive": "Currently active",
+    "addedThisMonth": "Added this month",
+    "assignedToAgents": "Assigned to agents",
     "fromConnections": "From connections",
     "addClient": "Add Client",
     "findAgents": "Find Agents",

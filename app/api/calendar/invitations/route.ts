@@ -18,9 +18,9 @@ export async function GET(request: NextRequest) {
         ...(status ? { status } : {}),
       },
       include: {
-        event: {
+        CalComEvent: {
           include: {
-            assignedUser: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -28,13 +28,13 @@ export async function GET(request: NextRequest) {
                 avatar: true,
               },
             },
-            linkedClients: {
+            Clients: {
               select: {
                 id: true,
                 client_name: true,
               },
             },
-            linkedProperties: {
+            Properties: {
               select: {
                 id: true,
                 property_name: true,
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: {
-        event: {
+        CalComEvent: {
           startTime: "asc",
         },
       },
@@ -56,16 +56,16 @@ export async function GET(request: NextRequest) {
         status: inv.status,
         respondedAt: inv.respondedAt?.toISOString() || null,
         event: {
-          id: inv.event.id,
-          title: inv.event.title,
-          description: inv.event.description,
-          startTime: inv.event.startTime.toISOString(),
-          endTime: inv.event.endTime.toISOString(),
-          location: inv.event.location,
-          eventType: inv.event.eventType,
-          assignedUser: inv.event.assignedUser,
-          linkedClients: inv.event.linkedClients,
-          linkedProperties: inv.event.linkedProperties,
+          id: inv.CalComEvent.id,
+          title: inv.CalComEvent.title,
+          description: inv.CalComEvent.description,
+          startTime: inv.CalComEvent.startTime.toISOString(),
+          endTime: inv.CalComEvent.endTime.toISOString(),
+          location: inv.CalComEvent.location,
+          eventType: inv.CalComEvent.eventType,
+          assignedUser: inv.CalComEvent.Users,
+          linkedClients: inv.CalComEvent.Clients,
+          linkedProperties: inv.CalComEvent.Properties,
         },
       }))
     );
@@ -77,4 +77,10 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+
+
+
+
+
 

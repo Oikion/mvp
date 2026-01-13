@@ -65,11 +65,7 @@ export async function POST(req: Request) {
         });
 
         await resend.emails.send({
-          from:
-            process.env.NEXT_PUBLIC_APP_NAME +
-            " <" +
-            process.env.EMAIL_FROM +
-            ">",
+          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
           to: notifyRecipient?.email!,
           subject:
             user.userLanguage === "en"
@@ -107,11 +103,7 @@ export async function POST(req: Request) {
           },
         });
         await resend.emails.send({
-          from:
-            process.env.NEXT_PUBLIC_APP_NAME +
-            " <" +
-            process.env.EMAIL_FROM +
-            ">",
+          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
           to: recipientUser?.email!,
           subject:
             user.userLanguage === "en"

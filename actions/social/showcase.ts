@@ -20,10 +20,10 @@ export async function getShowcaseProperties() {
     return [];
   }
 
-  const showcaseProperties = await prismadb.profileShowcaseProperty.findMany({
+  const showcasePropertiesRaw = await prismadb.profileShowcaseProperty.findMany({
     where: { profileId: profile.id },
     include: {
-      property: {
+      Properties: {
         select: {
           id: true,
           property_name: true,
@@ -37,7 +37,7 @@ export async function getShowcaseProperties() {
           bathrooms: true,
           square_feet: true,
           size_net_sqm: true,
-          linkedDocuments: {
+          Documents: {
             where: {
               document_file_mimeType: {
                 startsWith: "image/",
@@ -55,11 +55,14 @@ export async function getShowcaseProperties() {
   });
 
   // Serialize to plain objects - converts Decimal to number, Date to string
-  return serializePrismaJson(showcaseProperties.map((sp) => ({
+  return serializePrismaJson(showcasePropertiesRaw.map((sp) => ({
     id: sp.id,
     propertyId: sp.propertyId,
     order: sp.order,
-    property: sp.property,
+    property: sp.Properties ? {
+      ...sp.Properties,
+      linkedDocuments: sp.Properties.Documents,
+    } : null,
   })));
 }
 
@@ -86,7 +89,7 @@ export async function getAvailablePropertiesForShowcase() {
     : [];
 
   // Get user's properties that are not yet showcased
-  const properties = await prismadb.properties.findMany({
+  const propertiesRaw = await prismadb.properties.findMany({
     where: {
       organizationId,
       assigned_to: currentUser.id,
@@ -108,7 +111,7 @@ export async function getAvailablePropertiesForShowcase() {
       bathrooms: true,
       square_feet: true,
       size_net_sqm: true,
-      linkedDocuments: {
+      Documents: {
         where: {
           document_file_mimeType: {
             startsWith: "image/",
@@ -122,6 +125,12 @@ export async function getAvailablePropertiesForShowcase() {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  // Map to expected field names
+  const properties = propertiesRaw.map((p) => ({
+    ...p,
+    linkedDocuments: p.Documents,
+  }));
 
   // Serialize to plain objects - converts Decimal to number, Date to string
   return serializePrismaJson(properties);
@@ -165,14 +174,15 @@ export async function addShowcaseProperty(propertyId: string) {
   const newOrder = (maxOrder._max.order ?? -1) + 1;
 
   // Add to showcase
-  const showcaseProperty = await prismadb.profileShowcaseProperty.create({
+  const showcasePropertyRaw = await prismadb.profileShowcaseProperty.create({
     data: {
+      id: crypto.randomUUID(),
       profileId: profile.id,
       propertyId,
       order: newOrder,
     },
     include: {
-      property: {
+      Properties: {
         select: {
           id: true,
           property_name: true,
@@ -189,6 +199,12 @@ export async function addShowcaseProperty(propertyId: string) {
   if (currentUser.username) {
     revalidatePath(`/agent/${currentUser.username}`);
   }
+
+  // Map to expected field name
+  const showcaseProperty = {
+    ...showcasePropertyRaw,
+    property: showcasePropertyRaw.Properties,
+  };
 
   // Serialize to plain objects - converts Decimal to number, Date to string
   return serializePrismaJson(showcaseProperty);
@@ -308,10 +324,10 @@ export async function getPublicShowcaseProperties(slug: string) {
     return [];
   }
 
-  const showcaseProperties = await prismadb.profileShowcaseProperty.findMany({
+  const showcasePropertiesRaw = await prismadb.profileShowcaseProperty.findMany({
     where: { profileId: profile.id },
     include: {
-      property: {
+      Properties: {
         select: {
           id: true,
           property_name: true,
@@ -324,7 +340,7 @@ export async function getPublicShowcaseProperties(slug: string) {
           bathrooms: true,
           square_feet: true,
           size_net_sqm: true,
-          linkedDocuments: {
+          Documents: {
             where: {
               document_file_mimeType: {
                 startsWith: "image/",
@@ -342,6 +358,9 @@ export async function getPublicShowcaseProperties(slug: string) {
   });
 
   // Serialize to plain objects - converts Decimal to number, Date to string
-  return serializePrismaJson(showcaseProperties.map((sp) => sp.property));
+  return serializePrismaJson(showcasePropertiesRaw.map((sp) => sp.Properties ? {
+    ...sp.Properties,
+    linkedDocuments: sp.Properties.Documents,
+  } : null).filter(Boolean));
 }
 

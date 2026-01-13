@@ -58,7 +58,7 @@ async function getPropertyDetails(
   return {
     title: property.property_name,
     description: description || property.description || undefined,
-    url: `${baseUrl}/mls/properties/${property.id}`,
+    url: `${baseUrl}/app/mls/properties/${property.id}`,
   };
 }
 
@@ -94,7 +94,7 @@ async function getClientDetails(
   return {
     title: client.client_name,
     description: description || undefined,
-    url: `${baseUrl}/crm/clients/${client.id}`,
+    url: `${baseUrl}/app/crm/clients/${client.id}`,
   };
 }
 
@@ -116,7 +116,7 @@ async function getPostDetails(
       content: true,
       postType: true,
       linkedEntityTitle: true,
-      author: {
+      Users: {
         select: {
           name: true,
         },
@@ -136,7 +136,7 @@ async function getPostDetails(
 
   return {
     title,
-    description: post.author.name ? `Posted by ${post.author.name}` : undefined,
+    description: post.Users?.name ? `Posted by ${post.Users.name}` : undefined,
     url: `${baseUrl}/social-feed?post=${post.id}`,
   };
 }
@@ -215,7 +215,7 @@ export async function shareViaEmail(input: ShareViaEmailInput) {
 
   try {
     const result = await resend.emails.send({
-      from: `${process.env.NEXT_PUBLIC_APP_NAME} <${process.env.EMAIL_FROM}>`,
+      from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
       to: input.recipientEmail,
       subject,
       react: ShareEntityEmail({
@@ -271,5 +271,11 @@ export async function shareMultipleViaEmail(
     results,
   };
 }
+
+
+
+
+
+
 
 

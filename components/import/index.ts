@@ -9,8 +9,15 @@ export type {
 export { ImportWizardModal } from "./ImportWizardModal";
 export { UploadStep } from "./UploadStep";
 export { MappingStep } from "./MappingStep";
+export { TwoPanelMappingStep } from "./TwoPanelMappingStep";
 export { ValidationStep } from "./ValidationStep";
 export { ReviewStep } from "./ReviewStep";
 export { CompleteStep } from "./CompleteStep";
+
+
+
+
+
+
 
 

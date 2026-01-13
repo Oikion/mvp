@@ -48,6 +48,7 @@ export async function POST(
     if (membersToAdd.length > 0) {
       await prismadb.audienceMember.createMany({
         data: membersToAdd.map((userId: string) => ({
+          id: crypto.randomUUID(),
           audienceId: id,
           userId,
         })),
@@ -59,9 +60,9 @@ export async function POST(
     const updated = await prismadb.audience.findUnique({
       where: { id },
       include: {
-        members: {
+        AudienceMember: {
           include: {
-            user: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -73,13 +74,19 @@ export async function POST(
           orderBy: { addedAt: "desc" },
         },
         _count: {
-          select: { members: true },
+          select: { AudienceMember: true },
         },
       },
     });
 
+    if (!updated) {
+      return new NextResponse("Audience not found", { status: 404 });
+    }
+
     return NextResponse.json({
       ...updated,
+      memberCount: updated._count.AudienceMember,
+      members: updated.AudienceMember.map(m => ({ ...m, user: m.Users })),
       addedCount: membersToAdd.length,
     });
   } catch (error) {

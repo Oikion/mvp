@@ -2,7 +2,7 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { kv } from '@vercel/kv';
 
 // Rate limit tiers for different API types
-export type RateLimitTier = 'default' | 'strict' | 'lenient' | 'burst';
+export type RateLimitTier = 'default' | 'strict' | 'lenient' | 'burst' | 'api';
 
 // Rate limit configurations per tier
 const RATE_LIMIT_CONFIGS: Record<RateLimitTier, { requests: number; window: string; windowMs: number }> = {
@@ -14,6 +14,8 @@ const RATE_LIMIT_CONFIGS: Record<RateLimitTier, { requests: number; window: stri
   lenient: { requests: 120, window: '1 m', windowMs: 60 * 1000 },
   // Burst: 30 requests per 10 seconds (allows short bursts but limits sustained abuse)
   burst: { requests: 30, window: '10 s', windowMs: 10 * 1000 },
+  // API: 100 requests per minute (external API access via API keys)
+  api: { requests: 100, window: '1 m', windowMs: 60 * 1000 },
 };
 
 // Initialize rate limiters with Vercel KV
@@ -119,6 +121,17 @@ export async function rateLimit(
   identifier: string,
   tier: RateLimitTier = 'default'
 ): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
+  // Skip rate limiting entirely in development mode for faster HMR
+  if (process.env.NODE_ENV === 'development') {
+    const config = RATE_LIMIT_CONFIGS[tier];
+    return {
+      success: true,
+      limit: config.requests,
+      remaining: config.requests - 1,
+      reset: Date.now() + config.windowMs,
+    };
+  }
+
   const config = RATE_LIMIT_CONFIGS[tier];
   const limiter = rateLimiters[tier];
 
@@ -150,6 +163,15 @@ export function getRateLimitIdentifier(req: Request): string {
   const forwarded = req.headers.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0].trim() : req.headers.get('x-real-ip') || 'unknown';
   return `ip:${ip}`;
+}
+
+/**
+ * Get rate limit identifier for API key authenticated requests
+ * @param apiKeyId - The API key ID
+ * @returns Rate limit identifier string
+ */
+export function getApiKeyRateLimitIdentifier(apiKeyId: string): string {
+  return `apikey:${apiKeyId}`;
 }
 
 /**

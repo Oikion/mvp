@@ -16,7 +16,7 @@ export const getContactsTrend = async () => {
   const [currentCount, previousCount] = await Promise.all([
     prismadb.client_Contacts.count({
       where: {
-        assigned_client: {
+        Clients: {
           organizationId,
         },
         created_on: {
@@ -26,7 +26,7 @@ export const getContactsTrend = async () => {
     }),
     prismadb.client_Contacts.count({
       where: {
-        assigned_client: {
+        Clients: {
           organizationId,
         },
         created_on: {

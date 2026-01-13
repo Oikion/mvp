@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { Link } from "@/navigation"
 
 import {
   SidebarGroup,
@@ -17,6 +17,7 @@ interface NavSecondaryItem {
   url?: string
   icon: any
   onClick?: () => void
+  isActive?: boolean
 }
 
 function NavSecondaryMenuItem({ item }: { readonly item: NavSecondaryItem }) {
@@ -28,10 +29,11 @@ function NavSecondaryMenuItem({ item }: { readonly item: NavSecondaryItem }) {
       <SidebarMenuButton 
         asChild 
         size="sm"
+        isActive={item.isActive}
         onMouseEnter={() => iconRef.current?.startAnimation?.()}
         onMouseLeave={() => iconRef.current?.stopAnimation?.()}
       >
-        <Link href={item.url}>
+        <Link href={item.url} prefetch={true}>
           <item.icon ref={iconRef} size={16} className="mr-1" />
           <span>{item.title}</span>
         </Link>

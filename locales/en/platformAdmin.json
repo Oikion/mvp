@@ -8,7 +8,11 @@
     "dashboard": "Dashboard",
     "users": "Users",
     "organizations": "Organizations",
-    "feedback": "Feedback"
+    "referrals": "Referrals",
+    "feedback": "Feedback",
+    "apiKeys": "API Keys",
+    "changelog": "Changelog",
+    "logbook": "Admin Logbook"
   },
   "accessDenied": {
     "title": "Access Denied",
@@ -250,6 +254,9 @@
     "warnings": "warnings",
     "viewStack": "View stack trace",
     "noConsoleLogs": "No console logs were captured for this feedback",
+    "downloadLogs": "Download Logs",
+    "consoleLogsStoredAsFile": "Console logs are stored as a text file for better performance.",
+    "entries": "entries",
     "diagnosticData": "Diagnostic Data Status",
     "screenshotCaptured": "Screenshot captured",
     "noScreenshotCaptured": "No screenshot",
@@ -277,9 +284,278 @@
       "maxCommentsReached": "Maximum number of messages (100) reached for this feedback",
       "noUserToRespond": "Cannot send messages to anonymous feedback",
       "anonymousNote": "This feedback was submitted anonymously. Messages cannot be sent.",
-      "adminLabel": "Platform Admin"
+      "adminLabel": "Platform Admin",
+      "fileTooLarge": "File size exceeds 10MB limit",
+      "fileTypeNotAllowed": "This file type is not allowed",
+      "fileUploaded": "File uploaded successfully",
+      "uploadError": "Failed to upload file",
+      "maxFileSize": "Max file size: 10MB • Allowed: images, PDFs, documents, spreadsheets"
+    }
+  },
+  "changelog": {
+    "title": "Changelog Management",
+    "description": "Manage changelog entries for the public website",
+    "newEntry": "New Entry",
+    "noEntries": "No changelog entries yet",
+    "createFirst": "Create your first entry to get started",
+    "entries": "{count} entries",
+    "stats": {
+      "total": "Total Entries",
+      "published": "Published",
+      "drafts": "Drafts",
+      "archived": "Archived"
+    },
+    "filter": {
+      "all": "All Entries",
+      "draft": "Drafts",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "columns": {
+      "version": "Version",
+      "title": "Title",
+      "category": "Category",
+      "tags": "Tags",
+      "status": "Status",
+      "published": "Published",
+      "actions": "Actions"
+    },
+    "form": {
+      "createTitle": "Create Changelog Entry",
+      "editTitle": "Edit Changelog Entry",
+      "createDescription": "Add a new entry to the changelog. You can save as draft or publish immediately.",
+      "editDescription": "Update the changelog entry details.",
+      "version": "Version",
+      "versionPlaceholder": "1.2.3",
+      "versionHelp": "Semantic version (e.g., 1.2.3 or 2.0.0-beta)",
+      "category": "Category",
+      "selectCategory": "Select category",
+      "title": "Title",
+      "titlePlaceholder": "What's new in this version?",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the changes in detail. Markdown is supported.",
+      "descriptionHelp": "Detailed description of the changes. Supports basic formatting.",
+      "tags": "Tags",
+      "addTag": "Add Tag",
+      "tagName": "Tag Name",
+      "tagNamePlaceholder": "Enter tag name",
+      "tagColor": "Color",
+      "tagPreview": "Preview:",
+      "maxTags": "Add up to 10 custom tags. Click to add, X to remove.",
+      "maxTagsReached": "Maximum 10 tags allowed",
+      "tagExists": "Tag already exists",
+      "saveAsDraft": "Save as Draft",
+      "publishNow": "Publish Now",
+      "updateAndPublish": "Update & Publish"
+    },
+    "preview": {
+      "title": "Preview Entry",
+      "tags": "Tags",
+      "description": "Description",
+      "created": "Created:",
+      "updated": "Updated:",
+      "published": "Published:"
+    },
+    "category": {
+      "Feature": "Feature",
+      "Bug Fix": "Bug Fix",
+      "Improvement": "Improvement",
+      "Security": "Security",
+      "Performance": "Performance",
+      "UI/UX": "UI/UX",
+      "API": "API",
+      "Documentation": "Documentation",
+      "Maintenance": "Maintenance",
+      "Breaking Change": "Breaking Change",
+      "Other": "Other"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "actions": {
+      "preview": "Preview",
+      "edit": "Edit",
+      "publish": "Publish",
+      "archive": "Archive"
+    },
+    "toast": {
+      "created": "Entry saved as draft",
+      "createdAndPublished": "Entry created and published",
+      "updated": "Entry updated successfully",
+      "updatedAndPublished": "Entry updated and published",
+      "published": "Entry published successfully",
+      "archived": "Entry archived successfully",
+      "error": "An error occurred"
+    }
+  },
+  "referrals": {
+    "title": "Referral Management",
+    "description": "View and manage user referrals and commissions",
+    "searchPlaceholder": "Search by email, name, or referral code...",
+    "search": "Search",
+    "filterByStatus": "Filter by status",
+    "showingResults": "Showing {count, plural, =0 {no referrals} =1 {1 referral} other {# referrals}}",
+    "noResults": "No referrals found.",
+    "page": "Page {page} of {totalPages}",
+    "previous": "Previous",
+    "next": "Next",
+    "openMenu": "Open menu",
+    "actionsLabel": "Actions",
+    "tabs": {
+      "programme": "Programme Members",
+      "referrals": "Referred Users"
+    },
+    "codes": {
+      "searchPlaceholder": "Search by email, name, or code...",
+      "showingResults": "Showing {count, plural, =0 {no members} =1 {1 member} other {# members}} in the referral programme",
+      "noResults": "No referral codes found.",
+      "active": "Active",
+      "inactive": "Inactive",
+      "columns": {
+        "user": "User",
+        "code": "Referral Code",
+        "commission": "Commission Rate",
+        "referrals": "Referrals",
+        "earnings": "Total Earnings",
+        "status": "Status",
+        "created": "Created"
+      },
+      "actions": {
+        "copyCode": "Copy Code",
+        "editCommission": "Edit Commission"
+      }
+    },
+    "stats": {
+      "totalCodes": "Referral Codes",
+      "totalReferrals": "Total Referrals",
+      "converted": "Converted",
+      "pending": "Pending",
+      "totalCommissions": "Total Commissions",
+      "pendingPayouts": "Pending Payouts"
+    },
+    "columns": {
+      "referrer": "Referrer",
+      "referredUser": "Referred User",
+      "status": "Status",
+      "commission": "Commission",
+      "earnings": "Earnings",
+      "paid": "Paid",
+      "date": "Date"
+    },
+    "status": {
+      "all": "All Statuses",
+      "pending": "Pending",
+      "converted": "Converted",
+      "cancelled": "Cancelled"
+    },
+    "actions": {
+      "viewDetails": "View Details",
+      "addPayout": "Add Payout",
+      "updateStatus": "Update Status",
+      "updateCommission": "Update Commission"
+    },
+    "dialog": {
+      "viewTitle": "Referral Details",
+      "viewDescription": "View complete referral information",
+      "payoutTitle": "Add Commission Payout",
+      "payoutDescription": "Log income for the referred user and calculate commission",
+      "statusTitle": "Update Referral Status",
+      "statusDescription": "Change the status of this referral",
+      "commissionTitle": "Update Commission Rate",
+      "commissionDescription": "Adjust the commission rate for this referrer",
+      "referrer": "Referrer",
+      "referredUser": "Referred User",
+      "status": "Status",
+      "commissionRate": "Commission Rate",
+      "totalEarnings": "Total Earnings",
+      "totalPaid": "Total Paid",
+      "referralDate": "Referral Date",
+      "convertedDate": "Converted Date",
+      "payoutInfo": "Enter the referred user's income amount. Commission will be calculated at {rate}%.",
+      "referredUserIncome": "Referred User's Income",
+      "commissionAmount": "Commission amount",
+      "notes": "Notes (optional)",
+      "notesPlaceholder": "Add notes about this payout...",
+      "currentStatus": "Current Status",
+      "newStatus": "New Status",
+      "currentCommission": "Current Commission Rate",
+      "newCommission": "New Commission Rate",
+      "commissionNote": "This rate will apply to future payouts only.",
+      "close": "Close",
+      "cancel": "Cancel",
+      "addPayout": "Add Payout",
+      "updateStatus": "Update Status",
+      "updateCommission": "Update Commission"
+    },
+    "payoutCreated": "Payout created successfully",
+    "statusUpdated": "Referral status updated",
+    "commissionUpdated": "Commission rate updated",
+    "errors": {
+      "invalidAmount": "Please enter a valid amount",
+      "invalidCommission": "Commission must be between 0 and 100",
+      "payoutFailed": "Failed to create payout",
+      "statusUpdateFailed": "Failed to update status",
+      "commissionUpdateFailed": "Failed to update commission",
+      "referralNotFound": "Referral not found"
+    },
+    "createCode": {
+      "button": "Create Referral Code",
+      "title": "Create Referral Code",
+      "description": "Assign a referral code to a platform user who doesn't have one yet.",
+      "selectUser": "Select User",
+      "searchPlaceholder": "Search users by email or name...",
+      "typeToSearch": "Type at least 2 characters to search",
+      "noUsersFound": "No eligible users found",
+      "commissionRate": "Commission Rate",
+      "commissionNote": "Percentage of referred user's income to be paid as commission",
+      "cancel": "Cancel",
+      "create": "Create Code",
+      "done": "Done",
+      "success": "Referral code created successfully",
+      "createdFor": "Referral code created for {email}",
+      "codeCopied": "Code copied to clipboard",
+      "errors": {
+        "selectUser": "Please select a user",
+        "invalidCommission": "Commission must be between 0 and 100",
+        "failed": "Failed to create referral code"
+      }
+    }
+  },
+  "logbook": {
+    "title": "Admin Logbook",
+    "description": "View admin access history and session logs",
+    "searchPlaceholder": "Search by email, name, or IP address...",
+    "search": "Search",
+    "filter": "Filter",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "showingResults": "Showing {count, plural, =0 {no entries} =1 {1 entry} other {# entries}}",
+    "noResults": "No log entries found.",
+    "page": "Page {page} of {totalPages}",
+    "previous": "Previous",
+    "next": "Next",
+    "stats": {
+      "totalSessions": "Total Sessions",
+      "allTime": "All time",
+      "uniqueAdmins": "Unique Admins",
+      "totalAdmins": "Who accessed the portal",
+      "today": "Today",
+      "sessionsToday": "Sessions today",
+      "thisWeek": "This Week",
+      "sessionsThisWeek": "Sessions this week",
+      "thisMonth": "This Month",
+      "sessionsThisMonth": "Sessions this month"
+    },
+    "columns": {
+      "timestamp": "Timestamp",
+      "admin": "Admin",
+      "ipAddress": "IP Address",
+      "browser": "Browser",
+      "os": "Operating System",
+      "device": "Device",
+      "location": "Location"
     }
   }
 }
-
-

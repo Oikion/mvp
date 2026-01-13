@@ -29,7 +29,7 @@ export async function GET(req: Request) {
     const audiences = await prismadb.audience.findMany({
       where: whereClause,
       include: {
-        createdBy: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -37,9 +37,9 @@ export async function GET(req: Request) {
             avatar: true,
           },
         },
-        members: {
+        AudienceMember: {
           include: {
-            user: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
           orderBy: { addedAt: "desc" },
         },
         _count: {
-          select: { members: true },
+          select: { AudienceMember: true },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -66,9 +66,9 @@ export async function GET(req: Request) {
       createdAt: a.createdAt,
       updatedAt: a.updatedAt,
       createdById: a.createdById,
-      createdBy: a.createdBy,
-      memberCount: a._count.members,
-      members: a.members,
+      createdBy: a.Users,
+      memberCount: a._count.AudienceMember,
+      members: a.AudienceMember.map(m => ({ ...m, user: m.Users })),
     }));
 
     return NextResponse.json(result);
@@ -103,6 +103,7 @@ export async function POST(req: Request) {
         createdById: currentUser.id,
         organizationId: isOrgLevel ? organizationId : null,
         isAutoSync: isOrgLevel ? !!isAutoSync : false,
+        updatedAt: new Date(),
       },
     });
 
@@ -110,6 +111,7 @@ export async function POST(req: Request) {
     if (memberIds && Array.isArray(memberIds) && memberIds.length > 0) {
       await prismadb.audienceMember.createMany({
         data: memberIds.map((userId: string) => ({
+          id: randomUUID(),
           audienceId: audience.id,
           userId,
         })),
@@ -121,7 +123,7 @@ export async function POST(req: Request) {
     const result = await prismadb.audience.findUnique({
       where: { id: audience.id },
       include: {
-        createdBy: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -129,9 +131,9 @@ export async function POST(req: Request) {
             avatar: true,
           },
         },
-        members: {
+        AudienceMember: {
           include: {
-            user: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -142,12 +144,21 @@ export async function POST(req: Request) {
           },
         },
         _count: {
-          select: { members: true },
+          select: { AudienceMember: true },
         },
       },
     });
 
-    return NextResponse.json(result);
+    if (!result) {
+      return new NextResponse("Audience not found", { status: 404 });
+    }
+
+    return NextResponse.json({
+      ...result,
+      createdBy: result.Users,
+      memberCount: result._count.AudienceMember,
+      members: result.AudienceMember.map(m => ({ ...m, user: m.Users })),
+    });
   } catch (error) {
     console.error("Error creating audience:", error);
     return new NextResponse("Internal Server Error", { status: 500 });

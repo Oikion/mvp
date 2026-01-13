@@ -62,9 +62,11 @@ export async function sendConnectionRequest(targetUserId: string) {
   // Create new connection request
   const connection = await prismadb.agentConnection.create({
     data: {
+      id: crypto.randomUUID(),
       followerId: currentUser.id,
       followingId: targetUserId,
       status: "PENDING",
+      updatedAt: new Date(),
     },
   });
 
@@ -175,13 +177,13 @@ export async function getMyConnections(status?: "PENDING" | "ACCEPTED") {
       ...(status ? { status } : {}),
     },
     include: {
-      follower: {
+      Users_AgentConnection_followerIdToUsers: {
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
-          agentProfile: {
+          AgentProfile: {
             select: {
               slug: true,
               bio: true,
@@ -191,13 +193,13 @@ export async function getMyConnections(status?: "PENDING" | "ACCEPTED") {
           },
         },
       },
-      following: {
+      Users_AgentConnection_followingIdToUsers: {
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
-          agentProfile: {
+          AgentProfile: {
             select: {
               slug: true,
               bio: true,
@@ -218,7 +220,7 @@ export async function getMyConnections(status?: "PENDING" | "ACCEPTED") {
     createdAt: conn.createdAt,
     isIncoming: conn.followingId === currentUser.id,
     user:
-      conn.followerId === currentUser.id ? conn.following : conn.follower,
+      conn.followerId === currentUser.id ? conn.Users_AgentConnection_followingIdToUsers : conn.Users_AgentConnection_followerIdToUsers,
   }));
 }
 
@@ -234,13 +236,13 @@ export async function getPendingRequests() {
       status: "PENDING",
     },
     include: {
-      follower: {
+      Users_AgentConnection_followerIdToUsers: {
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
-          agentProfile: {
+          AgentProfile: {
             select: {
               slug: true,
               bio: true,
@@ -257,7 +259,7 @@ export async function getPendingRequests() {
   return requests.map((req) => ({
     id: req.id,
     createdAt: req.createdAt,
-    user: req.follower,
+    user: req.Users_AgentConnection_followerIdToUsers,
   }));
 }
 
@@ -273,13 +275,13 @@ export async function getSentRequests() {
       status: "PENDING",
     },
     include: {
-      following: {
+      Users_AgentConnection_followingIdToUsers: {
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
-          agentProfile: {
+          AgentProfile: {
             select: {
               slug: true,
               bio: true,
@@ -296,7 +298,7 @@ export async function getSentRequests() {
   return requests.map((req) => ({
     id: req.id,
     createdAt: req.createdAt,
-    user: req.following,
+    user: req.Users_AgentConnection_followingIdToUsers,
   }));
 }
 
@@ -349,7 +351,7 @@ export async function searchAgentsToConnect(query: string, limit: number = 20) {
       id: { not: currentUser.id },
       userStatus: "ACTIVE",
       // Only show agents with PUBLIC or SECURE profiles who haven't hidden from search
-      agentProfile: {
+      AgentProfile: {
         visibility: { in: ["PUBLIC", "SECURE"] },
         hideFromAgentSearch: false,
       },
@@ -357,7 +359,7 @@ export async function searchAgentsToConnect(query: string, limit: number = 20) {
         { name: { contains: query, mode: "insensitive" } },
         { email: { contains: query, mode: "insensitive" } },
         {
-          agentProfile: {
+          AgentProfile: {
             OR: [
               { bio: { contains: query, mode: "insensitive" } },
               { serviceAreas: { hasSome: [query] } },
@@ -371,7 +373,7 @@ export async function searchAgentsToConnect(query: string, limit: number = 20) {
       name: true,
       email: true,
       avatar: true,
-      agentProfile: {
+      AgentProfile: {
         select: {
           slug: true,
           bio: true,
@@ -382,7 +384,7 @@ export async function searchAgentsToConnect(query: string, limit: number = 20) {
       },
       _count: {
         select: {
-          properties: {
+          Properties_Properties_assigned_toToUsers: {
             where: {
               portal_visibility: "PUBLIC",
               property_status: "ACTIVE",

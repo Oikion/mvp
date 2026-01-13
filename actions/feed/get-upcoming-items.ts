@@ -61,11 +61,11 @@ export async function getUpcomingItems(): Promise<{
       },
       orderBy: { startTime: "asc" },
       include: {
-        linkedClients: {
+        Clients: {
           select: { id: true, client_name: true },
           take: 1,
         },
-        linkedProperties: {
+        Properties: {
           select: { id: true, property_name: true },
           take: 1,
         },
@@ -77,17 +77,17 @@ export async function getUpcomingItems(): Promise<{
       const isEventOverdue = eventDate < now && event.status !== "completed";
       
       let linkedEntity: UpcomingItem["linkedEntity"] = undefined;
-      if (event.linkedProperties?.[0]) {
+      if (event.Properties?.[0]) {
         linkedEntity = {
           type: "property",
-          id: event.linkedProperties[0].id,
-          name: event.linkedProperties[0].property_name || "Property",
+          id: event.Properties[0].id,
+          name: event.Properties[0].property_name || "Property",
         };
-      } else if (event.linkedClients?.[0]) {
+      } else if (event.Clients?.[0]) {
         linkedEntity = {
           type: "client",
-          id: event.linkedClients[0].id,
-          name: event.linkedClients[0].client_name || "Client",
+          id: event.Clients[0].id,
+          name: event.Clients[0].client_name || "Client",
         };
       }
 
@@ -122,7 +122,7 @@ export async function getUpcomingItems(): Promise<{
       },
       orderBy: { dueDateAt: "asc" },
       include: {
-        crm_accounts: {
+        Clients: {
           select: { id: true, client_name: true },
         },
       },
@@ -135,11 +135,11 @@ export async function getUpcomingItems(): Promise<{
       const isTaskOverdue = taskDate < now;
 
       let linkedEntity: UpcomingItem["linkedEntity"] = undefined;
-      if (task.crm_accounts) {
+      if (task.Clients) {
         linkedEntity = {
           type: "client",
-          id: task.crm_accounts.id,
-          name: task.crm_accounts.client_name || "Client",
+          id: task.Clients.id,
+          name: task.Clients.client_name || "Client",
         };
       }
 
@@ -174,7 +174,7 @@ export async function getUpcomingItems(): Promise<{
       },
       orderBy: { scheduledFor: "asc" },
       include: {
-        event: {
+        CalComEvent: {
           select: { title: true, startTime: true },
         },
       },
@@ -187,9 +187,9 @@ export async function getUpcomingItems(): Promise<{
       items.push({
         id: `reminder-${reminder.id}`,
         type: "reminder",
-        title: `Reminder: ${reminder.event?.title || "Event"}`,
-        description: reminder.event?.startTime 
-          ? `Event starts at ${new Date(reminder.event.startTime).toLocaleTimeString()}`
+        title: `Reminder: ${reminder.CalComEvent?.title || "Event"}`,
+        description: reminder.CalComEvent?.startTime 
+          ? `Event starts at ${new Date(reminder.CalComEvent.startTime).toLocaleTimeString()}`
           : undefined,
         datetime: reminder.scheduledFor.toISOString(),
         status: reminder.status,
@@ -215,6 +215,12 @@ export async function getUpcomingItems(): Promise<{
     thisWeek: sortedItems.filter(i => i.isThisWeek && !i.isToday && !i.isTomorrow && !i.isOverdue),
   };
 }
+
+
+
+
+
+
 
 
 

@@ -14,11 +14,14 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  Row,
 } from "@tanstack/react-table";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
+import { useTableKeyboard } from "@/hooks/use-table-keyboard";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -34,6 +37,14 @@ interface DataTableProps<TData, TValue> {
       icon?: React.ComponentType<{ className?: string }>;
     }[];
   }[];
+  /** Callback when a row is opened/viewed (Enter or O key) */
+  onRowOpen?: (row: Row<TData>) => void;
+  /** Callback when a row should be edited (E key) */
+  onRowEdit?: (row: Row<TData>) => void;
+  /** Callback when row(s) should be deleted (Shift+Backspace) */
+  onRowDelete?: (rows: Row<TData>[]) => void;
+  /** Whether keyboard navigation is enabled (default: true) */
+  enableKeyboardNav?: boolean;
 }
 
 export function DataTable<TData, TValue>({ 
@@ -41,12 +52,17 @@ export function DataTable<TData, TValue>({
   data, 
   searchKey,
   searchPlaceholder,
-  filters
+  filters,
+  onRowOpen,
+  onRowEdit,
+  onRowDelete,
+  enableKeyboardNav = true,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const table = useReactTable({
     data,
@@ -65,6 +81,22 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  // Keyboard navigation hook
+  const {
+    tableContainerProps,
+    getRowProps,
+    isRowFocused,
+    isTableFocused,
+    focusedRowIndex,
+  } = useTableKeyboard({
+    table,
+    onOpen: onRowOpen,
+    onEdit: onRowEdit,
+    onDelete: onRowDelete,
+    enabled: enableKeyboardNav,
+    containerRef,
+  });
+
   return (
     <div className="space-y-4">
       <DataTableToolbar 
@@ -73,7 +105,14 @@ export function DataTable<TData, TValue>({
         searchPlaceholder={searchPlaceholder}
         filters={filters}
       />
-      <div className="rounded-md border">
+      <div 
+        ref={containerRef}
+        className={cn(
+          "rounded-md border outline-none transition-shadow",
+          isTableFocused && "ring-2 ring-ring ring-offset-2 ring-offset-background"
+        )}
+        {...tableContainerProps}
+      >
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -88,13 +127,26 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row, index) => {
+                const rowProps = getRowProps(index);
+                return (
+                  <TableRow 
+                    key={row.id} 
+                    data-state={row.getIsSelected() && "selected"}
+                    data-focused={isRowFocused(index)}
+                    onClick={rowProps.onClick}
+                    className={cn(
+                      "cursor-pointer transition-colors",
+                      isRowFocused(index) && "bg-accent/50 ring-1 ring-inset ring-primary/50",
+                      row.getIsSelected() && "bg-accent"
+                    )}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
@@ -105,20 +157,28 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <div className="flex items-center justify-between">
+        <DataTablePagination table={table} />
+        {enableKeyboardNav && (
+          <div className="text-xs text-muted-foreground hidden md:flex items-center gap-2">
+            {isTableFocused && focusedRowIndex >= 0 && (
+              <>
+                <span className="text-foreground font-medium">Row {focusedRowIndex + 1}</span>
+                <span className="mx-1">|</span>
+              </>
+            )}
+            <span>Navigate:</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border">J</kbd>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border">K</kbd>
+            <span className="mx-1">|</span>
+            <span>Open:</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border">Enter</kbd>
+            <span className="mx-1">|</span>
+            <span>Select:</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border">X</kbd>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

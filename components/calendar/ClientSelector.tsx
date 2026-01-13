@@ -26,7 +26,9 @@ export function ClientSelector({
       placeholder={t("selectors.selectClients")}
       searchPlaceholder={t("selectors.searchClients")}
       emptyMessage={t("selectors.noClientsFound")}
-      disabled={disabled || isLoading}
+      loadingMessage={t("selectors.loading")}
+      disabled={disabled}
+      isLoading={isLoading}
     />
   );
 }

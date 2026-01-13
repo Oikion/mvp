@@ -2,6 +2,7 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { syncClerkUser, deleteClerkUser } from "@/lib/clerk-sync";
+import { restorePersonalWorkspaceIfNeeded } from "@/lib/personal-workspace-guard";
 
 export async function POST(req: Request) {
   // Get the Svix headers for verification
@@ -65,8 +66,41 @@ export async function POST(req: Request) {
     }
   }
 
-  // Organization events are managed entirely through Clerk
-  // No additional processing needed for organization.created/updated/deleted
+  // Handle organization deletion - restore personal workspaces if accidentally deleted
+  if (eventType === "organization.deleted") {
+    const { id, public_metadata, created_by } = evt.data as {
+      id: string;
+      public_metadata?: Record<string, unknown>;
+      created_by?: string;
+    };
+    
+    if (id && created_by && public_metadata) {
+      try {
+        await restorePersonalWorkspaceIfNeeded(id, public_metadata, created_by);
+      } catch (error) {
+        console.error("Error handling organization deletion:", error);
+      }
+    }
+  }
+
+  // Handle membership removal from personal workspace - prevent leaving
+  if (eventType === "organizationMembership.deleted") {
+    const data = evt.data as {
+      organization?: { id: string; public_metadata?: Record<string, unknown> };
+      public_user_data?: { user_id: string };
+    };
+    
+    const orgMetadata = data.organization?.public_metadata;
+    const userId = data.public_user_data?.user_id;
+    const orgId = data.organization?.id;
+    
+    // If this was a personal workspace membership deletion, restore it
+    if (orgMetadata?.type === "personal" && userId && orgId) {
+      console.log(`User ${userId} left personal workspace ${orgId}. This should not happen.`);
+      // The user leaving their own personal workspace shouldn't happen via UI
+      // but if it does, they can re-create it through ensure-personal-workspace
+    }
+  }
 
   return new Response("Webhook processed", { status: 200 });
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,7 @@ export function LinkEntityDialog({
   title,
   description,
 }: LinkEntityDialogProps) {
+  const t = useTranslations("common");
   const [searchQuery, setSearchQuery] = useState("");
   const [entities, setEntities] = useState<Entity[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -58,11 +60,13 @@ export function LinkEntityDialog({
   const debouncedQuery = useDebounce(searchQuery, 300);
 
   const Icon = entityType === "property" ? Building2 : User;
-  const defaultTitle = entityType === "property" ? "Link Properties" : "Link Clients";
+  const defaultTitle = entityType === "property" 
+    ? t("dialogs.linkProperties") 
+    : t("dialogs.linkClients");
   const defaultDescription =
     entityType === "property"
-      ? "Search and select properties to link"
-      : "Search and select clients to link";
+      ? t("placeholders.searchProperties")
+      : t("placeholders.searchClients");
 
   // Fetch entities when dialog opens or search query changes
   useEffect(() => {
@@ -112,14 +116,14 @@ export function LinkEntityDialog({
         setEntities(filtered);
       } catch (error) {
         console.error("Failed to fetch entities:", error);
-        toast.error("Failed to load entities");
+        toast.error(t("toast.loadFailed"));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchEntities();
-  }, [open, entityType, alreadyLinkedIds]);
+  }, [open, entityType, alreadyLinkedIds, t]);
 
   // Filter entities by search query
   const filteredEntities = entities.filter((entity) => {
@@ -151,18 +155,18 @@ export function LinkEntityDialog({
 
   const handleSubmit = async () => {
     if (selectedIds.size === 0) {
-      toast.error("Please select at least one item to link");
+      toast.error(t("toast.linkEntitiesFailed"));
       return;
     }
 
     setIsSubmitting(true);
     try {
       await onLink(Array.from(selectedIds));
-      toast.success(`Successfully linked ${selectedIds.size} ${entityType}(s)`);
+      toast.success(t("toast.createSuccess"));
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to link entities:", error);
-      toast.error("Failed to link entities");
+      toast.error(t("toast.linkEntitiesFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -184,7 +188,7 @@ export function LinkEntityDialog({
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search..."
+              placeholder={t("placeholders.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -201,11 +205,11 @@ export function LinkEntityDialog({
                 onClick={handleSelectAll}
               >
                 {selectedIds.size === filteredEntities.length
-                  ? "Deselect all"
-                  : "Select all"}
+                  ? t("buttons.reset")
+                  : t("viewAll")}
               </Button>
               {selectedIds.size > 0 && (
-                <Badge variant="secondary">{selectedIds.size} selected</Badge>
+                <Badge variant="secondary">{selectedIds.size} {t("misc.selected").toLowerCase()}</Badge>
               )}
             </div>
           )}
@@ -221,8 +225,10 @@ export function LinkEntityDialog({
             ) : filteredEntities.length === 0 ? (
               <div className="text-center py-8 text-sm text-muted-foreground">
                 {entities.length === 0
-                  ? `No ${entityType}s available to link`
-                  : `No ${entityType}s match your search`}
+                  ? entityType === "property" 
+                    ? t("emptyStates.noPropertiesAvailable") 
+                    : t("emptyStates.noClientsAvailable")
+                  : t("emptyStates.searchNoResults")}
               </div>
             ) : (
               <div className="space-y-2">
@@ -268,16 +274,16 @@ export function LinkEntityDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("buttons.cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting || selectedIds.size === 0}>
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Linking...
+                {t("buttonStates.linking")}
               </>
             ) : (
-              `Link ${selectedIds.size > 0 ? selectedIds.size : ""} ${entityType}${selectedIds.size !== 1 ? "s" : ""}`
+              `${t("buttons.link")} ${selectedIds.size > 0 ? `(${selectedIds.size})` : ""}`
             )}
           </Button>
         </DialogFooter>
@@ -285,6 +291,12 @@ export function LinkEntityDialog({
     </Dialog>
   );
 }
+
+
+
+
+
+
 
 
 

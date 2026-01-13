@@ -31,7 +31,7 @@ export async function GET(req: Request) {
     const shares = await prismadb.sharedEntity.findMany({
       where: whereClause,
       include: {
-        sharedBy: {
+        Users_SharedEntity_sharedByIdToUsers: {
           select: {
             id: true,
             name: true,
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
             avatar: true,
           },
         },
-        sharedWith: {
+        Users_SharedEntity_sharedWithIdToUsers: {
           select: {
             id: true,
             name: true,
@@ -47,7 +47,7 @@ export async function GET(req: Request) {
             avatar: true,
           },
         },
-        audience: {
+        Audience: {
           select: {
             id: true,
             name: true,
@@ -57,7 +57,15 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(shares);
+    // Map to expected field names
+    const mappedShares = shares.map((share) => ({
+      ...share,
+      sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
+      sharedWith: share.Users_SharedEntity_sharedWithIdToUsers,
+      audience: share.Audience,
+    }));
+
+    return NextResponse.json(mappedShares);
   } catch (error) {
     console.error("[SHARE_GET]", error);
     return new NextResponse("Internal error", { status: 500 });
@@ -153,7 +161,7 @@ export async function POST(req: Request) {
           ],
         },
         include: {
-          members: {
+          AudienceMember: {
             select: { userId: true },
           },
         },
@@ -163,12 +171,12 @@ export async function POST(req: Request) {
         return new NextResponse("Audience not found or no access", { status: 404 });
       }
 
-      if (audience.members.length === 0) {
+      if (audience.AudienceMember.length === 0) {
         return new NextResponse("Audience has no members", { status: 400 });
       }
 
       // Filter out self and already shared users
-      const memberIds = audience.members
+      const memberIds = audience.AudienceMember
         .map((m) => m.userId)
         .filter((id) => id !== currentUser.id);
 
@@ -192,6 +200,7 @@ export async function POST(req: Request) {
       // Create shares for all new members
       const shares = await prismadb.sharedEntity.createMany({
         data: newMemberIds.map((userId) => ({
+          id: crypto.randomUUID(),
           entityType: entityType as SharedEntityType,
           entityId,
           sharedById: currentUser.id,
@@ -263,7 +272,7 @@ export async function POST(req: Request) {
     const audienceWithMember = await prismadb.audienceMember.findFirst({
       where: {
         userId: sharedWithId,
-        audience: {
+        Audience: {
           OR: [
             { createdById: currentUser.id, organizationId: null },
             ...(organizationId ? [{ organizationId }] : []),
@@ -287,6 +296,7 @@ export async function POST(req: Request) {
 
     const share = await prismadb.sharedEntity.create({
       data: {
+        id: crypto.randomUUID(),
         entityType: entityType as SharedEntityType,
         entityId,
         sharedById: currentUser.id,

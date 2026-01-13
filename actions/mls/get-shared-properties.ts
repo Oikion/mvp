@@ -1,7 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUserSafe } from "@/lib/get-current-user";
 
 export interface SharedPropertyData {
   id: string;
@@ -31,7 +31,12 @@ export interface SharedPropertyData {
 type EnrichedShare = SharedPropertyData | null;
 
 export const getSharedProperties = async (): Promise<SharedPropertyData[]> => {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentUserSafe();
+  
+  // Return empty array if no user context (e.g., session not synced yet)
+  if (!currentUser) {
+    return [];
+  }
 
   const shares = await prismadb.sharedEntity.findMany({
     where: {
@@ -39,7 +44,7 @@ export const getSharedProperties = async (): Promise<SharedPropertyData[]> => {
       entityType: "PROPERTY",
     },
     include: {
-      sharedBy: {
+      Users_SharedEntity_sharedByIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -68,7 +73,7 @@ export const getSharedProperties = async (): Promise<SharedPropertyData[]> => {
           bathrooms: true,
           square_feet: true,
           createdAt: true,
-          linkedDocuments: {
+          Documents: {
             where: {
               document_file_mimeType: {
                 startsWith: "image/",
@@ -98,8 +103,8 @@ export const getSharedProperties = async (): Promise<SharedPropertyData[]> => {
         sharedAt: share.createdAt,
         permissions: share.permissions,
         message: share.message,
-        linkedDocuments: property.linkedDocuments,
-        sharedBy: share.sharedBy,
+        linkedDocuments: property.Documents,
+        sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
       } as SharedPropertyData;
     })
   );

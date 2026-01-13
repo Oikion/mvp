@@ -1,14 +1,19 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUserSafe } from "@/lib/get-current-user";
 
 /**
  * Get a client that has been shared with the current user
  * This allows cross-organization access for sharees
  */
 export async function getSharedClient(clientId: string) {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentUserSafe();
+  
+  // Return null if no user context (e.g., session not synced yet)
+  if (!currentUser) {
+    return null;
+  }
 
   // Check if the client is shared with the current user
   const share = await prismadb.sharedEntity.findFirst({
@@ -21,7 +26,7 @@ export async function getSharedClient(clientId: string) {
       permissions: true,
       message: true,
       createdAt: true,
-      sharedBy: {
+      Users_SharedEntity_sharedByIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -40,7 +45,7 @@ export async function getSharedClient(clientId: string) {
   const client = await prismadb.clients.findUnique({
     where: { id: clientId },
     include: {
-      assigned_to_user: {
+      Users_Clients_assigned_toToUsers: {
         select: {
           id: true,
           name: true,
@@ -48,10 +53,10 @@ export async function getSharedClient(clientId: string) {
           avatar: true,
         },
       },
-      contacts: true,
-      linked_properties: {
+      Client_Contacts: true,
+      Client_Properties: {
         include: {
-          property: {
+          Properties: {
             select: {
               id: true,
               property_name: true,
@@ -71,11 +76,18 @@ export async function getSharedClient(clientId: string) {
 
   return {
     ...client,
+    // Map to expected field names for backward compatibility
+    assigned_to_user: client.Users_Clients_assigned_toToUsers,
+    contacts: client.Client_Contacts,
+    linked_properties: client.Client_Properties.map((cp) => ({
+      ...cp,
+      property: cp.Properties,
+    })),
     _shareInfo: {
       permissions: share.permissions,
       message: share.message,
       sharedAt: share.createdAt,
-      sharedBy: share.sharedBy,
+      sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
     },
   };
 }
@@ -84,7 +96,12 @@ export async function getSharedClient(clientId: string) {
  * Check if the current user has share access to a client
  */
 export async function hasClientShareAccess(clientId: string): Promise<boolean> {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getCurrentUserSafe();
+  
+  // Return false if no user context
+  if (!currentUser) {
+    return false;
+  }
 
   const share = await prismadb.sharedEntity.findFirst({
     where: {
@@ -97,6 +114,12 @@ export async function hasClientShareAccess(clientId: string): Promise<boolean> {
 
   return !!share;
 }
+
+
+
+
+
+
 
 
 

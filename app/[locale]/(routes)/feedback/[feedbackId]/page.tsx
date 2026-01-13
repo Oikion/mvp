@@ -15,7 +15,7 @@ export default async function FeedbackChatRoute({ params }: FeedbackPageProps) {
   try {
     currentUser = await getCurrentUser();
   } catch {
-    redirect(`/${locale}/sign-in`);
+    redirect(`/${locale}/app/sign-in`);
   }
 
   // Verify the feedback belongs to the current user
@@ -43,7 +43,16 @@ export default async function FeedbackChatRoute({ params }: FeedbackPageProps) {
       status: true,
       adminResponse: true,
       respondedAt: true,
-      comments: {
+      attachments: {
+        select: {
+          id: true,
+          fileName: true,
+          fileSize: true,
+          fileType: true,
+          url: true,
+        },
+      },
+      FeedbackComment: {
         orderBy: {
           createdAt: "asc",
         },
@@ -54,22 +63,39 @@ export default async function FeedbackChatRoute({ params }: FeedbackPageProps) {
           authorType: true,
           authorName: true,
           content: true,
+          attachmentUrl: true,
+          attachmentName: true,
+          attachmentSize: true,
+          attachmentType: true,
         },
       },
     },
   });
 
   if (!feedback) {
-    redirect(`/${locale}`);
+    redirect(`/${locale}/app`);
   }
 
-  // Serialize the data
-  const serializedFeedback = JSON.parse(JSON.stringify(feedback));
+  // Serialize the data and rename FeedbackComment to comments for the component
+  const serializedFeedback = JSON.parse(JSON.stringify({
+    ...feedback,
+    comments: feedback.FeedbackComment,
+    FeedbackComment: undefined,
+  }));
 
   return (
     <FeedbackChatPage
       feedback={serializedFeedback}
       locale={locale}
+      currentUserId={currentUser.id}
+      currentUserName={currentUser.name}
     />
   );
 }
+
+
+
+
+
+
+

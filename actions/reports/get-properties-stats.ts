@@ -1,8 +1,10 @@
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export const getPropertiesCount = async () => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  if (!organizationId) return 0;
+  
   const client: any = prismadb as any;
   const delegate = client?.properties;
   if (!delegate) {
@@ -15,7 +17,9 @@ export const getPropertiesCount = async () => {
 };
 
 export const getPropertiesByStatus = async () => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  if (!organizationId) return [];
+  
   const client: any = prismadb as any;
   const delegate = client?.properties;
   if (!delegate) {
@@ -44,14 +48,19 @@ export const getPropertiesByStatus = async () => {
     "WITHDRAWN",
   ];
 
-  return ALL_STATUSES.map((status) => ({
-    name: status,
-    value: statusCounts[status] || 0,
-  }));
+  return ALL_STATUSES.map((status) => {
+    const count = statusCounts[status] || 0;
+    return {
+      name: status,
+      value: typeof count === 'number' && !Number.isNaN(count) ? count : 0,
+    };
+  });
 };
 
 export const getPropertiesByMonth = async () => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  if (!organizationId) return [];
+  
   const client: any = prismadb as any;
   const delegate = client?.properties;
   if (!delegate) {
@@ -92,7 +101,9 @@ export const getPropertiesByMonth = async () => {
 };
 
 export const getPropertiesByMonthAndYear = async (year: number) => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  if (!organizationId) return [];
+  
   const client: any = prismadb as any;
   const delegate = client?.properties;
   if (!delegate) {

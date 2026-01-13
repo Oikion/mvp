@@ -96,6 +96,7 @@ export async function createDeal(input: CreateDealInput) {
       title: input.title || `Deal: ${property.property_name}`,
       notes: input.notes,
       status: "PROPOSED",
+      updatedAt: new Date(),
     },
   });
 
@@ -315,7 +316,7 @@ export async function completeDeal(dealId: string, totalCommission?: number) {
 export async function getMyDeals(status?: DealStatus) {
   const currentUser = await getCurrentUser();
 
-  const deals = await prismadb.deal.findMany({
+  const dealsRaw = await prismadb.deal.findMany({
     where: {
       OR: [
         { propertyAgentId: currentUser.id },
@@ -324,14 +325,14 @@ export async function getMyDeals(status?: DealStatus) {
       ...(status && { status }),
     },
     include: {
-      property: {
+      Properties: {
         select: {
           id: true,
           property_name: true,
           property_type: true,
           price: true,
           address_city: true,
-          linkedDocuments: {
+          Documents: {
             where: {
               document_file_mimeType: { startsWith: "image/" },
             },
@@ -340,7 +341,7 @@ export async function getMyDeals(status?: DealStatus) {
           },
         },
       },
-      client: {
+      Clients: {
         select: {
           id: true,
           client_name: true,
@@ -348,14 +349,14 @@ export async function getMyDeals(status?: DealStatus) {
           intent: true,
         },
       },
-      propertyAgent: {
+      Users_Deal_propertyAgentIdToUsers: {
         select: {
           id: true,
           name: true,
           avatar: true,
         },
       },
-      clientAgent: {
+      Users_Deal_clientAgentIdToUsers: {
         select: {
           id: true,
           name: true,
@@ -366,8 +367,15 @@ export async function getMyDeals(status?: DealStatus) {
     orderBy: { createdAt: "desc" },
   });
 
-  return deals.map((deal) => ({
+  return dealsRaw.map((deal) => ({
     ...deal,
+    property: deal.Properties ? {
+      ...deal.Properties,
+      linkedDocuments: deal.Properties.Documents,
+    } : null,
+    client: deal.Clients,
+    propertyAgent: deal.Users_Deal_propertyAgentIdToUsers,
+    clientAgent: deal.Users_Deal_clientAgentIdToUsers,
     isPropertyAgent: deal.propertyAgentId === currentUser.id,
     isProposer: deal.proposedById === currentUser.id,
   }));
@@ -379,10 +387,10 @@ export async function getMyDeals(status?: DealStatus) {
 export async function getDeal(dealId: string) {
   const currentUser = await getCurrentUser();
 
-  const deal = await prismadb.deal.findUnique({
+  const dealRaw = await prismadb.deal.findUnique({
     where: { id: dealId },
     include: {
-      property: {
+      Properties: {
         select: {
           id: true,
           property_name: true,
@@ -395,7 +403,7 @@ export async function getDeal(dealId: string) {
           size_net_sqm: true,
           square_feet: true,
           description: true,
-          linkedDocuments: {
+          Documents: {
             where: {
               document_file_mimeType: { startsWith: "image/" },
             },
@@ -404,7 +412,7 @@ export async function getDeal(dealId: string) {
           },
         },
       },
-      client: {
+      Clients: {
         select: {
           id: true,
           client_name: true,
@@ -414,13 +422,13 @@ export async function getDeal(dealId: string) {
           client_status: true,
         },
       },
-      propertyAgent: {
+      Users_Deal_propertyAgentIdToUsers: {
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
-          agentProfile: {
+          AgentProfile: {
             select: {
               slug: true,
               publicPhone: true,
@@ -428,13 +436,13 @@ export async function getDeal(dealId: string) {
           },
         },
       },
-      clientAgent: {
+      Users_Deal_clientAgentIdToUsers: {
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
-          agentProfile: {
+          AgentProfile: {
             select: {
               slug: true,
               publicPhone: true,
@@ -445,9 +453,27 @@ export async function getDeal(dealId: string) {
     },
   });
 
-  if (!deal) {
+  if (!dealRaw) {
     return null;
   }
+
+  // Map to expected field names
+  const deal = {
+    ...dealRaw,
+    property: dealRaw.Properties ? {
+      ...dealRaw.Properties,
+      linkedDocuments: dealRaw.Properties.Documents,
+    } : null,
+    client: dealRaw.Clients,
+    propertyAgent: dealRaw.Users_Deal_propertyAgentIdToUsers ? {
+      ...dealRaw.Users_Deal_propertyAgentIdToUsers,
+      agentProfile: dealRaw.Users_Deal_propertyAgentIdToUsers.AgentProfile,
+    } : null,
+    clientAgent: dealRaw.Users_Deal_clientAgentIdToUsers ? {
+      ...dealRaw.Users_Deal_clientAgentIdToUsers,
+      agentProfile: dealRaw.Users_Deal_clientAgentIdToUsers.AgentProfile,
+    } : null,
+  };
 
   // Check authorization
   if (

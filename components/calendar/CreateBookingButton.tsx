@@ -58,6 +58,8 @@ export function CreateBookingButton({
 
           <div className="mt-4">
             <EventCreateForm 
+              open={isOpen}
+              onOpenChange={setIsOpen}
               clientId={clientId}
               propertyId={propertyId}
               onSuccess={handleEventCreated} 

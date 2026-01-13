@@ -78,7 +78,7 @@ export async function GET(req: Request) {
       const task = await prismadb.crm_Accounts_Tasks.findUnique({
         where: { id: taskId },
         include: {
-          calcomEvent: true,
+          CalComEvent: true,
         },
       });
 
@@ -98,7 +98,7 @@ export async function GET(req: Request) {
         );
       }
 
-      return NextResponse.json({ event: task.calcomEvent });
+      return NextResponse.json({ event: task.CalComEvent });
     }
 
     // Get all tasks with calendar events
@@ -125,11 +125,11 @@ export async function GET(req: Request) {
     const tasks = await prismadb.crm_Accounts_Tasks.findMany({
       where,
       include: {
-        calcomEvent: true,
-        assigned_user: {
+        CalComEvent: true,
+        Users: {
           select: { id: true, name: true, email: true },
         },
-        crm_accounts: {
+        Clients: {
           select: { id: true, client_name: true },
         },
       },

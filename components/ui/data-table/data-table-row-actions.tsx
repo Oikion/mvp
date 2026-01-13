@@ -118,19 +118,19 @@ export function DataTableRowActions<TData extends { id?: string }>({
   const getBasePath = (): string => {
     switch (entityType) {
       case "property":
-        return "/mls/properties";
+        return "/app/mls";
       case "client":
-        return "/crm/clients";
+        return "/app/crm";
       case "contact":
-        return "/crm/contacts";
+        return "/app/crm/contacts";
       case "event":
-        return "/calendar/events";
+        return "/app/calendar/events";
       case "task":
-        return "/crm/tasks/viewtask";
+        return "/app/crm/tasks/viewtask";
       case "employee":
-        return "/employees";
+        return "/app/employees";
       case "user":
-        return "/admin/users";
+        return "/app/admin/users";
       default:
         return "";
     }
@@ -301,11 +301,17 @@ export function DataTableRowActions<TData extends { id?: string }>({
           >
             <Trash2 className="mr-2 h-4 w-4" />
             {t("delete")}
-            <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+            <DropdownMenuShortcut>⌘/Ctrl+⌫</DropdownMenuShortcut>
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
+
+
+
+
+
+
 

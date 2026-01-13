@@ -94,6 +94,61 @@ export async function uploadDocumentToBlob(
 }
 
 /**
+ * Upload an avatar to Vercel Blob storage with organization scoping
+ * @param organizationId - The organization ID
+ * @param userId - The user ID (used to construct filename)
+ * @param file - File content (Buffer, ReadableStream, or Blob)
+ * @param options - Additional options for upload
+ * @returns Blob object with URL and metadata
+ */
+export async function uploadAvatarToBlob(
+  organizationId: string,
+  userId: string,
+  file: Buffer | ReadableStream | Blob,
+  options?: {
+    contentType?: string;
+    fileExtension?: string;
+  }
+) {
+  const extension = options?.fileExtension || "png";
+  const fileName = `${userId}-${Date.now()}.${extension}`;
+  
+  return uploadToBlob(fileName, file, {
+    contentType: options?.contentType,
+    organizationId,
+    folder: "avatars",
+    access: "public",
+    addRandomSuffix: false, // Use predictable names for avatars
+  });
+}
+
+/**
+ * Upload an attachment to Vercel Blob storage with organization scoping
+ * @param organizationId - The organization ID
+ * @param fileName - Name of the file
+ * @param file - File content (Buffer, ReadableStream, or Blob)
+ * @param options - Additional options for upload
+ * @returns Blob object with URL and metadata
+ */
+export async function uploadAttachmentToBlob(
+  organizationId: string,
+  fileName: string,
+  file: Buffer | ReadableStream | Blob,
+  options?: {
+    contentType?: string;
+    addRandomSuffix?: boolean;
+  }
+) {
+  return uploadToBlob(fileName, file, {
+    ...options,
+    organizationId,
+    folder: "attachments",
+    access: "public",
+    addRandomSuffix: options?.addRandomSuffix ?? true,
+  });
+}
+
+/**
  * Delete a file from Vercel Blob storage
  * @param url - URL of the blob to delete
  */

@@ -160,8 +160,15 @@ export async function initializeSequence(
       id: prefix,
       prefix,
       lastValue: startValue,
+      updatedAt: new Date(),
     },
   });
 }
+
+
+
+
+
+
 
 

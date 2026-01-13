@@ -274,11 +274,13 @@ model Clients {
   Documents                        Documents[]          @relation("DocumentsToClients")
   CalComEvent                      CalComEvent[]        @relation("EventToClients")
   Users_watching_accounts          Users[]              @relation("watching_accounts")
+  PropertyShowing                  PropertyShowing[]
 
   @@index([assigned_to])
   @@index([client_status])
   @@index([createdAt])
   @@index([organizationId])
+  @@index([lead_source])
 }
 
 model Deal {
@@ -299,10 +301,19 @@ model Deal {
   closedAt                          DateTime?
   createdAt                         DateTime   @default(now())
   updatedAt                         DateTime
+  // New fields for metrics tracking
+  contractDate                      DateTime?  // When offer was accepted
+  hoursWorked                       Decimal?   // Total hours worked on this deal
+  dealType                          DealType?  // SELLER or BUYER transaction
+  leadSource                        LeadSource? // Lead source for this deal
+  marketingSpendId                  String?    // Link to marketing spend
+  
   Users_Deal_clientAgentIdToUsers   Users      @relation("Deal_clientAgentIdToUsers", fields: [clientAgentId], references: [id])
   Clients                           Clients    @relation(fields: [clientId], references: [id])
   Users_Deal_propertyAgentIdToUsers Users      @relation("Deal_propertyAgentIdToUsers", fields: [propertyAgentId], references: [id])
   Properties                        Properties @relation(fields: [propertyId], references: [id])
+  MarketingSpend                    MarketingSpend? @relation(fields: [marketingSpendId], references: [id])
+  AgentHours                        AgentHours[]
 
   @@index([clientAgentId])
   @@index([clientId])
@@ -310,6 +321,9 @@ model Deal {
   @@index([propertyAgentId])
   @@index([propertyId])
   @@index([status])
+  @@index([dealType])
+  @@index([leadSource])
+  @@index([marketingSpendId])
 }
 
 model DocumentTemplate {
@@ -458,10 +472,11 @@ model Feedback {
   emailSent        Boolean           @default(false)
   emailSentAt      DateTime?
   adminNotes       String?
-  consoleLogs      Json?
+  consoleLogs      Json?             // @deprecated - legacy field, use consoleLogsUrl instead
+  consoleLogsUrl   String?           // Vercel Blob URL for console logs text file
   reviewedAt       DateTime?
   reviewedBy       String?
-  screenshot       String?
+  screenshot       String?           // Vercel Blob URL for screenshot image
   status           String            @default("pending")
   adminResponse    String?
   respondedAt      DateTime?
@@ -484,7 +499,14 @@ model FeedbackComment {
   authorType String
   authorName String?
   content    String
-  Feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  // Attachment fields (optional - for file uploads)
+  attachmentUrl  String? // Vercel Blob URL
+  attachmentName String? // Original file name
+  attachmentSize Int?    // File size in bytes
+  attachmentType String? // MIME type
+
+  Feedback Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([feedbackId])
@@ -646,6 +668,14 @@ model Properties {
   size_gross_sqm                      Decimal?
   size_net_sqm                        Decimal?
   transaction_type                    TransactionType?
+  // New fields for metrics tracking
+  listPrice                           Int?              // Original listing price
+  salePrice                           Int?              // Final sale price
+  saleDate                            DateTime?         // When property sold
+  contractDate                        DateTime?         // When contract was signed
+  daysOnMarket                        Int?              // Calculated days on market
+  estimatedPrice                      Int?              // For CMA accuracy tracking
+  
   Client_Properties                   Client_Properties[]
   Deal                                Deal[]
   ProfileShowcaseProperty             ProfileShowcaseProperty[]
@@ -655,12 +685,14 @@ model Properties {
   Documents                           Documents[]
   CalComEvent                         CalComEvent[]             @relation("EventToProperties")
   Users_watching_properties           Users[]                   @relation("watching_properties")
+  PropertyShowing                     PropertyShowing[]
 
   @@index([assigned_to])
   @@index([createdAt])
   @@index([organizationId])
   @@index([portal_visibility])
   @@index([property_status])
+  @@index([saleDate])
 }
 
 model PropertyComment {
@@ -829,6 +861,8 @@ model Users {
   marketingConsent                                   Boolean                       @default(false)
   firstName                                          String?
   lastName                                           String?
+  referralBoxDismissed                               Boolean                       @default(false)
+  referralApplicationStatus                          ReferralApplicationStatus?
   AgentConnection_AgentConnection_followerIdToUsers  AgentConnection[]             @relation("AgentConnection_followerIdToUsers")
   AgentConnection_AgentConnection_followingIdToUsers AgentConnection[]             @relation("AgentConnection_followingIdToUsers")
   AgentProfile                                       AgentProfile?
@@ -858,10 +892,14 @@ model Users {
   UserNotificationSettings                           UserNotificationSettings?
   crm_Accounts_Tasks                                 crm_Accounts_Tasks[]
   crm_Accounts_Tasks_Comments                        crm_Accounts_Tasks_Comments[]
-  openAi_keys                                        openAi_keys[]
   Clients_watching_accounts                          Clients[]                     @relation("watching_accounts")
   Properties_watching_properties                     Properties[]                  @relation("watching_properties")
   Attachment                                         Attachment[]
+  ApiKey                                             ApiKey[]
+  WebhookEndpoint                                    WebhookEndpoint[]
+  ChangelogEntry                                     ChangelogEntry[]
+  ReferralCode                                       ReferralCode?
+  ReferredByReferral                                 Referral?                     @relation("ReferredUser")
 
   @@index([clerkUserId])
   @@index([email])
@@ -909,13 +947,6 @@ model crm_Accounts_Tasks_Comments {
   @@index([organizationId])
 }
 
-model gpt_models {
-  id          String     @id
-  model       String
-  description String?
-  status      gptStatus?
-  created_on  DateTime?  @default(now())
-}
 
 model modulStatus {
   id        String  @id
@@ -923,13 +954,6 @@ model modulStatus {
   isVisible Boolean
 }
 
-model openAi_keys {
-  id              String @id
-  user            String
-  organization_id String
-  api_key         String
-  Users           Users  @relation(fields: [user], references: [id])
-}
 
 model systemServices {
   id              String  @id
@@ -948,6 +972,152 @@ model system_Modules_Enabled {
   enabled  Boolean
   position Int
 }
+
+// ============================================
+// METRICS TRACKING - Real Estate Agent KPIs
+// ============================================
+
+model MarketingSpend {
+  id             String            @id @default(uuid())
+  organizationId String
+  userId         String            // Agent who made the spend
+  amount         Decimal
+  spendDate      DateTime          @default(now())
+  category       MarketingCategory
+  leadSource     LeadSource?       // Optional link to lead source
+  description    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  
+  Deal           Deal[]            // Deals attributed to this marketing spend
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([spendDate])
+  @@index([category])
+  @@index([leadSource])
+}
+
+model AgentHours {
+  id             String       @id @default(uuid())
+  organizationId String
+  userId         String       // Agent tracking hours
+  date           DateTime     @default(now())
+  hoursWorked    Decimal
+  activityType   ActivityType
+  dealId         String?      // Optional link to specific deal
+  description    String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  Deal           Deal?        @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([date])
+  @@index([activityType])
+  @@index([dealId])
+}
+
+model PropertyShowing {
+  id             String        @id @default(uuid())
+  organizationId String
+  propertyId     String
+  clientId       String?       // Client who was shown the property
+  agentId        String        // Agent who conducted the showing
+  showingDate    DateTime      @default(now())
+  result         ShowingResult @default(NO_INTEREST)
+  notes          String?
+  duration       Int?          // Duration in minutes
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  Properties     Properties    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  Clients        Clients?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([propertyId])
+  @@index([clientId])
+  @@index([agentId])
+  @@index([showingDate])
+  @@index([result])
+}
+
+model MarketData {
+  id                 String   @id @default(uuid())
+  organizationId     String
+  date               DateTime @default(now())
+  area               String   // Geographic area
+  priceRange         String?  // Price range category (e.g., "0-100k", "100k-200k")
+  activeListings     Int      @default(0)
+  soldListings       Int      @default(0)
+  newListings        Int      @default(0)
+  medianSalePrice    Decimal?
+  averageSalePrice   Decimal?
+  averageDaysOnMarket Decimal?
+  absorptionRate     Decimal? // Calculated: soldListings / activeListings
+  medianListPrice    Decimal?
+  pricePerSqft       Decimal?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([date])
+  @@index([area])
+  @@unique([organizationId, date, area, priceRange])
+}
+
+// ============================================
+// ENUMS FOR METRICS TRACKING
+// ============================================
+
+enum MarketingCategory {
+  LEAD_GENERATION
+  ADVERTISING
+  SOCIAL_MEDIA
+  PRINT_MEDIA
+  SIGNAGE
+  OPEN_HOUSE
+  NETWORKING
+  REFERRAL_PROGRAM
+  WEBSITE
+  SEO
+  EMAIL_MARKETING
+  OTHER
+}
+
+enum ActivityType {
+  ADMINISTRATIVE
+  INCOME_PRODUCING
+  SHOWINGS
+  PROSPECTING
+  MARKETING
+  TRAINING
+  TRAVEL
+  CLIENT_MEETINGS
+  NEGOTIATIONS
+  PAPERWORK
+  OTHER
+}
+
+enum ShowingResult {
+  NO_SHOW
+  NO_INTEREST
+  INTERESTED
+  VERY_INTERESTED
+  OFFER_MADE
+  CONTRACT_SIGNED
+}
+
+enum DealType {
+  SELLER  // Listing side transaction
+  BUYER   // Buyer side transaction
+  DUAL    // Both sides (dual agency)
+}
+
+// ============================================
+// ORIGINAL ENUMS
+// ============================================
 
 enum ActiveStatus {
   ACTIVE
@@ -1251,10 +1421,6 @@ enum TransactionType {
   EXCHANGE
 }
 
-enum gptStatus {
-  ACTIVE
-  INACTIVE
-}
 
 // ============================================
 // ATTACHMENTS - Reusable file attachments
@@ -1285,4 +1451,467 @@ model Attachment {
   @@index([feedbackId])
   @@index([organizationId])
   @@index([uploadedById])
+}
+
+// ============================================
+// EXTERNAL API - API Keys and Webhooks
+// ============================================
+
+model ApiKey {
+  id             String    @id @default(uuid())
+  organizationId String
+  name           String    // "n8n Integration", "Make.com"
+  keyPrefix      String    // First 8 chars for display "oik_abc1..."
+  keyHash        String    @unique // SHA256 hash of full key
+  scopes         String[]  // ["calendar:read", "crm:write", ...]
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  createdById    String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  createdBy Users    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  ApiLog    ApiLog[]
+
+  @@index([organizationId])
+  @@index([keyHash])
+  @@index([createdById])
+}
+
+model ApiLog {
+  id           String   @id @default(uuid())
+  apiKeyId     String
+  endpoint     String
+  method       String
+  statusCode   Int
+  responseTime Int      // milliseconds
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  ApiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([apiKeyId])
+  @@index([createdAt])
+}
+
+model WebhookEndpoint {
+  id              String            @id @default(uuid())
+  organizationId  String
+  url             String
+  name            String
+  events          String[]          // ["client.created", "property.updated", ...]
+  secret          String            // For HMAC signature
+  isActive        Boolean           @default(true)
+  createdById     String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  createdBy       Users             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  WebhookDelivery WebhookDelivery[]
+
+  @@index([organizationId])
+  @@index([isActive])
+  @@index([createdById])
+}
+
+model WebhookDelivery {
+  id          String    @id @default(uuid())
+  endpointId  String
+  event       String
+  payload     Json
+  statusCode  Int?
+  responseBody String?
+  attempts    Int       @default(0)
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  WebhookEndpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@index([createdAt])
+}
+
+// ============================================
+// N8N CONTENT AUTOMATION
+// ============================================
+
+model BlogPost {
+  id             String         @id @default(uuid())
+  organizationId String
+  title          String
+  slug           String         @unique
+  excerpt        String?
+  content        String         // HTML or Markdown content
+  featuredImage  String?        // URL to featured image
+  status         BlogPostStatus @default(DRAFT)
+  authorId       String?
+  tags           String[]
+  categories     String[]
+  seoTitle       String?
+  seoDescription String?
+  publishedAt    DateTime?
+  scheduledAt    DateTime?      // For scheduled publishing
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  createdVia     String?        // "n8n", "manual", "api"
+  n8nWorkflowId  String?        // Reference to n8n workflow that created it
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([slug])
+}
+
+model NewsletterSubscriber {
+  id                String    @id @default(uuid())
+  organizationId    String
+  email             String
+  firstName         String?
+  lastName          String?
+  status            SubscriberStatus @default(ACTIVE)
+  source            String?   // "website", "import", "n8n", "manual"
+  tags              String[]
+  subscribedAt      DateTime  @default(now())
+  unsubscribedAt    DateTime?
+  lastEmailSentAt   DateTime?
+  emailsSentCount   Int       @default(0)
+  emailsOpenedCount Int       @default(0)
+  emailsClickedCount Int      @default(0)
+  metadata          Json?     // Additional custom fields
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([status])
+  @@index([email])
+}
+
+model NewsletterCampaign {
+  id              String                @id @default(uuid())
+  organizationId  String
+  subject         String
+  previewText     String?
+  content         String                // HTML content
+  fromName        String?
+  fromEmail       String?
+  replyTo         String?
+  status          CampaignStatus        @default(DRAFT)
+  recipientCount  Int                   @default(0)
+  sentCount       Int                   @default(0)
+  openCount       Int                   @default(0)
+  clickCount      Int                   @default(0)
+  bounceCount     Int                   @default(0)
+  unsubscribeCount Int                  @default(0)
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  createdVia      String?               // "n8n", "manual", "api"
+  n8nWorkflowId   String?
+  tags            String[]              // For filtering/grouping campaigns
+  resendBatchId   String?               // Resend batch ID for tracking
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([sentAt])
+}
+
+model SocialPostLog {
+  id               String             @id @default(uuid())
+  organizationId   String
+  platform         SocialPlatform
+  platformPostId   String?            // External ID from the platform
+  platformPostUrl  String?            // Direct link to the post
+  content          String?            // Text content of the post
+  mediaUrls        String[]           // Images/videos attached
+  status           SocialPostStatus   @default(PENDING)
+  errorMessage     String?            // Error details if failed
+  scheduledAt      DateTime?
+  postedAt         DateTime?
+  likes            Int                @default(0)
+  comments         Int                @default(0)
+  shares           Int                @default(0)
+  impressions      Int                @default(0)
+  reach            Int                @default(0)
+  engagementRate   Decimal?
+  lastSyncedAt     DateTime?          // Last time metrics were updated
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  createdVia       String?            // "n8n", "manual", "api"
+  n8nWorkflowId    String?
+  n8nExecutionId   String?            // Specific execution that created this
+
+  @@index([organizationId])
+  @@index([platform])
+  @@index([status])
+  @@index([postedAt])
+}
+
+model N8nConfig {
+  id                String    @id @default(uuid())
+  organizationId    String    @unique
+  baseUrl           String    // n8n instance URL
+  webhookSecret     String    // Secret for validating webhooks from n8n
+  isActive          Boolean   @default(true)
+  lastHealthCheck   DateTime?
+  lastHealthStatus  String?   // "healthy", "unreachable", "error"
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([organizationId])
+  @@index([isActive])
+}
+
+// ============================================
+// ENUMS FOR N8N CONTENT AUTOMATION
+// ============================================
+
+enum BlogPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  CANCELLED
+  FAILED
+}
+
+enum SocialPlatform {
+  LINKEDIN
+  INSTAGRAM
+  TIKTOK
+  TWITTER
+  FACEBOOK
+  YOUTUBE
+}
+
+enum SocialPostStatus {
+  PENDING
+  SCHEDULED
+  POSTING
+  POSTED
+  FAILED
+  DELETED
+}
+
+// ============================================
+// CHANGELOG - Website changelog management
+// ============================================
+
+model ChangelogCustomCategory {
+  id        String   @id @default(uuid())
+  name      String
+  color     String   // Color from preset (e.g., "blue", "red")
+  icon      String   // Icon name from preset (e.g., "sparkles", "bug")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries ChangelogEntry[]
+
+  @@unique([name])
+  @@index([sortOrder])
+}
+
+model ChangelogEntry {
+  id               String                   @id @default(uuid())
+  version          String                   // Semantic version (e.g., "1.2.3")
+  title            String
+  description      String                   // HTML from rich text editor
+  customCategoryId String?                  // Reference to custom category
+  status           ChangelogStatus          @default(DRAFT)
+  tags             Json?                    // Array of {name: string, color: string}
+  publishedAt      DateTime?
+  createdById      String
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  customCategory ChangelogCustomCategory? @relation(fields: [customCategoryId], references: [id], onDelete: SetNull)
+  createdBy      Users                    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([version])
+  @@index([createdById])
+  @@index([customCategoryId])
+}
+
+enum ChangelogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// ============================================
+// REFERRAL SYSTEM
+// ============================================
+
+model ReferralCode {
+  id             String     @id @default(uuid())
+  userId         String     @unique
+  code           String     @unique
+  commissionRate Decimal    @default(10) // Default 10%
+  isActive       Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  user      Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referrals Referral[]
+
+  @@index([code])
+  @@index([userId])
+}
+
+model Referral {
+  id              String         @id @default(uuid())
+  referralCodeId  String
+  referredUserId  String         @unique
+  status          ReferralStatus @default(PENDING)
+  totalEarnings   Decimal        @default(0)
+  convertedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  referralCode ReferralCode     @relation(fields: [referralCodeId], references: [id])
+  referredUser Users            @relation("ReferredUser", fields: [referredUserId], references: [id])
+  payouts      ReferralPayout[]
+
+  @@index([referralCodeId])
+  @@index([referredUserId])
+  @@index([status])
+}
+
+model ReferralPayout {
+  id            String       @id @default(uuid())
+  referralId    String
+  amount        Decimal
+  status        PayoutStatus @default(PENDING)
+  paidAt        DateTime?
+  paidByAdminId String?
+  notes         String?
+  createdAt     DateTime     @default(now())
+
+  referral Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+
+  @@index([referralId])
+  @@index([status])
+}
+
+enum ReferralStatus {
+  PENDING
+  CONVERTED
+  CANCELLED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  CANCELLED
+}
+
+enum ReferralApplicationStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+// ============================================
+// ADMIN ACCESS LOG - Platform Admin Session Tracking
+// ============================================
+
+model AdminAccessLog {
+  id             String   @id @default(uuid())
+  adminUserId    String
+  adminEmail     String
+  adminName      String?
+  ipAddress      String?
+  userAgent      String?
+  browserName    String?
+  browserVersion String?
+  osName         String?
+  osVersion      String?
+  deviceType     String?
+  country        String?
+  city           String?
+  sessionId      String   @unique
+  accessedAt     DateTime @default(now())
+
+  @@index([adminUserId])
+  @@index([accessedAt])
+  @@index([sessionId])
+}
+
+// ============================================
+// ORGANIZATION ROLES & PERMISSIONS
+// ============================================
+
+/// Store customized permissions per role per organization
+/// Allows Owners to override default permissions for each role
+model OrganizationRolePermission {
+  id             String   @id @default(uuid())
+  organizationId String
+  role           OrgRole
+  permissions    Json     // { "canEdit": true, "canDelete": true, ... }
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, role])
+  @@index([organizationId])
+}
+
+/// Per-user module access overrides
+/// Allows Owners to grant/revoke specific module access for individual users
+model UserModuleAccess {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  moduleId       String
+  hasAccess      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, userId, moduleId])
+  @@index([organizationId, userId])
+}
+
+/// Default module access per role per organization
+/// Sets which modules each role can access by default
+model RoleModuleAccess {
+  id             String   @id @default(uuid())
+  organizationId String
+  role           OrgRole
+  moduleId       String
+  hasAccess      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, role, moduleId])
+  @@index([organizationId, role])
+}
+
+/// Organization role types
+/// Maps to Clerk roles: org:owner, org:lead, org:member, org:viewer
+enum OrgRole {
+  OWNER
+  LEAD
+  MEMBER
+  VIEWER
 }

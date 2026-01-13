@@ -158,17 +158,7 @@ async function purgeDatabase() {
       console.error(`✗ Error deleting document types: ${error.message}`);
     }
 
-    // 13. Delete OpenAI keys
-    try {
-      const count = await prismadb.openAi_keys.deleteMany({});
-      results.deleted.openAi_keys = count.count;
-      console.log(`✓ Deleted ${count.count} OpenAI keys`);
-    } catch (error: any) {
-      results.errors.push({ model: "openAi_keys", error: error.message });
-      console.error(`✗ Error deleting OpenAI keys: ${error.message}`);
-    }
-
-    // 14. Delete todo lists
+    // 13. Delete todo lists
     try {
       const count = await prismadb.todoList.deleteMany({});
       results.deleted.todoList = count.count;

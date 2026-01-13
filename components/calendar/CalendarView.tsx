@@ -33,6 +33,7 @@ export function CalendarView() {
     new Date()
   );
   const [viewMode, setViewMode] = useState<ViewMode>("day");
+  const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
 
   // Calculate date range for fetching events (1 month ago to 3 months ahead)
   const dateRange = useMemo(() => {
@@ -112,7 +113,11 @@ export function CalendarView() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                <EventCreateForm onSuccess={handleEventCreated} />
+                <EventCreateForm 
+                  open={isCreateEventOpen} 
+                  onOpenChange={setIsCreateEventOpen} 
+                  onSuccess={handleEventCreated} 
+                />
               </div>
             </div>
           </CardHeader>
@@ -153,7 +158,11 @@ export function CalendarView() {
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <EventCreateForm onSuccess={handleEventCreated} />
+              <EventCreateForm 
+                open={isCreateEventOpen} 
+                onOpenChange={setIsCreateEventOpen} 
+                onSuccess={handleEventCreated} 
+              />
             </div>
           </div>
         </CardHeader>
@@ -200,7 +209,7 @@ export function CalendarView() {
                         className="text-base cursor-pointer flex-1"
                         onClick={() => {
                           if (event.eventId) {
-                            router.push(`/calendar/events/${event.eventId}`);
+                            router.push(`/app/calendar/events/${event.eventId}`);
                           }
                         }}
                       >

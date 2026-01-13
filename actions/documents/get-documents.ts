@@ -12,8 +12,9 @@ export interface DocumentFilters {
 export async function getDocuments(filters?: DocumentFilters) {
   const organizationId = await getCurrentOrgIdSafe();
   
+  // Return empty array if no organization context (e.g., session not synced yet)
   if (!organizationId) {
-    throw new Error("Organization ID is required");
+    return [];
   }
 
   // Build organization filter - Documents have organizationId directly
@@ -77,39 +78,39 @@ export async function getDocuments(filters?: DocumentFilters) {
   const documents = await prismadb.documents.findMany({
     where,
     include: {
-      accounts: {
+      Clients: {
         select: {
           id: true,
           client_name: true,
         },
       },
-      linkedProperties: {
+      Properties: {
         select: {
           id: true,
           property_name: true,
         },
       },
-      linkedCalComEvents: {
+      CalComEvent: {
         select: {
           id: true,
           title: true,
           startTime: true,
         },
       },
-      linkedTasks: {
+      crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: {
         select: {
           id: true,
           title: true,
         },
       },
-      created_by: {
+      Users_Documents_created_by_userToUsers: {
         select: {
           id: true,
           name: true,
           email: true,
         },
       },
-      assigned_to_user: {
+      Users_Documents_assigned_userToUsers: {
         select: {
           id: true,
           name: true,

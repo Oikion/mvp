@@ -67,5 +67,7 @@ app.prepare().then(() => {
       console.log('⚠ Running on HTTP - CAPTCHA may not work properly');
     });
   }
+}).catch((err) => {
+  console.error('Error during app.prepare():', err);
+  process.exit(1);
 });
-

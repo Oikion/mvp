@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FormSelectWithOther } from "@/components/ui/form-select-with-other";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -47,6 +48,7 @@ const createEventFormSchema = (t: (key: string) => string) =>
     endTime: z.date(),
     location: z.string().optional(),
     eventType: z.string().optional(),
+    eventTypeOther: z.string().optional(),
     assignedUserId: z.string().optional(),
     clientIds: z.array(z.string()).default([]),
     propertyIds: z.array(z.string()).default([]),
@@ -110,6 +112,7 @@ export default function EventCreateFormContent({
       endTime: new Date(Date.now() + 60 * 60 * 1000), // Default 1 hour later
       location: "",
       eventType: undefined,
+      eventTypeOther: "",
       assignedUserId: userId || undefined,
       clientIds: clientId ? [clientId] : [],
       propertyIds: propertyId ? [propertyId] : [],
@@ -164,7 +167,7 @@ export default function EventCreateFormContent({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-0.5">
         <FormField
           control={form.control}
           name="title"
@@ -182,31 +185,14 @@ export default function EventCreateFormContent({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="eventType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("eventCreateForm.eventType")}</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={t("eventCreateForm.selectEventType")}
-                    />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {EVENT_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+          <FormSelectWithOther<EventFormValues, "eventType">
+            name="eventType"
+            otherFieldName="eventTypeOther"
+          label={t("eventCreateForm.eventType")}
+          placeholder={t("eventCreateForm.selectEventType")}
+          otherLabel={t("eventCreateForm.specifyEventType")}
+          otherPlaceholder={t("eventCreateForm.specifyEventTypePlaceholder")}
+          options={EVENT_TYPES}
         />
 
         <FormField
@@ -480,4 +466,10 @@ export default function EventCreateFormContent({
     </Form>
   );
 }
+
+
+
+
+
+
 

@@ -17,7 +17,7 @@ export async function GET(
         organizationId,
       },
       include: {
-        user: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -38,7 +38,7 @@ export async function GET(
         status: inv.status,
         respondedAt: inv.respondedAt?.toISOString() || null,
         createdAt: inv.createdAt.toISOString(),
-        user: inv.user,
+        user: inv.Users,
       }))
     );
   } catch (error) {
@@ -49,4 +49,10 @@ export async function GET(
     );
   }
 }
+
+
+
+
+
+
 

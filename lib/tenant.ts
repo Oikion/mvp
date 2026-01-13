@@ -12,6 +12,9 @@ const TENANT_MODELS: Record<string, string> = {
   feedback: "organizationId",
   notification: "organizationId",
   calendarReminder: "organizationId",
+  eventInvitee: "organizationId",
+  socialPost: "organizationId",
+  attachment: "organizationId",
 };
 
 const GUARDED_METHODS = new Set([

@@ -38,7 +38,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         <div className="relative">
       <textarea
         className={cn(
-              "flex min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground transition-all duration-fast ease-in-out",
+              "flex min-h-[80px] w-full rounded-md border bg-secondary px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground transition-all duration-200 ease-in-out hover:border-ring/50",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
               hasError && "border-error focus-visible:ring-error/50",
               hasWarning && "border-warning focus-visible:ring-warning/50",

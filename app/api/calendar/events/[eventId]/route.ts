@@ -13,6 +13,7 @@ import {
 } from "@/lib/calendar-reminders";
 import { prismaForOrg } from "@/lib/tenant";
 import { format } from "date-fns";
+import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
 
 /**
  * Create notifications for calendar event update
@@ -45,6 +46,7 @@ async function createUpdateNotifications(
             updatedBy: updaterId,
             updatedByName: updaterName,
           },
+          updatedAt: new Date(),
         },
       });
     }
@@ -84,13 +86,14 @@ async function createCancellationNotifications(
             cancelledBy: cancellerId,
             cancelledByName: cancellerName,
           },
+          updatedAt: new Date(),
         },
       });
     }
     
     // Notify linked client agents
-    if (event.linkedClients && event.linkedClients.length > 0) {
-      const clientIds = event.linkedClients.map((c: any) => c.id);
+    if (event.Clients && event.Clients.length > 0) {
+      const clientIds = event.Clients.map((c: any) => c.id);
       const clients = await prismadb.clients.findMany({
         where: { id: { in: clientIds } },
         select: { assigned_to: true, client_name: true },
@@ -119,6 +122,7 @@ async function createCancellationNotifications(
               cancelledBy: cancellerId,
               cancelledByName: cancellerName,
             },
+            updatedAt: new Date(),
           },
         });
       }
@@ -150,37 +154,37 @@ export async function GET(
         organizationId: currentOrgId,
       },
       include: {
-        assignedUser: {
+        Users: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        linkedTasks: {
+        crm_Accounts_Tasks: {
           include: {
-            assigned_user: {
+            Users: {
               select: { id: true, name: true, email: true },
             },
-            crm_accounts: {
+            Clients: {
               select: { id: true, client_name: true },
             },
           },
         },
-        linkedClients: {
+        Clients: {
           select: { id: true, client_name: true },
         },
-        linkedProperties: {
+        Properties: {
           select: { id: true, property_name: true },
         },
-        linkedDocuments: {
+        Documents: {
           select: {
             id: true,
             document_name: true,
             document_file_url: true,
           },
         },
-        reminders: {
+        CalendarReminder: {
           orderBy: {
             scheduledFor: "asc",
           },
@@ -214,6 +218,10 @@ export async function PUT(
   props: { params: Promise<{ eventId: string }> }
 ) {
   try {
+    // Permission check: Viewers cannot edit events
+    const permissionError = await requireCanModify();
+    if (permissionError) return permissionError;
+
     const { eventId } = await props.params;
     const currentUser = await getCurrentUser();
     const currentOrgId = await getCurrentOrgIdSafe();
@@ -247,6 +255,13 @@ export async function PUT(
       );
     }
 
+    // Permission check: Members cannot change assigned user
+    const assignedToError = await checkAssignedToChange(
+      { assigned_to: body.assignedUserId },
+      existingEvent.assignedUserId
+    );
+    if (assignedToError) return assignedToError;
+
     const {
       title,
       description,
@@ -275,29 +290,29 @@ export async function PUT(
     if (eventType !== undefined) updateData.eventType = eventType;
     if (assignedUserId !== undefined) updateData.assignedUserId = assignedUserId;
 
-    // Handle relations
+    // Handle relations using correct Prisma relation names
     const connectDisconnect: any = {};
 
     if (clientIds !== undefined) {
-      connectDisconnect.linkedClients = {
+      connectDisconnect.Clients = {
         set: clientIds.map((id: string) => ({ id })),
       };
     }
 
     if (propertyIds !== undefined) {
-      connectDisconnect.linkedProperties = {
+      connectDisconnect.Properties = {
         set: propertyIds.map((id: string) => ({ id })),
       };
     }
 
     if (documentIds !== undefined) {
-      connectDisconnect.linkedDocuments = {
+      connectDisconnect.Documents = {
         set: documentIds.map((id: string) => ({ id })),
       };
     }
 
     if (taskIds !== undefined) {
-      connectDisconnect.linkedTasks = {
+      connectDisconnect.crm_Accounts_Tasks = {
         set: taskIds.map((id: string) => ({ id })),
       };
     }
@@ -308,20 +323,21 @@ export async function PUT(
       data: {
         ...updateData,
         ...connectDisconnect,
+        updatedAt: new Date(),
       },
       include: {
-        assignedUser: {
+        Users: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        linkedTasks: true,
-        linkedClients: true,
-        linkedProperties: true,
-        linkedDocuments: true,
-        reminders: true,
+        crm_Accounts_Tasks: true,
+        Clients: true,
+        Properties: true,
+        Documents: true,
+        CalendarReminder: true,
       },
     });
 
@@ -393,10 +409,10 @@ export async function DELETE(
         organizationId: currentOrgId,
       },
       include: {
-        linkedClients: {
+        Clients: {
           select: { id: true, client_name: true },
         },
-        linkedProperties: {
+        Properties: {
           select: { id: true, property_name: true },
         },
       },

@@ -14,16 +14,20 @@ export async function POST(req: Request, props: { params: Promise<{ accountId: s
 
     const accountId = params.accountId;
 
+    // Get current watchers and remove user
+    const client = await prismadb.clients.findUnique({
+      where: { id: accountId },
+      select: { watchers: true },
+    });
+    
+    const updatedWatchers = (client?.watchers || []).filter((id) => id !== user.id);
+    
     await prismadb.clients.update({
       where: {
         id: accountId,
       },
       data: {
-        watching_users: {
-          disconnect: {
-            id: user.id,
-          },
-        },
+        watchers: updatedWatchers,
       },
     });
     return NextResponse.json({ message: "Client unwatched" }, { status: 200 });

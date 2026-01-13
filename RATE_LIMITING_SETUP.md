@@ -85,7 +85,7 @@ ratelimit = new Ratelimit({
 
 ## Excluding Routes
 
-To exclude specific routes from rate limiting, edit `proxy.ts` and add them to the public routes matcher or add a condition:
+To exclude specific routes from rate limiting, edit `middleware.ts` and add them to the public routes matcher or add a condition:
 
 ```typescript
 // Example: Skip rate limiting for webhooks

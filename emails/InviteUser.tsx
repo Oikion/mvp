@@ -2,131 +2,180 @@ import {
   Body,
   Button,
   Container,
-  Column,
   Head,
   Heading,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
-  Row,
   Section,
   Tailwind,
   Text,
 } from "@react-email/components";
 import * as React from "react";
 
-interface VercelInviteUserEmailProps {
+interface InviteUserEmailProps {
   username: string;
   invitedByUsername: string;
   invitedUserPassword: string;
   userLanguage: string;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
+
+const translations = {
+  en: {
+    preview: (inviter: string) => `You've been invited by ${inviter} to join Oikion`,
+    title: "You're Invited!",
+    subtitle: "Join your team on Oikion",
+    greeting: (name: string) => `Hello ${name},`,
+    intro: (inviter: string) => `${inviter} has invited you to collaborate on Oikion - the modern platform for real estate professionals.`,
+    credentialsTitle: "Your login credentials",
+    passwordLabel: "Temporary password:",
+    passwordNote: "Please change your password after your first login for security.",
+    ctaButton: "Accept Invitation",
+    altLink: "Or copy and paste this link:",
+    footer: "This invitation was intended for",
+    footerNote: "If you weren't expecting this invitation, you can safely ignore this email.",
+    support: "Questions? Contact us at support@oikion.com",
+  },
+  el: {
+    preview: (inviter: string) => `Προσκληθήκατε από τον/την ${inviter} να συμμετάσχετε στο Oikion`,
+    title: "Έχετε Πρόσκληση!",
+    subtitle: "Συμμετέχετε στην ομάδα σας στο Oikion",
+    greeting: (name: string) => `Γεια σας ${name},`,
+    intro: (inviter: string) => `Ο/Η ${inviter} σας προσκάλεσε να συνεργαστείτε στο Oikion - τη σύγχρονη πλατφόρμα για επαγγελματίες ακινήτων.`,
+    credentialsTitle: "Τα στοιχεία σύνδεσής σας",
+    passwordLabel: "Προσωρινός κωδικός:",
+    passwordNote: "Παρακαλώ αλλάξτε τον κωδικό σας μετά την πρώτη σύνδεση για ασφάλεια.",
+    ctaButton: "Αποδοχή Πρόσκλησης",
+    altLink: "Ή αντιγράψτε αυτόν τον σύνδεσμο:",
+    footer: "Αυτή η πρόσκληση προοριζόταν για",
+    footerNote: "Αν δεν περιμένατε αυτή την πρόσκληση, μπορείτε να αγνοήσετε αυτό το email.",
+    support: "Ερωτήσεις; Επικοινωνήστε μαζί μας στο support@oikion.com",
+  },
+  cz: {
+    preview: (inviter: string) => `Uživatel ${inviter} vás pozval do Oikion`,
+    title: "Máte Pozvánku!",
+    subtitle: "Připojte se k týmu na Oikion",
+    greeting: (name: string) => `Dobrý den ${name},`,
+    intro: (inviter: string) => `${inviter} vás pozval ke spolupráci na Oikion - moderní platformě pro realitní profesionály.`,
+    credentialsTitle: "Vaše přihlašovací údaje",
+    passwordLabel: "Dočasné heslo:",
+    passwordNote: "Po prvním přihlášení si prosím změňte heslo pro větší bezpečnost.",
+    ctaButton: "Přijmout Pozvánku",
+    altLink: "Nebo zkopírujte tento odkaz:",
+    footer: "Tato pozvánka byla určena pro",
+    footerNote: "Pokud jste tuto pozvánku neočekávali, můžete tento email ignorovat.",
+    support: "Otázky? Kontaktujte nás na support@oikion.com",
+  },
+};
 
 export const InviteUserEmail = ({
   username,
   invitedByUsername,
   invitedUserPassword,
   userLanguage,
-}: VercelInviteUserEmailProps) => {
-  const previewText =
-    userLanguage === "en"
-      ? `You have been invited by ${invitedByUsername} to Oikion app`
-      : userLanguage === "el"
-      ? `Έχετε προσκληθεί από τον/την ${invitedByUsername} στην εφαρμογή Oikion`
-      : `Byl jste pozván uživatelem ${invitedByUsername} do aplikace Oikion`;
+}: InviteUserEmailProps) => {
+  const t = translations[userLanguage as keyof typeof translations] || translations.en;
 
   return (
     <Html>
-      <Head />
-      <Preview>{previewText}</Preview>
+      <Head>
+        <meta name="color-scheme" content="light" />
+        <meta name="supported-color-schemes" content="light" />
+      </Head>
+      <Preview>{t.preview(invitedByUsername)}</Preview>
       <Tailwind>
-        <Body className="bg-white my-auto mx-auto font-sans">
-          <Container className="border border-solid border-slate-300 rounded-md my-[40px] mx-auto p-[20px] w-[465px]">
-            <Heading className="text-black text-[24px] font-normal text-center p-0 my-[30px] mx-0">
-              {userLanguage === "en"
-                ? "You have been invited to cooperate on something special"
-                : userLanguage === "el"
-                ? "Έχετε προσκληθεί να συνεργαστείτε σε κάτι ξεχωριστό"
-                : "Byl(a) jste pozván(a) ke spolupráci na něčem úžasném"}
-            </Heading>
-            <Text className="text-black text-[14px] leading-[24px]">
-              {userLanguage === "en"
-                ? `Hello ${username},`
-                : userLanguage === "el"
-                ? `Γεια σας ${username},`
-                : `Dobrý den ${username},`}
-            </Text>
-            <Text className="text-black text-[14px] leading-[24px]">
-              <strong>{invitedByUsername}</strong>
-              {/*   (
-            <Link
-                href={`mailto:${invitedByEmail}`}
-                className="text-blue-600 no-underline"
-              >
-                {invitedByEmail}
-              </Link>   )*/}
-              {userLanguage === "en"
-                ? ` has invited you to the`
-                : userLanguage === "el"
-                ? ` σας προσκάλεσε στην`
-                : ` Vás pozval ke spolupráci na`}
-            </Text>
-            <Text>
-              <strong>{process.env.NEXT_PUBLIC_APP_NAME}</strong> app:
-              <strong>{process.env.NEXT_PUBLIC_APP_URL}</strong>.
-            </Text>
-            <Text className="text-black text-[14px] leading-[24px]">
-              {userLanguage === "en"
-                ? `To accept this invitation, click the button below. And use this password to login: `
-                : userLanguage === "el"
-                ? `Για να αποδεχτείτε αυτή την πρόσκληση, κάντε κλικ στο παρακάτω κουμπί. Και χρησιμοποιήστε αυτόν τον κωδικό πρόσβασης για σύνδεση: `
-                : `Pro přijetí této pozvánky klikněte na tlačítko níže. A použijte toto heslo pro přihlášení: `}
-              <strong>{invitedUserPassword}</strong>
-            </Text>
-
-            <Section className="text-center mt-[32px] mb-[32px]">
-              <Button
-                className="bg-slate-800 rounded-md text-white  py-3 px-4 text-[12px] font-semibold no-underline text-center"
-                href={process.env.NEXT_PUBLIC_APP_URL}
-              >
-                {userLanguage === "en" 
-                  ? "Join the team" 
-                  : userLanguage === "el"
-                  ? "Ενταξή στην ομάδα"
-                  : "Připojit se"}
-              </Button>
+        <Body className="bg-zinc-50 my-auto mx-auto font-sans">
+          <Container className="bg-white border border-zinc-200 rounded-xl my-10 mx-auto p-0 max-w-[520px] overflow-hidden">
+            {/* Header */}
+            <Section className="bg-zinc-900 px-8 py-10 text-center">
+              <Text className="text-white text-2xl font-bold m-0 tracking-tight">
+                Oikion
+              </Text>
+              <Text className="text-zinc-400 text-sm m-0 mt-1">
+                Real Estate, Reimagined
+              </Text>
             </Section>
-            <Text className="text-black text-[14px] leading-[24px]">
-              {userLanguage === "en"
-                ? `or copy and paste this URL into your browser:`
-                : userLanguage === "el"
-                ? `ή αντιγράψτε και επικολλήστε αυτό το URL στον περιηγητή σας:`
-                : `nebo zkopírujte a vložte tento odkaz do svého prohlížeče:`}{" "}
-              <Link
-                href={process.env.NEXT_PUBLIC_APP_URL}
-                className="text-blue-600 no-underline"
-              >
-                {process.env.NEXT_PUBLIC_APP_URL}
-              </Link>
-            </Text>
-            <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
-            <Text className="text-slate-500 text-muted-foreground text-[12px] leading-[24px]">
-              {userLanguage === "en"
-                ? `This invitation was intended for `
-                : userLanguage === "el"
-                ? `Αυτή η πρόσκληση προοριζόταν για `
-                : `Toto pozvání bylo určeno pro `}
-              <span className="text-black">{username}. </span>
-              {userLanguage === "en"
-                ? "If you were not expecting this invitation, you can ignore this email. If you are concerned about your account's safety, please reply to this email to get in touch with us."
-                : userLanguage === "el"
-                ? "Εάν δεν περιμένατε αυτή την πρόσκληση, μπορείτε να αγνοήσετε αυτό το email. Εάν ανησυχείτε για την ασφάλεια του λογαριασμού σας, παρακαλούμε απαντήστε σε αυτό το email για να επικοινωνήσετε μαζί μας."
-                : "Pokud jste toto pozvání neočekávali, můžete tento e-mail ignorovat. Pokud se obáváte o bezpečnost svého účtu, odpovězte na tento e-mail, abyste se s námi spojili."}
-            </Text>
+
+            {/* Content */}
+            <Section className="px-8 py-10">
+              {/* Badge */}
+              <Section className="mb-6 text-center">
+                <span className="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200">
+                  Team Invitation
+                </span>
+              </Section>
+
+              <Heading className="text-zinc-900 text-2xl font-semibold text-center p-0 m-0 mb-3">
+                {t.title}
+              </Heading>
+
+              <Text className="text-zinc-500 text-base text-center m-0 mb-6 leading-relaxed">
+                {t.subtitle}
+              </Text>
+
+              <Hr className="border-zinc-200 my-6" />
+
+              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-4">
+                {t.greeting(username)}
+              </Text>
+
+              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-6">
+                {t.intro(invitedByUsername)}
+              </Text>
+
+              {/* Credentials Box */}
+              <Section className="bg-zinc-50 border border-zinc-200 rounded-lg p-5 mb-6">
+                <Text className="text-zinc-900 text-sm font-semibold m-0 mb-4">
+                  {t.credentialsTitle}
+                </Text>
+                <Section className="bg-white border border-zinc-200 rounded-md p-4 mb-3">
+                  <Text className="text-zinc-500 text-xs m-0 mb-1">
+                    {t.passwordLabel}
+                  </Text>
+                  <Text className="text-zinc-900 text-base font-mono font-semibold m-0">
+                    {invitedUserPassword}
+                  </Text>
+                </Section>
+                <Text className="text-amber-600 text-xs m-0 flex items-start gap-1">
+                  ⚠️ {t.passwordNote}
+                </Text>
+              </Section>
+
+              {/* CTA Button */}
+              <Section className="text-center mb-6">
+                <Button
+                  className="bg-zinc-900 rounded-lg text-white py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
+                  href={baseUrl}
+                >
+                  {t.ctaButton}
+                </Button>
+              </Section>
+
+              <Text className="text-zinc-500 text-xs text-center m-0">
+                {t.altLink}{" "}
+                <Link href={baseUrl} className="text-zinc-700 underline">
+                  {baseUrl}
+                </Link>
+              </Text>
+            </Section>
+
+            {/* Footer */}
+            <Section className="bg-zinc-50 border-t border-zinc-200 px-8 py-6">
+              <Text className="text-zinc-400 text-xs text-center m-0 mb-2">
+                {t.footer}{" "}
+                <span className="text-zinc-600 font-medium">{username}</span>.{" "}
+                {t.footerNote}
+              </Text>
+              <Text className="text-zinc-400 text-xs text-center m-0 mt-3">
+                {t.support}
+              </Text>
+              <Text className="text-zinc-400 text-xs text-center m-0 mt-3">
+                © {new Date().getFullYear()} Oikion. All rights reserved.
+              </Text>
+            </Section>
           </Container>
         </Body>
       </Tailwind>

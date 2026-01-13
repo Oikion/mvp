@@ -26,11 +26,12 @@
     }
   },
   "empty": {
-    "generic": "Nothing has been shared with you yet.",
+    "generic": "No properties shared with you",
     "properties": "No properties have been shared with you yet.",
     "clients": "No clients have been shared with you yet.",
     "documents": "No documents have been shared with you yet.",
-    "hint": "Connect with other agents to start collaborating."
+    "hint": "Connect with other agents to receive shared properties",
+    "findConnections": "Find Connections"
   },
   "card": {
     "sharedBy": "Shared by",
@@ -39,6 +40,12 @@
     "ago": "ago"
   }
 }
+
+
+
+
+
+
 
 
 

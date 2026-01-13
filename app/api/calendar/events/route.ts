@@ -11,6 +11,7 @@ import { createRemindersForEvent } from '@/lib/calendar-reminders';
 import { prismaForOrg } from '@/lib/tenant';
 import { format } from 'date-fns';
 import { generateFriendlyId } from '@/lib/friendly-id';
+import { dispatchCalendarWebhook } from '@/lib/webhooks';
 
 /**
  * Create notifications for calendar event creation
@@ -76,6 +77,7 @@ async function createEventNotifications(
             linkedClients: clientIds || [],
             linkedProperties: propertyIds || [],
           },
+          updatedAt: new Date(),
         },
       });
     }
@@ -116,6 +118,7 @@ async function createEventNotifications(
               createdByName: creatorName,
               linkedClients: clientIds,
             },
+            updatedAt: new Date(),
           },
         });
       }
@@ -176,20 +179,20 @@ export async function GET(req: Request) {
     const events = await prismadb.calComEvent.findMany({
       where: eventWhere,
       include: {
-        linkedTasks: {
+        crm_Accounts_Tasks: {
           include: {
-            assigned_user: {
+            Users: {
               select: { id: true, name: true, email: true },
             },
-            crm_accounts: {
+            Clients: {
               select: { id: true, client_name: true },
             },
           },
         },
-        linkedClients: {
+        Clients: {
           select: { id: true, client_name: true },
         },
-        linkedProperties: {
+        Properties: {
           select: { id: true, property_name: true },
         },
       },
@@ -219,10 +222,10 @@ export async function GET(req: Request) {
       tasks = await prismadb.crm_Accounts_Tasks.findMany({
         where: taskWhere,
         include: {
-          assigned_user: {
+          Users: {
             select: { id: true, name: true, email: true },
           },
-          crm_accounts: {
+          Clients: {
             select: { id: true, client_name: true },
           },
         },
@@ -309,29 +312,29 @@ export async function POST(req: Request) {
     // Generate a unique event ID (using timestamp in seconds)
     const eventId = Math.abs(Math.floor(Date.now() / 1000));
 
-    // Build relations
+    // Build relations using correct Prisma relation names
     const relations: any = {};
     
     if (clientIds && Array.isArray(clientIds) && clientIds.length > 0) {
-      relations.linkedClients = {
+      relations.Clients = {
         connect: clientIds.map((id: string) => ({ id })),
       };
     }
 
     if (propertyIds && Array.isArray(propertyIds) && propertyIds.length > 0) {
-      relations.linkedProperties = {
+      relations.Properties = {
         connect: propertyIds.map((id: string) => ({ id })),
       };
     }
 
     if (documentIds && Array.isArray(documentIds) && documentIds.length > 0) {
-      relations.linkedDocuments = {
+      relations.Documents = {
         connect: documentIds.map((id: string) => ({ id })),
       };
     }
 
     if (taskIds && Array.isArray(taskIds) && taskIds.length > 0) {
-      relations.linkedTasks = {
+      relations.crm_Accounts_Tasks = {
         connect: taskIds.map((id: string) => ({ id })),
       };
     }
@@ -350,6 +353,7 @@ export async function POST(req: Request) {
         description: description || null,
         startTime: new Date(startTime),
         endTime: new Date(endTime),
+        updatedAt: new Date(),
         location: location || null,
         status: 'scheduled',
         eventType: eventType || null,
@@ -374,6 +378,9 @@ export async function POST(req: Request) {
       clientIds,
       propertyIds
     ).catch(err => console.error('[EVENT_NOTIFICATIONS_ERROR]', err));
+
+    // Dispatch webhook for external integrations
+    dispatchCalendarWebhook(organizationId, 'calendar.event.created', event).catch(console.error);
 
     return NextResponse.json({ 
       event,

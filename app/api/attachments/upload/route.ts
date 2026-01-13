@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { uploadToBlob } from "@/lib/vercel-blob";
 import { prismadb } from "@/lib/prisma";
+import { compressFile } from "@/lib/image-compression";
 
 // Maximum file size: 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -71,11 +72,27 @@ export async function POST(req: Request) {
       }
     }
 
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
+    const rawBuffer = Buffer.from(await file.arrayBuffer());
+    
+    // Compress file (images: resize + WebP, text: gzip)
+    const { 
+      buffer: fileBuffer, 
+      mimeType: finalMimeType, 
+      fileName: finalFileName,
+      originalSize,
+      compressedSize,
+      wasCompressed,
+      compressionType 
+    } = await compressFile(rawBuffer, file.type, file.name, "general");
+    
+    if (wasCompressed) {
+      const savings = Math.round((1 - compressedSize / originalSize) * 100);
+      console.log(`[ATTACHMENT_UPLOAD] ${compressionType} compression: ${originalSize} -> ${compressedSize} bytes (${savings}% reduction)`);
+    }
 
     // Upload to org-scoped path: attachments/{organizationId}/{filename}
-    const blob = await uploadToBlob(file.name, fileBuffer, {
-      contentType: file.type,
+    const blob = await uploadToBlob(finalFileName, fileBuffer, {
+      contentType: finalMimeType,
       addRandomSuffix: true,
       organizationId,
       folder: "attachments",
@@ -86,9 +103,9 @@ export async function POST(req: Request) {
       data: {
         organizationId,
         uploadedById: user.id,
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
+        fileName: finalFileName,
+        fileSize: compressedSize,
+        fileType: finalMimeType,
         url: blob.url,
         ...(entityType === "socialPost" && entityId ? { socialPostId: entityId } : {}),
         ...(entityType === "feedback" && entityId ? { feedbackId: entityId } : {}),
@@ -112,3 +129,9 @@ export async function POST(req: Request) {
     );
   }
 }
+
+
+
+
+
+

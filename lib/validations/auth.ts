@@ -76,3 +76,9 @@ export function getClerkErrorMessage(errorCode: string, fallback?: string): stri
   return clerkErrorMessages[errorCode] || fallback || "An error occurred. Please try again.";
 }
 
+
+
+
+
+
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,16 @@ import { ArrowLeft, ArrowRight, Upload, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 
 import { UploadStep } from "./UploadStep";
-import { MappingStep } from "./MappingStep";
+import { TwoPanelMappingStep } from "./TwoPanelMappingStep";
 import { ValidationStep } from "./ValidationStep";
 import { ReviewStep } from "./ReviewStep";
 import { CompleteStep } from "./CompleteStep";
+import {
+  autoMatchColumns,
+  matchResultsToMapping,
+  type MatchResult,
+  type FieldDefinitionWithAliases,
+} from "@/lib/import/fuzzy-matcher";
 
 export interface ImportWizardDict {
   title: string;
@@ -101,6 +107,8 @@ export interface FieldDefinition {
   key: string;
   required: boolean;
   group: string;
+  aliases?: string[];
+  description?: string;
 }
 
 export interface FieldsDict {
@@ -175,9 +183,18 @@ export function ImportWizardSteps({
   const [parsedData, setParsedData] = useState<Record<string, unknown>[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
+  const [matchResults, setMatchResults] = useState<Map<string, MatchResult>>(new Map());
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [validData, setValidData] = useState<Record<string, unknown>[]>([]);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+
+  // Convert field definitions to the format expected by fuzzy matcher
+  const fieldDefinitionsWithAliases = useMemo(() => {
+    return fieldDefinitions.map((f) => ({
+      ...f,
+      aliases: f.aliases || [],
+    })) as FieldDefinitionWithAliases[];
+  }, [fieldDefinitions]);
 
   const progress = ((currentStep) / (TOTAL_STEPS - 1)) * 100;
 
@@ -204,24 +221,14 @@ export function ImportWizardSteps({
     setCsvHeaders(headers);
     setParsedData(data);
     
-    // Auto-map fields based on header names (exact match only)
-    const autoMapping: Record<string, string> = {};
-    const usedTargets = new Set<string>();
+    // Use fuzzy matcher for intelligent auto-mapping
+    const results = autoMatchColumns(headers, fieldDefinitionsWithAliases);
+    setMatchResults(results);
     
-    headers.forEach((header) => {
-      const normalizedHeader = header.toLowerCase().replace(/[\s_-]+/g, "_");
-      // Find exact match only - prevents "price_type" from mapping to "price"
-      const matchedField = fieldDefinitions.find((f) => {
-        const normalizedField = f.key.toLowerCase();
-        return normalizedField === normalizedHeader && !usedTargets.has(f.key);
-      });
-      if (matchedField) {
-        autoMapping[header] = matchedField.key;
-        usedTargets.add(matchedField.key);
-      }
-    });
+    // Convert match results to field mapping
+    const autoMapping = matchResultsToMapping(results);
     setFieldMapping(autoMapping);
-  }, [fieldDefinitions]);
+  }, [fieldDefinitionsWithAliases]);
 
   const handleMappingChange = useCallback((csvColumn: string, targetField: string) => {
     setFieldMapping((prev) => ({
@@ -318,12 +325,13 @@ export function ImportWizardSteps({
         );
       case 1:
         return (
-          <MappingStep
+          <TwoPanelMappingStep
             dict={dict.mapping}
             fieldsDict={fieldsDict}
             csvHeaders={csvHeaders}
             fieldMapping={fieldMapping}
-            fieldDefinitions={fieldDefinitions}
+            matchResults={matchResults}
+            fieldDefinitions={fieldDefinitionsWithAliases}
             sampleData={parsedData.slice(0, 3)}
             onMappingChange={handleMappingChange}
           />
@@ -362,6 +370,7 @@ export function ImportWizardSteps({
               setParsedData([]);
               setCsvHeaders([]);
               setFieldMapping({});
+              setMatchResults(new Map());
               setValidationErrors([]);
               setValidData([]);
               setImportResult(null);

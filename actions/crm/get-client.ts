@@ -1,44 +1,21 @@
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/get-current-user";
-
-// Helper function to serialize Prisma objects (convert Decimal to number, Date to ISO string)
-const serializePrismaObject = (obj: any): any => {
-  if (obj === null || obj === undefined) {
-    return obj;
-  }
-  // Handle Prisma Decimal objects
-  if (obj && typeof obj === 'object' && 'toNumber' in obj && typeof obj.toNumber === 'function') {
-    return obj.toNumber();
-  }
-  // Handle Date objects
-  if (obj instanceof Date) {
-    return obj.toISOString();
-  }
-  // Handle arrays
-  if (Array.isArray(obj)) {
-    return obj.map(serializePrismaObject);
-  }
-  // Handle objects
-  if (typeof obj === 'object') {
-    const serialized: any = {};
-    for (const [key, value] of Object.entries(obj)) {
-      serialized[key] = serializePrismaObject(value);
-    }
-    return serialized;
-  }
-  return obj;
-};
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export const getClient = async (clientId: string) => {
-  const organizationId = await getCurrentOrgId();
+  const organizationId = await getCurrentOrgIdSafe();
+  
+  // Return null if no organization context (e.g., session not synced yet)
+  if (!organizationId) {
+    return null;
+  }
   const data = await prismadb.clients.findFirst({
     where: { 
       id: clientId,
       organizationId,
     },
     include: {
-      assigned_to_user: { select: { name: true, id: true } },
-      contacts: true,
+      Users_Clients_assigned_toToUsers: { select: { name: true, id: true } },
+      Client_Contacts: true,
     },
   });
   
@@ -46,8 +23,15 @@ export const getClient = async (clientId: string) => {
     return null;
   }
   
-  // Serialize Decimal and Date fields before returning
-  return serializePrismaObject(data);
+  // Map to expected field names for backward compatibility
+  const mappedData = {
+    ...data,
+    assigned_to_user: data.Users_Clients_assigned_toToUsers,
+    contacts: data.Client_Contacts,
+  };
+  
+  // Serialize to plain objects - converts Decimal to number, Date to string
+  return JSON.parse(JSON.stringify(mappedData));
 };
 
 

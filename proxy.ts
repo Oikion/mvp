@@ -12,21 +12,32 @@ const intlMiddleware = createMiddleware({
 });
 
 // Define public routes that don't require authentication
-// Note: SSO callbacks are handled automatically by Clerk's virtual routing
+// Website routes (root, legal, public profiles) are always public
+// App auth routes (sign-in, register) are also public
 const isPublicRoute = createRouteMatcher([
-  "/:locale/sign-in(.*)",
-  "/:locale/sign-up(.*)",
-  "/:locale/register(.*)",
+  // Website routes (public)
+  "/:locale",
+  "/:locale/legal(.*)",
+  "/:locale/agent(.*)",
+  "/:locale/property(.*)",
+  // App auth routes (public) - includes SSO callbacks
+  "/:locale/app/sign-in(.*)",
+  "/:locale/app/sign-up(.*)",
+  "/:locale/app/register(.*)",
+  "/:locale/app/forgot-password(.*)",
+  "/:locale/app/inactive(.*)",
+  "/:locale/app/pending(.*)",
+  // API webhooks (public)
   "/api/webhooks(.*)",
 ]);
 
 // Define Clerk organization routes that should redirect to custom onboarding
 // This skips Clerk's built-in organization creation flow
 const isClerkOrgRoute = createRouteMatcher([
-  "/:locale/register/tasks/choose-organization(.*)",
-  "/:locale/sign-up/tasks/choose-organization(.*)",
-  "/:locale/sign-in/tasks/choose-organization(.*)",
-  "/:locale/create-organization(.*)",
+  "/:locale/app/register/tasks/choose-organization(.*)",
+  "/:locale/app/sign-up/tasks/choose-organization(.*)",
+  "/:locale/app/sign-in/tasks/choose-organization(.*)",
+  "/:locale/app/create-organization(.*)",
 ]);
 
 // Define routes excluded from rate limiting (webhooks, health checks, etc.)
@@ -36,37 +47,29 @@ const isRateLimitExcluded = createRouteMatcher([
   "/api/cron(.*)",
 ]);
 
+// Define external API routes that use API key authentication instead of Clerk
+// These routes are for external integrations (n8n, Make.com, webhooks, etc.)
+const isExternalApiRoute = createRouteMatcher([
+  "/api/v1(.*)",
+]);
+
 // Define platform admin routes that require special admin privileges
 // These routes are ONLY accessible to users with isPlatformAdmin: true in Clerk metadata
 const isPlatformAdminRoute = createRouteMatcher([
-  "/:locale/platform-admin(.*)",
+  "/:locale/app/platform-admin(.*)",
   "/api/platform-admin(.*)",
 ]);
 
 // Access denied page should NOT require admin status (to avoid infinite redirect)
 const isPlatformAdminAccessDenied = createRouteMatcher([
-  "/:locale/platform-admin/access-denied(.*)",
+  "/:locale/app/platform-admin/access-denied(.*)",
 ]);
 
-// Landing page route for the main domain (oikion.com without app. prefix)
-const isLandingPageRoute = createRouteMatcher([
-  "/:locale/landing(.*)",
+// Define app routes that require authentication (everything under /app except auth pages)
+const isAppRoute = createRouteMatcher([
+  "/:locale/app(.*)",
 ]);
 
-/**
- * Check if the request is coming from the main domain (oikion.com)
- * This serves the public landing page
- */
-function isMainDomain(req: NextRequest): boolean {
-  const host = req.headers.get("host") || "";
-  
-  // oikion.com or www.oikion.com
-  if (host === "oikion.com" || host === "www.oikion.com") {
-    return true;
-  }
-  
-  return false;
-}
 
 /**
  * Check if user is a platform admin
@@ -116,43 +119,28 @@ async function checkPlatformAdmin(userId: string): Promise<boolean> {
   }
 }
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   const pathname = req.nextUrl.pathname;
 
   // ============================================
-  // DOMAIN DETECTION: Main domain vs App domain
+  // DEVELOPMENT FAST PATH
+  // Skip middleware for HMR/Turbopack paths to improve hot refresh speed
   // ============================================
-  // If request is to main domain (oikion.com), rewrite to landing page
-  if (isMainDomain(req)) {
-    // Check if already on landing page to avoid infinite loop
-    if (!isLandingPageRoute(req) && !pathname.includes("/landing")) {
-      const pathLocale = pathname.split("/")[1];
-      const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
-      const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
-        ? (pathLocale as "en" | "el")
-        : "el";
-      
-      // Rewrite to landing page (keeps the URL but serves landing content)
-      const landingUrl = new URL(`/${locale}/landing`, req.url);
-      return NextResponse.rewrite(landingUrl);
-    }
-    
-    // Already on landing page or landing route, continue normally
-    const intlResponse = intlMiddleware(req);
-    if (intlResponse && (intlResponse.status === 307 || intlResponse.status === 308)) {
-      return intlResponse;
-    }
-    const response = NextResponse.next();
-    if (intlResponse) {
-      intlResponse.cookies.getAll().forEach((cookie) => {
-        response.cookies.set(cookie.name, cookie.value);
-      });
-    }
-    return response;
+  if (isDev && (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/__nextjs') ||
+    pathname.includes('/_next/') ||
+    pathname.includes('/__nextjs_')
+  )) {
+    return NextResponse.next();
   }
 
   // ============================================
-  // EXISTING MIDDLEWARE LOGIC BELOW
+  // ROUTE STRUCTURE:
+  // - Website: /:locale/ (landing, legal, public pages)
+  // - App: /:locale/app/ (dashboard, CRM, MLS, auth, etc.)
   // ============================================
 
   // Handle root redirect to default locale
@@ -181,7 +169,7 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
     const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
       ? (pathLocale as "en" | "el")
       : "el";
-    const onboardUrl = new URL(`/${locale}/onboard`, req.url);
+    const onboardUrl = new URL(`/${locale}/app/onboard`, req.url);
     return NextResponse.redirect(onboardUrl);
   }
 
@@ -199,7 +187,7 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
       const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
         ? (pathLocale as "en" | "el")
         : "el";
-      const signInUrl = new URL(`/${locale}/sign-in`, req.url);
+      const signInUrl = new URL(`/${locale}/app/sign-in`, req.url);
       return NextResponse.redirect(signInUrl);
     }
     
@@ -227,7 +215,7 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
       
       // Redirect to home with access denied message
       // The platform admin pages will handle showing proper access denied UI
-      const accessDeniedUrl = new URL(`/${locale}/platform-admin/access-denied`, req.url);
+      const accessDeniedUrl = new URL(`/${locale}/app/platform-admin/access-denied`, req.url);
       return NextResponse.redirect(accessDeniedUrl);
     }
     
@@ -284,6 +272,27 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
     // Skip rate limiting for excluded routes (webhooks, health, cron)
     if (isRateLimitExcluded(req)) {
       return NextResponse.next();
+    }
+
+    // EXTERNAL API ROUTES (/api/v1/*) - Use API key authentication
+    // These routes skip Clerk auth and handle their own authentication via API keys
+    // Rate limiting is handled within the route handlers using the 'api' tier
+    if (isExternalApiRoute(req)) {
+      // Let the route handler manage authentication and rate limiting
+      // The external-api-middleware handles API key validation and rate limiting
+      const response = NextResponse.next();
+      // Add CORS headers for external API access
+      response.headers.set('Access-Control-Allow-Origin', '*');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Webhook-Signature, X-Webhook-Timestamp');
+      response.headers.set('Access-Control-Max-Age', '86400');
+      
+      // Handle preflight OPTIONS requests
+      if (req.method === 'OPTIONS') {
+        return new NextResponse(null, { status: 204, headers: response.headers });
+      }
+      
+      return response;
     }
 
     // Apply rate limiting to API routes with appropriate tier
@@ -352,8 +361,9 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   // Clerk needs this to detect that clerkMiddleware is being used
   const authResult = await auth();
 
-  // Protect non-public routes for pages
-  if (!isPublicRoute(req)) {
+  // Protect app routes that aren't public (require authentication)
+  // Website routes are always public (handled by isPublicRoute)
+  if (isAppRoute(req) && !isPublicRoute(req)) {
     if (!authResult.userId) {
       // Extract locale from pathname or use default (Greek)
       const pathLocale = pathname.split("/")[1];
@@ -361,7 +371,7 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
       const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
           ? (pathLocale as "en" | "el")
           : "el";
-      const signInUrl = new URL(`/${locale}/sign-in`, req.url);
+      const signInUrl = new URL(`/${locale}/app/sign-in`, req.url);
       return NextResponse.redirect(signInUrl);
     }
   }
@@ -400,10 +410,14 @@ export default proxy;
 export const config = {
   matcher: [
     // Match all requests except:
-    // - _next/* (all Next.js internals including HMR, static, image, etc.)
+    // - _next/* (all Next.js internals including HMR, static, images, etc.)
+    // - __nextjs_* (Next.js internal routes for HMR/Turbopack)
     // - Static files (images, fonts, etc.)
     // - Locale-prefixed Next.js paths
-    "/((?!_next|[a-z]{2}/_next|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|map)$).*)",
+    // 
+    // IMPORTANT: The negative lookahead must be comprehensive to avoid
+    // middleware running on HMR/hot-reload paths which would slow down development
+    "/((?!_next|__nextjs|[a-z]{2}/_next|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|map|json)$).*)",
   ],
 };
 

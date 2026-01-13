@@ -13,7 +13,6 @@ import validationEn from "./locales/en/validation.json";
 import emailEn from "./locales/en/email.json";
 import setLanguageEn from "./locales/en/setLanguage.json";
 import feedbackEn from "./locales/en/feedback.json";
-import chatgptEn from "./locales/en/chatgpt.json";
 import registerEn from "./locales/en/register.json";
 import calendarEn from "./locales/en/calendar.json";
 import documentsEn from "./locales/en/documents.json";
@@ -30,6 +29,8 @@ import onboardingEn from "./locales/en/onboarding.json";
 import importEn from "./locales/en/import.json";
 import conversionEn from "./locales/en/conversion.json";
 import signInEn from "./locales/en/signIn.json";
+import authEn from "./locales/en/auth.json";
+import referralsEn from "./locales/en/referrals.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -43,7 +44,6 @@ import validationEl from "./locales/el/validation.json";
 import emailEl from "./locales/el/email.json";
 import setLanguageEl from "./locales/el/setLanguage.json";
 import feedbackEl from "./locales/el/feedback.json";
-import chatgptEl from "./locales/el/chatgpt.json";
 import registerEl from "./locales/el/register.json";
 import calendarEl from "./locales/el/calendar.json";
 import documentsEl from "./locales/el/documents.json";
@@ -60,6 +60,8 @@ import onboardingEl from "./locales/el/onboarding.json";
 import importEl from "./locales/el/import.json";
 import conversionEl from "./locales/el/conversion.json";
 import signInEl from "./locales/el/signIn.json";
+import authEl from "./locales/el/auth.json";
+import referralsEl from "./locales/el/referrals.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -83,7 +85,6 @@ function loadMessages(locale: string) {
     messages.email = emailEl;
     messages.setLanguage = setLanguageEl;
     messages.feedback = feedbackEl;
-    messages.chatgpt = chatgptEl;
     messages.register = registerEl;
     messages.calendar = calendarEl;
     messages.documents = documentsEl;
@@ -99,6 +100,8 @@ function loadMessages(locale: string) {
     messages.import = importEl;
     messages.conversion = conversionEl;
     messages.signIn = signInEl;
+    messages.auth = authEl;
+    messages.referrals = referralsEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -124,7 +127,6 @@ function loadMessages(locale: string) {
     messages.email = emailEn;
     messages.setLanguage = setLanguageEn;
     messages.feedback = feedbackEn;
-    messages.chatgpt = chatgptEn;
     messages.register = registerEn;
     messages.calendar = calendarEn;
     messages.documents = documentsEn;
@@ -140,6 +142,8 @@ function loadMessages(locale: string) {
     messages.import = importEn;
     messages.conversion = conversionEn;
     messages.signIn = signInEn;
+    messages.auth = authEn;
+    messages.referrals = referralsEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))

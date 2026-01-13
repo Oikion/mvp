@@ -49,7 +49,17 @@ export type AdminActionType =
   | "VIEW_FEEDBACK"
   | "VIEW_FEEDBACK_DETAILS"
   | "UPDATE_FEEDBACK_STATUS"
-  | "RESPOND_TO_FEEDBACK";
+  | "RESPOND_TO_FEEDBACK"
+  | "CREATE_CHANGELOG"
+  | "UPDATE_CHANGELOG"
+  | "DELETE_CHANGELOG"
+  | "PUBLISH_CHANGELOG"
+  | "CREATE_REFERRAL_CODE"
+  | "UPDATE_REFERRAL_COMMISSION"
+  | "UPDATE_REFERRAL_PAYOUT"
+  | "WARN_USER"
+  | "DELETE_USER"
+  | "VIEW_ADMIN_LOGS";
 
 /**
  * Validate that a reason/message is safe and not malicious
@@ -68,5 +78,11 @@ export function sanitizeAdminMessage(message: string): string {
   // Limit length
   return sanitized.slice(0, 1000);
 }
+
+
+
+
+
+
 
 

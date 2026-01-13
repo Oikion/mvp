@@ -166,19 +166,13 @@ Our goal: **speedy daily operations**, **clean team visibility**, and **sustaina
    pnpm prisma db push
    ```
 
-5. **Seed initial data** (optional)
-
-   ```bash
-   pnpm prisma db seed
-   ```
-
-6. **Start the development server**
+5. **Start the development server**
 
    ```bash
    pnpm dev
    ```
 
-7. **Open the app**
+6. **Open the app**
 
    Navigate to [http://localhost:3000](http://localhost:3000)
 
@@ -231,7 +225,6 @@ const prisma = prismaForOrg(session.user.organizationId);
 | `pnpm lint` | Run ESLint |
 | `pnpm prisma studio` | Open Prisma Studio |
 | `pnpm prisma db push` | Push schema changes |
-| `pnpm db:seed` | Seed database |
 
 ---
 

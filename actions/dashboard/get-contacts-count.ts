@@ -8,7 +8,7 @@ export const getContactCount = async () => {
   // Filter contacts through their associated client's organizationId
   const data = await prismadb.client_Contacts.count({
     where: {
-      assigned_client: {
+      Clients: {
         organizationId,
       },
     },

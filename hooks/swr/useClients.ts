@@ -35,9 +35,11 @@ async function clientsFetcher(url: string): Promise<ClientOption[]> {
 
   const data = await res.json();
 
-  // Handle both array response and error object response
-  if (Array.isArray(data)) {
-    return data.map((client: ClientsResponse) => ({
+  // Handle paginated response format { items: [...], nextCursor, hasMore }
+  const items = data.items || data;
+  
+  if (Array.isArray(items)) {
+    return items.map((client: ClientsResponse) => ({
       value: client.id,
       label: client.client_name || "Unnamed Client",
     }));
@@ -54,11 +56,11 @@ export function useClients(options: UseClientsOptions = {}) {
   const { enabled = true } = options;
 
   const { data, error, isLoading, isValidating, mutate } = useSWR<ClientOption[]>(
-    enabled ? "/api/crm/clients" : null,
+    enabled ? "/api/crm/clients?minimal=true" : null,
     clientsFetcher,
     {
-      // Keep data fresh for 1 minute (matches previous manual cache duration)
-      dedupingInterval: 60000,
+      // Keep data fresh for 5 minutes - selector data doesn't change often
+      dedupingInterval: 300000,
       revalidateOnFocus: false,
     }
   );

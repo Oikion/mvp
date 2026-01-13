@@ -90,24 +90,24 @@ export async function createDocument(input: CreateDocumentInput) {
         linkedCalComEventsIds: mergedMentions.events.map((e) => e.id),
         linkedTasksIds: mergedMentions.tasks.map((t) => t.id),
         // Relations
-        accounts: {
+        Clients: {
           connect: mergedMentions.clients.map((c) => ({ id: c.id })),
         },
-        linkedProperties: {
+        Properties: {
           connect: mergedMentions.properties.map((p) => ({ id: p.id })),
         },
-        linkedCalComEvents: {
+        CalComEvent: {
           connect: mergedMentions.events.map((e) => ({ id: e.id })),
         },
-        linkedTasks: {
+        crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: {
           connect: mergedMentions.tasks.map((t) => ({ id: t.id })),
         },
       },
       include: {
-        accounts: true,
-        linkedProperties: true,
-        linkedCalComEvents: true,
-        linkedTasks: true,
+        Clients: true,
+        Properties: true,
+        CalComEvent: true,
+        crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: true,
       },
     });
 

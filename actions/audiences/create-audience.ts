@@ -47,6 +47,7 @@ export async function createAudience(
         createdById: currentUser.id,
         organizationId: isOrgLevel ? organizationId : null,
         isAutoSync: isOrgLevel ? isAutoSync : false, // Only org-level can auto-sync
+        updatedAt: new Date(),
       },
     });
 
@@ -54,6 +55,7 @@ export async function createAudience(
     if (memberIds.length > 0) {
       await prismadb.audienceMember.createMany({
         data: memberIds.map((userId) => ({
+          id: crypto.randomUUID(),
           audienceId: audience.id,
           userId,
         })),
@@ -69,6 +71,12 @@ export async function createAudience(
     return { success: false, error: "Failed to create audience" };
   }
 }
+
+
+
+
+
+
 
 
 

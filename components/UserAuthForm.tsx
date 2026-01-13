@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useSignIn } from "@clerk/nextjs";
+import { useParams } from "next/navigation";
 import * as React from "react";
 import { FC } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 const UserAuthForm: FC<UserAuthFormProps> = ({ className, ...props }) => {
   const toast = useToast();
   const { signIn, isLoaded } = useSignIn();
+  const params = useParams();
+  const locale = (params.locale as string) || "en";
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   const loginWithGoogle = async () => {
@@ -21,8 +24,8 @@ const UserAuthForm: FC<UserAuthFormProps> = ({ className, ...props }) => {
     try {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: process.env.NEXT_PUBLIC_APP_URL || "/",
+        redirectUrl: `/${locale}/app/sign-in/sso-callback`,
+        redirectUrlComplete: `/${locale}/app`,
       });
     } catch (error) {
       setIsLoading(false);

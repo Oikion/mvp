@@ -11,7 +11,9 @@ export async function GET() {
       where: { userId: user.id },
       update: {}, // No updates if exists
       create: {
+        id: crypto.randomUUID(),
         userId: user.id,
+        updatedAt: new Date(),
       },
     });
 
@@ -60,7 +62,9 @@ export async function PUT(req: Request) {
       where: { userId: user.id },
       update: updateData,
       create: {
+        id: crypto.randomUUID(),
         userId: user.id,
+        updatedAt: new Date(),
         ...updateData,
       },
     });

@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://oikion.app';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://oikion.com/app';
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -26,7 +26,6 @@ export default function robots(): MetadataRoute.Robots {
           '/social-feed/', // Block social feed
           '/feed/', // Block feed
           '/employees/', // Block employees
-          '/openAi/', // Block OpenAI
           '/reports/', // Block reports
           '/book/', // Block booking (unless made public)
         ],
@@ -35,6 +34,10 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
+
+
+
+
 
 
 

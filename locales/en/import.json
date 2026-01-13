@@ -43,11 +43,20 @@
       "unmapped": "Unmapped",
       "required": "Required",
       "optional": "Optional",
-      "autoMapped": "Auto-mapped",
+      "autoMapped": "Mapped",
       "manuallyMapped": "Manually mapped",
       "noMapping": "Not mapped",
       "selectField": "Select a field",
-      "sampleData": "Sample data from your file"
+      "sampleData": "Sample data from your file",
+      "sourceColumns": "Your Columns",
+      "targetFields": "Target Fields",
+      "dragToMap": "Drag columns to map them to target fields",
+      "clickToUnmap": "Drop source columns here",
+      "highConfidence": "High",
+      "mediumConfidence": "Medium",
+      "lowConfidence": "Low",
+      "autoMatchedCount": "{count} mapped",
+      "unmappedCount": "{count} unmapped"
     },
     "validation": {
       "validRows": "Valid rows",
@@ -114,6 +123,7 @@
         "other": "Other"
       },
       "fields": {
+        "id": "Client ID",
         "client_name": "Client Name",
         "primary_email": "Primary Email",
         "primary_phone": "Primary Phone",
@@ -223,6 +233,7 @@
         "other": "Other"
       },
       "fields": {
+        "id": "Property ID",
         "property_name": "Property Name",
         "property_type": "Property Type",
         "property_status": "Status",
@@ -357,5 +368,11 @@
     }
   }
 }
+
+
+
+
+
+
 
 

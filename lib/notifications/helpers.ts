@@ -1,9 +1,11 @@
 /**
  * Notification Helpers
  * Convenience functions for common notification scenarios
+ * Now includes email notifications based on user preferences
  */
 
 import { createNotification, createBulkNotifications, notifyOrganization } from "./notification-service";
+import { sendNotificationEmail, sendNotificationEmailToUsers } from "./email-service";
 import { prismadb } from "@/lib/prisma";
 import {
   SocialNotificationPayload,
@@ -28,6 +30,7 @@ export async function notifyPostLiked(payload: SocialNotificationPayload): Promi
     return;
   }
 
+  // Create in-app notification
   await createNotification({
     userId: payload.postAuthorId,
     organizationId: payload.organizationId,
@@ -38,6 +41,16 @@ export async function notifyPostLiked(payload: SocialNotificationPayload): Promi
     entityId: payload.postId,
     actorId: payload.actorId,
     actorName: payload.actorName,
+    metadata: {
+      postContent: payload.postContent,
+    },
+  });
+
+  // Send email notification (respects user preferences)
+  await sendNotificationEmail(payload.postAuthorId, "SOCIAL_POST_LIKED", {
+    actorName: payload.actorName,
+    actorId: payload.actorId,
+    entityId: payload.postId,
     metadata: {
       postContent: payload.postContent,
     },
@@ -55,6 +68,7 @@ export async function notifyPostCommented(
     return;
   }
 
+  // Create in-app notification
   await createNotification({
     userId: payload.postAuthorId,
     organizationId: payload.organizationId,
@@ -70,11 +84,25 @@ export async function notifyPostCommented(
       postContent: payload.postContent,
     },
   });
+
+  // Send email notification (respects user preferences)
+  await sendNotificationEmail(payload.postAuthorId, "SOCIAL_POST_COMMENTED", {
+    actorName: payload.actorName,
+    actorId: payload.actorId,
+    entityId: payload.postId,
+    metadata: {
+      commentContent: payload.commentContent,
+      postContent: payload.postContent,
+    },
+  });
 }
 
 // ============================================
 // SHARING NOTIFICATIONS
 // ============================================
+
+// System-level organization ID for cross-organization notifications
+const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
 
 /**
  * Notify user when something is shared with them
@@ -82,9 +110,10 @@ export async function notifyPostCommented(
 export async function notifyEntityShared(payload: SharingNotificationPayload): Promise<void> {
   const entityTypeLabel = payload.entityType.toLowerCase();
 
+  // Create in-app notification
   await createNotification({
     userId: payload.sharedWithId,
-    organizationId: payload.organizationId,
+    organizationId: SYSTEM_ORG_ID, // Use system org for cross-org visibility
     type: "ENTITY_SHARED_WITH_YOU",
     title: `${payload.sharedByName} shared a ${entityTypeLabel} with you`,
     message: payload.message
@@ -97,6 +126,18 @@ export async function notifyEntityShared(payload: SharingNotificationPayload): P
     actorName: payload.sharedByName,
     metadata: {
       entityName: payload.entityName,
+      entityType: payload.entityType,
+      shareMessage: payload.message,
+    },
+  });
+
+  // Send email notification (respects user preferences)
+  await sendNotificationEmail(payload.sharedWithId, "ENTITY_SHARED_WITH_YOU", {
+    actorName: payload.sharedByName,
+    actorId: payload.sharedById,
+    entityId: payload.entityId,
+    entityName: payload.entityName,
+    metadata: {
       entityType: payload.entityType,
       shareMessage: payload.message,
     },
@@ -197,6 +238,7 @@ export async function notifyPropertyCreated(payload: EntityCreationPayload): Pro
  * Notify user about a deal proposal
  */
 export async function notifyDealProposed(payload: DealNotificationPayload): Promise<void> {
+  // Create in-app notification
   await createNotification({
     userId: payload.targetUserId,
     organizationId: payload.organizationId,
@@ -207,6 +249,18 @@ export async function notifyDealProposed(payload: DealNotificationPayload): Prom
     entityId: payload.dealId,
     actorId: payload.actorId,
     actorName: payload.actorName,
+    metadata: {
+      dealTitle: payload.dealTitle,
+      propertyName: payload.propertyName,
+      clientName: payload.clientName,
+    },
+  });
+
+  // Send email notification (respects user preferences)
+  await sendNotificationEmail(payload.targetUserId, "DEAL_PROPOSED", {
+    actorName: payload.actorName,
+    actorId: payload.actorId,
+    entityId: payload.dealId,
     metadata: {
       dealTitle: payload.dealTitle,
       propertyName: payload.propertyName,
@@ -228,18 +282,33 @@ export async function notifyDealStatusChanged(payload: DealNotificationPayload):
   };
 
   const statusMessage = statusMessages[payload.status || ""] || "was updated";
+  const notificationType = payload.status === "ACCEPTED" ? "DEAL_ACCEPTED" : 
+        payload.status === "COMPLETED" ? "DEAL_COMPLETED" : "DEAL_UPDATED";
 
+  // Create in-app notification
   await createNotification({
     userId: payload.targetUserId,
     organizationId: payload.organizationId,
-    type: payload.status === "ACCEPTED" ? "DEAL_ACCEPTED" : 
-          payload.status === "COMPLETED" ? "DEAL_COMPLETED" : "DEAL_UPDATED",
+    type: notificationType,
     title: `Deal ${statusMessage}`,
     message: `The deal for "${payload.propertyName}" ${statusMessage}`,
     entityType: "DEAL",
     entityId: payload.dealId,
     actorId: payload.actorId,
     actorName: payload.actorName,
+    metadata: {
+      dealTitle: payload.dealTitle,
+      propertyName: payload.propertyName,
+      clientName: payload.clientName,
+      status: payload.status,
+    },
+  });
+
+  // Send email notification (respects user preferences)
+  await sendNotificationEmail(payload.targetUserId, notificationType, {
+    actorName: payload.actorName,
+    actorId: payload.actorId,
+    entityId: payload.dealId,
     metadata: {
       dealTitle: payload.dealTitle,
       propertyName: payload.propertyName,
@@ -257,6 +326,7 @@ export async function notifyDealStatusChanged(payload: DealNotificationPayload):
  * Notify user of a connection request
  */
 export async function notifyConnectionRequest(payload: ConnectionNotificationPayload): Promise<void> {
+  // Create in-app notification
   await createNotification({
     userId: payload.targetId,
     organizationId: payload.organizationId,
@@ -268,12 +338,20 @@ export async function notifyConnectionRequest(payload: ConnectionNotificationPay
     actorId: payload.requesterId,
     actorName: payload.requesterName,
   });
+
+  // Send email notification (respects user preferences)
+  await sendNotificationEmail(payload.targetId, "CONNECTION_REQUEST", {
+    actorName: payload.requesterName,
+    actorId: payload.requesterId,
+    entityId: payload.connectionId,
+  });
 }
 
 /**
  * Notify user when their connection request is accepted
  */
 export async function notifyConnectionAccepted(payload: ConnectionNotificationPayload): Promise<void> {
+  // Create in-app notification
   await createNotification({
     userId: payload.requesterId,
     organizationId: payload.organizationId,
@@ -284,6 +362,13 @@ export async function notifyConnectionAccepted(payload: ConnectionNotificationPa
     entityId: payload.connectionId,
     actorId: payload.targetId,
     actorName: payload.requesterName,
+  });
+
+  // Send email notification (respects user preferences)
+  await sendNotificationEmail(payload.requesterId, "CONNECTION_ACCEPTED", {
+    actorName: payload.requesterName,
+    actorId: payload.targetId,
+    entityId: payload.connectionId,
   });
 }
 
@@ -299,6 +384,7 @@ export async function notifyTaskAssigned(payload: TaskNotificationPayload): Prom
     return; // Don't notify if assigning to yourself
   }
 
+  // Create in-app notification
   await createNotification({
     userId: payload.recipientId,
     organizationId: payload.organizationId,
@@ -309,6 +395,19 @@ export async function notifyTaskAssigned(payload: TaskNotificationPayload): Prom
     entityId: payload.taskId,
     actorId: payload.actorId,
     actorName: payload.actorName,
+    metadata: {
+      taskTitle: payload.taskTitle,
+      accountId: payload.accountId,
+      accountName: payload.accountName,
+    },
+  });
+
+  // Send email notification (respects user preferences)
+  await sendNotificationEmail(payload.recipientId, "TASK_ASSIGNED", {
+    actorName: payload.actorName,
+    actorId: payload.actorId,
+    entityId: payload.taskId,
+    entityName: payload.taskTitle,
     metadata: {
       taskTitle: payload.taskTitle,
       accountId: payload.accountId,
@@ -327,6 +426,7 @@ export async function notifyTaskCommented(
     return; // Don't notify if commenting on own task
   }
 
+  // Create in-app notification
   await createNotification({
     userId: payload.recipientId,
     organizationId: payload.organizationId,
@@ -337,6 +437,20 @@ export async function notifyTaskCommented(
     entityId: payload.taskId,
     actorId: payload.actorId,
     actorName: payload.actorName,
+    metadata: {
+      taskTitle: payload.taskTitle,
+      commentContent: payload.commentContent,
+      accountId: payload.accountId,
+      accountName: payload.accountName,
+    },
+  });
+
+  // Send email notification (respects user preferences)
+  await sendNotificationEmail(payload.recipientId, "TASK_COMMENT_ADDED", {
+    actorName: payload.actorName,
+    actorId: payload.actorId,
+    entityId: payload.taskId,
+    entityName: payload.taskTitle,
     metadata: {
       taskTitle: payload.taskTitle,
       commentContent: payload.commentContent,
@@ -360,6 +474,7 @@ export async function notifyEventInvite(payload: CalendarNotificationPayload): P
     return;
   }
 
+  // Create in-app notifications
   await createBulkNotifications({
     userIds: recipientIds,
     organizationId: payload.organizationId,
@@ -373,6 +488,18 @@ export async function notifyEventInvite(payload: CalendarNotificationPayload): P
     metadata: {
       eventTitle: payload.eventTitle,
       eventStartTime: payload.eventStartTime.toISOString(),
+    },
+  });
+
+  // Send email notifications to all recipients (respects user preferences)
+  await sendNotificationEmailToUsers(recipientIds, "CALENDAR_EVENT_INVITED", {
+    actorName: payload.actorName,
+    actorId: payload.actorId,
+    entityId: payload.eventId,
+    entityName: payload.eventTitle,
+    metadata: {
+      eventTitle: payload.eventTitle,
+      startTime: payload.eventStartTime,
     },
   });
 }
@@ -389,25 +516,21 @@ export async function notifyAccountWatchers(
   metadata?: Record<string, any>
 ): Promise<void> {
   try {
-    // Get the account with watchers
+    // Get the account with watchers (watchers is a String[] of user IDs)
     const account = await prismadb.clients.findUnique({
       where: { id: accountId },
       select: {
         id: true,
         client_name: true,
-        watching_users: {
-          select: {
-            id: true,
-          },
-        },
+        watchers: true,
       },
     });
 
-    if (!account || !account.watching_users || account.watching_users.length === 0) {
+    if (!account || !account.watchers || account.watchers.length === 0) {
       return;
     }
 
-    const watcherIds = account.watching_users.map((u) => u.id);
+    const watcherIds = account.watchers;
 
     // Exclude the actor from notifications if provided
     const actorId = metadata?.updatedBy;
@@ -419,6 +542,7 @@ export async function notifyAccountWatchers(
       return;
     }
 
+    // Create in-app notifications
     await createBulkNotifications({
       userIds: filteredIds,
       organizationId,
@@ -429,6 +553,18 @@ export async function notifyAccountWatchers(
       entityId: accountId,
       actorId: metadata?.updatedBy,
       actorName: metadata?.updatedByName,
+      metadata: {
+        accountName: account.client_name,
+        ...metadata,
+      },
+    });
+
+    // Send email notifications to watchers (respects user preferences)
+    await sendNotificationEmailToUsers(filteredIds, type, {
+      actorName: metadata?.updatedByName,
+      actorId: metadata?.updatedBy,
+      entityId: accountId,
+      entityName: account.client_name,
       metadata: {
         accountName: account.client_name,
         ...metadata,
@@ -451,25 +587,21 @@ export async function notifyPropertyWatchers(
   metadata?: Record<string, any>
 ): Promise<void> {
   try {
-    // Get the property with watchers
+    // Get the property with watchers (watchers is a String[] of user IDs)
     const property = await prismadb.properties.findUnique({
       where: { id: propertyId },
       select: {
         id: true,
         property_name: true,
-        watching_users: {
-          select: {
-            id: true,
-          },
-        },
+        watchers: true,
       },
     });
 
-    if (!property || !property.watching_users || property.watching_users.length === 0) {
+    if (!property || !property.watchers || property.watchers.length === 0) {
       return;
     }
 
-    const watcherIds = property.watching_users.map((u) => u.id);
+    const watcherIds = property.watchers;
 
     // Exclude the actor from notifications if provided
     const actorId = metadata?.updatedBy;
@@ -481,6 +613,7 @@ export async function notifyPropertyWatchers(
       return;
     }
 
+    // Create in-app notifications
     await createBulkNotifications({
       userIds: filteredIds,
       organizationId,
@@ -491,6 +624,18 @@ export async function notifyPropertyWatchers(
       entityId: propertyId,
       actorId: metadata?.updatedBy,
       actorName: metadata?.updatedByName,
+      metadata: {
+        propertyName: property.property_name,
+        ...metadata,
+      },
+    });
+
+    // Send email notifications to watchers (respects user preferences)
+    await sendNotificationEmailToUsers(filteredIds, type, {
+      actorName: metadata?.updatedByName,
+      actorId: metadata?.updatedBy,
+      entityId: propertyId,
+      entityName: property.property_name,
       metadata: {
         propertyName: property.property_name,
         ...metadata,
@@ -526,6 +671,12 @@ function formatDate(date: Date): string {
     minute: "2-digit",
   });
 }
+
+
+
+
+
+
 
 
 

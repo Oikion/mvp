@@ -94,20 +94,20 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
-        author: {
+        Users: {
           select: {
             id: true,
             name: true,
             avatar: true,
-            agentProfile: {
+            AgentProfile: {
               select: {
                 visibility: true,
               },
             },
           },
         },
-        likes: true,
-        comments: true,
+        SocialPostLike: true,
+        SocialPostComment: true,
         attachments: {
           select: {
             id: true,
@@ -144,11 +144,11 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
       content: post.content || "",
       timestamp: post.createdAt.toISOString(),
       author: {
-        id: post.author?.id || "",
-        name: post.author?.name || "Unknown",
-        avatar: post.author?.avatar || undefined,
+        id: post.Users?.id || "",
+        name: post.Users?.name || "Unknown",
+        avatar: post.Users?.avatar || undefined,
         organizationName: undefined,
-        visibility: (post.author?.agentProfile?.visibility as "PERSONAL" | "SECURE" | "PUBLIC") || "PERSONAL",
+        visibility: (post.Users?.AgentProfile?.visibility as "PERSONAL" | "SECURE" | "PUBLIC") || "PERSONAL",
       },
       linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
         id: post.linkedEntityId,
@@ -164,9 +164,9 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
         fileType: att.fileType,
         url: att.url,
       })) || [],
-      likes: post.likes?.length || 0,
-      comments: post.comments?.length || 0,
-      isLiked: post.likes?.some((like) => like.userId === currentUser.id) || false,
+      likes: post.SocialPostLike?.length || 0,
+      comments: post.SocialPostComment?.length || 0,
+      isLiked: post.SocialPostLike?.some((like) => like.userId === currentUser.id) || false,
       isOwn: post.authorId === currentUser.id,
       isFromConnection: connectedUserIds.has(post.authorId),
     }));

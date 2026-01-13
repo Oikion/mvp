@@ -28,7 +28,7 @@ export async function getEventInvitees(eventId: string): Promise<EventInviteeDat
         organizationId,
       },
       include: {
-        user: {
+        Users: {
           select: {
             id: true,
             name: true,
@@ -48,7 +48,7 @@ export async function getEventInvitees(eventId: string): Promise<EventInviteeDat
       status: inv.status,
       respondedAt: inv.respondedAt,
       createdAt: inv.createdAt,
-      user: inv.user,
+      user: inv.Users,
     }));
   } catch (error) {
     console.error("[GET_EVENT_INVITEES]", error);
@@ -75,9 +75,9 @@ export async function getInvitedEvents(status?: "PENDING" | "ACCEPTED" | "DECLIN
         ...(status ? { status } : {}),
       },
       include: {
-        event: {
+        CalComEvent: {
           include: {
-            assignedUser: {
+            Users: {
               select: {
                 id: true,
                 name: true,
@@ -85,13 +85,13 @@ export async function getInvitedEvents(status?: "PENDING" | "ACCEPTED" | "DECLIN
                 avatar: true,
               },
             },
-            linkedClients: {
+            Clients: {
               select: {
                 id: true,
                 client_name: true,
               },
             },
-            linkedProperties: {
+            Properties: {
               select: {
                 id: true,
                 property_name: true,
@@ -101,7 +101,7 @@ export async function getInvitedEvents(status?: "PENDING" | "ACCEPTED" | "DECLIN
         },
       },
       orderBy: {
-        event: {
+        CalComEvent: {
           startTime: "asc",
         },
       },
@@ -112,16 +112,16 @@ export async function getInvitedEvents(status?: "PENDING" | "ACCEPTED" | "DECLIN
       status: inv.status,
       respondedAt: inv.respondedAt,
       event: {
-        id: inv.event.id,
-        title: inv.event.title,
-        description: inv.event.description,
-        startTime: inv.event.startTime,
-        endTime: inv.event.endTime,
-        location: inv.event.location,
-        eventType: inv.event.eventType,
-        assignedUser: inv.event.assignedUser,
-        linkedClients: inv.event.linkedClients,
-        linkedProperties: inv.event.linkedProperties,
+        id: inv.CalComEvent.id,
+        title: inv.CalComEvent.title,
+        description: inv.CalComEvent.description,
+        startTime: inv.CalComEvent.startTime,
+        endTime: inv.CalComEvent.endTime,
+        location: inv.CalComEvent.location,
+        eventType: inv.CalComEvent.eventType,
+        assignedUser: inv.CalComEvent.Users,
+        linkedClients: inv.CalComEvent.Clients,
+        linkedProperties: inv.CalComEvent.Properties,
       },
     }));
   } catch (error) {
@@ -155,4 +155,10 @@ export async function getPendingInvitationCount(): Promise<number> {
     return 0;
   }
 }
+
+
+
+
+
+
 

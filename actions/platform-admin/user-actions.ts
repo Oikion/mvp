@@ -81,6 +81,7 @@ export async function sendUserWarning(userId: string, reason: string): Promise<A
           adminAction: true,
           warningDate: new Date().toISOString(),
         },
+        updatedAt: new Date(),
       },
     });
 
@@ -88,7 +89,7 @@ export async function sendUserWarning(userId: string, reason: string): Promise<A
     if (resend && user.email) {
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <noreply@oikion.app>",
+          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
           to: user.email,
           subject: "Important: Account Warning - Oikion",
           html: `
@@ -178,6 +179,7 @@ export async function suspendUser(userId: string, reason: string): Promise<Actio
           suspensionDate: new Date().toISOString(),
           reason: sanitizedReason,
         },
+        updatedAt: new Date(),
       },
     });
 
@@ -196,7 +198,7 @@ export async function suspendUser(userId: string, reason: string): Promise<Actio
     if (resend && user.email) {
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <noreply@oikion.app>",
+          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
           to: user.email,
           subject: "Account Suspended - Oikion",
           html: `
@@ -275,6 +277,7 @@ export async function unsuspendUser(userId: string, note?: string): Promise<Acti
           adminAction: true,
           restorationDate: new Date().toISOString(),
         },
+        updatedAt: new Date(),
       },
     });
 
@@ -292,7 +295,7 @@ export async function unsuspendUser(userId: string, note?: string): Promise<Acti
     if (resend && user.email) {
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <noreply@oikion.app>",
+          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
           to: user.email,
           subject: "Account Restored - Oikion",
           html: `
@@ -357,7 +360,7 @@ export async function deleteUser(userId: string, reason: string): Promise<Action
     if (resend && user.email) {
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <noreply@oikion.app>",
+          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
           to: user.email,
           subject: "Account Deleted - Oikion",
           html: `
@@ -403,5 +406,12 @@ export async function deleteUser(userId: string, reason: string): Promise<Action
     return { success: false, error: errorMessage };
   }
 }
+
+
+
+
+
+
+
 
 

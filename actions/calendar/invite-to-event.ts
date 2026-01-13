@@ -50,6 +50,7 @@ export async function inviteToEvent({ eventId, userIds }: InviteToEventParams) {
     // Create invitations
     await prismaTenant.eventInvitee.createMany({
       data: newUserIds.map((userId) => ({
+        id: crypto.randomUUID(),
         eventId,
         userId,
         organizationId,
@@ -111,4 +112,10 @@ export async function removeEventInvitee(eventId: string, userId: string) {
     throw error;
   }
 }
+
+
+
+
+
+
 

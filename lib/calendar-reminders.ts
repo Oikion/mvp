@@ -59,12 +59,14 @@ export async function createRemindersForEvent(
     scheduledFor.setMinutes(scheduledFor.getMinutes() - minutes);
 
     return {
+      id: crypto.randomUUID(),
       eventId,
       reminderMinutes: minutes,
       scheduledFor,
       status: "PENDING" as const,
       notificationType: "EMAIL" as const,
       organizationId,
+      updatedAt: new Date(),
     };
   });
 
@@ -93,9 +95,9 @@ export async function getUpcomingReminders(
       },
     },
     include: {
-      event: {
+      CalComEvent: {
         include: {
-          assignedUser: {
+          Users: {
             select: {
               id: true,
               name: true,
@@ -103,13 +105,13 @@ export async function getUpcomingReminders(
               userLanguage: true,
             },
           },
-          linkedClients: {
+          Clients: {
             select: {
               id: true,
               client_name: true,
             },
           },
-          linkedProperties: {
+          Properties: {
             select: {
               id: true,
               property_name: true,
@@ -133,9 +135,9 @@ export async function sendReminderNotification(
   const reminder = await prismadb.calendarReminder.findUnique({
     where: { id: reminderId },
     include: {
-      event: {
+      CalComEvent: {
         include: {
-          assignedUser: {
+          Users: {
             select: {
               id: true,
               name: true,
@@ -143,13 +145,13 @@ export async function sendReminderNotification(
               userLanguage: true,
             },
           },
-          linkedClients: {
+          Clients: {
             select: {
               id: true,
               client_name: true,
             },
           },
-          linkedProperties: {
+          Properties: {
             select: {
               id: true,
               property_name: true,
@@ -168,8 +170,12 @@ export async function sendReminderNotification(
     throw new Error(`Reminder already ${reminder.status}`);
   }
 
-  const event = reminder.event;
-  const user = event.assignedUser;
+  const event = reminder.CalComEvent;
+  if (!event) {
+    throw new Error("Event not found for reminder");
+  }
+  
+  const user = event.Users;
 
   if (!user || !user.email) {
     throw new Error("Event has no assigned user with email");
@@ -192,11 +198,7 @@ export async function sendReminderNotification(
       const resend = await resendHelper();
 
       await resend.emails.send({
-        from:
-          process.env.NEXT_PUBLIC_APP_NAME +
-          " <" +
-          process.env.EMAIL_FROM +
-          ">",
+        from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
         to: user.email,
         subject:
           user.userLanguage === "el"
@@ -211,8 +213,8 @@ export async function sendReminderNotification(
           location: event.location || "",
           reminderMinutes: reminder.reminderMinutes,
           minutesLabel,
-          linkedClients: event.linkedClients,
-          linkedProperties: event.linkedProperties,
+          linkedClients: event.Clients || [],
+          linkedProperties: event.Properties || [],
           userLanguage: user.userLanguage || "en",
           eventUrl: `${process.env.NEXT_PUBLIC_APP_URL}/calendar`,
         }),

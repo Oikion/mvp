@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
-import { uploadToBlob, deleteFromBlob } from "@/lib/vercel-blob";
+import { uploadAvatarToBlob, deleteFromBlob } from "@/lib/vercel-blob";
+import { compressImageWithPreset } from "@/lib/image-compression";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgIdSafe();
+    
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 400 }
+      );
+    }
     
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -21,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     // Validate file type
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    if (!ALLOWED_TYPES.has(file.type)) {
       return NextResponse.json(
         { error: "Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed." },
         { status: 400 }
@@ -45,19 +54,29 @@ export async function POST(req: Request) {
     if (currentUser?.avatar?.includes("blob.vercel-storage.com")) {
       try {
         await deleteFromBlob(currentUser.avatar);
-      } catch (e) {
+      } catch {
         // Ignore deletion errors, continue with upload
       }
     }
 
-    // Upload new avatar to Vercel Blob
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const fileName = `avatars/${user.id}-${Date.now()}.${file.type.split("/")[1]}`;
+    // Compress image before upload (512x512 max for avatars)
+    const rawBuffer = Buffer.from(await file.arrayBuffer());
+    const { buffer, mimeType, originalSize, compressedSize, wasCompressed } = 
+      await compressImageWithPreset(rawBuffer, file.type, "avatar");
     
-    const blob = await uploadToBlob(fileName, buffer, {
-      contentType: file.type,
-      addRandomSuffix: false,
-      access: "public",
+    // Log compression results
+    if (wasCompressed) {
+      const savings = Math.round((1 - compressedSize / originalSize) * 100);
+      console.log(`[AVATAR_UPLOAD] Compressed: ${originalSize} -> ${compressedSize} bytes (${savings}% reduction)`);
+    }
+    
+    // Get file extension from compressed mime type
+    const fileExtension = mimeType.split("/")[1] || "webp";
+    
+    // Upload compressed avatar to Vercel Blob with organization scoping
+    const blob = await uploadAvatarToBlob(organizationId, user.id, buffer, {
+      contentType: mimeType,
+      fileExtension,
     });
 
     // Update user avatar in database
@@ -94,7 +113,7 @@ export async function DELETE(req: Request) {
     if (currentUser?.avatar?.includes("blob.vercel-storage.com")) {
       try {
         await deleteFromBlob(currentUser.avatar);
-      } catch (e) {
+      } catch {
         // Ignore deletion errors
       }
     }
@@ -117,11 +136,5 @@ export async function DELETE(req: Request) {
     );
   }
 }
-
-
-
-
-
-
 
 

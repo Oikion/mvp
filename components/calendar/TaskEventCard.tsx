@@ -92,7 +92,7 @@ export function TaskEventCard({ task }: TaskEventCardProps) {
           variant="ghost"
           size="sm"
           className="w-full mt-2"
-          onClick={() => router.push(`/crm/tasks/viewtask/${task.id}`)}
+          onClick={() => router.push(`/app/crm/tasks/viewtask/${task.id}`)}
         >
           {t("taskEventCard.viewTask")}
           <ExternalLink className="h-3 w-3 ml-2" />

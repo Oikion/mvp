@@ -1,15 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
-  CommandItem,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -17,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface MultiSelectOption {
   value: string;
@@ -30,7 +29,9 @@ interface MultiSelectProps {
   placeholder?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
+  loadingMessage?: string;
   disabled?: boolean;
+  isLoading?: boolean;
   className?: string;
 }
 
@@ -41,21 +42,32 @@ export function MultiSelect({
   placeholder = "Select options...",
   searchPlaceholder = "Search...",
   emptyMessage = "No options found.",
+  loadingMessage = "Loading...",
   disabled = false,
+  isLoading = false,
   className,
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Ensure value is always an array
   const safeValue = Array.isArray(value) ? value : [];
 
-  const handleSelect = (currentValue: string) => {
+  // Filter options based on search query
+  const filteredOptions = useMemo(() => {
+    if (!searchQuery) return options;
+    const query = searchQuery.toLowerCase();
+    return options.filter((opt) => 
+      opt.label.toLowerCase().includes(query)
+    );
+  }, [options, searchQuery]);
+
+  const handleSelect = useCallback((currentValue: string) => {
     const newValue = safeValue.includes(currentValue)
       ? safeValue.filter((val) => val !== currentValue)
       : [...safeValue, currentValue];
     onChange(newValue);
-    // Don't close the popover for multi-select - allow multiple selections
-  };
+  }, [safeValue, onChange]);
 
   const handleRemove = (valToRemove: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -96,7 +108,7 @@ export function MultiSelect({
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
                           e.stopPropagation();
-                          handleRemove(val, e as any);
+                          handleRemove(val, e as unknown as React.MouseEvent);
                         }
                       }}
                       onMouseDown={(e) => {
@@ -123,49 +135,58 @@ export function MultiSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-full p-0" 
+        className="w-[var(--radix-popover-trigger-width)] p-0" 
         align="start"
-        onInteractOutside={(e) => {
-          // Allow closing when clicking outside
-        }}
       >
         <Command shouldFilter={false}>
-          <CommandInput placeholder={searchPlaceholder} />
-          <CommandEmpty>{emptyMessage}</CommandEmpty>
-          <CommandGroup className="max-h-64 overflow-auto">
-            {options.map((option) => {
-              const isSelected = safeValue.includes(option.value);
-              return (
-                <div
-                  key={option.value}
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSelect(option.value);
-                  }}
-                  onMouseDown={(e) => {
-                    // Prevent cmdk from handling this click
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  className={cn(
-                    "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                    isSelected && "bg-accent text-accent-foreground"
-                  )}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      isSelected ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {option.label}
-                </div>
-              );
-            })}
-          </CommandGroup>
+          <CommandInput 
+            placeholder={searchPlaceholder}
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
+          {isLoading ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">
+              {loadingMessage}
+            </div>
+          ) : filteredOptions.length === 0 ? (
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
+          ) : (
+            <ScrollArea className="h-64">
+              <div className="p-1">
+                {filteredOptions.map((option) => {
+                  const isSelected = safeValue.includes(option.value);
+                  return (
+                    <div
+                      key={option.value}
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSelect(option.value);
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      className={cn(
+                        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                        isSelected && "bg-accent text-accent-foreground"
+                      )}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4 flex-shrink-0",
+                          isSelected ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <span className="truncate">{option.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          )}
         </Command>
       </PopoverContent>
     </Popover>

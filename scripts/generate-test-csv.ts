@@ -195,3 +195,9 @@ console.log(`   Total rows: 500 properties`);
 console.log(`   File size: ${(Buffer.byteLength(csv, "utf-8") / 1024).toFixed(1)} KB`);
 
 
+
+
+
+
+
+

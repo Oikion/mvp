@@ -98,13 +98,6 @@ export async function DELETE(
             },
           });
 
-          // Delete OpenAI keys associated with this organization
-          await prismadb.openAi_keys.deleteMany({
-            where: {
-              organization_id: orgIdString,
-            },
-          });
-
           // Delete the organization from Clerk
           try {
             await clerk.organizations.deleteOrganization(orgId);
@@ -155,13 +148,6 @@ export async function DELETE(
     await prismadb.documents.deleteMany({
       where: {
         created_by_user: currentUser.id,
-      },
-    });
-
-    // Delete all OpenAI keys for the user
-    await prismadb.openAi_keys.deleteMany({
-      where: {
-        user: currentUser.id,
       },
     });
 
