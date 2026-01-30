@@ -3,15 +3,16 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Shield, Gift } from "lucide-react";
+import { User, Bell, Shield, Gift, Plug } from "lucide-react";
 import { Users, AgentProfile } from "@prisma/client";
 
 import { ProfileTab } from "./ProfileTab";
 import { NotificationsTab } from "./NotificationsTab";
 import { PrivacySecurityTab } from "./PrivacySecurityTab";
 import { ReferralsTab } from "./ReferralsTab";
+import { IntegrationsTab } from "./IntegrationsTab";
 
-const VALID_TABS = ["profile", "notifications", "referrals", "privacy"] as const;
+const VALID_TABS = ["profile", "notifications", "referrals", "integrations", "privacy"] as const;
 type TabValue = (typeof VALID_TABS)[number];
 
 function getValidTab(tab: string | null): TabValue {
@@ -55,7 +56,7 @@ export function ProfileSettingsTabs({ user, agentProfile }: ProfileSettingsTabsP
   if (!isHydrated) {
     return (
       <div className="w-full">
-        <div className="grid w-full grid-cols-4 mb-8 h-10 items-center justify-center rounded-md bg-muted p-1">
+        <div className="inline-grid grid-cols-5 mb-8 h-10 items-center justify-center rounded-lg bg-sidebar-accent p-1">
           {/* Skeleton tab list */}
         </div>
       </div>
@@ -64,21 +65,25 @@ export function ProfileSettingsTabs({ user, agentProfile }: ProfileSettingsTabsP
 
   return (
     <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-      <TabsList className="grid w-full grid-cols-4 mb-8">
-        <TabsTrigger value="profile" className="flex items-center gap-2">
-          <User className="h-4 w-4" />
+      <TabsList className="inline-grid grid-cols-5 mb-8">
+        <TabsTrigger value="profile">
+          <User className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Profile</span>
         </TabsTrigger>
-        <TabsTrigger value="notifications" className="flex items-center gap-2">
-          <Bell className="h-4 w-4" />
+        <TabsTrigger value="notifications">
+          <Bell className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Notifications</span>
         </TabsTrigger>
-        <TabsTrigger value="referrals" className="flex items-center gap-2">
-          <Gift className="h-4 w-4" />
+        <TabsTrigger value="referrals">
+          <Gift className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Referrals</span>
         </TabsTrigger>
-        <TabsTrigger value="privacy" className="flex items-center gap-2">
-          <Shield className="h-4 w-4" />
+        <TabsTrigger value="integrations">
+          <Plug className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:inline">Integrations</span>
+        </TabsTrigger>
+        <TabsTrigger value="privacy">
+          <Shield className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Privacy & Security</span>
         </TabsTrigger>
       </TabsList>
@@ -93,6 +98,10 @@ export function ProfileSettingsTabs({ user, agentProfile }: ProfileSettingsTabsP
 
       <TabsContent value="referrals">
         <ReferralsTab />
+      </TabsContent>
+
+      <TabsContent value="integrations">
+        <IntegrationsTab />
       </TabsContent>
 
       <TabsContent value="privacy">

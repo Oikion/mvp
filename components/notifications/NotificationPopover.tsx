@@ -16,7 +16,8 @@ import {
   ListTodo,
   Users,
   Home,
-  MessageSquareText
+  MessageSquareText,
+  Building2,
 } from "lucide-react";
 import {
   Popover,
@@ -42,6 +43,10 @@ interface NotificationPopoverProps {
 }
 
 const getNotificationIcon = (type: string) => {
+  // Organization invite notifications
+  if (type === "ORGANIZATION_INVITE") {
+    return Building2;
+  }
   // Calendar notifications
   if (type.includes("CALENDAR") || type.includes("REMINDER") || type === "CALENDAR_EVENT_INVITED") {
     return Calendar;
@@ -93,23 +98,26 @@ const getNotificationIcon = (type: string) => {
 };
 
 const getNotificationColor = (type: string) => {
+  if (type === "ORGANIZATION_INVITE") {
+    return "text-accent-foreground";
+  }
   if (type === "SOCIAL_POST_LIKED") {
-    return "text-red-500";
+    return "text-destructive";
   }
   if (type === "SOCIAL_POST_COMMENTED" || type === "SOCIAL_POST_MENTIONED") {
-    return "text-blue-500";
+    return "text-primary";
   }
   if (type.includes("DEAL_COMPLETED") || type === "CONNECTION_ACCEPTED") {
-    return "text-green-500";
+    return "text-success";
   }
   if (type.includes("DEAL_PROPOSED") || type === "CONNECTION_REQUEST") {
-    return "text-amber-500";
+    return "text-warning";
   }
   if (type.includes("CALENDAR") || type.includes("REMINDER")) {
-    return "text-purple-500";
+    return "text-info";
   }
   if (type.includes("FEEDBACK")) {
-    return "text-indigo-500";
+    return "text-primary";
   }
   return "text-muted-foreground";
 };
@@ -159,7 +167,10 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
   const navigateToEntity = (notification: Notification) => {
     if (!notification.entityType || !notification.entityId) {
       // For notifications without specific entities, navigate to appropriate sections
-      if (notification.type.includes("CONNECTION")) {
+      if (notification.type === "ORGANIZATION_INVITE") {
+        // Organization invites - navigate to organization settings where they can accept
+        router.push("/app/organization");
+      } else if (notification.type.includes("CONNECTION")) {
         router.push("/app/connections");
       } else if (notification.type.includes("SOCIAL")) {
         router.push("/app/social-feed");
@@ -208,6 +219,10 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
         break;
       case "FEEDBACK":
         router.push(`/app/feedback/${notification.entityId}`);
+        break;
+      case "ORGANIZATION":
+        // Organization invites - navigate to organization settings
+        router.push("/app/organization");
         break;
       default:
         router.push("/app/notifications");

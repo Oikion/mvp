@@ -1,10 +1,12 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
 import { DealStatus } from "@prisma/client";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { notifyDealProposed, notifyDealStatusChanged } from "@/lib/notifications";
+import { requireAction, requireDealAction } from "@/lib/permissions";
 
 export interface CreateDealInput {
   propertyId: string;
@@ -32,7 +34,12 @@ export interface UpdateDealInput {
  * Create a new deal proposal
  */
 export async function createDeal(input: CreateDealInput) {
+  // Permission check: Users need deal:create permission
+  const guard = await requireAction("deal:create");
+  if (guard) throw new Error(guard.error);
+
   const currentUser = await getCurrentUser();
+  const organizationId = await getCurrentOrgId();
 
   // Validate that the agents exist
   const [propertyAgent, clientAgent] = await Promise.all([
@@ -44,18 +51,22 @@ export async function createDeal(input: CreateDealInput) {
     throw new Error("One or both agents not found");
   }
 
-  // Validate that property and client exist
+  // SECURITY: Validate that property and client exist AND belong to the same organization
   const [property, client] = await Promise.all([
-    prismadb.properties.findUnique({ where: { id: input.propertyId } }),
-    prismadb.clients.findUnique({ where: { id: input.clientId } }),
+    prismadb.properties.findFirst({ 
+      where: { id: input.propertyId, organizationId } 
+    }),
+    prismadb.clients.findFirst({ 
+      where: { id: input.clientId, organizationId } 
+    }),
   ]);
 
   if (!property) {
-    throw new Error("Property not found");
+    throw new Error("Property not found or access denied");
   }
 
   if (!client) {
-    throw new Error("Client not found");
+    throw new Error("Client not found or access denied");
   }
 
   // Validate split percentages
@@ -84,6 +95,7 @@ export async function createDeal(input: CreateDealInput) {
   const deal = await prismadb.deal.create({
     data: {
       id: dealId,
+      organizationId, // SECURITY: Always set organizationId for tenant isolation
       propertyId: input.propertyId,
       clientId: input.clientId,
       propertyAgentId: input.propertyAgentId,
@@ -98,6 +110,23 @@ export async function createDeal(input: CreateDealInput) {
       status: "PROPOSED",
       updatedAt: new Date(),
     },
+  });
+
+  // Notify the other agent about the deal proposal
+  const otherAgentId =
+    currentUser.id === input.propertyAgentId
+      ? input.clientAgentId
+      : input.propertyAgentId;
+
+  await notifyDealProposed({
+    dealId: deal.id,
+    dealTitle: deal.title || undefined,
+    propertyName: property.property_name,
+    clientName: client.client_name,
+    actorId: currentUser.id,
+    actorName: currentUser.name || currentUser.email || "Someone",
+    targetUserId: otherAgentId,
+    organizationId,
   });
 
   revalidatePath("/deals");
@@ -118,13 +147,14 @@ export async function updateDeal(dealId: string, input: UpdateDealInput) {
     throw new Error("Deal not found");
   }
 
-  // Only agents involved can update the deal
-  if (
-    deal.propertyAgentId !== currentUser.id &&
-    deal.clientAgentId !== currentUser.id
-  ) {
-    throw new Error("You are not part of this deal");
-  }
+  // Permission check: Users need deal:update permission with involvement check
+  const guard = await requireDealAction(
+    "deal:update",
+    dealId,
+    deal.propertyAgentId,
+    deal.clientAgentId
+  );
+  if (guard) throw new Error(guard.error);
 
   // Validate split if being updated
   if (input.propertyAgentSplit !== undefined || input.clientAgentSplit !== undefined) {
@@ -190,29 +220,50 @@ export async function acceptDeal(dealId: string) {
 
   const deal = await prismadb.deal.findUnique({
     where: { id: dealId },
+    include: {
+      Properties: { select: { property_name: true } },
+      Clients: { select: { client_name: true } },
+    },
   });
 
   if (!deal) {
     throw new Error("Deal not found");
   }
 
+  // Permission check: Users need deal:accept permission with involvement check
+  const guard = await requireDealAction(
+    "deal:accept",
+    dealId,
+    deal.propertyAgentId,
+    deal.clientAgentId
+  );
+  if (guard) throw new Error(guard.error);
+
   // Only the other agent (not the proposer) can accept
   if (deal.proposedById === currentUser.id) {
     throw new Error("You cannot accept your own proposal");
-  }
-
-  if (
-    deal.propertyAgentId !== currentUser.id &&
-    deal.clientAgentId !== currentUser.id
-  ) {
-    throw new Error("You are not part of this deal");
   }
 
   if (deal.status !== "PROPOSED" && deal.status !== "NEGOTIATING") {
     throw new Error("This deal cannot be accepted in its current state");
   }
 
-  return updateDeal(dealId, { status: "ACCEPTED" });
+  const result = await updateDeal(dealId, { status: "ACCEPTED" });
+
+  // Notify the proposer that the deal was accepted
+  await notifyDealStatusChanged({
+    dealId,
+    dealTitle: deal.title || undefined,
+    propertyName: deal.Properties?.property_name || "Property",
+    clientName: deal.Clients?.client_name || "Client",
+    actorId: currentUser.id,
+    actorName: currentUser.name || currentUser.email || "Someone",
+    targetUserId: deal.proposedById,
+    organizationId: deal.organizationId || "", // Use deal's organizationId
+    status: "ACCEPTED",
+  });
+
+  return result;
 }
 
 /**
@@ -223,7 +274,7 @@ export async function proposeDealTerms(
   propertyAgentSplit: number,
   clientAgentSplit: number
 ) {
-  const currentUser = await getCurrentUser();
+  await getCurrentUser();
 
   const deal = await prismadb.deal.findUnique({
     where: { id: dealId },
@@ -233,12 +284,14 @@ export async function proposeDealTerms(
     throw new Error("Deal not found");
   }
 
-  if (
-    deal.propertyAgentId !== currentUser.id &&
-    deal.clientAgentId !== currentUser.id
-  ) {
-    throw new Error("You are not part of this deal");
-  }
+  // Permission check: Users need deal:propose_terms permission with involvement check
+  const guard = await requireDealAction(
+    "deal:propose_terms",
+    dealId,
+    deal.propertyAgentId,
+    deal.clientAgentId
+  );
+  if (guard) throw new Error(guard.error);
 
   if (deal.status !== "PROPOSED" && deal.status !== "NEGOTIATING") {
     throw new Error("Cannot negotiate in the current state");
@@ -257,8 +310,31 @@ export async function proposeDealTerms(
 export async function cancelDeal(dealId: string) {
   const currentUser = await getCurrentUser();
 
+  // First fetch the deal to check permissions
+  const dealForPerm = await prismadb.deal.findUnique({
+    where: { id: dealId },
+    select: { propertyAgentId: true, clientAgentId: true },
+  });
+
+  if (!dealForPerm) {
+    throw new Error("Deal not found");
+  }
+
+  // Permission check: Users need deal:cancel permission with involvement check
+  const guard = await requireDealAction(
+    "deal:cancel",
+    dealId,
+    dealForPerm.propertyAgentId,
+    dealForPerm.clientAgentId
+  );
+  if (guard) throw new Error(guard.error);
+
   const deal = await prismadb.deal.findUnique({
     where: { id: dealId },
+    include: {
+      Properties: { select: { property_name: true } },
+      Clients: { select: { client_name: true } },
+    },
   });
 
   if (!deal) {
@@ -276,7 +352,27 @@ export async function cancelDeal(dealId: string) {
     throw new Error("Cannot cancel a completed deal");
   }
 
-  return updateDeal(dealId, { status: "CANCELLED" });
+  const result = await updateDeal(dealId, { status: "CANCELLED" });
+
+  // Notify the other agent that the deal was cancelled
+  const otherAgentId =
+    currentUser.id === deal.propertyAgentId
+      ? deal.clientAgentId
+      : deal.propertyAgentId;
+
+  await notifyDealStatusChanged({
+    dealId,
+    dealTitle: deal.title || undefined,
+    propertyName: deal.Properties?.property_name || "Property",
+    clientName: deal.Clients?.client_name || "Client",
+    actorId: currentUser.id,
+    actorName: currentUser.name || currentUser.email || "Someone",
+    targetUserId: otherAgentId,
+    organizationId: deal.organizationId || "", // Use deal's organizationId
+    status: "CANCELLED",
+  });
+
+  return result;
 }
 
 /**
@@ -287,6 +383,10 @@ export async function completeDeal(dealId: string, totalCommission?: number) {
 
   const deal = await prismadb.deal.findUnique({
     where: { id: dealId },
+    include: {
+      Properties: { select: { property_name: true } },
+      Clients: { select: { client_name: true } },
+    },
   });
 
   if (!deal) {
@@ -304,10 +404,30 @@ export async function completeDeal(dealId: string, totalCommission?: number) {
     throw new Error("Deal must be accepted or in progress to complete");
   }
 
-  return updateDeal(dealId, {
+  const result = await updateDeal(dealId, {
     status: "COMPLETED",
     ...(totalCommission && { totalCommission }),
   });
+
+  // Notify the other agent that the deal was completed
+  const otherAgentId =
+    currentUser.id === deal.propertyAgentId
+      ? deal.clientAgentId
+      : deal.propertyAgentId;
+
+  await notifyDealStatusChanged({
+    dealId,
+    dealTitle: deal.title || undefined,
+    propertyName: deal.Properties?.property_name || "Property",
+    clientName: deal.Clients?.client_name || "Client",
+    actorId: currentUser.id,
+    actorName: currentUser.name || currentUser.email || "Someone",
+    targetUserId: otherAgentId,
+    organizationId: deal.organizationId || "", // Use deal's organizationId
+    status: "COMPLETED",
+  });
+
+  return result;
 }
 
 /**
@@ -315,9 +435,12 @@ export async function completeDeal(dealId: string, totalCommission?: number) {
  */
 export async function getMyDeals(status?: DealStatus) {
   const currentUser = await getCurrentUser();
+  const organizationId = await getCurrentOrgId();
 
+  // SECURITY: Always filter by organizationId for tenant isolation
   const dealsRaw = await prismadb.deal.findMany({
     where: {
+      organizationId, // Tenant isolation
       OR: [
         { propertyAgentId: currentUser.id },
         { clientAgentId: currentUser.id },

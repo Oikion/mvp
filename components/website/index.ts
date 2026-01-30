@@ -16,3 +16,13 @@ export { Button, buttonVariants, type ButtonProps } from './button'
 export { SimpleNewsletterForm } from './simple-newsletter-form'
 export { SimpleHero } from './simple-hero'
 export { GSAPPreloader } from './gsap-preloader'
+
+// Page transitions
+export { 
+  PageTransitionProvider,
+  usePageTransition,
+  PageLoader,
+  PageContent,
+  SmoothLink,
+  Preloader
+} from './page-transition'

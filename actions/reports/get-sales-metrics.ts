@@ -2,12 +2,17 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 /**
  * Gross Commission Income (GCI)
  * Total commissions earned - the primary income metric
  */
 export async function getGrossCommissionIncome() {
+  // Permission check: Users need report:view permission
+  const check = await canPerformAction("report:view");
+  if (!check.allowed) return { total: 0, currency: "EUR" };
+
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return { total: 0, currency: "EUR" };
 

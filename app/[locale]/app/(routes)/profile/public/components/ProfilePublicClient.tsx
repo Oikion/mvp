@@ -26,8 +26,8 @@ const getVisibilityInfo = (visibility: string | undefined, t?: any) => {
         label: visibilityT?.public?.label || "Public",
         description: visibilityT?.public?.description || "Anyone can view your profile",
         icon: Globe,
-        color: "text-green-600",
-        bgColor: "bg-green-500/10",
+        color: "text-success",
+        bgColor: "bg-success/10",
         badgeVariant: "default" as const,
       };
     case "SECURE":
@@ -35,8 +35,8 @@ const getVisibilityInfo = (visibility: string | undefined, t?: any) => {
         label: visibilityT?.secure?.label || "Secure",
         description: visibilityT?.secure?.description || "Only registered users can view",
         icon: Shield,
-        color: "text-amber-600",
-        bgColor: "bg-amber-500/10",
+        color: "text-warning",
+        bgColor: "bg-warning/10",
         badgeVariant: "secondary" as const,
       };
     default:
@@ -44,8 +44,8 @@ const getVisibilityInfo = (visibility: string | undefined, t?: any) => {
         label: visibilityT?.personal?.label || "Personal",
         description: visibilityT?.personal?.description || "Hidden from everyone",
         icon: Lock,
-        color: "text-red-600",
-        bgColor: "bg-red-500/10",
+        color: "text-destructive",
+        bgColor: "bg-destructive/10",
         badgeVariant: "destructive" as const,
       };
   }
@@ -97,13 +97,13 @@ export function ProfilePublicClient({
   if (!hasUsername) {
     return (
       <div className="space-y-6">
-        <Card className="border-amber-500/30 bg-amber-500/10">
+        <Card className="border-warning/30 bg-warning/10">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
               <AlertCircle className="h-5 w-5" />
               Username Required
             </CardTitle>
-            <CardDescription className="text-amber-600 dark:text-amber-500">
+            <CardDescription className="text-warning dark:text-warning">
               You need to set a username before you can create your public profile
             </CardDescription>
           </CardHeader>

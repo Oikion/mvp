@@ -2,10 +2,11 @@ import { Prisma } from "@prisma/client";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { mergeDocumentMentions } from "./parse-mentions";
 import { createShareLink } from "@/lib/documents/create-share-link";
-import { uploadDocumentToBlob } from "@/lib/vercel-blob";
+import { uploadDocument } from "@/actions/upload";
 import { prismaForOrg, withTenantContext } from "@/lib/tenant";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { prismadb } from "@/lib/prisma";
+import { canPerformAction } from "@/lib/permissions";
 
 export interface CreateDocumentInput {
   document_name: string;
@@ -27,17 +28,23 @@ export interface CreateDocumentInput {
 }
 
 export async function createDocument(input: CreateDocumentInput) {
+  // Permission check: Users need document:create permission
+  const check = await canPerformAction("document:create");
+  if (!check.allowed) {
+    throw new Error(check.reason || "Permission denied");
+  }
+
   const user = await getCurrentUser();
   const organizationId = await getCurrentOrgId();
 
-  // Upload file to Vercel Blob with organization scoping
-  const fileBuffer = input.document_file instanceof File
-    ? Buffer.from(await input.document_file.arrayBuffer())
-    : input.document_file;
-
-  // Upload to org-scoped path: documents/{organizationId}/{filename}
-  const blob = await uploadDocumentToBlob(organizationId, input.document_name, fileBuffer, {
-    contentType: input.document_file_mimeType,
+  // Upload file with automatic compression via unified action
+  const uploadResult = await uploadDocument({
+    file: input.document_file,
+    fileName: input.document_name,
+    mimeType: input.document_file_mimeType,
+    organizationId,
+    folder: "documents",
+    preset: "general",
     addRandomSuffix: true,
   });
 
@@ -63,20 +70,20 @@ export async function createDocument(input: CreateDocumentInput) {
     // Generate friendly ID
     const documentId = await generateFriendlyId(prismadb, "Documents");
 
-    // Create document
+    // Create document - use compressed size and final mime type
     const document = await prismaTenant.documents.create({
       data: {
         id: documentId,
         document_name: input.document_name,
         description: input.description,
-        document_file_url: blob.url,
-        document_file_mimeType: input.document_file_mimeType,
+        document_file_url: uploadResult.url,
+        document_file_mimeType: uploadResult.mimeType,
         document_type: input.document_type,
         assigned_user: input.assigned_user,
         created_by_user: user.id,
         createdBy: user.id,
         organizationId,
-        size: fileBuffer.length,
+        size: uploadResult.compressedSize,
         // Papermark fields
         shareableLink,
         linkEnabled: input.linkEnabled || false,
@@ -114,4 +121,3 @@ export async function createDocument(input: CreateDocumentInput) {
     return document;
   });
 }
-

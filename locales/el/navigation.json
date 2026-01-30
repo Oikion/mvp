@@ -19,7 +19,8 @@
     },
     "mls": {
       "title": "Ακίνητα",
-      "properties": "Ακίνητα"
+      "properties": "Όλα τα Ακίνητα",
+      "listings": "Δημοσιευμένα"
     },
     "social": {
       "title": "Κοινωνικά",
@@ -30,6 +31,7 @@
       "deals": "Συνεργασίες",
       "publicProfile": "Δημόσιο Προφίλ"
     },
+    "matchmaking": "Matchmaking",
     "emails": "E-mail",
     "tasks": "Εργασίες",
     "invoices": "Τιμολόγια",

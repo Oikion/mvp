@@ -45,11 +45,11 @@ export function ReferralPortalClient({
   if (hasReferralCode || applicationStatus === "APPROVED") {
     return (
       <div className="max-w-2xl mx-auto">
-        <Card className="border-emerald-500/30 bg-emerald-500/10 dark:bg-emerald-500/10">
+        <Card className="border-success/30 bg-success/10 dark:bg-success/10">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center">
-              <div className="p-3 rounded-full bg-emerald-500/20 mb-4">
-                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+              <div className="p-3 rounded-full bg-success/20 mb-4">
+                <CheckCircle2 className="h-8 w-8 text-success" />
               </div>
               <h2 className="text-xl font-semibold mb-2 text-foreground">
                 {t("applicationStatus.approved.title")}
@@ -74,11 +74,11 @@ export function ReferralPortalClient({
   if (applicationStatus === "PENDING" || showSuccess) {
     return (
       <div className="max-w-2xl mx-auto">
-        <Card className="border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/10">
+        <Card className="border-warning/30 bg-warning/10 dark:bg-warning/10">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center">
-              <div className="p-3 rounded-full bg-amber-500/20 mb-4">
-                <Clock className="h-8 w-8 text-amber-500" />
+              <div className="p-3 rounded-full bg-warning/20 mb-4">
+                <Clock className="h-8 w-8 text-warning" />
               </div>
               <h2 className="text-xl font-semibold mb-2 text-foreground">
                 {showSuccess ? t("success.title") : t("applicationStatus.pending.title")}
@@ -97,11 +97,11 @@ export function ReferralPortalClient({
   if (applicationStatus === "DENIED") {
     return (
       <div className="max-w-2xl mx-auto">
-        <Card className="border-red-500/30 bg-red-500/10 dark:bg-red-500/10">
+        <Card className="border-destructive/30 bg-destructive/10 dark:bg-destructive/10">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center">
-              <div className="p-3 rounded-full bg-red-500/20 mb-4">
-                <XCircle className="h-8 w-8 text-red-500" />
+              <div className="p-3 rounded-full bg-destructive/20 mb-4">
+                <XCircle className="h-8 w-8 text-destructive" />
               </div>
               <h2 className="text-xl font-semibold mb-2 text-foreground">
                 {t("applicationStatus.denied.title")}

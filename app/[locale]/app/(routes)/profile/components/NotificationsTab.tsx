@@ -13,7 +13,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Bell,
@@ -61,14 +61,14 @@ const NOTIFICATION_GROUP_CONFIGS: NotificationGroupConfig[] = [
     icon: <MessageSquare className="h-5 w-5" />,
     emailKey: "socialEmailEnabled",
     inAppKey: "socialInAppEnabled",
-    color: "text-blue-600 bg-blue-500/10",
+    color: "text-primary bg-primary/10",
   },
   {
     id: "crm",
     icon: <Users className="h-5 w-5" />,
     emailKey: "crmEmailEnabled",
     inAppKey: "crmInAppEnabled",
-    color: "text-green-600 bg-green-500/10",
+    color: "text-success bg-success/10",
   },
   {
     id: "calendar",
@@ -82,28 +82,28 @@ const NOTIFICATION_GROUP_CONFIGS: NotificationGroupConfig[] = [
     icon: <CheckSquare className="h-5 w-5" />,
     emailKey: "tasksEmailEnabled",
     inAppKey: "tasksInAppEnabled",
-    color: "text-orange-600 bg-orange-500/10",
+    color: "text-warning bg-warning/10",
   },
   {
     id: "deals",
     icon: <Handshake className="h-5 w-5" />,
     emailKey: "dealsEmailEnabled",
     inAppKey: "dealsInAppEnabled",
-    color: "text-emerald-600 bg-emerald-500/10",
+    color: "text-success bg-success/10",
   },
   {
     id: "documents",
     icon: <FileText className="h-5 w-5" />,
     emailKey: "documentsEmailEnabled",
     inAppKey: "documentsInAppEnabled",
-    color: "text-amber-600 bg-amber-500/10",
+    color: "text-warning bg-warning/10",
   },
   {
     id: "system",
     icon: <Settings className="h-5 w-5" />,
     emailKey: "systemEmailEnabled",
     inAppKey: "systemInAppEnabled",
-    color: "text-gray-600 bg-gray-500/10",
+    color: "text-muted-foreground bg-gray-500/10",
   },
 ];
 
@@ -118,7 +118,7 @@ export function NotificationsTab() {
     useState<NotificationSettings | null>(null);
 
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   useEffect(() => {
     fetchSettings();
@@ -176,11 +176,7 @@ export function NotificationsTab() {
       setOriginalSettings(data);
       setHasChanges(false);
 
-      toast({
-        variant: "success",
-        title: t("saved"),
-        description: t("savedDescription"),
-      });
+      toast.success(t, { description: t, isTranslationKey: false });
 
       router.refresh();
     } catch (error) {

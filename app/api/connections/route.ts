@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
+import { notifyConnectionRequest } from "@/lib/notifications";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 export async function GET(req: Request) {
   try {
+    // Permission check: Users need social:manage_connections permission
+    const readCheck = await canPerformAction("social:manage_connections");
+    if (!readCheck.allowed) {
+      return NextResponse.json({ error: readCheck.reason }, { status: 403 });
+    }
+
     const currentUser = await getCurrentUser();
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status") as "PENDING" | "ACCEPTED" | null;
@@ -88,6 +96,12 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    // Permission check: Users need social:manage_connections permission
+    const connectCheck = await canPerformAction("social:manage_connections");
+    if (!connectCheck.allowed) {
+      return NextResponse.json({ error: connectCheck.reason }, { status: 403 });
+    }
+
     const currentUser = await getCurrentUser();
     const body = await req.json();
     const { targetUserId } = body;
@@ -127,6 +141,16 @@ export async function POST(req: Request) {
             followingId: targetUserId,
           },
         });
+
+        // Send notification to target user
+        await notifyConnectionRequest({
+          connectionId: updated.id,
+          requesterId: currentUser.id,
+          requesterName: currentUser.name || currentUser.email || "Someone",
+          targetId: targetUserId,
+          organizationId: "00000000-0000-0000-0000-000000000000",
+        });
+
         return NextResponse.json(updated);
       }
     }
@@ -139,6 +163,15 @@ export async function POST(req: Request) {
         status: "PENDING",
         updatedAt: new Date(),
       },
+    });
+
+    // Send notification to target user
+    await notifyConnectionRequest({
+      connectionId: connection.id,
+      requesterId: currentUser.id,
+      requesterName: currentUser.name || currentUser.email || "Someone",
+      targetId: targetUserId,
+      organizationId: "00000000-0000-0000-0000-000000000000",
     });
 
     return NextResponse.json(connection, { status: 201 });

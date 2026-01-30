@@ -63,11 +63,11 @@ export function ReviewStep({
   return (
     <div className="space-y-6">
       {/* Ready to Import Summary */}
-      <Card className="border-green-500/30 bg-green-500/10">
+      <Card className="border-success/30 bg-success/10">
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-green-500/15">
-              <CheckCircle2 className="h-8 w-8 text-green-500" />
+            <div className="p-3 rounded-full bg-success/15">
+              <CheckCircle2 className="h-8 w-8 text-success" />
             </div>
             <div>
               <p className="text-xl font-bold">
@@ -83,8 +83,8 @@ export function ReviewStep({
 
       {/* Skip Warning */}
       {errorCount > 0 && (
-        <Alert className="border-amber-500/30 bg-amber-500/10">
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
+        <Alert className="border-warning/30 bg-warning/10">
+          <AlertTriangle className="h-4 w-4 text-warning" />
           <AlertDescription className="text-amber-700 dark:text-amber-400">
             {dict.willSkip.replace("{count}", String(errorCount))}
           </AlertDescription>
@@ -149,7 +149,7 @@ export function ReviewStep({
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">{data.length}</p>
+              <p className="text-3xl font-bold text-success">{data.length}</p>
               <p className="text-sm text-muted-foreground">
                 {entityType === "client" ? "Clients" : "Properties"} to import
               </p>

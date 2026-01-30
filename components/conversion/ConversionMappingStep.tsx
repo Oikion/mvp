@@ -223,7 +223,7 @@ export function ConversionMappingStep({
                   key={mapping.sourceColumn}
                   className={`
                     flex items-center gap-4 p-3 rounded-lg border
-                    ${mapping.targetField ? "bg-green-500/10 border-green-500/30" : "bg-muted/30"}
+                    ${mapping.targetField ? "bg-success/10 border-success/30" : "bg-muted/30"}
                   `}
                 >
                   {/* Source Column */}

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { requirePlatformAdmin } from "@/lib/platform-admin";
-import { uploadToBlob } from "@/lib/vercel-blob";
 import { prismadb } from "@/lib/prisma";
-import { compressFile } from "@/lib/image-compression";
+import { uploadDocument } from "@/actions/upload";
 
 // Maximum file size: 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -79,39 +78,28 @@ export async function POST(req: Request) {
       );
     }
 
-    const rawBuffer = Buffer.from(await file.arrayBuffer());
-    
-    // Compress file (images: resize + WebP, text: gzip)
-    const { 
-      buffer: fileBuffer, 
-      mimeType: finalMimeType, 
-      fileName: finalFileName,
-      originalSize,
-      compressedSize,
-      wasCompressed,
-      compressionType 
-    } = await compressFile(rawBuffer, file.type, file.name, "general");
-    
-    if (wasCompressed) {
-      const savings = Math.round((1 - compressedSize / originalSize) * 100);
-      console.log(`[FEEDBACK_UPLOAD] ${compressionType} compression: ${originalSize} -> ${compressedSize} bytes (${savings}% reduction)`);
-    }
+    // Use organization context from feedback, fallback to "platform" for platform-level feedback
+    const organizationId = feedback.organizationId || "platform";
 
-    // Upload to Vercel Blob with organization scoping
-    // Using 'attachments' folder with organization-scoped path
-    const blob = await uploadToBlob(finalFileName, fileBuffer, {
-      contentType: finalMimeType,
+    // Upload with automatic compression via unified action
+    const result = await uploadDocument({
+      file,
+      fileName: file.name,
+      mimeType: file.type,
+      organizationId,
+      folder: "feedback",
+      preset: "general",
       addRandomSuffix: true,
-      access: "public", // Files need to be accessible via URL
-      folder: "attachments",
-      organizationId: feedback.organizationId,
     });
 
     return NextResponse.json({
-      url: blob.url,
-      fileName: finalFileName,
-      fileSize: compressedSize,
-      fileType: finalMimeType,
+      url: result.url,
+      fileName: result.fileName,
+      fileSize: result.compressedSize,
+      fileType: result.mimeType,
+      wasCompressed: result.wasCompressed,
+      compressionType: result.compressionType,
+      savingsPercent: result.savingsPercent,
     });
   } catch (error: unknown) {
     console.error("[FEEDBACK_ATTACHMENT_UPLOAD]", error);
@@ -122,9 +110,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
-
-
-
-
-

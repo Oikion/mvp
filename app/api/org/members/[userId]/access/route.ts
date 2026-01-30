@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/tenant";
+import { getCurrentOrganizationId } from "@/lib/permissions/action-guards";
 import { requireOwner } from "@/lib/permissions/guards";
 import { updateUserModuleAccess } from "@/lib/permissions/service";
 import { ModuleId, ALL_MODULES } from "@/lib/permissions";
@@ -15,7 +15,14 @@ export async function GET(
 ) {
   try {
     const { userId } = await props.params;
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrganizationId();
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 403 }
+      );
+    }
 
     // Get user's module access overrides
     const userAccess = await prismadb.userModuleAccess.findMany({
@@ -60,7 +67,15 @@ export async function PUT(
     if (permissionError) return permissionError;
 
     const { userId } = await props.params;
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrganizationId();
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { moduleAccess } = body;
 

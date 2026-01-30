@@ -1,5 +1,48 @@
 "use client";
 
+/**
+ * @deprecated Use useConfirmation from @/components/ui/confirmation-dialog instead.
+ *
+ * The useConfirmation hook provides more flexibility:
+ * - Works with any confirmation action, not just delete
+ * - Better separation of state and UI
+ * - More customization options
+ *
+ * Migration example:
+ * ```tsx
+ * // Before
+ * const { DeleteDialog, openDeleteDialog, isDeleting } = useDeleteConfirmation({
+ *   entityType: "property",
+ *   entityName: property.name,
+ *   onDelete: async () => await deleteProperty(property.id),
+ * });
+ *
+ * <Button onClick={openDeleteDialog}>Delete</Button>
+ * <DeleteDialog />
+ *
+ * // After
+ * const { isOpen, isLoading, confirm, execute, setIsOpen } = useConfirmation();
+ *
+ * const handleDelete = () => {
+ *   execute(async () => {
+ *     await deleteProperty(property.id);
+ *     toast.success("Property deleted");
+ *   });
+ * };
+ *
+ * <Button onClick={confirm}>Delete</Button>
+ * <ConfirmationDialog
+ *   open={isOpen}
+ *   onOpenChange={setIsOpen}
+ *   title="Delete Property"
+ *   entityName={property.name}
+ *   onConfirm={handleDelete}
+ *   isLoading={isLoading}
+ *   variant="danger"
+ * />
+ * ```
+ */
+
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import {
@@ -15,6 +58,9 @@ import {
 import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+/**
+ * @deprecated Use useConfirmation from @/components/ui/confirmation-dialog instead.
+ */
 export interface UseDeleteConfirmationOptions {
   /** Type of entity being deleted (for display) */
   entityType: string;
@@ -32,6 +78,9 @@ export interface UseDeleteConfirmationOptions {
   description?: string;
 }
 
+/**
+ * @deprecated Use useConfirmation from @/components/ui/confirmation-dialog instead.
+ */
 export interface UseDeleteConfirmationReturn {
   /** The AlertDialog component to render */
   DeleteDialog: React.FC;
@@ -46,6 +95,8 @@ export interface UseDeleteConfirmationReturn {
 }
 
 /**
+ * @deprecated Use useConfirmation from @/components/ui/confirmation-dialog instead.
+ * 
  * Hook for standardized delete confirmation dialogs.
  * 
  * Usage:

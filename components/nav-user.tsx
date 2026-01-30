@@ -43,7 +43,7 @@ import { useTheme } from "next-themes"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter, usePathname } from "@/navigation"
 import axios from "axios"
-import { toast } from "@/components/ui/use-toast"
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useState } from "react"
 import { availableLocales } from "@/lib/locales"
 
@@ -136,11 +136,7 @@ export function NavUser({
         || error?.message 
         || t("Navigation.languageChangeFailed")
       
-      toast({
-        title: t("common.error"),
-        description: errorMessage,
-        variant: "destructive",
-      })
+      toast.error(t, { description: errorMessage, isTranslationKey: false })
       setIsChangingLanguage(false)
     }
   }

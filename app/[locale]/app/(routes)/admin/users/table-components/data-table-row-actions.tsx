@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { adminUserSchema } from "../table-data/schema";
 import { Copy, MoreHorizontal, Shield, ShieldOff, UserMinus, Loader2 } from "lucide-react";
 
@@ -45,15 +45,11 @@ export function DataTableRowActions<TData>({
   const [removeOpen, setRemoveOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const onCopy = (id: string) => {
     navigator.clipboard.writeText(id);
-    toast({
-      variant: "info",
-      title: t("copied"),
-      description: t("userIdCopied"),
-    });
+    toast.info(t, { description: t, isTranslationKey: false });
   };
 
   // Remove member from organization
@@ -71,26 +67,14 @@ export function DataTableRowActions<TData>({
       if (memberToRemove) {
         await memberToRemove.destroy();
         router.refresh();
-        toast({
-          variant: "success",
-          title: t("success"),
-          description: t("memberRemoved"),
-        });
+        toast.success(t, { description: t, isTranslationKey: false });
       } else {
-        toast({
-          variant: "destructive",
-          title: t("error"),
-          description: t("memberNotFound"),
-        });
+        toast.error(t, { description: t, isTranslationKey: false });
       }
     } catch (error: unknown) {
       console.error("Remove member error:", error);
       const clerkError = error as { errors?: Array<{ message?: string }> };
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: clerkError?.errors?.[0]?.message || t("somethingWentWrong"),
-      });
+      toast.error(t, { description: clerkError?.errors, isTranslationKey: false });
     } finally {
       setLoading(false);
       setRemoveOpen(false);
@@ -112,20 +96,12 @@ export function DataTableRowActions<TData>({
       if (memberToUpdate) {
         await memberToUpdate.update({ role: "org:admin" });
         router.refresh();
-        toast({
-          variant: "success",
-          title: t("success"),
-          description: t("memberPromoted"),
-        });
+        toast.success(t, { description: t, isTranslationKey: false });
       }
     } catch (error: unknown) {
       console.error("Promote to admin error:", error);
       const clerkError = error as { errors?: Array<{ message?: string }> };
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: clerkError?.errors?.[0]?.message || t("somethingWentWrong"),
-      });
+      toast.error(t, { description: clerkError?.errors, isTranslationKey: false });
     } finally {
       setLoading(false);
     }
@@ -146,20 +122,12 @@ export function DataTableRowActions<TData>({
       if (memberToUpdate) {
         await memberToUpdate.update({ role: "org:member" });
         router.refresh();
-        toast({
-          variant: "success",
-          title: t("success"),
-          description: t("memberDemoted"),
-        });
+        toast.success(t, { description: t, isTranslationKey: false });
       }
     } catch (error: unknown) {
       console.error("Demote from admin error:", error);
       const clerkError = error as { errors?: Array<{ message?: string }> };
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: clerkError?.errors?.[0]?.message || t("somethingWentWrong"),
-      });
+      toast.error(t, { description: clerkError?.errors, isTranslationKey: false });
     } finally {
       setLoading(false);
     }

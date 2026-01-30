@@ -4,7 +4,7 @@ import axios from "axios";
 import { useState } from "react";
 import { Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { MoreHorizontal } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -15,8 +15,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import AlertModal from "@/components/modals/alert-modal";
+import { useAppToast } from "@/hooks/use-app-toast";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 import { taskSchema } from "../data/schema";
 
@@ -30,7 +30,7 @@ export function DataTableRowActions<TData>({
   const router = useRouter();
   const task = taskSchema.parse(row.original);
 
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,21 +44,11 @@ export function DataTableRowActions<TData>({
           section: task?.section,
         },
       });
-      toast({
-        variant: "success",
-        title: "Task deleted",
-        description: "Task deleted successfully",
-      });
+      toast.success("Task deleted", { description: "Task deleted successfully", isTranslationKey: false });
+      setOpen(false);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Task deleted",
-        description: "Something went wrong, during deleting task",
-      });
-      setIsLoading(false);
-      setOpen(false);
+      toast.error("Task deletion failed", { description: "Something went wrong while deleting the task", isTranslationKey: false });
     } finally {
-      setOpen(false);
       setIsLoading(false);
       router.refresh();
     }
@@ -66,11 +56,16 @@ export function DataTableRowActions<TData>({
 
   return (
     <>
-      <AlertModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
+      <ConfirmationDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Delete Task"
+        description="This action cannot be undone. The task will be permanently deleted."
         onConfirm={onDelete}
-        loading={isLoading}
+        isLoading={isLoading}
+        variant="danger"
+        confirmLabel="Delete"
+        loadingLabel="Deleting..."
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -78,7 +73,7 @@ export function DataTableRowActions<TData>({
             variant="ghost"
             className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           >
-            <DotsHorizontalIcon className="h-4 w-4" />
+            <MoreHorizontal className="h-4 w-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>

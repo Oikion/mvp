@@ -111,12 +111,12 @@ export function ConversionExportStep({
   return (
     <div className="space-y-6">
       {/* Success Alert */}
-      <Alert className="border-green-500/30 bg-green-500/10">
-        <CheckCircle2 className="h-4 w-4 text-green-500" />
-        <AlertTitle className="text-green-600 dark:text-green-400">
+      <Alert className="border-success/30 bg-success/10">
+        <CheckCircle2 className="h-4 w-4 text-success" />
+        <AlertTitle className="text-success dark:text-green-400">
           {t("export.success")}
         </AlertTitle>
-        <AlertDescription className="text-green-600 dark:text-green-500">
+        <AlertDescription className="text-success dark:text-success">
           {t("export.rowsConverted", { count: convertedData.length })}
         </AlertDescription>
       </Alert>
@@ -188,7 +188,7 @@ export function ConversionExportStep({
           </Button>
 
           {isExported && (
-            <p className="text-sm text-center text-green-600 dark:text-green-400">
+            <p className="text-sm text-center text-success dark:text-green-400">
               ✓ File downloaded successfully
             </p>
           )}

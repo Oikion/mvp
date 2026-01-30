@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prismadb } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/get-current-user';
+import { canPerformAction } from '@/lib/permissions/action-service';
 
 /**
  * GET /api/crm/tasks/[taskId]
@@ -11,6 +12,12 @@ export async function GET(
   { params }: { params: Promise<{ taskId: string }> }
 ) {
   try {
+    // Permission check: Users need task:read permission
+    const readCheck = await canPerformAction("task:read");
+    if (!readCheck.allowed) {
+      return NextResponse.json({ error: readCheck.reason }, { status: 403 });
+    }
+
     await getCurrentUser();
     const { taskId } = await params;
 
@@ -115,6 +122,24 @@ export async function PUT(
         { error: 'Task not found' },
         { status: 404 }
       );
+    }
+
+    // Permission check: Users need task:update permission with ownership check
+    const updateCheck = await canPerformAction("task:update", {
+      entityType: "task",
+      entityId: taskId,
+      ownerId: existingTask.user,
+    });
+    if (!updateCheck.allowed) {
+      return NextResponse.json({ error: updateCheck.reason }, { status: 403 });
+    }
+
+    // Check if user is trying to assign to someone else
+    if (assignedUser && assignedUser !== existingTask.user) {
+      const assignCheck = await canPerformAction("task:assign");
+      if (!assignCheck.allowed) {
+        return NextResponse.json({ error: "You don't have permission to assign tasks to others" }, { status: 403 });
+      }
     }
 
     // Update task

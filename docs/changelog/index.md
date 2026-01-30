@@ -9,18 +9,19 @@ The Changelog CMS System allows platform administrators to manage changelog entr
 - Initial implementation: v0.1.0-alpha
 - Tags feature: v0.2.0-alpha
 - Rich text editor (TipTap): v0.3.0-alpha
+- **Intelligent Templates**: v0.4.0-alpha
 
 ## Directory Structure
 
 ```
 ├── actions/platform-admin/
-│   └── changelog-actions.ts      # Server actions for CRUD operations
+│   └── changelog-actions.ts      # Server actions for CRUD operations + version suggestions
 ├── app/[locale]/
-│   ├── app/(platform-admin)/platform-admin/changelog/
+│   ├── app/(platform_admin)/platform-admin/changelog/
 │   │   ├── page.tsx              # Admin changelog management page
 │   │   └── components/
 │   │       ├── ChangelogClient.tsx  # Client component with table and filters
-│   │       └── ChangelogForm.tsx    # Form for create/edit dialogs
+│   │       └── ChangelogForm.tsx    # Form with template selector, version suggestions
 │   └── changelog/
 │       └── page.tsx              # Public changelog page
 ├── components/changelog/
@@ -29,6 +30,8 @@ The Changelog CMS System allows platform administrators to manage changelog entr
 │   ├── ChangelogEntry.tsx        # Individual entry card (renders HTML)
 │   ├── ChangelogCategoryBadge.tsx # Badge for category display
 │   └── ChangelogRichEditor.tsx   # TipTap-based rich text editor
+├── lib/
+│   └── changelog-constants.ts    # Templates, types, version suggestion helpers
 └── prisma/schema.prisma          # ChangelogEntry model & enums
 ```
 
@@ -119,6 +122,8 @@ The description field uses a TipTap-based rich text editor that stores content a
 | `publishChangelogEntry()` | Publish draft entry | Platform Admin |
 | `getChangelogEntries()` | Get entries with filters | Platform Admin |
 | `getPublishedChangelogEntries()` | Get public entries | None |
+| `getLatestPublishedVersion()` | Get latest published version for suggestions | Platform Admin |
+| `getVersionSuggestionData()` | Get version + categories for template selector | Platform Admin |
 
 ## Routes
 
@@ -142,14 +147,84 @@ The description field uses a TipTap-based rich text editor that stores content a
 - Tags validated for max count (10) and name length (30 chars)
 - Public page only shows PUBLISHED entries
 
+## Intelligent Templates
+
+The changelog system includes intelligent templates to help you create consistent, well-structured changelog entries. Templates provide:
+
+- **Automatic version suggestion** based on semantic versioning
+- **Recommended category** for each update type
+- **Pre-filled description** with structured HTML templates
+- **Default tags** appropriate for the update type
+
+### Available Templates
+
+| Template | Version Bump | Recommended Category | Use Case |
+|----------|--------------|---------------------|----------|
+| Major Update | X.0.0 | Feature | Big features, breaking changes, major rewrites |
+| Minor Update | 0.X.0 | Feature | New features, non-breaking enhancements |
+| Hotfix | 0.0.X | Bug Fix | Critical bug fixes, urgent patches |
+| Patch Note | 0.0.X | Improvement | Small fixes, minor improvements |
+| Security Update | 0.0.X | Security | Security vulnerabilities and patches |
+| Performance Update | 0.X.0 | Performance | Speed improvements and optimizations |
+| UI/UX Update | 0.X.0 | UI/UX | Design changes and user experience improvements |
+
+### Version Suggestion Logic
+
+The system automatically suggests the next version based on:
+1. The **latest published changelog version** (fetched from the database)
+2. The **template's version bump type** (major, minor, or patch)
+
+```
+Current Version: 2.3.1
+
+Major Update → 3.0.0
+Minor Update → 2.4.0
+Patch/Hotfix → 2.3.2
+```
+
+### Using Templates
+
+1. Click "New Entry" in the changelog admin
+2. Select a template from the **Quick Start Template** grid
+3. The form auto-populates with:
+   - Suggested version (with "Apply" button)
+   - Recommended category
+   - Template description with placeholder content
+   - Default tags for the update type
+4. Customize the pre-filled content as needed
+5. Click "Clear Template" to reset and start fresh
+
+### Template Description Structure
+
+Each template provides a structured HTML description with sections appropriate for that update type:
+
+**Major Update:**
+- What's New
+- Breaking Changes
+- Migration Guide
+- Deprecations
+
+**Hotfix:**
+- Bug Fixed
+- Issue Description
+- Resolution
+- Affected Areas
+
+**Security Update:**
+- Security Issue
+- Resolution
+- Severity Level
+- Recommended Action
+
 ## Usage
 
 ### Admin Interface
 
 1. Navigate to Platform Admin > Changelog
 2. Click "New Entry" to create a changelog entry
-3. Fill in version, title, and category
-4. **Use the Rich Text Editor** for description:
+3. **(Optional) Select a template** to auto-populate fields
+4. Fill in version, title, and category (or use template suggestions)
+5. **Use the Rich Text Editor** for description:
    - Use the toolbar to format text (Bold, Italic, Underline, etc.)
    - Select heading level from the dropdown (Paragraph, H1, H2, H3)
    - Add bullet or numbered lists

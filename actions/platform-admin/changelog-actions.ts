@@ -669,3 +669,68 @@ export async function getPublishedChangelogEntries(): Promise<ChangelogEntryData
     return [];
   }
 }
+
+// ============================================
+// VERSION SUGGESTION ACTIONS
+// ============================================
+
+/**
+ * Get the latest published changelog version
+ * Used for auto-suggesting the next version number
+ * Requires platform admin access
+ */
+export async function getLatestPublishedVersion(): Promise<string | null> {
+  try {
+    await requirePlatformAdmin();
+
+    const latestEntry = await prismadb.changelogEntry.findFirst({
+      where: { status: ChangelogStatus.PUBLISHED },
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+      select: { version: true },
+    });
+
+    return latestEntry?.version || null;
+  } catch (error) {
+    console.error("[GET_LATEST_PUBLISHED_VERSION]", error);
+    return null;
+  }
+}
+
+/**
+ * Get version suggestion data including latest version and all categories
+ * Used to initialize the template selector in the form
+ * Requires platform admin access
+ */
+export async function getVersionSuggestionData(): Promise<{
+  latestVersion: string | null;
+  categories: ChangelogCategoryData[];
+}> {
+  try {
+    await requirePlatformAdmin();
+
+    const [latestEntry, categories] = await Promise.all([
+      prismadb.changelogEntry.findFirst({
+        where: { status: ChangelogStatus.PUBLISHED },
+        orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+        select: { version: true },
+      }),
+      prismadb.changelogCustomCategory.findMany({
+        orderBy: { sortOrder: "asc" },
+      }),
+    ]);
+
+    return {
+      latestVersion: latestEntry?.version || null,
+      categories: categories.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        color: cat.color,
+        icon: cat.icon,
+        sortOrder: cat.sortOrder,
+      })),
+    };
+  } catch (error) {
+    console.error("[GET_VERSION_SUGGESTION_DATA]", error);
+    return { latestVersion: null, categories: [] };
+  }
+}

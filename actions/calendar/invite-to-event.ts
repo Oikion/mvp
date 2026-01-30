@@ -4,6 +4,7 @@ import { prismaForOrg } from "@/lib/tenant";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { createNotification, createNotificationsForUsers } from "@/actions/notifications/create-notification";
 import { revalidatePath } from "next/cache";
+import { requireAction } from "@/lib/permissions";
 
 export interface InviteToEventParams {
   eventId: string;
@@ -12,6 +13,10 @@ export interface InviteToEventParams {
 
 export async function inviteToEvent({ eventId, userIds }: InviteToEventParams) {
   try {
+    // Permission check: Users need calendar:invite permission
+    const guard = await requireAction("calendar:invite");
+    if (guard) throw new Error(guard.error);
+
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);

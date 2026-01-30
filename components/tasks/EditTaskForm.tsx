@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
+import { useAppToast } from "@/hooks/use-app-toast";
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -64,7 +64,7 @@ type EditTaskFormValues = z.infer<typeof formSchema>;
 export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const { data: users, isLoading: isLoadingUsers } = useSWR<Array<{ id: string; name: string | null; email: string }>>(
     '/api/user',
@@ -110,18 +110,11 @@ export function EditTaskForm({ task, onSuccess }: EditTaskFormProps) {
         throw new Error(error.error || 'Failed to update task');
       }
 
-      toast({
-        title: 'Success',
-        description: 'Task updated successfully',
-      });
+      toast.info("Success", { description: "Task updated successfully", isTranslationKey: false });
 
       onSuccess?.();
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message || 'Failed to update task',
-      });
+      toast.error("Error", { description: error.message || 'Failed to update task', isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

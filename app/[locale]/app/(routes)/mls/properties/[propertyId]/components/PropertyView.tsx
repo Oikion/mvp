@@ -25,11 +25,14 @@ import {
   Users,
 } from "lucide-react";
 import { PropertyComments } from "./PropertyComments";
+import { PropertyMatchingClients } from "./PropertyMatchingClients";
 import {
   usePropertyLinked,
   useLinkClientsToProperty,
   useUnlinkClientFromProperty,
+  useExportHistory,
 } from "@/hooks/swr";
+import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
 
 const formatDateTime = (value?: Date | string | null) => {
   if (!value) return "N/A";
@@ -65,6 +68,7 @@ interface PropertyViewProps {
   isReadOnly?: boolean;
   sharePermission?: "VIEW_ONLY" | "VIEW_COMMENT" | null;
   currentUserId?: string;
+  locale?: string;
 }
 
 export default function PropertyView({ 
@@ -73,6 +77,7 @@ export default function PropertyView({
   isReadOnly = false,
   sharePermission = null,
   currentUserId = "",
+  locale = "en",
 }: PropertyViewProps) {
   const [open, setOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
@@ -194,12 +199,12 @@ export default function PropertyView({
               </div>
               <div className="flex items-center gap-2">
                 {visibility === "PUBLIC" ? (
-                  <Badge className="bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/20">
+                  <Badge className="bg-success/15 text-success dark:text-green-400 hover:bg-success/20">
                     <Eye className="h-3 w-3 mr-1" />
                     Public
                   </Badge>
                 ) : visibility === "SELECTED" ? (
-                  <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20">
+                  <Badge className="bg-primary/15 text-primary dark:text-blue-400 hover:bg-primary/20">
                     <Users className="h-3 w-3 mr-1" />
                     Connections Only
                   </Badge>
@@ -254,7 +259,7 @@ export default function PropertyView({
                   </code>
                   <Button variant="outline" size="sm" onClick={copyPublicUrl}>
                     {copied ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-success" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
@@ -293,6 +298,14 @@ export default function PropertyView({
           </div>
           {!isReadOnly && (
             <div className="flex gap-2">
+              <QuickExportButton
+                entityType="property"
+                entityId={data.id}
+                entityName={data.property_name}
+                publicUrl={publicUrl}
+                variant="outline"
+                size="default"
+              />
               <CreateBookingButton
                 propertyId={data.id}
                 eventType="property-viewing"
@@ -302,7 +315,7 @@ export default function PropertyView({
               />
               <Sheet open={open} onOpenChange={setOpen}>
                 <Button onClick={() => setOpen(true)}>Edit</Button>
-                <SheetContent className="min-w-[900px] space-y-2">
+                <SheetContent className="w-full sm:min-w-[600px] lg:min-w-[900px] space-y-2">
                   <SheetHeader>
                     <SheetTitle>Edit Property</SheetTitle>
                   </SheetHeader>
@@ -338,6 +351,9 @@ export default function PropertyView({
         </CardContent>
       </Card>
 
+      {/* Matching Clients Section */}
+      <PropertyMatchingClients propertyId={data.id} locale={locale} />
+
       {/* Linked Entities Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <LinkedEntitiesPanel
@@ -358,6 +374,28 @@ export default function PropertyView({
           emptyMessage="No calendar events for this property yet."
         />
       </div>
+
+      {/* Export History Section - Only for non-shared view */}
+      {!isReadOnly && (
+        <ExportHistoryPanel
+          entityType="PROPERTY"
+          entityId={data.id}
+          entityName={data.property_name}
+          onReExport={(record) => {
+            // Trigger re-export with same format and destination
+            const params = new URLSearchParams({
+              format: record.exportFormat,
+              scope: "filtered",
+            });
+            if (record.destination) params.set("destination", record.destination);
+            if (record.exportTemplate) params.set("template", record.exportTemplate);
+            
+            // Navigate to export or trigger download
+            window.open(`/api/export/mls?${params.toString()}`, "_blank");
+          }}
+          maxItems={5}
+        />
+      )}
 
       {/* Comments Section - Show for org members and sharees with VIEW_COMMENT */}
       {currentUserId && (

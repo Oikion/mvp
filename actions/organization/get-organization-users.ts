@@ -1,3 +1,5 @@
+"use server";
+
 import { Users } from "@prisma/client";
 
 import { getOrgMembersFromDb } from "@/lib/org-members";

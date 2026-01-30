@@ -8,7 +8,7 @@ import { Users } from "@prisma/client";
 import { Loader2, Upload, X, Camera } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import useAvatarStore from "@/store/useAvatarStore";
 import {
   AlertDialog,
@@ -40,7 +40,7 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
   const [preview, setPreview] = useState<string | null>(null);
   
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const setAvatarStore = useAvatarStore((state) => state.setAvatar);
 
   const onDrop = useCallback(
@@ -73,21 +73,13 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
         // Update global avatar store
         setAvatarStore(data.url);
 
-        toast({
-          variant: "success",
-          title: "Profile photo updated",
-          description: "Your new profile photo has been saved.",
-        });
+        toast.success("Profile photo updated", { description: "Your new profile photo has been saved.", isTranslationKey: false });
 
         router.refresh();
       } catch (error: any) {
         // Revert preview on error
         setPreview(null);
-        toast({
-          variant: "destructive",
-          title: "Upload failed",
-          description: error.message || "Failed to upload profile photo.",
-        });
+        toast.error("Upload failed", { description: error.message || "Failed to upload profile photo.", isTranslationKey: false });
       } finally {
         setIsUploading(false);
         URL.revokeObjectURL(previewUrl);
@@ -110,17 +102,9 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
     const rejection = fileRejections[0];
     const error = rejection.errors[0];
     if (error.code === "file-too-large") {
-      toast({
-        variant: "destructive",
-        title: "File too large",
-        description: "Maximum file size is 5MB.",
-      });
+      toast.error("File too large", { description: "Maximum file size is 5MB.", isTranslationKey: false });
     } else if (error.code === "file-invalid-type") {
-      toast({
-        variant: "destructive",
-        title: "Invalid file type",
-        description: "Only JPEG, PNG, WebP, and GIF are allowed.",
-      });
+      toast.error("Invalid file type", { description: "Only JPEG, PNG, WebP, and GIF are allowed.", isTranslationKey: false });
     }
   }
 
@@ -140,19 +124,11 @@ export function ProfilePhotoUpload({ user }: ProfilePhotoUploadProps) {
       setAvatarStore("");
       setPreview(null);
 
-      toast({
-        variant: "success",
-        title: "Profile photo removed",
-        description: "Your profile photo has been removed.",
-      });
+      toast.success("Profile photo removed", { description: "Your profile photo has been removed.", isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Remove failed",
-        description: error.message || "Failed to remove profile photo.",
-      });
+      toast.error("Remove failed", { description: error.message || "Failed to remove profile photo.", isTranslationKey: false });
     } finally {
       setIsRemoving(false);
       setShowRemoveDialog(false);

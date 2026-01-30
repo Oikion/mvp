@@ -44,6 +44,7 @@
   },
   "actions": {
     "viewProfile": "View Profile",
+    "message": "Message",
     "shareEntity": "Share Entity",
     "removeConnection": "Remove Connection",
     "cancelRequest": "Cancel Request",

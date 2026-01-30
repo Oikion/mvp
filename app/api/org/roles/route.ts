@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { OrgRole } from "@prisma/client";
-import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/tenant";
+import { getCurrentOrganizationId } from "@/lib/permissions/action-guards";
 import { requireOwner } from "@/lib/permissions/guards";
 import {
   getOrganizationRolePermissionsAll,
@@ -18,7 +17,14 @@ import { ALL_MODULES } from "@/lib/permissions/defaults";
  */
 export async function GET() {
   try {
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrganizationId();
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 403 }
+      );
+    }
 
     // Get all role permissions
     const permissions = await getOrganizationRolePermissionsAll(organizationId);
@@ -60,7 +66,15 @@ export async function PUT(req: Request) {
     const permissionError = await requireOwner();
     if (permissionError) return permissionError;
 
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrganizationId();
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { role, permissions, moduleAccess } = body;
 

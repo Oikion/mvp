@@ -49,22 +49,22 @@ const VISIBILITY_OPTIONS: Array<{
     value: "PERSONAL",
     key: "personal",
     icon: Lock,
-    color: "text-gray-600",
+    color: "text-muted-foreground",
     bgColor: "bg-gray-500/10",
   },
   {
     value: "SECURE",
     key: "secure",
     icon: Shield,
-    color: "text-amber-600",
-    bgColor: "bg-amber-500/10",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
   },
   {
     value: "PUBLIC",
     key: "public",
     icon: Globe,
-    color: "text-green-600",
-    bgColor: "bg-green-500/10",
+    color: "text-success",
+    bgColor: "bg-success/10",
   },
 ];
 
@@ -160,8 +160,8 @@ export function PrivacyStep({ dict, data, onDataChange }: PrivacyStepProps) {
       >
         <Card className="p-4">
           <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-emerald-500/10">
-              <BarChart3 className="w-4 h-4 text-emerald-600" />
+            <div className="p-2 rounded-lg bg-success/10">
+              <BarChart3 className="w-4 h-4 text-success" />
             </div>
             <div className="flex-1 space-y-2">
               <div className="flex items-center justify-between">

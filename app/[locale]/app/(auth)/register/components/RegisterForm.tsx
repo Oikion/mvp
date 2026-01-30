@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { registerSchema, getClerkErrorMessage, type RegisterFormData } from "@/lib/validations/auth";
 import { Mail, Lock, Eye, EyeOff, Loader2, KeyRound } from "lucide-react";
@@ -75,7 +75,7 @@ export function RegisterForm({ dict }: RegisterFormProps) {
   const router = useRouter();
   const params = useParams();
   const locale = (params.locale as string) || "el";
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const [step, setStep] = useState<FormStep>("register");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -118,10 +118,7 @@ export function RegisterForm({ dict }: RegisterFormProps) {
       setPendingEmail(data.email);
       
       // Notify user that code was sent
-      toast({
-        title: "Verification code sent",
-        description: `A verification code has been sent to ${data.email}`,
-      });
+      toast.info("Verification code sent", { description: `A verification code has been sent to ${data.email}`, isTranslationKey: false });
       
       setStep("verify");
     } catch (err) {
@@ -137,18 +134,10 @@ export function RegisterForm({ dict }: RegisterFormProps) {
         } else if (firstError.code.includes("password")) {
           setError("password", { message });
         } else {
-          toast({
-            variant: "destructive",
-            title: "Registration failed",
-            description: message,
-          });
+          toast.error("Registration failed", { description: message, isTranslationKey: false });
         }
       } else {
-        toast({
-          variant: "destructive",
-          title: "Registration failed",
-          description: dict.errors.generic,
-        });
+        toast.error("Registration failed", { description: dict.errors.generic, isTranslationKey: false });
       }
     } finally {
       setIsSubmitting(false);
@@ -170,24 +159,13 @@ export function RegisterForm({ dict }: RegisterFormProps) {
         // Redirect to onboarding
         router.push(`/${locale}/app/onboard`);
       } else {
-        toast({
-          variant: "destructive",
-          title: "Verification incomplete",
-          description: "Please complete all verification steps.",
-        });
+        toast.error("Verification incomplete", { description: "Please complete all verification steps.", isTranslationKey: false });
       }
     } catch (err) {
       const error = err as { errors?: Array<{ code?: string; message?: string }> };
       const firstError = error?.errors?.[0];
 
-      toast({
-        variant: "destructive",
-        title: "Verification failed",
-        description: getClerkErrorMessage(
-          firstError?.code || "",
-          firstError?.message || "Invalid verification code. Please try again."
-        ),
-      });
+      toast.error("Verification failed", { description: getClerkErrorMessage, isTranslationKey: false });
     } finally {
       setIsSubmitting(false);
     }
@@ -200,16 +178,9 @@ export function RegisterForm({ dict }: RegisterFormProps) {
       await signUp.prepareEmailAddressVerification({
         strategy: "email_code",
       });
-      toast({
-        title: "Code sent",
-        description: "A new verification code has been sent to your email.",
-      });
+      toast.info("Code sent", { description: "A new verification code has been sent to your email.", isTranslationKey: false });
     } catch {
-      toast({
-        variant: "destructive",
-        title: "Failed to resend code",
-        description: "Please try again later.",
-      });
+      toast.error("Failed to resend code", { description: "Please try again later.", isTranslationKey: false });
     }
   };
 

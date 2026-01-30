@@ -19,7 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   Dialog,
   DialogContent,
@@ -88,7 +88,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
 
   const router = useRouter();
   const { signOut } = useClerk();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -115,11 +115,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
 
       // Check if username exists
       if (!username) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Username is not set. Please set a username in your profile first.",
-        });
+        toast.error("Error", { description: "Username is not set. Please set a username in your profile first.", isTranslationKey: false });
         setIsLoading(false);
         return;
       }
@@ -149,11 +145,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
       // Proceed with deletion
       await proceedWithDeletion();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.response?.data?.message || "Something went wrong while deleting your account.",
-      });
+      toast.error("Error", { description: error?.response?.data?.message || "Something went wrong while deleting your account.", isTranslationKey: false });
       setIsLoading(false);
     }
   }
@@ -165,20 +157,12 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
 
       await axios.delete(`/api/user/${userId}/delete-account`);
 
-      toast({
-        variant: "success",
-        title: "Account deleted",
-        description: "Your account has been successfully deleted.",
-      });
+      toast.success("Account deleted", { description: "Your account has been successfully deleted.", isTranslationKey: false });
 
       // Sign out and redirect
       await signOut({ redirectUrl: "/" });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.response?.data?.message || "Something went wrong while deleting your account.",
-      });
+      toast.error("Error", { description: error?.response?.data?.message || "Something went wrong while deleting your account.", isTranslationKey: false });
       setIsLoading(false);
       setStep("validation");
     }
@@ -247,7 +231,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                                 onClick={() => copyToClipboard(username, "username")}
                               >
                                 {copiedUsername ? (
-                                  <Check className="h-3 w-3 text-green-500" />
+                                  <Check className="h-3 w-3 text-success" />
                                 ) : (
                                   <Copy className="h-3 w-3 text-primary" />
                                 )}
@@ -297,7 +281,7 @@ export function DeleteAccountForm({ userId, username }: DeleteAccountFormProps) 
                               onClick={() => copyToClipboard("delete my account", "confirmText")}
                             >
                               {copiedConfirmText ? (
-                                <Check className="h-3 w-3 text-green-500" />
+                                <Check className="h-3 w-3 text-success" />
                               ) : (
                                 <Copy className="h-3 w-3 text-primary" />
                               )}

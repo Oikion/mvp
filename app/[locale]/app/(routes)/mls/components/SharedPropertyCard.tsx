@@ -53,7 +53,7 @@ export const SharedPropertyCard = memo(function SharedPropertyCard({ data, index
         <div className="absolute top-2 left-2 z-10">
           <Badge
             variant="secondary"
-            className="flex items-center gap-1 bg-amber-500/15 text-amber-600 dark:text-amber-400"
+            className="flex items-center gap-1 bg-warning/15 text-warning dark:text-amber-400"
           >
             <Share2 className="h-3 w-3" />
             {t("SharedView.shared")}

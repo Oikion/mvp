@@ -2,12 +2,17 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 /**
  * Income Per Hour Worked
  * GCI divided by hours invested
  */
 export async function getIncomePerHour() {
+  // Permission check: Users need report:view permission
+  const check = await canPerformAction("report:view");
+  if (!check.allowed) return { incomePerHour: 0, totalIncome: 0, totalHours: 0 };
+
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return { incomePerHour: 0, totalIncome: 0, totalHours: 0 };
 

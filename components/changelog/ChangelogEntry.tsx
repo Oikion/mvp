@@ -6,30 +6,7 @@ import type { ChangelogEntryData } from "@/actions/platform-admin/changelog-acti
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { parseContent } from "@/lib/markdown";
-
-// Color styles for tags
-const colorStyles: Record<string, { bg: string; text: string; border: string }> = {
-  gray: { bg: "bg-gray-500/10", text: "text-gray-600 dark:text-gray-400", border: "border-gray-500/20" },
-  red: { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", border: "border-red-500/20" },
-  orange: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", border: "border-orange-500/20" },
-  amber: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", border: "border-amber-500/20" },
-  yellow: { bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400", border: "border-yellow-500/20" },
-  lime: { bg: "bg-lime-500/10", text: "text-lime-600 dark:text-lime-400", border: "border-lime-500/20" },
-  green: { bg: "bg-green-500/10", text: "text-green-600 dark:text-green-400", border: "border-green-500/20" },
-  emerald: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/20" },
-  teal: { bg: "bg-teal-500/10", text: "text-teal-600 dark:text-teal-400", border: "border-teal-500/20" },
-  cyan: { bg: "bg-cyan-500/10", text: "text-cyan-600 dark:text-cyan-400", border: "border-cyan-500/20" },
-  sky: { bg: "bg-sky-500/10", text: "text-sky-600 dark:text-sky-400", border: "border-sky-500/20" },
-  blue: { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", border: "border-blue-500/20" },
-  indigo: { bg: "bg-indigo-500/10", text: "text-indigo-600 dark:text-indigo-400", border: "border-indigo-500/20" },
-  violet: { bg: "bg-violet-500/10", text: "text-violet-600 dark:text-violet-400", border: "border-violet-500/20" },
-  purple: { bg: "bg-purple-500/10", text: "text-purple-600 dark:text-purple-400", border: "border-purple-500/20" },
-  fuchsia: { bg: "bg-fuchsia-500/10", text: "text-fuchsia-600 dark:text-fuchsia-400", border: "border-fuchsia-500/20" },
-  pink: { bg: "bg-pink-500/10", text: "text-pink-600 dark:text-pink-400", border: "border-pink-500/20" },
-  rose: { bg: "bg-rose-500/10", text: "text-rose-600 dark:text-rose-400", border: "border-rose-500/20" },
-};
-
-const getTagStyle = (color: string) => colorStyles[color] || colorStyles.gray;
+import { getTagColorClasses } from "@/lib/changelog/category-colors";
 
 interface ChangelogEntryProps {
   entry: ChangelogEntryData;
@@ -84,15 +61,15 @@ export function ChangelogEntry({ entry, index, categoryTranslations }: Changelog
         {entry.tags && entry.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {entry.tags.map((tag, idx) => {
-              const style = getTagStyle(tag.color);
+              const colorClasses = getTagColorClasses(tag.color);
               return (
                 <span
                   key={idx}
                   className={cn(
                     "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border",
-                    style.bg,
-                    style.text,
-                    style.border
+                    colorClasses.bg,
+                    colorClasses.text,
+                    colorClasses.border
                   )}
                 >
                   {tag.name}

@@ -4,7 +4,7 @@ import { z } from "zod";
 import axios from "axios";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -243,7 +243,7 @@ const ORIENTATION_OPTIONS: MultiSelectOption[] = [
 
 export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [draftId, setDraftId] = useState<string | undefined>(initialDraftId);
@@ -494,11 +494,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
         id: draftId, // Update existing draft if exists
       });
 
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Ακίνητο δημιουργήθηκε επιτυχώς",
-      });
+      toast.success("Success", { description: "Ακίνητο δημιουργήθηκε επιτυχώς", isTranslationKey: false });
       
       form.reset();
       router.refresh();
@@ -508,11 +504,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
       const errorData = error?.response?.data;
       const errorMessage = errorData?.error || errorData?.details || error?.message || "Κάτι πήγε στραβά";
       
-      toast({
-        variant: "destructive",
-        title: "Σφάλμα",
-        description: typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage),
-      });
+      toast.error("Σφάλμα", { description: typeof, isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -1383,7 +1375,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
         onFocus={() => setHasUserInteracted(true)}
         onChange={() => setHasUserInteracted(true)}
       >
-        <div className="w-[800px] text-sm">
+        <div className="w-full max-w-[800px] text-sm">
           {/* Progress Bar */}
           <div className="pb-6">
             <div className="flex items-center justify-between mb-2">

@@ -125,7 +125,7 @@ export function BrokerageMandateLayout({
         locale={locale}
       />
 
-      <div className="text-center text-[9px] text-gray-400 mt-8 pt-4">
+      <div className="text-center text-[9px] text-muted-foreground mt-8 pt-4">
         {isGreek
           ? "Το παρόν έγγραφο δημιουργήθηκε μέσω της πλατφόρμας Oikion"
           : "This document was generated via the Oikion platform"}

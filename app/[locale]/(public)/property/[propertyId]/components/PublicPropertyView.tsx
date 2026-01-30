@@ -152,7 +152,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
             )}
           </div>
         ) : (
-          <div className="aspect-[21/9] max-h-[500px] flex items-center justify-center bg-gray-100">
+          <div className="aspect-[21/9] max-h-[500px] flex items-center justify-center bg-muted">
             <Building2 className="h-24 w-24 text-gray-300" />
           </div>
         )}
@@ -168,7 +168,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                 onClick={() => setCurrentImageIndex(idx)}
                 className={`flex-shrink-0 w-20 h-14 rounded overflow-hidden border-2 transition-all ${
                   idx === currentImageIndex
-                    ? "border-blue-500"
+                    ? "border-primary"
                     : "border-transparent hover:border-gray-500"
                 }`}
               >
@@ -209,18 +209,18 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                   </Badge>
                 )}
                 {property.is_exclusive && (
-                  <Badge className="bg-amber-500 hover:bg-amber-600 text-sm">
+                  <Badge className="bg-warning hover:bg-warning text-sm">
                     Αποκλειστική
                   </Badge>
                 )}
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 {property.property_name}
               </h1>
               {(property.address_city ||
                 property.municipality ||
                 property.area) && (
-                <p className="text-gray-500 flex items-center gap-2 text-lg">
+                <p className="text-muted-foreground flex items-center gap-2 text-lg">
                   <MapPin className="h-5 w-5" />
                   {[property.area, property.municipality, property.address_city]
                     .filter(Boolean)
@@ -228,10 +228,10 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                 </p>
               )}
               {property.price && (
-                <p className="text-4xl font-bold text-blue-600 mt-4">
+                <p className="text-4xl font-bold text-primary mt-4">
                   {formatPrice(property.price)}
                   {property.transaction_type === "RENTAL" && (
-                    <span className="text-lg font-normal text-gray-500">/μήνα</span>
+                    <span className="text-lg font-normal text-muted-foreground">/μήνα</span>
                   )}
                 </p>
               )}
@@ -242,10 +242,10 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
               {property.bedrooms && (
                 <Card className="shadow-sm">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <BedDouble className="h-8 w-8 text-blue-600" />
+                    <BedDouble className="h-8 w-8 text-primary" />
                     <div>
                       <p className="text-2xl font-bold">{property.bedrooms}</p>
-                      <p className="text-sm text-gray-500">Υπνοδωμάτια</p>
+                      <p className="text-sm text-muted-foreground">Υπνοδωμάτια</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -253,10 +253,10 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
               {property.bathrooms && (
                 <Card className="shadow-sm">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <Bath className="h-8 w-8 text-blue-600" />
+                    <Bath className="h-8 w-8 text-primary" />
                     <div>
                       <p className="text-2xl font-bold">{property.bathrooms}</p>
-                      <p className="text-sm text-gray-500">Μπάνια</p>
+                      <p className="text-sm text-muted-foreground">Μπάνια</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -264,12 +264,12 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
               {(property.size_net_sqm || property.square_feet) && (
                 <Card className="shadow-sm">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <Ruler className="h-8 w-8 text-blue-600" />
+                    <Ruler className="h-8 w-8 text-primary" />
                     <div>
                       <p className="text-2xl font-bold">
                         {property.size_net_sqm || property.square_feet}
                       </p>
-                      <p className="text-sm text-gray-500">τ.μ.</p>
+                      <p className="text-sm text-muted-foreground">τ.μ.</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -277,10 +277,10 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
               {property.year_built && (
                 <Card className="shadow-sm">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <Calendar className="h-8 w-8 text-blue-600" />
+                    <Calendar className="h-8 w-8 text-primary" />
                     <div>
                       <p className="text-2xl font-bold">{property.year_built}</p>
-                      <p className="text-sm text-gray-500">Έτος Κατ.</p>
+                      <p className="text-sm text-muted-foreground">Έτος Κατ.</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -294,7 +294,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                   <CardTitle>Περιγραφή</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                     {property.description}
                   </p>
                 </CardContent>
@@ -305,7 +305,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
             <Card className="shadow-lg border-0">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Home className="h-5 w-5 text-blue-600" />
+                  <Home className="h-5 w-5 text-primary" />
                   Χαρακτηριστικά Ακινήτου
                 </CardTitle>
               </CardHeader>
@@ -437,13 +437,13 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                   <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16">
                       <AvatarImage src={agent.avatar || ""} alt={agent.name || ""} />
-                      <AvatarFallback className="bg-blue-500/15 text-blue-600 dark:text-blue-400 text-xl">
+                      <AvatarFallback className="bg-primary/15 text-primary dark:text-blue-400 text-xl">
                         {agent.name?.charAt(0) || <User className="h-6 w-6" />}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <h3 className="font-semibold text-lg">{agent.name}</h3>
-                      <p className="text-sm text-gray-500">Μεσίτης Ακινήτων</p>
+                      <p className="text-sm text-muted-foreground">Μεσίτης Ακινήτων</p>
                     </div>
                   </div>
 
@@ -452,10 +452,10 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                   {agentProfile?.publicPhone && (
                     <a
                       href={`tel:${agentProfile.publicPhone}`}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-blue-500/10 hover:bg-blue-500/15 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 hover:bg-primary/15 transition-colors"
                     >
-                      <Phone className="h-5 w-5 text-blue-600" />
-                      <span className="font-medium text-blue-600">
+                      <Phone className="h-5 w-5 text-primary" />
+                      <span className="font-medium text-primary">
                         {agentProfile.publicPhone}
                       </span>
                     </a>
@@ -464,17 +464,17 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                   {agentProfile?.publicEmail && (
                     <a
                       href={`mailto:${agentProfile.publicEmail}?subject=Ενδιαφέρομαι για: ${property.property_name}`}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted transition-colors"
                     >
-                      <Mail className="h-5 w-5 text-gray-600" />
-                      <span className="text-gray-600">Αποστολή Email</span>
+                      <Mail className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-muted-foreground">Αποστολή Email</span>
                     </a>
                   )}
 
                   {agentProfile?.visibility !== "PERSONAL" && agentProfile?.slug && (
                     <Link
                       href={`/agent/${agentProfile.slug}`}
-                      className="flex items-center justify-center gap-2 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700"
+                      className="flex items-center justify-center gap-2 p-3 rounded-lg border border-border hover:bg-muted transition-colors text-gray-700"
                     >
                       <User className="h-5 w-5" />
                       <span>Προφίλ Μεσίτη</span>
@@ -488,7 +488,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
             {/* Property Reference */}
             <Card className="shadow-sm">
               <CardContent className="p-4 text-center">
-                <p className="text-sm text-gray-500">Κωδικός Ακινήτου</p>
+                <p className="text-sm text-muted-foreground">Κωδικός Ακινήτου</p>
                 <p className="font-mono font-semibold text-gray-700">
                   {property.id.slice(0, 8).toUpperCase()}
                 </p>
@@ -501,7 +501,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-8 mt-16">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-gray-400 text-sm">
+          <p className="text-muted-foreground text-sm">
             Powered by{" "}
             <span className="text-white font-semibold">Oikion</span>
           </p>
@@ -522,9 +522,9 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
-      <span className="text-blue-600">{icon}</span>
-      <span className="text-gray-500 flex-1">{label}</span>
-      <span className="font-medium text-gray-900">{value}</span>
+      <span className="text-primary">{icon}</span>
+      <span className="text-muted-foreground flex-1">{label}</span>
+      <span className="font-medium text-foreground">{value}</span>
     </div>
   );
 }

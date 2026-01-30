@@ -2,7 +2,6 @@ import { auth } from "@clerk/nextjs/server";
 import { OrgRole } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
-import { getCurrentOrgId } from "@/lib/tenant";
 import {
   UserPermissionContext,
   PermissionConfig,

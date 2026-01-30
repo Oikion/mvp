@@ -66,17 +66,17 @@ type CalloutType = "tip" | "warning" | "info";
 
 const calloutStyles: Record<CalloutType, { bg: string; border: string; icon: React.ElementType }> = {
   tip: {
-    bg: "bg-emerald-50 dark:bg-emerald-950/30",
+    bg: "bg-success/10 dark:bg-emerald-950/30",
     border: "border-emerald-200 dark:border-emerald-800",
     icon: Lightbulb,
   },
   warning: {
-    bg: "bg-amber-50 dark:bg-amber-950/30",
+    bg: "bg-warning/10 dark:bg-amber-950/30",
     border: "border-amber-200 dark:border-amber-800",
     icon: AlertCircle,
   },
   info: {
-    bg: "bg-blue-50 dark:bg-blue-950/30",
+    bg: "bg-primary/10 dark:bg-blue-950/30",
     border: "border-blue-200 dark:border-blue-800",
     icon: Info,
   },
@@ -482,19 +482,19 @@ export function ChangelogRichEditor({
           <SelectContent>
             <SelectItem value="tip">
               <span className="flex items-center gap-1.5">
-                <Lightbulb className="h-3.5 w-3.5 text-emerald-600" />
+                <Lightbulb className="h-3.5 w-3.5 text-success" />
                 Tip
               </span>
             </SelectItem>
             <SelectItem value="warning">
               <span className="flex items-center gap-1.5">
-                <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                <AlertCircle className="h-3.5 w-3.5 text-warning" />
                 Warning
               </span>
             </SelectItem>
             <SelectItem value="info">
               <span className="flex items-center gap-1.5">
-                <Info className="h-3.5 w-3.5 text-blue-600" />
+                <Info className="h-3.5 w-3.5 text-primary" />
                 Info
               </span>
             </SelectItem>

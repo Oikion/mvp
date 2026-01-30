@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import {
   Card,
@@ -38,13 +38,13 @@ import {
   RefreshCw,
   UserPlus,
   Loader2,
+  MessageCircle,
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { AudienceMemberManager } from "./AudienceMemberManager";
 import type { AudienceWithMembers } from "@/actions/audiences";
 import { formatDistanceToNow } from "date-fns";
-import { el, enUS } from "date-fns/locale";
-import { useParams } from "next/navigation";
+import { createAudienceGroupChat } from "@/actions/messaging/audience-conversations";
 
 interface AudienceCardProps {
   audience: AudienceWithMembers;
@@ -54,24 +54,44 @@ interface AudienceCardProps {
 export function AudienceCard({ audience, translations: t }: AudienceCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isMessaging, setIsMessaging] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [memberManagerOpen, setMemberManagerOpen] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
+  const params = useParams();
+  const locale = params.locale as string;
+  const { toast } = useAppToast();
 
   const isOrgAudience = !!audience.organizationId;
   const displayedMembers = audience.members.slice(0, 5);
   const remainingCount = audience.memberCount - displayedMembers.length;
 
+  const handleMessageAudience = async () => {
+    if (audience.memberCount === 0) {
+      toast.error(t.toast, { description: t.toast?.noMembers || "This audience has no members to message", isTranslationKey: false });
+      return;
+    }
+
+    try {
+      setIsMessaging(true);
+      const result = await createAudienceGroupChat(audience.id);
+      if (result.success && result.conversationId) {
+        router.push(`/${locale}/app/messages?conversationId=${result.conversationId}`);
+      } else {
+        toast.error(t.toast, { description: result.error || "Failed to create group chat", isTranslationKey: false });
+      }
+    } catch (error) {
+      toast.error(t.toast, { description: "Failed to create group chat", isTranslationKey: false });
+    } finally {
+      setIsMessaging(false);
+    }
+  };
+
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
       await axios.delete(`/api/audiences/${audience.id}`);
-      toast({
-        variant: "success",
-        title: t.toast.deleted,
-        description: `"${audience.name}" ${t.toast.deletedDescription}`,
-      });
+      toast.success(t.toast.deleted, { description: `"${audience.name}" ${t.toast.deletedDescription}`, isTranslationKey: false });
       router.refresh();
     } catch (error) {
       toast({
@@ -90,13 +110,7 @@ export function AudienceCard({ audience, translations: t }: AudienceCardProps) {
       setIsSyncing(true);
       const response = await axios.post(`/api/audiences/${audience.id}/sync`);
       const addedCount = response.data.addedCount || 0;
-      toast({
-        variant: "success",
-        title: t.toast.syncComplete,
-        description: addedCount > 0 
-          ? t.toast.syncAddedMembers.replace("{count}", addedCount)
-          : t.toast.syncNoNewMembers,
-      });
+      toast.success(t.toast.syncComplete, { description: addedCount, isTranslationKey: false });
       router.refresh();
     } catch (error) {
       toast({
@@ -139,6 +153,17 @@ export function AudienceCard({ audience, translations: t }: AudienceCardProps) {
                 <DropdownMenuItem onClick={() => setMemberManagerOpen(true)}>
                   <UserPlus className="h-4 w-4 mr-2" />
                   {t.actions.manageMembers}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleMessageAudience} 
+                  disabled={isMessaging || audience.memberCount === 0}
+                >
+                  {isMessaging ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                  )}
+                  {t.actions?.messageAudience || "Message Audience"}
                 </DropdownMenuItem>
                 {isOrgAudience && audience.isAutoSync && (
                   <DropdownMenuItem onClick={handleSync} disabled={isSyncing}>

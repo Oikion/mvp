@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Mail, Loader2, Building2, User, FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -38,7 +38,7 @@ export function ShareViaEmailDialog({
   const [recipientName, setRecipientName] = useState("");
   const [personalMessage, setPersonalMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const t = useTranslations("share.emailShare");
 
   const entityIcons = {
@@ -55,11 +55,7 @@ export function ShareViaEmailDialog({
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(recipientEmail)) {
-      toast({
-        variant: "destructive",
-        title: t("error.title"),
-        description: t("error.invalidEmail"),
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
       return;
     }
 
@@ -86,12 +82,7 @@ export function ShareViaEmailDialog({
         throw new Error(data.error || t("error.generic"));
       }
 
-      toast({
-        variant: "success",
-        title: t("success.title"),
-        description: t("success.description", { 
-          entityType: t(`entityTypes.${entityType}`) 
-        }),
+      toast.success(t, { description: t, isTranslationKey: false }),
       });
 
       // Reset form and close dialog
@@ -100,11 +91,7 @@ export function ShareViaEmailDialog({
       setPersonalMessage("");
       onOpenChange(false);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("error.title"),
-        description: error instanceof Error ? error.message : t("error.generic"),
-      });
+      toast.error(t, { description: error, isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

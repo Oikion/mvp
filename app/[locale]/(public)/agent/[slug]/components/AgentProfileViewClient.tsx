@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { ContactFormField } from "@/actions/social/contact-form";
 
 // Profile type matching AgentProfileViewProps
 type ProfileType = {
@@ -35,41 +36,27 @@ type ProfileType = {
   languages?: string[];
   certifications?: string[];
   bio?: string | null;
+  contactFormEnabled?: boolean;
+  contactFormFields?: ContactFormField[];
 };
 
 // Dynamically import AgentProfileView with SSR disabled to prevent window access during build
+// The loading component will show while the client-side component loads
 const AgentProfileView = dynamic(
   () => import("./AgentProfileView").then((mod) => ({ default: mod.AgentProfileView })),
   { 
     ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading profile...</p>
-        </div>
-      </div>
-    )
   }
 );
 
 interface AgentProfileViewClientProps {
   profile: ProfileType;
+  locale?: string;
 }
 
-export function AgentProfileViewClient({ profile }: AgentProfileViewClientProps) {
-  // Only render on client side to prevent window access during build
-  if (typeof window === 'undefined') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return <AgentProfileView profile={profile} />;
+export function AgentProfileViewClient({ profile, locale = "en" }: AgentProfileViewClientProps) {
+  // The dynamic import with ssr: false handles client-only rendering
+  // No need for window check - it causes hydration mismatch
+  return <AgentProfileView profile={profile} locale={locale} />;
 }
 

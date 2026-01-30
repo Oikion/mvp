@@ -54,18 +54,18 @@ export default function NotFound() {
           <h1 className="text-[10rem] sm:text-[14rem] font-black leading-none tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500 dark:from-slate-100 dark:via-slate-300 dark:to-slate-500 bg-clip-text text-transparent select-none">
             {t.code}
           </h1>
-          <div className="absolute inset-0 text-[10rem] sm:text-[14rem] font-black leading-none tracking-tighter text-slate-900/5 dark:text-white/5 blur-xl select-none -z-10">
+          <div className="absolute inset-0 text-[10rem] sm:text-[14rem] font-black leading-none tracking-tighter text-foreground/5 dark:text-white/5 blur-xl select-none -z-10">
             404
           </div>
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground dark:text-slate-100 mb-4 tracking-tight">
           {t.title}
         </h2>
 
         {/* Description */}
-        <p className="text-slate-600 dark:text-slate-400 text-lg mb-10 max-w-md mx-auto leading-relaxed">
+        <p className="text-muted-foreground dark:text-muted-foreground text-lg mb-10 max-w-md mx-auto leading-relaxed">
           {t.description}
         </p>
 
@@ -74,7 +74,7 @@ export default function NotFound() {
           <Button
             variant="outline"
             size="lg"
-            className="min-w-[180px] h-12 rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+            className="min-w-[180px] h-12 rounded-xl border-border dark:border-slate-800 hover:bg-muted dark:hover:bg-slate-800 transition-all duration-200"
             asChild
           >
             <Link href={`/${locale}`} className="inline-flex items-center gap-2">
@@ -83,7 +83,7 @@ export default function NotFound() {
             </Link>
           </Button>
 
-          <span className="text-slate-400 dark:text-slate-600 text-sm hidden sm:block">
+          <span className="text-muted-foreground dark:text-muted-foreground text-sm hidden sm:block">
             {t.or}
           </span>
 

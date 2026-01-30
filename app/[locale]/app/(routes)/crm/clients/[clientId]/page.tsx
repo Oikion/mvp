@@ -10,10 +10,10 @@ export default async function ClientDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ clientId: string }>;
+  params: Promise<{ locale: string; clientId: string }>;
   searchParams?: Promise<{ action?: string }>;
 }) {
-  const { clientId } = await params;
+  const { locale, clientId } = await params;
   const resolvedSearchParams: { action?: string } = searchParams ? await searchParams : {};
   const currentUser = await getCurrentUser();
 
@@ -55,6 +55,7 @@ export default async function ClientDetailPage({
           isReadOnly={isSharedView}
           sharePermission={sharePermission}
           currentUserId={currentUser.id}
+          locale={locale}
         />
       </div>
     </Container>

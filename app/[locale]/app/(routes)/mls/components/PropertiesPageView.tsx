@@ -15,7 +15,7 @@ import { StatsCard } from "@/components/ui/stats-card";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { PropertyCard } from "./PropertyCard";
 import { SharedPropertyCard } from "./SharedPropertyCard";
-import { Home, Activity, DollarSign, Building2, Share2, FileSpreadsheet } from "lucide-react";
+import { Home, Activity, DollarSign, Building2, Share2, FileSpreadsheet, Globe } from "lucide-react";
 import type { SharedPropertyData } from "@/actions/mls/get-shared-properties";
 import { useOrgUsers } from "@/hooks/swr";
 import Link from "next/link";
@@ -24,6 +24,8 @@ import { SharedActionModals } from "@/components/entity";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
 import { GridToolbar } from "@/components/ui/grid-toolbar";
 import { ExportButton } from "@/components/export";
+import { PublishToPortalsModal } from "@/components/modals/PublishToPortalsModal";
+import type { BulkAction } from "@/components/ui/data-table/data-table-bulk-actions";
 
 interface PropertiesPageViewProps {
   agencyProperties: any[];
@@ -40,6 +42,9 @@ export default function PropertiesPageView({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [activeTab, setActiveTab] = useState("agency");
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [selectedForPublish, setSelectedForPublish] = useState<any[]>([]);
+  const [isPublishing, setIsPublishing] = useState(false);
   const t = useTranslations("mls");
   const params = useParams();
   const locale = (params?.locale as string) || "en";
@@ -50,6 +55,65 @@ export default function PropertiesPageView({
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Filter data for grid view - must be defined before callbacks that use it
+  const filteredAgencyProperties = useMemo(() => {
+    return agencyProperties.filter((item) => {
+      // Text search filter
+      const matchesSearch = item.property_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Status filter
+      const statusFilter = selectedFilters.property_status || [];
+      const matchesStatus = statusFilter.length === 0 || statusFilter.includes(item.property_status);
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [agencyProperties, searchQuery, selectedFilters]);
+
+  // Handle publish to portals
+  const handlePublishToPortals = useCallback(async (propertyIds: string[], portalIds: string[]) => {
+    setIsPublishing(true);
+    try {
+      // For now, we'll just update portal_visibility to PUBLIC
+      // In a full implementation, this would also create the XML package and send to xe.gr
+      const response = await fetch("/api/mls/properties/bulk-publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyIds, portalIds }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to publish properties");
+      }
+      
+      // Refresh the page to show updated data
+      window.location.reload();
+    } finally {
+      setIsPublishing(false);
+    }
+  }, []);
+
+  // Handle "Export to Portals" click from the Export dropdown
+  const handleExportToPortalsClick = useCallback(() => {
+    // Use filtered properties for export
+    setSelectedForPublish(filteredAgencyProperties);
+    setPublishModalOpen(true);
+  }, [filteredAgencyProperties]);
+
+  // Bulk actions for the data table
+  const bulkActions: BulkAction<any>[] = useMemo(() => [
+    {
+      id: "publish",
+      label: t("BulkActions.publishToPortals"),
+      icon: <Globe className="h-4 w-4" />,
+      shortcut: "P",
+      loading: isPublishing,
+      onClick: (selectedRows) => {
+        setSelectedForPublish(selectedRows);
+        setPublishModalOpen(true);
+      },
+    },
+  ], [t, isPublishing]);
 
   const statusOptions = useMemo(() => {
     return statuses.map((status) => ({
@@ -64,20 +128,6 @@ export default function PropertiesPageView({
     (p) => p.property_status === "ACTIVE"
   ).length;
   const totalValue = agencyProperties.reduce((sum, p) => sum + (p.price || 0), 0);
-
-  // Filter data for grid view
-  const filteredAgencyProperties = useMemo(() => {
-    return agencyProperties.filter((item) => {
-      // Text search filter
-      const matchesSearch = item.property_name?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      // Status filter
-      const statusFilter = selectedFilters.property_status || [];
-      const matchesStatus = statusFilter.length === 0 || statusFilter.includes(item.property_status);
-      
-      return matchesSearch && matchesStatus;
-    });
-  }, [agencyProperties, searchQuery, selectedFilters]);
 
   const filteredSharedProperties = useMemo(() => {
     return sharedProperties.filter((item) =>
@@ -154,21 +204,21 @@ export default function PropertiesPageView({
 
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex bg-muted p-1">
-          <TabsTrigger value="agency" className="gap-2">
-            <Building2 className="h-4 w-4" />
-            <span>{t("Tabs.agencyProperties")}</span>
+        <TabsList className="inline-grid grid-cols-2">
+          <TabsTrigger value="agency">
+            <Building2 className="h-4 w-4 shrink-0" />
+            {t("Tabs.agencyProperties")}
             {totalProperties > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-xs font-medium">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs font-medium">
                 {totalProperties}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="shared" className="gap-2">
-            <Share2 className="h-4 w-4" />
-            <span>{t("Tabs.sharedWithMe")}</span>
+          <TabsTrigger value="shared">
+            <Share2 className="h-4 w-4 shrink-0" />
+            {t("Tabs.sharedWithMe")}
             {sharedProperties.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-medium">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-warning/20 text-amber-700 dark:text-amber-300 text-xs font-medium">
                 {sharedProperties.length}
               </span>
             )}
@@ -194,6 +244,9 @@ export default function PropertiesPageView({
                       status: selectedFilters.property_status,
                       search: searchQuery,
                     }}
+                    enableTemplates
+                    entityData={filteredAgencyProperties}
+                    onPortalsClick={handleExportToPortalsClick}
                   />
                   <Button variant="outline" asChild>
                     <Link href={`/${locale}/app/mls/import`}>
@@ -205,7 +258,7 @@ export default function PropertiesPageView({
                     <Button onClick={() => setOpen(true)} className="flex-1 sm:flex-none">
                       + {t("PropertyForm.title")}
                     </Button>
-                    <SheetContent className="min-w-[1000px] space-y-2">
+                    <SheetContent className="w-full sm:min-w-[600px] lg:min-w-[900px] xl:min-w-[1000px] space-y-2">
                       <SheetHeader>
                         <SheetTitle>{t("PropertyForm.title")}</SheetTitle>
                       </SheetHeader>
@@ -238,6 +291,7 @@ export default function PropertiesPageView({
                       options: statusOptions,
                     },
                   ]}
+                  bulkActions={bulkActions}
                 />
               ) : (
                 <div className="space-y-4">
@@ -281,7 +335,7 @@ export default function PropertiesPageView({
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <Share2 className="h-5 w-5 text-amber-600" />
+                    <Share2 className="h-5 w-5 text-warning" />
                     {t("Tabs.sharedWithMe")}
                   </CardTitle>
                   <CardDescription>{t("Tabs.sharedPropertiesDescription")}</CardDescription>
@@ -331,6 +385,14 @@ export default function PropertiesPageView({
 
       {/* Shared modals for delete, share, schedule actions */}
       <SharedActionModals />
+
+      {/* Publish to Portals Modal */}
+      <PublishToPortalsModal
+        open={publishModalOpen}
+        onOpenChange={setPublishModalOpen}
+        selectedProperties={selectedForPublish}
+        onPublish={handlePublishToPortals}
+      />
     </div>
   );
 }

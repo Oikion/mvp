@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { createTranslator } from "next-intl";
 import { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
@@ -6,6 +5,10 @@ import { auth } from "@clerk/nextjs/server";
 import "@/app/[locale]/globals.css";
 import Footer from "@/app/[locale]/app/(routes)/components/Footer";
 import { AlreadySignedInBanner } from "./components/AlreadySignedInBanner";
+
+// Static imports for locale files (required for Turbopack compatibility)
+import rootEn from "@/locales/en.json";
+import rootEl from "@/locales/el.json";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -15,12 +18,15 @@ const metadataBaseUrl = new URL(
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 );
 
-async function getLocales(locale: string) {
-  try {
-    return (await import(`@/locales/${locale}.json`)).default;
-  } catch (error) {
-    notFound();
+function getLocales(locale: string) {
+  if (locale === "el") {
+    return rootEl;
   }
+  if (locale === "en") {
+    return rootEn;
+  }
+  // Default to English for unknown locales
+  return rootEn;
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {

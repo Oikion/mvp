@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ImportWizardSteps, type ImportResult } from "@/components/import";
 import { clientImportSchema, clientImportFieldDefinitions } from "@/lib/import";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 interface ClientImportWizardProps {
   dict: {
@@ -105,7 +105,7 @@ interface ClientImportWizardProps {
 
 export function ClientImportWizard({ dict, locale }: ClientImportWizardProps) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const handleImport = useCallback(
     async (data: Record<string, unknown>[]): Promise<ImportResult> => {
@@ -124,11 +124,7 @@ export function ClientImportWizard({ dict, locale }: ClientImportWizardProps) {
         const result = await response.json();
         
         if (result.imported > 0) {
-          toast({
-            variant: "success",
-            title: "Import successful",
-            description: `Successfully imported ${result.imported} client(s)`,
-          });
+          toast.success("Import successful", { description: `Successfully imported ${result.imported} client(s)`, isTranslationKey: false });
         }
 
         return {
@@ -139,11 +135,7 @@ export function ClientImportWizard({ dict, locale }: ClientImportWizardProps) {
         };
       } catch (error) {
         console.error("Import error:", error);
-        toast({
-          variant: "destructive",
-          title: "Import failed",
-          description: error instanceof Error ? error.message : "Unknown error",
-        });
+        toast.error("Import failed", { description: error, isTranslationKey: false });
         return {
           imported: 0,
           skipped: 0,

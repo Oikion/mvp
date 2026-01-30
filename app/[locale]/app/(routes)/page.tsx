@@ -88,12 +88,6 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
                 trendUp={revenueTrend.direction === "up"}
                 description={dict.dashboard.fromLastMonth}
                 emptyMessage={dict.dashboard.noRevenueYet}
-                actionHref={`/${locale}/app/deals`}
-                actionLabel={dict.dashboard.addFirstProperty}
-                viewHref={`/${locale}/app/deals`}
-                viewLabel={dict.dashboard.viewDeals}
-                addHref={`/${locale}/app/deals?action=create`}
-                addLabel={dict.dashboard.addProperty}
               />
             </Suspense>
             
@@ -155,8 +149,8 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
           </div>
           
           {/* Section 2: Main Chart + Recent Clients */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <div className="col-span-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 auto-rows-fr">
+            <div className="lg:col-span-4">
                <VisitorsChart
                  title={dict.dashboard.activityTimeline}
                  description={dict.dashboard.activityTimelineDescription}
@@ -166,7 +160,7 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
                  data={activityTimeline}
                />
             </div>
-            <div className="col-span-3">
+            <div className="lg:col-span-3">
                {crmModule?.enabled && (
                 <QuickViewList
                   title={dict.dashboard.recentClients}
@@ -179,8 +173,8 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
           </div>
 
           {/* Section 3: Stats Charts + Recent Properties */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <div className="col-span-4 grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 auto-rows-fr">
+            <div className="lg:col-span-4 grid gap-4 grid-cols-2">
                  {crmModule?.enabled && clientsByStatus.length > 0 && (
                     <StatsChart
                       title={dict.dashboard.clientsByStatus}
@@ -198,7 +192,7 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
                     />
                  )}
             </div>
-             <div className="col-span-3">
+             <div className="lg:col-span-3">
               <QuickViewList
                 title={dict.dashboard.recentProperties}
                 items={recentProperties}

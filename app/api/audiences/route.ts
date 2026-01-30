@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 /**
  * GET /api/audiences
@@ -9,6 +10,12 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
  */
 export async function GET(req: Request) {
   try {
+    // Permission check: Users need audience:read permission
+    const readCheck = await canPerformAction("audience:read");
+    if (!readCheck.allowed) {
+      return NextResponse.json({ error: readCheck.reason }, { status: 403 });
+    }
+
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 
@@ -84,6 +91,12 @@ export async function GET(req: Request) {
  */
 export async function POST(req: Request) {
   try {
+    // Permission check: Users need audience:create permission
+    const createCheck = await canPerformAction("audience:create");
+    if (!createCheck.allowed) {
+      return NextResponse.json({ error: createCheck.reason }, { status: 403 });
+    }
+
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 

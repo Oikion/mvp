@@ -4,7 +4,7 @@ import { z } from "zod";
 import axios from "axios";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -85,7 +85,7 @@ type Props = {
 
 export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: Props) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations();
 
@@ -125,11 +125,7 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
 
       const clientId = response.data.newClient.id;
 
-      toast({
-        variant: "success",
-        title: t("common.success"),
-        description: t("common.clientCreated"),
-      });
+      toast.success(t, { description: t, isTranslationKey: false });
 
       form.reset();
       onOpenChange(false);
@@ -142,11 +138,7 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
     } catch (error: any) {
       console.error("Error creating client:", error);
       const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || t("common.somethingWentWrong");
-      toast({
-        variant: "destructive",
-        title: t("common.error"),
-        description: typeof errorMessage === 'string' ? errorMessage : t("common.clientCreationFailed"),
-      });
+      toast.error(t, { description: typeof, isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

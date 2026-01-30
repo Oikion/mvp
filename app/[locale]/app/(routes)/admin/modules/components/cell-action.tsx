@@ -6,7 +6,7 @@ import { useState } from "react";
 import { MoreHorizontal, PowerIcon, PowerOffIcon, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +33,7 @@ interface CellActionProps {
 
 export const CellAction = ({ data }: CellActionProps) => {
   const t = useTranslations("admin");
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -41,17 +41,9 @@ export const CellAction = ({ data }: CellActionProps) => {
     try {
       await axios.post(`/api/admin/activateModule/${data.id}`);
       router.refresh();
-      toast({
-        variant: "success",
-        title: t("success"),
-        description: t("moduleActivated"),
-      });
+      toast.success(t, { description: t, isTranslationKey: false });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: t("moduleActivateError"),
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
     }
   };
 
@@ -59,17 +51,9 @@ export const CellAction = ({ data }: CellActionProps) => {
     try {
       await axios.post(`/api/admin/deactivateModule/${data.id}`);
       router.refresh();
-      toast({
-        variant: "success",
-        title: t("success"),
-        description: t("moduleDeactivated"),
-      });
+      toast.success(t, { description: t, isTranslationKey: false });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: t("moduleDeactivateError"),
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
     }
   };
 
@@ -78,17 +62,9 @@ export const CellAction = ({ data }: CellActionProps) => {
       await axios.delete(`/api/admin/deleteModule/${data.id}`);
       setDeleteDialogOpen(false);
       router.refresh();
-      toast({
-        variant: "success",
-        title: t("success"),
-        description: t("moduleDeleted"),
-      });
+      toast.success(t, { description: t, isTranslationKey: false });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: t("moduleDeleteError"),
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
     }
   };
 

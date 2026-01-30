@@ -1,0 +1,72 @@
+"use client";
+
+import { Check, X } from "lucide-react";
+import type { CriterionScore } from "@/lib/matchmaking";
+
+interface Props {
+  breakdown: CriterionScore[];
+}
+
+const CRITERION_LABELS: Record<string, string> = {
+  budget: "Budget",
+  location: "Location",
+  transaction_type: "Transaction Type",
+  property_type: "Property Type",
+  bedrooms: "Bedrooms",
+  size: "Size (sqm)",
+  amenities: "Amenities",
+  condition: "Condition",
+  furnished: "Furnished",
+  floor: "Floor",
+  elevator: "Elevator",
+  pet_friendly: "Pet Friendly",
+  heating: "Heating",
+  energy_class: "Energy Class",
+  parking: "Parking",
+};
+
+function getScoreColor(score: number): string {
+  if (score >= 80) return "text-success";
+  if (score >= 50) return "text-warning";
+  return "text-destructive";
+}
+
+export function MatchScoreBreakdown({ breakdown }: Props) {
+  // Sort by weight (highest first)
+  const sortedBreakdown = [...breakdown].sort((a, b) => b.weight - a.weight);
+
+  return (
+    <div className="p-3 space-y-2 max-h-80 overflow-y-auto">
+      <div className="font-semibold text-sm border-b pb-2">Score Breakdown</div>
+      {sortedBreakdown.map((item) => (
+        <div key={item.criterion} className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
+            {item.matched ? (
+              <Check className="h-3 w-3 text-success" />
+            ) : (
+              <X className="h-3 w-3 text-destructive" />
+            )}
+            <span className="text-muted-foreground">
+              {CRITERION_LABELS[item.criterion] || item.criterion}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`font-medium ${getScoreColor(item.score)}`}>
+              {Math.round(item.score)}%
+            </span>
+            <span className="text-xs text-muted-foreground">
+              ({item.weight}% weight)
+            </span>
+          </div>
+        </div>
+      ))}
+      <div className="border-t pt-2 mt-2">
+        <div className="text-xs text-muted-foreground">
+          {sortedBreakdown[0]?.reason && (
+            <p className="mt-1 italic">Top factor: {sortedBreakdown[0].reason}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

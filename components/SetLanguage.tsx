@@ -30,7 +30,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { toast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -69,17 +69,10 @@ export function SetLanguage({ userId }: Props) {
     setIsLoading(true);
     try {
       await axios.put(`/api/user/${userId}/set-language`, data);
-      toast({
-        variant: "success",
-        title: tCommon("success"),
-        description: t("setLanguage.languageChangedTo", { language: data.language }),
+      toast.success(tCommon, { description: t, isTranslationKey: false }),
       });
     } catch (e) {
-      toast({
-        title: tCommon("error"),
-        description: tCommon("somethingWentWrong"),
-        variant: "destructive",
-      });
+      toast.error(tCommon, { description: tCommon, isTranslationKey: false });
     } finally {
       router.refresh();
       setIsLoading(false);

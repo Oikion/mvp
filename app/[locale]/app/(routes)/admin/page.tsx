@@ -1,8 +1,8 @@
-import { getTranslations, getLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClerkClient } from "@clerk/backend";
 import { Link } from "@/navigation";
-import { Users, Building2, Settings, Shield } from "lucide-react";
+import { Users, Building2, Settings, Shield, Workflow, Globe, Plug } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -172,6 +172,43 @@ const AdminPage = async () => {
                 </CardTitle>
                 <CardDescription>
                   {t("admin.teamManagementDescription")}
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+        </div>
+      </div>
+
+      {/* Integrations Section */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Plug className="h-5 w-5" />
+          {t("admin.integrations")}
+        </h3>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
+            <Link href="/app/admin/n8n" className="block">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Workflow className="h-5 w-5 text-warning" />
+                  {t("admin.n8nIntegration")}
+                </CardTitle>
+                <CardDescription>
+                  {t("admin.n8nIntegrationDescription")}
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+
+          <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
+            <Link href="/app/admin/xe-integration" className="block">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-success" />
+                  {t("admin.xeIntegration")}
+                </CardTitle>
+                <CardDescription>
+                  {t("admin.xeIntegrationDescription")}
                 </CardDescription>
               </CardHeader>
             </Link>

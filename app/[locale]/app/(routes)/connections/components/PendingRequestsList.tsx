@@ -4,7 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { User, Check, X, Loader2, Clock, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -43,17 +43,13 @@ function PendingRequestItem({
   dateLocale: typeof el | typeof enUS;
 }) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const { acceptConnection, rejectConnection, isResponding } = useRespondToConnection(request.id);
 
   const handleAccept = async () => {
     try {
       await acceptConnection();
-      toast({
-        variant: "success",
-        title: t.toast.connectionAccepted,
-        description: t.toast.connectionAcceptedDesc,
-      });
+      toast.success(t.toast.connectionAccepted, { description: t.toast.connectionAcceptedDesc, isTranslationKey: false });
       router.refresh();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t.toast.respondError;
@@ -68,11 +64,7 @@ function PendingRequestItem({
   const handleReject = async () => {
     try {
       await rejectConnection();
-      toast({
-        variant: "success",
-        title: t.toast.requestDeclined,
-        description: t.toast.requestDeclinedDesc,
-      });
+      toast.success(t.toast.requestDeclined, { description: t.toast.requestDeclinedDesc, isTranslationKey: false });
       router.refresh();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t.toast.respondError;
@@ -92,7 +84,7 @@ function PendingRequestItem({
             src={request.user.avatar || ""}
             alt={request.user.name || ""}
           />
-          <AvatarFallback className="bg-orange-500/15 text-orange-600 dark:text-orange-400">
+          <AvatarFallback className="bg-warning/15 text-warning dark:text-orange-400">
             {request.user.name?.charAt(0) || <User className="h-5 w-5" />}
           </AvatarFallback>
         </Avatar>

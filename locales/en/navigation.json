@@ -19,7 +19,8 @@
     },
     "mls": {
       "title": "Properties",
-      "properties": "Properties"
+      "properties": "All Properties",
+      "listings": "Listings"
     },
     "social": {
       "title": "Social",
@@ -30,6 +31,7 @@
       "deals": "Deals",
       "publicProfile": "Public Profile"
     },
+    "matchmaking": "Matchmaking",
     "emails": "E-mails",
     "tasks": "Tasks",
     "invoices": "Invoices",
@@ -42,6 +44,7 @@
     "employees": "Employees",
     "feedback": "Feedback",
     "calendar": "Calendar",
+    "messages": "Messages",
     "platformAdmin": "Platform Admin"
   },
   "Navigation": {

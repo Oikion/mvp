@@ -4,12 +4,19 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import NewTaskCommentEmail from "@/emails/NewTaskComment";
 import resendHelper from "@/lib/resend";
 import { notifyTaskCommented } from "@/lib/notifications";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 export async function POST(req: Request, props: { params: Promise<{ taskId: string }> }) {
   const params = await props.params;
   const resend = await resendHelper();
   
   try {
+    // Permission check: Users need task:add_comment permission
+    const commentCheck = await canPerformAction("task:add_comment");
+    if (!commentCheck.allowed) {
+      return NextResponse.json({ error: commentCheck.reason }, { status: 403 });
+    }
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();

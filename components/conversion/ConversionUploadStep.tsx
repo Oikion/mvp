@@ -197,7 +197,7 @@ export function ConversionUploadStep({
               border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
               transition-colors duration-200
               ${isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50"}
-              ${isUploaded ? "border-green-500/50 bg-green-500/10" : ""}
+              ${isUploaded ? "border-success/50 bg-success/10" : ""}
               ${isProcessing ? "opacity-50 pointer-events-none" : ""}
             `}
           >
@@ -205,7 +205,7 @@ export function ConversionUploadStep({
             
             {isUploaded ? (
               <div className="space-y-2">
-                <CheckCircle2 className="h-12 w-12 mx-auto text-green-500" />
+                <CheckCircle2 className="h-12 w-12 mx-auto text-success" />
                 <p className="font-medium">{fileName}</p>
                 <div className="flex items-center justify-center gap-2">
                   <Badge variant="secondary">

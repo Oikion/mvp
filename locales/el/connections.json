@@ -44,6 +44,7 @@
   },
   "actions": {
     "viewProfile": "Προβολή Προφίλ",
+    "message": "Μήνυμα",
     "shareEntity": "Κοινοποίηση",
     "removeConnection": "Αφαίρεση Σύνδεσης",
     "cancelRequest": "Ακύρωση Αιτήματος",

@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { ReferralStatus, PayoutStatus } from "@prisma/client";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export interface ReferralData {
   id: string;
@@ -62,6 +63,23 @@ function maskEmail(email: string): string {
  * Get all referrals for the current user
  */
 export async function getUserReferrals(): Promise<UserReferralsResult> {
+  // Check permission to view referrals
+  const guard = await requireAction("referral:view");
+  if (guard) {
+    return {
+      referrals: [],
+      stats: {
+        totalReferrals: 0,
+        convertedReferrals: 0,
+        pendingReferrals: 0,
+        totalEarnings: 0,
+        pendingEarnings: 0,
+        paidEarnings: 0,
+      },
+      payouts: [],
+    };
+  }
+
   const user = await getCurrentUser();
 
   // Get user's referral code with referrals

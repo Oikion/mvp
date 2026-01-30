@@ -1,6 +1,7 @@
 import sharp from "sharp";
 import { gzip } from "node:zlib";
 import { promisify } from "node:util";
+import { optimize as svgoOptimize } from "svgo";
 
 const gzipAsync = promisify(gzip);
 
@@ -367,6 +368,128 @@ export async function compressTextFile(
 }
 
 // ============================================
+// SVG COMPRESSION (SVGO)
+// ============================================
+
+/** SVG MIME type */
+const SVG_TYPE = "image/svg+xml";
+
+export interface SvgCompressionResult {
+  /** Compressed buffer */
+  buffer: Buffer;
+  /** Output MIME type (always image/svg+xml) */
+  mimeType: string;
+  /** Original file size in bytes */
+  originalSize: number;
+  /** Compressed file size in bytes */
+  compressedSize: number;
+  /** Whether the SVG was actually compressed */
+  wasCompressed: boolean;
+}
+
+/**
+ * Check if a MIME type is SVG
+ */
+export function isSvg(mimeType: string): boolean {
+  return mimeType.toLowerCase() === SVG_TYPE;
+}
+
+/**
+ * Compress an SVG file using SVGO.
+ *
+ * - Removes unnecessary metadata and comments
+ * - Optimizes paths and shapes
+ * - Minifies the output
+ * - Only uses compressed version if it's smaller
+ *
+ * @param buffer - The SVG buffer to compress
+ * @param mimeType - The MIME type (must be image/svg+xml)
+ * @returns Compressed SVG data with metadata
+ */
+export async function compressSvg(
+  buffer: Buffer,
+  mimeType: string
+): Promise<SvgCompressionResult> {
+  const originalSize = buffer.length;
+  const normalizedMimeType = mimeType.toLowerCase();
+
+  // Return original for non-SVG files
+  if (!isSvg(normalizedMimeType)) {
+    return {
+      buffer,
+      mimeType,
+      originalSize,
+      compressedSize: originalSize,
+      wasCompressed: false,
+    };
+  }
+
+  try {
+    // Convert buffer to string for SVGO
+    const svgString = buffer.toString("utf-8");
+
+    // Optimize SVG with SVGO
+    const result = svgoOptimize(svgString, {
+      multipass: true, // Run multiple passes for better optimization
+      plugins: [
+        {
+          name: "preset-default",
+          params: {
+            overrides: {
+              // Keep viewBox for proper scaling
+              removeViewBox: false,
+              // Keep IDs that might be referenced
+              cleanupIds: {
+                remove: false,
+                minify: true,
+              },
+            },
+          },
+        },
+        // Remove comments
+        "removeComments",
+        // Remove metadata
+        "removeMetadata",
+        // Remove editor-specific elements
+        "removeEditorsNSData",
+        // Sort attributes for better gzip compression
+        "sortAttrs",
+      ],
+    });
+
+    const compressedBuffer = Buffer.from(result.data, "utf-8");
+
+    // Only use compressed version if it's actually smaller
+    if (compressedBuffer.length >= originalSize) {
+      return {
+        buffer,
+        mimeType,
+        originalSize,
+        compressedSize: originalSize,
+        wasCompressed: false,
+      };
+    }
+
+    return {
+      buffer: compressedBuffer,
+      mimeType: SVG_TYPE,
+      originalSize,
+      compressedSize: compressedBuffer.length,
+      wasCompressed: true,
+    };
+  } catch (error) {
+    console.error("[SVG_COMPRESSION] Failed to compress SVG:", error);
+    return {
+      buffer,
+      mimeType,
+      originalSize,
+      compressedSize: originalSize,
+      wasCompressed: false,
+    };
+  }
+}
+
+// ============================================
 // UNIFIED FILE COMPRESSION
 // ============================================
 
@@ -384,16 +507,18 @@ export interface FileCompressionResult {
   /** Whether the file was compressed */
   wasCompressed: boolean;
   /** Type of compression applied */
-  compressionType: "image" | "text" | "none";
+  compressionType: "image" | "svg" | "text" | "none";
 }
 
 /**
  * Compress any file - automatically detects type and applies appropriate compression.
- * 
- * - Images: Sharp compression with resize and WebP conversion
- * - Text files: Gzip compression
- * - Other files: No compression
- * 
+ *
+ * - Images (JPEG, PNG, WebP): Sharp compression with resize and WebP conversion
+ * - SVG: SVGO minification
+ * - GIFs: Pass through (preserve animation)
+ * - Text files (CSV, JSON, XML, etc.): Gzip compression (if >1KB)
+ * - Other files (PDF, Office, Archives): Pass through unchanged
+ *
  * @param buffer - The file buffer to compress
  * @param mimeType - The MIME type of the input file
  * @param fileName - The original filename
@@ -408,7 +533,7 @@ export async function compressFile(
 ): Promise<FileCompressionResult> {
   const normalizedMimeType = mimeType.toLowerCase();
 
-  // Try image compression first
+  // Try image compression first (JPEG, PNG, WebP)
   if (isCompressibleImage(normalizedMimeType)) {
     const result = await compressImageWithPreset(buffer, mimeType, imagePreset);
     return {
@@ -419,6 +544,20 @@ export async function compressFile(
       compressedSize: result.compressedSize,
       wasCompressed: result.wasCompressed,
       compressionType: result.wasCompressed ? "image" : "none",
+    };
+  }
+
+  // Try SVG compression
+  if (isSvg(normalizedMimeType)) {
+    const result = await compressSvg(buffer, mimeType);
+    return {
+      buffer: result.buffer,
+      mimeType: result.mimeType,
+      fileName, // SVG filename stays the same
+      originalSize: result.originalSize,
+      compressedSize: result.compressedSize,
+      wasCompressed: result.wasCompressed,
+      compressionType: result.wasCompressed ? "svg" : "none",
     };
   }
 
@@ -436,7 +575,7 @@ export async function compressFile(
     };
   }
 
-  // Return original for other file types (GIF, PDF, etc.)
+  // Return original for other file types (GIF, PDF, Office docs, Archives, etc.)
   return {
     buffer,
     mimeType,

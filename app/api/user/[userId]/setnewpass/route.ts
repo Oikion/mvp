@@ -38,7 +38,7 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
   }
 
   try {
-    const newUserPass = await prismadb.users.update({
+    await prismadb.users.update({
       data: {
         password: await hash(password, 10),
       },
@@ -47,8 +47,14 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
       },
     });
 
-    return NextResponse.json(newUserPass);
+    // SECURITY: Only return success indicator, not the user object
+    // Returning the user object would expose the password hash and other sensitive data
+    return NextResponse.json({ 
+      success: true, 
+      message: "Password updated successfully" 
+    });
   } catch (error) {
-    return new NextResponse("Initial error", { status: 500 });
+    console.error("[SET_NEW_PASS_ERROR]", error);
+    return new NextResponse("Failed to update password", { status: 500 });
   }
 }

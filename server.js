@@ -34,9 +34,11 @@ const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
+  let server;
+  
   if (httpsOptions) {
     // HTTPS server
-    createServer(httpsOptions, async (req, res) => {
+    server = createServer(httpsOptions, async (req, res) => {
       try {
         const parsedUrl = parse(req.url, true);
         await handle(req, res, parsedUrl);
@@ -45,14 +47,16 @@ app.prepare().then(() => {
         res.statusCode = 500;
         res.end('internal server error');
       }
-    }).listen(port, (err) => {
+    });
+    
+    server.listen(port, (err) => {
       if (err) throw err;
       console.log(`> Ready on https://${hostname}:${port}`);
     });
   } else {
     // Fallback to HTTP if certificates not found
     const http = require('http');
-    http.createServer(async (req, res) => {
+    server = http.createServer(async (req, res) => {
       try {
         const parsedUrl = parse(req.url, true);
         await handle(req, res, parsedUrl);
@@ -61,7 +65,9 @@ app.prepare().then(() => {
         res.statusCode = 500;
         res.end('internal server error');
       }
-    }).listen(port, (err) => {
+    });
+    
+    server.listen(port, (err) => {
       if (err) throw err;
       console.log(`> Ready on http://${hostname}:${port}`);
       console.log('⚠ Running on HTTP - CAPTCHA may not work properly');

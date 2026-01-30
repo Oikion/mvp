@@ -5,9 +5,14 @@ import { Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { DataTableRowActions, QuickAction } from "@/components/ui/data-table/data-table-row-actions";
-import RightViewModalNoTrigger from "@/components/modals/right-view-notrigger";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { UpdateContactForm } from "../components/UpdateContactForm";
-import { Edit } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface ContactRowActionsProps {
@@ -21,13 +26,13 @@ interface ContactRowActionsProps {
 
 /**
  * Contact-specific row actions using the unified DataTableRowActions component.
- * Provides: View, Edit (inline modal), Schedule Event, Share, Delete
+ * Provides: View, Edit (inline sheet), Schedule Event, Share, Delete
  */
 export function ContactRowActions({ row }: ContactRowActionsProps) {
   const router = useRouter();
   const t = useTranslations("common");
   const data = row.original;
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
   
   const contactName = data.first_name 
     ? `${data.first_name} ${data.last_name || ""}`.trim()
@@ -37,7 +42,7 @@ export function ContactRowActions({ row }: ContactRowActionsProps) {
     await axios.delete(`/api/crm/contacts/${data.id}`);
   };
 
-  // Custom action to open edit modal inline (contact-specific behavior)
+  // Custom action to open edit sheet inline (contact-specific behavior)
   const customActions: QuickAction[] = [];
 
   return (
@@ -48,7 +53,7 @@ export function ContactRowActions({ row }: ContactRowActionsProps) {
         entityId={data.id}
         entityName={contactName}
         onView={() => router.push(`/app/crm/contacts/${data.id}`)}
-        onEdit={() => setEditModalOpen(true)}
+        onEdit={() => setEditSheetOpen(true)}
         onDelete={handleDelete}
         onSchedule={true}
         onShare={true}
@@ -56,15 +61,18 @@ export function ContactRowActions({ row }: ContactRowActionsProps) {
         onActionComplete={() => router.refresh()}
       />
       
-      {/* Inline Edit Modal for Contacts */}
-      <RightViewModalNoTrigger
-        title={`${t("update")} Contact - ${contactName}`}
-        description="Update contact details"
-        open={editModalOpen}
-        setOpen={setEditModalOpen}
-      >
-        <UpdateContactForm initialData={row.original} setOpen={setEditModalOpen} />
-      </RightViewModalNoTrigger>
+      {/* Inline Edit Sheet for Contacts - Using standardized Sheet component */}
+      <Sheet open={editSheetOpen} onOpenChange={setEditSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{`${t("update")} Contact - ${contactName}`}</SheetTitle>
+            <SheetDescription>Update contact details</SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <UpdateContactForm initialData={row.original} setOpen={setEditSheetOpen} />
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

@@ -226,7 +226,7 @@ export function BuilderSidebar({
                     className={cn(
                       "h-full transition-all duration-300 rounded-full",
                       filledRequired === requiredFields.length
-                        ? "bg-green-500"
+                        ? "bg-success"
                         : "bg-primary"
                     )}
                     style={{
@@ -267,14 +267,14 @@ export function BuilderSidebar({
                             }}
                           >
                             {isFilled ? (
-                              <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
+                              <Check className="h-3 w-3 text-success flex-shrink-0" />
                             ) : (
                               <Circle
                                 className={cn(
                                   "h-3 w-3 flex-shrink-0",
                                   field.required
                                     ? "text-orange-400"
-                                    : "text-slate-300 dark:text-slate-600"
+                                    : "text-slate-300 dark:text-muted-foreground"
                                 )}
                               />
                             )}

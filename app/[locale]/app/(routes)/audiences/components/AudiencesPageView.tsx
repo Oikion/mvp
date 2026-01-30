@@ -45,17 +45,17 @@ export function AudiencesPageView({
     <div className="space-y-6">
       <Tabs defaultValue="all" className="space-y-6">
         <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="all" className="gap-2">
-              <Users className="h-4 w-4" />
+          <TabsList className="inline-grid grid-cols-3">
+            <TabsTrigger value="all">
+              <Users className="h-4 w-4 shrink-0" />
               {t.tabs.all} ({allAudiences.length})
             </TabsTrigger>
-            <TabsTrigger value="personal" className="gap-2">
-              <Users className="h-4 w-4" />
+            <TabsTrigger value="personal">
+              <Users className="h-4 w-4 shrink-0" />
               {t.tabs.personal} ({personalAudiences.length})
             </TabsTrigger>
-            <TabsTrigger value="org" className="gap-2">
-              <Building2 className="h-4 w-4" />
+            <TabsTrigger value="org">
+              <Building2 className="h-4 w-4 shrink-0" />
               {t.tabs.organization} ({orgAudiences.length})
             </TabsTrigger>
           </TabsList>

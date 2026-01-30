@@ -2,12 +2,17 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 // System-level organization ID for platform admin notifications
 const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
 
 export async function markNotificationRead(notificationId: string) {
   try {
+    // Check permission to mark notifications as read
+    const guard = await requireAction("notification:mark_read");
+    if (guard) throw new Error(guard.error);
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 
@@ -50,6 +55,10 @@ export async function markNotificationRead(notificationId: string) {
 
 export async function markAllNotificationsRead() {
   try {
+    // Check permission to mark notifications as read
+    const guard = await requireAction("notification:mark_read");
+    if (guard) throw new Error(guard.error);
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 

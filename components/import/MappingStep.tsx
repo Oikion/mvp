@@ -95,9 +95,9 @@ export function MappingStep({
     <div className="space-y-6">
       {/* Missing Required Fields Warning */}
       {missingRequired.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/10">
+        <Card className="border-warning/30 bg-warning/10">
           <CardContent className="flex items-start gap-3 py-4">
-            <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
             <div>
               <p className="font-medium text-sm">
                 {dict.required}: {missingRequired.length} field(s) not mapped
@@ -139,7 +139,7 @@ export function MappingStep({
                         <div className="flex items-center gap-2">
                           {header}
                           {currentMapping && (
-                            <Check className="h-4 w-4 text-green-500" />
+                            <Check className="h-4 w-4 text-success" />
                           )}
                         </div>
                       </TableCell>

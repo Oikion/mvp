@@ -1,6 +1,25 @@
 import { NextResponse } from "next/server";
 import { getUpcomingReminders, sendReminderNotification } from "@/lib/calendar-reminders";
 import { prismadb } from "@/lib/prisma";
+import { timingSafeEqual } from "crypto";
+
+/**
+ * Timing-safe comparison for cron authentication tokens
+ * Prevents timing attacks that could leak the secret
+ */
+function verifyAuthToken(provided: string | null, expected: string | undefined): boolean {
+  if (!provided || !expected) return false;
+  
+  const expectedBuffer = Buffer.from(`Bearer ${expected}`);
+  const providedBuffer = Buffer.from(provided);
+  
+  // Must be same length for timingSafeEqual
+  if (expectedBuffer.length !== providedBuffer.length) {
+    return false;
+  }
+  
+  return timingSafeEqual(expectedBuffer, providedBuffer);
+}
 
 /**
  * Cron endpoint to process pending reminders
@@ -9,9 +28,9 @@ import { prismadb } from "@/lib/prisma";
  */
 export async function GET(req: Request) {
   try {
-    // Verify this is a cron request (add auth header check if needed)
+    // Verify this is a cron request using timing-safe comparison
     const authHeader = req.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!verifyAuthToken(authHeader, process.env.CRON_SECRET)) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }

@@ -151,7 +151,7 @@ export function SignatureSection({
 export function DocumentFooter({ locale }: { readonly locale: "en" | "el" }) {
   const isGreek = locale === "el";
   return (
-    <div className="absolute bottom-[30px] left-[40px] right-[40px] text-center text-[9px] text-gray-400">
+    <div className="absolute bottom-[30px] left-[40px] right-[40px] text-center text-[9px] text-muted-foreground">
       {isGreek
         ? "Το παρόν έγγραφο δημιουργήθηκε μέσω της πλατφόρμας Oikion"
         : "This document was generated via the Oikion platform"}

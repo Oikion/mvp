@@ -2,6 +2,7 @@
 
 import { prismaForOrg } from "@/lib/tenant";
 import { getCurrentOrgId } from "@/lib/get-current-user";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export interface EventInviteeData {
   id: string;
@@ -19,6 +20,10 @@ export interface EventInviteeData {
 
 export async function getEventInvitees(eventId: string): Promise<EventInviteeData[]> {
   try {
+    // Check permission to read calendar events
+    const guard = await requireAction("calendar:read");
+    if (guard) return [];
+
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
 

@@ -5,7 +5,7 @@ import { invalidateCache } from "@/lib/cache-invalidate";
 import { notifyPropertyCreated, notifyPropertyWatchers } from "@/lib/notifications";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchPropertyWebhook } from "@/lib/webhooks";
-import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
+import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
@@ -217,9 +217,14 @@ function buildPropertyData(body: any, user: any, organizationId: string, isUpdat
 
 export async function POST(req: Request) {
   try {
-    // Permission check: Viewers cannot create properties
-    const permissionError = await requireCanModify();
-    if (permissionError) return permissionError;
+    // Permission check: Users need property:create permission
+    const createCheck = await canPerformAction("property:create");
+    if (!createCheck.allowed) {
+      return NextResponse.json(
+        { error: createCheck.reason || "Permission denied" },
+        { status: 403 }
+      );
+    }
 
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgIdSafe();
@@ -308,10 +313,6 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    // Permission check: Viewers cannot edit properties
-    const permissionError = await requireCanModify();
-    if (permissionError) return permissionError;
-
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgIdSafe();
     
@@ -344,9 +345,33 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Permission check: Members cannot change assigned agent
-    const assignedToError = await checkAssignedToChange(body, existingProperty.assigned_to);
-    if (assignedToError) return assignedToError;
+    // Permission check: Users need property:update permission (with ownership check)
+    const updateCheck = await canPerformActionOnEntity(
+      "property:update",
+      "property",
+      id,
+      existingProperty.assigned_to
+    );
+    if (!updateCheck.allowed) {
+      return NextResponse.json(
+        { error: updateCheck.reason || "Permission denied" },
+        { status: 403 }
+      );
+    }
+
+    // Permission check: Check if user can reassign agent
+    const assignedToError = body.assigned_to !== undefined && 
+      body.assigned_to !== existingProperty.assigned_to;
+    if (assignedToError) {
+      const reassignCheck = await canPerformAction("property:reassign_agent");
+      if (!reassignCheck.allowed) {
+        return NextResponse.json(
+          { error: "You do not have permission to change the assigned agent" },
+          { status: 403 }
+        );
+      }
+    }
+    if (assignedToErrorResponse) return assignedToErrorResponse;
 
     // Build validated data
     const data = buildPropertyData(body, user, organizationId, true);

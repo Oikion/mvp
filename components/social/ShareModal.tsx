@@ -17,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   User,
   Share2,
@@ -56,7 +56,7 @@ export function ShareModal({
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   // Use SWR for connections and audiences - only fetch when modal is open
   const { connections: rawConnections, isLoading: isLoadingConnections } = useConnections({
@@ -98,19 +98,11 @@ export function ShareModal({
     try {
       if (shareMode === "individual" && selectedUser) {
         await shareWithUser(entityType, entityId, selectedUser, permissions, message.trim() || undefined);
-        toast({
-          variant: "success",
-          title: "Shared Successfully",
-          description: `${entityName} has been shared.`,
-        });
+        toast.success("Shared Successfully", { description: `${entityName} has been shared.`, isTranslationKey: false });
       } else if (shareMode === "audience" && selectedAudience) {
         await shareWithAudience(entityType, entityId, selectedAudience, permissions, message.trim() || undefined);
         const audience = audiences.find((a) => a.id === selectedAudience);
-        toast({
-          variant: "success",
-          title: "Shared with Audience",
-          description: `${entityName} has been shared with "${audience?.name}" (${audience?.memberCount} members).`,
-        });
+        toast.success("Shared with Audience", { description: `${entityName} has been shared with "${audience?.name}" (${audience?.memberCount} members).`, isTranslationKey: false });
       }
 
       onOpenChange(false);
@@ -120,11 +112,7 @@ export function ShareModal({
       router.refresh();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to share";
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: message,
-      });
+      toast.error("Error", { description: message, isTranslationKey: false });
     }
   };
 
@@ -189,11 +177,11 @@ export function ShareModal({
             }}
           >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="individual" className="gap-2">
+              <TabsTrigger value="individual">
                 <User className="h-4 w-4" />
                 Individuals
               </TabsTrigger>
-              <TabsTrigger value="audience" className="gap-2">
+              <TabsTrigger value="audience">
                 <Users className="h-4 w-4" />
                 Audiences
               </TabsTrigger>

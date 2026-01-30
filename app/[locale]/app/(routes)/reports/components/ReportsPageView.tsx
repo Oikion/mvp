@@ -90,15 +90,11 @@ export function ReportsPageView({
 
       {/* Tabs */}
       <Tabs defaultValue="leads" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto gap-1 bg-muted/50 p-1">
+        <TabsList className="inline-grid grid-cols-3 lg:grid-cols-6">
           {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-            >
-              <tab.icon className="h-4 w-4" />
-              <span className="text-xs font-medium">{tab.label}</span>
+            <TabsTrigger key={tab.value} value={tab.value}>
+              <tab.icon className="h-4 w-4 shrink-0" />
+              <span className="hidden lg:inline truncate">{tab.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>

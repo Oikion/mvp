@@ -1,5 +1,6 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export interface DocumentFilters {
   clientId?: string;
@@ -10,6 +11,10 @@ export interface DocumentFilters {
 }
 
 export async function getDocuments(filters?: DocumentFilters) {
+  // Check permission to read documents
+  const guard = await requireAction("document:read");
+  if (guard) return [];
+
   const organizationId = await getCurrentOrgIdSafe();
   
   // Return empty array if no organization context (e.g., session not synced yet)

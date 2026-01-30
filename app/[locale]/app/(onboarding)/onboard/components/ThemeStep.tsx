@@ -42,7 +42,7 @@ const THEMES: {
   },
   {
     value: "system",
-    previewClass: "bg-gradient-to-r from-white to-slate-900 border-gray-300",
+    previewClass: "bg-gradient-to-r from-white to-slate-900 border-border",
   },
 ];
 

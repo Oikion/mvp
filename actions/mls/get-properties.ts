@@ -1,19 +1,32 @@
+"use server";
+
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { canPerformAction, getActionPermissionContext, getActionPermissionLevel } from "@/lib/permissions";
 
 export const getProperties = async () => {
+  // Permission check: Users need property:read permission
+  const permCheck = await canPerformAction("property:read");
+  if (!permCheck.allowed && !permCheck.requiresOwnership) {
+    return [];
+  }
+  
   const organizationId = await getCurrentOrgIdSafe();
   
   // Return empty array if no organization context (e.g., session not synced yet)
   if (!organizationId) {
     return [];
   }
-  const client: any = prismadb as any;
-  const delegate = client?.properties;
-  if (!delegate) {
-    return [] as any[];
+  
+  // Check if user can view all properties or only their own
+  const userContext = await getActionPermissionContext();
+  if (!userContext) {
+    return [];
   }
-  const data = await delegate.findMany({
+  const permissionLevel = await getActionPermissionLevel("property:read");
+  const canViewAll = permissionLevel === "all";
+  
+  const data = await prismadb.properties.findMany({
     where: { organizationId },
     include: {
       Users_Properties_assigned_toToUsers: { select: { name: true } },

@@ -5,7 +5,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -104,7 +104,7 @@ const STEPS = [
 
 export function NewAccountForm({ industries, users, onFinish }: Props) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [properties, setProperties] = useState<any[]>([]);
@@ -222,22 +222,14 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
         });
       }
 
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Client created successfully",
-      });
+      toast.success("Success", { description: "Client created successfully", isTranslationKey: false });
       form.reset();
       router.refresh();
       onFinish();
     } catch (error: any) {
       console.error("Error creating client:", error);
       const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || "Something went wrong. Please try again.";
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: typeof errorMessage === 'string' ? errorMessage : "Failed to create client. Please check all required fields.",
-      });
+      toast.error("Error", { description: typeof, isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -558,7 +550,7 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="h-full px-10">
-        <div className="w-[800px] text-sm">
+        <div className="w-full max-w-[800px] text-sm">
           {/* Step Indicator */}
           <div className="pb-6">
             <div className="flex items-start justify-between mb-4 relative">

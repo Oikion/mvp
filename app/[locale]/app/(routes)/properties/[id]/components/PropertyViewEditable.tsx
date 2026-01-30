@@ -548,12 +548,12 @@ export function PropertyViewEditable({
               </div>
               <div className="flex items-center gap-2">
                 {visibility === "PUBLIC" ? (
-                  <Badge className="bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/20">
+                  <Badge className="bg-success/15 text-success dark:text-green-400 hover:bg-success/20">
                     <Eye className="h-3 w-3 mr-1" />
                     Public
                   </Badge>
                 ) : visibility === "SELECTED" ? (
-                  <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20">
+                  <Badge className="bg-primary/15 text-primary dark:text-blue-400 hover:bg-primary/20">
                     <Users className="h-3 w-3 mr-1" />
                     Connections Only
                   </Badge>
@@ -606,7 +606,7 @@ export function PropertyViewEditable({
                   </code>
                   <Button variant="outline" size="sm" onClick={copyPublicUrl}>
                     {copied ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-success" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}

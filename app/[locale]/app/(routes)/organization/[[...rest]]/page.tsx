@@ -32,12 +32,12 @@ export default function OrganizationProfilePage() {
         </div>
 
         {isPersonalWorkspace && (
-          <Alert className="mb-6 border-amber-500/50 bg-amber-500/10">
-            <ShieldAlert className="h-4 w-4 text-amber-500" />
-            <AlertTitle className="text-amber-600 dark:text-amber-400">
+          <Alert className="mb-6 border-warning/50 bg-warning/10">
+            <ShieldAlert className="h-4 w-4 text-warning" />
+            <AlertTitle className="text-warning dark:text-amber-400">
               {t("protectedWorkspace")}
             </AlertTitle>
-            <AlertDescription className="text-amber-600/80 dark:text-amber-400/80">
+            <AlertDescription className="text-warning/80 dark:text-amber-400/80">
               {t("protectedWorkspaceDescription")}
             </AlertDescription>
           </Alert>

@@ -9,7 +9,36 @@ interface SWRProviderProps {
   children: ReactNode;
 }
 
-export function SWRProvider({ children }: SWRProviderProps) {
+/**
+ * Calculate exponential backoff delay
+ *
+ * @param retryCount - The current retry attempt (0-indexed)
+ * @param baseDelay - Base delay in ms (default: 1000ms)
+ * @param maxDelay - Maximum delay in ms (default: 30000ms / 30s)
+ * @returns Delay in milliseconds with jitter
+ *
+ * Formula: min(baseDelay * 2^retryCount + jitter, maxDelay)
+ * - Retry 0: ~1s (1000ms + jitter)
+ * - Retry 1: ~2s (2000ms + jitter)
+ * - Retry 2: ~4s (4000ms + jitter)
+ * - Retry 3: ~8s (8000ms + jitter)
+ */
+function getExponentialBackoffDelay(
+  retryCount: number,
+  baseDelay = 1000,
+  maxDelay = 30000
+): number {
+  // Calculate exponential delay: baseDelay * 2^retryCount
+  const exponentialDelay = baseDelay * Math.pow(2, retryCount);
+
+  // Add jitter (0-500ms) to prevent thundering herd
+  const jitter = Math.random() * 500;
+
+  // Cap at maxDelay
+  return Math.min(exponentialDelay + jitter, maxDelay);
+}
+
+export function SWRProvider({ children }: Readonly<SWRProviderProps>) {
   return (
     <SWRConfig
       value={{
@@ -43,9 +72,9 @@ export function SWRProvider({ children }: SWRProviderProps) {
 
           toast.error(message);
         },
-        // Retry on error (except 4xx errors)
+        // Retry on error with exponential backoff (except 4xx errors)
         onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
-          // Don't retry on 4xx errors
+          // Don't retry on 4xx client errors (these won't succeed on retry)
           if (error instanceof FetchError && error.status >= 400 && error.status < 500) {
             return;
           }
@@ -55,8 +84,17 @@ export function SWRProvider({ children }: SWRProviderProps) {
             return;
           }
 
-          // Retry after 5 seconds
-          setTimeout(() => revalidate({ retryCount }), 5000);
+          // Calculate delay with exponential backoff
+          // Retry 0: ~1s, Retry 1: ~2s, Retry 2: ~4s
+          const delay = getExponentialBackoffDelay(retryCount);
+
+          // Log retry attempt for debugging
+          console.log(
+            `SWR retry ${retryCount + 1}/3 in ${Math.round(delay)}ms`
+          );
+
+          // Retry after calculated delay
+          setTimeout(() => revalidate({ retryCount }), delay);
         },
       }}
     >

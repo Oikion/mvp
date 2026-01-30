@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 /**
  * POST /api/audiences/[id]/members
@@ -28,6 +29,16 @@ export async function POST(
 
     if (!audience) {
       return new NextResponse("Audience not found or no permission", { status: 404 });
+    }
+
+    // Permission check: Users need audience:update permission with ownership check
+    const updateCheck = await canPerformAction("audience:update", {
+      entityType: "audience" as any,
+      entityId: id,
+      ownerId: audience.createdById,
+    });
+    if (!updateCheck.allowed) {
+      return NextResponse.json({ error: updateCheck.reason }, { status: 403 });
     }
 
     const body = await req.json();
@@ -111,6 +122,16 @@ export async function DELETE(
 
     if (!audience) {
       return new NextResponse("Audience not found or no permission", { status: 404 });
+    }
+
+    // Permission check: Users need audience:update permission with ownership check
+    const updateCheck = await canPerformAction("audience:update", {
+      entityType: "audience" as any,
+      entityId: id,
+      ownerId: audience.createdById,
+    });
+    if (!updateCheck.allowed) {
+      return NextResponse.json({ error: updateCheck.reason }, { status: 403 });
     }
 
     const body = await req.json();

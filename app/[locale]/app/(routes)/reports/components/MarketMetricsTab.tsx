@@ -28,9 +28,9 @@ export function MarketMetricsTab({ data, dict }: MarketMetricsTabProps) {
 
   // Determine market type based on months of inventory
   const getMarketType = (months: number) => {
-    if (months < 4) return { label: "Seller's Market", color: "text-red-600" };
-    if (months < 6) return { label: "Balanced Market", color: "text-yellow-600" };
-    return { label: "Buyer's Market", color: "text-emerald-600" };
+    if (months < 4) return { label: "Seller's Market", color: "text-destructive" };
+    if (months < 6) return { label: "Balanced Market", color: "text-warning" };
+    return { label: "Buyer's Market", color: "text-success" };
   };
 
   const marketType = getMarketType(data.absorptionRate.monthsOfInventory);
@@ -172,16 +172,16 @@ export function MarketMetricsTab({ data, dict }: MarketMetricsTabProps) {
                 title=""
               />
               <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                <div className="p-2 rounded bg-red-50 dark:bg-red-950">
-                  <p className="text-lg font-bold text-red-600">{data.cmaAccuracy.overEstimated}</p>
+                <div className="p-2 rounded bg-destructive/10 dark:bg-red-950">
+                  <p className="text-lg font-bold text-destructive">{data.cmaAccuracy.overEstimated}</p>
                   <p className="text-xs text-muted-foreground">Over-estimated</p>
                 </div>
-                <div className="p-2 rounded bg-emerald-50 dark:bg-emerald-950">
-                  <p className="text-lg font-bold text-emerald-600">{data.cmaAccuracy.onTarget || 0}</p>
+                <div className="p-2 rounded bg-success/10 dark:bg-emerald-950">
+                  <p className="text-lg font-bold text-success">{data.cmaAccuracy.onTarget || 0}</p>
                   <p className="text-xs text-muted-foreground">On Target</p>
                 </div>
-                <div className="p-2 rounded bg-blue-50 dark:bg-blue-950">
-                  <p className="text-lg font-bold text-blue-600">{data.cmaAccuracy.underEstimated}</p>
+                <div className="p-2 rounded bg-primary/10 dark:bg-blue-950">
+                  <p className="text-lg font-bold text-primary">{data.cmaAccuracy.underEstimated}</p>
                   <p className="text-xs text-muted-foreground">Under-estimated</p>
                 </div>
               </div>

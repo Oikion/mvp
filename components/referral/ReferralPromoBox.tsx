@@ -82,40 +82,44 @@ export function ReferralPromoBox({
       <div className="mx-2 mb-2">
         <div
           className={cn(
-            "relative overflow-hidden rounded-lg",
-            "bg-gradient-to-br from-primary/10 via-primary/5 to-transparent",
-            "border border-primary/20",
-            "p-3"
+            "relative overflow-hidden rounded-xl",
+            "bg-gradient-to-br from-violet-600/20 via-primary/15 to-fuchsia-500/10",
+            "dark:from-violet-500/25 dark:via-primary/20 dark:to-fuchsia-400/15",
+            "border border-primary/20 dark:border-primary/30",
+            "p-3 backdrop-blur-sm"
           )}
         >
+          {/* Gradient overlay for extra depth */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent pointer-events-none" />
+          
           {/* Dismiss button */}
           <button
             onClick={handleDismissClick}
-            className="absolute top-2 right-2 p-1 rounded-full hover:bg-primary/10 transition-colors"
+            className="absolute top-2 right-2 z-10 p-1 rounded-full hover:bg-primary/10 transition-colors"
             aria-label="Dismiss"
           >
             <X className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
 
           {/* Content */}
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
+          <div className="relative z-10 flex items-start gap-2.5">
+            <div className="flex-shrink-0 p-2 rounded-lg bg-gradient-to-br from-primary/20 to-violet-500/20">
               <Gift className="h-4 w-4 text-primary" />
             </div>
-            <div className="flex-1 min-w-0 pr-4">
-              <h4 className="text-sm font-semibold text-foreground mb-0.5">
+            <div className="flex-1 min-w-0 pr-3">
+              <h4 className="text-sm font-semibold text-foreground leading-tight mb-0.5">
                 {t("promoBox.title")}
               </h4>
-              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+              <p className="text-[11px] text-muted-foreground mb-2 leading-snug line-clamp-2">
                 {t("promoBox.description")}
               </p>
 
               {/* Commission highlight */}
-              <div className="flex items-baseline gap-1.5 mb-3">
-                <span className="text-2xl font-bold text-primary">
+              <div className="flex items-baseline gap-1 mb-2.5 flex-wrap">
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
                   {t("promoBox.commission")}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[10px] text-muted-foreground leading-tight">
                   {t("promoBox.commissionLabel")}
                 </span>
               </div>
@@ -124,10 +128,10 @@ export function ReferralPromoBox({
               <Link href="/app/referral-portal" className="block">
                 <Button
                   size="sm"
-                  className="w-full h-8 text-xs gap-1.5"
+                  className="w-full h-auto min-h-8 py-1.5 text-xs gap-1.5 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-medium"
                 >
-                  {t("promoBox.cta")}
-                  <ArrowRight className="h-3 w-3" />
+                  <span className="text-center leading-tight">{t("promoBox.cta")}</span>
+                  <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" />
                 </Button>
               </Link>
             </div>

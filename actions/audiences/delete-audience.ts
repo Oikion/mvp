@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
+import { requireActionOnEntity } from "@/lib/permissions/action-guards";
 
 export interface DeleteAudienceResult {
   success: boolean;
@@ -35,6 +36,15 @@ export async function deleteAudience(
     if (!audience) {
       return { success: false, error: "Audience not found or no permission to delete" };
     }
+
+    // Permission check: Users need audience:delete permission with ownership check
+    const guard = await requireActionOnEntity(
+      "audience:delete",
+      "audience" as any,
+      audienceId,
+      audience.createdById
+    );
+    if (guard) return guard;
 
     // Delete the audience (cascade deletes memberships due to onDelete: Cascade)
     await prismadb.audience.delete({

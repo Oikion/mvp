@@ -1,5 +1,9 @@
 import useSWRInfinite from "swr/infinite";
 import fetcher from "@/lib/fetcher";
+import {
+  buildPaginatedUrl,
+  DEFAULT_PAGE_SIZE,
+} from "@/lib/pagination";
 
 interface Contact {
   first_name?: string;
@@ -18,6 +22,11 @@ interface ClientData {
   updatedAt: string;
 }
 
+/**
+ * API response format for paginated clients.
+ * Note: Uses legacy format { items, nextCursor, hasMore } for backward compatibility.
+ * New APIs should use { items, pagination: { nextCursor, hasMore, limit } }
+ */
 interface PaginatedResponse {
   items: ClientData[];
   nextCursor: string | null;
@@ -58,20 +67,9 @@ interface UseClientsPaginatedOptions {
  * ```
  */
 export function useClientsPaginated(options: UseClientsPaginatedOptions = {}) {
-  const { limit = 50, status, search, enabled = true } = options;
+  const { limit = DEFAULT_PAGE_SIZE, status, search, enabled = true } = options;
 
-  // Build query string
-  const buildQueryString = (params: Record<string, string | number | undefined>) => {
-    const queryParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        queryParams.append(key, String(value));
-      }
-    });
-    return queryParams.toString();
-  };
-
-  // Key generator for SWR infinite
+  // Key generator for SWR infinite using shared pagination utilities
   const getKey = (pageIndex: number, previousPageData: PaginatedResponse | null) => {
     // Reached the end
     if (previousPageData && !previousPageData.hasMore) return null;
@@ -81,16 +79,14 @@ export function useClientsPaginated(options: UseClientsPaginatedOptions = {}) {
 
     // First page
     if (pageIndex === 0) {
-      const query = buildQueryString({ limit, status, search });
-      return `/api/crm/clients${query ? `?${query}` : ""}`;
+      return buildPaginatedUrl("/api/crm/clients", { limit }, { status, search });
     }
 
     // Subsequent pages with cursor
     const cursor = previousPageData?.nextCursor;
     if (!cursor) return null;
 
-    const query = buildQueryString({ limit, status, search, cursor });
-    return `/api/crm/clients?${query}`;
+    return buildPaginatedUrl("/api/crm/clients", { cursor, limit }, { status, search });
   };
 
   const {

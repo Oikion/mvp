@@ -18,9 +18,9 @@ interface TemplateCardProps {
 }
 
 const templateIcons: Record<TemplateType, React.ReactNode> = {
-  BROKERAGE_MANDATE: <FileText className="h-8 w-8 text-blue-500" />,
-  LEASE_AGREEMENT: <FileText className="h-8 w-8 text-green-500" />,
-  HANDOVER_PROTOCOL: <FileText className="h-8 w-8 text-orange-500" />,
+  BROKERAGE_MANDATE: <FileText className="h-8 w-8 text-primary" />,
+  LEASE_AGREEMENT: <FileText className="h-8 w-8 text-success" />,
+  HANDOVER_PROTOCOL: <FileText className="h-8 w-8 text-warning" />,
   VIEWING_CONFIRMATION: <FileText className="h-8 w-8 text-purple-500" />,
 };
 

@@ -82,7 +82,7 @@ export function ClientMetricsTab({ data, dict }: ClientMetricsTabProps) {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Referral Revenue</p>
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-2xl font-bold text-success">
                   €{data.referralRate.referralValue.toLocaleString()}
                 </p>
               </div>
@@ -104,7 +104,7 @@ export function ClientMetricsTab({ data, dict }: ClientMetricsTabProps) {
               </div>
               <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full bg-emerald-500 rounded-full"
+                  className="h-full bg-success rounded-full"
                   style={{
                     width: `${data.referralRate.totalValue > 0
                       ? (data.referralRate.referralValue / data.referralRate.totalValue) * 100

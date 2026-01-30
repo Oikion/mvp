@@ -152,6 +152,39 @@
     "canComment": "Can comment",
     "viewOnly": "View only",
     "viewProfile": "View Profile"
+  },
+  "formSubmissions": {
+    "title": "Contact Form Submissions",
+    "description": "Manage messages from your profile contact form",
+    "status": {
+      "all": "All",
+      "new": "New",
+      "read": "Read",
+      "contacted": "Contacted",
+      "archived": "Archived"
+    },
+    "actions": {
+      "view": "View",
+      "markAsContacted": "Mark as contacted",
+      "archive": "Archive",
+      "delete": "Delete",
+      "sendEmail": "Send Email",
+      "saveNotes": "Save"
+    },
+    "empty": {
+      "title": "No submissions",
+      "description": "Submissions from your contact form will appear here."
+    },
+    "detail": {
+      "formDetails": "Form Details",
+      "notes": "Notes",
+      "notesPlaceholder": "Add notes..."
+    },
+    "toast": {
+      "statusUpdated": "Status updated",
+      "deleted": "Deleted",
+      "notesSaved": "Notes saved"
+    }
   }
 }
 

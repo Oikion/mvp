@@ -3,9 +3,16 @@ import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { TemplateType } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { getTemplateDefinition, autoFillPlaceholders } from "@/lib/templates";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 export async function POST(req: Request) {
   try {
+    // Permission check: Users need template:use permission
+    const useCheck = await canPerformAction("template:use");
+    if (!useCheck.allowed) {
+      return NextResponse.json({ error: useCheck.reason }, { status: 403 });
+    }
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgIdSafe();
 

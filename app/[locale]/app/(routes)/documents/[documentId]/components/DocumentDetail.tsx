@@ -111,7 +111,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
       </div>
 
       <Tabs defaultValue={activeTab} className="w-full">
-        <TabsList>
+        <TabsList className="inline-grid grid-cols-3">
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="share">Share</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>

@@ -14,6 +14,7 @@ import {
   Loader2,
   ChevronDown,
   MessageSquareText,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,6 +40,9 @@ interface NotificationCenterProps {
 const getNotificationIcon = (type: string) => {
   if (type.includes("CALENDAR") || type.includes("REMINDER")) {
     return Calendar;
+  }
+  if (type.includes("ORGANIZATION_INVITE")) {
+    return Users;
   }
   if (type.includes("ACCOUNT")) {
     return Building2;
@@ -116,6 +120,10 @@ export function NotificationCenter({ initialNotifications, dict }: NotificationC
         break;
       case "FEEDBACK":
         router.push(`/app/feedback/${notification.entityId}`);
+        break;
+      case "ORGANIZATION":
+        // Navigate to organization settings where user can manage organizations
+        router.push(`/app/organization`);
         break;
       default:
         break;

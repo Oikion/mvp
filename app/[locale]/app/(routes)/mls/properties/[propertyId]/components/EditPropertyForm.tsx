@@ -819,59 +819,59 @@ export function EditPropertyForm({ initialData }: { initialData: any }) {
             </div>
 
             {/* Vertical Sidebar */}
-            <aside className="w-64 flex-shrink-0 border-l bg-muted/30 p-4">
+            <aside className="w-64 flex-shrink-0 border-l bg-sidebar-accent/30 p-4">
               <TabsList className="flex flex-col h-auto w-full gap-1 bg-transparent p-0">
                 <TabsTrigger 
                   value="basics" 
-                  className="w-full justify-start h-auto py-2.5 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
                 >
                   {t("PropertyForm.steps.basics", "Βασικά")}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="location" 
-                  className="w-full justify-start h-auto py-2.5 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
                 >
                   {t("PropertyForm.steps.location", "Τοποθεσία")}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="surfaces" 
-                  className="w-full justify-start h-auto py-2.5 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
                 >
                   {t("PropertyForm.steps.surfaces", "Επιφάνειες")}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="characteristics" 
-                  className="w-full justify-start h-auto py-2.5 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
                 >
                   {t("PropertyForm.steps.characteristics", "Χαρακτηριστικά")}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="condition" 
-                  className="w-full justify-start h-auto py-2.5 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
                 >
                   {t("PropertyForm.steps.condition", "Κατάσταση")}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="legal" 
-                  className="w-full justify-start h-auto py-2.5 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
                 >
                   {t("PropertyForm.steps.legal", "Νομιμότητα")}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="amenities" 
-                  className="w-full justify-start h-auto py-2.5 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
                 >
                   {t("PropertyForm.steps.amenities", "Παροχές")}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="pricing" 
-                  className="w-full justify-start h-auto py-2.5 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
                 >
                   {t("PropertyForm.steps.pricing", "Τιμή")}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="media" 
-                  className="w-full justify-start h-auto py-2.5 px-3 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
                 >
                   {t("PropertyForm.steps.media", "Media")}
                 </TabsTrigger>

@@ -17,6 +17,10 @@ export const ENTITY_PREFIXES = {
   Notification: "ntf",
   SocialPost: "post",
   Audience: "aud",
+  // Messaging entities
+  Channel: "chn",
+  Conversation: "cnv",
+  Message: "msg",
 } as const;
 
 export type EntityType = keyof typeof ENTITY_PREFIXES;

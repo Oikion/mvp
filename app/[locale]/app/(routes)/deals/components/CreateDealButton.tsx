@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   Plus,
   Loader2,
@@ -79,7 +79,7 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
   const [notes, setNotes] = useState<string>("");
 
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   useEffect(() => {
     if (open) {
@@ -108,11 +108,7 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
 
   const handleCreate = async () => {
     if (!selectedProperty || !selectedClient || !selectedConnection) {
-      toast({
-        variant: "destructive",
-        title: t.createDialog.missingInfo,
-        description: t.createDialog.missingInfoDescription,
-      });
+      toast.error(t.createDialog.missingInfo, { description: t.createDialog.missingInfoDescription, isTranslationKey: false });
       return;
     }
 
@@ -143,11 +139,7 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
             : payload.clientAgentId,
       });
 
-      toast({
-        variant: "success",
-        title: t.toast.dealProposed,
-        description: t.toast.dealProposedDesc,
-      });
+      toast.success(t.toast.dealProposed, { description: t.toast.dealProposedDesc, isTranslationKey: false });
 
       setOpen(false);
       resetForm();
@@ -362,7 +354,7 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
               </div>
               <div className="flex justify-between text-sm">
                 <div className="text-center">
-                  <p className="font-semibold text-blue-600">
+                  <p className="font-semibold text-primary">
                     {amIPropertyAgent ? split : 100 - split}%
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -370,7 +362,7 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold text-green-600">
+                  <p className="font-semibold text-success">
                     {amIPropertyAgent ? 100 - split : split}%
                   </p>
                   <p className="text-xs text-muted-foreground">

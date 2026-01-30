@@ -2,32 +2,25 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 /**
- * Calculate total revenue from all active properties
+ * Calculate total revenue from commissions on completed (sold) deals
  */
 export const getTotalRevenue = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return 0;
 
-  const client: any = prismadb as any;
-  const delegate = client?.properties;
-  if (!delegate) {
-    return 0;
-  }
-
-  const properties = await delegate.findMany({
+  const completedDeals = await prismadb.deal.findMany({
     where: {
       organizationId,
-      property_status: {
-        in: ["ACTIVE", "PENDING", "SOLD"],
-      },
+      status: "COMPLETED",
     },
     select: {
-      price: true,
+      totalCommission: true,
     },
   });
 
-  const totalRevenue = properties.reduce((sum: number, property: any) => {
-    return sum + (property.price || 0);
+  const totalRevenue = completedDeals.reduce((sum: number, deal: any) => {
+    const commission = deal.totalCommission ? Number(deal.totalCommission) : 0;
+    return sum + commission;
   }, 0);
 
   return totalRevenue;
@@ -35,60 +28,51 @@ export const getTotalRevenue = async () => {
 
 /**
  * Calculate revenue trend comparing current month to previous month
+ * Based on commissions from completed deals
  */
 export const getRevenueTrend = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return { value: 0, direction: "neutral" as const };
-
-  const client: any = prismadb as any;
-  const delegate = client?.properties;
-  if (!delegate) {
-    return { value: 0, direction: "neutral" as const };
-  }
 
   const now = new Date();
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-  const [currentMonthProperties, previousMonthProperties] = await Promise.all([
-    delegate.findMany({
+  const [currentMonthDeals, previousMonthDeals] = await Promise.all([
+    prismadb.deal.findMany({
       where: {
         organizationId,
-        createdAt: {
+        status: "COMPLETED",
+        closedAt: {
           gte: currentMonthStart,
-        },
-        property_status: {
-          in: ["ACTIVE", "PENDING", "SOLD"],
         },
       },
       select: {
-        price: true,
+        totalCommission: true,
       },
     }),
-    delegate.findMany({
+    prismadb.deal.findMany({
       where: {
         organizationId,
-        createdAt: {
+        status: "COMPLETED",
+        closedAt: {
           gte: previousMonthStart,
           lte: previousMonthEnd,
         },
-        property_status: {
-          in: ["ACTIVE", "PENDING", "SOLD"],
-        },
       },
       select: {
-        price: true,
+        totalCommission: true,
       },
     }),
   ]);
 
-  const currentRevenue = currentMonthProperties.reduce(
-    (sum: number, p: any) => sum + (p.price || 0),
+  const currentRevenue = currentMonthDeals.reduce(
+    (sum: number, deal: any) => sum + (deal.totalCommission ? Number(deal.totalCommission) : 0),
     0
   );
-  const previousRevenue = previousMonthProperties.reduce(
-    (sum: number, p: any) => sum + (p.price || 0),
+  const previousRevenue = previousMonthDeals.reduce(
+    (sum: number, deal: any) => sum + (deal.totalCommission ? Number(deal.totalCommission) : 0),
     0
   );
 

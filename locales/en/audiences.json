@@ -50,10 +50,12 @@
     "allMembersAdded": "All clients are already members",
     "add": "Add",
     "done": "Done",
-    "addClient": "Add Client"
+    "addClient": "Add Client",
+    "messageMember": "Message"
   },
   "actions": {
     "manageMembers": "Manage Members",
+    "messageAudience": "Message Audience",
     "syncOrgMembers": "Sync Org Members",
     "delete": "Delete"
   },
@@ -82,7 +84,8 @@
     "errorDelete": "Failed to delete audience",
     "errorAddMember": "Failed to add member",
     "errorRemoveMember": "Failed to remove member",
-    "errorSync": "Failed to sync organization members"
+    "errorSync": "Failed to sync organization members",
+    "noMembers": "This audience has no members to message"
   }
 }
 

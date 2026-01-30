@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useWorkspaceContext } from "@/hooks/use-workspace-context";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { cn } from "@/lib/utils";
 import { Building2, User, Settings } from "lucide-react";
 import Link from "next/link";
@@ -22,7 +22,7 @@ export function WorkspaceToggle() {
     userMemberships: { infinite: true },
   });
   const { isPersonalWorkspace, personalOrgId } = useWorkspaceContext();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [isSwitching, setIsSwitching] = useState(false);
 
   // Find the first agency org (non-personal)
@@ -40,11 +40,7 @@ export function WorkspaceToggle() {
       if (checked) {
         // Switching to Personal Workspace
         if (!personalOrgId) {
-          toast({
-            variant: "destructive",
-            title: t("switchError"),
-            description: t("personalNotFound"),
-          });
+          toast.error(t, { description: t, isTranslationKey: false });
           return;
         }
         await setActive({ organization: personalOrgId });
@@ -52,11 +48,7 @@ export function WorkspaceToggle() {
       } else {
         // Switching to Agency
         if (!agencyOrg?.organization.id) {
-          toast({
-            variant: "destructive",
-            title: t("switchError"),
-            description: t("agencyNotFound"),
-          });
+          toast.error(t, { description: t, isTranslationKey: false });
           return;
         }
         await setActive({ organization: agencyOrg.organization.id });
@@ -64,11 +56,7 @@ export function WorkspaceToggle() {
       }
     } catch (error) {
       console.error("Error switching workspace:", error);
-      toast({
-        variant: "destructive",
-        title: t("switchError"),
-        description: t("switchError"),
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
     } finally {
       setIsSwitching(false);
     }

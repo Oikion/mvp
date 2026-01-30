@@ -192,17 +192,11 @@ export function MailComponent({
           <Tabs defaultValue="all">
             <div className="flex items-center px-4 py-2">
               <h1 className="text-xl font-bold">Inbox</h1>
-              <TabsList className="ml-auto">
-                <TabsTrigger
-                  value="all"
-                  className="text-zinc-600 dark:text-zinc-200"
-                >
+              <TabsList className="grid grid-cols-2 ml-auto max-w-[200px]">
+                <TabsTrigger value="all">
                   All mail
                 </TabsTrigger>
-                <TabsTrigger
-                  value="unread"
-                  className="text-zinc-600 dark:text-zinc-200"
-                >
+                <TabsTrigger value="unread">
                   Unread
                 </TabsTrigger>
               </TabsList>

@@ -7,11 +7,11 @@ import { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { createTranslator, NextIntlClientProvider } from "next-intl";
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/app/providers/ThemeProvider";
 import { SWRProvider } from "@/app/providers/SWRProvider";
 import { ClerkThemeProvider } from "@/lib/clerk-theme-provider";
+import { SkipLink } from "@/components/ui/skip-link";
 
 // Static imports for all translation files
 import commonEn from "@/locales/en/common.json";
@@ -218,7 +218,7 @@ export default async function RootLayout(props: Props) {
   const t = createTranslator({ locale, messages });
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning={true}>
       <head>
         <meta
           name="viewport"
@@ -243,7 +243,8 @@ export default async function RootLayout(props: Props) {
         />
         <meta name="twitter:image" content={`${appBaseUrl}/api/og`} />
       </head>
-      <body className={`${inter.variable} font-sans min-h-screen`}>
+      <body className={`${inter.variable} font-sans min-h-screen`} suppressHydrationWarning={true}>
+        <SkipLink />
         <ThemeProvider defaultTheme="system" enableSystem>
           <ClerkThemeProvider>
             <SWRProvider>
@@ -254,7 +255,6 @@ export default async function RootLayout(props: Props) {
           </ClerkThemeProvider>
         </ThemeProvider>
         <Toaster />
-        <SonnerToaster />
       </body>
     </html>
   );

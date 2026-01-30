@@ -134,8 +134,8 @@ export function EditableField({
   // Common styles for white-themed inputs on document canvas
   // Force white background and BLACK text regardless of app theme
   const baseInputStyles = cn(
-    "!bg-white !text-black placeholder:!text-gray-500",
-    "border border-dashed !border-gray-300",
+    "!bg-white !text-black placeholder:!text-muted-foreground",
+    "border border-dashed !border-border",
     "focus:!ring-2 focus:!ring-blue-400 focus:!border-blue-400",
     "h-auto py-0.5 px-1.5",
     "[&]:!text-black" // Extra specificity for text color
@@ -156,7 +156,7 @@ export function EditableField({
                 isEmpty && isRequired && "!border-orange-500",
                 !isEmpty && "!border-blue-400 !bg-white",
                 // Force black text in select trigger
-                "[&>span]:!text-black [&>svg]:!text-gray-600"
+                "[&>span]:!text-black [&>svg]:!text-muted-foreground"
               )}
             >
               <SelectValue 
@@ -169,7 +169,7 @@ export function EditableField({
                 <SelectItem 
                   key={option.value} 
                   value={option.value}
-                  className="!text-black hover:!bg-gray-100"
+                  className="!text-black hover:!bg-muted"
                 >
                   {isGreek ? option.labelEl : option.labelEn}
                 </SelectItem>
@@ -185,8 +185,8 @@ export function EditableField({
               "inline-flex items-center gap-2 px-2 py-1 rounded border border-dashed cursor-pointer",
               // Force light theme colors
               value === "true"
-                ? "!bg-green-50 !border-green-400"
-                : "!bg-gray-50 !border-gray-300",
+                ? "!bg-success/10 !border-green-400"
+                : "!bg-muted !border-border",
               inline && "inline-flex"
             )}
             onClick={() => onChange(value === "true" ? "false" : "true")}
@@ -196,7 +196,7 @@ export function EditableField({
               onCheckedChange={(checked) => onChange(checked ? "true" : "false")}
               className="scale-75"
             />
-            <span className="text-sm text-gray-900">
+            <span className="text-sm text-foreground">
               {value === "true" ? (isGreek ? "Ναι" : "Yes") : (isGreek ? "Όχι" : "No")}
             </span>
           </span>

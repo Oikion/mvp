@@ -59,7 +59,7 @@ export default function AnimationsDemo() {
       </FadeIn>
 
       <Tabs defaultValue="spinners" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="inline-grid grid-cols-5">
           <TabsTrigger value="spinners">Spinners</TabsTrigger>
           <TabsTrigger value="skeletons">Skeletons</TabsTrigger>
           <TabsTrigger value="icons">Icons</TabsTrigger>

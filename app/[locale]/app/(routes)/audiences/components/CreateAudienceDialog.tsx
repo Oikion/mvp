@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Users, Building2, Loader2 } from "lucide-react";
 
 interface CreateAudienceDialogProps {
@@ -41,7 +41,7 @@ export function CreateAudienceDialog({
   const [isAutoSync, setIsAutoSync] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   // Reset form when dialog opens
   const handleOpenChange = (open: boolean) => {
@@ -56,11 +56,7 @@ export function CreateAudienceDialog({
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      toast({
-        variant: "destructive",
-        title: t.toast.nameRequired,
-        description: t.toast.nameRequiredDescription,
-      });
+      toast.error(t.toast.nameRequired, { description: t.toast.nameRequiredDescription, isTranslationKey: false });
       return;
     }
 
@@ -73,11 +69,7 @@ export function CreateAudienceDialog({
         isAutoSync: type === "org" ? isAutoSync : false,
       });
 
-      toast({
-        variant: "success",
-        title: t.toast.created,
-        description: `"${name}" ${t.toast.createdDescription}`,
-      });
+      toast.success(t.toast.created, { description: `"${name}" ${t.toast.createdDescription}`, isTranslationKey: false });
 
       onSuccess();
       router.refresh();
@@ -104,11 +96,11 @@ export function CreateAudienceDialog({
 
         <Tabs value={type} onValueChange={(v) => setType(v as "personal" | "org")}>
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="personal" className="gap-2">
+            <TabsTrigger value="personal">
               <Users className="h-4 w-4" />
               {t.tabs.personal}
             </TabsTrigger>
-            <TabsTrigger value="org" className="gap-2">
+            <TabsTrigger value="org">
               <Building2 className="h-4 w-4" />
               {t.tabs.organization}
             </TabsTrigger>

@@ -38,51 +38,51 @@ export default async function DealsPage({ params }: DealsPageProps) {
       </div>
 
       <Tabs defaultValue="pending" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
-          <TabsTrigger value="pending" className="gap-2">
-            <Clock className="h-4 w-4" />
+        <TabsList className="inline-grid grid-cols-5">
+          <TabsTrigger value="pending">
+            <Clock className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.pending}</span>
             {proposedDeals.length > 0 && (
               <span
                 className={`ml-1 px-2 py-0.5 rounded-full text-xs ${
                   pendingCount > 0
-                    ? "bg-orange-500 text-white"
-                    : "bg-primary/10"
+                    ? "bg-warning text-white"
+                    : "bg-sidebar-primary-foreground/20"
                 }`}
               >
                 {proposedDeals.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="accepted" className="gap-2">
-            <CheckCircle2 className="h-4 w-4" />
+          <TabsTrigger value="accepted">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.accepted}</span>
             {acceptedDeals.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-success/15 text-success dark:text-green-400 text-xs">
                 {acceptedDeals.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="active" className="gap-2">
-            <PlayCircle className="h-4 w-4" />
+          <TabsTrigger value="active">
+            <PlayCircle className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.active}</span>
             {inProgressDeals.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-primary dark:text-blue-400 text-xs">
                 {inProgressDeals.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="completed" className="gap-2">
-            <Handshake className="h-4 w-4" />
+          <TabsTrigger value="completed">
+            <Handshake className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.completed}</span>
             {completedDeals.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
                 {completedDeals.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="cancelled" className="gap-2">
-            <XCircle className="h-4 w-4" />
+          <TabsTrigger value="cancelled">
+            <XCircle className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.cancelled}</span>
           </TabsTrigger>
         </TabsList>
@@ -91,7 +91,7 @@ export default async function DealsPage({ params }: DealsPageProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-orange-500" />
+                <Clock className="h-5 w-5 text-warning" />
                 {t.sections.pending.title}
               </CardTitle>
               <CardDescription>
@@ -108,7 +108,7 @@ export default async function DealsPage({ params }: DealsPageProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <CheckCircle2 className="h-5 w-5 text-success" />
                 {t.sections.accepted.title}
               </CardTitle>
               <CardDescription>
@@ -125,7 +125,7 @@ export default async function DealsPage({ params }: DealsPageProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <PlayCircle className="h-5 w-5 text-blue-600" />
+                <PlayCircle className="h-5 w-5 text-primary" />
                 {t.sections.active.title}
               </CardTitle>
               <CardDescription>

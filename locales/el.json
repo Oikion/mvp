@@ -546,7 +546,12 @@
     "organizationSettings": "Ρυθμίσεις Οργανισμού",
     "organizationSettingsDescription": "Ενημέρωση στοιχείων και προτιμήσεων οργανισμού",
     "teamManagement": "Διαχείριση Ομάδας",
-    "teamManagementDescription": "Πρόσκληση μελών, διαχείριση ρόλων και δικαιωμάτων"
+    "teamManagementDescription": "Πρόσκληση μελών, διαχείριση ρόλων και δικαιωμάτων",
+    "integrations": "Ενσωματώσεις",
+    "n8nIntegration": "Αυτοματισμοί n8n",
+    "n8nIntegrationDescription": "Ρύθμιση αυτοματισμών ροών εργασίας για τον οργανισμό σας",
+    "xeIntegration": "Ενσωμάτωση xe.gr",
+    "xeIntegrationDescription": "Δημοσίευση ακινήτων στο xe.gr"
   },
   "Admin": {
     "title": "Διαχείριση",

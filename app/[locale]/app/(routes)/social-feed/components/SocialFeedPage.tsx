@@ -30,7 +30,6 @@ import {
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
   Heart,
@@ -55,15 +54,19 @@ import {
   X,
   Reply,
   CornerDownRight,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { Link } from "@/navigation";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { createSocialPost, getMyProfileVisibility } from "@/actions/social-feed/create-social-post";
 import { AttachmentUploader, AttachmentList, type AttachmentData } from "@/components/attachments";
 import { deleteSocialPost } from "@/actions/social-feed/delete-social-post";
 import { toggleLikePost } from "@/actions/social-feed/like-post";
 import { addComment, deleteComment, getPostComments, type Comment } from "@/actions/social-feed/comment-post";
+import { useMessagingCredentials } from "@/hooks/swr/useMessaging";
+import { useAblyFeed, type SocialPost as AblyPost } from "@/hooks/useAbly";
 
 type ProfileVisibility = "PERSONAL" | "SECURE" | "PUBLIC";
 
@@ -77,6 +80,7 @@ interface PostAttachment {
 
 export interface SocialPost {
   id: string;
+  slug?: string | null;
   type: "property" | "client" | "text";
   content: string;
   timestamp: string;
@@ -155,7 +159,7 @@ function PostCard({
   const [replyInput, setReplyInput] = useState("");
   const [isAddingReply, setIsAddingReply] = useState(false);
 
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   // Handle like toggle with optimistic update
   const handleLike = () => {
@@ -170,10 +174,7 @@ function PostCard({
         // Revert on error
         setIsLiked(wasLiked);
         setLikeCount((prev) => (wasLiked ? prev + 1 : prev - 1));
-        toast({
-          variant: "destructive",
-          title: result.error || "Failed to like post",
-        });
+        toast.error(result.error, { isTranslationKey: false });
       }
     });
   };
@@ -198,10 +199,7 @@ function PostCard({
       setNextCursor(result.nextCursor);
       setCommentCount(result.total);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to load comments",
-      });
+      toast.error("Failed to load comments", { isTranslationKey: false });
     } finally {
       setIsLoadingComments(false);
     }
@@ -226,21 +224,12 @@ function PostCard({
         setComments((prev) => [...prev, result.comment!]);
         setCommentCount((prev) => prev + 1);
         setCommentInput("");
-        toast({
-          variant: "success",
-          title: t?.post?.commentAdded || "Comment added",
-        });
+        toast.success(t, { isTranslationKey: false });
       } else {
-        toast({
-          variant: "destructive",
-          title: result.error || "Failed to add comment",
-        });
+        toast.error(result.error, { isTranslationKey: false });
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to add comment",
-      });
+      toast.error("Failed to add comment", { isTranslationKey: false });
     } finally {
       setIsAddingComment(false);
     }
@@ -268,21 +257,12 @@ function PostCard({
           setComments((prev) => prev.filter((c) => c.id !== commentId));
         }
         setCommentCount((prev) => prev - 1);
-        toast({
-          variant: "success",
-          title: t?.post?.commentDeleted || "Comment deleted",
-        });
+        toast.success(t, { isTranslationKey: false });
       } else {
-        toast({
-          variant: "destructive",
-          title: result.error || "Failed to delete comment",
-        });
+        toast.error(result.error, { isTranslationKey: false });
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to delete comment",
-      });
+      toast.error("Failed to delete comment", { isTranslationKey: false });
     }
   };
 
@@ -309,21 +289,12 @@ function PostCard({
         setCommentCount((prev) => prev + 1);
         setReplyInput("");
         setReplyingTo(null);
-        toast({
-          variant: "success",
-          title: t?.post?.replyAdded || "Reply added",
-        });
+        toast.success(t, { isTranslationKey: false });
       } else {
-        toast({
-          variant: "destructive",
-          title: result.error || "Failed to add reply",
-        });
+        toast.error(result.error, { isTranslationKey: false });
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to add reply",
-      });
+      toast.error("Failed to add reply", { isTranslationKey: false });
     } finally {
       setIsAddingReply(false);
     }
@@ -372,18 +343,18 @@ function PostCard({
   const getPostColor = (type: string) => {
     switch (type) {
       case "property":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+        return "bg-primary/10 text-primary border-primary/20";
       case "client":
-        return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+        return "bg-success/10 text-success border-success/20";
       default:
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+        return "bg-gray-500/10 text-muted-foreground border-gray-500/20";
     }
   };
 
   const getVisibilityBadge = () => {
     if (post.isFromConnection) {
       return (
-        <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-600 border-blue-500/20">
+        <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
           <Users className="h-3 w-3 mr-1" />
           {t?.visibility?.connection || "Connection"}
         </Badge>
@@ -393,14 +364,14 @@ function PostCard({
     switch (post.author.visibility) {
       case "PUBLIC":
         return (
-          <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+          <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20">
             <Globe className="h-3 w-3 mr-1" />
             {t?.visibility?.public || "Public"}
           </Badge>
         );
       case "SECURE":
         return (
-          <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/20">
+          <Badge variant="outline" className="text-xs bg-warning/10 text-warning border-warning/20">
             <Shield className="h-3 w-3 mr-1" />
             {t?.visibility?.secure || "Secure"}
           </Badge>
@@ -511,7 +482,7 @@ function PostCard({
             size="sm"
             onClick={handleLike}
             disabled={isLiking}
-            className={`flex-1 ${isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-primary"}`}
+            className={`flex-1 ${isLiked ? "text-destructive hover:text-destructive" : "text-muted-foreground hover:text-primary"}`}
           >
             <Heart className={`h-4 w-4 mr-1.5 ${isLiked ? "fill-current" : ""}`} />
             {likeCount > 0 && <span className="mr-1">{likeCount}</span>}
@@ -532,7 +503,19 @@ function PostCard({
               <ChevronDown className="h-3 w-3 ml-1" />
             )}
           </Button>
-          <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex-1 text-muted-foreground hover:text-primary"
+            onClick={() => {
+              const postUrl = `${window.location.origin}/post/${post.slug || post.id}`;
+              navigator.clipboard.writeText(postUrl).then(() => {
+                toast.success(t, { description: t?.post?.linkCopiedDesc || "Post link copied to clipboard", isTranslationKey: false });
+              }).catch(() => {
+                toast.error(t, { isTranslationKey: false });
+              });
+            }}
+          >
             <Share2 className="h-4 w-4 mr-1.5" />
             {t?.post?.share || "Share"}
           </Button>
@@ -766,9 +749,9 @@ function PostCard({
   );
 }
 
-export function SocialFeedPage({ posts, shareableItems, currentUser, dict, locale }: SocialFeedPageProps) {
+export function SocialFeedPage({ posts: initialPosts, shareableItems, currentUser, dict, locale }: SocialFeedPageProps) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [filter, setFilter] = useState<string>("all");
   const [postContent, setPostContent] = useState("");
   const [postType, setPostType] = useState<"property" | "client" | "text">("text");
@@ -777,16 +760,79 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
   const [profileVisibility, setProfileVisibility] = useState<{ hasProfile: boolean; visibility: ProfileVisibility } | null>(null);
   const [attachments, setAttachments] = useState<AttachmentData[]>([]);
   
+  // Real-time posts state
+  const [localPosts, setLocalPosts] = useState<SocialPost[]>(initialPosts);
+  
   const t = dict.socialFeed || {};
   const dateLocale = locale === "el" ? el : enUS;
+
+  // Sync with server-side posts when they change
+  useEffect(() => {
+    setLocalPosts(initialPosts);
+  }, [initialPosts]);
 
   useEffect(() => {
     getMyProfileVisibility().then(setProfileVisibility);
   }, []);
 
+  // Get Ably credentials for real-time updates
+  const { credentials, isConfigured } = useMessagingCredentials();
+
+  // Real-time feed updates
+  const { isSubscribed } = useAblyFeed({
+    organizationId: credentials?.organizationId,
+    credentials,
+    onPostCreated: useCallback((post: AblyPost) => {
+      // Don't add our own posts (they're already added via server refresh)
+      if (post.author.id === currentUser?.id) return;
+      
+      setLocalPosts((prev) => {
+        // Check if post already exists
+        if (prev.some((p) => p.id === post.id)) return prev;
+        // Add new post at the beginning
+        return [post as SocialPost, ...prev];
+      });
+    }, [currentUser?.id]),
+    onPostDeleted: useCallback((postId: string) => {
+      setLocalPosts((prev) => prev.filter((p) => p.id !== postId));
+    }, []),
+    onPostLiked: useCallback((data: { postId: string; userId: string; newLikeCount: number; isLiked: boolean }) => {
+      setLocalPosts((prev) =>
+        prev.map((p) =>
+          p.id === data.postId
+            ? {
+                ...p,
+                likes: data.newLikeCount,
+                // Update isLiked only if it's for current user
+                isLiked: data.userId === currentUser?.id ? data.isLiked : p.isLiked,
+              }
+            : p
+        )
+      );
+    }, [currentUser?.id]),
+    onCommentAdded: useCallback((data: { postId: string; newCommentCount: number }) => {
+      setLocalPosts((prev) =>
+        prev.map((p) =>
+          p.id === data.postId
+            ? { ...p, comments: data.newCommentCount }
+            : p
+        )
+      );
+    }, []),
+    onCommentDeleted: useCallback((data: { postId: string; newCommentCount: number }) => {
+      setLocalPosts((prev) =>
+        prev.map((p) =>
+          p.id === data.postId
+            ? { ...p, comments: data.newCommentCount }
+            : p
+        )
+      );
+    }, []),
+  });
+
   const filteredPosts = filter === "all" 
-    ? posts 
-    : posts.filter(p => {
+    ? localPosts 
+    : localPosts.filter(p => {
         if (filter === "properties") return p.type === "property";
         if (filter === "clients") return p.type === "client";
         if (filter === "updates") return p.type === "text";
@@ -806,11 +852,7 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
         attachmentIds: attachments.map(a => a.id),
       });
 
-      toast({
-        variant: "success",
-        title: t.createPost?.success || "Posted successfully!",
-        description: result.message,
-      });
+      toast.success(t.createPost, { description: result.message, isTranslationKey: false });
 
       setPostContent("");
       setPostType("text");
@@ -818,10 +860,7 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
       setAttachments([]);
       router.refresh();
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t.createPost?.error || "Failed to create post",
-      });
+      toast.error(t.createPost, { isTranslationKey: false });
     } finally {
       setIsPosting(false);
     }
@@ -830,16 +869,10 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
   const handleDeletePost = async (postId: string) => {
     try {
       await deleteSocialPost(postId);
-      toast({
-        variant: "success",
-        title: t.post?.deleted || "Post deleted",
-      });
+      toast.success(t.post, { isTranslationKey: false });
       router.refresh();
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to delete post",
-      });
+      toast.error("Failed to delete post", { isTranslationKey: false });
     }
   };
 
@@ -847,14 +880,14 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
     switch (visibility) {
       case "PERSONAL":
         return {
-          icon: <Lock className="h-4 w-4 text-red-600" />,
-          className: "border-red-500/50 bg-red-500/10",
+          icon: <Lock className="h-4 w-4 text-destructive" />,
+          className: "border-destructive/50 bg-destructive/10",
           message: t?.privacy?.personal || "Your profile is Personal (hidden). Only your connections can see your posts.",
         };
       case "SECURE":
         return {
-          icon: <Shield className="h-4 w-4 text-amber-600" />,
-          className: "border-amber-500/50 bg-amber-500/10",
+          icon: <Shield className="h-4 w-4 text-warning" />,
+          className: "border-warning/50 bg-warning/10",
           message: t?.privacy?.secure || "Your profile is Secure. Only registered users can see your posts.",
         };
       case "PUBLIC":
@@ -868,6 +901,23 @@ export function SocialFeedPage({ posts, shareableItems, currentUser, dict, local
     <Container
       title={t.title || "Social Feed"}
       description={t.description || "Share properties and clients with your connections"}
+      headerExtra={
+        isConfigured && (
+          <div className="flex items-center gap-1.5 text-xs">
+            {isSubscribed ? (
+              <>
+                <Wifi className="h-3 w-3 text-success" />
+                <span className="text-muted-foreground">{t.realtime?.connected || "Live"}</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-3 w-3 text-muted-foreground" />
+                <span className="text-muted-foreground">{t.realtime?.connecting || "Connecting..."}</span>
+              </>
+            )}
+          </div>
+        )
+      }
     >
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Profile Visibility Banner */}

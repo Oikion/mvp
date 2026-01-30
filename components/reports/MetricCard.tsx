@@ -105,17 +105,17 @@ export function MetricCard({
         {trend && (
           <div className="flex items-center gap-1 mt-2">
             {trend.direction === "up" ? (
-              <TrendingUp className="h-4 w-4 text-emerald-500" />
+              <TrendingUp className="h-4 w-4 text-success" />
             ) : trend.direction === "down" ? (
-              <TrendingDown className="h-4 w-4 text-red-500" />
+              <TrendingDown className="h-4 w-4 text-destructive" />
             ) : (
               <Minus className="h-4 w-4 text-muted-foreground" />
             )}
             <span
               className={cn(
                 "text-sm font-medium",
-                trend.direction === "up" && "text-emerald-500",
-                trend.direction === "down" && "text-red-500",
+                trend.direction === "up" && "text-success",
+                trend.direction === "down" && "text-destructive",
                 trend.direction === "neutral" && "text-muted-foreground"
               )}
             >

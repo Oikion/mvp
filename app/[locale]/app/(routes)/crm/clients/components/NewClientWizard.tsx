@@ -4,7 +4,7 @@ import { z } from "zod";
 import axios from "axios";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -122,13 +122,33 @@ const formSchema = z.object({
   budget_max: z.coerce.number().optional(),
   timeline: z.enum(["IMMEDIATE", "ONE_THREE_MONTHS", "THREE_SIX_MONTHS", "SIX_PLUS_MONTHS"]).optional(),
   
-  // Step 5: Χρηματοδότηση (conditional)
+  // Step 5: Προτιμήσεις Ακινήτου (Property Preferences for Matchmaking)
+  bedrooms_min: z.coerce.number().optional(),
+  bedrooms_max: z.coerce.number().optional(),
+  bathrooms_min: z.coerce.number().optional(),
+  bathrooms_max: z.coerce.number().optional(),
+  size_min_sqm: z.coerce.number().optional(),
+  size_max_sqm: z.coerce.number().optional(),
+  floor_min: z.coerce.number().optional(),
+  floor_max: z.coerce.number().optional(),
+  ground_floor_only: z.boolean().optional().default(false),
+  requires_elevator: z.boolean().optional().default(false),
+  requires_parking: z.boolean().optional().default(false),
+  requires_pet_friendly: z.boolean().optional().default(false),
+  furnished_preference: z.enum(["NO", "PARTIALLY", "FULLY", "ANY"]).optional(),
+  heating_preferences: z.array(z.string()).optional().default([]),
+  energy_class_min: z.enum(["A_PLUS", "A", "B", "C", "D", "E", "F", "G", "H"]).optional(),
+  condition_preferences: z.array(z.string()).optional().default([]),
+  amenities_required: z.array(z.string()).optional().default([]),
+  amenities_preferred: z.array(z.string()).optional().default([]),
+  
+  // Step 6: Χρηματοδότηση (conditional)
   financing_type: z.enum(["CASH", "MORTGAGE", "PREAPPROVAL_PENDING"]).optional(),
   preapproval_bank: z.string().optional().or(z.literal("")),
   needs_mortgage_help: z.boolean().optional().default(false),
   notes: z.string().optional().or(z.literal("")),
   
-  // Step 6: Συναίνεση & GDPR
+  // Step 7: Συναίνεση & GDPR
   gdpr_consent: z.boolean().optional().default(false),
   allow_marketing: z.boolean().optional().default(false),
   lead_source: z.enum(["REFERRAL", "WEB", "PORTAL", "WALK_IN", "SOCIAL"]).optional(),
@@ -178,8 +198,9 @@ const STEPS = [
   { id: 2, title: "Επικοινωνία", description: "Προτιμήσεις επικοινωνίας" },
   { id: 3, title: "Νομικά", description: "Νομικά στοιχεία (προαιρετικά)" },
   { id: 4, title: "Ανάγκες / Προτιμήσεις", description: "Ανάγκες και προτιμήσεις ακινήτου" },
-  { id: 5, title: "Χρηματοδότηση", description: "Στοιχεία χρηματοδότησης" },
-  { id: 6, title: "Συναίνεση & GDPR", description: "Συναίνεση και προσωπικά δεδομένα" },
+  { id: 5, title: "Χαρακτηριστικά Ακινήτου", description: "Λεπτομερή κριτήρια για matchmaking" },
+  { id: 6, title: "Χρηματοδότηση", description: "Στοιχεία χρηματοδότησης" },
+  { id: 7, title: "Συναίνεση & GDPR", description: "Συναίνεση και προσωπικά δεδομένα" },
 ];
 
 const CHANNEL_OPTIONS: MultiSelectOption[] = [
@@ -190,9 +211,42 @@ const CHANNEL_OPTIONS: MultiSelectOption[] = [
   { value: "EMAIL", label: t("crm.CrmForm.channels.EMAIL", "Email") },
 ];
 
+// Property preference options for matchmaking
+const HEATING_OPTIONS: MultiSelectOption[] = [
+  { value: "AUTONOMOUS", label: "Αυτόνομη" },
+  { value: "CENTRAL", label: "Κεντρική" },
+  { value: "NATURAL_GAS", label: "Φυσικό αέριο" },
+  { value: "HEAT_PUMP", label: "Αντλία θερμότητας" },
+  { value: "ELECTRIC", label: "Ηλεκτρική" },
+  { value: "NONE", label: "Χωρίς θέρμανση" },
+];
+
+const CONDITION_OPTIONS: MultiSelectOption[] = [
+  { value: "EXCELLENT", label: "Άριστη" },
+  { value: "VERY_GOOD", label: "Πολύ καλή" },
+  { value: "GOOD", label: "Καλή" },
+  { value: "NEEDS_RENOVATION", label: "Χρειάζεται ανακαίνιση" },
+];
+
+const AMENITIES_OPTIONS: MultiSelectOption[] = [
+  { value: "pool", label: "Πισίνα" },
+  { value: "gym", label: "Γυμναστήριο" },
+  { value: "garden", label: "Κήπος" },
+  { value: "terrace", label: "Βεράντα" },
+  { value: "balcony", label: "Μπαλκόνι" },
+  { value: "storage", label: "Αποθήκη" },
+  { value: "security", label: "Φύλαξη" },
+  { value: "fireplace", label: "Τζάκι" },
+  { value: "air_conditioning", label: "Κλιματισμός" },
+  { value: "solar_panels", label: "Ηλιακοί θερμοσίφωνες" },
+  { value: "smart_home", label: "Έξυπνο σπίτι" },
+  { value: "alarm", label: "Συναγερμός" },
+  { value: "ev_charging", label: "Φόρτιση EV" },
+];
+
 export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [draftId, setDraftId] = useState<string | undefined>(initialDraftId);
@@ -222,6 +276,26 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
       budget_min: undefined,
       budget_max: undefined,
       timeline: undefined,
+      // Property preferences for matchmaking
+      bedrooms_min: undefined,
+      bedrooms_max: undefined,
+      bathrooms_min: undefined,
+      bathrooms_max: undefined,
+      size_min_sqm: undefined,
+      size_max_sqm: undefined,
+      floor_min: undefined,
+      floor_max: undefined,
+      ground_floor_only: false,
+      requires_elevator: false,
+      requires_parking: false,
+      requires_pet_friendly: false,
+      furnished_preference: undefined,
+      heating_preferences: [],
+      energy_class_min: undefined,
+      condition_preferences: [],
+      amenities_required: [],
+      amenities_preferred: [],
+      // Financing
       financing_type: undefined,
       preapproval_bank: "",
       needs_mortgage_help: false,
@@ -241,6 +315,8 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
           const response = await axios.get(`/api/crm/clients/${initialDraftId}`);
           if (response.data?.client) {
             const draft = response.data.client;
+            // Unpack property_preferences JSON
+            const prefs = draft.property_preferences || {};
             // Reset form with draft data
             form.reset({
               person_type: draft.person_type || undefined,
@@ -263,6 +339,26 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
               budget_min: draft.budget_min || undefined,
               budget_max: draft.budget_max || undefined,
               timeline: draft.timeline || undefined,
+              // Property preferences from JSON
+              bedrooms_min: prefs.bedrooms_min || undefined,
+              bedrooms_max: prefs.bedrooms_max || undefined,
+              bathrooms_min: prefs.bathrooms_min || undefined,
+              bathrooms_max: prefs.bathrooms_max || undefined,
+              size_min_sqm: prefs.size_min_sqm || undefined,
+              size_max_sqm: prefs.size_max_sqm || undefined,
+              floor_min: prefs.floor_min || undefined,
+              floor_max: prefs.floor_max || undefined,
+              ground_floor_only: prefs.ground_floor_only || false,
+              requires_elevator: prefs.requires_elevator || false,
+              requires_parking: prefs.requires_parking || false,
+              requires_pet_friendly: prefs.requires_pet_friendly || false,
+              furnished_preference: prefs.furnished_preference || undefined,
+              heating_preferences: Array.isArray(prefs.heating_preferences) ? prefs.heating_preferences : [],
+              energy_class_min: prefs.energy_class_min || undefined,
+              condition_preferences: Array.isArray(prefs.condition_preferences) ? prefs.condition_preferences : [],
+              amenities_required: Array.isArray(prefs.amenities_required) ? prefs.amenities_required : [],
+              amenities_preferred: Array.isArray(prefs.amenities_preferred) ? prefs.amenities_preferred : [],
+              // Financing
               financing_type: draft.financing_type || undefined,
               preapproval_bank: draft.preapproval_bank || "",
               needs_mortgage_help: draft.needs_mortgage_help || false,
@@ -347,9 +443,13 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
         fieldsToValidate = ["purpose", "areas_of_interest", "budget_min", "budget_max", "timeline"];
         break;
       case 5:
-        fieldsToValidate = ["financing_type", "preapproval_bank", "needs_mortgage_help", "notes"];
+        // Property preferences - all optional, no strict validation needed
+        fieldsToValidate = ["bedrooms_min", "bedrooms_max", "size_min_sqm", "size_max_sqm"];
         break;
       case 6:
+        fieldsToValidate = ["financing_type", "preapproval_bank", "needs_mortgage_help", "notes"];
+        break;
+      case 7:
         fieldsToValidate = ["gdpr_consent", "allow_marketing", "lead_source", "assigned_to"];
         break;
     }
@@ -405,34 +505,58 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
+      // Package property preferences into the JSON field
+      const property_preferences = {
+        bedrooms_min: data.bedrooms_min,
+        bedrooms_max: data.bedrooms_max,
+        bathrooms_min: data.bathrooms_min,
+        bathrooms_max: data.bathrooms_max,
+        size_min_sqm: data.size_min_sqm,
+        size_max_sqm: data.size_max_sqm,
+        floor_min: data.floor_min,
+        floor_max: data.floor_max,
+        ground_floor_only: data.ground_floor_only,
+        requires_elevator: data.requires_elevator,
+        requires_parking: data.requires_parking,
+        requires_pet_friendly: data.requires_pet_friendly,
+        furnished_preference: data.furnished_preference,
+        heating_preferences: data.heating_preferences,
+        energy_class_min: data.energy_class_min,
+        condition_preferences: data.condition_preferences,
+        amenities_required: data.amenities_required,
+        amenities_preferred: data.amenities_preferred,
+      };
+
+      // Remove the individual fields and add the packaged JSON
+      const { 
+        bedrooms_min, bedrooms_max, bathrooms_min, bathrooms_max,
+        size_min_sqm, size_max_sqm, floor_min, floor_max, ground_floor_only,
+        requires_elevator, requires_parking, requires_pet_friendly,
+        furnished_preference, heating_preferences, energy_class_min,
+        condition_preferences, amenities_required, amenities_preferred,
+        ...restData 
+      } = data;
+
+      const submitData = {
+        ...restData,
+        property_preferences,
+        draft_status: false,
+      };
+
       // If we have a draft, update it to final; otherwise create new
       if (draftId) {
-        await axios.put(`/api/crm/clients/${draftId}`, {
-          ...data,
-          draft_status: false,
-        });
+        await axios.put(`/api/crm/clients/${draftId}`, submitData);
       } else {
-        await axios.post("/api/crm/clients", {
-          ...data,
-          draft_status: false,
-        });
+        await axios.post("/api/crm/clients", submitData);
       }
       
-      toast({
-        variant: "success",
-        title: t("common.success", "Επιτυχία"),
-        description: t("common.clientCreated", "Ο πελάτης δημιουργήθηκε επιτυχώς"),
-      });
+      toast.success(t, { description: t, isTranslationKey: false });
       
       router.refresh();
       onFinish();
     } catch (error) {
       console.error("Failed to create client:", error);
-      toast({
-        variant: "destructive",
-        title: t("common.error", "Σφάλμα"),
-        description: t("common.clientCreationFailed", "Αποτυχία δημιουργίας πελάτη"),
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -672,6 +796,273 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
         );
       
       case 5:
+        // Property Preferences for Matchmaking
+        return (
+          <div className="space-y-6">
+            {/* Bedrooms & Bathrooms */}
+            <div>
+              <h4 className="text-sm font-medium mb-3">Δωμάτια</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="bedrooms_min" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ελάχιστα υπνοδωμάτια</FormLabel>
+                    <Select onValueChange={(v) => field.onChange(v ? parseInt(v) : undefined)} value={field.value?.toString()}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Οποιοδήποτε" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="2">2</SelectItem>
+                        <SelectItem value="3">3</SelectItem>
+                        <SelectItem value="4">4</SelectItem>
+                        <SelectItem value="5">5+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="bedrooms_max" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Μέγιστα υπνοδωμάτια</FormLabel>
+                    <Select onValueChange={(v) => field.onChange(v ? parseInt(v) : undefined)} value={field.value?.toString()}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Οποιοδήποτε" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="2">2</SelectItem>
+                        <SelectItem value="3">3</SelectItem>
+                        <SelectItem value="4">4</SelectItem>
+                        <SelectItem value="5">5+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <FormField control={form.control} name="bathrooms_min" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ελάχιστα μπάνια</FormLabel>
+                    <Select onValueChange={(v) => field.onChange(v ? parseInt(v) : undefined)} value={field.value?.toString()}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Οποιοδήποτε" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="2">2</SelectItem>
+                        <SelectItem value="3">3+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="bathrooms_max" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Μέγιστα μπάνια</FormLabel>
+                    <Select onValueChange={(v) => field.onChange(v ? parseInt(v) : undefined)} value={field.value?.toString()}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Οποιοδήποτε" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="2">2</SelectItem>
+                        <SelectItem value="3">3+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+            </div>
+
+            {/* Size */}
+            <div>
+              <h4 className="text-sm font-medium mb-3">Μέγεθος (τ.μ.)</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="size_min_sqm" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ελάχιστο</FormLabel>
+                    <FormControl><Input {...field} type="number" placeholder="π.χ. 50" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="size_max_sqm" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Μέγιστο</FormLabel>
+                    <FormControl><Input {...field} type="number" placeholder="π.χ. 150" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+            </div>
+
+            {/* Floor */}
+            <div>
+              <h4 className="text-sm font-medium mb-3">Όροφος</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="floor_min" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Από όροφο</FormLabel>
+                    <Select onValueChange={(v) => field.onChange(v ? parseInt(v) : undefined)} value={field.value?.toString()}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Οποιοδήποτε" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="-1">Υπόγειο</SelectItem>
+                        <SelectItem value="0">Ισόγειο</SelectItem>
+                        <SelectItem value="1">1ος</SelectItem>
+                        <SelectItem value="2">2ος</SelectItem>
+                        <SelectItem value="3">3ος</SelectItem>
+                        <SelectItem value="4">4ος</SelectItem>
+                        <SelectItem value="5">5ος+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="floor_max" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Έως όροφο</FormLabel>
+                    <Select onValueChange={(v) => field.onChange(v ? parseInt(v) : undefined)} value={field.value?.toString()}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Οποιοδήποτε" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">Ισόγειο</SelectItem>
+                        <SelectItem value="1">1ος</SelectItem>
+                        <SelectItem value="2">2ος</SelectItem>
+                        <SelectItem value="3">3ος</SelectItem>
+                        <SelectItem value="4">4ος</SelectItem>
+                        <SelectItem value="5">5ος+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="ground_floor_only" render={({ field }) => (
+                <FormItem className="flex items-center space-x-2 mt-3">
+                  <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormLabel className="!mt-0">Μόνο ισόγειο</FormLabel>
+                </FormItem>
+              )} />
+            </div>
+
+            {/* Requirements */}
+            <div>
+              <h4 className="text-sm font-medium mb-3">Απαιτήσεις</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <FormField control={form.control} name="requires_elevator" render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                    <FormLabel className="!mt-0">Ασανσέρ</FormLabel>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="requires_parking" render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                    <FormLabel className="!mt-0">Πάρκινγκ</FormLabel>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="requires_pet_friendly" render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                    <FormLabel className="!mt-0">Δεκτά κατοικίδια</FormLabel>
+                  </FormItem>
+                )} />
+              </div>
+            </div>
+
+            {/* Furnished & Heating */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="furnished_preference" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Επίπλωση</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Οποιαδήποτε" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="ANY">Οποιαδήποτε</SelectItem>
+                      <SelectItem value="NO">Χωρίς επίπλωση</SelectItem>
+                      <SelectItem value="PARTIALLY">Μερικώς επιπλωμένο</SelectItem>
+                      <SelectItem value="FULLY">Πλήρως επιπλωμένο</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="energy_class_min" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ελάχιστη ενεργειακή κλάση</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Οποιαδήποτε" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="A_PLUS">Α+</SelectItem>
+                      <SelectItem value="A">Α</SelectItem>
+                      <SelectItem value="B">Β</SelectItem>
+                      <SelectItem value="C">Γ</SelectItem>
+                      <SelectItem value="D">Δ</SelectItem>
+                      <SelectItem value="E">Ε</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            {/* Heating Preferences */}
+            <FormField control={form.control} name="heating_preferences" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Τύπος θέρμανσης</FormLabel>
+                <FormControl>
+                  <MultiSelect 
+                    options={HEATING_OPTIONS} 
+                    value={field.value || []} 
+                    onChange={field.onChange}
+                    placeholder="Επιλέξτε τύπους θέρμανσης"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+
+            {/* Condition */}
+            <FormField control={form.control} name="condition_preferences" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Κατάσταση ακινήτου</FormLabel>
+                <FormControl>
+                  <MultiSelect 
+                    options={CONDITION_OPTIONS} 
+                    value={field.value || []} 
+                    onChange={field.onChange}
+                    placeholder="Επιλέξτε αποδεκτές καταστάσεις"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+
+            {/* Amenities */}
+            <FormField control={form.control} name="amenities_required" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Απαραίτητες παροχές</FormLabel>
+                <FormControl>
+                  <MultiSelect 
+                    options={AMENITIES_OPTIONS} 
+                    value={field.value || []} 
+                    onChange={field.onChange}
+                    placeholder="Επιλέξτε απαραίτητες παροχές"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="amenities_preferred" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Επιθυμητές παροχές (προαιρετικές)</FormLabel>
+                <FormControl>
+                  <MultiSelect 
+                    options={AMENITIES_OPTIONS} 
+                    value={field.value || []} 
+                    onChange={field.onChange}
+                    placeholder="Επιλέξτε επιθυμητές παροχές"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+        );
+      
+      case 6:
         if (!showFinancing) {
           return <p className="text-muted-foreground text-sm py-4">Η χρηματοδότηση αφορά μόνο Αγορά ή Επένδυση.</p>;
         }
@@ -717,7 +1108,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
           </div>
         );
       
-      case 6:
+      case 7:
         return (
           <div className="space-y-4">
             <FormField control={form.control} name="gdpr_consent" render={({ field }) => (
@@ -776,7 +1167,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="h-full px-10">
-        <div className="w-[800px] text-sm">
+        <div className="w-full max-w-[800px] text-sm">
           {/* Progress Bar */}
           <div className="pb-6">
             <div className="flex items-center justify-between mb-2">

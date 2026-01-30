@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   User,
   Search,
@@ -55,7 +55,7 @@ export function SearchAgents({ translations: t }: SearchAgentsProps) {
   const [connectingId, setConnectingId] = useState<string | null>(null);
   const debouncedQuery = useDebounce(query, 300);
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const { sendRequest, isSending } = useSendConnectionRequest();
 
   useEffect(() => {
@@ -80,11 +80,7 @@ export function SearchAgents({ translations: t }: SearchAgentsProps) {
     try {
       setConnectingId(agentId);
       await sendRequest(agentId);
-      toast({
-        variant: "success",
-        title: t.toast.requestSent,
-        description: t.toast.requestSentDesc,
-      });
+      toast.success(t.toast.requestSent, { description: t.toast.requestSentDesc, isTranslationKey: false });
       // Refresh the list to update status
       const response = await axios.get(
         `/api/connections/search?q=${encodeURIComponent(debouncedQuery)}`

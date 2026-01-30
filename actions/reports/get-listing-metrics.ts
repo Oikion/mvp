@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 /**
  * List-to-Sale Price Ratio
@@ -9,6 +10,10 @@ import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
  * Often 98-102%+ for top agents
  */
 export async function getListToSaleRatio() {
+  // Permission check: Users need report:view permission
+  const check = await canPerformAction("report:view");
+  if (!check.allowed) return { ratio: 0, count: 0, aboveAsking: 0, belowAsking: 0 };
+
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return { ratio: 0, count: 0, aboveAsking: 0, belowAsking: 0 };
 
@@ -389,6 +394,20 @@ export async function getTimeToContractTrend() {
  * Optimized for dashboard display
  */
 export async function getAllListingMetrics() {
+  // Permission check: Users need report:view permission
+  const check = await canPerformAction("report:view");
+  if (!check.allowed) return {
+    listToSaleRatio: { ratio: 0, count: 0, aboveAsking: 0, belowAsking: 0 },
+    listToSaleDistribution: [],
+    inventory: { active: 0, pending: 0, total: 0, byStatus: [] },
+    inventoryByType: [],
+    inventoryTrend: [],
+    sellerBuyerRatio: { sellerRatio: 0, sellerCount: 0, buyerCount: 0, dualCount: 0, total: 0 },
+    transactionTypes: [],
+    timeToContract: { average: 0, median: 0, count: 0 },
+    timeToContractTrend: [],
+  };
+
   const [
     listToSaleRatio,
     listToSaleDistribution,

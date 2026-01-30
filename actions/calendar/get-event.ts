@@ -1,7 +1,12 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export async function getEvent(eventId: string) {
+  // Check permission to read calendar events
+  const guard = await requireAction("calendar:read");
+  if (guard) return null;
+
   const organizationId = await getCurrentOrgIdSafe();
   
   // Return null if no organization context (e.g., session not synced yet)

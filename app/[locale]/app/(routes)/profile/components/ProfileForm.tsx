@@ -14,7 +14,7 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import axios from "axios";
@@ -44,7 +44,7 @@ export function ProfileForm({ data }: ProfileFormProps) {
 
   const router = useRouter();
 
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -80,11 +80,7 @@ export function ProfileForm({ data }: ProfileFormProps) {
           const errorResponse = usernameError as { response?: { data?: { error?: string } } };
           const errorMessage = errorResponse?.response?.data?.error || "Failed to update username";
           
-          toast({
-            variant: "destructive",
-            title: "Username Update Failed",
-            description: errorMessage,
-          });
+          toast.error("Username Update Failed", { description: errorMessage, isTranslationKey: false });
           setIsLoading(false);
           return;
         }
@@ -97,20 +93,10 @@ export function ProfileForm({ data }: ProfileFormProps) {
         account_name: formData.account_name,
       });
       
-      toast({
-        variant: "success",
-        title: "Profile updated",
-        description: usernameChanged 
-          ? "Your profile and username have been updated successfully."
-          : "Your profile has been updated successfully.",
-      });
+      toast.success("Profile updated", { description: usernameChanged, isTranslationKey: false });
       router.refresh();
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Something went wrong while updating your profile.",
-      });
+      toast.error("Error", { description: "Something went wrong while updating your profile.", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

@@ -466,7 +466,7 @@ export default function ApiKeysPage() {
                     </TableCell>
                     <TableCell>
                       {key.isActive ? (
-                        <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20">
+                        <Badge className="bg-success/10 text-success hover:bg-success/20">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Active
                         </Badge>

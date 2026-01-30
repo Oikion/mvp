@@ -5,12 +5,7 @@ export const getPropertiesCount = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return 0;
   
-  const client: any = prismadb as any;
-  const delegate = client?.properties;
-  if (!delegate) {
-    return 0;
-  }
-  const count = await delegate.count({
+  const count = await prismadb.properties.count({
     where: { organizationId },
   });
   return count;
@@ -20,13 +15,7 @@ export const getPropertiesByStatus = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return [];
   
-  const client: any = prismadb as any;
-  const delegate = client?.properties;
-  if (!delegate) {
-    return [];
-  }
-  
-  const properties = await delegate.findMany({
+  const properties = await prismadb.properties.findMany({
     where: { organizationId },
     select: {
       property_status: true,
@@ -61,13 +50,7 @@ export const getPropertiesByMonth = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return [];
   
-  const client: any = prismadb as any;
-  const delegate = client?.properties;
-  if (!delegate) {
-    return [];
-  }
-  
-  const properties = await delegate.findMany({
+  const properties = await prismadb.properties.findMany({
     where: { organizationId },
     select: {
       createdAt: true,
@@ -104,13 +87,7 @@ export const getPropertiesByMonthAndYear = async (year: number) => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return [];
   
-  const client: any = prismadb as any;
-  const delegate = client?.properties;
-  if (!delegate) {
-    return [];
-  }
-  
-  const properties = await delegate.findMany({
+  const properties = await prismadb.properties.findMany({
     where: { organizationId },
     select: {
       createdAt: true,

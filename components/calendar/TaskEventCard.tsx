@@ -51,7 +51,7 @@ export function TaskEventCard({ task }: TaskEventCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-blue-500" />
+            <CheckCircle2 className="h-4 w-4 text-primary" />
             {task.title}
           </CardTitle>
           <Badge variant={getPriorityColor(task.priority)}>

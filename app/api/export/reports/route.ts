@@ -1,7 +1,7 @@
 /**
  * Reports Export API Route
  * 
- * Exports reports statistics to XLS, XLSX, CSV, or PDF format.
+ * Exports reports statistics to XLS, XLSX, CSV, XML, or PDF format.
  * Includes rate limiting, authorization, and audit logging.
  */
 
@@ -24,7 +24,7 @@ import {
 export const dynamic = "force-dynamic";
 
 // Supported formats
-const VALID_FORMATS: ExportFormat[] = ["xlsx", "xls", "csv", "pdf"];
+const VALID_FORMATS: ExportFormat[] = ["xlsx", "xls", "csv", "pdf", "xml"];
 
 export async function GET(req: NextRequest) {
   try {
@@ -100,35 +100,26 @@ export async function GET(req: NextRequest) {
     const activeClients = clientsByStatus["ACTIVE"] || 0;
     
     // Fetch properties statistics
-    const client: any = prismadb as any;
-    const propertiesDelegate = client?.properties;
+    const properties = await prismadb.properties.findMany({
+      where: { organizationId: orgId },
+      select: { property_status: true },
+    });
     
-    let propertiesCount = 0;
-    let propertiesByStatus: { name: string; Number: number }[] = [];
-    let activeProperties = 0;
+    const propertiesCount = properties.length;
+    const statusCounts = properties.reduce((acc: Record<string, number>, property: { property_status?: string | null }) => {
+      const status = property.property_status || "ACTIVE";
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
     
-    if (propertiesDelegate) {
-      const properties = await propertiesDelegate.findMany({
-        where: { organizationId: orgId },
-        select: { property_status: true },
-      });
-      
-      propertiesCount = properties.length;
-      const statusCounts = properties.reduce((acc: Record<string, number>, property: { property_status?: string }) => {
-        const status = property.property_status || "ACTIVE";
-        acc[status] = (acc[status] || 0) + 1;
-        return acc;
-      }, {});
-      
-      propertiesByStatus = [
-        "ACTIVE", "PENDING", "SOLD", "OFF_MARKET", "WITHDRAWN"
-      ].map(status => ({
-        name: status,
-        Number: statusCounts[status] || 0,
-      }));
-      
-      activeProperties = statusCounts["ACTIVE"] || 0;
-    }
+    const propertiesByStatus = [
+      "ACTIVE", "PENDING", "SOLD", "OFF_MARKET", "WITHDRAWN"
+    ].map(status => ({
+      name: status,
+      Number: statusCounts[status] || 0,
+    }));
+    
+    const activeProperties = statusCounts["ACTIVE"] || 0;
     
     // Create audit log
     const auditLog = createExportAuditLog({

@@ -57,14 +57,14 @@ export function VisitorsChart({
   )
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         {hasData ? (
-          <ChartContainer config={chartConfig} className="aspect-auto h-[350px] w-full">
+          <ChartContainer config={chartConfig} className="aspect-auto h-full min-h-[250px] w-full">
             <AreaChart
               accessibilityLayer
               data={data}
@@ -133,7 +133,7 @@ export function VisitorsChart({
             </AreaChart>
           </ChartContainer>
         ) : (
-          <div className="flex h-[320px] items-center justify-center text-sm text-muted-foreground">
+          <div className="flex h-full min-h-[250px] items-center justify-center text-sm text-muted-foreground">
             {emptyMessage}
           </div>
         )}

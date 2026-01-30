@@ -276,7 +276,7 @@ export function UsernameOrgStep({
                       placeholder={dict.usernamePlaceholder}
                       className={cn(
                         "px-4 h-11 pr-10",
-                        usernameStatus === "available" && "border-green-500 focus-visible:ring-green-500",
+                        usernameStatus === "available" && "border-success focus-visible:ring-green-500",
                         (usernameStatus === "taken" || usernameStatus === "invalid") &&
                           "border-destructive focus-visible:ring-destructive"
                       )}
@@ -286,7 +286,7 @@ export function UsernameOrgStep({
                         <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                       )}
                       {usernameStatus === "available" && (
-                        <Check className="w-4 h-4 text-green-500" />
+                        <Check className="w-4 h-4 text-success" />
                       )}
                       {(usernameStatus === "taken" || usernameStatus === "invalid") && (
                         <X className="w-4 h-4 text-destructive" />
@@ -299,7 +299,7 @@ export function UsernameOrgStep({
                       animate={{ opacity: 1, y: 0 }}
                       className={cn(
                         "text-sm",
-                        usernameStatus === "available" && "text-green-600",
+                        usernameStatus === "available" && "text-success",
                         usernameStatus === "taken" && "text-destructive",
                         usernameStatus === "invalid" && "text-destructive",
                         usernameStatus === "checking" && "text-muted-foreground"
@@ -325,11 +325,11 @@ export function UsernameOrgStep({
                       readOnly
                       disabled
                       className={cn(
-                        "px-4 h-11 bg-muted/50 border-green-500/50 cursor-not-allowed"
+                        "px-4 h-11 bg-muted/50 border-success/50 cursor-not-allowed"
                       )}
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Check className="w-4 h-4 text-green-500" />
+                      <Check className="w-4 h-4 text-success" />
                     </div>
                   </div>
                   
@@ -357,8 +357,8 @@ export function UsernameOrgStep({
       >
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 rounded-lg bg-emerald-500/10">
-              <Building2 className="w-5 h-5 text-emerald-600" />
+            <div className="p-2 rounded-lg bg-success/10">
+              <Building2 className="w-5 h-5 text-success" />
             </div>
             <div>
               <h3 className="font-semibold">{dict.orgTitle}</h3>
@@ -388,7 +388,7 @@ export function UsernameOrgStep({
                   placeholder={dict.orgSlugPlaceholder}
                   className={cn(
                     "px-4 pr-10",
-                    slugStatus === "available" && "border-green-500 focus-visible:ring-green-500",
+                    slugStatus === "available" && "border-success focus-visible:ring-green-500",
                     (slugStatus === "taken" || slugStatus === "invalid") &&
                       "border-destructive focus-visible:ring-destructive"
                   )}
@@ -398,7 +398,7 @@ export function UsernameOrgStep({
                     <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                   )}
                   {slugStatus === "available" && (
-                    <Check className="w-4 h-4 text-green-500" />
+                    <Check className="w-4 h-4 text-success" />
                   )}
                   {(slugStatus === "taken" || slugStatus === "invalid") && (
                     <X className="w-4 h-4 text-destructive" />
@@ -411,7 +411,7 @@ export function UsernameOrgStep({
                   animate={{ opacity: 1, y: 0 }}
                   className={cn(
                     "text-sm",
-                    slugStatus === "available" && "text-green-600",
+                    slugStatus === "available" && "text-success",
                     (slugStatus === "taken" || slugStatus === "invalid") && "text-destructive",
                     slugStatus === "checking" && "text-muted-foreground"
                   )}

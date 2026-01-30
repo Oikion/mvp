@@ -18,11 +18,7 @@ export const columns: ColumnDef<Task>[] = [
 
     cell: ({ row }) => (
       <div className="whitespace-nowrap">
-        {
-          //@ts-ignore
-          //TODO: fix this
-          row.getValue("assigned_to_user")?.name ?? "Unassigned"
-        }
+        {(row.getValue("assigned_to_user") as { name: string | null } | null)?.name ?? "Unassigned"}
       </div>
     ),
     enableSorting: false,

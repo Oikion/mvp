@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -43,7 +43,7 @@ export function NewContactForm({
   onFinish,
 }: NewTaskFormProps) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -120,17 +120,9 @@ export function NewContactForm({
         relationship_to_client: undefined,
         type: data.type,
       });
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Contact created successfully",
-      });
+      toast.success("Success", { description: "Contact created successfully", isTranslationKey: false });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.response?.data,
-      });
+      toast.error("Error", { description: error?.response?.data, isTranslationKey: false });
     } finally {
       setIsLoading(false);
       form.reset({
@@ -174,7 +166,7 @@ export function NewContactForm({
             <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
           </pre>
         </div> */}
-        <div className=" w-[800px] text-sm">
+        <div className="w-full max-w-[800px] text-sm">
           <div className="pb-5 space-y-2">
             <FormField
               control={form.control}

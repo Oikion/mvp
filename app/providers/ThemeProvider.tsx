@@ -3,6 +3,40 @@
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
+const THEME_STORAGE_KEY = "oikion-theme";
+const THEMES = ["light", "dark", "pearl-sand", "twilight-lavender"] as const;
+
+/**
+ * Set the theme on the document element before React hydrates
+ * This runs immediately when the script loads
+ */
+if (globalThis.window !== undefined) {
+  // Read theme from localStorage
+  const getInitialTheme = (): string | null => {
+    try {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored) {
+        // next-themes stores values as JSON strings
+        return JSON.parse(stored);
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+    return null;
+  };
+
+  const theme = getInitialTheme();
+  if (theme && theme !== "system" && THEMES.includes(theme as typeof THEMES[number])) {
+    document.documentElement.dataset.theme = theme;
+  } else if (theme === "system" || !theme) {
+    // For system theme or no theme, check media query
+    const systemTheme = globalThis.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+    document.documentElement.dataset.theme = systemTheme;
+  }
+}
+
 /**
  * ThemeProvider - Oikion Design System
  * 
@@ -13,21 +47,22 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
  * - twilight-lavender: Muted violet/lavender accents, dark theme
  * 
  * Themes are persisted in localStorage and support system theme detection
+ * 
+ * The theme is set immediately when this module loads (before React hydrates)
+ * to prevent flash and minimize hydration warnings.
  */
 export function ThemeProvider({
   children,
   ...props
-}: React.ComponentProps<typeof NextThemesProvider>) {
+}: Readonly<React.ComponentProps<typeof NextThemesProvider>>) {
   return (
     <NextThemesProvider
       {...props}
-      themes={[
-        "light",
-        "dark",
-        "pearl-sand",
-        "twilight-lavender",
-      ]}
+      themes={[...THEMES]}
       attribute="data-theme"
+      disableTransitionOnChange
+      enableColorScheme={false}
+      storageKey={THEME_STORAGE_KEY}
     >
       {children}
     </NextThemesProvider>

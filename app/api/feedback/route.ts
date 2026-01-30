@@ -3,7 +3,7 @@ import { getCurrentUserSafe, getCurrentOrgIdSafe } from "@/lib/get-current-user"
 import { NextResponse } from "next/server";
 import FeedbackEmail from "@/emails/Feedback";
 import { prismadb } from "@/lib/prisma";
-import { uploadToBlob } from "@/lib/vercel-blob";
+import { uploadFeedbackFile } from "@/actions/upload";
 
 // Helper function to parse user agent string
 function parseUserAgent(userAgent: string | undefined) {
@@ -235,7 +235,7 @@ export async function POST(req: Request) {
       const feedbackId = crypto.randomUUID();
       const orgIdForBlob = organizationId || "platform";
       
-      // Upload screenshot to Vercel Blob if available
+      // Upload screenshot with compression (PNG → WebP via unified action)
       let screenshotUrl: string | null = null;
       if (screenshot && typeof screenshot === 'string') {
         try {
@@ -244,14 +244,13 @@ export async function POST(req: Request) {
           const screenshotBuffer = Buffer.from(base64Data, 'base64');
           const screenshotFileName = `feedback-screenshot-${feedbackId}.png`;
           
-          const screenshotBlob = await uploadToBlob(screenshotFileName, screenshotBuffer, {
-            contentType: "image/png",
-            addRandomSuffix: false,
-            access: "public",
-            organizationId: orgIdForBlob,
-            folder: "attachments",
-          });
-          screenshotUrl = screenshotBlob.url;
+          const result = await uploadFeedbackFile(
+            screenshotBuffer,
+            screenshotFileName,
+            "image/png",
+            orgIdForBlob
+          );
+          screenshotUrl = result.url;
         } catch (uploadError) {
           console.error("[FEEDBACK_SCREENSHOT_UPLOAD]", uploadError);
           // Continue without screenshot URL if upload fails
@@ -302,14 +301,14 @@ export async function POST(req: Request) {
           const logsBuffer = Buffer.from(logsText, 'utf-8');
           const logsFileName = `feedback-console-logs-${feedbackId}.txt`;
           
-          const logsBlob = await uploadToBlob(logsFileName, logsBuffer, {
-            contentType: "text/plain",
-            addRandomSuffix: false,
-            access: "public",
-            organizationId: orgIdForBlob,
-            folder: "attachments",
-          });
-          consoleLogsUrl = logsBlob.url;
+          // Upload with automatic gzip compression for large text files
+          const result = await uploadFeedbackFile(
+            logsBuffer,
+            logsFileName,
+            "text/plain",
+            orgIdForBlob
+          );
+          consoleLogsUrl = result.url;
         } catch (uploadError) {
           console.error("[FEEDBACK_CONSOLELOGS_UPLOAD]", uploadError);
           // Continue without console logs URL if upload fails

@@ -5,7 +5,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ const statusOptions = [
 
 export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);
@@ -109,9 +109,9 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
         });
       }
 
-      toast({ variant: "success", title: "Success", description: "Property created successfully" });
+      toast.success("Success", { description: "Property created successfully", isTranslationKey: false });
     } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to create property" });
+      toast.error("Error", { description: "Failed to create property", isTranslationKey: false });
     } finally {
       form.reset();
       router.refresh();
@@ -123,7 +123,7 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="h-full px-10">
-        <div className="w-[800px] text-sm space-y-3">
+        <div className="w-full max-w-[800px] text-sm space-y-3">
           <FormField control={form.control} name="property_name" render={({ field }) => (
             <FormItem>
               <FormLabel>Property name</FormLabel>

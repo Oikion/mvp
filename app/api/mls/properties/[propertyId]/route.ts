@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
 import { invalidateCache } from "@/lib/cache-invalidate";
+import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 
 export async function GET(
   _req: Request,
@@ -14,6 +15,15 @@ export async function GET(
   }
 
   try {
+    // Permission check: Users need property:read permission
+    const readCheck = await canPerformAction("property:read");
+    if (!readCheck.allowed) {
+      return NextResponse.json(
+        { error: readCheck.reason || "Permission denied" },
+        { status: 403 }
+      );
+    }
+
     await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
@@ -56,6 +66,30 @@ export async function DELETE(
     await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
+
+    // Get the property to check ownership
+    const property = await prismaTenant.properties.findFirst({
+      where: { id: propertyId, organizationId },
+      select: { assigned_to: true },
+    });
+
+    if (!property) {
+      return NextResponse.json({ error: "Property not found" }, { status: 404 });
+    }
+
+    // Permission check: Users need property:delete permission (with ownership check)
+    const deleteCheck = await canPerformActionOnEntity(
+      "property:delete",
+      "property",
+      propertyId,
+      property.assigned_to
+    );
+    if (!deleteCheck.allowed) {
+      return NextResponse.json(
+        { error: deleteCheck.reason || "Permission denied" },
+        { status: 403 }
+      );
+    }
 
     await prismaTenant.properties.delete({
       where: { id: propertyId },

@@ -266,7 +266,7 @@ export function UploadStep({
           isDragActive
             ? "border-primary bg-primary/5"
             : currentFile
-            ? "border-green-500/50 bg-green-500/10"
+            ? "border-success/50 bg-success/10"
             : "border-muted-foreground/25 hover:border-primary/50"
         }`}
       >
@@ -280,7 +280,7 @@ export function UploadStep({
             </>
           ) : currentFile ? (
             <>
-              <FileText className="h-12 w-12 text-green-500 mb-4" />
+              <FileText className="h-12 w-12 text-success mb-4" />
               <p className="font-medium text-lg">{currentFile.name}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 {(currentFile.size / 1024).toFixed(1)} KB

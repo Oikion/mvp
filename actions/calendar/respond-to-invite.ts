@@ -5,6 +5,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { createNotification } from "@/actions/notifications/create-notification";
 import { revalidatePath } from "next/cache";
 import { InviteStatus } from "@prisma/client";
+import { requireAction } from "@/lib/permissions";
 
 export type InviteResponse = "ACCEPTED" | "DECLINED" | "TENTATIVE";
 
@@ -15,6 +16,10 @@ export interface RespondToInviteParams {
 
 export async function respondToEventInvite({ eventId, response }: RespondToInviteParams) {
   try {
+    // Permission check: Users need calendar:respond_invite permission
+    const guard = await requireAction("calendar:respond_invite");
+    if (guard) throw new Error(guard.error);
+
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);

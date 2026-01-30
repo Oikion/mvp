@@ -179,7 +179,7 @@ const AccountsView = ({ data = [], crmData }: any) => {
                 >
                   + {tCommon("buttons.createClient")}
                 </Button>
-                <SheetContent className="min-w-[1000px] space-y-2">
+                <SheetContent className="w-full sm:min-w-[600px] lg:min-w-[900px] xl:min-w-[1000px] space-y-2">
                   <SheetHeader>
                     <SheetTitle>{tCommon("dialogs.createClient")}</SheetTitle>
                   </SheetHeader>

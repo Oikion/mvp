@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   User,
   MoreHorizontal,
@@ -21,9 +21,11 @@ import {
   Loader2,
   Users,
   X,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRemoveConnection } from "@/hooks/swr";
+import { startDirectMessage } from "@/actions/messaging/direct-messages";
 
 interface Connection {
   id: string;
@@ -60,19 +62,33 @@ function ConnectionItem({
   translations: Record<string, Record<string, string>>;
 }) {
   const router = useRouter();
-  const { toast } = useToast();
+  const params = useParams();
+  const locale = params.locale as string;
+  const { toast } = useAppToast();
   const { removeConnection, isRemoving } = useRemoveConnection(connection.id);
+  const [isStartingMessage, setIsStartingMessage] = useState(false);
+
+  const handleMessage = async () => {
+    try {
+      setIsStartingMessage(true);
+      const result = await startDirectMessage(connection.user.id);
+      if (result.success && result.conversationId) {
+        router.push(`/${locale}/app/messages?conversationId=${result.conversationId}`);
+      } else {
+        toast.error(t.toast, { description: result.error || "Failed to start conversation", isTranslationKey: false });
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to start conversation";
+      toast.error(t.toast, { description: message, isTranslationKey: false });
+    } finally {
+      setIsStartingMessage(false);
+    }
+  };
 
   const handleRemove = async () => {
     try {
       await removeConnection();
-      toast({
-        variant: "success",
-        title: showAsSent ? t.toast.requestCancelled : t.toast.connectionRemoved,
-        description: showAsSent
-          ? t.toast.requestCancelledDesc
-          : t.toast.connectionRemovedDesc,
-      });
+      toast.success(showAsSent, { description: showAsSent, isTranslationKey: false });
       router.refresh();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t.toast.removeError;
@@ -129,8 +145,8 @@ function ConnectionItem({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={isRemoving}>
-              {isRemoving ? (
+            <Button variant="ghost" size="icon" disabled={isRemoving || isStartingMessage}>
+              {isRemoving || isStartingMessage ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <MoreHorizontal className="h-4 w-4" />
@@ -147,6 +163,12 @@ function ConnectionItem({
                   </Link>
                 </DropdownMenuItem>
               )}
+            {!showAsSent && (
+              <DropdownMenuItem onClick={handleMessage} disabled={isStartingMessage}>
+                <MessageCircle className="h-4 w-4 mr-2" />
+                {t.actions?.message || "Message"}
+              </DropdownMenuItem>
+            )}
             {!showAsSent && (
               <DropdownMenuItem disabled>
                 <Share2 className="h-4 w-4 mr-2" />

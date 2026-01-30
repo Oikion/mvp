@@ -7,8 +7,13 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-col
 import { useTranslations } from "next-intl";
 import { PropertyRowActions } from "./PropertyRowActions";
 import { StatusCell } from "./cells/StatusCell";
+import { VisibilityCell } from "./cells/VisibilityCell";
 import { AssignedUserCell } from "./cells/AssignedUserCell";
 import { PriceCell } from "./cells/PriceCell";
+import {
+  DataTableSelectCheckbox,
+  DataTableSelectAllCheckbox,
+} from "@/components/ui/data-table/data-table-select-checkbox";
 
 export const getColumns = (users: { id: string; name: string | null }[] = []): ColumnDef<{
   id: string;
@@ -17,9 +22,17 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
   price?: number | null;
   property_type?: string | null;
   property_status?: string | null;
+  portal_visibility?: string | null;
   assigned_to?: string | null;
   assigned_to_user?: { name: string | null } | null;
 }>[] => [
+  {
+    id: "select",
+    header: ({ table }) => <DataTableSelectAllCheckbox table={table} />,
+    cell: ({ row, table }) => <DataTableSelectCheckbox row={row} table={table} />,
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: "createdAt",
     header: ({ column }) => {
@@ -98,6 +111,22 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
         <StatusCell
           propertyId={row.original.id}
           status={row.original.property_status || row.getValue("property_status")}
+        />
+      );
+    },
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+  },
+  {
+    accessorKey: "portal_visibility",
+    header: ({ column }) => {
+      const t = useTranslations("mls");
+      return <DataTableColumnHeader column={column} title={t("MlsPropertiesTable.visibility")} />
+    },
+    cell: ({ row }) => {
+      return (
+        <VisibilityCell
+          propertyId={row.original.id}
+          visibility={row.original.portal_visibility || row.getValue("portal_visibility")}
         />
       );
     },

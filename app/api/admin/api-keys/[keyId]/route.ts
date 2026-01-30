@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { revokeApiKey, getApiUsageStats } from "@/lib/api-auth";
+import { requireAction, handleGuardError } from "@/lib/permissions/action-guards";
 
 interface RouteParams {
   params: Promise<{ keyId: string }>;
@@ -24,6 +25,10 @@ export async function GET(req: Request, { params }: RouteParams) {
         { status: 403 }
       );
     }
+
+    // Check action-level permission for viewing API keys
+    const guard = await requireAction("admin:manage_webhooks");
+    if (guard) return handleGuardError(guard);
 
     // Get API key
     const apiKey = await prismadb.apiKey.findFirst({
@@ -106,6 +111,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       );
     }
 
+    // Check action-level permission for updating API keys
+    const guard = await requireAction("admin:manage_webhooks");
+    if (guard) return handleGuardError(guard);
+
     const body = await req.json();
     const { name } = body;
 
@@ -163,6 +172,10 @@ export async function DELETE(req: Request, { params }: RouteParams) {
         { status: 403 }
       );
     }
+
+    // Check action-level permission for revoking API keys
+    const guard = await requireAction("admin:manage_webhooks");
+    if (guard) return handleGuardError(guard);
 
     // Revoke API key
     const revoked = await revokeApiKey(keyId, organizationId);

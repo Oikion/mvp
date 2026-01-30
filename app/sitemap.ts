@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { prismadb } from '@/lib/prisma';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://oikion.com/app';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://oikion.com';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages - always include

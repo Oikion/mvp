@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ArrowRight, Loader2, MoreHorizontal, BedDouble, Bath, Ruler, MapPin, Home } from "lucide-react";
 import moment from "moment";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 interface QuickViewItem {
   id: string;
@@ -121,7 +121,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
   const locale = useLocale();
   const isProperties = viewAllHref.includes("mls");
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
   const getStatusInfo = (item: QuickViewItem) => {
@@ -168,19 +168,12 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
         throw new Error("Failed to delete");
       }
 
-      toast({
-        title: tCommon("success"),
-        description: isProperties ? tDashboard("propertyDeleted") : tDashboard("clientDeleted"),
-      });
+      toast.info(tCommon, { description: isProperties, isTranslationKey: false });
 
       router.refresh();
     } catch (error) {
       console.error("Failed to delete item", error);
-      toast({
-        variant: "destructive",
-        title: tCommon("error"),
-        description: tDashboard("deleteError"),
-      });
+      toast.error(tCommon, { description: tDashboard, isTranslationKey: false });
     } finally {
       setDeletingId(null);
     }

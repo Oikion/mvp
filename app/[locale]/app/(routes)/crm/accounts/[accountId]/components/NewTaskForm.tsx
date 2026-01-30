@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { SheetTrigger } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 import fetcher from "@/lib/fetcher";
 import { cn } from "@/lib/utils";
@@ -62,7 +62,7 @@ const NewTaskForm = ({ account, onFinish }: NewTaskFormProps) => {
 
   const router = useRouter();
 
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const formSchema = z.object({
     title: z.string().min(3).max(255),
@@ -94,17 +94,9 @@ const NewTaskForm = ({ account, onFinish }: NewTaskFormProps) => {
     setIsLoading(true);
     try {
       await axios.post(`/api/crm/account/${account?.id}/task/create`, data);
-      toast({
-        variant: "success",
-        title: "Success",
-        description: `New task: ${data.title}, created successfully`,
-      });
+      toast.success("Success", { description: `New task: ${data.title}, created successfully`, isTranslationKey: false });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.response?.data,
-      });
+      toast.error("Error", { description: error?.response?.data, isTranslationKey: false });
     } finally {
       setIsLoading(false);
       onFinish();

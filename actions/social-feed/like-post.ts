@@ -4,6 +4,7 @@ import { getCurrentUserSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { notifyPostLiked } from "@/lib/notifications";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 interface LikeResult {
   success: boolean;
@@ -17,6 +18,10 @@ interface LikeResult {
  * Best practice: Use upsert pattern for idempotent operations
  */
 export async function toggleLikePost(postId: string): Promise<LikeResult> {
+  // Permission check: Users need social:like permission
+  const guard = await requireAction("social:like");
+  if (guard) return { success: false, liked: false, likeCount: 0, error: guard.error };
+
   const currentUser = await getCurrentUserSafe();
 
   if (!currentUser) {
@@ -82,6 +87,23 @@ export async function toggleLikePost(postId: string): Promise<LikeResult> {
 
     // Revalidate the feed to update cache
     revalidatePath("/social-feed");
+
+    // Publish Ably event for real-time updates
+    try {
+      const { publishToChannel, getSocialFeedChannelName } = await import("@/lib/ably");
+      await publishToChannel(
+        getSocialFeedChannelName(post.organizationId),
+        "like",
+        {
+          postId,
+          userId: currentUser.id,
+          type: existingLike ? "unliked" : "liked",
+          newLikeCount: likeCount,
+        }
+      );
+    } catch {
+      // Ably not configured, skip real-time notification
+    }
 
     return {
       success: true,

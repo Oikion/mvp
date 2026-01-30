@@ -6,6 +6,7 @@ import {
   getTemplateDefinition,
   type TemplateDefinition,
 } from "@/lib/templates";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export interface TemplateListItem {
   type: TemplateType;
@@ -21,6 +22,10 @@ export interface TemplateListItem {
  * Get all available document templates
  */
 export async function getTemplates(): Promise<TemplateListItem[]> {
+  // Permission check: Users need template:read permission
+  const guard = await requireAction("template:read");
+  if (guard) return [];
+
   const definitions = getAllTemplateDefinitions();
 
   return definitions.map((def) => ({
@@ -40,6 +45,10 @@ export async function getTemplates(): Promise<TemplateListItem[]> {
 export async function getTemplate(
   type: TemplateType
 ): Promise<TemplateDefinition | null> {
+  // Permission check: Users need template:read permission
+  const guard = await requireAction("template:read");
+  if (guard) return null;
+
   const definition = getTemplateDefinition(type);
   return definition || null;
 }

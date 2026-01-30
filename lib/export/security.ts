@@ -15,7 +15,7 @@ import { rateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 // TYPES
 // ============================================
 
-export type ExportFormat = "xlsx" | "xls" | "csv" | "pdf";
+export type ExportFormat = "xlsx" | "xls" | "csv" | "pdf" | "xml";
 export type ExportModule = "crm" | "mls" | "calendar" | "reports";
 
 export interface ExportAuditLog {
@@ -214,6 +214,7 @@ export function generateExportFilename(
     xls: ".xls",
     csv: ".csv",
     pdf: ".pdf",
+    xml: ".xml",
   };
   
   return `${safeName}${extensions[format]}`;
@@ -228,6 +229,7 @@ export const CONTENT_TYPES: Record<ExportFormat, string> = {
   xls: "application/vnd.ms-excel",
   csv: "text/csv; charset=utf-8",
   pdf: "application/pdf",
+  xml: "application/xml; charset=utf-8",
 };
 
 // ============================================

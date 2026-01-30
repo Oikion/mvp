@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
+import { notifyConnectionAccepted } from "@/lib/notifications";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 export async function PUT(
   req: Request,
   props: { params: Promise<{ connectionId: string }> }
 ) {
   try {
+    // Permission check: Users need social:manage_connections permission
+    const updateCheck = await canPerformAction("social:manage_connections");
+    if (!updateCheck.allowed) {
+      return NextResponse.json({ error: updateCheck.reason }, { status: 403 });
+    }
+
     const currentUser = await getCurrentUser();
     const params = await props.params;
     const { connectionId } = params;
@@ -37,6 +45,17 @@ export async function PUT(
       },
     });
 
+    // Notify the requester if connection was accepted
+    if (accept) {
+      await notifyConnectionAccepted({
+        connectionId,
+        requesterId: connection.followerId,
+        requesterName: currentUser.name || currentUser.email || "Someone",
+        targetId: currentUser.id,
+        organizationId: "00000000-0000-0000-0000-000000000000",
+      });
+    }
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error("[CONNECTION_PUT]", error);
@@ -49,6 +68,12 @@ export async function DELETE(
   props: { params: Promise<{ connectionId: string }> }
 ) {
   try {
+    // Permission check: Users need social:manage_connections permission
+    const deleteCheck = await canPerformAction("social:manage_connections");
+    if (!deleteCheck.allowed) {
+      return NextResponse.json({ error: deleteCheck.reason }, { status: 403 });
+    }
+
     const currentUser = await getCurrentUser();
     const params = await props.params;
     const { connectionId } = params;

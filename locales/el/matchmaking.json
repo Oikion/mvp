@@ -1,0 +1,138 @@
+{
+  "title": "Matchmaking",
+  "description": "Αναλυτικά συμβατότητας πελατών-ακινήτων",
+  "dashboard": {
+    "title": "Πίνακας Matchmaking",
+    "stats": {
+      "activeClients": "Ενεργοί Πελάτες",
+      "activeClientsDesc": "Πελάτες που αναζητούν ακίνητα",
+      "availableProperties": "Διαθέσιμα Ακίνητα",
+      "availablePropertiesDesc": "Ακίνητα προς αντιστοίχιση",
+      "clientsWithMatches": "Πελάτες με Matches",
+      "clientsWithMatchesDesc": "των πελατών",
+      "averageMatchScore": "Μέσος Βαθμός Match",
+      "averageMatchScoreDesc": "Σε όλα τα ζεύγη"
+    },
+    "tabs": {
+      "overview": "Επισκόπηση",
+      "matches": "Κορυφαία Matches",
+      "unmatched": "Χρειάζονται Προσοχή",
+      "hot": "Hot Ακίνητα"
+    },
+    "charts": {
+      "distribution": "Κατανομή Βαθμολογίας",
+      "distributionDesc": "Κατανομή βαθμολογιών σε όλα τα ζεύγη πελατών-ακινήτων",
+      "qualityOverview": "Επισκόπηση Ποιότητας Match",
+      "qualityOverviewDesc": "Ανάλυση επιπέδων ποιότητας"
+    },
+    "quickStats": {
+      "excellentMatches": "Εξαιρετικά Matches",
+      "clientsNeedProperties": "Πελάτες Χρειάζονται Ακίνητα",
+      "highDemandProperties": "Ακίνητα Υψηλής Ζήτησης"
+    }
+  },
+  "topMatches": {
+    "title": "Κορυφαία Ζεύγη Πελατών-Ακινήτων",
+    "description": "Τα καλύτερα ζευγάρια βάσει προτιμήσεων και κριτηρίων",
+    "noMatches": "Δεν βρέθηκαν matches πάνω από το όριο.",
+    "noMatchesHint": "Προσθέστε περισσότερες προτιμήσεις πελατών ή ακίνητα.",
+    "criteria": "κριτήρια",
+    "viewClient": "Προβολή Πελάτη",
+    "viewProperty": "Προβολή Ακινήτου"
+  },
+  "unmatchedClients": {
+    "title": "Πελάτες Χωρίς Καλά Matches",
+    "description": "Αυτοί οι πελάτες δεν έχουν ακίνητα που ταιριάζουν πάνω από 50%",
+    "allClientsMatched": "Όλοι οι πελάτες έχουν καλά matches!",
+    "allClientsMatchedDesc": "Κάθε ενεργός πελάτης έχει τουλάχιστον ένα ακίνητο με match πάνω από 50%.",
+    "needsAttention": "πελάτες χρειάζονται προσοχή",
+    "attentionDesc": "Αυτοί οι πελάτες δεν έχουν ακίνητα που ταιριάζουν με τις προτιμήσεις τους πάνω από 50%. Σκεφτείτε να επεκτείνετε τα κριτήρια αναζήτησης ή να προσθέσετε νέα ακίνητα.",
+    "bestMatch": "Καλύτερο match",
+    "review": "Εξέταση"
+  },
+  "hotProperties": {
+    "title": "Hot Ακίνητα",
+    "description": "Ακίνητα με τους περισσότερους ταιριαστούς πελάτες - ευκαιρίες υψηλής ζήτησης",
+    "noHotProperties": "Δεν βρέθηκαν hot ακίνητα.",
+    "noHotPropertiesHint": "Ακίνητα με πολλαπλούς ταιριαστούς πελάτες θα εμφανιστούν εδώ.",
+    "matches": "Matches",
+    "topScore": "Κορυφαίο",
+    "avgScore": "Μέσος",
+    "view": "Προβολή"
+  },
+  "matchingProperties": {
+    "title": "Ακίνητα που Ταιριάζουν",
+    "description": "Ακίνητα που ταιριάζουν με τις προτιμήσεις αυτού του πελάτη",
+    "refresh": "Ανανέωση",
+    "viewAll": "Όλα τα Matches",
+    "noMatches": "Δεν βρέθηκαν ακίνητα που ταιριάζουν",
+    "noMatchesHint": "Ενημερώστε τις προτιμήσεις του πελάτη για καλύτερα matches",
+    "viewMore": "Περισσότερα Matches"
+  },
+  "matchingClients": {
+    "title": "Πελάτες που Ταιριάζουν",
+    "description": "Πιθανοί αγοραστές/ενοικιαστές βάσει προτιμήσεων τους",
+    "refresh": "Ανανέωση",
+    "viewAll": "Προβολή Όλων",
+    "noMatches": "Δεν βρέθηκαν πελάτες που ταιριάζουν",
+    "noMatchesHint": "Πελάτες με ταιριαστές προτιμήσεις θα εμφανιστούν εδώ",
+    "viewMore": "Περισσότερα Matches"
+  },
+  "scoreBreakdown": {
+    "title": "Ανάλυση Βαθμολογίας",
+    "topFactor": "Κύριος παράγοντας",
+    "weight": "βάρος",
+    "criteria": {
+      "budget": "Προϋπολογισμός",
+      "location": "Τοποθεσία",
+      "transaction_type": "Τύπος Συναλλαγής",
+      "property_type": "Τύπος Ακινήτου",
+      "bedrooms": "Υπνοδωμάτια",
+      "size": "Μέγεθος (τ.μ.)",
+      "amenities": "Παροχές",
+      "condition": "Κατάσταση",
+      "furnished": "Επίπλωση",
+      "floor": "Όροφος",
+      "elevator": "Ασανσέρ",
+      "pet_friendly": "Δεκτά Κατοικίδια",
+      "heating": "Θέρμανση",
+      "energy_class": "Ενεργειακή Κλάση",
+      "parking": "Πάρκινγκ"
+    }
+  },
+  "preferences": {
+    "stepTitle": "Προτιμήσεις Ακινήτου",
+    "stepDescription": "Λεπτομερή κριτήρια για matchmaking",
+    "rooms": "Δωμάτια",
+    "minBedrooms": "Ελάχιστα υπνοδωμάτια",
+    "maxBedrooms": "Μέγιστα υπνοδωμάτια",
+    "minBathrooms": "Ελάχιστα μπάνια",
+    "maxBathrooms": "Μέγιστα μπάνια",
+    "any": "Οποιοδήποτε",
+    "size": "Μέγεθος (τ.μ.)",
+    "minSize": "Ελάχιστο",
+    "maxSize": "Μέγιστο",
+    "floor": "Όροφος",
+    "fromFloor": "Από όροφο",
+    "toFloor": "Έως όροφο",
+    "groundFloorOnly": "Μόνο ισόγειο",
+    "requirements": "Απαιτήσεις",
+    "elevator": "Ασανσέρ",
+    "parking": "Πάρκινγκ",
+    "petFriendly": "Δεκτά κατοικίδια",
+    "furnished": "Επίπλωση",
+    "anyFurnished": "Οποιαδήποτε",
+    "unfurnished": "Χωρίς επίπλωση",
+    "partiallyFurnished": "Μερικώς επιπλωμένο",
+    "fullyFurnished": "Πλήρως επιπλωμένο",
+    "energyClass": "Ελάχιστη ενεργειακή κλάση",
+    "heatingType": "Τύπος θέρμανσης",
+    "selectHeatingTypes": "Επιλέξτε τύπους θέρμανσης",
+    "condition": "Κατάσταση ακινήτου",
+    "selectConditions": "Επιλέξτε αποδεκτές καταστάσεις",
+    "requiredAmenities": "Απαραίτητες παροχές",
+    "selectRequired": "Επιλέξτε απαραίτητες παροχές",
+    "preferredAmenities": "Επιθυμητές παροχές (προαιρετικές)",
+    "selectPreferred": "Επιλέξτε επιθυμητές παροχές"
+  }
+}

@@ -27,10 +27,10 @@ export function SharedAccessBanner({ shareInfo, entityType }: SharedAccessBanner
   const isViewOnly = shareInfo.permissions === "VIEW_ONLY";
 
   return (
-    <Card className="p-4 bg-blue-500/10 border-blue-500/30">
+    <Card className="p-4 bg-primary/10 border-primary/30">
       <div className="flex items-start gap-4">
-        <div className="p-2 rounded-full bg-blue-500/15">
-          <Share2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <div className="p-2 rounded-full bg-primary/15">
+          <Share2 className="h-4 w-4 text-primary dark:text-blue-400" />
         </div>
         <div className="flex-1 space-y-2">
           <div className="flex items-center justify-between">
@@ -42,8 +42,8 @@ export function SharedAccessBanner({ shareInfo, entityType }: SharedAccessBanner
                 variant="outline"
                 className={`text-xs ${
                   isViewOnly
-                    ? "border-amber-500 text-amber-700 dark:text-amber-400"
-                    : "border-green-500 text-green-700 dark:text-green-400"
+                    ? "border-warning text-amber-700 dark:text-amber-400"
+                    : "border-success text-green-700 dark:text-green-400"
                 }`}
               >
                 {isViewOnly ? (

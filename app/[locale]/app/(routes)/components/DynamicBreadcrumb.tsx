@@ -1,9 +1,8 @@
 "use client";
 
 import React from "react";
-import { usePathname, useRouter } from "@/navigation";
+import { usePathname, useRouter, Link } from "@/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Link } from "@/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ChevronLeft } from "lucide-react";
+import { useBreadcrumbEntityName, isUuid } from "@/hooks/use-entity-name";
 
 interface BreadcrumbSegment {
   label: string;
@@ -125,14 +125,20 @@ export function DynamicBreadcrumb() {
     return segment.charAt(0).toUpperCase() + segment.slice(1);
   };
 
-  // Get current page label
-  const getCurrentPageLabel = (): string => {
-    const cleanPath = pathname.startsWith(`/${locale}`)
+  // Get path segments for entity name lookup
+  const pathSegments = React.useMemo(() => {
+    const clean = pathname.startsWith(`/${locale}`)
       ? pathname.substring(`/${locale}`.length) || "/"
       : pathname;
-    
-    const pathSegments = cleanPath.split("/").filter(Boolean);
-    
+    return clean.split("/").filter(Boolean);
+  }, [pathname, locale]);
+
+  // Fetch entity name for the last segment if it's a UUID
+  const lastSegmentIndex = pathSegments.length - 1;
+  const entityName = useBreadcrumbEntityName(pathSegments, lastSegmentIndex);
+
+  // Get current page label
+  const getCurrentPageLabel = (): string => {
     if (pathSegments.length === 0) {
       return t("ModuleMenu.dashboard");
     }
@@ -159,8 +165,13 @@ export function DynamicBreadcrumb() {
       invoices: t("ModuleMenu.invoices"),
     };
 
-    // Check if it's a UUID/ID - use parent context
-    if (/^[a-f0-9-]{36}$/i.test(lastSegment) && pathSegments.length > 1) {
+    // If it's a UUID and we have an entity name, use it
+    if (isUuid(lastSegment) && entityName) {
+      return entityName;
+    }
+
+    // Check if it's a UUID/ID without entity name - use parent context
+    if (isUuid(lastSegment) && pathSegments.length > 1) {
       const parentSegment = pathSegments[pathSegments.length - 2];
       if (routeMap[parentSegment]) {
         return routeMap[parentSegment];

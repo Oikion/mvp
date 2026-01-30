@@ -4,6 +4,7 @@ import { getCurrentUserSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { notifyPostCommented } from "@/lib/notifications";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export interface Comment {
   id: string;
@@ -40,6 +41,10 @@ export async function addComment(
   content: string,
   parentId?: string
 ): Promise<AddCommentResult> {
+  // Permission check: Users need social:comment permission
+  const guard = await requireAction("social:comment");
+  if (guard) return guard;
+
   const currentUser = await getCurrentUserSafe();
 
   if (!currentUser) {
@@ -133,6 +138,38 @@ export async function addComment(
     // Revalidate the feed
     revalidatePath("/social-feed");
 
+    // Get updated comment count
+    const newCommentCount = await prismadb.socialPostComment.count({
+      where: { postId },
+    });
+
+    // Publish Ably event for real-time updates
+    try {
+      const { publishToChannel, getSocialFeedChannelName } = await import("@/lib/ably");
+      await publishToChannel(
+        getSocialFeedChannelName(post.organizationId),
+        "comment",
+        {
+          type: "added",
+          postId,
+          comment: {
+            id: comment.id,
+            content: comment.content,
+            createdAt: comment.createdAt.toISOString(),
+            author: {
+              id: comment.Users?.id || "",
+              name: comment.Users?.name || "Unknown",
+              avatar: comment.Users?.avatar || undefined,
+            },
+            parentId: comment.parentId,
+          },
+          newCommentCount,
+        }
+      );
+    } catch {
+      // Ably not configured, skip real-time notification
+    }
+
     return {
       success: true,
       comment: {
@@ -170,7 +207,7 @@ export async function deleteComment(commentId: string): Promise<DeleteCommentRes
     // Find the comment and verify ownership
     const comment = await prismadb.socialPostComment.findUnique({
       where: { id: commentId },
-      select: { userId: true },
+      select: { userId: true, postId: true },
     });
 
     if (!comment) {
@@ -181,6 +218,12 @@ export async function deleteComment(commentId: string): Promise<DeleteCommentRes
       return { success: false, error: "You can only delete your own comments" };
     }
 
+    // Get the post for organization ID
+    const post = await prismadb.socialPost.findUnique({
+      where: { id: comment.postId },
+      select: { organizationId: true },
+    });
+
     // Delete the comment
     await prismadb.socialPostComment.delete({
       where: { id: commentId },
@@ -188,6 +231,30 @@ export async function deleteComment(commentId: string): Promise<DeleteCommentRes
 
     // Revalidate the feed
     revalidatePath("/social-feed");
+
+    // Get updated comment count
+    const newCommentCount = await prismadb.socialPostComment.count({
+      where: { postId: comment.postId },
+    });
+
+    // Publish Ably event for real-time updates
+    if (post) {
+      try {
+        const { publishToChannel, getSocialFeedChannelName } = await import("@/lib/ably");
+        await publishToChannel(
+          getSocialFeedChannelName(post.organizationId),
+          "comment",
+          {
+            type: "deleted",
+            postId: comment.postId,
+            commentId,
+            newCommentCount,
+          }
+        );
+      } catch {
+        // Ably not configured, skip real-time notification
+      }
+    }
 
     return { success: true };
   } catch (error) {

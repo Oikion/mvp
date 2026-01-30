@@ -6,17 +6,36 @@ import { notifyAccountWatchers as notifyWatchersLegacy } from "@/lib/notify-watc
 import { notifyClientCreated, notifyAccountWatchers } from "@/lib/notifications";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchClientWebhook } from "@/lib/webhooks";
-import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
+import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
+import { createClientSchema, updateClientSchema } from "@/lib/validations/crm";
 
 export async function POST(req: Request) {
   try {
-    // Permission check: Viewers cannot create clients
-    const permissionError = await requireCanModify();
-    if (permissionError) return permissionError;
+    // Permission check: Users need client:create permission
+    const createCheck = await canPerformAction("client:create");
+    if (!createCheck.allowed) {
+      return NextResponse.json(
+        { error: createCheck.reason || "Permission denied" },
+        { status: 403 }
+      );
+    }
 
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();
+    
+    // SECURITY: Validate input with Zod schema to prevent mass assignment
+    const validationResult = createClientSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          error: "Validation failed", 
+          details: validationResult.error.flatten().fieldErrors 
+        },
+        { status: 400 }
+      );
+    }
+    
     const {
       client_name,
       primary_email,
@@ -67,7 +86,7 @@ export async function POST(req: Request) {
       description,
       assigned_to,
       member_of,
-    } = body;
+    } = validationResult.data;
 
     // Generate friendly ID
     const clientId = await generateFriendlyId(prismadb, "Clients");
@@ -157,13 +176,22 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    // Permission check: Viewers cannot edit clients
-    const permissionError = await requireCanModify();
-    if (permissionError) return permissionError;
-
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();
+    
+    // SECURITY: Validate input with Zod schema to prevent mass assignment
+    const validationResult = updateClientSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          error: "Validation failed", 
+          details: validationResult.error.flatten().fieldErrors 
+        },
+        { status: 400 }
+      );
+    }
+    
     const {
       id,
       client_name,
@@ -215,7 +243,7 @@ export async function PUT(req: Request) {
       description,
       assigned_to,
       member_of,
-    } = body;
+    } = validationResult.data;
 
     // Verify the client belongs to the current organization before updating
     const existingClient = await prismadb.clients.findFirst({
@@ -226,9 +254,30 @@ export async function PUT(req: Request) {
       return new NextResponse("Client not found or access denied", { status: 404 });
     }
 
-    // Permission check: Members cannot change assigned agent
-    const assignedToError = await checkAssignedToChange(body, existingClient.assigned_to);
-    if (assignedToError) return assignedToError;
+    // Permission check: Users need client:update permission (with ownership check)
+    const updateCheck = await canPerformActionOnEntity(
+      "client:update",
+      "client",
+      id,
+      existingClient.assigned_to
+    );
+    if (!updateCheck.allowed) {
+      return NextResponse.json(
+        { error: updateCheck.reason || "Permission denied" },
+        { status: 403 }
+      );
+    }
+
+    // Permission check: Check if user can reassign agent
+    if (assigned_to !== undefined && assigned_to !== existingClient.assigned_to) {
+      const reassignCheck = await canPerformAction("client:reassign_agent");
+      if (!reassignCheck.allowed) {
+        return NextResponse.json(
+          { error: "You do not have permission to change the assigned agent" },
+          { status: 403 }
+        );
+      }
+    }
 
     const updatedClient = await prismadb.clients.update({
       where: { id },

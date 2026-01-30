@@ -57,7 +57,7 @@ export function ReferralCodeCapture({ referralCode }: ReferralCodeCaptureProps) 
       <Badge variant="secondary" className="gap-2 px-4 py-2 text-sm shadow-lg">
         <Gift className="h-4 w-4 text-primary" />
         <span>Referred by {validatedReferrer}</span>
-        <CheckCircle className="h-4 w-4 text-green-500" />
+        <CheckCircle className="h-4 w-4 text-success" />
       </Badge>
     </div>
   );

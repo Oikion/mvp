@@ -1,8 +1,8 @@
 /**
  * MLS Export API Route
  * 
- * Exports MLS properties data to XLS, XLSX, CSV, or PDF format.
- * Includes rate limiting, authorization, and audit logging.
+ * Exports MLS properties data to XLS, XLSX, CSV, XML, or PDF format.
+ * Includes rate limiting, authorization, audit logging, and descriptive filenames.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -20,6 +20,9 @@ import {
   MLS_COLUMNS,
   generateExportFile,
   generateMLSPDF,
+  generateDescriptiveFilename,
+  getTemplateColumns,
+  type ExportTemplateType,
 } from "@/lib/export";
 import { requireCanExport } from "@/lib/permissions/guards";
 
@@ -27,7 +30,7 @@ import { requireCanExport } from "@/lib/permissions/guards";
 export const dynamic = "force-dynamic";
 
 // Supported formats
-const VALID_FORMATS: ExportFormat[] = ["xlsx", "xls", "csv", "pdf"];
+const VALID_FORMATS: ExportFormat[] = ["xlsx", "xls", "csv", "pdf", "xml"];
 
 export async function GET(req: NextRequest) {
   try {
@@ -76,6 +79,8 @@ export async function GET(req: NextRequest) {
     const format = (searchParams.get("format") || "xlsx") as ExportFormat;
     const scope = searchParams.get("scope") || "all";
     const locale = (searchParams.get("locale") || "en") as "en" | "el";
+    const template = searchParams.get("template") as ExportTemplateType | null;
+    const destination = searchParams.get("destination");
     
     // Validate format
     if (!VALID_FORMATS.includes(format)) {
@@ -111,19 +116,8 @@ export async function GET(req: NextRequest) {
       ];
     }
     
-    // Access properties through dynamic prisma client
-    const client: any = prismadb as any;
-    const delegate = client?.properties;
-    
-    if (!delegate) {
-      return NextResponse.json(
-        { error: "Database error", message: "Properties table not accessible" },
-        { status: 500 }
-      );
-    }
-    
     // Fetch properties with full data for export
-    const properties = await delegate.findMany({
+    const properties = await prismadb.properties.findMany({
       where: whereClause,
       select: {
         id: true,
@@ -135,13 +129,21 @@ export async function GET(req: NextRequest) {
         bedrooms: true,
         bathrooms: true,
         square_feet: true,
+        size_net_sqm: true,
         address_street: true,
         address_city: true,
         address_state: true,
         postal_code: true,
+        area: true,
+        municipality: true,
         year_built: true,
         description: true,
         assigned_to: true,
+        floor: true,
+        elevator: true,
+        furnished: true,
+        condition: true,
+        transaction_type: true,
         Users_Properties_assigned_toToUsers: {
           select: { name: true },
         },
@@ -164,7 +166,18 @@ export async function GET(req: NextRequest) {
       bedrooms: property.bedrooms ? Number(property.bedrooms) : null,
       bathrooms: property.bathrooms ? Number(property.bathrooms) : null,
       square_feet: property.square_feet ? Number(property.square_feet) : null,
+      size_net_sqm: property.size_net_sqm ? Number(property.size_net_sqm) : null,
       year_built: property.year_built ? Number(property.year_built) : null,
+      // Computed fields for templates
+      address_full: [
+        property.address_street,
+        property.address_city,
+        property.address_state,
+        property.postal_code,
+      ].filter(Boolean).join(", "),
+      price_per_sqm: property.price && property.square_feet 
+        ? Math.round(Number(property.price) / Number(property.square_feet)) 
+        : null,
     }));
     
     // Create audit log
@@ -174,11 +187,25 @@ export async function GET(req: NextRequest) {
       exportType: "mls",
       format,
       rowCount: exportData.length,
-      filters: { status: statusFilter, type: typeFilter, search: searchQuery, scope },
+      filters: { status: statusFilter, type: typeFilter, search: searchQuery, scope, template, destination },
       success: true,
     });
     
     logExportEvent(auditLog);
+    
+    // Determine columns to use (template columns or default)
+    const columns = template ? getTemplateColumns(template) : MLS_COLUMNS;
+    
+    // Generate descriptive filename
+    const descriptiveFilename = generateDescriptiveFilename(
+      "mls",
+      exportData,
+      { 
+        format, 
+        destination: destination || undefined, 
+        template: template || undefined,
+      }
+    );
     
     // Generate export file
     let fileBuffer: Buffer | Blob;
@@ -194,15 +221,15 @@ export async function GET(req: NextRequest) {
           : `${exportData.length} records`,
       });
       fileBuffer = pdfResult.blob;
-      filename = pdfResult.filename;
+      filename = descriptiveFilename; // Use descriptive filename
       contentType = pdfResult.contentType;
     } else {
       const result = generateExportFile("mls", format, exportData, {
         locale,
-        columns: MLS_COLUMNS,
+        columns,
       });
       fileBuffer = result.buffer;
-      filename = result.filename;
+      filename = descriptiveFilename; // Use descriptive filename
       contentType = result.contentType;
     }
     

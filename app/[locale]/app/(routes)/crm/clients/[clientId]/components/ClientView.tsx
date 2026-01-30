@@ -11,6 +11,7 @@ import { CreateBookingButton } from "@/components/calendar/CreateBookingButton";
 import { LinkedEntitiesPanel, LinkEntityDialog } from "@/components/linking";
 import { ShareModal } from "@/components/social/ShareModal";
 import { ClientComments } from "./ClientComments";
+import { ClientMatchingProperties } from "./ClientMatchingProperties";
 import { toast } from "sonner";
 import { Share2, Users } from "lucide-react";
 import {
@@ -18,6 +19,7 @@ import {
   useLinkPropertiesToClient,
   useUnlinkPropertyFromClient,
 } from "@/hooks/swr";
+import { QuickExportButton } from "@/components/export";
 
 const formatDateTime = (value?: Date | string | null) => {
   if (!value) return "N/A";
@@ -62,6 +64,7 @@ interface ClientViewProps {
   isReadOnly?: boolean;
   sharePermission?: "VIEW_ONLY" | "VIEW_COMMENT" | null;
   currentUserId?: string;
+  locale?: string;
 }
 
 export default function ClientView({ 
@@ -70,6 +73,7 @@ export default function ClientView({
   isReadOnly = false,
   sharePermission = null,
   currentUserId = "",
+  locale = "en",
 }: ClientViewProps) {
   const [open, setOpen] = useState(defaultEditOpen);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
@@ -157,6 +161,13 @@ export default function ClientView({
           </div>
           {!isReadOnly && (
             <div className="flex gap-2">
+              <QuickExportButton
+                entityType="client"
+                entityId={data.id}
+                entityName={data.client_name}
+                variant="outline"
+                size="default"
+              />
               <CreateBookingButton
                 clientId={data.id}
                 prefilledData={{
@@ -166,7 +177,7 @@ export default function ClientView({
               />
               <Sheet open={open} onOpenChange={setOpen}>
                 <Button onClick={() => setOpen(true)}>Edit</Button>
-                <SheetContent className="min-w-[900px] space-y-2">
+                <SheetContent className="w-full sm:min-w-[600px] lg:min-w-[900px] space-y-2">
                   <SheetHeader>
                     <SheetTitle>Edit Client</SheetTitle>
                   </SheetHeader>
@@ -229,6 +240,9 @@ export default function ClientView({
           </div>
         </CardContent>
       </Card>
+
+      {/* Matching Properties Section */}
+      <ClientMatchingProperties clientId={data.id} locale={locale} />
 
       {/* Linked Entities Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

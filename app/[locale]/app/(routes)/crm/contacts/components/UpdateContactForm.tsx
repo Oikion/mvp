@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,7 +40,7 @@ type NewTaskFormProps = {
 
 export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -101,17 +101,9 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
     setIsLoading(true);
     try {
       await axios.put("/api/crm/contacts", data);
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Contact updated successfully",
-      });
+      toast.success("Success", { description: "Contact updated successfully", isTranslationKey: false });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.response?.data,
-      });
+      toast.error("Error", { description: error?.response?.data, isTranslationKey: false });
     } finally {
       setIsLoading(false);
       router.refresh();
@@ -156,7 +148,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
             <code>{JSON.stringify(form.watch(), null, 2)}</code>
           </pre>
         </div> */}
-        <div className=" w-[800px] text-sm">
+        <div className="w-full max-w-[800px] text-sm">
           <div className="pb-5 space-y-2">
             <FormField
               control={form.control}

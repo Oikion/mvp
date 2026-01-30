@@ -201,7 +201,7 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
                 <Button onClick={() => setOpen(true)} className="flex-1 sm:flex-none">
                   + {t("PropertyForm.title")}
                 </Button>
-                <SheetContent className="min-w-[1000px] space-y-2">
+                <SheetContent className="w-full sm:min-w-[600px] lg:min-w-[900px] xl:min-w-[1000px] space-y-2">
                   <SheetHeader>
                     <SheetTitle>{t("PropertyForm.title")}</SheetTitle>
                   </SheetHeader>

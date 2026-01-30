@@ -8,8 +8,15 @@ import {
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
 import { Resend } from "resend";
+import { submitJob } from "@/lib/jobs";
+import type { NewsletterPayload } from "@/lib/jobs/types";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Feature flag: Use K8s Jobs for large campaigns
+const USE_K8S_JOBS = process.env.USE_K8S_JOBS === "true";
+// Threshold: campaigns larger than this use K8s
+const K8S_THRESHOLD = 100;
 
 /**
  * POST /api/v1/newsletter/send
@@ -66,6 +73,62 @@ export const POST = withExternalApi(
     if (subscribers.length === 0) {
       return createApiErrorResponse("No active subscribers to send to", 400);
     }
+
+    // ===========================================
+    // K8s Jobs for large campaigns
+    // ===========================================
+    if (USE_K8S_JOBS && subscribers.length > K8S_THRESHOLD) {
+      // Update campaign status
+      await prismadb.newsletterCampaign.update({
+        where: { id: campaignId },
+        data: {
+          status: "SENDING",
+          recipientCount: subscribers.length,
+          sentAt: new Date(),
+        },
+      });
+
+      // Build K8s job payload
+      const k8sPayload: NewsletterPayload = {
+        type: 'newsletter-send',
+        campaignId,
+        subscriberIds: subscribers.map(s => s.id),
+        batchSize: 100,
+      };
+
+      // Submit to K8s Job Orchestrator
+      const result = await submitJob({
+        type: 'newsletter-send',
+        organizationId: context.organizationId,
+        payload: k8sPayload,
+        priority: 'normal',
+      });
+
+      if (!result.success) {
+        // Revert campaign status
+        await prismadb.newsletterCampaign.update({
+          where: { id: campaignId },
+          data: { status: "DRAFT" },
+        });
+        return createApiErrorResponse(result.message || "Failed to start K8s job", 500);
+      }
+
+      return createApiSuccessResponse({
+        success: true,
+        campaign: {
+          id: campaignId,
+          status: "SENDING",
+          recipientCount: subscribers.length,
+        },
+        jobId: result.jobId,
+        message: `Campaign queued for ${subscribers.length} subscribers (K8s job)`,
+        useK8s: true,
+      });
+    }
+
+    // ===========================================
+    // Inline sending for small campaigns
+    // ===========================================
 
     // Update campaign status to SENDING
     await prismadb.newsletterCampaign.update({

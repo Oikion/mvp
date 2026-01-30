@@ -3,6 +3,12 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { motion, useReducedMotion, type HTMLMotionProps } from "motion/react";
+import {
+  distance,
+  scale,
+  easing,
+  getDuration,
+} from "@/lib/animation-tokens";
 
 interface AnimatedCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   children: React.ReactNode;
@@ -23,7 +29,7 @@ const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
       switch (variant) {
         case "lift":
           return {
-            y: -4,
+            y: -distance.sm,
             boxShadow:
               "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           };
@@ -38,7 +44,7 @@ const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
           };
         case "scale":
           return {
-            scale: 1.02,
+            scale: scale.grow,
           };
         case "shine":
           return {
@@ -53,15 +59,15 @@ const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
       <motion.div
         ref={ref}
         className={cn(baseClasses, variant === "shine" && "shine-effect", className)}
-        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : distance.lg }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
-          duration: 0.4,
+          duration: getDuration("slower"),
           delay,
-          ease: "easeOut",
+          ease: easing.default,
         }}
         whileHover={getHoverAnimation()}
-        whileTap={shouldReduceMotion ? {} : { scale: 0.99 }}
+        whileTap={shouldReduceMotion ? {} : { scale: scale.pressed }}
         {...props}
       >
         {children}
@@ -105,7 +111,7 @@ const AnimatedCardTitle = React.forwardRef<
       className={cn("font-semibold leading-none tracking-tight", className)}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, delay: 0.1 }}
+      transition={{ duration: getDuration("slow"), delay: 0.1 }}
       {...safeProps}
     >
       {children}
@@ -128,7 +134,7 @@ const AnimatedCardDescription = React.forwardRef<
       className={cn("text-sm text-muted-foreground", className)}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, delay: 0.15 }}
+      transition={{ duration: getDuration("slow"), delay: 0.15 }}
       {...safeProps}
     >
       {children}
@@ -205,7 +211,7 @@ function AnimatedStatCard({
             className="text-2xl font-bold"
             initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: delay + 0.2, ease: "easeOut" }}
+            transition={{ duration: getDuration("slower"), delay: delay + 0.2, ease: easing.default }}
           >
             {value}
           </motion.p>
@@ -218,7 +224,7 @@ function AnimatedStatCard({
             className="rounded-full bg-primary/10 p-3"
             initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: delay + 0.1 }}
+            transition={{ duration: getDuration("slow"), delay: delay + 0.1 }}
           >
             {icon}
           </motion.div>
@@ -229,7 +235,7 @@ function AnimatedStatCard({
           className="mt-4 flex items-center gap-1"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: delay + 0.3 }}
+          transition={{ duration: getDuration("slow"), delay: delay + 0.3 }}
         >
           {trend === "up" && (
             <svg

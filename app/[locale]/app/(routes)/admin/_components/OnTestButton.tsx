@@ -3,29 +3,22 @@
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import axios from "axios";
 import React from "react";
 
 const OnTestButton = () => {
   const [loading, setLoading] = React.useState(false);
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   async function onTest() {
     setLoading(true);
     try {
       const response = await axios.get("/api/cron/send-daily-task-ai");
       //console.log(response, "response");
-      toast({
-        variant: "success",
-        title: "GPT model tested",
-        description: response.data.message,
-      });
+      toast.success("GPT model tested", { description: response.data.message, isTranslationKey: false });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "GPT model test failed",
-      });
+      toast.error("GPT model test failed", { isTranslationKey: false });
     } finally {
       setLoading(false);
     }

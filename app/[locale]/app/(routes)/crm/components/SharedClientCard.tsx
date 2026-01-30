@@ -33,7 +33,7 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
     <Card className="hover:shadow-lg transition-shadow flex flex-col h-full relative">
       {/* Shared badge overlay */}
       <div className="absolute top-2 right-2 z-10">
-        <Badge variant="secondary" className="flex items-center gap-1 bg-amber-500/15 text-amber-600 dark:text-amber-400">
+        <Badge variant="secondary" className="flex items-center gap-1 bg-warning/15 text-warning dark:text-amber-400">
           <Share2 className="h-3 w-3" />
           {t("SharedView.shared")}
         </Badge>

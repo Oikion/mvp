@@ -281,15 +281,36 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
       // Let the route handler manage authentication and rate limiting
       // The external-api-middleware handles API key validation and rate limiting
       const response = NextResponse.next();
+      
       // Add CORS headers for external API access
-      response.headers.set('Access-Control-Allow-Origin', '*');
+      // SECURITY: Only allow explicitly configured origins (not wildcard)
+      const allowedOrigins = process.env.ALLOWED_API_ORIGINS?.split(',').map(o => o.trim()) || [];
+      const requestOrigin = req.headers.get('origin');
+      
+      if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+        response.headers.set('Access-Control-Allow-Origin', requestOrigin);
+        response.headers.set('Vary', 'Origin');
+      } else if (allowedOrigins.length === 0) {
+        // If no origins configured, allow same-origin requests only (no CORS header)
+        // This is more secure than wildcard - external integrations will need to configure origins
+      }
+      
       response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
       response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Webhook-Signature, X-Webhook-Timestamp');
       response.headers.set('Access-Control-Max-Age', '86400');
       
       // Handle preflight OPTIONS requests
       if (req.method === 'OPTIONS') {
-        return new NextResponse(null, { status: 204, headers: response.headers });
+        // For OPTIONS, we need to return CORS headers even if origin not in allowlist
+        // But we won't set Allow-Origin for unauthorized origins
+        if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+          return new NextResponse(null, { status: 204, headers: response.headers });
+        }
+        // Return 204 without CORS origin header for unauthorized origins
+        const optionsResponse = new NextResponse(null, { status: 204 });
+        optionsResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        optionsResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Webhook-Signature, X-Webhook-Timestamp');
+        return optionsResponse;
       }
       
       return response;

@@ -3,6 +3,9 @@ import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { syncClerkUser, deleteClerkUser } from "@/lib/clerk-sync";
 import { restorePersonalWorkspaceIfNeeded } from "@/lib/personal-workspace-guard";
+import { syncUserToMessaging, disableUserMessaging } from "@/actions/messaging";
+import { prismadb } from "@/lib/prisma";
+import { randomUUID } from "crypto";
 
 export async function POST(req: Request) {
   // Get the Svix headers for verification
@@ -55,13 +58,29 @@ export async function POST(req: Request) {
   if (eventType === "user.created" || eventType === "user.updated") {
     const { id } = evt.data;
     if (id) {
-      await syncClerkUser(id);
+      const user = await syncClerkUser(id);
+      
+      // Sync user to messaging service (non-blocking)
+      if (user && user.id) {
+        syncUserToMessaging(user.id).catch((err) => {
+          console.error("[WEBHOOK] Failed to sync user to messaging:", err);
+        });
+      }
     }
   }
 
   if (eventType === "user.deleted") {
     const { id } = evt.data;
     if (id) {
+      // Disable messaging for the user before deleting
+      const prismadb = (await import("@/lib/prisma")).prismadb;
+      const user = await prismadb.users.findFirst({
+        where: { clerkUserId: id },
+      });
+      if (user) {
+        await disableUserMessaging(user.id);
+      }
+      
       await deleteClerkUser(id);
     }
   }
@@ -99,6 +118,136 @@ export async function POST(req: Request) {
       console.log(`User ${userId} left personal workspace ${orgId}. This should not happen.`);
       // The user leaving their own personal workspace shouldn't happen via UI
       // but if it does, they can re-create it through ensure-personal-workspace
+    }
+  }
+
+  // Handle organization invitation created - send in-app notification
+  if (eventType === "organizationInvitation.created") {
+    const data = evt.data as {
+      id: string;
+      email_address: string;
+      organization_id: string;
+      role: string;
+      status: string;
+      public_metadata?: Record<string, unknown>;
+    };
+
+    try {
+      // Find the user by email
+      const invitedUser = await prismadb.users.findUnique({
+        where: { email: data.email_address },
+      });
+
+      // Get organization details from Clerk
+      const { createClerkClient } = await import("@clerk/backend");
+      const clerk = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+      
+      let organizationName = "an organization";
+      try {
+        const org = await clerk.organizations.getOrganization({
+          organizationId: data.organization_id,
+        });
+        organizationName = org.name;
+      } catch (orgError) {
+        console.error("[WEBHOOK] Error fetching organization:", orgError);
+      }
+
+      // If the user exists in our database, create an in-app notification
+      if (invitedUser) {
+        // Use system org ID for invitations since user isn't part of the org yet
+        const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
+        
+        await prismadb.notification.create({
+          data: {
+            id: randomUUID(),
+            userId: invitedUser.id,
+            organizationId: SYSTEM_ORG_ID,
+            type: "ORGANIZATION_INVITE",
+            title: "Organization Invitation",
+            message: `You have been invited to join "${organizationName}" as ${data.role.replace("org:", "")}.`,
+            entityType: "ORGANIZATION",
+            entityId: data.organization_id,
+            metadata: {
+              invitationId: data.id,
+              organizationId: data.organization_id,
+              organizationName,
+              role: data.role,
+              email: data.email_address,
+            },
+            updatedAt: new Date(),
+          },
+        });
+        console.log(`[WEBHOOK] Created organization invite notification for user ${invitedUser.id}`);
+      } else {
+        console.log(`[WEBHOOK] User with email ${data.email_address} not found in database. Skipping in-app notification.`);
+      }
+    } catch (error) {
+      console.error("[WEBHOOK] Error handling organization invitation:", error);
+    }
+  }
+
+  // Handle organization invitation accepted - mark notification as read
+  if (eventType === "organizationInvitation.accepted") {
+    const data = evt.data as {
+      id: string;
+      email_address: string;
+      organization_id: string;
+    };
+
+    try {
+      const user = await prismadb.users.findUnique({
+        where: { email: data.email_address },
+      });
+
+      if (user) {
+        // Mark the organization invite notification as read
+        await prismadb.notification.updateMany({
+          where: {
+            userId: user.id,
+            type: "ORGANIZATION_INVITE",
+            entityId: data.organization_id,
+            read: false,
+          },
+          data: {
+            read: true,
+            readAt: new Date(),
+          },
+        });
+        console.log(`[WEBHOOK] Marked organization invite notification as read for user ${user.id}`);
+      }
+    } catch (error) {
+      console.error("[WEBHOOK] Error handling invitation accepted:", error);
+    }
+  }
+
+  // Handle organization invitation revoked - delete notification
+  if (eventType === "organizationInvitation.revoked") {
+    const data = evt.data as {
+      id: string;
+      email_address: string;
+      organization_id: string;
+    };
+
+    try {
+      const user = await prismadb.users.findUnique({
+        where: { email: data.email_address },
+      });
+
+      if (user) {
+        // Delete the organization invite notification
+        await prismadb.notification.deleteMany({
+          where: {
+            userId: user.id,
+            type: "ORGANIZATION_INVITE",
+            entityId: data.organization_id,
+          },
+        });
+        console.log(`[WEBHOOK] Deleted organization invite notification for user ${user.id}`);
+      }
+    } catch (error) {
+      console.error("[WEBHOOK] Error handling invitation revoked:", error);
     }
   }
 

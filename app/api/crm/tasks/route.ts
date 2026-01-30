@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 export async function DELETE(req: Request) {
   try {
-    await getCurrentUser();
+    const currentUser = await getCurrentUser();
     const body = await req.json();
     const { id } = body;
 
@@ -18,6 +19,20 @@ export async function DELETE(req: Request) {
       },
     });
 
+    if (!currentTask) {
+      return NextResponse.json({ Message: "NO currentTask" }, { status: 200 });
+    }
+
+    // Permission check: Users need task:delete permission with ownership check
+    const deleteCheck = await canPerformAction("task:delete", {
+      entityType: "task",
+      entityId: id,
+      ownerId: currentTask.user,
+    });
+    if (!deleteCheck.allowed) {
+      return NextResponse.json({ error: deleteCheck.reason }, { status: 403 });
+    }
+
     await prismadb.crm_Accounts_Tasks_Comments.deleteMany({
       where: {
         crm_account_task: id,
@@ -29,10 +44,6 @@ export async function DELETE(req: Request) {
         id,
       },
     });
-
-    if (!currentTask) {
-      return NextResponse.json({ Message: "NO currentTask" }, { status: 200 });
-    }
 
     return NextResponse.json({ status: 200 });
   } catch (error) {

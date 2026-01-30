@@ -42,10 +42,10 @@ interface InviteeSelectorProps {
 }
 
 const statusColors: Record<InviteStatus, string> = {
-  PENDING: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-  ACCEPTED: "bg-green-500/15 text-green-600 dark:text-green-400",
-  DECLINED: "bg-red-500/15 text-red-600 dark:text-red-400",
-  TENTATIVE: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  PENDING: "bg-warning/15 text-warning dark:text-amber-400",
+  ACCEPTED: "bg-success/15 text-success dark:text-green-400",
+  DECLINED: "bg-destructive/15 text-destructive dark:text-red-400",
+  TENTATIVE: "bg-primary/15 text-primary dark:text-blue-400",
 };
 
 export function InviteeSelector({

@@ -4,6 +4,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export interface CreateAudienceInput {
   name: string;
@@ -26,6 +27,10 @@ export async function createAudience(
   input: CreateAudienceInput
 ): Promise<CreateAudienceResult> {
   try {
+    // Permission check: Users need audience:create permission
+    const guard = await requireAction("audience:create");
+    if (guard) return guard;
+
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 

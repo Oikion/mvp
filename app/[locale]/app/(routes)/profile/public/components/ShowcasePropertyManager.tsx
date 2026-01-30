@@ -24,7 +24,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   Building2,
   GripVertical,
@@ -121,7 +121,7 @@ function SortablePropertyItem({ property, onRemove, isRemoving }: SortableProper
             </span>
           )}
           {property.property?.price && (
-            <span className="font-medium text-blue-600">
+            <span className="font-medium text-primary">
               {formatPrice(property.property.price)}
             </span>
           )}
@@ -163,7 +163,7 @@ export function ShowcasePropertyManager({
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -190,11 +190,7 @@ export function ShowcasePropertyManager({
         });
         router.refresh();
       } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to save order. Please try again.",
-        });
+        toast.error("Error", { description: "Failed to save order. Please try again.", isTranslationKey: false });
         // Revert on error
         setShowcaseProperties(showcaseProperties);
       } finally {
@@ -218,19 +214,11 @@ export function ShowcasePropertyManager({
         ]);
       }
 
-      toast({
-        variant: "success",
-        title: "Property Added",
-        description: "Property has been added to your showcase.",
-      });
+      toast.success("Property Added", { description: "Property has been added to your showcase.", isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.error || "Failed to add property.",
-      });
+      toast.error("Error", { description: error.response?.data?.error || "Failed to add property.", isTranslationKey: false });
     } finally {
       setIsAdding(null);
     }
@@ -248,19 +236,11 @@ export function ShowcasePropertyManager({
       }
       setShowcaseProperties(showcaseProperties.filter((p) => p.propertyId !== propertyId));
 
-      toast({
-        variant: "success",
-        title: "Property Removed",
-        description: "Property has been removed from your showcase.",
-      });
+      toast.success("Property Removed", { description: "Property has been removed from your showcase.", isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.error || "Failed to remove property.",
-      });
+      toast.error("Error", { description: error.response?.data?.error || "Failed to remove property.", isTranslationKey: false });
     } finally {
       setIsRemoving(null);
     }
@@ -335,7 +315,7 @@ export function ShowcasePropertyManager({
                               </span>
                             )}
                             {property.price && (
-                              <span className="font-medium text-blue-600">
+                              <span className="font-medium text-primary">
                                 {formatPrice(property.price)}
                               </span>
                             )}

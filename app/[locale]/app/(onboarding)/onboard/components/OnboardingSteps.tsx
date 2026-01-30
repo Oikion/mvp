@@ -15,7 +15,7 @@ import { NotificationsWhatStep } from "./NotificationsWhatStep";
 import { NotificationsHowStep } from "./NotificationsHowStep";
 import { PrivacyStep } from "./PrivacyStep";
 import { ReviewStep } from "./ReviewStep";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { completeOnboarding, validateOnboardingData } from "@/actions/user/complete-onboarding";
 import { updateOrganizationMetadata } from "@/actions/organization/update-org-metadata";
 import {
@@ -198,7 +198,7 @@ const slideVariants = {
 };
 
 export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const { user: clerkUser } = useUser();
   const { createOrganization, setActive, userMemberships } = useOrganizationList({
     userMemberships: { infinite: true },
@@ -348,11 +348,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         // #region agent log
         fetch('http://127.0.0.1:7242/ingest/6745c257-993b-4bd4-bf13-5c5734e70e2e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingSteps.tsx:handleComplete:noClerkHooks',message:'Clerk hooks not available',data:{hasCreateOrg:!!createOrganization,hasSetActive:!!setActive},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
         // #endregion
-        toast({
-          variant: "destructive",
-          title: dict.errors.orgCreationFailed,
-          description: dict.errors.generic,
-        });
+        toast.error(dict.errors.orgCreationFailed, { description: dict.errors.generic, isTranslationKey: false });
         setIsCompleting(false);
         return;
       }
@@ -367,11 +363,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
       });
 
       if (!validation.success) {
-        toast({
-          variant: "destructive",
-          title: dict.errors.completionFailed,
-          description: validation.error || dict.errors.generic,
-        });
+        toast.error(dict.errors.completionFailed, { description: validation.error, isTranslationKey: false });
         setIsCompleting(false);
         return;
       }
@@ -407,17 +399,9 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
           
           if (firstError?.code === "form_identifier_exists" || 
               firstError?.message?.toLowerCase().includes("taken")) {
-            toast({
-              variant: "destructive",
-              title: dict.errors.completionFailed,
-              description: dict.errors.usernameTaken,
-            });
+            toast.error(dict.errors.completionFailed, { description: dict.errors.usernameTaken, isTranslationKey: false });
           } else {
-            toast({
-              variant: "destructive",
-              title: dict.errors.completionFailed,
-              description: dict.errors.profileUpdateFailed,
-            });
+            toast.error(dict.errors.completionFailed, { description: dict.errors.profileUpdateFailed, isTranslationKey: false });
           }
           setIsCompleting(false);
           return;
@@ -509,11 +493,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
             }
           }
           
-          toast({
-            variant: "destructive",
-            title: dict.errors.orgCreationFailed,
-            description: errorMessage,
-          });
+          toast.error(dict.errors.orgCreationFailed, { description: errorMessage, isTranslationKey: false });
           setIsCompleting(false);
           return;
         }
@@ -566,11 +546,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         fetch('http://127.0.0.1:7242/ingest/6745c257-993b-4bd4-bf13-5c5734e70e2e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingSteps.tsx:handleComplete:resultFailed',message:'completeOnboarding returned failure',data:{error:result.error},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
         // #endregion
         // This shouldn't happen since we validated first, but handle it anyway
-        toast({
-          variant: "destructive",
-          title: dict.errors.completionFailed,
-          description: result.error || dict.errors.generic,
-        });
+        toast.error(dict.errors.completionFailed, { description: result.error, isTranslationKey: false });
         setIsCompleting(false);
         return;
       }
@@ -580,11 +556,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
       // #endregion
 
       // 6. Redirect to dashboard
-      toast({
-        variant: "success",
-        title: dict.steps.complete.title,
-        description: dict.steps.complete.redirecting,
-      });
+      toast.success(dict.steps.complete.title, { description: dict.steps.complete.redirecting, isTranslationKey: false });
 
       // Small delay for toast to show, then hard redirect to ensure fresh session
       // Using globalThis.location.href instead of router.push to force a full page reload
@@ -596,11 +568,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
       // #region agent log
       fetch('http://127.0.0.1:7242/ingest/6745c257-993b-4bd4-bf13-5c5734e70e2e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingSteps.tsx:handleComplete:catch',message:'Unexpected error in onboarding completion',data:{error:String(err)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
       // #endregion
-      toast({
-        variant: "destructive",
-        title: dict.errors.completionFailed,
-        description: dict.errors.generic,
-      });
+      toast.error(dict.errors.completionFailed, { description: dict.errors.generic, isTranslationKey: false });
       setIsCompleting(false);
     }
   };

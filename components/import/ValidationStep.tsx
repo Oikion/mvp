@@ -74,28 +74,28 @@ export function ValidationStep({
           </CardContent>
         </Card>
 
-        <Card className={validCount > 0 ? "border-green-500/50" : ""}>
+        <Card className={validCount > 0 ? "border-success/50" : ""}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-green-500/15">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <div className="p-2 rounded-full bg-success/15">
+                <CheckCircle2 className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-600">{validCount}</p>
+                <p className="text-2xl font-bold text-success">{validCount}</p>
                 <p className="text-xs text-muted-foreground">{dict.validRows}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className={invalidCount > 0 ? "border-red-500/50" : ""}>
+        <Card className={invalidCount > 0 ? "border-destructive/50" : ""}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-red-500/15">
-                <XCircle className="h-5 w-5 text-red-500" />
+              <div className="p-2 rounded-full bg-destructive/15">
+                <XCircle className="h-5 w-5 text-destructive" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-red-600">{invalidCount}</p>
+                <p className="text-2xl font-bold text-destructive">{invalidCount}</p>
                 <p className="text-xs text-muted-foreground">{dict.invalidRows}</p>
               </div>
             </div>
@@ -105,16 +105,16 @@ export function ValidationStep({
 
       {/* Status Message */}
       {!hasErrors ? (
-        <Alert className="border-green-500/30 bg-green-500/10">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <AlertDescription className="text-green-600 dark:text-green-400">
+        <Alert className="border-success/30 bg-success/10">
+          <CheckCircle2 className="h-4 w-4 text-success" />
+          <AlertDescription className="text-success dark:text-green-400">
             {dict.noErrors}
           </AlertDescription>
         </Alert>
       ) : (
-        <Alert className="border-amber-500/30 bg-amber-500/10">
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <AlertDescription className="text-amber-600 dark:text-amber-400">
+        <Alert className="border-warning/30 bg-warning/10">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-warning dark:text-amber-400">
             {dict.hasErrors.replace("{count}", String(invalidCount))}
             <span className="block text-xs mt-1 opacity-80">{dict.fixHint}</span>
           </AlertDescription>
@@ -126,7 +126,7 @@ export function ValidationStep({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertTriangle className="h-4 w-4 text-warning" />
               {dict.errorDetails}
             </CardTitle>
           </CardHeader>
@@ -153,7 +153,7 @@ export function ValidationStep({
                       <TableCell className="text-muted-foreground truncate max-w-[150px]">
                         {error.value || "-"}
                       </TableCell>
-                      <TableCell className="text-red-600 text-sm">
+                      <TableCell className="text-destructive text-sm">
                         {error.error}
                       </TableCell>
                     </TableRow>

@@ -47,7 +47,7 @@ export function EntityLinker({
       {clientOptions.length > 0 && (
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-blue-600" />
+            <Users className="h-4 w-4 text-primary" />
             {tCrm("accounts")}
           </Label>
           <MultiSelect
@@ -65,7 +65,7 @@ export function EntityLinker({
       {propertyOptions.length > 0 && (
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
-            <Home className="h-4 w-4 text-green-600" />
+            <Home className="h-4 w-4 text-success" />
             {tMls("properties")}
           </Label>
           <MultiSelect
@@ -101,7 +101,7 @@ export function EntityLinker({
       {taskOptions.length > 0 && (
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-orange-600" />
+            <CheckSquare className="h-4 w-4 text-warning" />
             {tCalendar("tasks")}
           </Label>
           <MultiSelect

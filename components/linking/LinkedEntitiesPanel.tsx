@@ -171,8 +171,8 @@ function ClientCard({
         </Button>
       )}
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-md bg-blue-500/10">
-          <User className="h-4 w-4 text-blue-500" />
+        <div className="p-2 rounded-md bg-primary/10">
+          <User className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-sm truncate">{client.client_name}</h4>
@@ -226,13 +226,13 @@ function EventCard({ event }: { event: LinkedEvent }) {
         <div
           className={cn(
             "p-2 rounded-md",
-            isUpcoming ? "bg-green-500/10" : "bg-muted"
+            isUpcoming ? "bg-success/10" : "bg-muted"
           )}
         >
           <Calendar
             className={cn(
               "h-4 w-4",
-              isUpcoming ? "text-green-500" : "text-muted-foreground"
+              isUpcoming ? "text-success" : "text-muted-foreground"
             )}
           />
         </div>
@@ -263,7 +263,7 @@ function EventCard({ event }: { event: LinkedEvent }) {
               </Badge>
             )}
             {isUpcoming && (
-              <span className="text-[10px] text-green-600">
+              <span className="text-[10px] text-success">
                 {formatDistanceToNow(eventDate, { addSuffix: true })}
               </span>
             )}

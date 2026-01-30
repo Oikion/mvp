@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey, hasScope, logApiRequest, ApiScope } from "@/lib/api-auth";
 import { rateLimit, getApiKeyRateLimitIdentifier } from "@/lib/rate-limit";
+import {
+  parsePaginationParams as parseSharedPaginationParams,
+  createExternalPaginatedResponse,
+  type PaginationParams,
+  type ExternalPaginatedResponse,
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
+} from "@/lib/pagination";
 
 /**
  * Context passed to API route handlers after authentication
@@ -239,26 +247,42 @@ export function getClientIp(req: NextRequest): string {
 }
 
 /**
- * Parse pagination parameters from request
+ * Parse pagination parameters from request.
+ * Re-exports from shared pagination utilities for backward compatibility.
+ *
+ * @see lib/pagination.ts for the canonical implementation
  */
-export function parsePaginationParams(req: NextRequest): {
-  cursor?: string;
-  limit: number;
-} {
-  const { searchParams } = req.nextUrl;
-  const cursor = searchParams.get("cursor") || undefined;
-  const limitParam = searchParams.get("limit");
-  
-  let limit = 50;
-  if (limitParam) {
-    const parsed = parseInt(limitParam, 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      limit = Math.min(parsed, 100); // Max 100 items per page
-    }
-  }
-
-  return { cursor, limit };
+export function parsePaginationParams(req: NextRequest): PaginationParams {
+  return parseSharedPaginationParams(req);
 }
+
+/**
+ * Create a paginated response for external API endpoints.
+ * Wraps data in the standard data/meta/timestamp envelope.
+ *
+ * @param data - Response data object
+ * @param pagination - Pagination metadata
+ * @returns NextResponse with external API format
+ *
+ * @example
+ * ```typescript
+ * return createPaginatedApiResponse(
+ *   { clients: pageItems },
+ *   { nextCursor, hasMore, limit }
+ * );
+ * ```
+ */
+export function createPaginatedApiResponse<T>(
+  data: T,
+  pagination: { nextCursor: string | null; hasMore: boolean; limit: number }
+): NextResponse {
+  const response = createExternalPaginatedResponse(data, pagination);
+  return NextResponse.json(response);
+}
+
+// Re-export pagination types and constants for convenience
+export type { PaginationParams, ExternalPaginatedResponse };
+export { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE };
 
 /**
  * Parse filter parameters from request

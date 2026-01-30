@@ -71,22 +71,22 @@ const feedbackTypeConfig = {
   bug: { 
     label: "Bug Report", 
     icon: Bug, 
-    color: "bg-red-500/15 text-red-600 dark:text-red-400" 
+    color: "bg-destructive/15 text-destructive dark:text-red-400" 
   },
   feature: { 
     label: "Feature Request", 
     icon: Sparkles, 
-    color: "bg-blue-500/15 text-blue-600 dark:text-blue-400" 
+    color: "bg-primary/15 text-primary dark:text-blue-400" 
   },
   general: { 
     label: "General Feedback", 
     icon: MessageSquare, 
-    color: "bg-green-500/15 text-green-600 dark:text-green-400" 
+    color: "bg-success/15 text-success dark:text-green-400" 
   },
   question: { 
     label: "Question", 
     icon: HelpCircle, 
-    color: "bg-amber-500/15 text-amber-600 dark:text-amber-400" 
+    color: "bg-warning/15 text-warning dark:text-amber-400" 
   },
   other: { 
     label: "Other", 
@@ -96,9 +96,9 @@ const feedbackTypeConfig = {
 };
 
 const statusConfig: Record<string, { label: string; icon: typeof Clock; color: string }> = {
-  pending: { label: "Pending", icon: Clock, color: "text-yellow-600" },
-  reviewed: { label: "Reviewed", icon: CheckCircle2, color: "text-blue-600" },
-  resolved: { label: "Resolved", icon: CheckCircle2, color: "text-green-600" },
+  pending: { label: "Pending", icon: Clock, color: "text-warning" },
+  reviewed: { label: "Reviewed", icon: CheckCircle2, color: "text-primary" },
+  resolved: { label: "Resolved", icon: CheckCircle2, color: "text-success" },
   user_replied: { label: "User Replied", icon: MessageCircle, color: "text-purple-600" },
 };
 
@@ -208,7 +208,7 @@ const FeedbackChatSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="min-w-[700px] sm:max-w-[700px] flex flex-col p-0">
+      <SheetContent className="w-full sm:min-w-[500px] md:min-w-[700px] sm:max-w-[700px] flex flex-col p-0">
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-center gap-3 mb-2">

@@ -42,16 +42,16 @@ export function CompleteStep({
       <Card
         className={
           hasImported
-            ? "border-green-500/30 bg-green-500/10"
-            : "border-red-500/30 bg-red-500/10"
+            ? "border-success/30 bg-success/10"
+            : "border-destructive/30 bg-destructive/10"
         }
       >
         <CardContent className="pt-8 pb-8">
           <div className="flex flex-col items-center text-center">
             {hasImported ? (
-              <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
+              <CheckCircle2 className="h-16 w-16 text-success mb-4" />
             ) : (
-              <XCircle className="h-16 w-16 text-red-500 mb-4" />
+              <XCircle className="h-16 w-16 text-destructive mb-4" />
             )}
             <h2 className="text-2xl font-bold mb-2">
               {hasImported
@@ -70,14 +70,14 @@ export function CompleteStep({
       {/* Result Stats */}
       {result && (
         <div className="grid grid-cols-3 gap-4">
-          <Card className={result.imported > 0 ? "border-green-500/50" : ""}>
+          <Card className={result.imported > 0 ? "border-success/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-green-500/15">
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <div className="p-2 rounded-full bg-success/15">
+                  <CheckCircle2 className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-2xl font-bold text-success">
                     {result.imported}
                   </p>
                   <p className="text-xs text-muted-foreground">{dict.imported}</p>
@@ -86,14 +86,14 @@ export function CompleteStep({
             </CardContent>
           </Card>
 
-          <Card className={result.skipped > 0 ? "border-amber-500/50" : ""}>
+          <Card className={result.skipped > 0 ? "border-warning/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-amber-500/15">
-                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <div className="p-2 rounded-full bg-warning/15">
+                  <AlertTriangle className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-amber-600">
+                  <p className="text-2xl font-bold text-warning">
                     {result.skipped}
                   </p>
                   <p className="text-xs text-muted-foreground">{dict.skipped}</p>
@@ -102,14 +102,14 @@ export function CompleteStep({
             </CardContent>
           </Card>
 
-          <Card className={result.failed > 0 ? "border-red-500/50" : ""}>
+          <Card className={result.failed > 0 ? "border-destructive/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-red-500/15">
-                  <XCircle className="h-5 w-5 text-red-500" />
+                <div className="p-2 rounded-full bg-destructive/15">
+                  <XCircle className="h-5 w-5 text-destructive" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-red-600">{result.failed}</p>
+                  <p className="text-2xl font-bold text-destructive">{result.failed}</p>
                   <p className="text-xs text-muted-foreground">{dict.failed}</p>
                 </div>
               </div>

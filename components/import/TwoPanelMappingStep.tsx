@@ -104,9 +104,9 @@ function DraggableSourceCard({
   });
 
   const confidenceColors: Record<MatchConfidence, string> = {
-    high: "bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400",
-    medium: "bg-yellow-500/10 border-yellow-500/30 text-yellow-700 dark:text-yellow-400",
-    low: "bg-orange-500/10 border-orange-500/30 text-orange-700 dark:text-orange-400",
+    high: "bg-success/10 border-success/30 text-green-700 dark:text-green-400",
+    medium: "bg-warning/10 border-warning/30 text-yellow-700 dark:text-yellow-400",
+    low: "bg-warning/10 border-orange-500/30 text-orange-700 dark:text-orange-400",
     none: "bg-muted/50 border-muted-foreground/20",
   };
 
@@ -134,10 +134,10 @@ function DraggableSourceCard({
               variant="outline"
               className={cn(
                 "text-xs shrink-0",
-                matchResult.matchType === "exact" && "border-green-500 text-green-600",
-                matchResult.matchType === "alias" && "border-blue-500 text-blue-600",
-                matchResult.matchType === "fuzzy" && "border-yellow-500 text-yellow-600",
-                matchResult.matchType === "partial" && "border-orange-500 text-orange-600"
+                matchResult.matchType === "exact" && "border-success text-success",
+                matchResult.matchType === "alias" && "border-primary text-primary",
+                matchResult.matchType === "fuzzy" && "border-warning text-warning",
+                matchResult.matchType === "partial" && "border-orange-500 text-warning"
               )}
             >
               {matchResult.matchType === "exact" && <Check className="h-3 w-3 mr-1" />}
@@ -289,7 +289,7 @@ function TargetFieldGroup({
           )}
           <span className="font-medium text-sm">{groupLabel}</span>
           {hasMissingRequired && (
-            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <AlertCircle className="h-4 w-4 text-warning" />
           )}
         </div>
         <Badge variant="secondary" className="text-xs">
@@ -473,20 +473,20 @@ export function TwoPanelMappingStep({
       <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <div className="w-2 h-2 rounded-full bg-success" />
             <span>{dict.highConfidence || "High"}: {stats.highConfidence}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+            <div className="w-2 h-2 rounded-full bg-warning" />
             <span>{dict.mediumConfidence || "Medium"}: {stats.mediumConfidence}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-orange-500" />
+            <div className="w-2 h-2 rounded-full bg-warning" />
             <span>{dict.lowConfidence || "Low"}: {stats.lowConfidence}</span>
           </div>
         </div>
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-green-600 dark:text-green-400">
+          <span className="text-success dark:text-green-400">
             <Check className="inline h-4 w-4 mr-1" />
             {dict.autoMatchedCount?.replace("{count}", String(stats.matched)) || `${stats.matched} mapped`}
           </span>
@@ -499,9 +499,9 @@ export function TwoPanelMappingStep({
 
       {/* Missing Required Fields Warning */}
       {missingRequired.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/10">
+        <Card className="border-warning/30 bg-warning/10">
           <CardContent className="flex items-start gap-3 py-3">
-            <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+            <AlertCircle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-sm">
                 {dict.required}: {missingRequired.length} field(s) not mapped

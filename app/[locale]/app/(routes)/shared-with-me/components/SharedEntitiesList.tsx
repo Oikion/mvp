@@ -118,13 +118,13 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
   const getEntityIcon = () => {
     switch (entityType) {
       case "PROPERTY":
-        return <Building2 className="h-10 w-10 text-blue-600" />;
+        return <Building2 className="h-10 w-10 text-primary" />;
       case "CLIENT":
-        return <Users className="h-10 w-10 text-green-600" />;
+        return <Users className="h-10 w-10 text-success" />;
       case "DOCUMENT":
-        return <FileText className="h-10 w-10 text-orange-600" />;
+        return <FileText className="h-10 w-10 text-warning" />;
       default:
-        return <Building2 className="h-10 w-10 text-gray-600" />;
+        return <Building2 className="h-10 w-10 text-muted-foreground" />;
     }
   };
 
@@ -133,7 +133,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
       case "PROPERTY":
         return (
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden bg-gray-100">
+            <div className="flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden bg-muted">
               {entity.linkedDocuments?.[0]?.document_file_url ? (
                 <img
                   src={entity.linkedDocuments[0].document_file_url}
@@ -142,7 +142,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-gray-400" />
+                  <Building2 className="h-6 w-6 text-muted-foreground" />
                 </div>
               )}
             </div>
@@ -161,7 +161,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
                   </Badge>
                 )}
                 {entity.price && (
-                  <span className="font-semibold text-blue-600">
+                  <span className="font-semibold text-primary">
                     {formatPrice(entity.price)}
                   </span>
                 )}
@@ -174,7 +174,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
         return (
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-green-500/15 text-green-600 dark:text-green-400">
+              <AvatarFallback className="bg-success/15 text-success dark:text-green-400">
                 {entity.client_name?.charAt(0) || <User className="h-5 w-5" />}
               </AvatarFallback>
             </Avatar>
@@ -213,8 +213,8 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
       case "DOCUMENT":
         return (
           <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-orange-500/15 flex items-center justify-center">
-              <FileText className="h-6 w-6 text-orange-600" />
+            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-warning/15 flex items-center justify-center">
+              <FileText className="h-6 w-6 text-warning" />
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="font-semibold truncate">{entity.document_name}</h4>

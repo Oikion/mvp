@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { motion, type Variants } from "motion/react";
+import { duration, distance, easing, stagger, getDuration } from "@/lib/animation-tokens";
 
 export interface AnimatedSpinnerProps {
   size?: "sm" | "md" | "lg" | "xl";
@@ -22,13 +23,13 @@ function DotsSpinner({ size, className, color }: { size: number; className?: str
   const dotVariants: Variants = {
     initial: { y: 0, opacity: 0.4 },
     animate: (i: number) => ({
-      y: [0, -8, 0],
+      y: [0, -distance.md * 0.8, 0],
       opacity: [0.4, 1, 0.4],
       transition: {
-        duration: 0.6,
+        duration: getDuration("slowest") + 0.1,
         repeat: Infinity,
-        ease: "easeInOut",
-        delay: i * 0.1,
+        ease: easing.inOut,
+        delay: i * stagger.default,
       },
     }),
   };
@@ -73,10 +74,10 @@ function PulseSpinner({ size, className, color }: { size: number; className?: st
             opacity: [0, 0.5, 0],
           }}
           transition={{
-            duration: 1.5,
+            duration: duration.extended / 1000 * 1.5,
             repeat: Infinity,
-            ease: "easeOut",
-            delay: i * 0.4,
+            ease: easing.out,
+            delay: i * stagger.slow,
           }}
         />
       ))}
@@ -86,7 +87,7 @@ function PulseSpinner({ size, className, color }: { size: number; className?: st
           color || "bg-primary"
         )}
         animate={{ scale: [1, 0.9, 1] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+        transition={{ duration: getDuration("slowest") + 0.3, repeat: Infinity, ease: easing.inOut }}
       />
     </div>
   );
@@ -100,19 +101,19 @@ function OrbitSpinner({ size, className, color }: { size: number; className?: st
         className={cn("absolute inset-0 rounded-full border-2 border-transparent", color ? "border-t-current" : "border-t-primary")}
         style={{ color }}
         animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: duration.extended / 1000, repeat: Infinity, ease: easing.linear }}
       />
       <motion.span
         className={cn("absolute inset-[15%] rounded-full border-2 border-transparent opacity-60", color ? "border-t-current" : "border-t-primary")}
         style={{ color }}
         animate={{ rotate: -360 }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: duration.extended / 1000 * 1.5, repeat: Infinity, ease: easing.linear }}
       />
       <motion.span
         className={cn("absolute inset-[30%] rounded-full border-2 border-transparent opacity-30", color ? "border-t-current" : "border-t-primary")}
         style={{ color }}
         animate={{ rotate: 360 }}
-        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: duration.extended / 1000 * 2, repeat: Infinity, ease: easing.linear }}
       />
     </div>
   );
@@ -138,10 +139,10 @@ function WaveSpinner({ size, className, color }: { size: number; className?: str
             opacity: [0.5, 1, 0.5],
           }}
           transition={{
-            duration: 0.8,
+            duration: getDuration("slowest") + 0.3,
             repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.1,
+            ease: easing.inOut,
+            delay: i * stagger.default,
           }}
         />
       ))}
@@ -167,10 +168,10 @@ function BarsSpinner({ size, className, color }: { size: number; className?: str
             height: [size * 0.3, size * 0.8, size * 0.3],
           }}
           transition={{
-            duration: 0.6,
+            duration: getDuration("slowest") + 0.1,
             repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.15,
+            ease: easing.inOut,
+            delay: i * stagger.slow,
           }}
         />
       ))}

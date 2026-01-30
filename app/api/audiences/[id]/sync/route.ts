@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId } from "@/lib/get-current-user";
 import { getOrgMembersFromDb } from "@/lib/org-members";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 /**
  * POST /api/audiences/[id]/sync
@@ -12,6 +13,12 @@ export async function POST(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Permission check: Users need audience:sync permission
+    const syncCheck = await canPerformAction("audience:sync");
+    if (!syncCheck.allowed) {
+      return NextResponse.json({ error: syncCheck.reason }, { status: 403 });
+    }
+
     const { id } = await props.params;
     const organizationId = await getCurrentOrgId();
 

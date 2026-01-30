@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
+import { requireActionOnEntity } from "@/lib/permissions/action-guards";
 
 export interface UpdateAudienceInput {
   audienceId: string;
@@ -44,6 +45,15 @@ export async function updateAudience(
     if (!audience) {
       return { success: false, error: "Audience not found or no permission" };
     }
+
+    // Permission check: Users need audience:update permission with ownership check
+    const guard = await requireActionOnEntity(
+      "audience:update",
+      "audience" as any,
+      audienceId,
+      audience.createdById
+    );
+    if (guard) return guard;
 
     // Build update data
     const updateData: any = {};
@@ -99,6 +109,15 @@ export async function addAudienceMembers(
       return { success: false, error: "Audience not found or no permission" };
     }
 
+    // Permission check: Users need audience:update permission with ownership check
+    const guard = await requireActionOnEntity(
+      "audience:update",
+      "audience" as any,
+      audienceId,
+      audience.createdById
+    );
+    if (guard) return guard;
+
     // Add members
     await prismadb.audienceMember.createMany({
       data: memberIds.map((userId) => ({
@@ -144,6 +163,15 @@ export async function removeAudienceMember(
     if (!audience) {
       return { success: false, error: "Audience not found or no permission" };
     }
+
+    // Permission check: Users need audience:update permission with ownership check
+    const guard = await requireActionOnEntity(
+      "audience:update",
+      "audience" as any,
+      audienceId,
+      audience.createdById
+    );
+    if (guard) return guard;
 
     // Remove member
     await prismadb.audienceMember.deleteMany({

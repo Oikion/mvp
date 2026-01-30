@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,10 +71,10 @@ interface DealDetailProps {
 }
 
 const statusColors: Record<string, string> = {
-  PROPOSED: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-  NEGOTIATING: "bg-orange-500/15 text-orange-600 dark:text-orange-400",
-  ACCEPTED: "bg-green-500/15 text-green-600 dark:text-green-400",
-  IN_PROGRESS: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  PROPOSED: "bg-warning/15 text-warning dark:text-amber-400",
+  NEGOTIATING: "bg-warning/15 text-warning dark:text-orange-400",
+  ACCEPTED: "bg-success/15 text-success dark:text-green-400",
+  IN_PROGRESS: "bg-primary/15 text-primary dark:text-blue-400",
   COMPLETED: "bg-purple-500/15 text-purple-600 dark:text-purple-400",
   CANCELLED: "bg-muted text-muted-foreground",
 };
@@ -99,7 +99,7 @@ export function DealDetail({ deal }: DealDetailProps) {
   );
 
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("el-GR", {
@@ -113,18 +113,10 @@ export function DealDetail({ deal }: DealDetailProps) {
     try {
       setIsLoading(true);
       await axios.put(`/api/deals/${deal.id}`, { status: "ACCEPTED" });
-      toast({
-        variant: "success",
-        title: "Deal Accepted!",
-        description: "You have accepted this deal. Time to close it!",
-      });
+      toast.success("Deal Accepted!", { description: "You have accepted this deal. Time to close it!", isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data || "Failed to accept deal",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to accept deal", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -134,19 +126,11 @@ export function DealDetail({ deal }: DealDetailProps) {
     try {
       setIsLoading(true);
       await axios.put(`/api/deals/${deal.id}`, { status: "CANCELLED" });
-      toast({
-        variant: "success",
-        title: "Deal Cancelled",
-        description: "The deal has been cancelled.",
-      });
+      toast.success("Deal Cancelled", { description: "The deal has been cancelled.", isTranslationKey: false });
       setShowCancelDialog(false);
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data || "Failed to cancel deal",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to cancel deal", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -160,19 +144,11 @@ export function DealDetail({ deal }: DealDetailProps) {
         clientAgentSplit: 100 - newSplit,
         status: "NEGOTIATING",
       });
-      toast({
-        variant: "success",
-        title: "Counter-proposal Sent",
-        description: "Your proposed split has been sent to the other agent.",
-      });
+      toast.success("Counter-proposal Sent", { description: "Your proposed split has been sent to the other agent.", isTranslationKey: false });
       setIsNegotiating(false);
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data || "Failed to propose new split",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to propose new split", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -182,18 +158,10 @@ export function DealDetail({ deal }: DealDetailProps) {
     try {
       setIsLoading(true);
       await axios.put(`/api/deals/${deal.id}`, { status: "IN_PROGRESS" });
-      toast({
-        variant: "success",
-        title: "Deal In Progress",
-        description: "The deal is now marked as in progress.",
-      });
+      toast.success("Deal In Progress", { description: "The deal is now marked as in progress.", isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data || "Failed to update deal",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to update deal", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -206,19 +174,11 @@ export function DealDetail({ deal }: DealDetailProps) {
         status: "COMPLETED",
         totalCommission: finalCommission ? parseFloat(finalCommission) : undefined,
       });
-      toast({
-        variant: "success",
-        title: "Deal Completed! 🎉",
-        description: "Congratulations on closing this deal!",
-      });
+      toast.success("Deal Completed! 🎉", { description: "Congratulations on closing this deal!", isTranslationKey: false });
       setShowCompleteDialog(false);
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data || "Failed to complete deal",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to complete deal", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -250,7 +210,7 @@ export function DealDetail({ deal }: DealDetailProps) {
             {statusLabels[deal.status]}
           </Badge>
           {!deal.isProposer && canAccept && (
-            <Badge variant="outline" className="text-orange-600 border-orange-300">
+            <Badge variant="outline" className="text-warning border-orange-300">
               Awaiting Your Response
             </Badge>
           )}
@@ -323,13 +283,13 @@ export function DealDetail({ deal }: DealDetailProps) {
                   </div>
                   <div className="flex justify-between text-sm">
                     <div className="text-center">
-                      <p className="font-semibold text-blue-600">{newSplit}%</p>
+                      <p className="font-semibold text-primary">{newSplit}%</p>
                       <p className="text-xs text-muted-foreground">
                         Property Agent
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="font-semibold text-green-600">
+                      <p className="font-semibold text-success">
                         {100 - newSplit}%
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -359,7 +319,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                     <div className="flex-1 text-center">
                       <Avatar className="h-16 w-16 mx-auto mb-2">
                         <AvatarImage src={deal.propertyAgent.avatar || ""} />
-                        <AvatarFallback className="bg-blue-500/15 text-blue-600 dark:text-blue-400 text-xl">
+                        <AvatarFallback className="bg-primary/15 text-primary dark:text-blue-400 text-xl">
                           {deal.propertyAgent.name?.charAt(0) || (
                             <User className="h-6 w-6" />
                           )}
@@ -370,7 +330,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                         <Building2 className="h-3 w-3" />
                         Property Agent
                       </p>
-                      <p className="text-3xl font-bold text-blue-600 mt-2">
+                      <p className="text-3xl font-bold text-primary mt-2">
                         {Number(deal.propertyAgentSplit)}%
                       </p>
                       {deal.totalCommission && (
@@ -390,7 +350,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                     <div className="flex-1 text-center">
                       <Avatar className="h-16 w-16 mx-auto mb-2">
                         <AvatarImage src={deal.clientAgent.avatar || ""} />
-                        <AvatarFallback className="bg-green-500/15 text-green-600 dark:text-green-400 text-xl">
+                        <AvatarFallback className="bg-success/15 text-success dark:text-green-400 text-xl">
                           {deal.clientAgent.name?.charAt(0) || (
                             <User className="h-6 w-6" />
                           )}
@@ -401,7 +361,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                         <Users className="h-3 w-3" />
                         Client Agent
                       </p>
-                      <p className="text-3xl font-bold text-green-600 mt-2">
+                      <p className="text-3xl font-bold text-success mt-2">
                         {Number(deal.clientAgentSplit)}%
                       </p>
                       {deal.totalCommission && (
@@ -452,7 +412,7 @@ export function DealDetail({ deal }: DealDetailProps) {
             </CardHeader>
             <CardContent>
               <div className="flex items-start gap-4">
-                <div className="w-32 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                <div className="w-32 h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                   {deal.property.linkedDocuments?.[0]?.document_file_url ? (
                     <img
                       src={deal.property.linkedDocuments[0].document_file_url}
@@ -461,7 +421,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Building2 className="h-8 w-8 text-gray-400" />
+                      <Building2 className="h-8 w-8 text-muted-foreground" />
                     </div>
                   )}
                 </div>
@@ -499,7 +459,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                     )}
                   </div>
                   {deal.property.price && (
-                    <p className="text-xl font-bold text-blue-600 mt-2">
+                    <p className="text-xl font-bold text-primary mt-2">
                       {formatPrice(deal.property.price)}
                     </p>
                   )}

@@ -20,6 +20,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
+import { DataTableBulkActions, type BulkAction } from "./data-table-bulk-actions";
 import { useTableKeyboard } from "@/hooks/use-table-keyboard";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +46,8 @@ interface DataTableProps<TData, TValue> {
   onRowDelete?: (rows: Row<TData>[]) => void;
   /** Whether keyboard navigation is enabled (default: true) */
   enableKeyboardNav?: boolean;
+  /** Bulk actions to show when rows are selected */
+  bulkActions?: BulkAction<TData>[];
 }
 
 export function DataTable<TData, TValue>({ 
@@ -57,6 +60,7 @@ export function DataTable<TData, TValue>({
   onRowEdit,
   onRowDelete,
   enableKeyboardNav = true,
+  bulkActions,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -97,6 +101,35 @@ export function DataTable<TData, TValue>({
     containerRef,
   });
 
+  // Handle bulk action keyboard shortcuts
+  React.useEffect(() => {
+    if (!bulkActions || bulkActions.length === 0) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only trigger if we have selected rows
+      const selectedRows = table.getFilteredSelectedRowModel().rows;
+      if (selectedRows.length === 0) return;
+
+      // Don't trigger in input fields
+      const target = event.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+        return;
+      }
+
+      // Check for matching shortcuts
+      for (const action of bulkActions) {
+        if (action.shortcut && event.key.toLowerCase() === action.shortcut.toLowerCase() && !event.metaKey && !event.ctrlKey) {
+          event.preventDefault();
+          action.onClick(selectedRows.map(row => row.original));
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [bulkActions, table]);
+
   return (
     <div className="space-y-4">
       <DataTableToolbar 
@@ -105,10 +138,10 @@ export function DataTable<TData, TValue>({
         searchPlaceholder={searchPlaceholder}
         filters={filters}
       />
-      <div 
+      <div
         ref={containerRef}
         className={cn(
-          "rounded-md border outline-none transition-shadow",
+          "rounded-md outline-none transition-shadow",
           isTableFocused && "ring-2 ring-ring ring-offset-2 ring-offset-background"
         )}
         {...tableContainerProps}
@@ -179,6 +212,11 @@ export function DataTable<TData, TValue>({
           </div>
         )}
       </div>
+
+      {/* Bulk Actions Bar */}
+      {bulkActions && bulkActions.length > 0 && (
+        <DataTableBulkActions table={table} actions={bulkActions} />
+      )}
     </div>
   );
 }

@@ -1,10 +1,9 @@
 "use client";
 
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Eye, Edit, Trash2, CalendarPlus, Share2, LucideIcon } from "lucide-react";
+import { Eye, Edit, Trash2, CalendarPlus, Share2, LucideIcon, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -231,7 +230,7 @@ export function DataTableRowActions<TData extends { id?: string }>({
           className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           onClick={(e) => e.stopPropagation()}
         >
-          <DotsHorizontalIcon className="h-4 w-4" />
+          <MoreHorizontal className="h-4 w-4" />
           <span className="sr-only">{t("actions")}</span>
         </Button>
       </DropdownMenuTrigger>

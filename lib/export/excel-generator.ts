@@ -15,7 +15,6 @@ import {
 } from "./data-formatter";
 import {
   type ExportFormat,
-  sanitizeRows,
   generateExportFilename,
   type ExportModule,
 } from "./security";
@@ -232,6 +231,58 @@ export function generateCSV(
 }
 
 /**
+ * Generate XML file from data
+ */
+export function generateXML(
+  module: ExportModule,
+  data: Record<string, unknown>[],
+  options: ExcelGeneratorOptions
+): Buffer {
+  const {
+    columns,
+    locale = "en",
+  } = options;
+
+  const formatterOptions: FormatterOptions = {
+    locale,
+    sanitize: false,
+  };
+
+  const formattedData = formatRows(data, columns, formatterOptions);
+  const generatedAt = new Date().toISOString();
+
+  const xmlParts: string[] = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    `<export module="${module}" generatedAt="${generatedAt}">`,
+    "  <records>",
+  ];
+
+  for (const row of formattedData) {
+    xmlParts.push("    <record>");
+    for (const column of columns) {
+      const value = row[column.key] ?? "";
+      xmlParts.push(
+        `      <${column.key}>${escapeXml(String(value))}</${column.key}>`
+      );
+    }
+    xmlParts.push("    </record>");
+  }
+
+  xmlParts.push("  </records>", "</export>");
+
+  return Buffer.from(xmlParts.join("\n"), "utf-8");
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+/**
  * Escape a value for CSV format
  */
 function escapeCSVValue(value: string): string {
@@ -286,6 +337,10 @@ export function generateExportFile(
     case "csv":
       buffer = generateCSV(data, fullOptions);
       contentType = "text/csv; charset=utf-8";
+      break;
+    case "xml":
+      buffer = generateXML(module, data, fullOptions);
+      contentType = "application/xml; charset=utf-8";
       break;
     default:
       throw new Error(`Unsupported format: ${format}`);

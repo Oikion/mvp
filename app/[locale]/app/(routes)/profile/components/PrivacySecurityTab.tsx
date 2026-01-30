@@ -15,7 +15,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -53,7 +53,7 @@ const VISIBILITY_OPTION_CONFIGS: VisibilityOptionConfig[] = [
     value: "PERSONAL",
     translationKey: "personal",
     icon: Lock,
-    color: "text-gray-600",
+    color: "text-muted-foreground",
     bgColor: "bg-gray-500/10",
     borderColor: "border-gray-500/30",
   },
@@ -61,17 +61,17 @@ const VISIBILITY_OPTION_CONFIGS: VisibilityOptionConfig[] = [
     value: "SECURE",
     translationKey: "secure",
     icon: Shield,
-    color: "text-amber-600",
-    bgColor: "bg-amber-500/10",
-    borderColor: "border-amber-500/30",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
+    borderColor: "border-warning/30",
   },
   {
     value: "PUBLIC",
     translationKey: "public",
     icon: Globe,
-    color: "text-green-600",
-    bgColor: "bg-green-500/10",
-    borderColor: "border-green-500/30",
+    color: "text-success",
+    bgColor: "bg-success/10",
+    borderColor: "border-success/30",
   },
 ];
 
@@ -92,7 +92,7 @@ export function PrivacySecurityTab({
   const [hasChanges, setHasChanges] = useState(false);
 
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   // Track changes
   useEffect(() => {
@@ -123,11 +123,7 @@ export function PrivacySecurityTab({
         socialLinks: agentProfile?.socialLinks || {},
       });
 
-      toast({
-        variant: "success",
-        title: t("saved"),
-        description: t("savedDescription"),
-      });
+      toast.success(t, { description: t, isTranslationKey: false });
 
       setHasChanges(false);
       router.refresh();
@@ -177,8 +173,8 @@ export function PrivacySecurityTab({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-500/10">
-              <Eye className="h-5 w-5 text-blue-600" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Eye className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
               <CardTitle>{t("profileVisibility.title")}</CardTitle>

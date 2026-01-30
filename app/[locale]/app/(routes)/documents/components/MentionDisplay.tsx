@@ -29,7 +29,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
         <Badge
           key={`client-${client.id}`}
           variant="outline"
-          className="bg-blue-500/10 text-blue-600 border-blue-500/30 hover:bg-blue-500/20 dark:text-blue-400 cursor-pointer"
+          className="bg-primary/10 text-primary border-primary/30 hover:bg-primary/20 dark:text-blue-400 cursor-pointer"
           onClick={() => onMentionClick?.("client", client.id)}
         >
           <Users className="h-3 w-3 mr-1" />
@@ -42,7 +42,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
         <Badge
           key={`property-${property.id}`}
           variant="outline"
-          className="bg-green-500/10 text-green-600 border-green-500/30 hover:bg-green-500/20 dark:text-green-400 cursor-pointer"
+          className="bg-success/10 text-success border-success/30 hover:bg-success/20 dark:text-green-400 cursor-pointer"
           onClick={() => onMentionClick?.("property", property.id)}
         >
           <Home className="h-3 w-3 mr-1" />
@@ -68,7 +68,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
         <Badge
           key={`task-${task.id}`}
           variant="outline"
-          className="bg-orange-500/10 text-orange-600 border-orange-500/30 hover:bg-orange-500/20 dark:text-orange-400 cursor-pointer"
+          className="bg-warning/10 text-warning border-orange-500/30 hover:bg-warning/20 dark:text-orange-400 cursor-pointer"
           onClick={() => onMentionClick?.("task", task.id)}
         >
           <CheckSquare className="h-3 w-3 mr-1" />

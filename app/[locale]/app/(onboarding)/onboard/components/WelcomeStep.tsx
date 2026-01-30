@@ -45,7 +45,7 @@ export function WelcomeStep({ userName, dict, onContinue }: WelcomeStepProps) {
             transition={{ delay: 0.6, type: "spring" }}
             className="absolute -top-2 -right-2"
           >
-            <Sparkles className="w-6 h-6 text-yellow-500" />
+            <Sparkles className="w-6 h-6 text-warning" />
           </motion.div>
         </div>
       </motion.div>

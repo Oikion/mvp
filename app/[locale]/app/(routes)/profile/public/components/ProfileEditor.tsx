@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -20,14 +20,23 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Plus, Loader2, Lock, Shield, Globe, User, Home, Share2, ExternalLink } from "lucide-react";
+import { X, Plus, Loader2, Lock, Shield, Globe, User, Home, Share2, ExternalLink, Mail, GripVertical, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { ShowcasePropertyManager } from "./ShowcasePropertyManager";
+import {
+  getContactFormSettings,
+  updateContactFormSettings,
+  type ContactFormField,
+  type ContactFormFieldType,
+  DEFAULT_CONTACT_FORM_FIELDS,
+} from "@/actions/social/contact-form";
 
 const formSchema = z.object({
   bio: z.string().max(1000, "Bio must be less than 1000 characters").optional(),
@@ -83,25 +92,34 @@ const VISIBILITY_OPTIONS = [
     label: "Personal",
     description: "Hidden from everyone",
     icon: Lock,
-    color: "text-red-600",
-    bgColor: "bg-red-500/10",
+    color: "text-destructive",
+    bgColor: "bg-destructive/10",
   },
   {
     value: "SECURE",
     label: "Secure",
     description: "Only registered users can view",
     icon: Shield,
-    color: "text-amber-600",
-    bgColor: "bg-amber-500/10",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
   },
   {
     value: "PUBLIC",
     label: "Public",
     description: "Anyone can view",
     icon: Globe,
-    color: "text-green-600",
-    bgColor: "bg-green-500/10",
+    color: "text-success",
+    bgColor: "bg-success/10",
   },
+];
+
+const FIELD_TYPE_OPTIONS: { value: ContactFormFieldType; label: string }[] = [
+  { value: "text", label: "Text" },
+  { value: "email", label: "Email" },
+  { value: "phone", label: "Phone" },
+  { value: "textarea", label: "Text Area" },
+  { value: "select", label: "Dropdown" },
+  { value: "checkbox", label: "Checkbox" },
 ];
 
 export function ProfileEditor({
@@ -116,7 +134,29 @@ export function ProfileEditor({
   const [newServiceArea, setNewServiceArea] = useState("");
   const [newCertification, setNewCertification] = useState("");
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
+
+  // Contact form settings state
+  const [contactFormEnabled, setContactFormEnabled] = useState(false);
+  const [contactFormFields, setContactFormFields] = useState<ContactFormField[]>(DEFAULT_CONTACT_FORM_FIELDS);
+  const [isSavingContactForm, setIsSavingContactForm] = useState(false);
+  const [newFieldLabel, setNewFieldLabel] = useState("");
+  const [newFieldType, setNewFieldType] = useState<ContactFormFieldType>("text");
+  const [newFieldRequired, setNewFieldRequired] = useState(false);
+
+  // Load contact form settings on mount
+  useEffect(() => {
+    async function loadContactFormSettings() {
+      try {
+        const settings = await getContactFormSettings();
+        setContactFormEnabled(settings.enabled);
+        setContactFormFields(settings.fields);
+      } catch (error) {
+        console.error("Failed to load contact form settings:", error);
+      }
+    }
+    loadContactFormSettings();
+  }, []);
 
   const socialLinks = profile?.socialLinks as Record<string, string> | null;
 
@@ -169,20 +209,12 @@ export function ProfileEditor({
         PUBLIC: "Your profile is now live and visible to everyone!",
       };
 
-      toast({
-        variant: "success",
-        title: "Profile Saved",
-        description: visibilityMsg[data.visibility],
-      });
+      toast.success("Profile Saved", { description: visibilityMsg, isTranslationKey: false });
 
       router.refresh();
       onSave?.();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data || "Failed to update profile. Please try again.",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to update profile. Please try again.", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -236,22 +268,89 @@ export function ProfileEditor({
     }
   };
 
+  // Contact form management functions
+  const handleSaveContactFormSettings = async () => {
+    setIsSavingContactForm(true);
+    try {
+      const result = await updateContactFormSettings({
+        enabled: contactFormEnabled,
+        fields: contactFormFields,
+      });
+      if (result.success) {
+        toast.success("Contact Form Updated", { description: contactFormEnabled, isTranslationKey: false });
+        router.refresh();
+      } else {
+        toast.error("Error", { description: result.error || "Failed to update contact form settings.", isTranslationKey: false });
+      }
+    } catch (error) {
+      toast.error("Error", { description: "Failed to update contact form settings.", isTranslationKey: false });
+    } finally {
+      setIsSavingContactForm(false);
+    }
+  };
+
+  const addCustomField = () => {
+    if (!newFieldLabel.trim()) return;
+    
+    const newField: ContactFormField = {
+      id: `custom_${Date.now()}`,
+      type: newFieldType,
+      label: newFieldLabel.trim(),
+      placeholder: "",
+      required: newFieldRequired,
+      order: contactFormFields.length,
+    };
+    
+    setContactFormFields([...contactFormFields, newField]);
+    setNewFieldLabel("");
+    setNewFieldType("text");
+    setNewFieldRequired(false);
+  };
+
+  const removeField = (fieldId: string) => {
+    setContactFormFields(
+      contactFormFields
+        .filter((f) => f.id !== fieldId)
+        .map((f, index) => ({ ...f, order: index }))
+    );
+  };
+
+  const toggleFieldRequired = (fieldId: string) => {
+    setContactFormFields(
+      contactFormFields.map((f) =>
+        f.id === fieldId ? { ...f, required: !f.required } : f
+      )
+    );
+  };
+
+  const updateFieldLabel = (fieldId: string, label: string) => {
+    setContactFormFields(
+      contactFormFields.map((f) =>
+        f.id === fieldId ? { ...f, label } : f
+      )
+    );
+  };
+
   const selectedVisibility = form.watch("visibility");
 
   return (
     <Tabs defaultValue="profile" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 mb-6">
-        <TabsTrigger value="profile" className="flex items-center gap-2">
-          <User className="h-4 w-4" />
-          <span className="hidden sm:inline">Profile Info</span>
+      <TabsList className="inline-grid grid-cols-4 mb-6">
+        <TabsTrigger value="profile">
+          <User className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:inline">Profile</span>
         </TabsTrigger>
-        <TabsTrigger value="properties" className="flex items-center gap-2">
-          <Home className="h-4 w-4" />
+        <TabsTrigger value="properties">
+          <Home className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Showcase</span>
         </TabsTrigger>
-        <TabsTrigger value="social" className="flex items-center gap-2">
-          <Share2 className="h-4 w-4" />
-          <span className="hidden sm:inline">Social Links</span>
+        <TabsTrigger value="contact">
+          <Mail className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:inline">Contact Form</span>
+        </TabsTrigger>
+        <TabsTrigger value="social">
+          <Share2 className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:inline">Social</span>
         </TabsTrigger>
       </TabsList>
 
@@ -551,6 +650,174 @@ export function ProfileEditor({
               showcaseProperties={showcaseProperties}
               availableProperties={availableProperties}
             />
+          </TabsContent>
+
+          <TabsContent value="contact" className="space-y-6">
+            {/* Contact Form Toggle */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span>Enable Contact Form</span>
+                  <Switch
+                    checked={contactFormEnabled}
+                    onCheckedChange={setContactFormEnabled}
+                  />
+                </CardTitle>
+                <CardDescription>
+                  Allow visitors to contact you directly through your profile page
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {contactFormEnabled && (
+              <>
+                {/* Current Fields */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Form Fields</CardTitle>
+                    <CardDescription>
+                      Configure which fields appear on your contact form
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {contactFormFields.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No fields configured. Add some fields below.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {contactFormFields.map((field, index) => (
+                          <div
+                            key={field.id}
+                            className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
+                          >
+                            <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
+                            <div className="flex-1 min-w-0">
+                              <Input
+                                value={field.label}
+                                onChange={(e) => updateFieldLabel(field.id, e.target.value)}
+                                className="h-8 text-sm"
+                              />
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {field.type}
+                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <label className="text-xs text-muted-foreground flex items-center gap-1 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={field.required}
+                                  onChange={() => toggleFieldRequired(field.id)}
+                                  className="h-3 w-3"
+                                />
+                                Required
+                              </label>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={() => removeField(field.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Add New Field */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Add Custom Field</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-1">
+                        <label className="text-sm font-medium mb-1 block">Field Type</label>
+                        <Select
+                          value={newFieldType}
+                          onValueChange={(v) => setNewFieldType(v as ContactFormFieldType)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FIELD_TYPE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-sm font-medium mb-1 block">Field Label</label>
+                        <Input
+                          value={newFieldLabel}
+                          onChange={(e) => setNewFieldLabel(e.target.value)}
+                          placeholder="e.g., Property Interest"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addCustomField();
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newFieldRequired}
+                          onChange={(e) => setNewFieldRequired(e.target.checked)}
+                          className="h-4 w-4"
+                        />
+                        <span className="text-sm">Required field</span>
+                      </label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addCustomField}
+                        disabled={!newFieldLabel.trim()}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Field
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Save Contact Form Settings */}
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    onClick={handleSaveContactFormSettings}
+                    disabled={isSavingContactForm}
+                  >
+                    {isSavingContactForm && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Contact Form Settings
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {!contactFormEnabled && (
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  onClick={handleSaveContactFormSettings}
+                  disabled={isSavingContactForm}
+                >
+                  {isSavingContactForm && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Settings
+                </Button>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="social" className="space-y-6">

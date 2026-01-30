@@ -18,7 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 
@@ -51,10 +51,10 @@ function getPasswordStrength(password: string): {
   if (/[0-9]/.test(password)) score += 15;
   if (/[^A-Za-z0-9]/.test(password)) score += 15;
 
-  if (score < 40) return { score, label: "Weak", color: "bg-red-500" };
-  if (score < 70) return { score, label: "Fair", color: "bg-yellow-500" };
-  if (score < 90) return { score, label: "Good", color: "bg-blue-500" };
-  return { score: 100, label: "Strong", color: "bg-green-500" };
+  if (score < 40) return { score, label: "Weak", color: "bg-destructive" };
+  if (score < 70) return { score, label: "Fair", color: "bg-warning" };
+  if (score < 90) return { score, label: "Good", color: "bg-primary" };
+  return { score: 100, label: "Strong", color: "bg-success" };
 }
 
 export function PasswordChangeForm({ userId }: { userId: string }) {
@@ -63,7 +63,7 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -81,22 +81,13 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
     try {
       setIsLoading(true);
       await axios.put(`/api/user/${userId}/setnewpass`, data);
-      toast({
-        variant: "success",
-        title: "Password changed successfully",
-        description: "Your password has been updated.",
-      });
+      toast.success("Password changed successfully", { description: "Your password has been updated.", isTranslationKey: false });
       form.reset();
       router.refresh();
     } catch (error: unknown) {
       const errorResponse = error as { response?: { data?: string } };
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description:
-          errorResponse.response?.data ||
-          "Something went wrong while changing your password.",
-      });
+      toast.error("Error", { description: errorResponse.response?.data ||
+          "Something went wrong while changing your password.", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -145,12 +136,12 @@ export function PasswordChangeForm({ userId }: { userId: string }) {
                       <span
                         className={`font-medium ${
                           passwordStrength.label === "Weak"
-                            ? "text-red-500"
+                            ? "text-destructive"
                             : passwordStrength.label === "Fair"
-                            ? "text-yellow-500"
+                            ? "text-warning"
                             : passwordStrength.label === "Good"
-                            ? "text-blue-500"
-                            : "text-green-500"
+                            ? "text-primary"
+                            : "text-success"
                         }`}
                       >
                         {passwordStrength.label}

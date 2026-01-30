@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model AgentConnection {
@@ -40,12 +41,39 @@ model AgentProfile {
   updatedAt               DateTime
   visibility              ProfileVisibility         @default(PERSONAL)
   hideFromAgentSearch     Boolean                   @default(false)
+  contactFormEnabled      Boolean                   @default(false)
+  contactFormFields       Json?                     // Custom form field configuration
   Users                   Users                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   ProfileShowcaseProperty ProfileShowcaseProperty[]
+  AgentContactSubmission  AgentContactSubmission[]
 
   @@index([hideFromAgentSearch])
   @@index([slug])
   @@index([visibility])
+}
+
+model AgentContactSubmission {
+  id           String           @id
+  profileId    String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  formData     Json             // Flexible storage for custom fields (name, email, phone, message, etc.)
+  status       SubmissionStatus @default(NEW)
+  notes        String?          // Agent's internal notes about this submission
+  senderName   String?          // Cached for quick display
+  senderEmail  String?          // Cached for quick display
+  AgentProfile AgentProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum SubmissionStatus {
+  NEW
+  READ
+  CONTACTED
+  ARCHIVED
 }
 
 model Audience {
@@ -285,7 +313,7 @@ model Clients {
 
 model Deal {
   id                                String     @id
-  organizationId                    String?
+  organizationId                    String     // SECURITY: Required for tenant isolation
   propertyId                        String
   clientId                          String
   propertyAgentId                   String
@@ -324,6 +352,10 @@ model Deal {
   @@index([dealType])
   @@index([leadSource])
   @@index([marketingSpendId])
+  @@index([createdAt])           // Performance: For sorting
+  @@index([closedAt])            // Performance: For completed deals queries
+  @@index([organizationId, status]) // Performance: Composite for common query pattern
+  @@index([organizationId, createdAt]) // Performance: Composite for listing
 }
 
 model DocumentTemplate {
@@ -676,6 +708,10 @@ model Properties {
   daysOnMarket                        Int?              // Calculated days on market
   estimatedPrice                      Int?              // For CMA accuracy tracking
   
+  // XE.gr Portal Publishing
+  xePublished                         Boolean           @default(false)
+  xeRefId                             String?           @unique  // External reference ID for XE
+  
   Client_Properties                   Client_Properties[]
   Deal                                Deal[]
   ProfileShowcaseProperty             ProfileShowcaseProperty[]
@@ -686,6 +722,7 @@ model Properties {
   CalComEvent                         CalComEvent[]             @relation("EventToProperties")
   Users_watching_properties           Users[]                   @relation("watching_properties")
   PropertyShowing                     PropertyShowing[]
+  XeSyncItems                         XeSyncItem[]
 
   @@index([assigned_to])
   @@index([createdAt])
@@ -693,6 +730,7 @@ model Properties {
   @@index([portal_visibility])
   @@index([property_status])
   @@index([saleDate])
+  @@index([xePublished])
 }
 
 model PropertyComment {
@@ -750,6 +788,7 @@ model SharedEntity {
 
 model SocialPost {
   id                   String              @id
+  slug                 String?             @unique
   createdAt            DateTime            @default(now())
   updatedAt            DateTime
   organizationId       String
@@ -770,6 +809,7 @@ model SocialPost {
   @@index([createdAt])
   @@index([organizationId])
   @@index([postType])
+  @@index([slug])
 }
 
 model SocialPostComment {
@@ -863,6 +903,7 @@ model Users {
   lastName                                           String?
   referralBoxDismissed                               Boolean                       @default(false)
   referralApplicationStatus                          ReferralApplicationStatus?
+  layoutPreference                                   LayoutPreference              @default(DEFAULT)
   AgentConnection_AgentConnection_followerIdToUsers  AgentConnection[]             @relation("AgentConnection_followerIdToUsers")
   AgentConnection_AgentConnection_followingIdToUsers AgentConnection[]             @relation("AgentConnection_followingIdToUsers")
   AgentProfile                                       AgentProfile?
@@ -900,6 +941,7 @@ model Users {
   ChangelogEntry                                     ChangelogEntry[]
   ReferralCode                                       ReferralCode?
   ReferredByReferral                                 Referral?                     @relation("ReferredUser")
+  MessagesSent                                       Message[]                     @relation("MessagesSent")
 
   @@index([clerkUserId])
   @@index([email])
@@ -1243,6 +1285,11 @@ enum Language {
   el
 }
 
+enum LayoutPreference {
+  DEFAULT  // Centered, max-width constrained
+  WIDE     // Full-width, expanded
+}
+
 enum LeadSource {
   REFERRAL
   WEB
@@ -1296,6 +1343,15 @@ enum NotificationCategory {
   ACCOUNT_UNSUSPENSION
   ACCOUNT_DELETION_NOTICE
   FEEDBACK_RESPONSE
+  // Messaging notifications
+  MESSAGE_RECEIVED
+  MESSAGE_MENTION
+  CHANNEL_INVITE
+  CHANNEL_MESSAGE
+  // Contact form notifications
+  CONTACT_FORM_SUBMISSION
+  // Organization invites
+  ORGANIZATION_INVITE
 }
 
 enum NotificationEntityType {
@@ -1309,6 +1365,10 @@ enum NotificationEntityType {
   CONNECTION
   USER
   FEEDBACK
+  CONVERSATION
+  ORGANIZATION
+  CHANNEL
+  CONTACT_SUBMISSION
 }
 
 enum NotificationType {
@@ -1666,6 +1726,24 @@ model N8nConfig {
   @@index([isActive])
 }
 
+/// Per-agent n8n workflow assignments
+model N8nAgentWorkflow {
+  id              String    @id @default(uuid())
+  organizationId  String
+  agentId         String    // Clerk user ID
+  workflowId      String    // n8n workflow ID
+  workflowName    String    // Cached workflow name for display
+  isActive        Boolean   @default(true)
+  lastRunAt       DateTime?
+  lastRunStatus   String?   // "success", "error", etc.
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([organizationId, agentId, workflowId])
+  @@index([organizationId])
+  @@index([agentId])
+}
+
 // ============================================
 // ENUMS FOR N8N CONTENT AUTOMATION
 // ============================================
@@ -1914,4 +1992,635 @@ enum OrgRole {
   LEAD
   MEMBER
   VIEWER
+}
+
+// ============================================
+// EXPORT HISTORY - Track exports for properties and entities
+// ============================================
+
+model ExportHistory {
+  id              String           @id @default(uuid())
+  organizationId  String
+  userId          String
+  entityType      ExportEntityType
+  entityId        String           // Property/Client ID or "bulk-{timestamp}" for bulk exports
+  entityIds       String[]         // For bulk exports, list all IDs
+  exportFormat    String           // xlsx, csv, pdf, xml
+  exportTemplate  String?          // CMA, SHORTLIST, ROI, MARKET_TRENDS
+  destination     String?          // "client", "xe.gr", "spitogatos", etc.
+  filename        String           // Generated descriptive filename
+  rowCount        Int              @default(1)
+  dataSnapshot    Json?            // Snapshot of key fields for change detection
+  changeFields    String[]         // Fields to track for change detection
+  createdAt       DateTime         @default(now())
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum ExportEntityType {
+  PROPERTY
+  CLIENT
+  CALENDAR
+  REPORT
+  BULK_PROPERTIES
+  BULK_CLIENTS
+}
+
+// ============================================
+// MESSAGING - Native Prisma + Socket.io messaging
+// ============================================
+
+/// Organization channels for team communication
+model Channel {
+  id             String          @id @default(uuid())
+  organizationId String
+  name           String          // Channel display name (e.g., "General")
+  slug           String          // URL-safe name (e.g., "general")
+  description    String?
+  channelType    ChannelType     @default(PUBLIC)
+  isDefault      Boolean         @default(false) // Auto-join on org membership
+  isArchived     Boolean         @default(false)
+  createdById    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  messages       Message[]
+  members        ChannelMember[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([channelType])
+  @@index([isArchived])
+}
+
+/// Channel membership
+model ChannelMember {
+  id         String            @id @default(uuid())
+  channelId  String
+  userId     String
+  role       ChannelMemberRole @default(MEMBER)
+  joinedAt   DateTime          @default(now())
+  mutedUntil DateTime?         // Mute notifications until this time
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
+  @@index([userId])
+}
+
+enum ChannelMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum ChannelType {
+  PUBLIC       // Anyone in org can join
+  PRIVATE      // Invite only
+  ANNOUNCEMENT // Admin-only posting, everyone reads
+}
+
+/// Direct message conversations (1:1 or group DMs)
+model Conversation {
+  id             String                    @id @default(uuid())
+  organizationId String
+  name           String?                   // For group DMs, optional name
+  isGroup        Boolean                   @default(false)
+  createdById    String?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  // Optional entity link (for CRM context)
+  entityType     ConversationEntityType?
+  entityId       String?
+
+  messages     Message[]
+  participants ConversationParticipant[]
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+  @@index([createdById])
+}
+
+/// Conversation participants
+model ConversationParticipant {
+  id             String    @id @default(uuid())
+  conversationId String
+  userId         String
+  joinedAt       DateTime  @default(now())
+  leftAt         DateTime? // Null if still in conversation
+  mutedUntil     DateTime? // Mute notifications until this time
+  lastReadAt     DateTime? // Last time user read messages in this conversation
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+/// Types of entities that can be linked to conversations
+enum ConversationEntityType {
+  CLIENT
+  PROPERTY
+  DEAL
+  PROJECT
+}
+
+/// Messages in channels or conversations
+model Message {
+  id             String    @id @default(uuid())
+  organizationId String
+  
+  // Either channelId OR conversationId (not both)
+  channelId      String?
+  conversationId String?
+  
+  senderId       String
+  content        String    @db.Text
+  contentType    MessageContentType @default(TEXT)
+  
+  // Threading support
+  parentId       String?   // Reply to another message
+  threadCount    Int       @default(0) // Count of replies (denormalized for performance)
+  
+  // Edit tracking
+  isEdited       Boolean   @default(false)
+  editedAt       DateTime?
+  isDeleted      Boolean   @default(false)
+  deletedAt      DateTime?
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  channel      Channel?      @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  parent       Message?      @relation("MessageThread", fields: [parentId], references: [id], onDelete: SetNull)
+  replies      Message[]     @relation("MessageThread")
+  sender       Users         @relation("MessagesSent", fields: [senderId], references: [id])
+  
+  reactions   MessageReaction[]
+  attachments MessageAttachment[]
+  readReceipts MessageRead[]
+  mentions    MessageMention[]
+
+  @@index([organizationId])
+  @@index([channelId])
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([parentId])
+  @@index([createdAt])
+  @@index([isDeleted])
+}
+
+enum MessageContentType {
+  TEXT
+  SYSTEM   // Join/leave notifications, etc.
+  FILE     // File-only message
+}
+
+/// Message reactions (emoji)
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     String   // Unicode emoji or custom emoji code
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+}
+
+/// Read receipts
+model MessageRead {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+}
+
+/// File attachments on messages
+model MessageAttachment {
+  id        String   @id @default(uuid())
+  messageId String
+  fileName  String
+  fileSize  Int      // bytes
+  fileType  String   // MIME type
+  url       String   // Vercel Blob URL
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+/// User mentions in messages
+model MessageMention {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String   // The user who was mentioned
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([userId])
+}
+
+/// Typing indicators (short-lived, could also be handled in-memory)
+model TypingIndicator {
+  id             String   @id @default(uuid())
+  organizationId String
+  channelId      String?
+  conversationId String?
+  userId         String
+  expiresAt      DateTime // Auto-expire typing indicator
+
+  @@unique([channelId, userId])
+  @@unique([conversationId, userId])
+  @@index([expiresAt])
+}
+
+/// User presence status
+model UserPresence {
+  id           String         @id @default(uuid())
+  userId       String         @unique
+  status       PresenceStatus @default(OFFLINE)
+  lastSeenAt   DateTime       @default(now())
+  statusMessage String?       // Custom status message
+
+  @@index([status])
+  @@index([lastSeenAt])
+}
+
+enum PresenceStatus {
+  ONLINE
+  AWAY
+  BUSY
+  OFFLINE
+}
+
+// ============================================
+// XE.GR PORTAL INTEGRATION
+// ============================================
+
+/// Organization-level XE.gr integration settings
+model XeIntegration {
+  id              String   @id @default(uuid())
+  organizationId  String   @unique
+  
+  // Authentication credentials
+  username        String
+  password        String   // Should be encrypted in production
+  authToken       String
+  agentId         String   // XE agent/store ID
+  
+  // Configuration
+  isActive        Boolean  @default(false)
+  autoPublish     Boolean  @default(false)
+  publicationType XePublicationType @default(BASIC)
+  trademark       String?  // Optional trademark/branding
+  
+  // Tracking
+  lastSyncAt      DateTime?
+  lastPackageId   String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  agentSettings   XeAgentSettings[]
+  syncHistory     XeSyncHistory[]
+  
+  @@index([organizationId])
+  @@index([isActive])
+}
+
+/// Per-agent XE.gr publishing settings
+model XeAgentSettings {
+  id              String   @id @default(uuid())
+  integrationId   String
+  agentId         String   // Clerk user ID
+  
+  // Agent-specific XE credentials
+  xeOwnerId       String   // Item.ownerId from XE API
+  majorPhone      String   // Certified phone number
+  otherPhones     String[] // Array of additional certified phones
+  
+  // Publishing preferences
+  isActive        Boolean  @default(true)
+  autoPublish     Boolean  @default(true)
+  publicationType XePublicationType @default(BASIC)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  integration     XeIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  
+  @@unique([integrationId, agentId])
+  @@index([integrationId])
+  @@index([agentId])
+}
+
+/// Package submission history for XE.gr
+model XeSyncHistory {
+  id              String   @id @default(uuid())
+  integrationId   String
+  packageId       String   @unique // XE package ID
+  
+  // Sync metadata
+  policy          XeSyncPolicy
+  requestType     XeSyncRequestType
+  totalItems      Int
+  successCount    Int      @default(0)
+  failureCount    Int      @default(0)
+  
+  // Status tracking
+  status          XeSyncStatus @default(PENDING)
+  errorMessage    String?
+  responseEmail   String?  // Email notification reference
+  
+  // Timestamps
+  submittedAt     DateTime @default(now())
+  processedAt     DateTime?
+  
+  // Relations
+  integration     XeIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  items           XeSyncItem[]
+  
+  @@index([integrationId])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+/// Individual property sync status within a package
+model XeSyncItem {
+  id           String   @id @default(uuid())
+  syncId       String
+  propertyId   String
+  
+  refId        String   // External reference ID sent to XE
+  status       XeSyncItemStatus @default(PENDING)
+  errorMessage String?
+  xeAdId       String?  // XE's internal ad ID if returned
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  sync         XeSyncHistory @relation(fields: [syncId], references: [id], onDelete: Cascade)
+  property     Properties    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  @@unique([syncId, propertyId])
+  @@index([syncId])
+  @@index([propertyId])
+  @@index([status])
+}
+
+// ============================================
+// XE.GR ENUMS
+// ============================================
+
+enum XePublicationType {
+  BASIC
+  GOLD
+}
+
+enum XeSyncPolicy {
+  RENEW_ALL_STOCK
+  INCREMENTAL
+}
+
+enum XeSyncRequestType {
+  ADD_ITEMS
+  REMOVE_ITEMS
+}
+
+enum XeSyncStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+enum XeSyncItemStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+// ============================================
+// MARKET INTELLIGENCE - Competitor Monitoring
+// ============================================
+
+/// Organization-level Market Intelligence configuration
+model MarketIntelConfig {
+  id                String   @id @default(uuid())
+  organizationId    String   @unique
+  
+  // Feature toggle
+  isEnabled         Boolean  @default(false)
+  
+  // Scraping configuration
+  platforms         String[] @default(["spitogatos", "xe_gr", "tospitimou"])
+  targetAreas       String[] @default([])  // Areas to scrape (empty = all)
+  targetMunicipalities String[] @default([])
+  transactionTypes  String[] @default(["sale", "rent"])
+  propertyTypes     String[] @default([])  // Empty = all types
+  
+  // Pricing filters
+  minPrice          Int?
+  maxPrice          Int?
+  
+  // Scraping schedule
+  scrapeFrequency   MarketIntelFrequency @default(DAILY)
+  lastScrapeAt      DateTime?
+  nextScrapeAt      DateTime?
+  
+  // Rate limiting
+  maxPagesPerPlatform Int @default(10)
+  
+  // Status
+  status            MarketIntelStatus @default(PENDING_SETUP)
+  lastError         String?
+  consecutiveFailures Int @default(0)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([organizationId])
+  @@index([isEnabled])
+  @@index([nextScrapeAt])
+  @@index([status])
+}
+
+enum MarketIntelFrequency {
+  HOURLY      // Every hour (expensive)
+  TWICE_DAILY // Twice a day
+  DAILY       // Once a day (default)
+  WEEKLY      // Once a week
+}
+
+enum MarketIntelStatus {
+  PENDING_SETUP  // Waiting for initial configuration
+  ACTIVE         // Running normally
+  PAUSED         // Temporarily paused by user
+  ERROR          // Stopped due to errors
+  DISABLED       // Disabled by admin
+}
+
+/// User alerts for market intelligence notifications
+model MarketIntelAlert {
+  id             String          @id @default(uuid())
+  userId         String
+  organizationId String
+  alertType      MarketAlertType
+  name           String          // User-friendly name for the alert
+  criteria       Json            // { area: "Kolonaki", maxPrice: 500000, propertyType: "APARTMENT", ... }
+  isActive       Boolean         @default(true)
+  emailEnabled   Boolean         @default(true)
+  inAppEnabled   Boolean         @default(true)
+  lastTriggered  DateTime?
+  triggerCount   Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([alertType])
+  @@index([isActive])
+}
+
+/// Alert trigger history
+model MarketIntelAlertTrigger {
+  id         String   @id @default(uuid())
+  alertId    String
+  listingIds String[] // IDs of listings that triggered the alert
+  metadata   Json?    // Additional context about the trigger
+  sentAt     DateTime @default(now())
+
+  @@index([alertId])
+  @@index([sentAt])
+}
+
+enum MarketAlertType {
+  PRICE_DROP         // Price decreased by X% or X amount
+  NEW_LISTING        // New listing matching criteria
+  UNDERPRICED        // Listed significantly below market average
+  DAYS_ON_MARKET     // Listing has been on market for X days
+  PRICE_INCREASE     // Price increased (potential market shift indicator)
+  INVENTORY_CHANGE   // Significant inventory change in area
+}
+
+// ============================================
+// ORGANIZATION FEATURES - Feature Access Control
+// ============================================
+
+/// Controls which premium features an organization has access to
+model OrganizationFeature {
+  id             String    @id @default(uuid())
+  organizationId String
+  feature        String    // "market_intel", "ai_matching", etc.
+  isEnabled      Boolean   @default(false)
+  grantedBy      String?   // Platform admin userId who granted access
+  grantedAt      DateTime?
+  expiresAt      DateTime? // Optional expiry date
+  metadata       Json?     // Feature-specific configuration
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([organizationId, feature])
+  @@index([organizationId])
+  @@index([feature])
+  @@index([isEnabled])
+}
+
+/// Tracks in-progress and completed scrape jobs for Market Intelligence
+model ScrapeJob {
+  id              String         @id @default(uuid())
+  organizationId  String
+  status          ScrapeJobStatus @default(PENDING)
+  currentPlatform String?        // Currently processing platform
+  currentAction   Json?          // {type, message, propertyTitle?, platform?, page?} for dynamic status
+  progress        Json           @default("{}") // {platform: {total, passed, failed, errors[]}}
+  platforms       String[]       @default([])   // Platforms to scrape
+  startedAt       DateTime       @default(now())
+  completedAt     DateTime?
+  errorMessage    String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ScrapeJobStatus {
+  PENDING    // Job created, waiting to start
+  RUNNING    // Currently executing
+  COMPLETED  // Successfully finished
+  FAILED     // Failed with error
+  CANCELLED  // Cancelled by user
+}
+
+// ===========================================
+// Background Job Orchestration (K8s Jobs)
+// ===========================================
+
+model BackgroundJob {
+  id              String              @id @default(cuid())
+  type            BackgroundJobType
+  organizationId  String
+  status          BackgroundJobStatus @default(PENDING)
+  progress        Int                 @default(0)   // 0-100
+  progressMessage String?
+  k8sJobName      String?                          // K8s Job resource name
+  k8sPodName      String?                          // K8s Pod name for logs
+  payload         Json                             // Job-specific input data
+  result          Json?                            // Job-specific result data
+  errorMessage    String?
+  createdAt       DateTime            @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdBy       String?                          // User who initiated the job
+  priority        JobPriority         @default(NORMAL)
+  
+  @@index([organizationId, type])
+  @@index([status])
+  @@index([k8sJobName])
+  @@index([createdAt])
+}
+
+enum BackgroundJobType {
+  MARKET_INTEL_SCRAPE
+  NEWSLETTER_SEND
+  PORTAL_PUBLISH_XE
+  BULK_EXPORT
+}
+
+enum BackgroundJobStatus {
+  PENDING     // Waiting to be scheduled
+  RUNNING     // K8s Job is running
+  COMPLETED   // Successfully finished
+  FAILED      // Failed with error
+  CANCELLED   // Cancelled by user or system
+}
+
+enum JobPriority {
+  LOW
+  NORMAL
+  HIGH
 }

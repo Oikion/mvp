@@ -1,4 +1,7 @@
 {
+  "new": "New",
+  "learnMore": "Learn more",
+  "tryIt": "Try it",
   "getStarted": "Get Started",
   "cancel": "Cancel",
   "confirm": "Confirm",
@@ -173,7 +176,10 @@
     "createTask": "Create Task",
     "updateTask": "Update Task",
     "createContact": "Create Contact",
-    "updateContact": "Update Contact"
+    "updateContact": "Update Contact",
+    "skip": "Skip",
+    "finish": "Got it!",
+    "startTour": "Take a tour"
   },
   "buttonStates": {
     "creating": "Creating...",
@@ -456,6 +462,7 @@
   "misc": {
     "toggleSidebar": "Toggle Sidebar",
     "selected": "Selected",
+    "clearSelection": "Clear selection",
     "allEmail": "All Email",
     "allInApp": "All In-App",
     "sendTest": "Send test",
@@ -503,6 +510,24 @@
     "agencyNotFound": "No agency organization found. Please create one first.",
     "workspaceSettings": "Workspace Settings"
   },
+  "organizationInvites": {
+    "title": "Organization Invitations",
+    "pendingInvites": "Pending Invitations",
+    "noPendingInvites": "No pending invitations",
+    "noPendingInvitesDescription": "You don't have any organization invitations at the moment.",
+    "invitedBy": "Invited to join",
+    "role": "Role",
+    "accept": "Accept",
+    "decline": "Decline",
+    "accepting": "Accepting...",
+    "declining": "Declining...",
+    "acceptSuccess": "Invitation accepted! Switching to organization...",
+    "acceptError": "Failed to accept invitation. Please try again.",
+    "declineSuccess": "Invitation declined.",
+    "declineError": "Failed to decline invitation. Please try again.",
+    "viewInvitations": "View Invitations",
+    "pendingCount": "{count} pending"
+  },
   "export": {
     "export": "Export",
     "exporting": "Exporting...",
@@ -524,6 +549,86 @@
       "xls": "Excel (.xls)",
       "csv": "CSV (.csv)",
       "pdf": "PDF (.pdf)"
+    },
+    "quick": {
+      "title": "Quick Export",
+      "exportTo": "Export to",
+      "propertyPortals": "Property Portals",
+      "xeXml": "XE.gr (XML)",
+      "spitogatosCsv": "Spitogatos (CSV)",
+      "pdfFlyer": "PDF Flyer",
+      "copyLink": "Copy Link",
+      "linkCopied": "Link copied!",
+      "exportCompleted": "Export completed",
+      "exportFailed": "Export failed",
+      "fileDownloaded": "File {filename} downloaded successfully"
+    },
+    "templates": {
+      "title": "Export Template",
+      "clear": "Clear",
+      "description": "Select a template for predefined columns or leave empty for standard export",
+      "CMA": "Comparative Market Analysis",
+      "CMADescription": "Compare properties by price, size, and features",
+      "SHORTLIST": "Property Shortlist",
+      "SHORTLISTDescription": "Client-ready property list with key details",
+      "ROI": "ROI Analysis",
+      "ROIDescription": "Investment calculations and returns",
+      "MARKET_TRENDS": "Market Trends",
+      "MARKET_TRENDSDescription": "Pricing trends and market statistics"
+    },
+    "history": {
+      "title": "Export History",
+      "noExports": "No previous exports found",
+      "reExport": "Re-export",
+      "changes": "Changes",
+      "changesSinceLastExport": "Changes since last export:",
+      "sentToClient": "Sent to Client",
+      "xePortal": "xe.gr Portal",
+      "spitogatos": "Spitogatos",
+      "spiti24": "Spiti24",
+      "portalExport": "Property Portal",
+      "showLess": "Show Less",
+      "showMore": "+{count} more"
+    }
+  },
+  "integrations": {
+    "title": "Integrations",
+    "description": "Manage your external service integrations and automations",
+    "n8n": {
+      "title": "Automation Workflows",
+      "description": "View and run your assigned n8n workflows",
+      "noWorkflows": "No workflows assigned",
+      "noWorkflowsDescription": "Contact your administrator to get workflows assigned",
+      "notConfigured": "Automation not configured",
+      "notConfiguredDescription": "Your organization has not set up n8n integration",
+      "runWorkflow": "Run",
+      "lastRun": "Last run",
+      "status": "Status",
+      "success": "Success",
+      "error": "Error",
+      "never": "Never",
+      "inactive": "Inactive",
+      "workflowExecuted": "Workflow executed successfully"
+    },
+    "xe": {
+      "title": "XE.gr Publishing",
+      "description": "Configure your XE.gr publishing credentials",
+      "notConfigured": "XE.gr integration not configured",
+      "notConfiguredDescription": "Your organization admin must first configure XE.gr integration",
+      "xeOwnerId": "XE Owner ID",
+      "xeOwnerIdDescription": "Your Item.ownerId from xe.gr",
+      "majorPhone": "Primary Phone",
+      "majorPhoneDescription": "Certified phone for listings",
+      "otherPhones": "Additional Phones",
+      "otherPhonesDescription": "Comma-separated (optional)",
+      "publicationType": "Publication Type",
+      "active": "Active",
+      "enablePublishing": "Enable publishing",
+      "autoPublish": "Auto-Publish",
+      "autoPublishDescription": "Automatically publish new listings",
+      "saveSuccess": "XE.gr settings saved",
+      "saveError": "Failed to save settings",
+      "saveSettings": "Save Settings"
     }
   }
 }

@@ -32,7 +32,7 @@ export default async function SocialProfilePage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Globe className="h-5 w-5 text-blue-600" />
+                <Globe className="h-5 w-5 text-primary" />
                 <div>
                   <CardTitle>Profile Status</CardTitle>
                   <CardDescription>
@@ -42,7 +42,7 @@ export default async function SocialProfilePage() {
               </div>
               <div className="flex items-center gap-3">
                 {profile?.visibility === "PUBLIC" ? (
-                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+                  <Badge className="bg-success/10 text-green-700 hover:bg-success/10">
                     <Eye className="h-3 w-3 mr-1" />
                     Public
                   </Badge>
@@ -56,7 +56,7 @@ export default async function SocialProfilePage() {
                   <Link
                     href={`/agent/${profile.slug}`}
                     target="_blank"
-                    className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                    className="flex items-center gap-1 text-sm text-primary hover:underline"
                   >
                     View Profile
                     <ExternalLink className="h-3 w-3" />
@@ -67,8 +67,8 @@ export default async function SocialProfilePage() {
           </CardHeader>
           {profile?.slug && (
             <CardContent>
-              <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-2">
-                <span className="text-sm text-gray-500">Your profile URL:</span>
+              <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Your profile URL:</span>
                 <code className="text-sm bg-white px-2 py-1 rounded border">
                   {typeof window !== "undefined"
                     ? `${window.location.origin}/agent/${profile.slug}`

@@ -4,6 +4,7 @@ import { prismaForOrg } from "@/lib/tenant";
 import { prismadb } from "@/lib/prisma";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { notifyAccountWatchers } from "@/lib/notifications";
+import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 
 export async function GET(
   _req: Request,
@@ -16,6 +17,15 @@ export async function GET(
   }
 
   try {
+    // Permission check: Users need client:read permission
+    const readCheck = await canPerformAction("client:read");
+    if (!readCheck.allowed) {
+      return NextResponse.json(
+        { error: readCheck.reason || "Permission denied" },
+        { status: 403 }
+      );
+    }
+
     await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
@@ -117,6 +127,31 @@ export async function PUT(
 
     if (!existingClient) {
       return NextResponse.json({ error: "Client not found or access denied" }, { status: 404 });
+    }
+
+    // Permission check: Users need client:update permission (with ownership check)
+    const updateCheck = await canPerformActionOnEntity(
+      "client:update",
+      "client",
+      clientId,
+      existingClient.assigned_to
+    );
+    if (!updateCheck.allowed) {
+      return NextResponse.json(
+        { error: updateCheck.reason || "Permission denied" },
+        { status: 403 }
+      );
+    }
+
+    // Permission check: Check if user can reassign agent
+    if (assigned_to !== undefined && assigned_to !== existingClient.assigned_to) {
+      const reassignCheck = await canPerformAction("client:reassign_agent");
+      if (!reassignCheck.allowed) {
+        return NextResponse.json(
+          { error: "You do not have permission to change the assigned agent" },
+          { status: 403 }
+        );
+      }
     }
 
     const updatedClient = await prismadb.clients.update({

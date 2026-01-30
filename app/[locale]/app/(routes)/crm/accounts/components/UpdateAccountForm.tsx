@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 
 import { useRouter } from "next/navigation";
 
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,9 +36,39 @@ import fetcher from "@/lib/fetcher";
 import useSWR from "swr";
 import SuspenseLoading from "@/components/loadings/suspense";
 
+// Form data type that matches both initial data and form values
+interface AccountFormData {
+  id: string;
+  v?: number;
+  name: string;
+  office_phone?: string | null;
+  website?: string;
+  fax?: string;
+  company_id?: string;
+  vat?: string;
+  email?: string;
+  billing_street?: string;
+  billing_postal_code?: string;
+  billing_city?: string;
+  billing_state?: string;
+  billing_country?: string;
+  billing_municipality?: string;
+  billing_area?: string;
+  shipping_street?: string;
+  shipping_postal_code?: string;
+  shipping_city?: string;
+  shipping_state?: string;
+  shipping_country?: string;
+  description?: string | null;
+  assigned_to?: string;
+  status?: string | null;
+  annual_revenue?: string | null;
+  member_of?: string | null;
+  industry?: string;
+}
+
 interface UpdateAccountFormProps {
-  //TODO: fix this any
-  initialData: any;
+  initialData: AccountFormData;
   open: (value: boolean) => void;
 }
 
@@ -47,7 +77,7 @@ export function UpdateAccountForm({
   open,
 }: UpdateAccountFormProps) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const t = useTranslations("crm.CrmForm");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
@@ -87,13 +117,38 @@ export function UpdateAccountForm({
 
   type NewAccountFormValues = z.infer<typeof formSchema>;
 
-  //TODO: fix this any
-  const form = useForm<any>({
+  const form = useForm<NewAccountFormValues>({
     resolver: zodResolver(formSchema),
-    //@ts-ignore
-    //TODO: fix this
     defaultValues: initialData
-      ? initialData
+      ? {
+          id: initialData.id,
+          v: initialData.v ?? 0,
+          name: initialData.name ?? "",
+          office_phone: initialData.office_phone ?? null,
+          website: initialData.website ?? "",
+          fax: initialData.fax ?? "",
+          company_id: initialData.company_id ?? "",
+          vat: initialData.vat ?? "",
+          email: initialData.email ?? "",
+          billing_street: initialData.billing_street ?? "",
+          billing_postal_code: initialData.billing_postal_code ?? "",
+          billing_city: initialData.billing_city ?? "",
+          billing_state: initialData.billing_state ?? "",
+          billing_country: initialData.billing_country ?? "GR",
+          billing_municipality: initialData.billing_municipality ?? "",
+          billing_area: initialData.billing_area ?? "",
+          shipping_street: initialData.shipping_street ?? "",
+          shipping_postal_code: initialData.shipping_postal_code ?? "",
+          shipping_city: initialData.shipping_city ?? "",
+          shipping_state: initialData.shipping_state ?? "",
+          shipping_country: initialData.shipping_country ?? "",
+          description: initialData.description ?? "",
+          assigned_to: initialData.assigned_to ?? "",
+          status: initialData.status ?? "",
+          annual_revenue: initialData.annual_revenue ?? "",
+          member_of: initialData.member_of ?? "",
+          industry: initialData.industry ?? "",
+        }
       : {
           id: "",
           v: 0,
@@ -154,9 +209,9 @@ export function UpdateAccountForm({
         client_status: data.status?.toUpperCase() || undefined,
         member_of: data.member_of,
       });
-      toast({ variant: "success", title: "Success", description: "Client updated successfully" });
+      toast.success("Success", { description: "Client updated successfully", isTranslationKey: false });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error?.response?.data });
+      toast.error("Error", { description: error?.response?.data, isTranslationKey: false });
     } finally {
       setIsLoading(false);
       open(false);
@@ -187,7 +242,7 @@ export function UpdateAccountForm({
           <code>{JSON.stringify(initialData, null, 2)}</code>
         </pre> */}
 
-        <div className="w-[800px] text-sm text-foreground">
+        <div className="w-full max-w-[800px] text-sm text-foreground">
           <div className="pb-5 space-y-2">
             <FormField
               control={form.control}
@@ -216,8 +271,7 @@ export function UpdateAccountForm({
                     <Input
                       disabled={isLoading}
                       placeholder="+420 ...."
-                      //@ts-ignore
-                      value={field.value}
+                      value={field.value ?? ""}
                       onChange={field.onChange}
                     />
                   </FormControl>

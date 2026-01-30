@@ -29,7 +29,7 @@ const NOTIFICATION_OPTIONS = [
     id: "tasks",
     key: "remindAboutTasks" as const,
     icon: CheckSquare,
-    color: "bg-orange-500/10 text-orange-600",
+    color: "bg-warning/10 text-warning",
   },
   {
     id: "calendar",
@@ -41,19 +41,19 @@ const NOTIFICATION_OPTIONS = [
     id: "deals",
     key: "remindAboutDeals" as const,
     icon: Handshake,
-    color: "bg-emerald-500/10 text-emerald-600",
+    color: "bg-success/10 text-success",
   },
   {
     id: "team",
     key: "notifyAboutTeamActivity" as const,
     icon: Users,
-    color: "bg-blue-500/10 text-blue-600",
+    color: "bg-primary/10 text-primary",
   },
   {
     id: "documents",
     key: "notifyAboutDocuments" as const,
     icon: FileText,
-    color: "bg-amber-500/10 text-amber-600",
+    color: "bg-warning/10 text-warning",
   },
 ];
 

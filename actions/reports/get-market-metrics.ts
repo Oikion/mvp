@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 /**
  * Absorption Rate
@@ -9,6 +10,10 @@ import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
  * Calculated as: (Sold listings / Active listings) per month
  */
 export async function getAbsorptionRate() {
+  // Permission check: Users need report:view permission
+  const check = await canPerformAction("report:view");
+  if (!check.allowed) return { rate: 0, activeListings: 0, soldLastMonth: 0, monthsOfInventory: 0 };
+
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return { rate: 0, activeListings: 0, soldLastMonth: 0, monthsOfInventory: 0 };
 

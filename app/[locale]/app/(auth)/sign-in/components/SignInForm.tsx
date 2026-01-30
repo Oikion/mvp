@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { signInSchema, getClerkErrorMessage, type SignInFormData } from "@/lib/validations/auth";
 import { Mail, Lock, Eye, EyeOff, Loader2, LogIn } from "lucide-react";
@@ -58,7 +58,7 @@ export function SignInForm({ dict }: SignInFormProps) {
   const router = useRouter();
   const params = useParams();
   const locale = (params.locale as string) || "el";
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -104,18 +104,10 @@ export function SignInForm({ dict }: SignInFormProps) {
           await setActive({ session: firstFactorResult.createdSessionId });
           router.push(`/${locale}/app`);
         } else {
-          toast({
-            variant: "destructive",
-            title: "Sign in incomplete",
-            description: "Please complete all verification steps.",
-          });
+          toast.error("Sign in incomplete", { description: "Please complete all verification steps.", isTranslationKey: false });
         }
       } else {
-        toast({
-          variant: "destructive",
-          title: "Sign in failed",
-          description: dict.errors.generic,
-        });
+        toast.error("Sign in failed", { description: dict.errors.generic, isTranslationKey: false });
       }
     } catch (err) {
       const error = err as { errors?: Array<{ code?: string; message?: string }> };
@@ -130,18 +122,10 @@ export function SignInForm({ dict }: SignInFormProps) {
         } else if (firstError.code.includes("password") || firstError.code === "form_password_incorrect") {
           setError("password", { message });
         } else {
-          toast({
-            variant: "destructive",
-            title: "Sign in failed",
-            description: message,
-          });
+          toast.error("Sign in failed", { description: message, isTranslationKey: false });
         }
       } else {
-        toast({
-          variant: "destructive",
-          title: "Sign in failed",
-          description: dict.errors.generic,
-        });
+        toast.error("Sign in failed", { description: dict.errors.generic, isTranslationKey: false });
       }
     } finally {
       setIsSubmitting(false);

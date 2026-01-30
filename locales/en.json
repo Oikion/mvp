@@ -286,7 +286,12 @@
     "organizationSettings": "Organization Settings",
     "organizationSettingsDescription": "Update organization details and preferences",
     "teamManagement": "Team Management",
-    "teamManagementDescription": "Invite members, manage roles and permissions"
+    "teamManagementDescription": "Invite members, manage roles and permissions",
+    "integrations": "Integrations",
+    "n8nIntegration": "n8n Automation",
+    "n8nIntegrationDescription": "Configure workflow automation for your organization",
+    "xeIntegration": "xe.gr Integration",
+    "xeIntegrationDescription": "Publish properties to xe.gr portal"
   },
   "Admin": {
     "title": "Administration",

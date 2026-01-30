@@ -564,18 +564,18 @@ export function CalendarPageView() {
       {/* Calendar Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <TabsList className="bg-muted p-1">
-            <TabsTrigger value="myEvents" className="gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("tabs.myEvents")}</span>
+          <TabsList className="inline-grid grid-cols-3">
+            <TabsTrigger value="myEvents">
+              <CalendarIcon className="h-4 w-4 shrink-0" />
+              {t("tabs.myEvents")}
             </TabsTrigger>
-            <TabsTrigger value="invited" className="gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("tabs.invitedEvents")}</span>
+            <TabsTrigger value="invited">
+              <Users className="h-4 w-4 shrink-0" />
+              {t("tabs.invitedEvents")}
             </TabsTrigger>
-            <TabsTrigger value="all" className="gap-2">
-              <CalendarDays className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("tabs.allEvents")}</span>
+            <TabsTrigger value="all">
+              <CalendarDays className="h-4 w-4 shrink-0" />
+              {t("tabs.allEvents")}
             </TabsTrigger>
           </TabsList>
 

@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Input } from "@/components/ui/input";
 import { Icons } from "@/components/ui/icons";
 
@@ -37,7 +37,7 @@ export function OrganizationInviteForm() {
   const t = useTranslations("admin");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const { organization } = useOrganization();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -50,11 +50,7 @@ export function OrganizationInviteForm() {
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     if (!organization) {
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: t("noOrgContext"),
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
       return;
     }
 
@@ -65,10 +61,7 @@ export function OrganizationInviteForm() {
         role: data.role,
       });
 
-      toast({
-        variant: "success",
-        title: t("invitationSent"),
-        description: t("invitationSentDescription", { email: data.email }),
+      toast.success(t, { description: t, isTranslationKey: false }),
       });
 
       form.reset({
@@ -86,11 +79,7 @@ export function OrganizationInviteForm() {
         errorMessage = error.message;
       }
 
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: errorMessage,
-      });
+      toast.error(t, { description: errorMessage, isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

@@ -102,7 +102,7 @@ export const NewTaskFromCRMEmail = ({
   taskData,
 }: NewTaskFromCRMEmailProps) => {
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
-  const taskUrl = `${baseUrl}/app/projects/tasks/viewtask/${taskData.id}`;
+  const taskUrl = `${baseUrl}/app/crm/tasks/viewtask/${taskData.id}`;
   
   const priority = (taskData.priority?.toLowerCase() || "normal") as keyof typeof priorityConfig;
   const priorityStyle = priorityConfig[priority] || priorityConfig.normal;

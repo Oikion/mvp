@@ -109,7 +109,7 @@ export const TaskAssignedEmail = ({
   userLanguage,
 }: TaskAssignedEmailProps) => {
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
-  const taskUrl = `${baseUrl}/app/projects/tasks/viewtask/${taskId}`;
+  const taskUrl = `${baseUrl}/app/crm/tasks/viewtask/${taskId}`;
   const priorityStyle = priorityConfig[priority] || priorityConfig.normal;
   const priorityLabel = priorityStyle.label[userLanguage] || priorityStyle.label.en;
 

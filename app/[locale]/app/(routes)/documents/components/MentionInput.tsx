@@ -126,7 +126,7 @@ export function MentionInput({
                         onSelect={() => insertMention(option)}
                         className="flex items-center gap-2"
                       >
-                        <Users className="h-4 w-4 text-blue-600" />
+                        <Users className="h-4 w-4 text-primary" />
                         {option.name}
                       </CommandItem>
                     ))}
@@ -140,7 +140,7 @@ export function MentionInput({
                         onSelect={() => insertMention(option)}
                         className="flex items-center gap-2"
                       >
-                        <Home className="h-4 w-4 text-green-600" />
+                        <Home className="h-4 w-4 text-success" />
                         {option.name}
                       </CommandItem>
                     ))}
@@ -168,7 +168,7 @@ export function MentionInput({
                         onSelect={() => insertMention(option)}
                         className="flex items-center gap-2"
                       >
-                        <CheckSquare className="h-4 w-4 text-orange-600" />
+                        <CheckSquare className="h-4 w-4 text-warning" />
                         {option.name}
                       </CommandItem>
                     ))}

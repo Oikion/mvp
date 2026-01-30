@@ -51,9 +51,9 @@ interface FeedbackItem {
 }
 
 const statusConfig: Record<string, { label: string; icon: typeof Clock; color: string }> = {
-  pending: { label: "Pending", icon: Clock, color: "text-yellow-600" },
-  reviewed: { label: "Reviewed", icon: CheckCircle2, color: "text-blue-600" },
-  resolved: { label: "Resolved", icon: CheckCircle2, color: "text-green-600" },
+  pending: { label: "Pending", icon: Clock, color: "text-warning" },
+  reviewed: { label: "Reviewed", icon: CheckCircle2, color: "text-primary" },
+  resolved: { label: "Resolved", icon: CheckCircle2, color: "text-success" },
   user_replied: { label: "Awaiting Response", icon: MessageCircle, color: "text-purple-600" },
 };
 
@@ -61,22 +61,22 @@ const feedbackTypeConfig = {
   bug: { 
     label: "Bug Report", 
     icon: Bug, 
-    color: "bg-red-500/15 text-red-600 dark:text-red-400" 
+    color: "bg-destructive/15 text-destructive dark:text-red-400" 
   },
   feature: { 
     label: "Feature Request", 
     icon: Sparkles, 
-    color: "bg-blue-500/15 text-blue-600 dark:text-blue-400" 
+    color: "bg-primary/15 text-primary dark:text-blue-400" 
   },
   general: { 
     label: "General Feedback", 
     icon: MessageSquare, 
-    color: "bg-green-500/15 text-green-600 dark:text-green-400" 
+    color: "bg-success/15 text-success dark:text-green-400" 
   },
   question: { 
     label: "Question", 
     icon: HelpCircle, 
-    color: "bg-amber-500/15 text-amber-600 dark:text-amber-400" 
+    color: "bg-warning/15 text-warning dark:text-amber-400" 
   },
   other: { 
     label: "Other", 
@@ -136,7 +136,7 @@ const FeedbackHistorySheet = ({ open, onOpenChange }: FeedbackHistorySheetProps)
   return (
     <>
       <Sheet open={open && !chatOpen} onOpenChange={onOpenChange}>
-        <SheetContent className="min-w-[700px] sm:max-w-[700px] overflow-y-auto">
+        <SheetContent className="w-full sm:min-w-[500px] md:min-w-[700px] sm:max-w-[700px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>{t("history.title")}</SheetTitle>
             <SheetDescription>
@@ -152,7 +152,7 @@ const FeedbackHistorySheet = ({ open, onOpenChange }: FeedbackHistorySheetProps)
           )}
 
           {error && (
-            <Card className="border-red-500/30 bg-red-500/10">
+            <Card className="border-destructive/30 bg-destructive/10">
               <CardContent className="pt-6">
                 <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
               </CardContent>

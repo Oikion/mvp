@@ -26,6 +26,9 @@
     "like": "Like",
     "comment": "Comment",
     "share": "Share",
+    "linkCopied": "Link copied!",
+    "linkCopiedDesc": "Post link copied to clipboard",
+    "copyFailed": "Failed to copy",
     "comments": "comments",
     "viewDetails": "View Details",
     "sharedProperty": "shared a property",
@@ -58,6 +61,25 @@
   "badges": {
     "client": "Client",
     "property": "Property"
+  },
+  "visibility": {
+    "public": "Public",
+    "secure": "Secure",
+    "connection": "Connection"
+  },
+  "postPage": {
+    "privatePost": "Private Post",
+    "signInToView": "Please sign in to view this post.",
+    "connectionOnly": "This post is only visible to the author's connections.",
+    "signIn": "Sign In",
+    "home": "Home",
+    "interestedInPost": "Interested in this post?",
+    "connectWithAgent": "Connect with the agent for more information.",
+    "viewProfile": "View Profile"
+  },
+  "realtime": {
+    "connected": "Live",
+    "connecting": "Connecting..."
   }
 }
 

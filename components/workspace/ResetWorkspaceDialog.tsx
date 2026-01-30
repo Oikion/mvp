@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { resetPersonalWorkspace } from "@/actions/organization/reset-personal-workspace";
 
 interface ResetWorkspaceDialogProps {
@@ -27,7 +27,7 @@ export function ResetWorkspaceDialog({ trigger }: ResetWorkspaceDialogProps) {
   const router = useRouter();
   const t = useTranslations("workspace");
   const tCommon = useTranslations("common");
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [isResetting, setIsResetting] = useState(false);
@@ -43,30 +43,18 @@ export function ResetWorkspaceDialog({ trigger }: ResetWorkspaceDialogProps) {
       const result = await resetPersonalWorkspace();
 
       if (result.error) {
-        toast({
-          variant: "destructive",
-          title: tCommon("error"),
-          description: result.error,
-        });
+        toast.error(tCommon, { description: result.error, isTranslationKey: false });
         return;
       }
 
-      toast({
-        variant: "success",
-        title: tCommon("success"),
-        description: t("resetSuccess"),
-      });
+      toast.success(tCommon, { description: t, isTranslationKey: false });
 
       setOpen(false);
       setConfirmText("");
       router.refresh();
     } catch (error) {
       console.error("Error resetting workspace:", error);
-      toast({
-        variant: "destructive",
-        title: tCommon("error"),
-        description: tCommon("somethingWentWrong"),
-      });
+      toast.error(tCommon, { description: tCommon, isTranslationKey: false });
     } finally {
       setIsResetting(false);
     }

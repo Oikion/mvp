@@ -4,7 +4,7 @@ import { z } from "zod";
 import axios from "axios";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -92,7 +92,7 @@ type Props = {
 
 export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }: Props) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations("mls");
   const tCommon = useTranslations("common");
@@ -140,11 +140,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
 
       const propertyId = response.data.newProperty.id;
 
-      toast({
-        variant: "success",
-        title: tCommon("success"),
-        description: tCommon("propertyCreated"),
-      });
+      toast.success(tCommon, { description: tCommon, isTranslationKey: false });
 
       form.reset();
       onOpenChange(false);
@@ -157,11 +153,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
     } catch (error: any) {
       console.error("Error creating property:", error);
       const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || tCommon("somethingWentWrong");
-      toast({
-        variant: "destructive",
-        title: tCommon("error"),
-        description: typeof errorMessage === 'string' ? errorMessage : tCommon("propertyCreationFailed"),
-      });
+      toast.error(tCommon, { description: typeof, isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Icons } from "@/components/ui/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -47,7 +47,7 @@ interface TransferData {
 
 export function OwnershipTransfer() {
   const t = useTranslations("admin");
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
@@ -61,11 +61,7 @@ export function OwnershipTransfer() {
 
   const handleTransfer = async () => {
     if (!selectedUserId) {
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: t("selectNewOwner") || "Please select a new owner",
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
       return;
     }
 
@@ -84,11 +80,7 @@ export function OwnershipTransfer() {
 
       const result = await response.json();
 
-      toast({
-        variant: "success",
-        title: t("success"),
-        description: result.message || t("ownershipTransferred") || "Ownership transferred successfully",
-      });
+      toast.success(t, { description: result.message, isTranslationKey: false });
 
       setOpen(false);
       setConfirmStep(false);
@@ -97,11 +89,7 @@ export function OwnershipTransfer() {
       // Refresh the page to reflect new role
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: error.message || t("transferFailed") || "Failed to transfer ownership",
-      });
+      toast.error(t, { description: error.message, isTranslationKey: false });
     } finally {
       setIsTransferring(false);
     }

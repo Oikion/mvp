@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import {
   Dialog,
@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   Search,
   UserPlus,
@@ -23,9 +23,11 @@ import {
   Users,
   X,
   Plus,
+  MessageCircle,
 } from "lucide-react";
 import type { AudienceWithMembers } from "@/actions/audiences";
 import { QuickAddClient } from "../../crm/components/QuickAddClient";
+import { startDirectMessage } from "@/actions/messaging/direct-messages";
 
 interface Client {
   id: string;
@@ -85,12 +87,32 @@ export function AudienceMemberManager({
   const [isLoadingClients, setIsLoadingClients] = useState(false);
   const [isAdding, setIsAdding] = useState<string | null>(null);
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
+  const [isMessaging, setIsMessaging] = useState<string | null>(null);
   const [quickAddClientOpen, setQuickAddClientOpen] = useState(false);
   const [orgUsers, setOrgUsers] = useState<OrgUser[]>([]);
   const router = useRouter();
-  const { toast } = useToast();
+  const params = useParams();
+  const locale = params.locale as string;
+  const { toast } = useAppToast();
 
   const memberIds = new Set(audience.members.map((m) => m.userId));
+
+  const handleMessageMember = async (userId: string) => {
+    try {
+      setIsMessaging(userId);
+      const result = await startDirectMessage(userId);
+      if (result.success && result.conversationId) {
+        onOpenChange(false);
+        router.push(`/${locale}/app/messages?conversationId=${result.conversationId}`);
+      } else {
+        toast.error(t.toast, { description: result.error || "Failed to start conversation", isTranslationKey: false });
+      }
+    } catch (error) {
+      toast.error(t.toast, { description: "Failed to start conversation", isTranslationKey: false });
+    } finally {
+      setIsMessaging(null);
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -131,11 +153,7 @@ export function AudienceMemberManager({
       await axios.post(`/api/audiences/${audience.id}/members`, {
         memberIds: [userId],
       });
-      toast({
-        variant: "success",
-        title: t.toast.memberAdded,
-        description: t.toast.memberAddedDescription,
-      });
+      toast.success(t.toast.memberAdded, { description: t.toast.memberAddedDescription, isTranslationKey: false });
       router.refresh();
     } catch (error) {
       toast({
@@ -154,11 +172,7 @@ export function AudienceMemberManager({
       await axios.delete(`/api/audiences/${audience.id}/members`, {
         data: { memberIds: [clientId] },
       });
-      toast({
-        variant: "success",
-        title: t.toast.memberRemoved,
-        description: t.toast.memberRemovedDescription,
-      });
+      toast.success(t.toast.memberRemoved, { description: t.toast.memberRemovedDescription, isTranslationKey: false });
       router.refresh();
     } catch (error) {
       toast({
@@ -240,19 +254,35 @@ export function AudienceMemberManager({
                           </p>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => handleRemoveMember(member.userId)}
-                        disabled={isRemoving === member.userId}
-                      >
-                        {isRemoving === member.userId ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <X className="h-4 w-4" />
-                        )}
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => handleMessageMember(member.userId)}
+                          disabled={isMessaging === member.userId}
+                          title={t.memberManager?.messageMember || "Message"}
+                        >
+                          {isMessaging === member.userId ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <MessageCircle className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleRemoveMember(member.userId)}
+                          disabled={isRemoving === member.userId}
+                        >
+                          {isRemoving === member.userId ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <X className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

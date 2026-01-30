@@ -5,6 +5,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { getOrgMembersFromDb } from "@/lib/org-members";
 import { revalidatePath } from "next/cache";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export interface SyncOrgAudienceResult {
   success: boolean;
@@ -20,6 +21,10 @@ export async function syncOrgAudience(
   audienceId: string
 ): Promise<SyncOrgAudienceResult> {
   try {
+    // Permission check: Users need audience:sync permission
+    const guard = await requireAction("audience:sync");
+    if (guard) return guard;
+
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 
@@ -82,6 +87,10 @@ export async function createOrgAutoSyncAudience(
   description?: string
 ): Promise<{ success: boolean; audienceId?: string; error?: string }> {
   try {
+    // Permission check: Users need audience:create permission
+    const guard = await requireAction("audience:create");
+    if (guard) return guard;
+
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 

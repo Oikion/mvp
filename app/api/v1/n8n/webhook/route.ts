@@ -28,29 +28,37 @@ export async function POST(req: NextRequest) {
   try {
     const webhookSecret = process.env.N8N_WEBHOOK_SECRET;
     
+    // SECURITY: Always require webhook secret to be configured
+    // This prevents unauthorized requests when secret is not set
+    if (!webhookSecret) {
+      console.error("[N8N_WEBHOOK] Missing N8N_WEBHOOK_SECRET environment variable");
+      return NextResponse.json(
+        { error: "Webhook not configured", message: "N8N_WEBHOOK_SECRET must be set" },
+        { status: 503 }
+      );
+    }
+    
     // Get raw body for signature verification
     const rawBody = await req.text();
     const body = JSON.parse(rawBody);
 
-    // Verify signature if secret is configured
-    if (webhookSecret) {
-      const signature = req.headers.get("x-n8n-signature") || 
-                       req.headers.get("x-webhook-signature") ||
-                       req.headers.get("x-signature");
-      
-      if (!signature) {
-        return NextResponse.json(
-          { error: "Missing webhook signature" },
-          { status: 401 }
-        );
-      }
+    // Verify signature - always required now that secret must be configured
+    const signature = req.headers.get("x-n8n-signature") || 
+                     req.headers.get("x-webhook-signature") ||
+                     req.headers.get("x-signature");
+    
+    if (!signature) {
+      return NextResponse.json(
+        { error: "Missing webhook signature" },
+        { status: 401 }
+      );
+    }
 
-      if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
-        return NextResponse.json(
-          { error: "Invalid webhook signature" },
-          { status: 401 }
-        );
-      }
+    if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+      return NextResponse.json(
+        { error: "Invalid webhook signature" },
+        { status: 401 }
+      );
     }
 
     const {

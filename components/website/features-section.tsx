@@ -32,18 +32,18 @@ export const FeaturesSection: React.FC = () => {
       title: t('features.cards.properties.title'),
       description: t('features.cards.properties.description'),
       icon: <Building2 className="w-8 h-8" />,
-      backgroundColorClass: 'bg-yellow-50 dark:bg-yellow-900/20',
+      backgroundColorClass: 'bg-warning/10 dark:bg-yellow-900/20',
       borderColorClass: 'border-yellow-200 dark:border-yellow-700',
-      iconColorClass: 'text-yellow-600 dark:text-yellow-400'
+      iconColorClass: 'text-warning dark:text-yellow-400'
     },
     {
       id: 2,
       title: t('features.cards.reports.title'),
       description: t('features.cards.reports.description'),
       icon: <BarChart3 className="w-8 h-8" />,
-      backgroundColorClass: 'bg-green-50 dark:bg-green-900/20',
+      backgroundColorClass: 'bg-success/10 dark:bg-green-900/20',
       borderColorClass: 'border-green-200 dark:border-green-700',
-      iconColorClass: 'text-green-600 dark:text-green-400'
+      iconColorClass: 'text-success dark:text-green-400'
     },
     {
       id: 3,
@@ -61,7 +61,7 @@ export const FeaturesSection: React.FC = () => {
       icon: <MessageSquare className="w-8 h-8" />,
       backgroundColorClass: 'bg-orange-50 dark:bg-orange-900/20',
       borderColorClass: 'border-orange-200 dark:border-orange-700',
-      iconColorClass: 'text-orange-600 dark:text-orange-400'
+      iconColorClass: 'text-warning dark:text-orange-400'
     },
     {
       id: 5,
@@ -120,13 +120,13 @@ export const FeaturesSection: React.FC = () => {
                     {feature.icon}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">
+                <h3 className="text-lg font-bold text-foreground dark:text-gray-100 leading-tight">
                   {feature.title}
                 </h3>
               </div>
               
               {/* Description */}
-              <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm">
+              <p className="text-muted-foreground dark:text-gray-300 leading-relaxed text-sm">
                 {feature.description}
               </p>
             </motion.div>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -14,8 +15,10 @@ import { cn } from "@/lib/utils";
  * - Proper elevation/shadow (elevation-3 or elevation-4)
  * - Smooth animation transitions
  * - Accessibility: focus trap, aria attributes, ESC key handling
+ * - Size variants: sm, default, lg, xl, 2xl, full
  * 
  * @example
+ * // Default size (max-w-lg)
  * <Dialog>
  *   <DialogTrigger>Open</DialogTrigger>
  *   <DialogContent>
@@ -24,6 +27,18 @@ import { cn } from "@/lib/utils";
  *     </DialogHeader>
  *   </DialogContent>
  * </Dialog>
+ * 
+ * @example
+ * // Large dialog
+ * <DialogContent size="lg">
+ *   ...
+ * </DialogContent>
+ * 
+ * @example
+ * // Full-width dialog (for forms, wizards)
+ * <DialogContent size="full">
+ *   ...
+ * </DialogContent>
  */
 const Dialog = DialogPrimitive.Root;
 
@@ -50,28 +65,72 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+/**
+ * Dialog size variants
+ * 
+ * | Size    | Max Width | Use Case |
+ * |---------|-----------|----------|
+ * | sm      | 384px     | Confirmations, simple prompts |
+ * | default | 512px     | Standard dialogs, forms |
+ * | lg      | 640px     | Complex forms, details |
+ * | xl      | 768px     | Multi-column layouts |
+ * | 2xl     | 896px     | Large content, tables |
+ * | full    | 100%-2rem | Wizards, full-page modals |
+ */
+const dialogContentVariants = cva(
+  [
+    "fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-surface-3 p-6 shadow-elevation-4 rounded-lg",
+    "transition-all duration-default ease-in-out",
+    "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+    "sm:rounded-lg",
+  ],
+  {
+    variants: {
+      size: {
+        sm: "max-w-sm",
+        default: "max-w-lg",
+        lg: "max-w-xl",
+        xl: "max-w-3xl",
+        "2xl": "max-w-4xl",
+        full: "max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)]",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+    },
+  }
+);
+
+export type DialogContentSize = VariantProps<typeof dialogContentVariants>["size"];
+
+interface DialogContentProps
+  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+    VariantProps<typeof dialogContentVariants> {
+  /**
+   * Whether to show the close button
+   * @default true
+   */
+  showCloseButton?: boolean;
+}
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  DialogContentProps
+>(({ className, children, size, showCloseButton = true, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
-      className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-surface-3 p-6 shadow-elevation-4 rounded-lg",
-        "transition-all duration-default ease-in-out",
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
-        "sm:rounded-lg md:w-full",
-        className
-      )}
+      className={cn(dialogContentVariants({ size }), className)}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-all duration-fast ease-in-out hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
+      {showCloseButton && (
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-all duration-fast ease-in-out hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      )}
     </DialogPrimitive.Content>
   </DialogPortal>
 ));
@@ -140,4 +199,7 @@ export {
   DialogFooter,
   DialogTitle,
   DialogDescription,
+  dialogContentVariants,
 };
+
+export type { DialogContentProps, DialogContentSize };

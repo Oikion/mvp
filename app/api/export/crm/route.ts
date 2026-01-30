@@ -1,8 +1,8 @@
 /**
  * CRM Export API Route
  * 
- * Exports CRM clients data to XLS, XLSX, CSV, or PDF format.
- * Includes rate limiting, authorization, and audit logging.
+ * Exports CRM clients data to XLS, XLSX, CSV, XML, or PDF format.
+ * Includes rate limiting, authorization, audit logging, and descriptive filenames.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -21,14 +21,16 @@ import {
   addAssignedUserName,
   generateExportFile,
   generateCRMPDF,
+  generateDescriptiveFilename,
 } from "@/lib/export";
 import { requireCanExport } from "@/lib/permissions/guards";
+import { shouldUseK8sForExport, submitExportJob } from "@/lib/export/job-handler";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
 
 // Supported formats
-const VALID_FORMATS: ExportFormat[] = ["xlsx", "xls", "csv", "pdf"];
+const VALID_FORMATS: ExportFormat[] = ["xlsx", "xls", "csv", "pdf", "xml"];
 
 export async function GET(req: NextRequest) {
   try {
@@ -77,6 +79,7 @@ export async function GET(req: NextRequest) {
     const format = (searchParams.get("format") || "xlsx") as ExportFormat;
     const scope = searchParams.get("scope") || "all"; // "all" or "filtered"
     const locale = (searchParams.get("locale") || "en") as "en" | "el";
+    const destination = searchParams.get("destination");
     
     // Validate format
     if (!VALID_FORMATS.includes(format)) {
@@ -138,6 +141,54 @@ export async function GET(req: NextRequest) {
       return createRowLimitResponse(rowCheck);
     }
     
+    // ===========================================
+    // K8s Jobs for large exports
+    // ===========================================
+    const useK8s = shouldUseK8sForExport({
+      organizationId: orgId,
+      exportType: "crm",
+      format: format as "xlsx" | "xls" | "csv" | "pdf" | "xml",
+      rowCount: clients.length,
+      filters: { status: statusFilter, search: searchQuery },
+      locale,
+    });
+
+    if (useK8s) {
+      const jobResult = await submitExportJob({
+        organizationId: orgId,
+        exportType: "crm",
+        format: format as "xlsx" | "xls" | "csv" | "pdf" | "xml",
+        rowCount: clients.length,
+        filters: { status: statusFilter, search: searchQuery },
+        locale,
+      });
+
+      if (jobResult.useK8s) {
+        // Log the export event
+        logExportEvent(createExportAuditLog({
+          userId: user.id,
+          organizationId: orgId,
+          exportType: "crm",
+          format,
+          rowCount: clients.length,
+          filters: { status: statusFilter, search: searchQuery, scope, destination },
+          success: true,
+        }));
+
+        return NextResponse.json({
+          success: true,
+          useK8s: true,
+          jobId: jobResult.jobId,
+          message: jobResult.message,
+          rowCount: clients.length,
+        });
+      }
+    }
+    
+    // ===========================================
+    // Inline export (small datasets)
+    // ===========================================
+    
     // Get organization users for assigning names
     const users = await prismadb.users.findMany({
       where: { 
@@ -165,12 +216,19 @@ export async function GET(req: NextRequest) {
       exportType: "crm",
       format,
       rowCount: exportData.length,
-      filters: { status: statusFilter, search: searchQuery, scope },
+      filters: { status: statusFilter, search: searchQuery, scope, destination },
       success: true,
     });
     
     // Log the export event
     logExportEvent(auditLog);
+    
+    // Generate descriptive filename
+    const descriptiveFilename = generateDescriptiveFilename(
+      "crm",
+      exportData,
+      { format, destination: destination || undefined }
+    );
     
     // Generate export file based on format
     let fileBuffer: Buffer | Blob;
@@ -186,7 +244,7 @@ export async function GET(req: NextRequest) {
           : `${exportData.length} records`,
       });
       fileBuffer = pdfResult.blob;
-      filename = pdfResult.filename;
+      filename = descriptiveFilename; // Use descriptive filename
       contentType = pdfResult.contentType;
     } else {
       const result = generateExportFile("crm", format, exportData, {
@@ -194,7 +252,7 @@ export async function GET(req: NextRequest) {
         columns: CRM_COLUMNS,
       });
       fileBuffer = result.buffer;
-      filename = result.filename;
+      filename = descriptiveFilename; // Use descriptive filename
       contentType = result.contentType;
     }
     

@@ -3,6 +3,7 @@ import AvatarDropdown from "./ui/AvatarDropdown";
 
 import { Separator } from "@/components/ui/separator";
 import MobileSidebar from "./MobileSidebar";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 type Props = {
   id: string;
@@ -22,6 +23,7 @@ const Header = ({ id, name, email, avatar, lang }: Props) => {
         </div>
 
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <AvatarDropdown
             avatar={avatar}
             userId={id}

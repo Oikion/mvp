@@ -9,6 +9,7 @@ import {
   SCOPE_DESCRIPTIONS,
   ApiScope,
 } from "@/lib/api-auth";
+import { requireAction, handleGuardError } from "@/lib/permissions/action-guards";
 
 /**
  * Check if user has admin access via Clerk metadata or DB flags
@@ -61,6 +62,10 @@ export async function GET(req: Request) {
         { status: 403 }
       );
     }
+
+    // Check action-level permission for viewing API keys
+    const guard = await requireAction("admin:manage_webhooks");
+    if (guard) return handleGuardError(guard);
 
     // If no organization context, return empty list with scopes
     if (!organizationId) {
@@ -148,6 +153,10 @@ export async function POST(req: Request) {
         { status: 403 }
       );
     }
+
+    // Check action-level permission for creating API keys
+    const guard = await requireAction("admin:manage_webhooks");
+    if (guard) return handleGuardError(guard);
 
     // Require organization context to create API keys
     if (!organizationId) {

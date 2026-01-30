@@ -68,30 +68,30 @@ const getItemIcon = (type: string) => {
 };
 
 const getItemColor = (type: string, isOverdue?: boolean) => {
-  if (isOverdue) return "bg-red-500/10 text-red-500 border-red-500/20";
+  if (isOverdue) return "bg-destructive/10 text-destructive border-destructive/20";
   
   switch (type) {
     case "event":
       return "bg-purple-500/10 text-purple-500 border-purple-500/20";
     case "task":
-      return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      return "bg-primary/10 text-primary border-primary/20";
     case "reminder":
-      return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+      return "bg-warning/10 text-warning border-warning/20";
     default:
-      return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+      return "bg-gray-500/10 text-muted-foreground border-gray-500/20";
   }
 };
 
 const getPriorityColor = (priority?: string) => {
   switch (priority) {
     case "HIGH":
-      return "bg-red-500/10 text-red-600 border-red-500/30";
+      return "bg-destructive/10 text-destructive border-destructive/30";
     case "MEDIUM":
-      return "bg-amber-500/10 text-amber-600 border-amber-500/30";
+      return "bg-warning/10 text-warning border-warning/30";
     case "LOW":
-      return "bg-green-500/10 text-green-600 border-green-500/30";
+      return "bg-success/10 text-success border-success/30";
     default:
-      return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+      return "bg-gray-500/10 text-muted-foreground border-gray-500/20";
   }
 };
 
@@ -206,7 +206,7 @@ function SectionCard({
 }) {
   const headerClasses = {
     default: "border-l-4 border-l-primary",
-    warning: "border-l-4 border-l-red-500 bg-red-500/5",
+    warning: "border-l-4 border-l-red-500 bg-destructive/5",
     muted: "",
   };
 
@@ -255,7 +255,7 @@ export function FeedPage({ upcomingItems, dict, locale }: FeedPageProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-full p-2 bg-red-500/10 text-red-500">
+              <div className="rounded-full p-2 bg-destructive/10 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
@@ -277,7 +277,7 @@ export function FeedPage({ upcomingItems, dict, locale }: FeedPageProps) {
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-full p-2 bg-blue-500/10 text-blue-500">
+              <div className="rounded-full p-2 bg-primary/10 text-primary">
                 <Sunrise className="h-5 w-5" />
               </div>
               <div>
@@ -288,7 +288,7 @@ export function FeedPage({ upcomingItems, dict, locale }: FeedPageProps) {
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="rounded-full p-2 bg-emerald-500/10 text-emerald-500">
+              <div className="rounded-full p-2 bg-success/10 text-success">
                 <CalendarDays className="h-5 w-5" />
               </div>
               <div>
@@ -329,7 +329,7 @@ export function FeedPage({ upcomingItems, dict, locale }: FeedPageProps) {
             {/* Overdue */}
             <SectionCard
               title={t.sections?.overdue || "Overdue"}
-              icon={<AlertTriangle className="h-4 w-4 text-red-500" />}
+              icon={<AlertTriangle className="h-4 w-4 text-destructive" />}
               items={overdue}
               locale={locale}
               t={t}
@@ -352,7 +352,7 @@ export function FeedPage({ upcomingItems, dict, locale }: FeedPageProps) {
             {/* Tomorrow */}
             <SectionCard
               title={t.sections?.tomorrow || "Tomorrow"}
-              icon={<Sunrise className="h-4 w-4 text-blue-500" />}
+              icon={<Sunrise className="h-4 w-4 text-primary" />}
               items={tomorrow}
               locale={locale}
               t={t}
@@ -361,7 +361,7 @@ export function FeedPage({ upcomingItems, dict, locale }: FeedPageProps) {
             {/* This Week */}
             <SectionCard
               title={t.sections?.thisWeek || "Later This Week"}
-              icon={<CalendarDays className="h-4 w-4 text-emerald-500" />}
+              icon={<CalendarDays className="h-4 w-4 text-success" />}
               items={thisWeek}
               locale={locale}
               t={t}

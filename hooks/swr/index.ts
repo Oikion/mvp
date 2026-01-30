@@ -10,6 +10,10 @@ export {
 } from "./useNotifications";
 export type { Notification } from "./useNotifications";
 
+// Notification Counts (for sidebar badges)
+export { useNotificationCounts, getCountForPage } from "./useNotificationCounts";
+export type { NotificationCountsResponse } from "./useNotificationCounts";
+
 // Infinite Notifications (for NotificationCenter with Load More)
 export { useInfiniteNotifications } from "./useInfiniteNotifications";
 
@@ -154,3 +158,37 @@ export { usePrefetch } from "./usePrefetch";
 // ============================================================
 
 export { useCacheInvalidation } from "./useCacheInvalidation";
+
+// ============================================================
+// Export History
+// ============================================================
+
+export { useExportHistory, useRecordExport } from "./use-export-history";
+export type {
+  ExportHistoryRecord,
+  ChangedField,
+  ChangeDetectionResult,
+  ExportHistoryResponse,
+} from "./use-export-history";
+
+// ============================================================
+// Messaging
+// ============================================================
+
+export {
+  useMessagingCredentials,
+  useChannels,
+  useCreateChannel,
+  useConversations,
+  useStartDM,
+  getChannelsKey,
+  getConversationsKey,
+  getCredentialsKey,
+} from "./useMessaging";
+export type {
+  MessagingCredentials,
+  Channel,
+  Conversation,
+} from "./useMessaging";
+
+export { useUnreadMessageCount } from "./useUnreadMessageCount";

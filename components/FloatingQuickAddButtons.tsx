@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useTranslations } from "next-intl";
 import axios from "axios";
 
@@ -56,7 +56,7 @@ function useIsModalOpen() {
 
 export function FloatingQuickAddButtons() {
   const pathname = usePathname();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const tCommon = useTranslations("common");
   const tCrm = useTranslations("crm");
   const tMls = useTranslations("mls");
@@ -105,11 +105,7 @@ export function FloatingQuickAddButtons() {
             onOpenChange={setClientOpen}
             users={users}
             onContinueToFull={(clientId) => {
-              toast({
-                variant: "success",
-                title: tCommon("success"),
-                description: tCommon("clientCreated"),
-              });
+              toast.success(tCommon, { description: tCommon, isTranslationKey: false });
               // Could navigate to edit page here if needed
             }}
           />
@@ -133,11 +129,7 @@ export function FloatingQuickAddButtons() {
             onOpenChange={setPropertyOpen}
             users={users}
             onContinueToFull={(propertyId) => {
-              toast({
-                variant: "success",
-                title: tCommon("success"),
-                description: tCommon("propertyCreated"),
-              });
+              toast.success(tCommon, { description: tCommon, isTranslationKey: false });
               // Could navigate to edit page here if needed
             }}
           />

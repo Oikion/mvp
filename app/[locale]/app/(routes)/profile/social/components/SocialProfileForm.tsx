@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -89,7 +89,7 @@ export function SocialProfileForm({
   const [newServiceArea, setNewServiceArea] = useState("");
   const [newCertification, setNewCertification] = useState("");
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const socialLinks = profile?.socialLinks as Record<string, string> | null;
 
@@ -138,22 +138,11 @@ export function SocialProfileForm({
 
       await axios.post("/api/profile/social", payload);
 
-      toast({
-        variant: "success",
-        title: "Profile Updated",
-        description: data.isPublic
-          ? "Your profile is now live and visible to the public."
-          : "Your profile has been saved but is not yet public.",
-      });
+      toast.success("Profile Updated", { description: data.isPublic, isTranslationKey: false });
 
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description:
-          error.response?.data || "Failed to update profile. Please try again.",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to update profile. Please try again.", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

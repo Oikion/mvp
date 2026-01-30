@@ -2,12 +2,17 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions";
 
 /**
  * Client Lifetime Value
  * Total commission from a client over their entire relationship
  */
 export async function getClientLifetimeValue() {
+  // Permission check: Users need report:view permission
+  const check = await canPerformAction("report:view");
+  if (!check.allowed) return { average: 0, total: 0, clientCount: 0 };
+
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return { average: 0, total: 0, clientCount: 0 };
 
@@ -356,6 +361,21 @@ export async function getClientEngagement() {
  * Optimized for dashboard display
  */
 export async function getAllClientMetrics() {
+  // Permission check: Users need report:view permission
+  const check = await canPerformAction("report:view");
+  if (!check.allowed) {
+    return {
+      lifetimeValue: { average: 0, total: 0, clientCount: 0 },
+      topClients: [],
+      repeatRate: { rate: 0, repeatClients: 0, totalClients: 0 },
+      repeatDistribution: [],
+      referralRate: { rate: 0, referralDeals: 0, totalDeals: 0, referralValue: 0, totalValue: 0 },
+      sphere: { total: 0, active: 0, contacts: 0, byStatus: [] },
+      sphereGrowth: [],
+      engagement: { activeEngagements: 0, pendingTasks: 0, upcomingEvents: 0 },
+    };
+  }
+
   const [
     lifetimeValue,
     topClients,

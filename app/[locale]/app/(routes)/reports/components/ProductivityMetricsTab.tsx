@@ -105,7 +105,7 @@ export function ProductivityMetricsTab({ data, dict }: ProductivityMetricsTabPro
                         Spent: €{cat.spend.toLocaleString()} → €{cat.revenue.toLocaleString()}
                       </p>
                     </div>
-                    <span className={`font-semibold ${cat.roi >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                    <span className={`font-semibold ${cat.roi >= 0 ? 'text-success' : 'text-destructive'}`}>
                       {cat.roi >= 0 ? '+' : ''}{cat.roi}%
                     </span>
                   </div>
@@ -131,8 +131,8 @@ export function ProductivityMetricsTab({ data, dict }: ProductivityMetricsTabPro
                 <p className="text-2xl font-bold">€{data.marketingROI.revenue.toLocaleString()}</p>
                 <p className="text-sm text-muted-foreground">Revenue</p>
               </div>
-              <div className="space-y-1 text-center p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950">
-                <p className="text-2xl font-bold text-emerald-600">€{data.marketingROI.netReturn.toLocaleString()}</p>
+              <div className="space-y-1 text-center p-4 rounded-lg bg-success/10 dark:bg-emerald-950">
+                <p className="text-2xl font-bold text-success">€{data.marketingROI.netReturn.toLocaleString()}</p>
                 <p className="text-sm text-muted-foreground">Net Return</p>
               </div>
               <div className="space-y-1 text-center p-4 rounded-lg bg-muted/50">

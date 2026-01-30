@@ -157,21 +157,21 @@ export default function ClientsPageView({
 
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex bg-muted p-1">
-          <TabsTrigger value="agency" className="gap-2">
-            <Building2 className="h-4 w-4" />
-            <span>{t("Tabs.agencyClients")}</span>
+        <TabsList className="inline-grid grid-cols-2">
+          <TabsTrigger value="agency">
+            <Building2 className="h-4 w-4 shrink-0" />
+            {t("Tabs.agencyClients")}
             {totalClients > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-xs font-medium">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs font-medium">
                 {totalClients}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="shared" className="gap-2">
-            <Share2 className="h-4 w-4" />
-            <span>{t("Tabs.sharedWithMe")}</span>
+          <TabsTrigger value="shared">
+            <Share2 className="h-4 w-4 shrink-0" />
+            {t("Tabs.sharedWithMe")}
             {sharedClients.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-medium">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-warning/20 text-amber-700 dark:text-amber-300 text-xs font-medium">
                 {sharedClients.length}
               </span>
             )}
@@ -208,7 +208,7 @@ export default function ClientsPageView({
                     <Button className="flex-1 sm:flex-none" onClick={() => setOpen(true)}>
                       + {t("CrmForm.title")}
                     </Button>
-                    <SheetContent className="min-w-[1000px] space-y-2">
+                    <SheetContent className="w-full sm:min-w-[600px] lg:min-w-[900px] xl:min-w-[1000px] space-y-2">
                       <SheetHeader>
                         <SheetTitle>{t("CrmForm.title")}</SheetTitle>
                       </SheetHeader>
@@ -277,7 +277,7 @@ export default function ClientsPageView({
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <Share2 className="h-5 w-5 text-amber-600" />
+                    <Share2 className="h-5 w-5 text-warning" />
                     {t("Tabs.sharedWithMe")}
                   </CardTitle>
                   <CardDescription>{t("Tabs.sharedClientsDescription")}</CardDescription>

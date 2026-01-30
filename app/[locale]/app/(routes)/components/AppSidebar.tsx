@@ -23,6 +23,7 @@ import {
 import { getNavigationConfig } from "@/config/navigation"
 import { useWorkspaceContext } from "@/hooks/use-workspace-context"
 import { type ModuleId } from "@/lib/permissions/types"
+import { useNotificationCounts } from "@/hooks/swr"
 
 interface AppSidebarProps {
   modules: any
@@ -54,6 +55,11 @@ export function AppSidebar({
   const [feedbackOpen, setFeedbackOpen] = React.useState(false)
   const { isPersonalWorkspace } = useWorkspaceContext()
 
+  // Fetch notification counts for sidebar badges (polls every 30 seconds)
+  const { counts: notificationCounts } = useNotificationCounts({
+    refreshInterval: 30000,
+  })
+
   const { navGroups, navSecondaryItems } = React.useMemo(() => 
     getNavigationConfig({
       dict,
@@ -81,7 +87,11 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain groups={navGroups} pathname={pathname} />
+        <NavMain 
+          groups={navGroups} 
+          pathname={pathname} 
+          notificationCounts={notificationCounts}
+        />
       </SidebarContent>
       <SidebarFooter>
         {/* Feedback link moved to footer, above referral box */}

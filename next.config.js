@@ -4,6 +4,7 @@ const withNextIntl = require("next-intl/plugin")(
 );
 
 const isDev = process.env.NODE_ENV === "development";
+const useTurbopack = process.env.NEXT_TURBOPACK === "1";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -11,10 +12,26 @@ const nextConfig = {
   // - Website at /:locale/ (landing, legal, public pages)
   // - Application at /:locale/app/ (dashboard, CRM, MLS, auth, etc.)
   outputFileTracingRoot: __dirname,
+  
+  // Server external packages - packages that should be resolved from node_modules
+  // rather than bundled. This is needed for packages with native dependencies
+  // or that have different node/browser builds.
+  serverExternalPackages: [
+    "ably",
+    // Playwright is optional for market intelligence scraping - 
+    // keep external to prevent build failures when not installed
+    "playwright",
+    "playwright-core",
+  ],
+  
+  // Transpile packages configuration
+  // This helps resolve module resolution issues with certain packages
+  transpilePackages: [],
+  
   // Performance optimizations for dev mode
   experimental: {
-    // Enable Turbopack file system cache - CRITICAL for fast subsequent startups
-    // This persists the cache between dev server restarts, dramatically reducing startup time
+    // Enable Turbopack FS cache in dev for faster restarts
+    // Cache significantly improves startup time after the first run
     turbopackFileSystemCacheForDev: true,
     
     // Optimize package imports - reduces bundle size and compilation time
@@ -86,6 +103,27 @@ const nextConfig = {
       },
     ],
   },
+  // Reduce watch overhead in dev (especially large folders in repo root)
+  webpack: (config, { dev }) => {
+    if (dev) {
+      const ignored = [
+        ...(Array.isArray(config.watchOptions?.ignored)
+          ? config.watchOptions.ignored
+          : []),
+        "**/.pnpm-store/**",
+        "**/.git/**",
+        "**/.next/**",
+        "**/node_modules/**",
+      ];
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored,
+      };
+    }
+
+    return config;
+  },
+
   // Redirects for route migrations
   async redirects() {
     return [
@@ -114,27 +152,36 @@ const nextConfig = {
       },
     ];
   },
-  // Security headers for Clerk bot protection (CAPTCHA)
+  // Security headers for Clerk bot protection (CAPTCHA) and Socket.io messaging
   // Note: Clerk uses two domain patterns:
   // - API domain: *.clerk.accounts.dev
   // - Account Portal: *.accounts.clerk.dev
   async headers() {
+    // In development, allow localhost connections for debugging tools
+    const devConnectSrc = isDev ? " http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:*" : "";
+    
+    const cspDirectives = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://challenges.cloudflare.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://img.clerk.com https://images.clerk.dev https://lh3.googleusercontent.com https://res.cloudinary.com",
+      "font-src 'self' data:",
+      "frame-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com https://localhost:5678 http://localhost:5678",
+      // Ably WebSocket connections for real-time messaging
+      // Ably uses multiple domains: *.ably.io, *.ably.net (realtime), *.ably-realtime.com (fallbacks)
+      // In dev mode, also allow localhost connections for debugging
+      `connect-src 'self' https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com https://challenges.cloudflare.com wss://*.clerk.accounts.dev wss://*.accounts.clerk.dev https://localhost:5678 wss://localhost:5678 https://*.ably.io wss://*.ably.io https://*.ably.net wss://*.ably.net https://*.ably-realtime.com wss://*.ably-realtime.com${devConnectSrc}`,
+      "worker-src 'self' blob:",
+    ];
+    const cspValue = cspDirectives.join("; ");
+
     return [
       {
         source: "/:path*",
         headers: [
           {
             key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://challenges.cloudflare.com",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://img.clerk.com https://images.clerk.dev https://lh3.googleusercontent.com https://res.cloudinary.com",
-              "font-src 'self' data:",
-              "frame-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com",
-              "connect-src 'self' https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com https://challenges.cloudflare.com wss://*.clerk.accounts.dev wss://*.accounts.clerk.dev",
-              "worker-src 'self' blob:",
-            ].join("; "),
+            value: cspValue,
           },
         ],
       },

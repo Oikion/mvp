@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import {
   Building2,
   Users,
@@ -70,10 +70,10 @@ interface DealsListProps {
 }
 
 const statusColors: Record<string, string> = {
-  PROPOSED: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-  NEGOTIATING: "bg-orange-500/15 text-orange-600 dark:text-orange-400",
-  ACCEPTED: "bg-green-500/15 text-green-600 dark:text-green-400",
-  IN_PROGRESS: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  PROPOSED: "bg-warning/15 text-warning dark:text-amber-400",
+  NEGOTIATING: "bg-warning/15 text-warning dark:text-orange-400",
+  ACCEPTED: "bg-success/15 text-success dark:text-green-400",
+  IN_PROGRESS: "bg-primary/15 text-primary dark:text-blue-400",
   COMPLETED: "bg-purple-500/15 text-purple-600 dark:text-purple-400",
   CANCELLED: "bg-muted text-muted-foreground",
 };
@@ -84,7 +84,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
   const params = useParams();
   const locale = params.locale as string;
   const dateLocale = locale === "el" ? el : enUS;
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("el-GR", {
@@ -98,11 +98,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
     try {
       setLoadingId(dealId);
       await axios.put(`/api/deals/${dealId}`, { status: "ACCEPTED" });
-      toast({
-        variant: "success",
-        title: t.toast.dealAccepted,
-        description: t.toast.dealAcceptedDesc,
-      });
+      toast.success(t.toast.dealAccepted, { description: t.toast.dealAcceptedDesc, isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
       toast({
@@ -119,11 +115,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
     try {
       setLoadingId(dealId);
       await axios.put(`/api/deals/${dealId}`, { status: "CANCELLED" });
-      toast({
-        variant: "success",
-        title: t.toast.dealCancelled,
-        description: t.toast.dealCancelledDesc,
-      });
+      toast.success(t.toast.dealCancelled, { description: t.toast.dealCancelledDesc, isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
       toast({
@@ -153,7 +145,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
             <div className="flex items-start justify-between gap-4">
               {/* Property info */}
               <div className="flex items-start gap-4 flex-1">
-                <div className="flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden bg-gray-100">
+                <div className="flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden bg-muted">
                   {deal.property?.linkedDocuments?.[0]?.document_file_url ? (
                     <img
                       src={deal.property.linkedDocuments[0].document_file_url}
@@ -162,7 +154,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Building2 className="h-5 w-5 text-gray-400" />
+                      <Building2 className="h-5 w-5 text-muted-foreground" />
                     </div>
                   )}
                 </div>
@@ -174,7 +166,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                     {!deal.isProposer &&
                       (deal.status === "PROPOSED" ||
                         deal.status === "NEGOTIATING") && (
-                        <Badge variant="outline" className="text-orange-600 border-orange-300">
+                        <Badge variant="outline" className="text-warning border-orange-300">
                           <Clock className="h-3 w-3 mr-1" />
                           {t.list.awaitingResponse}
                         </Badge>
@@ -220,7 +212,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={deal.propertyAgent.avatar || ""} />
-                      <AvatarFallback className="text-xs bg-blue-500/15 text-blue-600 dark:text-blue-400">
+                      <AvatarFallback className="text-xs bg-primary/15 text-primary dark:text-blue-400">
                         {deal.propertyAgent.name?.charAt(0) || <User className="h-3 w-3" />}
                       </AvatarFallback>
                     </Avatar>
@@ -239,7 +231,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={deal.clientAgent.avatar || ""} />
-                      <AvatarFallback className="text-xs bg-green-500/15 text-green-600 dark:text-green-400">
+                      <AvatarFallback className="text-xs bg-success/15 text-success dark:text-green-400">
                         {deal.clientAgent.name?.charAt(0) || <User className="h-3 w-3" />}
                       </AvatarFallback>
                     </Avatar>
@@ -257,7 +249,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                   {deal.property?.price && (
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">{t.list.propertyValue}</p>
-                      <p className="font-semibold text-blue-600">
+                      <p className="font-semibold text-primary">
                         {formatPrice(deal.property.price)}
                       </p>
                     </div>

@@ -105,7 +105,7 @@ export function ReviewStep({
     {
       id: "organization",
       icon: Building2,
-      color: "bg-emerald-600/20 text-emerald-100",
+      color: "bg-success/20 text-emerald-100",
       items: [
         { label: dict.fields.orgName, value: data.organization.name },
       ],
@@ -122,7 +122,7 @@ export function ReviewStep({
     {
       id: "notifications",
       icon: Bell,
-      color: "bg-amber-500/25 text-amber-50",
+      color: "bg-warning/25 text-amber-50",
       items: [
         {
           label: dict.fields.reminders,
@@ -145,9 +145,9 @@ export function ReviewStep({
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", delay: 0.2 }}
-          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4"
+          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/10 mb-4"
         >
-          <Sparkles className="w-8 h-8 text-green-600" />
+          <Sparkles className="w-8 h-8 text-success" />
         </motion.div>
         <h2 className="text-2xl font-bold mb-2">{dict.title}</h2>
       </motion.div>

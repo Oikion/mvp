@@ -1,6 +1,6 @@
 "use server";
 
-import { getCurrentUserSafe } from "@/lib/get-current-user";
+import { getCurrentUserSafe, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 
 export interface SocialPostAttachment {
@@ -13,6 +13,7 @@ export interface SocialPostAttachment {
 
 export interface SocialPost {
   id: string;
+  slug?: string | null;
   type: "property" | "client" | "text";
   content: string;
   timestamp: string;
@@ -41,8 +42,9 @@ export interface SocialPost {
 
 export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> {
   const currentUser = await getCurrentUserSafe();
+  const organizationId = await getCurrentOrgIdSafe();
   
-  if (!currentUser) {
+  if (!currentUser || !organizationId) {
     return [];
   }
 
@@ -90,7 +92,11 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
     const visibilityMap = new Map(visibleProfiles.map((p) => [p.userId, p.visibility]));
 
     // Fetch social posts from the database
+    // SECURITY: Filter by organizationId for tenant isolation
     const posts = await prismadb.socialPost.findMany({
+      where: {
+        organizationId, // Tenant isolation
+      },
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
@@ -140,6 +146,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
 
     return filteredPosts.map((post) => ({
       id: post.id,
+      slug: post.slug,
       type: post.postType as "property" | "client" | "text",
       content: post.content || "",
       timestamp: post.createdAt.toISOString(),

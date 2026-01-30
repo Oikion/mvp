@@ -59,15 +59,15 @@ export function ConversionPreviewStep({
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4">
-        <Card className="border-green-500/30 bg-green-500/10">
+        <Card className="border-success/30 bg-success/10">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-green-500" />
+              <CheckCircle2 className="h-8 w-8 text-success" />
               <div>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <p className="text-2xl font-bold text-success dark:text-green-400">
                   {validRows}
                 </p>
-                <p className="text-sm text-green-600 dark:text-green-500">
+                <p className="text-sm text-success dark:text-success">
                   {t("preview.validRows")}
                 </p>
               </div>
@@ -77,13 +77,13 @@ export function ConversionPreviewStep({
 
         <Card className={`${
           hasIssues 
-            ? "border-amber-500/30 bg-amber-500/10" 
+            ? "border-warning/30 bg-warning/10" 
             : "border-muted"
         }`}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <AlertTriangle className={`h-8 w-8 ${
-                hasIssues ? "text-amber-600" : "text-muted-foreground"
+                hasIssues ? "text-warning" : "text-muted-foreground"
               }`} />
               <div>
                 <p className={`text-2xl font-bold ${
@@ -92,7 +92,7 @@ export function ConversionPreviewStep({
                   {invalidRows}
                 </p>
                 <p className={`text-sm ${
-                  hasIssues ? "text-amber-600 dark:text-amber-500" : "text-muted-foreground"
+                  hasIssues ? "text-warning dark:text-warning" : "text-muted-foreground"
                 }`}>
                   {t("preview.invalidRows")}
                 </p>
@@ -125,9 +125,9 @@ export function ConversionPreviewStep({
       )}
 
       {!hasIssues && (
-        <Alert className="border-green-500/30 bg-green-500/10">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <AlertTitle className="text-green-600 dark:text-green-400">
+        <Alert className="border-success/30 bg-success/10">
+          <CheckCircle2 className="h-4 w-4 text-success" />
+          <AlertTitle className="text-success dark:text-green-400">
             {t("preview.noIssues")}
           </AlertTitle>
         </Alert>

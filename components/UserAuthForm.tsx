@@ -6,12 +6,12 @@ import { useParams } from "next/navigation";
 import * as React from "react";
 import { FC } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const UserAuthForm: FC<UserAuthFormProps> = ({ className, ...props }) => {
-  const toast = useToast();
+  const toast = useAppToast();
   const { signIn, isLoaded } = useSignIn();
   const params = useParams();
   const locale = (params.locale as string) || "en";

@@ -29,39 +29,39 @@ export default async function SharedWithMePage({ params }: SharedWithMePageProps
       description={t.description}
     >
       <Tabs defaultValue="all" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
-          <TabsTrigger value="all" className="gap-2">
-            <Share2 className="h-4 w-4" />
+        <TabsList className="inline-grid grid-cols-4">
+          <TabsTrigger value="all">
+            <Share2 className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.all}</span>
             {allShared.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
                 {allShared.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="properties" className="gap-2">
-            <Building2 className="h-4 w-4" />
+          <TabsTrigger value="properties">
+            <Building2 className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.properties}</span>
             {propertiesShared.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
                 {propertiesShared.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="clients" className="gap-2">
-            <Users className="h-4 w-4" />
+          <TabsTrigger value="clients">
+            <Users className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.clients}</span>
             {clientsShared.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
                 {clientsShared.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="documents" className="gap-2">
-            <FileText className="h-4 w-4" />
+          <TabsTrigger value="documents">
+            <FileText className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.documents}</span>
             {documentsShared.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
                 {documentsShared.length}
               </span>
             )}

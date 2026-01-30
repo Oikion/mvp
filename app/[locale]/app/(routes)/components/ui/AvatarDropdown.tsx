@@ -55,21 +55,21 @@ const AvatarDropdown = ({ avatar, userId, name, email }: Props) => {
       <DropdownMenuContent>
         <DropdownMenuLabel className="space-y-1">
           <div>{name}</div>
-          <div className="text-xs text-gray-500">{email}</div>
+          <div className="text-xs text-muted-foreground">{email}</div>
         </DropdownMenuLabel>
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push("/projects/dashboard")}>
+        <DropdownMenuItem onClick={() => router.push("/app/dashboard")}>
           {t("AvatarDropdown.todoDashboard")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/app/profile")}>
-          <Settings className="w-4 h-4 inline-block mr-2 stroke-current text-gray-500" />
+          <Settings className="w-4 h-4 inline-block mr-2 stroke-current text-muted-foreground" />
           <span>{t("AvatarDropdown.profileSettings")}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()}>
-          <LogOut className="w-4 h-4 inline-block mr-2 stroke-current text-gray-500" />
+          <LogOut className="w-4 h-4 inline-block mr-2 stroke-current text-muted-foreground" />
           <span>{t("AvatarDropdown.signOut")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

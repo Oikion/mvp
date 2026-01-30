@@ -20,12 +20,12 @@ import {
 import { format } from 'date-fns';
 import { EditTaskForm } from '@/components/tasks/EditTaskForm';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { useToast } from '@/components/ui/use-toast';
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useTask } from '@/hooks/swr';
 
 export function TaskViewPage({ taskId }: { taskId: string }) {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   // Use SWR for task fetching
@@ -34,11 +34,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
   // Handle 404 redirect
   useEffect(() => {
     if (isNotFound) {
-      toast({
-        variant: 'destructive',
-        title: 'Task not found',
-        description: 'The task you are looking for does not exist.',
-      });
+      toast.error("Task not found", { description: "The task you are looking for does not exist.", isTranslationKey: false });
       router.push('/crm/tasks');
     }
   }, [isNotFound, router, toast]);
@@ -60,10 +56,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
   const handleTaskUpdated = () => {
     setIsEditOpen(false);
     mutate(); // Revalidate SWR cache
-    toast({
-      title: 'Task updated',
-      description: 'The task has been updated successfully.',
-    });
+    toast.info("Task updated", { description: "The task has been updated successfully.", isTranslationKey: false });
   };
 
   if (isLoading) {
@@ -124,7 +117,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="text-2xl flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-blue-500" />
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
                   {task.title}
                 </CardTitle>
                 <Badge variant={getPriorityColor(task.priority)}>

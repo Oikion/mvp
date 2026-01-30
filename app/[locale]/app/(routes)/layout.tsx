@@ -9,12 +9,15 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { DynamicBreadcrumb } from "./components/DynamicBreadcrumb"
 import Footer from "./components/Footer"
+import { SkipLink } from "@/components/ui/skip-link"
 import { syncClerkUser } from "@/lib/clerk-sync"
 import { FloatingQuickAddButtons } from "@/components/FloatingQuickAddButtons"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
 import { getOnboardingStatus } from "@/types/onboarding"
 import { AppProviders } from "@/components/providers/AppProviders"
+import { LayoutWrapper } from "@/components/layout/LayoutWrapper"
+import { LayoutToggle } from "@/components/layout/LayoutToggle"
 // Use cached versions for request deduplication (performance optimization)
 import {
   getAuth,
@@ -187,7 +190,8 @@ export default async function AppLayout({
   });
 
   return (
-    <AppProviders>
+    <AppProviders initialLayoutPreference={user.layoutPreference}>
+      <SkipLink />
       <div className="flex h-screen w-full overflow-hidden">
         <SidebarProvider defaultOpen={true}>
           <AppSidebar 
@@ -212,12 +216,19 @@ export default async function AppLayout({
                 <DynamicBreadcrumb />
               </div>
               <div className="flex items-center gap-2 px-4">
+                <LayoutToggle />
                 <NotificationBell />
               </div>
             </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden min-h-0">
-              {children}
-            </div>
+            <main
+              id="main-content"
+              tabIndex={-1}
+              className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-y-auto min-h-0 outline-none"
+            >
+              <LayoutWrapper>
+                {children}
+              </LayoutWrapper>
+            </main>
             <Footer />
             <FloatingQuickAddButtons />
             <GlobalSearch />

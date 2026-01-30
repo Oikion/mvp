@@ -1,7 +1,12 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 export const getClient = async (clientId: string) => {
+  // Check permission to read clients
+  const guard = await requireAction("client:read");
+  if (guard) return null;
+
   const organizationId = await getCurrentOrgIdSafe();
   
   // Return null if no organization context (e.g., session not synced yet)

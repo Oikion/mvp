@@ -7,9 +7,16 @@ import {
   generatePDF,
   generateFilename,
 } from "@/lib/templates";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 export async function POST(req: Request) {
   try {
+    // Permission check: Users need template:use permission
+    const useCheck = await canPerformAction("template:use");
+    if (!useCheck.allowed) {
+      return NextResponse.json({ error: useCheck.reason }, { status: 403 });
+    }
+
     await getCurrentUser();
     const organizationId = await getCurrentOrgIdSafe();
 
@@ -85,6 +92,12 @@ export async function POST(req: Request) {
 // GET endpoint to preview template fields
 export async function GET(req: Request) {
   try {
+    // Permission check: Users need template:read permission
+    const readCheck = await canPerformAction("template:read");
+    if (!readCheck.allowed) {
+      return NextResponse.json({ error: readCheck.reason }, { status: 403 });
+    }
+
     await getCurrentUser();
 
     const { searchParams } = new URL(req.url);

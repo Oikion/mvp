@@ -40,7 +40,7 @@ export function SharedDocumentViewer({
 
   if (requiresPassword || !document) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-gray-900 p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="flex items-center justify-center mb-4">
@@ -78,7 +78,7 @@ export function SharedDocumentViewer({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-muted dark:bg-gray-900 p-4">
       <div className="container mx-auto max-w-6xl py-8">
         <Card>
           <CardHeader>

@@ -420,8 +420,7 @@ export async function getFeedbackComments(
   await requirePlatformAdmin();
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const comments = await (prismadb as any).feedbackComment.findMany({
+    const comments = await prismadb.feedbackComment.findMany({
       where: { feedbackId },
       orderBy: { createdAt: "asc" },
     });
@@ -466,8 +465,7 @@ export async function addFeedbackComment(
 
   try {
     // Check comment count limit (max 100 per feedback)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const commentCount = await (prismadb as any).feedbackComment.count({
+    const commentCount = await prismadb.feedbackComment.count({
       where: { feedbackId },
     });
 
@@ -488,8 +486,7 @@ export async function addFeedbackComment(
     await logAdminAction(admin.clerkId, "ADD_FEEDBACK_COMMENT" as never, feedbackId, { content: content.substring(0, 100) });
 
     // Create the comment with optional attachment
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const comment = await (prismadb as any).feedbackComment.create({
+    const comment = await prismadb.feedbackComment.create({
       data: {
         id: crypto.randomUUID(),
         feedbackId,

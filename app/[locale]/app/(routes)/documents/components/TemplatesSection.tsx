@@ -13,9 +13,9 @@ interface TemplatesSectionProps {
 }
 
 const templateColors: Record<TemplateType, string> = {
-  BROKERAGE_MANDATE: "text-blue-500 bg-blue-500/10",
-  LEASE_AGREEMENT: "text-green-500 bg-green-500/10",
-  HANDOVER_PROTOCOL: "text-orange-500 bg-orange-500/10",
+  BROKERAGE_MANDATE: "text-primary bg-primary/10",
+  LEASE_AGREEMENT: "text-success bg-success/10",
+  HANDOVER_PROTOCOL: "text-warning bg-warning/10",
   VIEWING_CONFIRMATION: "text-purple-500 bg-purple-500/10",
 };
 

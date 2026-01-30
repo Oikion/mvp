@@ -76,6 +76,12 @@ When a table is focused (click on it or tab to it):
 | `CMD/CTRL + A` | Select all rows |
 | `Escape` | Clear selection |
 
+## Bulk Actions (when rows are selected)
+
+| Shortcut | Action | Context |
+|----------|--------|---------|
+| `P` | Publish to Portals | Properties table - opens portal selection |
+
 ## Search Shortcuts (in CMD+K overlay)
 
 | Shortcut | Action |
@@ -108,6 +114,37 @@ function MyPage() {
       onRowOpen={handleRowOpen}
       onRowDelete={handleRowDelete}
       enableKeyboardNav={true}
+    />
+  );
+}
+```
+
+### Adding Bulk Actions with Keyboard Shortcuts
+
+```tsx
+import { DataTable } from "@/components/ui/data-table/data-table";
+import type { BulkAction } from "@/components/ui/data-table/data-table-bulk-actions";
+import { Globe } from "lucide-react";
+
+function PropertiesPage() {
+  const bulkActions: BulkAction<Property>[] = [
+    {
+      id: "publish",
+      label: "Publish to Portals",
+      icon: <Globe className="h-4 w-4" />,
+      shortcut: "P",  // Triggers when P is pressed with rows selected
+      onClick: (selectedRows) => {
+        // Handle bulk publish
+        console.log("Publishing", selectedRows.length, "properties");
+      },
+    },
+  ];
+
+  return (
+    <DataTable
+      columns={columns}
+      data={properties}
+      bulkActions={bulkActions}
     />
   );
 }

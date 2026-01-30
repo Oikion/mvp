@@ -1,5 +1,24 @@
 "use client"
 
+/**
+ * @deprecated This Radix UI Toaster component is no longer used.
+ * 
+ * All toasts now go through Sonner via the `useAppToast` hook.
+ * The Sonner Toaster is rendered in app/[locale]/layout.tsx via:
+ *   import { Toaster } from "@/components/ui/sonner";
+ * 
+ * This file can be safely deleted once confirmed no components depend on it.
+ * 
+ * For toast usage, use:
+ * ```tsx
+ * import { useAppToast } from "@/hooks/use-app-toast";
+ * 
+ * const { toast } = useAppToast();
+ * toast.success("updateSuccess"); // Uses translation key
+ * toast.error("Custom message", { isTranslationKey: false }); // Raw message
+ * ```
+ */
+
 import {
   Toast,
   ToastClose,
@@ -8,10 +27,16 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
-import { useToast } from "@/components/ui/use-toast"
+// Note: This component is broken - useAppToast doesn't return 'toasts' array
+// Keeping for reference only - do not use
 
+/**
+ * @deprecated Use Sonner Toaster from @/components/ui/sonner instead.
+ */
 export function Toaster() {
-  const { toasts } = useToast()
+  // This is intentionally broken - the old useToast returned { toasts }
+  // but useAppToast returns { toast } with methods like toast.success()
+  const toasts: never[] = []
 
   return (
     <ToastProvider>

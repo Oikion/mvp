@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import axios from "axios";
@@ -42,7 +42,7 @@ export function InviteForm() {
 
   const router = useRouter();
 
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -54,24 +54,12 @@ export function InviteForm() {
       const response = await axios.post("/api/user/inviteuser", data);
 
       if (response.data.error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: response.data.error,
-        });
+        toast.error("Error", { description: response.data.error, isTranslationKey: false });
       } else {
-        toast({
-          variant: "success",
-          title: "Success!",
-          description: "User invited successfully.",
-        });
+        toast.success("Success!", { description: "User invited successfully.", isTranslationKey: false });
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Something went wrong while inviting the user.",
-      });
+      toast.error("Error", { description: "Something went wrong while inviting the user.", isTranslationKey: false });
     } finally {
       form.reset({
         name: "",

@@ -5,7 +5,7 @@ import { Users } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,7 @@ export function ProfilePhotoForm({ data }: ProfileFormProps) {
   const [avatar, setAvatar] = useState(data.avatar);
   const [avatarUrl, setAvatarUrl] = useState("");
 
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const router = useRouter();
   const setAvatarStore = useAvatarStore((state) => state.setAvatar);
 
@@ -32,12 +32,7 @@ export function ProfilePhotoForm({ data }: ProfileFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!avatarUrl.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please enter a valid avatar URL",
-        duration: 5000,
-      });
+      toast.error("Error", { description: "Please enter a valid avatar URL", isTranslationKey: false });
       return;
     }
 
@@ -45,21 +40,11 @@ export function ProfilePhotoForm({ data }: ProfileFormProps) {
       setAvatar(avatarUrl);
       setAvatarStore(avatarUrl);
       await axios.put("/api/profile/updateProfilePhoto", { avatar: avatarUrl });
-      toast({
-        variant: "success",
-        title: "Profile photo updated.",
-        description: "Your profile photo has been updated.",
-        duration: 5000,
-      });
+      toast.success("Profile photo updated.", { description: "Your profile photo has been updated.", isTranslationKey: false });
       setAvatarUrl("");
       router.refresh();
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Error updating profile photo.",
-        description: "There was an error updating your profile photo.",
-        duration: 5000,
-      });
+      toast.error("Error updating profile photo.", { description: "There was an error updating your profile photo.", isTranslationKey: false });
     }
   };
 

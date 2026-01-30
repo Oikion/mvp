@@ -1,12 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
+// Type for the extended Prisma client (with or without Accelerate)
+// This ensures type safety when accessing models like prismadb.properties
+type ExtendedPrismaClient = PrismaClient;
+
 declare global {
   // eslint-disable-next-line no-var, no-unused-vars
-  var cachedPrisma: ReturnType<typeof createPrismaClient>;
+  var cachedPrisma: ExtendedPrismaClient;
 }
 
-function createPrismaClient() {
+function createPrismaClient(): ExtendedPrismaClient {
   const basePrisma = new PrismaClient();
   
   // Add Accelerate extension if DATABASE_URL uses Prisma Accelerate connection string
@@ -15,13 +19,14 @@ function createPrismaClient() {
   const isAccelerateConnection = databaseUrl.startsWith("prisma://") || databaseUrl.startsWith("prisma+postgres://");
   
   if (isAccelerateConnection) {
-    return basePrisma.$extends(withAccelerate()) as unknown as PrismaClient;
+    // Accelerate extension preserves the base PrismaClient interface
+    return basePrisma.$extends(withAccelerate()) as unknown as ExtendedPrismaClient;
   }
   
   return basePrisma;
 }
 
-let prisma: ReturnType<typeof createPrismaClient>;
+let prisma: ExtendedPrismaClient;
 if (process.env.NODE_ENV === "production") {
   prisma = createPrismaClient();
 } else {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { UserPlus, Check, Clock, Loader2, UserMinus, X } from "lucide-react";
 import {
   AlertDialog,
@@ -40,25 +40,17 @@ export function ConnectionButton({
   const [isLoading, setIsLoading] = useState(false);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   const handleConnect = async () => {
     try {
       setIsLoading(true);
       const response = await axios.post("/api/connections", { targetUserId });
       setStatus({ status: "PENDING", connectionId: response.data.id });
-      toast({
-        variant: "success",
-        title: "Request Sent",
-        description: "Your connection request has been sent.",
-      });
+      toast.success("Request Sent", { description: "Your connection request has been sent.", isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data || "Failed to send request",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to send request", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -71,19 +63,11 @@ export function ConnectionButton({
       setIsLoading(true);
       await axios.delete(`/api/connections/${status.connectionId}`);
       setStatus({ status: "NONE" });
-      toast({
-        variant: "success",
-        title: "Connection Removed",
-        description: "You are no longer connected.",
-      });
+      toast.success("Connection Removed", { description: "You are no longer connected.", isTranslationKey: false });
       setShowRemoveDialog(false);
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data || "Failed to remove connection",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to remove connection", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -96,18 +80,10 @@ export function ConnectionButton({
       setIsLoading(true);
       await axios.put(`/api/connections/${status.connectionId}`, { accept: true });
       setStatus({ ...status, status: "ACCEPTED" });
-      toast({
-        variant: "success",
-        title: "Connected!",
-        description: "You are now connected.",
-      });
+      toast.success("Connected!", { description: "You are now connected.", isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data || "Failed to accept request",
-      });
+      toast.error("Error", { description: error.response?.data || "Failed to accept request", isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

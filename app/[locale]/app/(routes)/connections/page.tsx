@@ -35,39 +35,39 @@ export default async function ConnectionsPage({ params }: ConnectionsPageProps) 
       description={t.description}
     >
       <Tabs defaultValue="connections" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
-          <TabsTrigger value="connections" className="gap-2">
-            <Users className="h-4 w-4" />
+        <TabsList className="inline-grid grid-cols-4">
+          <TabsTrigger value="connections">
+            <Users className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.connections}</span>
             <span className="sm:hidden">{t.tabs.connectionsShort}</span>
             {connections.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
                 {connections.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="pending" className="gap-2">
-            <Clock className="h-4 w-4" />
+          <TabsTrigger value="pending">
+            <Clock className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.pending}</span>
             <span className="sm:hidden">{t.tabs.pendingShort}</span>
             {pendingCount > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-orange-500 text-white text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-warning text-white text-xs">
                 {pendingCount}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="sent" className="gap-2">
-            <UserPlus className="h-4 w-4" />
+          <TabsTrigger value="sent">
+            <UserPlus className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.sent}</span>
             <span className="sm:hidden">{t.tabs.sentShort}</span>
             {pendingSent.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/10 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
                 {pendingSent.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="search" className="gap-2">
-            <Search className="h-4 w-4" />
+          <TabsTrigger value="search">
+            <Search className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.findAgents}</span>
             <span className="sm:hidden">{t.tabs.findAgentsShort}</span>
           </TabsTrigger>
@@ -94,7 +94,7 @@ export default async function ConnectionsPage({ params }: ConnectionsPageProps) 
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-orange-500" />
+                <Clock className="h-5 w-5 text-warning" />
                 {t.pendingRequests.title}
               </CardTitle>
               <CardDescription>

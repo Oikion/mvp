@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClerkClient } from "@clerk/backend";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId } from "@/lib/tenant";
+import { getCurrentOrganizationId } from "@/lib/permissions/action-guards";
 import { requireOwner } from "@/lib/permissions/guards";
 
 /**
@@ -17,7 +17,15 @@ export async function POST(req: Request) {
     if (permissionError) return permissionError;
 
     const { userId: currentClerkUserId } = await auth();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrganizationId();
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { newOwnerUserId } = body;
 
@@ -128,7 +136,14 @@ export async function GET() {
     if (permissionError) return permissionError;
 
     const { userId: currentClerkUserId } = await auth();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrganizationId();
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization context required" },
+        { status: 403 }
+      );
+    }
 
     const clerk = createClerkClient({
       secretKey: process.env.CLERK_SECRET_KEY,

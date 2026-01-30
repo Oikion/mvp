@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 /**
  * Lead Conversion Rate
@@ -9,6 +10,10 @@ import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
  * Top agents often hit 10-20%+
  */
 export async function getLeadConversionRate() {
+  // Permission check: Users need report:view permission
+  const check = await canPerformAction("report:view");
+  if (!check.allowed) return { rate: 0, converted: 0, total: 0 };
+
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return { rate: 0, converted: 0, total: 0 };
 
@@ -320,6 +325,18 @@ export async function getPipelineTrend() {
  * Optimized for dashboard display
  */
 export async function getAllLeadMetrics() {
+  // Permission check: Users need report:view permission
+  const check = await canPerformAction("report:view");
+  if (!check.allowed) return {
+    conversionRate: { rate: 0, converted: 0, total: 0 },
+    conversionTrend: [],
+    costPerLead: { costPerLead: 0, totalSpend: 0, totalLeads: 0 },
+    leadSources: [],
+    leadSourcesWithConversion: [],
+    pipelineValue: { total: 0, byStatus: [], dealCount: 0 },
+    pipelineTrend: [],
+  };
+
   const [
     conversionRate,
     conversionTrend,

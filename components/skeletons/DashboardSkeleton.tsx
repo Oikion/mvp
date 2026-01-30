@@ -26,8 +26,8 @@ export function DashboardSkeleton() {
       </div>
 
       {/* Main Chart + Recent Clients */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4 rounded-xl border bg-card p-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 auto-rows-fr">
+        <div className="lg:col-span-4 rounded-xl border bg-card p-6">
             <div className="flex flex-col gap-4">
                  <div className="flex flex-col gap-2">
                     <Skeleton className="h-6 w-32" />
@@ -36,13 +36,13 @@ export function DashboardSkeleton() {
                  <Skeleton className="h-[300px] w-full" />
             </div>
         </div>
-        <div className="col-span-3 rounded-xl border bg-card p-6">
-             <div className="flex flex-col gap-4">
+        <div className="lg:col-span-3 rounded-xl border bg-card p-6">
+             <div className="flex flex-col gap-4 h-full">
                  <div className="flex items-center justify-between">
                     <Skeleton className="h-6 w-32" />
                     <Skeleton className="h-8 w-8 rounded-full" />
                  </div>
-                 <div className="space-y-4">
+                 <div className="space-y-4 flex-1">
                     {Array.from({ length: 5 }).map((_, i) => (
                         <div key={i} className="flex items-center gap-4">
                             <Skeleton className="h-9 w-9 rounded-full" />
@@ -59,18 +59,18 @@ export function DashboardSkeleton() {
       </div>
 
       {/* Stats Charts + Recent Properties */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4 grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border bg-card p-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 auto-rows-fr">
+        <div className="lg:col-span-4 grid gap-4 grid-cols-2">
+            <div className="rounded-xl border bg-card p-6 flex flex-col">
                 <Skeleton className="h-6 w-32 mb-4" />
-                <Skeleton className="h-[200px] w-full" />
+                <Skeleton className="flex-1 min-h-[180px] w-full" />
             </div>
-            <div className="rounded-xl border bg-card p-6">
+            <div className="rounded-xl border bg-card p-6 flex flex-col">
                 <Skeleton className="h-6 w-32 mb-4" />
-                <Skeleton className="h-[200px] w-full" />
+                <Skeleton className="flex-1 min-h-[180px] w-full" />
             </div>
         </div>
-         <div className="col-span-3 rounded-xl border bg-card p-6">
+         <div className="lg:col-span-3 rounded-xl border bg-card p-6">
              <div className="flex flex-col gap-4">
                  <div className="flex items-center justify-between">
                     <Skeleton className="h-6 w-32" />

@@ -173,7 +173,10 @@
     "createTask": "Δημιουργία Εργασίας",
     "updateTask": "Ενημέρωση Εργασίας",
     "createContact": "Δημιουργία Επαφής",
-    "updateContact": "Ενημέρωση Επαφής"
+    "updateContact": "Ενημέρωση Επαφής",
+    "skip": "Παράλειψη",
+    "finish": "Κατάλαβα!",
+    "startTour": "Περιήγηση"
   },
   "buttonStates": {
     "creating": "Δημιουργία...",
@@ -456,6 +459,7 @@
   "misc": {
     "toggleSidebar": "Εναλλαγή Πλαϊνής Μπάρας",
     "selected": "Επιλεγμένο",
+    "clearSelection": "Καθαρισμός επιλογής",
     "allEmail": "Όλα τα Email",
     "allInApp": "Όλα στην Εφαρμογή",
     "sendTest": "Δοκιμαστική αποστολή",
@@ -503,6 +507,24 @@
     "agencyNotFound": "Δεν βρέθηκε οργανισμός γραφείου. Παρακαλώ δημιουργήστε έναν πρώτα.",
     "workspaceSettings": "Ρυθμίσεις Χώρου Εργασίας"
   },
+  "organizationInvites": {
+    "title": "Προσκλήσεις Οργανισμού",
+    "pendingInvites": "Εκκρεμείς Προσκλήσεις",
+    "noPendingInvites": "Δεν υπάρχουν εκκρεμείς προσκλήσεις",
+    "noPendingInvitesDescription": "Δεν έχετε καμία πρόσκληση οργανισμού αυτή τη στιγμή.",
+    "invitedBy": "Πρόσκληση για συμμετοχή σε",
+    "role": "Ρόλος",
+    "accept": "Αποδοχή",
+    "decline": "Απόρριψη",
+    "accepting": "Αποδοχή...",
+    "declining": "Απόρριψη...",
+    "acceptSuccess": "Η πρόσκληση έγινε αποδεκτή! Μετάβαση στον οργανισμό...",
+    "acceptError": "Αποτυχία αποδοχής πρόσκλησης. Παρακαλώ δοκιμάστε ξανά.",
+    "declineSuccess": "Η πρόσκληση απορρίφθηκε.",
+    "declineError": "Αποτυχία απόρριψης πρόσκλησης. Παρακαλώ δοκιμάστε ξανά.",
+    "viewInvitations": "Προβολή Προσκλήσεων",
+    "pendingCount": "{count} εκκρεμείς"
+  },
   "export": {
     "export": "Εξαγωγή",
     "exporting": "Εξαγωγή...",
@@ -524,6 +546,86 @@
       "xls": "Excel (.xls)",
       "csv": "CSV (.csv)",
       "pdf": "PDF (.pdf)"
+    },
+    "quick": {
+      "title": "Γρήγορη Εξαγωγή",
+      "exportTo": "Εξαγωγή σε",
+      "propertyPortals": "Πύλες Ακινήτων",
+      "xeXml": "XE.gr (XML)",
+      "spitogatosCsv": "Spitogatos (CSV)",
+      "pdfFlyer": "PDF Φυλλάδιο",
+      "copyLink": "Αντιγραφή Συνδέσμου",
+      "linkCopied": "Ο σύνδεσμος αντιγράφηκε!",
+      "exportCompleted": "Η εξαγωγή ολοκληρώθηκε",
+      "exportFailed": "Η εξαγωγή απέτυχε",
+      "fileDownloaded": "Το αρχείο {filename} κατέβηκε επιτυχώς"
+    },
+    "templates": {
+      "title": "Πρότυπο Εξαγωγής",
+      "clear": "Καθαρισμός",
+      "description": "Επιλέξτε πρότυπο για προκαθορισμένες στήλες ή αφήστε κενό για τυπική εξαγωγή",
+      "CMA": "Συγκριτική Ανάλυση Αγοράς",
+      "CMADescription": "Σύγκριση ακινήτων βάσει τιμής, εμβαδού και χαρακτηριστικών",
+      "SHORTLIST": "Λίστα Ακινήτων",
+      "SHORTLISTDescription": "Λίστα ακινήτων για πελάτες με βασικά χαρακτηριστικά",
+      "ROI": "Ανάλυση Απόδοσης",
+      "ROIDescription": "Υπολογισμοί επένδυσης και αποδόσεων",
+      "MARKET_TRENDS": "Τάσεις Αγοράς",
+      "MARKET_TRENDSDescription": "Τάσεις τιμών και στατιστικά αγοράς"
+    },
+    "history": {
+      "title": "Ιστορικό Εξαγωγών",
+      "noExports": "Δεν υπάρχουν προηγούμενες εξαγωγές",
+      "reExport": "Επανεξαγωγή",
+      "changes": "Αλλαγές",
+      "changesSinceLastExport": "Αλλαγές από την τελευταία εξαγωγή:",
+      "sentToClient": "Στάλθηκε σε Πελάτη",
+      "xePortal": "Πύλη xe.gr",
+      "spitogatos": "Spitogatos",
+      "spiti24": "Spiti24",
+      "portalExport": "Πύλη Ακινήτων",
+      "showLess": "Λιγότερα",
+      "showMore": "+{count} ακόμη"
+    }
+  },
+  "integrations": {
+    "title": "Ενσωματώσεις",
+    "description": "Διαχείριση εξωτερικών υπηρεσιών και αυτοματισμών",
+    "n8n": {
+      "title": "Ροές Εργασίας Αυτοματισμού",
+      "description": "Προβολή και εκτέλεση των ροών εργασίας n8n που σας έχουν ανατεθεί",
+      "noWorkflows": "Δεν έχουν ανατεθεί ροές εργασίας",
+      "noWorkflowsDescription": "Επικοινωνήστε με τον διαχειριστή σας για να σας αναθέσει ροές εργασίας",
+      "notConfigured": "Η αυτοματοποίηση δεν έχει ρυθμιστεί",
+      "notConfiguredDescription": "Ο διαχειριστής του οργανισμού σας πρέπει πρώτα να ρυθμίσει την ενσωμάτωση n8n",
+      "runWorkflow": "Εκτέλεση",
+      "lastRun": "Τελευταία εκτέλεση",
+      "status": "Κατάσταση",
+      "success": "Επιτυχία",
+      "error": "Σφάλμα",
+      "never": "Ποτέ",
+      "inactive": "Ανενεργό",
+      "workflowExecuted": "Η ροή εργασίας εκτελέστηκε"
+    },
+    "xe": {
+      "title": "Δημοσίευση XE.gr",
+      "description": "Ρύθμιση των διαπιστευτηρίων σας για δημοσίευση στο XE.gr",
+      "notConfigured": "Η ενσωμάτωση XE.gr δεν έχει ρυθμιστεί",
+      "notConfiguredDescription": "Ο διαχειριστής του οργανισμού σας πρέπει πρώτα να ρυθμίσει την ενσωμάτωση XE.gr",
+      "xeOwnerId": "XE Owner ID",
+      "xeOwnerIdDescription": "Το Item.ownerId σας από το xe.gr",
+      "majorPhone": "Κύριο Τηλέφωνο",
+      "majorPhoneDescription": "Πιστοποιημένο τηλέφωνο για αγγελίες",
+      "otherPhones": "Επιπλέον Τηλέφωνα",
+      "otherPhonesDescription": "Διαχωρίστε με κόμμα (προαιρετικό)",
+      "publicationType": "Τύπος Δημοσίευσης",
+      "active": "Ενεργό",
+      "enablePublishing": "Ενεργοποίηση δημοσίευσης",
+      "autoPublish": "Αυτόματη Δημοσίευση",
+      "autoPublishDescription": "Αυτόματη δημοσίευση νέων αγγελιών",
+      "saveSuccess": "Οι ρυθμίσεις XE.gr αποθηκεύτηκαν",
+      "saveError": "Αποτυχία αποθήκευσης ρυθμίσεων",
+      "saveSettings": "Αποθήκευση"
     }
   }
 }

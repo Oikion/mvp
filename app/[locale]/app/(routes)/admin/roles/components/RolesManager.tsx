@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Icons } from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -42,7 +42,7 @@ interface RolesData {
 
 export function RolesManager() {
   const t = useTranslations("admin");
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [selectedRole, setSelectedRole] = useState<OrgRole>(OrgRole.LEAD);
   const [isSaving, setIsSaving] = useState(false);
   const [localPermissions, setLocalPermissions] = useState<RolePermissions | null>(null);
@@ -77,11 +77,7 @@ export function RolesManager() {
 
   const handleSave = async () => {
     if (selectedRole === OrgRole.OWNER) {
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: t("cannotModifyOwnerPermissions") || "Cannot modify owner permissions",
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
       return;
     }
 
@@ -101,19 +97,11 @@ export function RolesManager() {
         throw new Error("Failed to save");
       }
 
-      toast({
-        variant: "success",
-        title: t("success"),
-        description: t("permissionsSaved") || "Permissions saved successfully",
-      });
+      toast.success(t, { description: t, isTranslationKey: false });
 
       mutate();
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("error"),
-        description: t("permissionsSaveError") || "Failed to save permissions",
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
     } finally {
       setIsSaving(false);
     }
@@ -162,9 +150,9 @@ export function RolesManager() {
 
       {/* Role Tabs */}
       <Tabs value={selectedRole} onValueChange={(v) => setSelectedRole(v as OrgRole)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="inline-grid grid-cols-4">
           {roles.map((role) => (
-            <TabsTrigger key={role} value={role} className="relative">
+            <TabsTrigger key={role} value={role}>
               {getRoleDisplayName(role)}
               {role === OrgRole.OWNER && (
                 <Badge variant="secondary" className="ml-2 text-xs">

@@ -87,7 +87,7 @@ const ModuleMenu = ({ modules, dict, build }: Props) => {
           hidden: !open,
         })}
       >
-        <span className="pb-2 text-xs text-gray-500">
+        <span className="pb-2 text-xs text-muted-foreground">
           build: 0.0.3-beta-{build}
         </span>
       </div>

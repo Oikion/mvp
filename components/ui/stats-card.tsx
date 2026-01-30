@@ -92,7 +92,7 @@ export function StatsCard({
               {value}
             </span>
             {isZeroState && hasAction && (
-              <Sparkles className="h-4 w-4 text-amber-500/70 animate-pulse" />
+              <Sparkles className="h-4 w-4 text-warning/70 animate-pulse" />
             )}
           </div>
           
@@ -104,8 +104,8 @@ export function StatsCard({
                 {trend && (
                   <span className={cn(
                     "inline-flex items-center gap-0.5 mr-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium",
-                    trendUp === true && "bg-green-500/10 text-green-600 dark:text-green-400",
-                    trendUp === false && "bg-red-500/10 text-red-600 dark:text-red-400"
+                    trendUp === true && "bg-success/10 text-success dark:text-green-400",
+                    trendUp === false && "bg-destructive/10 text-destructive dark:text-red-400"
                   )}>
                     {trend}
                   </span>

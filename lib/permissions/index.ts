@@ -66,14 +66,92 @@ export {
   runGuards,
 } from "./guards";
 
-// Hooks (client-side) - re-exported for convenience
-// Import directly from './hooks' for client components
+// ============================================
+// ACTION-LEVEL PERMISSIONS
+// ============================================
 
-// Components (client-side) - re-exported for convenience
-// Import directly from './components' for client components
+// Action Permission Types
 export {
-  PermissionGate,
-  ModuleGate,
-  OwnerOnly,
-  LeadPlusOnly,
-} from "./components";
+  type ActionPermission,
+  type PropertyAction,
+  type ClientAction,
+  type MessagingAction,
+  type CalendarAction,
+  type DocumentAction,
+  type ReportAction,
+  type DealAction,
+  type MatchmakingAction,
+  type AudienceAction,
+  type SocialAction,
+  type TaskAction,
+  type AdminAction,
+  type NotificationAction,
+  type TemplateAction,
+  type XePortalAction,
+  type N8nAction,
+  type ActionContext,
+  type ActionCheckResult,
+  ACTION_MODULES,
+  ALL_ACTIONS,
+  ACTION_DESCRIPTIONS,
+  getActionModule,
+  getActionName,
+} from "./action-permissions";
+
+// Action Permission Defaults
+export {
+  type PermissionLevel,
+  type RoleActionPermissions,
+  DEFAULT_ACTION_PERMISSIONS,
+  getDefaultActionPermission,
+  isPermissionAllowed,
+  requiresOwnership,
+  PERMISSION_LEVEL_NAMES,
+  getAccessibleActions,
+  getFullAccessActions,
+} from "./action-defaults";
+
+// Action Permission Service
+export {
+  getActionPermissionContext,
+  canPerformAction,
+  hasActionPermission,
+  hasAllActionPermissions,
+  hasAnyActionPermission,
+  canPerformActionOnEntity,
+  canPerformActionOnDeal,
+  getActionPermissionLevel,
+  getAllActionPermissions,
+  getAccessibleActionsForUser,
+  updateActionPermissions,
+  resetActionPermissions,
+  getOrganizationActionPermissions,
+} from "./action-service";
+
+// Action Permission Guards (for server actions)
+export {
+  type ActionErrorResponse,
+  type GuardResult,
+  requireAuth,
+  requireAction,
+  requireActionOnEntity,
+  requireDealAction,
+  requireAllActions,
+  requireAnyAction,
+  runActionGuards,
+  notFoundError,
+  validationError,
+  isEntityOwner,
+  isDealParticipant,
+  getCurrentUserId,
+  getCurrentOrganizationId,
+  isActionError,
+  actionSuccess,
+} from "./action-guards";
+
+// Hooks (client-side) - NOT re-exported from barrel to prevent server/client mixing
+// Import directly from '@/lib/permissions/hooks' for client components
+
+// Components (client-side) - NOT re-exported from barrel to prevent server/client mixing
+// Import directly from '@/lib/permissions/components' for client components
+// Example: import { PermissionGate, ModuleGate, OwnerOnly, LeadPlusOnly } from "@/lib/permissions/components"

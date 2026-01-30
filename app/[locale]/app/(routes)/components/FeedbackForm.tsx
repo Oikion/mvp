@@ -34,7 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Icons } from "@/components/ui/icons";
 import { Info, Bug, Sparkles, MessageSquare, HelpCircle, MoreHorizontal, Camera, Terminal, Shield, Clock, History, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -50,11 +50,11 @@ import FeedbackHistorySheet from "./FeedbackHistorySheet";
 import { APP_VERSION } from "@/lib/version";
 
 const feedbackTypeIcons = {
-  bug: { icon: Bug, color: "text-red-600 dark:text-red-400" },
-  feature: { icon: Sparkles, color: "text-blue-600 dark:text-blue-400" },
-  general: { icon: MessageSquare, color: "text-green-600 dark:text-green-400" },
-  question: { icon: HelpCircle, color: "text-yellow-600 dark:text-yellow-400" },
-  other: { icon: MoreHorizontal, color: "text-gray-600 dark:text-gray-400" },
+  bug: { icon: Bug, color: "text-destructive dark:text-red-400" },
+  feature: { icon: Sparkles, color: "text-primary dark:text-blue-400" },
+  general: { icon: MessageSquare, color: "text-success dark:text-green-400" },
+  question: { icon: HelpCircle, color: "text-warning dark:text-yellow-400" },
+  other: { icon: MoreHorizontal, color: "text-muted-foreground dark:text-muted-foreground" },
 };
 
 interface FeedbackFormProps {
@@ -66,7 +66,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
   const [loading, setLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [attachments, setAttachments] = useState<AttachmentData[]>([]);
-  const { toast } = useToast();
+  const { toast } = useAppToast();
 
   // Create schema with translated messages
   const formSchema = useMemo(() => z.object({
@@ -196,21 +196,13 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
         clearLogs();
       }
       
-      toast({
-        variant: "success",
-        title: t("title"),
-        description: t("messages.success"),
-      });
+      toast.success(t, { description: t, isTranslationKey: false });
       form.reset();
       setAttachments([]);
       setOpen(false);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: t("title"),
-        description: t("messages.error"),
-      });
+      toast.error(t, { description: t, isTranslationKey: false });
     } finally {
       setLoading(false);
     }
@@ -239,7 +231,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
         <Card variant="outlined" className="border-border bg-muted/50">
         <CardHeader className="pb-3">
           <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <Info className="h-5 w-5 text-primary dark:text-blue-400 mt-0.5 flex-shrink-0" />
             <div className="space-y-2">
               <CardTitle className="text-base text-foreground">{t("versionInfo.title", { version: APP_VERSION })}</CardTitle>
               <CardDescription className="text-sm leading-relaxed text-muted-foreground">
@@ -370,7 +362,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex flex-col items-center text-center p-3 rounded-md hover:bg-muted/50 transition-colors cursor-help">
-                          <Camera className="h-8 w-8 text-blue-600 dark:text-blue-400 mb-2" />
+                          <Camera className="h-8 w-8 text-primary dark:text-blue-400 mb-2" />
                           <span className="text-xs font-medium text-foreground">{t("consent.screenshot.title")}</span>
                           <span className="text-xs text-muted-foreground mt-1">{t("consent.screenshot.subtitle")}</span>
                         </div>
@@ -386,7 +378,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex flex-col items-center text-center p-3 rounded-md hover:bg-muted/50 transition-colors cursor-help">
-                          <Terminal className="h-8 w-8 text-green-600 dark:text-green-400 mb-2" />
+                          <Terminal className="h-8 w-8 text-success dark:text-green-400 mb-2" />
                           <span className="text-xs font-medium text-foreground">{t("consent.consoleLogs.title")}</span>
                           <span className="text-xs text-muted-foreground mt-1">{t("consent.consoleLogs.subtitle")}</span>
                         </div>
@@ -418,7 +410,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex flex-col items-center text-center p-3 rounded-md hover:bg-muted/50 transition-colors cursor-help">
-                          <Clock className="h-8 w-8 text-orange-600 dark:text-orange-400 mb-2" />
+                          <Clock className="h-8 w-8 text-warning dark:text-orange-400 mb-2" />
                           <span className="text-xs font-medium text-foreground">{t("consent.retention.title")}</span>
                           <span className="text-xs text-muted-foreground mt-1">{t("consent.retention.subtitle")}</span>
                         </div>

@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { useOrganizationList } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 
@@ -40,7 +40,7 @@ export function CreateOrganizationForm() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string || "en";
-  const { toast } = useToast();
+  const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState(false);
   const { createOrganization } = useOrganizationList();
 
@@ -56,11 +56,7 @@ export function CreateOrganizationForm() {
     setIsLoading(true);
     try {
       if (!createOrganization) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Unable to create organization. Please try again.",
-        });
+        toast.error("Error", { description: "Unable to create organization. Please try again.", isTranslationKey: false });
         return;
       }
 
@@ -72,19 +68,11 @@ export function CreateOrganizationForm() {
       });
 
       if (!organization) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to create organization. Please try again.",
-        });
+        toast.error("Error", { description: "Failed to create organization. Please try again.", isTranslationKey: false });
         return;
       }
 
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Organization created successfully!",
-      });
+      toast.success("Success", { description: "Organization created successfully!", isTranslationKey: false });
 
       // Check if user needs to complete onboarding
       // Fetch user data to check onboarding status
@@ -108,11 +96,7 @@ export function CreateOrganizationForm() {
       router.refresh();
     } catch (error: any) {
       console.error("Error creating organization:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.errors?.[0]?.message || error?.message || "Something went wrong. Please try again.",
-      });
+      toast.error("Error", { description: error?.errors, isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

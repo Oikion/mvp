@@ -3,6 +3,14 @@
 import { cn } from "@/lib/utils";
 import { motion, type Variants, AnimatePresence, useReducedMotion } from "motion/react";
 import { forwardRef, type ReactNode } from "react";
+import {
+  duration,
+  distance,
+  scale,
+  stagger,
+  easing,
+  getDuration,
+} from "@/lib/animation-tokens";
 
 // Stagger container for orchestrating child animations
 interface StaggerContainerProps {
@@ -16,7 +24,7 @@ export function StaggerContainer({
   children,
   className,
   delay = 0,
-  staggerDelay = 0.1,
+  staggerDelay = stagger.default,
 }: StaggerContainerProps) {
   const shouldReduceMotion = useReducedMotion();
 
@@ -60,23 +68,23 @@ export function StaggerItem({
   const itemVariants: Record<string, Variants> = {
     fade: {
       hidden: { opacity: 0 },
-      visible: { opacity: 1, transition: { duration: 0.4 } },
+      visible: { opacity: 1, transition: { duration: getDuration("slower") } },
     },
     slideUp: {
-      hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 20 },
-      visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+      hidden: { opacity: 0, y: shouldReduceMotion ? 0 : distance.lg },
+      visible: { opacity: 1, y: 0, transition: { duration: getDuration("slower"), ease: easing.default } },
     },
     slideDown: {
-      hidden: { opacity: 0, y: shouldReduceMotion ? 0 : -20 },
-      visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+      hidden: { opacity: 0, y: shouldReduceMotion ? 0 : -distance.lg },
+      visible: { opacity: 1, y: 0, transition: { duration: getDuration("slower"), ease: easing.default } },
     },
     slideRight: {
-      hidden: { opacity: 0, x: shouldReduceMotion ? 0 : -20 },
-      visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } },
+      hidden: { opacity: 0, x: shouldReduceMotion ? 0 : -distance.lg },
+      visible: { opacity: 1, x: 0, transition: { duration: getDuration("slower"), ease: easing.default } },
     },
     scale: {
       hidden: { opacity: 0, scale: shouldReduceMotion ? 1 : 0.9 },
-      visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeOut" } },
+      visible: { opacity: 1, scale: 1, transition: { duration: getDuration("slow"), ease: easing.default } },
     },
   };
 
@@ -99,10 +107,10 @@ export function PageTransition({ children, className }: PageTransitionProps) {
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
+      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : distance.md }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -10 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -distance.md }}
+      transition={{ duration: getDuration("slow"), ease: easing.default }}
     >
       {children}
     </motion.div>
@@ -119,14 +127,15 @@ interface FadeInProps {
 }
 
 export const FadeIn = forwardRef<HTMLDivElement, FadeInProps>(
-  ({ children, className, delay = 0, duration = 0.4, direction = "up" }, ref) => {
+  ({ children, className, delay = 0, duration: customDuration, direction = "up" }, ref) => {
     const shouldReduceMotion = useReducedMotion();
+    const animDuration = customDuration ?? getDuration("slower");
 
     const directionOffset = {
-      up: { y: shouldReduceMotion ? 0 : 20 },
-      down: { y: shouldReduceMotion ? 0 : -20 },
-      left: { x: shouldReduceMotion ? 0 : 20 },
-      right: { x: shouldReduceMotion ? 0 : -20 },
+      up: { y: shouldReduceMotion ? 0 : distance.lg },
+      down: { y: shouldReduceMotion ? 0 : -distance.lg },
+      left: { x: shouldReduceMotion ? 0 : distance.lg },
+      right: { x: shouldReduceMotion ? 0 : -distance.lg },
       none: {},
     };
 
@@ -136,7 +145,7 @@ export const FadeIn = forwardRef<HTMLDivElement, FadeInProps>(
         className={className}
         initial={{ opacity: 0, ...directionOffset[direction] }}
         animate={{ opacity: 1, x: 0, y: 0 }}
-        transition={{ duration, delay, ease: "easeOut" }}
+        transition={{ duration: animDuration, delay, ease: easing.default }}
       >
         {children}
       </motion.div>
@@ -159,9 +168,9 @@ export function ScaleIn({ children, className, delay = 0 }: ScaleInProps) {
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.2, delay, ease: "easeOut" }}
+      initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : scale.shrink }}
+      animate={{ opacity: 1, scale: scale.normal }}
+      transition={{ duration: getDuration("normal"), delay, ease: easing.default }}
     >
       {children}
     </motion.div>
@@ -187,10 +196,10 @@ export function AnimatedPresenceWrapper({
       {isVisible && (
         <motion.div
           className={className}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
+          initial={{ opacity: 0, scale: scale.shrink }}
+          animate={{ opacity: 1, scale: scale.normal }}
+          exit={{ opacity: 0, scale: scale.shrink }}
+          transition={{ duration: getDuration("normal") }}
         >
           {children}
         </motion.div>
@@ -210,8 +219,8 @@ interface HoverCardProps {
 export function HoverCard({
   children,
   className,
-  hoverScale = 1.02,
-  hoverY = -4,
+  hoverScale = scale.grow,
+  hoverY = -distance.sm,
 }: HoverCardProps) {
   const shouldReduceMotion = useReducedMotion();
 
@@ -224,10 +233,10 @@ export function HoverCard({
           : {
               scale: hoverScale,
               y: hoverY,
-              transition: { duration: 0.2, ease: "easeOut" },
+              transition: { duration: getDuration("normal"), ease: easing.default },
             }
       }
-      whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
+      whileTap={shouldReduceMotion ? {} : { scale: scale.pressed }}
     >
       {children}
     </motion.div>
@@ -251,7 +260,7 @@ export function PulseIndicator({
       <motion.span
         className={cn("absolute inline-flex h-full w-full rounded-full opacity-75", color)}
         animate={{ scale: [1, 1.5, 1.5], opacity: [0.75, 0, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
+        transition={{ duration: duration.extended / 1000 * 1.5, repeat: Infinity }}
         style={{ width: size, height: size }}
       />
       <span
@@ -278,13 +287,13 @@ export function FloatingContainer({ children, className }: FloatingContainerProp
         shouldReduceMotion
           ? {}
           : {
-              y: [0, -5, 0],
+              y: [0, -distance.sm, 0],
             }
       }
       transition={{
         duration: 3,
         repeat: Infinity,
-        ease: "easeInOut",
+        ease: easing.inOut,
       }}
     >
       {children}

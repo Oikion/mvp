@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { canPerformAction } from "@/lib/permissions/action-service";
 
 /**
  * GET /api/audiences/[id]
@@ -11,6 +12,12 @@ export async function GET(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Permission check: Users need audience:read permission
+    const readCheck = await canPerformAction("audience:read");
+    if (!readCheck.allowed) {
+      return NextResponse.json({ error: readCheck.reason }, { status: 403 });
+    }
+
     const { id } = await props.params;
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
@@ -102,6 +109,16 @@ export async function PUT(
       return new NextResponse("Audience not found or no permission", { status: 404 });
     }
 
+    // Permission check: Users need audience:update permission with ownership check
+    const updateCheck = await canPerformAction("audience:update", {
+      entityType: "audience" as any,
+      entityId: id,
+      ownerId: audience.createdById,
+    });
+    if (!updateCheck.allowed) {
+      return NextResponse.json({ error: updateCheck.reason }, { status: 403 });
+    }
+
     const body = await req.json();
     const { name, description, isAutoSync } = body;
 
@@ -185,6 +202,16 @@ export async function DELETE(
 
     if (!audience) {
       return new NextResponse("Audience not found or no permission", { status: 404 });
+    }
+
+    // Permission check: Users need audience:delete permission with ownership check
+    const deleteCheck = await canPerformAction("audience:delete", {
+      entityType: "audience" as any,
+      entityId: id,
+      ownerId: audience.createdById,
+    });
+    if (!deleteCheck.allowed) {
+      return NextResponse.json({ error: deleteCheck.reason }, { status: 403 });
     }
 
     await prismadb.audience.delete({

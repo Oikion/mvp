@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/get-current-user";
 import resendHelper from "@/lib/resend";
 import { ReferralApplicationEmail } from "@/emails/admin/ReferralApplication";
 import crypto from "crypto";
+import { requireAction } from "@/lib/permissions/action-guards";
 
 const ADMIN_EMAIL = "contact@oikion.com";
 const TOKEN_SECRET = process.env.REFERRAL_TOKEN_SECRET || process.env.NEXTAUTH_SECRET || "fallback-secret";
@@ -30,6 +31,10 @@ export async function applyToReferralProgramme(
   input: ApplyToReferralProgrammeInput
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Check permission to apply to referral programme
+    const guard = await requireAction("referral:apply");
+    if (guard) return { success: false, error: guard.error };
+
     const user = await getCurrentUser();
 
     // Check if user already has an application or is already a referrer
