@@ -133,10 +133,10 @@ function ChangeDetectionAlert({ changeDetection, locale }: ChangeDetectionAlertP
     <div className="flex items-start gap-3 p-3 rounded-lg bg-warning/10 border border-warning/20">
       <AlertTriangle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
       <div className="flex-1 space-y-1">
-        <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+        <p className="text-sm font-medium text-warning dark:text-amber-300">
           {labels.title}
         </p>
-        <p className="text-xs text-warning dark:text-amber-400">
+        <p className="text-xs text-warning dark:text-warning">
           {labels.description}
         </p>
         <div className="flex flex-wrap gap-1 mt-2">
@@ -144,7 +144,7 @@ function ChangeDetectionAlert({ changeDetection, locale }: ChangeDetectionAlertP
             <Badge
               key={index}
               variant="outline"
-              className="text-xs border-warning/30 text-amber-700 dark:text-amber-300"
+              className="text-xs border-warning/30 text-warning dark:text-amber-300"
             >
               {change.label || change.field}
             </Badge>
@@ -152,7 +152,7 @@ function ChangeDetectionAlert({ changeDetection, locale }: ChangeDetectionAlertP
           {changeDetection.changedFields.length > 5 && (
             <Badge
               variant="outline"
-              className="text-xs border-warning/30 text-amber-700 dark:text-amber-300"
+              className="text-xs border-warning/30 text-warning dark:text-amber-300"
             >
               +{changeDetection.changedFields.length - 5}
             </Badge>
@@ -322,7 +322,7 @@ export function ExportHistoryPanel({
           history.length > 0 &&
           changeDetection &&
           !changeDetection.hasChanges && (
-            <div className="flex items-center gap-2 text-sm text-success dark:text-green-400">
+            <div className="flex items-center gap-2 text-sm text-success dark:text-success">
               <CheckCircle2 className="h-4 w-4" />
               {labels.upToDate}
             </div>

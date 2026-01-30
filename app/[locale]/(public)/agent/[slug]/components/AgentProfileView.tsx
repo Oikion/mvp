@@ -257,8 +257,8 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
                 className="border rounded-2xl p-6 bg-background border-border shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 border border-blue-200 dark:border-primary/30">
-                    <Users className="w-6 h-6 text-primary dark:text-blue-400" />
+                  <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/30">
+                    <Users className="w-6 h-6 text-primary dark:text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-foreground">
                     {locale === "el" ? "Επικοινωνία" : "Contact"}
@@ -268,7 +268,7 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
                   {profile.publicEmail && (
                     <a
                       href={`mailto:${profile.publicEmail}`}
-                      className="flex items-center gap-3 text-muted-foreground hover:text-primary dark:hover:text-blue-400 transition-colors"
+                      className="flex items-center gap-3 text-muted-foreground hover:text-primary dark:hover:text-primary transition-colors"
                     >
                       <Mail className="h-4 w-4 flex-shrink-0" />
                       <span className="text-sm truncate">{profile.publicEmail}</span>
@@ -277,7 +277,7 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
                   {profile.publicPhone && (
                     <a
                       href={`tel:${profile.publicPhone}`}
-                      className="flex items-center gap-3 text-muted-foreground hover:text-primary dark:hover:text-blue-400 transition-colors"
+                      className="flex items-center gap-3 text-muted-foreground hover:text-primary dark:hover:text-primary transition-colors"
                     >
                       <Phone className="h-4 w-4 flex-shrink-0" />
                       <span className="text-sm">{profile.publicPhone}</span>
@@ -351,8 +351,8 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
                   className="border rounded-2xl p-6 bg-background border-border shadow-sm"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-success/10 dark:bg-success/20 border border-green-200 dark:border-success/30">
-                      <MapPin className="w-6 h-6 text-success dark:text-green-400" />
+                    <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-success/10 dark:bg-success/20 border border-success/30 dark:border-success/30">
+                      <MapPin className="w-6 h-6 text-success dark:text-success" />
                     </div>
                     <h3 className="text-lg font-bold text-foreground">
                       {locale === "el" ? "Περιοχές Εξυπηρέτησης" : "Service Areas"}
@@ -408,8 +408,8 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
                   className="border rounded-2xl p-6 bg-background border-border shadow-sm"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-warning/10 dark:bg-warning/20 border border-amber-200 dark:border-warning/30">
-                      <Award className="w-6 h-6 text-warning dark:text-amber-400" />
+                    <div className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-warning/10 dark:bg-warning/20 border border-warning/30 dark:border-warning/30">
+                      <Award className="w-6 h-6 text-warning dark:text-warning" />
                     </div>
                     <h3 className="text-lg font-bold text-foreground">
                       {locale === "el" ? "Πιστοποιήσεις" : "Certifications"}

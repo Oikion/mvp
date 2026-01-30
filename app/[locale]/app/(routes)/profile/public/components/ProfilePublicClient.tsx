@@ -99,7 +99,7 @@ export function ProfilePublicClient({
       <div className="space-y-6">
         <Card className="border-warning/30 bg-warning/10">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+            <CardTitle className="flex items-center gap-2 text-warning dark:text-warning">
               <AlertCircle className="h-5 w-5" />
               Username Required
             </CardTitle>

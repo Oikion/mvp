@@ -140,8 +140,8 @@ export function ProfilePreview({ profile, dict }: ProfilePreviewProps) {
   return (
     <div className="rounded-xl overflow-hidden border border-border shadow-lg">
       {/* Preview Banner */}
-      <div className="bg-warning/10 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-900/50 px-4 py-2.5 text-center">
-        <span className="text-sm font-medium text-amber-700 dark:text-amber-400">
+      <div className="bg-warning/10 dark:bg-amber-950/30 border-b border-warning/30 dark:border-amber-900/50 px-4 py-2.5 text-center">
+        <span className="text-sm font-medium text-warning dark:text-warning">
           {t?.preview?.previewMode || "Preview Mode - This is how visitors will see your profile"}
         </span>
       </div>
@@ -253,8 +253,8 @@ export function ProfilePreview({ profile, dict }: ProfilePreviewProps) {
                   className="border rounded-2xl p-5 bg-background border-border shadow-sm hover:-translate-y-1 transition-transform duration-200"
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 border border-blue-200 dark:border-primary/30">
-                      <Users className="w-5 h-5 text-primary dark:text-blue-400" />
+                    <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/30">
+                      <Users className="w-5 h-5 text-primary dark:text-primary" />
                     </div>
                     <h3 className="text-base font-bold text-foreground">
                       {t?.contact?.title || "Contact"}
@@ -264,7 +264,7 @@ export function ProfilePreview({ profile, dict }: ProfilePreviewProps) {
                     {profile.publicEmail && (
                       <a
                         href={`mailto:${profile.publicEmail}`}
-                        className="flex items-center gap-3 text-muted-foreground hover:text-primary dark:hover:text-blue-400 transition-colors"
+                        className="flex items-center gap-3 text-muted-foreground hover:text-primary dark:hover:text-primary transition-colors"
                       >
                         <Mail className="h-4 w-4 flex-shrink-0" />
                         <span className="text-sm truncate">{profile.publicEmail}</span>
@@ -273,7 +273,7 @@ export function ProfilePreview({ profile, dict }: ProfilePreviewProps) {
                     {profile.publicPhone && (
                       <a
                         href={`tel:${profile.publicPhone}`}
-                        className="flex items-center gap-3 text-muted-foreground hover:text-primary dark:hover:text-blue-400 transition-colors"
+                        className="flex items-center gap-3 text-muted-foreground hover:text-primary dark:hover:text-primary transition-colors"
                       >
                         <Phone className="h-4 w-4 flex-shrink-0" />
                         <span className="text-sm">{profile.publicPhone}</span>
@@ -344,8 +344,8 @@ export function ProfilePreview({ profile, dict }: ProfilePreviewProps) {
                     className="border rounded-2xl p-5 bg-background border-border shadow-sm hover:-translate-y-1 transition-transform duration-200"
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-success/10 dark:bg-success/20 border border-green-200 dark:border-success/30">
-                        <MapPin className="w-5 h-5 text-success dark:text-green-400" />
+                      <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-success/10 dark:bg-success/20 border border-success/30 dark:border-success/30">
+                        <MapPin className="w-5 h-5 text-success dark:text-success" />
                       </div>
                       <h3 className="text-base font-bold text-foreground">
                         {t?.expertise?.serviceAreas || "Service Areas"}
@@ -399,8 +399,8 @@ export function ProfilePreview({ profile, dict }: ProfilePreviewProps) {
                     className="border rounded-2xl p-5 bg-background border-border shadow-sm hover:-translate-y-1 transition-transform duration-200"
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-warning/10 dark:bg-warning/20 border border-amber-200 dark:border-warning/30">
-                        <Award className="w-5 h-5 text-warning dark:text-amber-400" />
+                      <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-warning/10 dark:bg-warning/20 border border-warning/30 dark:border-warning/30">
+                        <Award className="w-5 h-5 text-warning dark:text-warning" />
                       </div>
                       <h3 className="text-base font-bold text-foreground">
                         {t?.expertise?.certifications || "Certifications"}

@@ -106,17 +106,17 @@ interface ChangelogFormProps {
 // Color styles for tags
 const colorStyles: Record<string, { bg: string; text: string; border: string }> = {
   gray: { bg: "bg-gray-500/10", text: "text-muted-foreground dark:text-muted-foreground", border: "border-gray-500/20" },
-  red: { bg: "bg-destructive/10", text: "text-destructive dark:text-red-400", border: "border-destructive/20" },
+  red: { bg: "bg-destructive/10", text: "text-destructive dark:text-destructive", border: "border-destructive/20" },
   orange: { bg: "bg-warning/10", text: "text-warning dark:text-orange-400", border: "border-orange-500/20" },
-  amber: { bg: "bg-warning/10", text: "text-warning dark:text-amber-400", border: "border-warning/20" },
-  yellow: { bg: "bg-warning/10", text: "text-warning dark:text-yellow-400", border: "border-warning/20" },
+  amber: { bg: "bg-warning/10", text: "text-warning dark:text-warning", border: "border-warning/20" },
+  yellow: { bg: "bg-warning/10", text: "text-warning dark:text-warning", border: "border-warning/20" },
   lime: { bg: "bg-lime-500/10", text: "text-lime-600 dark:text-lime-400", border: "border-lime-500/20" },
-  green: { bg: "bg-success/10", text: "text-success dark:text-green-400", border: "border-success/20" },
-  emerald: { bg: "bg-success/10", text: "text-success dark:text-emerald-400", border: "border-success/20" },
+  green: { bg: "bg-success/10", text: "text-success dark:text-success", border: "border-success/20" },
+  emerald: { bg: "bg-success/10", text: "text-success dark:text-success", border: "border-success/20" },
   teal: { bg: "bg-teal-500/10", text: "text-teal-600 dark:text-teal-400", border: "border-teal-500/20" },
   cyan: { bg: "bg-cyan-500/10", text: "text-cyan-600 dark:text-cyan-400", border: "border-cyan-500/20" },
   sky: { bg: "bg-sky-500/10", text: "text-sky-600 dark:text-sky-400", border: "border-sky-500/20" },
-  blue: { bg: "bg-primary/10", text: "text-primary dark:text-blue-400", border: "border-primary/20" },
+  blue: { bg: "bg-primary/10", text: "text-primary dark:text-primary", border: "border-primary/20" },
   indigo: { bg: "bg-indigo-500/10", text: "text-indigo-600 dark:text-indigo-400", border: "border-indigo-500/20" },
   violet: { bg: "bg-violet-500/10", text: "text-violet-600 dark:text-violet-400", border: "border-violet-500/20" },
   purple: { bg: "bg-purple-500/10", text: "text-purple-600 dark:text-purple-400", border: "border-purple-500/20" },
@@ -502,7 +502,7 @@ export function ChangelogForm({ entry, categories: initialCategories, onSuccess,
                     {suggestedVersion && field.value !== suggestedVersion && (
                       <div className="flex items-center gap-2">
                         <Lightbulb className="h-3 w-3 text-warning" />
-                        <span className="text-xs text-warning dark:text-amber-400">
+                        <span className="text-xs text-warning dark:text-warning">
                           Suggested: <span className="font-mono font-medium">{suggestedVersion}</span>
                         </span>
                         <Button

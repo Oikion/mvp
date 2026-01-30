@@ -133,18 +133,18 @@ export const JourneySection: React.FC = () => {
       return {
         bg: 'bg-gray-400 dark:bg-zinc-600',
         bgLight: 'bg-muted dark:bg-zinc-800/60',
-        borderLight: 'border-border dark:border-zinc-700',
+        borderLight: 'border-border dark:border-border',
         text: 'text-muted-foreground dark:text-muted-foreground',
-        cardBg: 'bg-card dark:bg-zinc-900/80'
+        cardBg: 'bg-card dark:bg-background/80'
       }
     }
     
     return {
       bg: 'bg-primary',
-      bgLight: 'bg-primary/10 dark:bg-blue-950/40',
-      borderLight: 'border-blue-200 dark:border-blue-800/60',
-      text: 'text-primary dark:text-blue-400',
-      cardBg: 'bg-card dark:bg-zinc-900/80'
+      bgLight: 'bg-primary/10 dark:bg-primary/20/40',
+      borderLight: 'border-primary/30 dark:border-primary/50/60',
+      text: 'text-primary dark:text-primary',
+      cardBg: 'bg-card dark:bg-background/80'
     }
   }
 
@@ -237,8 +237,8 @@ export const JourneySection: React.FC = () => {
                     <motion.div 
                       className={`w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-full border-2 md:border-4 flex items-center justify-center transition-all duration-300 ${
                         isActive 
-                          ? `${colors.bg} border-primary dark:border-blue-400 text-white shadow-lg shadow-blue-500/30` 
-                          : 'bg-background dark:bg-zinc-900 border-border dark:border-zinc-700 text-muted-foreground'
+                          ? `${colors.bg} border-primary dark:border-primary text-white shadow-lg shadow-blue-500/30` 
+                          : 'bg-background dark:bg-background border-border dark:border-border text-muted-foreground'
                       }`}
                       initial={isActive ? { scale: 0.8, opacity: 0 } : undefined}
                       animate={isActive ? { scale: 1, opacity: 1 } : undefined}
@@ -271,11 +271,11 @@ export const JourneySection: React.FC = () => {
                       <div className="p-4 sm:p-6 pb-3 sm:pb-4">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                           <h3 className={`text-lg sm:text-xl font-bold transition-colors duration-300 ${
-                            isActive ? colors.text : 'text-foreground dark:text-zinc-100'
+                            isActive ? colors.text : 'text-foreground dark:text-foreground'
                           }`}>
                             {stage.title}
                           </h3>
-                          <Badge variant="outline" className="w-fit dark:border-zinc-700 dark:text-zinc-300">
+                          <Badge variant="outline" className="w-fit dark:border-border dark:text-zinc-300">
                             <Calendar className="w-3 h-3 mr-1" />
                             {stage.date}
                           </Badge>
@@ -287,7 +287,7 @@ export const JourneySection: React.FC = () => {
                             <span>{t('journey.developmentProgress')}</span>
                             <span className="font-medium">{stage.progress}%</span>
                           </div>
-                          <div className="w-full bg-background dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded-full h-2 overflow-hidden">
+                          <div className="w-full bg-background dark:bg-zinc-800 border border-border dark:border-border rounded-full h-2 overflow-hidden">
                             <motion.div 
                               className={`h-full ${isActive ? colors.bg : 'bg-gray-400 dark:bg-zinc-600'} rounded-full`}
                               initial={{ width: 0 }}
@@ -301,7 +301,7 @@ export const JourneySection: React.FC = () => {
 
                       {/* Key Features Grid */}
                       <div className="px-4 sm:px-6 pb-3 sm:pb-4">
-                        <h4 className="text-sm font-semibold text-foreground dark:text-zinc-200 mb-2 sm:mb-3 flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-foreground dark:text-foreground mb-2 sm:mb-3 flex items-center gap-2">
                           <Zap className="w-4 h-4" />
                           {t('journey.keyFeatures')}
                         </h4>
@@ -311,15 +311,15 @@ export const JourneySection: React.FC = () => {
                               key={featureIndex}
                               className={`p-2 sm:p-3 rounded-lg border transition-colors ${
                                 isActive 
-                                  ? 'bg-background/50 dark:bg-zinc-900/50 border-border dark:border-zinc-700' 
-                                  : 'bg-muted/30 dark:bg-zinc-800/50 border-muted dark:border-zinc-700/50'
+                                  ? 'bg-background/50 dark:bg-background/50 border-border dark:border-border' 
+                                  : 'bg-muted/30 dark:bg-zinc-800/50 border-muted dark:border-border/50'
                               }`}
                             >
                               <div className="flex items-center gap-2 mb-1">
                                 <div className={`p-1 rounded ${isActive ? colors.bg : 'bg-gray-400 dark:bg-zinc-600'} text-white`}>
                                   {feature.icon}
                                 </div>
-                                <span className="text-xs font-medium text-foreground dark:text-zinc-200">{feature.title}</span>
+                                <span className="text-xs font-medium text-foreground dark:text-foreground">{feature.title}</span>
                               </div>
                               <p className="text-xs text-muted-foreground dark:text-muted-foreground">{feature.description}</p>
                             </div>
@@ -335,8 +335,8 @@ export const JourneySection: React.FC = () => {
                               key={highlightIndex}
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                 isActive 
-                                  ? 'bg-background dark:bg-zinc-900 border border-border dark:border-zinc-700 text-foreground dark:text-zinc-200' 
-                                  : 'bg-muted dark:bg-zinc-800/70 text-muted-foreground dark:text-muted-foreground border border-muted dark:border-zinc-700/50'
+                                  ? 'bg-background dark:bg-background border border-border dark:border-border text-foreground dark:text-foreground' 
+                                  : 'bg-muted dark:bg-zinc-800/70 text-muted-foreground dark:text-muted-foreground border border-muted dark:border-border/50'
                               }`}
                             >
                               <div className={`${isActive ? colors.text : 'text-muted-foreground dark:text-muted-foreground'}`}>
@@ -350,7 +350,7 @@ export const JourneySection: React.FC = () => {
 
                       {/* Description */}
                       <div className="px-4 sm:px-6 pb-4 sm:pb-6">
-                        <div className="bg-background/50 dark:bg-zinc-900/50 border border-border/30 dark:border-zinc-700/30 rounded-lg p-3 sm:p-4">
+                        <div className="bg-background/50 dark:bg-background/50 border border-border/30 dark:border-border/30 rounded-lg p-3 sm:p-4">
                           <p className="text-xs sm:text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed">
                             {stage.description}
                           </p>
@@ -399,7 +399,7 @@ export const JourneySection: React.FC = () => {
           <div className="mt-4 text-sm text-muted-foreground dark:text-muted-foreground">
             <div className="flex items-center justify-center gap-2">
               <Users className="w-4 h-4" />
-              <span>{t('journey.status')} <strong className="text-foreground dark:text-zinc-200">{t('journey.preAlpha')}</strong> - {t('journey.limitedSpots')}</span>
+              <span>{t('journey.status')} <strong className="text-foreground dark:text-foreground">{t('journey.preAlpha')}</strong> - {t('journey.limitedSpots')}</span>
             </div>
           </div>
         </motion.div>

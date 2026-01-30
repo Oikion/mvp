@@ -74,13 +74,13 @@ const getCategoryStyle = (label: string): CategoryStyle => {
     },
     "Core Business": {
       icon: Briefcase,
-      iconColor: "text-success dark:text-emerald-400",
+      iconColor: "text-success dark:text-success",
       hoverBg: "hover:bg-success/10",
       activeBorder: "border-l-emerald-500",
     },
     "Tools": {
       icon: Wrench,
-      iconColor: "text-warning dark:text-amber-400",
+      iconColor: "text-warning dark:text-warning",
       hoverBg: "hover:bg-warning/10",
       activeBorder: "border-l-amber-500",
     },
@@ -105,13 +105,13 @@ const getCategoryStyle = (label: string): CategoryStyle => {
     },
     "Βασική Επιχείρηση": {
       icon: Briefcase,
-      iconColor: "text-success dark:text-emerald-400",
+      iconColor: "text-success dark:text-success",
       hoverBg: "hover:bg-success/10",
       activeBorder: "border-l-emerald-500",
     },
     "Εργαλεία": {
       icon: Wrench,
-      iconColor: "text-warning dark:text-amber-400",
+      iconColor: "text-warning dark:text-warning",
       hoverBg: "hover:bg-warning/10",
       activeBorder: "border-l-amber-500",
     },

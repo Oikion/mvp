@@ -396,7 +396,7 @@ export default function MarketIntelligencePage() {
                         </p>
                       </div>
                       <div className="text-right ml-4">
-                        <div className="flex items-center text-success dark:text-emerald-400">
+                        <div className="flex items-center text-success dark:text-success">
                           <TrendingDown className="h-4 w-4 mr-1" />
                           {Math.abs(change.changePercent).toFixed(1)}%
                         </div>
@@ -484,7 +484,7 @@ export default function MarketIntelligencePage() {
                       </div>
                     </div>
                     <div className="text-right ml-4">
-                      <Badge variant="secondary" className="bg-warning/20 text-amber-700 dark:text-amber-400 border-warning/30">
+                      <Badge variant="secondary" className="bg-warning/20 text-warning dark:text-warning border-warning/30">
                         {item.percentBelowMarket.toFixed(1)}% below market
                       </Badge>
                       <p className="text-lg font-bold mt-1">

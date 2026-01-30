@@ -171,7 +171,7 @@ export default function ClientsPageView({
             <Share2 className="h-4 w-4 shrink-0" />
             {t("Tabs.sharedWithMe")}
             {sharedClients.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-warning/20 text-amber-700 dark:text-amber-300 text-xs font-medium">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-warning/20 text-warning dark:text-amber-300 text-xs font-medium">
                 {sharedClients.length}
               </span>
             )}

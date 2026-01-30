@@ -174,7 +174,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
         return (
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-success/15 text-success dark:text-green-400">
+              <AvatarFallback className="bg-success/15 text-success dark:text-success">
                 {entity.client_name?.charAt(0) || <User className="h-5 w-5" />}
               </AvatarFallback>
             </Avatar>

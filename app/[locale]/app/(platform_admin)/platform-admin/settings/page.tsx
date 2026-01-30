@@ -216,15 +216,15 @@ export default function PlatformAdminSettingsPage() {
       </div>
 
       {/* Info Card */}
-      <Card className="bg-primary/10 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+      <Card className="bg-primary/10 border-primary/30 dark:bg-primary/20 dark:border-primary/50">
         <CardContent className="pt-6">
           <div className="flex items-start gap-4">
-            <AlertCircle className="h-5 w-5 text-primary dark:text-blue-400 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-primary dark:text-primary mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium text-blue-800 dark:text-blue-200">
+              <p className="font-medium text-primary dark:text-blue-200">
                 Settings Priority
               </p>
-              <p className="text-blue-700 dark:text-blue-300 mt-1">
+              <p className="text-primary dark:text-blue-300 mt-1">
                 Database values take priority over environment variables. If a setting is not configured
                 here, the system will fall back to the corresponding environment variable (if set).
               </p>
@@ -272,7 +272,7 @@ export default function PlatformAdminSettingsPage() {
                             <Badge variant="secondary">Sensitive</Badge>
                           )}
                           {setting.hasValue ? (
-                            <Badge variant="default" className="bg-success/10 text-green-800">
+                            <Badge variant="default" className="bg-success/10 text-success">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Configured
                             </Badge>

@@ -120,10 +120,86 @@ const SAFE_MAPPINGS: Array<[RegExp, string, string]> = [
   // ==========================================================================
   [/\btext-gray-900\b/g, "text-foreground", "primary text"],
   [/\btext-gray-800\b/g, "text-foreground", "primary text"],
+  [/\btext-gray-700\b/g, "text-foreground", "primary text"],
   [/\btext-slate-900\b/g, "text-foreground", "primary text"],
   [/\btext-slate-800\b/g, "text-foreground", "primary text"],
+  [/\btext-slate-700\b/g, "text-foreground", "primary text"],
   [/\btext-zinc-900\b/g, "text-foreground", "primary text"],
+  [/\btext-zinc-800\b/g, "text-foreground", "primary text"],
   [/\btext-neutral-900\b/g, "text-foreground", "primary text"],
+  [/\btext-neutral-700\b/g, "text-foreground", "primary text"],
+
+  // ==========================================================================
+  // DARK MODE VARIANTS - Text colors for dark backgrounds
+  // ==========================================================================
+  // These -400 variants are typically used with dark: prefix or on dark backgrounds
+  [/\btext-green-400\b/g, "text-success", "success text (dark)"],
+  [/\btext-emerald-400\b/g, "text-success", "success text (dark)"],
+  [/\btext-emerald-300\b/g, "text-success", "success text (dark)"],
+  [/\btext-red-400\b/g, "text-destructive", "error text (dark)"],
+  [/\btext-amber-400\b/g, "text-warning", "warning text (dark)"],
+  [/\btext-yellow-400\b/g, "text-warning", "warning text (dark)"],
+  [/\btext-blue-400\b/g, "text-primary", "primary text (dark)"],
+
+  // Light text on dark backgrounds
+  [/\btext-slate-100\b/g, "text-foreground", "light text on dark"],
+  [/\btext-slate-200\b/g, "text-foreground", "light text on dark"],
+  [/\btext-slate-300\b/g, "text-muted-foreground", "muted light text"],
+  [/\btext-gray-100\b/g, "text-foreground", "light text on dark"],
+  [/\btext-gray-200\b/g, "text-foreground", "light text on dark"],
+  [/\btext-gray-300\b/g, "text-muted-foreground", "muted light text"],
+  [/\btext-zinc-100\b/g, "text-foreground", "light text on dark"],
+  [/\btext-zinc-200\b/g, "text-foreground", "light text on dark"],
+
+  // ==========================================================================
+  // DARK BACKGROUNDS - For cards/sections on dark themes
+  // ==========================================================================
+  [/\bbg-gray-900\b/g, "bg-background", "dark background"],
+  [/\bbg-slate-900\b/g, "bg-background", "dark background"],
+  [/\bbg-slate-800\b/g, "bg-card", "dark card background"],
+  [/\bbg-zinc-900\b/g, "bg-background", "dark background"],
+
+  // ==========================================================================
+  // ADDITIONAL BORDERS
+  // ==========================================================================
+  [/\bborder-gray-100\b/g, "border-border", "light border"],
+  [/\bborder-slate-100\b/g, "border-border", "light border"],
+  [/\bborder-slate-700\b/g, "border-border", "dark border"],
+  [/\bborder-zinc-700\b/g, "border-border", "dark border"],
+  [/\bborder-green-200\b/g, "border-success/30", "success border light"],
+  [/\bborder-amber-200\b/g, "border-warning/30", "warning border light"],
+  [/\bborder-blue-200\b/g, "border-primary/30", "primary border light"],
+
+  // ==========================================================================
+  // ADDITIONAL WARNING/SUCCESS VARIANTS
+  // ==========================================================================
+  [/\btext-green-700\b/g, "text-success", "success text darker"],
+  [/\btext-amber-700\b/g, "text-warning", "warning text darker"],
+  [/\bbg-green-900\b/g, "bg-success/20", "success dark background"],
+  [/\bbg-amber-900\b/g, "bg-warning/20", "warning dark background"],
+  [/\bbg-blue-900\b/g, "bg-primary/20", "primary dark background"],
+  [/\bbg-red-900\b/g, "bg-destructive/20", "error dark background"],
+
+  // ==========================================================================
+  // ADDITIONAL MAPPINGS
+  // ==========================================================================
+  // Darker text variants
+  [/\btext-blue-700\b/g, "text-primary", "primary text darker"],
+  [/\btext-blue-800\b/g, "text-primary", "primary text darker"],
+  [/\btext-green-800\b/g, "text-success", "success text darker"],
+  [/\btext-red-700\b/g, "text-destructive", "error text darker"],
+  [/\btext-red-800\b/g, "text-destructive", "error text darker"],
+
+  // Backgrounds
+  [/\bbg-gray-200\b/g, "bg-muted", "muted background"],
+  [/\bbg-gray-800\b/g, "bg-card", "dark card"],
+  [/\bbg-blue-950\b/g, "bg-primary/20", "primary dark"],
+
+  // Borders
+  [/\bborder-blue-400\b/g, "border-primary", "primary border"],
+  [/\bborder-blue-800\b/g, "border-primary/50", "primary border dark"],
+  [/\bring-blue-400\b/g, "ring-primary", "primary ring"],
+  [/\bring-blue-500\b/g, "ring-primary", "primary ring"],
 ];
 
 /**

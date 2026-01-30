@@ -274,7 +274,7 @@ export function BuilderSidebar({
                                   "h-3 w-3 flex-shrink-0",
                                   field.required
                                     ? "text-orange-400"
-                                    : "text-slate-300 dark:text-muted-foreground"
+                                    : "text-muted-foreground dark:text-muted-foreground"
                                 )}
                               />
                             )}

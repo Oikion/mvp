@@ -58,7 +58,7 @@ export default async function DealsPage({ params }: DealsPageProps) {
             <CheckCircle2 className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.accepted}</span>
             {acceptedDeals.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-success/15 text-success dark:text-green-400 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-success/15 text-success dark:text-success text-xs">
                 {acceptedDeals.length}
               </span>
             )}
@@ -67,7 +67,7 @@ export default async function DealsPage({ params }: DealsPageProps) {
             <PlayCircle className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t.tabs.active}</span>
             {inProgressDeals.length > 0 && (
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-primary dark:text-blue-400 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-primary/15 text-primary dark:text-primary text-xs">
                 {inProgressDeals.length}
               </span>
             )}

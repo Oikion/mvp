@@ -186,7 +186,7 @@ export function ReviewStep({
                       ))}
                     </div>
                   </div>
-                  <Check className="w-5 h-5 text-emerald-300 mt-2" aria-hidden />
+                  <Check className="w-5 h-5 text-success mt-2" aria-hidden />
                 </div>
               </Card>
             </motion.div>

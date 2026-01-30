@@ -163,7 +163,7 @@ export const HARDCODED_TO_SEMANTIC: Record<string, string> = {
   // Red colors → destructive
   "text-destructive": "text-destructive",
   "text-destructive": "text-destructive",
-  "text-red-700": "text-destructive",
+  "text-destructive": "text-destructive",
   "bg-destructive/10": "bg-destructive/10",
   "bg-destructive/10": "bg-destructive/20",
   "bg-destructive": "bg-destructive",
@@ -176,11 +176,11 @@ export const HARDCODED_TO_SEMANTIC: Record<string, string> = {
   // Green colors → success
   "text-success": "text-success",
   "text-success": "text-success",
-  "text-green-700": "text-success",
+  "text-success": "text-success",
   "bg-success/10": "bg-success/10",
   "bg-success/10": "bg-success/20",
   "bg-success": "bg-success",
-  "border-green-200": "border-success/30",
+  "border-success/30": "border-success/30",
   "border-success": "border-success",
   "text-success": "text-success",
   "bg-success/10": "bg-success/10",
@@ -188,11 +188,11 @@ export const HARDCODED_TO_SEMANTIC: Record<string, string> = {
   // Blue colors → primary or info
   "text-primary": "text-primary",
   "text-primary": "text-primary",
-  "text-blue-700": "text-primary",
+  "text-primary": "text-primary",
   "bg-primary/10": "bg-primary/10",
   "bg-primary/10": "bg-primary/20",
   "bg-primary": "bg-primary",
-  "border-blue-200": "border-primary/30",
+  "border-primary/30": "border-primary/30",
   "border-primary": "border-primary",
 
   // Yellow/Orange colors → warning

@@ -64,7 +64,7 @@ export function ConversionPreviewStep({
             <div className="flex items-center gap-3">
               <CheckCircle2 className="h-8 w-8 text-success" />
               <div>
-                <p className="text-2xl font-bold text-success dark:text-green-400">
+                <p className="text-2xl font-bold text-success dark:text-success">
                   {validRows}
                 </p>
                 <p className="text-sm text-success dark:text-success">
@@ -87,7 +87,7 @@ export function ConversionPreviewStep({
               }`} />
               <div>
                 <p className={`text-2xl font-bold ${
-                  hasIssues ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"
+                  hasIssues ? "text-warning dark:text-warning" : "text-muted-foreground"
                 }`}>
                   {invalidRows}
                 </p>
@@ -127,7 +127,7 @@ export function ConversionPreviewStep({
       {!hasIssues && (
         <Alert className="border-success/30 bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-success" />
-          <AlertTitle className="text-success dark:text-green-400">
+          <AlertTitle className="text-success dark:text-success">
             {t("preview.noIssues")}
           </AlertTitle>
         </Alert>

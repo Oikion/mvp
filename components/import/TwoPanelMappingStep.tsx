@@ -104,8 +104,8 @@ function DraggableSourceCard({
   });
 
   const confidenceColors: Record<MatchConfidence, string> = {
-    high: "bg-success/10 border-success/30 text-green-700 dark:text-green-400",
-    medium: "bg-warning/10 border-warning/30 text-yellow-700 dark:text-yellow-400",
+    high: "bg-success/10 border-success/30 text-success dark:text-success",
+    medium: "bg-warning/10 border-warning/30 text-yellow-700 dark:text-warning",
     low: "bg-warning/10 border-orange-500/30 text-orange-700 dark:text-orange-400",
     none: "bg-muted/50 border-muted-foreground/20",
   };
@@ -486,7 +486,7 @@ export function TwoPanelMappingStep({
           </div>
         </div>
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-success dark:text-green-400">
+          <span className="text-success dark:text-success">
             <Check className="inline h-4 w-4 mr-1" />
             {dict.autoMatchedCount?.replace("{count}", String(stats.matched)) || `${stats.matched} mapped`}
           </span>

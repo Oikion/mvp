@@ -161,7 +161,7 @@ export function PropertyMatchingClients({ propertyId, locale = "en" }: Props) {
               >
                 {/* Client Avatar */}
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary/10 text-blue-700">
+                  <AvatarFallback className="bg-primary/10 text-primary">
                     <User className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>

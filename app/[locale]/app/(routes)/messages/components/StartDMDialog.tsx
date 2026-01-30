@@ -207,7 +207,7 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
                         >
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={connection.user.avatar || undefined} />
-                            <AvatarFallback className="text-xs bg-success/10 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                            <AvatarFallback className="text-xs bg-success/10 text-success dark:bg-success/20/30 dark:text-success">
                               {getInitials(connection.user.name || connection.user.email || "U")}
                             </AvatarFallback>
                           </Avatar>
@@ -219,7 +219,7 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
                               {connection.user.email}
                             </p>
                           </div>
-                          <Badge variant="outline" className="text-[10px] border-success/50 text-success dark:text-green-400">
+                          <Badge variant="outline" className="text-[10px] border-success/50 text-success dark:text-success">
                             <Link2 className="h-3 w-3 mr-1" />
                             Connection
                           </Badge>
@@ -334,7 +334,7 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
                 ) : selectedConnection ? (
                   <>
                     <AvatarImage src={selectedConnection.user.avatar || undefined} />
-                    <AvatarFallback className="bg-success/10 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                    <AvatarFallback className="bg-success/10 text-success dark:bg-success/20/30 dark:text-success">
                       {getInitials(selectedConnection.user.name || selectedConnection.user.email || "U")}
                     </AvatarFallback>
                   </>
@@ -352,7 +352,7 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
                   {selectedUser?.email || selectedConnection?.user.email || selectedContact?.email || selectedContact?.clientName || "Contact"}
                 </p>
               </div>
-              <Badge variant={selectedUser ? "secondary" : "outline"} className={selectedConnection ? "border-success/50 text-success dark:text-green-400" : ""}>
+              <Badge variant={selectedUser ? "secondary" : "outline"} className={selectedConnection ? "border-success/50 text-success dark:text-success" : ""}>
                 {selectedUser ? "Team" : selectedConnection ? "Connection" : "Contact"}
               </Badge>
             </div>

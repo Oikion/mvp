@@ -111,14 +111,14 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
 
           <Card className="overflow-hidden">
             <CardContent className="flex flex-col items-center justify-center py-16 px-8 text-center">
-              <div className="rounded-full bg-warning/10 dark:bg-amber-900/30 p-4 mb-4">
+              <div className="rounded-full bg-warning/10 dark:bg-warning/20/30 p-4 mb-4">
                 {post.requiresAuth ? (
-                  <Lock className="h-8 w-8 text-warning dark:text-amber-400" />
+                  <Lock className="h-8 w-8 text-warning dark:text-warning" />
                 ) : (
-                  <Shield className="h-8 w-8 text-warning dark:text-amber-400" />
+                  <Shield className="h-8 w-8 text-warning dark:text-warning" />
                 )}
               </div>
-              <h1 className="text-xl font-semibold text-foreground dark:text-slate-100 mb-2">
+              <h1 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
                 {locale === "el" ? "Ιδιωτική Δημοσίευση" : "Private Post"}
               </h1>
               <p className="text-muted-foreground dark:text-muted-foreground mb-6 max-w-md">
@@ -184,7 +184,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
                           ? `/agent/${post.author.username}`
                           : "#"
                       }
-                      className="font-semibold text-foreground dark:text-slate-100 hover:text-primary dark:hover:text-blue-400 transition-colors"
+                      className="font-semibold text-foreground dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors"
                     >
                       {post.author.name}
                     </Link>
@@ -203,7 +203,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
           <CardContent className="space-y-4 pt-4">
             {/* Post Content */}
             {post.content && (
-              <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-base leading-relaxed">
+              <p className="text-foreground dark:text-muted-foreground whitespace-pre-wrap text-base leading-relaxed">
                 {post.content}
               </p>
             )}
@@ -228,7 +228,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
             {/* Linked Entity Card */}
             {post.linkedEntity && (
               <Link href={getEntityLink()}>
-                <div className="border rounded-xl p-4 hover:bg-muted dark:hover:bg-slate-800/50 transition-colors">
+                <div className="border rounded-xl p-4 hover:bg-muted dark:hover:bg-card/50 transition-colors">
                   <div className="flex items-start gap-3">
                     <div
                       className={`rounded-full p-2.5 ${getPostColor(
@@ -249,7 +249,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
                             : "Client"}
                         </Badge>
                       </div>
-                      <h4 className="font-semibold mt-1 truncate text-foreground dark:text-slate-100">
+                      <h4 className="font-semibold mt-1 truncate text-foreground dark:text-foreground">
                         {post.linkedEntity.title}
                       </h4>
                       {post.linkedEntity.subtitle && (
@@ -258,7 +258,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
                         </p>
                       )}
                       {post.linkedEntity.metadata?.price && (
-                        <p className="text-lg font-bold text-primary dark:text-blue-400 mt-2">
+                        <p className="text-lg font-bold text-primary dark:text-primary mt-2">
                           €{post.linkedEntity.metadata.price.toLocaleString()}
                         </p>
                       )}
@@ -314,7 +314,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
         <footer className="mt-12 text-center">
           <p className="text-muted-foreground text-sm">
             Powered by{" "}
-            <span className="text-muted-foreground dark:text-slate-300 font-semibold">
+            <span className="text-muted-foreground dark:text-muted-foreground font-semibold">
               Oikion
             </span>
           </p>

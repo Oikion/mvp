@@ -34,10 +34,10 @@ export default function OrganizationProfilePage() {
         {isPersonalWorkspace && (
           <Alert className="mb-6 border-warning/50 bg-warning/10">
             <ShieldAlert className="h-4 w-4 text-warning" />
-            <AlertTitle className="text-warning dark:text-amber-400">
+            <AlertTitle className="text-warning dark:text-warning">
               {t("protectedWorkspace")}
             </AlertTitle>
-            <AlertDescription className="text-warning/80 dark:text-amber-400/80">
+            <AlertDescription className="text-warning/80 dark:text-warning/80">
               {t("protectedWorkspaceDescription")}
             </AlertDescription>
           </Alert>

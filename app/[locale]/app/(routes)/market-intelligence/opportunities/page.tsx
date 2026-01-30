@@ -245,11 +245,11 @@ export default function OpportunitiesPage() {
                           <span className="text-muted-foreground line-through text-sm">
                             {formatPrice(change.oldPrice)}
                           </span>
-                          <Badge variant="secondary" className="bg-success/20 text-emerald-700 dark:text-emerald-400 border-success/30">
+                          <Badge variant="secondary" className="bg-success/20 text-emerald-700 dark:text-success border-success/30">
                             -{Math.abs(change.changePercent).toFixed(1)}%
                           </Badge>
                         </div>
-                        <p className="text-lg font-bold text-success dark:text-emerald-400">
+                        <p className="text-lg font-bold text-success dark:text-success">
                           {formatPrice(change.newPrice)}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -310,7 +310,7 @@ export default function OpportunitiesPage() {
                         </div>
                       </div>
                       <div className="text-right ml-4">
-                        <Badge variant="secondary" className="bg-warning/20 text-amber-700 dark:text-amber-400 border-warning/30">
+                        <Badge variant="secondary" className="bg-warning/20 text-warning dark:text-warning border-warning/30">
                           {item.percentBelowMarket.toFixed(1)}% below market
                         </Badge>
                         <p className="text-lg font-bold mt-1">

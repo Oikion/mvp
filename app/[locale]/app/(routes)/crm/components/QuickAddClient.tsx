@@ -138,7 +138,7 @@ export function QuickAddClient({ open, onOpenChange, users, onContinueToFull }: 
     } catch (error: any) {
       console.error("Error creating client:", error);
       const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || t("common.somethingWentWrong");
-      toast.error(t, { description: typeof, isTranslationKey: false });
+      toast.error(typeof errorMessage === 'string' ? errorMessage : String(errorMessage));
     } finally {
       setIsLoading(false);
     }

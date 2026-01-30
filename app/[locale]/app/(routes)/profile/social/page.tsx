@@ -42,7 +42,7 @@ export default async function SocialProfilePage() {
               </div>
               <div className="flex items-center gap-3">
                 {profile?.visibility === "PUBLIC" ? (
-                  <Badge className="bg-success/10 text-green-700 hover:bg-success/10">
+                  <Badge className="bg-success/10 text-success hover:bg-success/10">
                     <Eye className="h-3 w-3 mr-1" />
                     Public
                   </Badge>

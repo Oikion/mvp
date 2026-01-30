@@ -34,16 +34,16 @@ export const FeaturesSection: React.FC = () => {
       icon: <Building2 className="w-8 h-8" />,
       backgroundColorClass: 'bg-warning/10 dark:bg-yellow-900/20',
       borderColorClass: 'border-yellow-200 dark:border-yellow-700',
-      iconColorClass: 'text-warning dark:text-yellow-400'
+      iconColorClass: 'text-warning dark:text-warning'
     },
     {
       id: 2,
       title: t('features.cards.reports.title'),
       description: t('features.cards.reports.description'),
       icon: <BarChart3 className="w-8 h-8" />,
-      backgroundColorClass: 'bg-success/10 dark:bg-green-900/20',
-      borderColorClass: 'border-green-200 dark:border-green-700',
-      iconColorClass: 'text-success dark:text-green-400'
+      backgroundColorClass: 'bg-success/10 dark:bg-success/20/20',
+      borderColorClass: 'border-success/30 dark:border-green-700',
+      iconColorClass: 'text-success dark:text-success'
     },
     {
       id: 3,
@@ -115,18 +115,18 @@ export const FeaturesSection: React.FC = () => {
             >
               {/* Icon and Title Row */}
               <div className="flex items-center gap-3 mb-4">
-                <div className={`flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 ${feature.borderColorClass}`}>
+                <div className={`flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/80 dark:bg-card/80 backdrop-blur-sm border-2 ${feature.borderColorClass}`}>
                   <div className={`${feature.iconColorClass} scale-75`}>
                     {feature.icon}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-foreground dark:text-gray-100 leading-tight">
+                <h3 className="text-lg font-bold text-foreground dark:text-foreground leading-tight">
                   {feature.title}
                 </h3>
               </div>
               
               {/* Description */}
-              <p className="text-muted-foreground dark:text-gray-300 leading-relaxed text-sm">
+              <p className="text-muted-foreground dark:text-muted-foreground leading-relaxed text-sm">
                 {feature.description}
               </p>
             </motion.div>

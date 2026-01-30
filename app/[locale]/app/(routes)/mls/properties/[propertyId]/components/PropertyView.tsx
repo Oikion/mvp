@@ -199,12 +199,12 @@ export default function PropertyView({
               </div>
               <div className="flex items-center gap-2">
                 {visibility === "PUBLIC" ? (
-                  <Badge className="bg-success/15 text-success dark:text-green-400 hover:bg-success/20">
+                  <Badge className="bg-success/15 text-success dark:text-success hover:bg-success/20">
                     <Eye className="h-3 w-3 mr-1" />
                     Public
                   </Badge>
                 ) : visibility === "SELECTED" ? (
-                  <Badge className="bg-primary/15 text-primary dark:text-blue-400 hover:bg-primary/20">
+                  <Badge className="bg-primary/15 text-primary dark:text-primary hover:bg-primary/20">
                     <Users className="h-3 w-3 mr-1" />
                     Connections Only
                   </Badge>

@@ -146,7 +146,7 @@ export function AgentContactForm({
           <div className="rounded-full w-16 h-16 bg-success/20 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-success" />
           </div>
-          <h3 className="text-lg font-semibold text-green-700 dark:text-green-400 mb-2">
+          <h3 className="text-lg font-semibold text-success dark:text-success mb-2">
             {locale === "el" ? "Μήνυμα Εστάλη!" : "Message Sent!"}
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
@@ -163,11 +163,11 @@ export function AgentContactForm({
   }
 
   return (
-    <Card className="shadow-sm bg-white dark:bg-slate-800/50 border-border dark:border-slate-700/50">
+    <Card className="shadow-sm bg-white dark:bg-card/50 border-border dark:border-border/50">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-foreground dark:text-slate-100">
-          <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-blue-900/30">
-            <Mail className="h-4 w-4 text-primary dark:text-blue-400" />
+        <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-foreground dark:text-foreground">
+          <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-primary/20/30">
+            <Mail className="h-4 w-4 text-primary dark:text-primary" />
           </div>
           {locale === "el" ? "Επικοινωνήστε μαζί μου" : "Contact Me"}
         </CardTitle>

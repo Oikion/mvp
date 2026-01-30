@@ -71,10 +71,10 @@ interface DealDetailProps {
 }
 
 const statusColors: Record<string, string> = {
-  PROPOSED: "bg-warning/15 text-warning dark:text-amber-400",
+  PROPOSED: "bg-warning/15 text-warning dark:text-warning",
   NEGOTIATING: "bg-warning/15 text-warning dark:text-orange-400",
-  ACCEPTED: "bg-success/15 text-success dark:text-green-400",
-  IN_PROGRESS: "bg-primary/15 text-primary dark:text-blue-400",
+  ACCEPTED: "bg-success/15 text-success dark:text-success",
+  IN_PROGRESS: "bg-primary/15 text-primary dark:text-primary",
   COMPLETED: "bg-purple-500/15 text-purple-600 dark:text-purple-400",
   CANCELLED: "bg-muted text-muted-foreground",
 };
@@ -319,7 +319,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                     <div className="flex-1 text-center">
                       <Avatar className="h-16 w-16 mx-auto mb-2">
                         <AvatarImage src={deal.propertyAgent.avatar || ""} />
-                        <AvatarFallback className="bg-primary/15 text-primary dark:text-blue-400 text-xl">
+                        <AvatarFallback className="bg-primary/15 text-primary dark:text-primary text-xl">
                           {deal.propertyAgent.name?.charAt(0) || (
                             <User className="h-6 w-6" />
                           )}
@@ -350,7 +350,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                     <div className="flex-1 text-center">
                       <Avatar className="h-16 w-16 mx-auto mb-2">
                         <AvatarImage src={deal.clientAgent.avatar || ""} />
-                        <AvatarFallback className="bg-success/15 text-success dark:text-green-400 text-xl">
+                        <AvatarFallback className="bg-success/15 text-success dark:text-success text-xl">
                           {deal.clientAgent.name?.charAt(0) || (
                             <User className="h-6 w-6" />
                           )}

@@ -23,12 +23,12 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-gray-900 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-background px-4">
           <div className="max-w-md w-full space-y-8 text-center">
             <div className="space-y-4">
-              <div className="mx-auto w-16 h-16 bg-destructive/10 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+              <div className="mx-auto w-16 h-16 bg-destructive/10 dark:bg-destructive/20/20 rounded-full flex items-center justify-center">
                 <svg
-                  className="w-8 h-8 text-destructive dark:text-red-400"
+                  className="w-8 h-8 text-destructive dark:text-destructive"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -56,13 +56,13 @@ export default function GlobalError({
             <div className="space-y-3">
               <button
                 onClick={() => reset()}
-                className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
               >
                 Try again
               </button>
               <a
                 href="/"
-                className="w-full inline-flex justify-center items-center px-4 py-2 border border-border dark:border-gray-600 text-base font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-muted dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="w-full inline-flex justify-center items-center px-4 py-2 border border-border dark:border-gray-600 text-base font-medium rounded-md text-foreground dark:text-muted-foreground bg-white dark:bg-card hover:bg-muted dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
               >
                 Return to home
               </a>

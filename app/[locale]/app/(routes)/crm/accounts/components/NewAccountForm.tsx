@@ -229,7 +229,7 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
     } catch (error: any) {
       console.error("Error creating client:", error);
       const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || "Something went wrong. Please try again.";
-      toast.error("Error", { description: typeof, isTranslationKey: false });
+      toast.error("Error", { description: typeof errorMessage === 'string' ? errorMessage : String(errorMessage) });
     } finally {
       setIsLoading(false);
     }

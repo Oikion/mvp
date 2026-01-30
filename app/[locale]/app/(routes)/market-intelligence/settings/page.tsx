@@ -463,7 +463,7 @@ export default function MarketIntelSettingsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return <Badge className="bg-success/20 text-emerald-700 dark:text-emerald-400 border-success/30">Active</Badge>;
+        return <Badge className="bg-success/20 text-emerald-700 dark:text-success border-success/30">Active</Badge>;
       case 'ERROR':
         return <Badge variant="destructive">Error</Badge>;
       case 'PAUSED':
@@ -648,10 +648,10 @@ export default function MarketIntelSettingsPage() {
         <Card className="border-warning/30 bg-warning/10">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
-              <AlertCircle className="h-6 w-6 text-warning dark:text-amber-400" />
+              <AlertCircle className="h-6 w-6 text-warning dark:text-warning" />
               <div>
-                <h3 className="font-semibold text-amber-700 dark:text-amber-300">Database Setup Required</h3>
-                <p className="text-warning dark:text-amber-400 text-sm mt-1">
+                <h3 className="font-semibold text-warning dark:text-amber-300">Database Setup Required</h3>
+                <p className="text-warning dark:text-warning text-sm mt-1">
                   The Market Intelligence database schema has not been created yet.
                   Please run the database migration to enable this feature.
                 </p>
@@ -804,7 +804,7 @@ export default function MarketIntelSettingsPage() {
                       </div>
                       <div className="flex items-center gap-3 text-sm">
                         <span className="text-muted-foreground">{progress.total} analyzed</span>
-                        <span className="text-success dark:text-emerald-400 font-medium">{progress.passed} passed</span>
+                        <span className="text-success dark:text-success font-medium">{progress.passed} passed</span>
                         {progress.failed > 0 && (
                           <span className="text-destructive font-medium">{progress.failed} failed</span>
                         )}
@@ -844,7 +844,7 @@ export default function MarketIntelSettingsPage() {
                 <p className="text-xs text-muted-foreground">Total Analyzed</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-success dark:text-emerald-400">{activeJob.summary.totalPassed}</p>
+                <p className="text-2xl font-bold text-success dark:text-success">{activeJob.summary.totalPassed}</p>
                 <p className="text-xs text-muted-foreground">Passed</p>
               </div>
               <div className="text-center">
@@ -863,7 +863,7 @@ export default function MarketIntelSettingsPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
                 {activeJob.status === "COMPLETED" ? (
-                  <CheckCircle2 className="h-5 w-5 text-success dark:text-emerald-400" />
+                  <CheckCircle2 className="h-5 w-5 text-success dark:text-success" />
                 ) : (
                   <XCircle className="h-5 w-5 text-destructive" />
                 )}
@@ -885,7 +885,7 @@ export default function MarketIntelSettingsPage() {
                 <p className="text-xs text-muted-foreground">Total Analyzed</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-success dark:text-emerald-400">{activeJob.summary.totalPassed}</p>
+                <p className="text-2xl font-bold text-success dark:text-success">{activeJob.summary.totalPassed}</p>
                 <p className="text-xs text-muted-foreground">Saved</p>
               </div>
               <div className="text-center">

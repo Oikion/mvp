@@ -71,22 +71,22 @@ const feedbackTypeConfig = {
   bug: { 
     label: "Bug Report", 
     icon: Bug, 
-    color: "bg-destructive/15 text-destructive dark:text-red-400" 
+    color: "bg-destructive/15 text-destructive dark:text-destructive" 
   },
   feature: { 
     label: "Feature Request", 
     icon: Sparkles, 
-    color: "bg-primary/15 text-primary dark:text-blue-400" 
+    color: "bg-primary/15 text-primary dark:text-primary" 
   },
   general: { 
     label: "General Feedback", 
     icon: MessageSquare, 
-    color: "bg-success/15 text-success dark:text-green-400" 
+    color: "bg-success/15 text-success dark:text-success" 
   },
   question: { 
     label: "Question", 
     icon: HelpCircle, 
-    color: "bg-warning/15 text-warning dark:text-amber-400" 
+    color: "bg-warning/15 text-warning dark:text-warning" 
   },
   other: { 
     label: "Other", 

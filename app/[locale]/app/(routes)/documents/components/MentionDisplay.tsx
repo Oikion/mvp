@@ -29,7 +29,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
         <Badge
           key={`client-${client.id}`}
           variant="outline"
-          className="bg-primary/10 text-primary border-primary/30 hover:bg-primary/20 dark:text-blue-400 cursor-pointer"
+          className="bg-primary/10 text-primary border-primary/30 hover:bg-primary/20 dark:text-primary cursor-pointer"
           onClick={() => onMentionClick?.("client", client.id)}
         >
           <Users className="h-3 w-3 mr-1" />
@@ -42,7 +42,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
         <Badge
           key={`property-${property.id}`}
           variant="outline"
-          className="bg-success/10 text-success border-success/30 hover:bg-success/20 dark:text-green-400 cursor-pointer"
+          className="bg-success/10 text-success border-success/30 hover:bg-success/20 dark:text-success cursor-pointer"
           onClick={() => onMentionClick?.("property", property.id)}
         >
           <Home className="h-3 w-3 mr-1" />

@@ -61,22 +61,22 @@ const feedbackTypeConfig = {
   bug: { 
     label: "Bug Report", 
     icon: Bug, 
-    color: "bg-destructive/15 text-destructive dark:text-red-400" 
+    color: "bg-destructive/15 text-destructive dark:text-destructive" 
   },
   feature: { 
     label: "Feature Request", 
     icon: Sparkles, 
-    color: "bg-primary/15 text-primary dark:text-blue-400" 
+    color: "bg-primary/15 text-primary dark:text-primary" 
   },
   general: { 
     label: "General Feedback", 
     icon: MessageSquare, 
-    color: "bg-success/15 text-success dark:text-green-400" 
+    color: "bg-success/15 text-success dark:text-success" 
   },
   question: { 
     label: "Question", 
     icon: HelpCircle, 
-    color: "bg-warning/15 text-warning dark:text-amber-400" 
+    color: "bg-warning/15 text-warning dark:text-warning" 
   },
   other: { 
     label: "Other", 
@@ -154,7 +154,7 @@ const FeedbackHistorySheet = ({ open, onOpenChange }: FeedbackHistorySheetProps)
           {error && (
             <Card className="border-destructive/30 bg-destructive/10">
               <CardContent className="pt-6">
-                <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                <p className="text-sm text-destructive dark:text-red-200">{error}</p>
               </CardContent>
             </Card>
           )}

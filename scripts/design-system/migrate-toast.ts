@@ -117,7 +117,7 @@ function findFiles(targetPath: string): string[] {
 /**
  * Check if file contains deprecated toast import or old toast call patterns
  */
-function needsMigration(content: string): boolean {
+function needsMigration(content: string, migrateSonner: boolean = false): boolean {
   // Check for old import
   const hasOldImport = (
     content.includes(OLD_IMPORT) ||
@@ -132,7 +132,13 @@ function needsMigration(content: string): boolean {
     /toast\(\s*\{\s*(?:variant|title|description)/.test(content)
   );
   
-  return hasOldImport || hasOldToastCalls;
+  // Check for direct Sonner imports (optional migration)
+  const hasDirectSonner = migrateSonner && (
+    content.includes('from "sonner"') ||
+    content.includes("from 'sonner'")
+  );
+  
+  return hasOldImport || hasOldToastCalls || hasDirectSonner;
 }
 
 /**

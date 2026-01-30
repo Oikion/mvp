@@ -156,7 +156,7 @@ export function SocialClient({
     const colors: Record<string, string> = {
       LINKEDIN: "bg-[#0077B5]/10 text-[#0077B5] hover:bg-[#0077B5]/20",
       INSTAGRAM: "bg-[#E4405F]/10 text-[#E4405F] hover:bg-[#E4405F]/20",
-      TIKTOK: "bg-gray-800/10 text-foreground dark:text-gray-200 hover:bg-gray-800/20",
+      TIKTOK: "bg-card/10 text-foreground dark:text-foreground hover:bg-card/20",
       TWITTER: "bg-[#1DA1F2]/10 text-[#1DA1F2] hover:bg-[#1DA1F2]/20",
       FACEBOOK: "bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20",
     };

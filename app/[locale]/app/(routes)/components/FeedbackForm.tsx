@@ -50,10 +50,10 @@ import FeedbackHistorySheet from "./FeedbackHistorySheet";
 import { APP_VERSION } from "@/lib/version";
 
 const feedbackTypeIcons = {
-  bug: { icon: Bug, color: "text-destructive dark:text-red-400" },
-  feature: { icon: Sparkles, color: "text-primary dark:text-blue-400" },
-  general: { icon: MessageSquare, color: "text-success dark:text-green-400" },
-  question: { icon: HelpCircle, color: "text-warning dark:text-yellow-400" },
+  bug: { icon: Bug, color: "text-destructive dark:text-destructive" },
+  feature: { icon: Sparkles, color: "text-primary dark:text-primary" },
+  general: { icon: MessageSquare, color: "text-success dark:text-success" },
+  question: { icon: HelpCircle, color: "text-warning dark:text-warning" },
   other: { icon: MoreHorizontal, color: "text-muted-foreground dark:text-muted-foreground" },
 };
 
@@ -231,7 +231,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
         <Card variant="outlined" className="border-border bg-muted/50">
         <CardHeader className="pb-3">
           <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-primary dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <Info className="h-5 w-5 text-primary dark:text-primary mt-0.5 flex-shrink-0" />
             <div className="space-y-2">
               <CardTitle className="text-base text-foreground">{t("versionInfo.title", { version: APP_VERSION })}</CardTitle>
               <CardDescription className="text-sm leading-relaxed text-muted-foreground">
@@ -362,7 +362,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex flex-col items-center text-center p-3 rounded-md hover:bg-muted/50 transition-colors cursor-help">
-                          <Camera className="h-8 w-8 text-primary dark:text-blue-400 mb-2" />
+                          <Camera className="h-8 w-8 text-primary dark:text-primary mb-2" />
                           <span className="text-xs font-medium text-foreground">{t("consent.screenshot.title")}</span>
                           <span className="text-xs text-muted-foreground mt-1">{t("consent.screenshot.subtitle")}</span>
                         </div>
@@ -378,7 +378,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex flex-col items-center text-center p-3 rounded-md hover:bg-muted/50 transition-colors cursor-help">
-                          <Terminal className="h-8 w-8 text-success dark:text-green-400 mb-2" />
+                          <Terminal className="h-8 w-8 text-success dark:text-success mb-2" />
                           <span className="text-xs font-medium text-foreground">{t("consent.consoleLogs.title")}</span>
                           <span className="text-xs text-muted-foreground mt-1">{t("consent.consoleLogs.subtitle")}</span>
                         </div>

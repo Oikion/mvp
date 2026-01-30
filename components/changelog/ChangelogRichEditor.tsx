@@ -72,12 +72,12 @@ const calloutStyles: Record<CalloutType, { bg: string; border: string; icon: Rea
   },
   warning: {
     bg: "bg-warning/10 dark:bg-amber-950/30",
-    border: "border-amber-200 dark:border-amber-800",
+    border: "border-warning/30 dark:border-amber-800",
     icon: AlertCircle,
   },
   info: {
-    bg: "bg-primary/10 dark:bg-blue-950/30",
-    border: "border-blue-200 dark:border-blue-800",
+    bg: "bg-primary/10 dark:bg-primary/20/30",
+    border: "border-primary/30 dark:border-primary/50",
     icon: Info,
   },
 };

@@ -283,7 +283,7 @@ export default function ListingsPage() {
   const getPlatformBadgeColor = (platform: string) => {
     const colors: Record<string, string> = {
       spitogatos: "bg-primary/20 text-primary border-primary/30",
-      xe_gr: "bg-success/20 text-emerald-700 dark:text-emerald-400 border-success/30",
+      xe_gr: "bg-success/20 text-emerald-700 dark:text-success border-success/30",
       tospitimou: "bg-violet-500/20 text-violet-700 dark:text-violet-400 border-violet-500/30"
     };
     return colors[platform] || "bg-muted text-muted-foreground";

@@ -30,7 +30,7 @@ export function SharedAccessBanner({ shareInfo, entityType }: SharedAccessBanner
     <Card className="p-4 bg-primary/10 border-primary/30">
       <div className="flex items-start gap-4">
         <div className="p-2 rounded-full bg-primary/15">
-          <Share2 className="h-4 w-4 text-primary dark:text-blue-400" />
+          <Share2 className="h-4 w-4 text-primary dark:text-primary" />
         </div>
         <div className="flex-1 space-y-2">
           <div className="flex items-center justify-between">
@@ -42,8 +42,8 @@ export function SharedAccessBanner({ shareInfo, entityType }: SharedAccessBanner
                 variant="outline"
                 className={`text-xs ${
                   isViewOnly
-                    ? "border-warning text-amber-700 dark:text-amber-400"
-                    : "border-success text-green-700 dark:text-green-400"
+                    ? "border-warning text-warning dark:text-warning"
+                    : "border-success text-success dark:text-success"
                 }`}
               >
                 {isViewOnly ? (

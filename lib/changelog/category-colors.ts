@@ -62,9 +62,9 @@ export const TAG_COLOR_STYLES: Record<TagColor, TagColorClasses> = {
   },
   red: {
     bg: "bg-destructive/10",
-    text: "text-destructive dark:text-red-400",
+    text: "text-destructive dark:text-destructive",
     border: "border-destructive/20",
-    combined: "bg-destructive/10 text-destructive dark:text-red-400 border-destructive/20",
+    combined: "bg-destructive/10 text-destructive dark:text-destructive border-destructive/20",
   },
   orange: {
     bg: "bg-warning/10",
@@ -74,15 +74,15 @@ export const TAG_COLOR_STYLES: Record<TagColor, TagColorClasses> = {
   },
   amber: {
     bg: "bg-warning/10",
-    text: "text-warning dark:text-amber-400",
+    text: "text-warning dark:text-warning",
     border: "border-warning/20",
-    combined: "bg-warning/10 text-warning dark:text-amber-400 border-warning/20",
+    combined: "bg-warning/10 text-warning dark:text-warning border-warning/20",
   },
   yellow: {
     bg: "bg-warning/10",
-    text: "text-warning dark:text-yellow-400",
+    text: "text-warning dark:text-warning",
     border: "border-warning/20",
-    combined: "bg-warning/10 text-warning dark:text-yellow-400 border-warning/20",
+    combined: "bg-warning/10 text-warning dark:text-warning border-warning/20",
   },
   lime: {
     bg: "bg-lime-500/10",
@@ -92,15 +92,15 @@ export const TAG_COLOR_STYLES: Record<TagColor, TagColorClasses> = {
   },
   green: {
     bg: "bg-success/10",
-    text: "text-success dark:text-green-400",
+    text: "text-success dark:text-success",
     border: "border-success/20",
-    combined: "bg-success/10 text-success dark:text-green-400 border-success/20",
+    combined: "bg-success/10 text-success dark:text-success border-success/20",
   },
   emerald: {
     bg: "bg-success/10",
-    text: "text-success dark:text-emerald-400",
+    text: "text-success dark:text-success",
     border: "border-success/20",
-    combined: "bg-success/10 text-success dark:text-emerald-400 border-success/20",
+    combined: "bg-success/10 text-success dark:text-success border-success/20",
   },
   teal: {
     bg: "bg-teal-500/10",
@@ -122,9 +122,9 @@ export const TAG_COLOR_STYLES: Record<TagColor, TagColorClasses> = {
   },
   blue: {
     bg: "bg-primary/10",
-    text: "text-primary dark:text-blue-400",
+    text: "text-primary dark:text-primary",
     border: "border-primary/20",
-    combined: "bg-primary/10 text-primary dark:text-blue-400 border-primary/20",
+    combined: "bg-primary/10 text-primary dark:text-primary border-primary/20",
   },
   indigo: {
     bg: "bg-indigo-500/10",

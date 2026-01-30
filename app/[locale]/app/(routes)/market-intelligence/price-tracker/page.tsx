@@ -270,7 +270,7 @@ export default function PriceTrackerPage() {
                         : 'bg-destructive/20'
                     }`}>
                       {change.changeType === 'decrease' ? (
-                        <TrendingDown className="h-5 w-5 text-success dark:text-emerald-400" />
+                        <TrendingDown className="h-5 w-5 text-success dark:text-success" />
                       ) : (
                         <TrendingUp className="h-5 w-5 text-destructive" />
                       )}
@@ -309,7 +309,7 @@ export default function PriceTrackerPage() {
                         variant="secondary" 
                         className={
                           change.changeType === 'decrease'
-                            ? 'bg-success/20 text-emerald-700 dark:text-emerald-400 border-success/30'
+                            ? 'bg-success/20 text-emerald-700 dark:text-success border-success/30'
                             : 'bg-destructive/20 text-destructive border-destructive/30'
                         }
                       >

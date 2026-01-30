@@ -180,7 +180,7 @@ export function MarketMetricsTab({ data, dict }: MarketMetricsTabProps) {
                   <p className="text-lg font-bold text-success">{data.cmaAccuracy.onTarget || 0}</p>
                   <p className="text-xs text-muted-foreground">On Target</p>
                 </div>
-                <div className="p-2 rounded bg-primary/10 dark:bg-blue-950">
+                <div className="p-2 rounded bg-primary/10 dark:bg-primary/20">
                   <p className="text-lg font-bold text-primary">{data.cmaAccuracy.underEstimated}</p>
                   <p className="text-xs text-muted-foreground">Under-estimated</p>
                 </div>

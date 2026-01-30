@@ -92,7 +92,7 @@ export const PriceCell = ({ propertyId, price }: PriceCellProps) => {
         <Button
           size="icon"
           variant="ghost"
-          className="h-7 w-7 text-success hover:text-green-700 hover:bg-success/10 dark:hover:bg-success/20"
+          className="h-7 w-7 text-success hover:text-success hover:bg-success/10 dark:hover:bg-success/20"
           onClick={handleSave}
           disabled={loading}
         >
@@ -101,7 +101,7 @@ export const PriceCell = ({ propertyId, price }: PriceCellProps) => {
         <Button
           size="icon"
           variant="ghost"
-          className="h-7 w-7 text-destructive hover:text-red-700 hover:bg-destructive/10 dark:hover:bg-destructive/20"
+          className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
           onClick={handleCancel}
           disabled={loading}
         >

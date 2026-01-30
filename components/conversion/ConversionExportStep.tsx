@@ -113,7 +113,7 @@ export function ConversionExportStep({
       {/* Success Alert */}
       <Alert className="border-success/30 bg-success/10">
         <CheckCircle2 className="h-4 w-4 text-success" />
-        <AlertTitle className="text-success dark:text-green-400">
+        <AlertTitle className="text-success dark:text-success">
           {t("export.success")}
         </AlertTitle>
         <AlertDescription className="text-success dark:text-success">
@@ -188,7 +188,7 @@ export function ConversionExportStep({
           </Button>
 
           {isExported && (
-            <p className="text-sm text-center text-success dark:text-green-400">
+            <p className="text-sm text-center text-success dark:text-success">
               ✓ File downloaded successfully
             </p>
           )}

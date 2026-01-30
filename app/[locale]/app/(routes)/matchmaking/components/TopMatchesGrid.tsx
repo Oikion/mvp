@@ -62,7 +62,7 @@ export function TopMatchesGrid({ matches, locale }: Props) {
           {/* Client Info */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Avatar className="h-10 w-10">
-              <AvatarFallback className="bg-primary/10 text-blue-700">
+              <AvatarFallback className="bg-primary/10 text-primary">
                 <User className="h-5 w-5" />
               </AvatarFallback>
             </Avatar>

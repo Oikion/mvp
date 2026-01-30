@@ -35,7 +35,7 @@ export function AutosaveIndicator({
       className={cn(
         "flex items-center gap-2 text-xs",
         status === "saving" && "text-muted-foreground",
-        status === "saved" && "text-success dark:text-green-400",
+        status === "saved" && "text-success dark:text-success",
         status === "failed" && "text-destructive",
         className
       )}

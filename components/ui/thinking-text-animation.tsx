@@ -222,8 +222,8 @@ export function ThinkingTextAnimation({
   const variantClasses = {
     default: "text-foreground",
     primary: "text-primary",
-    success: "text-success dark:text-emerald-400",
-    warning: "text-warning dark:text-amber-400",
+    success: "text-success dark:text-success",
+    warning: "text-warning dark:text-warning",
   };
 
   const styles = sizeClasses[size];
@@ -334,7 +334,7 @@ export function PortalStepAnimation({
       bg: "bg-primary/10",
     },
     complete: {
-      color: "text-success dark:text-emerald-400",
+      color: "text-success dark:text-success",
       bg: "bg-success/10",
     },
     error: {

@@ -107,14 +107,14 @@ export function ValidationStep({
       {!hasErrors ? (
         <Alert className="border-success/30 bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-success" />
-          <AlertDescription className="text-success dark:text-green-400">
+          <AlertDescription className="text-success dark:text-success">
             {dict.noErrors}
           </AlertDescription>
         </Alert>
       ) : (
         <Alert className="border-warning/30 bg-warning/10">
           <AlertTriangle className="h-4 w-4 text-warning" />
-          <AlertDescription className="text-warning dark:text-amber-400">
+          <AlertDescription className="text-warning dark:text-warning">
             {dict.hasErrors.replace("{count}", String(invalidCount))}
             <span className="block text-xs mt-1 opacity-80">{dict.fixHint}</span>
           </AlertDescription>

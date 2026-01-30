@@ -153,7 +153,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
     } catch (error: any) {
       console.error("Error creating property:", error);
       const errorMessage = error?.response?.data?.error || error?.response?.data || error?.message || tCommon("somethingWentWrong");
-      toast.error(tCommon, { description: typeof, isTranslationKey: false });
+      toast.error(typeof errorMessage === 'string' ? errorMessage : String(errorMessage));
     } finally {
       setIsLoading(false);
     }

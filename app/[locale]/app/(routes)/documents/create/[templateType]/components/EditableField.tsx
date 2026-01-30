@@ -136,7 +136,7 @@ export function EditableField({
   const baseInputStyles = cn(
     "!bg-white !text-black placeholder:!text-muted-foreground",
     "border border-dashed !border-border",
-    "focus:!ring-2 focus:!ring-blue-400 focus:!border-blue-400",
+    "focus:!ring-2 focus:!ring-primary focus:!border-primary",
     "h-auto py-0.5 px-1.5",
     "[&]:!text-black" // Extra specificity for text color
   );
@@ -154,7 +154,7 @@ export function EditableField({
                 "min-w-[120px]",
                 inline && "inline-flex w-auto",
                 isEmpty && isRequired && "!border-orange-500",
-                !isEmpty && "!border-blue-400 !bg-white",
+                !isEmpty && "!border-primary !bg-white",
                 // Force black text in select trigger
                 "[&>span]:!text-black [&>svg]:!text-muted-foreground"
               )}
@@ -216,8 +216,8 @@ export function EditableField({
               "w-auto min-w-[140px]",
               inline && "inline-block",
               isEmpty && isRequired && "!border-orange-500",
-              !isEmpty && "!border-blue-400",
-              isFocused && "!ring-2 !ring-blue-400"
+              !isEmpty && "!border-primary",
+              isFocused && "!ring-2 !ring-primary"
             )}
           />
         );
@@ -239,8 +239,8 @@ export function EditableField({
               "w-auto min-w-[100px]",
               inline && "inline-block",
               isEmpty && isRequired && "!border-orange-500",
-              !isEmpty && "!border-blue-400",
-              isFocused && "!ring-2 !ring-blue-400"
+              !isEmpty && "!border-primary",
+              isFocused && "!ring-2 !ring-primary"
             )}
           />
         );
@@ -259,8 +259,8 @@ export function EditableField({
               baseInputStyles,
               inline ? "inline-block w-auto min-w-[150px]" : "w-full",
               isEmpty && isRequired && "!border-orange-500",
-              !isEmpty && "!border-blue-400",
-              isFocused && "!ring-2 !ring-blue-400"
+              !isEmpty && "!border-primary",
+              isFocused && "!ring-2 !ring-primary"
             )}
           />
         );
@@ -278,7 +278,7 @@ export function EditableField({
       {renderInput()}
       {/* Tooltip showing field name on hover */}
       {isFocused && (
-        <span className="absolute -top-6 left-0 text-xs bg-gray-800 text-white px-1.5 py-0.5 rounded whitespace-nowrap z-10 shadow-md">
+        <span className="absolute -top-6 left-0 text-xs bg-card text-white px-1.5 py-0.5 rounded whitespace-nowrap z-10 shadow-md">
           {label}
           {isRequired && " *"}
         </span>

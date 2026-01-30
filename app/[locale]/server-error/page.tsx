@@ -74,7 +74,7 @@ export default function ServerErrorPage() {
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground dark:text-slate-100 mb-4 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground dark:text-foreground mb-4 tracking-tight">
           {t.title}
         </h2>
 
@@ -88,7 +88,7 @@ export default function ServerErrorPage() {
           <Button
             variant="outline"
             size="lg"
-            className="min-w-[160px] h-12 rounded-xl border-border dark:border-slate-800 hover:bg-muted dark:hover:bg-slate-800 transition-all duration-200"
+            className="min-w-[160px] h-12 rounded-xl border-border dark:border-slate-800 hover:bg-muted dark:hover:bg-card transition-all duration-200"
             onClick={handleRefresh}
           >
             <RefreshCw className="w-4 h-4 mr-2" />

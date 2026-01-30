@@ -153,14 +153,14 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
           </div>
         ) : (
           <div className="aspect-[21/9] max-h-[500px] flex items-center justify-center bg-muted">
-            <Building2 className="h-24 w-24 text-gray-300" />
+            <Building2 className="h-24 w-24 text-muted-foreground" />
           </div>
         )}
       </div>
 
       {/* Thumbnail Strip */}
       {images.length > 1 && (
-        <div className="bg-gray-900 py-2 px-4 overflow-x-auto">
+        <div className="bg-background py-2 px-4 overflow-x-auto">
           <div className="flex gap-2 justify-center">
             {images.slice(0, 8).map((img: any, idx: number) => (
               <button
@@ -437,7 +437,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                   <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16">
                       <AvatarImage src={agent.avatar || ""} alt={agent.name || ""} />
-                      <AvatarFallback className="bg-primary/15 text-primary dark:text-blue-400 text-xl">
+                      <AvatarFallback className="bg-primary/15 text-primary dark:text-primary text-xl">
                         {agent.name?.charAt(0) || <User className="h-6 w-6" />}
                       </AvatarFallback>
                     </Avatar>
@@ -474,7 +474,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                   {agentProfile?.visibility !== "PERSONAL" && agentProfile?.slug && (
                     <Link
                       href={`/agent/${agentProfile.slug}`}
-                      className="flex items-center justify-center gap-2 p-3 rounded-lg border border-border hover:bg-muted transition-colors text-gray-700"
+                      className="flex items-center justify-center gap-2 p-3 rounded-lg border border-border hover:bg-muted transition-colors text-foreground"
                     >
                       <User className="h-5 w-5" />
                       <span>Προφίλ Μεσίτη</span>
@@ -489,7 +489,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
             <Card className="shadow-sm">
               <CardContent className="p-4 text-center">
                 <p className="text-sm text-muted-foreground">Κωδικός Ακινήτου</p>
-                <p className="font-mono font-semibold text-gray-700">
+                <p className="font-mono font-semibold text-foreground">
                   {property.id.slice(0, 8).toUpperCase()}
                 </p>
               </CardContent>
@@ -499,7 +499,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 mt-16">
+      <footer className="bg-background text-white py-8 mt-16">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-muted-foreground text-sm">
             Powered by{" "}
@@ -521,7 +521,7 @@ function DetailRow({
   value: string | number;
 }) {
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
+    <div className="flex items-center gap-3 py-2 border-b border-border last:border-0">
       <span className="text-primary">{icon}</span>
       <span className="text-muted-foreground flex-1">{label}</span>
       <span className="font-medium text-foreground">{value}</span>

@@ -504,7 +504,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
       const errorData = error?.response?.data;
       const errorMessage = errorData?.error || errorData?.details || error?.message || "Κάτι πήγε στραβά";
       
-      toast.error("Σφάλμα", { description: typeof, isTranslationKey: false });
+      toast.error("Σφάλμα", { description: typeof errorMessage === 'string' ? errorMessage : String(errorMessage) });
     } finally {
       setIsLoading(false);
     }

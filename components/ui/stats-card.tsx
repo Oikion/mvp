@@ -104,8 +104,8 @@ export function StatsCard({
                 {trend && (
                   <span className={cn(
                     "inline-flex items-center gap-0.5 mr-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium",
-                    trendUp === true && "bg-success/10 text-success dark:text-green-400",
-                    trendUp === false && "bg-destructive/10 text-destructive dark:text-red-400"
+                    trendUp === true && "bg-success/10 text-success dark:text-success",
+                    trendUp === false && "bg-destructive/10 text-destructive dark:text-destructive"
                   )}>
                     {trend}
                   </span>

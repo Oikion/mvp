@@ -45,13 +45,13 @@ export function UnmatchedClientsList({ clients, locale }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-warning/10 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+      <div className="bg-warning/10 border border-warning/30 rounded-lg p-4 flex items-start gap-3">
         <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
         <div>
           <p className="font-medium text-amber-800">
             {clients.length} clients need attention
           </p>
-          <p className="text-sm text-amber-700 mt-1">
+          <p className="text-sm text-warning mt-1">
             These clients have no properties matching their preferences above 50%. 
             Consider expanding their search criteria or adding new properties.
           </p>
@@ -65,7 +65,7 @@ export function UnmatchedClientsList({ clients, locale }: Props) {
             className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
           >
             <Avatar className="h-10 w-10">
-              <AvatarFallback className="bg-warning/10 text-amber-700">
+              <AvatarFallback className="bg-warning/10 text-warning">
                 <User className="h-5 w-5" />
               </AvatarFallback>
             </Avatar>

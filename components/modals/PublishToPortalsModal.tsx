@@ -622,7 +622,7 @@ export function PublishToPortalsModal({
               {/* Info note for API publish */}
               <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20 text-sm">
                 <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
-                <p className="text-amber-700 dark:text-amber-300">
+                <p className="text-warning dark:text-amber-300">
                   {locale === "el"
                     ? "Τα ακίνητα θα οριστούν σε ΔΗΜΟΣΙΑ ορατότητα και θα υποβληθούν στα επιλεγμένα portals."
                     : "Properties will be set to PUBLIC visibility and submitted to selected portals."}

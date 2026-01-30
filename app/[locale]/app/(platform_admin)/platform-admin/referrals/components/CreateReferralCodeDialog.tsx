@@ -155,8 +155,8 @@ export function CreateReferralCodeDialog({ locale }: CreateReferralCodeDialogPro
           // Success state
           <div className="py-6">
             <div className="flex flex-col items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 dark:bg-green-900/20">
-                <CheckCircle className="h-6 w-6 text-success dark:text-green-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10 dark:bg-success/20/20">
+                <CheckCircle className="h-6 w-6 text-success dark:text-success" />
               </div>
               <p className="text-sm text-muted-foreground text-center">
                 {t("createCode.createdFor", { email: selectedUser?.email })}

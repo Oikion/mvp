@@ -280,13 +280,13 @@ export function FeedbackDetailDialog({
                       <div className="flex gap-4">
                         <div className="flex items-center gap-2">
                           <Camera className={`h-4 w-4 ${feedback.hasScreenshot ? "text-success" : "text-muted-foreground"}`} />
-                          <span className={feedback.hasScreenshot ? "text-success dark:text-green-400" : "text-muted-foreground"}>
+                          <span className={feedback.hasScreenshot ? "text-success dark:text-success" : "text-muted-foreground"}>
                             {feedback.hasScreenshot ? t("feedback.screenshotCaptured") : t("feedback.noScreenshotCaptured")}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Terminal className={`h-4 w-4 ${feedback.hasConsoleLogs ? "text-success" : "text-muted-foreground"}`} />
-                          <span className={feedback.hasConsoleLogs ? "text-success dark:text-green-400" : "text-muted-foreground"}>
+                          <span className={feedback.hasConsoleLogs ? "text-success dark:text-success" : "text-muted-foreground"}>
                             {feedback.hasConsoleLogs 
                               ? t("feedback.consoleLogsCaptured", { count: feedback.consoleLogsCount ?? 0 })
                               : t("feedback.noConsoleLogsCaptured")}
@@ -294,7 +294,7 @@ export function FeedbackDetailDialog({
                         </div>
                       </div>
                       {!feedback.hasScreenshot && !feedback.hasConsoleLogs && (
-                        <p className="text-sm text-warning dark:text-amber-400 mt-2">
+                        <p className="text-sm text-warning dark:text-warning mt-2">
                           {t("feedback.noDiagnosticDataWarning")}
                         </p>
                       )}

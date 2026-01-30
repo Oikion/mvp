@@ -53,8 +53,8 @@ export default function ForbiddenPage() {
         <div className="mb-6 flex justify-center">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-destructive/20 blur-xl animate-pulse" />
-            <div className="relative p-4 rounded-full bg-destructive/10 dark:bg-red-900/30 border border-red-200 dark:border-red-800">
-              <ShieldX className="w-12 h-12 text-destructive dark:text-red-400" />
+            <div className="relative p-4 rounded-full bg-destructive/10 dark:bg-destructive/20/30 border border-red-200 dark:border-red-800">
+              <ShieldX className="w-12 h-12 text-destructive dark:text-destructive" />
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function ForbiddenPage() {
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground dark:text-slate-100 mb-4 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground dark:text-foreground mb-4 tracking-tight">
           {t.title}
         </h2>
 
@@ -84,7 +84,7 @@ export default function ForbiddenPage() {
           <Button
             variant="outline"
             size="lg"
-            className="min-w-[160px] h-12 rounded-xl border-border dark:border-slate-800 hover:bg-muted dark:hover:bg-slate-800 transition-all duration-200"
+            className="min-w-[160px] h-12 rounded-xl border-border dark:border-slate-800 hover:bg-muted dark:hover:bg-card transition-all duration-200"
             onClick={() => globalThis.history.back()}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
