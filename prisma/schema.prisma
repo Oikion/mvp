@@ -107,12 +107,12 @@ model AudienceMember {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model CalComEvent {
+model CalendarEvent {
   id                 String               @id
   createdAt          DateTime             @default(now())
   updatedAt          DateTime
-  calcomEventId      Int                  @unique
-  calcomUserId       Int                  @default(0)
+  calendarEventId    Int                  @unique
+  calendarUserId     Int                  @default(0)
   organizationId     String               @default("00000000-0000-0000-0000-000000000000")
   title              String?
   description        String?
@@ -133,12 +133,12 @@ model CalComEvent {
   CalendarReminder   CalendarReminder[]
   EventInvitee       EventInvitee[]
   crm_Accounts_Tasks crm_Accounts_Tasks[]
-  Documents          Documents[]          @relation("DocumentsToCalComEvents")
+  Documents          Documents[]          @relation("DocumentsToCalendarEvents")
   Clients            Clients[]            @relation("EventToClients")
   Properties         Properties[]         @relation("EventToProperties")
 
   @@index([assignedUserId])
-  @@index([calcomEventId])
+  @@index([calendarEventId])
   @@index([eventType])
   @@index([organizationId])
   @@index([startTime])
@@ -155,7 +155,7 @@ model CalendarReminder {
   status           ReminderStatus   @default(PENDING)
   notificationType NotificationType @default(EMAIL)
   organizationId   String           @default("00000000-0000-0000-0000-000000000000")
-  CalComEvent      CalComEvent      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  CalendarEvent    CalendarEvent    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([eventId])
   @@index([organizationId])
@@ -300,7 +300,7 @@ model Clients {
   Deal                             Deal[]
   crm_Accounts_Tasks               crm_Accounts_Tasks[]
   Documents                        Documents[]          @relation("DocumentsToClients")
-  CalComEvent                      CalComEvent[]        @relation("EventToClients")
+  CalendarEvent                    CalendarEvent[]      @relation("EventToClients")
   Users_watching_accounts          Users[]              @relation("watching_accounts")
   PropertyShowing                  PropertyShowing[]
 
@@ -420,7 +420,7 @@ model Documents {
   expiresAt                                      DateTime?
   lastViewedAt                                   DateTime?
   linkEnabled                                    Boolean              @default(false)
-  linkedCalComEventsIds                          String[]
+  linkedCalendarEventsIds                        String[]
   linkedPropertiesIds                            String[]
   linkedTasksIds                                 String[]
   mentions                                       Json?
@@ -433,7 +433,7 @@ model Documents {
   Users_Documents_assigned_userToUsers           Users?               @relation("Documents_assigned_userToUsers", fields: [assigned_user], references: [id])
   Users_Documents_created_by_userToUsers         Users?               @relation("Documents_created_by_userToUsers", fields: [created_by_user], references: [id])
   Documents_Types                                Documents_Types?     @relation(fields: [document_type], references: [id])
-  CalComEvent                                    CalComEvent[]        @relation("DocumentsToCalComEvents")
+  CalendarEvent                                  CalendarEvent[]      @relation("DocumentsToCalendarEvents")
   Client_Contacts                                Client_Contacts[]    @relation("DocumentsToClientContacts")
   Clients                                        Clients[]            @relation("DocumentsToClients")
   crm_Accounts_Tasks_DocumentsToCrmAccountsTasks crm_Accounts_Tasks[] @relation("DocumentsToCrmAccountsTasks")
@@ -464,15 +464,15 @@ model Employees {
 }
 
 model EventInvitee {
-  id             String       @id
+  id             String        @id
   eventId        String
   userId         String
-  status         InviteStatus @default(PENDING)
+  status         InviteStatus  @default(PENDING)
   respondedAt    DateTime?
-  createdAt      DateTime     @default(now())
-  organizationId String       @default("00000000-0000-0000-0000-000000000000")
-  CalComEvent    CalComEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  Users          Users        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now())
+  organizationId String        @default("00000000-0000-0000-0000-000000000000")
+  CalendarEvent  CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  Users          Users         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, userId])
   @@index([eventId])
@@ -719,7 +719,7 @@ model Properties {
   PropertyComment                     PropertyComment[]
   Property_Contacts                   Property_Contacts[]
   Documents                           Documents[]
-  CalComEvent                         CalComEvent[]             @relation("EventToProperties")
+  CalendarEvent                       CalendarEvent[]           @relation("EventToProperties")
   Users_watching_properties           Users[]                   @relation("watching_properties")
   PropertyShowing                     PropertyShowing[]
   XeSyncItems                         XeSyncItem[]
@@ -909,7 +909,7 @@ model Users {
   AgentProfile                                       AgentProfile?
   Audience                                           Audience[]
   AudienceMember                                     AudienceMember[]
-  CalComEvent                                        CalComEvent[]
+  CalendarEvent                                      CalendarEvent[]
   ClientComment                                      ClientComment[]
   Client_Contacts_Client_Contacts_assigned_toToUsers Client_Contacts[]             @relation("Client_Contacts_assigned_toToUsers")
   Client_Contacts_Client_Contacts_created_byToUsers  Client_Contacts[]             @relation("Client_Contacts_created_byToUsers")
@@ -963,10 +963,10 @@ model crm_Accounts_Tasks {
   likes                                 Int?                          @default(0)
   user                                  String?
   account                               String?
-  calcomEventId                         String?
+  calendarEventId                       String?
   organizationId                        String                        @default("00000000-0000-0000-0000-000000000000")
   Clients                               Clients?                      @relation(fields: [account], references: [id])
-  CalComEvent                           CalComEvent?                  @relation(fields: [calcomEventId], references: [id])
+  CalendarEvent                         CalendarEvent?                @relation(fields: [calendarEventId], references: [id])
   Users                                 Users?                        @relation(fields: [user], references: [id])
   crm_Accounts_Tasks_Comments           crm_Accounts_Tasks_Comments[]
   Documents_DocumentsToCrmAccountsTasks Documents[]                   @relation("DocumentsToCrmAccountsTasks")
@@ -2292,6 +2292,7 @@ model XeIntegration {
   autoPublish     Boolean  @default(false)
   publicationType XePublicationType @default(BASIC)
   trademark       String?  // Optional trademark/branding
+  testMode        Boolean  @default(false) // Use test/sandbox mode
   
   // Tracking
   lastSyncAt      DateTime?
@@ -2623,4 +2624,332 @@ enum JobPriority {
   LOW
   NORMAL
   HIGH
+}
+
+// ============================================
+// ORGANIZATION SETTINGS - AI & Feature Configuration
+// ============================================
+
+model OrganizationSettings {
+  id                   String   @id @default(cuid())
+  organizationId       String   @unique // Clerk organization ID
+  
+  // AI Provider Settings
+  aiProvider           String?  @default("openai") // "openai" | "anthropic"
+  openaiApiKey         String?  // Organization's own OpenAI API key (encrypted)
+  openaiModel          String?  @default("gpt-4o-mini") // Model to use
+  anthropicApiKey      String?  // Organization's own Anthropic API key (encrypted)
+  anthropicModel       String?  @default("claude-3-5-sonnet-20241022") // Claude model to use
+  
+  // Voice Assistant Settings
+  voiceAssistantEnabled Boolean @default(true)
+  voiceLanguage        String?  @default("el-GR")
+  ttsVoice             String?  @default("nova") // OpenAI TTS voice
+  
+  // Database Silo Settings (K8s multi-tenancy)
+  databaseSiloEnabled  Boolean  @default(false)
+  databaseHost         String?  // Dedicated database host
+  databasePort         Int?     @default(5432)
+  databaseName         String?  // Dedicated database name
+  databaseUser         String?  // Database credentials (encrypted)
+  databasePassword     String?  // Database credentials (encrypted)
+  databaseSslEnabled   Boolean  @default(true)
+  
+  // K8s Namespace Settings
+  k8sNamespace         String?  // Dedicated K8s namespace for org
+  k8sResourceQuota     Json?    // CPU/Memory limits
+  k8sStorageClass      String?  @default("standard")
+  
+  // Billing/Usage Tracking
+  aiCreditsUsed        Int      @default(0)
+  aiCreditsLimit       Int?     // null = unlimited (platform default)
+  lastCreditResetAt    DateTime?
+  
+  // Feature Toggles
+  customBrandingEnabled Boolean @default(false)
+  customDomainEnabled   Boolean @default(false)
+  customDomain          String?
+  
+  // Audit
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  createdBy            String?  // User who created these settings
+  
+  @@index([organizationId])
+  @@index([databaseSiloEnabled])
+}
+
+/// Audit log for organization settings changes
+model OrganizationSettingsAudit {
+  id              String   @id @default(cuid())
+  organizationId  String
+  settingKey      String   // Which setting was changed
+  oldValue        String?  // Previous value (sanitized)
+  newValue        String?  // New value (sanitized)
+  changedBy       String   // User who made the change
+  changedAt       DateTime @default(now())
+  ipAddress       String?
+  
+  @@index([organizationId])
+  @@index([changedAt])
+}
+
+// ============================================
+// AI TOOLS - Platform AI Tool System
+// ============================================
+
+/// AI tools that can be called by AI agents
+model AiTool {
+  id              String    @id @default(cuid())
+  name            String    @unique  // e.g., "list_properties" - used for invocation
+  displayName     String    // e.g., "List Properties" - human readable
+  description     String    @db.Text // Tool description for AI context
+  category        String    // e.g., "crm", "mls", "calendar", "documents"
+  
+  // OpenAI-compatible function schema (JSON Schema format)
+  parameters      Json      // JSON Schema for tool parameters
+  
+  // Endpoint configuration
+  endpointType    AiToolEndpointType  // How to call this tool
+  endpointPath    String    // Action path, API route, or external URL
+  httpMethod      String    @default("POST")  // GET, POST, PUT, DELETE
+  
+  // Authorization
+  requiredScopes  String[]  // API scopes needed (e.g., ["crm:read", "crm:write"])
+  
+  // Status
+  isEnabled       Boolean   @default(true)
+  isSystemTool    Boolean   @default(false) // Built-in vs custom tools
+  
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdById     String
+  
+  // Relations
+  executions      AiToolExecution[]
+  agents          AiAgentTool[]  // Agents using this tool
+  
+  @@index([category])
+  @@index([isEnabled])
+  @@index([isSystemTool])
+}
+
+/// Execution logs for AI tool calls
+model AiToolExecution {
+  id              String    @id @default(cuid())
+  toolId          String
+  tool            AiTool    @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  
+  // Context
+  organizationId  String?
+  userId          String?
+  apiKeyId        String?
+  
+  // Request/Response
+  input           Json      // Input parameters
+  output          Json?     // Output data
+  statusCode      Int       // HTTP-like status code
+  errorMessage    String?   @db.Text
+  
+  // Metrics
+  durationMs      Int       // Execution time in milliseconds
+  
+  // Source
+  source          AiToolExecutionSource
+  
+  // Timestamp
+  createdAt       DateTime  @default(now())
+  
+  @@index([toolId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([source])
+}
+
+enum AiToolEndpointType {
+  INTERNAL_ACTION   // Server action (direct function call)
+  API_ROUTE         // Internal API route
+  EXTERNAL_URL      // External webhook/API
+}
+
+enum AiToolExecutionSource {
+  VOICE_ASSISTANT   // Voice commands
+  CHAT_ASSISTANT    // Chat interface
+  CHAT_API          // Chat API calls
+  EXTERNAL_API      // External API call
+  ADMIN_TEST        // Platform admin testing
+  CUSTOM_AGENT      // Custom AI agent
+}
+
+// ============================================
+// AI SYSTEM PROMPTS - Configurable prompts
+// ============================================
+
+/// System prompts for AI agents (configurable via admin panel)
+model AiSystemPrompt {
+  id              String    @id @default(cuid())
+  name            String    // Unique identifier (snake_case)
+  displayName     String    // Human-readable name
+  description     String?   @db.Text
+  category        String    // e.g., "assistant", "voice", "document"
+  content         String    @db.Text // The actual prompt content
+  locale          String    @default("en") // Language locale
+  variables       Json?     // Variable definitions for dynamic content
+  
+  // Status
+  isEnabled       Boolean   @default(true)
+  isSystemPrompt  Boolean   @default(false) // Built-in vs custom
+  
+  // Versioning
+  version         Int       @default(1)
+  previousVersion String?   // Reference to previous version
+  
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdById     String
+  updatedById     String?
+  
+  // Relations
+  agents          AiAgent[] // Agents using this prompt
+  
+  @@unique([name])
+  @@unique([name, locale])
+  @@index([category])
+  @@index([isEnabled])
+  @@index([locale])
+}
+
+// ============================================
+// AI AGENTS - Configurable AI agent definitions
+// ============================================
+
+/// AI Providers supported by the platform
+enum AiModelProvider {
+  OPENAI
+  ANTHROPIC
+}
+
+/// Tool choice modes for AI agents
+enum AiToolChoice {
+  AUTO      // Let the model decide when to use tools
+  REQUIRED  // Force tool use on every turn
+  NONE      // Disable tool use
+}
+
+/// AI Agent definitions (configurable via admin panel)
+model AiAgent {
+  id              String    @id @default(cuid())
+  name            String    @unique // Unique identifier (snake_case)
+  displayName     String    // Human-readable name
+  description     String?   @db.Text
+  
+  // System prompt configuration
+  systemPromptId  String?
+  systemPrompt    AiSystemPrompt? @relation(fields: [systemPromptId], references: [id], onDelete: SetNull)
+  
+  // Model configuration
+  modelProvider   AiModelProvider @default(OPENAI)
+  modelName       String    @default("gpt-4o-mini") // e.g., gpt-4o, claude-3-5-sonnet
+  
+  // Generation settings
+  temperature     Float     @default(0.7)
+  maxTokens       Int       @default(1000) // Max output tokens
+  maxSteps        Int       @default(5)    // Max tool call rounds
+  
+  // Tool configuration
+  toolChoice      AiToolChoice @default(AUTO)
+  
+  // Status
+  isEnabled       Boolean   @default(true)
+  isSystemAgent   Boolean   @default(false) // Built-in vs custom agents
+  
+  // Organization scope (null = platform-wide)
+  organizationId  String?
+  
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdById     String
+  
+  // Relations
+  tools           AiAgentTool[]              // Tools assigned to this agent
+  orgConfigs      OrganizationAgentConfig[]  // Org-specific overrides
+  
+  @@index([isEnabled])
+  @@index([isSystemAgent])
+  @@index([organizationId])
+  @@index([modelProvider])
+}
+
+/// Junction table for Agent-Tool relationships
+model AiAgentTool {
+  id              String    @id @default(cuid())
+  agentId         String
+  agent           AiAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  toolId          String
+  tool            AiTool    @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  
+  // Configuration
+  priority        Int       @default(0)    // Tool ordering (lower = higher priority)
+  isRequired      Boolean   @default(false) // Always include this tool
+  
+  createdAt       DateTime  @default(now())
+  
+  @@unique([agentId, toolId])
+  @@index([agentId])
+  @@index([toolId])
+}
+
+/// Organization-level agent configuration overrides
+model OrganizationAgentConfig {
+  id                  String    @id @default(cuid())
+  organizationId      String
+  agentId             String
+  agent               AiAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  // Overrides
+  customSystemPrompt  String?   @db.Text // Override the default prompt
+  modelOverride       String?   // Override the default model
+  temperatureOverride Float?    // Override temperature
+  maxTokensOverride   Int?      // Override max tokens
+  
+  // Tool configuration
+  disabledToolIds     String[]  // Tools to disable for this org
+  enabledToolIds      String[]  // Additional tools to enable
+  
+  // Status
+  isEnabled           Boolean   @default(true)
+  
+  // Metadata
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  @@unique([organizationId, agentId])
+  @@index([organizationId])
+  @@index([agentId])
+}
+
+// ============================================
+// AI CONVERSATIONS - Chat history
+// ============================================
+
+/// AI conversation sessions
+model AiConversation {
+  id              String    @id @default(cuid())
+  userId          String
+  organizationId  String
+  title           String?   // Auto-generated or user-provided title
+  messages        Json?     // Array of conversation messages
+  context         Json?     // Additional context for the conversation
+  
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([organizationId])
+  @@index([createdAt])
 }
