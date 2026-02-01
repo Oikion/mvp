@@ -43,7 +43,7 @@ export async function getDocuments(filters?: DocumentFilters) {
   }
 
   if (filters?.eventId) {
-    additionalFilters.linkedCalComEventsIds = {
+    additionalFilters.linkedCalendarEventsIds = {
       has: filters.eventId,
     };
   }
@@ -95,7 +95,7 @@ export async function getDocuments(filters?: DocumentFilters) {
           property_name: true,
         },
       },
-      CalComEvent: {
+      CalendarEvent: {
         select: {
           id: true,
           title: true,

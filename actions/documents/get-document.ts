@@ -22,7 +22,7 @@ export async function getDocument(documentId: string, organizationId: string) {
           address_city: true,
         },
       },
-      CalComEvent: {
+      CalendarEvent: {
         select: {
           id: true,
           title: true,
@@ -80,7 +80,7 @@ export async function getDocument(documentId: string, organizationId: string) {
     ...document,
     accounts: document.Clients,
     linkedProperties: document.Properties,
-    linkedCalComEvents: document.CalComEvent,
+    linkedCalendarEvents: document.CalendarEvent,
     linkedTasks: document.crm_Accounts_Tasks_DocumentsToCrmAccountsTasks,
     created_by: document.Users_Documents_created_by_userToUsers,
     assigned_to_user: document.Users_Documents_assigned_userToUsers,
@@ -109,7 +109,7 @@ export async function getDocumentByShareLink(shareableLink: string) {
           property_name: true,
         },
       },
-      CalComEvent: {
+      CalendarEvent: {
         select: {
           id: true,
           title: true,
@@ -132,7 +132,7 @@ export async function getDocumentByShareLink(shareableLink: string) {
     ...document,
     accounts: document.Clients,
     linkedProperties: document.Properties,
-    linkedCalComEvents: document.CalComEvent,
+    linkedCalendarEvents: document.CalendarEvent,
     linkedTasks: document.crm_Accounts_Tasks_DocumentsToCrmAccountsTasks,
   };
 }

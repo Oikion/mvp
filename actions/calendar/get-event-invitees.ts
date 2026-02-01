@@ -80,7 +80,7 @@ export async function getInvitedEvents(status?: "PENDING" | "ACCEPTED" | "DECLIN
         ...(status ? { status } : {}),
       },
       include: {
-        CalComEvent: {
+        CalendarEvent: {
           include: {
             Users: {
               select: {
@@ -117,16 +117,16 @@ export async function getInvitedEvents(status?: "PENDING" | "ACCEPTED" | "DECLIN
       status: inv.status,
       respondedAt: inv.respondedAt,
       event: {
-        id: inv.CalComEvent.id,
-        title: inv.CalComEvent.title,
-        description: inv.CalComEvent.description,
-        startTime: inv.CalComEvent.startTime,
-        endTime: inv.CalComEvent.endTime,
-        location: inv.CalComEvent.location,
-        eventType: inv.CalComEvent.eventType,
-        assignedUser: inv.CalComEvent.Users,
-        linkedClients: inv.CalComEvent.Clients,
-        linkedProperties: inv.CalComEvent.Properties,
+        id: inv.CalendarEvent.id,
+        title: inv.CalendarEvent.title,
+        description: inv.CalendarEvent.description,
+        startTime: inv.CalendarEvent.startTime,
+        endTime: inv.CalendarEvent.endTime,
+        location: inv.CalendarEvent.location,
+        eventType: inv.CalendarEvent.eventType,
+        assignedUser: inv.CalendarEvent.Users,
+        linkedClients: inv.CalendarEvent.Clients,
+        linkedProperties: inv.CalendarEvent.Properties,
       },
     }));
   } catch (error) {

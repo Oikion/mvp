@@ -51,7 +51,7 @@ export async function getUpcomingItems(): Promise<{
 
   // Fetch upcoming calendar events
   try {
-    const events = await prismadb.calComEvent.findMany({
+    const events = await prismadb.calendarEvent.findMany({
       where: {
         organizationId: orgId,
         startTime: {
@@ -108,7 +108,7 @@ export async function getUpcomingItems(): Promise<{
       });
     }
   } catch (error) {
-    // CalComEvent might not exist yet, skip silently
+    // CalendarEvent might not exist yet, skip silently
   }
 
   // Fetch upcoming tasks
@@ -174,7 +174,7 @@ export async function getUpcomingItems(): Promise<{
       },
       orderBy: { scheduledFor: "asc" },
       include: {
-        CalComEvent: {
+        CalendarEvent: {
           select: { title: true, startTime: true },
         },
       },
@@ -187,9 +187,9 @@ export async function getUpcomingItems(): Promise<{
       items.push({
         id: `reminder-${reminder.id}`,
         type: "reminder",
-        title: `Reminder: ${reminder.CalComEvent?.title || "Event"}`,
-        description: reminder.CalComEvent?.startTime 
-          ? `Event starts at ${new Date(reminder.CalComEvent.startTime).toLocaleTimeString()}`
+        title: `Reminder: ${reminder.CalendarEvent?.title || "Event"}`,
+        description: reminder.CalendarEvent?.startTime 
+          ? `Event starts at ${new Date(reminder.CalendarEvent.startTime).toLocaleTimeString()}`
           : undefined,
         datetime: reminder.scheduledFor.toISOString(),
         status: reminder.status,

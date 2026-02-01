@@ -146,7 +146,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
 
   // Fetch recent calendar events
   try {
-    const events = await prisma.calComEvent.findMany({
+    const events = await prisma.calendarEvent.findMany({
       take: Math.floor(limit / 4),
       orderBy: { createdAt: "desc" },
     });
@@ -169,7 +169,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
       });
     }
   } catch (error) {
-    // CalComEvent might not exist yet, skip silently
+    // CalendarEvent might not exist yet, skip silently
   }
 
   // Sort all activities by timestamp (most recent first)

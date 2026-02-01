@@ -22,7 +22,7 @@ export async function inviteToEvent({ eventId, userIds }: InviteToEventParams) {
     const prismaTenant = prismaForOrg(organizationId);
 
     // Get the event
-    const event = await prismaTenant.calComEvent.findUnique({
+    const event = await prismaTenant.calendarEvent.findUnique({
       where: { id: eventId },
       select: {
         id: true,

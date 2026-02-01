@@ -94,7 +94,7 @@ export async function createDocument(input: CreateDocumentInput) {
         // Link arrays
         accountsIDs: mergedMentions.clients.map((c) => c.id),
         linkedPropertiesIds: mergedMentions.properties.map((p) => p.id),
-        linkedCalComEventsIds: mergedMentions.events.map((e) => e.id),
+        linkedCalendarEventsIds: mergedMentions.events.map((e) => e.id),
         linkedTasksIds: mergedMentions.tasks.map((t) => t.id),
         // Relations
         Clients: {
@@ -103,7 +103,7 @@ export async function createDocument(input: CreateDocumentInput) {
         Properties: {
           connect: mergedMentions.properties.map((p) => ({ id: p.id })),
         },
-        CalComEvent: {
+        CalendarEvent: {
           connect: mergedMentions.events.map((e) => ({ id: e.id })),
         },
         crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: {
@@ -113,7 +113,7 @@ export async function createDocument(input: CreateDocumentInput) {
       include: {
         Clients: true,
         Properties: true,
-        CalComEvent: true,
+        CalendarEvent: true,
         crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: true,
       },
     });
