@@ -46,7 +46,7 @@ export const GET = withExternalApi(
     }
 
     // Fetch events
-    const events = await prismadb.CalendarEvent.findMany({
+    const events = await prismadb.calendarEvent.findMany({
       where,
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
@@ -155,7 +155,7 @@ export const POST = withExternalApi(
     const calendarEventId = Math.abs(Math.floor(Date.now() / 1000));
 
     // Create event
-    const event = await prismadb.CalendarEvent.create({
+    const event = await prismadb.calendarEvent.create({
       data: {
         id: friendlyEventId,
         calendarEventId,

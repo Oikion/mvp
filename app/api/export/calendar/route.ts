@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
     }
     
     // Fetch events assigned to user or where user is invitee
-    const events = await prismadb.CalendarEvent.findMany({
+    const events = await prismadb.calendarEvent.findMany({
       where: {
         OR: [
           { ...whereClause, assignedUserId: user.id },

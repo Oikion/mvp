@@ -48,7 +48,7 @@ export const GET = withInternalToolApi(
       }
 
       // Fetch upcoming events
-      const events = await prismadb.CalendarEvent.findMany({
+      const events = await prismadb.calendarEvent.findMany({
         where,
         take: limit,
         orderBy: { startTime: "asc" },

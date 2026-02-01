@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const [endHour, endMin] = preferredTimeEnd.split(":").map(Number);
 
     // Get existing events in the date range
-    const events = await prismadb.CalendarEvent.findMany({
+    const events = await prismadb.calendarEvent.findMany({
       where: {
         organizationId,
         OR: [

@@ -101,7 +101,7 @@ export async function getUpcomingEvents(
       where.eventType = eventType;
     }
 
-    const events = await prismadb.CalendarEvent.findMany({
+    const events = await prismadb.calendarEvent.findMany({
       where,
       take: limit,
       orderBy: { startTime: "asc" },
@@ -193,7 +193,7 @@ export async function listEvents(
       where.eventType = eventType;
     }
 
-    const events = await prismadb.CalendarEvent.findMany({
+    const events = await prismadb.calendarEvent.findMany({
       where,
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
@@ -301,7 +301,7 @@ export async function createEvent(
     const eventId = createId();
     const calendarEventId = Math.abs(Math.floor(Date.now() / 1000));
 
-    const event = await prismadb.CalendarEvent.create({
+    const event = await prismadb.calendarEvent.create({
       data: {
         id: eventId,
         calendarEventId,
@@ -373,7 +373,7 @@ export async function createReminder(
     }
 
     // Verify event exists and belongs to org
-    const event = await prismadb.CalendarEvent.findFirst({
+    const event = await prismadb.calendarEvent.findFirst({
       where: {
         id: eventId,
         organizationId: context.organizationId,
@@ -450,7 +450,7 @@ export async function findAvailableSlots(
     dayEnd.setHours(endHour, 0, 0, 0);
 
     // Get existing events for the day
-    const existingEvents = await prismadb.CalendarEvent.findMany({
+    const existingEvents = await prismadb.calendarEvent.findMany({
       where: {
         organizationId: context.organizationId,
         startTime: {

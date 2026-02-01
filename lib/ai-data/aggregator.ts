@@ -261,7 +261,7 @@ async function getUpcomingEventCount(
   const endDate = new Date(now);
   endDate.setDate(endDate.getDate() + days);
 
-  return prismadb.CalendarEvent.count({
+  return prismadb.calendarEvent.count({
     where: {
       organizationId,
       startTime: { gte: now, lte: endDate },
@@ -281,7 +281,7 @@ async function getUpcomingEvents(
   const endDate = new Date(now);
   endDate.setDate(endDate.getDate() + days);
 
-  const events = await prismadb.CalendarEvent.findMany({
+  const events = await prismadb.calendarEvent.findMany({
     where: {
       organizationId,
       startTime: { gte: now, lte: endDate },
@@ -659,7 +659,7 @@ export async function getTodaySummary(organizationId: string) {
 
   const [todayEvents, newClients, newTasks, recentActivity] = await Promise.all([
     // Today's events
-    prismadb.CalendarEvent.findMany({
+    prismadb.calendarEvent.findMany({
       where: {
         organizationId,
         startTime: { gte: today, lt: tomorrow },

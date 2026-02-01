@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     const calendarEventId = Math.abs(Math.floor(Date.now() / 1000));
 
     // Create event
-    const event = await prismadb.CalendarEvent.create({
+    const event = await prismadb.calendarEvent.create({
       data: {
         id: friendlyEventId,
         calendarEventId,

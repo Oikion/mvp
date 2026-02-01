@@ -105,7 +105,7 @@ export async function getShareableEntities(): Promise<ShareableEntities> {
 
     // Fetch upcoming calendar events
     const now = new Date();
-    const events = await prismadb.CalendarEvent.findMany({
+    const events = await prismadb.calendarEvent.findMany({
       where: {
         organizationId: orgId,
         OR: [
@@ -263,7 +263,7 @@ export async function getEntityDetails(
         };
       }
       case "event": {
-        const event = await prismadb.CalendarEvent.findFirst({
+        const event = await prismadb.calendarEvent.findFirst({
           where: { id: entityId, organizationId: orgId },
           select: {
             id: true,

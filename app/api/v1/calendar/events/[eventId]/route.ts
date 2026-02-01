@@ -26,7 +26,7 @@ export const GET = withExternalApi(
       return createApiErrorResponse("Event ID is required", 400);
     }
 
-    const event = await prismadb.CalendarEvent.findFirst({
+    const event = await prismadb.calendarEvent.findFirst({
       where: {
         id: eventId,
         organizationId: context.organizationId,
@@ -98,7 +98,7 @@ export const PUT = withExternalApi(
     }
 
     // Verify event exists and belongs to organization
-    const existingEvent = await prismadb.CalendarEvent.findFirst({
+    const existingEvent = await prismadb.calendarEvent.findFirst({
       where: {
         id: eventId,
         organizationId: context.organizationId,
@@ -167,7 +167,7 @@ export const PUT = withExternalApi(
       };
     }
 
-    const event = await prismadb.CalendarEvent.update({
+    const event = await prismadb.calendarEvent.update({
       where: { id: eventId },
       data: updateData,
       select: {
@@ -223,7 +223,7 @@ export const DELETE = withExternalApi(
     }
 
     // Verify event exists and belongs to organization
-    const existingEvent = await prismadb.CalendarEvent.findFirst({
+    const existingEvent = await prismadb.calendarEvent.findFirst({
       where: {
         id: eventId,
         organizationId: context.organizationId,
@@ -235,7 +235,7 @@ export const DELETE = withExternalApi(
     }
 
     // Update status to cancelled instead of hard delete
-    const event = await prismadb.CalendarEvent.update({
+    const event = await prismadb.calendarEvent.update({
       where: { id: eventId },
       data: {
         status: "cancelled",

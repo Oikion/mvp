@@ -152,7 +152,7 @@ async function fetchMentionedEntityDetails(
 
     // Fetch events
     if (eventIds.length > 0) {
-      const events = await prismadb.CalendarEvent.findMany({
+      const events = await prismadb.calendarEvent.findMany({
         where: {
           id: { in: eventIds },
           organizationId,
