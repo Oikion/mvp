@@ -39,7 +39,7 @@ export async function resetPersonalWorkspace() {
       await tx.clients.deleteMany({});
       await tx.properties.deleteMany({});
       await tx.documents.deleteMany({});
-      await tx.calComEvent.deleteMany({});
+      await tx.calendarEvent.deleteMany({});
       await tx.socialPostComment.deleteMany({});
       await tx.socialPostLike.deleteMany({});
       await tx.socialPost.deleteMany({});
