@@ -1069,9 +1069,13 @@ export function SocialFeedPage({ posts: initialPosts, shareableItems, currentUse
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" size="sm" asChild>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            leftIcon={<UserPlus className="h-4 w-4" />}
+            asChild
+          >
             <Link href="/app/connections">
-              <UserPlus className="h-4 w-4 mr-2" />
               {t.findAgents || "Find Agents"}
             </Link>
           </Button>
@@ -1089,9 +1093,12 @@ export function SocialFeedPage({ posts: initialPosts, shareableItems, currentUse
                 {t.empty?.description || "Be the first to share something with your network, or connect with other agents to see their posts."}
               </p>
               <div className="flex gap-2 mt-4">
-                <Button asChild variant="outline">
+                <Button 
+                  variant="outline" 
+                  leftIcon={<Users className="h-4 w-4" />}
+                  asChild
+                >
                   <Link href="/app/connections">
-                    <Users className="h-4 w-4 mr-2" />
                     {t.empty?.findConnections || "Find Connections"}
                   </Link>
                 </Button>

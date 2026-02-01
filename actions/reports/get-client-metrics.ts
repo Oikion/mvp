@@ -338,7 +338,7 @@ export async function getClientEngagement() {
         },
       },
     }),
-    prismadb.calendarEvent.count({
+    prismadb.CalendarEvent.count({
       where: {
         organizationId,
         startTime: {

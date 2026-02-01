@@ -348,22 +348,13 @@ export function NotificationsTab() {
       {hasChanges && (
         <div className="sticky bottom-4 flex justify-end">
           <Button
+            leftIcon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             onClick={handleSave}
             disabled={isSaving}
             size="lg"
             className="shadow-lg"
           >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {tCommon("buttonStates.saving")}
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                {tCommon("buttons.saveChanges")}
-              </>
-            )}
+            {isSaving ? tCommon("buttonStates.saving") : tCommon("buttons.saveChanges")}
           </Button>
         </div>
       )}

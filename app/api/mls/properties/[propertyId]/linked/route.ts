@@ -107,7 +107,7 @@ export async function GET(
     }));
 
     // Fetch linked calendar events (use property's org for shared properties)
-    const linkedEventsRaw = await prismadb.calendarEvent.findMany({
+    const linkedEventsRaw = await prismadb.CalendarEvent.findMany({
       where: {
         organizationId: property.organizationId,
         Properties: {

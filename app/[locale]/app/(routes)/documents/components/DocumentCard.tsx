@@ -56,14 +56,12 @@ export function DocumentCard({
           </div>
           <div className="flex items-center gap-2">
             {linkEnabled && (
-              <Badge variant="outline" className="text-xs">
-                <LinkIcon className="h-3 w-3 mr-1" />
+              <Badge variant="outline" className="text-xs" leftIcon={<LinkIcon className="h-3 w-3" />}>
                 {t("documentCard.shared")}
               </Badge>
             )}
             {passwordProtected && (
-              <Badge variant="outline" className="text-xs">
-                <Lock className="h-3 w-3 mr-1" />
+              <Badge variant="outline" className="text-xs" leftIcon={<Lock className="h-3 w-3" />}>
                 {t("documentCard.protected")}
               </Badge>
             )}
@@ -97,28 +95,28 @@ export function DocumentCard({
           <Button
             variant="outline"
             size="sm"
+            leftIcon={<Eye className="h-4 w-4" />}
             onClick={() => onView?.(id)}
           >
-            <Eye className="h-4 w-4 mr-1" />
             {t("documentCard.view")}
           </Button>
           <Button
             variant="outline"
             size="sm"
+            leftIcon={<Share2 className="h-4 w-4" />}
             onClick={() => onShare?.(id)}
           >
-            <Share2 className="h-4 w-4 mr-1" />
             {t("documentCard.share")}
           </Button>
         </div>
         <Button
           variant="ghost"
           size="icon"
+          leftIcon={<Trash2 className="h-4 w-4" />}
           onClick={() => onDelete?.(id)}
           className="text-destructive hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+          aria-label={t("documentCard.delete")}
+        />
       </CardFooter>
     </Card>
   );

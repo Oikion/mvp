@@ -37,7 +37,7 @@ export async function createRemindersForEvent(
   reminderMinutes: number[],
   organizationId: string
 ): Promise<void> {
-  const event = await prismadb.calendarEvent.findUnique({
+  const event = await prismadb.CalendarEvent.findUnique({
     where: { id: eventId },
   });
 

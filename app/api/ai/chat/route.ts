@@ -152,7 +152,7 @@ async function fetchMentionedEntityDetails(
 
     // Fetch events
     if (eventIds.length > 0) {
-      const events = await prismadb.calendarEvent.findMany({
+      const events = await prismadb.CalendarEvent.findMany({
         where: {
           id: { in: eventIds },
           organizationId,
@@ -366,13 +366,52 @@ export async function POST(request: NextRequest) {
       maxOutputTokens: 1000,
     });
 
-    // Extract tool call info from steps
-    const toolCalls = result.steps
-      .flatMap((step) => step.toolCalls || [])
-      .map((tc) => ({
-        name: tc.toolName,
-        success: true,
-      }));
+    // Extract tool call info from steps with full results
+    const toolCalls: Array<{
+      id: string;
+      name: string;
+      args: Record<string, unknown>;
+      success: boolean;
+      result?: unknown;
+      error?: string;
+    }> = [];
+
+    for (const step of result.steps) {
+      if (step.toolCalls && step.toolCalls.length > 0) {
+        for (const tc of step.toolCalls) {
+          // Find the corresponding tool result
+          const toolResult = step.toolResults?.find(
+            (tr) => tr.toolCallId === tc.toolCallId
+          );
+
+          // Parse the result to check for success/error
+          let success = true;
+          let resultData: unknown = toolResult?.result;
+          let error: string | undefined;
+
+          if (resultData && typeof resultData === "object" && resultData !== null) {
+            const resultObj = resultData as Record<string, unknown>;
+            if (resultObj.success === false) {
+              success = false;
+              error = (resultObj.error as string) || "Tool execution failed";
+            }
+            // Extract the actual data if wrapped in success response
+            if (resultObj.data !== undefined) {
+              resultData = resultObj.data;
+            }
+          }
+
+          toolCalls.push({
+            id: tc.toolCallId,
+            name: tc.toolName,
+            args: tc.args as Record<string, unknown>,
+            success,
+            result: resultData,
+            error,
+          });
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,

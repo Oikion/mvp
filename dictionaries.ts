@@ -31,6 +31,7 @@ import conversionEn from "./locales/en/conversion.json";
 import signInEn from "./locales/en/signIn.json";
 import authEn from "./locales/en/auth.json";
 import referralsEn from "./locales/en/referrals.json";
+import aiEn from "./locales/en/ai.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -62,6 +63,7 @@ import conversionEl from "./locales/el/conversion.json";
 import signInEl from "./locales/el/signIn.json";
 import authEl from "./locales/el/auth.json";
 import referralsEl from "./locales/el/referrals.json";
+import aiEl from "./locales/el/ai.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -102,6 +104,7 @@ function loadMessages(locale: string) {
     messages.signIn = signInEl;
     messages.auth = authEl;
     messages.referrals = referralsEl;
+    messages.ai = aiEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -144,6 +147,7 @@ function loadMessages(locale: string) {
     messages.signIn = signInEn;
     messages.auth = authEn;
     messages.referrals = referralsEn;
+    messages.ai = aiEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -159,3 +163,6 @@ export const getDictionary = async (locale: string = "en") => {
   const resolved = supported.has(locale) ? locale : "en";
   return loadMessages(resolved);
 };
+
+// Export the Dictionary type based on the return type of loadMessages
+export type Dictionary = ReturnType<typeof loadMessages>;

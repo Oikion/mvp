@@ -104,18 +104,13 @@ export function ApplicationForm({
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {t("submitting")}
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                {t("submit")}
-              </>
-            )}
+          <Button 
+            type="submit" 
+            className="w-full" 
+            leftIcon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            disabled={isPending}
+          >
+            {isPending ? t("submitting") : t("submit")}
           </Button>
         </form>
       </CardContent>

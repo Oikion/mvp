@@ -113,8 +113,12 @@ export function SearchAgents({ translations: t }: SearchAgentsProps) {
     switch (status) {
       case "ACCEPTED":
         return (
-          <Button size="sm" variant="secondary" disabled>
-            <Check className="h-4 w-4 mr-1" />
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            leftIcon={<Check className="h-4 w-4" />}
+            disabled
+          >
             {t.actions.connected}
           </Button>
         );
@@ -130,15 +134,22 @@ export function SearchAgents({ translations: t }: SearchAgentsProps) {
           );
         }
         return (
-          <Button size="sm" variant="secondary" disabled>
-            <Clock className="h-4 w-4 mr-1" />
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            leftIcon={<Clock className="h-4 w-4" />}
+            disabled
+          >
             {t.actions.pending}
           </Button>
         );
       default:
         return (
-          <Button size="sm" onClick={() => handleConnect(agent.id)}>
-            <UserPlus className="h-4 w-4 mr-1" />
+          <Button 
+            size="sm" 
+            leftIcon={<UserPlus className="h-4 w-4" />}
+            onClick={() => handleConnect(agent.id)}
+          >
             {t.actions.connect}
           </Button>
         );

@@ -225,14 +225,10 @@ export function ReferralsTab() {
             <Button
               variant="ghost"
               size="sm"
+              leftIcon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               onClick={handleRegenerateCode}
               disabled={isPending}
             >
-              {isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
               {t("regenerateCode")}
             </Button>
           </div>

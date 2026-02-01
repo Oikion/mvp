@@ -54,13 +54,17 @@ export function TemplateCard({
         <div className="text-xs text-muted-foreground mb-4">
           {t("fieldsCount", { count: placeholderCount })}
         </div>
-        <Link href={`/${locale}/app/documents/create/${type}`} className="w-full">
-          <Button size="sm" className="w-full group-hover:bg-primary/90">
-            <Sparkles className="h-4 w-4 mr-1.5" />
+        <Button 
+          size="sm" 
+          className="w-full group-hover:bg-primary/90"
+          leftIcon={<Sparkles className="h-4 w-4" />}
+          rightIcon={<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
+          asChild
+        >
+          <Link href={`/${locale}/app/documents/create/${type}`}>
             {t("createDocument")}
-            <ArrowRight className="h-4 w-4 ml-1.5 transition-transform group-hover:translate-x-1" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

@@ -148,7 +148,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const event = await prismadb.calendarEvent.findFirst({
+    const event = await prismadb.CalendarEvent.findFirst({
       where: {
         id: eventId,
         organizationId: currentOrgId,
@@ -241,7 +241,7 @@ export async function PUT(
     }
 
     // Verify event exists and belongs to org
-    const existingEvent = await prismadb.calendarEvent.findFirst({
+    const existingEvent = await prismadb.CalendarEvent.findFirst({
       where: {
         id: eventId,
         organizationId: currentOrgId,
@@ -318,7 +318,7 @@ export async function PUT(
     }
 
     // Update event
-    const event = await prismadb.calendarEvent.update({
+    const event = await prismadb.CalendarEvent.update({
       where: { id: eventId },
       data: {
         ...updateData,
@@ -403,7 +403,7 @@ export async function DELETE(
     }
 
     // Verify event exists and belongs to org, include relations for notifications
-    const event = await prismadb.calendarEvent.findFirst({
+    const event = await prismadb.CalendarEvent.findFirst({
       where: {
         id: eventId,
         organizationId: currentOrgId,
@@ -437,7 +437,7 @@ export async function DELETE(
     await cancelAllRemindersForEvent(eventId);
 
     // Delete event (reminders cascade delete)
-    await prismadb.calendarEvent.delete({
+    await prismadb.CalendarEvent.delete({
       where: { id: eventId },
     });
 

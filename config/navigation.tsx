@@ -17,7 +17,7 @@ import { SocialFeedIcon } from "@/components/ui/SocialFeedIcon"
 import { UsersIcon } from "@/components/ui/UsersIcon"
 import { ShieldIcon } from "@/components/ui/ShieldIcon"
 import { MessageCircleIcon } from "@/components/ui/MessageCircleIcon"
-import { Target, TrendingUp } from "lucide-react"
+import { Target, TrendingUp, Sparkles } from "lucide-react"
 import { type ModuleId } from "@/lib/permissions/types"
 import { isRouteActive } from "@/lib/navigation/route-utils"
 
@@ -271,6 +271,17 @@ export function getNavigationConfig({
         },
       ],
     }] : []),
+    // AI Assistant - intelligent assistant for agents
+    {
+      title: dict.navigation.ModuleMenu.aiAssistant || "AI Assistant",
+      url: "/app/ai",
+      icon: Sparkles,
+      isActive: isRouteActive(pathname, "/app/ai", locale),
+      badge: "Beta",
+      badgeClassName: "bg-purple-500 hover:bg-purple-600 text-white border-0 shadow-sm",
+      iconClassName: "text-purple-500",
+      labelClassName: "text-purple-600 dark:text-purple-400 font-semibold",
+    },
   ]
 
   // Organization - Employees, Admin, Platform Admin (if applicable)

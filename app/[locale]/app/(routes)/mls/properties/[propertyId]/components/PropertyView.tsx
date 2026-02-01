@@ -199,18 +199,15 @@ export default function PropertyView({
               </div>
               <div className="flex items-center gap-2">
                 {visibility === "PUBLIC" ? (
-                  <Badge className="bg-success/15 text-success dark:text-success hover:bg-success/20">
-                    <Eye className="h-3 w-3 mr-1" />
+                  <Badge className="bg-success/15 text-success dark:text-success hover:bg-success/20" leftIcon={<Eye className="h-3 w-3" />}>
                     Public
                   </Badge>
                 ) : visibility === "SELECTED" ? (
-                  <Badge className="bg-primary/15 text-primary dark:text-primary hover:bg-primary/20">
-                    <Users className="h-3 w-3 mr-1" />
+                  <Badge className="bg-primary/15 text-primary dark:text-primary hover:bg-primary/20" leftIcon={<Users className="h-3 w-3" />}>
                     Connections Only
                   </Badge>
                 ) : (
-                  <Badge variant="secondary">
-                    <Lock className="h-3 w-3 mr-1" />
+                  <Badge variant="secondary" leftIcon={<Lock className="h-3 w-3" />}>
                     Private
                   </Badge>
                 )}
@@ -223,28 +220,28 @@ export default function PropertyView({
               <Button
                 variant={visibility === "PRIVATE" ? "default" : "outline"}
                 size="sm"
+                leftIcon={<Lock className="h-4 w-4" />}
                 onClick={() => handleVisibilityChange("PRIVATE")}
                 disabled={isUpdatingVisibility}
               >
-                <Lock className="h-4 w-4 mr-1" />
                 Private
               </Button>
               <Button
                 variant={visibility === "SELECTED" ? "default" : "outline"}
                 size="sm"
+                leftIcon={<Users className="h-4 w-4" />}
                 onClick={() => handleVisibilityChange("SELECTED")}
                 disabled={isUpdatingVisibility}
               >
-                <Users className="h-4 w-4 mr-1" />
                 Connections Only
               </Button>
               <Button
                 variant={visibility === "PUBLIC" ? "default" : "outline"}
                 size="sm"
+                leftIcon={<Globe className="h-4 w-4" />}
                 onClick={() => handleVisibilityChange("PUBLIC")}
                 disabled={isUpdatingVisibility}
               >
-                <Globe className="h-4 w-4 mr-1" />
                 Public
               </Button>
             </div>
@@ -281,8 +278,11 @@ export default function PropertyView({
                   Share this property with your agent network
                 </p>
               </div>
-              <Button variant="outline" onClick={() => setShareModalOpen(true)}>
-                <Share2 className="h-4 w-4 mr-2" />
+              <Button 
+                variant="outline" 
+                leftIcon={<Share2 className="h-4 w-4" />}
+                onClick={() => setShareModalOpen(true)}
+              >
                 Share
               </Button>
             </div>

@@ -85,7 +85,7 @@ export async function GET(
     }));
 
     // Fetch linked calendar events
-    const linkedEventsRaw = await prismadb.calendarEvent.findMany({
+    const linkedEventsRaw = await prismadb.CalendarEvent.findMany({
       where: {
         organizationId,
         Clients: {

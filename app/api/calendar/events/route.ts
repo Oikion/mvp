@@ -176,7 +176,7 @@ export async function GET(req: Request) {
         : {}),
     };
 
-    const events = await prismadb.calendarEvent.findMany({
+    const events = await prismadb.CalendarEvent.findMany({
       where: eventWhere,
       include: {
         crm_Accounts_Tasks: {
@@ -340,10 +340,10 @@ export async function POST(req: Request) {
     }
 
     // Generate friendly ID for the event
-    const friendlyEventId = await generateFriendlyId(prismadb, "CalComEvent");
+    const friendlyEventId = await generateFriendlyId(prismadb, "CalendarEvent");
 
     // Create event in database
-    const event = await prismadb.calendarEvent.create({
+    const event = await prismadb.CalendarEvent.create({
       data: {
         id: friendlyEventId,
         calendarEventId: eventId,

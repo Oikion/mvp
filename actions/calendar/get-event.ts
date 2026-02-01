@@ -14,7 +14,7 @@ export async function getEvent(eventId: string) {
     return null;
   }
 
-  const event = await prismadb.calendarEvent.findFirst({
+  const event = await prismadb.CalendarEvent.findFirst({
     where: {
       id: eventId,
       organizationId,

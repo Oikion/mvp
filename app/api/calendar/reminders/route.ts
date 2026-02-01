@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     }
 
     // Verify event exists and belongs to org
-    const event = await prismadb.calendarEvent.findUnique({
+    const event = await prismadb.CalendarEvent.findUnique({
       where: { id: eventId },
     });
 

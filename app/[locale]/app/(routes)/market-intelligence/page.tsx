@@ -221,12 +221,12 @@ export default function MarketIntelligencePage() {
                 Go to Settings to configure and start your first scrape.
               </p>
               <div className="flex justify-center gap-4 mt-4">
-                <Link href="/app/market-intelligence/settings">
-                  <Button>
+                <Button asChild>
+                  <Link href="/app/market-intelligence/settings">
                     <Settings className="h-4 w-4 mr-2" />
                     Configure & Start Scraping
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             </div>
           </Card>
@@ -246,8 +246,12 @@ export default function MarketIntelligencePage() {
             Monitor competitor listings across Greek real estate platforms
           </p>
         </div>
-        <Button onClick={loadData} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <Button 
+          onClick={loadData} 
+          variant="outline" 
+          size="sm"
+          leftIcon={<RefreshCw className="h-4 w-4" />}
+        >
           Refresh
         </Button>
       </div>
@@ -275,8 +279,8 @@ export default function MarketIntelligencePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold flex items-center">
-              <TrendingDown className="h-5 w-5 text-success mr-2" />
+            <div className="text-2xl font-bold flex items-center gap-2">
+              <TrendingDown className="h-5 w-5 text-success" />
               {priceDrops.length}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -292,8 +296,8 @@ export default function MarketIntelligencePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold flex items-center">
-              <DollarSign className="h-5 w-5 text-warning mr-2" />
+            <div className="text-2xl font-bold flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-warning" />
               {underpriced.length}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -309,8 +313,8 @@ export default function MarketIntelligencePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold flex items-center">
-              <MapPin className="h-5 w-5 text-primary mr-2" />
+            <div className="text-2xl font-bold flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
               {areaStats.length}+
             </div>
             <p className="text-xs text-muted-foreground mt-1">

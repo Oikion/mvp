@@ -43,7 +43,7 @@ export async function getMentionOptions(): Promise<{
     }),
 
     // Calendar Events
-    prismadb.calendarEvent.findMany({
+    prismadb.CalendarEvent.findMany({
       where: { organizationId },
       select: {
         id: true,

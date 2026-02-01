@@ -128,16 +128,20 @@ export default function PriceTrackerPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center">
-            <Activity className="h-8 w-8 mr-2" />
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Activity className="h-8 w-8" />
             Price Tracker
           </h1>
           <p className="text-muted-foreground">
             Monitor price changes across competitor listings
           </p>
         </div>
-        <Button onClick={loadData} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <Button 
+          onClick={loadData} 
+          variant="outline" 
+          size="sm"
+          leftIcon={<RefreshCw className="h-4 w-4" />}
+        >
           Refresh
         </Button>
       </div>
@@ -163,8 +167,8 @@ export default function PriceTrackerPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center">
-                <TrendingDown className="h-5 w-5 text-success mr-2" />
+              <div className="flex items-center gap-2">
+                <TrendingDown className="h-5 w-5 text-success" />
                 <span className="text-2xl font-bold">{summary.decreases}</span>
               </div>
               {summary.avgDecreasePercent > 0 && (
@@ -182,8 +186,8 @@ export default function PriceTrackerPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center">
-                <TrendingUp className="h-5 w-5 text-destructive mr-2" />
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-destructive" />
                 <span className="text-2xl font-bold">{summary.increases}</span>
               </div>
               {summary.avgIncreasePercent > 0 && (

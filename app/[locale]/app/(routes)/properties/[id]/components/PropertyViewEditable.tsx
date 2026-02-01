@@ -571,28 +571,28 @@ export function PropertyViewEditable({
               <Button
                 variant={visibility === "PRIVATE" ? "default" : "outline"}
                 size="sm"
+                leftIcon={<Lock className="h-4 w-4" />}
                 onClick={() => handleVisibilityChange("PRIVATE")}
                 disabled={isUpdatingVisibility}
               >
-                <Lock className="h-4 w-4 mr-1" />
                 Private
               </Button>
               <Button
                 variant={visibility === "SELECTED" ? "default" : "outline"}
                 size="sm"
+                leftIcon={<Users className="h-4 w-4" />}
                 onClick={() => handleVisibilityChange("SELECTED")}
                 disabled={isUpdatingVisibility}
               >
-                <Users className="h-4 w-4 mr-1" />
                 Connections Only
               </Button>
               <Button
                 variant={visibility === "PUBLIC" ? "default" : "outline"}
                 size="sm"
+                leftIcon={<Globe className="h-4 w-4" />}
                 onClick={() => handleVisibilityChange("PUBLIC")}
                 disabled={isUpdatingVisibility}
               >
-                <Globe className="h-4 w-4 mr-1" />
                 Public
               </Button>
             </div>
@@ -627,8 +627,11 @@ export function PropertyViewEditable({
                   Share this property with your agent network
                 </p>
               </div>
-              <Button variant="outline" onClick={() => setShareModalOpen(true)}>
-                <Share2 className="h-4 w-4 mr-2" />
+              <Button 
+                variant="outline" 
+                leftIcon={<Share2 className="h-4 w-4" />}
+                onClick={() => setShareModalOpen(true)}
+              >
                 Share
               </Button>
             </div>
@@ -657,16 +660,19 @@ export function PropertyViewEditable({
               <div className="flex gap-2">
                 {isEditMode ? (
                   <>
-                    <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-                      <X className="h-4 w-4 mr-1" />
+                    <Button 
+                      variant="outline" 
+                      leftIcon={<X className="h-4 w-4" />}
+                      onClick={handleCancel} 
+                      disabled={isSaving}
+                    >
                       Cancel
                     </Button>
-                    <Button onClick={handleSave} disabled={isSaving}>
-                      {isSaving ? (
-                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                      ) : (
-                        <Save className="h-4 w-4 mr-1" />
-                      )}
+                    <Button 
+                      leftIcon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      onClick={handleSave} 
+                      disabled={isSaving}
+                    >
                       Save
                     </Button>
                   </>
@@ -679,8 +685,10 @@ export function PropertyViewEditable({
                         notes: `Property: ${formData.property_name}${formData.address_street ? ` - ${formData.address_street}` : ''}`,
                       }}
                     />
-                    <Button onClick={() => setIsEditMode(true)}>
-                      <Pencil className="h-4 w-4 mr-1" />
+                    <Button 
+                      leftIcon={<Pencil className="h-4 w-4" />}
+                      onClick={() => setIsEditMode(true)}
+                    >
                       Edit
                     </Button>
                   </>

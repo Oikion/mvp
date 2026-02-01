@@ -1,0 +1,69 @@
+{
+  "pageTitle": "AI Assistant",
+  "pageDescription": "Your intelligent assistant for managing properties, clients, and more",
+  "newChat": "New Chat",
+  "welcome": "How can I help you today?",
+  "welcomeDescription": "I can help you manage clients, properties, schedule events, draft messages, and more.",
+  "inputPlaceholder": "Type @ to mention entities or a message...",
+  "thinking": "Thinking...",
+  "conversationDeleted": "Conversation deleted",
+  "deleteError": "Failed to delete conversation",
+  "sendError": "Failed to send message",
+  "noConversations": "No conversations yet",
+  "startChatting": "Start a new chat to get started",
+  "untitled": "Untitled",
+  "actionsPerformed": "Actions performed",
+  "deleteConversation": {
+    "title": "Delete conversation?",
+    "description": "This action cannot be undone. All messages in this conversation will be permanently deleted."
+  },
+  "quickActions": {
+    "createClient": "Create a new client",
+    "createClientPrompt": "Create a client named",
+    "createProperty": "Create a property listing",
+    "createPropertyPrompt": "Create a property: apartment for sale in",
+    "scheduleEvent": "Schedule an event",
+    "scheduleEventPrompt": "Schedule a meeting for tomorrow at 3pm",
+    "setReminder": "Set a reminder",
+    "setReminderPrompt": "Remind me to call",
+    "checkCalendar": "What's on my calendar?",
+    "checkCalendarPrompt": "What do I have scheduled today?",
+    "searchClients": "Search clients",
+    "searchClientsPrompt": "Find clients who want to buy",
+    "searchProperties": "Search properties",
+    "searchPropertiesPrompt": "Find apartments in",
+    "linkEntities": "Link entities",
+    "linkEntitiesPrompt": "Link client to property"
+  },
+  "toolLabels": {
+    "list_clients": "Listed clients",
+    "create_client": "Created client",
+    "search_clients": "Searched clients",
+    "get_client_details": "Retrieved client details",
+    "list_properties": "Listed properties",
+    "create_property": "Created property",
+    "search_properties": "Searched properties",
+    "list_events": "Listed calendar events",
+    "create_event": "Created calendar event",
+    "query_calendar": "Queried calendar",
+    "list_tasks": "Listed tasks",
+    "create_task": "Created task",
+    "list_documents": "Listed documents",
+    "analyze_document": "Analyzed document",
+    "find_matches_for_client": "Found matching properties",
+    "find_matches_for_property": "Found matching clients",
+    "link_entities": "Linked entities",
+    "draft_message_response": "Drafted message",
+    "get_upcoming_birthdays": "Retrieved upcoming birthdays"
+  },
+  "mentions": {
+    "placeholder": "Search clients, properties, events...",
+    "noResults": "No results found",
+    "categories": {
+      "clients": "Clients",
+      "properties": "Properties",
+      "events": "Events",
+      "documents": "Documents"
+    }
+  }
+}

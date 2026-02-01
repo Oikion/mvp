@@ -144,12 +144,12 @@ export const SharedPropertyCard = memo(function SharedPropertyCard({ data, index
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex justify-end">
-        <Link href={`/app/mls/properties/${data.id}`}>
-          <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" asChild>
+          <Link href={`/app/mls/properties/${data.id}`}>
             <Edit className="h-4 w-4 mr-2" />
             {t("SharedView.viewDetails")}
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
   );

@@ -176,8 +176,7 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button leftIcon={<Plus className="h-4 w-4" />}>
           {t.createDialog.newDeal}
         </Button>
       </DialogTrigger>
@@ -407,6 +406,7 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
             {t.createDialog.cancel}
           </Button>
           <Button
+            leftIcon={isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Handshake className="h-4 w-4" />}
             onClick={handleCreate}
             disabled={
               isLoading ||
@@ -416,11 +416,6 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
               !selectedConnection
             }
           >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Handshake className="h-4 w-4 mr-2" />
-            )}
             {t.createDialog.proposeDeal}
           </Button>
         </DialogFooter>

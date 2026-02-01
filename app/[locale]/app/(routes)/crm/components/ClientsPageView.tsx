@@ -198,9 +198,12 @@ export default function ClientsPageView({
                       search: searchQuery,
                     }}
                   />
-                  <Button variant="outline" asChild>
+                  <Button 
+                    variant="outline" 
+                    leftIcon={<FileSpreadsheet className="h-4 w-4" />}
+                    asChild
+                  >
                     <Link href={`/${locale}/app/crm/import`}>
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
                       Import
                     </Link>
                   </Button>

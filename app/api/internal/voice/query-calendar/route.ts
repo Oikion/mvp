@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch events
-    const events = await prismadb.calendarEvent.findMany({
+    const events = await prismadb.CalendarEvent.findMany({
       where,
       take: limit,
       orderBy: { startTime: "asc" },

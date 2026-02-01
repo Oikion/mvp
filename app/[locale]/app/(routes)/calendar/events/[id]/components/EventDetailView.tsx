@@ -116,10 +116,10 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
       <div className="space-y-4">
         <Button
           variant="ghost"
+          leftIcon={<ArrowLeft className="h-4 w-4" />}
           onClick={() => setShowEditForm(false)}
           className="mb-4"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
           {t("eventPage.backToDetails")}
         </Button>
         <EventEditForm
@@ -166,24 +166,24 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
+          leftIcon={<ArrowLeft className="h-4 w-4" />}
           onClick={() => router.push("/app/calendar")}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
           {t("eventPage.backToCalendar")}
         </Button>
         <div className="flex gap-2">
           <Button
             variant="outline"
+            leftIcon={<Edit className="h-4 w-4" />}
             onClick={() => setShowEditForm(true)}
           >
-            <Edit className="h-4 w-4 mr-2" />
             {t("eventPage.edit")}
           </Button>
           <Button
             variant="outline"
+            leftIcon={<Trash2 className="h-4 w-4" />}
             onClick={() => setShowDeleteDialog(true)}
           >
-            <Trash2 className="h-4 w-4 mr-2" />
             {t("eventPage.delete")}
           </Button>
         </div>

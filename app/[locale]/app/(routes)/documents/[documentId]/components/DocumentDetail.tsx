@@ -96,15 +96,21 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         </div>
         <div className="flex gap-2">
           {isEditable && (
-            <Button variant="outline" asChild>
+            <Button 
+              variant="outline" 
+              leftIcon={<Edit className="h-4 w-4" />}
+              asChild
+            >
               <Link href={`/app/documents/editor?id=${document.id}`}>
-                <Edit className="h-4 w-4 mr-2" />
                 {t("edit")}
               </Link>
             </Button>
           )}
-          <Button variant="outline" onClick={handleDownload}>
-            <Download className="h-4 w-4 mr-2" />
+          <Button 
+            variant="outline" 
+            leftIcon={<Download className="h-4 w-4" />}
+            onClick={handleDownload}
+          >
             {t("download")}
           </Button>
         </div>
@@ -192,8 +198,11 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
                     <CardDescription>Send this document to agents in your network</CardDescription>
                   </div>
                 </div>
-                <Button variant="outline" onClick={() => setShareModalOpen(true)}>
-                  <Share2 className="h-4 w-4 mr-2" />
+                <Button 
+                  variant="outline" 
+                  leftIcon={<Share2 className="h-4 w-4" />}
+                  onClick={() => setShareModalOpen(true)}
+                >
                   Share
                 </Button>
               </div>

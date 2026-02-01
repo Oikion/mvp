@@ -60,12 +60,19 @@ export function AudiencesPageView({
             </TabsTrigger>
           </TabsList>
           <div className="flex gap-2">
-            <Button onClick={handleCreatePersonal} variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={handleCreatePersonal} 
+              variant="outline" 
+              size="sm"
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
               {t.createPersonal}
             </Button>
-            <Button onClick={handleCreateOrg} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={handleCreateOrg} 
+              size="sm"
+              leftIcon={<Plus className="h-4 w-4" />}
+            >
               {t.createOrg}
             </Button>
           </div>
@@ -151,14 +158,19 @@ function EmptyState({ title, description, onCreatePersonal, onCreateOrg, transla
       <p className="text-muted-foreground mt-1 max-w-md">{description}</p>
       <div className="flex gap-2 mt-4">
         {onCreatePersonal && (
-          <Button variant="outline" onClick={onCreatePersonal}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button 
+            variant="outline" 
+            leftIcon={<Plus className="h-4 w-4" />}
+            onClick={onCreatePersonal}
+          >
             {t.createPersonal}
           </Button>
         )}
         {onCreateOrg && (
-          <Button onClick={onCreateOrg}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button 
+            leftIcon={<Plus className="h-4 w-4" />}
+            onClick={onCreateOrg}
+          >
             {t.createOrg}
           </Button>
         )}

@@ -101,6 +101,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.clerk.dev",
       },
+      {
+        // Vercel Blob storage for user avatars and uploads
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+      },
     ],
   },
   // Reduce watch overhead in dev (especially large folders in repo root)

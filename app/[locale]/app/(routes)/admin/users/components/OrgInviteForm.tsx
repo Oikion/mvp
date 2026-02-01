@@ -61,8 +61,7 @@ export function OrganizationInviteForm() {
         role: data.role,
       });
 
-      toast.success(t, { description: t, isTranslationKey: false }),
-      });
+      toast.success(t("invitationSent"), { description: t("invitationSentDescription") });
 
       form.reset({
         email: "",
@@ -79,7 +78,7 @@ export function OrganizationInviteForm() {
         errorMessage = error.message;
       }
 
-      toast.error(t, { description: errorMessage, isTranslationKey: false });
+      toast.error(t("invitationError"), { description: errorMessage });
     } finally {
       setIsLoading(false);
     }

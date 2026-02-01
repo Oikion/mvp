@@ -592,8 +592,8 @@ export default function MarketIntelSettingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center">
-            <Settings className="h-8 w-8 mr-2" />
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Settings className="h-8 w-8" />
             Market Intelligence Settings
           </h1>
           <p className="text-muted-foreground">
@@ -606,20 +606,11 @@ export default function MarketIntelSettingsPage() {
             {getStatusBadge(config.status)}
             <Button
               variant={formState.isEnabled ? "destructive" : "default"}
+              leftIcon={formState.isEnabled ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
               onClick={toggleEnabled}
               disabled={!schemaExists}
             >
-              {formState.isEnabled ? (
-                <>
-                  <PowerOff className="h-4 w-4 mr-2" />
-                  Disable
-                </>
-              ) : (
-                <>
-                  <Power className="h-4 w-4 mr-2" />
-                  Enable
-                </>
-              )}
+              {formState.isEnabled ? "Disable" : "Enable"}
             </Button>
           </div>
         )}
@@ -675,10 +666,10 @@ export default function MarketIntelSettingsPage() {
               </CardTitle>
               <Button 
                 variant="destructive" 
-                size="sm" 
+                size="sm"
+                leftIcon={<Square className="h-4 w-4" />}
                 onClick={cancelScrape}
               >
-                <Square className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
             </div>

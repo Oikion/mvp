@@ -782,10 +782,10 @@ export function ProfileEditor({
                       <Button
                         type="button"
                         variant="outline"
+                        leftIcon={<Plus className="h-4 w-4" />}
                         onClick={addCustomField}
                         disabled={!newFieldLabel.trim()}
                       >
-                        <Plus className="h-4 w-4 mr-2" />
                         Add Field
                       </Button>
                     </div>
@@ -796,10 +796,10 @@ export function ProfileEditor({
                 <div className="flex justify-end">
                   <Button
                     type="button"
+                    leftIcon={isSavingContactForm ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
                     onClick={handleSaveContactFormSettings}
                     disabled={isSavingContactForm}
                   >
-                    {isSavingContactForm && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Save Contact Form Settings
                   </Button>
                 </div>
@@ -810,10 +810,10 @@ export function ProfileEditor({
               <div className="flex justify-end">
                 <Button
                   type="button"
+                  leftIcon={isSavingContactForm ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
                   onClick={handleSaveContactFormSettings}
                   disabled={isSavingContactForm}
                 >
-                  {isSavingContactForm && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Settings
                 </Button>
               </div>

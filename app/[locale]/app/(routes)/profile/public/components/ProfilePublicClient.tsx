@@ -118,12 +118,12 @@ export function ProfilePublicClient({
               You can change your username at any time in your account settings. When you change it, 
               your profile URL will automatically update.
             </p>
-            <Link href="/app/profile">
-              <Button>
+            <Button asChild>
+              <Link href="/app/profile">
                 <User className="h-4 w-4 mr-2" />
                 Set Username in Settings
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -171,19 +171,10 @@ export function ProfilePublicClient({
             <Button
               variant={isEditing ? "default" : "outline"}
               size="sm"
+              leftIcon={isEditing ? <Eye className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
               onClick={() => setIsEditing(!isEditing)}
             >
-              {isEditing ? (
-                <>
-                  <Eye className="h-4 w-4 mr-1" />
-                  {t?.actions?.preview || "Preview"}
-                </>
-              ) : (
-                <>
-                  <Pencil className="h-4 w-4 mr-1" />
-                  {t?.actions?.edit || "Edit"}
-                </>
-              )}
+              {isEditing ? (t?.actions?.preview || "Preview") : (t?.actions?.edit || "Edit")}
             </Button>
           )}
         </div>

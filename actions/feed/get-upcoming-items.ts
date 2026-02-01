@@ -51,7 +51,7 @@ export async function getUpcomingItems(): Promise<{
 
   // Fetch upcoming calendar events
   try {
-    const events = await prismadb.calendarEvent.findMany({
+    const events = await prismadb.CalendarEvent.findMany({
       where: {
         organizationId: orgId,
         startTime: {

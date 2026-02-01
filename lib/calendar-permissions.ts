@@ -229,7 +229,7 @@ export async function canEditEvent(eventId: string): Promise<boolean> {
     const currentUser = await getCurrentUser();
     const currentOrgId = await getCurrentOrgIdSafe();
 
-    const event = await prismadb.calendarEvent.findUnique({
+    const event = await prismadb.CalendarEvent.findUnique({
       where: { id: eventId },
     });
 
@@ -268,7 +268,7 @@ export async function canDeleteEvent(eventId: string): Promise<boolean> {
     const currentUser = await getCurrentUser();
     const currentOrgId = await getCurrentOrgIdSafe();
 
-    const event = await prismadb.calendarEvent.findUnique({
+    const event = await prismadb.CalendarEvent.findUnique({
       where: { id: eventId },
     });
 

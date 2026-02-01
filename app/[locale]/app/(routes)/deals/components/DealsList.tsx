@@ -262,31 +262,19 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                         <Button
                           size="sm"
                           variant="outline"
+                          leftIcon={loadingId === deal.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
                           onClick={() => handleCancel(deal.id)}
                           disabled={loadingId === deal.id}
                         >
-                          {loadingId === deal.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <X className="h-4 w-4 mr-1" />
-                              {t.detail?.cancel || "Decline"}
-                            </>
-                          )}
+                          {t.detail?.cancel || "Decline"}
                         </Button>
                         <Button
                           size="sm"
+                          leftIcon={loadingId === deal.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                           onClick={() => handleAccept(deal.id)}
                           disabled={loadingId === deal.id}
                         >
-                          {loadingId === deal.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <Check className="h-4 w-4 mr-1" />
-                              {t.detail?.acceptDeal || "Accept"}
-                            </>
-                          )}
+                          {t.detail?.acceptDeal || "Accept"}
                         </Button>
                       </div>
                     )}

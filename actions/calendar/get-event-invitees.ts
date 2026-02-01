@@ -106,7 +106,7 @@ export async function getInvitedEvents(status?: "PENDING" | "ACCEPTED" | "DECLIN
         },
       },
       orderBy: {
-        CalComEvent: {
+        CalendarEvent: {
           startTime: "asc",
         },
       },

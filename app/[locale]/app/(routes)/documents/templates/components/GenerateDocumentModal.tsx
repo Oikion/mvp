@@ -438,18 +438,12 @@ export function GenerateDocumentModal({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("cancel")}
           </Button>
-          <Button onClick={handleGenerate} disabled={generating || loading}>
-            {generating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {t("generating")}
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4 mr-2" />
-                {t("generateAndDownload")}
-              </>
-            )}
+          <Button 
+            leftIcon={generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            onClick={handleGenerate} 
+            disabled={generating || loading}
+          >
+            {generating ? t("generating") : t("generateAndDownload")}
           </Button>
         </DialogFooter>
       </DialogContent>

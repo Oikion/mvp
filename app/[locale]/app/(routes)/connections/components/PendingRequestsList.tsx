@@ -129,31 +129,19 @@ function PendingRequestItem({
         <Button
           size="sm"
           variant="outline"
+          leftIcon={isResponding ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
           onClick={handleReject}
           disabled={isResponding}
         >
-          {isResponding ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              <X className="h-4 w-4 mr-1" />
-              {t.actions.decline}
-            </>
-          )}
+          {t.actions.decline}
         </Button>
         <Button
           size="sm"
+          leftIcon={isResponding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
           onClick={handleAccept}
           disabled={isResponding}
         >
-          {isResponding ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              <Check className="h-4 w-4 mr-1" />
-              {t.actions.accept}
-            </>
-          )}
+          {t.actions.accept}
         </Button>
       </div>
     </div>

@@ -159,6 +159,8 @@ export function createApiSuccessResponse<T>(
 /**
  * Wrapper for external API route handlers
  * Handles authentication, scope checking, logging, and error handling
+ * 
+ * Also supports internal tool API calls when combined with withInternalToolApi
  */
 export function withExternalApi<T>(
   handler: (
@@ -175,7 +177,18 @@ export function withExternalApi<T>(
     let apiKeyId: string | undefined;
 
     try {
-      // Authenticate the request
+      // Check if this is an internal tool API call with pre-set context
+      const internalContext = getInternalApiContextFromHeader(req);
+      
+      if (internalContext) {
+        // Internal tool call - skip API key auth, use internal context
+        // Internal tools have all scopes, so skip scope check
+        const response = await handler(req, internalContext);
+        statusCode = response.status;
+        return response;
+      }
+
+      // Authenticate the request via API key
       const authResult = await authenticateExternalApi(req);
 
       if (!authResult.success || !authResult.context) {
@@ -215,7 +228,7 @@ export function withExternalApi<T>(
       );
     } finally {
       // Log the API request (fire and forget)
-      if (apiKeyId) {
+      if (apiKeyId && apiKeyId !== "internal-tool") {
         const responseTime = Date.now() - startTime;
         logApiRequest({
           apiKeyId,
@@ -233,6 +246,22 @@ export function withExternalApi<T>(
       }
     }
   };
+}
+
+/**
+ * Internal helper to get context from header (used by withExternalApi)
+ */
+function getInternalApiContextFromHeader(req: NextRequest): ExternalApiContext | null {
+  const contextHeader = req.headers.get("x-internal-api-context");
+  if (!contextHeader) {
+    return null;
+  }
+  
+  try {
+    return JSON.parse(contextHeader) as ExternalApiContext;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -303,3 +332,112 @@ export function parseFilterParams(
 
   return filters;
 }
+
+/**
+ * Context for internal tool API calls
+ */
+export interface InternalToolContext {
+  organizationId: string;
+  userId?: string;
+  source: string;
+  testMode: boolean;
+}
+
+/**
+ * Check if request is from internal AI tool executor
+ */
+function isInternalToolRequest(req: NextRequest): boolean {
+  const source = req.headers.get("x-tool-context-source");
+  const orgId = req.headers.get("x-tool-context-org");
+  return !!source && !!orgId;
+}
+
+/**
+ * Extract internal tool context from headers
+ */
+function extractInternalToolContext(req: NextRequest): InternalToolContext | null {
+  const orgId = req.headers.get("x-tool-context-org");
+  const source = req.headers.get("x-tool-context-source");
+  
+  if (!orgId || !source) {
+    return null;
+  }
+
+  return {
+    organizationId: orgId,
+    userId: req.headers.get("x-tool-context-user") || undefined,
+    source,
+    testMode: req.headers.get("x-tool-context-test-mode") === "true",
+  };
+}
+
+/**
+ * Wrapper for API routes that support both external API keys and internal tool calls
+ * 
+ * This middleware allows routes to be called:
+ * 1. Externally via API key authentication
+ * 2. Internally via AI tool executor with X-Tool-Context-* headers
+ * 
+ * @example
+ * ```typescript
+ * export const GET = withInternalToolApi(
+ *   withExternalApi(handler, { requiredScopes: [API_SCOPES.CALENDAR_READ] })
+ * );
+ * ```
+ */
+export function withInternalToolApi(
+  externalHandler: (req: NextRequest) => Promise<NextResponse>
+) {
+  return async (req: NextRequest): Promise<NextResponse> => {
+    // Check if this is an internal tool request
+    if (isInternalToolRequest(req)) {
+      const toolContext = extractInternalToolContext(req);
+      
+      if (!toolContext) {
+        return createApiErrorResponse(
+          "Invalid internal tool context headers",
+          400
+        );
+      }
+
+      // For internal tool requests, create a synthetic external API context
+      // This allows the handler to work with the same interface
+      const syntheticContext: ExternalApiContext = {
+        apiKeyId: "internal-tool",
+        organizationId: toolContext.organizationId,
+        apiKeyName: `AI Tool (${toolContext.source})`,
+        scopes: ["*"], // Internal tools have all scopes
+        createdById: toolContext.userId || "system",
+      };
+
+      // Inject the synthetic context into the request for the handler
+      // We do this by modifying the request object's headers to include the context
+      // Then call the original handler logic directly
+      
+      // Actually, we need to execute the inner handler manually with the context
+      // Let's create a new approach - extract the handler and call it with context
+      
+      // For now, let's bypass the external auth by calling the handler indirectly
+      // This requires a different approach - let's use a request extension pattern
+      
+      // Store context in a header that the handler can check
+      const modifiedHeaders = new Headers(req.headers);
+      modifiedHeaders.set("x-internal-api-context", JSON.stringify(syntheticContext));
+      
+      // Create a new request with modified headers
+      const modifiedReq = new NextRequest(req.url, {
+        method: req.method,
+        headers: modifiedHeaders,
+        body: req.body,
+        // @ts-expect-error - duplex is required for streaming bodies in newer Node versions
+        duplex: "half",
+      });
+
+      return externalHandler(modifiedReq);
+    }
+
+    // For external requests, use the standard API key authentication
+    return externalHandler(req);
+  };
+}
+

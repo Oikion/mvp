@@ -134,10 +134,10 @@ export async function resolveMentions(
     }));
   }
 
-  // Resolve calendar events (CalComEvent)
+  // Resolve calendar events (CalendarEvent)
   if (eventMentions.length > 0) {
     const eventTitles = eventMentions.map((m) => m.name);
-    const events = await (prismaClient as any).calComEvent.findMany({
+    const events = await (prismaClient as any).CalendarEvent.findMany({
       where: {
         organizationId,
         title: {
@@ -248,7 +248,7 @@ export async function mergeMentions(
 
   // Add explicit event associations
   if (explicitAssociations.eventIds && explicitAssociations.eventIds.length > 0) {
-    const explicitEvents = await (prismaClient as any).calendarEvent.findMany({
+    const explicitEvents = await (prismaClient as any).CalendarEvent.findMany({
       where: {
         id: { in: explicitAssociations.eventIds },
         organizationId,

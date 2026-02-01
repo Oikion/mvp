@@ -122,8 +122,12 @@ export function QuickUploadZone({ className }: QuickUploadZoneProps) {
         <input {...getInputProps()} />
         
         {/* Upload Button */}
-        <Button onClick={open} variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button 
+          onClick={open} 
+          variant="outline" 
+          size="sm"
+          leftIcon={<Plus className="h-4 w-4" />}
+        >
           {t("documentGrid.uploadDocument")}
         </Button>
 
@@ -193,18 +197,12 @@ export function QuickUploadZone({ className }: QuickUploadZoneProps) {
             <Button variant="outline" onClick={handleCancel} disabled={isUploading}>
               {t("uploadModal.cancel")}
             </Button>
-            <Button onClick={handleUpload} disabled={!documentName.trim() || isUploading}>
-              {isUploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {t("uploadModal.uploading")}
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {t("uploadModal.upload")}
-                </>
-              )}
+            <Button 
+              leftIcon={isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              onClick={handleUpload} 
+              disabled={!documentName.trim() || isUploading}
+            >
+              {isUploading ? t("uploadModal.uploading") : t("uploadModal.upload")}
             </Button>
           </DialogFooter>
         </DialogContent>

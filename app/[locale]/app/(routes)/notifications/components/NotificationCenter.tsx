@@ -188,10 +188,10 @@ export function NotificationCenter({ initialNotifications, dict }: NotificationC
           {displayUnreadCount > 0 && (
             <Button
               variant="outline"
+              leftIcon={<CheckCheck className="h-4 w-4" />}
               onClick={handleMarkAllRead}
               disabled={isLoading}
             >
-              <CheckCheck className="h-4 w-4 mr-2" />
               {dict?.Notifications?.markAllRead || "Mark all as read"}
             </Button>
           )}
@@ -284,21 +284,12 @@ export function NotificationCenter({ initialNotifications, dict }: NotificationC
               <div className="flex justify-center pt-4 pb-2">
                 <Button
                   variant="outline"
+                  leftIcon={isLoadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronDown className="h-4 w-4" />}
                   onClick={loadMore}
                   disabled={isLoadingMore}
                   className="w-full max-w-xs"
                 >
-                  {isLoadingMore ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      {dict?.common?.loading || "Loading..."}
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4 mr-2" />
-                      {dict?.Notifications?.loadMore || "Load More"}
-                    </>
-                  )}
+                  {isLoadingMore ? (dict?.common?.loading || "Loading...") : (dict?.Notifications?.loadMore || "Load More")}
                 </Button>
               </div>
             )}

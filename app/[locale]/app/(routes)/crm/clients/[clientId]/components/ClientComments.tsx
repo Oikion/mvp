@@ -159,10 +159,10 @@ export function ClientComments({
               </span>
               <Button
                 size="sm"
+                leftIcon={<Send className="h-4 w-4" />}
                 onClick={handleSubmit}
                 disabled={!newComment.trim() || isAdding}
               >
-                <Send className="h-4 w-4 mr-1" />
                 {isAdding ? "Sending..." : "Send"}
               </Button>
             </div>

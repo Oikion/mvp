@@ -230,27 +230,18 @@ export function VisualDocumentBuilder({
           <Button
             variant="outline"
             size="sm"
+            leftIcon={<Eye className="h-4 w-4" />}
             onClick={() => setIsPreviewing(!isPreviewing)}
           >
-            <Eye className="h-4 w-4 mr-2" />
             {isPreviewing ? t("edit") : t("preview")}
           </Button>
           <Button
+            leftIcon={isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             onClick={handleExport}
             disabled={isExporting || completionPercentage < 100}
             size="sm"
           >
-            {isExporting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {t("exporting")}
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4 mr-2" />
-                {t("exportPdf")}
-              </>
-            )}
+            {isExporting ? t("exporting") : t("exportPdf")}
           </Button>
         </div>
       </div>

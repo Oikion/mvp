@@ -217,38 +217,39 @@ export function DealDetail({ deal }: DealDetailProps) {
         </div>
         <div className="flex items-center gap-2">
           {canAccept && (
-            <Button onClick={handleAccept} disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Check className="h-4 w-4 mr-2" />
-              )}
+            <Button 
+              leftIcon={isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              onClick={handleAccept} 
+              disabled={isLoading}
+            >
               Accept Deal
             </Button>
           )}
           {canStartProgress && (
-            <Button onClick={handleStartProgress} disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <PlayCircle className="h-4 w-4 mr-2" />
-              )}
+            <Button 
+              leftIcon={isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+              onClick={handleStartProgress} 
+              disabled={isLoading}
+            >
               Start Progress
             </Button>
           )}
           {canComplete && (
-            <Button onClick={() => setShowCompleteDialog(true)} disabled={isLoading}>
-              <CheckCircle2 className="h-4 w-4 mr-2" />
+            <Button 
+              leftIcon={<CheckCircle2 className="h-4 w-4" />}
+              onClick={() => setShowCompleteDialog(true)} 
+              disabled={isLoading}
+            >
               Complete Deal
             </Button>
           )}
           {canCancel && (
             <Button
               variant="outline"
+              leftIcon={<X className="h-4 w-4" />}
               onClick={() => setShowCancelDialog(true)}
               disabled={isLoading}
             >
-              <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
           )}
@@ -304,10 +305,11 @@ export function DealDetail({ deal }: DealDetailProps) {
                     >
                       Cancel
                     </Button>
-                    <Button onClick={handleProposeSplit} disabled={isLoading}>
-                      {isLoading && (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      )}
+                    <Button 
+                      leftIcon={isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
+                      onClick={handleProposeSplit} 
+                      disabled={isLoading}
+                    >
                       Propose This Split
                     </Button>
                   </div>
@@ -391,9 +393,9 @@ export function DealDetail({ deal }: DealDetailProps) {
                     <Button
                       variant="outline"
                       className="w-full"
+                      leftIcon={<Edit className="h-4 w-4" />}
                       onClick={() => setIsNegotiating(true)}
                     >
-                      <Edit className="h-4 w-4 mr-2" />
                       Propose Different Split
                     </Button>
                   )}
@@ -573,9 +575,9 @@ export function DealDetail({ deal }: DealDetailProps) {
             <AlertDialogCancel>Keep Deal</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancel}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center gap-2"
             >
-              {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
               Cancel Deal
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -641,9 +643,12 @@ export function DealDetail({ deal }: DealDetailProps) {
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleComplete}>
-              {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              <Handshake className="h-4 w-4 mr-2" />
+            <AlertDialogAction 
+              onClick={handleComplete}
+              className="flex items-center gap-2"
+            >
+              {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {!isLoading && <Handshake className="h-4 w-4" />}
               Complete Deal
             </AlertDialogAction>
           </AlertDialogFooter>

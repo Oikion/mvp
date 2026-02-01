@@ -144,8 +144,11 @@ export default function ClientView({
                   <CardDescription>Collaborate with other agents on this client</CardDescription>
                 </div>
               </div>
-              <Button variant="outline" onClick={() => setShareModalOpen(true)}>
-                <Share2 className="h-4 w-4 mr-2" />
+              <Button 
+                variant="outline" 
+                leftIcon={<Share2 className="h-4 w-4" />}
+                onClick={() => setShareModalOpen(true)}
+              >
                 Share
               </Button>
             </div>

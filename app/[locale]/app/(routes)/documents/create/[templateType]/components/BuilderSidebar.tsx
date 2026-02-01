@@ -302,9 +302,9 @@ export function BuilderSidebar({
           variant="outline"
           size="sm"
           className="w-full"
+          leftIcon={<RotateCcw className="h-4 w-4" />}
           onClick={onClear}
         >
-          <RotateCcw className="h-4 w-4 mr-2" />
           {t("clearAll")}
         </Button>
       </div>

@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClerkClient } from "@clerk/backend";
 import { Link } from "@/navigation";
-import { Users, Building2, Settings, Shield, Workflow, Globe, Plug } from "lucide-react";
+import { Users, Building2, Settings, Shield, Workflow, Globe, Plug, Bot } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -148,7 +148,7 @@ const AdminPage = async () => {
       {/* Organization Settings Section */}
       <div className="mt-8">
         <h3 className="text-lg font-semibold mb-4">{t("admin.quickLinks")}</h3>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
             <Link href="/app/organization" className="block">
               <CardHeader>
@@ -172,6 +172,20 @@ const AdminPage = async () => {
                 </CardTitle>
                 <CardDescription>
                   {t("admin.teamManagementDescription")}
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+
+          <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
+            <Link href="/app/admin/ai-settings" className="block">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-primary" />
+                  AI Settings
+                </CardTitle>
+                <CardDescription>
+                  Configure AI assistant behavior and capabilities for your organization
                 </CardDescription>
               </CardHeader>
             </Link>

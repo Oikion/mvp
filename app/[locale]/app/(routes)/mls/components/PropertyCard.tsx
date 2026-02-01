@@ -158,12 +158,12 @@ export const PropertyCard = memo(function PropertyCard({ data, index = 0 }: Prop
         <div className="text-xs text-muted-foreground">
           {data.assigned_to_user?.name || t("MlsPropertiesTable.unassigned")}
         </div>
-        <Link href={`/app/mls/properties/${data.id}`}>
-          <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" asChild>
+          <Link href={`/app/mls/properties/${data.id}`}>
             <Eye className="h-4 w-4 mr-2" />
             {t("MlsPropertiesTable.details")}
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
   );

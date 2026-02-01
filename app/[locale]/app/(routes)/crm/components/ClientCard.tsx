@@ -138,12 +138,12 @@ export const ClientCard = memo(function ClientCard({ data }: ClientCardProps) {
       </CardContent>
 
       <CardFooter className="pt-0 flex justify-end">
-        <Link href={`/app/crm/clients/${data.id}`}>
-          <Button variant="ghost" size="sm" className="w-full">
+        <Button variant="ghost" size="sm" className="w-full" asChild>
+          <Link href={`/app/crm/clients/${data.id}`}>
             <Eye className="h-4 w-4 mr-2" />
             {commonT("view")}
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
   );

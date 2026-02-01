@@ -186,7 +186,7 @@ async function resolveEntityByName(
 
     case "event":
     case "calendar": {
-      const event = await prismadb.calendarEvent.findFirst({
+      const event = await prismadb.CalendarEvent.findFirst({
         where: {
           organizationId,
           title: { contains: name, mode: "insensitive" },
@@ -240,7 +240,7 @@ async function getEntityDisplayName(
 
     case "event":
     case "calendar": {
-      const event = await prismadb.calendarEvent.findUnique({
+      const event = await prismadb.CalendarEvent.findUnique({
         where: { id: entityId },
         select: { title: true },
       });
@@ -302,7 +302,7 @@ async function performLinking(
       const eventId =
         entity === "event" || entity === "calendar" ? entityId : targetId;
 
-      await prismadb.calendarEvent.update({
+      await prismadb.CalendarEvent.update({
         where: { id: eventId, organizationId },
         data: {
           Clients: {
@@ -323,7 +323,7 @@ async function performLinking(
       const eventId =
         entity === "event" || entity === "calendar" ? entityId : targetId;
 
-      await prismadb.calendarEvent.update({
+      await prismadb.CalendarEvent.update({
         where: { id: eventId, organizationId },
         data: {
           Properties: {

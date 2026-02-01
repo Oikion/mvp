@@ -269,8 +269,11 @@ export function ShowcasePropertyManager({
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" disabled={availableProperties.length === 0}>
-                <Plus className="h-4 w-4 mr-1" />
+              <Button 
+                size="sm" 
+                leftIcon={<Plus className="h-4 w-4" />}
+                disabled={availableProperties.length === 0}
+              >
                 Add Property
               </Button>
             </DialogTrigger>
@@ -398,10 +401,10 @@ export function ShowcasePropertyManager({
             <Button
               size="sm"
               variant="outline"
+              leftIcon={<Plus className="h-4 w-4" />}
               onClick={() => setIsAddDialogOpen(true)}
               disabled={availableProperties.length === 0}
             >
-              <Plus className="h-4 w-4 mr-1" />
               Add Your First Property
             </Button>
           </div>

@@ -111,12 +111,12 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
       </CardContent>
 
       <CardFooter className="pt-0 flex justify-end">
-        <Link href={`/app/crm/clients/${data.id}`}>
-          <Button variant="ghost" size="sm" className="w-full">
+        <Button variant="ghost" size="sm" className="w-full" asChild>
+          <Link href={`/app/crm/clients/${data.id}`}>
             <ExternalLink className="h-4 w-4 mr-2" />
             {t("SharedView.viewProfile")}
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
   );
