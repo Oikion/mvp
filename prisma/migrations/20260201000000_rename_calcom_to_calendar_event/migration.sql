@@ -11,6 +11,7 @@ ALTER INDEX "CalComEvent_assignedUserId_idx" RENAME TO "CalendarEvent_assignedUs
 ALTER INDEX "CalComEvent_eventType_idx" RENAME TO "CalendarEvent_eventType_idx";
 ALTER INDEX "CalComEvent_organizationId_idx" RENAME TO "CalendarEvent_organizationId_idx";
 ALTER INDEX "CalComEvent_startTime_idx" RENAME TO "CalendarEvent_startTime_idx";
+ALTER INDEX "CalComEvent_calcomEventId_idx" RENAME TO "CalendarEvent_calendarEventId_idx";
 
 -- Rename CalendarReminder relation column (already named eventId, just update constraint)
 ALTER TABLE "CalendarReminder" DROP CONSTRAINT IF EXISTS "CalendarReminder_eventId_fkey";
