@@ -109,12 +109,12 @@ export async function POST(req: Request) {
               include: { Clients: { select: { id: true, client_name: true } } },
               take: 3,
             },
-            CalComEvent: {
+            CalendarEvent: {
               select: { id: true, title: true, startTime: true },
               take: 3,
               orderBy: { startTime: "desc" },
             },
-            _count: { select: { Client_Properties: true, CalComEvent: true } },
+            _count: { select: { Client_Properties: true, CalendarEvent: true } },
           } : undefined,
           take: limit,
           skip,
@@ -145,12 +145,12 @@ export async function POST(req: Request) {
               include: { Properties: { select: { id: true, property_name: true } } },
               take: 3,
             },
-            CalComEvent: {
+            CalendarEvent: {
               select: { id: true, title: true, startTime: true },
               take: 3,
               orderBy: { startTime: "desc" },
             },
-            _count: { select: { Client_Properties: true, CalComEvent: true } },
+            _count: { select: { Client_Properties: true, CalendarEvent: true } },
           } : undefined,
           take: limit,
           skip,
@@ -203,7 +203,7 @@ export async function POST(req: Request) {
         db.documents.findMany({
           where: documentWhere,
           include: includeRelationships ? {
-            _count: { select: { Clients: true, Properties: true, CalComEvent: true } },
+            _count: { select: { Clients: true, Properties: true, CalendarEvent: true } },
           } : undefined,
           take: limit,
           skip,
@@ -218,8 +218,8 @@ export async function POST(req: Request) {
 
     // Events search
     if (types.includes("event")) {
-      const calComEventModel = (db as any).calComEvent;
-      if (calComEventModel && typeof calComEventModel.findMany === "function") {
+      const calendarEventModel = (db as any).calendarEvent;
+      if (calendarEventModel && typeof calendarEventModel.findMany === "function") {
         const eventWhere = {
           OR: [
             { title: { contains: query, mode: "insensitive" as const } },
@@ -232,7 +232,7 @@ export async function POST(req: Request) {
         };
 
         searchPromises.push(
-          calComEventModel.findMany({
+          calendarEventModel.findMany({
             where: eventWhere,
             include: includeRelationships ? {
               linkedClients: { select: { id: true, client_name: true }, take: 3 },
@@ -244,7 +244,7 @@ export async function POST(req: Request) {
             orderBy: { startTime: "desc" },
           }).catch(() => [])
         );
-        countPromises.push(calComEventModel.count({ where: eventWhere }).catch(() => 0));
+        countPromises.push(calendarEventModel.count({ where: eventWhere }).catch(() => 0));
       } else {
         searchPromises.push(Promise.resolve([]));
         countPromises.push(Promise.resolve(0));
@@ -290,8 +290,8 @@ export async function POST(req: Request) {
           preview: p.Client_Properties?.map((cp: any) => cp.Clients) || [],
         },
         events: {
-          count: p._count?.CalComEvent || 0,
-          preview: p.CalComEvent || [],
+          count: p._count?.CalendarEvent || 0,
+          preview: p.CalendarEvent || [],
         },
       } : undefined,
     }));
@@ -304,8 +304,8 @@ export async function POST(req: Request) {
           preview: c.Client_Properties?.map((cp: any) => cp.Properties) || [],
         },
         events: {
-          count: c._count?.CalComEvent || 0,
-          preview: c.CalComEvent || [],
+          count: c._count?.CalendarEvent || 0,
+          preview: c.CalendarEvent || [],
         },
       } : undefined,
     }));
@@ -322,7 +322,7 @@ export async function POST(req: Request) {
       relationships: includeRelationships ? {
         clients: { count: d._count?.Clients || 0 },
         properties: { count: d._count?.Properties || 0 },
-        events: { count: d._count?.CalComEvent || 0 },
+        events: { count: d._count?.CalendarEvent || 0 },
       } : undefined,
     }));
 

@@ -94,7 +94,7 @@ export async function PUT(
         mentions: mergedMentions as unknown as Prisma.InputJsonValue,
         accountsIDs: mergedMentions.clients.map((c) => c.id),
         linkedPropertiesIds: mergedMentions.properties.map((p) => p.id),
-        linkedCalComEventsIds: mergedMentions.events.map((e) => e.id),
+        linkedCalendarEventsIds: mergedMentions.events.map((e) => e.id),
         linkedTasksIds: mergedMentions.tasks.map((t) => t.id),
         Clients: {
           set: mergedMentions.clients.map((c) => ({ id: c.id })),
@@ -102,7 +102,7 @@ export async function PUT(
         Properties: {
           set: mergedMentions.properties.map((p) => ({ id: p.id })),
         },
-        CalComEvent: {
+        CalendarEvent: {
           set: mergedMentions.events.map((e) => ({ id: e.id })),
         },
         crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: {
@@ -112,7 +112,7 @@ export async function PUT(
       include: {
         Clients: true,
         Properties: true,
-        CalComEvent: true,
+        CalendarEvent: true,
         crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: true,
       },
     });
