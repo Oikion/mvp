@@ -176,7 +176,7 @@ export async function GET(req: Request) {
         : {}),
     };
 
-    const events = await prismadb.calComEvent.findMany({
+    const events = await prismadb.calendarEvent.findMany({
       where: eventWhere,
       include: {
         crm_Accounts_Tasks: {
@@ -235,7 +235,7 @@ export async function GET(req: Request) {
 
     // Transform database events to match CalendarEvent interface
     const transformedEvents = events.map((event) => ({
-      id: event.calcomEventId,
+      id: event.calendarEventId,
       eventId: event.id, // Include the database ID for navigation
       title: event.title || 'Untitled Event',
       description: event.description || undefined,
@@ -343,11 +343,11 @@ export async function POST(req: Request) {
     const friendlyEventId = await generateFriendlyId(prismadb, "CalComEvent");
 
     // Create event in database
-    const event = await prismadb.calComEvent.create({
+    const event = await prismadb.calendarEvent.create({
       data: {
         id: friendlyEventId,
-        calcomEventId: eventId,
-        calcomUserId: 0, // Not using Cal.com anymore
+        calendarEventId: eventId,
+        calendarUserId: 0, // Legacy field maintained for backwards compatibility
         organizationId,
         title,
         description: description || null,
