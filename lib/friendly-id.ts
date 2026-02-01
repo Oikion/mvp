@@ -13,7 +13,7 @@ export const ENTITY_PREFIXES = {
   Deal: "deal",
   Client_Contacts: "con",
   Property_Contacts: "pcon",
-  CalComEvent: "evt",
+  CalendarEvent: "evt",
   Notification: "ntf",
   SocialPost: "post",
   Audience: "aud",

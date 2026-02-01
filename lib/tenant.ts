@@ -7,7 +7,7 @@ const TENANT_MODELS: Record<string, string> = {
   client_Contacts: "organizationId",
   crm_Accounts_Tasks: "organizationId",
   crm_Accounts_Tasks_Comments: "organizationId",
-  calComEvent: "organizationId",
+  calendarEvent: "organizationId",
   myAccount: "organizationId",
   feedback: "organizationId",
   notification: "organizationId",
