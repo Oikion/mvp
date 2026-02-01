@@ -24,7 +24,7 @@ interface TaskEventCardProps {
       id: string;
       client_name: string;
     } | null;
-    calcomEventId?: string | null;
+    calendarEventId?: string | null;
   };
 }
 
@@ -68,7 +68,7 @@ export function TaskEventCard({ task }: TaskEventCardProps) {
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{format(dueDate, "MMM d, yyyy 'at' HH:mm")}</span>
-          {task.calcomEventId && (
+          {task.calendarEventId && (
             <Badge variant="outline" className="flex items-center gap-1">
               <LinkIcon className="h-3 w-3" />
               {t("taskEventCard.synced")}

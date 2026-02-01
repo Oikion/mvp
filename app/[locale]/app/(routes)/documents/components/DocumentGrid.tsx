@@ -19,7 +19,7 @@ interface Document {
   viewsCount?: number;
   accounts?: Array<{ id: string; client_name: string }>;
   linkedProperties?: Array<{ id: string; property_name: string }>;
-  linkedCalComEvents?: Array<{ id: string; title: string | null }>;
+  linkedCalendarEvents?: Array<{ id: string; title: string | null }>;
   linkedTasks?: Array<{ id: string; title: string }>;
 }
 

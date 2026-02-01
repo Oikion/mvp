@@ -63,7 +63,7 @@ interface CalendarTask {
     id: string;
     client_name: string;
   } | null;
-  calcomEventId?: string | null;
+  calendarEventId?: string | null;
 }
 
 const CALENDAR_VIEWMODE_STORAGE_KEY = "oikion.calendar.viewMode";

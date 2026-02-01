@@ -19,7 +19,7 @@ export interface Task {
     client_name: string;
     primary_email: string | null;
   } | null;
-  calcomEvent: {
+  calendarEvent: {
     id: string;
     title: string | null;
     startTime: Date | string;

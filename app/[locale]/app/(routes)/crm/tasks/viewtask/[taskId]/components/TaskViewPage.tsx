@@ -193,16 +193,16 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
                 )}
               </div>
 
-              {task.calcomEvent && (
+              {task.calendarEvent && (
                 <>
                   <Separator />
                   <div>
                     <h3 className="text-sm font-semibold mb-2">Linked Calendar Event</h3>
                     <div className="text-sm text-muted-foreground">
-                      <p className="font-medium">{task.calcomEvent.title || 'Untitled Event'}</p>
+                      <p className="font-medium">{task.calendarEvent.title || 'Untitled Event'}</p>
                       <p>
-                        {format(new Date(task.calcomEvent.startTime), 'PPP p')} - {' '}
-                        {format(new Date(task.calcomEvent.endTime), 'p')}
+                        {format(new Date(task.calendarEvent.startTime), 'PPP p')} - {' '}
+                        {format(new Date(task.calendarEvent.endTime), 'p')}
                       </p>
                     </div>
                   </div>

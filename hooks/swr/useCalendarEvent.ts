@@ -38,7 +38,7 @@ interface EventReminder {
 
 export interface CalendarEventDetail {
   id: string;
-  calcomEventId: number;
+  calendarEventId: number;
   title: string;
   description?: string | null;
   startTime: string;

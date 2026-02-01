@@ -248,7 +248,7 @@ export async function mergeMentions(
 
   // Add explicit event associations
   if (explicitAssociations.eventIds && explicitAssociations.eventIds.length > 0) {
-    const explicitEvents = await (prismaClient as any).calComEvent.findMany({
+    const explicitEvents = await (prismaClient as any).calendarEvent.findMany({
       where: {
         id: { in: explicitAssociations.eventIds },
         organizationId,

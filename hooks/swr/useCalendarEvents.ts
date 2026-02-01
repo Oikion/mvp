@@ -27,7 +27,7 @@ interface CalendarTask {
     id: string;
     client_name: string;
   } | null;
-  calcomEventId?: string | null;
+  calendarEventId?: string | null;
 }
 
 interface CalendarEventsResponse {

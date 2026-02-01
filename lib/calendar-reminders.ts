@@ -37,7 +37,7 @@ export async function createRemindersForEvent(
   reminderMinutes: number[],
   organizationId: string
 ): Promise<void> {
-  const event = await prismadb.calComEvent.findUnique({
+  const event = await prismadb.calendarEvent.findUnique({
     where: { id: eventId },
   });
 
@@ -95,7 +95,7 @@ export async function getUpcomingReminders(
       },
     },
     include: {
-      CalComEvent: {
+      CalendarEvent: {
         include: {
           Users: {
             select: {
@@ -135,7 +135,7 @@ export async function sendReminderNotification(
   const reminder = await prismadb.calendarReminder.findUnique({
     where: { id: reminderId },
     include: {
-      CalComEvent: {
+      CalendarEvent: {
         include: {
           Users: {
             select: {
@@ -170,7 +170,7 @@ export async function sendReminderNotification(
     throw new Error(`Reminder already ${reminder.status}`);
   }
 
-  const event = reminder.CalComEvent;
+  const event = reminder.CalendarEvent;
   if (!event) {
     throw new Error("Event not found for reminder");
   }
