@@ -94,11 +94,13 @@ function DraftEventBlock({
   startTime,
   endTime,
   startHour,
+  endHour,
   onClick,
 }: {
   startTime: Date;
   endTime: Date;
   startHour: number;
+  endHour: number;
   onClick?: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -108,7 +110,7 @@ function DraftEventBlock({
     },
   });
 
-  const { top, height } = getEventPosition(startTime, endTime, startHour);
+  const { top, height } = getEventPosition(startTime, endTime, startHour, endHour);
   const style = transform
     ? {
         top: `${top + transform.y}px`,
@@ -156,11 +158,13 @@ function DraftResizeHandle({
   startTime,
   endTime,
   startHour,
+  endHour,
 }: {
   position: "top" | "bottom";
   startTime: Date;
   endTime: Date;
   startHour: number;
+  endHour: number;
 }) {
   const type = position === "top" ? "draft-resize-top" : "draft-resize-bottom";
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -170,7 +174,7 @@ function DraftResizeHandle({
     },
   });
 
-  const { top, height } = getEventPosition(startTime, endTime, startHour);
+  const { top, height } = getEventPosition(startTime, endTime, startHour, endHour);
   const handleY = position === "top" ? top : top + height;
 
   return (
@@ -199,11 +203,13 @@ function DraggableEvent({
   onUpdate,
   onDelete,
   startHour,
+  endHour,
 }: {
   event: CalendarEvent;
   onUpdate?: () => void;
   onDelete?: () => void;
   startHour: number;
+  endHour: number;
 }) {
   const router = useRouter();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -217,7 +223,8 @@ function DraggableEvent({
   const { top, height } = getEventPosition(
     new Date(event.startTime),
     new Date(event.endTime),
-    startHour
+    startHour,
+    endHour
   );
 
   const style = transform
@@ -281,10 +288,12 @@ function ResizeHandle({
   event,
   position,
   startHour,
+  endHour,
 }: {
   event: CalendarEvent;
   position: "top" | "bottom";
   startHour: number;
+  endHour: number;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `resize-${position}-${event.id}`,
@@ -297,7 +306,8 @@ function ResizeHandle({
   const { top, height } = getEventPosition(
     new Date(event.startTime),
     new Date(event.endTime),
-    startHour
+    startHour,
+    endHour
   );
 
   const handleY = position === "top" ? top : top + height;
@@ -805,6 +815,7 @@ export function DayHourView({
                     onUpdate={onEventUpdated}
                     onDelete={onEventDeleted}
                     startHour={startHour}
+                    endHour={endHour}
                   />
                   {event.eventId && (
                     <>
@@ -812,11 +823,13 @@ export function DayHourView({
                         event={event}
                         position="top"
                         startHour={startHour}
+                        endHour={endHour}
                       />
                       <ResizeHandle
                         event={event}
                         position="bottom"
                         startHour={startHour}
+                        endHour={endHour}
                       />
                     </>
                   )}
@@ -833,6 +846,7 @@ export function DayHourView({
                       startTime={draftStartTime}
                       endTime={draftEndTime}
                       startHour={startHour}
+                      endHour={endHour}
                       onClick={onDraftSelectionClick}
                     />
                     <DraftResizeHandle
@@ -840,12 +854,14 @@ export function DayHourView({
                       startTime={draftStartTime}
                       endTime={draftEndTime}
                       startHour={startHour}
+                      endHour={endHour}
                     />
                     <DraftResizeHandle
                       position="bottom"
                       startTime={draftStartTime}
                       endTime={draftEndTime}
                       startHour={startHour}
+                      endHour={endHour}
                     />
                   </>
                 )}

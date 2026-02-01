@@ -155,7 +155,8 @@ export function WeekView({
     return getEventPosition(
       new Date(event.startTime),
       new Date(event.endTime),
-      START_HOUR
+      START_HOUR,
+      END_HOUR
     );
   };
 
@@ -395,8 +396,8 @@ export function WeekView({
                           "select-none touch-none"
                         )}
                         style={{
-                          top: `${getEventPosition(draftStartTime, draftEndTime, START_HOUR).top}px`,
-                          height: `${getEventPosition(draftStartTime, draftEndTime, START_HOUR).height}px`,
+                          top: `${getEventPosition(draftStartTime, draftEndTime, START_HOUR, END_HOUR).top}px`,
+                          height: `${getEventPosition(draftStartTime, draftEndTime, START_HOUR, END_HOUR).height}px`,
                         }}
                         onClick={(e) => {
                           e.stopPropagation();

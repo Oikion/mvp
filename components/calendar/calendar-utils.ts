@@ -72,19 +72,29 @@ export function createDateWithTime(
 
 /**
  * Calculate event position and dimensions
+ * Clamps events to the visible time range so events outside the range are still visible
  */
 export function getEventPosition(
   startTime: Date,
   endTime: Date,
-  startHour: number = DEFAULT_START_HOUR
+  startHour: number = DEFAULT_START_HOUR,
+  endHour: number = DEFAULT_END_HOUR
 ): { top: number; height: number } {
   const startHours = startTime.getHours();
   const startMinutes = startTime.getMinutes();
   const endHours = endTime.getHours();
   const endMinutes = endTime.getMinutes();
 
-  const top = timeToPixels(startHours, startMinutes, startHour);
-  const endPixels = timeToPixels(endHours, endMinutes, startHour);
+  // Clamp start time to visible range (events before startHour appear at top)
+  const clampedStartHours = Math.max(startHours, startHour);
+  const clampedStartMinutes = startHours < startHour ? 0 : startMinutes;
+  
+  // Clamp end time to visible range (events after endHour appear at bottom)
+  const clampedEndHours = Math.min(endHours, endHour);
+  const clampedEndMinutes = endHours > endHour ? 0 : endMinutes;
+
+  const top = timeToPixels(clampedStartHours, clampedStartMinutes, startHour);
+  const endPixels = timeToPixels(clampedEndHours, clampedEndMinutes, startHour);
   const height = Math.max(30, endPixels - top);
 
   return { top, height };
