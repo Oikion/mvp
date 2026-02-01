@@ -46,7 +46,7 @@ export async function GET(
             primary_email: true,
           },
         },
-        CalComEvent: {
+        CalendarEvent: {
           select: {
             id: true,
             title: true,

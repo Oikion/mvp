@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
         ...(status ? { status } : {}),
       },
       include: {
-        CalComEvent: {
+        CalendarEvent: {
           include: {
             Users: {
               select: {
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: {
-        CalComEvent: {
+        CalendarEvent: {
           startTime: "asc",
         },
       },
@@ -56,16 +56,16 @@ export async function GET(request: NextRequest) {
         status: inv.status,
         respondedAt: inv.respondedAt?.toISOString() || null,
         event: {
-          id: inv.CalComEvent.id,
-          title: inv.CalComEvent.title,
-          description: inv.CalComEvent.description,
-          startTime: inv.CalComEvent.startTime.toISOString(),
-          endTime: inv.CalComEvent.endTime.toISOString(),
-          location: inv.CalComEvent.location,
-          eventType: inv.CalComEvent.eventType,
-          assignedUser: inv.CalComEvent.Users,
-          linkedClients: inv.CalComEvent.Clients,
-          linkedProperties: inv.CalComEvent.Properties,
+          id: inv.CalendarEvent.id,
+          title: inv.CalendarEvent.title,
+          description: inv.CalendarEvent.description,
+          startTime: inv.CalendarEvent.startTime.toISOString(),
+          endTime: inv.CalendarEvent.endTime.toISOString(),
+          location: inv.CalendarEvent.location,
+          eventType: inv.CalendarEvent.eventType,
+          assignedUser: inv.CalendarEvent.Users,
+          linkedClients: inv.CalendarEvent.Clients,
+          linkedProperties: inv.CalendarEvent.Properties,
         },
       }))
     );

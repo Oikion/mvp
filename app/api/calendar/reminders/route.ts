@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     const reminders = await prismadb.calendarReminder.findMany({
       where,
       include: {
-        CalComEvent: {
+        CalendarEvent: {
           select: {
             id: true,
             title: true,
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     }
 
     // Verify event exists and belongs to org
-    const event = await prismadb.calComEvent.findUnique({
+    const event = await prismadb.calendarEvent.findUnique({
       where: { id: eventId },
     });
 
@@ -139,7 +139,7 @@ export async function PUT(req: Request) {
     const reminder = await prismadb.calendarReminder.findUnique({
       where: { id: reminderId },
       include: {
-        CalComEvent: true,
+        CalendarEvent: true,
       },
     });
 
