@@ -1,8 +1,0 @@
----
-description: When handling middleware related issues always keep Proxy.ts
-alwaysApply: false
----
-
-# Next Version
-
-We are on the latest version of Nextjs, as such the ONLY middleware file we need is the 'proxy.ts', not middleware.ts. If both files exist we get errors. We need to keep only Proxy.ts ALWAYS!
