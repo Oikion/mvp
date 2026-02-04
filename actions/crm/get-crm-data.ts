@@ -1,20 +1,32 @@
-import { prismadb } from "@/lib/prisma";
+import { getOrganizationUsers } from "@/actions/organization/get-organization-users";
+import { getClients } from "@/actions/crm/get-clients";
+import { getClientContacts } from "@/actions/crm/get-client-contacts";
 
 export const getAllCrmData = async () => {
-  const users = await prismadb.users.findMany({
-    where: {
-      userStatus: "ACTIVE",
-    },
-  });
-  const accounts = await prismadb.crm_Accounts.findMany({});
-  const opportunities = await prismadb.crm_Opportunities.findMany({});
-  const leads = await prismadb.crm_Leads.findMany({});
-  const contacts = await prismadb.crm_Contacts.findMany({});
-  const contracts = await prismadb.crm_Contracts.findMany({});
-  const saleTypes = await prismadb.crm_Opportunities_Type.findMany({});
-  const saleStages = await prismadb.crm_Opportunities_Sales_Stages.findMany({});
-  const campaigns = await prismadb.crm_campaigns.findMany({});
-  const industries = await prismadb.crm_Industry_Type.findMany({});
+  // Parallelize database queries for better performance
+  const [users, accounts, contacts] = await Promise.all([
+    getOrganizationUsers({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        userStatus: true,
+      },
+      onlyActive: true,
+    }),
+    getClients(),
+    getClientContacts(),
+  ]);
+
+  // Legacy keys kept for UI compatibility; to be removed in follow-up refactor
+  const opportunities: any[] = [];
+  const leads: any[] = [];
+  const contracts: any[] = [];
+  const saleTypes: any[] = [];
+  const saleStages: any[] = [];
+  const campaigns: any[] = [];
+  const industries: any[] = [];
 
   const data = {
     users,

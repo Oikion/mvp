@@ -1,6 +1,5 @@
 "use server";
 
-import { getServerSession } from "next-auth";
 import { render } from "@react-email/render";
 
 import { SendMailToAll } from "./schema";
@@ -8,22 +7,22 @@ import { InputType, ReturnType } from "./types";
 
 import { prismadb } from "@/lib/prisma";
 import resendHelper from "@/lib/resend";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { createSafeAction } from "@/lib/create-safe-action";
 import MessageToAllUsers from "@/emails/admin/MessageToAllUser";
 import sendEmail from "@/lib/sendmail";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  const session = await getServerSession(authOptions);
+  const user = await getCurrentUser();
 
-  if (!session) {
+  if (!user) {
     return {
       error: "You must be authenticated.",
     };
   }
 
   //Only admin can send mail to all users
-  if (!session.user.isAdmin) {
+  if (!user.is_admin) {
     return {
       error: "You are not authorized to perform this action.",
     };
@@ -70,7 +69,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         //send via sendmail
         await sendEmail({
           from: process.env.EMAIL_FROM as string,
-          to: user.email || "info@softbase.cz",
+          to: user.email || "delivered@resend.dev",
           subject: title,
           text: message,
           html: await emailHtml,
@@ -79,11 +78,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
       //send via Resend.com
       await resend.emails.send({
-        from:
-          process.env.NEXT_PUBLIC_APP_NAME +
-          " <" +
-          process.env.EMAIL_FROM +
-          ">",
+        from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
         to: user?.email!,
         subject: title,
         text: message, // Add this line to fix the types issue
@@ -95,7 +90,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       });
     }
   } catch (error) {
-    console.log(error);
     return {
       error: "Failed to send mail to all users.",
     };

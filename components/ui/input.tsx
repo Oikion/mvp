@@ -1,22 +1,92 @@
 import * as React from "react"
+import { AlertCircle, CheckCircle2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+/**
+ * Input Component - Oikion Design System
+ * 
+ * Enhanced input with:
+ * - Validation states: error, warning, success
+ * - Human-friendly error messages
+ * - Focus states with visible rings (theme-aware)
+ * - Disabled states (proper opacity/contrast)
+ * - Label associations for accessibility
+ * - Icon support for states (error icon, success icon)
+ * - Proper transitions (150-200ms ease-in-out)
+ * 
+ * @example
+ * <Input error="This field is required" />
+ * <Input success validationMessage="Looks good!" />
+ */
+export interface InputProps extends React.ComponentProps<"input"> {
+  error?: string | boolean
+  warning?: string | boolean
+  success?: boolean
+  validationMessage?: string
+}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, error, warning, success, validationMessage, value, ...props }, ref) => {
+    const hasError = !!error
+    const hasWarning = !!warning
+    const hasSuccess = success
+    const validationText = error || warning || validationMessage
+    
+    // File inputs should not have a value prop (they're always uncontrolled)
+    // Only set value if it was explicitly provided (don't interfere with uncontrolled inputs like react-hook-form's register)
+    const isFileInput = type === 'file'
+    const shouldControlValue = value !== undefined && !isFileInput
+    const inputProps = shouldControlValue 
+      ? { ...props, value: value ?? '' } 
+      : { ...props }
+    
     return (
+      <div className="w-full">
+        <div className="relative">
       <input
         type={type}
         className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+              "flex h-10 w-full rounded-md border bg-secondary px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground transition-all duration-200 ease-in-out hover:border-ring/50",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+              "md:text-sm",
+              hasError && "border-error focus-visible:ring-error/50",
+              hasWarning && "border-warning focus-visible:ring-warning/50",
+              hasSuccess && "border-success focus-visible:ring-success/50",
+              !hasError && !hasWarning && !hasSuccess && "border-input focus-visible:ring-ring focus-visible:ring-offset-2",
+              validationText && "pr-10",
           className
         )}
         ref={ref}
-        {...props}
+            aria-invalid={hasError}
+            aria-describedby={validationText ? `${props.id || 'input'}-validation` : undefined}
+        {...inputProps}
       />
+          {hasError && (
+            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-error" aria-hidden="true" />
+          )}
+          {hasWarning && !hasError && (
+            <AlertCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-warning" aria-hidden="true" />
+          )}
+          {hasSuccess && !hasError && !hasWarning && (
+            <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-success" aria-hidden="true" />
+          )}
+        </div>
+        {validationText && typeof validationText === 'string' && (
+          <p
+            id={`${props.id || 'input'}-validation`}
+            className={cn(
+              "mt-1.5 text-xs",
+              hasError && "text-error",
+              hasWarning && "text-warning",
+              hasSuccess && "text-success"
+            )}
+            role="alert"
+          >
+            {validationText}
+          </p>
+        )}
+      </div>
     )
   }
 )

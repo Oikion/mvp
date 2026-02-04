@@ -1,36 +1,37 @@
-import { authOptions } from "@/lib/auth";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request, props: { params: Promise<{ accountId: string }> }) {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
-  }
-
-  if (!params.accountId) {
-    return new NextResponse("Missing account ID", { status: 400 });
-  }
-
-  const accountId = params.accountId;
-
+  
   try {
-    await prismadb.crm_Accounts.update({
+    const user = await getCurrentUser();
+
+    if (!params.accountId) {
+      return new NextResponse("Missing account ID", { status: 400 });
+    }
+
+    const accountId = params.accountId;
+
+    // Get current watchers and remove user
+    const client = await prismadb.clients.findUnique({
+      where: { id: accountId },
+      select: { watchers: true },
+    });
+    
+    const updatedWatchers = (client?.watchers || []).filter((id) => id !== user.id);
+    
+    await prismadb.clients.update({
       where: {
         id: accountId,
       },
       data: {
-        watching_users: {
-          disconnect: {
-            id: session.user.id,
-          },
-        },
+        watchers: updatedWatchers,
       },
     });
-    return NextResponse.json({ message: "Board watched" }, { status: 200 });
+    return NextResponse.json({ message: "Client unwatched" }, { status: 200 });
   } catch (error) {
-    console.log(error);
+    return NextResponse.json({ error: "Failed to unwatch client" }, { status: 500 });
   }
 }

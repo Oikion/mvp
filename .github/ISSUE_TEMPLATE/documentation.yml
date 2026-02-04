@@ -1,0 +1,66 @@
+name: 📚 Documentation
+description: Report an issue with documentation or suggest improvements
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation!
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation issue is this?
+      options:
+        - Missing documentation
+        - Incorrect/outdated information
+        - Unclear explanation
+        - Typo or grammar
+        - Broken link
+        - Code example issue
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is the documentation located?
+      placeholder: e.g., README.md, docs/setup/README.md, or URL
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: Issue Description
+      description: Describe the documentation issue or what's missing.
+      placeholder: The documentation states... but it should...
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Fix
+      description: If you have a suggestion for how to fix or improve the documentation, please describe it here.
+      placeholder: I suggest changing... to...
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or examples here.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I have checked that this documentation issue hasn't been reported before
+          required: true
+        - label: I am willing to submit a PR to fix this documentation issue
+          required: false

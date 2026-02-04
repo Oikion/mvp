@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { hash } from "bcryptjs";
-import { newUserNotify } from "@/lib/new-user-notify";
+import { generateFriendlyId } from "@/lib/friendly-id";
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +17,14 @@ export async function POST(req: Request) {
       return new NextResponse("Password does not match", { status: 401 });
     }
 
+    const userCount = await prismadb.users.count();
+    if (userCount > 0) {
+      const requester = await getCurrentUser();
+      if (!requester.is_admin) {
+        return new NextResponse("Forbidden", { status: 403 });
+      }
+    }
+
     const checkexisting = await prismadb.users.findFirst({
       where: {
         email: email,
@@ -28,17 +35,19 @@ export async function POST(req: Request) {
       return new NextResponse("User already exist", { status: 401 });
     }
 
-    /*
-    Check if user is first user in the system. If yes, then create user with admin rights. If not, then create user with no admin rights.
-    */
-
-    const isFirstUser = await prismadb.users.findMany({});
-    if (isFirstUser.length === 0) {
+    // Generate username from email if not provided
+    const generatedUsername = username || email.split("@")[0] || `user_${Date.now()}`;
+    
+    if (userCount === 0) {
       //There is no user in the system, so create user with admin rights and set userStatus to ACTIVE
+      // Generate friendly ID
+      const userId = await generateFriendlyId(prismadb, "Users");
+      
       const user = await prismadb.users.create({
         data: {
+          id: userId,
           name,
-          username,
+          username: generatedUsername,
           avatar: "",
           account_name: "",
           is_account_admin: false,
@@ -49,53 +58,87 @@ export async function POST(req: Request) {
           password: await hash(password, 12),
         },
       });
+      
+      // First user doesn't need admin notification
       return NextResponse.json(user);
     } else {
-      //There is at least one user in the system, so create user with no admin rights and set userStatus to PENDING
+      //There is at least one user in the system, so create user with no admin rights and set userStatus to ACTIVE
+      // Generate friendly ID
+      const userId = await generateFriendlyId(prismadb, "Users");
+      
       const user = await prismadb.users.create({
         data: {
+          id: userId,
           name,
-          username,
+          username: generatedUsername,
           avatar: "",
           account_name: "",
           is_account_admin: false,
           is_admin: false,
           email,
           userLanguage: language,
-          userStatus:
-            process.env.NEXT_PUBLIC_APP_URL === "https://demo.nextcrm.io"
-              ? "ACTIVE"
-              : "PENDING",
+          userStatus: "ACTIVE", // Always create users as ACTIVE - no admin approval needed
           password: await hash(password, 12),
         },
       });
 
-      /*
-      Function will send email to all admins about new user registration which is in PENDING state and need to be activated
-    */
-      newUserNotify(user);
+      // Admin notification disabled - users are automatically active
+      // newUserNotify(user);
 
       return NextResponse.json(user);
     }
-  } catch (error) {
-    console.log("[USERS_POST]", error);
-    return new NextResponse("Initial error", { status: 500 });
+  } catch (error: unknown) {
+    console.error("[USER_POST]", error);
+    
+    // Handle authentication errors
+    if (error instanceof Error && (error.message === "User not authenticated" || error.message === "User not found in database")) {
+      return new NextResponse("Unauthenticated", { status: 401 });
+    }
+    
+    // Handle Prisma connection errors
+    if (error && typeof error === "object" && "code" in error) {
+      if (error.code === "P2024") {
+        return new NextResponse("Database connection error. Please try again.", { status: 503 });
+      }
+      if (error.code === "P2002") {
+        return new NextResponse("User with this email already exists", { status: 409 });
+      }
+    }
+    
+    return new NextResponse(
+      error instanceof Error ? error.message : "Failed to create user",
+      { status: 500 }
+    );
   }
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
-
   try {
+    const user = await getCurrentUser();
+
+    if (!user?.is_admin) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+
     const users = await prismadb.users.findMany({});
 
     return NextResponse.json(users);
-  } catch (error) {
-    console.log("[USERS_GET]", error);
-    return new NextResponse("Initial error", { status: 500 });
+  } catch (error: unknown) {
+    console.error("[USER_GET]", error);
+    
+    // Handle authentication errors properly
+    if (error instanceof Error && (error.message === "User not authenticated" || error.message === "User not found in database")) {
+      return new NextResponse("Unauthenticated", { status: 401 });
+    }
+    
+    // Handle Prisma connection errors
+    if (error && typeof error === "object" && "code" in error && error.code === "P2024") {
+      return new NextResponse("Database connection error. Please try again.", { status: 503 });
+    }
+    
+    return new NextResponse(
+      error instanceof Error ? error.message : "Failed to fetch users",
+      { status: 500 }
+    );
   }
 }

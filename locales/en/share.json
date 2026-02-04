@@ -1,0 +1,43 @@
+{
+  "emailShare": {
+    "title": "Share via Email",
+    "description": "Send {entityType} details to anyone via email",
+    "entityTypes": {
+      "property": "property",
+      "client": "client",
+      "post": "post"
+    },
+    "form": {
+      "recipientEmail": "Recipient Email",
+      "recipientEmailPlaceholder": "Enter email address",
+      "recipientName": "Recipient Name (optional)",
+      "recipientNamePlaceholder": "Enter recipient's name",
+      "personalMessage": "Personal Message (optional)",
+      "personalMessagePlaceholder": "Add a note about why you're sharing this..."
+    },
+    "sharing": "Sharing {entityType}",
+    "sharingDetails": "The recipient will receive an email with details and a link to view this {entityType}.",
+    "buttons": {
+      "cancel": "Cancel",
+      "send": "Send Email",
+      "sending": "Sending..."
+    },
+    "success": {
+      "title": "Email Sent",
+      "description": "{entityType} has been shared via email."
+    },
+    "error": {
+      "title": "Failed to Send",
+      "invalidEmail": "Please enter a valid email address",
+      "generic": "Something went wrong. Please try again."
+    }
+  }
+}
+
+
+
+
+
+
+
+

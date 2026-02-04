@@ -1,0 +1,337 @@
+{
+  "MlsPropertiesPage": {
+    "description": "Manage MLS properties"
+  },
+  "PropertyForm": {
+    "title": "New Property",
+    "quickAddTitle": "Quick Add Property",
+    "fields": {
+      "propertyName": "Property Name",
+      "propertyNamePlaceholder": "e.g. Cozy Downtown Apartment",
+      "propertyType": "Property Type",
+      "propertyTypePlaceholder": "Select type",
+      "status": "Status",
+      "statusPlaceholder": "Select status",
+      "transactionType": "Transaction Type",
+      "transactionTypePlaceholder": "Select type",
+      "street": "Street",
+      "city": "City",
+      "state": "State",
+      "zip": "ZIP",
+      "municipality": "Municipality",
+      "municipalityPlaceholder": "Enter municipality",
+      "area": "Area/Neighborhood",
+      "areaPlaceholder": "Enter area",
+      "postalCode": "Postal Code",
+      "postalCodePlaceholder": "5 digits",
+      "sizeNetSqm": "Net sq.m.",
+      "squareFeet": "Square Feet",
+      "lotSize": "Lot Size",
+      "plotSizeSqm": "Plot Size",
+      "price": "Price",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "floor": "Floor",
+      "floorPlaceholder": "Select floor",
+      "yearBuilt": "Year Built",
+      "description": "Description",
+      "agentOwner": "Assigned Agent",
+      "specifyOther": "Please specify",
+      "specifyOtherPlaceholder": "Enter the property type..."
+    },
+    "floor": {
+      "BASEMENT": "Basement",
+      "GROUND": "Ground",
+      "1ST": "1st",
+      "2ND": "2nd",
+      "3RD": "3rd",
+      "4TH": "4th",
+      "5TH": "5th",
+      "6TH": "6th",
+      "7TH": "7th",
+      "8TH": "8th",
+      "9TH": "9th",
+      "10TH": "10th",
+      "PENTHOUSE": "Penthouse"
+    },
+    "propertyType": {
+      "APARTMENT": "Apartment",
+      "HOUSE": "House",
+      "MAISONETTE": "Maisonette",
+      "COMMERCIAL": "Commercial",
+      "WAREHOUSE": "Warehouse",
+      "PARKING": "Parking",
+      "PLOT": "Plot",
+      "FARM": "Farm",
+      "INDUSTRIAL": "Industrial",
+      "OTHER": "Other",
+      "RESIDENTIAL": "Residential",
+      "LAND": "Land",
+      "RENTAL": "Rental",
+      "VACATION": "Vacation"
+    },
+    "transactionType": {
+      "SALE": "Sale",
+      "RENTAL": "Rental",
+      "SHORT_TERM": "Short Term",
+      "EXCHANGE": "Exchange"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "PENDING": "Pending",
+      "SOLD": "Sold",
+      "OFF_MARKET": "Off Market",
+      "WITHDRAWN": "Withdrawn",
+      "AVAILABLE": "Available",
+      "RESERVED": "Reserved",
+      "NEGOTIATION": "Negotiation",
+      "RENTED": "Rented"
+    },
+    "portalVisibility": {
+      "PRIVATE": "Private",
+      "SELECTED": "Selected Portals",
+      "PUBLIC": "Public"
+    },
+    "validation": {
+      "propertyTypeRequired": "Property type is required",
+      "transactionTypeRequired": "Transaction type is required",
+      "municipalityRequired": "Municipality is required",
+      "areaOrPostalCodeRequired": "Area or postal code is required",
+      "sizeRequired": "Size is required",
+      "priceRequired": "Price is required"
+    },
+    "buttons": {
+      "quickAdd": "Create",
+      "update": "Update property"
+    }
+  },
+  "QuickAdd": {
+    "property": {
+      "title": "Quick Add Property",
+      "description": "Fill in the basic information to quickly create a property"
+    }
+  },
+  "MlsPropertiesTable": {
+    "created": "Created",
+    "assignedTo": "Assigned to",
+    "name": "Name",
+    "price": "Price",
+    "type": "Type",
+    "status": "Status",
+    "visibility": "Visibility",
+    "unassigned": "Unassigned",
+    "filterPlaceholder": "Filter properties ...",
+    "statusUpdated": "Status updated successfully",
+    "priceUpdated": "Price updated successfully",
+    "visibilityUpdated": "Visibility updated successfully",
+    "invalidPrice": "Invalid price format",
+    "details": "Details",
+    "scheduleEvent": "Schedule Event",
+    "scheduleEventTitle": "Schedule Event",
+    "scheduleEventDesc": "Schedule an appointment or event for this property",
+    "share": "Share Property"
+  },
+  "Tabs": {
+    "agencyProperties": "Agency Properties",
+    "sharedWithMe": "Shared With Me",
+    "agencyPropertiesDescription": "Properties managed by your agency",
+    "sharedPropertiesDescription": "Properties shared with you by connections"
+  },
+  "stats": {
+    "totalProperties": "Total Properties",
+    "activeProperties": "Active Properties",
+    "portfolioValue": "Portfolio Value",
+    "new30d": "New (30d)",
+    "sharedWithYou": "Shared With You",
+    "allListings": "All listings",
+    "allTimeProperties": "All time properties",
+    "currentlyOnMarket": "Currently on market",
+    "totalListingValue": "Total listing value",
+    "fromConnections": "From connections",
+    "addedThisMonth": "Added this month",
+    "addProperty": "Add Property",
+    "findAgents": "Find Agents",
+    "noPropertiesYet": "Start building your portfolio",
+    "noActiveListings": "List a property to get started",
+    "addPropertiesToTrack": "Add properties to track value",
+    "connectToReceive": "Connect with agents to receive listings",
+    "hints": {
+      "totalProperties": "Add at least 5 properties to view meaningful trends!",
+      "activeProperties": "Keep properties active to attract more buyers.",
+      "portfolioValue": "Track your portfolio growth over time.",
+      "sharedWithYou": "Connect with more agents to expand your network!"
+    }
+  },
+  "Stats": {
+    "totalProperties": "Total Properties",
+    "activeProperties": "Active Properties",
+    "portfolioValue": "Portfolio Value",
+    "new30d": "New (30d)",
+    "sharedWithYou": "Shared With You",
+    "allListings": "All listings",
+    "allTimeProperties": "All time properties",
+    "currentlyOnMarket": "Currently on market",
+    "totalListingValue": "Total listing value",
+    "fromConnections": "From connections",
+    "addedThisMonth": "Added this month",
+    "addProperty": "Add Property",
+    "findAgents": "Find Agents",
+    "noPropertiesYet": "Start building your portfolio",
+    "noActiveListings": "List a property to get started",
+    "addPropertiesToTrack": "Add properties to track value",
+    "connectToReceive": "Connect with agents to receive listings",
+    "hints": {
+      "totalProperties": "Add at least 5 properties to view meaningful trends!",
+      "activeProperties": "Keep properties active to attract more buyers.",
+      "portfolioValue": "Track your portfolio growth over time.",
+      "sharedWithYou": "Connect with more agents to expand your network!"
+    }
+  },
+  "EmptyState": {
+    "noAgencyProperties": "No agency properties yet",
+    "createFirstProperty": "Create your first property to get started",
+    "noSharedProperties": "No properties shared with you",
+    "connectToReceive": "Connect with other agents to receive shared properties",
+    "noResults": "No results found"
+  },
+  "SharedView": {
+    "shared": "Shared",
+    "sharedBy": "Shared by",
+    "canComment": "Can comment",
+    "viewOnly": "View only",
+    "viewDetails": "View Details",
+    "unnamedProperty": "Unnamed Property"
+  },
+  "Listings": {
+    "title": "Published Listings",
+    "description": "Properties published to external portals like xe.gr",
+    "totalListings": "Published Listings",
+    "activeListings": "Active Listings",
+    "totalValue": "Total Value",
+    "avgPrice": "Avg. Price",
+    "visibleOnPortals": "Visible on portals",
+    "currentlyLive": "Currently live",
+    "publishedListingValue": "Published listing value",
+    "averageListingPrice": "Average listing price",
+    "emptyTitle": "No published listings",
+    "emptyDescription": "Publish properties from the Properties page to see them here"
+  },
+  "BulkActions": {
+    "selected": "{count} selected",
+    "publishToPortals": "Publish to Portals",
+    "publishShortcut": "P",
+    "publishing": "Publishing...",
+    "publishSuccess": "Successfully published {count} properties",
+    "publishError": "Failed to publish properties",
+    "selectPortal": "Select Portal",
+    "xeGr": "xe.gr",
+    "confirmPublish": "Publish {count} properties to {portal}?",
+    "cancel": "Cancel",
+    "confirm": "Publish"
+  },
+  "XeIntegration": {
+    "title": "xe.gr Integration",
+    "description": "Manage automatic property publishing to xe.gr portal",
+    "credentials": {
+      "title": "xe.gr Credentials",
+      "description": "Enter your Bulk Import Tool (BIT) API credentials",
+      "username": "Username",
+      "password": "Password",
+      "authToken": "Auth Token",
+      "authTokenDescription": "The xeAuthToken provided by xe.gr",
+      "agentId": "Agent/Store ID",
+      "agentIdDescription": "Your store ID on xe.gr"
+    },
+    "settings": {
+      "title": "Publishing Settings",
+      "publicationType": "Publication Type",
+      "publicationTypeDescription": "Default type for new publications",
+      "trademark": "Trademark",
+      "trademarkDescription": "Optional - displayed on listings",
+      "enableIntegration": "Enable Integration",
+      "enableIntegrationDescription": "Allows publishing properties to xe.gr",
+      "autoPublish": "Auto-Publish",
+      "autoPublishDescription": "Automatically publish new properties with PUBLIC visibility"
+    },
+    "agents": {
+      "title": "Agent Settings",
+      "description": "Manage XE credentials for each agent",
+      "addAgent": "Add Agent",
+      "editAgent": "Edit Agent",
+      "agentId": "Agent ID (Clerk)",
+      "agentIdDescription": "The agent's Clerk User ID",
+      "xeOwnerId": "XE Owner ID",
+      "xeOwnerIdDescription": "The Item.ownerId from xe.gr",
+      "primaryPhone": "Primary Phone",
+      "primaryPhoneDescription": "Certified phone for listings",
+      "additionalPhones": "Additional Phones",
+      "additionalPhonesDescription": "Separate with commas (optional)",
+      "noAgents": "No agent settings configured",
+      "addAgentsHint": "Add agents to enable property publishing"
+    },
+    "history": {
+      "title": "Sync History",
+      "package": "Package",
+      "type": "Type",
+      "properties": "Properties",
+      "status": "Status",
+      "date": "Date",
+      "actions": "Actions",
+      "noHistory": "No sync history found",
+      "addItems": "Add",
+      "removeItems": "Remove",
+      "viewDetails": "View Details",
+      "retry": "Retry"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "notConfigured": "Not configured",
+      "success": "Success",
+      "failed": "Failed",
+      "pending": "Pending",
+      "processing": "Processing",
+      "published": "On xe.gr",
+      "notPublished": "Not published"
+    },
+    "stats": {
+      "published": "Published",
+      "propertiesOnXe": "properties on xe.gr",
+      "successfulSyncs": "Successful Syncs",
+      "ofTotal": "of {total} total",
+      "failures": "Failed",
+      "needRetry": "need retry",
+      "pendingConfirmation": "Pending",
+      "awaitingConfirmation": "awaiting confirmation",
+      "lastSync": "Last Sync",
+      "noHistory": "No history yet"
+    },
+    "actions": {
+      "save": "Save Settings",
+      "delete": "Delete Integration",
+      "deleteConfirm": "Delete xe.gr Integration",
+      "deleteDescription": "This will delete all settings and sync history. Published properties will remain on xe.gr until manually removed.",
+      "syncNow": "Sync Now",
+      "syncSelected": "Sync Selected"
+    },
+    "messages": {
+      "saveSuccess": "Settings saved successfully",
+      "saveFailed": "Failed to save settings",
+      "deleteSuccess": "Integration deleted",
+      "deleteFailed": "Failed to delete integration",
+      "syncSuccess": "Successfully submitted {count} properties to xe.gr",
+      "syncFailed": "Failed to sync properties",
+      "noPropertiesToSync": "No properties found to sync"
+    },
+    "guide": {
+      "title": "Setup Guide",
+      "description": "How to connect Oikion with xe.gr",
+      "step1": "Get Credentials",
+      "step1Description": "Contact xe.gr to get access to their Bulk Import Tool (BIT) API.",
+      "step2": "Configure Agents",
+      "step2Description": "Add XE details for each agent who will publish properties.",
+      "step3": "Publish Properties",
+      "step3Description": "Select properties from your MLS listings and publish to xe.gr."
+    }
+  }
+}

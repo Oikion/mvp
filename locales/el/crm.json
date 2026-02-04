@@ -1,0 +1,276 @@
+{
+  "CrmClientsPage": {
+    "description": "Διαχειριστείτε τους πελάτες σας"
+  },
+  "CrmModuleMenuComponent": {
+    "menuTitle": "Πελάτες"
+  },
+  "CrmForm": {
+    "title": "Νέος Πελάτης",
+    "quickAddTitle": "Γρήγορη Προσθήκη Πελάτη",
+    "steps": {
+      "basics": "Βασικά",
+      "contact": "Επικοινωνία",
+      "legal": "Νομικά",
+      "preferences": "Ανάγκες / Προτιμήσεις",
+      "financing": "Χρηματοδότηση",
+      "consent": "Συναίνεση & GDPR"
+    },
+    "stepDescriptions": {
+      "basics": "Βασικές πληροφορίες πελάτη",
+      "contact": "Προτιμήσεις επικοινωνίας",
+      "legal": "Νομικά στοιχεία (προαιρετικά)",
+      "preferences": "Ανάγκες και προτιμήσεις ακινήτου",
+      "financing": "Στοιχεία χρηματοδότησης",
+      "consent": "Συναίνεση και προσωπικά δεδομένα"
+    },
+    "fields": {
+      "personType": "Τύπος πελάτη",
+      "personTypePlaceholder": "Επιλέξτε τύπο",
+      "fullName": "Ονοματεπώνυμο",
+      "fullNamePlaceholder": "Όνομα Επώνυμο",
+      "companyName": "Επωνυμία Εταιρείας",
+      "companyNamePlaceholder": "Όνομα εταιρείας",
+      "primaryPhone": "Κύριο τηλέφωνο",
+      "primaryPhonePlaceholder": "+30 210 1234567",
+      "primaryEmail": "Κύριο email",
+      "primaryEmailPlaceholder": "email@example.com",
+      "secondaryPhone": "Εναλλακτικό τηλέφωνο",
+      "secondaryEmail": "Εναλλακτικό email",
+      "intent": "Σκοπός",
+      "intentPlaceholder": "Επιλέξτε σκοπό",
+      "channels": "Προτίμηση επικοινωνίας",
+      "channelsPlaceholder": "Επιλέξτε κανάλια",
+      "language": "Γλώσσα",
+      "afm": "ΑΦΜ",
+      "afmPlaceholder": "9 ψηφία",
+      "doy": "ΔΟΥ",
+      "doyPlaceholder": "Επιλέξτε ΔΟΥ",
+      "idDoc": "ΑΔΤ/Διαβατήριο",
+      "companyGemi": "ΓΕΜΗ",
+      "companyGemiPlaceholder": "Αριθμός ΓΕΜΗ",
+      "purpose": "Σκοπός ακινήτου",
+      "purposePlaceholder": "Επιλέξτε σκοπό",
+      "areas": "Περιοχές ενδιαφέροντος",
+      "areasPlaceholder": "Επιλέξτε περιοχές",
+      "budgetMin": "Ελάχιστος προϋπολογισμός",
+      "budgetMax": "Μέγιστος προϋπολογισμός",
+      "timeline": "Πότε;",
+      "timelinePlaceholder": "Επιλέξτε χρονοδιάγραμμα",
+      "financingType": "Τύπος χρηματοδότησης",
+      "financingTypePlaceholder": "Επιλέξτε τύπο",
+      "preapprovalBank": "Τράπεζα προέγκρισης",
+      "needsMortgageHelp": "Χρειάζεται βοήθεια με στεγαστικό",
+      "notes": "Σημειώσεις",
+      "notesPlaceholder": "Προσθέστε μια γρήγορη σημείωση...",
+      "gdprConsent": "Συναίνεση GDPR",
+      "allowMarketing": "Επιτρέπω μάρκετινγκ",
+      "leadSource": "Πηγή",
+      "leadSourcePlaceholder": "Πώς μας βρήκετε;",
+      "agentOwner": "Ανατεθειμένος πράκτορας/μεσίτης",
+      "specifyOther": "Προσδιορίστε σκοπό",
+      "specifyOtherPlaceholder": "Εισάγετε τον σκοπό..."
+    },
+    "personType": {
+      "INDIVIDUAL": "Ιδιώτης",
+      "COMPANY": "Εταιρεία",
+      "INVESTOR": "Επενδυτής",
+      "BROKER": "Μεσίτης/Πράκτορας"
+    },
+    "intents": {
+      "BUY": "Αγορά",
+      "RENT": "Ενοικίαση",
+      "SELL": "Πώληση",
+      "LEASE": "Εκμίσθωση",
+      "INVEST": "Επένδυση"
+    },
+    "channels": {
+      "CALL": "Κλήση",
+      "SMS": "SMS",
+      "WHATSAPP": "WhatsApp",
+      "VIBER": "Viber",
+      "EMAIL": "Email"
+    },
+    "purpose": {
+      "RESIDENTIAL": "Κατοικία",
+      "COMMERCIAL": "Επαγγελματικό",
+      "LAND": "Γη",
+      "PARKING": "Χώρος Parking",
+      "OTHER": "Άλλο"
+    },
+    "timeline": {
+      "IMMEDIATE": "Άμεσα",
+      "ONE_THREE_MONTHS": "1-3 μήνες",
+      "THREE_SIX_MONTHS": "3-6 μήνες",
+      "SIX_PLUS_MONTHS": "6+ μήνες"
+    },
+    "financingType": {
+      "CASH": "Μετρητά",
+      "MORTGAGE": "Στεγαστικό",
+      "PREAPPROVAL_PENDING": "Εκκρεμεί προέγκριση"
+    },
+    "leadSource": {
+      "REFERRAL": "Σύσταση",
+      "WEB": "Ιστοσελίδα",
+      "PORTAL": "Πύλη",
+      "WALK_IN": "Προσωπική επίσκεψη",
+      "SOCIAL": "Κοινωνικά δίκτυα"
+    },
+    "validation": {
+      "personTypeRequired": "Ο τύπος πελάτη είναι υποχρεωτικός",
+      "nameRequired": "Το όνομα είναι υποχρεωτικό",
+      "phoneOrEmailRequired": "Το τηλέφωνο ή το email είναι υποχρεωτικό",
+      "intentRequired": "Ο σκοπός είναι υποχρεωτικός",
+      "afmInvalid": "Το ΑΦΜ πρέπει να έχει 9 ψηφία",
+      "emailInvalid": "Μη έγκυρο email"
+    },
+    "buttons": {
+      "saveDraft": "Αποθήκευση πρόχειρου",
+      "continueToFull": "Συνέχεια σε πλήρη φόρμα",
+      "previous": "Προηγούμενο",
+      "next": "Επόμενο",
+      "submit": "Δημιουργία Πελάτη",
+      "quickAdd": "Γρήγορη Προσθήκη"
+    },
+    "autosave": {
+      "saving": "Αποθήκευση...",
+      "saved": "Αποθηκεύτηκε",
+      "failed": "Αποτυχία αποθήκευσης"
+    }
+  },
+  "QuickAdd": {
+    "client": {
+      "title": "Γρήγορη Προσθήκη Πελάτη",
+      "description": "Συμπληρώστε τα βασικά στοιχεία για να δημιουργήσετε γρήγορα έναν πελάτη"
+    }
+  },
+  "CrmAccountsTable": {
+    "created": "Δημιουργήθηκε",
+    "assignedTo": "Ανατέθηκε σε",
+    "name": "Όνομα",
+    "email": "E-mail",
+    "accountContact": "Επαφή λογαριασμού",
+    "status": "Κατάσταση",
+    "unassigned": "Χωρίς ανάθεση",
+    "statusUpdated": "Η κατάσταση ενημερώθηκε επιτυχώς",
+    "filterPlaceholder": "Φιλτράρισμα πελατών...",
+    "details": "Προβολή Λεπτομερειών",
+    "scheduleEvent": "Προγραμματισμός Συνάντησης",
+    "scheduleEventTitle": "Προγραμματισμός Συνάντησης",
+    "scheduleEventDesc": "Προγραμματίστε μια συνάντηση για αυτόν τον πελάτη",
+    "share": "Κοινοποίηση"
+  },
+  "ContactsTable": {
+    "dateCreated": "Ημερομηνία δημιουργίας",
+    "assignedTo": "Ανατέθηκε σε",
+    "assignedAccount": "Ανατεθειμένος λογαριασμός",
+    "firstName": "Όνομα",
+    "lastName": "Επώνυμο",
+    "email": "E-mail",
+    "mobile": "Κινητό",
+    "status": "Κατάσταση",
+    "filterPlaceholder": "Φιλτράρισμα επαφών..."
+  },
+  "Tabs": {
+    "agencyClients": "Πελάτες Γραφείου",
+    "sharedWithMe": "Κοινόχρηστοι",
+    "agencyClientsDescription": "Πελάτες που διαχειρίζεται το γραφείο σας",
+    "sharedClientsDescription": "Πελάτες που μοιράστηκαν μαζί σας από συνδέσεις"
+  },
+  "stats": {
+    "totalClients": "Σύνολο Πελατών",
+    "activeClients": "Ενεργοί Πελάτες",
+    "new30d": "Νέοι (30ημ)",
+    "assigned": "Ανατεθειμένοι",
+    "sharedWithYou": "Κοινόχρηστοι",
+    "allContacts": "Όλες οι επαφές",
+    "currentlyActive": "Τρέχοντες ενεργοί",
+    "addedThisMonth": "Προστέθηκαν αυτόν τον μήνα",
+    "assignedToAgents": "Ανατεθειμένοι σε πράκτορες",
+    "fromConnections": "Από συνδέσεις",
+    "addClient": "Προσθήκη Πελάτη",
+    "findAgents": "Εύρεση Πρακτόρων",
+    "noClientsYet": "Ξεκινήστε να χτίζετε τη βάση πελατών",
+    "noActiveClients": "Κανένας ενεργός πελάτης",
+    "noRecentActivity": "Δεν υπάρχουν νέοι πελάτες",
+    "connectToReceive": "Συνδεθείτε με πράκτορες για leads",
+    "hints": {
+      "totalClients": "Προσθέστε τουλάχιστον 5 πελάτες για σημαντικές αναλύσεις!",
+      "activeClients": "Κρατήστε τους πελάτες ενεργούς για να κλείσετε συμφωνίες.",
+      "new30d": "Η σταθερή δημιουργία leads οδηγεί σε ανάπτυξη.",
+      "sharedWithYou": "Συνδεθείτε με περισσότερους πράκτορες για συστάσεις!"
+    }
+  },
+  "Stats": {
+    "totalClients": "Σύνολο Πελατών",
+    "activeClients": "Ενεργοί Πελάτες",
+    "new30d": "Νέοι (30ημ)",
+    "assigned": "Ανατεθειμένοι",
+    "sharedWithYou": "Κοινόχρηστοι",
+    "allContacts": "Όλες οι επαφές",
+    "currentlyActive": "Τρέχοντες ενεργοί",
+    "addedThisMonth": "Προστέθηκαν αυτόν τον μήνα",
+    "assignedToAgents": "Ανατεθειμένοι σε πράκτορες",
+    "fromConnections": "Από συνδέσεις",
+    "addClient": "Προσθήκη Πελάτη",
+    "findAgents": "Εύρεση Πρακτόρων",
+    "noClientsYet": "Ξεκινήστε να χτίζετε τη βάση πελατών",
+    "noActiveClients": "Κανένας ενεργός πελάτης",
+    "noRecentActivity": "Δεν υπάρχουν νέοι πελάτες",
+    "connectToReceive": "Συνδεθείτε με πράκτορες για leads",
+    "hints": {
+      "totalClients": "Προσθέστε τουλάχιστον 5 πελάτες για σημαντικές αναλύσεις!",
+      "activeClients": "Κρατήστε τους πελάτες ενεργούς για να κλείσετε συμφωνίες.",
+      "new30d": "Η σταθερή δημιουργία leads οδηγεί σε ανάπτυξη.",
+      "sharedWithYou": "Συνδεθείτε με περισσότερους πράκτορες για συστάσεις!"
+    }
+  },
+  "EmptyState": {
+    "noAgencyClients": "Δεν υπάρχουν πελάτες γραφείου",
+    "createFirstClient": "Δημιουργήστε τον πρώτο σας πελάτη",
+    "noSharedClients": "Δεν υπάρχουν κοινόχρηστοι πελάτες",
+    "connectToReceive": "Συνδεθείτε με άλλους πράκτορες για να λάβετε κοινόχρηστους πελάτες",
+    "noResults": "Δεν βρέθηκαν αποτελέσματα"
+  },
+  "SharedView": {
+    "shared": "Κοινόχρηστο",
+    "sharedBy": "Κοινοποιήθηκε από",
+    "canComment": "Σχολιασμός",
+    "viewOnly": "Μόνο προβολή",
+    "viewProfile": "Προβολή Προφίλ"
+  },
+  "formSubmissions": {
+    "title": "Υποβολές Φόρμας Επικοινωνίας",
+    "description": "Διαχειριστείτε τα μηνύματα από τη φόρμα επικοινωνίας του προφίλ σας",
+    "status": {
+      "all": "Όλα",
+      "new": "Νέο",
+      "read": "Διαβάστηκε",
+      "contacted": "Επικοινώνησα",
+      "archived": "Αρχειοθετημένο"
+    },
+    "actions": {
+      "view": "Προβολή",
+      "markAsContacted": "Σημείωση ως επικοινώνησα",
+      "archive": "Αρχειοθέτηση",
+      "delete": "Διαγραφή",
+      "sendEmail": "Αποστολή Email",
+      "saveNotes": "Αποθήκευση"
+    },
+    "empty": {
+      "title": "Δεν υπάρχουν υποβολές",
+      "description": "Οι υποβολές από τη φόρμα επικοινωνίας θα εμφανιστούν εδώ."
+    },
+    "detail": {
+      "formDetails": "Λεπτομέρειες Φόρμας",
+      "notes": "Σημειώσεις",
+      "notesPlaceholder": "Προσθέστε σημειώσεις..."
+    },
+    "toast": {
+      "statusUpdated": "Η κατάσταση ενημερώθηκε",
+      "deleted": "Διαγράφηκε",
+      "notesSaved": "Οι σημειώσεις αποθηκεύτηκαν"
+    }
+  }
+}
+

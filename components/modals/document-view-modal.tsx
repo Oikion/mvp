@@ -46,10 +46,7 @@ const DocumentViewModal = ({
     "image/webp",
   ];
 
-  console.log(document.document_file_mimeType, "mimeType");
-
   if (imageTypes.includes(document.document_file_mimeType)) {
-    console.log("image");
     return (
       <ModalDocumentView isOpen={isOpen} onClose={onClose}>
         <div className="flex flex-col h-full ">

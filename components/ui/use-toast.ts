@@ -1,3 +1,20 @@
+/**
+ * @deprecated This hook uses Radix UI Toast which is being phased out.
+ * Please use `useAppToast` from `@/hooks/use-app-toast` instead.
+ *
+ * Migration:
+ * ```tsx
+ * // Before
+ * const { toast } = useToast();
+ * toast({ title: "Success", description: "Item created" });
+ *
+ * // After
+ * const { toast } = useAppToast();
+ * toast.success("createSuccess");
+ * // or with custom message
+ * toast.success("Item created", { isTranslationKey: false });
+ * ```
+ */
 // Inspired by react-hot-toast library
 import * as React from "react"
 
@@ -6,8 +23,8 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_LIMIT = 3
+const TOAST_REMOVE_DELAY = 5000
 
 type ToasterToast = ToastProps & {
   id: string

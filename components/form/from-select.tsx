@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { data } from "cypress/types/jquery";
 import { ScrollArea } from "../ui/scroll-area";
 
 interface FormInputProps {
@@ -63,7 +62,7 @@ export const FormSelect = forwardRef<HTMLInputElement, FormInputProps>(
           {label ? (
             <Label
               htmlFor={id}
-              className="text-xs font-semibold text-neutral-700"
+              className="text-xs font-semibold text-foreground"
             >
               {label}
             </Label>

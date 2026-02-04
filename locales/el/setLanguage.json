@@ -1,0 +1,10 @@
+{
+  "selectLanguage": "Επιλέξτε γλώσσα",
+  "searchLanguage": "Αναζήτηση γλώσσας ...",
+  "noLanguageFound": "Δεν βρέθηκε γλώσσα.",
+  "languageRequired": "Παρακαλούμε επιλέξτε γλώσσα.",
+  "changingLanguage": "Αλλαγή γλώσσας Oikion",
+  "languageChangedTo": "Η γλώσσα χρήστη άλλαξε σε: {language}",
+  "selectLanguagePlaceholder": "Επιλέξτε γλώσσα"
+}
+

@@ -1,0 +1,52 @@
+{
+  "page": {
+    "title": "Document Templates",
+    "description": "Generate professional documents for your real estate transactions"
+  },
+  "fieldsCount": "{count} fields",
+  "downloadDocx": "Download DOCX",
+  "generatePdf": "Generate PDF",
+  "createDocument": "Create Document",
+  "generateWord": "Generate Word",
+  "generateDocument": "Generate Document",
+  "fillFieldsToGenerate": "Fill in the fields below to generate your document. Select a property or client to auto-fill available data.",
+  "selectProperty": "Select Property",
+  "selectClient": "Select Client",
+  "optionalSelectProperty": "Optional - select to auto-fill",
+  "optionalSelectClient": "Optional - select to auto-fill",
+  "noProperty": "None",
+  "noClient": "None",
+  "selectOption": "Select an option",
+  "cancel": "Cancel",
+  "generating": "Generating...",
+  "generateAndDownload": "Generate & Download",
+  "outputFormat": "Output Format",
+  "missingRequiredFields": "Please fill in all required fields",
+  "missingFields": "Missing required fields",
+  "failedToLoadTemplate": "Failed to load template",
+  "failedToGeneratePdf": "Failed to generate PDF",
+  "failedToGenerateDocument": "Failed to generate document",
+  "pdfGenerated": "PDF generated successfully",
+  "docxGenerated": "Word document generated successfully",
+  "templates": {
+    "BROKERAGE_MANDATE": {
+      "name": "Brokerage Mandate",
+      "description": "Authorization form for real estate agent to sell or rent a property on behalf of the owner."
+    },
+    "LEASE_AGREEMENT": {
+      "name": "Residential Lease Agreement",
+      "description": "Standard rental contract for residential properties in Greece."
+    },
+    "HANDOVER_PROTOCOL": {
+      "name": "Property Handover Protocol",
+      "description": "Document recording the condition of the property at handover, including meter readings and inventory."
+    },
+    "VIEWING_CONFIRMATION": {
+      "name": "Property Viewing Confirmation",
+      "description": "Confirmation that a potential buyer/tenant has viewed the property through the agency."
+    }
+  }
+}
+
+
+

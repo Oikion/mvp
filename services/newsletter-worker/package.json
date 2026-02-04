@@ -1,0 +1,29 @@
+{
+  "name": "@oikion/newsletter-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "K8s job worker for sending newsletter campaigns",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "ioredis": "^5.3.2",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1",
+    "resend": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

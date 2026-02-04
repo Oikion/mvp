@@ -1,0 +1,209 @@
+{
+  "containerTitle": "Πίνακας Ελέγχου",
+  "containerDescription": "Καλώς ήρθατε στο Oikion, εδώ μπορείτε να δείτε όλες τις σημαντικές πληροφορίες για το μεσιτικό γραφείο σας.",
+  "fromLastMonth": "από τον προηγούμενο μήνα",
+  "fromLastPeriod": "από την προηγούμενη περίοδο",
+  "noChangeFromLastMonth": "Καμία αλλαγή από τον προηγούμενο μήνα",
+  "currentlyActiveUsers": "Τρέχοντες ενεργοί χρήστες",
+  "currentlyActive": "τρέχοντες ενεργοί",
+  "totalRevenue": "Συνολικό εισόδημα",
+  "totalRevenueDescription": "Συνολικό εισόδημα",
+  "expectedRevenue": "Αναμενόμενο εισόδημα",
+  "expectedRevenueDescription": "Αναμενόμενο εισόδημα",
+  "activeUsers": "Ενεργοί χρήστες",
+  "clients": "Πελάτες",
+  "properties": "Ακίνητα",
+  "opportunities": "Συναλλαγές",
+  "contacts": "Επαφές",
+  "leads": "Leads",
+  "employees": "Υπάλληλοι",
+  "invoices": "Τιμολόγια",
+  "documents": "Έγγραφα",
+  "storage": "Αποθήκευση",
+  "atAGlance": "Με μια ματιά",
+  "recentActivity": "Πρόσφατη Δραστηριότητα",
+  "analyticsOverview": "Επισκόπηση Αναλυτικών",
+  "activityTimeline": "Μηνιαία δραστηριότητα",
+  "activityTimelineDescription": "Νέοι πελάτες και ακίνητα ανά μήνα.",
+  "recentClients": "Πρόσφατοι Πελάτες",
+  "recentProperties": "Πρόσφατα Ακίνητα",
+  "clientsByStatus": "Πελάτες ανά Κατάσταση",
+  "propertiesByStatus": "Ακίνητα ανά Κατάσταση",
+  "clientsDistribution": "Κατανομή {count} πελατών σε διαφορετικές καταστάσεις",
+  "propertiesDistribution": "Κατανομή {count} ακινήτων σε διαφορετικές καταστάσεις",
+  "noRecentClients": "Δεν βρέθηκαν πρόσφατοι πελάτες",
+  "noRecentProperties": "Δεν βρέθηκαν πρόσφατα ακίνητα",
+  "deleteConfirmation": "Να διαγραφεί ο/η {name}; Η ενέργεια δεν μπορεί να αναιρεθεί.",
+  "clientDeleted": "Ο πελάτης διαγράφηκε με επιτυχία.",
+  "propertyDeleted": "Το ακίνητο διαγράφηκε με επιτυχία.",
+  "deleteError": "Δεν ήταν δυνατή η διαγραφή. Προσπαθήστε ξανά.",
+  "noActivityData": "Δεν υπάρχουν δεδομένα δραστηριότητας για αυτή την περίοδο.",
+  "clientsLabel": "Πελάτες",
+  "propertiesLabel": "Ακίνητα",
+  "viewAll": "Προβολή Όλων",
+  "viewProperties": "Προβολή",
+  "viewClients": "Προβολή",
+  "viewDeals": "Προβολή",
+  "addFirstClient": "Προσθέστε Πρώτο Πελάτη",
+  "addFirstProperty": "Προσθέστε Πρώτο Ακίνητο",
+  "addProperty": "Προσθήκη",
+  "addClient": "Προσθήκη",
+  "addUser": "Πρόσκληση",
+  "noClientsYet": "Ξεκινήστε να προσθέτετε πελάτες",
+  "noPropertiesYet": "Προσθέστε το πρώτο σας ακίνητο",
+  "noRevenueYet": "Τα έσοδα θα εμφανιστούν όταν κλείσετε συμφωνίες",
+  "viewTeam": "Προβολή",
+  "inviteTeamMember": "Πρόσκληση Μέλους",
+  "noTeamMembersYet": "Είστε το πρώτο μέλος",
+  "greetingMorning": "Καλημέρα",
+  "greetingAfternoon": "Καλό απόγευμα",
+  "greetingEvening": "Καλησπέρα",
+  "defaultUser": "σας",
+  "quickActions": "Γρήγορες Ενέργειες",
+  "quickAction": {
+    "newProperty": "Νέο Ακίνητο",
+    "newClient": "Νέος Πελάτης",
+    "newEvent": "Νέο Ραντεβού",
+    "uploadDocument": "Ανέβασμα",
+    "viewDocuments": "Έγγραφα"
+  },
+  "noRecentActivity": "Δεν υπάρχει πρόσφατη δραστηριότητα",
+  "action": {
+    "created": "Δημιουργήθηκε",
+    "updated": "Ενημερώθηκε",
+    "deleted": "Διαγράφηκε"
+  },
+  "upcomingEvents": "Επερχόμενα Ραντεβού",
+  "noUpcomingEvents": "Δεν υπάρχουν επερχόμενα ραντεβού",
+  "today": "Σήμερα",
+  "tomorrow": "Αύριο",
+  "untitledEvent": "Χωρίς τίτλο",
+  "eventType": {
+    "PROPERTY_VIEWING": "Επίσκεψη",
+    "CLIENT_CONSULTATION": "Συνάντηση",
+    "MEETING": "Σύσκεψη",
+    "REMINDER": "Υπενθύμιση",
+    "TASK_DEADLINE": "Προθεσμία",
+    "OTHER": "Άλλο"
+  },
+  "recentDocuments": "Πρόσφατα Έγγραφα",
+  "noRecentDocuments": "Δεν υπάρχουν πρόσφατα έγγραφα",
+  "recentMessages": "Μηνύματα",
+  "noRecentMessages": "Δεν υπάρχουν πρόσφατα μηνύματα",
+  "unknownUser": "Άγνωστος Χρήστης",
+  "unknownConversation": "Συνομιλία",
+  "you": "Εσείς",
+  "gatheringInsights": "Συλλογή δεδομένων...",
+  "activityDataHint": "Τα δεδομένα δραστηριότητας θα εμφανιστούν καθώς προσθέτετε πελάτες και ακίνητα",
+  "financialReport": "Οικονομική Αναφορά",
+  "viewReport": "Προβολή",
+  "downloadReport": "Λήψη",
+  "matchmaking": "Αντιστοίχιση",
+  "hotProperties": "Δημοφιλή Ακίνητα",
+  "topMatches": "Κορυφαίες Αντιστοιχίσεις",
+  "noMatchesYet": "Δεν υπάρχουν αντιστοιχίσεις",
+  "matchesHint": "Οι αντιστοιχίσεις θα εμφανιστούν καθώς προσθέτετε πελάτες και ακίνητα",
+  "topScore": "κορυφή",
+  "marketIntel": "Πληροφορίες Αγοράς",
+  "marketIntelDisabled": "Οι Πληροφορίες Αγοράς είναι απενεργοποιημένες",
+  "marketIntelHint": "Ενεργοποιήστε για παρακολούθηση ανταγωνιστών",
+  "enableMarketIntel": "Ενεργοποίηση",
+  "scrapeStatus": {
+    "idle": "Έτοιμο",
+    "running": "Σάρωση...",
+    "completed": "Ενημερωμένο",
+    "failed": "Η τελευταία σάρωση απέτυχε",
+    "disabled": "Απενεργοποιημένο"
+  },
+  "listings": "καταχωρήσεις",
+  "lastScrape": "Τελευταία σάρωση",
+  "nextScrape": "Επόμενη σάρωση",
+  "never": "Ποτέ",
+  "notScheduled": "Δεν έχει προγραμματιστεί",
+  "latestRun": "Τελευταία αποτελέσματα",
+  "newListings": "νέες",
+  "browseListings": "Περιήγηση Καταχωρήσεων",
+  "aiAssistant": "AI Βοηθός",
+  "aiWelcome": "Γεια{name}! Πώς μπορώ να βοηθήσω;",
+  "aiWelcomeHint": "Ρωτήστε με οτιδήποτε για τα ακίνητα, τους πελάτες ή το πρόγραμμά σας",
+  "aiInputPlaceholder": "Ρωτήστε οτιδήποτε...",
+  "aiErrorResponse": "Συγγνώμη, δεν μπόρεσα να επεξεργαστώ αυτό. Παρακαλώ δοκιμάστε ξανά.",
+  "aiQuickPrompt1": "Σύνοψη σήμερα",
+  "aiQuickPrompt2": "Το πρόγραμμά μου",
+  "aiQuickPrompt3": "Κορυφαίοι πελάτες",
+  "customize": {
+    "button": "Προσαρμογή",
+    "title": "Προσαρμογή Πίνακα Ελέγχου",
+    "description": "Σύρετε για αναδιάταξη, εναλλαγή ορατότητας και αλλαγή μεγέθους",
+    "widgetCount": "{visible} από {total} widgets ορατά",
+    "reset": "Επαναφορά",
+    "done": "Τέλος"
+  },
+  "widgets": {
+    "drag": "Σύρετε",
+    "hide": "Απόκρυψη",
+    "size": {
+      "label": "Μέγεθος",
+      "small": "Μικρό",
+      "medium": "Μεσαίο",
+      "large": "Μεγάλο"
+    },
+    "quickActions": {
+      "name": "Γρήγορες Ενέργειες",
+      "description": "Κουμπιά γρήγορης πρόσβασης για συνηθισμένες ενέργειες"
+    },
+    "revenueStats": {
+      "name": "Έσοδα",
+      "description": "Συνολικά έσοδα και μηνιαία τάση"
+    },
+    "clientsStats": {
+      "name": "Πελάτες",
+      "description": "Συνολικοί πελάτες και μηνιαία τάση"
+    },
+    "propertiesStats": {
+      "name": "Ακίνητα",
+      "description": "Συνολικά ακίνητα και μηνιαία τάση"
+    },
+    "activeUsersStats": {
+      "name": "Ενεργοί Χρήστες",
+      "description": "Τρέχοντα ενεργά μέλη ομάδας"
+    },
+    "activityChart": {
+      "name": "Γράφημα Δραστηριότητας",
+      "description": "Μηνιαία χρονολογία δραστηριότητας για πελάτες και ακίνητα"
+    },
+    "activityFeed": {
+      "name": "Ροή Δραστηριότητας",
+      "description": "Πρόσφατη δραστηριότητα από την ομάδα σας"
+    },
+    "upcomingEvents": {
+      "name": "Επερχόμενα Ραντεβού",
+      "description": "Τα επερχόμενα ραντεβού σας"
+    },
+    "recentMessages": {
+      "name": "Μηνύματα",
+      "description": "Πρόσφατες συνομιλίες και μηνύματα"
+    },
+    "clientsStatusChart": {
+      "name": "Πελάτες ανά Κατάσταση",
+      "description": "Κατανομή πελατών ανά κατάσταση"
+    },
+    "propertiesStatusChart": {
+      "name": "Ακίνητα ανά Κατάσταση",
+      "description": "Κατανομή ακινήτων ανά κατάσταση"
+    },
+    "recentClients": {
+      "name": "Πρόσφατοι Πελάτες",
+      "description": "Τελευταίοι πελάτες που προστέθηκαν"
+    },
+    "recentProperties": {
+      "name": "Πρόσφατα Ακίνητα",
+      "description": "Τελευταία ακίνητα που προστέθηκαν"
+    },
+    "documents": {
+      "name": "Έγγραφα",
+      "description": "Πρόσφατα έγγραφα και αρχεία"
+    }
+  }
+}
+

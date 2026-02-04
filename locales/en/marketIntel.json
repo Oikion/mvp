@@ -1,0 +1,365 @@
+{
+  "title": "Market Intelligence",
+  "description": "Monitor competitor listings across Greek real estate platforms",
+  "common": {
+    "refresh": "Refresh",
+    "view": "View",
+    "viewAll": "View All",
+    "loading": "Loading...",
+    "never": "Never",
+    "untitledListing": "Untitled listing",
+    "unknownLocation": "Unknown location",
+    "noLimit": "No limit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "enable": "Enable",
+    "disable": "Disable",
+    "daysOnMarket": "days on market",
+    "listings": "listings",
+    "bed": "bed",
+    "sqm": "m²"
+  },
+  "accessDenied": {
+    "title": "Access Not Granted",
+    "description": "Your organization does not have access to Market Intelligence. Please contact your platform administrator to request access.",
+    "contactAdmin": "Access required. Contact your administrator."
+  },
+  "noData": {
+    "title": "No Data Available",
+    "description": "You have access to Market Intelligence but no data has been collected yet. Go to Settings to configure and start your first scrape.",
+    "configureButton": "Configure & Start Scraping"
+  },
+  "stats": {
+    "totalListings": "Total Listings",
+    "totalListingsDesc": "Across {count} platforms",
+    "priceDrops": "Price Drops (7d)",
+    "priceDropsDesc": "Potential opportunities",
+    "underpriced": "Underpriced",
+    "underpricedDesc": "Below market average",
+    "areasTracked": "Areas Tracked",
+    "areasTrackedDesc": "Geographic coverage",
+    "totalChanges": "Total Changes",
+    "priceIncreases": "Price Increases",
+    "dropRate": "Drop Rate",
+    "dropRateDesc": "of all changes",
+    "avgDecrease": "Avg: -{percent}%",
+    "avgIncrease": "Avg: +{percent}%"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "platforms": "Platforms",
+    "opportunities": "Opportunities",
+    "configuration": "Configuration",
+    "alerts": "Alerts"
+  },
+  "overview": {
+    "topAreas": {
+      "title": "Top Areas by Listings",
+      "description": "Areas with most competitor listings"
+    },
+    "recentPriceDrops": {
+      "title": "Recent Price Drops",
+      "description": "Listings with price reductions this week"
+    },
+    "viewAllAreas": "View All Areas",
+    "viewAllPriceChanges": "View All Price Changes"
+  },
+  "platforms": {
+    "listings": "Listings",
+    "avgPrice": "Avg Price",
+    "lastScrape": "Last scrape: {date}",
+    "names": {
+      "spitogatos": "Spitogatos",
+      "xe_gr": "XE.gr",
+      "tospitimou": "Tospitimou"
+    }
+  },
+  "opportunities": {
+    "title": "Opportunities",
+    "description": "Find investment opportunities from competitor listings",
+    "priceDrops": {
+      "title": "Price Drops",
+      "description": "In the last 7 days",
+      "tabTitle": "Price Drops ({count})",
+      "cardTitle": "Recent Price Drops",
+      "cardDescription": "Properties with significant price reductions in the last 7 days",
+      "empty": "No price drops found in the last 7 days"
+    },
+    "underpriced": {
+      "title": "Underpriced",
+      "description": "15%+ below market",
+      "tabTitle": "Underpriced ({count})",
+      "cardTitle": "Underpriced Listings",
+      "cardDescription": "Properties priced significantly below market average for their area",
+      "empty": "No underpriced listings found",
+      "belowMarket": "{percent}% below market",
+      "marketAvg": "Market avg: {price}",
+      "marketPrice": "Market: {price}"
+    },
+    "newListings": {
+      "title": "New Listings",
+      "description": "In the last 48 hours",
+      "tabTitle": "New Listings ({count})",
+      "cardTitle": "New Listings",
+      "cardDescription": "Properties added to competitor platforms in the last 48 hours",
+      "empty": "No new listings in the last 48 hours",
+      "badge": "NEW",
+      "added": "Added {date}"
+    },
+    "viewAll": "View All Opportunities"
+  },
+  "quickActions": {
+    "browseListings": "Browse All Listings",
+    "priceTracker": "Price Tracker",
+    "configureAlerts": "Configure Alerts"
+  },
+  "listings": {
+    "title": "Competitor Listings",
+    "description": "Browse and filter properties from all monitored platforms",
+    "filters": {
+      "title": "Filters",
+      "search": "Search title or address...",
+      "area": "Area",
+      "allAreas": "All Areas",
+      "propertyType": "Property Type",
+      "allTypes": "All Types",
+      "transaction": "Transaction",
+      "all": "All",
+      "forSale": "For Sale",
+      "forRent": "For Rent",
+      "platform": "Platform",
+      "allPlatforms": "All Platforms",
+      "minPrice": "Min Price",
+      "maxPrice": "Max Price",
+      "clear": "Clear Filters"
+    },
+    "results": "Showing {count} of {total} listings",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {total}"
+    },
+    "image": {
+      "unavailable": "Image unavailable",
+      "noImage": "No image",
+      "alt": "Property listing"
+    }
+  },
+  "priceTracker": {
+    "title": "Price Tracker",
+    "description": "Monitor price changes across competitor listings",
+    "cardTitle": "Price Changes",
+    "cardDescription": "{count} price change(s) in selected period",
+    "empty": {
+      "title": "No price changes found",
+      "description": "Try expanding the time range"
+    },
+    "timeRange": {
+      "24h": "Last 24 hours",
+      "3d": "Last 3 days",
+      "7d": "Last 7 days",
+      "14d": "Last 14 days",
+      "30d": "Last 30 days"
+    },
+    "filterType": {
+      "all": "All Changes",
+      "drops": "Price Drops",
+      "increases": "Price Increases"
+    }
+  },
+  "settings": {
+    "title": "Market Intelligence Settings",
+    "description": "Configure data collection and alert notifications",
+    "schemaWarning": {
+      "title": "Database Setup Required",
+      "description": "The Market Intelligence database schema has not been created yet. Please run the database migration to enable this feature."
+    },
+    "status": {
+      "title": "System Status",
+      "status": "Status",
+      "lastScrape": "Last Scrape",
+      "nextScrape": "Next Scrape",
+      "notScheduled": "Not scheduled",
+      "failures": "Failures",
+      "badges": {
+        "active": "Active",
+        "error": "Error",
+        "paused": "Paused",
+        "disabled": "Disabled",
+        "setupRequired": "Setup Required"
+      }
+    },
+    "scrape": {
+      "startNow": "Start Scrape Now",
+      "inProgress": "Scrape in Progress",
+      "starting": "Starting...",
+      "cancel": "Cancel",
+      "analyzing": "Analyzing competitor listings from {count} platform(s)",
+      "progress": {
+        "overall": "Overall Progress",
+        "analyzed": "{count} listings analyzed",
+        "passed": "{count} passed",
+        "failed": "{count} failed",
+        "errors": "{count} error(s)",
+        "moreErrors": "... and {count} more"
+      },
+      "summary": {
+        "totalAnalyzed": "Total Analyzed",
+        "passed": "Passed",
+        "saved": "Saved",
+        "failed": "Failed"
+      },
+      "completed": "Scrape Completed",
+      "completedFailed": "Scrape Failed",
+      "dismiss": "Dismiss",
+      "actions": {
+        "scanning": "Scanning...",
+        "connecting": "Connecting...",
+        "scrolling": "Loading pages...",
+        "extracting": "Extracting data...",
+        "analyzing": "Analyzing...",
+        "saving": "Saving...",
+        "waiting": "Processing..."
+      }
+    },
+    "dataSources": {
+      "title": "Data Sources",
+      "description": "Select which Greek real estate platforms to monitor"
+    },
+    "searchFilters": {
+      "title": "Search Filters",
+      "description": "Narrow down which listings to collect",
+      "targetAreas": "Target Areas",
+      "targetAreasPlaceholder": "e.g., Κολωνάκι, Γλυφάδα, Κηφισιά (comma separated)",
+      "targetAreasHint": "Leave empty to collect from all areas",
+      "transactionTypes": "Transaction Types",
+      "forSale": "For Sale",
+      "forRent": "For Rent",
+      "propertyTypes": "Property Types",
+      "propertyTypesHint": "Leave all unchecked to collect all property types",
+      "minPrice": "Min Price (€)",
+      "maxPrice": "Max Price (€)"
+    },
+    "schedule": {
+      "title": "Schedule Settings",
+      "description": "Configure how often to collect new data",
+      "frequency": "Update Frequency",
+      "frequencyPlaceholder": "Select frequency",
+      "maxPages": "Max Pages per Platform",
+      "maxPagesHint": "Limit pages to control data volume (1 page ≈ 20 listings)"
+    },
+    "saveConfig": "Save Configuration",
+    "saving": "Saving..."
+  },
+  "alerts": {
+    "title": "Your Alerts",
+    "description": "{count} alert(s) configured",
+    "newAlert": "New Alert",
+    "createTitle": "Create New Alert",
+    "createDescription": "Set up a new market intelligence alert",
+    "empty": {
+      "title": "No alerts configured yet",
+      "description": "Create an alert to get notified about market changes"
+    },
+    "form": {
+      "name": "Alert Name *",
+      "namePlaceholder": "e.g., Kolonaki Price Drops",
+      "type": "Alert Type *",
+      "typePlaceholder": "Select alert type",
+      "area": "Area (optional)",
+      "areaPlaceholder": "e.g., Κολωνάκι",
+      "minPrice": "Min Price",
+      "maxPrice": "Max Price",
+      "threshold": "Threshold % (for price alerts)",
+      "emailNotifications": "Email notifications",
+      "inAppNotifications": "In-app notifications",
+      "create": "Create Alert",
+      "creating": "Creating..."
+    },
+    "types": {
+      "PRICE_DROP": {
+        "label": "Price Drop",
+        "description": "When a listing price decreases"
+      },
+      "NEW_LISTING": {
+        "label": "New Listing",
+        "description": "When new listings match criteria"
+      },
+      "UNDERPRICED": {
+        "label": "Underpriced",
+        "description": "Listings below market average"
+      },
+      "DAYS_ON_MARKET": {
+        "label": "Stale Listing",
+        "description": "Listings on market for X days"
+      },
+      "PRICE_INCREASE": {
+        "label": "Price Increase",
+        "description": "When prices increase"
+      },
+      "INVENTORY_CHANGE": {
+        "label": "Inventory Change",
+        "description": "Significant area inventory changes"
+      }
+    },
+    "criteria": {
+      "area": "Area: {area}",
+      "threshold": "• {threshold}% threshold",
+      "triggered": "• Triggered {count} times"
+    },
+    "channels": {
+      "email": "Email",
+      "inApp": "In-app"
+    }
+  },
+  "propertyTypes": {
+    "APARTMENT": "Apartment",
+    "HOUSE": "House",
+    "MAISONETTE": "Maisonette",
+    "VILLA": "Villa",
+    "LAND": "Land",
+    "COMMERCIAL": "Commercial"
+  },
+  "frequency": {
+    "HOURLY": {
+      "label": "Every hour",
+      "description": "Most current data, higher usage"
+    },
+    "TWICE_DAILY": {
+      "label": "Twice daily",
+      "description": "Updated morning and evening"
+    },
+    "DAILY": {
+      "label": "Daily",
+      "description": "Recommended for most users"
+    },
+    "WEEKLY": {
+      "label": "Weekly",
+      "description": "Lower usage, less current data"
+    }
+  },
+  "toast": {
+    "configSaved": "Configuration saved",
+    "configError": "Failed to save configuration",
+    "loadError": "Failed to load configuration",
+    "enabled": "Market Intelligence enabled",
+    "paused": "Market Intelligence paused",
+    "toggleError": "Failed to toggle Market Intelligence",
+    "scrapeStarted": "Scrape started! Monitoring progress...",
+    "scrapeCompleted": "Scrape completed! Analyzed {count} listings.",
+    "scrapeFailed": "Scrape failed. Check the errors for details.",
+    "scrapeError": "Failed to start scrape",
+    "scrapeCancelled": "Scrape cancelled",
+    "cancelError": "Failed to cancel scrape",
+    "alertsLoadError": "Failed to load alerts",
+    "alertCreated": "Alert created successfully",
+    "alertCreateError": "Failed to create alert",
+    "alertEnabled": "Alert enabled",
+    "alertDisabled": "Alert disabled",
+    "alertUpdateError": "Failed to update alert",
+    "alertDeleted": "Alert deleted",
+    "alertDeleteError": "Failed to delete alert",
+    "fillRequired": "Please fill in required fields"
+  }
+}

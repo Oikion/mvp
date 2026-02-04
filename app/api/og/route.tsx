@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { TbBrandNextjs, TbBrandTypescript } from "react-icons/tb";
-import { BiLogoMongodb, BiLogoTailwindCss } from "react-icons/bi";
+import { BiLogoTailwindCss } from "react-icons/bi";
+import { SiPostgresql } from "react-icons/si";
 import { SiPrisma, SiReact, SiOpenai } from "react-icons/si";
 import fs from "fs";
 import path from "path";
@@ -22,13 +23,13 @@ export async function GET(request: Request) {
     const hasTitle = searchParams.has("title");
     const title = hasTitle
       ? searchParams.get("title")?.slice(0, 200)
-      : "NextCRM";
+      : "Oikion";
 
     const hasDescription = searchParams.has("description");
 
     const description = hasDescription
       ? searchParams.get("description")?.slice(0, 200)
-      : "NextCRM is an open source CRM build on top of NextJS. Technology stack: NextJS with Typescrtipt, MongoDB, TailwindCSS, React, Prisma, shadCN, resend.com, react.email and more. ";
+      : "Oikion is the operating system for Greek real-estate agencies. MLS, CRM, and Socials in one web app.";
 
     return new ImageResponse(
       (
@@ -53,14 +54,14 @@ export async function GET(request: Request) {
             <span tw="py-5">
               <TbBrandNextjs size={50} color={"white"} />
               <TbBrandTypescript size={50} color={"blue"} />
-              <BiLogoMongodb size={50} color={"green"} />
+              <SiPostgresql size={50} color={"blue"} />
               <SiPrisma size={50} color={"purple"} />
               <SiReact size={50} color={"blue"} />
               <BiLogoTailwindCss size={50} color={"blue"} />
               <SiOpenai size={50} color={"white"} />
             </span>
 
-            <p tw="text-neutral-300 pb-10">https://demo.nextcrm.io</p>
+            <p tw="text-neutral-300 pb-10">{websiteUrl}</p>
           </div>
         </div>
       ),

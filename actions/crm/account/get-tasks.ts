@@ -6,7 +6,7 @@ export const getAccountsTasks = async (accountId: string) => {
       account: accountId,
     },
     include: {
-      assigned_user: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -14,5 +14,10 @@ export const getAccountsTasks = async (accountId: string) => {
       },
     },
   });
-  return data;
+  
+  // Map to expected interface shape
+  return data.map(task => ({
+    ...task,
+    assigned_user: task.Users,
+  }));
 };

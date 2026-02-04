@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
-
-const useDebounce = (value: string, delay: number) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-
-  return debouncedValue;
-};
-
-export default useDebounce;
+/**
+ * @deprecated Use `@/hooks/use-debounce` instead.
+ *
+ * This file is kept for backward compatibility.
+ * All functionality has been moved to `@/hooks/use-debounce.ts`.
+ *
+ * @example
+ * ```tsx
+ * // Old import (deprecated)
+ * import useDebounce from "@/hooks/useDebounce";
+ *
+ * // New import (preferred)
+ * import { useDebounce } from "@/hooks/use-debounce";
+ * ```
+ */
+export { useDebounce as default, useDebounce } from "./use-debounce";

@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 
-//Create new account route
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
   try {
+    const user = await getCurrentUser();
     const body = await req.json();
     const {
       name,
@@ -37,11 +32,10 @@ export async function POST(req: Request) {
       industry,
     } = body;
 
-    const newAccount = await prismadb.crm_Accounts.create({
+    const newAccount = await (prismadb as any).crm_Accounts.create({
       data: {
-        v: 0,
-        createdBy: session.user.id,
-        updatedBy: session.user.id,
+        createdBy: user.id,
+        updatedBy: user.id,
         name,
         office_phone,
         website,
@@ -70,18 +64,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ newAccount }, { status: 200 });
   } catch (error) {
-    console.log("[NEW_ACCOUNT_POST]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }
 
-//Update account route
 export async function PUT(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
   try {
+    const user = await getCurrentUser();
     const body = await req.json();
     const {
       id,
@@ -110,13 +99,12 @@ export async function PUT(req: Request) {
       industry,
     } = body;
 
-    const newAccount = await prismadb.crm_Accounts.update({
+    const newAccount = await (prismadb as any).crm_Accounts.update({
       where: {
         id,
       },
       data: {
-        v: 0,
-        updatedBy: session.user.id,
+        updatedBy: user.id,
         name,
         office_phone,
         website,
@@ -145,23 +133,16 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ newAccount }, { status: 200 });
   } catch (error) {
-    console.log("[UPDATE_ACCOUNT_PUT]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }
 
-//GET all accounts route
 export async function GET(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return new NextResponse("Unauthenticated", { status: 401 });
-  }
   try {
-    const accounts = await prismadb.crm_Accounts.findMany({});
-
+    await getCurrentUser();
+    const accounts = await (prismadb as any).crm_Accounts.findMany({});
     return NextResponse.json(accounts, { status: 200 });
   } catch (error) {
-    console.log("[ACCOUNTS_GET]", error);
     return new NextResponse("Initial error", { status: 500 });
   }
 }

@@ -2,7 +2,7 @@ import { prismadb } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const apiKey = req.headers.get("NEXTCRM_TOKEN");
+  const apiKey = req.headers.get("OIKION_TOKEN");
 
   // Get API key from headers
   if (!apiKey) {
@@ -11,14 +11,12 @@ export async function POST(req: Request) {
 
   // Here you would typically check the API key against a stored value
   // For example, you could fetch it from a database or environment variable
-  const storedApiKey = process.env.NEXTCRM_TOKEN; // Example of fetching from env
+  const storedApiKey = process.env.OIKION_TOKEN; // Example of fetching from env
   if (apiKey !== storedApiKey) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   const body = await req.json();
-
-  console.log(body, "body");
 
   const { name, surname, email, phone, company, message, tag } = body;
   if (!name || !surname || !email || !phone || !company || !message || !tag) {
@@ -29,7 +27,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    await prismadb.crm_Contacts.create({
+    await (prismadb as any).crm_Contacts.create({
       data: {
         first_name: name,
         last_name: surname,
@@ -42,7 +40,6 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ message: "Contact created" });
   } catch (error) {
-    console.log("Error creating contact:", error);
     return NextResponse.json(
       { error: "Error creating contact" },
       { status: 500 }

@@ -18,10 +18,10 @@ const PasswordResetDialog = ({ open2, setOpen2 }: Props) => {
         </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 data-[state=closed]:animate-[dialog-overlay-hide_200ms] data-[state=open]:animate-[dialog-overlay-show_200ms]" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-md p-8 text-gray-900 shadow data-[state=closed]:animate-[dialog-content-hide_200ms] data-[state=open]:animate-[dialog-content-show_200ms]">
+          <Dialog.Content className="fixed left-1/2 top-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-md p-8 text-foreground shadow data-[state=closed]:animate-[dialog-content-hide_200ms] data-[state=open]:animate-[dialog-content-show_200ms]">
             <div className="flex items-center justify-between">
               <Dialog.Title className="text-xl">Edit contact</Dialog.Title>
-              <Dialog.Close className="text-gray-400 hover:text-gray-500">
+              <Dialog.Close className="text-muted-foreground hover:text-muted-foreground">
                 <CrossIcon onClick={() => setOpen2(false)} />
               </Dialog.Close>
             </div>

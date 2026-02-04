@@ -1,23 +1,6 @@
-import { prismadb } from "@/lib/prisma";
+import { getClients } from "@/actions/crm/get-clients";
 
 export const getAccounts = async () => {
-  const data = await prismadb.crm_Accounts.findMany({
-    include: {
-      assigned_to_user: {
-        select: {
-          name: true,
-        },
-      },
-      contacts: {
-        select: {
-          first_name: true,
-          last_name: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-  return data;
+  // Backward compatibility wrapper: returns client list in legacy account shape
+  return await getClients();
 };

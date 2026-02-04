@@ -1,0 +1,104 @@
+{
+  "title": "Feedback",
+  "submitFeedback": "Submit Feedback",
+  "viewHistory": "View History",
+  "versionInfo": {
+    "title": "Version {version}",
+    "description": "This is the very first version of Oikion. As we're just getting started, some actions might not work perfectly or could cause unexpected results. If you encounter any issues, please let us know through this feedback form. Your patience and feedback help us improve the app for everyone."
+  },
+  "fields": {
+    "feedbackType": "What type of feedback is this?",
+    "feedbackTypePlaceholder": "Select feedback type",
+    "feedback": "Your Feedback",
+    "feedbackPlaceholder": "Please share your thoughts, report a bug, suggest a feature, or ask a question..."
+  },
+  "types": {
+    "bug": "Bug Report",
+    "feature": "Feature Request",
+    "general": "General Feedback",
+    "question": "Question",
+    "other": "Other"
+  },
+  "descriptions": {
+    "feedbackType": "Choose the category that best describes your feedback",
+    "feedback": "Be as detailed as possible so we can better understand and address your feedback"
+  },
+  "attachments": {
+    "title": "Attachments",
+    "optional": "(optional)"
+  },
+  "consent": {
+    "title": "I consent to diagnostic data capture for bug reporting",
+    "description": "Hover over each icon to learn what we collect and how we handle it",
+    "required": "You must consent to diagnostic data capture to submit a bug report.",
+    "screenshot": {
+      "title": "Screenshot",
+      "subtitle": "App window only",
+      "description": "We capture only the Oikion application window displayed in your browser. This excludes other tabs, applications, your desktop, and this feedback form."
+    },
+    "consoleLogs": {
+      "title": "Console Logs",
+      "subtitle": "Error & debug info",
+      "description": "Browser console logs including error messages, warnings, API calls, and debugging information specific to the Oikion application only."
+    },
+    "processing": {
+      "title": "Processing",
+      "subtitle": "Secure & private",
+      "description": "Data is sent securely via email to our development team and used solely for debugging and fixing the reported issue. We never share this information with third parties."
+    },
+    "retention": {
+      "title": "Retention",
+      "subtitle": "90 days after resolution",
+      "description": "Diagnostic data is retained for up to 90 days after the bug is resolved, then permanently deleted from our systems."
+    }
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "submit": "Submit Feedback",
+    "sending": "Sending..."
+  },
+  "messages": {
+    "success": "Thank you for your feedback. We appreciate your help in making Oikion better!",
+    "error": "Something went wrong. Please try again later."
+  },
+  "validation": {
+    "feedbackTypeRequired": "Please select a feedback type.",
+    "feedbackRequired": "Feedback must be at least 10 characters."
+  },
+  "history": {
+    "title": "Feedback History",
+    "description": "View all your past feedback submissions and conversations",
+    "noFeedback": "No feedback submissions yet. Submit your first feedback to see it here!",
+    "hasResponse": "Has Response",
+    "viewChat": "View Chat",
+    "technicalDetails": "Technical Details",
+    "browser": "Browser",
+    "os": "OS",
+    "resolution": "Resolution",
+    "screenshot": "Screenshot",
+    "consoleLogs": "console logs",
+    "emailSent": "Email sent",
+    "status": {
+      "pending": "Pending",
+      "reviewed": "Reviewed",
+      "resolved": "Resolved",
+      "user_replied": "Awaiting Response"
+    }
+  },
+  "chat": {
+    "title": "Feedback Conversation",
+    "description": "Chat with our support team about your feedback",
+    "you": "You",
+    "adminLabel": "Support Team",
+    "placeholder": "Type your message...",
+    "inputHint": "Press Enter to send, Shift+Enter for new line",
+    "noMessages": "No replies yet",
+    "waitingForAdmin": "Our team will respond to your feedback soon",
+    "commentsCount": "{count} messages",
+    "loadError": "Failed to load conversation. Please try again.",
+    "sendError": "Failed to send message. Please try again.",
+    "maxCommentsReached": "Maximum messages reached for this feedback",
+    "back": "Back"
+  }
+}
+

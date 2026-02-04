@@ -6,7 +6,7 @@ import { Command as CommandPrimitive } from "cmdk"
 import { Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -23,13 +23,20 @@ const Command = React.forwardRef<
 ))
 Command.displayName = CommandPrimitive.displayName
 
-interface CommandDialogProps extends DialogProps {}
+interface CommandDialogProps extends DialogProps {
+  /** Disable cmdk's built-in filtering (useful for server-side filtering) */
+  shouldFilter?: boolean;
+}
 
-const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
+const CommandDialog = ({ children, shouldFilter = true, ...props }: CommandDialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0 shadow-lg">
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+        <DialogTitle className="sr-only">Search and command menu</DialogTitle>
+        <Command 
+          shouldFilter={shouldFilter}
+          className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+        >
           {children}
         </Command>
       </DialogContent>
@@ -110,19 +117,42 @@ const CommandSeparator = React.forwardRef<
 ))
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName
 
+interface CommandItemProps extends React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item> {
+  /** Explicit click handler for better mouse support with shouldFilter={false} */
+  onClick?: (e: React.MouseEvent) => void;
+}
+
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.Item
-    ref={ref}
-    className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    )}
-    {...props}
-  />
-))
+  CommandItemProps
+>(({ className, onSelect, onClick, ...props }, ref) => {
+  const handleClick = React.useCallback((e: React.MouseEvent) => {
+    // Call the onClick handler if provided
+    onClick?.(e);
+    
+    // Also trigger onSelect for consistency
+    if (onSelect && props.value) {
+      onSelect(props.value as string);
+    }
+  }, [onClick, onSelect, props.value]);
+
+  return (
+    <CommandPrimitive.Item
+      ref={ref}
+      className={cn(
+        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
+        "aria-selected:bg-accent aria-selected:text-accent-foreground",
+        "hover:bg-accent/50 focus:bg-accent/50",
+        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "transition-colors duration-150",
+        className
+      )}
+      onSelect={onSelect}
+      onClick={handleClick}
+      {...props}
+    />
+  );
+})
 
 CommandItem.displayName = CommandPrimitive.Item.displayName
 

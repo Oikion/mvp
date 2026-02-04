@@ -1,0 +1,78 @@
+{
+  "page": {
+    "title": "Messages",
+    "description": "Team messaging and direct conversations"
+  },
+  "sidebar": {
+    "search": "Search conversations...",
+    "channels": "Channels",
+    "directMessages": "Messages",
+    "newConversation": "New Conversation",
+    "crmConversations": "CRM Conversations"
+  },
+  "conversation": {
+    "selectConversation": "Select a conversation",
+    "selectDescription": "Choose a channel or direct message from the sidebar to start chatting with your team.",
+    "noMessages": "No messages yet",
+    "startConversation": "Start the conversation!",
+    "loadingMessages": "Loading messages...",
+    "unableToConnect": "Unable to connect to messaging service",
+    "today": "Today",
+    "yesterday": "Yesterday"
+  },
+  "composer": {
+    "placeholder": "Type a message...",
+    "channelPlaceholder": "Message #{channel}",
+    "sendHint": "Press Enter to send, Shift + Enter for new line",
+    "attachFile": "Attach file",
+    "emoji": "Add emoji",
+    "mention": "Mention someone"
+  },
+  "channels": {
+    "create": "Create Channel",
+    "createTitle": "Create a new channel",
+    "createDescription": "Channels are where your team communicates. They're best organized around a topic — #marketing, for example.",
+    "name": "Channel name",
+    "namePlaceholder": "e.g. marketing",
+    "description": "Description (optional)",
+    "descriptionPlaceholder": "What's this channel about?",
+    "type": "Channel type",
+    "typePublic": "Public",
+    "typePublicDescription": "Anyone in the organization can join",
+    "typePrivate": "Private",
+    "typePrivateDescription": "Only invited members can see and join",
+    "typeAnnouncement": "Announcement",
+    "typeAnnouncementDescription": "Only admins can post, everyone can read",
+    "settings": "Channel Settings",
+    "members": "Members",
+    "addMembers": "Add members",
+    "removeMember": "Remove from channel",
+    "archive": "Archive channel",
+    "archiveConfirm": "Are you sure you want to archive this channel? Members will no longer be able to send messages.",
+    "default": "Default channel",
+    "defaultDescription": "New members automatically join this channel"
+  },
+  "dm": {
+    "startNew": "Start a conversation",
+    "searchUsers": "Search users...",
+    "noUsersFound": "No users found",
+    "groupDm": "Group conversation"
+  },
+  "entity": {
+    "client": "Client",
+    "property": "Property",
+    "deal": "Deal",
+    "startConversation": "Start conversation about {type}"
+  },
+  "errors": {
+    "connectionFailed": "Unable to connect to messaging",
+    "sendFailed": "Failed to send message",
+    "loadFailed": "Failed to load messages",
+    "tryAgain": "Try Again"
+  },
+  "empty": {
+    "channels": "No channels yet",
+    "conversations": "No conversations",
+    "createFirst": "Create your first channel to get started"
+  }
+}

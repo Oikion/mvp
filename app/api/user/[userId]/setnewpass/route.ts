@@ -1,20 +1,23 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { hash } from "bcryptjs";
 
 export async function PUT(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
-  const session = await getServerSession(authOptions);
+  const user = await getCurrentUser();
   const { password, cpassword } = await req.json();
 
-  if (!session) {
+  if (!user) {
     return new NextResponse("Unauthenticated", { status: 401 });
   }
 
   if (!params.userId) {
     return new NextResponse("No user ID provided", { status: 400 });
+  }
+
+  if (user.id !== params.userId && !user.is_admin) {
+    return new NextResponse("Forbidden", { status: 403 });
   }
 
   if (!password || !cpassword) {
@@ -25,7 +28,7 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
     return new NextResponse("Passwords do not match", { status: 400 });
   }
 
-  if (session.user.email === "demo@nextcrm.io") {
+  if (user.email === "demo@oikion.dev") {
     return new NextResponse(
       "Hey, don't be a fool! There are so many works done! Thanks!",
       {
@@ -35,7 +38,7 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
   }
 
   try {
-    const newUserPass = await prismadb.users.update({
+    await prismadb.users.update({
       data: {
         password: await hash(password, 10),
       },
@@ -44,9 +47,14 @@ export async function PUT(req: Request, props: { params: Promise<{ userId: strin
       },
     });
 
-    return NextResponse.json(newUserPass);
+    // SECURITY: Only return success indicator, not the user object
+    // Returning the user object would expose the password hash and other sensitive data
+    return NextResponse.json({ 
+      success: true, 
+      message: "Password updated successfully" 
+    });
   } catch (error) {
-    console.log("[NEW_USERPASS_PUT]", error);
-    return new NextResponse("Initial error", { status: 500 });
+    console.error("[SET_NEW_PASS_ERROR]", error);
+    return new NextResponse("Failed to update password", { status: 500 });
   }
 }

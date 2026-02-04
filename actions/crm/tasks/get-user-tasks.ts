@@ -6,7 +6,7 @@ export const getUserCRMTasks = async (userId: string) => {
       user: userId,
     },
     include: {
-      assigned_user: {
+      Users: {
         select: {
           id: true,
           name: true,
@@ -18,5 +18,9 @@ export const getUserCRMTasks = async (userId: string) => {
     },
   });
 
-  return data;
+  // Map to expected interface shape
+  return data.map(task => ({
+    ...task,
+    assigned_user: task.Users,
+  }));
 };

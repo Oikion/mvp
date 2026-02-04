@@ -1,9 +1,10 @@
-import LoadingComponent from "@/components/LoadingComponent";
+import { AppSkeletonLayout } from "@/components/skeletons/AppSkeletonLayout"
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton"
 
-export default function loading() {
+export default function Loading() {
   return (
-    <div className="flex w-full h-screen justify-center items-center">
-      <LoadingComponent />
-    </div>
+    <AppSkeletonLayout>
+      <DashboardSkeleton />
+    </AppSkeletonLayout>
   );
 }

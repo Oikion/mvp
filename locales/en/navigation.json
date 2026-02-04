@@ -1,0 +1,107 @@
+{
+  "ModuleMenu": {
+    "categories": {
+      "overview": "Overview",
+      "coreBusiness": "Core Business",
+      "network": "Network",
+      "tools": "Tools",
+      "organization": "Organization"
+    },
+    "dashboard": "Dashboard",
+    "feed": "Upcoming",
+    "crm": {
+      "title": "Clients",
+      "accounts": "Clients",
+      "opportunities": "Opportunities",
+      "contacts": "Client Contacts",
+      "leads": "Leads",
+      "contracts": "Contracts"
+    },
+    "mls": {
+      "title": "Properties",
+      "properties": "All Properties",
+      "listings": "Listings"
+    },
+    "social": {
+      "title": "Social",
+      "socialFeed": "Social Feed",
+      "connections": "Connections",
+      "audiences": "Audiences",
+      "sharedWithMe": "Shared With Me",
+      "deals": "Deals",
+      "publicProfile": "Public Profile"
+    },
+    "matchmaking": "Matchmaking",
+    "emails": "E-mails",
+    "tasks": "Tasks",
+    "invoices": "Invoices",
+    "reports": "Reports",
+    "documents": "Documents",
+    "documentsAll": "All Documents",
+    "documentsTemplates": "Templates",
+    "storage": "Storage",
+    "settings": "Settings",
+    "employees": "Employees",
+    "feedback": "Feedback",
+    "calendar": "Calendar",
+    "messages": "Messages",
+    "aiAssistant": "AI Assistant",
+    "marketIntel": "M.I.",
+    "platformAdmin": "Platform Admin"
+  },
+  "Navigation": {
+    "upgradeToPro": "Upgrade to Pro",
+    "account": "Account",
+    "billing": "Billing",
+    "notifications": "Notifications",
+    "referrals": "Referrals",
+    "theme": "Theme",
+    "language": "Language",
+    "logOut": "Log out",
+    "languageChanged": "Language changed to {language}",
+    "languageChangeFailed": "Failed to change language",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "pearlSand": "Pearl Sand",
+      "twilightLavender": "Twilight Lavender",
+      "system": "System"
+    },
+    "languages": {
+      "en": "English",
+      "cz": "Czech",
+      "de": "German",
+      "uk": "Ukrainian",
+      "el": "Greek"
+    }
+  },
+  "Command": {
+    "press": "Press",
+    "placeholder": "Type a command or search...",
+    "noResults": "No results found.",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "profileSettings": "Profile settings",
+    "logout": "Logout"
+  },
+  "AvatarDropdown": {
+    "todoDashboard": "Todo dashboard",
+    "profileSettings": "Profile settings",
+    "signOut": "Sign out"
+  },
+  "GlobalSearch": {
+    "placeholder": "Search properties, clients, contacts, documents, events...",
+    "noResults": "No results found.",
+    "minLength": "Type at least 2 characters to search",
+    "navigation": "Go to",
+    "quickActions": "Quick Actions",
+    "types": {
+      "property": "Properties",
+      "client": "Clients",
+      "contact": "Contacts",
+      "document": "Documents",
+      "event": "Calendar Events"
+    }
+  }
+}
+
