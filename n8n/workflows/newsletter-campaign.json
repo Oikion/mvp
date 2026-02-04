@@ -1,0 +1,239 @@
+{
+  "name": "Newsletter Campaign Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "start",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Define newsletter content\nconst newsletter = {\n  subject: \"Your Weekly Update 📬\",\n  previewText: \"Check out what's new this week...\",\n  content: `\n    <div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\">\n      <h1 style=\"color: #333;\">Hello {{name}}!</h1>\n      <p>Welcome to our weekly newsletter.</p>\n      \n      <h2>What's New</h2>\n      <ul>\n        <li>Feature update 1</li>\n        <li>Feature update 2</li>\n        <li>Feature update 3</li>\n      </ul>\n      \n      <p>Best regards,<br>The Team</p>\n      \n      <hr style=\"border: none; border-top: 1px solid #eee; margin: 20px 0;\">\n      <p style=\"font-size: 12px; color: #666;\">\n        You're receiving this because you subscribed to our newsletter.\n      </p>\n    </div>\n  `,\n  fromName: \"Your Company\",\n  tags: [\"weekly\", \"newsletter\"]\n};\n\nreturn [{ json: newsletter }];"
+      },
+      "id": "prepare-newsletter",
+      "name": "Prepare Newsletter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.OIKION_API_URL}}/newsletter/campaigns",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "subject",
+              "value": "={{ $json.subject }}"
+            },
+            {
+              "name": "previewText",
+              "value": "={{ $json.previewText }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "fromName",
+              "value": "={{ $json.fromName }}"
+            },
+            {
+              "name": "tags",
+              "value": "={{ $json.tags }}"
+            },
+            {
+              "name": "n8nWorkflowId",
+              "value": "={{ $workflow.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-campaign",
+      "name": "Create Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Oikion API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.data.campaign.status === 'DRAFT' }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-ready-to-send",
+      "name": "Ready to Send?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.OIKION_API_URL}}/newsletter/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "campaignId",
+              "value": "={{ $('Create Campaign').item.json.data.campaign.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-campaign",
+      "name": "Send Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Oikion API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.OIKION_API_URL}}/n8n/webhook",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "event",
+              "value": "workflow.completed"
+            },
+            {
+              "name": "workflowId",
+              "value": "={{ $workflow.id }}"
+            },
+            {
+              "name": "executionId",
+              "value": "={{ $execution.id }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ { campaignId: $('Create Campaign').item.json.data.campaign.id, sentCount: $json.data?.campaign?.sentCount || 0 } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "notify-completion",
+      "name": "Notify Completion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Campaign created but not sent (maybe scheduled or needs review)\nreturn [{\n  json: {\n    status: 'created',\n    campaignId: $('Create Campaign').item.json.data.campaign.id,\n    message: 'Campaign created. Send manually or modify workflow to auto-send.'\n  }\n}];"
+      },
+      "id": "campaign-created",
+      "name": "Campaign Created (Not Sent)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 400]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Prepare Newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Newsletter": {
+      "main": [
+        [
+          {
+            "node": "Create Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Campaign": {
+      "main": [
+        [
+          {
+            "node": "Ready to Send?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ready to Send?": {
+      "main": [
+        [
+          {
+            "node": "Send Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Campaign Created (Not Sent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Campaign": {
+      "main": [
+        [
+          {
+            "node": "Notify Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["newsletter", "email", "resend", "automation"]
+}

@@ -1,0 +1,89 @@
+{
+  "title": "Connections",
+  "description": "Manage your network of agents and collaborators",
+  "tabs": {
+    "connections": "Connections",
+    "connectionsShort": "All",
+    "pending": "Pending",
+    "pendingShort": "Req",
+    "sent": "Sent",
+    "sentShort": "Out",
+    "findAgents": "Find Agents",
+    "findAgentsShort": "Find"
+  },
+  "yourConnections": {
+    "title": "Your Connections",
+    "description": "Agents you're connected with. Share properties, clients, and collaborate on deals."
+  },
+  "pendingRequests": {
+    "title": "Pending Requests",
+    "description": "Connection requests waiting for your response"
+  },
+  "sentRequests": {
+    "title": "Sent Requests",
+    "description": "Connection requests you've sent that are awaiting response"
+  },
+  "search": {
+    "title": "Find Agents",
+    "description": "Search for agents to connect with and expand your network",
+    "placeholder": "Search by name or email...",
+    "searching": "Searching...",
+    "noResults": "No agents found matching your search.",
+    "emptyPrompt": "Search for agents to connect with.",
+    "properties": "properties"
+  },
+  "connectionsList": {
+    "empty": "You don't have any connections yet.",
+    "emptyHint": "Find agents to connect with using the \"Find Agents\" tab.",
+    "sentEmpty": "You haven't sent any connection requests."
+  },
+  "pendingList": {
+    "empty": "No pending requests",
+    "emptyHint": "When someone sends you a connection request, it will appear here.",
+    "sentAgo": "Sent {time} ago"
+  },
+  "actions": {
+    "viewProfile": "View Profile",
+    "message": "Message",
+    "shareEntity": "Share Entity",
+    "removeConnection": "Remove Connection",
+    "cancelRequest": "Cancel Request",
+    "accept": "Accept",
+    "decline": "Decline",
+    "connect": "Connect",
+    "connected": "Connected",
+    "pending": "Pending",
+    "respond": "Respond"
+  },
+  "badges": {
+    "pending": "Pending"
+  },
+  "toast": {
+    "requestCancelled": "Request Cancelled",
+    "requestCancelledDesc": "Your connection request has been cancelled.",
+    "connectionRemoved": "Connection Removed",
+    "connectionRemovedDesc": "You are no longer connected with this agent.",
+    "connectionAccepted": "Connection Accepted",
+    "connectionAcceptedDesc": "You are now connected! You can share properties and collaborate.",
+    "requestDeclined": "Request Declined",
+    "requestDeclinedDesc": "The connection request has been declined.",
+    "requestSent": "Request Sent",
+    "requestSentDesc": "Your connection request has been sent.",
+    "error": "Error",
+    "removeError": "Failed to remove connection",
+    "respondError": "Failed to respond to request",
+    "sendError": "Failed to send request"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+

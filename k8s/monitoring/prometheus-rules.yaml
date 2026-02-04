@@ -1,0 +1,134 @@
+# Prometheus Recording and Alerting Rules for Oikion Jobs
+#
+# Deploy with: kubectl apply -f prometheus-rules.yaml
+# Assumes Prometheus Operator is installed (or use DigitalOcean Monitoring)
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: oikion-job-rules
+  namespace: oikion-jobs
+  labels:
+    role: alert-rules
+spec:
+  groups:
+    # ===========================================
+    # Recording Rules
+    # ===========================================
+    - name: oikion.job.recording
+      interval: 30s
+      rules:
+        # Job success rate over last hour
+        - record: oikion_job_success_rate_1h
+          expr: |
+            sum(
+              rate(kube_job_status_succeeded{namespace="oikion-jobs"}[1h])
+            ) by (job_name)
+            /
+            sum(
+              rate(kube_job_status_succeeded{namespace="oikion-jobs"}[1h])
+              +
+              rate(kube_job_status_failed{namespace="oikion-jobs"}[1h])
+            ) by (job_name)
+
+        # Average job duration by type
+        - record: oikion_job_duration_seconds
+          expr: |
+            avg(
+              kube_job_complete_time{namespace="oikion-jobs"}
+              -
+              kube_job_start_time{namespace="oikion-jobs"}
+            ) by (job_name)
+
+        # Job queue depth (pending + running)
+        - record: oikion_job_queue_depth
+          expr: |
+            sum(
+              kube_job_status_active{namespace="oikion-jobs"}
+            )
+
+    # ===========================================
+    # Alerting Rules
+    # ===========================================
+    - name: oikion.job.alerts
+      rules:
+        # Job failure rate > 20%
+        - alert: OikionJobHighFailureRate
+          expr: |
+            (
+              sum(rate(kube_job_status_failed{namespace="oikion-jobs"}[30m])) by (job_name)
+              /
+              sum(rate(kube_job_status_failed{namespace="oikion-jobs"}[30m]) + rate(kube_job_status_succeeded{namespace="oikion-jobs"}[30m])) by (job_name)
+            ) > 0.2
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "High job failure rate detected"
+            description: "Job {{ $labels.job_name }} has a failure rate of {{ $value | humanizePercentage }} over the last 30 minutes."
+            runbook_url: "https://docs.oikion.com/runbooks/job-failure"
+
+        # Job stuck (running > 30 minutes)
+        - alert: OikionJobStuck
+          expr: |
+            (time() - kube_job_start_time{namespace="oikion-jobs"})
+            > 1800
+            and
+            kube_job_status_active{namespace="oikion-jobs"} > 0
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Job appears to be stuck"
+            description: "Job {{ $labels.job_name }} has been running for over 30 minutes."
+
+        # Queue depth high (> 20 jobs waiting)
+        - alert: OikionJobQueueHigh
+          expr: oikion_job_queue_depth > 20
+          for: 10m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Job queue depth is high"
+            description: "There are {{ $value }} jobs in the queue. Consider scaling up workers."
+
+        # No jobs running (potential orchestrator issue)
+        - alert: OikionNoJobActivity
+          expr: |
+            sum(rate(kube_job_created{namespace="oikion-jobs"}[1h])) == 0
+          for: 6h
+          labels:
+            severity: info
+            team: platform
+          annotations:
+            summary: "No job activity in the last 6 hours"
+            description: "No new jobs have been created. This may be normal during low-usage periods."
+
+        # Pod OOM killed
+        - alert: OikionJobOOMKilled
+          expr: |
+            increase(kube_pod_container_status_last_terminated_reason{namespace="oikion-jobs", reason="OOMKilled"}[1h]) > 0
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Job container was OOM killed"
+            description: "Pod {{ $labels.pod }} was terminated due to OOM. Consider increasing memory limits."
+
+        # Resource quota nearly exhausted
+        - alert: OikionResourceQuotaNearlyExhausted
+          expr: |
+            (
+              kube_resourcequota{namespace="oikion-jobs", type="used"}
+              /
+              kube_resourcequota{namespace="oikion-jobs", type="hard"}
+            ) > 0.8
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Resource quota nearly exhausted"
+            description: "{{ $labels.resource }} is at {{ $value | humanizePercentage }} of quota in namespace oikion-jobs."

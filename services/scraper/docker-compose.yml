@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  scraper:
+    build: .
+    container_name: oikion-scraper
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - SKYVERN_API_KEY=${SKYVERN_API_KEY:-}
+      - SKYVERN_API_URL=${SKYVERN_API_URL:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - scraper-network
+    volumes:
+      - scraper-data:/app/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  redis:
+    image: redis:7-alpine
+    container_name: oikion-scraper-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - scraper-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Optional: Redis Commander for debugging
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: oikion-scraper-redis-ui
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - scraper-network
+    profiles:
+      - debug
+
+networks:
+  scraper-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  scraper-data:

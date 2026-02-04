@@ -15,7 +15,7 @@ Market Intelligence is a **multi-tenant, zero-configuration** system that:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Vercel Cron Job                         │
-│              (runs every hour at :00)                       │
+│          (temporary: runs daily on Hobby plan)              │
 └─────────────────────────┬───────────────────────────────────┘
                           │
                           ▼
@@ -105,18 +105,22 @@ For production deployments, set a cron secret to secure the endpoint. You have t
 
 The `vercel.json` is already configured with the cron job:
 
+> IMPORTANT (Vercel Hobby limitation)
+> Market Intelligence cron is temporarily **daily (1x/day)** due to Vercel Hobby Cron limits.
+> When upgrading to Pro, consider switching back to hourly (e.g. `0 */1 * * *`) if needed.
+
 ```json
 {
   "crons": [
     {
       "path": "/api/cron/market-intel",
-      "schedule": "0 */1 * * *"
+      "schedule": "0 5 * * *"
     }
   ]
 }
 ```
 
-This runs the market intelligence cron every hour. The actual scraping frequency per organization is controlled by their individual settings.
+This runs the market intelligence cron once per day (temporary). The per-organization scraping settings still apply, but the effective maximum frequency is capped by this cron cadence until you upgrade the Vercel plan.
 
 ### Step 4: User Configuration (No Setup Required!)
 
@@ -130,7 +134,7 @@ Users simply:
 The system automatically:
 - Creates their configuration
 - Schedules their first scrape
-- Begins collecting data within 1 hour
+- Begins collecting data within 24 hours (based on cron cadence)
 
 ## User Guide
 
@@ -298,7 +302,7 @@ Check:
 
 ### No Data Showing
 
-1. Wait for the first scrape to complete (up to 1 hour)
+1. Wait for the first scrape to complete (up to 24 hours on the Hobby plan)
 2. Check Settings > System Status for last scrape time
 3. Verify at least one platform is selected
 4. If status is "Error", check the error message

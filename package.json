@@ -207,6 +207,19 @@
     "overrides": {
       "@types/react": "^19.0.0",
       "@types/react-dom": "^19.0.0"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "sharp",
+      "esbuild",
+      "canvas",
+      "cypress",
+      "aws-crt",
+      "core-js",
+      "unrs-resolver"
+    ]
   }
 }

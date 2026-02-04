@@ -1,0 +1,134 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please fill out the form below with as much detail as possible.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see implemented.
+      placeholder: I would like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you've considered.
+      placeholder: I also considered...
+
+  - type: dropdown
+    id: feature-area
+    attributes:
+      label: Feature Area
+      description: Which area of the application does this feature relate to?
+      options:
+        - MLS (Property Management)
+        - CRM (Client Management)
+        - Oikosync (Activity Feed)
+        - Messaging
+        - Calendar & Events
+        - Documents
+        - Market Intelligence
+        - AI Features
+        - Platform Administration
+        - Authentication & Security
+        - UI/UX
+        - API
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Critical (blocking my work)
+        - High (would significantly improve my workflow)
+        - Medium (nice to have)
+        - Low (minor improvement)
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe a specific use case or scenario where this feature would be helpful.
+      placeholder: |
+        As a [role], I want to [action] so that [benefit].
+        
+        Example scenario:
+        1. User navigates to...
+        2. User clicks on...
+        3. System displays...
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups / Examples
+      description: If applicable, add mockups, wireframes, or examples from other applications.
+      placeholder: Drag and drop images here
+
+  - type: textarea
+    id: technical
+    attributes:
+      label: Technical Considerations
+      description: Any technical details, constraints, or implementation ideas?
+      placeholder: |
+        - This might require changes to the database schema
+        - Could use library X for implementation
+        - Should consider performance impact on...
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Breaking Change
+      description: Would this feature introduce breaking changes?
+      options:
+        - "No"
+        - "Yes"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, links, or references about the feature request here.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have provided a clear use case for this feature
+          required: true
+        - label: I am willing to help test this feature once implemented
+          required: false
+        - label: I am willing to contribute to the implementation
+          required: false

@@ -1,0 +1,300 @@
+{
+  "navigation": {
+    "features": "Features",
+    "journey": "Journey",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "testimonials": "Testimonials",
+    "contact": "Contact",
+    "getStarted": "Get Started",
+    "subscribeNewsletter": "Subscribe to Newsletter",
+    "registerPreAlpha": "Register for Pre Alpha",
+    "signIn": "Sign In",
+    "dashboard": "Dashboard",
+    "signOut": "Sign Out"
+  },
+  "hero": {
+    "title": "Transform Your Real Estate Business",
+    "subtitle": "Streamline property management, client relationships, and analytics with our cutting-edge platform designed for modern real estate professionals.",
+    "ctaPrimary": "Start Free Trial",
+    "ctaSecondary": "Watch Demo",
+    "statusBadge": "Coming Soon"
+  },
+  "features": {
+    "title": "Powerful Features for Modern Real Estate",
+    "subtitle": "A platform built entirely for real estate professionals. Built by you, for you.",
+    "ctaText": "Ready to transform your real estate business? Explore our platform features.",
+    "ctaButton": "See All Features",
+    "videoDemo": "Demo",
+    "interactivePreview": "Interactive preview",
+    "cards": {
+      "properties": {
+        "title": "Properties",
+        "description": "Comprehensive property portfolio management with detailed analytics and insights."
+      },
+      "reports": {
+        "title": "Reports",
+        "description": "Real-time analytics and performance metrics with advanced reporting capabilities."
+      },
+      "clients": {
+        "title": "Clients",
+        "description": "Advanced client relationship management system with detailed contact tracking."
+      },
+      "feedback": {
+        "title": "Feedback",
+        "description": "Providing feedback or reporting an issue has never been easier."
+      },
+      "page": {
+        "title": "Page",
+        "description": "Powerful page builder and content management system for your real estate business."
+      }
+    }
+  },
+  "journey": {
+    "title": "Our Journey",
+    "subtitle": "Follow our roadmap as we build the ultimate real estate platform together.",
+    "developmentProgress": "Development Progress",
+    "keyFeatures": "Key Features",
+    "hoverDescription": "Click for description",
+    "ctaText": "Ready to be part of the journey? Join our development community and shape the future of real estate technology.",
+    "ctaPrimary": "Join Pre Alpha",
+    "ctaSecondary": "Get Updates",
+    "status": "Currently in",
+    "preAlpha": "Pre Alpha",
+    "limitedSpots": "Limited spots available for Pre Alpha",
+    "stages": {
+      "preAlpha": {
+        "title": "Pre-Alpha",
+        "date": "Q4 2025",
+        "description": "Core platform development with select industry partners.",
+        "details": "Invite-only testing phase with 25 hand-picked real estate professionals.",
+        "clientBenefits": ["Exclusive early access", "Direct input on features", "Priority support", "Lifetime founder pricing"],
+        "keyFeatures": [
+          {"title": "Core CRM & MLS", "description": "Client and property management system"},
+          {"title": "Analytics", "description": "Basic reporting tools with export capability"},
+          {"title": "Feedback", "description": "Direct developer and product design access"}
+        ],
+        "highlights": ["25 select partners", "40% lifetime discount founder pricing", "Priority support"]
+      },
+      "closedAlpha": {
+        "title": "Closed Alpha",
+        "date": "Q1 2026",
+        "description": "Extended testing with advanced features and integrations.",
+        "details": "Expanded to 100 beta testers with advanced analytics and MLS integration.",
+        "clientBenefits": ["Advanced Analytics", "MLS integration", "Mobile app", "20% discount"],
+        "keyFeatures": [
+          {"title": "MLS Integration", "description": "Auto-sync listings"},
+          {"title": "Mobile App", "description": "Offline capabilities"},
+          {"title": "Documents", "description": "Digital management"}
+        ],
+        "highlights": ["100 beta testers", "Advanced analytics", "20% discount"]
+      },
+      "closedBeta": {
+        "title": "Closed Beta",
+        "date": "Q2 2026",
+        "description": "Public beta with full feature set and performance optimization.",
+        "details": "Open registration with complete feature set including AI-powered insights.",
+        "clientBenefits": ["Full access", "Workflow automation", "5% lifetime discount", "AI insights"],
+        "keyFeatures": [
+          {"title": "AI Insights", "description": "Smart recommendations"},
+          {"title": "Automation", "description": "Workflow optimization"},
+          {"title": "Collaboration", "description": "Team features"}
+        ],
+        "highlights": ["Public access", "AI-powered", "5% lifetime discount"]
+      },
+      "publicLaunch": {
+        "title": "Public Launch",
+        "date": "Q4 2026",
+        "description": "Full public launch with enterprise features and global expansion.",
+        "details": "Complete platform launch with enterprise-grade security and global support.",
+        "clientBenefits": ["Enterprise security", "White-label solutions", "Advanced API access", "Global market data"],
+        "keyFeatures": [
+          {"title": "Enterprise Security", "description": "Advanced protection"},
+          {"title": "White Label", "description": "Custom branding"},
+          {"title": "Global Reach", "description": "International markets"}
+        ],
+        "highlights": ["Enterprise ready", "Custom solutions", "Global expansion"]
+      }
+    }
+  },
+  "pricing": {
+    "title": "Simple, Transparent Pricing",
+    "subtitle": "Choose the plan that works best for your business needs.",
+    "popularBadge": "Join Pre Alpha",
+    "noPricingYet": "No Pricing Yet",
+    "feedbackFirst": "We want your feedback first",
+    "perMonth": "month",
+    "bottomCtaText": "Want to learn more about our development journey and upcoming features?",
+    "bottomCtaButton": "Subscribe to our newsletter",
+    "comingSoon": "Coming Soon",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "description": "Perfect for individual agents getting started",
+        "ctaText": "Start Free Trial",
+        "features": ["Up to 25 properties", "Basic client management", "Essential analytics", "Email support", "Mobile app access"]
+      },
+      "alpha": {
+        "name": "Pre Alpha",
+        "description": "Help us shape the future of real estate software",
+        "ctaText": "Join Pre Alpha",
+        "features": ["Direct input on feature development", "Exclusive early access", "Priority support", "Lifetime founder pricing with 40% discount"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "For large teams and agencies",
+        "ctaText": "Contact Sales",
+        "features": ["Unlimited properties", "White-label solutions", "Advanced reporting & BI", "API access & integrations", "Custom workflows", "Dedicated account manager", "Advanced security features", "Custom training & onboarding"]
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about Oikion and how it can help your real estate business.",
+    "ctaText": "Ready to join our development journey? Help us shape the future of real estate technology.",
+    "ctaPrimary": "Join Pre Alpha",
+    "ctaSecondary": "Get Development Updates",
+    "questions": [
+      {"question": "Will there be a mobile app available?", "answer": "Absolutely! A full-featured mobile app is planned for our Closed Beta phase."},
+      {"question": "When will AI-powered features be available?", "answer": "AI-powered insights and automation will roll out during our Open Beta phase."},
+      {"question": "What are the planned CRM & MLS integrations?", "answer": "Major MLS integrations will launch with our Closed Beta."},
+      {"question": "Will enterprise features be available at launch?", "answer": "Yes! Enterprise-grade security, white-label solutions, and advanced API access will be available at our Official Launch."},
+      {"question": "How can I influence the UX design?", "answer": "Join our Closed Alpha to directly shape Oikion's development!"},
+      {"question": "What happens to my data as new features are added?", "answer": "Your data remains secure and accessible throughout all development phases."},
+      {"question": "Will there be team collaboration features?", "answer": "Team collaboration tools will be introduced during our Open Beta phase."},
+      {"question": "Can I get lifetime pricing by joining early?", "answer": "Yes! Closed Alpha participants receive lifetime founder pricing with 40% discount."},
+      {"question": "Will Oikion support international markets?", "answer": "Global expansion is planned for our Official Launch."},
+      {"question": "What advanced analytics will be available?", "answer": "Advanced analytics evolve through each phase: basic reporting in Alpha, enhanced dashboards in Closed Beta, AI-powered insights in Open Beta."}
+    ]
+  },
+  "finalCta": {
+    "title": "Stay Updated with Oikion Insights",
+    "subtitle": "Get the latest real estate insights, market trends, and exclusive updates delivered straight to your inbox.",
+    "benefits": {
+      "weeklyUpdates": "Weekly Updates",
+      "expertInsights": "Expert Insights",
+      "noSpam": "No Spam"
+    },
+    "newsletter": {
+      "emailPlaceholder": "Enter your email address",
+      "preAlphaLabel": "I'm interested in joining",
+      "preAlphaDescription": "Get early access and help shape the future of Oikion",
+      "privacyText": "I agree to the Privacy Policy and Contact Policy. I understand I can unsubscribe at any time.",
+      "privacyPolicy": "Privacy Policy",
+      "contactPolicy": "Contact Policy",
+      "subscribeButton": "Subscribe to Newsletter",
+      "registerButton": "Register for Pre-Alpha",
+      "subscribingText": "Subscribing to Newsletter...",
+      "registeringText": "Registering for Pre-Alpha...",
+      "emailRequired": "Please enter your email address",
+      "privacyRequired": "Please accept the privacy policy",
+      "changelog": "Changelog"
+    },
+    "success": {
+      "title": "Welcome to Our Community!",
+      "message": "Thank you for subscribing! Check your inbox for a welcome email."
+    },
+    "trustSignal": "We respect your privacy. Unsubscribe at any time."
+  },
+  "footer": {
+    "description": "Transform your real estate business with our all-in-one platform designed for modern professionals. Manage properties, clients, and analytics seamlessly.",
+    "contact": {
+      "email": "contact@oikion.com",
+      "phone": "+30 698 803 4750",
+      "location": "Athens, Greece"
+    },
+    "sections": {
+      "product": "Product",
+      "legal": "Legal",
+      "followUs": "Follow Us",
+      "contact": "Contact"
+    },
+    "links": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "security": "Security",
+      "integrations": "Integrations",
+      "api": "API",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service",
+      "cookiePolicy": "Cookie Policy",
+      "gdpr": "GDPR",
+      "accessibility": "Accessibility",
+      "contact": "Contact"
+    },
+    "social": {
+      "twitter": "Twitter",
+      "linkedin": "LinkedIn",
+      "instagram": "Instagram",
+      "github": "GitHub"
+    },
+    "newsletter": "Subscribe to Newsletter",
+    "copyright": "Oikion. All rights reserved.",
+    "changelog": "Changelog"
+  },
+  "changelog": {
+    "title": "Changelog",
+    "description": "Stay up to date with the latest updates, features, and improvements to Oikion.",
+    "noEntries": "No updates yet",
+    "checkBackLater": "Check back soon for the latest updates and improvements.",
+    "backToHome": "Back to Home",
+    "categories": {
+      "Feature": "Feature",
+      "Bug Fix": "Bug Fix",
+      "Improvement": "Improvement",
+      "Security": "Security",
+      "Performance": "Performance",
+      "UI/UX": "UI/UX",
+      "API": "API",
+      "Documentation": "Documentation",
+      "Maintenance": "Maintenance",
+      "Breaking Change": "Breaking Change",
+      "Other": "Other"
+    }
+  },
+  "legal": {
+    "navigation": {
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service",
+      "cookiePolicy": "Cookie Policy",
+      "gdprCompliance": "GDPR Compliance",
+      "backToHomepage": "Back to Homepage",
+      "contact": "Contact"
+    },
+    "common": {
+      "lastUpdated": "Last updated",
+      "tableOfContents": "Table of Contents",
+      "contactUs": "Contact Us",
+      "contactInfo": "For questions about this policy, please contact us:",
+      "email": "legal@oikion.com",
+      "generalEmail": "contact@oikion.com",
+      "legalQuestionsLabel": "Legal Questions",
+      "generalInquiriesLabel": "General Inquiries",
+      "effectiveDate": "Effective Date",
+      "lastUpdatedDate": "July 1, 2025"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "subtitle": "Your privacy is important to us. This policy explains how we collect, use, and protect your personal information."
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "subtitle": "Please read these terms carefully before using our services."
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "subtitle": "This policy explains how we use cookies and similar technologies."
+    },
+    "gdpr": {
+      "title": "GDPR Compliance",
+      "subtitle": "We are committed to protecting your personal data in accordance with GDPR."
+    },
+    "accessibility": {
+      "title": "Accessibility Statement",
+      "subtitle": "We are committed to ensuring digital accessibility for people of all abilities."
+    }
+  }
+}
+
+
+

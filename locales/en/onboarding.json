@@ -1,0 +1,181 @@
+{
+  "title": "Welcome to Oikion",
+  "subtitle": "Let's get you set up in just a few steps",
+  "progress": "Step {current} of {total}",
+  "steps": {
+    "language": {
+      "title": "Choose Your Language",
+      "description": "Select your preferred language for the interface",
+      "proceed": "Continue"
+    },
+    "welcome": {
+      "greeting": "Welcome to Oikion",
+      "personalGreeting": "Welcome, {name}!",
+      "tagline": "Your real estate operating system",
+      "description": "We're excited to have you here. Let's personalize your experience in just a few quick steps.",
+      "getStarted": "Let's Get Started"
+    },
+    "languageTheme": {
+      "themeTitle": "Choose Your Style",
+      "themeDescription": "Select a visual theme that suits you best. You can change this anytime.",
+      "themes": {
+        "light": "Light",
+        "dark": "Dark",
+        "pearl-sand": "Pearl Sand",
+        "twilight-lavender": "Twilight Lavender",
+        "system": "System Default"
+      },
+      "themeDescriptions": {
+        "light": "Clean and bright",
+        "dark": "Easy on the eyes",
+        "pearl-sand": "Warm and cozy",
+        "twilight-lavender": "Calm and elegant",
+        "system": "Match your device"
+      }
+    },
+    "usernameOrg": {
+      "title": "Set Up Your Workspace",
+      "description": "Confirm your details and create your organization.",
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "e.g., John",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "e.g., Doe",
+      "usernameTitle": "Your Username",
+      "usernameDescription": "Your unique identifier on Oikion",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "e.g., john_doe",
+      "usernameHint": "Your profile: oikion.com/app/agent/{username}",
+      "usernameAvailable": "Username is available!",
+      "usernameTaken": "This username is taken",
+      "usernameChecking": "Checking...",
+      "usernameInvalid": "2-50 characters, letters, numbers, underscores only",
+      "usernameDisplay": "Your Username",
+      "usernameNote": "Username set during registration. Change it in profile settings.",
+      "usernameSetup": "Create Your Username",
+      "usernameSetupDescription": "Choose a unique username for your profile",
+      "usernameRequired": "Please set a username to continue",
+      "orgTitle": "Your Agency Organization",
+      "orgDescription": "Create your real estate agency workspace. A personal workspace will be automatically created for you.",
+      "orgNameLabel": "Organization Name",
+      "orgNamePlaceholder": "e.g., Sunshine Realty",
+      "orgSlugLabel": "URL Slug",
+      "orgSlugPlaceholder": "sunshine-realty",
+      "orgSlugHint": "Only lowercase letters, numbers, and hyphens"
+    },
+    "notifications": {
+      "title": "Stay in the Loop",
+      "description": "Tell us what's important to you. We'll make sure you never miss it.",
+      "question": "What would you like reminders about?",
+      "options": {
+        "tasks": {
+          "title": "Tasks & Deadlines",
+          "description": "Never miss a deadline or forget a follow-up"
+        },
+        "calendar": {
+          "title": "Appointments & Events",
+          "description": "Stay on top of your schedule"
+        },
+        "deals": {
+          "title": "Deal Updates",
+          "description": "Track progress on your transactions"
+        },
+        "team": {
+          "title": "Team Activity",
+          "description": "Know what your colleagues are up to"
+        },
+        "documents": {
+          "title": "Documents",
+          "description": "When someone views or shares documents"
+        }
+      },
+      "deliveryTitle": "How should we reach you?",
+      "deliveryOptions": {
+        "email": {
+          "title": "Email",
+          "description": "Get notified in your inbox"
+        },
+        "inApp": {
+          "title": "In-App",
+          "description": "See notifications when you're online"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy & Consent",
+      "description": "Control your privacy settings and preferences",
+      "profileVisibility": {
+        "title": "Profile Visibility",
+        "description": "Who can see your public agent profile?",
+        "options": {
+          "personal": {
+            "title": "Personal",
+            "description": "Your profile is hidden from everyone"
+          },
+          "secure": {
+            "title": "Secure",
+            "description": "Only registered users can view your profile"
+          },
+          "public": {
+            "title": "Public",
+            "description": "Anyone can view your profile"
+          }
+        }
+      },
+      "analytics": {
+        "title": "Usage Analytics",
+        "description": "Help us improve Oikion",
+        "label": "Share anonymous usage data"
+      }
+    },
+    "review": {
+      "title": "All Set!",
+      "description": "Here's a summary of your setup. You can always change these later in settings.",
+      "sections": {
+        "profile": "Your Profile",
+        "organization": "Organization",
+        "preferences": "Preferences",
+        "notifications": "Notifications"
+      },
+      "fields": {
+        "name": "Name",
+        "email": "Email",
+        "username": "Username",
+        "orgName": "Organization",
+        "language": "Language",
+        "theme": "Theme",
+        "reminders": "Reminders",
+        "delivery": "Delivery"
+      },
+      "values": {
+        "enabledItems": "{count} types enabled",
+        "emailAndInApp": "Email & In-App",
+        "emailOnly": "Email only",
+        "inAppOnly": "In-App only",
+        "none": "None"
+      }
+    },
+    "complete": {
+      "title": "You're All Set!",
+      "description": "Your workspace is ready. Let's get started!",
+      "getStarted": "Enter Oikion",
+      "redirecting": "Redirecting to your dashboard..."
+    }
+  },
+  "navigation": {
+    "back": "Back",
+    "next": "Continue",
+    "skip": "Skip for now",
+    "finish": "Complete Setup",
+    "completing": "Completing..."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "usernameCheckFailed": "Failed to check username availability",
+    "orgCreationFailed": "Failed to create organization",
+    "completionFailed": "Failed to complete setup. Please try again.",
+    "usernameTaken": "This username is already taken. Please choose a different one.",
+    "profileUpdateFailed": "Failed to update profile. Please try again.",
+    "orgSlugTaken": "This organization slug is already taken. Please choose a different one."
+  }
+}
+

@@ -1,0 +1,359 @@
+{
+  "name": "Multi-Platform Social Media Posting",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "start",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Define social media content\nconst socialContent = {\n  text: \"Check out our latest update! 🚀\\n\\n#automation #n8n #oikion\",\n  mediaUrls: [], // Add media URLs if any\n  platforms: [\"LINKEDIN\", \"INSTAGRAM\", \"TIKTOK\"] // Platforms to post to\n};\n\nreturn [{ json: socialContent }];"
+      },
+      "id": "prepare-content",
+      "name": "Prepare Social Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.platforms.includes('LINKEDIN') }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-linkedin",
+      "name": "Post to LinkedIn?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "id": "linkedin-post",
+      "name": "LinkedIn Post",
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [850, 100],
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "YOUR_LINKEDIN_CREDENTIAL_ID",
+          "name": "LinkedIn Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.OIKION_API_URL}}/social/log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "platform",
+              "value": "LINKEDIN"
+            },
+            {
+              "name": "content",
+              "value": "={{ $('Prepare Social Content').item.json.text }}"
+            },
+            {
+              "name": "status",
+              "value": "POSTED"
+            },
+            {
+              "name": "platformPostId",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "postedAt",
+              "value": "={{ new Date().toISOString() }}"
+            },
+            {
+              "name": "n8nWorkflowId",
+              "value": "={{ $workflow.id }}"
+            },
+            {
+              "name": "n8nExecutionId",
+              "value": "={{ $execution.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-linkedin",
+      "name": "Log LinkedIn Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 100],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Oikion API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $('Prepare Social Content').item.json.platforms.includes('INSTAGRAM') }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-instagram",
+      "name": "Post to Instagram?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Instagram posting via Facebook Graph API\n// Note: Requires Facebook Business account and Instagram Business/Creator account\n// This is a placeholder - configure your Instagram credentials\n\nconst content = $input.item.json;\n\n// Log as pending - actual Instagram posting requires additional setup\nreturn [{\n  json: {\n    platform: 'INSTAGRAM',\n    content: content.text,\n    status: 'PENDING',\n    message: 'Configure Instagram API credentials to enable posting'\n  }\n}];"
+      },
+      "id": "instagram-post",
+      "name": "Instagram Post (Configure)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.OIKION_API_URL}}/social/log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "platform",
+              "value": "INSTAGRAM"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status }}"
+            },
+            {
+              "name": "n8nWorkflowId",
+              "value": "={{ $workflow.id }}"
+            },
+            {
+              "name": "n8nExecutionId",
+              "value": "={{ $execution.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-instagram",
+      "name": "Log Instagram Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Oikion API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $('Prepare Social Content').item.json.platforms.includes('TIKTOK') }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-tiktok",
+      "name": "Post to TikTok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "// TikTok posting requires TikTok for Business API\n// This is a placeholder - configure your TikTok credentials\n\nconst content = $input.item.json;\n\n// Log as pending - actual TikTok posting requires additional setup\nreturn [{\n  json: {\n    platform: 'TIKTOK',\n    content: content.text,\n    status: 'PENDING',\n    message: 'Configure TikTok API credentials to enable posting'\n  }\n}];"
+      },
+      "id": "tiktok-post",
+      "name": "TikTok Post (Configure)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.OIKION_API_URL}}/social/log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "platform",
+              "value": "TIKTOK"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status }}"
+            },
+            {
+              "name": "n8nWorkflowId",
+              "value": "={{ $workflow.id }}"
+            },
+            {
+              "name": "n8nExecutionId",
+              "value": "={{ $execution.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-tiktok",
+      "name": "Log TikTok Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 600],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Oikion API Key"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Prepare Social Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Social Content": {
+      "main": [
+        [
+          {
+            "node": "Post to LinkedIn?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Post to Instagram?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Post to TikTok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to LinkedIn?": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Post": {
+      "main": [
+        [
+          {
+            "node": "Log LinkedIn Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to Instagram?": {
+      "main": [
+        [
+          {
+            "node": "Instagram Post (Configure)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Post (Configure)": {
+      "main": [
+        [
+          {
+            "node": "Log Instagram Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to TikTok?": {
+      "main": [
+        [
+          {
+            "node": "TikTok Post (Configure)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TikTok Post (Configure)": {
+      "main": [
+        [
+          {
+            "node": "Log TikTok Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["social", "linkedin", "instagram", "tiktok", "automation"]
+}

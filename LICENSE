@@ -1,0 +1,250 @@
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2024-2026 Stavros Apostolou. All Rights Reserved.
+
+NOTICE: This software and associated documentation files (the "Software") are the 
+proprietary and confidential property of Stavros Apostolou. Unauthorized copying, 
+modification, distribution, or use of this Software, via any medium, is strictly 
+prohibited and may result in severe civil and criminal penalties.
+
+TERMS AND CONDITIONS:
+
+1. OWNERSHIP
+   The Software, including but not limited to all source code, object code, 
+   documentation, designs, algorithms, user interfaces, and related materials, 
+   is owned exclusively by Stavros Apostolou and is protected by copyright laws 
+   and international copyright treaties, as well as other intellectual property 
+   laws and treaties.
+
+2. RESTRICTIONS
+   You are NOT permitted to:
+   - Copy, reproduce, or duplicate the Software in any form
+   - Modify, adapt, alter, translate, or create derivative works based on the Software
+   - Distribute, sublicense, lease, rent, loan, or otherwise transfer the Software 
+     to any third party
+   - Reverse engineer, decompile, disassemble, or otherwise attempt to derive 
+     the source code of the Software
+   - Remove, alter, or obscure any proprietary notices, labels, or marks on the Software
+   - Use the Software for any commercial purpose without explicit written permission
+   - Use the Software in any manner that violates applicable laws or regulations
+
+3. PERMISSIONS
+   Any use of this Software requires explicit written permission from Stavros Apostolou. 
+   Unauthorized use is strictly prohibited.
+
+4. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+   STAVROS APOSTOLOU BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR 
+   IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+5. TERMINATION
+   This license is effective until terminated. Your rights under this license will 
+   terminate automatically without notice if you fail to comply with any of its terms. 
+   Upon termination, you must destroy all copies of the Software in your possession.
+
+6. GOVERNING LAW
+   This license shall be governed by and construed in accordance with the laws of 
+   Greece, without regard to its conflict of law provisions.
+
+---
+
+## Open-Source Components and Attributions
+
+This proprietary software incorporates and uses the following open-source components, 
+each subject to its respective license terms. These components are used in accordance 
+with their licenses, which may differ from this proprietary license:
+
+### Core Framework & Runtime
+- **Next.js** (v16.0.10) - MIT License - Copyright (c) Vercel, Inc.
+- **React** (v19.2.0) - MIT License - Copyright (c) Meta Platforms, Inc.
+- **TypeScript** (v5.6.3) - Apache-2.0 License - Copyright (c) Microsoft Corporation
+
+### UI Component Libraries
+- **shadcn/ui** - MIT License - Components based on Radix UI primitives
+- **Radix UI** (various packages) - MIT License - Copyright (c) WorkOS Inc.
+  - @radix-ui/react-accordion, @radix-ui/react-alert-dialog, @radix-ui/react-avatar,
+    @radix-ui/react-checkbox, @radix-ui/react-collapsible, @radix-ui/react-context-menu,
+    @radix-ui/react-dialog, @radix-ui/react-dropdown-menu, @radix-ui/react-hover-card,
+    @radix-ui/react-icons, @radix-ui/react-label, @radix-ui/react-popover,
+    @radix-ui/react-progress, @radix-ui/react-radio-group, @radix-ui/react-scroll-area,
+    @radix-ui/react-select, @radix-ui/react-separator, @radix-ui/react-slider,
+    @radix-ui/react-slot, @radix-ui/react-switch, @radix-ui/react-tabs,
+    @radix-ui/react-toast, @radix-ui/react-toggle, @radix-ui/react-tooltip
+- **Tremor** (v3.18.4) - Apache-2.0 License - Copyright (c) Tremor Labs Inc.
+- **Lucide React** (v0.456.0) - ISC License - Copyright (c) Lucide Contributors
+- **Framer Motion** (v12.23.24) - MIT License - Copyright (c) Framer BV
+- **GSAP** (v3.14.2) - Standard "GreenSock" License - Copyright (c) GreenSock
+
+### Styling & CSS
+- **Tailwind CSS** (v3.4.14) - MIT License - Copyright (c) Tailwind Labs, Inc.
+- **PostCSS** (v8.4.49) - MIT License - Copyright (c) PostCSS Contributors
+- **Autoprefixer** (v10.4.20) - MIT License - Copyright (c) Andrey Sitnik
+- **tailwindcss-animate** (v1.0.7) - MIT License
+- **class-variance-authority** (v0.7.0) - Apache-2.0 License
+- **clsx** (v2.1.1) - MIT License - Copyright (c) Luke Edwards
+- **tailwind-merge** (v2.5.4) - MIT License
+
+### Authentication & Security
+- **Clerk** (various packages) - Proprietary License - Copyright (c) Clerk, Inc.
+  - @clerk/backend, @clerk/nextjs, @clerk/themes
+- **bcryptjs** (v2.4.3) - MIT License - Copyright (c) Nick Campbell
+
+### Database & ORM
+- **Prisma** (v6.19.1) - Apache-2.0 License - Copyright (c) Prisma Data, Inc.
+  - @prisma/client, @prisma/extension-accelerate
+
+### Data Fetching & State Management
+- **SWR** (v2.2.5) - MIT License - Copyright (c) Vercel, Inc.
+- **Zustand** (v5.0.1) - MIT License - Copyright (c) Paul Henschel
+- **Jotai** (v2.10.2) - MIT License - Copyright (c) Daishi Kato
+
+### Form Handling & Validation
+- **React Hook Form** (v7.53.2) - MIT License - Copyright (c) Beier Luo
+- **Zod** (v3.23.8) - MIT License - Copyright (c) Colin McDonnell
+- **@hookform/resolvers** (v3.9.1) - MIT License
+
+### Internationalization
+- **next-intl** (v4.4.0) - MIT License - Copyright (c) Jan Amann
+- **date-fns** (v4.1.0) - MIT License - Copyright (c) Sasha Koss
+- **dayjs** (v1.11.13) - MIT License - Copyright (c) iamkun
+- **moment** (v2.30.1) - MIT License - Copyright (c) JS Foundation
+
+### Rich Text Editing
+- **TipTap** (v3.13.0) - MIT License - Copyright (c) Tiptap Inc.
+  - @tiptap/react, @tiptap/starter-kit, @tiptap/pm, and various extensions
+
+### Data Visualization
+- **Recharts** (v3.4.1) - MIT License - Copyright (c) Recharts Group
+
+### File Processing & Documents
+- **docx** (v9.5.1) - MIT License - Copyright (c) Dolan Miu
+- **mammoth** (v1.11.0) - BSD-2-Clause License - Copyright (c) Michael Williamson
+- **pdfjs-dist** (v5.4.449) - Apache-2.0 License - Copyright (c) Mozilla Foundation
+- **@react-pdf/renderer** (v4.3.1) - MIT License - Copyright (c) Diego Muracciole
+- **@react-pdf-viewer/core** (v3.12.0) - MIT License
+- **xlsx** (v0.18.5) - Apache-2.0 License - Copyright (c) SheetJS LLC
+- **jszip** (v3.10.1) - (MIT OR GPL-3.0-or-later) License - Copyright (c) Stuart Knightley
+- **jspdf** (v4.0.0) - MIT License - Copyright (c) James Hall
+
+### HTTP & API Clients
+- **Axios** (v1.7.7) - MIT License - Copyright (c) Matt Zabriskie
+- **SVix** (v1.81.0) - MIT License - Copyright (c) SVix Inc.
+
+### AI & Machine Learning
+- **Vercel AI SDK** (v6.0.64) - MIT License - Copyright (c) Vercel, Inc.
+  - @ai-sdk/anthropic, @ai-sdk/openai
+- **OpenAI** (v6.17.0) - MIT License - Copyright (c) OpenAI
+
+### Email
+- **Resend** (v4.0.1-alpha.0) - MIT License - Copyright (c) Resend Inc.
+- **React Email** (v0.0.28) - MIT License - Copyright (c) Resend Inc.
+  - @react-email/components, @react-email/markdown, @react-email/render
+- **Nodemailer** (v6.9.16) - MIT License - Copyright (c) Nodemailer
+
+### Cloud Storage
+- **AWS SDK** (v3.689.0) - Apache-2.0 License - Copyright (c) Amazon Web Services
+  - @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, @aws-sdk/signature-v4-crt
+- **Vercel Blob** (v2.0.0) - MIT License - Copyright (c) Vercel, Inc.
+- **Vercel KV** (v1.0.1) - MIT License - Copyright (c) Vercel, Inc.
+
+### Real-time & WebSockets
+- **Ably** (v2.17.0) - Apache-2.0 License - Copyright (c) Ably Real-time Ltd
+
+### Drag & Drop
+- **@dnd-kit/core** (v6.3.1) - MIT License - Copyright (c) Claudéric Demers
+- **@hello-pangea/dnd** (v16.6.0) - MIT License - Copyright (c) Atlassian Pty Ltd
+
+### Tables & Data Grids
+- **@tanstack/react-table** (v8.20.5) - MIT License - Copyright (c) TanStack
+- **@tanstack/react-virtual** (v3.13.13) - MIT License - Copyright (c) TanStack
+
+### Utilities & Helpers
+- **Zod** (v3.23.8) - MIT License - Copyright (c) Colin McDonnell
+- **clsx** (v2.1.1) - MIT License - Copyright (c) Luke Edwards
+- **cmdk** (v1.0.4) - MIT License - Copyright (c) Paco Coursey
+- **@paralleldrive/cuid2** (v3.3.0) - MIT License
+- **cheerio** (v1.1.2) - MIT License - Copyright (c) Matt Mueller
+- **fast-xml-parser** (v5.3.2) - MIT License - Copyright (c) Amit Kumar Gupta
+- **xmlbuilder2** (v3.1.1) - MIT License - Copyright (c) Oozcitak
+- **entities** (v5.0.0) - BSD-2-Clause License - Copyright (c) Felix Boehm
+- **bowser** (v2.13.1) - MIT License - Copyright (c) Bowser Contributors
+
+### Testing & Development Tools
+- **Cypress** (v13.15.2) - MIT License - Copyright (c) Cypress.io
+- **ESLint** (v9.14.0) - MIT License - Copyright (c) OpenJS Foundation
+- **Prettier** (v3.6.2) - MIT License - Copyright (c) Prettier Contributors
+- **TypeScript ESLint** (v8.54.0) - MIT License
+- **tsx** (v4.21.0) - MIT License
+- **ts-node** (v10.9.2) - MIT License - Copyright (c) Blake Embrey
+
+### Rate Limiting
+- **@upstash/ratelimit** (v2.0.7) - Apache-2.0 License - Copyright (c) Upstash
+
+### Other Notable Dependencies
+- **next-themes** (v0.4.3) - MIT License - Copyright (c) shuding
+- **react-day-picker** (v8.10.1) - MIT License - Copyright (c) Giampaolo Bellavite
+- **react-dropzone** (v14.3.5) - MIT License - Copyright (c) Param Aggarwal
+- **react-hot-toast** (v2.4.1) - MIT License - Copyright (c) Timo Lins
+- **sonner** (v1.7.0) - MIT License - Copyright (c) Emil Kowalski
+- **react-hotkeys-hook** (v5.2.1) - MIT License - Copyright (c) Johannes Klauss
+- **react-markdown** (v10.1.0) - MIT License - Copyright (c) Espen Hovlandsdal
+- **marked** (v17.0.1) - MIT License - Copyright (c) Christopher Jeffrey
+- **react-resizable-panels** (v2.1.6) - MIT License - Copyright (c) Brian Vaughn
+- **react-youtube** (v10.1.0) - MIT License
+- **react-icons** (v5.3.0) - MIT License - Copyright (c) React Icons Contributors
+- **primeicons** (v7.0.0) - MIT License - Copyright (c) PrimeTek Informatics
+- **primereact** (v10.8.4) - MIT License - Copyright (c) PrimeTek Informatics
+- **geist** (v1.3.1) - MIT License - Copyright (c) Vercel, Inc.
+- **sharp** (v0.33.5) - Apache-2.0 License - Copyright (c) Lovell Fuller
+- **playwright-core** (v1.58.0) - Apache-2.0 License - Copyright (c) Microsoft Corporation
+- **html2canvas** (v1.4.1) - MIT License - Copyright (c) Niklas von Hertzen
+- **svgo** (v4.0.0) - MIT License - Copyright (c) Kir Belevich
+- **googleapis** (v164.1.0) - Apache-2.0 License - Copyright (c) Google LLC
+- **dotenv** (v17.2.3) - BSD-2-Clause License - Copyright (c) Scott Motte
+- **encoding** (v0.1.13) - MIT License - Copyright (c) Andris Reinman
+- **imap** (v0.8.19) - MIT License - Copyright (c) Brian White
+- **mailparser** (v3.7.1) - MIT License - Copyright (c) Andris Reinman
+- **@importcsv/react** (v0.2.14) - MIT License
+
+---
+
+## Important Notes
+
+1. **Proprietary Software**: This Software (Oikion) is proprietary and owned exclusively 
+   by Stavros Apostolou. All application-specific code, business logic, database schemas, 
+   custom implementations, and proprietary features are protected by copyright and are 
+   NOT open-source.
+
+2. **Open-Source Components**: This proprietary software incorporates open-source 
+   components listed above, which are used in accordance with their respective licenses. 
+   The licenses of these components (primarily MIT, Apache-2.0, BSD) do NOT affect the 
+   proprietary nature of this Software. You may NOT extract, copy, or use these 
+   components separately as part of this Software without authorization.
+
+3. **License Compliance**: 
+   - All dependencies use permissive licenses (MIT, Apache-2.0, BSD, ISC) which are 
+     compatible with proprietary software use.
+   - Some components may have dual licenses or alternative license options. Please refer 
+     to individual package licenses in `node_modules` for specific terms.
+
+4. **Attribution**: This notice serves as attribution for all incorporated open-source 
+   components. Individual component licenses may be found in their respective 
+   `node_modules` directories or on their official websites/repositories.
+
+5. **No Warranty**: This Software is provided "AS IS" without warranty of any kind.
+
+6. **Trademarks**: Product names, logos, and trademarks mentioned belong to their 
+   respective owners.
+
+7. **Complete License List**: For a complete list of all dependencies and their licenses, 
+   run `pnpm licenses list` in the project directory.
+
+8. **Contact**: For licensing inquiries or permissions, please contact Stavros Apostolou (steveapo@icloud.com).
+
+---
+
+This license does not grant you any rights to use, copy, modify, or distribute this 
+Software. All rights are reserved by Stavros Apostolou.

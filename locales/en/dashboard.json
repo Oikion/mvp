@@ -1,0 +1,209 @@
+{
+  "containerTitle": "Dashboard",
+  "containerDescription": "Welcome to Oikion, here you can see all important information about your real estate agency.",
+  "fromLastMonth": "from last month",
+  "fromLastPeriod": "from last period",
+  "noChangeFromLastMonth": "No change from last month",
+  "currentlyActiveUsers": "Currently active users",
+  "currentlyActive": "currently active",
+  "totalRevenue": "Total revenue",
+  "totalRevenueDescription": "Total revenue",
+  "expectedRevenue": "Expected revenue",
+  "expectedRevenueDescription": "Expected revenue",
+  "activeUsers": "Active users",
+  "clients": "Clients",
+  "properties": "Properties",
+  "opportunities": "Deals",
+  "contacts": "Contacts",
+  "leads": "Leads",
+  "employees": "Employees",
+  "invoices": "Invoices",
+  "documents": "Documents",
+  "storage": "Storage",
+  "atAGlance": "At a Glance",
+  "recentActivity": "Recent Activity",
+  "analyticsOverview": "Analytics Overview",
+  "activityTimeline": "Monthly activity",
+  "activityTimelineDescription": "New clients and properties created per month.",
+  "recentClients": "Recent Clients",
+  "recentProperties": "Recent Properties",
+  "clientsByStatus": "Clients by Status",
+  "propertiesByStatus": "Properties by Status",
+  "clientsDistribution": "Distribution of {count} clients across different statuses",
+  "propertiesDistribution": "Distribution of {count} properties across different statuses",
+  "noRecentClients": "No recent clients found",
+  "noRecentProperties": "No recent properties found",
+  "deleteConfirmation": "Delete {name}? This action cannot be undone.",
+  "clientDeleted": "Client deleted successfully.",
+  "propertyDeleted": "Property deleted successfully.",
+  "deleteError": "We couldn't delete this record. Try again.",
+  "noActivityData": "No activity recorded for this period.",
+  "clientsLabel": "Clients",
+  "propertiesLabel": "Properties",
+  "viewAll": "View All",
+  "viewProperties": "View",
+  "viewClients": "View",
+  "viewDeals": "View",
+  "addFirstClient": "Add First Client",
+  "addFirstProperty": "Add First Property",
+  "addProperty": "Add",
+  "addClient": "Add",
+  "addUser": "Invite",
+  "noClientsYet": "Start adding your clients",
+  "noPropertiesYet": "Add your first property",
+  "noRevenueYet": "Revenue will appear when you close deals",
+  "viewTeam": "View",
+  "inviteTeamMember": "Invite Team Member",
+  "noTeamMembersYet": "You're the first member",
+  "greetingMorning": "Good morning",
+  "greetingAfternoon": "Good afternoon",
+  "greetingEvening": "Good evening",
+  "defaultUser": "there",
+  "quickActions": "Quick Actions",
+  "quickAction": {
+    "newProperty": "New Property",
+    "newClient": "New Client",
+    "newEvent": "New Event",
+    "uploadDocument": "Upload Doc",
+    "viewDocuments": "Documents"
+  },
+  "noRecentActivity": "No recent activity",
+  "action": {
+    "created": "Created",
+    "updated": "Updated",
+    "deleted": "Deleted"
+  },
+  "upcomingEvents": "Upcoming Events",
+  "noUpcomingEvents": "No upcoming events",
+  "today": "Today",
+  "tomorrow": "Tomorrow",
+  "untitledEvent": "Untitled Event",
+  "eventType": {
+    "PROPERTY_VIEWING": "Viewing",
+    "CLIENT_CONSULTATION": "Consultation",
+    "MEETING": "Meeting",
+    "REMINDER": "Reminder",
+    "TASK_DEADLINE": "Deadline",
+    "OTHER": "Other"
+  },
+  "recentDocuments": "Recent Documents",
+  "noRecentDocuments": "No recent documents",
+  "recentMessages": "Messages",
+  "noRecentMessages": "No recent messages",
+  "unknownUser": "Unknown User",
+  "unknownConversation": "Conversation",
+  "you": "You",
+  "gatheringInsights": "Gathering insights...",
+  "activityDataHint": "Activity data will appear as you add clients and properties",
+  "financialReport": "Financial Report",
+  "viewReport": "View",
+  "downloadReport": "Download",
+  "matchmaking": "Matchmaking",
+  "hotProperties": "Hot Properties",
+  "topMatches": "Top Matches",
+  "noMatchesYet": "No matches yet",
+  "matchesHint": "Matches will appear as you add clients and properties",
+  "topScore": "top",
+  "marketIntel": "Market Intelligence",
+  "marketIntelDisabled": "Market Intel is disabled",
+  "marketIntelHint": "Enable to track competitor listings",
+  "enableMarketIntel": "Enable",
+  "scrapeStatus": {
+    "idle": "Ready",
+    "running": "Scanning...",
+    "completed": "Up to date",
+    "failed": "Last scan failed",
+    "disabled": "Disabled"
+  },
+  "listings": "listings",
+  "lastScrape": "Last scan",
+  "nextScrape": "Next scan",
+  "never": "Never",
+  "notScheduled": "Not scheduled",
+  "latestRun": "Latest scan results",
+  "newListings": "new",
+  "browseListings": "Browse Listings",
+  "aiAssistant": "AI Assistant",
+  "aiWelcome": "Hi{name}! How can I help?",
+  "aiWelcomeHint": "Ask me anything about your properties, clients, or schedule",
+  "aiInputPlaceholder": "Ask anything...",
+  "aiErrorResponse": "Sorry, I couldn't process that. Please try again.",
+  "aiQuickPrompt1": "Summarize today",
+  "aiQuickPrompt2": "Show my schedule",
+  "aiQuickPrompt3": "Top clients",
+  "customize": {
+    "button": "Customize",
+    "title": "Customize Dashboard",
+    "description": "Drag to reorder, toggle visibility, and resize widgets",
+    "widgetCount": "{visible} of {total} widgets visible",
+    "reset": "Reset to Default",
+    "done": "Done"
+  },
+  "widgets": {
+    "drag": "Drag",
+    "hide": "Hide widget",
+    "size": {
+      "label": "Size",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large"
+    },
+    "quickActions": {
+      "name": "Quick Actions",
+      "description": "Quick access buttons for common actions"
+    },
+    "revenueStats": {
+      "name": "Revenue",
+      "description": "Total revenue and monthly trend"
+    },
+    "clientsStats": {
+      "name": "Clients",
+      "description": "Total clients and monthly trend"
+    },
+    "propertiesStats": {
+      "name": "Properties",
+      "description": "Total properties and monthly trend"
+    },
+    "activeUsersStats": {
+      "name": "Active Users",
+      "description": "Currently active team members"
+    },
+    "activityChart": {
+      "name": "Activity Chart",
+      "description": "Monthly activity timeline for clients and properties"
+    },
+    "activityFeed": {
+      "name": "Activity Feed",
+      "description": "Recent activity from your team"
+    },
+    "upcomingEvents": {
+      "name": "Upcoming Events",
+      "description": "Your upcoming calendar events"
+    },
+    "recentMessages": {
+      "name": "Messages",
+      "description": "Recent conversations and messages"
+    },
+    "clientsStatusChart": {
+      "name": "Clients by Status",
+      "description": "Distribution of clients across statuses"
+    },
+    "propertiesStatusChart": {
+      "name": "Properties by Status",
+      "description": "Distribution of properties across statuses"
+    },
+    "recentClients": {
+      "name": "Recent Clients",
+      "description": "Latest clients added to the system"
+    },
+    "recentProperties": {
+      "name": "Recent Properties",
+      "description": "Latest properties added to the system"
+    },
+    "documents": {
+      "name": "Documents",
+      "description": "Recent documents and files"
+    }
+  }
+}
+

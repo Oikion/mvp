@@ -1,0 +1,245 @@
+{
+  "pageTitle": "AI Βοηθός",
+  "pageDescription": "Ο έξυπνος βοηθός σας για τη διαχείριση ακινήτων, πελατών και πολλά άλλα",
+  "newChat": "Νέα Συνομιλία",
+  "welcome": "Πώς μπορώ να σας βοηθήσω σήμερα;",
+  "welcomeDescription": "Μπορώ να σας βοηθήσω να διαχειριστείτε πελάτες, ακίνητα, να προγραμματίσετε εκδηλώσεις, να συντάξετε μηνύματα και πολλά άλλα.",
+  "inputPlaceholder": "Πληκτρολογήστε @ για αναφορά σε οντότητες ή ένα μήνυμα...",
+  "thinking": "Σκέφτομαι...",
+  "conversationDeleted": "Η συνομιλία διαγράφηκε",
+  "deleteError": "Αποτυχία διαγραφής συνομιλίας",
+  "sendError": "Αποτυχία αποστολής μηνύματος",
+  "noConversations": "Δεν υπάρχουν συνομιλίες ακόμα",
+  "startChatting": "Ξεκινήστε μια νέα συνομιλία",
+  "untitled": "Χωρίς τίτλο",
+  "actionsPerformed": "Ενέργειες που εκτελέστηκαν",
+  "loading": "Φόρτωση...",
+  "cancel": "Ακύρωση",
+  "delete": "Διαγραφή",
+  "continueInAssistant": "Συνέχεια στον AI Βοηθό",
+  "disclaimer": "Το AI μπορεί να κάνει λάθη. Επαληθεύστε σημαντικές πληροφορίες.",
+  "deleteConversation": {
+    "title": "Διαγραφή συνομιλίας;",
+    "description": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Όλα τα μηνύματα σε αυτή τη συνομιλία θα διαγραφούν οριστικά."
+  },
+  "accessDenied": {
+    "title": "Η Πρόσβαση Δεν Έχει Χορηγηθεί",
+    "description": "Ο οργανισμός σας δεν έχει πρόσβαση στον AI Βοηθό. Μπορείτε να υποβάλετε αίτηση για δοκιμαστική πρόσβαση για να δοκιμάσετε αυτή τη λειτουργία."
+  },
+  "contextPanel": {
+    "title": "Ρωτήστε το AI",
+    "clear": "Εκκαθάριση",
+    "context": "Πλαίσιο: {type} - {name}",
+    "suggestions": "Προτεινόμενες ερωτήσεις",
+    "placeholder": "Ρωτήστε σχετικά με αυτό..."
+  },
+  "suggestions": {
+    "client": {
+      "findMatchingProperties": "Βρες ακίνητα που ταιριάζουν σε αυτόν τον πελάτη",
+      "summarizePreferences": "Συνόψισε τις προτιμήσεις αυτού του πελάτη",
+      "draftFollowUp": "Σύνταξε email παρακολούθησης",
+      "propertiesViewed": "Ποια ακίνητα έχουν δει;"
+    },
+    "property": {
+      "findInterestedClients": "Βρες πελάτες που ενδιαφέρονται για αυτό το ακίνητο",
+      "generateDescription": "Δημιούργησε περιγραφή ακινήτου",
+      "suggestPrice": "Πρότεινε τιμή βάσει συγκρίσιμων",
+      "createInvitation": "Δημιούργησε πρόσκληση για open house"
+    },
+    "document": {
+      "summarize": "Συνόψισε αυτό το έγγραφο",
+      "extractInfo": "Εξαγωγή βασικών πληροφοριών",
+      "mainTerms": "Ποιοι είναι οι κύριοι όροι;",
+      "parties": "Ποια είναι τα εμπλεκόμενα μέρη;"
+    },
+    "message": {
+      "draftResponse": "Σύνταξε απάντηση",
+      "summarize": "Συνόψισε αυτή τη συνομιλία",
+      "actionItems": "Ποιες ενέργειες συζητήθηκαν;",
+      "translate": "Μετάφρασε σε Αγγλικά/Ελληνικά"
+    },
+    "event": {
+      "whoShouldAttend": "Ποιοι πρέπει να προσκληθούν;",
+      "findTimeSlots": "Βρες διαθέσιμες ώρες",
+      "sendReminder": "Στείλε υπενθύμιση στους συμμετέχοντες",
+      "createFollowUp": "Δημιούργησε εργασίες παρακολούθησης"
+    }
+  },
+  "commandPalette": {
+    "placeholder": "Ρωτήστε το AI ή αναζητήστε...",
+    "recentCommands": "Πρόσφατες εντολές",
+    "goTo": "Μετάβαση σε",
+    "aiSuggestions": "Προτάσεις AI",
+    "askAI": "Ρωτήστε το AI",
+    "noResults": "Δεν βρέθηκαν αποτελέσματα. Πατήστε Enter για να ρωτήσετε το AI.",
+    "toToggle": "για εναλλαγή",
+    "toSelect": "για επιλογή",
+    "close": "Κλείσιμο",
+    "aiResponse": "Απάντηση AI"
+  },
+  "welcomeScreen": {
+    "greetings": {
+      "morning": "Καλημέρα",
+      "afternoon": "Καλό απόγευμα",
+      "evening": "Καλησπέρα"
+    },
+    "assistantIntro": "Είμαι ο AI βοηθός σας. Μπορώ να σας βοηθήσω να διαχειριστείτε πελάτες, ακίνητα, να προγραμματίσετε εκδηλώσεις και πολλά άλλα.",
+    "suggestedActions": "Προτεινόμενες ενέργειες",
+    "tryAsking": "Δοκιμάστε να ρωτήσετε",
+    "capabilities": {
+      "crm": "Διαχείριση CRM",
+      "properties": "Καταχωρήσεις Ακινήτων",
+      "calendar": "Ημερολόγιο & Εκδηλώσεις",
+      "documents": "Έγγραφα",
+      "matching": "Έξυπνο Ταίριασμα"
+    },
+    "examplePrompts": {
+      "scheduleViewing": "Προγραμμάτισε μια επίσκεψη για αύριο στις 3μμ",
+      "findClients": "Βρες πελάτες με προϋπολογισμό πάνω από €200.000",
+      "createProperty": "Δημιούργησε νέα καταχώρηση ακινήτου στην Αθήνα",
+      "checkCalendar": "Τι έχω στο ημερολόγιό μου αυτή την εβδομάδα;",
+      "addReminder": "Πρόσθεσε υπενθύμιση για τη συνάντηση με τον Παπαδόπουλο",
+      "findMatches": "Βρες ακίνητα που ταιριάζουν στις προτιμήσεις του Γιώργου"
+    }
+  },
+  "errors": {
+    "failedToGetResponse": "Αποτυχία λήψης απάντησης AI",
+    "failedToDeleteConversation": "Αποτυχία διαγραφής συνομιλίας",
+    "failedToSendMessage": "Αποτυχία αποστολής μηνύματος",
+    "genericError": "Συγγνώμη, προέκυψε σφάλμα. Παρακαλώ δοκιμάστε ξανά.",
+    "actionFailed": "Η ενέργεια απέτυχε",
+    "actionCompleted": "Η ενέργεια ολοκληρώθηκε",
+    "executedActions": "Εκτελέστηκαν {count} ενέργεια(-ες)"
+  },
+  "settings": {
+    "title": "Ρυθμίσεις AI",
+    "description": "Διαμορφώστε τη συμπεριφορά και τις δυνατότητες του AI βοηθού για τον οργανισμό σας",
+    "tabs": {
+      "agents": "AI Agents",
+      "general": "Γενικές Ρυθμίσεις"
+    },
+    "agents": {
+      "system": "System Agents",
+      "custom": "Custom Agents",
+      "noSystem": "Δεν έχουν διαμορφωθεί system agents",
+      "noCustom": "Δεν έχουν διαμορφωθεί custom agents. Οι custom agents μπορούν να προστεθούν από διαχειριστές πλατφόρμας.",
+      "enabled": "Ενεργό",
+      "disabled": "Ανενεργό",
+      "default": "Προεπιλογή",
+      "configure": "Διαμόρφωση",
+      "model": "Μοντέλο",
+      "temperature": "Θερμοκρασία",
+      "maxSteps": "Μέγιστα Βήματα",
+      "tools": "Εργαλεία",
+      "available": "διαθέσιμα",
+      "availableTools": "Διαθέσιμα Εργαλεία",
+      "more": "ακόμα"
+    },
+    "provider": {
+      "title": "Ρυθμίσεις Παρόχου AI",
+      "description": "Διαμορφώστε τον πάροχο AI και τις ρυθμίσεις μοντέλου για τον οργανισμό σας",
+      "defaultProvider": "Προεπιλεγμένος Πάροχος AI",
+      "defaultProviderDesc": "Ο πάροχος AI που χρησιμοποιείται για όλους τους agents εκτός αν παρακαμφθεί",
+      "defaultModel": "Προεπιλεγμένο Μοντέλο",
+      "defaultModelDesc": "Το προεπιλεγμένο μοντέλο για λειτουργίες AI",
+      "contactAdmin": "Επικοινωνήστε με τον διαχειριστή πλατφόρμας για αλλαγή ρυθμίσεων παρόχου ή προσθήκη custom API keys."
+    },
+    "usage": {
+      "title": "Χρήση & Όρια",
+      "description": "Παρακολουθήστε τη χρήση AI και διαμορφώστε όρια για τον οργανισμό σας",
+      "requestsToday": "Αιτήματα Σήμερα",
+      "tokensUsed": "Tokens που Χρησιμοποιήθηκαν",
+      "monthlyLimit": "Μηνιαίο Όριο",
+      "unlimited": "Απεριόριστο"
+    },
+    "toast": {
+      "toggleSuccess": "{state}",
+      "toggleError": "Αποτυχία εναλλαγής agent"
+    }
+  },
+  "descriptionGenerator": {
+    "incompleteData": "Ελλιπή στοιχεία",
+    "fillTypeAndLocation": "Παρακαλώ συμπληρώστε τουλάχιστον τον τύπο και την τοποθεσία του ακινήτου.",
+    "success": "Επιτυχία",
+    "descriptionCreated": "Η περιγραφή δημιουργήθηκε",
+    "descriptionWithImages": "Η περιγραφή δημιουργήθηκε (με ανάλυση {count} φωτογραφιών)",
+    "errorCreating": "Σφάλμα κατά τη δημιουργία περιγραφής",
+    "error": "Σφάλμα",
+    "aiDescription": "AI Περιγραφή",
+    "regenerate": "Αναδημιουργία",
+    "generating": "Δημιουργία...",
+    "aiOptions": "Επιλογές AI",
+    "tone": "Ύφος: {tone}",
+    "language": "Γλώσσα: {language}",
+    "greek": "Ελληνικά",
+    "english": "English",
+    "generateNow": "Δημιουργία τώρα",
+    "tones": {
+      "professional": "Επαγγελματικό",
+      "friendly": "Φιλικό",
+      "luxurious": "Πολυτελές",
+      "casual": "Χαλαρό"
+    }
+  },
+  "toolResults": {
+    "untitledEvent": "Εκδήλωση χωρίς τίτλο",
+    "unnamedClient": "Πελάτης χωρίς όνομα",
+    "unnamedProperty": "Ακίνητο χωρίς όνομα",
+    "unnamedDeal": "Συμφωνία χωρίς όνομα",
+    "unnamedDocument": "Έγγραφο χωρίς όνομα",
+    "item": "αντικείμενο",
+    "items": "αντικείμενα",
+    "upcomingEvents": "Ανακτήθηκαν επερχόμενες εκδηλώσεις",
+    "foundAvailableSlots": "Βρέθηκαν διαθέσιμες ώρες",
+    "createdReminder": "Δημιουργήθηκε υπενθύμιση"
+  },
+  "quickActions": {
+    "createClient": "Δημιουργία νέου πελάτη",
+    "createClientPrompt": "Δημιούργησε πελάτη με όνομα",
+    "createProperty": "Δημιουργία καταχώρησης ακινήτου",
+    "createPropertyPrompt": "Δημιούργησε ακίνητο: διαμέρισμα προς πώληση σε",
+    "scheduleEvent": "Προγραμματισμός εκδήλωσης",
+    "scheduleEventPrompt": "Προγραμμάτισε μια συνάντηση για αύριο στις 3μμ",
+    "setReminder": "Ορισμός υπενθύμισης",
+    "setReminderPrompt": "Υπενθύμισέ μου να καλέσω",
+    "checkCalendar": "Τι έχω στο ημερολόγιό μου;",
+    "checkCalendarPrompt": "Τι έχω προγραμματισμένο σήμερα;",
+    "searchClients": "Αναζήτηση πελατών",
+    "searchClientsPrompt": "Βρες πελάτες που θέλουν να αγοράσουν",
+    "searchProperties": "Αναζήτηση ακινήτων",
+    "searchPropertiesPrompt": "Βρες διαμερίσματα σε",
+    "linkEntities": "Σύνδεση οντοτήτων",
+    "linkEntitiesPrompt": "Σύνδεσε πελάτη με ακίνητο"
+  },
+  "toolLabels": {
+    "list_clients": "Λίστα πελατών",
+    "create_client": "Δημιουργήθηκε πελάτης",
+    "search_clients": "Αναζήτηση πελατών",
+    "get_client_details": "Ανάκτηση στοιχείων πελάτη",
+    "list_properties": "Λίστα ακινήτων",
+    "create_property": "Δημιουργήθηκε ακίνητο",
+    "search_properties": "Αναζήτηση ακινήτων",
+    "list_events": "Λίστα εκδηλώσεων ημερολογίου",
+    "create_event": "Δημιουργήθηκε εκδήλωση",
+    "query_calendar": "Αναζήτηση στο ημερολόγιο",
+    "list_tasks": "Λίστα εργασιών",
+    "create_task": "Δημιουργήθηκε εργασία",
+    "list_documents": "Λίστα εγγράφων",
+    "analyze_document": "Ανάλυση εγγράφου",
+    "find_matches_for_client": "Βρέθηκαν κατάλληλα ακίνητα",
+    "find_matches_for_property": "Βρέθηκαν κατάλληλοι πελάτες",
+    "link_entities": "Σύνδεση οντοτήτων",
+    "draft_message_response": "Σύνταξη μηνύματος",
+    "get_upcoming_birthdays": "Ανάκτηση επερχόμενων γενεθλίων"
+  },
+  "mentions": {
+    "placeholder": "Αναζήτηση πελατών, ακινήτων, εκδηλώσεων...",
+    "noResults": "Δεν βρέθηκαν αποτελέσματα",
+    "categories": {
+      "clients": "Πελάτες",
+      "properties": "Ακίνητα",
+      "events": "Εκδηλώσεις",
+      "documents": "Έγγραφα"
+    }
+  }
+}

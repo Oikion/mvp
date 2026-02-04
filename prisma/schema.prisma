@@ -1,0 +1,2956 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // directUrl = env("DIRECT_DATABASE_URL") // Temporarily disabled - Prisma Accelerate usage limit reached
+}
+
+model AgentConnection {
+  id                                       String           @id
+  followerId                               String
+  followingId                              String
+  status                                   ConnectionStatus @default(PENDING)
+  createdAt                                DateTime         @default(now())
+  updatedAt                                DateTime
+  Users_AgentConnection_followerIdToUsers  Users            @relation("AgentConnection_followerIdToUsers", fields: [followerId], references: [id], onDelete: Cascade)
+  Users_AgentConnection_followingIdToUsers Users            @relation("AgentConnection_followingIdToUsers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@index([status])
+}
+
+model AgentProfile {
+  id                      String                    @id
+  userId                  String                    @unique
+  slug                    String                    @unique
+  bio                     String?
+  publicPhone             String?
+  publicEmail             String?
+  specializations         String[]
+  serviceAreas            String[]
+  languages               String[]
+  yearsExperience         Int?
+  certifications          String[]
+  socialLinks             Json?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime
+  visibility              ProfileVisibility         @default(PERSONAL)
+  hideFromAgentSearch     Boolean                   @default(false)
+  contactFormEnabled      Boolean                   @default(false)
+  contactFormFields       Json?                     // Custom form field configuration
+  Users                   Users                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ProfileShowcaseProperty ProfileShowcaseProperty[]
+  AgentContactSubmission  AgentContactSubmission[]
+
+  @@index([hideFromAgentSearch])
+  @@index([slug])
+  @@index([visibility])
+}
+
+model AgentContactSubmission {
+  id           String           @id
+  profileId    String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  formData     Json             // Flexible storage for custom fields (name, email, phone, message, etc.)
+  status       SubmissionStatus @default(NEW)
+  notes        String?          // Agent's internal notes about this submission
+  senderName   String?          // Cached for quick display
+  senderEmail  String?          // Cached for quick display
+  AgentProfile AgentProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum SubmissionStatus {
+  NEW
+  READ
+  CONTACTED
+  ARCHIVED
+}
+
+model Audience {
+  id             String           @id
+  name           String
+  description    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  createdById    String
+  organizationId String?
+  isAutoSync     Boolean          @default(false)
+  Users          Users            @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  AudienceMember AudienceMember[]
+  SharedEntity   SharedEntity[]
+
+  @@index([createdById])
+  @@index([organizationId])
+}
+
+model AudienceMember {
+  id         String   @id
+  audienceId String
+  userId     String
+  addedAt    DateTime @default(now())
+  Audience   Audience @relation(fields: [audienceId], references: [id], onDelete: Cascade)
+  Users      Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([audienceId, userId])
+  @@index([audienceId])
+  @@index([userId])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model CalendarEvent {
+  id                 String               @id
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  calendarEventId    Int                  @unique
+  calendarUserId     Int                  @default(0)
+  organizationId     String               @default("00000000-0000-0000-0000-000000000000")
+  title              String?
+  description        String?
+  startTime          DateTime
+  endTime            DateTime
+  location           String?
+  status             String?
+  attendeeEmail      String?
+  attendeeName       String?
+  notes              String?
+  assignedUserId     String?
+  documentIds        String[]
+  recurrenceRule     String?
+  reminderMinutes    Int[]
+  remindersSent      Json?
+  eventType          CalendarEventType?
+  Users              Users?               @relation(fields: [assignedUserId], references: [id])
+  CalendarReminder   CalendarReminder[]
+  EventInvitee       EventInvitee[]
+  crm_Accounts_Tasks crm_Accounts_Tasks[]
+  Documents          Documents[]          @relation("DocumentsToCalendarEvents")
+  Clients            Clients[]            @relation("EventToClients")
+  Properties         Properties[]         @relation("EventToProperties")
+
+  @@index([assignedUserId])
+  @@index([calendarEventId])
+  @@index([eventType])
+  @@index([organizationId])
+  @@index([startTime])
+}
+
+model CalendarReminder {
+  id               String           @id
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime
+  eventId          String
+  reminderMinutes  Int
+  scheduledFor     DateTime
+  sentAt           DateTime?
+  status           ReminderStatus   @default(PENDING)
+  notificationType NotificationType @default(EMAIL)
+  organizationId   String           @default("00000000-0000-0000-0000-000000000000")
+  CalendarEvent    CalendarEvent    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([organizationId])
+  @@index([scheduledFor])
+  @@index([status])
+}
+
+model ClientComment {
+  id        String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  clientId  String
+  userId    String
+  content   String
+  Clients   Clients  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  Users     Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Client_Contacts {
+  id                                       String             @id
+  client                                   String?
+  assigned_to                              String?
+  birthday                                 String?
+  created_by                               String?
+  createdBy                                String?
+  created_on                               DateTime?          @default(now())
+  cratedAt                                 DateTime?          @default(now())
+  last_activity                            DateTime?          @default(now())
+  updatedAt                                DateTime?
+  updatedBy                                String?
+  last_activity_by                         String?
+  description                              String?
+  email                                    String?
+  personal_email                           String?
+  contact_first_name                       String?
+  contact_last_name                        String
+  office_phone                             String?
+  mobile_phone                             String?
+  website                                  String?
+  position                                 String?
+  status                                   Boolean            @default(true)
+  contact_type                             ClientContactType?
+  relationship_to_client                   String?
+  type                                     String?            @default("Customer")
+  tags                                     String[]
+  notes                                    String[]
+  clientsIDs                               String?
+  documentsIDs                             String[]
+  organizationId                           String             @default("00000000-0000-0000-0000-000000000000")
+  Users_Client_Contacts_assigned_toToUsers Users?             @relation("Client_Contacts_assigned_toToUsers", fields: [assigned_to], references: [id])
+  Clients                                  Clients?           @relation(fields: [clientsIDs], references: [id])
+  Users_Client_Contacts_created_byToUsers  Users?             @relation("Client_Contacts_created_byToUsers", fields: [created_by], references: [id])
+  Documents                                Documents[]        @relation("DocumentsToClientContacts")
+
+  @@index([assigned_to])
+  @@index([clientsIDs])
+  @@index([created_on])
+  @@index([organizationId])
+}
+
+model Client_Properties {
+  id         String     @id
+  createdAt  DateTime   @default(now())
+  clientId   String
+  propertyId String
+  Clients    Clients    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  Properties Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, propertyId])
+  @@index([clientId])
+  @@index([propertyId])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Clients {
+  id                               String               @id
+  createdAt                        DateTime             @default(now())
+  createdBy                        String?
+  updatedAt                        DateTime?
+  updatedBy                        String?
+  assigned_to                      String?
+  client_name                      String
+  primary_email                    String?
+  client_type                      ClientType?
+  client_status                    ClientStatus?        @default(LEAD)
+  property_preferences             Json?
+  communication_notes              Json?
+  billing_city                     String?
+  billing_country                  String?
+  billing_postal_code              String?
+  billing_state                    String?
+  billing_street                   String?
+  company_id                       String?
+  description                      String?
+  fax                              String?
+  member_of                        String?
+  office_phone                     String?
+  shipping_city                    String?
+  shipping_country                 String?
+  shipping_postal_code             String?
+  shipping_state                   String?
+  shipping_street                  String?
+  vat                              String?
+  website                          String?
+  documentsIDs                     String[]
+  watchers                         String[]
+  organizationId                   String               @default("00000000-0000-0000-0000-000000000000")
+  afm                              String?
+  allow_marketing                  Boolean?             @default(false)
+  areas_of_interest                Json?
+  budget_max                       Decimal?
+  budget_min                       Decimal?
+  channels                         String[]
+  company_gemi                     String?
+  company_name                     String?
+  doy                              String?
+  draft_status                     Boolean?             @default(false)
+  financing_type                   FinancingType?
+  full_name                        String?
+  gdpr_consent                     Boolean?             @default(false)
+  id_doc                           String?
+  intent                           ClientIntent?
+  language                         Language?            @default(en)
+  lead_source                      LeadSource?
+  needs_mortgage_help              Boolean?             @default(false)
+  person_type                      PersonType?
+  preapproval_bank                 String?
+  primary_phone                    String?
+  purpose                          PropertyPurpose?
+  secondary_email                  String?
+  secondary_phone                  String?
+  timeline                         Timeline?
+  ClientComment                    ClientComment[]
+  Client_Contacts                  Client_Contacts[]
+  Client_Properties                Client_Properties[]
+  Users_Clients_assigned_toToUsers Users?               @relation("Clients_assigned_toToUsers", fields: [assigned_to], references: [id])
+  Deal                             Deal[]
+  crm_Accounts_Tasks               crm_Accounts_Tasks[]
+  Documents                        Documents[]          @relation("DocumentsToClients")
+  CalendarEvent                    CalendarEvent[]      @relation("EventToClients")
+  Users_watching_accounts          Users[]              @relation("watching_accounts")
+  PropertyShowing                  PropertyShowing[]
+
+  @@index([assigned_to])
+  @@index([client_status])
+  @@index([createdAt])
+  @@index([organizationId])
+  @@index([lead_source])
+}
+
+model Deal {
+  id                                String     @id
+  organizationId                    String     // SECURITY: Required for tenant isolation
+  propertyId                        String
+  clientId                          String
+  propertyAgentId                   String
+  clientAgentId                     String
+  propertyAgentSplit                Decimal    @default(50)
+  clientAgentSplit                  Decimal    @default(50)
+  totalCommission                   Decimal?
+  commissionCurrency                String     @default("EUR")
+  status                            DealStatus @default(PROPOSED)
+  proposedById                      String
+  title                             String?
+  notes                             String?
+  closedAt                          DateTime?
+  createdAt                         DateTime   @default(now())
+  updatedAt                         DateTime
+  // New fields for metrics tracking
+  contractDate                      DateTime?  // When offer was accepted
+  hoursWorked                       Decimal?   // Total hours worked on this deal
+  dealType                          DealType?  // SELLER or BUYER transaction
+  leadSource                        LeadSource? // Lead source for this deal
+  marketingSpendId                  String?    // Link to marketing spend
+  
+  Users_Deal_clientAgentIdToUsers   Users      @relation("Deal_clientAgentIdToUsers", fields: [clientAgentId], references: [id])
+  Clients                           Clients    @relation(fields: [clientId], references: [id])
+  Users_Deal_propertyAgentIdToUsers Users      @relation("Deal_propertyAgentIdToUsers", fields: [propertyAgentId], references: [id])
+  Properties                        Properties @relation(fields: [propertyId], references: [id])
+  MarketingSpend                    MarketingSpend? @relation(fields: [marketingSpendId], references: [id])
+  AgentHours                        AgentHours[]
+
+  @@index([clientAgentId])
+  @@index([clientId])
+  @@index([organizationId])
+  @@index([propertyAgentId])
+  @@index([propertyId])
+  @@index([status])
+  @@index([dealType])
+  @@index([leadSource])
+  @@index([marketingSpendId])
+  @@index([createdAt])           // Performance: For sorting
+  @@index([closedAt])            // Performance: For completed deals queries
+  @@index([organizationId, status]) // Performance: Composite for common query pattern
+  @@index([organizationId, createdAt]) // Performance: Composite for listing
+}
+
+model DocumentTemplate {
+  id            String       @id
+  name          String
+  nameEn        String
+  nameEl        String
+  description   String?
+  descriptionEl String?
+  templateType  TemplateType
+  placeholders  Json
+  docxUrl       String?
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime
+
+  @@index([isActive])
+  @@index([templateType])
+}
+
+model DocumentView {
+  id              String    @id
+  documentId      String
+  viewedAt        DateTime  @default(now())
+  viewerIp        String?
+  viewerUserAgent String?
+  viewerUserId    String?
+  Documents       Documents @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  Users           Users?    @relation(fields: [viewerUserId], references: [id])
+
+  @@index([documentId])
+  @@index([viewedAt])
+  @@index([viewerUserId])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Documents {
+  id                                             String               @id
+  date_created                                   DateTime?            @default(now())
+  createdAt                                      DateTime?            @default(now())
+  last_updated                                   DateTime?
+  updatedAt                                      DateTime?
+  document_name                                  String
+  created_by_user                                String?
+  createdBy                                      String?
+  description                                    String?
+  document_type                                  String?
+  favourite                                      Boolean?
+  document_file_mimeType                         String
+  document_file_url                              String
+  status                                         String?
+  visibility                                     String?
+  tags                                           Json?
+  key                                            String?
+  size                                           Int?
+  assigned_user                                  String?
+  connected_documents                            String[]
+  contactsIDs                                    String[]
+  crm_accounts_tasksIDs                          String[]
+  accountsIDs                                    String[]
+  document_system_type                           DocumentSystemType?  @default(OTHER)
+  expiresAt                                      DateTime?
+  lastViewedAt                                   DateTime?
+  linkEnabled                                    Boolean              @default(false)
+  linkedCalendarEventsIds                        String[]
+  linkedPropertiesIds                            String[]
+  linkedTasksIds                                 String[]
+  mentions                                       Json?
+  passwordHash                                   String?
+  passwordProtected                              Boolean              @default(false)
+  shareableLink                                  String?              @unique
+  viewsCount                                     Int                  @default(0)
+  organizationId                                 String               @default("00000000-0000-0000-0000-000000000000")
+  DocumentView                                   DocumentView[]
+  Users_Documents_assigned_userToUsers           Users?               @relation("Documents_assigned_userToUsers", fields: [assigned_user], references: [id])
+  Users_Documents_created_by_userToUsers         Users?               @relation("Documents_created_by_userToUsers", fields: [created_by_user], references: [id])
+  Documents_Types                                Documents_Types?     @relation(fields: [document_type], references: [id])
+  CalendarEvent                                  CalendarEvent[]      @relation("DocumentsToCalendarEvents")
+  Client_Contacts                                Client_Contacts[]    @relation("DocumentsToClientContacts")
+  Clients                                        Clients[]            @relation("DocumentsToClients")
+  crm_Accounts_Tasks_DocumentsToCrmAccountsTasks crm_Accounts_Tasks[] @relation("DocumentsToCrmAccountsTasks")
+  Properties                                     Properties[]
+  crm_Accounts_Tasks_DocumentsToTasksExplicit    crm_Accounts_Tasks[] @relation("DocumentsToTasksExplicit")
+
+  @@index([assigned_user])
+  @@index([created_by_user])
+  @@index([date_created])
+  @@index([linkEnabled])
+  @@index([organizationId])
+  @@index([shareableLink])
+}
+
+model Documents_Types {
+  id        String      @id
+  name      String
+  Documents Documents[]
+}
+
+model Employees {
+  id     String  @id
+  avatar String
+  email  String?
+  name   String
+  salary Int
+  status String
+}
+
+model EventInvitee {
+  id             String        @id
+  eventId        String
+  userId         String
+  status         InviteStatus  @default(PENDING)
+  respondedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  organizationId String        @default("00000000-0000-0000-0000-000000000000")
+  CalendarEvent  CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  Users          Users         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([userId])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Feedback {
+  id               String            @id
+  createdAt        DateTime          @default(now())
+  userId           String?
+  userEmail        String?
+  userName         String?
+  organizationId   String            @default("00000000-0000-0000-0000-000000000000")
+  feedbackType     String
+  feedback         String
+  url              String?
+  userAgent        String?
+  browserName      String?
+  browserVersion   String?
+  osName           String?
+  osVersion        String?
+  screenResolution String?
+  hasScreenshot    Boolean           @default(false)
+  hasConsoleLogs   Boolean           @default(false)
+  consoleLogsCount Int?              @default(0)
+  emailSent        Boolean           @default(false)
+  emailSentAt      DateTime?
+  adminNotes       String?
+  consoleLogs      Json?             // @deprecated - legacy field, use consoleLogsUrl instead
+  consoleLogsUrl   String?           // Vercel Blob URL for console logs text file
+  reviewedAt       DateTime?
+  reviewedBy       String?
+  screenshot       String?           // Vercel Blob URL for screenshot image
+  status           String            @default("pending")
+  adminResponse    String?
+  respondedAt      DateTime?
+  respondedBy      String?           @db.VarChar(255)
+  Users            Users?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  FeedbackComment  FeedbackComment[]
+  attachments      Attachment[]
+
+  @@index([createdAt])
+  @@index([feedbackType])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model FeedbackComment {
+  id         String   @id
+  createdAt  DateTime @default(now())
+  feedbackId String
+  authorId   String
+  authorType String
+  authorName String?
+  content    String
+
+  // Attachment fields (optional - for file uploads)
+  attachmentUrl  String? // Vercel Blob URL
+  attachmentName String? // Original file name
+  attachmentSize Int?    // File size in bytes
+  attachmentType String? // MIME type
+
+  Feedback Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([feedbackId])
+}
+
+model IdSequence {
+  id        String   @id
+  prefix    String   @unique
+  lastValue Int      @default(0)
+  updatedAt DateTime
+
+  @@index([prefix])
+}
+
+model ImageUpload {
+  id String @id
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model MyAccount {
+  id                   String  @id
+  company_name         String
+  is_person            Boolean @default(false)
+  email                String?
+  email_accountant     String?
+  phone_prefix         String?
+  phone                String?
+  mobile_prefix        String?
+  mobile               String?
+  fax_prefix           String?
+  fax                  String?
+  website              String?
+  street               String?
+  city                 String?
+  state                String?
+  zip                  String?
+  country              String?
+  country_code         String?
+  billing_street       String?
+  billing_city         String?
+  billing_state        String?
+  billing_zip          String?
+  billing_country      String?
+  billing_country_code String?
+  currency             String?
+  currency_symbol      String?
+  VAT_number           String
+  TAX_number           String?
+  bank_name            String?
+  bank_account         String?
+  bank_code            String?
+  bank_IBAN            String?
+  bank_SWIFT           String?
+  organizationId       String  @default("00000000-0000-0000-0000-000000000000")
+
+  @@index([organizationId])
+}
+
+model Notification {
+  id             String                  @id
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime
+  userId         String
+  organizationId String                  @default("00000000-0000-0000-0000-000000000000")
+  type           NotificationCategory
+  title          String
+  message        String
+  read           Boolean                 @default(false)
+  readAt         DateTime?
+  entityType     NotificationEntityType?
+  entityId       String?
+  metadata       Json?
+  actorId        String?
+  actorName      String?
+  Users          Users                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([actorId])
+  @@index([createdAt])
+  @@index([organizationId])
+  @@index([read])
+  @@index([type])
+  @@index([userId])
+}
+
+model ProfileShowcaseProperty {
+  id           String       @id
+  profileId    String
+  propertyId   String
+  order        Int          @default(0)
+  createdAt    DateTime     @default(now())
+  AgentProfile AgentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  Properties   Properties   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, propertyId])
+  @@index([order])
+  @@index([profileId])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Properties {
+  id                                  String                    @id
+  createdAt                           DateTime                  @default(now())
+  createdBy                           String?
+  updatedAt                           DateTime?
+  updatedBy                           String?
+  assigned_to                         String?
+  property_name                       String
+  primary_email                       String?
+  property_type                       PropertyType?
+  property_status                     PropertyStatus?           @default(ACTIVE)
+  property_preferences                Json?
+  communication_notes                 Json?
+  address_street                      String?
+  address_city                        String?
+  address_state                       String?
+  address_zip                         String?
+  price                               Int?
+  bedrooms                            Int?
+  bathrooms                           Float?
+  square_feet                         Int?
+  lot_size                            Float?
+  year_built                          Int?
+  description                         String?
+  watchers                            String[]
+  organizationId                      String                    @default("00000000-0000-0000-0000-000000000000")
+  accepts_pets                        Boolean?
+  accessibility                       String?
+  address_privacy_level               AddressPrivacyLevel?
+  amenities                           Json?
+  area                                String?
+  available_from                      DateTime?
+  build_coefficient                   Decimal?
+  building_permit_no                  String?
+  building_permit_year                Int?
+  condition                           PropertyCondition?
+  coverage_ratio                      Decimal?
+  draft_status                        Boolean?                  @default(false)
+  elevator                            Boolean?
+  energy_cert_class                   EnergyCertClass?
+  etaireia_diaxeirisis                String?
+  floor                               String?
+  floors_total                        Int?
+  frontage_m                          Decimal?
+  furnished                           FurnishedStatus?
+  heating_type                        HeatingType?
+  inside_city_plan                    Boolean?
+  is_exclusive                        Boolean?                  @default(false)
+  land_registry_kaek                  String?
+  legalization_status                 LegalizationStatus?
+  min_lease_months                    Int?
+  monthly_common_charges              Decimal?
+  municipality                        String?
+  orientation                         Json?
+  plot_size_sqm                       Decimal?
+  portal_visibility                   PortalVisibility?
+  postal_code                         String?
+  price_type                          PriceType?
+  renovated_year                      Int?
+  size_gross_sqm                      Decimal?
+  size_net_sqm                        Decimal?
+  transaction_type                    TransactionType?
+  // New fields for metrics tracking
+  listPrice                           Int?              // Original listing price
+  salePrice                           Int?              // Final sale price
+  saleDate                            DateTime?         // When property sold
+  contractDate                        DateTime?         // When contract was signed
+  daysOnMarket                        Int?              // Calculated days on market
+  estimatedPrice                      Int?              // For CMA accuracy tracking
+  
+  // XE.gr Portal Publishing
+  xePublished                         Boolean           @default(false)
+  xeRefId                             String?           @unique  // External reference ID for XE
+  
+  Client_Properties                   Client_Properties[]
+  Deal                                Deal[]
+  ProfileShowcaseProperty             ProfileShowcaseProperty[]
+  Users_Properties_assigned_toToUsers Users?                    @relation("Properties_assigned_toToUsers", fields: [assigned_to], references: [id])
+  PropertyComment                     PropertyComment[]
+  Property_Contacts                   Property_Contacts[]
+  Documents                           Documents[]
+  CalendarEvent                       CalendarEvent[]           @relation("EventToProperties")
+  Users_watching_properties           Users[]                   @relation("watching_properties")
+  PropertyShowing                     PropertyShowing[]
+  XeSyncItems                         XeSyncItem[]
+
+  @@index([assigned_to])
+  @@index([createdAt])
+  @@index([organizationId])
+  @@index([portal_visibility])
+  @@index([property_status])
+  @@index([saleDate])
+  @@index([xePublished])
+}
+
+model PropertyComment {
+  id         String     @id
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime
+  propertyId String
+  userId     String
+  content    String
+  Properties Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  Users      Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([propertyId])
+  @@index([userId])
+}
+
+model Property_Contacts {
+  id                 String      @id
+  property           String?
+  assigned_to        String?
+  created_on         DateTime?   @default(now())
+  updatedAt          DateTime?
+  updatedBy          String?
+  description        String?
+  email              String?
+  phone              String?
+  contact_first_name String?
+  contact_last_name  String
+  contact_type       String?
+  Users              Users?      @relation(fields: [assigned_to], references: [id])
+  Properties         Properties? @relation(fields: [property], references: [id])
+}
+
+model SharedEntity {
+  id                                     String           @id
+  entityType                             SharedEntityType
+  entityId                               String
+  sharedById                             String
+  sharedWithId                           String
+  permissions                            SharePermission  @default(VIEW_COMMENT)
+  message                                String?
+  createdAt                              DateTime         @default(now())
+  audienceId                             String?
+  Audience                               Audience?        @relation(fields: [audienceId], references: [id])
+  Users_SharedEntity_sharedByIdToUsers   Users            @relation("SharedEntity_sharedByIdToUsers", fields: [sharedById], references: [id], onDelete: Cascade)
+  Users_SharedEntity_sharedWithIdToUsers Users            @relation("SharedEntity_sharedWithIdToUsers", fields: [sharedWithId], references: [id], onDelete: Cascade)
+
+  @@unique([entityType, entityId, sharedWithId])
+  @@index([audienceId])
+  @@index([entityType, entityId])
+  @@index([sharedById])
+  @@index([sharedWithId])
+}
+
+model SocialPost {
+  id                   String              @id
+  slug                 String?             @unique
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime
+  organizationId       String
+  authorId             String
+  postType             String
+  content              String?
+  linkedEntityId       String?
+  linkedEntityType     String?
+  linkedEntityTitle    String?
+  linkedEntitySubtitle String?
+  linkedEntityMetadata Json?
+  Users                Users               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  SocialPostComment    SocialPostComment[]
+  SocialPostLike       SocialPostLike[]
+  attachments          Attachment[]
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([organizationId])
+  @@index([postType])
+  @@index([slug])
+}
+
+model SocialPostComment {
+  id                      String              @id
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime
+  postId                  String
+  userId                  String
+  content                 String
+  parentId                String?
+  SocialPostComment       SocialPostComment?  @relation("SocialPostCommentToSocialPostComment", fields: [parentId], references: [id], onDelete: Cascade)
+  other_SocialPostComment SocialPostComment[] @relation("SocialPostCommentToSocialPostComment")
+  SocialPost              SocialPost          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  Users                   Users               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([parentId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model SocialPostLike {
+  id         String     @id
+  createdAt  DateTime   @default(now())
+  postId     String
+  userId     String
+  SocialPost SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  Users      Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model TodoList {
+  id          String @id
+  createdAt   String
+  description String
+  title       String
+  url         String
+  user        String
+}
+
+model UserNotificationSettings {
+  id                    String   @id
+  userId                String   @unique
+  socialEmailEnabled    Boolean  @default(true)
+  socialInAppEnabled    Boolean  @default(true)
+  crmEmailEnabled       Boolean  @default(true)
+  crmInAppEnabled       Boolean  @default(true)
+  calendarEmailEnabled  Boolean  @default(true)
+  calendarInAppEnabled  Boolean  @default(true)
+  tasksEmailEnabled     Boolean  @default(true)
+  tasksInAppEnabled     Boolean  @default(true)
+  dealsEmailEnabled     Boolean  @default(true)
+  dealsInAppEnabled     Boolean  @default(true)
+  documentsEmailEnabled Boolean  @default(true)
+  documentsInAppEnabled Boolean  @default(true)
+  systemEmailEnabled    Boolean  @default(true)
+  systemInAppEnabled    Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime
+  Users                 Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Users {
+  id                                                 String                        @id
+  account_name                                       String?
+  avatar                                             String?
+  email                                              String                        @unique
+  is_account_admin                                   Boolean                       @default(false)
+  is_admin                                           Boolean                       @default(false)
+  created_on                                         DateTime                      @default(now())
+  lastLoginAt                                        DateTime?
+  name                                               String?
+  password                                           String?
+  username                                           String?
+  userStatus                                         ActiveStatus                  @default(PENDING)
+  userLanguage                                       Language                      @default(en)
+  watching_accountsIDs                               String[]
+  watching_propertiesIDs                             String[]
+  clerkUserId                                        String?                       @unique
+  onboardingCompleted                                Boolean                       @default(false)
+  analyticsConsent                                   Boolean                       @default(true)
+  consentTimestamp                                   DateTime?
+  gdprConsent                                        Boolean                       @default(false)
+  marketingConsent                                   Boolean                       @default(false)
+  firstName                                          String?
+  lastName                                           String?
+  referralBoxDismissed                               Boolean                       @default(false)
+  referralApplicationStatus                          ReferralApplicationStatus?
+  layoutPreference                                   LayoutPreference              @default(DEFAULT)
+  dashboardConfig                                    Json?
+  AgentConnection_AgentConnection_followerIdToUsers  AgentConnection[]             @relation("AgentConnection_followerIdToUsers")
+  AgentConnection_AgentConnection_followingIdToUsers AgentConnection[]             @relation("AgentConnection_followingIdToUsers")
+  AgentProfile                                       AgentProfile?
+  Audience                                           Audience[]
+  AudienceMember                                     AudienceMember[]
+  CalendarEvent                                      CalendarEvent[]
+  ClientComment                                      ClientComment[]
+  Client_Contacts_Client_Contacts_assigned_toToUsers Client_Contacts[]             @relation("Client_Contacts_assigned_toToUsers")
+  Client_Contacts_Client_Contacts_created_byToUsers  Client_Contacts[]             @relation("Client_Contacts_created_byToUsers")
+  Clients_Clients_assigned_toToUsers                 Clients[]                     @relation("Clients_assigned_toToUsers")
+  Deal_Deal_clientAgentIdToUsers                     Deal[]                        @relation("Deal_clientAgentIdToUsers")
+  Deal_Deal_propertyAgentIdToUsers                   Deal[]                        @relation("Deal_propertyAgentIdToUsers")
+  DocumentView                                       DocumentView[]
+  Documents_Documents_assigned_userToUsers           Documents[]                   @relation("Documents_assigned_userToUsers")
+  Documents_Documents_created_by_userToUsers         Documents[]                   @relation("Documents_created_by_userToUsers")
+  EventInvitee                                       EventInvitee[]
+  Feedback                                           Feedback[]
+  Notification                                       Notification[]
+  Properties_Properties_assigned_toToUsers           Properties[]                  @relation("Properties_assigned_toToUsers")
+  PropertyComment                                    PropertyComment[]
+  Property_Contacts                                  Property_Contacts[]
+  SharedEntity_SharedEntity_sharedByIdToUsers        SharedEntity[]                @relation("SharedEntity_sharedByIdToUsers")
+  SharedEntity_SharedEntity_sharedWithIdToUsers      SharedEntity[]                @relation("SharedEntity_sharedWithIdToUsers")
+  SocialPost                                         SocialPost[]
+  SocialPostComment                                  SocialPostComment[]
+  SocialPostLike                                     SocialPostLike[]
+  UserNotificationSettings                           UserNotificationSettings?
+  crm_Accounts_Tasks                                 crm_Accounts_Tasks[]
+  crm_Accounts_Tasks_Comments                        crm_Accounts_Tasks_Comments[]
+  Clients_watching_accounts                          Clients[]                     @relation("watching_accounts")
+  Properties_watching_properties                     Properties[]                  @relation("watching_properties")
+  Attachment                                         Attachment[]
+  ApiKey                                             ApiKey[]
+  WebhookEndpoint                                    WebhookEndpoint[]
+  ChangelogEntry                                     ChangelogEntry[]
+  ReferralCode                                       ReferralCode?
+  ReferredByReferral                                 Referral?                     @relation("ReferredUser")
+  MessagesSent                                       Message[]                     @relation("MessagesSent")
+
+  @@index([clerkUserId])
+  @@index([email])
+  @@index([userStatus])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model crm_Accounts_Tasks {
+  id                                    String                        @id
+  content                               String?
+  createdAt                             DateTime?                     @default(now())
+  createdBy                             String?
+  updatedAt                             DateTime?
+  updatedBy                             String?
+  dueDateAt                             DateTime?                     @default(now())
+  priority                              String
+  tags                                  Json?
+  title                                 String
+  likes                                 Int?                          @default(0)
+  user                                  String?
+  account                               String?
+  calendarEventId                       String?
+  organizationId                        String                        @default("00000000-0000-0000-0000-000000000000")
+  Clients                               Clients?                      @relation(fields: [account], references: [id])
+  CalendarEvent                         CalendarEvent?                @relation(fields: [calendarEventId], references: [id])
+  Users                                 Users?                        @relation(fields: [user], references: [id])
+  crm_Accounts_Tasks_Comments           crm_Accounts_Tasks_Comments[]
+  Documents_DocumentsToCrmAccountsTasks Documents[]                   @relation("DocumentsToCrmAccountsTasks")
+  Documents_DocumentsToTasksExplicit    Documents[]                   @relation("DocumentsToTasksExplicit")
+
+  @@index([organizationId])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model crm_Accounts_Tasks_Comments {
+  id                 String             @id
+  comment            String
+  createdAt          DateTime           @default(now())
+  crm_account_task   String
+  user               String
+  organizationId     String             @default("00000000-0000-0000-0000-000000000000")
+  crm_Accounts_Tasks crm_Accounts_Tasks @relation(fields: [crm_account_task], references: [id], onDelete: Cascade)
+  Users              Users              @relation(fields: [user], references: [id])
+
+  @@index([organizationId])
+}
+
+
+model modulStatus {
+  id        String  @id
+  name      String
+  isVisible Boolean
+}
+
+
+model systemServices {
+  id              String  @id
+  name            String
+  serviceUrl      String?
+  serviceId       String?
+  serviceKey      String?
+  servicePassword String?
+  servicePort     String?
+  description     String?
+}
+
+model system_Modules_Enabled {
+  id       String  @id
+  name     String
+  enabled  Boolean
+  position Int
+}
+
+// ============================================
+// METRICS TRACKING - Real Estate Agent KPIs
+// ============================================
+
+model MarketingSpend {
+  id             String            @id @default(uuid())
+  organizationId String
+  userId         String            // Agent who made the spend
+  amount         Decimal
+  spendDate      DateTime          @default(now())
+  category       MarketingCategory
+  leadSource     LeadSource?       // Optional link to lead source
+  description    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  
+  Deal           Deal[]            // Deals attributed to this marketing spend
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([spendDate])
+  @@index([category])
+  @@index([leadSource])
+}
+
+model AgentHours {
+  id             String       @id @default(uuid())
+  organizationId String
+  userId         String       // Agent tracking hours
+  date           DateTime     @default(now())
+  hoursWorked    Decimal
+  activityType   ActivityType
+  dealId         String?      // Optional link to specific deal
+  description    String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  Deal           Deal?        @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([date])
+  @@index([activityType])
+  @@index([dealId])
+}
+
+model PropertyShowing {
+  id             String        @id @default(uuid())
+  organizationId String
+  propertyId     String
+  clientId       String?       // Client who was shown the property
+  agentId        String        // Agent who conducted the showing
+  showingDate    DateTime      @default(now())
+  result         ShowingResult @default(NO_INTEREST)
+  notes          String?
+  duration       Int?          // Duration in minutes
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  Properties     Properties    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  Clients        Clients?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([propertyId])
+  @@index([clientId])
+  @@index([agentId])
+  @@index([showingDate])
+  @@index([result])
+}
+
+model MarketData {
+  id                 String   @id @default(uuid())
+  organizationId     String
+  date               DateTime @default(now())
+  area               String   // Geographic area
+  priceRange         String?  // Price range category (e.g., "0-100k", "100k-200k")
+  activeListings     Int      @default(0)
+  soldListings       Int      @default(0)
+  newListings        Int      @default(0)
+  medianSalePrice    Decimal?
+  averageSalePrice   Decimal?
+  averageDaysOnMarket Decimal?
+  absorptionRate     Decimal? // Calculated: soldListings / activeListings
+  medianListPrice    Decimal?
+  pricePerSqft       Decimal?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([date])
+  @@index([area])
+  @@unique([organizationId, date, area, priceRange])
+}
+
+// ============================================
+// ENUMS FOR METRICS TRACKING
+// ============================================
+
+enum MarketingCategory {
+  LEAD_GENERATION
+  ADVERTISING
+  SOCIAL_MEDIA
+  PRINT_MEDIA
+  SIGNAGE
+  OPEN_HOUSE
+  NETWORKING
+  REFERRAL_PROGRAM
+  WEBSITE
+  SEO
+  EMAIL_MARKETING
+  OTHER
+}
+
+enum ActivityType {
+  ADMINISTRATIVE
+  INCOME_PRODUCING
+  SHOWINGS
+  PROSPECTING
+  MARKETING
+  TRAINING
+  TRAVEL
+  CLIENT_MEETINGS
+  NEGOTIATIONS
+  PAPERWORK
+  OTHER
+}
+
+enum ShowingResult {
+  NO_SHOW
+  NO_INTEREST
+  INTERESTED
+  VERY_INTERESTED
+  OFFER_MADE
+  CONTRACT_SIGNED
+}
+
+enum DealType {
+  SELLER  // Listing side transaction
+  BUYER   // Buyer side transaction
+  DUAL    // Both sides (dual agency)
+}
+
+// ============================================
+// ORIGINAL ENUMS
+// ============================================
+
+enum ActiveStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum AddressPrivacyLevel {
+  EXACT
+  PARTIAL
+  HIDDEN
+}
+
+enum CalendarEventType {
+  PROPERTY_VIEWING
+  CLIENT_CONSULTATION
+  MEETING
+  REMINDER
+  TASK_DEADLINE
+  OTHER
+}
+
+enum ClientContactType {
+  PRIMARY
+  SECONDARY
+  EMERGENCY
+  REFERRAL
+}
+
+enum ClientIntent {
+  BUY
+  RENT
+  SELL
+  LEASE
+  INVEST
+}
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+  CONVERTED
+  LOST
+}
+
+enum ClientType {
+  BUYER
+  SELLER
+  RENTER
+  INVESTOR
+  REFERRAL_PARTNER
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum DealStatus {
+  PROPOSED
+  NEGOTIATING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DocumentSystemType {
+  INVOICE
+  RECEIPT
+  CONTRACT
+  OFFER
+  OTHER
+}
+
+enum EnergyCertClass {
+  A_PLUS
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+  H
+  IN_PROGRESS
+}
+
+enum FinancingType {
+  CASH
+  MORTGAGE
+  PREAPPROVAL_PENDING
+}
+
+enum FurnishedStatus {
+  NO
+  PARTIALLY
+  FULLY
+}
+
+enum HeatingType {
+  AUTONOMOUS
+  CENTRAL
+  NATURAL_GAS
+  HEAT_PUMP
+  ELECTRIC
+  NONE
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  TENTATIVE
+}
+
+enum Language {
+  cz
+  en
+  de
+  uk
+  el
+}
+
+enum LayoutPreference {
+  DEFAULT  // Centered, max-width constrained
+  WIDE     // Full-width, expanded
+}
+
+enum LeadSource {
+  REFERRAL
+  WEB
+  PORTAL
+  WALK_IN
+  SOCIAL
+}
+
+enum LegalizationStatus {
+  LEGALIZED
+  IN_PROGRESS
+  UNDECLARED
+}
+
+enum NotificationCategory {
+  ACCOUNT_UPDATED
+  ACCOUNT_DELETED
+  ACCOUNT_TASK_CREATED
+  ACCOUNT_TASK_UPDATED
+  CALENDAR_REMINDER
+  CALENDAR_EVENT_CREATED
+  CALENDAR_EVENT_UPDATED
+  CALENDAR_EVENT_CANCELLED
+  PROPERTY_UPDATED
+  PROPERTY_DELETED
+  DOCUMENT_SHARED
+  SYSTEM
+  CLIENT_CREATED
+  CLIENT_ASSIGNED
+  PROPERTY_CREATED
+  PROPERTY_ASSIGNED
+  CALENDAR_EVENT_INVITED
+  DOCUMENT_VIEWED
+  SOCIAL_POST_LIKED
+  SOCIAL_POST_COMMENTED
+  SOCIAL_POST_MENTIONED
+  ENTITY_SHARED_WITH_YOU
+  ENTITY_SHARE_ACCEPTED
+  CONNECTION_REQUEST
+  CONNECTION_ACCEPTED
+  DEAL_PROPOSED
+  DEAL_UPDATED
+  DEAL_ACCEPTED
+  DEAL_COMPLETED
+  TASK_ASSIGNED
+  TASK_COMMENT_ADDED
+  TASK_DUE_SOON
+  WELCOME
+  ACCOUNT_WARNING
+  ACCOUNT_SUSPENSION
+  ACCOUNT_UNSUSPENSION
+  ACCOUNT_DELETION_NOTICE
+  FEEDBACK_RESPONSE
+  // Messaging notifications
+  MESSAGE_RECEIVED
+  MESSAGE_MENTION
+  CHANNEL_INVITE
+  CHANNEL_MESSAGE
+  // Contact form notifications
+  CONTACT_FORM_SUBMISSION
+  // Organization invites
+  ORGANIZATION_INVITE
+}
+
+enum NotificationEntityType {
+  ACCOUNT
+  PROPERTY
+  CALENDAR_EVENT
+  TASK
+  DOCUMENT
+  SOCIAL_POST
+  DEAL
+  CONNECTION
+  USER
+  FEEDBACK
+  CONVERSATION
+  ORGANIZATION
+  CHANNEL
+  CONTACT_SUBMISSION
+}
+
+enum NotificationType {
+  EMAIL
+  IN_APP
+}
+
+enum PersonType {
+  INDIVIDUAL
+  COMPANY
+  INVESTOR
+  BROKER
+}
+
+enum PortalVisibility {
+  PRIVATE
+  SELECTED
+  PUBLIC
+}
+
+enum PriceType {
+  RENTAL
+  SALE
+  PER_ACRE
+  PER_SQM
+}
+
+enum ProfileVisibility {
+  PERSONAL
+  SECURE
+  PUBLIC
+}
+
+enum PropertyCondition {
+  EXCELLENT
+  VERY_GOOD
+  GOOD
+  NEEDS_RENOVATION
+}
+
+enum PropertyPurpose {
+  RESIDENTIAL
+  COMMERCIAL
+  LAND
+  PARKING
+  OTHER
+}
+
+enum PropertyStatus {
+  ACTIVE
+  PENDING
+  SOLD
+  OFF_MARKET
+  WITHDRAWN
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+  LAND
+  RENTAL
+  VACATION
+  APARTMENT
+  HOUSE
+  MAISONETTE
+  WAREHOUSE
+  PARKING
+  PLOT
+  FARM
+  INDUSTRIAL
+  OTHER
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum SharePermission {
+  VIEW_ONLY
+  VIEW_COMMENT
+}
+
+enum SharedEntityType {
+  PROPERTY
+  CLIENT
+  DOCUMENT
+}
+
+enum TemplateType {
+  BROKERAGE_MANDATE
+  LEASE_AGREEMENT
+  HANDOVER_PROTOCOL
+  VIEWING_CONFIRMATION
+}
+
+enum Timeline {
+  IMMEDIATE
+  ONE_THREE_MONTHS
+  THREE_SIX_MONTHS
+  SIX_PLUS_MONTHS
+}
+
+enum TransactionType {
+  SALE
+  RENTAL
+  SHORT_TERM
+  EXCHANGE
+}
+
+
+// ============================================
+// ATTACHMENTS - Reusable file attachments
+// ============================================
+
+model Attachment {
+  id             String   @id @default(uuid())
+  createdAt      DateTime @default(now())
+  organizationId String
+  uploadedById   String
+
+  // File metadata
+  fileName String
+  fileSize Int    // bytes
+  fileType String // MIME type
+  url      String // Vercel Blob URL
+
+  // Polymorphic relation - only one should be set
+  socialPostId String?
+  feedbackId   String?
+
+  // Relations
+  socialPost SocialPost? @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
+  feedback   Feedback?   @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  uploadedBy Users       @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([socialPostId])
+  @@index([feedbackId])
+  @@index([organizationId])
+  @@index([uploadedById])
+}
+
+// ============================================
+// EXTERNAL API - API Keys and Webhooks
+// ============================================
+
+model ApiKey {
+  id             String    @id @default(uuid())
+  organizationId String
+  name           String    // "n8n Integration", "Make.com"
+  keyPrefix      String    // First 8 chars for display "oik_abc1..."
+  keyHash        String    @unique // SHA256 hash of full key
+  scopes         String[]  // ["calendar:read", "crm:write", ...]
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  createdById    String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  createdBy Users    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  ApiLog    ApiLog[]
+
+  @@index([organizationId])
+  @@index([keyHash])
+  @@index([createdById])
+}
+
+model ApiLog {
+  id           String   @id @default(uuid())
+  apiKeyId     String
+  endpoint     String
+  method       String
+  statusCode   Int
+  responseTime Int      // milliseconds
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  ApiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([apiKeyId])
+  @@index([createdAt])
+}
+
+model WebhookEndpoint {
+  id              String            @id @default(uuid())
+  organizationId  String
+  url             String
+  name            String
+  events          String[]          // ["client.created", "property.updated", ...]
+  secret          String            // For HMAC signature
+  isActive        Boolean           @default(true)
+  createdById     String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  createdBy       Users             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  WebhookDelivery WebhookDelivery[]
+
+  @@index([organizationId])
+  @@index([isActive])
+  @@index([createdById])
+}
+
+model WebhookDelivery {
+  id          String    @id @default(uuid())
+  endpointId  String
+  event       String
+  payload     Json
+  statusCode  Int?
+  responseBody String?
+  attempts    Int       @default(0)
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  WebhookEndpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@index([createdAt])
+}
+
+// ============================================
+// N8N CONTENT AUTOMATION
+// ============================================
+
+model BlogPost {
+  id             String         @id @default(uuid())
+  organizationId String
+  title          String
+  slug           String         @unique
+  excerpt        String?
+  content        String         // HTML or Markdown content
+  featuredImage  String?        // URL to featured image
+  status         BlogPostStatus @default(DRAFT)
+  authorId       String?
+  tags           String[]
+  categories     String[]
+  seoTitle       String?
+  seoDescription String?
+  publishedAt    DateTime?
+  scheduledAt    DateTime?      // For scheduled publishing
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  createdVia     String?        // "n8n", "manual", "api"
+  n8nWorkflowId  String?        // Reference to n8n workflow that created it
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([slug])
+}
+
+model NewsletterSubscriber {
+  id                String    @id @default(uuid())
+  organizationId    String
+  email             String
+  firstName         String?
+  lastName          String?
+  status            SubscriberStatus @default(ACTIVE)
+  source            String?   // "website", "import", "n8n", "manual"
+  tags              String[]
+  subscribedAt      DateTime  @default(now())
+  unsubscribedAt    DateTime?
+  lastEmailSentAt   DateTime?
+  emailsSentCount   Int       @default(0)
+  emailsOpenedCount Int       @default(0)
+  emailsClickedCount Int      @default(0)
+  metadata          Json?     // Additional custom fields
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([status])
+  @@index([email])
+}
+
+model NewsletterCampaign {
+  id              String                @id @default(uuid())
+  organizationId  String
+  subject         String
+  previewText     String?
+  content         String                // HTML content
+  fromName        String?
+  fromEmail       String?
+  replyTo         String?
+  status          CampaignStatus        @default(DRAFT)
+  recipientCount  Int                   @default(0)
+  sentCount       Int                   @default(0)
+  openCount       Int                   @default(0)
+  clickCount      Int                   @default(0)
+  bounceCount     Int                   @default(0)
+  unsubscribeCount Int                  @default(0)
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  createdVia      String?               // "n8n", "manual", "api"
+  n8nWorkflowId   String?
+  tags            String[]              // For filtering/grouping campaigns
+  resendBatchId   String?               // Resend batch ID for tracking
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([sentAt])
+}
+
+model SocialPostLog {
+  id               String             @id @default(uuid())
+  organizationId   String
+  platform         SocialPlatform
+  platformPostId   String?            // External ID from the platform
+  platformPostUrl  String?            // Direct link to the post
+  content          String?            // Text content of the post
+  mediaUrls        String[]           // Images/videos attached
+  status           SocialPostStatus   @default(PENDING)
+  errorMessage     String?            // Error details if failed
+  scheduledAt      DateTime?
+  postedAt         DateTime?
+  likes            Int                @default(0)
+  comments         Int                @default(0)
+  shares           Int                @default(0)
+  impressions      Int                @default(0)
+  reach            Int                @default(0)
+  engagementRate   Decimal?
+  lastSyncedAt     DateTime?          // Last time metrics were updated
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  createdVia       String?            // "n8n", "manual", "api"
+  n8nWorkflowId    String?
+  n8nExecutionId   String?            // Specific execution that created this
+
+  @@index([organizationId])
+  @@index([platform])
+  @@index([status])
+  @@index([postedAt])
+}
+
+model N8nConfig {
+  id                String    @id @default(uuid())
+  organizationId    String    @unique
+  baseUrl           String    // n8n instance URL
+  webhookSecret     String    // Secret for validating webhooks from n8n
+  isActive          Boolean   @default(true)
+  lastHealthCheck   DateTime?
+  lastHealthStatus  String?   // "healthy", "unreachable", "error"
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([organizationId])
+  @@index([isActive])
+}
+
+/// Per-agent n8n workflow assignments
+model N8nAgentWorkflow {
+  id              String    @id @default(uuid())
+  organizationId  String
+  agentId         String    // Clerk user ID
+  workflowId      String    // n8n workflow ID
+  workflowName    String    // Cached workflow name for display
+  isActive        Boolean   @default(true)
+  lastRunAt       DateTime?
+  lastRunStatus   String?   // "success", "error", etc.
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([organizationId, agentId, workflowId])
+  @@index([organizationId])
+  @@index([agentId])
+}
+
+// ============================================
+// ENUMS FOR N8N CONTENT AUTOMATION
+// ============================================
+
+enum BlogPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  CANCELLED
+  FAILED
+}
+
+enum SocialPlatform {
+  LINKEDIN
+  INSTAGRAM
+  TIKTOK
+  TWITTER
+  FACEBOOK
+  YOUTUBE
+}
+
+enum SocialPostStatus {
+  PENDING
+  SCHEDULED
+  POSTING
+  POSTED
+  FAILED
+  DELETED
+}
+
+// ============================================
+// CHANGELOG - Website changelog management
+// ============================================
+
+model ChangelogCustomCategory {
+  id        String   @id @default(uuid())
+  name      String
+  color     String   // Color from preset (e.g., "blue", "red")
+  icon      String   // Icon name from preset (e.g., "sparkles", "bug")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries ChangelogEntry[]
+
+  @@unique([name])
+  @@index([sortOrder])
+}
+
+model ChangelogEntry {
+  id               String                   @id @default(uuid())
+  version          String                   // Semantic version (e.g., "1.2.3")
+  title            String
+  description      String                   // HTML from rich text editor
+  customCategoryId String?                  // Reference to custom category
+  status           ChangelogStatus          @default(DRAFT)
+  tags             Json?                    // Array of {name: string, color: string}
+  publishedAt      DateTime?
+  createdById      String
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  customCategory ChangelogCustomCategory? @relation(fields: [customCategoryId], references: [id], onDelete: SetNull)
+  createdBy      Users                    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([version])
+  @@index([createdById])
+  @@index([customCategoryId])
+}
+
+enum ChangelogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// ============================================
+// REFERRAL SYSTEM
+// ============================================
+
+model ReferralCode {
+  id             String     @id @default(uuid())
+  userId         String     @unique
+  code           String     @unique
+  commissionRate Decimal    @default(10) // Default 10%
+  isActive       Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  user      Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referrals Referral[]
+
+  @@index([code])
+  @@index([userId])
+}
+
+model Referral {
+  id              String         @id @default(uuid())
+  referralCodeId  String
+  referredUserId  String         @unique
+  status          ReferralStatus @default(PENDING)
+  totalEarnings   Decimal        @default(0)
+  convertedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  referralCode ReferralCode     @relation(fields: [referralCodeId], references: [id])
+  referredUser Users            @relation("ReferredUser", fields: [referredUserId], references: [id])
+  payouts      ReferralPayout[]
+
+  @@index([referralCodeId])
+  @@index([referredUserId])
+  @@index([status])
+}
+
+model ReferralPayout {
+  id            String       @id @default(uuid())
+  referralId    String
+  amount        Decimal
+  status        PayoutStatus @default(PENDING)
+  paidAt        DateTime?
+  paidByAdminId String?
+  notes         String?
+  createdAt     DateTime     @default(now())
+
+  referral Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+
+  @@index([referralId])
+  @@index([status])
+}
+
+enum ReferralStatus {
+  PENDING
+  CONVERTED
+  CANCELLED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  CANCELLED
+}
+
+enum ReferralApplicationStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+// ============================================
+// ADMIN ACCESS LOG - Platform Admin Session Tracking
+// ============================================
+
+model AdminAccessLog {
+  id             String   @id @default(uuid())
+  adminUserId    String
+  adminEmail     String
+  adminName      String?
+  ipAddress      String?
+  userAgent      String?
+  browserName    String?
+  browserVersion String?
+  osName         String?
+  osVersion      String?
+  deviceType     String?
+  country        String?
+  city           String?
+  sessionId      String   @unique
+  accessedAt     DateTime @default(now())
+
+  @@index([adminUserId])
+  @@index([accessedAt])
+  @@index([sessionId])
+}
+
+// ============================================
+// ORGANIZATION ROLES & PERMISSIONS
+// ============================================
+
+/// Store customized permissions per role per organization
+/// Allows Owners to override default permissions for each role
+model OrganizationRolePermission {
+  id             String   @id @default(uuid())
+  organizationId String
+  role           OrgRole
+  permissions    Json     // { "canEdit": true, "canDelete": true, ... }
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, role])
+  @@index([organizationId])
+}
+
+/// Per-user module access overrides
+/// Allows Owners to grant/revoke specific module access for individual users
+model UserModuleAccess {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  moduleId       String
+  hasAccess      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, userId, moduleId])
+  @@index([organizationId, userId])
+}
+
+/// Default module access per role per organization
+/// Sets which modules each role can access by default
+model RoleModuleAccess {
+  id             String   @id @default(uuid())
+  organizationId String
+  role           OrgRole
+  moduleId       String
+  hasAccess      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, role, moduleId])
+  @@index([organizationId, role])
+}
+
+/// Organization role types
+/// Maps to Clerk roles: org:owner, org:lead, org:member, org:viewer
+enum OrgRole {
+  OWNER
+  LEAD
+  MEMBER
+  VIEWER
+}
+
+// ============================================
+// EXPORT HISTORY - Track exports for properties and entities
+// ============================================
+
+model ExportHistory {
+  id              String           @id @default(uuid())
+  organizationId  String
+  userId          String
+  entityType      ExportEntityType
+  entityId        String           // Property/Client ID or "bulk-{timestamp}" for bulk exports
+  entityIds       String[]         // For bulk exports, list all IDs
+  exportFormat    String           // xlsx, csv, pdf, xml
+  exportTemplate  String?          // CMA, SHORTLIST, ROI, MARKET_TRENDS
+  destination     String?          // "client", "xe.gr", "spitogatos", etc.
+  filename        String           // Generated descriptive filename
+  rowCount        Int              @default(1)
+  dataSnapshot    Json?            // Snapshot of key fields for change detection
+  changeFields    String[]         // Fields to track for change detection
+  createdAt       DateTime         @default(now())
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum ExportEntityType {
+  PROPERTY
+  CLIENT
+  CALENDAR
+  REPORT
+  BULK_PROPERTIES
+  BULK_CLIENTS
+}
+
+// ============================================
+// MESSAGING - Native Prisma + Socket.io messaging
+// ============================================
+
+/// Organization channels for team communication
+model Channel {
+  id             String          @id @default(uuid())
+  organizationId String
+  name           String          // Channel display name (e.g., "General")
+  slug           String          // URL-safe name (e.g., "general")
+  description    String?
+  channelType    ChannelType     @default(PUBLIC)
+  isDefault      Boolean         @default(false) // Auto-join on org membership
+  isArchived     Boolean         @default(false)
+  createdById    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  messages       Message[]
+  members        ChannelMember[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([channelType])
+  @@index([isArchived])
+}
+
+/// Channel membership
+model ChannelMember {
+  id         String            @id @default(uuid())
+  channelId  String
+  userId     String
+  role       ChannelMemberRole @default(MEMBER)
+  joinedAt   DateTime          @default(now())
+  mutedUntil DateTime?         // Mute notifications until this time
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
+  @@index([userId])
+}
+
+enum ChannelMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum ChannelType {
+  PUBLIC       // Anyone in org can join
+  PRIVATE      // Invite only
+  ANNOUNCEMENT // Admin-only posting, everyone reads
+}
+
+/// Direct message conversations (1:1 or group DMs)
+model Conversation {
+  id             String                    @id @default(uuid())
+  organizationId String
+  name           String?                   // For group DMs, optional name
+  isGroup        Boolean                   @default(false)
+  createdById    String?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  // Optional entity link (for CRM context)
+  entityType     ConversationEntityType?
+  entityId       String?
+
+  messages     Message[]
+  participants ConversationParticipant[]
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+  @@index([createdById])
+}
+
+/// Conversation participants
+model ConversationParticipant {
+  id             String    @id @default(uuid())
+  conversationId String
+  userId         String
+  joinedAt       DateTime  @default(now())
+  leftAt         DateTime? // Null if still in conversation
+  mutedUntil     DateTime? // Mute notifications until this time
+  lastReadAt     DateTime? // Last time user read messages in this conversation
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+/// Types of entities that can be linked to conversations
+enum ConversationEntityType {
+  CLIENT
+  PROPERTY
+  DEAL
+  PROJECT
+}
+
+/// Messages in channels or conversations
+model Message {
+  id             String    @id @default(uuid())
+  organizationId String
+  
+  // Either channelId OR conversationId (not both)
+  channelId      String?
+  conversationId String?
+  
+  senderId       String
+  content        String    @db.Text
+  contentType    MessageContentType @default(TEXT)
+  
+  // Threading support
+  parentId       String?   // Reply to another message
+  threadCount    Int       @default(0) // Count of replies (denormalized for performance)
+  
+  // Edit tracking
+  isEdited       Boolean   @default(false)
+  editedAt       DateTime?
+  isDeleted      Boolean   @default(false)
+  deletedAt      DateTime?
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  channel      Channel?      @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  parent       Message?      @relation("MessageThread", fields: [parentId], references: [id], onDelete: SetNull)
+  replies      Message[]     @relation("MessageThread")
+  sender       Users         @relation("MessagesSent", fields: [senderId], references: [id])
+  
+  reactions   MessageReaction[]
+  attachments MessageAttachment[]
+  readReceipts MessageRead[]
+  mentions    MessageMention[]
+
+  @@index([organizationId])
+  @@index([channelId])
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([parentId])
+  @@index([createdAt])
+  @@index([isDeleted])
+}
+
+enum MessageContentType {
+  TEXT
+  SYSTEM   // Join/leave notifications, etc.
+  FILE     // File-only message
+}
+
+/// Message reactions (emoji)
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     String   // Unicode emoji or custom emoji code
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+}
+
+/// Read receipts
+model MessageRead {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+}
+
+/// File attachments on messages
+model MessageAttachment {
+  id        String   @id @default(uuid())
+  messageId String
+  fileName  String
+  fileSize  Int      // bytes
+  fileType  String   // MIME type
+  url       String   // Vercel Blob URL
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+/// User mentions in messages
+model MessageMention {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String   // The user who was mentioned
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([userId])
+}
+
+/// Typing indicators (short-lived, could also be handled in-memory)
+model TypingIndicator {
+  id             String   @id @default(uuid())
+  organizationId String
+  channelId      String?
+  conversationId String?
+  userId         String
+  expiresAt      DateTime // Auto-expire typing indicator
+
+  @@unique([channelId, userId])
+  @@unique([conversationId, userId])
+  @@index([expiresAt])
+}
+
+/// User presence status
+model UserPresence {
+  id           String         @id @default(uuid())
+  userId       String         @unique
+  status       PresenceStatus @default(OFFLINE)
+  lastSeenAt   DateTime       @default(now())
+  statusMessage String?       // Custom status message
+
+  @@index([status])
+  @@index([lastSeenAt])
+}
+
+enum PresenceStatus {
+  ONLINE
+  AWAY
+  BUSY
+  OFFLINE
+}
+
+// ============================================
+// XE.GR PORTAL INTEGRATION
+// ============================================
+
+/// Organization-level XE.gr integration settings
+model XeIntegration {
+  id              String   @id @default(uuid())
+  organizationId  String   @unique
+  
+  // Authentication credentials
+  username        String
+  password        String   // Should be encrypted in production
+  authToken       String
+  agentId         String   // XE agent/store ID
+  
+  // Configuration
+  isActive        Boolean  @default(false)
+  autoPublish     Boolean  @default(false)
+  publicationType XePublicationType @default(BASIC)
+  trademark       String?  // Optional trademark/branding
+  testMode        Boolean  @default(false) // Use test/sandbox mode
+  
+  // Tracking
+  lastSyncAt      DateTime?
+  lastPackageId   String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  agentSettings   XeAgentSettings[]
+  syncHistory     XeSyncHistory[]
+  
+  @@index([organizationId])
+  @@index([isActive])
+}
+
+/// Per-agent XE.gr publishing settings
+model XeAgentSettings {
+  id              String   @id @default(uuid())
+  integrationId   String
+  agentId         String   // Clerk user ID
+  
+  // Agent-specific XE credentials
+  xeOwnerId       String   // Item.ownerId from XE API
+  majorPhone      String   // Certified phone number
+  otherPhones     String[] // Array of additional certified phones
+  
+  // Publishing preferences
+  isActive        Boolean  @default(true)
+  autoPublish     Boolean  @default(true)
+  publicationType XePublicationType @default(BASIC)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  integration     XeIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  
+  @@unique([integrationId, agentId])
+  @@index([integrationId])
+  @@index([agentId])
+}
+
+/// Package submission history for XE.gr
+model XeSyncHistory {
+  id              String   @id @default(uuid())
+  integrationId   String
+  packageId       String   @unique // XE package ID
+  
+  // Sync metadata
+  policy          XeSyncPolicy
+  requestType     XeSyncRequestType
+  totalItems      Int
+  successCount    Int      @default(0)
+  failureCount    Int      @default(0)
+  
+  // Status tracking
+  status          XeSyncStatus @default(PENDING)
+  errorMessage    String?
+  responseEmail   String?  // Email notification reference
+  
+  // Timestamps
+  submittedAt     DateTime @default(now())
+  processedAt     DateTime?
+  
+  // Relations
+  integration     XeIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  items           XeSyncItem[]
+  
+  @@index([integrationId])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+/// Individual property sync status within a package
+model XeSyncItem {
+  id           String   @id @default(uuid())
+  syncId       String
+  propertyId   String
+  
+  refId        String   // External reference ID sent to XE
+  status       XeSyncItemStatus @default(PENDING)
+  errorMessage String?
+  xeAdId       String?  // XE's internal ad ID if returned
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  sync         XeSyncHistory @relation(fields: [syncId], references: [id], onDelete: Cascade)
+  property     Properties    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  @@unique([syncId, propertyId])
+  @@index([syncId])
+  @@index([propertyId])
+  @@index([status])
+}
+
+// ============================================
+// XE.GR ENUMS
+// ============================================
+
+enum XePublicationType {
+  BASIC
+  GOLD
+}
+
+enum XeSyncPolicy {
+  RENEW_ALL_STOCK
+  INCREMENTAL
+}
+
+enum XeSyncRequestType {
+  ADD_ITEMS
+  REMOVE_ITEMS
+}
+
+enum XeSyncStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+enum XeSyncItemStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+// ============================================
+// MARKET INTELLIGENCE - Competitor Monitoring
+// ============================================
+
+/// Organization-level Market Intelligence configuration
+model MarketIntelConfig {
+  id                String   @id @default(uuid())
+  organizationId    String   @unique
+  
+  // Feature toggle
+  isEnabled         Boolean  @default(false)
+  
+  // Scraping configuration
+  platforms         String[] @default(["spitogatos", "xe_gr", "tospitimou"])
+  targetAreas       String[] @default([])  // Areas to scrape (empty = all)
+  targetMunicipalities String[] @default([])
+  transactionTypes  String[] @default(["sale", "rent"])
+  propertyTypes     String[] @default([])  // Empty = all types
+  
+  // Pricing filters
+  minPrice          Int?
+  maxPrice          Int?
+  
+  // Scraping schedule
+  scrapeFrequency   MarketIntelFrequency @default(DAILY)
+  lastScrapeAt      DateTime?
+  nextScrapeAt      DateTime?
+  
+  // Rate limiting
+  maxPagesPerPlatform Int @default(10)
+  
+  // Status
+  status            MarketIntelStatus @default(PENDING_SETUP)
+  lastError         String?
+  consecutiveFailures Int @default(0)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([organizationId])
+  @@index([isEnabled])
+  @@index([nextScrapeAt])
+  @@index([status])
+}
+
+enum MarketIntelFrequency {
+  HOURLY      // Every hour (expensive)
+  TWICE_DAILY // Twice a day
+  DAILY       // Once a day (default)
+  WEEKLY      // Once a week
+}
+
+enum MarketIntelStatus {
+  PENDING_SETUP  // Waiting for initial configuration
+  ACTIVE         // Running normally
+  PAUSED         // Temporarily paused by user
+  ERROR          // Stopped due to errors
+  DISABLED       // Disabled by admin
+}
+
+/// User alerts for market intelligence notifications
+model MarketIntelAlert {
+  id             String          @id @default(uuid())
+  userId         String
+  organizationId String
+  alertType      MarketAlertType
+  name           String          // User-friendly name for the alert
+  criteria       Json            // { area: "Kolonaki", maxPrice: 500000, propertyType: "APARTMENT", ... }
+  isActive       Boolean         @default(true)
+  emailEnabled   Boolean         @default(true)
+  inAppEnabled   Boolean         @default(true)
+  lastTriggered  DateTime?
+  triggerCount   Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([alertType])
+  @@index([isActive])
+}
+
+/// Alert trigger history
+model MarketIntelAlertTrigger {
+  id         String   @id @default(uuid())
+  alertId    String
+  listingIds String[] // IDs of listings that triggered the alert
+  metadata   Json?    // Additional context about the trigger
+  sentAt     DateTime @default(now())
+
+  @@index([alertId])
+  @@index([sentAt])
+}
+
+enum MarketAlertType {
+  PRICE_DROP         // Price decreased by X% or X amount
+  NEW_LISTING        // New listing matching criteria
+  UNDERPRICED        // Listed significantly below market average
+  DAYS_ON_MARKET     // Listing has been on market for X days
+  PRICE_INCREASE     // Price increased (potential market shift indicator)
+  INVENTORY_CHANGE   // Significant inventory change in area
+}
+
+// ============================================
+// ORGANIZATION FEATURES - Feature Access Control
+// ============================================
+
+/// Controls which premium features an organization has access to
+model OrganizationFeature {
+  id             String    @id @default(uuid())
+  organizationId String
+  feature        String    // "market_intel", "ai_matching", etc.
+  isEnabled      Boolean   @default(false)
+  grantedBy      String?   // Platform admin userId who granted access
+  grantedAt      DateTime?
+  expiresAt      DateTime? // Optional expiry date
+  metadata       Json?     // Feature-specific configuration
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([organizationId, feature])
+  @@index([organizationId])
+  @@index([feature])
+  @@index([isEnabled])
+}
+
+/// Tracks in-progress and completed scrape jobs for Market Intelligence
+model ScrapeJob {
+  id              String         @id @default(uuid())
+  organizationId  String
+  status          ScrapeJobStatus @default(PENDING)
+  currentPlatform String?        // Currently processing platform
+  currentAction   Json?          // {type, message, propertyTitle?, platform?, page?} for dynamic status
+  progress        Json           @default("{}") // {platform: {total, passed, failed, errors[]}}
+  platforms       String[]       @default([])   // Platforms to scrape
+  startedAt       DateTime       @default(now())
+  completedAt     DateTime?
+  errorMessage    String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ScrapeJobStatus {
+  PENDING    // Job created, waiting to start
+  RUNNING    // Currently executing
+  COMPLETED  // Successfully finished
+  FAILED     // Failed with error
+  CANCELLED  // Cancelled by user
+}
+
+// ===========================================
+// Background Job Orchestration (K8s Jobs)
+// ===========================================
+
+model BackgroundJob {
+  id              String              @id @default(cuid())
+  type            BackgroundJobType
+  organizationId  String
+  status          BackgroundJobStatus @default(PENDING)
+  progress        Int                 @default(0)   // 0-100
+  progressMessage String?
+  k8sJobName      String?                          // K8s Job resource name
+  k8sPodName      String?                          // K8s Pod name for logs
+  payload         Json                             // Job-specific input data
+  result          Json?                            // Job-specific result data
+  errorMessage    String?
+  createdAt       DateTime            @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdBy       String?                          // User who initiated the job
+  priority        JobPriority         @default(NORMAL)
+  
+  @@index([organizationId, type])
+  @@index([status])
+  @@index([k8sJobName])
+  @@index([createdAt])
+}
+
+enum BackgroundJobType {
+  MARKET_INTEL_SCRAPE
+  NEWSLETTER_SEND
+  PORTAL_PUBLISH_XE
+  BULK_EXPORT
+}
+
+enum BackgroundJobStatus {
+  PENDING     // Waiting to be scheduled
+  RUNNING     // K8s Job is running
+  COMPLETED   // Successfully finished
+  FAILED      // Failed with error
+  CANCELLED   // Cancelled by user or system
+}
+
+enum JobPriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+// ============================================
+// ORGANIZATION SETTINGS - AI & Feature Configuration
+// ============================================
+
+model OrganizationSettings {
+  id                   String   @id @default(cuid())
+  organizationId       String   @unique // Clerk organization ID
+  
+  // AI Provider Settings
+  aiProvider           String?  @default("openai") // "openai" | "anthropic"
+  openaiApiKey         String?  // Organization's own OpenAI API key (encrypted)
+  openaiModel          String?  @default("gpt-4o-mini") // Model to use
+  anthropicApiKey      String?  // Organization's own Anthropic API key (encrypted)
+  anthropicModel       String?  @default("claude-3-5-sonnet-20241022") // Claude model to use
+  
+  // Voice Assistant Settings
+  voiceAssistantEnabled Boolean @default(true)
+  voiceLanguage        String?  @default("el-GR")
+  ttsVoice             String?  @default("nova") // OpenAI TTS voice
+  
+  // Database Silo Settings (K8s multi-tenancy)
+  databaseSiloEnabled  Boolean  @default(false)
+  databaseHost         String?  // Dedicated database host
+  databasePort         Int?     @default(5432)
+  databaseName         String?  // Dedicated database name
+  databaseUser         String?  // Database credentials (encrypted)
+  databasePassword     String?  // Database credentials (encrypted)
+  databaseSslEnabled   Boolean  @default(true)
+  
+  // K8s Namespace Settings
+  k8sNamespace         String?  // Dedicated K8s namespace for org
+  k8sResourceQuota     Json?    // CPU/Memory limits
+  k8sStorageClass      String?  @default("standard")
+  
+  // Billing/Usage Tracking
+  aiCreditsUsed        Int      @default(0)
+  aiCreditsLimit       Int?     // null = unlimited (platform default)
+  lastCreditResetAt    DateTime?
+  
+  // Feature Toggles
+  customBrandingEnabled Boolean @default(false)
+  customDomainEnabled   Boolean @default(false)
+  customDomain          String?
+  
+  // Audit
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  createdBy            String?  // User who created these settings
+  
+  @@index([organizationId])
+  @@index([databaseSiloEnabled])
+}
+
+/// Audit log for organization settings changes
+model OrganizationSettingsAudit {
+  id              String   @id @default(cuid())
+  organizationId  String
+  settingKey      String   // Which setting was changed
+  oldValue        String?  // Previous value (sanitized)
+  newValue        String?  // New value (sanitized)
+  changedBy       String   // User who made the change
+  changedAt       DateTime @default(now())
+  ipAddress       String?
+  
+  @@index([organizationId])
+  @@index([changedAt])
+}
+
+// ============================================
+// AI TOOLS - Platform AI Tool System
+// ============================================
+
+/// AI tools that can be called by AI agents
+model AiTool {
+  id              String    @id @default(cuid())
+  name            String    @unique  // e.g., "list_properties" - used for invocation
+  displayName     String    // e.g., "List Properties" - human readable
+  description     String    @db.Text // Tool description for AI context
+  category        String    // e.g., "crm", "mls", "calendar", "documents"
+  
+  // OpenAI-compatible function schema (JSON Schema format)
+  parameters      Json      // JSON Schema for tool parameters
+  
+  // Endpoint configuration
+  endpointType    AiToolEndpointType  // How to call this tool
+  endpointPath    String    // Action path, API route, or external URL
+  httpMethod      String    @default("POST")  // GET, POST, PUT, DELETE
+  
+  // Authorization
+  requiredScopes  String[]  // API scopes needed (e.g., ["crm:read", "crm:write"])
+  
+  // Status
+  isEnabled       Boolean   @default(true)
+  isSystemTool    Boolean   @default(false) // Built-in vs custom tools
+  
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdById     String
+  
+  // Relations
+  executions      AiToolExecution[]
+  agents          AiAgentTool[]  // Agents using this tool
+  
+  @@index([category])
+  @@index([isEnabled])
+  @@index([isSystemTool])
+}
+
+/// Execution logs for AI tool calls
+model AiToolExecution {
+  id              String    @id @default(cuid())
+  toolId          String
+  tool            AiTool    @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  
+  // Context
+  organizationId  String?
+  userId          String?
+  apiKeyId        String?
+  
+  // Request/Response
+  input           Json      // Input parameters
+  output          Json?     // Output data
+  statusCode      Int       // HTTP-like status code
+  errorMessage    String?   @db.Text
+  
+  // Metrics
+  durationMs      Int       // Execution time in milliseconds
+  
+  // Source
+  source          AiToolExecutionSource
+  
+  // Timestamp
+  createdAt       DateTime  @default(now())
+  
+  @@index([toolId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([source])
+}
+
+enum AiToolEndpointType {
+  INTERNAL_ACTION   // Server action (direct function call)
+  API_ROUTE         // Internal API route
+  EXTERNAL_URL      // External webhook/API
+}
+
+enum AiToolExecutionSource {
+  VOICE_ASSISTANT   // Voice commands
+  CHAT_ASSISTANT    // Chat interface
+  CHAT_API          // Chat API calls
+  EXTERNAL_API      // External API call
+  ADMIN_TEST        // Platform admin testing
+  CUSTOM_AGENT      // Custom AI agent
+}
+
+// ============================================
+// AI SYSTEM PROMPTS - Configurable prompts
+// ============================================
+
+/// System prompts for AI agents (configurable via admin panel)
+model AiSystemPrompt {
+  id              String    @id @default(cuid())
+  name            String    // Unique identifier (snake_case)
+  displayName     String    // Human-readable name
+  description     String?   @db.Text
+  category        String    // e.g., "assistant", "voice", "document"
+  content         String    @db.Text // The actual prompt content
+  locale          String    @default("en") // Language locale
+  variables       Json?     // Variable definitions for dynamic content
+  
+  // Status
+  isEnabled       Boolean   @default(true)
+  isSystemPrompt  Boolean   @default(false) // Built-in vs custom
+  
+  // Versioning
+  version         Int       @default(1)
+  previousVersion String?   // Reference to previous version
+  
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdById     String
+  updatedById     String?
+  
+  // Relations
+  agents          AiAgent[] // Agents using this prompt
+  
+  @@unique([name])
+  @@unique([name, locale])
+  @@index([category])
+  @@index([isEnabled])
+  @@index([locale])
+}
+
+// ============================================
+// AI AGENTS - Configurable AI agent definitions
+// ============================================
+
+/// AI Providers supported by the platform
+enum AiModelProvider {
+  OPENAI
+  ANTHROPIC
+}
+
+/// Tool choice modes for AI agents
+enum AiToolChoice {
+  AUTO      // Let the model decide when to use tools
+  REQUIRED  // Force tool use on every turn
+  NONE      // Disable tool use
+}
+
+/// AI Agent definitions (configurable via admin panel)
+model AiAgent {
+  id              String    @id @default(cuid())
+  name            String    @unique // Unique identifier (snake_case)
+  displayName     String    // Human-readable name
+  description     String?   @db.Text
+  
+  // System prompt configuration
+  systemPromptId  String?
+  systemPrompt    AiSystemPrompt? @relation(fields: [systemPromptId], references: [id], onDelete: SetNull)
+  
+  // Model configuration
+  modelProvider   AiModelProvider @default(OPENAI)
+  modelName       String    @default("gpt-4o-mini") // e.g., gpt-4o, claude-3-5-sonnet
+  
+  // Generation settings
+  temperature     Float     @default(0.7)
+  maxTokens       Int       @default(1000) // Max output tokens
+  maxSteps        Int       @default(5)    // Max tool call rounds
+  
+  // Tool configuration
+  toolChoice      AiToolChoice @default(AUTO)
+  
+  // Status
+  isEnabled       Boolean   @default(true)
+  isSystemAgent   Boolean   @default(false) // Built-in vs custom agents
+  
+  // Organization scope (null = platform-wide)
+  organizationId  String?
+  
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdById     String
+  
+  // Relations
+  tools           AiAgentTool[]              // Tools assigned to this agent
+  orgConfigs      OrganizationAgentConfig[]  // Org-specific overrides
+  
+  @@index([isEnabled])
+  @@index([isSystemAgent])
+  @@index([organizationId])
+  @@index([modelProvider])
+}
+
+/// Junction table for Agent-Tool relationships
+model AiAgentTool {
+  id              String    @id @default(cuid())
+  agentId         String
+  agent           AiAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  toolId          String
+  tool            AiTool    @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  
+  // Configuration
+  priority        Int       @default(0)    // Tool ordering (lower = higher priority)
+  isRequired      Boolean   @default(false) // Always include this tool
+  
+  createdAt       DateTime  @default(now())
+  
+  @@unique([agentId, toolId])
+  @@index([agentId])
+  @@index([toolId])
+}
+
+/// Organization-level agent configuration overrides
+model OrganizationAgentConfig {
+  id                  String    @id @default(cuid())
+  organizationId      String
+  agentId             String
+  agent               AiAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  // Overrides
+  customSystemPrompt  String?   @db.Text // Override the default prompt
+  modelOverride       String?   // Override the default model
+  temperatureOverride Float?    // Override temperature
+  maxTokensOverride   Int?      // Override max tokens
+  
+  // Tool configuration
+  disabledToolIds     String[]  // Tools to disable for this org
+  enabledToolIds      String[]  // Additional tools to enable
+  
+  // Status
+  isEnabled           Boolean   @default(true)
+  
+  // Metadata
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  @@unique([organizationId, agentId])
+  @@index([organizationId])
+  @@index([agentId])
+}
+
+// ============================================
+// AI CONVERSATIONS - Chat history
+// ============================================
+
+/// AI conversation sessions
+model AiConversation {
+  id              String    @id @default(cuid())
+  userId          String
+  organizationId  String
+  title           String?   // Auto-generated or user-provided title
+  messages        Json?     // Array of conversation messages
+  context         Json?     // Additional context for the conversation
+  
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([organizationId])
+  @@index([createdAt])
+}

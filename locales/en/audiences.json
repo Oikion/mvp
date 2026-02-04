@@ -1,0 +1,92 @@
+{
+  "title": "Audiences",
+  "description": "Create and manage groups of agents to share properties and clients",
+  "tabs": {
+    "all": "All",
+    "personal": "My Audiences",
+    "organization": "Organization"
+  },
+  "createPersonal": "New Personal",
+  "createOrg": "New Org Audience",
+  "emptyState": {
+    "noAudiences": "No audiences yet",
+    "noAudiencesDescription": "Create your first audience to start sharing properties and clients with groups of agents.",
+    "noPersonal": "No personal audiences",
+    "noPersonalDescription": "Create a personal audience to group your connections for easy sharing.",
+    "noOrg": "No organization audiences",
+    "noOrgDescription": "Create an organization audience to share with all team members. You can enable auto-sync to automatically include new members."
+  },
+  "card": {
+    "members": "member",
+    "membersPlural": "members",
+    "organization": "Organization",
+    "autoSync": "Auto-sync"
+  },
+  "createDialog": {
+    "title": "Create New Audience",
+    "description": "Group agents together to easily share properties and clients",
+    "personalInfo": "Personal audiences are visible only to you. Add connections manually.",
+    "orgInfo": "Organization audiences are shared with your team. Enable auto-sync to automatically include all current and future team members.",
+    "nameLabel": "Name",
+    "namePlaceholderPersonal": "e.g., Premium Buyers Network",
+    "namePlaceholderOrg": "e.g., All Team Members",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Optional description for this audience...",
+    "autoSyncLabel": "Auto-sync members",
+    "autoSyncDescription": "Automatically include all organization members",
+    "cancel": "Cancel",
+    "create": "Create Audience",
+    "creating": "Creating..."
+  },
+  "memberManager": {
+    "title": "Manage Members",
+    "description": "Add or remove members from",
+    "searchPlaceholder": "Search clients...",
+    "currentMembers": "Current Members",
+    "noMembers": "No members yet",
+    "addFromConnections": "Add from Clients",
+    "noConnections": "No clients available to add",
+    "noMatchingConnections": "No clients match your search",
+    "allMembersAdded": "All clients are already members",
+    "add": "Add",
+    "done": "Done",
+    "addClient": "Add Client",
+    "messageMember": "Message"
+  },
+  "actions": {
+    "manageMembers": "Manage Members",
+    "messageAudience": "Message Audience",
+    "syncOrgMembers": "Sync Org Members",
+    "delete": "Delete"
+  },
+  "deleteDialog": {
+    "title": "Delete audience?",
+    "description": "This will permanently delete this audience and remove all members. Existing shares made via this audience will remain active.",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "toast": {
+    "nameRequired": "Name required",
+    "nameRequiredDescription": "Please enter a name for your audience",
+    "created": "Audience created",
+    "createdDescription": "has been created successfully.",
+    "deleted": "Audience deleted",
+    "deletedDescription": "has been deleted.",
+    "memberAdded": "Member added",
+    "memberAddedDescription": "Successfully added to audience",
+    "memberRemoved": "Member removed",
+    "memberRemovedDescription": "Successfully removed from audience",
+    "syncComplete": "Sync complete",
+    "syncAddedMembers": "Added {count} new member(s)",
+    "syncNoNewMembers": "No new members to add",
+    "error": "Error",
+    "errorCreate": "Failed to create audience",
+    "errorDelete": "Failed to delete audience",
+    "errorAddMember": "Failed to add member",
+    "errorRemoveMember": "Failed to remove member",
+    "errorSync": "Failed to sync organization members",
+    "noMembers": "This audience has no members to message"
+  }
+}
+
+

@@ -1,0 +1,417 @@
+{
+  "RootLayout": {
+    "title": "Oikion",
+    "description": "Oikion is the operating system for Greek real-estate agencies. MLS, CRM, and Socials in one web app."
+  },
+  "auth": {
+    "alreadySignedIn": {
+      "title": "You're already signed in!",
+      "description": "You have an active session. Click below to return to your dashboard.",
+      "goBackButton": "Go back to App"
+    }
+  },
+  "ModuleMenu": {
+    "dashboard": "Dashboard",
+    "crm": {
+      "title": "Clients",
+      "accounts": "Clients",
+      "opportunities": "Opportunities",
+      "contacts": "Client Contacts",
+      "leads": "Leads",
+      "contracts": "Contracts"
+    },
+    "mls": {
+      "title": "Properties",
+      "properties": "Properties"
+    },
+    "emails": "E-mails",
+    "tasks": "Tasks",
+    "invoices": "Invoices",
+    "reports": "Reports",
+    "documents": "Documents",
+    "storage": "Storage",
+    "settings": "Administration",
+    "employees": "Employees",
+    "feedback": "Feedback",
+    "calendar": "Calendar"
+  },
+  "CrmClientsPage": {
+    "description": "Manage your real estate clients"
+  },
+  "MlsPropertiesPage": {
+    "description": "Manage MLS properties"
+  },
+  "ReportsPage": {
+    "description": "Predefined reports for each module. We use Tremor for data visualization.",
+    "newUsersByMonthOverall": "Number of new users by month (Overall)",
+    "newUsersByMonth": "New users by month",
+    "newUsersByMonth2023": "Number of new users by month (2023)",
+    "newUsersByMonth2024": "Number of new users by month (2024)",
+    "tasksByMonth2023": "New tasks by month (2023)"
+  },
+  "DashboardPage": {
+    "containerTitle": "Dashboard",
+    "totalRevenue": "Total revenue",
+    "containerDescription": "Welcome to Oikion, here you can see all important information about your real estate agency.",
+    "expectedRevenue": "Expected revenue",
+    "activeUsers": "Active users",
+    "accounts": "Companies",
+    "opportunities": "Deals",
+    "contacts": "Contacts",
+    "leads": "Leads",
+    "employees": "Employees",
+    "invoices": "Invoices",
+    "documents": "Documents",
+    "storage": "Storage"
+  },
+  "RegisterComponent": {
+    "cardTitle": "Create new account",
+    "cardDescription": "Create account by login with",
+    "label": "Language",
+    "locale": "{locale, select, de {German} en {English} cz {Czech} uk {Ukrainian} other {Unknown}}"
+  },
+  "CrmModuleMenuComponent": {
+    "menuTitle": "Clients"
+  },
+  "CrmForm": {
+    "title": "New Client",
+    "quickAddTitle": "Quick Add Client",
+    "fields": {
+      "personType": "Client Type",
+      "personTypePlaceholder": "Select type",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "First Last",
+      "companyName": "Company Name",
+      "companyNamePlaceholder": "Company name",
+      "primaryPhone": "Primary Phone",
+      "primaryPhonePlaceholder": "+1 555 1234567",
+      "primaryEmail": "Primary Email",
+      "primaryEmailPlaceholder": "email@example.com",
+      "intent": "Intent",
+      "intentPlaceholder": "Select intent",
+      "agentOwner": "Assigned Agent"
+    },
+    "personType": {
+      "INDIVIDUAL": "Individual",
+      "COMPANY": "Company",
+      "INVESTOR": "Investor",
+      "BROKER": "Broker"
+    },
+    "intents": {
+      "BUY": "Buy",
+      "RENT": "Rent",
+      "SELL": "Sell",
+      "LEASE": "Lease",
+      "INVEST": "Invest"
+    },
+    "validation": {
+      "personTypeRequired": "Client type is required",
+      "nameRequired": "Name is required",
+      "phoneOrEmailRequired": "Phone or email is required",
+      "intentRequired": "Intent is required"
+    },
+    "buttons": {
+      "quickAdd": "Create"
+    }
+  },
+  "PropertyForm": {
+    "title": "New Property",
+    "quickAddTitle": "Quick Add Property",
+    "fields": {
+      "propertyType": "Property Type",
+      "propertyTypePlaceholder": "Select type",
+      "transactionType": "Transaction Type",
+      "transactionTypePlaceholder": "Select type",
+      "municipality": "Municipality",
+      "municipalityPlaceholder": "Enter municipality",
+      "area": "Area/Neighborhood",
+      "areaPlaceholder": "Enter area",
+      "postalCode": "Postal Code",
+      "postalCodePlaceholder": "5 digits",
+      "sizeNetSqm": "Net sq.m.",
+      "plotSizeSqm": "Plot Size",
+      "price": "Price",
+      "agentOwner": "Assigned Agent"
+    },
+    "propertyType": {
+      "APARTMENT": "Apartment",
+      "HOUSE": "House",
+      "MAISONETTE": "Maisonette",
+      "COMMERCIAL": "Commercial",
+      "WAREHOUSE": "Warehouse",
+      "PARKING": "Parking",
+      "PLOT": "Plot",
+      "FARM": "Farm",
+      "INDUSTRIAL": "Industrial",
+      "OTHER": "Other"
+    },
+    "transactionType": {
+      "SALE": "Sale",
+      "RENTAL": "Rental",
+      "SHORT_TERM": "Short Term",
+      "EXCHANGE": "Exchange"
+    },
+    "validation": {
+      "propertyTypeRequired": "Property type is required",
+      "transactionTypeRequired": "Transaction type is required",
+      "municipalityRequired": "Municipality is required",
+      "areaOrPostalCodeRequired": "Area or postal code is required",
+      "sizeRequired": "Size is required",
+      "priceRequired": "Price is required"
+    },
+    "buttons": {
+      "quickAdd": "Create"
+    }
+  },
+  "QuickAdd": {
+    "client": {
+      "title": "Quick Add Client",
+      "description": "Fill in the basic information to quickly create a client"
+    },
+    "property": {
+      "title": "Quick Add Property",
+      "description": "Fill in the basic information to quickly create a property"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "success": "Success",
+    "error": "Error",
+    "clientCreated": "Client created successfully",
+    "propertyCreated": "Property created successfully",
+    "somethingWentWrong": "Something went wrong",
+    "clientCreationFailed": "Failed to create client",
+    "propertyCreationFailed": "Failed to create property",
+    "selectAgent": "Select agent",
+    "rowsPerPage": "Rows per page",
+    "pageOf": "Page {page} of {count}",
+    "selectedRows": "{selected} of {total} row(s) selected.",
+    "goFirstPage": "Go to first page",
+    "goPrevPage": "Go to previous page",
+    "goNextPage": "Go to next page",
+    "goLastPage": "Go to last page",
+    "reset": "Reset",
+    "view": "View",
+    "toggleColumns": "Toggle columns",
+    "filterPlaceholder": "Filter leads ..."
+  },
+  "CrmAccountsTable": {
+    "created": "Created",
+    "assignedTo": "Assigned to",
+    "name": "Name",
+    "email": "E-mail",
+    "accountContact": "Account contact",
+    "status": "Status",
+    "unassigned": "Unassigned"
+  },
+  "MlsPropertiesTable": {
+    "created": "Created",
+    "assignedTo": "Assigned to",
+    "name": "Name",
+    "price": "Price",
+    "type": "Type",
+    "status": "Status",
+    "unassigned": "Unassigned",
+    "filterPlaceholder": "Filter properties ..."
+  },
+  "Navigation": {
+    "upgradeToPro": "Upgrade to Pro",
+    "account": "Account",
+    "billing": "Billing",
+    "notifications": "Notifications",
+    "theme": "Theme",
+    "language": "Language",
+    "logOut": "Log out",
+    "languageChanged": "Language changed to {language}",
+    "languageChangeFailed": "Failed to change language",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "pearlSand": "Pearl Sand",
+      "twilightLavender": "Twilight Lavender",
+      "system": "System"
+    },
+    "languages": {
+      "en": "English",
+      "cz": "Czech",
+      "de": "German",
+      "uk": "Ukrainian",
+      "el": "Greek"
+    }
+  },
+  "Notifications": {
+    "markAllRead": "Mark all as read",
+    "viewAll": "View all notifications",
+    "noNotifications": "No notifications",
+    "noNotificationsDesc": "You don't have any notifications yet.",
+    "noUnread": "You're all caught up!",
+    "unread": "unread",
+    "allRead": "All caught up",
+    "all": "All",
+    "new": "New"
+  },
+  "Command": {
+    "press": "Press",
+    "placeholder": "Type a command or search...",
+    "noResults": "No results found.",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "profileSettings": "Profile settings",
+    "logout": "Logout"
+  },
+  "admin": {
+    "title": "Administration",
+    "accessDenied": "You are not an organization admin",
+    "accessNotAllowed": "Access not allowed",
+    "setupDescription": "Manage your organization settings and members",
+    "usersAdministration": "Team Members",
+    "modulesAdministration": "Modules",
+    "manageUsersDescription": "Here you can manage your Oikion users",
+    "manageOrgMembersDescription": "Manage organization members and their roles",
+    "inviteNewUser": "Invite new user to Oikion",
+    "inviteNewMember": "Invite new team member",
+    "manageModulesDescription": "Configure which modules are visible in your organization",
+    "noOrganizationContext": "No organization context. Please select an organization.",
+    "organization": "Organization",
+    "noOrganization": "No Organization",
+    "createdOn": "Created on",
+    "teamMembers": "Team Members",
+    "activeMembers": "Active members in your organization",
+    "manageMembers": "Manage members",
+    "yourRole": "Your Role",
+    "organizationAdmin": "Organization Admin",
+    "fullAccessDescription": "Full access to organization settings and members",
+    "quickLinks": "Quick Links",
+    "organizationSettings": "Organization Settings",
+    "organizationSettingsDescription": "Update organization details and preferences",
+    "teamManagement": "Team Management",
+    "teamManagementDescription": "Invite members, manage roles and permissions",
+    "integrations": "Integrations",
+    "n8nIntegration": "n8n Automation",
+    "n8nIntegrationDescription": "Configure workflow automation for your organization",
+    "xeIntegration": "xe.gr Integration",
+    "xeIntegrationDescription": "Publish properties to xe.gr portal"
+  },
+  "Admin": {
+    "title": "Administration",
+    "accessDenied": "You are not an organization admin",
+    "accessNotAllowed": "Access not allowed",
+    "setupDescription": "Manage your organization settings and members",
+    "usersAdministration": "Team Members",
+    "modulesAdministration": "Modules",
+    "manageUsersDescription": "Here you can manage your Oikion users",
+    "manageOrgMembersDescription": "Manage organization members and their roles",
+    "inviteNewUser": "Invite new user to Oikion",
+    "inviteNewMember": "Invite new team member",
+    "manageModulesDescription": "Configure which modules are visible in your organization",
+    "noOrganizationContext": "No organization context. Please select an organization."
+  },
+  "AvatarDropdown": {
+    "todoDashboard": "Todo dashboard",
+    "profileSettings": "Profile settings",
+    "signOut": "Sign out"
+  },
+  "FeedbackForm": {
+    "title": "Feedback",
+    "versionInfo": {
+      "title": "Version {version}",
+      "description": "This is the very first version of Oikion. As we're just getting started, some actions might not work perfectly or could cause unexpected results. If you encounter any issues, please let us know through this feedback form. Your patience and feedback help us improve the app for everyone."
+    },
+    "fields": {
+      "feedbackType": "What type of feedback is this?",
+      "feedbackTypePlaceholder": "Select feedback type",
+      "feedback": "Your Feedback",
+      "feedbackPlaceholder": "Please share your thoughts, report a bug, suggest a feature, or ask a question..."
+    },
+    "types": {
+      "bug": "Bug Report",
+      "feature": "Feature Request",
+      "general": "General Feedback",
+      "question": "Question",
+      "other": "Other"
+    },
+    "descriptions": {
+      "feedbackType": "Choose the category that best describes your feedback",
+      "feedback": "Be as detailed as possible so we can better understand and address your feedback"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "submit": "Submit Feedback",
+      "sending": "Sending..."
+    },
+    "messages": {
+      "success": "Thank you for your feedback. We appreciate your help in making Oikion better!",
+      "error": "Something went wrong. Please try again later."
+    },
+    "validation": {
+      "feedbackTypeRequired": "Please select a feedback type.",
+      "feedbackRequired": "Feedback must be at least 10 characters."
+    }
+  },
+  "SetLanguage": {
+    "selectLanguage": "Select language",
+    "searchLanguage": "Search language ...",
+    "noLanguageFound": "No language found.",
+    "languageRequired": "Please select a language.",
+    "changingLanguage": "Changing Oikion language",
+    "languageChangedTo": "You change user language to: {language}",
+    "selectLanguagePlaceholder": "Select language"
+  },
+  "Email": {
+    "inviteUser": {
+      "previewText": "You have been invited by {invitedBy} to Oikion app",
+      "heading": "You have been invited to cooperate on something special",
+      "hello": "Hello {username},",
+      "invitedBy": "{invitedBy} has invited you to the",
+      "appName": "app:",
+      "acceptInvitation": "To accept this invitation, click the button below. And use this password to login:",
+      "joinTeam": "Join the team",
+      "orCopyUrl": "or copy and paste this URL into your browser:",
+      "invitationIntended": "This invitation was intended for",
+      "notExpecting": "If you were not expecting this invitation, you can ignore this email. If you are concerned about your account's safety, please reply to this email to get in touch with us."
+    },
+    "passwordReset": {
+      "subject": "Oikion - Password reset"
+    },
+    "adminMessage": {
+      "contactEmail": "info@oikion.dev"
+    }
+  },
+  "Validation": {
+    "assignedAgentRequired": "Assigned agent is required",
+    "emailInvalid": "Invalid email"
+  },
+  "Landing": {
+    "title": "Oikion - The Operating System for Real Estate Agencies",
+    "description": "MLS, CRM, and Socials in one web app for Greek real estate agencies",
+    "header": {
+      "login": "Login"
+    },
+    "hero": {
+      "title": "The Operating System for Real Estate Agencies",
+      "subtitle": "MLS, CRM, and Socials in one unified platform. Manage properties, clients, and your team efficiently.",
+      "cta": "Go to App"
+    },
+    "features": {
+      "title": "Everything You Need",
+      "subtitle": "One platform for all your real estate agency needs",
+      "mls": {
+        "title": "Property Management (MLS)",
+        "description": "List and manage your properties with ease. Filters, search, and quick editing."
+      },
+      "crm": {
+        "title": "Client Management (CRM)",
+        "description": "Track your clients, interactions, and tasks in one place."
+      },
+      "analytics": {
+        "title": "Reports & Analytics",
+        "description": "Monitor your agency's performance with detailed reports and charts."
+      }
+    },
+    "footer": {
+      "rights": "All rights reserved.",
+      "contact": "Contact"
+    }
+  }
+}

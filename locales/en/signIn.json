@@ -1,0 +1,29 @@
+{
+  "title": "Welcome back",
+  "description": "Sign in to your Oikion account",
+  "emailLabel": "Email",
+  "emailPlaceholder": "Enter your email",
+  "passwordLabel": "Password",
+  "passwordPlaceholder": "Enter your password",
+  "forgotPasswordLink": "Forgot password?",
+  "submitButton": "Sign In",
+  "submitting": "Signing in...",
+  "signUpLink": "Create account",
+  "signUpText": "Don't have an account?",
+  "orContinueWith": "or continue with email",
+  "googleButton": "Sign in with Google",
+  "errors": {
+    "emailRequired": "Email is required",
+    "emailInvalid": "Please enter a valid email address",
+    "passwordRequired": "Password is required",
+    "invalidCredentials": "Invalid email or password",
+    "generic": "Something went wrong. Please try again."
+  }
+}
+
+
+
+
+
+
+
