@@ -16,9 +16,9 @@ import type { MatchCriterion, EnergyCertClass } from "./types";
  * Higher weight = more important in final score
  */
 export const MATCH_WEIGHTS: Record<MatchCriterion, number> = {
-  // Primary criteria (68%)
-  budget: 25,           // Most important - property must be affordable
-  location: 20,         // Area/city preference
+  // Primary criteria (70%)
+  budget: 26,           // Most important - property must be affordable
+  location: 21,         // Area/city preference
   transaction_type: 15, // Buy vs Rent alignment
   property_type: 8,     // Apartment, House, etc.
   
