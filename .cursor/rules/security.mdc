@@ -1,0 +1,80 @@
+---
+description: Security hardening checklist for auth, data handling, API security, and multi-tenant isolation in Oikion
+alwaysApply: false
+---
+
+# Security Hardening Checklist
+
+## Authentication (Clerk v6)
+
+- `auth()` is async in Clerk v6 — always `await auth()`
+- Internal routes: verify `userId` AND `organizationId` from `await auth()`
+- External routes (`/api/v1/*`): use `withExternalApi()` with required scopes
+- API keys use `oik_` prefix — never log the full key, only last 4 chars
+- Platform admin: check `isPlatformAdmin` in Clerk `privateMetadata` or `PLATFORM_ADMIN_EMAILS`
+
+## Multi-Tenant Isolation
+
+- EVERY tenant-scoped query MUST filter by `organizationId`
+- Get org ID from server auth context (`getCurrentOrgId()`), never from client
+- Use `prismaForOrg()` from `@/lib/tenant` for automatic filtering
+- Verify resource belongs to org before update/delete operations
+- Cross-org access requires platform admin verification
+
+## Input Validation
+
+- Validate ALL user input with Zod schemas
+- Use `.strict()` to reject unexpected fields (prevents mass assignment)
+- Validate file uploads: size limits, allowed MIME types, content type verification
+- Sanitize search queries and user-provided strings
+- Validate URL parameters (IDs should match CUID/UUID format)
+
+## API Security
+
+- Never expose internal error messages, stack traces, or SQL details in responses
+- Rate limiting is applied via `proxy.ts` middleware (verify for new routes)
+- Set appropriate CORS headers for external API routes
+- Validate `Content-Type` header on POST/PUT/PATCH requests
+- Log API errors with context tags but without sensitive data
+
+## Secrets Management
+
+- Store all secrets in `.env` / `.env.local` — NEVER hardcode
+- Never commit `.env`, `.env.local`, or credential files to git
+- Use `NEXT_PUBLIC_` prefix ONLY for values safe for client-side exposure
+- Rotate API keys periodically — external API keys support revocation
+- Webhook endpoints verify signatures (Clerk uses Svix)
+
+## Database Security (Prisma 6)
+
+- NEVER use `$executeRawUnsafe()` or `$queryRawUnsafe()` — SQL injection risk
+- Use Prisma's parameterized queries for all database operations
+- `$executeRaw` and `$queryRaw` with template literals are safe (auto-parameterized)
+- Index `organizationId` on all tenant-scoped models for efficient filtering
+
+## XSS Prevention
+
+- React auto-escapes JSX content by default
+- NEVER inject raw HTML into the DOM without sanitization via DOMPurify or equivalent
+- Sanitize rich text content (TipTap editor output) before rendering
+- CSP headers are configured in `proxy.ts` for Clerk and Ably domains
+
+## File Upload Security
+
+- Validate file types against an allowlist (not a blocklist)
+- Enforce file size limits server-side
+- Store files in external storage (S3/DigitalOcean Spaces), not on disk
+- Generate unique filenames — never use user-provided filenames directly
+- Scan for path traversal attempts in upload paths
+
+## Cron Job Security
+
+- Cron routes (`/api/cron/*`) must verify `CRON_SECRET` header
+- Never expose cron endpoints without authentication
+
+## Error Information Leakage
+
+- API routes: return generic error messages, log details server-side
+- Server actions: return `actionError("Generic message")`, log actual error
+- Never include stack traces, SQL queries, or file paths in responses
+- Use error tags for debugging: `console.error("[FEATURE_CONTEXT]", error)`

@@ -7,6 +7,8 @@
  */
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
+import nextPlugin from "@next/eslint-plugin-next";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 // Custom design system rules
 const designSystemPlugin = await import("./eslint-rules/index.js").then(
@@ -45,6 +47,8 @@ const config = [
     plugins: {
       "@typescript-eslint": tseslint,
       "@oikion/design-system": designSystemPlugin,
+      "@next/next": nextPlugin,
+      "react-hooks": reactHooksPlugin,
     },
     rules: {
       // Design system rules
@@ -61,6 +65,8 @@ const config = [
     files: ["**/*.{js,jsx}"],
     plugins: {
       "@oikion/design-system": designSystemPlugin,
+      "@next/next": nextPlugin,
+      "react-hooks": reactHooksPlugin,
     },
     rules: {
       "@oikion/design-system/no-hardcoded-colors": "warn",

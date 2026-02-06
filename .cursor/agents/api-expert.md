@@ -1,5 +1,6 @@
 ---
 name: api-expert
+model: claude-4.6-opus-high-thinking
 description: API security and endpoint specialist. Use proactively when creating, reviewing, or modifying API routes, implementing authentication/authorization, handling API keys, rate limiting, input validation, or any /api/ endpoint work. Expert in both internal (Clerk session) and external (API key) authentication patterns.
 ---
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { 
   GripVertical, 
@@ -26,12 +27,14 @@ import type { WidgetConfig, WidgetSize } from "@/lib/dashboard/types";
 
 interface WidgetWrapperProps {
   readonly widgetConfig: WidgetConfig;
-  readonly children: React.ReactNode;
+  readonly children: ReactNode;
   readonly className?: string;
 }
 
+const SIZE_ORDER: WidgetSize[] = ["sm", "md", "lg"];
+
 // Size options with labels
-const SIZE_OPTIONS: { value: WidgetSize; labelKey: string; icon: React.ReactNode }[] = [
+const SIZE_OPTIONS: { value: WidgetSize; labelKey: string; icon: ReactNode }[] = [
   { value: "sm", labelKey: "widgets.size.small", icon: <Minimize2 className="h-3.5 w-3.5" /> },
   { value: "md", labelKey: "widgets.size.medium", icon: null },
   { value: "lg", labelKey: "widgets.size.large", icon: <Maximize2 className="h-3.5 w-3.5" /> },
@@ -68,10 +71,9 @@ export function WidgetWrapper({
   // Check if size change is allowed based on widget constraints
   const canResize = (size: WidgetSize): boolean => {
     if (!metadata) return true;
-    const sizeOrder: WidgetSize[] = ["sm", "md", "lg"];
-    const minIndex = sizeOrder.indexOf(metadata.minSize);
-    const maxIndex = sizeOrder.indexOf(metadata.maxSize);
-    const targetIndex = sizeOrder.indexOf(size);
+    const minIndex = SIZE_ORDER.indexOf(metadata.minSize);
+    const maxIndex = SIZE_ORDER.indexOf(metadata.maxSize);
+    const targetIndex = SIZE_ORDER.indexOf(size);
     return targetIndex >= minIndex && targetIndex <= maxIndex;
   };
 

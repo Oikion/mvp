@@ -5,10 +5,11 @@ import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import type { WidgetConfig } from "@/lib/dashboard/types";
 import { SIZE_TO_COLS } from "@/lib/dashboard/types";
+import type { ReactNode } from "react";
 
 interface DashboardWidgetItemProps {
   widgetConfig: WidgetConfig;
-  children: React.ReactNode;
+  children: ReactNode;
   isDragging?: boolean;
   isOverlay?: boolean;
 }

@@ -34,12 +34,12 @@ DATABASE_URL="postgres://f3074c1c282b0fd38b43169f4d8c2320b7112ed2e9cb07b9285d65e
 
 #### Step 1: Rotate Database Credentials
 
-**For Neon Database:**
+**For Prisma Postgres:**
 ```bash
-# 1. Log into Neon Dashboard
-# 2. Navigate to your project
-# 3. Go to Settings → Connection Details
-# 4. Click "Reset Password"
+# 1. Log into Prisma Data Platform (console.prisma.io)
+# 2. Navigate to your project / database
+# 3. Go to Settings → Connection or Credentials
+# 4. Rotate password or regenerate connection string
 # 5. Copy new connection string
 ```
 
@@ -423,9 +423,7 @@ If issues occur with new credentials:
 ### 1. Enable Database Firewall
 
 ```bash
-# Neon: Add IP allowlist
-# Settings → IP Allow → Add Vercel IP ranges
-
+# Prisma Postgres / Prisma Data Platform: Check project settings for IP allowlist if needed
 # Prisma Accelerate: Already has built-in security
 ```
 

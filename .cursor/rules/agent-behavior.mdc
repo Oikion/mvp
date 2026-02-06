@@ -1,0 +1,77 @@
+---
+description: Controls how the AI agent should behave when working on Oikion codebase
+alwaysApply: true
+---
+
+# Agent Behavior Rules
+
+## Work Style
+
+- Don't apologize for errors — fix them immediately
+- Plan before coding for any change touching 3+ files — suggest `/plan` to create an implementation plan
+- Challenge flawed approaches — if you see risks or better alternatives, say so
+- If code is incomplete, add TODO comments with clear descriptions
+- When creating new files, study existing files in the same directory first and follow their patterns
+- Re-read relevant rules every few messages on long conversations to stay compliant
+
+## Available Workflows & Commands
+
+You have access to specialized workflows. **Suggest these proactively** when appropriate:
+
+### Slash Commands (user can type these)
+
+- `/verify` — User runs verification loop (build, lint, tenant check, i18n, permissions, diff); agent only recommends it
+- `/review` — Comprehensive code quality and security audit before committing
+- `/plan` — Create implementation plan with approval gate for multi-file changes
+- `/pr` — Create pull request with conventional commit
+- `/fix-issue [number]` — Fetch and fix a GitHub issue
+- `/new-action [feature/name]` — Scaffold a server action with boilerplate
+- `/new-api-route [path]` — Scaffold an API route with auth
+- `/db-migrate` — Guided Prisma schema migration
+
+### Skills (you can invoke these)
+
+- **verification-loop** — 6-phase quality gate (suggest before marking work done)
+- **tdd-workflow** — Red-Green-Refactor for test-driven development
+- **prisma-migration** — Safe database schema changes with rollback plan
+- **feature-scaffold** — End-to-end feature development (DB to UI, 9 steps)
+- **security-audit** — 8-phase comprehensive security audit
+- **import-export** — Data import/export and portal publishing workflows
+
+### When to Suggest Workflows
+
+**Proactively suggest:**
+- Before marking work complete → Recommend the user run `/verify` to check build, lint, tenant isolation, i18n, and permissions (do not run checks yourself)
+- Multi-file feature starting → "Should I create an implementation plan first?" or suggest `/plan`
+- User mentions GitHub issue → "I can use `/fix-issue [number]` to fetch and fix that issue"
+- Adding server action → "I can scaffold this with `/new-action [feature/name]`"
+- Modifying database schema → "Let me follow the Prisma migration workflow" or suggest `/db-migrate`
+- Security-sensitive changes → "Should I run the security audit after implementing this?"
+- User asks for TDD → "I'll follow the TDD workflow (Red-Green-Refactor)"
+
+**Always do before completing:**
+- Recommend the user run verification (e.g. `/verify`) — do not run build, lint, or other checks yourself
+- For significant changes, recommend the user run `/review` for quality audit
+
+## Safety Guardrails
+
+- **Tenant isolation**: When writing or reviewing ANY database query, verify it includes `organizationId` filtering. Use `getCurrentOrgId()` from `@/lib/get-current-user` — never accept organization IDs from client input
+- **Never commit secrets**: Do not commit `.env`, `.env.local`, API keys, tokens, or credentials
+- **Middleware file**: The middleware file is `proxy.ts` (NOT `middleware.ts`). Never create or rename to middleware.ts
+- **Permissions**: Every server action that mutates data must start with a `requireAction()` guard from `@/lib/permissions/action-guards`
+
+## After Making Changes
+
+- Recommend the user run `pnpm lint` to verify no lint regressions (do not run it yourself)
+- For schema changes: recommend the user run `pnpm prisma generate` then `pnpm prisma db push`
+- For new user-facing strings: add translations to BOTH `locales/el/` and `locales/en/`
+- For new server actions: ensure `"use server"` directive, permission guard, and org isolation
+
+## What NOT To Do
+
+- Do not install new dependencies without explaining why existing ones can't solve the problem
+- Do not create new UI primitives when `components/ui/` already has an equivalent shadcn/ui component
+- Do not use `any` type — use `unknown` and narrow, or define proper types
+- Do not use `console.log` for debugging in committed code — use structured error logging with tags like `[ACTION_NAME]`
+- Do not create barrel index files unless the directory already has one
+- Do not hardcode Greek or English strings — always use `useTranslations()` or `getTranslations()`

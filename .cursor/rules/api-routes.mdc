@@ -1,0 +1,116 @@
+---
+description: API route patterns for Oikion — authentication, validation, error handling for internal and external endpoints
+globs: app/api/**/*.ts
+alwaysApply: false
+---
+
+# API Route Conventions
+
+## Two API Types
+
+### Internal API (`/api/*`) — Clerk Session Auth
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { prismadb } from "@/lib/prisma";
+import { apiSuccess, apiUnauthorized, apiInternalError, validateBody } from "@/lib/api-response";
+
+export async function GET(req: Request) {
+  try {
+    // 1. Authenticate (Clerk v6 — auth() is async)
+    const { userId, orgId: organizationId } = await auth();
+    if (!userId || !organizationId) {
+      return apiUnauthorized();
+    }
+
+    // 2. Query with tenant isolation
+    const data = await prismadb.resource.findMany({
+      where: { organizationId },
+    });
+
+    // 3. Return standardized response
+    return apiSuccess(data);
+  } catch (error) {
+    return apiInternalError("Internal error", error);
+  }
+}
+```
+
+### External API (`/api/v1/*`) — API Key Auth
+
+```typescript
+import { withExternalApi, API_SCOPES } from "@/lib/external-api-middleware";
+
+export const GET = withExternalApi(
+  async (req, context) => {
+    // context provides: apiKeyId, organizationId, scopes, createdById
+    const data = await prismadb.resource.findMany({
+      where: { organizationId: context.organizationId },
+    });
+
+    return NextResponse.json({
+      data,
+      meta: { cursor: null, hasMore: false },
+      timestamp: new Date().toISOString(),
+    });
+  },
+  { requiredScopes: [API_SCOPES.MLS_READ] }
+);
+```
+
+External API response format:
+```json
+{ "data": {}, "meta": { "cursor": "...", "hasMore": true }, "timestamp": "ISO-8601" }
+```
+
+## Response Helpers (from `@/lib/api-response`)
+
+| Helper | Status | Use Case |
+|--------|--------|----------|
+| `apiSuccess(data)` | 200 | Successful GET/PUT |
+| `apiCreated(data)` | 201 | Successful POST (new resource) |
+| `apiNoContent()` | 204 | Successful DELETE |
+| `apiBadRequest(msg?, details?)` | 400 | Invalid input |
+| `apiUnauthorized(msg?)` | 401 | Not authenticated |
+| `apiForbidden(msg?)` | 403 | Authenticated but lacks permission |
+| `apiNotFound(resource?)` | 404 | Resource doesn't exist |
+| `apiConflict(msg?)` | 409 | Duplicate / constraint violation |
+| `apiRateLimited(msg?)` | 429 | Rate limit exceeded |
+| `apiInternalError(msg?, error?)` | 500 | Unexpected server error |
+| `handlePrismaError(error, ctx?)` | varies | Prisma-specific error mapping |
+| `validateBody(body, zodSchema)` | — | Validate + type request body |
+| `withErrorHandler(handler)` | — | Wrap route with try/catch |
+
+## Input Validation
+
+- Always validate request bodies with Zod: `const validation = validateBody(body, schema);`
+- If validation fails: `if (!validation.success) return validation.error;`
+- Validate path params and query strings before using them
+- Use `.strict()` on Zod schemas to reject unexpected fields
+
+## Security Checklist
+
+- [ ] Auth check is the FIRST thing in every route handler
+- [ ] `organizationId` filtering on all tenant-scoped queries
+- [ ] Input validated with Zod before use
+- [ ] Error messages don't expose internal details (stack traces, SQL, etc.)
+- [ ] Sensitive operations logged with `console.error("[API_ROUTE_NAME]", error)`
+- [ ] Rate limiting applied (handled by `proxy.ts` middleware for most routes)
+- [ ] CORS headers set for external API routes (handled by `withExternalApi()`)
+
+## Rate Limiting Tiers (configured in `proxy.ts`)
+
+| Tier | Limit | Applies To |
+|------|-------|-----------|
+| `strict` | 10 req/min | Auth endpoints, password reset |
+| `default` | 60 req/min | General API routes |
+| `lenient` | 120 req/min | Read-heavy endpoints |
+| `burst` | 30 req/10s | File uploads |
+| `api` | 100 req/min | External API (`/api/v1/*`) |
+
+## Platform Admin Routes
+
+Routes under `/api/platform-admin/*` require additional verification:
+- Check `isPlatformAdmin` flag in Clerk's `privateMetadata`
+- Or email match in `PLATFORM_ADMIN_EMAILS` environment variable
+- Use the pattern from existing platform admin routes in `app/api/platform-admin/`

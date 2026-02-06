@@ -1,0 +1,98 @@
+---
+description: React 19 and Next.js 16 component patterns for Oikion frontend
+globs: app/**/*.tsx, components/**/*.tsx, components/**/*.ts
+alwaysApply: false
+---
+
+# Frontend Component Conventions
+
+## Server vs Client Components (React 19 / Next.js 16)
+
+- **Default to Server Components (RSC)** — no directive needed, they run on the server
+- Add `"use client"` ONLY when the component uses: hooks (`useState`, `useEffect`, etc.), event handlers (`onClick`, `onChange`), browser APIs (`window`, `document`), or context consumers
+- Wrap client components in `<Suspense>` with a fallback when they perform data fetching
+- Use `next/dynamic` with `{ ssr: false }` for heavy client-only components (editors, charts)
+
+## Component Structure
+
+```typescript
+// 1. Imports (follow ordering from core.mdc)
+// 2. Types/interfaces (export if reused)
+// 3. Component (named export preferred)
+// 4. Sub-components (if small, keep in same file)
+```
+
+- Use functional components only — no class components
+- Prefer named exports: `export function PropertyCard()` not `export default function`
+- Keep components focused — one primary responsibility per component
+- Extract hooks into `hooks/` when logic is reused across 2+ components
+
+## Internationalization (next-intl)
+
+- **Never hardcode user-facing strings** in Greek or English
+- In Server Components: `const t = useTranslations("namespace")`
+- In Server Actions / Route Handlers: `const t = await getTranslations("namespace")` from `next-intl/server`
+- Namespace names match JSON filenames: `useTranslations("crm")` → `locales/el/crm.json`
+- Date/number formatting: use next-intl formatters (`useFormatter()`), not manual `toLocaleDateString()`
+
+## Forms (react-hook-form + Zod)
+
+```typescript
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+
+const schema = z.object({ /* ... */ });
+type FormValues = z.infer<typeof schema>;
+
+const form = useForm<FormValues>({
+  resolver: zodResolver(schema),
+  defaultValues: { /* ... */ },
+});
+```
+
+- Always use `<Form>` wrapper from `@/components/ui/form` with `<FormField>`, `<FormItem>`, `<FormLabel>`, `<FormControl>`, `<FormMessage>`
+- Group related fields with `<FormSection>`, lay out horizontally with `<FormRow>`
+- Use `<FormActions>` for submit/cancel buttons (supports sticky footer)
+- Refer to `docs/design-system/forms.md` for the error handling decision tree
+
+## Loading, Error, and Empty States
+
+- **Loading**: Use `<Loading />` from `@/components/ui/loading` — supports variants: `spinner`, `dots`, `pulse`, `orbit`, `wave`, `bars`
+- **Error**: Use `<ErrorState />` from `@/components/ui/error-state` — variants: `default`, `network`, `server`, `permission`, `notFound`
+- **Empty**: Use `<EmptyState />` from `@/components/ui/empty-state` — presets: `clients`, `properties`, `tasks`, `documents`, `events`, `notifications`, `comments`, `search`
+- **Skeleton**: Use `<Skeleton />` / `<ShimmerSkeleton />` for content placeholders during load
+- Do NOT use the deprecated `<LoadingState />` component
+
+## Modals and Dialogs
+
+- Use `<Dialog>` from `@/components/ui/dialog` (Radix-based) for standard modals
+- Size variants: `sm`, `default`, `lg`, `xl`, `2xl`, `full`
+- For shared entity actions (delete, share, schedule): use Zustand store via `useActionModal()` hook
+- Modals must: trap focus, close on Escape, return focus on close, have `aria-modal="true"`
+
+## Toasts
+
+- Use `useAppToast()` hook from `@/hooks/use-app-toast` — never use raw `toast()` directly
+- Toast provides consistent styling and i18n support across the app
+
+## Icons
+
+- Use Lucide React icons exclusively
+- Sizing: 16px inline with text, 20px standalone in buttons, 24px for feature icons
+- Always include `aria-hidden="true"` on decorative icons
+- Icon-only buttons must have `aria-label`
+
+## Images
+
+- Use `next/image` for all images — provides optimization, lazy loading, and responsive sizing
+- Always provide meaningful `alt` text (empty `alt=""` for decorative images only)
+
+## Accessibility (WCAG AA)
+
+- Use semantic HTML5 elements (`<button>`, `<nav>`, `<main>`, `<section>`) over `<div>` with ARIA roles
+- All interactive elements must have visible focus indicators
+- Color contrast: 4.5:1 for normal text, 3:1 for large text and UI components
+- Touch targets: minimum 44x44px
+- Respect `prefers-reduced-motion` for animations

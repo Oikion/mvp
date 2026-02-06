@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { BadgeProps } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ArrowRight,
@@ -21,7 +22,9 @@ interface UpcomingEventsProps {
   events: UpcomingEvent[];
 }
 
-const getEventTypeVariant = (eventType: string | null) => {
+type BadgeVariant = BadgeProps["variant"];
+
+const getEventTypeVariant = (eventType: string | null): BadgeVariant => {
   switch (eventType) {
     case "PROPERTY_VIEWING":
       return "info";
@@ -140,10 +143,7 @@ export const UpcomingEvents: React.FC<UpcomingEventsProps> = ({ events }) => {
                       )}
                     </div>
                     {event.eventType && (
-                      <Badge
-                        variant={getEventTypeVariant(event.eventType) as any}
-                        className="text-[10px] shrink-0"
-                      >
+                      <Badge variant={getEventTypeVariant(event.eventType)} className="text-[10px] shrink-0">
                         {t(`eventType.${event.eventType}`)}
                       </Badge>
                     )}

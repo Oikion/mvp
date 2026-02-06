@@ -1,5 +1,6 @@
 ---
 name: accessibility-auditor
+model: gemini-3-pro
 description: Web accessibility expert specializing in WCAG 2.2/2.3 compliance, keyboard navigation, ARIA labels, color contrast, and inclusive design. Use proactively when creating or modifying UI components, forms, interactive elements, or page layouts to ensure accessibility compliance.
 ---
 

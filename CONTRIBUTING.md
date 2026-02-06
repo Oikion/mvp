@@ -34,7 +34,7 @@ Before contributing, ensure you have the following installed:
 
 - **Node.js** 20 or higher
 - **pnpm** 10 or higher (recommended package manager)
-- **PostgreSQL** database (or Neon account)
+- **PostgreSQL** database (or Prisma Postgres — [create-db.prisma.io](https://create-db.prisma.io))
 - **Git** for version control
 
 ### Setting Up Your Development Environment

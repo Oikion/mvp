@@ -1,0 +1,121 @@
+---
+description: shadcn/ui component conventions, design tokens, and accessibility for Oikion UI
+globs: components/ui/**/*.tsx, components/ui/**/*.ts
+alwaysApply: false
+---
+
+# UI Component Conventions (shadcn/ui)
+
+## Core Principle
+
+Always extend shadcn/ui primitives — never build from scratch. Check `components/ui/` before creating any new component.
+
+## Design System
+
+Design system documentation lives in `docs/design-system/`:
+- `index.md` — Overview
+- `forms.md` — Form patterns and error handling
+- `buttons.md` — Button variants
+- `feedback.md` — Toast, loading, progress patterns
+- `colors.md` — Semantic color tokens
+- `typography.md` — Typography scale
+- `nielsen-heuristics.md` — UX guidelines
+
+## Color Tokens (Semantic — NEVER hardcode hex)
+
+Use CSS variable-based semantic colors:
+- `primary` / `primary-foreground` — Main brand actions
+- `secondary` / `secondary-foreground` — Secondary actions
+- `destructive` / `destructive-foreground` — Dangerous actions (delete, remove)
+- `success` — Positive feedback
+- `warning` — Caution indicators
+- `info` — Informational elements
+- `muted` / `muted-foreground` — De-emphasized content
+- `accent` / `accent-foreground` — Highlighted elements
+- `background` / `foreground` — Base content colors
+- `card` / `card-foreground` — Card surfaces
+- `border` — Border color
+- `ring` — Focus ring color
+
+Custom ESLint rule `@oikion/no-hardcoded-colors` enforces this.
+
+## Typography
+
+Use Tailwind typography classes with the design system scale:
+- Custom ESLint rule `@oikion/prefer-semantic-typography` enforces consistency
+- Check `docs/design-system/typography.md` for the full scale
+
+## Component Patterns
+
+### Buttons
+
+```typescript
+import { Button } from "@/components/ui/button";
+
+// Variants: default, destructive, outline, secondary, ghost, link
+// Sizes: default, sm, lg, icon
+<Button variant="default" size="default">Save</Button>
+```
+
+### Cards
+
+```typescript
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+```
+
+### Data Tables
+
+```typescript
+import { DataTable } from "@/components/ui/data-table";
+// Supports: filtering, sorting, pagination, row selection
+```
+
+### Dialogs / Modals
+
+```typescript
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+// Size variants: sm, default, lg, xl, 2xl, full
+```
+
+## Utility Function
+
+```typescript
+import { cn } from "@/lib/utils";
+
+// Merge Tailwind classes conditionally
+<div className={cn("base-classes", isActive && "active-classes")} />
+```
+
+## Accessibility Requirements
+
+- All interactive elements: visible focus states with `ring` color
+- Icon-only buttons: `aria-label` required
+- Decorative icons: `aria-hidden="true"`
+- Form inputs: associated `<label>` elements
+- WCAG AA contrast: 4.5:1 normal text, 3:1 large text and UI components
+- Touch targets: minimum 44x44px
+- Support `prefers-reduced-motion`
+- Follow Radix UI accessibility patterns (built into shadcn/ui)
+
+## Component Conventions
+
+- File naming: `kebab-case.tsx` (e.g., `data-table.tsx`, `empty-state.tsx`)
+- Export naming: PascalCase (e.g., `DataTable`, `EmptyState`)
+- Use `forwardRef` when the component wraps a DOM element that consumers might need to ref
+- Include `className` prop using `cn()` for composability
+- Support both controlled and uncontrolled patterns where applicable
+- Use Tailwind responsive prefixes: `sm:`, `md:`, `lg:` (mobile-first)
+
+## Component Deprecation
+
+- `LoadingState` — Deprecated. Use `Loading` instead.
+- Custom ESLint rule `@oikion/no-deprecated-toast` prevents raw toast usage.
+
+## Red Flags
+
+- Hardcoded hex colors (e.g., `#FF0000`, `text-[#333]`)
+- Inline styles instead of Tailwind classes
+- Creating new primitives that duplicate shadcn/ui functionality
+- Missing hover/focus states on interactive elements
+- Inconsistent spacing (use Tailwind spacing scale: `p-2`, `p-4`, `gap-3`, `space-y-4`)
+- Mixed icon libraries (Lucide React only)

@@ -1,0 +1,76 @@
+---
+description: Core project conventions, build commands, code style, and git workflow for Oikion
+alwaysApply: true
+---
+
+# Oikion Core Conventions
+
+## Project Stack
+
+- **Framework**: Next.js 16.x (App Router) with React 19, TypeScript (strict mode)
+- **Auth**: Clerk v6 (`@clerk/nextjs` — `auth()` is async, returns `{ userId, orgId }`)
+- **ORM**: Prisma 6 with PostgreSQL (Prisma Postgres hosting, pooled connections)
+- **Styling**: Tailwind CSS with shadcn/ui components in `components/ui/`
+- **Data fetching**: SWR 2.x (client), Server Actions (server mutations)
+- **i18n**: next-intl (Greek `el` default, English `en`)
+- **Real-time**: Ably 2.x for WebSocket messaging
+- **Validation**: Zod 3.x for input/schema validation
+- **Package manager**: pnpm
+
+## Development Commands
+
+```bash
+pnpm dev              # HTTPS + Turbopack (default)
+pnpm dev:http         # HTTP + Webpack (simpler local testing)
+pnpm dev:webpack      # HTTPS + Webpack
+pnpm build            # Production build (runs prisma generate first)
+pnpm lint             # ESLint (includes custom @oikion/eslint-plugin-design-system)
+pnpm lint:strict      # ESLint with zero warnings allowed
+pnpm lint:fix         # Auto-fix lint issues
+
+# Database
+pnpm prisma studio    # Open Prisma Studio UI
+pnpm prisma db push   # Push schema changes to database
+pnpm prisma generate  # Regenerate Prisma client after schema changes
+```
+
+## Code Style
+
+- Use ES modules (`import`/`export`), never CommonJS (`require`)
+- TypeScript strict mode is enabled — honor all strict checks
+- Path aliases: `@/*` maps to project root, `@/ui/*` maps to `components/ui/`
+- Destructure imports: `import { Button } from "@/components/ui/button"`
+- Use `cn()` from `@/lib/utils` for merging Tailwind classes
+- Handle errors at the beginning of functions with early returns
+- Keep files under 300 lines — split when it improves clarity
+- Write self-explanatory code; use comments only for "why" not "what"
+
+### Import Ordering
+
+1. React / Next.js built-ins (`react`, `next/*`, `next/server`)
+2. External packages (`@clerk/*`, `swr`, `zod`, `lucide-react`)
+3. Internal absolute imports (`@/lib/*`, `@/hooks/*`, `@/components/*`, `@/actions/*`)
+4. Relative imports (`./`, `../`)
+5. Type-only imports last (`import type { ... }`)
+
+## Git Conventions
+
+- **Conventional Commits**: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `perf:`, `test:`
+- Keep commit messages under 72 characters
+- Use present tense: "add feature" not "added feature"
+- Reference issue numbers when applicable: `fix: resolve tenant leak (#123)`
+- Never commit `.env`, `.env.local`, or files containing secrets
+
+## Key File Locations
+
+- Server actions: `actions/{feature}/` (e.g., `actions/crm/`, `actions/mls/`)
+- API routes: `app/api/` (internal) and `app/api/v1/` (external)
+- SWR hooks: `hooks/swr/`
+- UI components: `components/ui/` (shadcn/ui base)
+- Feature components: `components/{feature}/`
+- Utilities: `lib/`
+- Translations: `locales/{el,en}/`
+- Prisma schema: `prisma/schema.prisma`
+- Middleware: `proxy.ts` (NOT middleware.ts — Next.js 16 requirement)
+- Permissions: `lib/permissions/`
+- Design system docs: `docs/design-system/`

@@ -1,0 +1,88 @@
+---
+description: Testing patterns for Cypress E2E tests, component testing, and CI integration
+alwaysApply: false
+---
+
+# Testing Conventions
+
+## Test Framework
+
+- **E2E**: Cypress (configured in `cypress.config.ts`)
+- **Base URL**: `http://localhost:3000/`
+- **Component testing**: Cypress Component Testing with Next.js webpack bundler
+- **CI**: GitHub Actions workflow (`.github/workflows/cypress.yml`)
+
+## Directory Structure
+
+```
+cypress/
+  e2e/                    # E2E test specs
+    1-getting-started/    # Basic smoke tests
+    2-nextcrm-basic/      # Feature tests
+  fixtures/               # Test data (JSON)
+  support/
+    commands.ts           # Custom Cypress commands
+    component.ts          # Component test setup
+    e2e.ts               # E2E test setup
+```
+
+## E2E Test Pattern
+
+```typescript
+describe("Feature Name", () => {
+  beforeEach(() => {
+    // Setup: login, seed data, navigate
+    cy.visit("/el/app/feature");
+  });
+
+  it("should perform expected behavior", () => {
+    // Arrange
+    cy.get("[data-testid='create-button']").click();
+
+    // Act
+    cy.get("[data-testid='name-input']").type("Test Name");
+    cy.get("[data-testid='submit-button']").click();
+
+    // Assert
+    cy.contains("Test Name").should("be.visible");
+  });
+});
+```
+
+## Conventions
+
+- Use `data-testid` attributes for test selectors (not CSS classes or element text)
+- Test user-visible behavior, not implementation details
+- Each test should be independent — don't rely on test execution order
+- Clean up test data in `afterEach` or use database seeding
+- Test both Greek (`/el/`) and English (`/en/`) locale paths for i18n features
+
+## Multi-Tenant Test Considerations
+
+- Tests must use a dedicated test organization
+- Verify data isolation — ensure one org's data doesn't leak to another
+- Test permission levels: OWNER, LEAD, MEMBER, VIEWER
+
+## CI Integration
+
+- Tests run in GitHub Actions on pull requests
+- PostgreSQL service container for database
+- Prisma migrations applied before tests
+- Tests run in parallel for speed
+- Screenshots and videos saved as artifacts on failure
+
+## What to Test
+
+- **Critical paths**: Login, create/edit/delete entities, navigation
+- **Permission boundaries**: Verify VIEWERs can't create, MEMBERs can't delete others' entities
+- **Tenant isolation**: Verify data doesn't leak between organizations
+- **Form validation**: Required fields, invalid input handling
+- **Error states**: Network errors, not found pages, permission denied
+
+## Adding data-testid
+
+When creating or modifying UI components, add `data-testid` attributes to interactive elements:
+```tsx
+<Button data-testid="create-client-button">Create Client</Button>
+<Input data-testid="client-name-input" />
+```

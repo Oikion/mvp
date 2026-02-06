@@ -1,0 +1,112 @@
+---
+description: Server action conventions for Oikion — permission guards, tenant isolation, validation, and response patterns
+globs: actions/**/*.ts
+alwaysApply: false
+---
+
+# Server Action Conventions
+
+## Required Structure
+
+Every server action must follow this pattern:
+
+```typescript
+"use server";
+
+import { requireAction } from "@/lib/permissions/action-guards";
+import { getCurrentOrgId } from "@/lib/get-current-user";
+import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
+import { prismadb } from "@/lib/prisma";
+
+export async function createItem(data: CreateItemInput): Promise<ActionResponse<Item>> {
+  // 1. Permission guard (FIRST — before any other logic)
+  const guard = await requireAction("item:create");
+  if (guard) return guard;
+
+  // 2. Get org context (NEVER accept from client)
+  const organizationId = await getCurrentOrgId();
+
+  // 3. Validate input with Zod
+  const validation = schema.safeParse(data);
+  if (!validation.success) {
+    return actionError("Validation failed", "VALIDATION_ERROR");
+  }
+
+  try {
+    // 4. Database operation (ALWAYS include organizationId)
+    const item = await prismadb.item.create({
+      data: { ...validation.data, organizationId },
+    });
+
+    // 5. Return standardized response
+    return actionSuccess(item);
+  } catch (error) {
+    console.error("[CREATE_ITEM]", error);
+    return actionError("Failed to create item", error);
+  }
+}
+```
+
+## Directive
+
+- Every file in `actions/` MUST start with `"use server"` as the first line
+- This directive makes all exported functions server actions (Clerk v6 + Next.js 16)
+
+## Permission Guards (from `@/lib/permissions/action-guards`)
+
+| Guard | When to Use |
+|-------|------------|
+| `requireAction(action)` | Standard permission check |
+| `requireActionOnEntity(action, type, id, ownerId)` | When ownership matters (e.g., editing own vs all) |
+| `requireDealAction(action, dealId, propAgent, clientAgent)` | Deal-specific permissions |
+| `requireAllActions([...])` | Requires ALL listed permissions |
+| `requireAnyAction([...])` | Requires ANY of listed permissions |
+| `requireAuth()` | Authentication only (no specific permission) |
+| `runActionGuards(guard1, guard2, ...)` | Sequential multi-guard check |
+
+Guards return `null` if allowed, or `ActionErrorResponse` if denied. Always check: `if (guard) return guard;`
+
+## Tenant Isolation
+
+- Get org ID via `getCurrentOrgId()` from `@/lib/get-current-user` — this calls Clerk's `auth()` server-side
+- NEVER accept `organizationId` as a function parameter from the client
+- Every Prisma query MUST include `where: { organizationId }` for read operations
+- Every Prisma create MUST include `organizationId` in the `data` object
+- Alternative: use `prismaForOrg(orgId)` from `@/lib/tenant` for automatic filtering
+
+## Response Helpers (from `@/lib/action-response`)
+
+| Helper | Use Case |
+|--------|----------|
+| `actionSuccess(data?)` | Successful operation |
+| `actionError(message, codeOrError?, details?)` | Failed operation |
+| `actionPermissionDenied(msg?)` | Permission denied |
+| `actionNotFound(resource)` | Resource not found |
+| `actionValidationError(msg, fieldErrors?)` | Validation failure |
+| `actionSuccessWithMeta(data, meta)` | Success with pagination/metadata |
+
+## Error Handling
+
+- Wrap database operations in try/catch
+- Log errors with descriptive tags: `console.error("[ACTION_FEATURE_VERB]", error)`
+- Never expose internal error details to client — use generic messages
+- Handle Prisma-specific errors (P2002 unique, P2025 not found, P2003 FK constraint)
+
+## File Organization
+
+Actions live in `actions/{feature}/`:
+- `actions/crm/` — Client management
+- `actions/mls/` — Property management
+- `actions/calendar/` — Calendar events
+- `actions/messaging/` — Real-time messaging
+- `actions/documents/` — Document management
+- `actions/deals/` — Deal management
+- `actions/organization/` — Org management
+- `actions/platform-admin/` — Platform admin (requires isPlatformAdmin)
+
+## Input Validation
+
+- Use Zod schemas from `lib/validations/` for input validation
+- Call `.safeParse()` (not `.parse()`) to avoid throwing
+- Use `.strict()` on schemas to prevent mass assignment attacks
+- Return `actionValidationError()` with field-level errors when validation fails

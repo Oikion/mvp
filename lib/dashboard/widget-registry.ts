@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Fix type errors
 /**
  * Widget Registry
  * 
@@ -217,7 +215,8 @@ export function normalizeDashboardConfig(
 
   // Create a map of existing widget configs
   const existingWidgets = new Map<string, WidgetConfig>();
-  for (const widget of config.widgets) {
+  const widgets = config.widgets;
+  for (const widget of widgets) {
     if (WIDGET_REGISTRY[widget.id]) {
       existingWidgets.set(widget.id, widget);
     }
@@ -228,7 +227,7 @@ export function normalizeDashboardConfig(
   let order = 0;
 
   // First, add existing widgets in their saved order
-  const sortedExisting = [...existingWidgets.values()].sort(
+  const sortedExisting = Array.from(existingWidgets.values()).sort(
     (a, b) => a.order - b.order
   );
   for (const widget of sortedExisting) {

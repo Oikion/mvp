@@ -1,0 +1,141 @@
+---
+description: SWR 2.x data fetching hook patterns for Oikion client-side data
+globs: hooks/swr/**/*.ts
+alwaysApply: false
+---
+
+# SWR Hook Conventions
+
+## Standard Hook Pattern
+
+All SWR hooks live in `hooks/swr/` and are exported from `hooks/swr/index.ts`.
+
+### Single Entity Hook
+
+```typescript
+import useSWR from "swr";
+import fetcher from "@/lib/fetcher";
+
+interface UsePropertyOptions {
+  enabled?: boolean;
+}
+
+export function useProperty(propertyId: string | null, options: UsePropertyOptions = {}) {
+  const { enabled = true } = options;
+
+  const { data, error, isLoading, mutate } = useSWR(
+    enabled && propertyId ? `/api/mls/properties/${propertyId}` : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+
+  return {
+    property: data ?? null,
+    isLoading: !data && !error,
+    error,
+    refresh: () => mutate(),
+  };
+}
+```
+
+### Paginated List Hook (cursor-based with `useSWRInfinite`)
+
+```typescript
+import useSWRInfinite from "swr/infinite";
+import fetcher from "@/lib/fetcher";
+import { buildPaginatedUrl, DEFAULT_PAGE_SIZE } from "@/lib/pagination";
+
+interface UseEntitiesPaginatedOptions {
+  limit?: number;
+  status?: string;
+  search?: string;
+  enabled?: boolean;
+}
+
+export function useEntitiesPaginated(options: UseEntitiesPaginatedOptions = {}) {
+  const { limit = DEFAULT_PAGE_SIZE, status, search, enabled = true } = options;
+
+  const getKey = (pageIndex: number, previousPageData: PaginatedResponse | null) => {
+    if (previousPageData && !previousPageData.hasMore) return null;
+    if (!enabled) return null;
+
+    if (pageIndex === 0) {
+      return buildPaginatedUrl("/api/feature/entities", { limit }, { status, search });
+    }
+
+    const cursor = previousPageData?.nextCursor;
+    if (!cursor) return null;
+    return buildPaginatedUrl("/api/feature/entities", { cursor, limit }, { status, search });
+  };
+
+  const { data, error, size, setSize, isLoading, mutate } = useSWRInfinite<PaginatedResponse>(
+    getKey, fetcher, {
+      revalidateFirstPage: false,
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+    }
+  );
+
+  const entities = data ? data.flatMap((page) => page.items) : [];
+  const hasMore = data ? data[data.length - 1]?.hasMore ?? false : false;
+  const isLoadingMore = isLoading || (size > 0 && data && typeof data[size - 1] === "undefined");
+
+  return {
+    entities,
+    isLoading: !data && !error,
+    isLoadingMore,
+    hasMore,
+    loadMore: () => { if (!isLoadingMore && hasMore) setSize(size + 1); },
+    error,
+    refresh: () => mutate(),
+    size,
+  };
+}
+```
+
+## Naming Conventions
+
+| Pattern | Name | Example |
+|---------|------|---------|
+| Single entity | `use{Entity}` | `useProperty`, `useClient`, `useCalendarEvent` |
+| Paginated list | `use{Entity}Paginated` | `usePropertiesPaginated`, `useClientsPaginated` |
+| Infinite scroll | `useInfinite{Entity}` | `useInfiniteNotifications` |
+| Entity mutations | `use{Entity}Mutations` | `useEventMutations`, `useShareMutations` |
+| Collection (non-paginated) | `use{Entities}` | `useTags`, `useDocuments` |
+
+## Key Rules
+
+- Use `fetcher` from `@/lib/fetcher` — the centralized fetcher
+- Use `buildPaginatedUrl()` from `@/lib/pagination` for cursor pagination URLs
+- Always export hooks from `hooks/swr/index.ts`
+- Return `null` from the SWR key function to conditionally disable fetching
+- Set `revalidateOnFocus: false` for data that doesn't change frequently
+- Set `dedupingInterval: 5000` to prevent redundant requests
+- Always include `refresh()` method wrapping `mutate()` in return value
+- Always include `isLoading`, `error` in return value
+
+## Pagination Response Format
+
+```typescript
+interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+```
+
+New APIs should use: `{ items, pagination: { nextCursor, hasMore, limit } }`
+
+## SWR Configuration
+
+- `revalidateFirstPage: false` — don't refetch first page when loading more
+- `revalidateOnFocus: false` — disable automatic refetch on window focus
+- `dedupingInterval: 5000` — dedupe requests within 5 seconds
+- Use `enabled` option to conditionally control fetching
+
+## Type Exports
+
+Always export types used by the hook:
+```typescript
+export type { EntityData, PaginatedResponse };
+```

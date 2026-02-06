@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { BadgeProps } from "@/components/ui/badge";
 import {
   ArrowRight,
   TrendingUp,
@@ -37,17 +38,19 @@ interface MarketIntelWidgetProps {
 const getStatusIcon = (status: string) => {
   switch (status) {
     case "completed":
-      return <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />;
+      return <CheckCircle2 className="h-3.5 w-3.5 text-success" />;
     case "failed":
       return <XCircle className="h-3.5 w-3.5 text-destructive" />;
     case "running":
-      return <Loader2 className="h-3.5 w-3.5 text-blue-500 animate-spin" />;
+      return <Loader2 className="h-3.5 w-3.5 text-info animate-spin" />;
     default:
       return <Clock className="h-3.5 w-3.5 text-muted-foreground" />;
   }
 };
 
-const getStatusBadgeVariant = (status: string): string => {
+type BadgeVariant = BadgeProps["variant"];
+
+const getStatusBadgeVariant = (status: string): BadgeVariant => {
   switch (status) {
     case "completed":
       return "success";
@@ -115,7 +118,7 @@ export const MarketIntelWidget: React.FC<MarketIntelWidgetProps> = ({
                   {t(`scrapeStatus.${status}`)}
                 </span>
               </div>
-              <Badge variant={getStatusBadgeVariant(status) as any} className="text-xs">
+              <Badge variant={getStatusBadgeVariant(status)} className="text-xs">
                 {totalListings.toLocaleString()} {t("listings")}
               </Badge>
             </div>

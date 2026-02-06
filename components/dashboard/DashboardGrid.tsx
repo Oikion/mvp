@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import type { ReactNode } from "react";
 import {
   DndContext,
   closestCenter,
@@ -27,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 interface DashboardGridProps {
   // Render function for each widget
-  readonly renderWidget: (widgetId: string, config: WidgetConfig) => React.ReactNode;
+  readonly renderWidget: (widgetId: string, config: WidgetConfig) => ReactNode;
   readonly className?: string;
 }
 
@@ -59,7 +60,7 @@ export function DashboardGrid({ renderWidget, className }: DashboardGridProps) {
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+    setActiveId(String(event.active.id));
   }, []);
 
   const handleDragEnd = useCallback(

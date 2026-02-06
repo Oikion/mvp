@@ -1,0 +1,60 @@
+---
+description: Email template conventions for Oikion — React Email with Resend integration
+globs: emails/**/*.tsx
+alwaysApply: false
+---
+
+# Email Template Conventions
+
+## Structure
+
+- All email templates are React components using React Email
+- Base layout: extend `BaseLayout` from `emails/components/BaseLayout.tsx`
+- Admin emails: `emails/admin/` (account management, platform notifications)
+- Notification emails: `emails/notifications/` (CRM, calendar, deals, social)
+- Email service: Resend via `@/lib/resend`
+
+## Template Pattern
+
+```typescript
+import { BaseLayout } from "../components/BaseLayout";
+import { Text, Section, Button } from "@react-email/components";
+
+interface MyEmailProps {
+  recipientName: string;
+  // ... other props
+}
+
+export default function MyEmail({ recipientName }: MyEmailProps) {
+  return (
+    <BaseLayout>
+      <Section>
+        <Text>Hello {recipientName},</Text>
+        {/* Email content */}
+        <Button href="https://app.oikion.gr/...">
+          View Details
+        </Button>
+      </Section>
+    </BaseLayout>
+  );
+}
+```
+
+## Conventions
+
+- Support both Greek and English content where applicable
+- Keep templates simple — email clients have limited CSS support
+- Use inline styles (React Email handles this via components)
+- Test with Resend preview before deploying to production
+- Avoid complex layouts — stick to single-column, mobile-friendly designs
+- Always include a plain text fallback
+- Link URLs should be absolute (include full domain)
+
+## Existing Templates
+
+Reference these for patterns:
+- `emails/notifications/ClientCreated.tsx` — Simple notification
+- `emails/notifications/CalendarEventInvited.tsx` — Event with action button
+- `emails/notifications/DealProposed.tsx` — Complex multi-section email
+- `emails/admin/AccountSuspension.tsx` — Admin notification
+- `emails/Welcome.tsx` — Onboarding email

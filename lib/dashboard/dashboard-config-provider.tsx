@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Fix type errors
 "use client";
 
 import {
@@ -10,6 +8,7 @@ import {
   useEffect,
   useMemo,
 } from "react";
+import type { ReactNode } from "react";
 import {
   type DashboardConfig,
   type WidgetConfig,
@@ -42,7 +41,7 @@ const DashboardConfigContext = createContext<DashboardConfigContextValue | null>
 
 // Provider props
 interface DashboardConfigProviderProps {
-  readonly children: React.ReactNode;
+  readonly children: ReactNode;
   readonly initialConfig?: DashboardConfig | null;
 }
 
@@ -193,7 +192,7 @@ export function DashboardConfigProvider({
       }
 
       // Add any remaining widgets (shouldn't happen, but just in case)
-      for (const widget of widgetMap.values()) {
+      for (const widget of Array.from(widgetMap.values())) {
         newWidgets.push({ ...widget, order: order++ });
       }
 
