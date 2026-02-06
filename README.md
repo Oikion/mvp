@@ -90,7 +90,7 @@ Our goal: **speedy daily operations**, **clean team visibility**, and **sustaina
 
 ### Database & ORM
 - **[Prisma](https://www.prisma.io/)** — Type-safe ORM for Node.js
-- **[PostgreSQL](https://www.postgresql.org/)** — Robust relational database (Neon-compatible)
+- **[PostgreSQL](https://www.postgresql.org/)** — Robust relational database (Prisma Postgres hosting)
 
 ### UI & Styling
 - **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework
@@ -126,7 +126,7 @@ Our goal: **speedy daily operations**, **clean team visibility**, and **sustaina
 
 - Node.js 20+
 - pnpm (recommended)
-- PostgreSQL database (or [Neon](https://neon.tech/) account)
+- PostgreSQL database (or [Prisma Postgres](https://www.prisma.io/postgres) — free tier at [create-db.prisma.io](https://create-db.prisma.io))
 - [Clerk](https://clerk.com/) account
 
 ### Installation

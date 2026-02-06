@@ -120,7 +120,7 @@ body:
       placeholder: |
         - Node.js: 20.x
         - Deployment: Vercel
-        - Database: Neon PostgreSQL
+        - Database: Prisma Postgres
 
   - type: textarea
     id: logs
