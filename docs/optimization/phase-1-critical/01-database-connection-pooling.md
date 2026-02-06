@@ -123,7 +123,7 @@ export const prismadb = prisma;
 Add connection pool parameters to your database URL:
 
 ```bash
-# For Neon (recommended settings)
+# For Prisma Postgres (recommended settings)
 DATABASE_URL="postgres://user:pass@host/db?sslmode=require&connection_limit=10&pool_timeout=10"
 
 # For Prisma Accelerate
@@ -289,7 +289,7 @@ vercel --prod
 
 # Monitor connection metrics
 # Check Vercel logs for connection errors
-# Monitor database connection count in Neon dashboard
+# Monitor database connection count in Prisma Data Platform dashboard
 ```
 
 ## Verification

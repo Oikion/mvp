@@ -1,8 +1,7 @@
-// @ts-nocheck
-// TODO: Fix type errors
 "use client";
 
 import { useCallback, useState } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -53,7 +52,7 @@ import { WIDGET_REGISTRY } from "@/lib/dashboard/widget-registry";
 import type { WidgetConfig, WidgetSize } from "@/lib/dashboard/types";
 
 // Size button config
-const SIZE_BUTTONS: { value: WidgetSize; icon: React.ReactNode; label: string }[] = [
+const SIZE_BUTTONS: { value: WidgetSize; icon: ReactNode; label: string }[] = [
   { value: "sm", icon: <Minimize2 className="h-3 w-3" />, label: "S" },
   { value: "md", icon: <Square className="h-3 w-3" />, label: "M" },
   { value: "lg", icon: <Maximize2 className="h-3 w-3" />, label: "L" },
@@ -89,7 +88,10 @@ function SortableWidgetRow({
   if (!metadata) return null;
 
   // Get the icon component dynamically
-  const IconComponent = (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[metadata.icon] || Settings2;
+  const IconComponent =
+    (LucideIcons as Record<string, ComponentType<{ className?: string }>>)[
+      metadata.icon
+    ] || Settings2;
   const widgetName = t(metadata.nameKey);
 
   // Check if size is allowed
@@ -174,7 +176,7 @@ function SortableWidgetRow({
 }
 
 interface WidgetSettingsPanelProps {
-  readonly trigger?: React.ReactNode;
+  readonly trigger?: ReactNode;
 }
 
 /**

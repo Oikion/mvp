@@ -1,0 +1,88 @@
+---
+description: Multi-tenant data isolation rules — critical security boundary for Oikion SaaS
+globs: actions/**/*.ts, app/api/**/*.ts, lib/**/*.ts
+alwaysApply: false
+---
+
+# Multi-Tenant Data Isolation
+
+This is a CRITICAL SECURITY BOUNDARY. Oikion is a multi-tenant SaaS platform where all tenant data is isolated by `organizationId`. A violation here means one tenant can access another tenant's data.
+
+## Core Rule
+
+**Every database query involving tenant data MUST filter by `organizationId`.**
+
+## Getting Organization Context
+
+```typescript
+// In server actions and API routes:
+import { getCurrentOrgId } from "@/lib/get-current-user";
+const organizationId = await getCurrentOrgId(); // Throws if no org
+
+// Safe version (returns null instead of throwing):
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+const organizationId = await getCurrentOrgIdSafe();
+
+// Auto-filtered Prisma client:
+import { prismaForOrg } from "@/lib/tenant";
+const db = prismaForOrg(organizationId);
+// db.clients.findMany({}) ← automatically adds organizationId filter
+```
+
+## NEVER Do This
+
+```typescript
+// WRONG: Accepting organizationId from client
+export async function getClients(organizationId: string) { ... }
+
+// WRONG: Query without organizationId filter
+const clients = await prismadb.clients.findMany({});
+
+// WRONG: Using client-provided ID without verifying org ownership
+const client = await prismadb.clients.findUnique({ where: { id: clientId } });
+```
+
+## ALWAYS Do This
+
+```typescript
+// CORRECT: Get org from server auth context
+const organizationId = await getCurrentOrgId();
+const clients = await prismadb.clients.findMany({
+  where: { organizationId },
+});
+
+// CORRECT: Verify resource belongs to org before operating
+const client = await prismadb.clients.findFirst({
+  where: { id: clientId, organizationId },
+});
+if (!client) return actionNotFound("Client");
+
+// CORRECT: Use prismaForOrg for automatic filtering
+const db = prismaForOrg(organizationId);
+const clients = await db.clients.findMany({}); // org filter auto-applied
+```
+
+## prismaForOrg() — Automatic Tenant Filtering
+
+The `prismaForOrg()` function from `@/lib/tenant` wraps Prisma with a Proxy that automatically injects `organizationId` into:
+- `findMany`, `findFirst`, `findUnique` — adds to `where` clause
+- `create`, `createMany` — adds to `data` object
+- `update`, `updateMany`, `delete`, `deleteMany` — adds to `where` clause
+- `upsert` — adds to `where`, `create`, and `update`
+- `count`, `aggregate` — adds to `where` clause
+
+**Guarded models** (from `lib/tenant.ts`): `clients`, `properties`, `documents`, `client_Contacts`, `crm_Accounts_Tasks`, `crm_Accounts_Tasks_Comments`, `calendarEvent`, `myAccount`, `feedback`, `notification`, `calendarReminder`, `eventInvitee`, `socialPost`, `attachment`
+
+## Cross-Org Operations
+
+Only platform admins can access data across organizations:
+- Verify `isPlatformAdmin` from Clerk `privateMetadata`
+- Or check email against `PLATFORM_ADMIN_EMAILS` env var
+- Document clearly WHY a query doesn't filter by org
+
+## When Adding New Models
+
+1. Add `organizationId String` field to the Prisma model
+2. Add `@@index([organizationId])` index
+3. Add the model name to `TENANT_MODELS` in `lib/tenant.ts` if using `prismaForOrg()`
+4. Ensure all queries include the `organizationId` filter

@@ -1,5 +1,6 @@
 ---
 name: design-consistency
+model: gemini-3-pro
 description: Design system consistency enforcer. Proactively reviews UI components, pages, and styles to ensure adherence to established design patterns, theme, and visual consistency. Use when creating or modifying any UI components, pages, or styling.
 ---
 

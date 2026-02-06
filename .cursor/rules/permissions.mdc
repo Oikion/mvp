@@ -1,0 +1,107 @@
+---
+description: Permission system patterns for Oikion — role hierarchy, guards, and permission definitions
+globs: lib/permissions/**/*.ts
+alwaysApply: false
+---
+
+# Permission System
+
+## Role Hierarchy
+
+```
+OWNER (4) > LEAD (3) > MEMBER (2) > VIEWER (1)
+```
+
+Higher roles inherit all permissions of lower roles.
+
+## Permission Levels
+
+| Level | Meaning |
+|-------|---------|
+| `none` | No access |
+| `own` | Can only access entities they created/own |
+| `all` | Can access all entities in the organization |
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `lib/permissions/types.ts` | Permission types, role hierarchy |
+| `lib/permissions/defaults.ts` | Default permissions per role |
+| `lib/permissions/service.ts` | Server-side permission checking |
+| `lib/permissions/guards.ts` | API route guards (return NextResponse) |
+| `lib/permissions/action-guards.ts` | Server action guards (return error objects) |
+| `lib/permissions/action-permissions.ts` | Action permission definitions |
+| `lib/permissions/action-service.ts` | Action permission checking logic |
+| `lib/permissions/hooks.ts` | Client-side `usePermissions()` hook |
+| `lib/permissions/components.tsx` | `<PermissionGate>` component |
+
+## Server Action Guards
+
+```typescript
+import { requireAction, requireActionOnEntity } from "@/lib/permissions/action-guards";
+
+// Basic permission check
+const guard = await requireAction("client:create");
+if (guard) return guard; // Returns null if allowed, error if denied
+
+// Permission with ownership check
+const guard = await requireActionOnEntity(
+  "property:update",
+  "property",
+  propertyId,
+  property.assigned_to
+);
+if (guard) return guard;
+```
+
+## API Route Guards
+
+```typescript
+import { handleGuardError } from "@/lib/permissions/action-guards";
+
+const guard = await requireAction("admin:manage_webhooks");
+if (guard) return handleGuardError(guard); // Converts to NextResponse
+```
+
+## Client-Side Permission Checks
+
+```typescript
+import { usePermissions } from "@/lib/permissions/hooks";
+
+function MyComponent() {
+  const { can } = usePermissions();
+  if (!can("client:create")) return null;
+  return <Button>Create Client</Button>;
+}
+```
+
+```typescript
+import { PermissionGate } from "@/lib/permissions/components";
+
+<PermissionGate action="property:delete">
+  <DeleteButton />
+</PermissionGate>
+```
+
+## Adding New Permissions
+
+1. Define the action in `lib/permissions/action-permissions.ts`
+2. Add defaults for each role in `lib/permissions/defaults.ts`
+3. Use `requireAction("feature:action")` in server actions
+4. Use `<PermissionGate action="feature:action">` in UI
+5. Test with each role level (OWNER, LEAD, MEMBER, VIEWER)
+
+## Custom Organization Permissions
+
+Organizations can override defaults:
+- Stored in `OrganizationRolePermission` table
+- User-level overrides via `UserModuleAccess` table
+- Checked automatically by the permission service
+
+## Platform Admin
+
+Platform admin access is separate from org roles:
+- Check `isPlatformAdmin: true` in Clerk `privateMetadata`
+- Or match email against `PLATFORM_ADMIN_EMAILS` env var
+- Required for routes under `/api/platform-admin/*` and `/app/platform-admin/*`

@@ -1,0 +1,190 @@
+---
+description: Navigation link validator — checks all URLs, buttons, and hyperlinks resolve to actual pages. Triggered when navigation config, sidebar, breadcrumbs, or link components are modified.
+globs: config/navigation.tsx, navigation.ts, lib/navigation/**/*.ts, components/nav-*.tsx, components/GlobalSearch.tsx, components/ai/CommandPalette.tsx, components/notifications/NotificationPopover.tsx, components/providers/KeyboardShortcutsProvider.tsx, app/**/components/*Sidebar*.tsx, app/**/components/*Breadcrumb*.tsx, app/**/components/menu-items/**/*.tsx
+alwaysApply: false
+---
+
+# Navigation Link Validator
+
+When any navigation-related file is modified, audit ALL links, buttons, and router calls to verify they resolve to actual pages.
+
+## Validation Procedure
+
+### Step 1: Identify All Navigation Targets
+
+Scan the modified file(s) for every navigation target:
+
+- `<Link href="...">` (both `@/navigation` and `next/link`)
+- `router.push("...")` / `router.replace("...")`
+- `redirect("...")`
+- `href` props on `<Button asChild>`, `<DropdownMenuItem>`, `<a>` tags
+- `path` or `url` properties in navigation config objects
+- Template literals constructing routes: `` `/app/${...}` ``
+
+### Step 2: Validate Against Route Registry
+
+Every static route MUST resolve to a valid `page.tsx` in the app router. Check against this registry:
+
+#### Main App Routes (`/app/...`)
+
+| Route | Page File |
+|-------|-----------|
+| `/app` | `app/[locale]/app/(routes)/page.tsx` (Dashboard) |
+| `/app/crm` | `app/[locale]/app/(routes)/crm/page.tsx` |
+| `/app/crm/clients` | `app/[locale]/app/(routes)/crm/clients/page.tsx` |
+| `/app/crm/clients/[clientId]` | `app/[locale]/app/(routes)/crm/clients/[clientId]/page.tsx` |
+| `/app/mls` | `app/[locale]/app/(routes)/mls/page.tsx` |
+| `/app/mls/properties` | `app/[locale]/app/(routes)/mls/properties/page.tsx` |
+| `/app/mls/properties/[propertyId]` | `app/[locale]/app/(routes)/mls/properties/[propertyId]/page.tsx` |
+| `/app/mls/listings` | `app/[locale]/app/(routes)/mls/listings/page.tsx` |
+| `/app/calendar` | `app/[locale]/app/(routes)/calendar/page.tsx` |
+| `/app/calendar/events/[id]` | `app/[locale]/app/(routes)/calendar/events/[id]/page.tsx` |
+| `/app/documents` | `app/[locale]/app/(routes)/documents/page.tsx` |
+| `/app/documents/[documentId]` | `app/[locale]/app/(routes)/documents/[documentId]/page.tsx` |
+| `/app/documents/create/[templateType]` | `app/[locale]/app/(routes)/documents/create/[templateType]/page.tsx` |
+| `/app/documents/editor` | `app/[locale]/app/(routes)/documents/editor/page.tsx` |
+| `/app/messages` | `app/[locale]/app/(routes)/messages/page.tsx` |
+| `/app/feed` | `app/[locale]/app/(routes)/feed/page.tsx` |
+| `/app/social-feed` | `app/[locale]/app/(routes)/social-feed/page.tsx` |
+| `/app/connections` | `app/[locale]/app/(routes)/connections/page.tsx` |
+| `/app/audiences` | `app/[locale]/app/(routes)/audiences/page.tsx` |
+| `/app/shared-with-me` | `app/[locale]/app/(routes)/shared-with-me/page.tsx` |
+| `/app/deals` | `app/[locale]/app/(routes)/deals/page.tsx` |
+| `/app/deals/[dealId]` | `app/[locale]/app/(routes)/deals/[dealId]/page.tsx` |
+| `/app/reports` | `app/[locale]/app/(routes)/reports/page.tsx` |
+| `/app/matchmaking` | `app/[locale]/app/(routes)/matchmaking/page.tsx` |
+| `/app/market-intelligence` | `app/[locale]/app/(routes)/market-intelligence/page.tsx` |
+| `/app/market-intelligence/listings` | `app/[locale]/app/(routes)/market-intelligence/listings/page.tsx` |
+| `/app/market-intelligence/price-tracker` | `app/[locale]/app/(routes)/market-intelligence/price-tracker/page.tsx` |
+| `/app/market-intelligence/opportunities` | `app/[locale]/app/(routes)/market-intelligence/opportunities/page.tsx` |
+| `/app/market-intelligence/settings` | `app/[locale]/app/(routes)/market-intelligence/settings/page.tsx` |
+| `/app/ai` | `app/[locale]/app/(routes)/ai/page.tsx` |
+| `/app/profile` | `app/[locale]/app/(routes)/profile/page.tsx` |
+| `/app/profile/social` | `app/[locale]/app/(routes)/profile/social/page.tsx` |
+| `/app/admin` | `app/[locale]/app/(routes)/admin/page.tsx` |
+| `/app/admin/users` | `app/[locale]/app/(routes)/admin/users/page.tsx` |
+| `/app/admin/roles` | `app/[locale]/app/(routes)/admin/roles/page.tsx` |
+| `/app/admin/api-keys` | `app/[locale]/app/(routes)/admin/api-keys/page.tsx` |
+| `/app/admin/ai-settings` | `app/[locale]/app/(routes)/admin/ai-settings/page.tsx` |
+| `/app/admin/n8n` | `app/[locale]/app/(routes)/admin/n8n/page.tsx` |
+| `/app/admin/tags` | `app/[locale]/app/(routes)/admin/tags/page.tsx` |
+| `/app/admin/xe-integration` | `app/[locale]/app/(routes)/admin/xe-integration/page.tsx` |
+| `/app/employees` | `app/[locale]/app/(routes)/employees/page.tsx` |
+| `/app/emails` | `app/[locale]/app/(routes)/emails/page.tsx` |
+| `/app/notifications` | `app/[locale]/app/(routes)/notifications/page.tsx` |
+| `/app/referral-portal` | `app/[locale]/app/(routes)/referral-portal/page.tsx` |
+| `/app/create-organization` | `app/[locale]/app/(routes)/create-organization/page.tsx` |
+| `/app/feedback/[feedbackId]` | `app/[locale]/app/(routes)/feedback/[feedbackId]/page.tsx` |
+
+#### Platform Admin Routes (`/app/platform-admin/...`)
+
+| Route | Page File |
+|-------|-----------|
+| `/app/platform-admin` | `app/[locale]/app/(platform_admin)/platform-admin/page.tsx` |
+| `/app/platform-admin/users` | `.../platform-admin/users/page.tsx` |
+| `/app/platform-admin/organizations` | `.../platform-admin/organizations/page.tsx` |
+| `/app/platform-admin/referrals` | `.../platform-admin/referrals/page.tsx` |
+| `/app/platform-admin/feedback` | `.../platform-admin/feedback/page.tsx` |
+| `/app/platform-admin/blog` | `.../platform-admin/blog/page.tsx` |
+| `/app/platform-admin/newsletter` | `.../platform-admin/newsletter/page.tsx` |
+| `/app/platform-admin/social` | `.../platform-admin/social/page.tsx` |
+| `/app/platform-admin/automation` | `.../platform-admin/automation/page.tsx` |
+| `/app/platform-admin/changelog` | `.../platform-admin/changelog/page.tsx` |
+| `/app/platform-admin/settings` | `.../platform-admin/settings/page.tsx` |
+| `/app/platform-admin/api-keys` | `.../platform-admin/api-keys/page.tsx` |
+| `/app/platform-admin/logbook` | `.../platform-admin/logbook/page.tsx` |
+| `/app/platform-admin/ai-prompts` | `.../platform-admin/ai-prompts/page.tsx` |
+| `/app/platform-admin/ai-agents` | `.../platform-admin/ai-agents/page.tsx` |
+| `/app/platform-admin/ai-tools` | `.../platform-admin/ai-tools/page.tsx` |
+
+#### Public Routes
+
+| Route | Page File |
+|-------|-----------|
+| `/agent/[slug]` | `app/[locale]/(public)/agent/[slug]/page.tsx` |
+| `/property/[propertyId]` | `app/[locale]/(public)/property/[propertyId]/page.tsx` |
+| `/post/[postId]` | `app/[locale]/(public)/post/[postId]/page.tsx` |
+
+#### Auth Routes
+
+| Route | Page File |
+|-------|-----------|
+| `/app/sign-in` | `app/[locale]/app/(auth)/sign-in/[[...rest]]/page.tsx` |
+| `/app/register` | `app/[locale]/app/(auth)/register/[[...rest]]/page.tsx` |
+| `/app/pending` | `app/[locale]/app/(auth)/pending/page.tsx` |
+| `/app/inactive` | `app/[locale]/app/(auth)/inactive/page.tsx` |
+
+#### Legal / Landing Routes
+
+| Route | Page File |
+|-------|-----------|
+| `/legal/privacy-policy` | `app/[locale]/(landing)/legal/privacy-policy/page.tsx` |
+| `/legal/terms-of-service` | `app/[locale]/(landing)/legal/terms-of-service/page.tsx` |
+| `/legal/gdpr` | `app/[locale]/(landing)/legal/gdpr/page.tsx` |
+| `/legal/cookie-policy` | `app/[locale]/(landing)/legal/cookie-policy/page.tsx` |
+| `/legal/accessibility` | `app/[locale]/(landing)/legal/accessibility/page.tsx` |
+
+### Step 3: Validate Dynamic Routes
+
+For routes with parameters (e.g., `/app/crm/clients/[clientId]`):
+- Verify the template literal uses a valid variable that resolves to a real ID
+- Ensure the dynamic segment matches the folder name in brackets (`[clientId]`, `[propertyId]`, `[id]`)
+- Check that the entity type matches the route (e.g., property IDs go to property routes, not client routes)
+
+### Step 4: Check Locale Handling
+
+- Links using `<Link>` from `@/navigation` auto-inject the locale prefix — these are CORRECT
+- Links using `next/link` directly or `router.push()` from `next/navigation` need manual locale prefix: `/${locale}/app/...`
+- **Preferred**: Always use `<Link>` and `useRouter()` from `@/navigation` (the locale-aware wrappers)
+- Flag any usage of `next/link` or `next/navigation` router in app routes — suggest switching to `@/navigation`
+
+### Step 5: Check for Broken Patterns
+
+Flag these common errors:
+
+| Issue | Example | Fix |
+|-------|---------|-----|
+| Missing `/app` prefix | `href="/crm"` | `href="/app/crm"` |
+| Hardcoded locale | `href="/el/app/crm"` | Use `<Link>` from `@/navigation` |
+| Non-existent route | `href="/app/settings"` | Check registry — should be `/app/admin` |
+| Wrong entity route | `router.push(\`/app/properties/${id}\`)` | Should be `/app/mls/properties/${id}` |
+| Missing dynamic segment | `href="/app/crm/clients/"` | Needs client ID: `/app/crm/clients/${id}` |
+| Trailing slash inconsistency | `href="/app/crm/"` vs `href="/app/crm"` | Remove trailing slash |
+| Using `next/link` in app routes | `import Link from "next/link"` | `import { Link } from "@/navigation"` |
+| Using `next/navigation` router | `import { useRouter } from "next/navigation"` | `import { useRouter } from "@/navigation"` |
+
+## Report Format
+
+When issues are found, report them as:
+
+```
+NAVIGATION AUDIT
+================
+File: [filename]
+Links checked: [count]
+Issues found: [count]
+
+BROKEN LINKS:
+1. Line [X]: href="/app/settings" — Route does not exist. Did you mean "/app/admin"?
+2. Line [Y]: router.push("/crm") — Missing /app prefix. Should be "/app/crm"
+
+LOCALE ISSUES:
+1. Line [Z]: Uses next/link instead of @/navigation Link wrapper
+
+DYNAMIC ROUTE ISSUES:
+1. Line [W]: /app/properties/${id} — Should be /app/mls/properties/${id}
+
+All links valid: [YES/NO]
+```
+
+## Key Navigation Files to Cross-Reference
+
+When modifying navigation, always verify consistency across:
+1. `config/navigation.tsx` — Sidebar menu items
+2. `components/GlobalSearch.tsx` — Quick actions and navigation items
+3. `components/ai/CommandPalette.tsx` — Command palette navigation
+4. `components/providers/KeyboardShortcutsProvider.tsx` — Keyboard shortcut routes
+5. `components/notifications/NotificationPopover.tsx` — Notification click targets
+6. `app/[locale]/app/(routes)/components/DynamicBreadcrumb.tsx` — Breadcrumb routes
+
+If a route is added, renamed, or removed, ALL of these files may need updating.

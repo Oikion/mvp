@@ -1,8 +1,39 @@
 ---
-description: When handling middleware related issues always keep Proxy.ts
+description: Next.js 16 middleware (proxy.ts) patterns — routing, auth, rate limiting, locale handling
 alwaysApply: false
 ---
 
-# Next Version
+# Middleware (proxy.ts) — Next.js 16
 
-We are on the latest version of Nextjs, as such the ONLY middleware file we need is the 'proxy.ts', not middleware.ts. If both files exist we get errors. We need to keep only Proxy.ts ALWAYS!
+## CRITICAL: File Convention
+
+Next.js 16 renamed `middleware.ts` to `proxy.ts`. The ONLY middleware file is `proxy.ts` in the project root. If `middleware.ts` exists alongside `proxy.ts`, the app will error. ALWAYS use `proxy.ts`.
+
+The export is `proxy()` (not `middleware()`), and it runs in the Node.js runtime by default (not Edge).
+
+## What proxy.ts Handles
+
+1. **Clerk authentication** — `clerkMiddleware()` integration for session management
+2. **Locale routing** — next-intl routes to `/:locale/` (Greek `el` default, English `en`)
+3. **Platform admin protection** — Checks `isPlatformAdmin` flag on admin routes
+4. **External API routing** — `/api/v1/*` routes use API key auth (not Clerk sessions)
+5. **Rate limiting** — Tiered limits (strict, default, lenient, burst, api)
+6. **Public route exclusions** — Webhooks, health checks, static assets bypass auth
+
+## Rate Limiting Tiers
+
+| Tier | Limit | Routes |
+|------|-------|--------|
+| `strict` | 10 req/min | Auth endpoints, password reset |
+| `default` | 60 req/min | General API routes |
+| `lenient` | 120 req/min | Read-heavy endpoints |
+| `burst` | 30 req/10s | File uploads |
+| `api` | 100 req/min | External API (`/api/v1/*`) |
+
+## When Modifying proxy.ts
+
+- Test thoroughly — middleware affects ALL routes
+- Don't add heavy processing — middleware runs on every request
+- Keep external API routes (`/api/v1/*`) separate from Clerk-authenticated routes
+- Preserve the development fast path for HMR (Hot Module Replacement)
+- Never remove the locale routing logic — it breaks all page navigation

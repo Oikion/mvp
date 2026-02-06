@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { BadgeProps } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -45,13 +46,15 @@ interface MatchmakingWidgetProps {
 }
 
 const getScoreColor = (score: number): string => {
-  if (score >= 85) return "text-green-500";
-  if (score >= 70) return "text-emerald-500";
-  if (score >= 50) return "text-yellow-500";
-  return "text-orange-500";
+  if (score >= 85) return "text-success";
+  if (score >= 70) return "text-info";
+  if (score >= 50) return "text-warning";
+  return "text-muted-foreground";
 };
 
-const getScoreBadgeVariant = (score: number): string => {
+type BadgeVariant = BadgeProps["variant"];
+
+const getScoreBadgeVariant = (score: number): BadgeVariant => {
   if (score >= 85) return "success";
   if (score >= 70) return "info";
   if (score >= 50) return "warning";
@@ -132,8 +135,8 @@ export const MatchmakingWidget: React.FC<MatchmakingWidgetProps> = ({
                           </div>
                         )}
                         {index < 3 && (
-                          <div className="absolute -top-1 -left-1 h-4 w-4 rounded-full bg-orange-500 flex items-center justify-center">
-                            <Flame className="h-2.5 w-2.5 text-white" />
+                          <div className="absolute -top-1 -left-1 h-4 w-4 rounded-full bg-warning flex items-center justify-center">
+                            <Flame className="h-2.5 w-2.5 text-warning-foreground" />
                           </div>
                         )}
                       </div>
@@ -185,10 +188,7 @@ export const MatchmakingWidget: React.FC<MatchmakingWidgetProps> = ({
                           → {match.propertyName}
                         </p>
                       </div>
-                      <Badge
-                        variant={getScoreBadgeVariant(match.overallScore) as any}
-                        className="text-xs shrink-0"
-                      >
+                      <Badge variant={getScoreBadgeVariant(match.overallScore)} className="text-xs shrink-0">
                         {Math.round(match.overallScore)}%
                       </Badge>
                     </Link>

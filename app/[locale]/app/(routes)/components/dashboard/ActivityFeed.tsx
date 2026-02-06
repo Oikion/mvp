@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { BadgeProps } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -37,7 +38,9 @@ const getActivityIcon = (type: ActivityItem["type"]) => {
   }
 };
 
-const getActionColor = (action: ActivityItem["action"]) => {
+type BadgeVariant = BadgeProps["variant"];
+
+const getActionColor = (action: ActivityItem["action"]): BadgeVariant => {
   switch (action) {
     case "created":
       return "success";
@@ -106,10 +109,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities }) => {
                       <p className="text-sm font-medium truncate">
                         {activity.title}
                       </p>
-                      <Badge
-                        variant={getActionColor(activity.action) as any}
-                        className="text-xs shrink-0"
-                      >
+                      <Badge variant={getActionColor(activity.action)} className="text-xs shrink-0">
                         {t(`action.${activity.action}`)}
                       </Badge>
                     </div>

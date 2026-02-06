@@ -1,0 +1,103 @@
+---
+description: Prisma 6 schema conventions for Oikion database models
+globs: prisma/**/*
+alwaysApply: false
+---
+
+# Prisma Schema Conventions (Prisma 6 / PostgreSQL)
+
+## Database Stack
+
+- **Database**: PostgreSQL (Prisma Postgres hosting, pooled connections).
+- **ORM**: Prisma 6. Client singleton in `lib/prisma.ts`.
+- **Connection**: Use a pooled `DATABASE_URL` (e.g. Prisma Postgres or Prisma Accelerate from Prisma Data Platform) at runtime to reduce connection churn and "This request must be retried" warnings on first request after idle. Prisma retries failed attempts automatically; pooled URLs minimize those failures.
+
+## Model Structure
+
+Every tenant-scoped model MUST follow this pattern:
+
+```prisma
+model EntityName {
+  id             String   @id @default(cuid())
+  organizationId String
+  // ... entity fields ...
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+  @@map("entity_names")  // plural snake_case table name
+}
+```
+
+## Required Fields for Tenant Models
+
+- `id String @id @default(cuid())` — use CUID for all primary keys
+- `organizationId String` — tenant isolation field (MANDATORY for all tenant-scoped data)
+- `createdAt DateTime @default(now())` — creation timestamp
+- `updatedAt DateTime @updatedAt` — auto-updated modification timestamp
+- `@@index([organizationId])` — index for efficient tenant-scoped queries
+
+## Naming Conventions
+
+| Element | Convention | Example |
+|---------|-----------|---------|
+| Model name | PascalCase, singular | `Property`, `CalendarEvent` |
+| Field name | camelCase | `clientName`, `assignedTo` |
+| Enum name | PascalCase | `PropertyStatus`, `DealStatus` |
+| Enum value | UPPER_SNAKE_CASE | `FOR_SALE`, `PENDING_REVIEW` |
+| Table mapping | plural snake_case | `@@map("calendar_events")` |
+| Column mapping | snake_case (when needed) | `@map("assigned_to")` |
+
+## Relations
+
+- Use descriptive relation names: `assignedToUser Users @relation("AssignedToUser")`
+- Always define both sides of a relation
+- Use `onDelete: Cascade` for child entities that shouldn't exist without parent
+- Use `onDelete: SetNull` when orphan records are acceptable
+
+## Indexes
+
+- Always index `organizationId` on tenant-scoped models
+- Add compound indexes for common query patterns: `@@index([organizationId, status])`
+- Add unique constraints for business rules: `@@unique([organizationId, email])`
+
+## Enums
+
+```prisma
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  UNDER_OFFER
+  SOLD
+  ARCHIVED
+}
+```
+
+- Use PascalCase for enum type names
+- Use UPPER_SNAKE_CASE for enum values
+- Add new values at the end to avoid migration issues in production
+
+## Schema Change Workflow
+
+1. Edit `prisma/schema.prisma`
+2. Recommend the user run `pnpm prisma generate` to regenerate the Prisma client (do not run it yourself)
+3. Recommend the user run `pnpm prisma db push` to apply changes to the database (do not run it yourself)
+4. Update related Zod validation schemas in `lib/validations/`
+5. Update affected server actions and API routes
+6. Update SWR hooks if API response shapes changed
+
+## Prisma 6 Specifics
+
+- `auth()` is async in Clerk v6 / Next.js 16 — always `await auth()`
+- Implicit m-n relations use a primary key (not unique index) on the join table
+- Use `relationLoadStrategy: "join"` for performance when fetching related data
+- Nested creates are batched into single INSERT roundtrips in Prisma 6
+- Minimum Node.js: 18.18.0, 20.9.0, or 22.11.0
+- Minimum TypeScript: 5.1.0
+
+## Anti-Patterns
+
+- NEVER use `$executeRawUnsafe()` or `$queryRawUnsafe()` — SQL injection risk
+- NEVER delete fields in production without a migration plan — mark deprecated first
+- NEVER create a tenant-scoped model without `organizationId`
+- Avoid `findUnique` without `organizationId` in the where clause — cross-tenant risk

@@ -25,6 +25,8 @@ import { StatsChart } from "./StatsChart";
 import { StatsCard } from "@/components/ui/stats-card";
 import { FinancialReportDialog } from "@/components/dashboard/FinancialReportDialog";
 import { Button } from "@/components/ui/button";
+import type { ActivityItem } from "@/actions/feed/get-recent-activities";
+import type { UpcomingEvent } from "@/actions/dashboard/get-upcoming-events";
 
 // Types for trend data
 type TrendDirection = "up" | "down" | "neutral";
@@ -40,8 +42,8 @@ interface DashboardData {
     name: string | null;
   };
   users: number;
-  recentClients: any[];
-  recentProperties: any[];
+  recentClients: Array<Record<string, unknown>>;
+  recentProperties: Array<Record<string, unknown>>;
   clientsByStatus: { name: string; value: number }[];
   propertiesByStatus: { name: string; value: number }[];
   propertiesCount: number;
@@ -52,16 +54,21 @@ interface DashboardData {
   clientsTrend: TrendData;
   propertiesTrend: TrendData;
   usersTrend: TrendData;
-  upcomingEvents: any[];
-  recentDocuments: any[];
-  recentActivities: any[];
-  conversations: any[];
+  upcomingEvents: UpcomingEvent[];
+  recentDocuments: Array<Record<string, unknown>>;
+  recentActivities: ActivityItem[];
+  conversations: Array<Record<string, unknown>>;
 }
 
 interface DashboardContentProps {
   data: DashboardData;
   initialConfig: DashboardConfig | null;
-  dict: Record<string, any>;
+  dict: DashboardDictionaryContainer;
+}
+
+type DashboardDictionary = Record<string, string>;
+interface DashboardDictionaryContainer {
+  dashboard: DashboardDictionary;
 }
 
 /**
@@ -69,7 +76,7 @@ interface DashboardContentProps {
  * 
  * The actual dashboard grid that uses the dashboard config context.
  */
-function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; dict: Record<string, any> }>) {
+function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; dict: DashboardDictionaryContainer }>) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
 

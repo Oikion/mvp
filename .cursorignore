@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+
+# Database migrations (auto-generated, large)
+prisma/migrations/
+
+# Test artifacts
+cypress/videos/
+cypress/screenshots/
+
+# Logs
+*.log
+.cursor/debug.log
+
+# Worker services (separate builds)
+services/
+
+# Generated files
+*.generated.*

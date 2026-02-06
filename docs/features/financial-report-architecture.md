@@ -392,7 +392,7 @@ Catch Block
 │                     │                              │
 │                     ▼                              │
 │  ┌──────────────────────────────────────────┐     │
-│  │  PostgreSQL Database (Neon)              │     │
+│  │  PostgreSQL Database (Prisma Postgres)    │     │
 │  │                                           │     │
 │  │  • Deals                                  │     │
 │  │  • Properties                             │     │

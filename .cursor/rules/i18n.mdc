@@ -1,0 +1,99 @@
+---
+description: Internationalization rules for Oikion — next-intl patterns, dual locale requirement
+globs: locales/**/*.json, app/[locale]/**/*.tsx, app/[locale]/**/*.ts
+alwaysApply: false
+---
+
+# Internationalization (next-intl)
+
+## Locale Configuration
+
+- **Default locale**: Greek (`el`)
+- **Available locales**: `el` (Greek), `en` (English)
+- **Config file**: `i18n.ts` (loads all translation files statically)
+- **Translation files**: `locales/{el,en}/*.json`
+
+## CRITICAL: Dual Locale Requirement
+
+When adding or modifying user-facing strings:
+1. Add the key to `locales/el/{namespace}.json` (Greek — primary)
+2. Add the key to `locales/en/{namespace}.json` (English — secondary)
+3. Both files MUST have the same keys — missing keys cause runtime errors
+
+## Usage in Components
+
+### Server Components (preferred — zero client-side cost)
+
+```typescript
+import { useTranslations } from "next-intl";
+
+export default function PropertyList() {
+  const t = useTranslations("mls");
+  return <h1>{t("properties.title")}</h1>;
+}
+```
+
+Messages stay on the server — no bundle cost.
+
+### Client Components
+
+```typescript
+"use client";
+import { useTranslations } from "next-intl";
+
+export function SearchBar() {
+  const t = useTranslations("common");
+  return <input placeholder={t("search.placeholder")} />;
+}
+```
+
+### Server Actions & Route Handlers
+
+```typescript
+import { getTranslations } from "next-intl/server";
+
+export async function createClient(data: ClientData) {
+  const t = await getTranslations("crm");
+  // Use t("client.created") for success message
+}
+```
+
+## Namespace Convention
+
+Namespace names match JSON filenames:
+- `useTranslations("common")` → `locales/el/common.json`
+- `useTranslations("crm")` → `locales/el/crm.json`
+- `useTranslations("mls")` → `locales/el/mls.json`
+- `useTranslations("admin")` → `locales/el/admin.json`
+- `useTranslations("validation")` → `locales/el/validation.json`
+
+## Translation Key Naming
+
+- Use dot-separated descriptive keys: `crm.client.form.firstName`
+- Group by feature, then entity, then context: `{feature}.{entity}.{context}.{field}`
+- Keep keys readable: `mls.property.status.forSale` not `mls.p.s.fs`
+
+## Formatting
+
+- **Dates**: Use `useFormatter()` from next-intl, not `toLocaleDateString()`
+- **Numbers**: Use `useFormatter()` for currency and number formatting
+- **Pluralization**: Use ICU message format: `{count, plural, one {# item} other {# items}}`
+
+```typescript
+const format = useFormatter();
+format.dateTime(date, { dateStyle: "medium" });
+format.number(price, { style: "currency", currency: "EUR" });
+```
+
+## Route Structure
+
+Routes are locale-prefixed: `/el/app/dashboard`, `/en/app/dashboard`
+- Locale is extracted from the URL by `proxy.ts` middleware
+- next-intl provides the locale to components via provider
+
+## Anti-Patterns
+
+- NEVER hardcode Greek or English strings in components
+- NEVER use `date.toLocaleDateString()` — use next-intl formatters
+- NEVER create a new namespace JSON file without adding it to both `el/` and `en/`
+- NEVER use string concatenation for translated sentences — use ICU message format with variables
