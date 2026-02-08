@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(appBaseUrl),
+};
+
 /**
  * Root layout for app directory
  * This is a minimal layout for redirect-only pages (app/page.tsx, app/dashboard/page.tsx)

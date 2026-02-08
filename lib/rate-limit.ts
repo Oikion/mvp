@@ -213,6 +213,9 @@ export function getRateLimitTier(pathname: string): RateLimitTier {
     '/api/upload',
     '/api/documents/upload',
     '/api/profile/upload',
+    '/api/messaging/messages', // Real-time messaging needs burst capacity
+    '/api/messaging/reactions',
+    '/api/messaging/typing',
   ];
   
   if (burstPaths.some(path => pathname.startsWith(path))) {

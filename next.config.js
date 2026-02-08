@@ -35,6 +35,8 @@ const nextConfig = {
     // keep external to prevent build failures when not installed
     "playwright",
     "playwright-core",
+    // SVGO uses dynamic requires; keep it external to avoid webpack warnings
+    "svgo",
   ],
   
   // Transpile packages configuration

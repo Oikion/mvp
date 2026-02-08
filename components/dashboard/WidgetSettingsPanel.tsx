@@ -89,7 +89,7 @@ function SortableWidgetRow({
 
   // Get the icon component dynamically
   const IconComponent =
-    (LucideIcons as Record<string, ComponentType<{ className?: string }>>)[
+    (LucideIcons as unknown as Record<string, ComponentType<{ className?: string }>>)[
       metadata.icon
     ] || Settings2;
   const widgetName = t(metadata.nameKey);

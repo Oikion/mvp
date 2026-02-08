@@ -18,6 +18,14 @@ interface AgentPageProps {
 // Generate static params for ISR optimization
 // Note: [slug] route parameter now represents the username
 export async function generateStaticParams() {
+  // Skip DB queries during build when using direct connection (--no-engine build).
+  // The no-engine Prisma client requires prisma:// or prisma+postgres:// protocol.
+  // On Vercel, DATABASE_URL will be the Accelerate URL so this will run normally.
+  const dbUrl = process.env.DATABASE_URL || "";
+  if (!dbUrl.startsWith("prisma://") && !dbUrl.startsWith("prisma+postgres://")) {
+    return [];
+  }
+
   try {
     const profiles = await prismadb.agentProfile.findMany({
       where: {

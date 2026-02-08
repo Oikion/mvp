@@ -20,6 +20,14 @@ interface OrgPropertyPageProps {
 
 // Generate static params for ISR optimization
 export async function generateStaticParams() {
+  // Skip DB queries during build when using direct connection (--no-engine build).
+  // The no-engine Prisma client requires prisma:// or prisma+postgres:// protocol.
+  // On Vercel, DATABASE_URL will be the Accelerate URL so this will run normally.
+  const dbUrl = process.env.DATABASE_URL || "";
+  if (!dbUrl.startsWith("prisma://") && !dbUrl.startsWith("prisma+postgres://")) {
+    return [];
+  }
+
   try {
     const organizations = await getOrganizationsWithPublicProperties();
     const params: { org_username: string; propertyId: string; locale: string }[] = [];

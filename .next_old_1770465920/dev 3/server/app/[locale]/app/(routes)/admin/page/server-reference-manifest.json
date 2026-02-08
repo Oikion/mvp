@@ -1,0 +1,155 @@
+{
+  "node": {
+    "7f1dee92668e0a022f225536b727717ae5aa85ed12": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "action-browser"
+      },
+      "exportedName": "detectKeylessEnvDriftAction",
+      "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+    },
+    "7f4e09fb2881687fe732cce57b5b91c8d4fa31df95": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "action-browser"
+      },
+      "exportedName": "invalidateCacheAction",
+      "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+    },
+    "7f36ce4ca2fd2b23b15acdb049f8ae15a80c45988f": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "action-browser"
+      },
+      "exportedName": "createOrReadKeylessAction",
+      "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+    },
+    "400aa29a8e811d90bdfd918c0012645f096d49851f": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteUserOwnedOrganizations",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "rsc"
+      },
+      "exportedName": "deleteUserOwnedOrganizations",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "407e65d15f83aefa1e28ae1502149d115ea3757d50": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateUserLastLogin",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "rsc"
+      },
+      "exportedName": "updateUserLastLogin",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "408a056d08c5c6050e343ff1d78ebc88cbc58a26c8": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteOrganizationBySlug",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "rsc"
+      },
+      "exportedName": "deleteOrganizationBySlug",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "40ca9e9145e72bc4bc8b843dd7d8a7c329dfb54944": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncClerkUser",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "rsc"
+      },
+      "exportedName": "syncClerkUser",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "40d24101b99c549715a9ebdf82845e1264624d54ef": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteClerkUser",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "rsc"
+      },
+      "exportedName": "deleteClerkUser",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "00c789b5f84f531f6d90d470a13da8f44d1e5b0200": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "ensurePersonalWorkspace",
+          "filename": "actions/organization/ensure-personal-workspace.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "rsc"
+      },
+      "exportedName": "ensurePersonalWorkspace",
+      "filename": "actions/organization/ensure-personal-workspace.ts"
+    },
+    "60bc8fbfd263a02da47f1efec67b9639f97c2654b2": {
+      "workers": {
+        "app/[locale]/app/(routes)/admin/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateOrganizationMetadata",
+          "filename": "actions/organization/update-org-metadata.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/admin/page": "rsc"
+      },
+      "exportedName": "updateOrganizationMetadata",
+      "filename": "actions/organization/update-org-metadata.ts"
+    }
+  },
+  "edge": {}
+}

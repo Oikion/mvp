@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import moment from "moment";
 
-interface Conversation {
+export interface Conversation {
   id: string;
   name: string | null;
   isGroup: boolean;

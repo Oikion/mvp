@@ -97,8 +97,7 @@ export function useUnsavedChanges({
         // Modern browsers show a generic message regardless of returnValue
         e.preventDefault();
         // For older browsers (returnValue is deprecated but still needed for Safari)
-        // eslint-disable-next-line deprecation/deprecation
-        (e as BeforeUnloadEvent).returnValue = message;
+        e.returnValue = message;
         return message;
       }
     };

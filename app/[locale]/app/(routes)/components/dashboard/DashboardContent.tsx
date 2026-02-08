@@ -27,6 +27,9 @@ import { FinancialReportDialog } from "@/components/dashboard/FinancialReportDia
 import { Button } from "@/components/ui/button";
 import type { ActivityItem } from "@/actions/feed/get-recent-activities";
 import type { UpcomingEvent } from "@/actions/dashboard/get-upcoming-events";
+import type { RecentDocument } from "@/actions/dashboard/get-recent-documents";
+import type { Conversation } from "./RecentMessages";
+import type { QuickViewItem } from "./QuickViewList";
 
 // Types for trend data
 type TrendDirection = "up" | "down" | "neutral";
@@ -55,7 +58,7 @@ interface DashboardData {
   propertiesTrend: TrendData;
   usersTrend: TrendData;
   upcomingEvents: UpcomingEvent[];
-  recentDocuments: Array<Record<string, unknown>>;
+  recentDocuments: RecentDocument[];
   recentActivities: ActivityItem[];
   conversations: Array<Record<string, unknown>>;
 }
@@ -69,6 +72,7 @@ interface DashboardContentProps {
 type DashboardDictionary = Record<string, string>;
 interface DashboardDictionaryContainer {
   dashboard: DashboardDictionary;
+  [key: string]: unknown;
 }
 
 /**
@@ -195,7 +199,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
       case "recent-messages":
         return wrapContent(
           <RecentMessages
-            conversations={data.conversations}
+            conversations={data.conversations as unknown as Conversation[]}
             currentUserId={data.user.id}
           />
         );
@@ -224,7 +228,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         return wrapContent(
           <QuickViewList
             title={dict.dashboard.recentClients}
-            items={data.recentClients}
+            items={data.recentClients as unknown as QuickViewItem[]}
             viewAllHref={`/${locale}/app/crm`}
             icon={<Users className="h-5 w-5 text-muted-foreground" />}
           />
@@ -234,7 +238,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         return wrapContent(
           <QuickViewList
             title={dict.dashboard.recentProperties}
-            items={data.recentProperties}
+            items={data.recentProperties as unknown as QuickViewItem[]}
             viewAllHref={`/${locale}/app/mls`}
             icon={<Building2 className="h-5 w-5 text-muted-foreground" />}
           />

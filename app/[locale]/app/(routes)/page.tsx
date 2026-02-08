@@ -140,7 +140,7 @@ const DashboardPage = async ({ params }: { params: Promise<{ locale: string }> }
       <DashboardContent
         data={dashboardData}
         initialConfig={dashboardConfig}
-        dict={dict}
+        dict={dict as { dashboard: Record<string, string>; [key: string]: unknown }}
       />
     </Container>
   );

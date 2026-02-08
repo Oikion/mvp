@@ -278,5 +278,5 @@ export function getRequiredDataKeys(config: DashboardConfig): string[] {
       }
     }
   }
-  return [...keys];
+  return Array.from(keys);
 }

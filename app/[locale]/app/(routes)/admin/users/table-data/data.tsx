@@ -29,3 +29,15 @@ export const roles = [
     icon: StopIcon,
   },
 ];
+export const isAdmin = [
+  {
+    value: "true",
+    label: "Yes",
+    icon: PlayIcon,
+  },
+  {
+    value: "false",
+    label: "No",
+    icon: StopIcon,
+  },
+];

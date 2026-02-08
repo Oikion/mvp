@@ -13,9 +13,9 @@ declare global {
 
 function createPrismaClient(): ExtendedPrismaClient {
   const basePrisma = new PrismaClient({
-    // Log errors in production, more verbose in development
+    // Log errors and warnings only (no query spam)
     log: process.env.NODE_ENV === "development" 
-      ? ["query", "error", "warn"] 
+      ? ["error", "warn"] 
       : ["error"],
   });
   

@@ -1,0 +1,1025 @@
+{
+  "node": {
+    "7f1dee92668e0a022f225536b727717ae5aa85ed12": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "action-browser"
+      },
+      "exportedName": "detectKeylessEnvDriftAction",
+      "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+    },
+    "7f4e09fb2881687fe732cce57b5b91c8d4fa31df95": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "action-browser"
+      },
+      "exportedName": "invalidateCacheAction",
+      "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+    },
+    "7f36ce4ca2fd2b23b15acdb049f8ae15a80c45988f": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "action-browser"
+      },
+      "exportedName": "createOrReadKeylessAction",
+      "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+    },
+    "400aa29a8e811d90bdfd918c0012645f096d49851f": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteUserOwnedOrganizations",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "deleteUserOwnedOrganizations",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "407e65d15f83aefa1e28ae1502149d115ea3757d50": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateUserLastLogin",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "updateUserLastLogin",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "408a056d08c5c6050e343ff1d78ebc88cbc58a26c8": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteOrganizationBySlug",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "deleteOrganizationBySlug",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "40ca9e9145e72bc4bc8b843dd7d8a7c329dfb54944": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncClerkUser",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "syncClerkUser",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "40d24101b99c549715a9ebdf82845e1264624d54ef": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteClerkUser",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "deleteClerkUser",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "00c789b5f84f531f6d90d470a13da8f44d1e5b0200": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "ensurePersonalWorkspace",
+          "filename": "actions/organization/ensure-personal-workspace.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "ensurePersonalWorkspace",
+      "filename": "actions/organization/ensure-personal-workspace.ts"
+    },
+    "60bc8fbfd263a02da47f1efec67b9639f97c2654b2": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateOrganizationMetadata",
+          "filename": "actions/organization/update-org-metadata.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "updateOrganizationMetadata",
+      "filename": "actions/organization/update-org-metadata.ts"
+    },
+    "40cf7309b44021a399a20e27cf952116b97969524a": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getRecentActivities",
+          "filename": "actions/feed/get-recent-activities.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "getRecentActivities",
+      "filename": "actions/feed/get-recent-activities.ts"
+    },
+    "006e0a5facebe3682663a188ba25ab4b5096e0af41": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserConversations",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "getUserConversations",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "400d44d9a920d829c7bcb292ef19dad06c3ea0421c": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "startClientConversation",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "startClientConversation",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "40599e550d8c502313ba357f5de29a06568b7a67d0": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createGroupConversation",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "createGroupConversation",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "4074ff92b2ce70f9f236d6ae3e38da1fa95408af14": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "startPropertyConversation",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "startPropertyConversation",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "407626b0fd76dfbf1470ff9584b304c67cd3124b22": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "startDirectMessage",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "startDirectMessage",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "4085b17c405a5ab18365bf64ece6776a971417cbe6": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "unmuteConversation",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "unmuteConversation",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "408f513a1eeca4ed44dc675514d56939d4f1f6f3ac": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "leaveConversation",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "leaveConversation",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "40c45c581c0c6d93569ad07dbd0bd64c266dd0c3da": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteConversation",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "deleteConversation",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "60287f137fc8f58d6b12b12ac6e85f4bc4c7331ec1": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getEntityConversations",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "getEntityConversations",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "60c4dc99504333e8912d69f07608114825252e2f46": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "muteConversation",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "muteConversation",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "60c50b225448853613150698002c20b6e32fc168c1": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "addConversationParticipants",
+          "filename": "actions/messaging/direct-messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "addConversationParticipants",
+      "filename": "actions/messaging/direct-messages.ts"
+    },
+    "00310e50388112235933caf9277f15cfaa5f794ee5": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncUserToMessaging",
+          "filename": "actions/messaging/sync-user.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "syncUserToMessaging",
+      "filename": "actions/messaging/sync-user.ts"
+    },
+    "004de8ab188ca4cabf52669d31df51fefb08517279": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getMessagingCredentials",
+          "filename": "actions/messaging/sync-user.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "getMessagingCredentials",
+      "filename": "actions/messaging/sync-user.ts"
+    },
+    "00c83349bf3612279049eddbf379cd305fd56ea990": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "enableUserMessaging",
+          "filename": "actions/messaging/sync-user.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "enableUserMessaging",
+      "filename": "actions/messaging/sync-user.ts"
+    },
+    "4000f274e31d6019a23b1327d029186e07c706b860": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "disableUserMessaging",
+          "filename": "actions/messaging/sync-user.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "disableUserMessaging",
+      "filename": "actions/messaging/sync-user.ts"
+    },
+    "40ef59328d8f484bdb2f83bc5e736bc863375bfb8f": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncOrganizationMembers",
+          "filename": "actions/messaging/sync-user.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "syncOrganizationMembers",
+      "filename": "actions/messaging/sync-user.ts"
+    },
+    "60d18c8cccfbb7dd14f4a40128e80806323053abbd": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateUserPresence",
+          "filename": "actions/messaging/sync-user.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "updateUserPresence",
+      "filename": "actions/messaging/sync-user.ts"
+    },
+    "0093472e10caa63609137300d1dd38b95837f756b0": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getOrganizationChannels",
+          "filename": "actions/messaging/channels.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "getOrganizationChannels",
+      "filename": "actions/messaging/channels.ts"
+    },
+    "40058b75912ba9d88dd6215ee58f30508dac282435": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "archiveChannel",
+          "filename": "actions/messaging/channels.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "archiveChannel",
+      "filename": "actions/messaging/channels.ts"
+    },
+    "40791d8676a149bc0fb3258b0c89fc028f204b1711": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "leaveChannel",
+          "filename": "actions/messaging/channels.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "leaveChannel",
+      "filename": "actions/messaging/channels.ts"
+    },
+    "407cb06755abaedfe73658a6714bad5e14cf00d8bb": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createChannel",
+          "filename": "actions/messaging/channels.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "createChannel",
+      "filename": "actions/messaging/channels.ts"
+    },
+    "40d17cedb640dc817e20bea10b93f9c9f065b579c3": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "joinChannel",
+          "filename": "actions/messaging/channels.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "joinChannel",
+      "filename": "actions/messaging/channels.ts"
+    },
+    "605187e133e5b72baeade9592eb4a7d2e508cb66b9": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createDefaultChannels",
+          "filename": "actions/messaging/channels.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "createDefaultChannels",
+      "filename": "actions/messaging/channels.ts"
+    },
+    "60ac6e4c7b35b5a256262cdf64120e61d54ca9affd": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateChannel",
+          "filename": "actions/messaging/channels.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "updateChannel",
+      "filename": "actions/messaging/channels.ts"
+    },
+    "60b7aa870617b1abf132cc8984f9b63ac7285bd785": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "removeChannelMember",
+          "filename": "actions/messaging/channels.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "removeChannelMember",
+      "filename": "actions/messaging/channels.ts"
+    },
+    "70b390dc6905ae8722182a3a596e3097843efda249": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "addChannelMembers",
+          "filename": "actions/messaging/channels.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "addChannelMembers",
+      "filename": "actions/messaging/channels.ts"
+    },
+    "404794d1623bb1129fb34ad10fc076186502c39836": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "uploadMessageAttachment",
+          "filename": "actions/messaging/attachments.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "uploadMessageAttachment",
+      "filename": "actions/messaging/attachments.ts"
+    },
+    "40768c55f5b20fb20f3b9524b31a4d8025b7f1c01a": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteMessageAttachment",
+          "filename": "actions/messaging/attachments.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "deleteMessageAttachment",
+      "filename": "actions/messaging/attachments.ts"
+    },
+    "4090ba064540e1c85173c1543c56bc2aea6d1433eb": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "searchMentionableUsers",
+          "filename": "actions/messaging/search.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "searchMentionableUsers",
+      "filename": "actions/messaging/search.ts"
+    },
+    "40cf7f7a1a171b12ce84b734eb5820d03e7b3077c4": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "searchMessages",
+          "filename": "actions/messaging/search.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "searchMessages",
+      "filename": "actions/messaging/search.ts"
+    },
+    "00513dfc7fa08c530f74a2973d8db509ffc89fed12": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUnreadCount",
+          "filename": "actions/messaging/messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "getUnreadCount",
+      "filename": "actions/messaging/messages.ts"
+    },
+    "405a63de265e8c423f8425cb5918622430431ec7c2": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getMessages",
+          "filename": "actions/messaging/messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "getMessages",
+      "filename": "actions/messaging/messages.ts"
+    },
+    "40aca8decd98508cc5eb47d43ee88fc9c5f3ba27f9": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "markAsRead",
+          "filename": "actions/messaging/messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "markAsRead",
+      "filename": "actions/messaging/messages.ts"
+    },
+    "40f9cbd0f50a08f08a5b1b54d1b0f197083c0d5a25": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "sendMessage",
+          "filename": "actions/messaging/messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "sendMessage",
+      "filename": "actions/messaging/messages.ts"
+    },
+    "40fdfab081fb66bc3a362fc3b15c9f53d122092a96": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteMessage",
+          "filename": "actions/messaging/messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "deleteMessage",
+      "filename": "actions/messaging/messages.ts"
+    },
+    "6093a4e291f29ca07541e72e3b070fe661a534fa74": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "addReaction",
+          "filename": "actions/messaging/messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "addReaction",
+      "filename": "actions/messaging/messages.ts"
+    },
+    "60b079685e6f4c01adc3551481bbdc8029103d77e5": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "editMessage",
+          "filename": "actions/messaging/messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "editMessage",
+      "filename": "actions/messaging/messages.ts"
+    },
+    "60da70b1f44d56be8ff83bf5e2e11d6ad0967f4b6b": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "removeReaction",
+          "filename": "actions/messaging/messages.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "removeReaction",
+      "filename": "actions/messaging/messages.ts"
+    },
+    "405a6d49be5e9f0383bc8fd27b9548975ab2be7463": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUnreadMessageCount",
+          "filename": "actions/messaging/notifications.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "getUnreadMessageCount",
+      "filename": "actions/messaging/notifications.ts"
+    },
+    "406063709b5c73a12f78c17336306962bc0dfaba30": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "notifyChannelInvite",
+          "filename": "actions/messaging/notifications.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "notifyChannelInvite",
+      "filename": "actions/messaging/notifications.ts"
+    },
+    "4090b441d13abc402710cc8368834fdc471d1808fd": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "markAsRead",
+          "filename": "actions/messaging/notifications.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "markAsRead",
+      "filename": "actions/messaging/notifications.ts"
+    },
+    "40a6ed10da205393e94233f9fa7f8a542bf2d1bee1": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "notifyMention",
+          "filename": "actions/messaging/notifications.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "notifyMention",
+      "filename": "actions/messaging/notifications.ts"
+    },
+    "40ae51ccfabf49fcb5cac3593010aba3fe82b927cb": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "notifyNewMessage",
+          "filename": "actions/messaging/notifications.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "notifyNewMessage",
+      "filename": "actions/messaging/notifications.ts"
+    },
+    "40efa002ab18ab599242c3962bb63118c2946aa829": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "sendMessageEmailNotification",
+          "filename": "actions/messaging/notifications.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "sendMessageEmailNotification",
+      "filename": "actions/messaging/notifications.ts"
+    },
+    "00b957865fa91dd94b3919d8e580523b802eeb28e4": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "isCurrentOrgPersonal",
+          "filename": "lib/personal-workspace-guard.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "isCurrentOrgPersonal",
+      "filename": "lib/personal-workspace-guard.ts"
+    },
+    "40650544228fe9334b8eebdabbbaac801df8b4dedb": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "isOrgPersonal",
+          "filename": "lib/personal-workspace-guard.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "isOrgPersonal",
+      "filename": "lib/personal-workspace-guard.ts"
+    },
+    "6002c7162ec64c9d20c30aa0cccae370ced6b9936b": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "guardPersonalWorkspace",
+          "filename": "lib/personal-workspace-guard.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "guardPersonalWorkspace",
+      "filename": "lib/personal-workspace-guard.ts"
+    },
+    "70b5e58fc6d6c34dda1630952dac27ff08acad541a": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "restorePersonalWorkspaceIfNeeded",
+          "filename": "lib/personal-workspace-guard.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "restorePersonalWorkspaceIfNeeded",
+      "filename": "lib/personal-workspace-guard.ts"
+    },
+    "4077b9b101a102c25d831053c845afd2bea9684cb7": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "uploadDocument",
+          "filename": "actions/upload/upload-document.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "uploadDocument",
+      "filename": "actions/upload/upload-document.ts"
+    },
+    "78271d1e1a2f4df02d646ad9fd4f7808bc603ee74c": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "uploadAvatarFile",
+          "filename": "actions/upload/upload-document.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "uploadAvatarFile",
+      "filename": "actions/upload/upload-document.ts"
+    },
+    "783202027960336f738f7194edb945ed2ced64adcb": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "uploadFeedbackFile",
+          "filename": "actions/upload/upload-document.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "uploadFeedbackFile",
+      "filename": "actions/upload/upload-document.ts"
+    },
+    "7849d4325637160ab986d4a4bd8dc444d14970eca2": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "uploadMessagingAttachment",
+          "filename": "actions/upload/upload-document.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "uploadMessagingAttachment",
+      "filename": "actions/upload/upload-document.ts"
+    },
+    "7869977086aa757f81d1f07250307ff6adc10adac3": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "uploadDocumentFile",
+          "filename": "actions/upload/upload-document.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "uploadDocumentFile",
+      "filename": "actions/upload/upload-document.ts"
+    },
+    "78c7220f51915726698f56d41a71ea38a80b4764da": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "uploadAttachmentFile",
+          "filename": "actions/upload/upload-document.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "uploadAttachmentFile",
+      "filename": "actions/upload/upload-document.ts"
+    },
+    "406a615e2be8a0d798ab61e92d697c00a1b327e7b4": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createNotification",
+          "filename": "actions/notifications/create-notification.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "createNotification",
+      "filename": "actions/notifications/create-notification.ts"
+    },
+    "60438e5ca7c83e9865cf558c0090465ea347c8706e": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createNotificationsForUsers",
+          "filename": "actions/notifications/create-notification.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "rsc"
+      },
+      "exportedName": "createNotificationsForUsers",
+      "filename": "actions/notifications/create-notification.ts"
+    },
+    "002d19c957dee55a5bffd81ef69d2911936d6db976": {
+      "workers": {
+        "app/[locale]/app/(routes)/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/feed/get-recent-activities.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/messaging/direct-messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/messaging/sync-user.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/messaging/channels.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/messaging/attachments.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE10 => \"[project]/actions/messaging/search.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE11 => \"[project]/actions/messaging/messages.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE12 => \"[project]/actions/messaging/notifications.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE13 => \"[project]/lib/personal-workspace-guard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE14 => \"[project]/actions/upload/upload-document.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE15 => \"[project]/actions/notifications/create-notification.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE16 => \"[project]/actions/dashboard/generate-financial-report.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "generateFinancialReport",
+          "filename": "actions/dashboard/generate-financial-report.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/page": "action-browser"
+      },
+      "exportedName": "generateFinancialReport",
+      "filename": "actions/dashboard/generate-financial-report.ts"
+    }
+  },
+  "edge": {}
+}

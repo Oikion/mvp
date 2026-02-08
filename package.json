@@ -3,7 +3,8 @@
   "version": "1.0.0-pre-release",
   "private": true,
   "scripts": {
-    "predev": "node scripts/sync-version.js",
+    "postinstall": "prisma generate",
+    "predev": "prisma generate && node scripts/sync-version.js",
     "dev": "next dev --turbopack --experimental-https --experimental-https-key ./localhost-key.pem --experimental-https-cert ./localhost.pem",
     "predev:verbose": "node scripts/sync-version.js",
     "dev:verbose": "NODE_OPTIONS='--trace-warnings' DEBUG=next:* next dev --webpack --experimental-https --experimental-https-key ./localhost-key.pem --experimental-https-cert ./localhost.pem 2>&1 | tee dev.log",
@@ -192,7 +193,7 @@
     "@types/react-dom": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
-    "baseline-browser-mapping": "^2.9.4",
+    "baseline-browser-mapping": "^2.9.19",
     "cypress": "^13.15.2",
     "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.6.2",

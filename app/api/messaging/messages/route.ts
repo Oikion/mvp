@@ -54,6 +54,98 @@ export async function POST(req: Request) {
       );
     }
 
+    // SECURITY: Verify channel/conversation belongs to user's organization
+    if (channelId) {
+      const channel = await prismadb.channel.findFirst({
+        where: {
+          id: channelId,
+          organizationId, // ← CRITICAL: Verify tenant ownership
+        },
+        select: { id: true },
+      });
+
+      if (!channel) {
+        return NextResponse.json(
+          { error: "Channel not found or access denied" },
+          { status: 404 }
+        );
+      }
+
+      // Verify user is a member of the channel
+      const membership = await prismadb.channelMember.findUnique({
+        where: {
+          channelId_userId: {
+            channelId,
+            userId: sender.id,
+          },
+        },
+      });
+
+      if (!membership) {
+        return NextResponse.json(
+          { error: "You are not a member of this channel" },
+          { status: 403 }
+        );
+      }
+    }
+
+    if (conversationId) {
+      const conversation = await prismadb.conversation.findFirst({
+        where: {
+          id: conversationId,
+          organizationId, // ← CRITICAL: Verify tenant ownership
+        },
+        select: { id: true },
+      });
+
+      if (!conversation) {
+        return NextResponse.json(
+          { error: "Conversation not found or access denied" },
+          { status: 404 }
+        );
+      }
+
+      // Verify user is a participant
+      const participant = await prismadb.conversationParticipant.findUnique({
+        where: {
+          conversationId_userId: {
+            conversationId,
+            userId: sender.id,
+          },
+        },
+      });
+
+      if (!participant || participant.leftAt) {
+        return NextResponse.json(
+          { error: "You are not a participant of this conversation" },
+          { status: 403 }
+        );
+      }
+    }
+
+    // SECURITY: Validate content length (max 10KB to prevent DB issues)
+    if (content.length > 10000) {
+      return NextResponse.json(
+        { error: "Message content exceeds maximum length (10,000 characters)" },
+        { status: 400 }
+      );
+    }
+
+    // SECURITY: Validate attachments count and mentions count to prevent spam
+    if (attachments && attachments.length > 10) {
+      return NextResponse.json(
+        { error: "Maximum 10 attachments per message" },
+        { status: 400 }
+      );
+    }
+
+    if (mentions && mentions.length > 50) {
+      return NextResponse.json(
+        { error: "Maximum 50 mentions per message" },
+        { status: 400 }
+      );
+    }
+
     // Create message
     const messageId = await generateFriendlyId(prismadb, "Message");
     const message = await prismadb.message.create({
@@ -111,7 +203,7 @@ export async function POST(req: Request) {
         ? getChannelName(organizationId, channelId)
         : getConversationChannelName(organizationId, conversationId!);
       
-      await publishToChannel(ablyChannelName, "message:new", {
+      const published = await publishToChannel(ablyChannelName, "message:new", {
         id: message.id,
         content: message.content,
         contentType: message.contentType,
@@ -124,34 +216,49 @@ export async function POST(req: Request) {
         mentions: message.mentions,
         createdAt: message.createdAt,
       });
-    } catch {
-      // Ably not configured, skip real-time notification
+      
+      if (!published) {
+        console.warn("[MESSAGING] Ably not configured - message created but not delivered in real-time");
+      }
+    } catch (error) {
+      console.error("[MESSAGING] Failed to publish to Ably:", error);
+      // Message is already created in DB, continue without real-time notification
     }
 
-    // Send notifications
+    // Send notifications (with organization verification)
     if (channelId) {
       // Get channel members to notify
-      const channel = await prismadb.channel.findUnique({
-        where: { id: channelId },
+      const channel = await prismadb.channel.findFirst({
+        where: { 
+          id: channelId,
+          organizationId, // ← SECURITY: Verify channel belongs to user's org
+        },
         include: {
           members: {
             where: { userId: { not: sender.id } },
             select: { userId: true },
+            take: 100, // ← SECURITY: Limit to prevent DoS (batch notifications if needed)
           },
         },
       });
 
       if (channel) {
-        for (const member of channel.members) {
-          await notifyNewMessage({
+        // PERFORMANCE: Batch notification creation to avoid overwhelming the system
+        const notificationPromises = channel.members.map((member) =>
+          notifyNewMessage({
             recipientUserId: member.userId,
             senderUserId: sender.id,
             senderName: sender.name || "Unknown",
             channelId,
             channelName: channel.name,
-            messagePreview: content,
-          });
-        }
+            messagePreview: content.substring(0, 200), // Truncate preview
+          })
+        );
+        
+        // Send notifications in parallel with error handling
+        await Promise.allSettled(notificationPromises).catch((err) => {
+          console.error("[MESSAGING] Notification batch error:", err);
+        });
       }
     } else if (conversationId) {
       // Get conversation participants to notify
@@ -162,17 +269,24 @@ export async function POST(req: Request) {
           leftAt: null,
         },
         select: { userId: true },
+        take: 50, // ← SECURITY: Limit to prevent DoS
       });
 
-      for (const participant of participants) {
-        await notifyNewMessage({
+      // PERFORMANCE: Batch notification creation
+      const notificationPromises = participants.map((participant) =>
+        notifyNewMessage({
           recipientUserId: participant.userId,
           senderUserId: sender.id,
           senderName: sender.name || "Unknown",
           conversationId,
-          messagePreview: content,
-        });
-      }
+          messagePreview: content.substring(0, 200), // Truncate preview
+        })
+      );
+      
+      // Send notifications in parallel with error handling
+      await Promise.allSettled(notificationPromises).catch((err) => {
+        console.error("[MESSAGING] Notification batch error:", err);
+      });
     }
 
     // Send mention notifications
@@ -227,12 +341,35 @@ export async function GET(req: Request) {
       );
     }
 
+    const organizationId = await getCurrentOrgId();
+
+    // Get current user
+    const currentUser = await prismadb.users.findUnique({
+      where: { clerkUserId: userId },
+      select: { id: true },
+    });
+
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
     const url = new URL(req.url);
     const channelId = url.searchParams.get("channelId");
     const conversationId = url.searchParams.get("conversationId");
     const parentId = url.searchParams.get("parentId");
     const limit = parseInt(url.searchParams.get("limit") || "50");
     const before = url.searchParams.get("before");
+
+    // Validate limit to prevent abuse
+    if (limit < 1 || limit > 200) {
+      return NextResponse.json(
+        { error: "Limit must be between 1 and 200" },
+        { status: 400 }
+      );
+    }
 
     // For thread fetching (parentId provided), we don't require channelId/conversationId
     // as they can be derived from the parent message
@@ -241,6 +378,46 @@ export async function GET(req: Request) {
         { error: "Channel, conversation, or parent message ID is required" },
         { status: 400 }
       );
+    }
+
+    // SECURITY: Verify access to channel or conversation
+    if (channelId) {
+      const membership = await prismadb.channelMember.findFirst({
+        where: {
+          channelId,
+          userId: currentUser.id,
+          channel: {
+            organizationId, // ← Verify channel belongs to user's org
+          },
+        },
+      });
+
+      if (!membership) {
+        return NextResponse.json(
+          { error: "Channel not found or access denied" },
+          { status: 403 }
+        );
+      }
+    }
+
+    if (conversationId) {
+      const participant = await prismadb.conversationParticipant.findFirst({
+        where: {
+          conversationId,
+          userId: currentUser.id,
+          leftAt: null,
+          conversation: {
+            organizationId, // ← Verify conversation belongs to user's org
+          },
+        },
+      });
+
+      if (!participant) {
+        return NextResponse.json(
+          { error: "Conversation not found or access denied" },
+          { status: 403 }
+        );
+      }
     }
 
     // If fetching thread replies, get parent message context
@@ -287,6 +464,7 @@ export async function GET(req: Request) {
 
     // Build where clause
     const whereClause: Record<string, unknown> = {
+      organizationId, // ← SECURITY: Always filter by organization
       isDeleted: false,
       parentId: parentId || null, // Fetch thread replies or top-level messages
     };
@@ -305,8 +483,17 @@ export async function GET(req: Request) {
     if (before) {
       const cursorMessage = await prismadb.message.findUnique({
         where: { id: before },
-        select: { createdAt: true },
+        select: { createdAt: true, organizationId: true },
       });
+      
+      // SECURITY: Verify cursor message belongs to same organization
+      if (cursorMessage && cursorMessage.organizationId !== organizationId) {
+        return NextResponse.json(
+          { error: "Invalid cursor" },
+          { status: 400 }
+        );
+      }
+      
       if (cursorMessage) {
         whereClause.createdAt = { lt: cursorMessage.createdAt };
       }
@@ -437,12 +624,22 @@ export async function PATCH(req: Request) {
       );
     }
 
+    const organizationId = await getCurrentOrgId();
+
     const body = await req.json();
     const { messageId, content } = body;
 
     if (!messageId || !content) {
       return NextResponse.json(
         { error: "Message ID and content are required" },
+        { status: 400 }
+      );
+    }
+
+    // SECURITY: Validate content length
+    if (typeof content !== "string" || content.length > 10000) {
+      return NextResponse.json(
+        { error: "Message content exceeds maximum length (10,000 characters)" },
         { status: 400 }
       );
     }
@@ -460,9 +657,12 @@ export async function PATCH(req: Request) {
       );
     }
 
-    // Get message and verify ownership
-    const message = await prismadb.message.findUnique({
-      where: { id: messageId },
+    // SECURITY: Get message and verify it belongs to user's organization AND user owns it
+    const message = await prismadb.message.findFirst({
+      where: { 
+        id: messageId,
+        organizationId, // ← Verify message belongs to user's org
+      },
     });
 
     if (!message) {
@@ -491,19 +691,22 @@ export async function PATCH(req: Request) {
 
     // Emit Ably event
     try {
-      const organizationId = await getCurrentOrgId();
       const ablyChannelName = message.channelId
         ? getChannelName(organizationId, message.channelId)
         : getConversationChannelName(organizationId, message.conversationId!);
       
-      await publishToChannel(ablyChannelName, "message:edited", {
+      const published = await publishToChannel(ablyChannelName, "message:edited", {
         id: updated.id,
         content: updated.content,
         isEdited: true,
         editedAt: updated.editedAt,
       });
-    } catch {
-      // Ably not configured, skip real-time notification
+      
+      if (!published) {
+        console.warn("[MESSAGING] Ably not configured - edit event not delivered in real-time");
+      }
+    } catch (error) {
+      console.error("[MESSAGING] Failed to publish edit to Ably:", error);
     }
 
     return NextResponse.json({
@@ -540,6 +743,8 @@ export async function DELETE(req: Request) {
       );
     }
 
+    const organizationId = await getCurrentOrgId();
+
     const url = new URL(req.url);
     const messageId = url.searchParams.get("messageId");
 
@@ -563,9 +768,12 @@ export async function DELETE(req: Request) {
       );
     }
 
-    // Get message and verify ownership
-    const message = await prismadb.message.findUnique({
-      where: { id: messageId },
+    // SECURITY: Get message and verify it belongs to user's organization AND user owns it
+    const message = await prismadb.message.findFirst({
+      where: { 
+        id: messageId,
+        organizationId, // ← Verify message belongs to user's org
+      },
     });
 
     if (!message) {
@@ -594,16 +802,19 @@ export async function DELETE(req: Request) {
 
     // Emit Ably event
     try {
-      const organizationId = await getCurrentOrgId();
       const ablyChannelName = message.channelId
         ? getChannelName(organizationId, message.channelId)
         : getConversationChannelName(organizationId, message.conversationId!);
       
-      await publishToChannel(ablyChannelName, "message:deleted", {
+      const published = await publishToChannel(ablyChannelName, "message:deleted", {
         id: messageId,
       });
-    } catch {
-      // Ably not configured, skip real-time notification
+      
+      if (!published) {
+        console.warn("[MESSAGING] Ably not configured - delete event not delivered in real-time");
+      }
+    } catch (error) {
+      console.error("[MESSAGING] Failed to publish delete to Ably:", error);
     }
 
     return NextResponse.json({ success: true });

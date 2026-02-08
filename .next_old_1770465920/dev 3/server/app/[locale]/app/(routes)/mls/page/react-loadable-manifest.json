@@ -1,0 +1,17 @@
+{
+  "[project]/components/calendar/EventCreateFormContent.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/components/calendar/EventCreateFormContent.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/components_2d851db4._.js",
+      "static/chunks/node_modules__pnpm_f46a0410._.js",
+      "static/chunks/components_calendar_EventCreateFormContent_tsx_fafd9d66._.js"
+    ]
+  },
+  "[project]/components/social/ShareModal.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/components/social/ShareModal.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/components_social_ShareModal_tsx_efecfc83._.js",
+      "static/chunks/components_social_ShareModal_tsx_fafd9d66._.js"
+    ]
+  }
+}

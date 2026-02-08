@@ -18,7 +18,7 @@ import { ArrowRight, Loader2, MoreHorizontal, BedDouble, Bath, Ruler, MapPin, Ho
 import moment from "moment";
 import { useAppToast } from "@/hooks/use-app-toast";
 
-interface QuickViewItem {
+export interface QuickViewItem {
   id: string;
   name?: string;
   property_name?: string;

@@ -1,0 +1,395 @@
+{
+  "node": {
+    "7f1dee92668e0a022f225536b727717ae5aa85ed12": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "detectKeylessEnvDriftAction",
+      "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+    },
+    "7f4e09fb2881687fe732cce57b5b91c8d4fa31df95": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "invalidateCacheAction",
+      "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+    },
+    "7f36ce4ca2fd2b23b15acdb049f8ae15a80c45988f": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "createOrReadKeylessAction",
+      "filename": "node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+    },
+    "400aa29a8e811d90bdfd918c0012645f096d49851f": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteUserOwnedOrganizations",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "deleteUserOwnedOrganizations",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "407e65d15f83aefa1e28ae1502149d115ea3757d50": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateUserLastLogin",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "updateUserLastLogin",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "408a056d08c5c6050e343ff1d78ebc88cbc58a26c8": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteOrganizationBySlug",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "deleteOrganizationBySlug",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "40ca9e9145e72bc4bc8b843dd7d8a7c329dfb54944": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncClerkUser",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "syncClerkUser",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "40d24101b99c549715a9ebdf82845e1264624d54ef": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteClerkUser",
+          "filename": "lib/clerk-sync.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "deleteClerkUser",
+      "filename": "lib/clerk-sync.ts"
+    },
+    "00c789b5f84f531f6d90d470a13da8f44d1e5b0200": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "ensurePersonalWorkspace",
+          "filename": "actions/organization/ensure-personal-workspace.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "ensurePersonalWorkspace",
+      "filename": "actions/organization/ensure-personal-workspace.ts"
+    },
+    "60bc8fbfd263a02da47f1efec67b9639f97c2654b2": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateOrganizationMetadata",
+          "filename": "actions/organization/update-org-metadata.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "updateOrganizationMetadata",
+      "filename": "actions/organization/update-org-metadata.ts"
+    },
+    "00c807a85ffba21fb06a0a8a21bac63f170a8d288d": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getMyAgentProfile",
+          "filename": "actions/social/profile.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "getMyAgentProfile",
+      "filename": "actions/social/profile.ts"
+    },
+    "400ee6578f9ae87700829aef0556c9cfef0fab4378": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "upsertAgentProfile",
+          "filename": "actions/social/profile.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "upsertAgentProfile",
+      "filename": "actions/social/profile.ts"
+    },
+    "403db338f070c65bd2eea399ce9eda296677f0550a": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateProfileVisibility",
+          "filename": "actions/social/profile.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "updateProfileVisibility",
+      "filename": "actions/social/profile.ts"
+    },
+    "40f4ab5fc19d508e359f0a371d0f0122bce37431db": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "generateUniqueSlug",
+          "filename": "actions/social/profile.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "generateUniqueSlug",
+      "filename": "actions/social/profile.ts"
+    },
+    "60d2db66a2ec60766b040b9f46cb3db3da98e192db": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "checkSlugAvailability",
+          "filename": "actions/social/profile.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "checkSlugAvailability",
+      "filename": "actions/social/profile.ts"
+    },
+    "60e1fb0a128ae38fc9fee61b56cfbc3bb8939fbde4": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "searchAgentProfiles",
+          "filename": "actions/social/profile.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "searchAgentProfiles",
+      "filename": "actions/social/profile.ts"
+    },
+    "60e76cece8c8cd4aa81ba7ef4509d8b1e1363cccc9": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getAgentProfileBySlug",
+          "filename": "actions/social/profile.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "rsc"
+      },
+      "exportedName": "getAgentProfileBySlug",
+      "filename": "actions/social/profile.ts"
+    },
+    "002efb7055a2ac2240357c11ffd72da5b60df20552": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getReferralCode",
+          "filename": "actions/referrals/get-referral-code.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "getReferralCode",
+      "filename": "actions/referrals/get-referral-code.ts"
+    },
+    "004d7274d9465763a649a38e49d7abd342fb821de9": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "regenerateReferralCode",
+          "filename": "actions/referrals/get-referral-code.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "regenerateReferralCode",
+      "filename": "actions/referrals/get-referral-code.ts"
+    },
+    "0049368fad6979f6f23a9c4308e1c4bc390a18a912": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserReferrals",
+          "filename": "actions/referrals/get-referrals.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "getUserReferrals",
+      "filename": "actions/referrals/get-referrals.ts"
+    },
+    "0045f577d2ebfa3b60ac68d3958cc98fea4bc331fb": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getN8nIntegrationStatus",
+          "filename": "actions/n8n/agent-workflows.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "getN8nIntegrationStatus",
+      "filename": "actions/n8n/agent-workflows.ts"
+    },
+    "000a9d47d6419fd6397598f9ea59b6cc693f18783d": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getMyN8nWorkflows",
+          "filename": "actions/n8n/agent-workflows.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "getMyN8nWorkflows",
+      "filename": "actions/n8n/agent-workflows.ts"
+    },
+    "40924f489fdd239bb4694e320e5fdcd5a11f0c9d7a": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "runMyN8nWorkflow",
+          "filename": "actions/n8n/agent-workflows.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "runMyN8nWorkflow",
+      "filename": "actions/n8n/agent-workflows.ts"
+    },
+    "00bddf118e69b4a30443d67662e9491ace8f294c24": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getMyXeAgentSettings",
+          "filename": "actions/xe/configuration.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "getMyXeAgentSettings",
+      "filename": "actions/xe/configuration.ts"
+    },
+    "40defcf5939ebe82e79caa937ffd82253b2d3f89dc": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "saveMyXeAgentSettings",
+          "filename": "actions/xe/configuration.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "saveMyXeAgentSettings",
+      "filename": "actions/xe/configuration.ts"
+    },
+    "00cf4110d9999e8c7d1e9df1b51d6a998ced5a4b0d": {
+      "workers": {
+        "app/[locale]/app/(routes)/profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/[locale]/app/(routes)/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/.pnpm/@clerk+nextjs@6.34.1_next@16.0.10_@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom_152732a88a07d963cc6bb190e40e3241/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/lib/clerk-sync.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/actions/organization/ensure-personal-workspace.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE4 => \"[project]/actions/organization/update-org-metadata.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE5 => \"[project]/actions/social/profile.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE6 => \"[project]/actions/referrals/get-referral-code.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE7 => \"[project]/actions/referrals/get-referrals.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE8 => \"[project]/actions/n8n/agent-workflows.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE9 => \"[project]/actions/xe/configuration.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getXeIntegrationStatus",
+          "filename": "actions/xe/configuration.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/app/(routes)/profile/page": "action-browser"
+      },
+      "exportedName": "getXeIntegrationStatus",
+      "filename": "actions/xe/configuration.ts"
+    }
+  },
+  "edge": {}
+}

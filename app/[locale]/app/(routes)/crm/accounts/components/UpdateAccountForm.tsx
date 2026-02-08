@@ -37,7 +37,7 @@ import useSWR from "swr";
 import SuspenseLoading from "@/components/loadings/suspense";
 
 // Form data type that matches both initial data and form values
-interface AccountFormData {
+export interface AccountFormData {
   id: string;
   v?: number;
   name: string;
