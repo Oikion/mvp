@@ -2,6 +2,9 @@
 
 import { createClerkClient } from "@clerk/backend";
 import { auth } from "@clerk/nextjs/server";
+import { ReservedNameType } from "@prisma/client";
+
+import { isReservedName } from "@/lib/reserved-names";
 import type { UsernameAvailabilityResult } from "@/types/onboarding";
 
 /**
@@ -35,6 +38,18 @@ export async function checkUsernameAvailability(
       return {
         available: false,
         error: "Username can only contain letters, numbers, and underscores",
+      };
+    }
+
+    const reserved = await isReservedName({
+      type: ReservedNameType.USERNAME,
+      value: username,
+    });
+
+    if (reserved) {
+      return {
+        available: false,
+        error: "RESERVED",
       };
     }
 

@@ -10,6 +10,12 @@ import {
   getOrganizationsWithMarketIntelAccess,
   MARKET_INTEL_FEATURE
 } from "@/lib/market-intel/access";
+import {
+  grantAiAssistantAccess,
+  revokeAiAssistantAccess,
+  getOrganizationsWithAiAssistantAccess,
+  AI_ASSISTANT_FEATURE
+} from "@/lib/ai/access";
 
 /**
  * GET /api/platform-admin/features
@@ -37,6 +43,15 @@ export async function GET(request: Request) {
       const features = await getOrganizationsWithMarketIntelAccess();
       
       // We'll return the feature data - org names would need to come from Clerk
+      return NextResponse.json({
+        features,
+        featureType: feature
+      });
+    }
+
+    if (feature === AI_ASSISTANT_FEATURE) {
+      const features = await getOrganizationsWithAiAssistantAccess();
+      
       return NextResponse.json({
         features,
         featureType: feature
@@ -109,6 +124,26 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         message: "Market Intelligence access granted"
+      });
+    }
+
+    if (feature === AI_ASSISTANT_FEATURE) {
+      const result = await grantAiAssistantAccess(
+        organizationId,
+        userId,
+        expiresAt ? new Date(expiresAt) : undefined
+      );
+
+      if (!result.success) {
+        return NextResponse.json(
+          { error: result.error },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "AI Assistant access granted"
       });
     }
 
@@ -196,6 +231,22 @@ export async function DELETE(request: Request) {
       });
     }
 
+    if (feature === AI_ASSISTANT_FEATURE) {
+      const result = await revokeAiAssistantAccess(organizationId);
+
+      if (!result.success) {
+        return NextResponse.json(
+          { error: result.error },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "AI Assistant access revoked"
+      });
+    }
+
     // Generic feature revoke
     await prismadb.organizationFeature.update({
       where: {
@@ -256,6 +307,8 @@ export async function PATCH(request: Request) {
       // Grant access
       if (feature === MARKET_INTEL_FEATURE) {
         await grantMarketIntelAccess(organizationId, userId);
+      } else if (feature === AI_ASSISTANT_FEATURE) {
+        await grantAiAssistantAccess(organizationId, userId);
       } else {
         await prismadb.organizationFeature.upsert({
           where: {
@@ -279,6 +332,8 @@ export async function PATCH(request: Request) {
       // Revoke access
       if (feature === MARKET_INTEL_FEATURE) {
         await revokeMarketIntelAccess(organizationId);
+      } else if (feature === AI_ASSISTANT_FEATURE) {
+        await revokeAiAssistantAccess(organizationId);
       } else {
         await prismadb.organizationFeature.updateMany({
           where: { organizationId, feature },

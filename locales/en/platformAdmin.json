@@ -8,6 +8,7 @@
     "dashboard": "Dashboard",
     "users": "Users",
     "organizations": "Organizations",
+    "reservedNames": "Reserved Names",
     "referrals": "Referrals",
     "feedback": "Feedback",
     "apiKeys": "API Keys",
@@ -131,6 +132,69 @@
       "warnAll": "Warn All Members",
       "suspendAll": "Suspend Organization",
       "deleteOrg": "Delete Organization"
+    }
+  },
+  "reservedNames": {
+    "title": "Reserved Names",
+    "description": "Protect usernames and organization names from abuse",
+    "searchPlaceholder": "Search reserved names...",
+    "search": "Search",
+    "showingResults": "Showing {count, plural, =0 {no entries} =1 {1 entry} other {# entries}}",
+    "noResults": "No reserved names found.",
+    "page": "Page {page} of {totalPages}",
+    "previous": "Previous",
+    "next": "Next",
+    "columns": {
+      "value": "Value",
+      "type": "Type",
+      "status": "Status",
+      "updatedAt": "Updated"
+    },
+    "filters": {
+      "allTypes": "All types",
+      "allStatus": "All statuses"
+    },
+    "types": {
+      "username": "Username",
+      "org_name": "Organization name",
+      "org_slug": "Organization slug"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "openMenu": "Open menu",
+      "label": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "new": "New entry"
+    },
+    "dialog": {
+      "createTitle": "Create reserved name",
+      "createDescription": "Add a new reserved name to block future claims.",
+      "editTitle": "Edit reserved name",
+      "editDescription": "Update the reserved name entry.",
+      "deleteTitle": "Delete reserved name",
+      "deleteDescription": "This action cannot be undone.",
+      "deleteConfirm": "Are you sure you want to delete this reserved name?",
+      "cancel": "Cancel",
+      "deleteAction": "Delete entry",
+      "saveAction": "Save changes",
+      "createAction": "Create entry"
+    },
+    "form": {
+      "valueLabel": "Value",
+      "valuePlaceholder": "e.g. remax",
+      "typeLabel": "Type",
+      "statusLabel": "Status",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Optional notes for admins"
+    },
+    "errors": {
+      "valueRequired": "Value is required",
+      "saveFailed": "Failed to save reserved name",
+      "deleteFailed": "Failed to delete reserved name"
     }
   },
   "actions": {
@@ -800,6 +864,15 @@
       "revokeAccess": "Revoke Market Intelligence access",
       "accessGranted": "Market Intel access granted",
       "accessRevoked": "Market Intel access revoked",
+      "updateError": "Failed to update access"
+    },
+    "ai": {
+      "columnHeader": "AI",
+      "active": "Active",
+      "grantAccess": "Grant AI access",
+      "revokeAccess": "Revoke AI access",
+      "accessGranted": "AI access granted",
+      "accessRevoked": "AI access revoked",
       "updateError": "Failed to update access"
     }
   }

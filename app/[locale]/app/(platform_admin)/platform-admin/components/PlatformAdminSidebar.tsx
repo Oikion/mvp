@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Users,
   Building2,
+  ShieldCheck,
   LogOut,
   MessageSquare,
   Key,
@@ -81,7 +82,7 @@ export function PlatformAdminSidebar({ adminUser, locale }: PlatformAdminSidebar
 
   const handleSignOut = async () => {
     await signOut();
-    window.location.href = `/${locale}/app/sign-in`;
+    globalThis.location.href = `/${locale}/app/sign-in`;
   };
 
   // Main navigation items
@@ -103,6 +104,12 @@ export function PlatformAdminSidebar({ adminUser, locale }: PlatformAdminSidebar
       label: t("nav.organizations"),
       icon: Building2,
       active: pathname.includes("/platform-admin/organizations"),
+    },
+    {
+      href: `/${locale}/app/platform-admin/reserved-names`,
+      label: t("nav.reservedNames"),
+      icon: ShieldCheck,
+      active: pathname.includes("/platform-admin/reserved-names"),
     },
     {
       href: `/${locale}/app/platform-admin/referrals`,

@@ -1,3 +1,6 @@
+@import "react-grid-layout/css/styles.css";
+@import "react-resizable/css/styles.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -998,6 +1001,21 @@
 @keyframes icon-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* React Grid Layout adjustments */
+.react-grid-item.react-grid-placeholder {
+  background: hsl(var(--primary) / 0.08);
+  border-radius: 0.75rem;
+}
+
+.react-resizable-handle {
+  background-image: none;
+}
+
+.react-resizable-handle::after {
+  border-right: 2px solid hsl(var(--muted-foreground) / 0.5);
+  border-bottom: 2px solid hsl(var(--muted-foreground) / 0.5);
 }
 
 @keyframes bounce-subtle {

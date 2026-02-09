@@ -27,6 +27,7 @@ import {
   Trash2,
   TrendingUp,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,10 @@ export function OrganizationsDataTable({
   // Market Intel access state
   const [marketIntelAccess, setMarketIntelAccess] = React.useState<Record<string, boolean>>({});
   const [loadingMarketIntel, setLoadingMarketIntel] = React.useState<Record<string, boolean>>({});
+  
+  // AI access state
+  const [aiAccess, setAiAccess] = React.useState<Record<string, boolean>>({});
+  const [loadingAi, setLoadingAi] = React.useState<Record<string, boolean>>({});
 
   // Load Market Intel access status on mount
   React.useEffect(() => {
@@ -113,6 +118,26 @@ export function OrganizationsDataTable({
       }
     };
     loadMarketIntelStatus();
+  }, []);
+
+  // Load AI access status on mount
+  React.useEffect(() => {
+    const loadAiStatus = async () => {
+      try {
+        const res = await fetch("/api/platform-admin/features?feature=ai_assistant");
+        if (res.ok) {
+          const data = await res.json();
+          const accessMap: Record<string, boolean> = {};
+          for (const feature of data.features || []) {
+            accessMap[feature.organizationId] = feature.isEnabled;
+          }
+          setAiAccess(accessMap);
+        }
+      } catch (error) {
+        console.error("Failed to load AI access:", error);
+      }
+    };
+    loadAiStatus();
   }, []);
 
   // Toggle Market Intel access
@@ -141,6 +166,35 @@ export function OrganizationsDataTable({
       toast.error("Failed to update access");
     } finally {
       setLoadingMarketIntel(prev => ({ ...prev, [orgId]: false }));
+    }
+  };
+
+  // Toggle AI access
+  const toggleAiAccess = async (orgId: string, currentValue: boolean) => {
+    setLoadingAi(prev => ({ ...prev, [orgId]: true }));
+    try {
+      const res = await fetch("/api/platform-admin/features", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          organizationId: orgId,
+          feature: "ai_assistant",
+          isEnabled: !currentValue
+        })
+      });
+
+      if (res.ok) {
+        setAiAccess(prev => ({ ...prev, [orgId]: !currentValue }));
+        toast.success(!currentValue ? t("organizationsExt.ai.accessGranted") : t("organizationsExt.ai.accessRevoked"));
+      } else {
+        const data = await res.json();
+        toast.error(data.error || t("organizationsExt.ai.updateError"));
+      }
+    } catch (error) {
+      console.error("Failed to toggle AI access:", error);
+      toast.error(t("organizationsExt.ai.updateError"));
+    } finally {
+      setLoadingAi(prev => ({ ...prev, [orgId]: false }));
     }
   };
 
@@ -267,6 +321,48 @@ export function OrganizationsDataTable({
               </TooltipTrigger>
               <TooltipContent>
                 <p>{hasAccess ? "Revoke Market Intelligence access" : "Grant Market Intelligence access"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      },
+    },
+    {
+      id: "ai",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4" />
+          <span>AI</span>
+        </div>
+      ),
+      cell: ({ row }) => {
+        const orgId = row.original.id;
+        const hasAccess = aiAccess[orgId] ?? false;
+        const isLoading = loadingAi[orgId] ?? false;
+
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2">
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Switch
+                      checked={hasAccess}
+                      onCheckedChange={() => toggleAiAccess(orgId, hasAccess)}
+                      className="data-[state=checked]:bg-purple-500"
+                    />
+                  )}
+                  {hasAccess && (
+                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                      {t("organizationsExt.ai.active")}
+                    </Badge>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{hasAccess ? t("organizationsExt.ai.revokeAccess") : t("organizationsExt.ai.grantAccess")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

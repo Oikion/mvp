@@ -47,6 +47,7 @@
       "usernameHint": "Your profile: oikion.com/app/agent/{username}",
       "usernameAvailable": "Username is available!",
       "usernameTaken": "This username is taken",
+      "usernameReserved": "This username is reserved",
       "usernameChecking": "Checking...",
       "usernameInvalid": "2-50 characters, letters, numbers, underscores only",
       "usernameDisplay": "Your Username",
@@ -60,7 +61,8 @@
       "orgNamePlaceholder": "e.g., Sunshine Realty",
       "orgSlugLabel": "URL Slug",
       "orgSlugPlaceholder": "sunshine-realty",
-      "orgSlugHint": "Only lowercase letters, numbers, and hyphens"
+      "orgSlugHint": "Only lowercase letters, numbers, and hyphens",
+      "orgSlugReserved": "This slug is reserved"
     },
     "notifications": {
       "title": "Stay in the Loop",
@@ -174,8 +176,10 @@
     "orgCreationFailed": "Failed to create organization",
     "completionFailed": "Failed to complete setup. Please try again.",
     "usernameTaken": "This username is already taken. Please choose a different one.",
+    "usernameReserved": "This username is reserved. Please choose a different one.",
     "profileUpdateFailed": "Failed to update profile. Please try again.",
-    "orgSlugTaken": "This organization slug is already taken. Please choose a different one."
+    "orgSlugTaken": "This organization slug is already taken. Please choose a different one.",
+    "orgNameReserved": "This organization name is reserved. Please choose a different one."
   }
 }
 

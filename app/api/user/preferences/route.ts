@@ -1,5 +1,4 @@
 // @ts-nocheck
-// TODO: Fix type errors
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
@@ -9,13 +8,76 @@ import {
   type WidgetSize,
   DASHBOARD_CONFIG_VERSION 
 } from "@/lib/dashboard/types";
-import { WIDGET_REGISTRY } from "@/lib/dashboard/widget-registry";
+import { WIDGET_REGISTRY, normalizeDashboardConfig } from "@/lib/dashboard/widget-registry";
 
 // Valid layout preference values
 const VALID_LAYOUT_PREFERENCES = new Set<LayoutPreference>(["DEFAULT", "WIDE"]);
 
 // Valid widget sizes
 const VALID_WIDGET_SIZES = new Set<WidgetSize>(["sm", "md", "lg"]);
+
+function isNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function validateWidgetConfig(widget: unknown): boolean {
+  if (!widget || typeof widget !== "object") return false;
+  const w = widget as Record<string, unknown>;
+
+  if (typeof w.id !== "string" || !WIDGET_REGISTRY[w.id]) return false;
+  if (typeof w.visible !== "boolean") return false;
+  if (typeof w.size !== "string" || !VALID_WIDGET_SIZES.has(w.size as WidgetSize)) {
+    return false;
+  }
+  if (!isNumber(w.order)) return false;
+
+  return true;
+}
+
+function validateLayoutItem(item: unknown): boolean {
+  if (!item || typeof item !== "object") return false;
+  const layoutItem = item as Record<string, unknown>;
+
+  if (typeof layoutItem.i !== "string" || !WIDGET_REGISTRY[layoutItem.i]) {
+    return false;
+  }
+  if (!isNumber(layoutItem.x)) return false;
+  if (!isNumber(layoutItem.y)) return false;
+  if (!isNumber(layoutItem.w)) return false;
+  if (!isNumber(layoutItem.h)) return false;
+
+  if (layoutItem.minW !== undefined && !isNumber(layoutItem.minW)) {
+    return false;
+  }
+  if (layoutItem.maxW !== undefined && !isNumber(layoutItem.maxW)) {
+    return false;
+  }
+  if (layoutItem.minH !== undefined && !isNumber(layoutItem.minH)) {
+    return false;
+  }
+  if (layoutItem.maxH !== undefined && !isNumber(layoutItem.maxH)) {
+    return false;
+  }
+
+  return true;
+}
+
+function validateLayouts(layouts: unknown): boolean {
+  if (!layouts || typeof layouts !== "object") return false;
+  const layoutRecord = layouts as Record<string, unknown>;
+  const breakpoints = ["lg", "md", "sm"] as const;
+
+  for (const breakpoint of breakpoints) {
+    const layout = layoutRecord[breakpoint];
+    if (!Array.isArray(layout)) return false;
+
+    for (const item of layout) {
+      if (!validateLayoutItem(item)) return false;
+    }
+  }
+
+  return true;
+}
 
 /**
  * Validate dashboard config structure
@@ -33,23 +95,12 @@ function validateDashboardConfig(config: unknown): config is DashboardConfig {
   
   // Validate each widget
   for (const widget of c.widgets) {
-    if (!widget || typeof widget !== "object") return false;
-    
-    const w = widget as Record<string, unknown>;
-    
-    // Validate widget ID exists in registry
-    if (typeof w.id !== "string" || !WIDGET_REGISTRY[w.id]) return false;
-    
-    // Validate visibility
-    if (typeof w.visible !== "boolean") return false;
-    
-    // Validate size
-    if (typeof w.size !== "string" || !VALID_WIDGET_SIZES.has(w.size as WidgetSize)) {
-      return false;
-    }
-    
-    // Validate order
-    if (typeof w.order !== "number") return false;
+    if (!validateWidgetConfig(widget)) return false;
+  }
+
+  // Validate layouts if provided (newer config)
+  if ("layouts" in c && c.layouts !== undefined && c.layouts !== null) {
+    if (!validateLayouts(c.layouts)) return false;
   }
   
   return true;
@@ -133,8 +184,9 @@ export async function PATCH(req: Request) {
         );
       }
       // Ensure version is current
+      const normalized = normalizeDashboardConfig(dashboardConfig);
       updateData.dashboardConfig = {
-        ...dashboardConfig,
+        ...normalized,
         version: DASHBOARD_CONFIG_VERSION,
         updatedAt: new Date().toISOString(),
       } as Prisma.InputJsonValue;

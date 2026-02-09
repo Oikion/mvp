@@ -8,6 +8,7 @@
     "dashboard": "Πίνακας Ελέγχου",
     "users": "Χρήστες",
     "organizations": "Οργανισμοί",
+    "reservedNames": "Δεσμευμένα Ονόματα",
     "referrals": "Συστάσεις",
     "feedback": "Σχόλια",
     "apiKeys": "Κλειδιά API",
@@ -131,6 +132,69 @@
       "warnAll": "Προειδοποίηση Όλων",
       "suspendAll": "Αναστολή Οργανισμού",
       "deleteOrg": "Διαγραφή Οργανισμού"
+    }
+  },
+  "reservedNames": {
+    "title": "Δεσμευμένα Ονόματα",
+    "description": "Προστασία ονομάτων χρήστη και οργανισμού από κατάχρηση",
+    "searchPlaceholder": "Αναζήτηση δεσμευμένων ονομάτων...",
+    "search": "Αναζήτηση",
+    "showingResults": "Εμφάνιση {count, plural, =0 {0 εγγραφών} =1 {1 εγγραφής} other {# εγγραφών}}",
+    "noResults": "Δεν βρέθηκαν δεσμευμένα ονόματα.",
+    "page": "Σελίδα {page} από {totalPages}",
+    "previous": "Προηγούμενο",
+    "next": "Επόμενο",
+    "columns": {
+      "value": "Τιμή",
+      "type": "Τύπος",
+      "status": "Κατάσταση",
+      "updatedAt": "Ενημερώθηκε"
+    },
+    "filters": {
+      "allTypes": "Όλοι οι τύποι",
+      "allStatus": "Όλες οι καταστάσεις"
+    },
+    "types": {
+      "username": "Όνομα χρήστη",
+      "org_name": "Όνομα οργανισμού",
+      "org_slug": "Slug οργανισμού"
+    },
+    "status": {
+      "active": "Ενεργό",
+      "inactive": "Ανενεργό"
+    },
+    "actions": {
+      "openMenu": "Άνοιγμα μενού",
+      "label": "Ενέργειες",
+      "edit": "Επεξεργασία",
+      "delete": "Διαγραφή",
+      "new": "Νέα εγγραφή"
+    },
+    "dialog": {
+      "createTitle": "Δημιουργία δεσμευμένου ονόματος",
+      "createDescription": "Προσθέστε νέο δεσμευμένο όνομα για να μπλοκάρετε μελλοντικές δηλώσεις.",
+      "editTitle": "Επεξεργασία δεσμευμένου ονόματος",
+      "editDescription": "Ενημερώστε τη δεσμευμένη καταχώρηση.",
+      "deleteTitle": "Διαγραφή δεσμευμένου ονόματος",
+      "deleteDescription": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+      "deleteConfirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το δεσμευμένο όνομα;",
+      "cancel": "Ακύρωση",
+      "deleteAction": "Διαγραφή εγγραφής",
+      "saveAction": "Αποθήκευση",
+      "createAction": "Δημιουργία"
+    },
+    "form": {
+      "valueLabel": "Τιμή",
+      "valuePlaceholder": "π.χ. remax",
+      "typeLabel": "Τύπος",
+      "statusLabel": "Κατάσταση",
+      "notesLabel": "Σημειώσεις",
+      "notesPlaceholder": "Προαιρετικές σημειώσεις για admins"
+    },
+    "errors": {
+      "valueRequired": "Απαιτείται τιμή",
+      "saveFailed": "Αποτυχία αποθήκευσης δεσμευμένου ονόματος",
+      "deleteFailed": "Αποτυχία διαγραφής δεσμευμένου ονόματος"
     }
   },
   "actions": {
@@ -800,6 +864,15 @@
       "revokeAccess": "Ανάκληση πρόσβασης Market Intelligence",
       "accessGranted": "Χορηγήθηκε πρόσβαση Market Intel",
       "accessRevoked": "Ανακλήθηκε πρόσβαση Market Intel",
+      "updateError": "Αποτυχία ενημέρωσης πρόσβασης"
+    },
+    "ai": {
+      "columnHeader": "AI",
+      "active": "Ενεργό",
+      "grantAccess": "Χορήγηση πρόσβασης AI",
+      "revokeAccess": "Ανάκληση πρόσβασης AI",
+      "accessGranted": "Χορηγήθηκε πρόσβαση AI",
+      "accessRevoked": "Ανακλήθηκε πρόσβαση AI",
       "updateError": "Αποτυχία ενημέρωσης πρόσβασης"
     }
   }

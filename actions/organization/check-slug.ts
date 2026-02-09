@@ -1,6 +1,9 @@
 "use server";
 
 import { createClerkClient } from "@clerk/backend";
+import { ReservedNameType } from "@prisma/client";
+
+import { isReservedName } from "@/lib/reserved-names";
 
 export interface SlugAvailabilityResult {
   available: boolean;
@@ -37,6 +40,18 @@ export async function checkOrgSlugAvailability(
       };
     }
 
+    const reserved = await isReservedName({
+      type: ReservedNameType.ORG_SLUG,
+      value: slug,
+    });
+
+    if (reserved) {
+      return {
+        available: false,
+        error: "RESERVED",
+      };
+    }
+
     const clerk = createClerkClient({
       secretKey: process.env.CLERK_SECRET_KEY!,
     });
@@ -65,7 +80,7 @@ export async function checkOrgSlugAvailability(
           };
         }
 
-        hasMore = organizationsList.data && organizationsList.data.length === limit;
+        hasMore = organizationsList.data?.length === limit;
         offset += limit;
 
         // Limit search to first 500 organizations to avoid excessive API calls

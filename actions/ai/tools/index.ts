@@ -45,6 +45,27 @@ export {
   chatWithDocument,
 } from "./documents";
 
+// Property description tools
+export { generatePropertyDescription } from "./property-descriptions";
+
+// CMA tools
+export { generateCmaReport } from "./cma-generation";
+
+// Lead scoring tools
+export { calculateLeadScoreTool } from "./lead-scoring";
+
+// Property valuation tools
+export { estimatePropertyValueTool } from "./property-valuation";
+
+// Showing scheduler tools
+export { schedulePropertyShowing } from "./showing-scheduler";
+
+// Lead qualification tools
+export { qualifyLeadConversation } from "./lead-qualification";
+
+// Contract analysis tools
+export { analyzeContractTerms } from "./contract-analysis";
+
 // Message tools
 export {
   getRecentConversations,
@@ -90,6 +111,14 @@ import {
   chatWithDocument,
 } from "./documents";
 
+import { generatePropertyDescription } from "./property-descriptions";
+import { generateCmaReport } from "./cma-generation";
+import { calculateLeadScoreTool } from "./lead-scoring";
+import { estimatePropertyValueTool } from "./property-valuation";
+import { schedulePropertyShowing } from "./showing-scheduler";
+import { qualifyLeadConversation } from "./lead-qualification";
+import { analyzeContractTerms } from "./contract-analysis";
+
 import {
   getRecentConversations,
   draftMessageResponse,
@@ -134,6 +163,27 @@ export const AI_TOOL_REGISTRY: Record<string, AIToolFunction> = {
   get_recent_conversations: getRecentConversations,
   draft_message_response: draftMessageResponse,
   send_message: sendMessage,
+
+  // Property descriptions
+  generate_property_description: generatePropertyDescription,
+
+  // CMA
+  generate_cma_report: generateCmaReport,
+
+  // Lead scoring
+  calculate_lead_score: calculateLeadScoreTool,
+
+  // Property valuation
+  estimate_property_value: estimatePropertyValueTool,
+
+  // Showing scheduler
+  schedule_property_showing: schedulePropertyShowing,
+
+  // Lead qualification
+  qualify_lead_conversation: qualifyLeadConversation,
+
+  // Contract analysis
+  analyze_contract_terms: analyzeContractTerms,
 };
 
 /**

@@ -34,6 +34,7 @@ interface UsernameOrgStepProps {
     usernameTaken: string;
     usernameChecking: string;
     usernameInvalid: string;
+    usernameReserved: string;
     usernameDisplay?: string;
     usernameNote?: string;
     usernameSetup?: string;
@@ -45,6 +46,7 @@ interface UsernameOrgStepProps {
     orgSlugLabel: string;
     orgSlugPlaceholder: string;
     orgSlugHint: string;
+    orgSlugReserved: string;
   };
   data: UsernameOrgStepData;
   onDataChange: (data: UsernameOrgStepData) => void;
@@ -55,8 +57,8 @@ interface UsernameOrgStepProps {
   initialUsername?: string;
 }
 
-type SlugStatus = "idle" | "checking" | "available" | "taken" | "invalid";
-type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+type SlugStatus = "idle" | "checking" | "available" | "taken" | "invalid" | "reserved";
+type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid" | "reserved";
 
 export function UsernameOrgStep({
   dict,
@@ -107,7 +109,13 @@ export function UsernameOrgStep({
         // Pass excludeCurrentUser=true so that if the username belongs to the current user
         // (e.g., set during Clerk registration but not yet synced to our DB), it's considered available
         const result = await checkUsernameAvailability(debouncedUsername, true);
-        setUsernameStatus(result.available ? "available" : "taken");
+        if (result.available) {
+          setUsernameStatus("available");
+        } else if (result.error === "RESERVED") {
+          setUsernameStatus("reserved");
+        } else {
+          setUsernameStatus("taken");
+        }
       } catch {
         setUsernameStatus("idle");
       }
@@ -138,7 +146,13 @@ export function UsernameOrgStep({
           `/api/organization/check-slug?slug=${encodeURIComponent(debouncedSlug)}`
         );
         const result: SlugAvailabilityResult = await response.json();
-        setSlugStatus(result.available ? "available" : "taken");
+        if (result.available) {
+          setSlugStatus("available");
+        } else if (result.error === "RESERVED") {
+          setSlugStatus("reserved");
+        } else {
+          setSlugStatus("taken");
+        }
       } catch {
         setSlugStatus("idle");
       }
@@ -277,7 +291,7 @@ export function UsernameOrgStep({
                       className={cn(
                         "px-4 h-11 pr-10",
                         usernameStatus === "available" && "border-success focus-visible:ring-green-500",
-                        (usernameStatus === "taken" || usernameStatus === "invalid") &&
+                        (usernameStatus === "taken" || usernameStatus === "invalid" || usernameStatus === "reserved") &&
                           "border-destructive focus-visible:ring-destructive"
                       )}
                     />
@@ -288,7 +302,9 @@ export function UsernameOrgStep({
                       {usernameStatus === "available" && (
                         <Check className="w-4 h-4 text-success" />
                       )}
-                      {(usernameStatus === "taken" || usernameStatus === "invalid") && (
+                      {(usernameStatus === "taken" ||
+                        usernameStatus === "invalid" ||
+                        usernameStatus === "reserved") && (
                         <X className="w-4 h-4 text-destructive" />
                       )}
                     </div>
@@ -302,6 +318,7 @@ export function UsernameOrgStep({
                         usernameStatus === "available" && "text-success",
                         usernameStatus === "taken" && "text-destructive",
                         usernameStatus === "invalid" && "text-destructive",
+                        usernameStatus === "reserved" && "text-destructive",
                         usernameStatus === "checking" && "text-muted-foreground"
                       )}
                     >
@@ -309,6 +326,7 @@ export function UsernameOrgStep({
                       {usernameStatus === "available" && dict.usernameAvailable}
                       {usernameStatus === "taken" && dict.usernameTaken}
                       {usernameStatus === "invalid" && dict.usernameInvalid}
+                      {usernameStatus === "reserved" && dict.usernameReserved}
                     </motion.p>
                   )}
                   {usernameStatus === "idle" && (
@@ -389,7 +407,7 @@ export function UsernameOrgStep({
                   className={cn(
                     "px-4 pr-10",
                     slugStatus === "available" && "border-success focus-visible:ring-green-500",
-                    (slugStatus === "taken" || slugStatus === "invalid") &&
+                    (slugStatus === "taken" || slugStatus === "invalid" || slugStatus === "reserved") &&
                       "border-destructive focus-visible:ring-destructive"
                   )}
                 />
@@ -400,7 +418,7 @@ export function UsernameOrgStep({
                   {slugStatus === "available" && (
                     <Check className="w-4 h-4 text-success" />
                   )}
-                  {(slugStatus === "taken" || slugStatus === "invalid") && (
+                  {(slugStatus === "taken" || slugStatus === "invalid" || slugStatus === "reserved") && (
                     <X className="w-4 h-4 text-destructive" />
                   )}
                 </div>
@@ -412,7 +430,9 @@ export function UsernameOrgStep({
                   className={cn(
                     "text-sm",
                     slugStatus === "available" && "text-success",
-                    (slugStatus === "taken" || slugStatus === "invalid") && "text-destructive",
+                    (slugStatus === "taken" ||
+                      slugStatus === "invalid" ||
+                      slugStatus === "reserved") && "text-destructive",
                     slugStatus === "checking" && "text-muted-foreground"
                   )}
                 >
@@ -420,6 +440,7 @@ export function UsernameOrgStep({
                   {slugStatus === "available" && "Slug is available!"}
                   {slugStatus === "taken" && "This slug is already taken"}
                   {slugStatus === "invalid" && "Slug can only contain lowercase letters, numbers, and hyphens"}
+                  {slugStatus === "reserved" && dict.orgSlugReserved}
                 </motion.p>
               )}
               {slugStatus === "idle" && (

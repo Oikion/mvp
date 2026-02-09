@@ -20,6 +20,7 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 
 import { PrismaClient, Prisma } from "@prisma/client";
+import { getDeprecatedToolUpdates } from "../lib/ai-tools/deprecations";
 
 const prisma = new PrismaClient();
 
@@ -1030,6 +1031,17 @@ const systemTools: ToolDefinition[] = [
   },
 ];
 
+async function disableDeprecatedTools() {
+  const updates = getDeprecatedToolUpdates();
+
+  for (const update of updates) {
+    await prisma.aiTool.updateMany({
+      where: { name: update.name, isEnabled: true },
+      data: { isEnabled: update.isEnabled },
+    });
+  }
+}
+
 // ============================================
 // Schema Validation and Sanitization
 // ============================================
@@ -1189,6 +1201,8 @@ async function seedAiTools() {
     created++;
   }
 
+  await disableDeprecatedTools();
+
   console.log(`\n📊 Summary: ${created} created, ${skipped} skipped`);
 }
 
@@ -1234,6 +1248,8 @@ async function fixExistingTools() {
       valid++;
     }
   }
+
+  await disableDeprecatedTools();
 
   console.log(`\n📊 Summary: ${valid} valid, ${fixed} fixed, ${invalid} invalid`);
 }

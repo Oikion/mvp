@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
-import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { ReservedNameType } from "@prisma/client";
 import { hash } from "bcryptjs";
+
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { getCurrentUser } from "@/lib/get-current-user";
+import { prismadb } from "@/lib/prisma";
+import { isReservedName } from "@/lib/reserved-names";
 
 export async function POST(req: Request) {
   try {
@@ -37,6 +40,15 @@ export async function POST(req: Request) {
 
     // Generate username from email if not provided
     const generatedUsername = username || email.split("@")[0] || `user_${Date.now()}`;
+
+    const reserved = await isReservedName({
+      type: ReservedNameType.USERNAME,
+      value: generatedUsername,
+    });
+
+    if (reserved) {
+      return new NextResponse("Username is reserved", { status: 409 });
+    }
     
     if (userCount === 0) {
       //There is no user in the system, so create user with admin rights and set userStatus to ACTIVE

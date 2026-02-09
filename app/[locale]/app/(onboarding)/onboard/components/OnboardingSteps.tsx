@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Users } from "@prisma/client";
 import { motion, AnimatePresence } from "motion/react";
 import { useOrganizationList, useUser } from "@clerk/nextjs";
@@ -466,6 +466,25 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         const orgSlug = onboardingData.organization.slug || generateOrgSlug(onboardingData.organization.name);
         
         try {
+          const nameCheckResponse = await fetch(
+            `/api/organization/check-name?name=${encodeURIComponent(onboardingData.organization.name)}`
+          );
+          if (nameCheckResponse.ok) {
+            const nameCheck = await nameCheckResponse.json();
+            if (!nameCheck.available) {
+              const errorMessage =
+                nameCheck.error === "RESERVED"
+                  ? dict.errors.orgNameReserved
+                  : dict.errors.generic;
+              toast.error(dict.errors.orgCreationFailed, {
+                description: errorMessage,
+                isTranslationKey: false,
+              });
+              setIsCompleting(false);
+              return;
+            }
+          }
+
           const agencyOrg = await createOrganization({
             name: onboardingData.organization.name,
             slug: orgSlug,
@@ -546,7 +565,11 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         fetch('http://127.0.0.1:7242/ingest/6745c257-993b-4bd4-bf13-5c5734e70e2e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingSteps.tsx:handleComplete:resultFailed',message:'completeOnboarding returned failure',data:{error:result.error},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
         // #endregion
         // This shouldn't happen since we validated first, but handle it anyway
-        toast.error(dict.errors.completionFailed, { description: result.error, isTranslationKey: false });
+        const description =
+          result.error === "USERNAME_RESERVED"
+            ? dict.errors.usernameReserved
+            : result.error;
+        toast.error(dict.errors.completionFailed, { description, isTranslationKey: false });
         setIsCompleting(false);
         return;
       }

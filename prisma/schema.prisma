@@ -1839,6 +1839,36 @@ enum ChangelogStatus {
 }
 
 // ============================================
+// RESERVED NAMES - Platform admin list
+// ============================================
+
+enum ReservedNameType {
+  USERNAME
+  ORG_NAME
+  ORG_SLUG
+}
+
+enum ReservedNameStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model ReservedName {
+  id              String             @id @default(uuid())
+  type            ReservedNameType
+  value           String
+  normalizedValue String
+  status          ReservedNameStatus @default(ACTIVE)
+  notes           String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@unique([type, normalizedValue])
+  @@index([type])
+  @@index([status])
+}
+
+// ============================================
 // REFERRAL SYSTEM
 // ============================================
 

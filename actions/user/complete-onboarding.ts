@@ -1,9 +1,13 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
+import { ReservedNameType } from "@prisma/client";
+
+import { trackReferral } from "@/actions/referrals/track-referral";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { trackReferral } from "@/actions/referrals/track-referral";
+import { isReservedName } from "@/lib/reserved-names";
 import type {
   SupportedLanguage,
   OnboardingNotificationSettings,
@@ -113,6 +117,18 @@ export async function completeOnboarding(
       return {
         success: false,
         error: "Username is required and must be at least 2 characters.",
+      };
+    }
+
+    const reserved = await isReservedName({
+      type: ReservedNameType.USERNAME,
+      value: finalUsername,
+    });
+
+    if (reserved) {
+      return {
+        success: false,
+        error: "USERNAME_RESERVED",
       };
     }
 
