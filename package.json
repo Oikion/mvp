@@ -29,6 +29,11 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:reset": "prisma migrate reset",
+    "db:status": "prisma migrate status",
+    "db:validate": "tsx scripts/validate-migrations.ts",
     "migrate:colors": "tsx scripts/design-system/migrate-colors.ts",
     "migrate:colors:dry": "tsx scripts/design-system/migrate-colors.ts --dry-run",
     "generate:color-pdf": "npx tsx scripts/generate-color-palette-pdf.ts",
@@ -229,5 +234,10 @@
       "core-js",
       "unrs-resolver"
     ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pnpm db:status && echo 'Migration status OK'"
+    }
   }
 }

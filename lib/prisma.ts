@@ -19,12 +19,13 @@ function createPrismaClient(): ExtendedPrismaClient {
       : ["error"],
   });
   
-  // Add Accelerate extension if DATABASE_URL uses Prisma Accelerate connection string
-  // Accelerate URLs start with prisma:// or prisma+postgres://
+  // Add Accelerate extension only in production with Accelerate URLs
+  // This prevents accidental Accelerate usage in development
   const databaseUrl = process.env.DATABASE_URL || "";
   const isAccelerateConnection = databaseUrl.startsWith("prisma://") || databaseUrl.startsWith("prisma+postgres://");
+  const shouldUseAccelerate = process.env.NODE_ENV === "production" && isAccelerateConnection;
   
-  if (isAccelerateConnection) {
+  if (shouldUseAccelerate) {
     // Accelerate extension preserves the base PrismaClient interface
     return basePrisma.$extends(withAccelerate()) as unknown as ExtendedPrismaClient;
   }

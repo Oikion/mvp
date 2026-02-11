@@ -36,27 +36,30 @@ type GenerateCmaReportInput = {
 };
 
 function toCmaComparable(property: {
-  price: number | null;
-  size_net_sqm: number | null;
+  price: unknown;
+  size_net_sqm: unknown;
 }): CmaComparable | null {
-  if (!property.price || !property.size_net_sqm) {
+  const price = property.price != null ? Number(property.price) : null;
+  const sizeNetSqm = property.size_net_sqm != null ? Number(property.size_net_sqm) : null;
+  
+  if (!price || !sizeNetSqm) {
     return null;
   }
   return {
-    price: property.price,
-    sizeNetSqm: property.size_net_sqm,
+    price,
+    sizeNetSqm,
   };
 }
 
 function toCmaSubject(property: {
   property_name: string | null;
-  price: number | null;
-  size_net_sqm: number | null;
+  price: unknown;
+  size_net_sqm: unknown;
 }): CmaSubject {
   return {
     propertyName: property.property_name || undefined,
-    price: property.price || undefined,
-    sizeNetSqm: property.size_net_sqm || undefined,
+    price: property.price != null ? Number(property.price) : undefined,
+    sizeNetSqm: property.size_net_sqm != null ? Number(property.size_net_sqm) : undefined,
   };
 }
 
@@ -162,25 +165,29 @@ export async function generateCmaReport(
 
       const pdfData = await generateTablePDF(
         "reports",
-        comparables.map((item) => ({
-          property_name: item.property_name,
-          address_full: [item.address_street, item.area, item.municipality]
-            .filter(Boolean)
-            .join(", "),
-          property_type: item.property_type,
-          price: item.price,
-          price_per_sqm: item.price && item.size_net_sqm
-            ? Math.round(item.price / item.size_net_sqm)
-            : null,
-          square_feet: item.size_net_sqm,
-          bedrooms: item.bedrooms,
-          bathrooms: item.bathrooms,
-          year_built: item.year_built,
-          property_status: item.property_status,
-          condition: item.condition,
-          days_on_market: null,
-          notes: "",
-        })),
+        comparables.map((item) => {
+          const price = item.price != null ? Number(item.price) : null;
+          const sizeNetSqm = item.size_net_sqm != null ? Number(item.size_net_sqm) : null;
+          return {
+            property_name: item.property_name,
+            address_full: [item.address_street, item.area, item.municipality]
+              .filter(Boolean)
+              .join(", "),
+            property_type: item.property_type,
+            price,
+            price_per_sqm: price && sizeNetSqm
+              ? Math.round(price / sizeNetSqm)
+              : null,
+            square_feet: sizeNetSqm,
+            bedrooms: item.bedrooms,
+            bathrooms: item.bathrooms,
+            year_built: item.year_built,
+            property_status: item.property_status,
+            condition: item.condition,
+            days_on_market: null,
+            notes: "",
+          };
+        }),
         {
           columns: CMA_COLUMNS,
           title: "CMA Report",

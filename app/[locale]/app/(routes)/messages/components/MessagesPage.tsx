@@ -1,15 +1,25 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ConversationList, type ConversationItem } from "./ConversationList";
-import { MessageThread } from "./MessageThread";
-import { MessageComposer } from "./MessageComposer";
-import { CreateChannelDialog } from "./CreateChannelDialog";
-import { StartDMDialog } from "./StartDMDialog";
-import { MessageSearch } from "./MessageSearch";
-import { ConversationSettings } from "./ConversationSettings";
-import { ThreadPanel } from "./ThreadPanel";
+import { useTranslations } from "next-intl";
+import {
+  AlertCircle,
+  Hash,
+  Loader2,
+  MessageCircle,
+  Plus,
+  Search,
+  Send,
+  ServerOff,
+  Settings,
+  Users,
+  Wrench,
+} from "lucide-react";
+import { useAblyNotifications } from "@/hooks/useAbly";
+import { useAppToast } from "@/hooks/use-app-toast";
+import { useExternalConversations } from "@/hooks/swr/useExternalConversations";
+import { useExternalIntegrations } from "@/hooks/swr/useExternalIntegrations";
 import { 
   useMessagingCredentials, 
   useChannels, 
@@ -19,27 +29,23 @@ import {
   useDeleteConversation,
   useLeaveConversation,
   useLeaveChannel,
-  type Message,
 } from "@/hooks/swr/useMessaging";
-import { useAblyNotifications } from "@/hooks/useAbly";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { 
-  Hash, 
-  MessageCircle, 
-  Search, 
-  Plus, 
-  Settings,
-  Users,
-  Loader2,
-  AlertCircle,
-  ServerOff,
-  Wrench,
-  Send,
-} from "lucide-react";
+import { ConversationList } from "./ConversationList";
+import { ExternalConversationList } from "./ExternalConversationList";
+import { MessageThread } from "./MessageThread";
+import { MessageComposer } from "./MessageComposer";
+import { CreateChannelDialog } from "./CreateChannelDialog";
+import { StartDMDialog } from "./StartDMDialog";
+import { MessageSearch } from "./MessageSearch";
+import { ConversationSettings } from "./ConversationSettings";
+import { ThreadPanel } from "./ThreadPanel";
+import { ConnectPlatformDialog } from "./integrations/ConnectPlatformDialog";
+import type { ConversationItem } from "./ConversationList";
+import type { Message } from "@/hooks/swr/useMessaging";
 
 interface MessagesPageProps {
   dict: Record<string, unknown>;
@@ -49,15 +55,19 @@ interface MessagesPageProps {
 export function MessagesPage({ dict, locale }: MessagesPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("messages");
+  const { toast } = useAppToast();
   
   // Support both channel and conversation IDs
   const selectedChannelId = searchParams.get("channelId");
   const selectedConversationId = searchParams.get("conversationId");
+  const selectedExternalContactId = searchParams.get("externalContactId");
   
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"channels" | "dms">("channels");
+  const [activeTab, setActiveTab] = useState<"channels" | "internal" | "external">("internal");
   const [createChannelOpen, setCreateChannelOpen] = useState(false);
   const [startDMOpen, setStartDMOpen] = useState(false);
+  const [connectPlatformOpen, setConnectPlatformOpen] = useState(false);
   const [replyTo, setReplyTo] = useState<{
     messageId: string;
     content: string;
@@ -75,6 +85,16 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
   });
   
   const { conversations, isLoading: isLoadingConversations, mutate: mutateConversations } = useConversations({
+    enabled: !!credentials?.userId,
+    refreshInterval: 30000,
+  });
+
+  const { integrations, isLoading: isLoadingIntegrations, refresh: refreshIntegrations } = useExternalIntegrations({
+    enabled: !!credentials?.userId,
+    refreshInterval: 60000,
+  });
+
+  const { conversations: externalConversations, isLoading: isLoadingExternalConversations, refresh: refreshExternalConversations } = useExternalConversations({
     enabled: !!credentials?.userId,
     refreshInterval: 30000,
   });
@@ -115,6 +135,12 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
     router.push(`/${locale}/app/messages?${params.toString()}`);
   };
 
+  const handleSelectExternal = (contactId: string) => {
+    const params = new URLSearchParams();
+    params.set("externalContactId", contactId);
+    router.push(`/${locale}/app/messages?${params.toString()}`);
+  };
+
   // Context menu handlers for conversations
   const handleMarkAsRead = useCallback(async (item: ConversationItem) => {
     try {
@@ -123,11 +149,11 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
       } else {
         await markAsRead({ conversationId: item.id });
       }
-      toast.success("Marked as read");
+      toast.success("statusUpdated");
       mutateConversations();
     } catch (err) {
       console.error("Failed to mark as read:", err);
-      toast.error("Failed to mark as read");
+      toast.error("statusUpdateFailed");
     }
   }, [markAsRead, mutateConversations]);
 
@@ -137,10 +163,10 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
         conversationId: item.id, 
         mute: !item.isMuted 
       });
-      toast.success(item.isMuted ? "Notifications unmuted" : "Notifications muted");
+      toast.success("updateSuccess");
     } catch (err) {
       console.error("Failed to update notification settings:", err);
-      toast.error("Failed to update notification settings");
+      toast.error("updateFailed");
     }
   }, [toggleMute]);
 
@@ -148,10 +174,10 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
     try {
       if (item.type === "channel") {
         await leaveChannel({ channelId: item.id });
-        toast.success("Left channel");
+        toast.success("updateSuccess");
       } else {
         await leaveConversation({ conversationId: item.id });
-        toast.success("Left conversation");
+        toast.success("updateSuccess");
       }
       
       // If leaving the current conversation/channel, navigate away
@@ -160,14 +186,14 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
       }
     } catch (err) {
       console.error("Failed to leave:", err);
-      toast.error("Failed to leave");
+      toast.error("updateFailed");
     }
   }, [leaveConversation, leaveChannel, selectedConversationId, selectedChannelId, router, locale]);
 
   const handleDelete = useCallback(async (item: ConversationItem) => {
     try {
       await deleteConversation({ conversationId: item.id });
-      toast.success("Conversation deleted");
+      toast.success("deleteSuccess");
       
       // If deleting the current conversation, navigate away
       if (item.id === selectedConversationId) {
@@ -175,22 +201,36 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
       }
     } catch (err) {
       console.error("Failed to delete conversation:", err);
-      toast.error("Failed to delete conversation");
+      toast.error("deleteFailed");
     }
   }, [deleteConversation, selectedConversationId, router, locale]);
 
   // Filter items by search
-  const filteredChannels = channels.filter((channel) =>
-    channel.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredChannels = useMemo(
+    () => channels.filter((channel) =>
+      channel.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [channels, searchQuery]
   );
   
-  const filteredDMs = directMessages.filter((dm) =>
-    (dm.name || "").toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredDMs = useMemo(
+    () => directMessages.filter((dm) =>
+      (dm.name || "").toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [directMessages, searchQuery]
+  );
+
+  const filteredExternalConversations = useMemo(
+    () => externalConversations.filter((conversation) =>
+      conversation.displayName.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [externalConversations, searchQuery]
   );
 
   // Get selected items
   const selectedChannel = channels.find((c) => c.id === selectedChannelId);
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId);
+  const selectedExternalConversation = externalConversations.find((c) => c.id === selectedExternalContactId);
 
   // Loading state
   if (isLoadingCredentials) {
@@ -274,7 +314,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
     );
   }
 
-  const hasSelection = selectedChannelId || selectedConversationId;
+  const hasSelection = selectedChannelId || selectedConversationId || selectedExternalContactId;
 
   return (
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden rounded-xl border">
@@ -294,7 +334,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sidebar-foreground/60" />
             <Input
-              placeholder="Search conversations..."
+              placeholder={t("sidebar.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 bg-sidebar-accent border-sidebar-border"
@@ -303,16 +343,20 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "channels" | "dms")} className="flex-1 flex flex-col overflow-hidden">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "channels" | "internal" | "external")} className="flex-1 flex flex-col overflow-hidden">
           <div className="px-3 pt-3 pb-2 shrink-0">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="internal">
+                <MessageCircle className="h-4 w-4" />
+                {t("tabs.internal")}
+              </TabsTrigger>
+              <TabsTrigger value="external">
+                <MessageCircle className="h-4 w-4" />
+                {t("tabs.external")}
+              </TabsTrigger>
               <TabsTrigger value="channels">
                 <Hash className="h-4 w-4" />
-                Channels
-              </TabsTrigger>
-              <TabsTrigger value="dms">
-                <MessageCircle className="h-4 w-4" />
-                Messages
+                {t("tabs.channels")}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -338,7 +382,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
               />
             </TabsContent>
 
-            <TabsContent value="dms" className="m-0 pt-0 pb-2">
+            <TabsContent value="internal" className="m-0 pt-0 pb-2">
               <ConversationList
                 items={filteredDMs.map((d) => ({
                   id: d.id,
@@ -410,6 +454,17 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
                 </div>
               )}
             </TabsContent>
+
+            <TabsContent value="external" className="m-0 pt-0 pb-2">
+              <ExternalConversationList
+                conversations={filteredExternalConversations}
+                integrations={integrations}
+                selectedId={selectedExternalContactId}
+                onSelect={handleSelectExternal}
+                onConnect={() => setConnectPlatformOpen(true)}
+                isLoading={isLoadingExternalConversations || isLoadingIntegrations}
+              />
+            </TabsContent>
           </ScrollArea>
         </Tabs>
 
@@ -443,6 +498,16 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
         open={startDMOpen} 
         onOpenChange={setStartDMOpen} 
       />
+      <ConnectPlatformDialog
+        open={connectPlatformOpen}
+        onOpenChange={(open) => {
+          setConnectPlatformOpen(open);
+          if (!open) {
+            refreshIntegrations();
+            refreshExternalConversations();
+          }
+        }}
+      />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col bg-background rounded-r-xl">
@@ -474,6 +539,13 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
                       {selectedConversation.name || "Direct Message"}
                     </span>
                   </>
+                ) : selectedExternalConversation ? (
+                  <>
+                    <MessageCircle className="h-5 w-5 text-muted-foreground" />
+                    <span className="font-medium">
+                      {selectedExternalConversation.displayName}
+                    </span>
+                  </>
                 ) : (
                   <span className="font-medium">Conversation</span>
                 )}
@@ -499,6 +571,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
             <MessageThread
               channelId={selectedChannelId || undefined}
               conversationId={selectedConversationId || undefined}
+              externalContactId={selectedExternalContactId || undefined}
               credentials={credentials}
               onReply={(messageId, content, senderName) => {
                 setReplyTo({ messageId, content, senderName });
@@ -510,11 +583,13 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
             <MessageComposer
               channelId={selectedChannelId || undefined}
               conversationId={selectedConversationId || undefined}
+              externalContactId={selectedExternalContactId || undefined}
+              externalIntegrationId={selectedExternalConversation?.integrationId}
               credentials={credentials}
               placeholder={
                 selectedChannel
                   ? `Message #${selectedChannel.name}`
-                  : "Type a message..."
+                  : t("composer.placeholder")
               }
               replyTo={replyTo}
               onCancelReply={() => setReplyTo(null)}

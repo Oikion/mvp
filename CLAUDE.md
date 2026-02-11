@@ -26,7 +26,10 @@ pnpm lint
 
 # Database
 pnpm prisma studio     # Open Prisma Studio UI
-pnpm prisma db push    # Push schema changes to database
+pnpm db:migrate        # Create and apply migration in dev
+pnpm db:deploy         # Deploy migrations to production
+pnpm db:status         # Check migration status
+pnpm db:validate       # Validate migration status and git state
 pnpm prisma generate   # Regenerate Prisma client
 ```
 
@@ -42,6 +45,17 @@ const properties = await prismadb.property.findMany({
   where: { organizationId }
 });
 ```
+
+### Database Connections
+
+This project uses a single physical database with different connection strings:
+
+- Development: direct PostgreSQL URL (no Accelerate)
+- Production: Prisma Accelerate URL for runtime, direct URL for migrations
+
+`lib/prisma.ts` enables Accelerate only when `NODE_ENV=production` and
+`DATABASE_URL` uses a `prisma://` or `prisma+postgres://` URL.
+Never use `prisma db push` in production; migrations are required.
 
 ### Middleware (proxy.ts)
 

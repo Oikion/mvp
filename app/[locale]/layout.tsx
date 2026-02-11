@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/app/providers/ThemeProvider";
 import { SWRProvider } from "@/app/providers/SWRProvider";
 import { ClerkThemeProvider } from "@/lib/clerk-theme-provider";
+import { ensureEnvValidated } from "@/lib/env";
 import { SkipLink } from "@/components/ui/skip-link";
 
 // Static imports for all translation files
@@ -257,6 +258,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 }
 
 export default async function RootLayout(props: Props) {
+  ensureEnvValidated();
   const params = await props.params;
 
   const {
@@ -268,7 +270,6 @@ export default async function RootLayout(props: Props) {
   } = props;
 
   const messages = getLocales(locale);
-  const t = createTranslator({ locale, messages });
 
   return (
     <html lang={locale} suppressHydrationWarning>

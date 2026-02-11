@@ -31,6 +31,7 @@ import websiteEn from "./locales/en/website.json";
 import authEn from "./locales/en/auth.json";
 import signInEn from "./locales/en/signIn.json";
 import referralsEn from "./locales/en/referrals.json";
+import messagesEn from "./locales/en/messages.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -62,6 +63,7 @@ import websiteEl from "./locales/el/website.json";
 import authEl from "./locales/el/auth.json";
 import signInEl from "./locales/el/signIn.json";
 import referralsEl from "./locales/el/referrals.json";
+import messagesEl from "./locales/el/messages.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -102,6 +104,7 @@ function loadMessages(locale: string) {
     messages.auth = authEl;
     messages.signIn = signInEl;
     messages.referrals = referralsEl;
+    messages.messages = messagesEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -144,6 +147,7 @@ function loadMessages(locale: string) {
     messages.auth = authEn;
     messages.signIn = signInEn;
     messages.referrals = referralsEn;
+    messages.messages = messagesEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))

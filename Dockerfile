@@ -22,7 +22,7 @@ RUN apt-get update -y && \
     apt-get install -y openssl libssl-dev && \
     npm install -g pnpm && \
     pnpm prisma generate && \
-    pnpm prisma db push && \
+    pnpm prisma migrate deploy && \
     pnpm prisma db seed && \
     pnpm run build
 

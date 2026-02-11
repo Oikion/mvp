@@ -30,7 +30,10 @@ pnpm lint:fix         # Auto-fix lint issues
 
 # Database
 pnpm prisma studio    # Open Prisma Studio UI
-pnpm prisma db push   # Push schema changes to database
+pnpm db:migrate       # Create and apply migration in dev
+pnpm db:deploy        # Deploy migrations to production
+pnpm db:status        # Check migration status
+pnpm db:validate      # Validate migration status and git state
 pnpm prisma generate  # Regenerate Prisma client after schema changes
 ```
 

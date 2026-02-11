@@ -1,6 +1,16 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import {
+  AtSign,
+  Loader2,
+  Paperclip,
+  Reply,
+  Send,
+  Share2,
+  Smile,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -8,20 +18,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Send,
-  Paperclip,
-  Smile,
-  AtSign,
-  Loader2,
-  Share2,
-  X,
-  Reply,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSendMessage, type MessagingCredentials } from "@/hooks/swr/useMessaging";
 import { useAblyMessages } from "@/hooks/useAbly";
-import { ShareEntityDialog, type SharedEntity } from "./ShareEntityDialog";
+import { useSendMessage } from "@/hooks/swr/useMessaging";
+import { ShareEntityDialog } from "./ShareEntityDialog";
+import type { SharedEntity } from "./ShareEntityDialog";
+import type { MessagingCredentials } from "@/hooks/swr/useMessaging";
 
 interface ReplyInfo {
   messageId: string;
@@ -32,6 +34,8 @@ interface ReplyInfo {
 interface MessageComposerProps {
   channelId?: string;
   conversationId?: string;
+  externalContactId?: string;
+  externalIntegrationId?: string;
   credentials?: MessagingCredentials;
   placeholder?: string;
   disabled?: boolean;
@@ -46,6 +50,8 @@ const QUICK_EMOJIS = ["👍", "❤️", "😂", "🎉", "🤔", "👀", "🙏", 
 export function MessageComposer({
   channelId,
   conversationId,
+  externalContactId,
+  externalIntegrationId,
   credentials,
   placeholder = "Type a message...",
   disabled = false,
@@ -61,6 +67,7 @@ export function MessageComposer({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingEnabled = !!(channelId || conversationId);
 
   // Use the SWR mutation hook for sending messages
   const { sendMessage, isSending } = useSendMessage({ channelId, conversationId });
@@ -75,6 +82,7 @@ export function MessageComposer({
 
   // Handle typing indicator
   const handleTypingStart = useCallback(() => {
+    if (!typingEnabled) return;
     if (!isTyping) {
       setIsTyping(true);
       sendTyping(true);
@@ -90,7 +98,7 @@ export function MessageComposer({
       setIsTyping(false);
       sendTyping(false);
     }, 3000);
-  }, [isTyping, sendTyping]);
+  }, [isTyping, sendTyping, typingEnabled]);
 
   // Clean up typing timeout on unmount
   useEffect(() => {
@@ -124,7 +132,7 @@ export function MessageComposer({
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    if (isTyping) {
+    if (isTyping && typingEnabled) {
       setIsTyping(false);
       sendTyping(false);
     }
@@ -132,6 +140,19 @@ export function MessageComposer({
     try {
       if (onSend) {
         await onSend(message, attachments);
+      } else if (externalContactId && externalIntegrationId) {
+        const res = await fetch("/api/messaging/external/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            integrationId: externalIntegrationId,
+            contactId: externalContactId,
+            content: message,
+          }),
+        });
+        if (!res.ok) {
+          throw new Error("Failed to send external message");
+        }
       } else {
         // Use the SWR mutation hook
         // Include shared entity info in the message metadata
@@ -157,7 +178,7 @@ export function MessageComposer({
     } catch (error) {
       console.error("Failed to send message:", error);
     }
-  }, [message, attachments, sharedEntity, isSending, disabled, onSend, sendMessage, channelId, conversationId, isTyping, sendTyping, replyTo, onCancelReply]);
+  }, [message, attachments, sharedEntity, isSending, disabled, onSend, sendMessage, channelId, conversationId, isTyping, sendTyping, replyTo, onCancelReply, externalContactId, externalIntegrationId, typingEnabled]);
 
   // Handle keyboard shortcuts
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

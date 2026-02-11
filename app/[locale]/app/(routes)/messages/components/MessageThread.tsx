@@ -1,22 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { format, isSameDay, isToday, isYesterday } from "date-fns";
+import {
+  Building2,
+  Calendar,
+  Check,
+  Copy,
+  ExternalLink,
+  FileText,
+  Loader2,
+  MessageSquare,
+  MoreHorizontal,
+  Pencil,
+  Reply,
+  Smile,
+  Trash2,
+  User,
+  X,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -27,30 +34,25 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
-  Loader2,
-  MessageSquare,
-  Smile,
-  MoreHorizontal,
-  Building2,
-  User,
-  FileText,
-  Calendar,
-  ExternalLink,
-  Copy,
-  Pencil,
-  Trash2,
-  X,
-  Check,
-  Reply,
-} from "lucide-react";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { format, isToday, isYesterday, isSameDay } from "date-fns";
-import { useMessages, useAddReaction, useEditMessage, useDeleteMessage, type MessagingCredentials, type Message } from "@/hooks/swr/useMessaging";
-import { useAblyMessages, useAblyConnection } from "@/hooks/useAbly";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useAblyConnection, useAblyMessages } from "@/hooks/useAbly";
+import { useAddReaction, useDeleteMessage, useEditMessage, useMessages } from "@/hooks/swr/useMessaging";
+import { ExternalMessageBubble } from "./ExternalMessageBubble";
+import type { Message, MessagingCredentials } from "@/hooks/swr/useMessaging";
 
 // Common emojis for quick reactions
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "🎉", "🤔", "👀", "🙏", "💯", "👎", "😢"];
@@ -58,6 +60,7 @@ const REACTION_EMOJIS = ["👍", "❤️", "😂", "🎉", "🤔", "👀", "🙏
 interface MessageThreadProps {
   channelId?: string;
   conversationId?: string;
+  externalContactId?: string;
   credentials?: MessagingCredentials;
   onReply?: (messageId: string, content: string, senderName: string | null) => void;
   onOpenThread?: (message: Message) => void;
@@ -127,7 +130,7 @@ function getInitials(name: string | null | undefined, email?: string | null): st
   return "U";
 }
 
-export function MessageThread({ channelId, conversationId, credentials, onReply, onOpenThread }: MessageThreadProps) {
+export function MessageThread({ channelId, conversationId, externalContactId, credentials, onReply, onOpenThread }: MessageThreadProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const locale = (params.locale as string) || "en";
@@ -139,7 +142,8 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
   const { messages, isLoading, error, hasMore, mutate } = useMessages({
     channelId,
     conversationId,
-    enabled: !!(channelId || conversationId),
+    externalContactId,
+    enabled: !!(channelId || conversationId || externalContactId),
   });
 
   // Reaction hook
@@ -315,6 +319,16 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                 const showAvatar =
                   msgIndex === 0 ||
                   group.messages[msgIndex - 1].senderId !== message.senderId;
+                const senderDisplayName = isCurrentUser
+                  ? (message.senderName || message.senderEmail || "Unknown User")
+                  : (message.externalContact?.displayName ||
+                      message.senderName ||
+                      message.senderEmail ||
+                      "Unknown User");
+                const senderAvatar = isCurrentUser
+                  ? message.senderAvatar
+                  : (message.externalContact?.avatarUrl || message.senderAvatar);
+                const canShowProfileLink = !!message.senderProfileSlug && !message.externalContactId;
 
                 return (
                   <ContextMenu key={message.id}>
@@ -329,27 +343,27 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                         {!showAvatar && <div className="w-8" />}
 
                         {/* Avatar - with profile link */}
-                        {showAvatar && message.senderProfileSlug && (
+                        {showAvatar && canShowProfileLink && (
                           <Link href={`/${locale}/agent/${message.senderProfileSlug}`}>
                             <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
-                              {message.senderAvatar && (
-                                <AvatarImage src={message.senderAvatar} alt={message.senderName || "User"} />
+                              {senderAvatar && (
+                                <AvatarImage src={senderAvatar} alt={senderDisplayName} />
                               )}
                               <AvatarFallback className="text-xs">
-                                {getInitials(message.senderName, message.senderEmail)}
+                                {getInitials(senderDisplayName, message.senderEmail)}
                               </AvatarFallback>
                             </Avatar>
                           </Link>
                         )}
 
                         {/* Avatar - without profile link */}
-                        {showAvatar && !message.senderProfileSlug && (
+                        {showAvatar && !canShowProfileLink && (
                           <Avatar className="h-8 w-8 flex-shrink-0">
-                            {message.senderAvatar && (
-                              <AvatarImage src={message.senderAvatar} alt={message.senderName || "User"} />
+                            {senderAvatar && (
+                              <AvatarImage src={senderAvatar} alt={senderDisplayName} />
                             )}
                             <AvatarFallback className="text-xs">
-                              {getInitials(message.senderName, message.senderEmail)}
+                              {getInitials(senderDisplayName, message.senderEmail)}
                             </AvatarFallback>
                           </Avatar>
                         )}
@@ -368,16 +382,16 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                             isCurrentUser && "flex-row-reverse"
                           )}
                         >
-                          {message.senderProfileSlug ? (
+                          {canShowProfileLink ? (
                             <Link 
                               href={`/${locale}/agent/${message.senderProfileSlug}`}
                               className="text-sm font-medium hover:underline"
                             >
-                              {message.senderName || message.senderEmail || "Unknown User"}
+                              {senderDisplayName}
                             </Link>
                           ) : (
                             <span className="text-sm font-medium">
-                              {message.senderName || message.senderEmail || "Unknown User"}
+                              {senderDisplayName}
                             </span>
                           )}
                           <span className="text-xs text-muted-foreground">
@@ -438,6 +452,8 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
+                        ) : message.externalPlatform || message.externalContactId ? (
+                          <ExternalMessageBubble message={message} />
                         ) : (
                           <p className="whitespace-pre-wrap break-words">
                             {message.content}
@@ -617,7 +633,7 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                           variant="ghost" 
                           size="icon" 
                           className="h-6 w-6"
-                          onClick={() => onReply?.(message.id, message.content, message.senderName || null)}
+                          onClick={() => onReply?.(message.id, message.content, senderDisplayName)}
                           title="Reply"
                         >
                           <MessageSquare className="h-3 w-3" />
@@ -659,7 +675,7 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                     {/* Right-click Context Menu */}
                     <ContextMenuContent className="w-48">
                       <ContextMenuItem 
-                        onClick={() => onReply?.(message.id, message.content, message.senderName || null)}
+                        onClick={() => onReply?.(message.id, message.content, senderDisplayName)}
                         className="cursor-pointer"
                       >
                         <Reply className="mr-2 h-4 w-4" />
