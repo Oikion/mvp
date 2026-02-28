@@ -1,6 +1,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { decryptClient } from "@/lib/model-encryption";
 
 export const getClient = async (clientId: string) => {
   // Check permission to read clients
@@ -27,12 +28,14 @@ export const getClient = async (clientId: string) => {
   if (!data) {
     return null;
   }
-  
+
+  const decryptedData = decryptClient(data);
+
   // Map to expected field names for backward compatibility
   const mappedData = {
-    ...data,
-    assigned_to_user: data.Users_Clients_assigned_toToUsers,
-    contacts: data.Client_Contacts,
+    ...decryptedData,
+    assigned_to_user: decryptedData.Users_Clients_assigned_toToUsers,
+    contacts: decryptedData.Client_Contacts,
   };
   
   // Serialize to plain objects - converts Decimal to number, Date to string

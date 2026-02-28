@@ -1,6 +1,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { decryptClient } from "@/lib/model-encryption";
 
 export const getClients = async () => {
   // Check permission to read clients
@@ -41,18 +42,21 @@ export const getClients = async () => {
     take: 500, // Add reasonable limit to prevent over-fetching
   });
   // Map to legacy fields expected by existing UI until refactor completes
-  return data.map((c) => ({
-    ...c,
-    name: c.client_name,
-    email: c.primary_email,
-    status: c.client_status === "ACTIVE" ? "Active" : "IN_PROGRESS",
-    assigned_to_user: c.Users_Clients_assigned_toToUsers,
-    contacts: (c.Client_Contacts || []).map((p) => ({
-      ...p,
-      first_name: p.contact_first_name,
-      last_name: p.contact_last_name,
-    })),
-  }));
+  return data.map((c) => {
+    const dec = decryptClient(c);
+    return {
+      ...dec,
+      name: dec.client_name,
+      email: dec.primary_email,
+      status: dec.client_status === "ACTIVE" ? "Active" : "IN_PROGRESS",
+      assigned_to_user: dec.Users_Clients_assigned_toToUsers,
+      contacts: (dec.Client_Contacts || []).map((p) => ({
+        ...p,
+        first_name: p.contact_first_name,
+        last_name: p.contact_last_name,
+      })),
+    };
+  });
 };
 
 
