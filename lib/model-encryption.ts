@@ -36,10 +36,10 @@ function encryptJson(
   value: Prisma.JsonValue | null | undefined
 ): Prisma.JsonValue | null | undefined {
   if (value == null) return value;
+  // Only skip if the raw value is already an encrypted string
+  if (typeof value === "string" && isEncrypted(value)) return value;
   const str = typeof value === "string" ? value : JSON.stringify(value);
-  if (isEncrypted(str)) return value; // already encrypted string stored as JSON
-  const encrypted = encrypt(str);
-  return encrypted as Prisma.JsonValue; // stored as JSON string
+  return encrypt(str) as Prisma.JsonValue;
 }
 
 /** Decrypt a JSON value that was encrypted as a string */
@@ -123,16 +123,16 @@ export function decryptClient<T extends ClientWithEncryptedFields>(record: T): T
 // Messages
 // ─────────────────────────────────────────────
 
-type MessageWithContent = { content?: string };
+type MessageWithContent = { content?: string | null };
 
 export function encryptMessage<T extends MessageWithContent>(data: T): T {
   if (!("content" in data)) return data;
-  return { ...data, content: encryptField(data.content) as string };
+  return { ...data, content: encryptField(data.content) };
 }
 
 export function decryptMessage<T extends MessageWithContent>(record: T): T {
   if (!("content" in record)) return record;
-  return { ...record, content: decryptField(record.content) as string };
+  return { ...record, content: decryptField(record.content) };
 }
 
 // ─────────────────────────────────────────────
@@ -181,8 +181,8 @@ export function decryptCalendarEvent<T extends CalendarWithEncryptedFields>(reco
 
 type AiConversationWithEncryptedFields = {
   title?: string | null;
-  messages?: Prisma.JsonValue | null | unknown;
-  context?: Prisma.JsonValue | null | unknown;
+  messages?: Prisma.JsonValue | null;
+  context?: Prisma.JsonValue | null;
 };
 
 export function encryptAiConversation<T extends AiConversationWithEncryptedFields>(data: T): T {
