@@ -75,30 +75,28 @@ export async function getSharedClient(clientId: string) {
     return null;
   }
 
-  let decryptedClient: typeof client;
   try {
-    decryptedClient = decryptClient(client);
+    const decryptedClient = decryptClient(client);
+    return {
+      ...decryptedClient,
+      // Map to expected field names for backward compatibility
+      assigned_to_user: decryptedClient.Users_Clients_assigned_toToUsers,
+      contacts: decryptedClient.Client_Contacts,
+      linked_properties: decryptedClient.Client_Properties.map((cp) => ({
+        ...cp,
+        property: cp.Properties,
+      })),
+      _shareInfo: {
+        permissions: share.permissions,
+        message: share.message,
+        sharedAt: share.createdAt,
+        sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
+      },
+    };
   } catch (err) {
-    console.error(`[GET_SHARED_CLIENT] Failed to decrypt client ${client.id}:`, err);
+    console.error(`[GET_SHARED_CLIENT] Failed to process client ${client.id}:`, err);
     return null;
   }
-
-  return {
-    ...decryptedClient,
-    // Map to expected field names for backward compatibility
-    assigned_to_user: decryptedClient.Users_Clients_assigned_toToUsers,
-    contacts: decryptedClient.Client_Contacts,
-    linked_properties: decryptedClient.Client_Properties.map((cp) => ({
-      ...cp,
-      property: cp.Properties,
-    })),
-    _shareInfo: {
-      permissions: share.permissions,
-      message: share.message,
-      sharedAt: share.createdAt,
-      sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
-    },
-  };
 }
 
 /**
