@@ -5,6 +5,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { MessageContentType } from "@prisma/client";
 import { requireAction } from "@/lib/permissions";
+import { encryptMessage, decryptMessage } from "@/lib/model-encryption";
 
 /**
  * Send a message to a channel or conversation
@@ -89,6 +90,9 @@ export async function sendMessage(params: {
       mentions.push(match[2]); // User ID from mention
     }
 
+    // Encrypt content before storing
+    const encryptedContent = encryptMessage({ content: params.content }).content!;
+
     // Create message
     const messageId = await generateFriendlyId(prismadb, "Message");
     const message = await prismadb.message.create({
@@ -98,7 +102,7 @@ export async function sendMessage(params: {
         channelId: params.channelId,
         conversationId: params.conversationId,
         senderId: currentUser.id,
-        content: params.content,
+        content: encryptedContent,
         contentType: "TEXT",
         parentId: params.parentId,
         mentions: mentions.length > 0 ? {
@@ -129,7 +133,7 @@ export async function sendMessage(params: {
       success: true,
       message: {
         id: message.id,
-        content: message.content,
+        content: params.content, // return original plaintext for immediate display
         senderId: message.senderId,
         createdAt: message.createdAt,
       },
@@ -257,6 +261,7 @@ export async function getMessages(params: {
 
     // Group reactions by emoji
     const formattedMessages = resultMessages.map(msg => {
+      const decrypted = decryptMessage(msg);
       const reactionMap = new Map<string, string[]>();
       msg.reactions.forEach(r => {
         if (!reactionMap.has(r.emoji)) {
@@ -266,21 +271,21 @@ export async function getMessages(params: {
       });
 
       return {
-        id: msg.id,
-        content: msg.content,
-        contentType: msg.contentType,
-        senderId: msg.senderId,
-        parentId: msg.parentId,
-        threadCount: msg.threadCount,
-        isEdited: msg.isEdited,
-        createdAt: msg.createdAt,
-        editedAt: msg.editedAt,
+        id: decrypted.id,
+        content: decrypted.content,
+        contentType: decrypted.contentType,
+        senderId: decrypted.senderId,
+        parentId: decrypted.parentId,
+        threadCount: decrypted.threadCount,
+        isEdited: decrypted.isEdited,
+        createdAt: decrypted.createdAt,
+        editedAt: decrypted.editedAt,
         reactions: Array.from(reactionMap.entries()).map(([emoji, userIds]) => ({
           emoji,
           count: userIds.length,
           userIds,
         })),
-        attachments: msg.attachments,
+        attachments: decrypted.attachments,
       };
     });
 
@@ -327,10 +332,11 @@ export async function editMessage(
       return { success: false, error: "Cannot edit deleted message" };
     }
 
+    const encryptedContent = encryptMessage({ content }).content!;
     await prismadb.message.update({
       where: { id: messageId },
       data: {
-        content,
+        content: encryptedContent,
         isEdited: true,
         editedAt: new Date(),
       },
