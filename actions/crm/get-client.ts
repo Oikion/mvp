@@ -35,6 +35,8 @@ export const getClient = async (clientId: string) => {
   const mappedData = {
     ...decryptedData,
     assigned_to_user: decryptedData.Users_Clients_assigned_toToUsers,
+    // NOTE: Client_Contacts fields are not encrypted — if contact fields are
+    // ever encrypted at write time, add decryptContact() calls here.
     contacts: decryptedData.Client_Contacts,
   };
   

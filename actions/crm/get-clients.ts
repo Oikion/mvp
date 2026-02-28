@@ -42,21 +42,28 @@ export const getClients = async () => {
     take: 500, // Add reasonable limit to prevent over-fetching
   });
   // Map to legacy fields expected by existing UI until refactor completes
-  return data.map((c) => {
-    const dec = decryptClient(c);
-    return {
-      ...dec,
-      name: dec.client_name,
-      email: dec.primary_email,
-      status: dec.client_status === "ACTIVE" ? "Active" : "IN_PROGRESS",
-      assigned_to_user: dec.Users_Clients_assigned_toToUsers,
-      contacts: (dec.Client_Contacts || []).map((p) => ({
-        ...p,
-        first_name: p.contact_first_name,
-        last_name: p.contact_last_name,
-      })),
-    };
-  });
+  const results = [];
+  for (const c of data) {
+    try {
+      const dec = decryptClient(c);
+      results.push({
+        ...dec,
+        name: dec.client_name,
+        email: dec.primary_email,
+        status: dec.client_status === "ACTIVE" ? "Active" : "IN_PROGRESS",
+        assigned_to_user: dec.Users_Clients_assigned_toToUsers,
+        contacts: (dec.Client_Contacts || []).map((p) => ({
+          ...p,
+          first_name: p.contact_first_name,
+          last_name: p.contact_last_name,
+        })),
+      });
+    } catch (err) {
+      console.error(`[GET_CLIENTS] Failed to decrypt client ${c.id}:`, err);
+      // Skip corrupted record rather than crashing the list
+    }
+  }
+  return results;
 };
 
 
