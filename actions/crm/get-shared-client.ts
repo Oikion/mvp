@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
+import { decryptClient } from "@/lib/model-encryption";
 
 /**
  * Get a client that has been shared with the current user
@@ -74,12 +75,20 @@ export async function getSharedClient(clientId: string) {
     return null;
   }
 
+  let decryptedClient: typeof client;
+  try {
+    decryptedClient = decryptClient(client);
+  } catch (err) {
+    console.error(`[GET_SHARED_CLIENT] Failed to decrypt client ${client.id}:`, err);
+    return null;
+  }
+
   return {
-    ...client,
+    ...decryptedClient,
     // Map to expected field names for backward compatibility
-    assigned_to_user: client.Users_Clients_assigned_toToUsers,
-    contacts: client.Client_Contacts,
-    linked_properties: client.Client_Properties.map((cp) => ({
+    assigned_to_user: decryptedClient.Users_Clients_assigned_toToUsers,
+    contacts: decryptedClient.Client_Contacts,
+    linked_properties: decryptedClient.Client_Properties.map((cp) => ({
       ...cp,
       property: cp.Properties,
     })),

@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
+import { decryptClient } from "@/lib/model-encryption";
 
 export interface SharedClientData {
   id: string;
@@ -52,7 +53,7 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
   });
 
   // Fetch the actual client entities
-  const enrichedShares = await Promise.all(
+  const rawShares = await Promise.all(
     shares.map(async (share) => {
       const client = await prismadb.clients.findUnique({
         where: { id: share.entityId },
@@ -86,6 +87,15 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
     })
   );
 
-  return enrichedShares.filter((s): s is SharedClientData => s !== null);
+  const results: SharedClientData[] = [];
+  for (const c of rawShares) {
+    if (!c) continue;
+    try {
+      results.push(decryptClient(c));
+    } catch (err) {
+      console.error(`[GET_SHARED_CLIENTS] Failed to decrypt client ${c.id}:`, err);
+    }
+  }
+  return results;
 };
 
