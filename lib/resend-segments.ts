@@ -8,8 +8,9 @@ export const RESEND_SEGMENTS = {
 
 // Email configuration
 export const EMAIL_CONFIG = {
-  FROM_ADDRESS: "mail@oikion.com",
+  FROM_ADDRESS: "noreply@mail.oikion.com",
   FROM_NAME: "Oikion",
+  CONTACT_EMAIL: "contact@oikion.com",
   get FROM() {
     return `${this.FROM_NAME} <${this.FROM_ADDRESS}>`;
   },
