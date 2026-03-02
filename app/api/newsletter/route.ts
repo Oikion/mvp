@@ -96,6 +96,24 @@ export async function POST(request: NextRequest) {
           // Don't fail the subscription if welcome email fails
           console.error('[Newsletter] Error sending welcome email:', emailError)
         }
+
+        // Notify contact@oikion.com about new signup
+        try {
+          await resend.emails.send({
+            from: EMAIL_CONFIG.FROM,
+            to: EMAIL_CONFIG.CONTACT_EMAIL,
+            subject: `New ${preAlphaInterest ? 'Early Access' : 'Newsletter'} signup: ${normalizedEmail}`,
+            html: `<p>New signup received:</p>
+<ul>
+  <li><strong>Email:</strong> ${normalizedEmail}</li>
+  <li><strong>Type:</strong> ${preAlphaInterest ? 'Early Access (Beta Waitlist)' : 'Newsletter'}</li>
+  <li><strong>Time:</strong> ${new Date().toISOString()}</li>
+</ul>`,
+          });
+        } catch (notifyError) {
+          // Don't fail the subscription if notification fails
+          console.error('[Newsletter] Error sending admin notification:', notifyError);
+        }
       } catch (resendError) {
         console.error('[Newsletter] Resend API error:', resendError)
         // Continue - don't fail subscription if Resend has issues
