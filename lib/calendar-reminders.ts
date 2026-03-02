@@ -7,6 +7,7 @@ import { prismadb } from "./prisma";
 import resendHelper from "./resend";
 import CalendarReminderEmail from "@/emails/CalendarReminder";
 import { createNotification } from "@/lib/notifications";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 /**
  * Get user notification settings, with defaults if not found
@@ -198,7 +199,7 @@ export async function sendReminderNotification(
       const resend = await resendHelper();
 
       await resend.emails.send({
-        from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+        from: EMAIL_CONFIG.FROM,
         to: user.email,
         subject:
           user.userLanguage === "el"

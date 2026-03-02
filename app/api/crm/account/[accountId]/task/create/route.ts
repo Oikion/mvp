@@ -6,6 +6,7 @@ import NewTaskFromCRMToWatchersEmail from "@/emails/NewTaskFromCRMToWatchers";
 import resendHelper from "@/lib/resend";
 import { notifyAccountWatchers } from "@/lib/notify-watchers";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 export async function POST(req: Request) {
   const resend = await resendHelper();
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
         });
 
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+          from: EMAIL_CONFIG.FROM,
           to: notifyRecipient?.email!,
           subject:
             user.userLanguage === "en"
@@ -103,7 +104,7 @@ export async function POST(req: Request) {
           },
         });
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+          from: EMAIL_CONFIG.FROM,
           to: recipientUser?.email!,
           subject:
             user.userLanguage === "en"

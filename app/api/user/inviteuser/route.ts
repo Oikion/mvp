@@ -6,6 +6,7 @@ import { generateRandomPassword } from "@/lib/utils";
 import { hash } from "bcryptjs";
 import InviteUserEmail from "@/emails/InviteUser";
 import resendHelper from "@/lib/resend";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 export async function POST(req: Request) {
   const resend = await resendHelper();
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
       }
 
       const data = await resend.emails.send({
-        from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+        from: EMAIL_CONFIG.FROM,
         to: newUser.email,
         subject: `You have been invited to ${process.env.NEXT_PUBLIC_APP_NAME} `,
         text: message,

@@ -11,6 +11,7 @@ import { getCurrentUser } from "@/lib/get-current-user";
 import { createSafeAction } from "@/lib/create-safe-action";
 import MessageToAllUsers from "@/emails/admin/MessageToAllUser";
 import sendEmail from "@/lib/sendmail";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const user = await getCurrentUser();
@@ -68,7 +69,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
         //send via sendmail
         await sendEmail({
-          from: process.env.EMAIL_FROM as string,
+          from: EMAIL_CONFIG.FROM,
           to: user.email || "delivered@resend.dev",
           subject: title,
           text: message,
@@ -78,7 +79,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
       //send via Resend.com
       await resend.emails.send({
-        from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+        from: EMAIL_CONFIG.FROM,
         to: user?.email!,
         subject: title,
         text: message, // Add this line to fix the types issue

@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import resendHelper from "@/lib/resend";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 export async function denyReferrer(
   userId: string
@@ -34,7 +35,7 @@ export async function denyReferrer(
     const resend = await resendHelper();
 
     await resend.emails.send({
-      from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+      from: EMAIL_CONFIG.FROM,
       to: user.email,
       subject: "Update on Your Referral Programme Application",
       html: `

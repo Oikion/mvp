@@ -7,6 +7,7 @@ import { sanitizeAdminMessage } from "@/lib/platform-admin-utils";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { Resend } from "resend";
 import { z } from "zod";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 // Validation schemas
 const warningSchema = z.object({
@@ -89,7 +90,7 @@ export async function sendUserWarning(userId: string, reason: string): Promise<A
     if (resend && user.email) {
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+          from: EMAIL_CONFIG.FROM,
           to: user.email,
           subject: "Important: Account Warning - Oikion",
           html: `
@@ -198,7 +199,7 @@ export async function suspendUser(userId: string, reason: string): Promise<Actio
     if (resend && user.email) {
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+          from: EMAIL_CONFIG.FROM,
           to: user.email,
           subject: "Account Suspended - Oikion",
           html: `
@@ -295,7 +296,7 @@ export async function unsuspendUser(userId: string, note?: string): Promise<Acti
     if (resend && user.email) {
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+          from: EMAIL_CONFIG.FROM,
           to: user.email,
           subject: "Account Restored - Oikion",
           html: `
@@ -360,7 +361,7 @@ export async function deleteUser(userId: string, reason: string): Promise<Action
     if (resend && user.email) {
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+          from: EMAIL_CONFIG.FROM,
           to: user.email,
           subject: "Account Deleted - Oikion",
           html: `

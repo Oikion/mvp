@@ -10,6 +10,7 @@ import { z } from "zod";
 import AccountWarning from "@/emails/admin/AccountWarning";
 import AccountSuspension from "@/emails/admin/AccountSuspension";
 import AccountDeletion from "@/emails/admin/AccountDeletion";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 // Initialize Resend if available
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -113,7 +114,7 @@ export async function warnOrganizationMembers(
       if (resend && user.email) {
         try {
           await resend.emails.send({
-            from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+            from: EMAIL_CONFIG.FROM,
             to: user.email,
             subject: `Warning: Your Organization "${org.name}"`,
             react: AccountWarning({
@@ -236,7 +237,7 @@ export async function suspendOrganization(
       if (resend && user.email) {
         try {
           await resend.emails.send({
-            from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+            from: EMAIL_CONFIG.FROM,
             to: user.email,
             subject: `Organization Suspended: "${org.name}"`,
             react: AccountSuspension({
@@ -343,7 +344,7 @@ export async function deleteOrganization(
       if (resend && user.email) {
         try {
           await resend.emails.send({
-            from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+            from: EMAIL_CONFIG.FROM,
             to: user.email,
             subject: `Organization Deleted: "${org.name}"`,
             react: AccountDeletion({

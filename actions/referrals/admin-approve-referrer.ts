@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { createReferralCode, formatReferralUrl } from "@/lib/referrals/create-referral-code";
 import resendHelper from "@/lib/resend";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 export async function approveReferrer(
   userId: string
@@ -74,7 +75,7 @@ export async function approveReferrer(
     const referralUrl = formatReferralUrl(code);
 
     await resend.emails.send({
-      from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+      from: EMAIL_CONFIG.FROM,
       to: user.email,
       subject: "Your Referral Programme Application Has Been Approved!",
       html: `

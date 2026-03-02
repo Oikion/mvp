@@ -5,6 +5,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import resendHelper from "@/lib/resend";
 import { FeatureAccessRequestEmail } from "@/emails/admin/FeatureAccessRequest";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 // Platform admin email for feature access requests
 const ADMIN_EMAIL = process.env.PLATFORM_ADMIN_EMAIL || "contact@oikion.com";
@@ -121,7 +122,7 @@ export async function requestFeatureAccess(
     try {
       const resend = await resendHelper();
       await resend.emails.send({
-        from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+        from: EMAIL_CONFIG.FROM,
         to: ADMIN_EMAIL,
         subject: `Feature Access Request: ${featureDisplayName} from ${org.name}`,
         react: FeatureAccessRequestEmail({

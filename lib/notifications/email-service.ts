@@ -8,6 +8,7 @@
 import { prismadb } from "@/lib/prisma";
 import resendHelper from "@/lib/resend";
 import { NotificationCategory } from "@prisma/client";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 // Import all email templates
 import SocialPostLikedEmail from "@/emails/notifications/SocialPostLiked";
@@ -427,7 +428,7 @@ export async function sendNotificationEmail(
 
     // Send email
     await resend.emails.send({
-      from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+      from: EMAIL_CONFIG.FROM,
       to: user.email,
       subject,
       react: emailComponent,

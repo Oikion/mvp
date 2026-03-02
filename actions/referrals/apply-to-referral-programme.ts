@@ -6,6 +6,7 @@ import resendHelper from "@/lib/resend";
 import { ReferralApplicationEmail } from "@/emails/admin/ReferralApplication";
 import crypto from "crypto";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 const ADMIN_EMAIL = "contact@oikion.com";
 const TOKEN_SECRET = process.env.REFERRAL_TOKEN_SECRET || process.env.NEXTAUTH_SECRET || "fallback-secret";
@@ -77,7 +78,7 @@ export async function applyToReferralProgramme(
     // Send email to admin
     const resend = await resendHelper();
     await resend.emails.send({
-      from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+      from: EMAIL_CONFIG.FROM,
       to: ADMIN_EMAIL,
       subject: `New Referral Programme Application - ${input.name}`,
       react: ReferralApplicationEmail({

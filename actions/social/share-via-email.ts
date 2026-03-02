@@ -4,6 +4,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import resendHelper from "@/lib/resend";
 import ShareEntityEmail, { ShareEntityType } from "@/emails/ShareEntity";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 export interface ShareViaEmailInput {
   entityType: ShareEntityType;
@@ -215,7 +216,7 @@ export async function shareViaEmail(input: ShareViaEmailInput) {
 
   try {
     const result = await resend.emails.send({
-      from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+      from: EMAIL_CONFIG.FROM,
       to: input.recipientEmail,
       subject,
       react: ShareEntityEmail({
