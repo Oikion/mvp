@@ -19,13 +19,15 @@ export default async function sendEmail(options: EmailOptions): Promise<void> {
 
   const resend = new Resend(apiKey);
 
+  const bodyFields: { html?: string; text?: string } = options.html
+    ? { html: options.html, text: options.text }
+    : { text: options.text ?? "" };
+
   const payload: CreateEmailOptions = {
     from: options.from || EMAIL_CONFIG.FROM,
     to: options.to,
     subject: options.subject,
-    // Resend requires at least one of html or text; default to empty text if neither supplied
-    html: options.html,
-    text: options.text ?? (options.html ? undefined : ""),
+    ...bodyFields,
   } as CreateEmailOptions;
 
   try {
