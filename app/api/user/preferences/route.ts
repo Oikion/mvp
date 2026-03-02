@@ -3,61 +3,25 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { LayoutPreference, Prisma } from "@prisma/client";
-import { 
-  type DashboardConfig, 
-  type WidgetSize,
-  DASHBOARD_CONFIG_VERSION 
-} from "@/lib/dashboard/types";
-import { WIDGET_REGISTRY, normalizeDashboardConfig } from "@/lib/dashboard/widget-registry";
+import { type DashboardConfig } from "@/lib/dashboard/types";
+import { normalizeDashboardConfig } from "@/lib/dashboard/widget-registry";
 
 // Valid layout preference values
 const VALID_LAYOUT_PREFERENCES = new Set<LayoutPreference>(["DEFAULT", "WIDE"]);
 
-// Valid widget sizes
-const VALID_WIDGET_SIZES = new Set<WidgetSize>(["sm", "md", "lg"]);
-
 function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
-}
-
-function validateWidgetConfig(widget: unknown): boolean {
-  if (!widget || typeof widget !== "object") return false;
-  const w = widget as Record<string, unknown>;
-
-  if (typeof w.id !== "string" || !WIDGET_REGISTRY[w.id]) return false;
-  if (typeof w.visible !== "boolean") return false;
-  if (typeof w.size !== "string" || !VALID_WIDGET_SIZES.has(w.size as WidgetSize)) {
-    return false;
-  }
-  if (!isNumber(w.order)) return false;
-
-  return true;
 }
 
 function validateLayoutItem(item: unknown): boolean {
   if (!item || typeof item !== "object") return false;
   const layoutItem = item as Record<string, unknown>;
 
-  if (typeof layoutItem.i !== "string" || !WIDGET_REGISTRY[layoutItem.i]) {
-    return false;
-  }
+  if (typeof layoutItem.i !== "string") return false;
   if (!isNumber(layoutItem.x)) return false;
   if (!isNumber(layoutItem.y)) return false;
   if (!isNumber(layoutItem.w)) return false;
   if (!isNumber(layoutItem.h)) return false;
-
-  if (layoutItem.minW !== undefined && !isNumber(layoutItem.minW)) {
-    return false;
-  }
-  if (layoutItem.maxW !== undefined && !isNumber(layoutItem.maxW)) {
-    return false;
-  }
-  if (layoutItem.minH !== undefined && !isNumber(layoutItem.minH)) {
-    return false;
-  }
-  if (layoutItem.maxH !== undefined && !isNumber(layoutItem.maxH)) {
-    return false;
-  }
 
   return true;
 }
@@ -65,7 +29,7 @@ function validateLayoutItem(item: unknown): boolean {
 function validateLayouts(layouts: unknown): boolean {
   if (!layouts || typeof layouts !== "object") return false;
   const layoutRecord = layouts as Record<string, unknown>;
-  const breakpoints = ["lg", "md", "sm"] as const;
+  const breakpoints = ["lg", "md", "sm", "xs", "xxs"] as const;
 
   for (const breakpoint of breakpoints) {
     const layout = layoutRecord[breakpoint];
@@ -80,29 +44,28 @@ function validateLayouts(layouts: unknown): boolean {
 }
 
 /**
- * Validate dashboard config structure
+ * Validate dashboard config structure (V2: layouts + widgets record)
  */
 function validateDashboardConfig(config: unknown): config is DashboardConfig {
   if (!config || typeof config !== "object") return false;
-  
+
   const c = config as Record<string, unknown>;
-  
-  // Check version
-  if (typeof c.version !== "number") return false;
-  
-  // Check widgets array
-  if (!Array.isArray(c.widgets)) return false;
-  
-  // Validate each widget
-  for (const widget of c.widgets) {
-    if (!validateWidgetConfig(widget)) return false;
+
+  // V2 format: must have layouts object and widgets record
+  if (!c.layouts || typeof c.layouts !== "object") return false;
+  if (!c.widgets || typeof c.widgets !== "object") return false;
+
+  // Validate layouts
+  if (!validateLayouts(c.layouts)) return false;
+
+  // Validate widgets record (each value must have visible boolean)
+  const widgetsRecord = c.widgets as Record<string, unknown>;
+  for (const [, widgetSettings] of Object.entries(widgetsRecord)) {
+    if (!widgetSettings || typeof widgetSettings !== "object") return false;
+    const ws = widgetSettings as Record<string, unknown>;
+    if (typeof ws.visible !== "boolean") return false;
   }
 
-  // Validate layouts if provided (newer config)
-  if ("layouts" in c && c.layouts !== undefined && c.layouts !== null) {
-    if (!validateLayouts(c.layouts)) return false;
-  }
-  
   return true;
 }
 
@@ -183,11 +146,9 @@ export async function PATCH(req: Request) {
           { status: 400 }
         );
       }
-      // Ensure version is current
       const normalized = normalizeDashboardConfig(dashboardConfig);
       updateData.dashboardConfig = {
         ...normalized,
-        version: DASHBOARD_CONFIG_VERSION,
         updatedAt: new Date().toISOString(),
       } as Prisma.InputJsonValue;
     }

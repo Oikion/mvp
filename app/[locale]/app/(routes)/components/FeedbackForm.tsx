@@ -211,7 +211,7 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
   return (
     <>
       <FeedbackHistorySheet open={historyOpen} onOpenChange={setHistoryOpen} />
-      <div className="space-y-6 px-2">
+      <div className="space-y-6 px-2 pb-8">
         {/* Header with View History Button */}
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{t("submitFeedback")}</h2>

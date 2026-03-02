@@ -1,4 +1,5 @@
 import { prismadb } from "@/lib/prisma";
+import { decryptDocumentForOrg, decryptClientForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
 
 export async function getDocument(documentId: string, organizationId: string) {
   const document = await prismadb.documents.findFirst({
@@ -75,12 +76,14 @@ export async function getDocument(documentId: string, organizationId: string) {
 
   if (!document) return null;
 
+  const decryptedDoc = await decryptDocumentForOrg(document, organizationId);
+
   // Map to expected field names for backward compatibility
   return {
-    ...document,
-    accounts: document.Clients,
+    ...decryptedDoc,
+    accounts: await Promise.all(document.Clients.map((c) => decryptClientForOrg(c, organizationId))),
     linkedProperties: document.Properties,
-    linkedCalendarEvents: document.CalendarEvent,
+    linkedCalendarEvents: await Promise.all(document.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, organizationId))),
     linkedTasks: document.crm_Accounts_Tasks_DocumentsToCrmAccountsTasks,
     created_by: document.Users_Documents_created_by_userToUsers,
     assigned_to_user: document.Users_Documents_assigned_userToUsers,
@@ -127,12 +130,15 @@ export async function getDocumentByShareLink(shareableLink: string) {
 
   if (!document) return null;
 
+  const orgId = document.organizationId;
+  const decryptedDoc = await decryptDocumentForOrg(document, orgId);
+
   // Map to expected field names for backward compatibility
   return {
-    ...document,
-    accounts: document.Clients,
+    ...decryptedDoc,
+    accounts: await Promise.all(document.Clients.map((c) => decryptClientForOrg(c, orgId))),
     linkedProperties: document.Properties,
-    linkedCalendarEvents: document.CalendarEvent,
+    linkedCalendarEvents: await Promise.all(document.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, orgId))),
     linkedTasks: document.crm_Accounts_Tasks_DocumentsToCrmAccountsTasks,
   };
 }

@@ -1,0 +1,464 @@
+{
+  "common": {
+    "lastUpdated": "Last updated",
+    "lastUpdatedDate": "July 1, 2025",
+    "email": "legal@oikion.com",
+    "generalEmail": "contact@oikion.com",
+    "responseTime": "Response time: We aim to respond within 5 business days"
+  },
+  "accessibility": {
+    "title": "Accessibility Statement",
+    "subtitle": "We are committed to ensuring digital accessibility for people of all abilities.",
+    "commitment": {
+      "title": "Our Commitment",
+      "content": "Oikion is committed to ensuring digital accessibility for people with disabilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards."
+    },
+    "conformance": {
+      "title": "Conformance Status",
+      "intro": "The Web Content Accessibility Guidelines (WCAG) defines requirements for designers and developers to improve accessibility for people with disabilities. We aim to conform to WCAG 2.1 Level AA standards.",
+      "workingTowards": "We are currently working towards achieving full WCAG 2.1 Level AA conformance. As we continue to develop and enhance our platform, accessibility remains a core consideration in our design and development processes."
+    },
+    "features": {
+      "title": "Accessibility Features",
+      "intro": "Our platform includes the following accessibility features:",
+      "navigation": {
+        "title": "Navigation & Structure",
+        "items": [
+          "Consistent navigation throughout the site",
+          "Skip navigation links to bypass repetitive content",
+          "Logical heading structure for screen readers",
+          "Keyboard navigation support for all interactive elements",
+          "Focus indicators visible when navigating with keyboard"
+        ]
+      },
+      "visual": {
+        "title": "Visual Design",
+        "items": [
+          "Color contrast ratios meeting WCAG AA standards",
+          "Text resizing support without loss of functionality",
+          "Dark mode support for reduced eye strain",
+          "No content that flashes more than three times per second",
+          "Alternative text for meaningful images"
+        ]
+      },
+      "forms": {
+        "title": "Forms & Interactions",
+        "items": [
+          "Clearly labeled form fields",
+          "Error messages associated with relevant form inputs",
+          "Success and error states clearly communicated",
+          "Sufficient time to complete tasks",
+          "No automatic time-outs without warning"
+        ]
+      },
+      "screenReader": {
+        "title": "Screen Reader Support",
+        "items": [
+          "ARIA labels and landmarks for improved navigation",
+          "Dynamic content updates announced to screen readers",
+          "Tables with proper headers and relationships",
+          "Links and buttons with descriptive text"
+        ]
+      }
+    },
+    "technologies": {
+      "title": "Technologies Used",
+      "intro": "Accessibility of Oikion relies on the following technologies:",
+      "items": [
+        "HTML5",
+        "CSS3",
+        "JavaScript",
+        "WAI-ARIA (Web Accessibility Initiative - Accessible Rich Internet Applications)"
+      ],
+      "conclusion": "These technologies are relied upon for conformance with the accessibility standards used."
+    },
+    "compatibility": {
+      "title": "Compatibility",
+      "intro": "Oikion is designed to be compatible with:",
+      "items": [
+        "Latest versions of major browsers (Chrome, Firefox, Safari, Edge)",
+        "Screen readers including JAWS, NVDA, and VoiceOver",
+        "Voice recognition software",
+        "Screen magnification software",
+        "Mobile assistive technologies"
+      ]
+    },
+    "knownLimitations": {
+      "title": "Known Limitations",
+      "intro": "Despite our best efforts, some content may have limitations:",
+      "items": [
+        "Some third-party content or integrations may not be fully accessible",
+        "PDF documents uploaded by users may not be accessible",
+        "Some complex data visualizations may have limited alternative text",
+        "Legacy content may not meet current standards"
+      ],
+      "conclusion": "We are actively working to address these limitations and improve accessibility across all areas of our platform."
+    },
+    "assessment": {
+      "title": "Assessment Methods",
+      "intro": "We assess accessibility through:",
+      "items": [
+        "Automated testing tools",
+        "Manual testing with assistive technologies",
+        "User feedback and testing",
+        "Periodic third-party audits"
+      ]
+    },
+    "feedback": {
+      "title": "Feedback & Contact",
+      "intro": "We welcome your feedback on the accessibility of Oikion. If you encounter any accessibility barriers or have suggestions for improvement, please contact us:",
+      "reportingIntro": "When reporting accessibility issues, please include:",
+      "reportingItems": [
+        "The page URL where you encountered the issue",
+        "A description of the accessibility problem",
+        "The assistive technology and browser you were using",
+        "Any suggestions for improvement"
+      ]
+    },
+    "continuousImprovement": {
+      "title": "Continuous Improvement",
+      "content": "Accessibility is an ongoing effort at Oikion. We regularly review and update our accessibility practices to ensure we meet or exceed standards and provide an inclusive experience for all users. This statement will be updated as we make improvements and changes to our platform."
+    }
+  },
+  "cookiePolicy": {
+    "title": "Cookie Policy",
+    "subtitle": "This policy explains how we use cookies and similar technologies.",
+    "whatAreCookies": {
+      "title": "What Are Cookies",
+      "content": "Cookies are small text files that are placed on your device when you visit our website. They help us provide you with a better experience by remembering your preferences and understanding how you use our platform."
+    },
+    "howWeUse": {
+      "title": "How We Use Cookies",
+      "intro": "We use cookies for various purposes:",
+      "essential": {
+        "title": "Essential Cookies",
+        "intro": "Required for the platform to function properly:",
+        "items": [
+          "Authentication cookies to keep you logged in",
+          "Security cookies for fraud protection",
+          "Load balancing cookies for optimal performance",
+          "Cookie consent preferences"
+        ]
+      },
+      "functional": {
+        "title": "Functional Cookies",
+        "intro": "Enhance your experience by remembering your preferences:",
+        "items": [
+          "Language and region preferences",
+          "Theme and display settings",
+          "Dashboard layout customizations",
+          "Recently viewed properties"
+        ]
+      },
+      "analytics": {
+        "title": "Analytics Cookies",
+        "intro": "Help us understand how you use our platform:",
+        "items": [
+          "Google Analytics for usage statistics",
+          "Performance tracking and error detection",
+          "Feature usage analytics",
+          "A/B testing and optimization"
+        ]
+      },
+      "marketing": {
+        "title": "Marketing Cookies",
+        "intro": "Used to deliver relevant advertisements:",
+        "items": [
+          "Social media integration cookies",
+          "Advertising network cookies",
+          "Conversion tracking pixels",
+          "Remarketing and retargeting cookies"
+        ]
+      }
+    },
+    "thirdParty": {
+      "title": "Third-Party Cookies",
+      "intro": "Our platform may use third-party services that set their own cookies:",
+      "items": [
+        { "label": "Google Services:", "detail": "Maps, Analytics, and advertising" },
+        { "label": "MLS Providers:", "detail": "Property data and listing services" },
+        { "label": "Payment Processors:", "detail": "Stripe, PayPal for billing" },
+        { "label": "Support Tools:", "detail": "Customer service and chat features" }
+      ]
+    },
+    "managing": {
+      "title": "Managing Your Cookie Preferences",
+      "browserSettings": {
+        "title": "Browser Settings",
+        "intro": "You can control cookies through your browser settings:",
+        "items": [
+          "Block all cookies (may affect website functionality)",
+          "Delete existing cookies",
+          "Set preferences for specific websites",
+          "Receive notifications when cookies are set"
+        ]
+      },
+      "instructions": {
+        "title": "Browser-Specific Instructions",
+        "items": [
+          { "browser": "Chrome", "path": "Settings → Privacy and Security → Cookies" },
+          { "browser": "Firefox", "path": "Settings → Privacy & Security → Cookies" },
+          { "browser": "Safari", "path": "Preferences → Privacy → Manage Website Data" },
+          { "browser": "Edge", "path": "Settings → Cookies and site permissions" }
+        ]
+      }
+    },
+    "impact": {
+      "title": "Impact of Disabling Cookies",
+      "intro": "Disabling certain cookies may affect your experience:",
+      "items": [
+        "You may need to log in more frequently",
+        "Your preferences may not be saved",
+        "Some features may not work correctly",
+        "You may see less relevant content"
+      ]
+    },
+    "contact": {
+      "title": "Contact Us",
+      "intro": "For questions about our cookie policy, please contact us:"
+    }
+  },
+  "gdpr": {
+    "title": "GDPR Compliance",
+    "subtitle": "We are committed to protecting your personal data in accordance with GDPR.",
+    "commitment": {
+      "title": "Our Commitment to GDPR",
+      "content": "As a company operating in the European Union, Oikion is committed to complying with the General Data Protection Regulation (GDPR). This page outlines how we protect your personal data and your rights under GDPR."
+    },
+    "legalBasis": {
+      "title": "Legal Basis for Processing",
+      "intro": "We process your personal data based on the following legal grounds:",
+      "items": [
+        { "label": "Contract:", "detail": "To provide our real estate platform services" },
+        { "label": "Legitimate Interest:", "detail": "To improve our services and prevent fraud" },
+        { "label": "Consent:", "detail": "For marketing communications and optional features" },
+        { "label": "Legal Obligation:", "detail": "To comply with applicable laws and regulations" }
+      ]
+    },
+    "rights": {
+      "title": "Your Rights Under GDPR",
+      "intro": "Under GDPR, you have the following rights regarding your personal data:",
+      "access": {
+        "title": "Right of Access",
+        "content": "You have the right to know what personal data we hold about you and to request a copy of that data."
+      },
+      "rectification": {
+        "title": "Right to Rectification",
+        "content": "You have the right to correct any inaccurate or incomplete personal data we hold about you."
+      },
+      "erasure": {
+        "title": "Right to Erasure",
+        "content": "You have the right to request deletion of your personal data in certain circumstances."
+      },
+      "restrictProcessing": {
+        "title": "Right to Restrict Processing",
+        "content": "You have the right to request that we restrict how we use your personal data in certain situations."
+      },
+      "portability": {
+        "title": "Right to Data Portability",
+        "content": "You have the right to receive your personal data in a structured, commonly used format and transfer it to another service provider."
+      },
+      "object": {
+        "title": "Right to Object",
+        "content": "You have the right to object to the processing of your personal data in certain circumstances."
+      },
+      "withdrawConsent": {
+        "title": "Right to Withdraw Consent",
+        "content": "Where processing is based on consent, you have the right to withdraw your consent at any time."
+      }
+    },
+    "exerciseRights": {
+      "title": "How to Exercise Your Rights",
+      "intro": "To exercise any of your rights under GDPR, you can:",
+      "emailItem": "Email us at: {email}",
+      "items": [
+        "Use the data protection tools in your account settings",
+        "Submit a request through our support system"
+      ]
+    },
+    "dataSecurity": {
+      "title": "Data Security Measures",
+      "intro": "We implement appropriate technical and organizational measures to protect your data:",
+      "items": [
+        "Encryption of data in transit and at rest",
+        "Regular security audits and assessments",
+        "Access controls and authentication",
+        "Staff training on data protection",
+        "Incident response procedures"
+      ]
+    },
+    "dataRetention": {
+      "title": "Data Retention",
+      "intro": "We retain personal data only for as long as necessary:",
+      "items": [
+        { "label": "Account data:", "detail": "As long as your account is active plus 3 years" },
+        { "label": "Transaction data:", "detail": "7 years for tax and regulatory purposes" },
+        { "label": "Marketing data:", "detail": "Until you opt out or 2 years of inactivity" },
+        { "label": "Analytics data:", "detail": "Aggregated data retained for up to 5 years" }
+      ]
+    },
+    "dataBreach": {
+      "title": "Data Breach Notification",
+      "intro": "In case of a data breach that risks your rights and freedoms, we will:",
+      "items": [
+        "Notify the relevant supervisory authority within 72 hours",
+        "Inform affected individuals without undue delay",
+        "Provide clear information about the breach and our response",
+        "Take immediate steps to contain and remediate the breach"
+      ]
+    },
+    "contact": {
+      "title": "Contact Us",
+      "intro": "For all data protection questions and to exercise your rights under GDPR:"
+    }
+  },
+  "termsOfService": {
+    "title": "Terms of Service",
+    "subtitle": "Please read these terms carefully before using our services.",
+    "acceptance": {
+      "title": "Acceptance of Terms",
+      "content": "By accessing or using the Oikion platform, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use our services."
+    },
+    "description": {
+      "title": "Description of Service",
+      "intro": "Oikion provides a comprehensive real estate management platform that includes:",
+      "items": [
+        "Property management and listing tools",
+        "Client relationship management (CRM) system",
+        "Analytics and reporting capabilities",
+        "Document management and storage",
+        "Integration with MLS and other real estate services",
+        "Mobile applications and web access"
+      ]
+    },
+    "eligibility": {
+      "title": "User Eligibility",
+      "intro": "To use Oikion, you must:",
+      "items": [
+        "Be at least 18 years of age",
+        "Be a licensed real estate professional (where applicable)",
+        "Provide accurate and complete information",
+        "Comply with all applicable laws and regulations",
+        "Not be prohibited from using our services under applicable law"
+      ]
+    },
+    "responsibilities": {
+      "title": "User Responsibilities",
+      "intro": "As a user of Oikion, you agree to:",
+      "items": [
+        "Maintain accurate and up-to-date account information",
+        "Keep your login credentials secure and confidential",
+        "Use the platform only for lawful business purposes",
+        "Comply with all applicable real estate laws and regulations",
+        "Respect intellectual property rights of others",
+        "Not attempt to gain unauthorized access to our systems",
+        "Report any security vulnerabilities or breaches"
+      ]
+    },
+    "prohibited": {
+      "title": "Prohibited Uses",
+      "intro": "You may not use Oikion to:",
+      "items": [
+        "Violate laws, regulations, or third-party rights",
+        "Transmit harmful, offensive, or inappropriate content",
+        "Interfere with or disrupt our services or servers",
+        "Attempt to reverse-engineer or copy our software",
+        "Use automated systems to access our platform without permission",
+        "Impersonate others or provide false information",
+        "Engage in fraudulent or deceptive practices"
+      ]
+    },
+    "intellectualProperty": {
+      "title": "Intellectual Property",
+      "content": "You retain ownership of the content you upload. Oikion and its licensors own all intellectual property rights in the platform. You are responsible for data accuracy and compliance."
+    },
+    "subscription": {
+      "title": "Subscription and Billing",
+      "content": "We offer various subscription plans with different pricing. Charges are billed in advance and generally non-refundable. You must maintain valid payment information."
+    },
+    "termination": {
+      "title": "Termination",
+      "content": "Either party may terminate these Terms. Upon termination, access ceases and data retention follows the guidelines in our Privacy Policy."
+    },
+    "disclaimers": {
+      "title": "Disclaimers and Limitations",
+      "content": "We strive to provide reliable service but cannot guarantee 100% uptime. While we make reasonable efforts to ensure data accuracy, we cannot guarantee the accuracy of MLS data, market information, or other third-party data. To the maximum extent permitted by law, Oikion will not be liable for any indirect, incidental, special, or consequential damages arising from your use of our platform."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "intro": "For questions about these terms, please contact us:"
+    }
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+    "subtitle": "Your privacy is important to us. This policy explains how we collect, use, and protect your personal information.",
+    "introduction": {
+      "title": "Introduction",
+      "content": "At Oikion, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our real estate management platform and services."
+    },
+    "informationCollected": {
+      "title": "Information We Collect",
+      "personal": {
+        "title": "Personal Information",
+        "intro": "We collect information that you provide directly to us, including:",
+        "items": [
+          "Name, email address, and contact information",
+          "Professional license numbers and certifications",
+          "Business information and brokerage details",
+          "Payment and billing information",
+          "Property listings and client data you enter into our system"
+        ]
+      },
+      "automatic": {
+        "title": "Automatically Collected Information",
+        "intro": "We automatically collect certain information when you use our services:",
+        "items": [
+          "Device information and IP addresses",
+          "Usage patterns and feature interactions",
+          "Browser type and operating system",
+          "Log files and performance metrics"
+        ]
+      }
+    },
+    "howWeUse": {
+      "title": "How We Use Your Information",
+      "intro": "We use the collected information to:",
+      "items": [
+        "Provide and maintain our real estate management services",
+        "Process transactions and manage your account",
+        "Communicate with you about updates and support",
+        "Improve our platform and develop new features",
+        "Comply with legal obligations and prevent fraud",
+        "Send marketing communications (with your consent)"
+      ]
+    },
+    "dataSecurity": {
+      "title": "Data Security",
+      "intro": "We implement industry-standard security measures to protect your information:",
+      "items": [
+        "Encryption of data in transit and at rest",
+        "Regular security audits and penetration testing",
+        "Access controls and authentication mechanisms",
+        "Secure data centers with physical and digital protections",
+        "Employee training on data protection practices"
+      ]
+    },
+    "rights": {
+      "title": "Your Rights",
+      "intro": "Depending on your location, you may have the following rights:",
+      "items": [
+        "Access your personal information",
+        "Correct inaccurate information",
+        "Delete your personal information",
+        "Restrict processing activities",
+        "Data portability",
+        "Object to certain processing activities",
+        "Withdraw consent"
+      ]
+    },
+    "contact": {
+      "title": "Contact Us",
+      "intro": "For questions about this privacy policy, please contact us:"
+    }
+  }
+}

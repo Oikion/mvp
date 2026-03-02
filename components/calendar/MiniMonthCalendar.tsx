@@ -45,13 +45,11 @@ export function MiniMonthCalendar({
   const dateLocale = locale === "el" ? el : enUS;
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(selectedDate));
 
-  // Sync currentMonth when selectedDate changes significantly
+  // Sync currentMonth when selectedDate changes externally (e.g. navigating via main view)
   useEffect(() => {
     const selectedMonth = startOfMonth(selectedDate);
-    if (!isSameMonth(currentMonth, selectedMonth)) {
-      setCurrentMonth(selectedMonth);
-    }
-  }, [selectedDate, currentMonth]);
+    setCurrentMonth((prev) => (isSameMonth(prev, selectedMonth) ? prev : selectedMonth));
+  }, [selectedDate]);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);

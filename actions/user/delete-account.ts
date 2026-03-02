@@ -1,0 +1,350 @@
+"use server";
+
+import { requireAuth } from "@/lib/permissions/action-guards";
+import { getCurrentUserId, getCurrentOrgId } from "@/lib/get-current-user";
+import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
+import { prismadb } from "@/lib/prisma";
+import { createClerkClient } from "@clerk/backend";
+import { isOrgOwner } from "@/lib/org-admin";
+
+/**
+ * Delete the current user's account and all associated data
+ * 
+ * This is a destructive operation that:
+ * 1. Deletes all user data across models
+ * 2. Revokes encryption access
+ * 3. Deletes Clerk user
+ * 
+ * WARNING: This cannot be undone!
+ */
+export async function deleteAccount(
+  confirmation: string
+): Promise<ActionResponse<void>> {
+  if (confirmation !== "DELETE MY DATA") {
+    return actionError("Invalid confirmation", "VALIDATION_ERROR");
+  }
+
+  const guard = await requireAuth();
+  if (guard) return guard;
+
+  const userId = await getCurrentUserId();
+
+  try {
+    // Get user info
+    const user = await prismadb.users.findUnique({
+      where: { id: userId },
+      select: { 
+        id: true, 
+        email: true, 
+        clerkUserId: true,
+        name: true,
+      },
+    });
+
+    if (!user) {
+      return actionError("User not found", "NOT_FOUND");
+    }
+
+    // Start deletion in a transaction
+    await prismadb.$transaction(async (tx) => {
+      // Delete user's encryption keys
+      await tx.organizationEncryptionKey.deleteMany({
+        where: { userId },
+      });
+
+      // Delete data export requests
+      await tx.dataExportRequest.deleteMany({
+        where: { requestedById: userId },
+      });
+
+      // Delete notifications
+      await tx.notification.deleteMany({
+        where: { userId },
+      });
+
+      // Delete calendar events assigned to user
+      await tx.calendarEvent.deleteMany({
+        where: { assignedUserId: userId },
+      });
+
+      // Delete comments
+      await tx.clientComment.deleteMany({
+        where: { userId },
+      });
+
+      await tx.propertyComment.deleteMany({
+        where: { userId },
+      });
+
+      // Delete social posts
+      await tx.socialPost.deleteMany({
+        where: { authorId: userId },
+      });
+
+      await tx.socialPostComment.deleteMany({
+        where: { userId },
+      });
+
+      await tx.socialPostLike.deleteMany({
+        where: { userId },
+      });
+
+      // Delete tasks
+      await tx.crm_Accounts_Tasks.deleteMany({
+        where: { createdBy: userId },
+      });
+
+      // Delete task comments
+      await tx.crm_Accounts_Tasks_Comments.deleteMany({
+        where: { user: userId },
+      });
+
+      // Delete feedback
+      await tx.feedback.deleteMany({
+        where: { userId },
+      });
+
+      // Delete documents created by user
+      await tx.documents.deleteMany({
+        where: { created_by_user: userId },
+      });
+
+      // Delete API keys
+      await tx.apiKey.deleteMany({
+        where: { createdById: userId },
+      });
+
+      // Delete webhook endpoints
+      await tx.webhookEndpoint.deleteMany({
+        where: { createdById: userId },
+      });
+
+      // Delete agent profile
+      await tx.agentProfile.deleteMany({
+        where: { userId },
+      });
+
+      // Delete referral code
+      await tx.referralCode.deleteMany({
+        where: { userId },
+      });
+
+      // Delete AI conversations
+      await tx.aiConversation.deleteMany({
+        where: { userId },
+      });
+
+      // Finally, delete the user record
+      await tx.users.delete({
+        where: { id: userId },
+      });
+    });
+
+    // Delete Clerk user (after database transaction succeeds)
+    if (user.clerkUserId) {
+      try {
+        const clerk = createClerkClient({
+          secretKey: process.env.CLERK_SECRET_KEY,
+        });
+
+        await clerk.users.deleteUser(user.clerkUserId);
+      } catch (clerkError) {
+        // Log but don't fail - database deletion was successful
+        console.error("[DELETE_ACCOUNT] Failed to delete Clerk user:", clerkError);
+      }
+    }
+
+    console.log("[DELETE_ACCOUNT] Account deleted:", user.email);
+
+    return actionSuccess();
+  } catch (error) {
+    console.error("[DELETE_ACCOUNT]", error);
+    return actionError("Failed to delete account", error);
+  }
+}
+
+/**
+ * Delete an organization and all its data
+ * Only org owners can do this
+ * 
+ * WARNING: This is an extremely destructive operation that cannot be undone!
+ */
+export async function deleteOrganization(
+  confirmation: string
+): Promise<ActionResponse<void>> {
+  if (confirmation !== "DELETE ORGANIZATION") {
+    return actionError("Invalid confirmation", "VALIDATION_ERROR");
+  }
+
+  const guard = await requireAuth();
+  if (guard) return guard;
+
+  // Verify user is org owner
+  const ownerCheck = await isOrgOwner();
+  if (!ownerCheck) {
+    return actionError(
+      "Only organization owners can delete the organization",
+      "FORBIDDEN" as const
+    );
+  }
+
+  const organizationId = await getCurrentOrgId();
+
+  try {
+    // Get org info for logging
+    const org = await prismadb.organizationSettings.findUnique({
+      where: { organizationId },
+      select: { organizationId: true },
+    });
+
+    // Delete all organization data in a transaction
+    // Order matters due to foreign key constraints
+    await prismadb.$transaction(async (tx) => {
+      // =============================================================================
+      // Step 1: Delete E2EE and export data
+      // =============================================================================
+      await tx.organizationEncryptionKey.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.organizationEncryptionStatus.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.dataExportRequest.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 2: Delete messaging data (has many foreign keys)
+      // =============================================================================
+      await tx.message.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 3: Delete calendar and notifications
+      // =============================================================================
+      await tx.calendarEvent.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.notification.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 4: Delete CRM data (tasks, comments)
+      // =============================================================================
+      await tx.crm_Accounts_Tasks_Comments.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.crm_Accounts_Tasks.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 5: Delete social feed data
+      // =============================================================================
+      await tx.socialPost.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 6: Delete property-related data
+      // =============================================================================
+      await tx.marketingSpend.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.properties.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 7: Delete client-related data
+      // =============================================================================
+      await tx.client_Contacts.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.clients.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 8: Delete documents and uploads
+      // =============================================================================
+      await tx.documents.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 9: Delete feedback
+      // =============================================================================
+      await tx.feedback.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 10: Delete integrations and API data
+      // =============================================================================
+      await tx.webhookEndpoint.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.apiKey.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 11: Delete AI and automation data
+      // =============================================================================
+      await tx.aiConversation.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.backgroundJob.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 12: Delete permission data
+      // =============================================================================
+      await tx.organizationRolePermission.deleteMany({
+        where: { organizationId },
+      });
+
+      // =============================================================================
+      // Step 13: Delete settings and audit logs
+      // =============================================================================
+      await tx.organizationSettingsAudit.deleteMany({
+        where: { organizationId },
+      });
+
+      await tx.organizationSettings.deleteMany({
+        where: { organizationId },
+      });
+    });
+
+    // Delete Clerk organization
+    try {
+      const clerk = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+
+      await clerk.organizations.deleteOrganization(organizationId);
+    } catch (clerkError) {
+      // Log but don't fail - database deletion was successful
+      console.error("[DELETE_ORGANIZATION] Failed to delete Clerk org:", clerkError);
+    }
+
+    console.log("[DELETE_ORGANIZATION] Organization deleted:", org?.organizationId || organizationId);
+
+    return actionSuccess();
+  } catch (error) {
+    console.error("[DELETE_ORGANIZATION]", error);
+    return actionError("Failed to delete organization", error); 
+  }
+}

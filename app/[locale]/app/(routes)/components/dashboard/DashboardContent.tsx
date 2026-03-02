@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import {
   DollarSignIcon,
@@ -8,10 +9,13 @@ import {
   Activity,
   Home,
   Settings2,
+  Pencil,
+  Check,
+  ArrowUpDown,
 } from "lucide-react";
 
-import { DashboardConfigProvider } from "@/lib/dashboard";
-import { DashboardGrid, WidgetWrapper, WidgetSettingsPanel } from "@/components/dashboard";
+import { DashboardConfigProvider, useDashboardConfig } from "@/lib/dashboard";
+import { DashboardGrid, WidgetSettingsPanel } from "@/components/dashboard";
 import type { DashboardConfig, WidgetConfig } from "@/lib/dashboard/types";
 import { DashboardHeader } from "./DashboardHeader";
 import { QuickActions } from "./QuickActions";
@@ -77,27 +81,36 @@ interface DashboardDictionaryContainer {
 
 /**
  * DashboardContentInner
- * 
+ *
  * The actual dashboard grid that uses the dashboard config context.
  */
 function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; dict: DashboardDictionaryContainer }>) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
+  const { isEditMode, setIsEditMode, sortWidgets } = useDashboardConfig();
+
+  // Keyboard shortcut for sort (⌘⇧S)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        sortWidgets();
+      }
+    };
+
+    globalThis.window.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.window.removeEventListener("keydown", handleKeyDown);
+  }, [sortWidgets]);
 
   // Render individual widget based on ID
-  const renderWidget = (widgetId: string, widgetConfig: WidgetConfig) => {
-    const wrapContent = (content: React.ReactNode) => (
-      <WidgetWrapper widgetConfig={widgetConfig}>
-        {content}
-      </WidgetWrapper>
-    );
-
+  // Note: PhysicsGrid handles the wrapper — no WidgetWrapper needed here.
+  const renderWidget = (widgetId: string, _widgetConfig: WidgetConfig) => {
     switch (widgetId) {
       case "quick-actions":
-        return wrapContent(<QuickActions />);
+        return <QuickActions />;
 
       case "revenue-stats":
-        return wrapContent(
+        return (
           <StatsCard
             title={dict.dashboard.totalRevenue}
             value={`€${data.totalRevenue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -115,7 +128,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "clients-stats":
-        return wrapContent(
+        return (
           <StatsCard
             title={dict.dashboard.clients}
             value={data.clientsCount.toString()}
@@ -134,7 +147,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "properties-stats":
-        return wrapContent(
+        return (
           <StatsCard
             title={dict.dashboard.properties}
             value={data.propertiesCount.toString()}
@@ -153,7 +166,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "active-users-stats":
-        return wrapContent(
+        return (
           <StatsCard
             title={dict.dashboard.activeUsers}
             value={data.users.toString()}
@@ -172,8 +185,8 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "activity-chart":
-        return wrapContent(
-          <div className="h-[400px]">
+        return (
+          <div className="h-full">
             <VisitorsChart
               title={dict.dashboard.activityTimeline}
               description={dict.dashboard.activityTimelineDescription}
@@ -187,17 +200,13 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "activity-feed":
-        return wrapContent(
-          <ActivityFeed activities={data.recentActivities} />
-        );
+        return <ActivityFeed activities={data.recentActivities} />;
 
       case "upcoming-events":
-        return wrapContent(
-          <UpcomingEvents events={data.upcomingEvents} />
-        );
+        return <UpcomingEvents events={data.upcomingEvents} />;
 
       case "recent-messages":
-        return wrapContent(
+        return (
           <RecentMessages
             conversations={data.conversations as unknown as Conversation[]}
             currentUserId={data.user.id}
@@ -206,7 +215,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
 
       case "clients-status-chart":
         if (data.clientsByStatus.length === 0) return null;
-        return wrapContent(
+        return (
           <StatsChart
             title={dict.dashboard.clientsByStatus}
             description={dict.dashboard.clientsDistribution?.replace("{count}", data.clientsCount.toString())}
@@ -216,7 +225,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
 
       case "properties-status-chart":
         if (data.propertiesByStatus.length === 0) return null;
-        return wrapContent(
+        return (
           <StatsChart
             title={dict.dashboard.propertiesByStatus}
             description={dict.dashboard.propertiesDistribution?.replace("{count}", data.propertiesCount.toString())}
@@ -225,7 +234,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "recent-clients":
-        return wrapContent(
+        return (
           <QuickViewList
             title={dict.dashboard.recentClients}
             items={data.recentClients as unknown as QuickViewItem[]}
@@ -235,7 +244,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "recent-properties":
-        return wrapContent(
+        return (
           <QuickViewList
             title={dict.dashboard.recentProperties}
             items={data.recentProperties as unknown as QuickViewItem[]}
@@ -245,9 +254,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "documents":
-        return wrapContent(
-          <DocumentsWidget documents={data.recentDocuments} />
-        );
+        return <DocumentsWidget documents={data.recentDocuments} />;
 
       default:
         return null;
@@ -256,17 +263,55 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
 
   return (
     <div className="space-y-6">
-      {/* Header with personalized greeting and customize button */}
+      {/* Header with personalized greeting and action buttons */}
       <div className="flex items-center justify-between">
         <DashboardHeader userName={data.user.name} />
-        <WidgetSettingsPanel
-          trigger={
-            <Button variant="outline" size="sm" className="gap-2">
-              <Settings2 className="h-4 w-4" />
-              {t("customize.button")}
-            </Button>
-          }
-        />
+        <div className="flex items-center gap-3">
+          {/* Sort button — compact widgets and remove gaps */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => sortWidgets()}
+            className="gap-2"
+            title={t("customize.sortTooltip")}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("customize.sort")}</span>
+            <kbd className="hidden md:inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              <span className="text-xs">⌘</span>⇧S
+            </kbd>
+          </Button>
+
+          {/* Edit Layout toggle — enables drag/resize directly on the grid */}
+          <Button
+            variant={isEditMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsEditMode(!isEditMode)}
+            className="gap-2"
+          >
+            {isEditMode ? (
+              <>
+                <Check className="h-4 w-4" />
+                {t("customize.done")}
+              </>
+            ) : (
+              <>
+                <Pencil className="h-4 w-4" />
+                {t("customize.editLayout")}
+              </>
+            )}
+          </Button>
+
+          {/* Customize panel — toggle widget visibility */}
+          <WidgetSettingsPanel
+            trigger={
+              <Button variant="outline" size="sm" className="gap-2">
+                <Settings2 className="h-4 w-4" />
+                {t("customize.button")}
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       {/* Customizable widget grid */}
@@ -277,7 +322,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
 
 /**
  * DashboardContent
- * 
+ *
  * Client component wrapper that provides dashboard config context.
  */
 export function DashboardContent({ data, initialConfig, dict }: DashboardContentProps) {

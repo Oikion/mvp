@@ -12,6 +12,7 @@ import { prismaForOrg } from '@/lib/tenant';
 import { format } from 'date-fns';
 import { generateFriendlyId } from '@/lib/friendly-id';
 import { dispatchCalendarWebhook } from '@/lib/webhooks';
+import { encryptCalendarEventForOrg, decryptCalendarEventForOrg } from '@/lib/model-encryption';
 
 /**
  * Create notifications for calendar event creation
@@ -233,8 +234,13 @@ export async function GET(req: Request) {
       });
     }
 
+    // Decrypt events before transforming
+    const decryptedEvents = await Promise.all(
+      events.map(event => decryptCalendarEventForOrg(event, currentOrgId!))
+    );
+
     // Transform database events to match CalendarEvent interface
-    const transformedEvents = events.map((event) => ({
+    const transformedEvents = decryptedEvents.map((event) => ({
       id: event.calendarEventId,
       eventId: event.id, // Include the database ID for navigation
       title: event.title || 'Untitled Event',
@@ -406,6 +412,12 @@ export async function POST(req: Request) {
     // Generate friendly ID for the event
     const friendlyEventId = await generateFriendlyId(prismadb, "CalendarEvent");
 
+    // Encrypt sensitive fields before storing
+    const encryptedFields = await encryptCalendarEventForOrg(
+      { title, description: description || null, location: location || null },
+      organizationId
+    );
+
     // Create event in database
     const event = await prismadb.calendarEvent.create({
       data: {
@@ -413,12 +425,12 @@ export async function POST(req: Request) {
         calendarEventId: eventId,
         calendarUserId: 0, // Legacy field maintained for backwards compatibility
         organizationId,
-        title,
-        description: description || null,
+        title: encryptedFields.title!,
+        description: encryptedFields.description,
         startTime: new Date(startTime),
         endTime: new Date(endTime),
         updatedAt: new Date(),
-        location: location || null,
+        location: encryptedFields.location,
         status: 'scheduled',
         eventType: eventType || null,
         assignedUserId: assignedUserId || userId || null,

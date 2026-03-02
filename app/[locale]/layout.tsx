@@ -233,6 +233,20 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     metadataBase: metadataBaseUrl,
     title: t("RootLayout.title"),
     description: t("RootLayout.description"),
+    icons: {
+      icon: [
+        {
+          url: "/assets/favicons/favicon-dark.svg",
+          type: "image/svg+xml",
+          media: "(prefers-color-scheme: light)",
+        },
+        {
+          url: "/assets/favicons/favicon-white.svg",
+          type: "image/svg+xml",
+          media: "(prefers-color-scheme: dark)",
+        },
+      ],
+    },
     openGraph: {
       type: "website",
       url: appBaseUrl,

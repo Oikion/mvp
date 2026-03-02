@@ -1,0 +1,25 @@
+{
+  "title": "Network",
+  "explore": "Explore",
+  "agents": "Agents",
+  "agencies": "Agencies",
+  "posts": "Posts",
+  "searchPlaceholder": "Search by name, area, specialization...",
+  "searchAgenciesPlaceholder": "Search agencies...",
+  "filters": {
+    "serviceArea": "Service area",
+    "specialization": "Specialization",
+    "city": "City",
+    "region": "Region"
+  },
+  "emptyState": {
+    "agents": "No agents found. Try adjusting your search or filters.",
+    "agencies": "No agencies found. Try adjusting your search or filters.",
+    "posts": "No posts yet. Connect with agents to see their updates."
+  },
+  "connect": "Connect",
+  "viewProfile": "View profile",
+  "viewPost": "View post",
+  "likes": "Likes",
+  "comments": "Comments"
+}

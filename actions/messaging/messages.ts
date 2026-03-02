@@ -5,7 +5,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { MessageContentType } from "@prisma/client";
 import { requireAction } from "@/lib/permissions";
-import { encryptMessage, decryptMessage } from "@/lib/model-encryption";
+import { encryptMessageForOrg, decryptMessageForOrg } from "@/lib/model-encryption";
 
 /**
  * Send a message to a channel or conversation
@@ -91,7 +91,7 @@ export async function sendMessage(params: {
     }
 
     // Encrypt content before storing
-    const encryptedContent = encryptMessage({ content: params.content }).content!;
+    const encryptedContent = (await encryptMessageForOrg({ content: params.content }, organizationId)).content ?? params.content;
 
     // Create message
     const messageId = await generateFriendlyId(prismadb, "Message");
@@ -186,6 +186,10 @@ export async function getMessages(params: {
     const guard = await requireAction("messaging:read");
     if (guard) return guard;
 
+    if (!params.channelId && !params.conversationId) {
+      return { success: false, error: "Channel or conversation is required" };
+    }
+
     const currentUser = await getCurrentUser();
     const limit = params.limit || 50;
 
@@ -260,8 +264,13 @@ export async function getMessages(params: {
     const resultMessages = hasMore ? messages.slice(0, -1) : messages;
 
     // Group reactions by emoji
-    const formattedMessages = resultMessages.map(msg => {
-      const decrypted = decryptMessage(msg);
+    const formattedMessages = await Promise.all(resultMessages.map(async msg => {
+      let decrypted: typeof msg;
+      try {
+        decrypted = await decryptMessageForOrg(msg, msg.organizationId);
+      } catch {
+        decrypted = { ...msg, content: "[message could not be decrypted]" };
+      }
       const reactionMap = new Map<string, string[]>();
       msg.reactions.forEach(r => {
         if (!reactionMap.has(r.emoji)) {
@@ -287,7 +296,7 @@ export async function getMessages(params: {
         })),
         attachments: decrypted.attachments,
       };
-    });
+    }));
 
     // Reverse to get oldest first for display
     formattedMessages.reverse();
@@ -332,7 +341,7 @@ export async function editMessage(
       return { success: false, error: "Cannot edit deleted message" };
     }
 
-    const encryptedContent = encryptMessage({ content }).content!;
+    const encryptedContent = (await encryptMessageForOrg({ content }, message.organizationId)).content ?? content;
     await prismadb.message.update({
       where: { id: messageId },
       data: {
@@ -371,12 +380,13 @@ export async function deleteMessage(messageId: string): Promise<{
       return { success: false, error: "Can only delete your own messages" };
     }
 
+    const deletedContent = (await encryptMessageForOrg({ content: "[Message deleted]" }, message.organizationId)).content ?? "[Message deleted]";
     await prismadb.message.update({
       where: { id: messageId },
       data: {
         isDeleted: true,
         deletedAt: new Date(),
-        content: "[Message deleted]",
+        content: deletedContent,
       },
     });
 

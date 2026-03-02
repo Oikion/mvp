@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { availableLocales } from "@/lib/locales";
 import { rateLimit, getRateLimitIdentifier, getRateLimitTier } from "@/lib/rate-limit";
+import { verifyAccessCookie } from "@/lib/app-access";
 
 // Configure next-intl middleware for locale routing
 const intlMiddleware = createMiddleware({
@@ -27,6 +28,10 @@ const isPublicRoute = createRouteMatcher([
   "/:locale/app/forgot-password(.*)",
   "/:locale/app/inactive(.*)",
   "/:locale/app/pending(.*)",
+  // App access gate page (public — users need to reach this without Clerk auth)
+  "/:locale/app/access(.*)",
+  // App access verify API (public — called before authentication)
+  "/api/app-access(.*)",
   // API webhooks (public)
   "/api/webhooks(.*)",
 ]);
@@ -68,6 +73,14 @@ const isPlatformAdminAccessDenied = createRouteMatcher([
 // Define app routes that require authentication (everything under /app except auth pages)
 const isAppRoute = createRouteMatcher([
   "/:locale/app(.*)",
+]);
+
+// Routes exempt from the app access code gate
+const isAccessGatePage = createRouteMatcher([
+  "/:locale/app/access(.*)",
+]);
+const isAppAccessApiRoute = createRouteMatcher([
+  "/api/app-access(.*)",
 ]);
 
 
@@ -159,6 +172,33 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
       });
     }
     return response;
+  }
+
+  // ============================================
+  // APP ACCESS GATE
+  // A 6-digit PIN (APP_ACCESS_CODE env var) must be entered before any part
+  // of the app is accessible — including the Clerk sign-in page.
+  // The gate is skipped when APP_ACCESS_CODE is not set (safe for local dev).
+  // Verification sets a signed HttpOnly cookie (oik_access).
+  // ============================================
+  if (
+    process.env.APP_ACCESS_CODE &&
+    isAppRoute(req) &&
+    !isPublicRoute(req) &&
+    !isAccessGatePage(req) &&
+    !isAppAccessApiRoute(req)
+  ) {
+    const cookieValue = req.cookies.get("oik_access")?.value;
+    if (!verifyAccessCookie(cookieValue)) {
+      const pathLocale = pathname.split("/")[1];
+      const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
+      const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
+        ? (pathLocale as "en" | "el")
+        : "el";
+      const accessUrl = new URL(`/${locale}/app/access`, req.url);
+      accessUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(accessUrl);
+    }
   }
 
   // Intercept Clerk's organization creation routes and redirect to custom onboarding

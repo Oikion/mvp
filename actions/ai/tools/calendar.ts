@@ -10,6 +10,7 @@
 import { prismadb } from "@/lib/prisma";
 import { createId } from "@paralleldrive/cuid2";
 import type { CalendarEventType } from "@prisma/client";
+import { encryptCalendarEventForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
 import {
   type AIToolInput,
   type AIToolResponse,
@@ -126,20 +127,23 @@ export async function getUpcomingEvents(
     });
 
     return successResponse({
-      events: events.map((event) => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        startTime: event.startTime.toISOString(),
-        endTime: event.endTime.toISOString(),
-        location: event.location,
-        status: event.status,
-        eventType: event.eventType,
-        assignedUserId: event.assignedUserId,
-        linkedClients: event.Clients,
-        linkedProperties: event.Properties,
-        createdAt: event.createdAt.toISOString(),
-      })),
+      events: events.map((event) => {
+        const dec = await decryptCalendarEventForOrg(event, context.organizationId);
+        return {
+          id: event.id,
+          title: dec.title,
+          description: dec.description,
+          startTime: event.startTime.toISOString(),
+          endTime: event.endTime.toISOString(),
+          location: dec.location,
+          status: event.status,
+          eventType: event.eventType,
+          assignedUserId: event.assignedUserId,
+          linkedClients: event.Clients,
+          linkedProperties: event.Properties,
+          createdAt: event.createdAt.toISOString(),
+        };
+      }),
       summary: {
         totalEvents: events.length,
         daysAhead: days,
@@ -224,18 +228,21 @@ export async function listEvents(
     const nextCursor = hasMore ? items[items.length - 1]?.id : null;
 
     return successResponse({
-      events: items.map((event) => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        startTime: event.startTime.toISOString(),
-        endTime: event.endTime.toISOString(),
-        location: event.location,
-        status: event.status,
-        eventType: event.eventType,
-        linkedClients: event.Clients,
-        linkedProperties: event.Properties,
-      })),
+      events: items.map((event) => {
+        const dec = await decryptCalendarEventForOrg(event, context.organizationId);
+        return {
+          id: event.id,
+          title: dec.title,
+          description: dec.description,
+          startTime: event.startTime.toISOString(),
+          endTime: event.endTime.toISOString(),
+          location: dec.location,
+          status: event.status,
+          eventType: event.eventType,
+          linkedClients: event.Clients,
+          linkedProperties: event.Properties,
+        };
+      }),
       pagination: {
         hasMore,
         nextCursor,
@@ -317,17 +324,23 @@ export async function createEvent(
     const eventId = createId();
     const calendarEventId = Math.abs(Math.floor(Date.now() / 1000));
 
+    const encryptedFields = await encryptCalendarEventForOrg({
+      title,
+      description: description || null,
+      location: location || null,
+    }, context.organizationId);
+
     const event = await prismadb.calendarEvent.create({
       data: {
         id: eventId,
         calendarEventId,
         calendarUserId: 0,
         organizationId: context.organizationId,
-        title,
-        description: description || null,
+        title: encryptedFields.title ?? title,
+        description: encryptedFields.description,
         startTime: start,
         endTime: end,
-        location: location || null,
+        location: encryptedFields.location,
         status: "scheduled",
         eventType: validatedEventType,
         assignedUserId: context.userId || null,
@@ -351,11 +364,11 @@ export async function createEvent(
       {
         event: {
           id: event.id,
-          title: event.title,
-          description: event.description,
+          title, // return original plaintext for immediate display
+          description: description || null,
           startTime: event.startTime.toISOString(),
           endTime: event.endTime.toISOString(),
-          location: event.location,
+          location: location || null,
           status: event.status,
           eventType: event.eventType,
           createdAt: event.createdAt.toISOString(),

@@ -1,6 +1,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { decryptDocumentForOrg, decryptClientForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
 
 export interface DocumentFilters {
   clientId?: string;
@@ -55,6 +56,8 @@ export async function getDocuments(filters?: DocumentFilters) {
   }
 
   // Build search filter if provided
+  // NOTE: document_name and description are encrypted — DB-level text search on these
+  // fields is not possible. Search is intentionally omitted for encrypted fields.
   let searchFilter: any = null;
   if (filters?.search) {
     searchFilter = {
@@ -128,6 +131,19 @@ export async function getDocuments(filters?: DocumentFilters) {
     },
   });
 
-  return documents;
+  const results = [];
+  for (const doc of documents) {
+    try {
+      const decrypted = await decryptDocumentForOrg(doc, organizationId);
+      results.push({
+        ...decrypted,
+        Clients: await Promise.all(doc.Clients.map((c) => decryptClientForOrg(c, organizationId))),
+        CalendarEvent: await Promise.all(doc.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, organizationId))),
+      });
+    } catch (err) {
+      console.error(`[GET_DOCUMENTS] Failed to decrypt document ${doc.id}:`, err);
+    }
+  }
+  return results;
 }
 

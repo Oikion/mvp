@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { decryptAiConversationForOrg } from "@/lib/model-encryption";
 
 interface GetConversationsOptions {
   limit?: number;
@@ -41,11 +42,20 @@ export async function getConversations(options: GetConversationsOptions = {}) {
       },
     });
 
-    return conversations.map((c) => ({
-      ...c,
-      createdAt: c.createdAt.toISOString(),
-      updatedAt: c.updatedAt.toISOString(),
-    }));
+    const results = [];
+    for (const c of conversations) {
+      try {
+        const decrypted = await decryptAiConversationForOrg(c, organizationId);
+        results.push({
+          ...decrypted,
+          createdAt: c.createdAt.toISOString(),
+          updatedAt: c.updatedAt.toISOString(),
+        });
+      } catch (err) {
+        console.error(`[GET_CONVERSATIONS] Failed to decrypt conversation ${c.id}:`, err);
+      }
+    }
+    return results;
   } catch (error) {
     console.error("[GET_CONVERSATIONS]", error);
     return [];

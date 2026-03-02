@@ -1,6 +1,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { decryptCalendarEventForOrg } from "@/lib/model-encryption";
 
 export async function getEvent(eventId: string) {
   // Check permission to read calendar events
@@ -60,7 +61,9 @@ export async function getEvent(eventId: string) {
     },
   });
 
-  return event;
+  if (!event) return null;
+
+  return decryptCalendarEventForOrg(event, organizationId);
 }
 
 

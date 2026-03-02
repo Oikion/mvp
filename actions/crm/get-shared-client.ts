@@ -2,7 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
-import { decryptClient } from "@/lib/model-encryption";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
 /**
  * Get a client that has been shared with the current user
@@ -76,7 +76,7 @@ export async function getSharedClient(clientId: string) {
   }
 
   try {
-    const decryptedClient = decryptClient(client);
+    const decryptedClient = await decryptClientForOrg(client, client.organizationId);
     return {
       ...decryptedClient,
       // Map to expected field names for backward compatibility

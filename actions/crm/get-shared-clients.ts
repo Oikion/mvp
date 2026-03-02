@@ -2,7 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUserSafe } from "@/lib/get-current-user";
-import { decryptClient } from "@/lib/model-encryption";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
 export interface SharedClientData {
   id: string;
@@ -59,6 +59,7 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
         where: { id: share.entityId },
         select: {
           id: true,
+          organizationId: true,
           client_name: true,
           primary_email: true,
           primary_phone: true,
@@ -91,7 +92,7 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
   for (const c of rawShares) {
     if (!c) continue;
     try {
-      results.push(decryptClient(c));
+      results.push(await decryptClientForOrg(c, c.organizationId));
     } catch (err) {
       console.error(`[GET_SHARED_CLIENTS] Failed to decrypt client ${c.id}:`, err);
     }

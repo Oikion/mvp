@@ -1,0 +1,60 @@
+{
+  "title": "Assignments",
+  "description": "Manage property inquiry assignments from potential clients",
+  "tabs": {
+    "all": "All",
+    "new": "New",
+    "read": "Read",
+    "contacted": "Contacted",
+    "archived": "Archived"
+  },
+  "status": {
+    "new": "New",
+    "read": "Read",
+    "contacted": "Contacted",
+    "archived": "Archived"
+  },
+  "empty": {
+    "title": "No assignments",
+    "description": "You haven't received any property inquiries yet",
+    "noNew": "No new assignments",
+    "noNewDesc": "All assignments have been read",
+    "noRead": "No read assignments",
+    "noReadDesc": "Assignments you've viewed will appear here",
+    "noContacted": "No contacted assignments",
+    "noContactedDesc": "Assignments you've contacted will appear here",
+    "noArchived": "No archived assignments",
+    "noArchivedDesc": "Archived assignments will appear here"
+  },
+  "contactInfo": "Contact Information",
+  "propertyDetails": "Property Details",
+  "message": "Message",
+  "notes": "Notes",
+  "addNotes": "Add Notes",
+  "editNotes": "Edit Notes",
+  "submittedOn": "Submitted on",
+  "statusUpdated": "Status updated",
+  "statusUpdateFailed": "Failed to update status",
+  "notesSaved": "Notes saved",
+  "notesSaveFailed": "Failed to save notes",
+  "propertyType": {
+    "apartment": "Apartment",
+    "house": "House",
+    "commercial": "Commercial",
+    "land": "Land",
+    "other": "Other"
+  },
+  "timeline": {
+    "immediate": "Immediate",
+    "1to3months": "1-3 months",
+    "3to6months": "3-6 months",
+    "6plusmonths": "6+ months"
+  },
+  "notesDialog": {
+    "title": "Assignment Notes",
+    "description": "Add internal notes for this inquiry",
+    "placeholder": "Write your notes here...",
+    "cancel": "Cancel",
+    "save": "Save"
+  }
+}

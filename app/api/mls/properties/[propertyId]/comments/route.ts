@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { encryptPropertyCommentForOrg, decryptPropertyCommentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/mls/properties/[propertyId]/comments
@@ -28,10 +29,11 @@ export async function GET(
         id: propertyId,
         organizationId,
       },
-      select: { id: true },
+      select: { id: true, organizationId: true },
     });
 
     let hasAccess = !!property;
+    let propertyOrgId = property?.organizationId ?? organizationId;
 
     if (!hasAccess) {
       // Check if shared with user
@@ -44,6 +46,14 @@ export async function GET(
         select: { id: true },
       });
       hasAccess = !!share;
+      if (hasAccess) {
+        // Fetch property's owning org for correct DEK selection
+        const sharedProp = await prismadb.properties.findUnique({
+          where: { id: propertyId },
+          select: { organizationId: true },
+        });
+        if (sharedProp) propertyOrgId = sharedProp.organizationId;
+      }
     }
 
     if (!hasAccess) {
@@ -69,8 +79,11 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ 
-      comments: comments.map(c => ({ ...c, user: c.Users }))
+    return NextResponse.json({
+      comments: await Promise.all(comments.map(async (c) => ({
+        ...await decryptPropertyCommentForOrg(c, propertyOrgId),
+        user: c.Users,
+      }))),
     });
   } catch (error) {
     console.error("[PROPERTY_COMMENTS_GET]", error);
@@ -125,11 +138,12 @@ export async function POST(
         id: propertyId,
         organizationId,
       },
-      select: { id: true, property_name: true },
+      select: { id: true, organizationId: true, property_name: true },
     });
 
     let canComment = !!property; // Org members can always comment
     let propertyName = property?.property_name;
+    let propertyOrgId = property?.organizationId ?? organizationId;
 
     if (!canComment) {
       // Check if shared with VIEW_COMMENT permission
@@ -145,12 +159,13 @@ export async function POST(
 
       if (share) {
         canComment = true;
-        // Fetch property name for notification
+        // Fetch property name and owning org for notification and DEK selection
         const sharedProperty = await prismadb.properties.findUnique({
           where: { id: propertyId },
-          select: { property_name: true },
+          select: { property_name: true, organizationId: true },
         });
         propertyName = sharedProperty?.property_name;
+        if (sharedProperty) propertyOrgId = sharedProperty.organizationId;
       }
     }
 
@@ -161,13 +176,19 @@ export async function POST(
       );
     }
 
+    // Encrypt comment content with the property's org DEK before persisting
+    const { content: encryptedContent } = await encryptPropertyCommentForOrg(
+      { content: content.trim() },
+      propertyOrgId
+    );
+
     // Create comment
     const comment = await prismadb.propertyComment.create({
       data: {
         id: crypto.randomUUID(),
         propertyId,
         userId: user.id,
-        content: content.trim(),
+        content: encryptedContent ?? content.trim(),
         updatedAt: new Date(),
       },
       include: {
@@ -182,7 +203,8 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({ comment: { ...comment, user: comment.Users } }, { status: 201 });
+    const decryptedComment = await decryptPropertyCommentForOrg(comment, propertyOrgId);
+    return NextResponse.json({ comment: { ...decryptedComment, user: comment.Users } }, { status: 201 });
   } catch (error) {
     console.error("[PROPERTY_COMMENTS_POST]", error);
     return NextResponse.json(

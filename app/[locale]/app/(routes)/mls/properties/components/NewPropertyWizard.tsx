@@ -420,39 +420,20 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     }
   }, [debouncedValues, currentStep, form, saveDraft, lastSavedData, hasUserInteracted]);
 
-  const validateStep = async (step: number): Promise<boolean> => {
-    let fieldsToValidate: (keyof FormValues)[] = [];
-    
-    switch (step) {
-      case 1:
-        fieldsToValidate = ["property_type", "property_type_other", "transaction_type", "property_status", "is_exclusive"];
-        break;
-      case 2:
-        fieldsToValidate = ["country", "municipality", "area", "postal_code", "address_privacy_level"];
-        break;
-      case 3:
-        fieldsToValidate = ["size_net_sqm", "size_gross_sqm", "floor", "floors_total", "plot_size_sqm", "inside_city_plan"];
-        break;
-      case 4:
-        fieldsToValidate = ["bedrooms", "bathrooms", "heating_type", "energy_cert_class"];
-        break;
-      case 5:
-        fieldsToValidate = ["year_built", "renovated_year", "condition", "elevator"];
-        break;
-      case 6:
-        fieldsToValidate = ["building_permit_no", "land_registry_kaek", "legalization_status", "monthly_common_charges"];
-        break;
-      case 7:
-        fieldsToValidate = ["amenities", "orientation", "furnished", "accessibility"];
-        break;
-      case 8:
-        fieldsToValidate = ["price", "price_type", "available_from", "accepts_pets"];
-        break;
-      case 9:
-        fieldsToValidate = ["virtual_tour_url", "portal_visibility", "assigned_to"];
-        break;
-    }
+  const STEP_FIELDS: Record<number, (keyof FormValues)[]> = {
+    1: ["property_type", "property_type_other", "transaction_type", "property_status", "is_exclusive"],
+    2: ["country", "municipality", "area", "postal_code", "address_privacy_level"],
+    3: ["size_net_sqm", "size_gross_sqm", "floor", "floors_total", "plot_size_sqm", "inside_city_plan"],
+    4: ["bedrooms", "bathrooms", "heating_type", "energy_cert_class"],
+    5: ["year_built", "renovated_year", "condition", "elevator"],
+    6: ["building_permit_no", "land_registry_kaek", "legalization_status", "monthly_common_charges"],
+    7: ["amenities", "orientation", "furnished", "accessibility"],
+    8: ["price", "price_type", "available_from", "accepts_pets"],
+    9: ["virtual_tour_url", "portal_visibility", "assigned_to"],
+  };
 
+  const validateStep = async (step: number): Promise<boolean> => {
+    const fieldsToValidate = STEP_FIELDS[step] ?? [];
     const result = await form.trigger(fieldsToValidate as any);
     return result;
   };
@@ -508,6 +489,18 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const onSubmitError = (errors: Record<string, any>) => {
+    const errorFields = Object.keys(errors);
+    for (let step = 1; step <= STEPS.length; step++) {
+      if (STEP_FIELDS[step]?.some((f) => errorFields.includes(f))) {
+        setCurrentStep(step);
+        toast.error("Σφάλμα", { description: "Παρακαλώ συμπληρώστε όλα τα υποχρεωτικά πεδία", isTranslationKey: false });
+        return;
+      }
+    }
+    toast.error("Σφάλμα", { description: "Παρακαλώ συμπληρώστε όλα τα υποχρεωτικά πεδία", isTranslationKey: false });
   };
 
   const renderStepContent = () => {
@@ -1353,24 +1346,28 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
       saveDraft(currentData);
       setLastSavedData(currentData);
     }
-    
+
     // Allow moving back without validation
     if (stepId < currentStep) {
       setCurrentStep(stepId);
       return;
     }
-    
-    // Validate current step before moving forward
-    const isValid = await validateStep(currentStep);
-    if (isValid) {
-      setCurrentStep(stepId);
+
+    // Validate all steps from current up to (but not including) target step
+    for (let step = currentStep; step < stepId; step++) {
+      const isValid = await validateStep(step);
+      if (!isValid) {
+        setCurrentStep(step);
+        return;
+      }
     }
+    setCurrentStep(stepId);
   };
 
   return (
     <Form {...form}>
       <form 
-        onSubmit={form.handleSubmit(onSubmit)} 
+        onSubmit={form.handleSubmit(onSubmit, onSubmitError)} 
         className="h-full px-10"
         onFocus={() => setHasUserInteracted(true)}
         onChange={() => setHasUserInteracted(true)}

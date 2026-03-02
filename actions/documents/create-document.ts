@@ -7,6 +7,7 @@ import { prismaForOrg, withTenantContext } from "@/lib/tenant";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { prismadb } from "@/lib/prisma";
 import { canPerformAction } from "@/lib/permissions";
+import { encryptDocumentForOrg, decryptDocumentForOrg, decryptClientForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
 
 export interface CreateDocumentInput {
   document_name: string;
@@ -70,12 +71,17 @@ export async function createDocument(input: CreateDocumentInput) {
     // Generate friendly ID
     const documentId = await generateFriendlyId(prismadb, "Documents");
 
+    const encryptedFields = await encryptDocumentForOrg({
+      document_name: input.document_name,
+      description: input.description,
+    }, organizationId);
+
     // Create document - use compressed size and final mime type
     const document = await prismaTenant.documents.create({
       data: {
         id: documentId,
-        document_name: input.document_name,
-        description: input.description,
+        document_name: encryptedFields.document_name ?? input.document_name,
+        description: encryptedFields.description,
         document_file_url: uploadResult.url,
         document_file_mimeType: uploadResult.mimeType,
         document_type: input.document_type,
@@ -118,6 +124,11 @@ export async function createDocument(input: CreateDocumentInput) {
       },
     });
 
-    return document;
+    const decryptedDoc = await decryptDocumentForOrg(document, organizationId);
+    return {
+      ...decryptedDoc,
+      Clients: await Promise.all(document.Clients.map((c) => decryptClientForOrg(c, organizationId))),
+      CalendarEvent: await Promise.all(document.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, organizationId))),
+    };
   });
 }

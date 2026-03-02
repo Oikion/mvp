@@ -1,6 +1,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { decryptPropertyForOrg } from "@/lib/model-encryption";
 
 export const getProperty = async (propertyId: string) => {
   // Check permission to read properties
@@ -25,14 +26,16 @@ export const getProperty = async (propertyId: string) => {
   });
   
   if (!data) return null;
-  
+
+  const decryptedData = await decryptPropertyForOrg(data, organizationId);
+
   // Map to expected field names for backward compatibility
   const mappedData = {
-    ...data,
-    assigned_to_user: data.Users_Properties_assigned_toToUsers,
-    contacts: data.Property_Contacts,
+    ...decryptedData,
+    assigned_to_user: decryptedData.Users_Properties_assigned_toToUsers,
+    contacts: decryptedData.Property_Contacts,
   };
-  
+
   // Serialize to plain objects - converts Decimal to number, Date to string
   return JSON.parse(JSON.stringify(mappedData));
 };

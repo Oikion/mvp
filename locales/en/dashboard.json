@@ -134,14 +134,20 @@
   "customize": {
     "button": "Customize",
     "title": "Customize Dashboard",
-    "description": "Drag to reorder, toggle visibility, and resize widgets",
+    "description": "Toggle widget visibility. Use Edit Layout to drag, resize, and reposition.",
     "widgetCount": "{visible} of {total} widgets visible",
     "reset": "Reset to Default",
-    "done": "Done"
+    "done": "Done",
+    "sort": "Sort",
+    "sortTooltip": "Compact and sort widgets to remove gaps",
+    "editLayout": "Edit Layout"
   },
   "widgets": {
     "drag": "Drag",
     "hide": "Hide widget",
+    "lock": "Lock widget",
+    "unlock": "Unlock widget",
+    "locked": "Locked",
     "size": {
       "label": "Size",
       "small": "Small",

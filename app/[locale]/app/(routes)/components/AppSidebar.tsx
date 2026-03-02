@@ -2,6 +2,8 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLocale } from "next-intl"
 
@@ -77,6 +79,17 @@ export function AppSidebar({
   return (
     <Sidebar variant="inset">
       <SidebarHeader>
+        <div className="px-2 py-3">
+          <Link href={`/${locale}`} className="inline-block">
+            <Image
+              src="/assets/logo.svg"
+              alt="Oikion"
+              width={96}
+              height={24}
+              priority
+            />
+          </Link>
+        </div>
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="w-full space-y-2">

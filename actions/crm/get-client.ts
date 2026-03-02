@@ -1,7 +1,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
-import { decryptClient } from "@/lib/model-encryption";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
 export const getClient = async (clientId: string) => {
   // Check permission to read clients
@@ -29,7 +29,7 @@ export const getClient = async (clientId: string) => {
     return null;
   }
 
-  const decryptedData = decryptClient(data);
+  const decryptedData = await decryptClientForOrg(data, organizationId);
 
   // Map to expected field names for backward compatibility
   const mappedData = {

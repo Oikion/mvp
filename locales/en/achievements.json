@@ -1,0 +1,32 @@
+{
+  "achievements": {
+    "referral_1": {
+      "name": "First Referral",
+      "description": "Successfully referred your first user"
+    },
+    "referral_3": {
+      "name": "Ambassador",
+      "description": "Successfully referred 3 users"
+    },
+    "referral_5": {
+      "name": "Connector",
+      "description": "Successfully referred 5 users"
+    },
+    "referral_10": {
+      "name": "Influencer",
+      "description": "Successfully referred 10 users"
+    },
+    "referral_25": {
+      "name": "Network Builder",
+      "description": "Successfully referred 25 users"
+    },
+    "referral_50": {
+      "name": "Community Leader",
+      "description": "Successfully referred 50 users"
+    },
+    "referral_100": {
+      "name": "Platform Champion",
+      "description": "Successfully referred 100 users"
+    }
+  }
+}

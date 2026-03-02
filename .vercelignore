@@ -1,0 +1,44 @@
+# Large video files - host these on a CDN
+public/assets/videos
+
+# Snyk security scan results
+snyk
+snyk 2
+
+# Database dump
+db_dump.bak
+
+# Build artifacts already in .gitignore
+.next_old*
+
+# Dev/test directories
+cypress
+tests
+test-data
+docs
+
+
+# Large reports
+knip-report*.json
+build-errors*.txt
+seed-output*.log
+
+# Duplicate files with spaces
+*" 2"*
+* 2.md
+* 2.ts
+* 2.yml
+* 2.json
+
+# Docker/K8s configs (not used by Vercel)
+Dockerfile
+Dockerfile_actions
+Jenkinsfile
+docker-compose*
+k8s
+
+# Cursor IDE configs
+.cursor
+
+# tsconfig build info
+*.tsbuildinfo

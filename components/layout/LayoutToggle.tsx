@@ -41,7 +41,7 @@ export function LayoutToggle() {
             size="icon"
             onClick={toggleLayout}
             disabled={isLoading || !isHydrated}
-            className="h-8 w-8"
+            className="hidden 2xl:flex h-8 w-8"
             aria-label={tooltipText}
           >
             <Icon className="h-4 w-4" />

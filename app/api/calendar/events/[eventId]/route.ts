@@ -14,6 +14,7 @@ import {
 import { prismaForOrg } from "@/lib/tenant";
 import { format } from "date-fns";
 import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
+import { encryptCalendarEventForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
 
 /**
  * Create notifications for calendar event update
@@ -199,7 +200,8 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ event });
+    const decrypted = await decryptCalendarEventForOrg(event, currentOrgId);
+    return NextResponse.json({ event: decrypted });
   } catch (error: any) {
     console.error("[CALENDAR_EVENTS_GET]", error);
     return NextResponse.json(
@@ -281,11 +283,19 @@ export async function PUT(
     // Build update data
     const updateData: any = {};
 
-    if (title !== undefined) updateData.title = title;
-    if (description !== undefined) updateData.description = description;
+    // Encrypt text fields if being updated
+    const textFieldsToEncrypt: Record<string, string | null> = {};
+    if (title !== undefined) textFieldsToEncrypt.title = title;
+    if (description !== undefined) textFieldsToEncrypt.description = description ?? null;
+    if (location !== undefined) textFieldsToEncrypt.location = location ?? null;
+
+    if (Object.keys(textFieldsToEncrypt).length > 0) {
+      const encrypted = await encryptCalendarEventForOrg(textFieldsToEncrypt, currentOrgId);
+      Object.assign(updateData, encrypted);
+    }
+
     if (startTime !== undefined) updateData.startTime = new Date(startTime);
     if (endTime !== undefined) updateData.endTime = new Date(endTime);
-    if (location !== undefined) updateData.location = location;
     if (status !== undefined) updateData.status = status;
     if (eventType !== undefined) updateData.eventType = eventType;
     if (assignedUserId !== undefined) updateData.assignedUserId = assignedUserId;
@@ -420,8 +430,9 @@ export async function PUT(
       currentUser.name || currentUser.email
     ).catch((err) => console.error("[UPDATE_NOTIFICATIONS_ERROR]", err));
 
+    const decryptedEvent = await decryptCalendarEventForOrg(event, currentOrgId);
     return NextResponse.json({
-      event,
+      event: decryptedEvent,
       message: "Event updated successfully",
     });
   } catch (error: any) {

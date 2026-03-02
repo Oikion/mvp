@@ -5,6 +5,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { createNotificationsForUsers } from "@/actions/notifications/create-notification";
 import { revalidatePath } from "next/cache";
 import { requireAction } from "@/lib/permissions";
+import { decryptCalendarEventForOrg } from "@/lib/model-encryption";
 
 export interface InviteToEventParams {
   eventId: string;
@@ -43,6 +44,8 @@ export async function inviteToEvent({ eventId, userIds }: InviteToEventParams): 
       return { success: false, error: "Event not found" };
     }
 
+    const decryptedEvent = await decryptCalendarEventForOrg(event, organizationId);
+
     // Filter out users who are already invited
     const existingInvites = await prismaTenant.eventInvitee.findMany({
       where: {
@@ -74,13 +77,13 @@ export async function inviteToEvent({ eventId, userIds }: InviteToEventParams): 
     await createNotificationsForUsers(newUserIds, {
       type: "EVENT_INVITATION",
       title: "Event Invitation",
-      message: `${currentUser.name || currentUser.email} invited you to "${event.title || "an event"}"`,
+      message: `${currentUser.name || currentUser.email} invited you to "${decryptedEvent.title || "an event"}"`,
       entityType: "EVENT",
       entityId: eventId,
       actorId: currentUser.id,
       actorName: currentUser.name || currentUser.email,
       metadata: {
-        eventTitle: event.title,
+        eventTitle: decryptedEvent.title,
         eventStartTime: event.startTime.toISOString(),
       },
     });

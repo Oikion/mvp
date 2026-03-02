@@ -7,15 +7,14 @@ import {
   useState,
   useEffect,
   useMemo,
+  type ReactNode,
 } from "react";
-import type { ReactNode } from "react";
 import {
   type DashboardConfig,
-  type WidgetConfig,
-  type WidgetSize,
+  type ResponsiveLayouts,
+  type GridPosition,
 } from "./types";
 import {
-  DEFAULT_DASHBOARD_CONFIG,
   normalizeDashboardConfig,
 } from "./widget-registry";
 
@@ -31,9 +30,9 @@ interface DashboardConfigContextValue {
   setIsEditMode: (editMode: boolean) => void;
   updateConfig: (config: DashboardConfig) => Promise<void>;
   updateWidgetVisibility: (widgetId: string, visible: boolean) => Promise<void>;
-  updateWidgetSize: (widgetId: string, size: WidgetSize) => Promise<void>;
-  reorderWidgets: (widgetIds: string[]) => Promise<void>;
+  updateLayouts: (layouts: ResponsiveLayouts) => Promise<void>;
   resetToDefault: () => Promise<void>;
+  sortWidgets: () => Promise<void>;
 }
 
 // Context
@@ -72,7 +71,7 @@ function saveStoredConfig(config: DashboardConfig): void {
 
 /**
  * DashboardConfigProvider
- * 
+ *
  * Provides dashboard configuration state to the application.
  * - Accepts an initial value from server-side data
  * - Persists changes to localStorage for instant feedback
@@ -82,27 +81,22 @@ export function DashboardConfigProvider({
   children,
   initialConfig,
 }: DashboardConfigProviderProps) {
-  // Track hydration and loading state
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // Initialize with server-provided config or default
   const [config, setConfig] = useState<DashboardConfig>(() =>
     normalizeDashboardConfig(initialConfig)
   );
 
-  // Mark as hydrated after first render
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  // After hydration, check localStorage for any cached preference
   useEffect(() => {
     if (isHydrated) {
       const stored = getStoredConfig();
       if (stored) {
-        // Use localStorage version if it's newer
         const storedTime = new Date(stored.updatedAt).getTime();
         const currentTime = new Date(config.updatedAt).getTime();
         if (storedTime > currentTime) {
@@ -110,11 +104,9 @@ export function DashboardConfigProvider({
         }
       }
     }
-    // Only run when isHydrated changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated]);
 
-  // Update config with optimistic update and API sync
   const updateConfig = useCallback(async (newConfig: DashboardConfig) => {
     const previousConfig = config;
     const configWithTimestamp = {
@@ -122,7 +114,6 @@ export function DashboardConfigProvider({
       updatedAt: new Date().toISOString(),
     };
 
-    // Optimistic update
     setConfig(configWithTimestamp);
     saveStoredConfig(configWithTimestamp);
     setIsLoading(true);
@@ -130,9 +121,7 @@ export function DashboardConfigProvider({
     try {
       const response = await fetch("/api/user/preferences", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dashboardConfig: configWithTimestamp }),
       });
 
@@ -140,7 +129,6 @@ export function DashboardConfigProvider({
         throw new Error("Failed to update dashboard config");
       }
     } catch (error) {
-      // Rollback on error
       console.error("Failed to save dashboard config:", error);
       setConfig(previousConfig);
       saveStoredConfig(previousConfig);
@@ -149,67 +137,115 @@ export function DashboardConfigProvider({
     }
   }, [config]);
 
-  // Update single widget visibility
   const updateWidgetVisibility = useCallback(
     async (widgetId: string, visible: boolean) => {
-      const newWidgets = config.widgets.map((w) =>
-        w.id === widgetId ? { ...w, visible } : w
-      );
+      const newWidgets = { ...config.widgets };
+      newWidgets[widgetId] = { ...newWidgets[widgetId], visible };
       await updateConfig({ ...config, widgets: newWidgets });
     },
     [config, updateConfig]
   );
 
-  // Update single widget size
-  const updateWidgetSize = useCallback(
-    async (widgetId: string, size: WidgetSize) => {
-      const newWidgets = config.widgets.map((w) =>
-        w.id === widgetId ? { ...w, size } : w
-      );
-      await updateConfig({ ...config, widgets: newWidgets });
+  const updateLayouts = useCallback(
+    async (layouts: ResponsiveLayouts) => {
+      await updateConfig({ ...config, layouts });
     },
     [config, updateConfig]
   );
 
-  // Reorder widgets by providing new order of widget IDs
-  const reorderWidgets = useCallback(
-    async (widgetIds: string[]) => {
-      const widgetMap = new Map<string, WidgetConfig>();
-      for (const widget of config.widgets) {
-        widgetMap.set(widget.id, widget);
-      }
-
-      const newWidgets: WidgetConfig[] = [];
-      let order = 0;
-
-      // Add widgets in new order
-      for (const id of widgetIds) {
-        const widget = widgetMap.get(id);
-        if (widget) {
-          newWidgets.push({ ...widget, order: order++ });
-          widgetMap.delete(id);
-        }
-      }
-
-      // Add any remaining widgets (shouldn't happen, but just in case)
-      for (const widget of Array.from(widgetMap.values())) {
-        newWidgets.push({ ...widget, order: order++ });
-      }
-
-      await updateConfig({ ...config, widgets: newWidgets });
-    },
-    [config, updateConfig]
-  );
-
-  // Reset to default configuration
   const resetToDefault = useCallback(async () => {
-    await updateConfig({
-      ...DEFAULT_DASHBOARD_CONFIG,
-      updatedAt: new Date().toISOString(),
-    });
+    if (globalThis.window !== undefined) {
+      try {
+        globalThis.localStorage.removeItem(DASHBOARD_CONFIG_KEY);
+        Object.keys(globalThis.localStorage)
+          .filter(key => key.startsWith('dashboard-') || key.includes('widget'))
+          .forEach(key => {
+            try { globalThis.localStorage.removeItem(key); } catch (e) { console.warn(`Failed to remove ${key}:`, e); }
+          });
+      } catch (error) {
+        console.error("Failed to clear dashboard cache:", error);
+      }
+    }
+    const freshConfig = normalizeDashboardConfig(null);
+    await updateConfig(freshConfig);
   }, [updateConfig]);
 
-  // Memoize context value
+  const sortWidgets = useCallback(async () => {
+    const COLS_MAP = { lg: 48, md: 48, sm: 24, xs: 12, xxs: 12 };
+
+    const compactLayout = (
+      positions: GridPosition[],
+      cols: number,
+    ): GridPosition[] => {
+      const visibleWidgets = positions.filter(
+        (pos) => config.widgets[pos.i]?.visible
+      );
+
+      const sorted = [...visibleWidgets].sort((a, b) => {
+        if (a.y !== b.y) return a.y - b.y;
+        return a.x - b.x;
+      });
+
+      const occupied: boolean[][] = [];
+      const getRow = (y: number) => {
+        if (!occupied[y]) occupied[y] = new Array(cols).fill(false);
+        return occupied[y];
+      };
+
+      const markOccupied = (x: number, y: number, w: number, h: number) => {
+        for (let row = y; row < y + h; row++) {
+          const rowCells = getRow(row);
+          for (let col = x; col < x + w; col++) {
+            rowCells[col] = true;
+          }
+        }
+      };
+
+      const canPlace = (x: number, y: number, w: number, h: number): boolean => {
+        if (x + w > cols) return false;
+        for (let row = y; row < y + h; row++) {
+          const rowCells = getRow(row);
+          for (let col = x; col < x + w; col++) {
+            if (rowCells[col]) return false;
+          }
+        }
+        return true;
+      };
+
+      const findPosition = (w: number, h: number): { x: number; y: number } => {
+        for (let y = 0; ; y++) {
+          for (let x = 0; x <= cols - w; x++) {
+            if (canPlace(x, y, w, h)) {
+              return { x, y };
+            }
+          }
+        }
+      };
+
+      const compacted: GridPosition[] = sorted.map((widget) => {
+        const { x, y } = findPosition(widget.w, widget.h);
+        markOccupied(x, y, widget.w, widget.h);
+        return { ...widget, x, y };
+      });
+
+      const hiddenWidgets = positions.filter(
+        (pos) => !config.widgets[pos.i]?.visible
+      );
+
+      return [...compacted, ...hiddenWidgets];
+    };
+
+    const newLayouts: ResponsiveLayouts = {
+      lg: compactLayout(config.layouts.lg, COLS_MAP.lg),
+      md: compactLayout(config.layouts.md, COLS_MAP.md),
+      sm: compactLayout(config.layouts.sm, COLS_MAP.sm),
+      xs: compactLayout(config.layouts.xs, COLS_MAP.xs),
+      xxs: compactLayout(config.layouts.xxs, COLS_MAP.xxs),
+    };
+
+    await updateLayouts(newLayouts);
+  }, [config.layouts, config.widgets, updateLayouts]);
+
   const value = useMemo(
     () => ({
       config,
@@ -219,9 +255,9 @@ export function DashboardConfigProvider({
       setIsEditMode,
       updateConfig,
       updateWidgetVisibility,
-      updateWidgetSize,
-      reorderWidgets,
+      updateLayouts,
       resetToDefault,
+      sortWidgets,
     }),
     [
       config,
@@ -231,9 +267,9 @@ export function DashboardConfigProvider({
       setIsEditMode,
       updateConfig,
       updateWidgetVisibility,
-      updateWidgetSize,
-      reorderWidgets,
+      updateLayouts,
       resetToDefault,
+      sortWidgets,
     ]
   );
 
@@ -246,7 +282,7 @@ export function DashboardConfigProvider({
 
 /**
  * useDashboardConfig
- * 
+ *
  * Hook to access and modify the user's dashboard configuration.
  * Must be used within a DashboardConfigProvider.
  */

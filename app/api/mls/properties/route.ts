@@ -9,6 +9,8 @@ import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchPropertyWebhook } from "@/lib/webhooks";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 
+import { encryptPropertyForOrg } from "@/lib/model-encryption";
+
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
 const VALID_HEATING_TYPES = new Set(["AUTONOMOUS", "CENTRAL", "NATURAL_GAS", "HEAT_PUMP", "ELECTRIC", "NONE"]);
@@ -245,6 +247,12 @@ export async function POST(req: Request) {
     // Build validated data
     const data = buildPropertyData(body, user, organizationId, !!id);
 
+    // Encrypt owner-sensitive fields with per-org DEK
+    if (data.primary_email !== undefined) {
+      const enc = await encryptPropertyForOrg({ primary_email: data.primary_email }, organizationId);
+      data.primary_email = enc.primary_email;
+    }
+
     // Ensure property_name exists
     if (!data.property_name) {
       data.property_name = "Untitled Property";
@@ -376,6 +384,12 @@ export async function PUT(req: Request) {
 
     // Build validated data
     const data = buildPropertyData(body, user, organizationId, true);
+
+    // Encrypt owner-sensitive fields with per-org DEK
+    if (data.primary_email !== undefined) {
+      const enc = await encryptPropertyForOrg({ primary_email: data.primary_email }, organizationId);
+      data.primary_email = enc.primary_email;
+    }
 
     const updatedProperty = await prismadb.properties.update({
       where: { id },

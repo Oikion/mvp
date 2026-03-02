@@ -116,6 +116,25 @@ function EventCreateFormBody({
 }) {
   const selectedReminders = form.watch("reminderMinutes");
 
+  // Auto-update endTime when startTime changes to preserve event duration
+  const prevStartTimeRef = React.useRef<Date>(form.getValues("startTime"));
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "startTime" && value.startTime instanceof Date) {
+        const prevStart = prevStartTimeRef.current;
+        const currentEnd = form.getValues("endTime");
+        if (prevStart && currentEnd instanceof Date) {
+          const duration = currentEnd.getTime() - prevStart.getTime();
+          if (duration > 0) {
+            form.setValue("endTime", new Date(value.startTime.getTime() + duration), { shouldValidate: false });
+          }
+        }
+        prevStartTimeRef.current = value.startTime;
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   const handleReminderToggle = (minutes: number) => {
     const current = form.getValues("reminderMinutes");
     if (current.includes(minutes)) {

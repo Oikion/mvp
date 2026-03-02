@@ -3,7 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
-import { encryptClient } from "@/lib/model-encryption";
+import { encryptClientForOrg } from "@/lib/model-encryption";
 
 export const updateClient = async (clientId: string, data: any) => {
   const organizationId = await getCurrentOrgId();
@@ -13,7 +13,7 @@ export const updateClient = async (clientId: string, data: any) => {
     throw new Error("Unauthorized");
   }
 
-  const encryptedData = encryptClient(data);
+  const encryptedData = await encryptClientForOrg(data, organizationId);
 
   const updatedClient = await prismadb.clients.update({
     where: {

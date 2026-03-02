@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { canPerformAction, getActionPermissionContext, getActionPermissionLevel } from "@/lib/permissions";
+import { decryptPropertyForOrg } from "@/lib/model-encryption";
 
 export const getProperties = async () => {
   // Permission check: Users need property:read permission
@@ -45,13 +46,16 @@ export const getProperties = async () => {
     orderBy: { createdAt: "desc" },
   });
   
-  // Map to expected field names for backward compatibility
-  const mappedData = data.map((p: Record<string, unknown>) => ({
-    ...p,
-    assigned_to_user: p.Users_Properties_assigned_toToUsers,
-    linkedDocuments: p.Documents,
+  // Map to expected field names for backward compatibility, decrypting sensitive fields
+  const mappedData = await Promise.all(data.map(async (p) => {
+    const dec = await decryptPropertyForOrg(p, organizationId);
+    return {
+      ...dec,
+      assigned_to_user: dec.Users_Properties_assigned_toToUsers,
+      linkedDocuments: dec.Documents,
+    };
   }));
-  
+
   // Serialize to plain objects - converts Decimal to number, Date to string
   return JSON.parse(JSON.stringify(mappedData));
 };

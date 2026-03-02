@@ -4,6 +4,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@prisma/client";
+import { encryptAiConversationForOrg, decryptAiConversationForOrg } from "@/lib/model-encryption";
 
 interface UpdateConversationInput {
   id: string;
@@ -38,22 +39,34 @@ export async function updateConversation(input: UpdateConversationInput) {
       throw new Error("Conversation not found");
     }
 
+    const encryptedPatch = await encryptAiConversationForOrg({
+      ...(input.title !== undefined && { title: input.title }),
+      ...(input.messages !== undefined && {
+        messages: input.messages as Prisma.JsonValue,
+      }),
+    }, organizationId);
+
     const conversation = await prismadb.aiConversation.update({
       where: { id: input.id },
       data: {
-        ...(input.title !== undefined && { title: input.title }),
+        ...(input.title !== undefined && { title: encryptedPatch.title }),
         ...(input.messages !== undefined && {
-          messages: input.messages as unknown as Prisma.InputJsonValue,
+          messages: encryptedPatch.messages as Prisma.InputJsonValue,
         }),
       },
     });
 
     revalidatePath("/ai");
 
-    return {
-      id: conversation.id,
+    const decrypted = await decryptAiConversationForOrg({
       title: conversation.title,
       messages: conversation.messages,
+    }, organizationId);
+
+    return {
+      id: conversation.id,
+      title: decrypted.title,
+      messages: decrypted.messages,
       createdAt: conversation.createdAt.toISOString(),
       updatedAt: conversation.updatedAt.toISOString(),
     };

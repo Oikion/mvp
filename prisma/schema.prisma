@@ -3034,6 +3034,20 @@ model OrganizationAgentConfig {
 }
 
 // ============================================
+// ORG ENCRYPTION KEYS
+// ============================================
+
+/// Per-organization Data Encryption Key (DEK), stored encrypted by the master app key.
+/// Part of the DEK + KEK envelope encryption pattern for per-org cryptographic isolation.
+model OrgEncryptionKey {
+  id             String   @id @default(cuid())
+  organizationId String   @unique
+  encryptedDek   String   @db.Text // 32-byte random key, AES-256-GCM encrypted with SECRETS_ENCRYPTION_KEY
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ============================================
 // AI CONVERSATIONS - Chat history
 // ============================================
 

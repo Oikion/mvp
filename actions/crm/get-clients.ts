@@ -1,7 +1,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
-import { decryptClient } from "@/lib/model-encryption";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
 export const getClients = async () => {
   // Check permission to read clients
@@ -45,7 +45,7 @@ export const getClients = async () => {
   const results = [];
   for (const c of data) {
     try {
-      const dec = decryptClient(c);
+      const dec = await decryptClientForOrg(c, organizationId);
       results.push({
         ...dec,
         name: dec.client_name,

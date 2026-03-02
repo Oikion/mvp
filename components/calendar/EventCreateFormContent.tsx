@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -121,6 +122,25 @@ export default function EventCreateFormContent({
       recurrenceRule: undefined,
     },
   });
+
+  // Auto-update endTime when startTime changes to preserve event duration
+  const prevStartTimeRef = useRef<Date>(form.getValues("startTime"));
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "startTime" && value.startTime instanceof Date) {
+        const prevStart = prevStartTimeRef.current;
+        const currentEnd = form.getValues("endTime");
+        if (prevStart && currentEnd instanceof Date) {
+          const duration = currentEnd.getTime() - prevStart.getTime();
+          if (duration > 0) {
+            form.setValue("endTime", new Date(value.startTime.getTime() + duration), { shouldValidate: false });
+          }
+        }
+        prevStartTimeRef.current = value.startTime;
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   async function onSubmit(data: EventFormValues) {
     try {

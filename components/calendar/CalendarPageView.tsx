@@ -106,57 +106,91 @@ export function CalendarPageView() {
   const didInitViewModeRef = useRef(false);
   const didInitSelectedDateRef = useRef(false);
 
+  // Stale-closure-safe refs for current state values (used in URL sync effects)
+  const viewModeRef = useRef(viewMode);
+  const selectedDateStrRef = useRef(format(selectedDate, "yyyy-MM-dd"));
+  // Always-current searchParams ref so persist effects don't need searchParams as a dep
+  const searchParamsRef = useRef(searchParams);
+
+  // Keep refs in sync with state/props every render
+  useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
+  useEffect(() => { selectedDateStrRef.current = format(selectedDate, "yyyy-MM-dd"); }, [selectedDate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { searchParamsRef.current = searchParams; });
+
   const handleCreateEventOpenChange = useCallback((open: boolean) => {
     setCreateEventOpen(open);
   }, []);
 
-  // Initialize viewMode from URL (?view=day) with localStorage fallback.
+  // Initialize viewMode from URL on first load; also reacts to browser back/forward.
   useEffect(() => {
     const urlView = searchParams.get("view");
-    if (isCalendarViewMode(urlView)) {
-      setViewMode(urlView);
+
+    if (!didInitViewModeRef.current) {
+      // First load: read from URL, then localStorage
+      if (isCalendarViewMode(urlView)) {
+        setViewMode(urlView);
+        viewModeRef.current = urlView;
+      } else {
+        try {
+          const stored = window.localStorage.getItem(CALENDAR_VIEWMODE_STORAGE_KEY);
+          if (isCalendarViewMode(stored)) {
+            setViewMode(stored);
+            viewModeRef.current = stored;
+          }
+        } catch {
+          // ignore storage errors
+        }
+      }
       didInitViewModeRef.current = true;
       return;
     }
 
-    try {
-      const stored = window.localStorage.getItem(CALENDAR_VIEWMODE_STORAGE_KEY);
-      if (isCalendarViewMode(stored)) {
-        setViewMode(stored);
-      }
-    } catch {
-      // ignore storage errors
-    } finally {
-      didInitViewModeRef.current = true;
+    // Subsequent URL changes come from browser navigation (back/forward).
+    // Only update state if the URL holds a value we didn't push ourselves.
+    if (isCalendarViewMode(urlView) && urlView !== viewModeRef.current) {
+      setViewMode(urlView);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
-  // Initialize selectedDate from URL (?date=YYYY-MM-DD) with localStorage fallback.
+  // Initialize selectedDate from URL on first load; also reacts to browser back/forward.
   useEffect(() => {
     const urlDate = searchParams.get("date");
-    const parsedUrlDate = parseLocalYyyyMmDd(urlDate);
-    if (parsedUrlDate) {
-      setSelectedDate(parsedUrlDate);
+
+    if (!didInitSelectedDateRef.current) {
+      // First load: read from URL, then localStorage
+      const parsedUrlDate = parseLocalYyyyMmDd(urlDate);
+      if (parsedUrlDate) {
+        setSelectedDate(parsedUrlDate);
+        selectedDateStrRef.current = urlDate!;
+      } else {
+        try {
+          const stored = window.localStorage.getItem(CALENDAR_SELECTED_DATE_STORAGE_KEY);
+          const parsedStoredDate = parseLocalYyyyMmDd(stored);
+          if (parsedStoredDate) {
+            setSelectedDate(parsedStoredDate);
+            selectedDateStrRef.current = stored!;
+          }
+        } catch {
+          // ignore storage errors
+        }
+      }
       didInitSelectedDateRef.current = true;
       return;
     }
 
-    try {
-      const stored = window.localStorage.getItem(CALENDAR_SELECTED_DATE_STORAGE_KEY);
-      const parsedStoredDate = parseLocalYyyyMmDd(stored);
-      if (parsedStoredDate) {
-        setSelectedDate(parsedStoredDate);
-      }
-    } catch {
-      // ignore storage errors
-    } finally {
-      didInitSelectedDateRef.current = true;
+    // Subsequent URL changes come from browser navigation (back/forward).
+    // Only update state if the URL holds a date we didn't push ourselves.
+    const parsedUrlDate = parseLocalYyyyMmDd(urlDate);
+    if (parsedUrlDate && urlDate !== selectedDateStrRef.current) {
+      setSelectedDate(parsedUrlDate);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
-  // Persist viewMode to URL + localStorage so it survives refresh/navigation.
+  // Persist viewMode to URL + localStorage. Depends only on viewMode (not searchParams)
+  // so browser navigation never triggers this and fights with the back button.
   useEffect(() => {
     if (!didInitViewModeRef.current) return;
 
@@ -166,16 +200,18 @@ export function CalendarPageView() {
       // ignore storage errors
     }
 
-    const current = searchParams.get("view");
+    const currentParams = searchParamsRef.current;
+    const current = currentParams.get("view");
     if (current === viewMode) return;
 
-    const next = new URLSearchParams(searchParams.toString());
+    const next = new URLSearchParams(currentParams.toString());
     next.set("view", viewMode);
     const qs = next.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams, viewMode]);
+  }, [pathname, router, viewMode]);
 
-  // Persist selectedDate to URL + localStorage so it survives refresh/navigation.
+  // Persist selectedDate to URL + localStorage. Depends only on selectedDate (not searchParams)
+  // so browser navigation never triggers this and fights with the back button.
   useEffect(() => {
     if (!didInitSelectedDateRef.current) return;
 
@@ -186,14 +222,15 @@ export function CalendarPageView() {
       // ignore storage errors
     }
 
-    const current = searchParams.get("date");
+    const currentParams = searchParamsRef.current;
+    const current = currentParams.get("date");
     if (current === dateParam) return;
 
-    const next = new URLSearchParams(searchParams.toString());
+    const next = new URLSearchParams(currentParams.toString());
     next.set("date", dateParam);
     const qs = next.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams, selectedDate]);
+  }, [pathname, router, selectedDate]);
 
   // Calculate date range for fetching events (dynamic based on view mode)
   const dateRange = useMemo(() => {
@@ -597,7 +634,22 @@ export function CalendarPageView() {
                 month: format(selectedDate, "yyyy-MM"),
               }}
             />
-            <EventCreateTrigger onClick={() => setCreateEventOpen(true)} />
+            <EventCreateTrigger onClick={() => {
+              // Always pre-fill start/end times based on the currently viewed date so that
+              // events created via the button appear in the timeline for the right day.
+              const now = new Date();
+              const defaultStart = new Date(selectedDate);
+              const isToday = format(selectedDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
+              if (isToday) {
+                const snappedMinutes = Math.floor(now.getMinutes() / 15) * 15;
+                defaultStart.setHours(now.getHours(), snappedMinutes, 0, 0);
+              } else {
+                defaultStart.setHours(9, 0, 0, 0);
+              }
+              setCreateEventStartTime(defaultStart);
+              setCreateEventEndTime(new Date(defaultStart.getTime() + 60 * 60 * 1000));
+              setCreateEventOpen(true);
+            }} />
           </div>
           
           {viewMode !== "day" && (

@@ -3,6 +3,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { encryptPropertyForOrg } from "@/lib/model-encryption";
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
@@ -250,6 +251,12 @@ export async function POST(req: Request) {
     }
     if (orientation !== undefined && orientation !== null) {
       data.orientation = Array.isArray(orientation) ? orientation : null;
+    }
+
+    // Encrypt owner-sensitive fields with per-org DEK
+    if (data.primary_email !== undefined) {
+      const enc = await encryptPropertyForOrg({ primary_email: data.primary_email }, organizationId);
+      data.primary_email = enc.primary_email;
     }
 
     let property;
