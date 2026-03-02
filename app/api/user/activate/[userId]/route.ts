@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 import sendEmail from "@/lib/sendmail";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 export async function POST(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
@@ -36,7 +37,7 @@ export async function POST(req: Request, props: { params: Promise<{ userId: stri
     }
 
     await sendEmail({
-      from: process.env.EMAIL_FROM,
+      from: EMAIL_CONFIG.FROM,
       to: user.email,
       subject: `Invitation to ${process.env.NEXT_PUBLIC_APP_NAME}`,
       text: message,

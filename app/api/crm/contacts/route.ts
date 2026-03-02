@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 import sendEmail from "@/lib/sendmail";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 export async function POST(req: Request) {
   try {
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
       }
 
       await sendEmail({
-        from: process.env.EMAIL_FROM as string,
+        from: EMAIL_CONFIG.FROM,
         to: notifyRecipient.email || "delivered@resend.dev",
         subject:
           notifyRecipient.userLanguage === "en"

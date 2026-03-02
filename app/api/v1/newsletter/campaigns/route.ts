@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 import {
   withExternalApi,
   createApiSuccessResponse,
@@ -112,7 +113,7 @@ export const POST = withExternalApi(
     }
 
     // Get default from email from env if not provided
-    const defaultFromEmail = process.env.EMAIL_FROM || "newsletter@example.com";
+    const defaultFromEmail = EMAIL_CONFIG.FROM;
 
     const campaign = await prismadb.newsletterCampaign.create({
       data: {

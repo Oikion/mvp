@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 import {
   withExternalApi,
   createApiSuccessResponse,
@@ -143,7 +144,7 @@ export const POST = withExternalApi(
     // Send emails using Resend batch API
     try {
       const emails = subscribers.map((sub) => ({
-        from: campaign.fromEmail || process.env.EMAIL_FROM || "newsletter@example.com",
+        from: campaign.fromEmail || EMAIL_CONFIG.FROM,
         to: sub.email,
         subject: campaign.subject,
         html: personalizeContent(campaign.content, sub),
@@ -268,7 +269,7 @@ async function sendTestEmail(
 
   try {
     const result = await resend.emails.send({
-      from: process.env.EMAIL_FROM || "newsletter@example.com",
+      from: EMAIL_CONFIG.FROM,
       to: testEmail,
       subject: `[TEST] ${emailSubject}`,
       html: personalizeContent(emailContent, {
