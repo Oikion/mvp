@@ -116,7 +116,6 @@ export async function POST(
         );
 
         await sendEmail({
-          from: process.env.EMAIL_FROM as string,
           to: user.email,
           subject: user.userLanguage === "el"
             ? `Νέο μήνυμα από ${senderName || "επισκέπτη"} - Oikion`
