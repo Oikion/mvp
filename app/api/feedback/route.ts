@@ -5,6 +5,7 @@ import FeedbackEmail from "@/emails/Feedback";
 import { prismadb } from "@/lib/prisma";
 import { uploadFeedbackFile } from "@/actions/upload";
 import { parseUserAgent } from "@/lib/user-agent-parser";
+import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 export async function POST(req: Request) {
   const resend = await resendHelper();
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
       : undefined;
 
     // Prepare recipients: feedback email and user's email (if authenticated)
-    const feedbackEmail = process.env.FEEDBACK_EMAIL || "info@softbase.cz";
+    const feedbackEmail = process.env.FEEDBACK_EMAIL || EMAIL_CONFIG.CONTACT_EMAIL;
     const recipients: string[] = [feedbackEmail];
     
     // Add user's email if authenticated
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
       react: React.ReactElement;
       attachments: Array<{ filename: string; content: string }>;
     } = {
-      from: process.env.EMAIL_FROM || "Oikion <mail@oikion.com>",
+      from: EMAIL_CONFIG.FROM,
       to: recipients,
       subject: `[${feedbackTypeLabel}] New Feedback from: ${process.env.NEXT_PUBLIC_APP_URL}`,
       react: FeedbackEmail({
