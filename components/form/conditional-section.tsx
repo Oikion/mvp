@@ -13,7 +13,7 @@ export function ConditionalFormSection({
   condition,
   children,
   className,
-}: ConditionalFormSectionProps) {
+}: Readonly<ConditionalFormSectionProps>) {
   if (!condition) return null;
 
   return <div className={cn(className)}>{children}</div>;

@@ -59,7 +59,7 @@ export async function revokeEncryptionAccess(
     return actionSuccess();
   } catch (error) {
     console.error("[REVOKE_ACCESS]", error);
-    return actionError("Failed to revoke encryption access", error);
+    return actionError("Failed to revoke encryption access", error as Error);
   }
 }
 
@@ -97,6 +97,6 @@ export async function checkEncryptionAccess(): Promise<ActionResponse<boolean>> 
     return actionSuccess(!!userKey);
   } catch (error) {
     console.error("[CHECK_ACCESS]", error);
-    return actionError("Failed to check encryption access", error);
+    return actionError("Failed to check encryption access", error as Error);
   }
 }

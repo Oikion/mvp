@@ -161,7 +161,7 @@ function AuthorizedUsersList({
 function OrgEncryptionSection() {
   const { isEnabled, isUnlocked, isLoading, unlock, lock, remainingTime, refreshStatus } =
     useEncryption();
-  const { success, error: showError } = useAppToast();
+  const { toast } = useAppToast();
 
   const [passphrase, setPassphrase] = useState("");
   const [confirmPassphrase, setConfirmPassphrase] = useState("");
@@ -188,13 +188,13 @@ function OrgEncryptionSection() {
     try {
       const unlocked = await unlock(passphrase);
       if (unlocked) {
-        success("Encryption unlocked");
+        toast.success("Encryption unlocked", { isTranslationKey: false });
         setPassphrase("");
       } else {
-        showError("Invalid passphrase");
+        toast.error("Invalid passphrase");
       }
     } catch {
-      showError("Failed to unlock encryption");
+      toast.error("Failed to unlock encryption");
     } finally {
       setIsSubmitting(false);
     }
@@ -204,12 +204,12 @@ function OrgEncryptionSection() {
   const handleSetup = async () => {
     const validation = validatePassphrase(passphrase);
     if (!validation.isValid) {
-      showError(validation.error || "Invalid passphrase");
+      toast.error(validation.error || "Invalid passphrase");
       return;
     }
 
     if (passphrase !== confirmPassphrase) {
-      showError("Passphrases do not match");
+      toast.error("Passphrases do not match");
       return;
     }
 
@@ -226,17 +226,17 @@ function OrgEncryptionSection() {
       });
 
       if (result.success) {
-        success("Encryption enabled successfully");
+        toast.success("Encryption enabled successfully", { isTranslationKey: false });
         setShowSetupDialog(false);
         setPassphrase("");
         setConfirmPassphrase("");
         await refreshStatus();
       } else {
-        showError(result.error || "Failed to enable encryption");
+        toast.error(result.error || "Failed to enable encryption");
       }
     } catch (err) {
       console.error("Setup error:", err);
-      showError("Failed to enable encryption");
+      toast.error("Failed to enable encryption");
     } finally {
       setIsSubmitting(false);
     }
@@ -409,7 +409,7 @@ function OrgEncryptionSection() {
 
 function TeamAccessSection() {
   const { isEnabled, isUnlocked } = useEncryption();
-  const { success, error: showError } = useAppToast();
+  const { toast } = useAppToast();
 
   const [authorizedUsers, setAuthorizedUsers] = useState<AuthorizedUser[]>([]);
   const [membersWithoutAccess, setMembersWithoutAccess] = useState<MemberWithoutAccess[]>([]);
@@ -450,13 +450,13 @@ function TeamAccessSection() {
     if (!selectedMember || !adminPassphrase || !memberPassphrase) return;
 
     if (memberPassphrase !== confirmMemberPassphrase) {
-      showError("Passphrases do not match");
+      toast.error("Passphrases do not match");
       return;
     }
 
     const validation = validatePassphrase(memberPassphrase);
     if (!validation.isValid) {
-      showError(validation.error || "Invalid passphrase");
+      toast.error(validation.error || "Invalid passphrase");
       return;
     }
 
@@ -465,7 +465,7 @@ function TeamAccessSection() {
       // Get admin's wrapped key
       const keyResult = await getUserWrappedKey();
       if (!keyResult.success || !keyResult.data) {
-        showError("Failed to get your encryption key");
+        toast.error("Failed to get your encryption key");
         return;
       }
 
@@ -487,7 +487,7 @@ function TeamAccessSection() {
       });
 
       if (result.success) {
-        success(`Encryption access granted to ${selectedMember.name || selectedMember.email}`);
+        toast.success(`Encryption access granted to ${selectedMember.name || selectedMember.email}`, { isTranslationKey: false });
         setShowGrantDialog(false);
         setSelectedMember(null);
         setAdminPassphrase("");
@@ -505,11 +505,11 @@ function TeamAccessSection() {
           setMembersWithoutAccess(membersResult.data);
         }
       } else {
-        showError(result.error || "Failed to grant access");
+        toast.error(result.error || "Failed to grant access");
       }
     } catch (err) {
       console.error("Grant access error:", err);
-      showError("Failed to grant access. Check your passphrase.");
+      toast.error("Failed to grant access. Check your passphrase.");
     } finally {
       setIsSubmitting(false);
     }
@@ -523,14 +523,14 @@ function TeamAccessSection() {
     try {
       const result = await revokeEncryptionAccess(userId);
       if (result.success) {
-        success("Access revoked");
+        toast.success("Access revoked", { isTranslationKey: false });
         setAuthorizedUsers((prev) => prev.filter((u) => u.id !== userId));
       } else {
-        showError(result.error || "Failed to revoke access");
+        toast.error(result.error || "Failed to revoke access");
       }
     } catch (err) {
       console.error("Revoke access error:", err);
-      showError("Failed to revoke access");
+      toast.error("Failed to revoke access");
     }
   };
 
@@ -771,7 +771,7 @@ function OrgExportStatusContent({
 }
 
 function OrgDataExportSection() {
-  const { success, error: showError } = useAppToast();
+  const { toast } = useAppToast();
   const [isRequesting, setIsRequesting] = useState(false);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
   const [pendingExport, setPendingExport] = useState<ExportRequest | null>(null);
@@ -805,21 +805,23 @@ function OrgDataExportSection() {
     setIsRequesting(true);
     try {
       const result = await requestDataExport({ processImmediately: true });
-      if (result.success && result.data) {
-        success("Data export request submitted. You will receive an email when ready.");
-        setPendingExport({
-          id: result.data.requestId,
-          status: "PENDING",
-          format: "json",
-          downloadUrl: null,
-          expiresAt: null,
-          createdAt: new Date(),
-        });
+      if (result.success) {
+        toast.success("Data export request submitted. You will receive an email when ready.", { isTranslationKey: false });
+        if (result.data) {
+          setPendingExport({
+            id: result.data.requestId,
+            status: "PENDING",
+            format: "json",
+            downloadUrl: null,
+            expiresAt: null,
+            createdAt: new Date(),
+          });
+        }
       } else {
-        showError(result.error || "Failed to request data export");
+        toast.error(result.error || "Failed to request data export");
       }
     } catch {
-      showError("Failed to request data export");
+      toast.error("Failed to request data export");
     } finally {
       setIsRequesting(false);
     }
@@ -856,14 +858,14 @@ function OrgDataExportSection() {
 function OrgDeletionSection() {
   const router = useRouter();
   const { signOut } = useClerk();
-  const { success, error: showError } = useAppToast();
+  const { toast } = useAppToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDeleteOrganization = async () => {
     if (deleteConfirmation !== "DELETE ORGANIZATION") {
-      showError("Please type 'DELETE ORGANIZATION' to confirm");
+      toast.error("Please type 'DELETE ORGANIZATION' to confirm");
       return;
     }
 
@@ -871,7 +873,7 @@ function OrgDeletionSection() {
     try {
       const result = await deleteOrganization(deleteConfirmation);
       if (result.success) {
-        success("Organization deleted successfully. You will be redirected.");
+        toast.success("Organization deleted successfully. You will be redirected.", { isTranslationKey: false });
         setShowDeleteDialog(false);
         // Sign out and redirect to home
         setTimeout(async () => {
@@ -879,10 +881,10 @@ function OrgDeletionSection() {
           router.push("/");
         }, 1500);
       } else {
-        showError(result.error || "Failed to delete organization");
+        toast.error(result.error || "Failed to delete organization");
       }
     } catch {
-      showError("Failed to delete organization");
+      toast.error("Failed to delete organization");
     } finally {
       setIsSubmitting(false);
     }

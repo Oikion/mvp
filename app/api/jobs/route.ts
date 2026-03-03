@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
 
     // Validate job type
     const validTypes: JobType[] = [
-      'market-intel-scrape',
       'newsletter-send',
       'portal-publish-xe',
       'bulk-export',

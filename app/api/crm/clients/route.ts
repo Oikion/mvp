@@ -10,6 +10,7 @@ import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchClientWebhook } from "@/lib/webhooks";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 import { createClientSchema, updateClientSchema } from "@/lib/validations/crm";
+import { encryptClientForOrg } from "@/lib/model-encryption";
 
 export async function POST(req: Request) {
   try {
@@ -94,7 +95,7 @@ export async function POST(req: Request) {
     const clientId = await generateFriendlyId(prismadb, "Clients");
 
     const newClient = await prismadb.clients.create({
-      data: {
+      data: await encryptClientForOrg({
         id: clientId,
         createdBy: user.id,
         updatedBy: user.id,
@@ -148,7 +149,7 @@ export async function POST(req: Request) {
         description,
         assigned_to,
         member_of,
-      },
+      }, organizationId),
     });
 
     await invalidateCache(["clients:list", "dashboard:accounts-count", assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));
@@ -283,7 +284,7 @@ export async function PUT(req: Request) {
 
     const updatedClient = await prismadb.clients.update({
       where: { id },
-      data: {
+      data: await encryptClientForOrg({
         updatedBy: user.id,
         client_name,
         primary_email,
@@ -334,7 +335,7 @@ export async function PUT(req: Request) {
         description,
         assigned_to,
         member_of,
-      },
+      }, organizationId),
     });
 
     await invalidateCache(["clients:list", `account:${id}`, assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));

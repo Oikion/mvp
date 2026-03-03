@@ -1,9 +1,6 @@
-// @ts-nocheck
-// TODO: Fix type errors
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useFormContext, Control, FieldPath, FieldValues } from "react-hook-form";
+import { Control, FieldPath, FieldValues } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import {
   FormField,
@@ -20,8 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAddressAutofill } from "@/hooks/useAddressAutofill";
-import useDebounce from "@/hooks/useDebounce";
 
 export interface AddressFieldGroupProps<T extends FieldValues> {
   control: Control<T>;
@@ -29,26 +24,26 @@ export interface AddressFieldGroupProps<T extends FieldValues> {
   municipalityFieldName: FieldPath<T>;
   areaFieldName?: FieldPath<T>;
   postalCodeFieldName: FieldPath<T>;
+  regionFieldName?: FieldPath<T>;
+  regionalUnitFieldName?: FieldPath<T>;
   defaultCountry?: string;
   disabled?: boolean;
   className?: string;
   showCountry?: boolean;
+  /** When true, shows a red asterisk on area and postal code fields (at least one required) */
+  requireAreaOrPostal?: boolean;
 }
 
 const COUNTRIES = [
   { code: "GR", name: "Ελλάδα", nameEn: "Greece" },
-  // Add more countries as needed
 ];
 
 /**
  * AddressFieldGroup Component
- * 
- * A reusable component for address input with bi-directional autofill:
- * - Enter postal code → auto-fills municipality
- * - Enter municipality → suggests postal codes
- * - Country restriction (default: Greece)
- * 
- * Integrates with react-hook-form for form management.
+ *
+ * Reusable address input component for Greek properties.
+ * Renders country, municipality, area, and postal code fields.
+ * Integrates with react-hook-form.
  */
 export function AddressFieldGroup<T extends FieldValues>({
   control,
@@ -56,132 +51,16 @@ export function AddressFieldGroup<T extends FieldValues>({
   municipalityFieldName,
   areaFieldName,
   postalCodeFieldName,
+  regionFieldName,
+  regionalUnitFieldName,
   defaultCountry = "GR",
   disabled = false,
   className,
   showCountry = true,
+  requireAreaOrPostal = false,
 }: AddressFieldGroupProps<T>) {
   const t = useTranslations("common.address");
-  const form = useFormContext<T>();
-  
-  // Get current values using watch
-  const country = form.watch(countryFieldName) || defaultCountry;
-  const postalCode = form.watch(postalCodeFieldName) || "";
-  const municipality = form.watch(municipalityFieldName) || "";
-  
-  // Debounce values for autofill
-  const debouncedPostalCode = useDebounce(postalCode, 500);
-  const debouncedMunicipality = useDebounce(municipality, 500);
-  
-  // Track if autofill was triggered programmatically to prevent loops
-  const isAutofillingRef = useRef(false);
-  const lastAutofilledPostalCodeRef = useRef<string>("");
-  const lastAutofilledMunicipalityRef = useRef<string>("");
-
-  // Initialize autofill hook
-  const autofill = useAddressAutofill({
-    country,
-    onLookupComplete: (result) => {
-      if (isAutofillingRef.current) return;
-      
-      isAutofillingRef.current = true;
-      
-      try {
-        // If lookup was by postal code, fill municipality
-        if (result.postalCode && result.municipality) {
-          if (
-            result.postalCode === debouncedPostalCode &&
-            lastAutofilledPostalCodeRef.current !== result.postalCode
-          ) {
-            form.setValue(municipalityFieldName, result.municipality as any, {
-              shouldValidate: false,
-              shouldDirty: true,
-            });
-            
-            if (result.area && areaFieldName) {
-              form.setValue(areaFieldName, result.area as any, {
-                shouldValidate: false,
-                shouldDirty: true,
-              });
-            }
-            
-            lastAutofilledPostalCodeRef.current = result.postalCode;
-          }
-        }
-        
-        // If lookup was by municipality, suggest postal codes
-        if (result.municipality && result.suggestions && result.suggestions.length > 0) {
-          if (
-            result.municipality.toLowerCase() === debouncedMunicipality.toLowerCase() &&
-            lastAutofilledMunicipalityRef.current !== result.municipality
-          ) {
-            // Auto-fill first suggestion's postal code if postal code is empty
-            if (!postalCode && result.suggestions[0].postalCode) {
-              form.setValue(postalCodeFieldName, result.suggestions[0].postalCode as any, {
-                shouldValidate: false,
-                shouldDirty: true,
-              });
-            }
-            
-            lastAutofilledMunicipalityRef.current = result.municipality;
-          }
-        }
-      } finally {
-        setTimeout(() => {
-          isAutofillingRef.current = false;
-        }, 100);
-      }
-    },
-  });
-
-  // Trigger lookup when postal code changes
-  useEffect(() => {
-    if (
-      debouncedPostalCode &&
-      /^\d{5}$/.test(debouncedPostalCode) &&
-      country === "GR" &&
-      !isAutofillingRef.current
-    ) {
-      // Only lookup if postal code is different from last autofilled
-      if (lastAutofilledPostalCodeRef.current !== debouncedPostalCode) {
-        autofill.lookupByPostalCode(debouncedPostalCode);
-      }
-    }
-  }, [debouncedPostalCode, country, autofill]);
-
-  // Trigger lookup when municipality changes
-  useEffect(() => {
-    if (
-      debouncedMunicipality &&
-      debouncedMunicipality.length >= 2 &&
-      country === "GR" &&
-      !isAutofillingRef.current
-    ) {
-      // Only lookup if municipality is different from last autofilled
-      if (
-        lastAutofilledMunicipalityRef.current.toLowerCase() !==
-        debouncedMunicipality.toLowerCase()
-      ) {
-        autofill.lookupByMunicipality(debouncedMunicipality);
-      }
-    }
-  }, [debouncedMunicipality, country, autofill]);
-
-  // Reset dependent fields when country changes
-  useEffect(() => {
-    if (country !== "GR") {
-      // Clear municipality and postal code when country changes away from Greece
-      form.setValue(municipalityFieldName, "" as any, { shouldValidate: false });
-      form.setValue(postalCodeFieldName, "" as any, { shouldValidate: false });
-      if (areaFieldName) {
-        form.setValue(areaFieldName, "" as any, { shouldValidate: false });
-      }
-      lastAutofilledPostalCodeRef.current = "";
-      lastAutofilledMunicipalityRef.current = "";
-    }
-  }, [country, form, municipalityFieldName, postalCodeFieldName, areaFieldName]);
-
-  const isGreek = true; // Assuming Greek locale for now
+  const isGreek = true;
 
   return (
     <div className={className}>
@@ -193,9 +72,7 @@ export function AddressFieldGroup<T extends FieldValues>({
             <FormItem>
               <FormLabel>{t("country")}</FormLabel>
               <Select
-                onValueChange={(value) => {
-                  field.onChange(value);
-                }}
+                onValueChange={field.onChange}
                 value={field.value || defaultCountry}
                 disabled={disabled}
               >
@@ -205,9 +82,9 @@ export function AddressFieldGroup<T extends FieldValues>({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {COUNTRIES.map((country) => (
-                    <SelectItem key={country.code} value={country.code}>
-                      {isGreek ? country.name : country.nameEn}
+                  {COUNTRIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {isGreek ? c.name : c.nameEn}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -230,15 +107,8 @@ export function AddressFieldGroup<T extends FieldValues>({
             <FormControl>
               <Input
                 {...field}
-                disabled={disabled || autofill.isLoading}
+                disabled={disabled}
                 placeholder={t("municipalityPlaceholder")}
-                onChange={(e) => {
-                  field.onChange(e);
-                  // Reset postal code autofill tracking when municipality changes manually
-                  if (e.target.value !== lastAutofilledMunicipalityRef.current) {
-                    lastAutofilledPostalCodeRef.current = "";
-                  }
-                }}
               />
             </FormControl>
             <FormMessage />
@@ -253,7 +123,7 @@ export function AddressFieldGroup<T extends FieldValues>({
             name={areaFieldName}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("area")}</FormLabel>
+                <FormLabel required={requireAreaOrPostal}>{t("area")}</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -271,31 +141,67 @@ export function AddressFieldGroup<T extends FieldValues>({
           name={postalCodeFieldName}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("postalCode")}</FormLabel>
+              <FormLabel required={requireAreaOrPostal}>{t("postalCode")}</FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  disabled={disabled || autofill.isLoading}
+                  disabled={disabled}
                   placeholder={t("postalCodePlaceholder")}
                   maxLength={5}
                   onChange={(e) => {
-                    const value = e.target.value.replaceAll(/\D/g, ""); // Only digits
+                    const value = e.target.value.replaceAll(/\D/g, "");
                     field.onChange(value);
-                    // Reset municipality autofill tracking when postal code changes manually
-                    if (value !== lastAutofilledPostalCodeRef.current) {
-                      lastAutofilledMunicipalityRef.current = "";
-                    }
                   }}
                 />
               </FormControl>
-              {autofill.error && (
-                <p className="text-sm text-destructive">{autofill.error}</p>
-              )}
               <FormMessage />
             </FormItem>
           )}
         />
       </div>
+
+      {(regionFieldName || regionalUnitFieldName) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {regionFieldName && (
+            <FormField
+              control={control}
+              name={regionFieldName}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("region")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={disabled}
+                      placeholder={t("regionPlaceholder")}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {regionalUnitFieldName && (
+            <FormField
+              control={control}
+              name={regionalUnitFieldName}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("regionalUnit")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={disabled}
+                      placeholder={t("regionalUnitPlaceholder")}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

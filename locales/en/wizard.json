@@ -1,0 +1,4 @@
+{
+  "success": "Client created successfully",
+  "error": "Failed to create client. Please try again."
+}

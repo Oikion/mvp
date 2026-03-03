@@ -4,18 +4,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { isPlatformAdmin } from "@/lib/platform-admin";
-import {
-  grantMarketIntelAccess,
-  revokeMarketIntelAccess,
-  getOrganizationsWithMarketIntelAccess,
-  MARKET_INTEL_FEATURE
-} from "@/lib/market-intel/access";
-import {
-  grantAiAssistantAccess,
-  revokeAiAssistantAccess,
-  getOrganizationsWithAiAssistantAccess,
-  AI_ASSISTANT_FEATURE
-} from "@/lib/ai/access";
 
 /**
  * GET /api/platform-admin/features
@@ -37,28 +25,13 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const feature = searchParams.get("feature") || MARKET_INTEL_FEATURE;
+    const feature = searchParams.get("feature");
 
-    if (feature === MARKET_INTEL_FEATURE) {
-      const features = await getOrganizationsWithMarketIntelAccess();
-      
-      // We'll return the feature data - org names would need to come from Clerk
-      return NextResponse.json({
-        features,
-        featureType: feature
-      });
+    if (!feature) {
+      return NextResponse.json({ error: "feature query param is required" }, { status: 400 });
     }
 
-    if (feature === AI_ASSISTANT_FEATURE) {
-      const features = await getOrganizationsWithAiAssistantAccess();
-      
-      return NextResponse.json({
-        features,
-        featureType: feature
-      });
-    }
-
-    // For other features, do a generic query
+    // For features, do a generic query
     const features = await prismadb.organizationFeature.findMany({
       where: { feature },
       orderBy: { grantedAt: "desc" }
@@ -98,7 +71,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { organizationId, feature = MARKET_INTEL_FEATURE, expiresAt } = body;
+    const { organizationId, feature, expiresAt } = body;
 
     if (!organizationId) {
       return NextResponse.json(
@@ -107,44 +80,11 @@ export async function POST(request: Request) {
       );
     }
 
-    if (feature === MARKET_INTEL_FEATURE) {
-      const result = await grantMarketIntelAccess(
-        organizationId,
-        userId,
-        expiresAt ? new Date(expiresAt) : undefined
+    if (!feature) {
+      return NextResponse.json(
+        { error: "feature is required" },
+        { status: 400 }
       );
-
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: "Market Intelligence access granted"
-      });
-    }
-
-    if (feature === AI_ASSISTANT_FEATURE) {
-      const result = await grantAiAssistantAccess(
-        organizationId,
-        userId,
-        expiresAt ? new Date(expiresAt) : undefined
-      );
-
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: "AI Assistant access granted"
-      });
     }
 
     // Generic feature grant
@@ -206,7 +146,7 @@ export async function DELETE(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get("organizationId");
-    const feature = searchParams.get("feature") || MARKET_INTEL_FEATURE;
+    const feature = searchParams.get("feature");
 
     if (!organizationId) {
       return NextResponse.json(
@@ -215,36 +155,11 @@ export async function DELETE(request: Request) {
       );
     }
 
-    if (feature === MARKET_INTEL_FEATURE) {
-      const result = await revokeMarketIntelAccess(organizationId);
-
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: "Market Intelligence access revoked"
-      });
-    }
-
-    if (feature === AI_ASSISTANT_FEATURE) {
-      const result = await revokeAiAssistantAccess(organizationId);
-
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: "AI Assistant access revoked"
-      });
+    if (!feature) {
+      return NextResponse.json(
+        { error: "feature query param is required" },
+        { status: 400 }
+      );
     }
 
     // Generic feature revoke
@@ -294,7 +209,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { organizationId, feature = MARKET_INTEL_FEATURE, isEnabled } = body;
+    const { organizationId, feature, isEnabled } = body;
 
     if (!organizationId || typeof isEnabled !== "boolean") {
       return NextResponse.json(
@@ -303,43 +218,38 @@ export async function PATCH(request: Request) {
       );
     }
 
+    if (!feature) {
+      return NextResponse.json(
+        { error: "feature is required" },
+        { status: 400 }
+      );
+    }
+
     if (isEnabled) {
       // Grant access
-      if (feature === MARKET_INTEL_FEATURE) {
-        await grantMarketIntelAccess(organizationId, userId);
-      } else if (feature === AI_ASSISTANT_FEATURE) {
-        await grantAiAssistantAccess(organizationId, userId);
-      } else {
-        await prismadb.organizationFeature.upsert({
-          where: {
-            organizationId_feature: { organizationId, feature }
-          },
-          create: {
-            organizationId,
-            feature,
-            isEnabled: true,
-            grantedBy: userId,
-            grantedAt: new Date()
-          },
-          update: {
-            isEnabled: true,
-            grantedBy: userId,
-            grantedAt: new Date()
-          }
-        });
-      }
+      await prismadb.organizationFeature.upsert({
+        where: {
+          organizationId_feature: { organizationId, feature }
+        },
+        create: {
+          organizationId,
+          feature,
+          isEnabled: true,
+          grantedBy: userId,
+          grantedAt: new Date()
+        },
+        update: {
+          isEnabled: true,
+          grantedBy: userId,
+          grantedAt: new Date()
+        }
+      });
     } else {
       // Revoke access
-      if (feature === MARKET_INTEL_FEATURE) {
-        await revokeMarketIntelAccess(organizationId);
-      } else if (feature === AI_ASSISTANT_FEATURE) {
-        await revokeAiAssistantAccess(organizationId);
-      } else {
-        await prismadb.organizationFeature.updateMany({
-          where: { organizationId, feature },
-          data: { isEnabled: false }
-        });
-      }
+      await prismadb.organizationFeature.updateMany({
+        where: { organizationId, feature },
+        data: { isEnabled: false }
+      });
     }
 
     return NextResponse.json({

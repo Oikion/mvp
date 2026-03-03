@@ -79,7 +79,7 @@ export async function setupOrganizationEncryption(
     return actionSuccess({ keyVersion });
   } catch (error) {
     console.error("[SETUP_ENCRYPTION]", error);
-    return actionError("Failed to setup encryption", error);
+    return actionError("Failed to setup encryption", error as Error);
   }
 }
 
@@ -107,6 +107,6 @@ export async function disableOrganizationEncryption(): Promise<ActionResponse<vo
     return actionSuccess();
   } catch (error) {
     console.error("[DISABLE_ENCRYPTION]", error);
-    return actionError("Failed to disable encryption", error);
+    return actionError("Failed to disable encryption", error as Error);
   }
 }

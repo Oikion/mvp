@@ -1,23 +1,21 @@
 /**
  * Kubernetes Jobs Type Definitions
- * 
+ *
  * Unified types for the job orchestration layer that manages
- * background processing across Market Intelligence, Newsletter,
- * Portal Publishing, and Export operations.
+ * background processing across Newsletter, Portal Publishing,
+ * and Export operations.
  */
 
 // ===========================================
 // Job Type Enum
 // ===========================================
 
-export type JobType = 
-  | 'market-intel-scrape'
+export type JobType =
   | 'newsletter-send'
   | 'portal-publish-xe'
   | 'bulk-export';
 
 export const JOB_TYPE_LABELS: Record<JobType, string> = {
-  'market-intel-scrape': 'Market Intelligence Scrape',
   'newsletter-send': 'Newsletter Campaign',
   'portal-publish-xe': 'XE.gr Portal Publishing',
   'bulk-export': 'Bulk Data Export',
@@ -48,24 +46,10 @@ export interface JobSubmission {
   metadata?: Record<string, unknown>;
 }
 
-export type JobPayload = 
-  | MarketIntelPayload
+export type JobPayload =
   | NewsletterPayload
   | PortalPublishPayload
   | BulkExportPayload;
-
-// Market Intelligence Scrape Payload
-export interface MarketIntelPayload {
-  type: 'market-intel-scrape';
-  platforms: string[];
-  targetAreas: string[];
-  targetMunicipalities: string[];
-  transactionTypes: string[];
-  propertyTypes: string[];
-  minPrice?: number;
-  maxPrice?: number;
-  maxPagesPerPlatform: number;
-}
 
 // Newsletter Send Payload
 export interface NewsletterPayload {
@@ -118,27 +102,10 @@ export interface JobRecord {
 // Job Result Types
 // ===========================================
 
-export type JobResult = 
-  | MarketIntelResult
+export type JobResult =
   | NewsletterResult
   | PortalPublishResult
   | BulkExportResult;
-
-export interface MarketIntelResult {
-  type: 'market-intel-scrape';
-  platforms: {
-    platform: string;
-    status: 'completed' | 'failed';
-    listingsFound: number;
-    listingsNew: number;
-    listingsUpdated: number;
-    errors?: string[];
-  }[];
-  totalListings: number;
-  totalNew: number;
-  totalUpdated: number;
-  duration: number;
-}
 
 export interface NewsletterResult {
   type: 'newsletter-send';
@@ -246,17 +213,6 @@ export interface JobTypeConfig {
 }
 
 export const JOB_CONFIGS: Record<JobType, JobTypeConfig> = {
-  'market-intel-scrape': {
-    type: 'market-intel-scrape',
-    image: 'registry.digitalocean.com/oikion/mi-scraper:latest',
-    defaultResources: {
-      requests: { cpu: '250m', memory: '512Mi' },
-      limits: { cpu: '1000m', memory: '2Gi' },
-    },
-    defaultTimeout: 1800, // 30 minutes
-    maxRetries: 2,
-    namespace: 'oikion-jobs',
-  },
   'newsletter-send': {
     type: 'newsletter-send',
     image: 'registry.digitalocean.com/oikion/newsletter-worker:latest',

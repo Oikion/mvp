@@ -2,6 +2,18 @@ import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 
 /**
+ * Get the current authenticated user's Clerk ID
+ * Throws an error if user is not authenticated
+ */
+export async function getCurrentUserId(): Promise<string> {
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
+  return userId;
+}
+
+/**
  * Get the current user from the database using Clerk authentication
  * Returns the user from Prisma Users table based on clerkUserId
  * Throws an error if user is not authenticated or not found

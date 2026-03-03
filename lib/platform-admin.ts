@@ -2,6 +2,7 @@
 
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import type { AdminActionType } from "./platform-admin-utils";
+import { prismadb } from "@/lib/prisma";
 
 /**
  * Platform Admin Security Layer
@@ -178,9 +179,21 @@ export async function logAdminAction(
     console.log("[ADMIN_AUDIT]", JSON.stringify(logEntry, null, 2));
   }
 
-  // TODO: In production, write to secure audit log (e.g., database table, external service)
-  // For now, we just log to console
-  // await prismadb.adminAuditLog.create({ data: logEntry });
+  // Write to database audit log
+  try {
+    await prismadb.adminAuditLog.create({
+      data: {
+        adminId,
+        action,
+        targetId: targetId ?? undefined,
+        details: details as object | undefined,
+        timestamp: new Date(timestamp),
+      },
+    });
+  } catch (err) {
+    // Never let audit logging break the main flow
+    console.error("[ADMIN_AUDIT_DB_ERROR]", err);
+  }
 }
 
 

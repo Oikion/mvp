@@ -15,6 +15,7 @@ import { encryptPropertyForOrg } from "@/lib/model-encryption";
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
 const VALID_HEATING_TYPES = new Set(["AUTONOMOUS", "CENTRAL", "NATURAL_GAS", "HEAT_PUMP", "ELECTRIC", "NONE"]);
 const VALID_PROPERTY_STATUSES = new Set(["ACTIVE", "PENDING", "SOLD", "OFF_MARKET", "WITHDRAWN"]);
+const VALID_FRONTAGE_TYPES = new Set(["MAIN_ROAD", "SECONDARY_ROAD", "PEDESTRIAN", "CORNER", "SQUARE", "CUL_DE_SAC", "NONE"]);
 
 // Map form property_status values to Prisma enum values
 const PROPERTY_STATUS_MAP: Record<string, string> = {
@@ -84,8 +85,14 @@ function buildPropertyData(body: any, user: any, organizationId: string, isUpdat
     building_permit_no,
     building_permit_year,
     land_registry_kaek,
+    land_registry_office,
+    building_block_ot,
     legalization_status,
     etaireia_diaxeirisis,
+    region,
+    regional_unit,
+    objective_zone,
+    frontage_type,
     monthly_common_charges,
     amenities,
     orientation,
@@ -125,7 +132,12 @@ function buildPropertyData(body: any, user: any, organizationId: string, isUpdat
   if (floor !== undefined) data.floor = nullIfEmpty(floor);
   if (building_permit_no !== undefined) data.building_permit_no = nullIfEmpty(building_permit_no);
   if (land_registry_kaek !== undefined) data.land_registry_kaek = nullIfEmpty(land_registry_kaek);
+  if (land_registry_office !== undefined) data.land_registry_office = nullIfEmpty(land_registry_office);
+  if (building_block_ot !== undefined) data.building_block_ot = nullIfEmpty(building_block_ot);
   if (etaireia_diaxeirisis !== undefined) data.etaireia_diaxeirisis = nullIfEmpty(etaireia_diaxeirisis);
+  if (region !== undefined) data.region = nullIfEmpty(region);
+  if (regional_unit !== undefined) data.regional_unit = nullIfEmpty(regional_unit);
+  if (objective_zone !== undefined) data.objective_zone = nullIfEmpty(objective_zone);
   if (accessibility !== undefined) data.accessibility = nullIfEmpty(accessibility);
   if (description !== undefined) data.description = nullIfEmpty(description);
   if (assigned_to !== undefined) data.assigned_to = nullIfEmpty(assigned_to);
@@ -170,6 +182,9 @@ function buildPropertyData(body: any, user: any, organizationId: string, isUpdat
   }
   if (portal_visibility !== undefined && portal_visibility !== null && portal_visibility !== "") {
     data.portal_visibility = portal_visibility;
+  }
+  if (frontage_type !== undefined && frontage_type !== null && frontage_type !== "" && VALID_FRONTAGE_TYPES.has(frontage_type)) {
+    data.frontage_type = frontage_type;
   }
 
   // Boolean fields
@@ -248,10 +263,7 @@ export async function POST(req: Request) {
     const data = buildPropertyData(body, user, organizationId, !!id);
 
     // Encrypt owner-sensitive fields with per-org DEK
-    if (data.primary_email !== undefined) {
-      const enc = await encryptPropertyForOrg({ primary_email: data.primary_email }, organizationId);
-      data.primary_email = enc.primary_email;
-    }
+    Object.assign(data, await encryptPropertyForOrg(data, organizationId));
 
     // Ensure property_name exists
     if (!data.property_name) {
@@ -386,10 +398,7 @@ export async function PUT(req: Request) {
     const data = buildPropertyData(body, user, organizationId, true);
 
     // Encrypt owner-sensitive fields with per-org DEK
-    if (data.primary_email !== undefined) {
-      const enc = await encryptPropertyForOrg({ primary_email: data.primary_email }, organizationId);
-      data.primary_email = enc.primary_email;
-    }
+    Object.assign(data, await encryptPropertyForOrg(data, organizationId));
 
     const updatedProperty = await prismadb.properties.update({
       where: { id },
@@ -465,7 +474,7 @@ export async function GET(req: Request) {
     // For minimal mode (selectors), return just id and name - much faster
     if (minimal) {
       const where: Record<string, unknown> = { organizationId };
-      if (search && search.trim()) {
+      if (search?.trim()) {
         where.property_name = {
           contains: search.trim(),
           mode: "insensitive",
@@ -492,8 +501,8 @@ export async function GET(req: Request) {
     // Validate and set limit (default 50, max 100)
     let limit = 50;
     if (limitParam) {
-      const parsed = parseInt(limitParam, 10);
-      if (!isNaN(parsed) && parsed > 0) {
+      const parsed = Number.parseInt(limitParam, 10);
+      if (!Number.isNaN(parsed) && parsed > 0) {
         limit = Math.min(parsed, 100);
       }
     }
@@ -505,7 +514,7 @@ export async function GET(req: Request) {
       where.property_status = status;
     }
     
-    if (search && search.trim()) {
+    if (search?.trim()) {
       where.property_name = {
         contains: search.trim(),
         mode: "insensitive",
@@ -541,7 +550,7 @@ export async function GET(req: Request) {
     const nextCursor = hasMore ? items[items.length - 1]?.id : null;
 
     return NextResponse.json({
-      items: JSON.parse(JSON.stringify(items)), // Serialize for client
+      items: structuredClone(items), // Serialize for client
       nextCursor,
       hasMore,
     }, { status: 200 });

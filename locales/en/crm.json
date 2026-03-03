@@ -8,6 +8,92 @@
   "CrmForm": {
     "title": "New Client",
     "quickAddTitle": "Quick Add Client",
+    "steps": {
+      "basics": "Basics",
+      "contact": "Contact",
+      "legal": "Legal",
+      "preferences": "Needs / Preferences",
+      "propertyDetails": "Property Details",
+      "financing": "Financing",
+      "consent": "Consent & GDPR"
+    },
+    "stepDescriptions": {
+      "basics": "Basic client information",
+      "contact": "Communication preferences",
+      "legal": "Legal details (optional)",
+      "preferences": "Property needs and preferences",
+      "propertyDetails": "Rooms, size, floor and amenities",
+      "financing": "Financing details",
+      "consent": "Consent and personal data"
+    },
+    "wizard": {
+      "success": "Client created successfully",
+      "error": "Failed to create client. Please try again.",
+      "financingNotApplicable": "Financing details are not applicable for this intent."
+    },
+    "heating": {
+      "AUTONOMOUS": "Autonomous",
+      "CENTRAL": "Central",
+      "NATURAL_GAS": "Natural Gas",
+      "HEAT_PUMP": "Heat Pump",
+      "ELECTRIC": "Electric",
+      "NONE": "None"
+    },
+    "condition": {
+      "EXCELLENT": "Excellent",
+      "VERY_GOOD": "Very Good",
+      "GOOD": "Good",
+      "NEEDS_RENOVATION": "Needs Renovation"
+    },
+    "amenities": {
+      "pool": "Pool",
+      "gym": "Gym",
+      "garden": "Garden",
+      "terrace": "Terrace",
+      "balcony": "Balcony",
+      "storage": "Storage",
+      "security": "Security",
+      "fireplace": "Fireplace",
+      "air_conditioning": "Air Conditioning",
+      "solar_panels": "Solar Panels",
+      "smart_home": "Smart Home",
+      "alarm": "Alarm",
+      "ev_charging": "EV Charging"
+    },
+    "propertyPrefs": {
+      "rooms": "Rooms",
+      "bedroomsMin": "Min Bedrooms",
+      "bedroomsMax": "Max Bedrooms",
+      "bathroomsMin": "Min Bathrooms",
+      "bathroomsMax": "Max Bathrooms",
+      "any": "Any",
+      "size": "Size (sqm)",
+      "sizeMin": "Min Size",
+      "sizeMax": "Max Size",
+      "floor": "Floor",
+      "floorFrom": "From Floor",
+      "floorTo": "To Floor",
+      "basement": "Basement",
+      "ground": "Ground Floor",
+      "groundFloorOnly": "Ground floor only",
+      "requirements": "Requirements",
+      "elevator": "Elevator",
+      "parking": "Parking",
+      "petFriendly": "Pet Friendly",
+      "furnished": "Furnished",
+      "furnishedNo": "Unfurnished",
+      "furnishedPartially": "Partially Furnished",
+      "furnishedFully": "Fully Furnished",
+      "energyClass": "Energy Class (min)",
+      "heatingType": "Heating Type",
+      "heatingPlaceholder": "Select heating types...",
+      "conditionLabel": "Property Condition",
+      "conditionPlaceholder": "Select conditions...",
+      "amenitiesRequired": "Required Amenities",
+      "amenitiesRequiredPlaceholder": "Select required amenities...",
+      "amenitiesPreferred": "Preferred Amenities",
+      "amenitiesPreferredPlaceholder": "Select preferred amenities..."
+    },
     "fields": {
       "personType": "Client Type",
       "personTypePlaceholder": "Select type",
@@ -19,12 +105,38 @@
       "primaryPhonePlaceholder": "+1 555 1234567",
       "primaryEmail": "Primary Email",
       "primaryEmailPlaceholder": "email@example.com",
+      "secondaryPhone": "Secondary Phone",
+      "secondaryEmail": "Secondary Email",
       "intent": "Intent",
       "intentPlaceholder": "Select intent",
+      "channels": "Preferred Contact Channels",
+      "channelsPlaceholder": "Select channels",
+      "language": "Language",
+      "afm": "Tax ID (AFM)",
+      "afmPlaceholder": "9 digits",
+      "doy": "Tax Office (DOY)",
+      "doyPlaceholder": "Select tax office",
+      "idDoc": "ID / Passport",
+      "companyGemi": "GEMI Number",
+      "companyGemiPlaceholder": "GEMI registration number",
+      "purpose": "Property Purpose",
+      "purposePlaceholder": "Select purpose",
+      "areas": "Areas of Interest",
+      "areasPlaceholder": "Select areas",
       "budgetMin": "Min Budget",
       "budgetMax": "Max Budget",
-      "notes": "Quick Notes",
+      "timeline": "Timeline",
+      "timelinePlaceholder": "Select timeline",
+      "financingType": "Financing Type",
+      "financingTypePlaceholder": "Select type",
+      "preapprovalBank": "Pre-approval Bank",
+      "needsMortgageHelp": "Needs mortgage assistance",
+      "notes": "Notes",
       "notesPlaceholder": "Add a quick note about this client...",
+      "gdprConsent": "GDPR Consent",
+      "allowMarketing": "Allow marketing communications",
+      "leadSource": "Lead Source",
+      "leadSourcePlaceholder": "How did they find us?",
       "agentOwner": "Assigned Agent",
       "specifyOther": "Please specify",
       "specifyOtherPlaceholder": "Enter the purpose..."
@@ -42,14 +154,58 @@
       "LEASE": "Lease",
       "INVEST": "Invest"
     },
+    "channels": {
+      "CALL": "Call",
+      "SMS": "SMS",
+      "WHATSAPP": "WhatsApp",
+      "VIBER": "Viber",
+      "EMAIL": "Email"
+    },
+    "purpose": {
+      "RESIDENTIAL": "Residential",
+      "COMMERCIAL": "Commercial",
+      "LAND": "Land",
+      "PARKING": "Parking",
+      "OTHER": "Other"
+    },
+    "timeline": {
+      "IMMEDIATE": "Immediately",
+      "ONE_THREE_MONTHS": "1-3 months",
+      "THREE_SIX_MONTHS": "3-6 months",
+      "SIX_PLUS_MONTHS": "6+ months"
+    },
+    "financingType": {
+      "CASH": "Cash",
+      "MORTGAGE": "Mortgage",
+      "PREAPPROVAL_PENDING": "Pre-approval pending"
+    },
+    "leadSource": {
+      "REFERRAL": "Referral",
+      "WEB": "Website",
+      "PORTAL": "Portal",
+      "WALK_IN": "Walk-in",
+      "SOCIAL": "Social media"
+    },
     "validation": {
       "personTypeRequired": "Client type is required",
       "nameRequired": "Name is required",
       "phoneOrEmailRequired": "Phone or email is required",
-      "intentRequired": "Intent is required"
+      "intentRequired": "Intent is required",
+      "afmInvalid": "Tax ID must be 9 digits",
+      "emailInvalid": "Invalid email address"
     },
     "buttons": {
-      "quickAdd": "Create"
+      "saveDraft": "Save Draft",
+      "continueToFull": "Continue to Full Form",
+      "previous": "Previous",
+      "next": "Next",
+      "submit": "Create Client",
+      "quickAdd": "Quick Add"
+    },
+    "autosave": {
+      "saving": "Saving...",
+      "saved": "Saved",
+      "failed": "Save failed"
     }
   },
   "QuickAdd": {

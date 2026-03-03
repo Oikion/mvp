@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 // ===========================================
 
 type JobStatus = "pending" | "running" | "completed" | "failed" | "cancelled";
-type JobType = "market-intel-scrape" | "newsletter-send" | "portal-publish-xe" | "bulk-export";
+type JobType = "newsletter-send" | "portal-publish-xe" | "bulk-export";
 
 interface JobRecord {
   id: string;
@@ -52,7 +52,6 @@ interface JobStatusResponse {
 // ===========================================
 
 const JOB_TYPE_LABELS: Record<JobType, string> = {
-  "market-intel-scrape": "Market Intelligence Scrape",
   "newsletter-send": "Newsletter Campaign",
   "portal-publish-xe": "XE.gr Publishing",
   "bulk-export": "Data Export",

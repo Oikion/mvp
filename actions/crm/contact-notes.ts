@@ -48,7 +48,7 @@ export async function addContactNote(
     return actionSuccess({ notes: updated.notes });
   } catch (error) {
     console.error("[ADD_CONTACT_NOTE]", error);
-    return actionError("Failed to add note", error);
+    return actionError("Failed to add note", error as Error);
   }
 }
 
@@ -86,6 +86,6 @@ export async function deleteContactNote(
     return actionSuccess({ notes: updated.notes });
   } catch (error) {
     console.error("[DELETE_CONTACT_NOTE]", error);
-    return actionError("Failed to delete note", error);
+    return actionError("Failed to delete note", error as Error);
   }
 }

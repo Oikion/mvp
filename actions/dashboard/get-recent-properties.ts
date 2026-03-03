@@ -1,6 +1,5 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
-import { serializePrismaJson } from "@/lib/prisma-serialize";
 
 export const getRecentProperties = async (limit: number = 5) => {
   const organizationId = await getCurrentOrgIdSafe();
@@ -23,6 +22,7 @@ export const getRecentProperties = async (limit: number = 5) => {
       square_feet: true,
       address_city: true,
       createdAt: true,
+      updatedAt: true,
       assigned_to: true,
       Users_Properties_assigned_toToUsers: { select: { name: true } },
       Documents: {
@@ -34,23 +34,21 @@ export const getRecentProperties = async (limit: number = 5) => {
     take: limit,
   });
   
-  // Map to consistent format and serialize
-  const mapped = data.map((p) => ({
+  // Map to PropertyCard-compatible shape, serializing non-plain types explicitly
+  return data.map((p) => ({
     id: p.id,
-    name: p.property_name,
-    price: p.price,
-    status: p.property_status,
-    property_type: p.property_type,
-    bedrooms: p.bedrooms,
-    bathrooms: p.bathrooms,
-    square_feet: p.square_feet,
-    address_city: p.address_city,
-    createdAt: p.createdAt,
-    assigned_to: p.assigned_to,
-    assigned_to_user: p.Users_Properties_assigned_toToUsers,
-    image_url: p.Documents?.[0]?.document_file_url || null,
+    property_name: p.property_name ?? "",
+    price: p.price !== null && p.price !== undefined ? Number(p.price) : undefined,
+    property_status: p.property_status ?? undefined,
+    property_type: p.property_type ?? undefined,
+    bedrooms: p.bedrooms ?? undefined,
+    bathrooms: p.bathrooms ?? undefined,
+    square_feet: p.square_feet ?? undefined,
+    address_city: p.address_city ?? undefined,
+    createdAt: p.createdAt?.toISOString(),
+    updatedAt: p.updatedAt?.toISOString(),
+    assigned_to_user: p.Users_Properties_assigned_toToUsers ?? undefined,
+    linkedDocuments: p.Documents ?? [],
   }));
-  
-  return serializePrismaJson(mapped);
 };
 

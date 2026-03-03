@@ -48,7 +48,6 @@ import { useTranslations } from "next-intl";
 import { ClientSelector } from "./ClientSelector";
 import { PropertySelector } from "./PropertySelector";
 import { DocumentSelector } from "./DocumentSelector";
-import { LocationAutocomplete, LocationData } from "./LocationAutocomplete";
 import { InviteeSelector, Invitee } from "./InviteeSelector";
 import { useOrgUsers, useCreateEvent } from "@/hooks/swr";
 import { inviteToEvent } from "@/actions/calendar/invite-to-event";
@@ -313,9 +312,8 @@ function EventCreateFormBody({
               <FormItem>
                 <FormLabel>{t("eventCreateForm.location")}</FormLabel>
                 <FormControl>
-                  <LocationAutocomplete
-                    value={field.value}
-                    onChange={field.onChange}
+                  <Input
+                    {...field}
                     placeholder={t("eventCreateForm.locationPlaceholder")}
                   />
                 </FormControl>

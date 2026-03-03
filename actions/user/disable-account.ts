@@ -61,7 +61,7 @@ export async function disableAccount(): Promise<ActionResponse<void>> {
     return actionSuccess();
   } catch (error) {
     console.error("[DISABLE_ACCOUNT]", error);
-    return actionError("Failed to disable account", error);
+    return actionError("Failed to disable account", error as Error);
   }
 }
 
@@ -83,6 +83,6 @@ export async function enableAccount(targetUserId: string): Promise<ActionRespons
     return actionSuccess();
   } catch (error) {
     console.error("[ENABLE_ACCOUNT]", error);
-    return actionError("Failed to enable account", error);
+    return actionError("Failed to enable account", error as Error);
   }
 }

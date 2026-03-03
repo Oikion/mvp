@@ -48,7 +48,6 @@ import { useTranslations } from "next-intl";
 import { ClientSelector } from "./ClientSelector";
 import { PropertySelector } from "./PropertySelector";
 import { DocumentSelector } from "./DocumentSelector";
-import { LocationAutocomplete, LocationData } from "./LocationAutocomplete";
 import { InviteeSelector, Invitee } from "./InviteeSelector";
 import { useOrgUsers, useUpdateEvent, useEventInvitees } from "@/hooks/swr";
 import { inviteToEvent, removeEventInvitee } from "@/actions/calendar/invite-to-event";
@@ -417,9 +416,8 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
                 <FormItem>
                   <FormLabel>{t("eventCreateForm.location")}</FormLabel>
                   <FormControl>
-                    <LocationAutocomplete
-                      value={field.value}
-                      onChange={field.onChange}
+                    <Input
+                      {...field}
                       placeholder={t("eventCreateForm.locationPlaceholder")}
                     />
                   </FormControl>

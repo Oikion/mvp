@@ -53,7 +53,7 @@ export async function sendExternalMessage(
       return actionError("External contact not found", "NOT_FOUND");
     }
 
-    let externalMessageId = randomUUID();
+    let externalMessageId: string = randomUUID();
     switch (integration.platform) {
       case MessagingPlatform.VIBER:
         externalMessageId = await sendViberMessage({

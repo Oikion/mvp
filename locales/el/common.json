@@ -35,7 +35,7 @@
   "update": "Ενημέρωση",
   "save": "Αποθήκευση",
   "toggleColumns": "Εναλλαγή στηλών",
-  "filterPlaceholder": "Φιλτράρετε πελάτες ...",
+  "filterPlaceholder": "Αναζήτηση πελάτη...",
   "viewAll": "Προβολή όλων",
   "assigned": "Ανατέθηκε:",
   "unnamed": "Χωρίς όνομα",
@@ -483,6 +483,10 @@
     "areaPlaceholder": "Επιλέξτε περιοχή",
     "postalCode": "ΤΚ",
     "postalCodePlaceholder": "5 ψηφία",
+    "region": "Περιφέρεια",
+    "regionPlaceholder": "π.χ. Αττική",
+    "regionalUnit": "Περιφερειακή Ενότητα",
+    "regionalUnitPlaceholder": "π.χ. Νότιος Τομέας Αθηνών",
     "greece": "Ελλάδα"
   },
   "workspace": {

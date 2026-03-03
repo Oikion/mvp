@@ -60,7 +60,7 @@ async function getListToSaleRatio(organizationId: string) {
   if (sold.length === 0) return 0;
 
   const totalRatio = sold.reduce((sum, p) => {
-    return sum + (p.salePrice! / p.listPrice!) * 100;
+    return sum + (Number(p.salePrice!) / Number(p.listPrice!)) * 100;
   }, 0);
 
   return Math.round((totalRatio / sold.length) * 10) / 10;

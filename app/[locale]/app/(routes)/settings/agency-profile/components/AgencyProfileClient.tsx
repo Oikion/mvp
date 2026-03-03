@@ -26,8 +26,6 @@ interface ProfileDict {
 
 interface AgencyProfileClientProps {
   profile: AgencyProfile | null;
-  showcaseProperties: unknown[];
-  availableProperties: unknown[];
   clerkOrgName: string;
   clerkOrgSlug: string;
   dict?: ProfileDict;
@@ -69,8 +67,6 @@ const getVisibilityInfo = (visibility: string | undefined, t?: ProfileDict) => {
 
 export function AgencyProfileClient({
   profile,
-  showcaseProperties,
-  availableProperties,
   clerkOrgName,
   clerkOrgSlug,
   dict,
@@ -122,8 +118,6 @@ export function AgencyProfileClient({
         </div>
         <AgencyProfileEditor
           profile={null}
-          showcaseProperties={showcaseProperties}
-          availableProperties={availableProperties}
           clerkOrgName={clerkOrgName}
           clerkOrgSlug={clerkOrgSlug}
           onSave={() => {
@@ -199,8 +193,6 @@ export function AgencyProfileClient({
       {isEditing ? (
         <AgencyProfileEditor
           profile={profile}
-          showcaseProperties={showcaseProperties}
-          availableProperties={availableProperties}
           clerkOrgName={clerkOrgName}
           clerkOrgSlug={clerkOrgSlug}
           onSave={() => {

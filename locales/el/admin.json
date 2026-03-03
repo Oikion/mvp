@@ -145,8 +145,6 @@
     "admin": "Ρυθμίσεις Διαχείρισης",
     "messages": "Μηνύματα",
     "matchmaking": "Αντιστοίχιση",
-    "marketIntelligence": "Ανάλυση Αγοράς",
-    "projects": "Έργα",
-    "openai": "Βοηθός AI (OpenAI)"
+    "projects": "Έργα"
   }
 }

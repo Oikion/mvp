@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClerkClient } from "@clerk/backend";
 import { Link } from "@/navigation";
-import { Users, Building2, Shield, Workflow, Globe, Plug, Bot } from "lucide-react";
+import { Users, Building2, Shield, Workflow, Globe, Plug } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -171,19 +171,6 @@ const AdminPage = async () => {
             </Link>
           </Card>
 
-          <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
-            <Link href="/app/admin/ai-settings" className="block">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-primary" />
-                  {t("admin.aiSettings")}
-                </CardTitle>
-                <CardDescription>
-                  {t("admin.aiSettingsDescription")}
-                </CardDescription>
-              </CardHeader>
-            </Link>
-          </Card>
         </div>
       </div>
 

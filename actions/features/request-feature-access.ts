@@ -11,10 +11,7 @@ import { EMAIL_CONFIG } from "@/lib/resend-segments";
 const ADMIN_EMAIL = process.env.PLATFORM_ADMIN_EMAIL || "contact@oikion.com";
 
 // Feature display names mapping
-const FEATURE_DISPLAY_NAMES: Record<string, string> = {
-  market_intel: "Market Intelligence",
-  ai_assistant: "AI Assistant",
-};
+const FEATURE_DISPLAY_NAMES: Record<string, string> = {};
 
 interface RequestFeatureAccessInput {
   feature: string;

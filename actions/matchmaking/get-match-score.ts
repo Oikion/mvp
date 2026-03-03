@@ -102,7 +102,7 @@ export async function getMatchScore(
   const propertyForMatching: PropertyForMatching = {
     id: property.id,
     property_name: property.property_name,
-    price: property.price,
+    price: property.price !== null && property.price !== undefined ? Number(property.price) : null,
     property_type: property.property_type as PropertyForMatching["property_type"],
     transaction_type: property.transaction_type as PropertyForMatching["transaction_type"],
     property_status: property.property_status as PropertyForMatching["property_status"],
@@ -114,7 +114,7 @@ export async function getMatchScore(
     bathrooms: property.bathrooms,
     size_net_sqm: property.size_net_sqm,
     size_gross_sqm: property.size_gross_sqm,
-    square_feet: property.square_feet,
+    square_feet: property.square_feet !== null && property.square_feet !== undefined ? Number(property.square_feet) : null,
     floor: property.floor,
     elevator: property.elevator,
     accepts_pets: property.accepts_pets,

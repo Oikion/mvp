@@ -24,6 +24,7 @@ import { UpcomingEvents } from "./UpcomingEvents";
 import { DocumentsWidget } from "./DocumentsWidget";
 import { RecentMessages } from "./RecentMessages";
 import { QuickViewList } from "./QuickViewList";
+import { RecentPropertiesWidget } from "./RecentPropertiesWidget";
 import { VisitorsChart } from "./VisitorsChart";
 import { StatsChart } from "./StatsChart";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -244,14 +245,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "recent-properties":
-        return (
-          <QuickViewList
-            title={dict.dashboard.recentProperties}
-            items={data.recentProperties as unknown as QuickViewItem[]}
-            viewAllHref={`/${locale}/app/mls`}
-            icon={<Building2 className="h-5 w-5 text-muted-foreground" />}
-          />
-        );
+        return <RecentPropertiesWidget properties={data.recentProperties as any} />;
 
       case "documents":
         return <DocumentsWidget documents={data.recentDocuments} />;

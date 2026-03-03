@@ -105,7 +105,7 @@ export function FloatingQuickAddButtons() {
           <QuickAddClient
             open={clientOpen}
             onOpenChange={setClientOpen}
-            users={users}
+            organizationUsers={users}
             onContinueToFull={(clientId) => {
               toast.success(tCommon, { description: tCommon, isTranslationKey: false });
               // Could navigate to edit page here if needed
@@ -119,7 +119,7 @@ export function FloatingQuickAddButtons() {
           {!isModalOpen && (
             <Button
               onClick={() => setPropertyOpen(true)}
-              className="fixed bottom-6 right-6 z-[60] h-14 w-14 rounded-full shadow-lg"
+              className="fixed bottom-6 + []] right-6 z-[60] h-14 w-14 rounded-full shadow-lg"
               size="icon"
             >
               <Plus className="h-6 w-6" />

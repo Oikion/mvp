@@ -86,6 +86,16 @@
       "furnished": "Επιπλωμένο",
       "furnishedPlaceholder": "Επιλέξτε",
       "accessibility": "Προσβασιμότητα",
+      "accessibilityPlaceholder": "Ράμπα, ΑΜΕΑ, κλπ.",
+      "buildingPermitNoPlaceholder": "Αριθμός",
+      "landRegistryKaekPlaceholder": "ΚΑΕΚ",
+      "managementCompanyPlaceholder": "Όνομα εταιρείας",
+      "insideCityPlanSelect": "Επιλέξτε",
+      "insideCityPlanInside": "Εντός",
+      "insideCityPlanOutside": "Εκτός",
+      "assignedAgentPlaceholder": "Επιλέξτε πράκτορα",
+      "photosNote": "Θα προστεθούν μετά τη δημιουργία του ακινήτου.",
+      "creating": "Δημιουργία...",
       "price": "Τιμή",
       "agentOwner": "Υπεύθυνος πράκτορας",
       "priceType": "Τύπος τιμής",
@@ -98,7 +108,15 @@
       "portalVisibility": "Ορατότητα σε portals",
       "portalVisibilityPlaceholder": "Επιλέξτε ορατότητα",
       "specifyOther": "Προσδιορίστε τύπο",
-      "specifyOtherPlaceholder": "Εισάγετε τον τύπο ακινήτου..."
+      "specifyOtherPlaceholder": "Εισάγετε τον τύπο ακινήτου...",
+      "objectiveZone": "Αντικειμενική Ζώνη",
+      "objectiveZonePlaceholder": "π.χ. Α, Β, 3",
+      "frontageType": "Τύπος Πρόσοψης",
+      "frontageTypePlaceholder": "Επιλέξτε τύπο",
+      "landRegistryOffice": "Υποθηκοφυλακείο",
+      "landRegistryOfficePlaceholder": "Όνομα γραφείου",
+      "buildingBlockOt": "Οικοδομικό Τετράγωνο (Ο.Τ.)",
+      "buildingBlockOtPlaceholder": "Αριθμός Ο.Τ."
     },
     "propertyType": {
       "APARTMENT": "Διαμέρισμα",
@@ -219,6 +237,15 @@
       "SELECTED": "Επιλεγμένα portals",
       "PUBLIC": "Παντού"
     },
+    "frontageType": {
+      "MAIN_ROAD": "Κεντρικός Δρόμος",
+      "SECONDARY_ROAD": "Δευτερεύων Δρόμος",
+      "PEDESTRIAN": "Πεζόδρομος",
+      "CORNER": "Γωνιακό",
+      "SQUARE": "Πλατεία",
+      "CUL_DE_SAC": "Αδιέξοδο",
+      "NONE": "Χωρίς"
+    },
     "validation": {
       "propertyTypeRequired": "Ο τύπος ακινήτου είναι υποχρεωτικός",
       "transactionTypeRequired": "Ο τύπος συναλλαγής είναι υποχρεωτικός",
@@ -228,12 +255,20 @@
       "priceRequired": "Η τιμή είναι υποχρεωτική",
       "postalCodeInvalid": "Το ΤΚ πρέπει να έχει 5 ψηφία"
     },
+    "errors": {
+      "fillRequired": "Παρακαλώ συμπληρώστε όλα τα υποχρεωτικά πεδία",
+      "createFailed": "Κάτι πήγε στραβά"
+    },
+    "success": {
+      "created": "Ακίνητο δημιουργήθηκε επιτυχώς"
+    },
     "buttons": {
       "saveDraft": "Αποθήκευση πρόχειρου",
       "continueToFull": "Συνέχεια σε πλήρη φόρμα",
       "previous": "Προηγούμενο",
       "next": "Επόμενο",
       "submit": "Δημιουργία Ακινήτου",
+      "creating": "Δημιουργία...",
       "quickAdd": "Γρήγορη Προσθήκη",
       "update": "Ενημέρωση Ακινήτου"
     },
@@ -263,7 +298,7 @@
     "status": "Κατάσταση",
     "visibility": "Ορατότητα",
     "unassigned": "Χωρίς ανάθεση",
-    "filterPlaceholder": "Φιλτράρετε ακίνητα ...",
+    "filterPlaceholder": "Αναζήτηση ακινήτου...",
     "details": "Λεπτομέρειες",
     "statusUpdated": "Η κατάσταση ενημερώθηκε επιτυχώς",
     "priceUpdated": "Η τιμή ενημερώθηκε επιτυχώς",

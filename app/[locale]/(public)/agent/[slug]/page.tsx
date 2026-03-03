@@ -190,7 +190,7 @@ export default async function AgentPage({ params }: AgentPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: generateJsonLd(profile, locale) }}
       />
-      <AgentProfileViewClient profile={profile} locale={locale} />
+      <AgentProfileViewClient profile={JSON.parse(JSON.stringify(profile))} locale={locale} />
     </>
   );
 }

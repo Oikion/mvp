@@ -38,7 +38,7 @@
   "update": "Update",
   "save": "Save",
   "toggleColumns": "Toggle columns",
-  "filterPlaceholder": "Filter leads ...",
+  "filterPlaceholder": "Search for a client...",
   "viewAll": "View All",
   "assigned": "Assigned:",
   "unnamed": "Unnamed",
@@ -486,6 +486,10 @@
     "areaPlaceholder": "Select area",
     "postalCode": "Postal Code",
     "postalCodePlaceholder": "5 digits",
+    "region": "Region",
+    "regionPlaceholder": "e.g. Attica",
+    "regionalUnit": "Regional Unit",
+    "regionalUnitPlaceholder": "e.g. South Athens Sector",
     "greece": "Greece"
   },
   "workspace": {

@@ -5,6 +5,28 @@
   "PropertyForm": {
     "title": "New Property",
     "quickAddTitle": "Quick Add Property",
+    "steps": {
+      "basics": "Basics",
+      "location": "Location",
+      "surfaces": "Areas & Floors",
+      "characteristics": "Characteristics",
+      "condition": "Condition & Year",
+      "legal": "Legal & Documents",
+      "amenities": "Amenities & Extras",
+      "pricing": "Price & Availability",
+      "media": "Media & Publishing"
+    },
+    "stepDescriptions": {
+      "basics": "Basic property information",
+      "location": "Property location",
+      "surfaces": "Areas and floors",
+      "characteristics": "Property characteristics",
+      "condition": "Condition and year of construction",
+      "legal": "Legal details (optional)",
+      "amenities": "Amenities and additional features",
+      "pricing": "Price and availability",
+      "media": "Photos and publishing"
+    },
     "fields": {
       "propertyName": "Property Name",
       "propertyNamePlaceholder": "e.g. Cozy Downtown Apartment",
@@ -12,6 +34,7 @@
       "propertyTypePlaceholder": "Select type",
       "status": "Status",
       "statusPlaceholder": "Select status",
+      "isExclusive": "Exclusive Listing",
       "transactionType": "Transaction Type",
       "transactionTypePlaceholder": "Select type",
       "street": "Street",
@@ -24,20 +47,76 @@
       "areaPlaceholder": "Enter area",
       "postalCode": "Postal Code",
       "postalCodePlaceholder": "5 digits",
+      "addressPrivacyLevel": "Address Privacy Level",
+      "addressPrivacyLevelPlaceholder": "Select level",
       "sizeNetSqm": "Net sq.m.",
+      "sizeGrossSqm": "Gross sq.m.",
       "squareFeet": "Square Feet",
       "lotSize": "Lot Size",
-      "plotSizeSqm": "Plot Size",
-      "price": "Price",
-      "bedrooms": "Bedrooms",
-      "bathrooms": "Bathrooms",
       "floor": "Floor",
       "floorPlaceholder": "Select floor",
+      "floorsTotal": "Total Building Floors",
+      "plotSizeSqm": "Plot Size (sq.m.)",
+      "insideCityPlan": "Inside/Outside City Plan",
+      "buildCoefficient": "Build Coefficient",
+      "frontageM": "Frontage (m)",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "heatingType": "Heating Type",
+      "heatingTypePlaceholder": "Select type",
+      "energyCertClass": "Energy Certificate Class",
+      "energyCertClassPlaceholder": "Select class",
       "yearBuilt": "Year Built",
-      "description": "Description",
+      "renovatedYear": "Renovation Year",
+      "condition": "Condition",
+      "conditionPlaceholder": "Select condition",
+      "elevator": "Elevator",
+      "buildingPermitNo": "Building Permit Number",
+      "buildingPermitYear": "Permit Year",
+      "landRegistryKaek": "Land Registry KAEK",
+      "legalizationStatus": "Legalization Status",
+      "legalizationStatusPlaceholder": "Select status",
+      "etaireiaDiaxeirisis": "Management Company",
+      "monthlyCommonCharges": "Monthly Common Charges (€/mo)",
+      "amenities": "Amenities",
+      "amenitiesPlaceholder": "Select amenities",
+      "orientation": "Orientation",
+      "orientationPlaceholder": "Select orientation",
+      "furnished": "Furnished",
+      "furnishedPlaceholder": "Select",
+      "accessibility": "Accessibility",
+      "accessibilityPlaceholder": "Ramp, disability access, etc.",
+      "buildingPermitNoPlaceholder": "Number",
+      "landRegistryKaekPlaceholder": "KAEK",
+      "managementCompanyPlaceholder": "Company name",
+      "insideCityPlanSelect": "Select",
+      "insideCityPlanInside": "Inside",
+      "insideCityPlanOutside": "Outside",
+      "assignedAgentPlaceholder": "Select agent",
+      "photosNote": "Photos will be added after the property is created.",
+      "creating": "Creating...",
+      "price": "Price",
+      "priceType": "Price Type",
+      "priceTypePlaceholder": "Select type",
+      "availableFrom": "Available From",
+      "acceptsPets": "Accepts Pets",
+      "minLeaseMonths": "Minimum Lease (months)",
+      "photos": "Photos",
+      "virtualTourUrl": "Virtual Tour URL",
+      "portalVisibility": "Portal Visibility",
+      "portalVisibilityPlaceholder": "Select visibility",
       "agentOwner": "Assigned Agent",
+      "description": "Description",
       "specifyOther": "Please specify",
-      "specifyOtherPlaceholder": "Enter the property type..."
+      "specifyOtherPlaceholder": "Enter the property type...",
+      "objectiveZone": "Objective Zone",
+      "objectiveZonePlaceholder": "e.g. A, B, 3",
+      "frontageType": "Frontage Type",
+      "frontageTypePlaceholder": "Select type",
+      "landRegistryOffice": "Land Registry Office",
+      "landRegistryOfficePlaceholder": "Office name",
+      "buildingBlockOt": "Building Block (O.T.)",
+      "buildingBlockOtPlaceholder": "O.T. number"
     },
     "floor": {
       "BASEMENT": "Basement",
@@ -87,10 +166,85 @@
       "NEGOTIATION": "Negotiation",
       "RENTED": "Rented"
     },
+    "addressPrivacyLevel": {
+      "EXACT": "Exact address",
+      "PARTIAL": "Partial",
+      "HIDDEN": "Hidden"
+    },
+    "heatingType": {
+      "AUTONOMOUS": "Autonomous",
+      "CENTRAL": "Central",
+      "NATURAL_GAS": "Natural Gas",
+      "HEAT_PUMP": "Heat Pump",
+      "ELECTRIC": "Electric",
+      "NONE": "None"
+    },
+    "energyCertClass": {
+      "A_PLUS": "A+",
+      "A": "A",
+      "B": "B",
+      "C": "C",
+      "D": "D",
+      "E": "E",
+      "F": "F",
+      "G": "G",
+      "H": "H",
+      "IN_PROGRESS": "In Progress"
+    },
+    "condition": {
+      "EXCELLENT": "Excellent",
+      "VERY_GOOD": "Very Good",
+      "GOOD": "Good",
+      "NEEDS_RENOVATION": "Needs Renovation"
+    },
+    "legalizationStatus": {
+      "LEGALIZED": "Legalized (L.4178/4495)",
+      "IN_PROGRESS": "In Progress",
+      "UNDECLARED": "Undeclared"
+    },
+    "amenities": {
+      "AC": "Air Conditioning",
+      "FIREPLACE": "Fireplace",
+      "PARKING": "Parking",
+      "STORAGE": "Storage",
+      "SOLAR": "Solar Heater",
+      "DOUBLE_GLAZING": "Double Glazing",
+      "VIEW": "View",
+      "BALCONY": "Balcony",
+      "GARDEN": "Garden",
+      "PET_FRIENDLY": "Pet Friendly",
+      "FRONTAGE": "Frontage"
+    },
+    "orientation": {
+      "N": "North",
+      "S": "South",
+      "E": "East",
+      "W": "West"
+    },
+    "furnished": {
+      "NO": "No",
+      "PARTIALLY": "Partially",
+      "FULLY": "Fully"
+    },
+    "priceType": {
+      "RENTAL": "€ rental",
+      "SALE": "€ sale",
+      "PER_ACRE": "€ per acre",
+      "PER_SQM": "€ per sq.m."
+    },
     "portalVisibility": {
       "PRIVATE": "Private",
       "SELECTED": "Selected Portals",
       "PUBLIC": "Public"
+    },
+    "frontageType": {
+      "MAIN_ROAD": "Main Road",
+      "SECONDARY_ROAD": "Secondary Road",
+      "PEDESTRIAN": "Pedestrian Street",
+      "CORNER": "Corner",
+      "SQUARE": "Square",
+      "CUL_DE_SAC": "Cul-de-sac",
+      "NONE": "None"
     },
     "validation": {
       "propertyTypeRequired": "Property type is required",
@@ -98,11 +252,29 @@
       "municipalityRequired": "Municipality is required",
       "areaOrPostalCodeRequired": "Area or postal code is required",
       "sizeRequired": "Size is required",
-      "priceRequired": "Price is required"
+      "priceRequired": "Price is required",
+      "postalCodeInvalid": "Postal code must be 5 digits"
+    },
+    "errors": {
+      "fillRequired": "Please fill in all required fields",
+      "createFailed": "Something went wrong"
+    },
+    "success": {
+      "created": "Property created successfully"
     },
     "buttons": {
+      "saveDraft": "Save Draft",
+      "previous": "Previous",
+      "next": "Next",
+      "submit": "Create Property",
+      "creating": "Creating...",
       "quickAdd": "Create",
       "update": "Update property"
+    },
+    "step3": {
+      "noPropertyType": "Please select a property type in step 1 first.",
+      "otherType": "Fields are shown based on the property type you selected.",
+      "otherTypeContinue": "For parking, industrial, or other types, you can continue to the next step."
     }
   },
   "QuickAdd": {
@@ -120,7 +292,7 @@
     "status": "Status",
     "visibility": "Visibility",
     "unassigned": "Unassigned",
-    "filterPlaceholder": "Filter properties ...",
+    "filterPlaceholder": "Search for a property...",
     "statusUpdated": "Status updated successfully",
     "priceUpdated": "Price updated successfully",
     "visibilityUpdated": "Visibility updated successfully",

@@ -62,7 +62,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
       metadata: {
         propertyType: property.property_type,
         transactionType: property.transaction_type,
-        price: property.price,
+        price: property.price !== null && property.price !== undefined ? Number(property.price) : undefined,
       },
     });
   }
@@ -162,8 +162,8 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         actor: undefined,
         entityId: event.id,
         metadata: {
-          startTime: event.startTime,
-          endTime: event.endTime,
+          startTime: event.startTime instanceof Date ? event.startTime.toISOString() : event.startTime,
+          endTime: event.endTime instanceof Date ? event.endTime.toISOString() : event.endTime,
           location: event.location,
         },
       });

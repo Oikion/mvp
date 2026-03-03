@@ -6,7 +6,7 @@ import { z } from "zod";
  */
 
 // Client person types
-export const personTypeSchema = z.enum(["INDIVIDUAL", "COMPANY"]).optional();
+export const personTypeSchema = z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]).optional();
 
 // Client status values
 export const clientStatusSchema = z.enum([

@@ -4,10 +4,6 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { getAgencyProfile } from "@/actions/organization/agency-profile";
-import {
-  getAgencyShowcaseProperties,
-  getAvailablePropertiesForAgencyShowcase,
-} from "@/actions/organization/agency-showcase";
 import { getDictionary } from "@/dictionaries";
 import Container from "../../components/ui/Container";
 import { AgencyWorkspaceOnlyMessage } from "./components/AgencyWorkspaceOnlyMessage";
@@ -47,16 +43,12 @@ export default async function AgencyProfileSettingsPage({
     );
   }
 
-  const [profileResult, showcaseResult, availableResult, dict] = await Promise.all([
+  const [profileResult, dict] = await Promise.all([
     getAgencyProfile(),
-    getAgencyShowcaseProperties(),
-    getAvailablePropertiesForAgencyShowcase(),
     getDictionary(locale),
   ]);
 
   const profile = profileResult.success && profileResult.data ? profileResult.data : null;
-  const showcaseProperties = showcaseResult.success ? (showcaseResult.data ?? []) : [];
-  const availableProperties = availableResult.success ? (availableResult.data ?? []) : [];
 
   const t = await getTranslations("profile.agencyProfile");
   return (
@@ -66,8 +58,6 @@ export default async function AgencyProfileSettingsPage({
     >
       <AgencyProfileClient
         profile={profile}
-        showcaseProperties={showcaseProperties}
-        availableProperties={availableProperties}
         clerkOrgName={organization.name}
         clerkOrgSlug={organization.slug ?? ""}
         dict={dict as unknown as Parameters<typeof AgencyProfileClient>[0]["dict"]}

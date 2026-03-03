@@ -1,5 +1,5 @@
 import {
-  getPublicPropertyByOrgSlug,
+  getPublicPropertyByOrg as getPublicPropertyByOrgSlug,
   getOrganizationsWithPublicProperties,
   getPublicPropertiesByOrg,
 } from "@/actions/mls/get-public-property-by-org";
@@ -36,9 +36,9 @@ export async function generateStaticParams() {
       const { properties } = await getPublicPropertiesByOrg(org.slug, { limit: 50 });
 
       for (const property of properties) {
-        if (property.slug) {
-          params.push({ org_username: org.slug, slug: property.slug, locale: "en" });
-          params.push({ org_username: org.slug, slug: property.slug, locale: "el" });
+        if (property.id) {
+          params.push({ org_username: org.slug, slug: property.id, locale: "en" });
+          params.push({ org_username: org.slug, slug: property.id, locale: "el" });
         }
       }
     }

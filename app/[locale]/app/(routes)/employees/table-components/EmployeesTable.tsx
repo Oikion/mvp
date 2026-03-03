@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/components/ui/data-table/data-table";
-import { useColumns } from "./columns";
+import { columns } from "./columns";
 import type { User } from "./table-data/schema";
 
 interface EmployeesTableProps {
@@ -9,7 +9,6 @@ interface EmployeesTableProps {
 }
 
 export function EmployeesTable({ data }: EmployeesTableProps) {
-  const columns = useColumns();
   return (
     <DataTable
       data={data}

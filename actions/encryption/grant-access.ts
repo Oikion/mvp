@@ -75,7 +75,7 @@ export async function grantEncryptionAccess(
     return actionSuccess();
   } catch (error) {
     console.error("[GRANT_ACCESS]", error);
-    return actionError("Failed to grant encryption access", error);
+    return actionError("Failed to grant encryption access", error as Error);
   }
 }
 
@@ -139,6 +139,6 @@ export async function getMembersWithoutAccess(): Promise<
     return actionSuccess(usersWithoutAccess);
   } catch (error) {
     console.error("[GET_MEMBERS_WITHOUT_ACCESS]", error);
-    return actionError("Failed to get members", error);
+    return actionError("Failed to get members", error as Error);
   }
 }

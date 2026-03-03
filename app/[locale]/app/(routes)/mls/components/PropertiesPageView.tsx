@@ -7,25 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NewPropertyWizard } from "../properties/components/NewPropertyWizard";
-import { DataTable } from "@/components/ui/data-table/data-table";
+import { PropertyDataTable } from "../properties/table-components/data-table";
 import { getColumns } from "../properties/table-components/columns";
-import { statuses } from "../properties/table-data/data";
+import { QuickAddProperty } from "./QuickAddProperty";
 import { useTranslations } from "next-intl";
 import { StatsCard } from "@/components/ui/stats-card";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { PropertyCard } from "./PropertyCard";
 import { SharedPropertyCard } from "./SharedPropertyCard";
-import { Home, Activity, DollarSign, Building2, Share2, FileSpreadsheet, Globe } from "lucide-react";
+import { Home, Activity, DollarSign, Building2, Share2, FileSpreadsheet } from "lucide-react";
 import type { SharedPropertyData } from "@/actions/mls/get-shared-properties";
 import { useOrgUsers } from "@/hooks/swr";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { SharedActionModals } from "@/components/entity";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
 import { GridToolbar } from "@/components/ui/grid-toolbar";
 import { ExportButton } from "@/components/export";
 import { PublishToPortalsModal } from "@/components/modals/PublishToPortalsModal";
-import type { BulkAction } from "@/components/ui/data-table/data-table-bulk-actions";
+import { statuses } from "../properties/table-data/data";
 
 interface PropertiesPageViewProps {
   agencyProperties: any[];
@@ -37,6 +37,7 @@ export default function PropertiesPageView({
   sharedProperties = [],
 }: PropertiesPageViewProps) {
   const [open, setOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [view, setView] = useState<"grid" | "list">("list");
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,9 +45,9 @@ export default function PropertiesPageView({
   const [activeTab, setActiveTab] = useState("agency");
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [selectedForPublish, setSelectedForPublish] = useState<any[]>([]);
-  const [isPublishing, setIsPublishing] = useState(false);
   const t = useTranslations("mls");
   const params = useParams();
+  const router = useRouter();
   const locale = (params?.locale as string) || "en";
 
   // Use SWR for fetching org users
@@ -72,26 +73,18 @@ export default function PropertiesPageView({
 
   // Handle publish to portals
   const handlePublishToPortals = useCallback(async (propertyIds: string[], portalIds: string[]) => {
-    setIsPublishing(true);
-    try {
-      // For now, we'll just update portal_visibility to PUBLIC
-      // In a full implementation, this would also create the XML package and send to xe.gr
-      const response = await fetch("/api/mls/properties/bulk-publish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ propertyIds, portalIds }),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to publish properties");
-      }
-      
-      // Refresh the page to show updated data
-      window.location.reload();
-    } finally {
-      setIsPublishing(false);
+    const response = await fetch("/api/mls/properties/bulk-publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ propertyIds, portalIds }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to publish properties");
     }
-  }, []);
+
+    router.refresh();
+  }, [router]);
 
   // Handle "Export to Portals" click from the Export dropdown
   const handleExportToPortalsClick = useCallback(() => {
@@ -99,21 +92,6 @@ export default function PropertiesPageView({
     setSelectedForPublish(filteredAgencyProperties);
     setPublishModalOpen(true);
   }, [filteredAgencyProperties]);
-
-  // Bulk actions for the data table
-  const bulkActions: BulkAction<any>[] = useMemo(() => [
-    {
-      id: "publish",
-      label: t("BulkActions.publishToPortals"),
-      icon: <Globe className="h-4 w-4" />,
-      shortcut: "P",
-      loading: isPublishing,
-      onClick: (selectedRows) => {
-        setSelectedForPublish(selectedRows);
-        setPublishModalOpen(true);
-      },
-    },
-  ], [t, isPublishing]);
 
   const statusOptions = useMemo(() => {
     return statuses.map((status) => ({
@@ -127,7 +105,7 @@ export default function PropertiesPageView({
   const activeProperties = agencyProperties.filter(
     (p) => p.property_status === "ACTIVE"
   ).length;
-  const totalValue = agencyProperties.reduce((sum, p) => sum + (p.price || 0), 0);
+  const totalValue = agencyProperties.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
 
   const filteredSharedProperties = useMemo(() => {
     return sharedProperties.filter((item) =>
@@ -230,7 +208,7 @@ export default function PropertiesPageView({
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
+                <div className="space-y-1.5">
                   <CardTitle>{t("Tabs.agencyProperties")}</CardTitle>
                   <CardDescription>{t("Tabs.agencyPropertiesDescription")}</CardDescription>
                 </div>
@@ -248,8 +226,8 @@ export default function PropertiesPageView({
                     entityData={filteredAgencyProperties}
                     onPortalsClick={handleExportToPortalsClick}
                   />
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     leftIcon={<FileSpreadsheet className="h-4 w-4" />}
                     asChild
                   >
@@ -257,6 +235,17 @@ export default function PropertiesPageView({
                       Import
                     </Link>
                   </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setQuickAddOpen(true)}
+                  >
+                    + {t("QuickAdd.property.title")}
+                  </Button>
+                  <QuickAddProperty
+                    open={quickAddOpen}
+                    onOpenChange={setQuickAddOpen}
+                    users={users}
+                  />
                   <Sheet open={open} onOpenChange={() => setOpen(false)}>
                     <Button onClick={() => setOpen(true)} className="flex-1 sm:flex-none">
                       + {t("PropertyForm.title")}
@@ -282,19 +271,9 @@ export default function PropertiesPageView({
                   <p className="text-sm mt-1">{t("EmptyState.createFirstProperty")}</p>
                 </div>
               ) : view === "list" ? (
-                <DataTable
+                <PropertyDataTable
                   data={agencyProperties}
                   columns={getColumns(users)}
-                  searchKey="property_name"
-                  searchPlaceholder={t("MlsPropertiesTable.filterPlaceholder")}
-                  filters={[
-                    {
-                      column: "property_status",
-                      title: t("MlsPropertiesTable.status"),
-                      options: statusOptions,
-                    },
-                  ]}
-                  bulkActions={bulkActions}
                 />
               ) : (
                 <div className="space-y-4">

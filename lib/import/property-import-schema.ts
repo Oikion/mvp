@@ -93,6 +93,16 @@ export const LegalizationStatusEnum = z.enum([
   "UNDECLARED",
 ]);
 
+export const FrontageTypeEnum = z.enum([
+  "MAIN_ROAD",
+  "SECONDARY_ROAD",
+  "PEDESTRIAN",
+  "CORNER",
+  "SQUARE",
+  "CUL_DE_SAC",
+  "NONE",
+]);
+
 /**
  * Property CSV Import Schema
  * Matches the fields from NewPropertyForm.tsx and the Prisma Properties model
@@ -117,6 +127,8 @@ export const propertyImportSchema = z.object({
   municipality: z.coerce.string().optional().or(z.literal("")),
   area: z.coerce.string().optional().or(z.literal("")),
   postal_code: z.coerce.string().optional().or(z.literal("")),
+  region: z.coerce.string().optional().or(z.literal("")),
+  regional_unit: z.coerce.string().optional().or(z.literal("")),
 
   // Pricing
   price: z.coerce.number().int().positive().optional().nullable(),
@@ -148,6 +160,8 @@ export const propertyImportSchema = z.object({
   building_permit_no: z.coerce.string().optional().or(z.literal("")),
   building_permit_year: z.coerce.number().int().optional().nullable(),
   land_registry_kaek: z.coerce.string().optional().or(z.literal("")),
+  land_registry_office: z.coerce.string().optional().or(z.literal("")),
+  building_block_ot: z.coerce.string().optional().or(z.literal("")),
   legalization_status: LegalizationStatusEnum.optional().nullable(),
   inside_city_plan: z.coerce.boolean().optional().default(false),
 
@@ -155,6 +169,8 @@ export const propertyImportSchema = z.object({
   build_coefficient: z.coerce.number().positive().optional().nullable(),
   coverage_ratio: z.coerce.number().positive().optional().nullable(),
   frontage_m: z.coerce.number().positive().optional().nullable(),
+  frontage_type: FrontageTypeEnum.optional().nullable(),
+  objective_zone: z.coerce.string().optional().or(z.literal("")),
 
   // Management
   etaireia_diaxeirisis: z.coerce.string().optional().or(z.literal("")),
@@ -277,12 +293,26 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
     aliases: ["neighborhood", "district", "perioxi", "location", "suburb"],
     description: "Area or neighborhood"
   },
-  { 
-    key: "postal_code", 
-    required: false, 
-    group: "address", 
+  {
+    key: "postal_code",
+    required: false,
+    group: "address",
     aliases: ["postcode", "post_code", "tk", "tachydromikos_kodikas"],
     description: "Postal code (TK)"
+  },
+  {
+    key: "region",
+    required: false,
+    group: "address",
+    aliases: ["periferia", "prefecture", "perifereia"],
+    description: "Region (Periferia)"
+  },
+  {
+    key: "regional_unit",
+    required: false,
+    group: "address",
+    aliases: ["periferiaki_enotita", "nomarchia", "regional_unit_name", "county"],
+    description: "Regional Unit (Periferiaki Enotita)"
   },
 
   // Pricing
@@ -434,12 +464,26 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
     aliases: ["permit_year", "oikodomiki_adeia_etos"],
     description: "Building permit year"
   },
-  { 
-    key: "land_registry_kaek", 
-    required: false, 
-    group: "legal", 
+  {
+    key: "land_registry_kaek",
+    required: false,
+    group: "legal",
     aliases: ["kaek", "cadastral_code", "ktimatologio"],
     description: "KAEK (Land Registry code)"
+  },
+  {
+    key: "land_registry_office",
+    required: false,
+    group: "legal",
+    aliases: ["ypothikofilakeio", "registry_office", "land_office"],
+    description: "Land Registry Office (Υποθηκοφυλακείο)"
+  },
+  {
+    key: "building_block_ot",
+    required: false,
+    group: "legal",
+    aliases: ["ot", "oikodomiko_tetragono", "block", "city_block"],
+    description: "Building Block (Ο.Τ.)"
   },
   { 
     key: "legalization_status", 
@@ -471,12 +515,26 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
     aliases: ["coverage", "syntelestis_kalipsis", "sk"],
     description: "Coverage ratio (SK)"
   },
-  { 
-    key: "frontage_m", 
-    required: false, 
-    group: "land", 
+  {
+    key: "frontage_m",
+    required: false,
+    group: "land",
     aliases: ["frontage", "prosopsi", "front_meters"],
     description: "Frontage in meters"
+  },
+  {
+    key: "frontage_type",
+    required: false,
+    group: "land",
+    aliases: ["road_type", "frontage_classification", "tipo_prosopsis"],
+    description: "Frontage type (MAIN_ROAD, PEDESTRIAN, CORNER, etc.)"
+  },
+  {
+    key: "objective_zone",
+    required: false,
+    group: "land",
+    aliases: ["zoni", "antikeimenikh_zoni", "tax_zone", "objective_value_zone"],
+    description: "Objective Zone (Αντικειμενική Ζώνη)"
   },
 
   // Management

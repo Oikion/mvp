@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NewClientWizard } from "../clients/components/NewClientWizard";
-import { DataTable } from "@/components/ui/data-table/data-table";
 import { getColumns } from "../accounts/table-components/columns";
+import { AccountDataTable } from "../accounts/table-components/data-table";
 import { StatsCard } from "@/components/ui/stats-card";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { ClientCard } from "./ClientCard";
@@ -17,12 +17,13 @@ import { Users, UserCheck, UserPlus, Building2, Share2, FileSpreadsheet } from "
 import moment from "moment";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import type { SharedClientData } from "@/actions/crm/get-shared-clients";
 import { SharedActionModals } from "@/components/entity";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
 import { GridToolbar } from "@/components/ui/grid-toolbar";
 import { ExportButton } from "@/components/export";
+import { QuickAddClient } from "./QuickAddClient";
 
 interface ClientsPageViewProps {
   agencyClients: any[];
@@ -36,6 +37,7 @@ export default function ClientsPageView({
   crmData,
 }: ClientsPageViewProps) {
   const [open, setOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [view, setView] = useState<"grid" | "list">("list");
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,6 +46,7 @@ export default function ClientsPageView({
   const t = useTranslations("crm");
   const params = useParams();
   const locale = (params?.locale as string) || "en";
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setIsMounted(true);
@@ -58,21 +61,65 @@ export default function ClientsPageView({
     moment(c.createdAt).isAfter(moment().subtract(30, "days"))
   ).length;
 
-  // Filter data for grid view
+  // Filter data for grid view — merges GridToolbar state with URL-based drawer filters
   const filteredAgencyClients = useMemo(() => {
+    // URL-based filters (set by the filter drawer in the table toolbar)
+    const urlStatus = searchParams.get("status")?.split(",").filter(Boolean) ?? [];
+    const urlClientType = searchParams.get("clientType")?.split(",").filter(Boolean) ?? [];
+    const urlIntent = searchParams.get("intent")?.split(",").filter(Boolean) ?? [];
+    const urlLeadSource = searchParams.get("leadSource")?.split(",").filter(Boolean) ?? [];
+    const urlAssignedTo = searchParams.get("assignedTo") ?? "";
+    const urlBudgetMin = searchParams.get("budgetMin") ? Number(searchParams.get("budgetMin")) : null;
+    const urlBudgetMax = searchParams.get("budgetMax") ? Number(searchParams.get("budgetMax")) : null;
+
     return agencyClients.filter((item: any) => {
       // Text search filter
-      const matchesSearch = 
+      const matchesSearch =
         item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.email?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      // Status filter (if applicable)
-      const statusFilter = selectedFilters.status || [];
-      const matchesStatus = statusFilter.length === 0 || statusFilter.includes(item.status);
-      
-      return matchesSearch && matchesStatus;
+
+      // GridToolbar status filter (legacy — only active in grid view)
+      const gridStatusFilter = selectedFilters.status ?? [];
+      const matchesGridStatus =
+        gridStatusFilter.length === 0 || gridStatusFilter.includes(item.status);
+
+      // URL-based drawer filters
+      const matchesUrlStatus =
+        urlStatus.length === 0 ||
+        urlStatus.includes(item.client_status) ||
+        urlStatus.includes(item.status);
+
+      const matchesClientType =
+        urlClientType.length === 0 || urlClientType.includes(item.client_type);
+
+      const matchesIntent =
+        urlIntent.length === 0 || urlIntent.includes(item.intent);
+
+      const matchesLeadSource =
+        urlLeadSource.length === 0 || urlLeadSource.includes(item.lead_source);
+
+      const matchesAssignedTo =
+        !urlAssignedTo || item.assigned_to === urlAssignedTo;
+
+      const budget = item.budget ?? item.budget_max ?? null;
+      const matchesBudgetMin =
+        urlBudgetMin === null || budget === null || budget >= urlBudgetMin;
+      const matchesBudgetMax =
+        urlBudgetMax === null || budget === null || budget <= urlBudgetMax;
+
+      return (
+        matchesSearch &&
+        matchesGridStatus &&
+        matchesUrlStatus &&
+        matchesClientType &&
+        matchesIntent &&
+        matchesLeadSource &&
+        matchesAssignedTo &&
+        matchesBudgetMin &&
+        matchesBudgetMax
+      );
     });
-  }, [agencyClients, searchQuery, selectedFilters]);
+  }, [agencyClients, searchQuery, selectedFilters, searchParams]);
 
   const filteredSharedClients = useMemo(() => {
     return sharedClients.filter((item) =>
@@ -183,7 +230,7 @@ export default function ClientsPageView({
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
+                <div className="space-y-1.5">
                   <CardTitle>{t("Tabs.agencyClients")}</CardTitle>
                   <CardDescription>{t("Tabs.agencyClientsDescription")}</CardDescription>
                 </div>
@@ -198,8 +245,8 @@ export default function ClientsPageView({
                       search: searchQuery,
                     }}
                   />
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     leftIcon={<FileSpreadsheet className="h-4 w-4" />}
                     asChild
                   >
@@ -207,6 +254,19 @@ export default function ClientsPageView({
                       Import
                     </Link>
                   </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setQuickAddOpen(true)}
+                  >
+                    + {t("CrmForm.quickAddTitle")}
+                  </Button>
+                  <QuickAddClient
+                    open={quickAddOpen}
+                    onOpenChange={setQuickAddOpen}
+                    organizationUsers={users}
+                    locale={locale}
+                    onSuccess={() => {}}
+                  />
                   <Sheet open={open} onOpenChange={() => setOpen(false)}>
                     <Button className="flex-1 sm:flex-none" onClick={() => setOpen(true)}>
                       + {t("CrmForm.title")}
@@ -232,11 +292,11 @@ export default function ClientsPageView({
                   <p className="text-sm mt-1">{t("EmptyState.createFirstClient")}</p>
                 </div>
               ) : view === "list" ? (
-                <DataTable
+                <AccountDataTable
                   data={agencyClients}
                   columns={getColumns(users)}
-                  searchKey="name"
-                  searchPlaceholder={t("CrmAccountsTable.filterPlaceholder")}
+                  industries={[]}
+                  users={users}
                 />
               ) : (
                 <div className="space-y-4">

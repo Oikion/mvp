@@ -87,7 +87,7 @@ export const SharedPropertyCard = memo(function SharedPropertyCard({ data, index
             </div>
           </div>
           <div className="text-lg font-bold text-primary">
-            {data.price ? `€${data.price.toLocaleString()}` : "-"}
+            {data.price ? `€${Number(data.price).toLocaleString()}` : "-"}
           </div>
         </div>
 

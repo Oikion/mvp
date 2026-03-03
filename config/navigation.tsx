@@ -17,7 +17,7 @@ import { SocialFeedIcon } from "@/components/ui/SocialFeedIcon"
 import { UsersIcon } from "@/components/ui/UsersIcon"
 import { ShieldIcon } from "@/components/ui/ShieldIcon"
 import { MessageCircleIcon } from "@/components/ui/MessageCircleIcon"
-import { Target, TrendingUp, Sparkles } from "lucide-react"
+import { Target } from "lucide-react"
 import { type ModuleId } from "@/lib/permissions/types"
 import { isRouteActive } from "@/lib/navigation/route-utils"
 
@@ -238,50 +238,6 @@ export function getNavigationConfig({
       iconClassName: "text-warning",
       labelClassName: "text-warning dark:text-orange-400 font-semibold",
     }] : []),
-    // Market Intelligence - competitor monitoring
-    ...(canAccess("reports") ? [{
-      title: dict.navigation.ModuleMenu.marketIntel || "M.I.",
-      url: "/app/market-intelligence",
-      icon: TrendingUp,
-      isActive: isRouteActive(pathname, "/app/market-intelligence", locale),
-      badge: "1.0",
-      badgeClassName: "bg-cyan-500 hover:bg-cyan-600 text-white border-0 shadow-sm",
-      iconClassName: "text-cyan-500",
-      labelClassName: "text-cyan-600 dark:text-cyan-400 font-semibold",
-      items: [
-        {
-          title: "Overview",
-          url: "/app/market-intelligence",
-        },
-        {
-          title: "Browse Listings",
-          url: "/app/market-intelligence/listings",
-        },
-        {
-          title: "Price Tracker",
-          url: "/app/market-intelligence/price-tracker",
-        },
-        {
-          title: "Opportunities",
-          url: "/app/market-intelligence/opportunities",
-        },
-        {
-          title: "Alerts",
-          url: "/app/market-intelligence/settings",
-        },
-      ],
-    }] : []),
-    // AI Assistant - intelligent assistant for agents
-    {
-      title: dict.navigation.ModuleMenu.aiAssistant || "AI Assistant",
-      url: "/app/ai",
-      icon: Sparkles,
-      isActive: isRouteActive(pathname, "/app/ai", locale),
-      badge: "Beta",
-      badgeClassName: "bg-purple-500 hover:bg-purple-600 text-white border-0 shadow-sm",
-      iconClassName: "text-purple-500",
-      labelClassName: "text-purple-600 dark:text-purple-400 font-semibold",
-    },
   ]
 
   // Organization - Employees, Admin, Platform Admin (if applicable)

@@ -10,6 +10,8 @@ import { StatusCell } from "./cells/StatusCell";
 import { VisibilityCell } from "./cells/VisibilityCell";
 import { AssignedUserCell } from "./cells/AssignedUserCell";
 import { PriceCell } from "./cells/PriceCell";
+import { NameCell } from "./cells/NameCell";
+import { TypeCell } from "./cells/TypeCell";
 import {
   DataTableSelectCheckbox,
   DataTableSelectAllCheckbox,
@@ -19,7 +21,7 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
   id: string;
   createdAt: Date;
   property_name?: string;
-  price?: number | null;
+  price?: number | string | null;
   property_type?: string | null;
   property_status?: string | null;
   portal_visibility?: string | null;
@@ -69,7 +71,10 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
     },
     cell: ({ row }) => (
       <Link href={`/app/mls/properties/${row.original.id}`}>
-        <div className="whitespace-nowrap">{row.getValue("property_name")}</div>
+        <NameCell
+          propertyId={row.original.id}
+          value={row.original.property_name ?? ""}
+        />
       </Link>
     ),
     enableSorting: false,
@@ -97,7 +102,10 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
       return <DataTableColumnHeader column={column} title={t("MlsPropertiesTable.type")} />
     },
     cell: ({ row }) => (
-      <div className="whitespace-nowrap">{row.getValue("property_type") ?? "-"}</div>
+      <TypeCell
+        propertyId={row.original.id}
+        value={row.original.property_type}
+      />
     ),
   },
   {

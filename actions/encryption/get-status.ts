@@ -88,7 +88,7 @@ export async function getOrganizationEncryptionStatus(): Promise<ActionResponse<
     });
   } catch (error) {
     console.error("[GET_ENCRYPTION_STATUS]", error);
-    return actionError("Failed to get encryption status", error);
+    return actionError("Failed to get encryption status", error as Error);
   }
 }
 
@@ -135,6 +135,6 @@ export async function getUserWrappedKey(): Promise<
     });
   } catch (error) {
     console.error("[GET_USER_WRAPPED_KEY]", error);
-    return actionError("Failed to get encryption key", error);
+    return actionError("Failed to get encryption key", error as Error);
   }
 }

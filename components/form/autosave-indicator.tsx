@@ -20,7 +20,7 @@ export function AutosaveIndicator({
   status,
   className,
   messages = {},
-}: AutosaveIndicatorProps) {
+}: Readonly<AutosaveIndicatorProps>) {
   const defaultMessages = {
     saving: "Saving...",
     saved: "Saved",

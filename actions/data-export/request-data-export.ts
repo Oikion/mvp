@@ -80,7 +80,7 @@ export async function requestDataExport(
     });
   } catch (error) {
     console.error("[REQUEST_DATA_EXPORT]", error);
-    return actionError("Failed to request data export", error);
+    return actionError("Failed to request data export", error as Error);
   }
 }
 
@@ -126,7 +126,7 @@ export async function getDataExportStatus(): Promise<
     return actionSuccess({ requests });
   } catch (error) {
     console.error("[GET_EXPORT_STATUS]", error);
-    return actionError("Failed to get export status", error);
+    return actionError("Failed to get export status", error as Error);
   }
 }
 
@@ -161,6 +161,6 @@ export async function cancelDataExport(requestId: string): Promise<ActionRespons
     return actionSuccess();
   } catch (error) {
     console.error("[CANCEL_EXPORT]", error);
-    return actionError("Failed to cancel export", error);
+    return actionError("Failed to cancel export", error as Error);
   }
 }

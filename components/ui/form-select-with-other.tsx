@@ -18,7 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { isOtherValue, SelectOption, DEFAULT_OTHER_PATTERNS } from "./select-with-other";
+import { isOtherValue, SelectOption } from "./select-with-other";
 
 /**
  * FormSelectWithOther Component - Oikion Design System
@@ -117,7 +117,7 @@ export function FormSelectWithOther<
   otherRequired = false,
   children,
   controlledField,
-}: FormSelectWithOtherProps<TFieldValues, TName>) {
+}: Readonly<FormSelectWithOtherProps<TFieldValues, TName>>) {
   const form = useFormContext<TFieldValues>();
   
   // Get the other field controller if a separate field is specified
@@ -307,4 +307,4 @@ export function parseCombinedOtherValue(
   return { selectValue: combinedValue, otherValue: "" };
 }
 
-export { isOtherValue, DEFAULT_OTHER_PATTERNS };
+export { isOtherValue, DEFAULT_OTHER_PATTERNS } from "./select-with-other";

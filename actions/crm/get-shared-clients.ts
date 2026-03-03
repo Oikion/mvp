@@ -73,6 +73,7 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
 
       return {
         id: client.id,
+        organizationId: client.organizationId,
         shareId: share.id,
         client_name: client.client_name,
         primary_email: client.primary_email,
@@ -84,7 +85,7 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
         permissions: share.permissions,
         message: share.message,
         sharedBy: share.Users_SharedEntity_sharedByIdToUsers,
-      } as SharedClientData;
+      } as SharedClientData & { organizationId: string };
     })
   );
 

@@ -60,19 +60,10 @@ export type AdminActionType =
   | "WARN_USER"
   | "DELETE_USER"
   | "VIEW_ADMIN_LOGS"
-  | "CREATE_AI_AGENT"
-  | "UPDATE_AI_AGENT"
-  | "DELETE_AI_AGENT"
-  | "ENABLE_AI_AGENT"
-  | "DISABLE_AI_AGENT"
-  | "CREATE_AI_TOOL"
-  | "UPDATE_AI_TOOL"
-  | "DELETE_AI_TOOL"
-  | "ENABLE_AI_TOOL"
-  | "DISABLE_AI_TOOL"
-  | "CREATE_AI_PROMPT"
-  | "UPDATE_AI_PROMPT"
-  | "DELETE_AI_PROMPT";
+  | "VIEW_RESERVED_NAMES"
+  | "CREATE_RESERVED_NAME"
+  | "UPDATE_RESERVED_NAME"
+  | "DELETE_RESERVED_NAME";
 
 /**
  * Validate that a reason/message is safe and not malicious

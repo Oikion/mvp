@@ -855,25 +855,5 @@
       "copied": "Copied to clipboard",
       "loadError": "Failed to load settings"
     }
-  },
-  "organizationsExt": {
-    "marketIntel": {
-      "columnHeader": "M.I.",
-      "active": "Active",
-      "grantAccess": "Grant Market Intelligence access",
-      "revokeAccess": "Revoke Market Intelligence access",
-      "accessGranted": "Market Intel access granted",
-      "accessRevoked": "Market Intel access revoked",
-      "updateError": "Failed to update access"
-    },
-    "ai": {
-      "columnHeader": "AI",
-      "active": "Active",
-      "grantAccess": "Grant AI access",
-      "revokeAccess": "Revoke AI access",
-      "accessGranted": "AI access granted",
-      "accessRevoked": "AI access revoked",
-      "updateError": "Failed to update access"
-    }
   }
 }

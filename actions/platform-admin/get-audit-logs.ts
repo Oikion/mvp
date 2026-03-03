@@ -155,7 +155,7 @@ export async function getAuditLogStats(): Promise<{
     ]);
 
     const topActions = topActionsResult.map((item) => ({
-      action: item.action,
+      action: item.action as AdminActionType,
       count: item._count.action,
     }));
 

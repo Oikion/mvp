@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ export const AssignedUserCell = ({
   assignedTo,
   users,
 }: AssignedUserCellProps) => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const t = useTranslations("mls");
   const tCommon = useTranslations("common");
@@ -37,7 +39,7 @@ export const AssignedUserCell = ({
       });
       toast.success(tCommon("saved") || "Saved");
       // Refresh the page to show updated data
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       toast.error(tCommon("error") || "Error");
     } finally {

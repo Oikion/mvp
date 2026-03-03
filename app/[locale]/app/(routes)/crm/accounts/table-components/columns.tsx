@@ -10,6 +10,8 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-col
 import { ClientRowActions } from "./ClientRowActions";
 import { AssignedUserCell } from "./cells/AssignedUserCell";
 import { StatusCell } from "./cells/StatusCell";
+import { NameCell } from "./cells/NameCell";
+import { EmailCell } from "./cells/EmailCell";
 
 export const getColumns = (users: { id: string; name: string | null }[] = []): ColumnDef<Account>[] => [
   {
@@ -51,11 +53,17 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.name")} />
     },
     cell: ({ row }) => (
-      <Link href={`/app/crm/clients/${row.original.id}`}>
-        <div className="whitespace-nowrap">
-          {row.getValue("name") as string}
-        </div>
-      </Link>
+      <div className="flex items-center gap-1">
+        <NameCell clientId={row.original.id} value={row.original.name ?? ""} />
+        <Link
+          href={`/app/crm/clients/${row.original.id}`}
+          className="ml-1 text-muted-foreground hover:text-primary transition-colors"
+          title="View details"
+          onClick={(e) => e.stopPropagation()}
+        >
+          ↗
+        </Link>
+      </div>
     ),
     enableSorting: false,
     enableHiding: true,
@@ -67,7 +75,7 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.email")} />
     },
     cell: ({ row }) => (
-      <div className="whitespace-nowrap">{row.getValue("email")}</div>
+      <EmailCell clientId={row.original.id} value={row.original.email} />
     ),
     enableSorting: true,
     enableHiding: true,

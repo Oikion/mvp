@@ -132,53 +132,66 @@
       "intro": "We use cookies for various purposes:",
       "essential": {
         "title": "Essential Cookies",
-        "intro": "Required for the platform to function properly:",
+        "intro": "Required for the platform to function properly. These cannot be disabled:",
         "items": [
-          "Authentication cookies to keep you logged in",
-          "Security cookies for fraud protection",
-          "Load balancing cookies for optimal performance",
-          "Cookie consent preferences"
+          "Clerk authentication (__session, __client_uat) — keep you logged in",
+          "Cloudflare (_cfuvid) — infrastructure security via Clerk",
+          "App access gate (oik_access) — when enabled, proves you entered the access code"
         ]
       },
       "functional": {
         "title": "Functional Cookies",
         "intro": "Enhance your experience by remembering your preferences:",
         "items": [
-          "Language and region preferences",
-          "Theme and display settings",
-          "Dashboard layout customizations",
-          "Recently viewed properties"
+          "NEXT_LOCALE — language preference (Greek/English)",
+          "sidebar_state — expanded or collapsed sidebar state",
+          "react-resizable-panels:layout and :collapsed — email layout preferences"
         ]
       },
       "analytics": {
         "title": "Analytics Cookies",
-        "intro": "Help us understand how you use our platform:",
+        "intro": "Help us understand how you use our platform. Used only when analytics is enabled:",
         "items": [
-          "Google Analytics for usage statistics",
-          "Performance tracking and error detection",
-          "Feature usage analytics",
-          "A/B testing and optimization"
+          "PostHog (ph_posthog) — usage statistics, feature flags, product analytics"
         ]
       },
       "marketing": {
         "title": "Marketing Cookies",
-        "intro": "Used to deliver relevant advertisements:",
+        "intro": "Used only when you configure certain integrations:",
         "items": [
-          "Social media integration cookies",
-          "Advertising network cookies",
-          "Conversion tracking pixels",
-          "Remarketing and retargeting cookies"
+          "Facebook cookies — when setting up WhatsApp integration in Messages"
         ]
       }
     },
     "thirdParty": {
       "title": "Third-Party Cookies",
-      "intro": "Our platform may use third-party services that set their own cookies:",
+      "intro": "Our platform uses third-party services that may set their own cookies:",
       "items": [
-        { "label": "Google Services:", "detail": "Maps, Analytics, and advertising" },
-        { "label": "MLS Providers:", "detail": "Property data and listing services" },
-        { "label": "Payment Processors:", "detail": "Stripe, PayPal for billing" },
-        { "label": "Support Tools:", "detail": "Customer service and chat features" }
+        { "label": "Clerk:", "detail": "Authentication (__session, __client_uat on .clerk.com)" },
+        { "label": "Cloudflare:", "detail": "Infrastructure (via Clerk)" },
+        { "label": "PostHog:", "detail": "Analytics when enabled (eu.i.posthog.com)" },
+        { "label": "Facebook:", "detail": "WhatsApp integration setup in Messages" }
+      ]
+    },
+    "inventory": {
+      "title": "Cookie Inventory",
+      "intro": "Complete list of cookies we use, when they are set, and at which stage of your visit:",
+      "tableHeaders": {
+        "name": "Cookie / Storage",
+        "purpose": "Purpose",
+        "stage": "When Set",
+        "category": "Category"
+      },
+      "rows": [
+        { "name": "__session, __client_uat", "purpose": "Authentication session", "stage": "Sign-in, Register", "category": "Essential" },
+        { "name": "_cfuvid", "purpose": "Cloudflare session", "stage": "Any Clerk request", "category": "Essential" },
+        { "name": "oik_access", "purpose": "App access gate proof", "stage": "After correct access code", "category": "Essential" },
+        { "name": "NEXT_LOCALE", "purpose": "Language (el/en)", "stage": "First visit or locale change", "category": "Functional" },
+        { "name": "sidebar_state", "purpose": "Sidebar expanded/collapsed", "stage": "When you toggle sidebar", "category": "Functional" },
+        { "name": "react-resizable-panels:layout", "purpose": "Email panel sizes", "stage": "When resizing on Emails page", "category": "Functional" },
+        { "name": "react-resizable-panels:collapsed", "purpose": "Email nav collapsed state", "stage": "Emails page layout", "category": "Functional" },
+        { "name": "ph_posthog", "purpose": "Analytics, feature flags", "stage": "When PostHog is enabled", "category": "Analytics" },
+        { "name": "oikion-theme (localStorage)", "purpose": "Theme preference", "stage": "When you select a theme", "category": "Functional" }
       ]
     },
     "managing": {

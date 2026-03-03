@@ -145,8 +145,6 @@
     "admin": "Admin Settings",
     "messages": "Messages",
     "matchmaking": "Matchmaking",
-    "marketIntelligence": "Market Intelligence",
-    "projects": "Projects",
-    "openai": "AI Assistant (OpenAI)"
+    "projects": "Projects"
   }
 }

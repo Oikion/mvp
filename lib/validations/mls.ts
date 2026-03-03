@@ -100,6 +100,17 @@ export const addressPrivacyLevelSchema = z.enum([
   "HIDDEN",
 ]);
 
+// Frontage type - matches Prisma FrontageType enum
+export const frontageTypeSchema = z.enum([
+  "MAIN_ROAD",
+  "SECONDARY_ROAD",
+  "PEDESTRIAN",
+  "CORNER",
+  "SQUARE",
+  "CUL_DE_SAC",
+  "NONE",
+]);
+
 // Price type - matches Prisma PriceType enum
 export const priceTypeSchema = z.enum([
   "RENTAL",
@@ -173,10 +184,14 @@ const propertyFieldsSchema = z.object({
   postal_code: z.string().max(20).optional(),
   municipality: z.string().max(100).optional(),
   area: z.string().max(100).optional(),
+  region: z.string().max(100).optional(),
+  regional_unit: z.string().max(100).optional(),
   address_privacy_level: addressPrivacyLevelSchema.optional(),
   
   // Legal information
-  land_registry_kaek: z.string().max(100).optional(),
+  land_registry_kaek: z.string().regex(/^\d{5,14}$/, "KAEK must be 5-14 digits").optional().or(z.literal("")),
+  land_registry_office: z.string().max(200).optional(),
+  building_block_ot: z.string().max(50).optional(),
   building_permit_no: z.string().max(100).optional(),
   building_permit_year: z.number().int().min(1800).max(CURRENT_YEAR + 5).optional().nullable(),
   legalization_status: z.string().max(50).optional(),
@@ -184,6 +199,8 @@ const propertyFieldsSchema = z.object({
   build_coefficient: z.number().min(0).optional().nullable(),
   coverage_ratio: z.number().min(0).max(100).optional().nullable(),
   frontage_m: z.number().min(0).optional().nullable(),
+  frontage_type: frontageTypeSchema.optional(),
+  objective_zone: z.string().max(20).optional(),
   
   // Management
   etaireia_diaxeirisis: z.string().max(255).optional(),

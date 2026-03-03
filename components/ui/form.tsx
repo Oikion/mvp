@@ -86,9 +86,27 @@ FormItem.displayName = "FormItem"
 
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> & { required?: boolean }
+>(({ className, children, required, ...props }, ref) => {
   const { error, formItemId } = useFormField()
+
+  // Render a styled red asterisk when required prop is set or label ends with " *"
+  let labelContent: React.ReactNode = children
+  if (required) {
+    labelContent = (
+      <>
+        {children}
+        <span className="text-destructive ml-0.5" aria-hidden="true">*</span>
+      </>
+    )
+  } else if (typeof children === "string" && children.endsWith(" *")) {
+    labelContent = (
+      <>
+        {children.slice(0, -2)}
+        <span className="text-destructive ml-0.5" aria-hidden="true">*</span>
+      </>
+    )
+  }
 
   return (
     <Label
@@ -96,7 +114,9 @@ const FormLabel = React.forwardRef<
       className={cn(error && "text-destructive", className)}
       htmlFor={formItemId}
       {...props}
-    />
+    >
+      {labelContent}
+    </Label>
   )
 })
 FormLabel.displayName = "FormLabel"

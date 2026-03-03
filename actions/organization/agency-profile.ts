@@ -55,7 +55,7 @@ export async function getAgencyProfile(): Promise<
     return actionSuccess(profile);
   } catch (err) {
     console.error("[GET_AGENCY_PROFILE]", err);
-    return actionError("Failed to load agency profile", err);
+    return actionError("Failed to load agency profile", err as Error);
   }
 }
 
@@ -167,7 +167,7 @@ export async function upsertAgencyProfile(
     return actionSuccess({ id: profile.id, slug: profile.slug });
   } catch (err) {
     console.error("[UPSERT_AGENCY_PROFILE]", err);
-    return actionError("Failed to save agency profile", err);
+    return actionError("Failed to save agency profile", err as Error);
   }
 }
 
@@ -185,33 +185,6 @@ export async function getPublicAgencyProfile(
       visibility: isAuthenticated
         ? { in: ["PUBLIC", "SECURE"] as const }
         : "PUBLIC",
-    },
-    include: {
-      AgencyShowcaseProperty: {
-        orderBy: { order: "asc" },
-        include: {
-          Properties: {
-            select: {
-              id: true,
-              property_name: true,
-              property_type: true,
-              transaction_type: true,
-              price: true,
-              address_city: true,
-              address_state: true,
-              bedrooms: true,
-              bathrooms: true,
-              size_net_sqm: true,
-              portal_visibility: true,
-              Documents: {
-                where: { document_file_mimeType: { startsWith: "image/" } },
-                select: { document_file_url: true },
-                take: 1,
-              },
-            },
-          },
-        },
-      },
     },
   });
 

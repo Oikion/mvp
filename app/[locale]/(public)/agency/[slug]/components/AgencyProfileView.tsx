@@ -12,12 +12,8 @@ import {
   Linkedin,
   Instagram,
   Twitter,
-  Home,
   Award,
   Calendar,
-  BedDouble,
-  Bath,
-  Ruler,
   ExternalLink,
   Users,
 } from "lucide-react";
@@ -76,25 +72,6 @@ export function AgencyProfileView({
 }: AgencyProfileViewProps) {
   const t = useTranslations("profile");
   const socialLinks = profile.socialLinks as Record<string, string | undefined> | null | undefined;
-
-  const properties =
-    profile.AgencyShowcaseProperty?.map((sp) => sp.Properties).filter(
-      (p): p is NonNullable<typeof p> => p !== null && p !== undefined
-    ) ?? [];
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("el-GR", {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const getTransactionTypeLabel = (type: string | null | undefined) => {
-    if (type === "SALE") return t("agentProfile.transactionTypes.forSale");
-    if (type === "RENTAL") return t("agentProfile.transactionTypes.forRent");
-    return type || "";
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -184,17 +161,6 @@ export function AgencyProfileView({
             )}
 
             {/* Stats */}
-            <motion.div variants={itemVariants} className="flex gap-6 mt-8">
-              <div className="text-center px-6 py-4 rounded-2xl bg-muted/50 border border-border">
-                <div className="text-3xl font-bold text-foreground">
-                  {properties.length}
-                </div>
-                <div className="text-muted-foreground text-sm mt-1">
-                  {t("agentProfile.properties")}
-                </div>
-              </div>
-            </motion.div>
-
             {/* Action Buttons */}
             <motion.div variants={itemVariants}>
               <AgencyActionButtons
@@ -409,136 +375,6 @@ export function AgencyProfileView({
                 </motion.div>
               )}
 
-              {/* Properties Section */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98], delay: 0.3 }}
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-3 text-foreground">
-                    <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
-                      <Home className="h-6 w-6 text-primary" aria-hidden />
-                    </div>
-                    {t("agentProfile.properties")}
-                  </h2>
-                  {properties.length > 0 && (
-                    <Badge className="bg-primary/10 text-primary border border-primary/20">
-                      {properties.length} {t("agentProfile.propertiesCount")}
-                    </Badge>
-                  )}
-                </div>
-
-                {properties.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {properties.map((property, index) => (
-                      <motion.div
-                        key={property.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{
-                          duration: 0.5,
-                          delay: index * 0.1,
-                          ease: [0.21, 0.47, 0.32, 0.98],
-                        }}
-                        viewport={{ once: true }}
-                        whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                      >
-                        <Link
-                          href={`/${locale}/property/${property.id}`}
-                          className="block group"
-                        >
-                          <div className="overflow-hidden rounded-2xl border-2 border-border bg-background hover:border-primary/50 transition-all duration-300 hover:shadow-xl">
-                            <div className="aspect-[16/10] relative bg-muted">
-                              {property.Documents?.[0]?.document_file_url ? (
-                                <Image
-                                  src={property.Documents[0].document_file_url}
-                                  alt={property.property_name}
-                                  fill
-                                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                              ) : (
-                                <div className="flex items-center justify-center h-full">
-                                  <Building2 className="h-12 w-12 text-muted-foreground/50" aria-hidden />
-                                </div>
-                              )}
-                              {property.transaction_type && (
-                                <Badge
-                                  className={`absolute top-3 left-3 text-xs shadow-lg ${
-                                    property.transaction_type === "SALE"
-                                      ? "bg-success hover:bg-success text-white"
-                                      : "bg-primary hover:bg-primary text-white"
-                                  }`}
-                                >
-                                  {getTransactionTypeLabel(property.transaction_type)}
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="p-5">
-                              <h3 className="font-semibold truncate text-foreground group-hover:text-primary transition-colors">
-                                {property.property_name}
-                              </h3>
-                              {(property.address_city || property.address_state) && (
-                                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-                                  <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden />
-                                  <span className="truncate">
-                                    {[property.address_city, property.address_state]
-                                      .filter(Boolean)
-                                      .join(", ")}
-                                  </span>
-                                </p>
-                              )}
-                              <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                                {property.bedrooms && (
-                                  <span className="flex items-center gap-1">
-                                    <BedDouble className="h-4 w-4" aria-hidden />
-                                    {property.bedrooms}
-                                  </span>
-                                )}
-                                {property.bathrooms && (
-                                  <span className="flex items-center gap-1">
-                                    <Bath className="h-4 w-4" aria-hidden />
-                                    {property.bathrooms}
-                                  </span>
-                                )}
-                                {property.size_net_sqm && (
-                                  <span className="flex items-center gap-1">
-                                    <Ruler className="h-4 w-4" aria-hidden />
-                                    {Number(property.size_net_sqm)}{" "}
-                                    {t("agentProfile.sqm")}
-                                  </span>
-                                )}
-                              </div>
-                              {property.price && (
-                                <p className="text-xl font-bold text-primary mt-4">
-                                  {formatPrice(Number(property.price))}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    viewport={{ once: true }}
-                    className="border-2 border-dashed rounded-2xl bg-background border-border"
-                  >
-                    <div className="py-16 text-center">
-                      <div className="rounded-full w-20 h-20 bg-muted flex items-center justify-center mx-auto mb-4">
-                        <Building2 className="h-10 w-10 text-muted-foreground" aria-hidden />
-                      </div>
-                      <p className="text-foreground font-medium text-lg">
-                        {t("agentProfile.noPropertiesAvailable")}
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </motion.div>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Pencil, Check, X } from "lucide-react";
@@ -10,13 +11,15 @@ import { Button } from "@/components/ui/button";
 
 interface PriceCellProps {
   propertyId: string;
-  price: number | null | undefined;
+  price: number | string | null | undefined;
 }
 
 export const PriceCell = ({ propertyId, price }: PriceCellProps) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [editValue, setEditValue] = useState<string>(price?.toString() || "");
+  const numericPrice = price !== null && price !== undefined && price !== "" ? Number(price) : null;
+  const [editValue, setEditValue] = useState<string>(numericPrice?.toString() || "");
   const inputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations("mls");
 
@@ -44,7 +47,7 @@ export const PriceCell = ({ propertyId, price }: PriceCellProps) => {
       toast.success(t("MlsPropertiesTable.priceUpdated") || "Price updated");
       setIsEditing(false);
       // Refresh the page to show updated data
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       toast.error("Error updating price");
     } finally {
@@ -53,7 +56,7 @@ export const PriceCell = ({ propertyId, price }: PriceCellProps) => {
   };
 
   const handleCancel = () => {
-    setEditValue(price?.toString() || "");
+    setEditValue(numericPrice?.toString() || "");
     setIsEditing(false);
   };
 
@@ -116,7 +119,7 @@ export const PriceCell = ({ propertyId, price }: PriceCellProps) => {
       onClick={() => setIsEditing(true)}
       className="group flex items-center gap-2 whitespace-nowrap cursor-pointer hover:bg-muted/50 rounded px-2 py-1 -mx-2 transition-colors"
     >
-      <span>{formatPrice(price)}</span>
+      <span>{formatPrice(numericPrice)}</span>
       <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
     </button>
   );

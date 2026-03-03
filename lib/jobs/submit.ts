@@ -25,15 +25,13 @@ import type {
 // Type Mapping
 // ===========================================
 
-const JOB_TYPE_TO_PRISMA: Record<JobType, 'MARKET_INTEL_SCRAPE' | 'NEWSLETTER_SEND' | 'PORTAL_PUBLISH_XE' | 'BULK_EXPORT'> = {
-  'market-intel-scrape': 'MARKET_INTEL_SCRAPE',
+const JOB_TYPE_TO_PRISMA: Record<JobType, 'NEWSLETTER_SEND' | 'PORTAL_PUBLISH_XE' | 'BULK_EXPORT'> = {
   'newsletter-send': 'NEWSLETTER_SEND',
   'portal-publish-xe': 'PORTAL_PUBLISH_XE',
   'bulk-export': 'BULK_EXPORT',
 };
 
 const PRISMA_TO_JOB_TYPE: Record<string, JobType> = {
-  'MARKET_INTEL_SCRAPE': 'market-intel-scrape',
   'NEWSLETTER_SEND': 'newsletter-send',
   'PORTAL_PUBLISH_XE': 'portal-publish-xe',
   'BULK_EXPORT': 'bulk-export',

@@ -73,6 +73,7 @@ interface UsernameOrgStepDict {
   usernameHint: string;
   usernameAvailable: string;
   usernameTaken: string;
+  usernameReserved: string;
   usernameChecking: string;
   usernameInvalid: string;
   usernameDisplay?: string;
@@ -87,6 +88,7 @@ interface UsernameOrgStepDict {
   orgSlugLabel: string;
   orgSlugPlaceholder: string;
   orgSlugHint: string;
+  orgSlugReserved: string;
 }
 
 interface NotificationOptionDict {
@@ -169,8 +171,10 @@ interface OnboardingStepsProps {
       completionFailed: string;
       orgCreationFailed: string;
       usernameTaken: string;
+      usernameReserved: string;
       profileUpdateFailed: string;
       orgSlugTaken: string;
+      orgNameReserved: string;
     };
   };
   locale: string;

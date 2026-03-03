@@ -855,25 +855,5 @@
       "copied": "Αντιγράφηκε στο πρόχειρο",
       "loadError": "Αποτυχία φόρτωσης ρυθμίσεων"
     }
-  },
-  "organizationsExt": {
-    "marketIntel": {
-      "columnHeader": "M.I.",
-      "active": "Ενεργό",
-      "grantAccess": "Χορήγηση πρόσβασης Market Intelligence",
-      "revokeAccess": "Ανάκληση πρόσβασης Market Intelligence",
-      "accessGranted": "Χορηγήθηκε πρόσβαση Market Intel",
-      "accessRevoked": "Ανακλήθηκε πρόσβαση Market Intel",
-      "updateError": "Αποτυχία ενημέρωσης πρόσβασης"
-    },
-    "ai": {
-      "columnHeader": "AI",
-      "active": "Ενεργό",
-      "grantAccess": "Χορήγηση πρόσβασης AI",
-      "revokeAccess": "Ανάκληση πρόσβασης AI",
-      "accessGranted": "Χορηγήθηκε πρόσβαση AI",
-      "accessRevoked": "Ανακλήθηκε πρόσβαση AI",
-      "updateError": "Αποτυχία ενημέρωσης πρόσβασης"
-    }
   }
 }

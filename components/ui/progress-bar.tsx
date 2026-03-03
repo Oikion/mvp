@@ -16,7 +16,7 @@ interface ProgressBarProps {
   onStepClick?: (stepId: number) => void;
 }
 
-export function ProgressBar({ steps, currentStep, className, onStepClick }: ProgressBarProps) {
+export function ProgressBar({ steps, currentStep, className, onStepClick }: Readonly<ProgressBarProps>) {
   return (
     <div className={cn("w-full", className)}>
       <div className="flex items-start justify-between mb-4 relative">
@@ -47,36 +47,48 @@ export function ProgressBar({ steps, currentStep, className, onStepClick }: Prog
 
         {/* Steps container - on top */}
         <div className="flex items-start justify-between w-full relative z-10">
-          {steps.map((step) => (
-            <div 
-              key={step.id} 
-              className={cn(
-                "flex flex-col items-center flex-1 group",
-                onStepClick && "cursor-pointer"
-              )}
-              onClick={() => onStepClick?.(step.id)}
-            >
-              {/* Icon circle - solid background to hide line behind */}
-              <div className="bg-card rounded-full">
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm relative z-10 transition-colors",
-                    currentStep === step.id
-                      ? "bg-primary text-primary-foreground"
-                      : currentStep > step.id
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground group-hover:bg-muted/80"
-                  )}
-                >
-                  {currentStep > step.id ? "✓" : step.id}
+          {steps.map((step) => {
+            const stepContent = (
+              <>
+                {/* Icon circle - solid background to hide line behind */}
+                <div className="bg-card rounded-full">
+                  <div
+                    className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm relative z-10 transition-colors",
+                      currentStep === step.id
+                        ? "bg-primary text-primary-foreground"
+                        : currentStep > step.id
+                        ? "bg-primary/20 text-primary"
+                        : "bg-muted text-muted-foreground group-hover:bg-muted/80"
+                    )}
+                  >
+                    {currentStep > step.id ? "✓" : step.id}
+                  </div>
                 </div>
+                {/* Label */}
+                <div className="text-xs mt-2 text-center max-w-[120px] text-muted-foreground group-hover:text-foreground transition-colors">
+                  {step.title}
+                </div>
+              </>
+            );
+            return onStepClick ? (
+              <button
+                key={step.id}
+                type="button"
+                className={cn(
+                  "flex flex-col items-center flex-1 group cursor-pointer border-0 bg-transparent p-0 text-left"
+                )}
+                onClick={() => onStepClick(step.id)}
+                aria-label={`Go to step ${step.id}: ${step.title}`}
+              >
+                {stepContent}
+              </button>
+            ) : (
+              <div key={step.id} className="flex flex-col items-center flex-1 group">
+                {stepContent}
               </div>
-              {/* Label */}
-              <div className="text-xs mt-2 text-center max-w-[120px] text-muted-foreground group-hover:text-foreground transition-colors">
-                {step.title}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       {steps[currentStep - 1]?.description && (

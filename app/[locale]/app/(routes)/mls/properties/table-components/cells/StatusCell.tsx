@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ const statuses = [
 ];
 
 export const StatusCell = ({ propertyId, status }: StatusCellProps) => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const t = useTranslations("mls");
 
@@ -41,7 +43,7 @@ export const StatusCell = ({ propertyId, status }: StatusCellProps) => {
       });
       toast.success(t("MlsPropertiesTable.statusUpdated") || "Status updated");
       // Refresh the page to show updated data
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       toast.error("Error updating status");
     } finally {

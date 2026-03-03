@@ -28,6 +28,15 @@ export interface ContactFormSettings {
 /**
  * Default contact form fields
  */
+/**
+ * Parse contact form fields from a JSON value (as stored in Prisma Json column)
+ * Returns the fields array if valid, otherwise returns the defaults.
+ */
+export function parseContactFormFields(value: unknown): ContactFormField[] {
+  if (!value || !Array.isArray(value)) return DEFAULT_CONTACT_FORM_FIELDS;
+  return value as ContactFormField[];
+}
+
 export const DEFAULT_CONTACT_FORM_FIELDS: ContactFormField[] = [
   {
     id: "name",

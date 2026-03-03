@@ -69,9 +69,13 @@ const CLIENT_ENCRYPTED_STRING_FIELDS = [
   "secondary_email",
   "primary_phone",
   "secondary_phone",
+  "office_phone",
+  "fax",
   "afm",
   "vat",
+  "doy",
   "id_doc",
+  "company_gemi",
   "description",
   "billing_street",
   "billing_city",
@@ -176,43 +180,6 @@ export function decryptCalendarEvent<T extends CalendarWithEncryptedFields>(reco
   return result as T;
 }
 
-// ─────────────────────────────────────────────
-// AiConversation
-// ─────────────────────────────────────────────
-
-type AiConversationWithEncryptedFields = {
-  title?: string | null;
-  messages?: Prisma.JsonValue | null;
-  context?: Prisma.JsonValue | null;
-};
-
-export function encryptAiConversation<T extends AiConversationWithEncryptedFields>(data: T): T {
-  const result = { ...data };
-  if ("title" in result && result.title != null) {
-    result.title = encryptField(result.title as string) as string | null | undefined;
-  }
-  if ("messages" in result && result.messages != null) {
-    result.messages = encryptJson(result.messages as Prisma.JsonValue);
-  }
-  if ("context" in result && result.context != null) {
-    result.context = encryptJson(result.context as Prisma.JsonValue);
-  }
-  return result as T;
-}
-
-export function decryptAiConversation<T extends AiConversationWithEncryptedFields>(record: T): T {
-  const result = { ...record };
-  if ("title" in result && result.title != null) {
-    result.title = decryptField(result.title as string) as string | null | undefined;
-  }
-  if ("messages" in result && result.messages != null) {
-    result.messages = decryptJson(result.messages as Prisma.JsonValue);
-  }
-  if ("context" in result && result.context != null) {
-    result.context = decryptJson(result.context as Prisma.JsonValue);
-  }
-  return result as T;
-}
 
 // ─────────────────────────────────────────────
 // Documents
@@ -416,41 +383,6 @@ export async function decryptCalendarEventForOrg<T extends CalendarWithEncrypted
   return result as T;
 }
 
-export async function encryptAiConversationForOrg<T extends AiConversationWithEncryptedFields>(
-  data: T,
-  orgId: string
-): Promise<T> {
-  const dek = await getOrgDek(orgId);
-  const result = { ...data };
-  if ("title" in result && result.title != null) {
-    result.title = encryptFieldWithKey(result.title as string, dek);
-  }
-  if ("messages" in result && result.messages != null) {
-    result.messages = encryptJsonWithKey(result.messages as Prisma.JsonValue, dek);
-  }
-  if ("context" in result && result.context != null) {
-    result.context = encryptJsonWithKey(result.context as Prisma.JsonValue, dek);
-  }
-  return result as T;
-}
-
-export async function decryptAiConversationForOrg<T extends AiConversationWithEncryptedFields>(
-  record: T,
-  orgId: string
-): Promise<T> {
-  const dek = await getOrgDek(orgId);
-  const result = { ...record };
-  if ("title" in result && result.title != null) {
-    result.title = decryptFieldWithKey(result.title as string, dek);
-  }
-  if ("messages" in result && result.messages != null) {
-    result.messages = decryptJsonWithKey(result.messages as Prisma.JsonValue, dek);
-  }
-  if ("context" in result && result.context != null) {
-    result.context = decryptJsonWithKey(result.context as Prisma.JsonValue, dek);
-  }
-  return result as T;
-}
 
 export async function encryptDocumentForOrg<T extends DocumentWithEncryptedFields>(
   data: T,

@@ -26,9 +26,9 @@ export function getNormalizedReservedValue(
   switch (type) {
     case "USERNAME":
       return normalizeUsername(value);
-    case "ORGANIZATION_NAME":
+    case "ORG_NAME":
       return normalizeOrgName(value);
-    case "ORGANIZATION_SLUG":
+    case "ORG_SLUG":
       return normalizeOrgSlug(value);
     default:
       return "";

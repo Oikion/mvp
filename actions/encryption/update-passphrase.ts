@@ -67,7 +67,7 @@ export async function updateEncryptionPassphrase(
     return actionSuccess();
   } catch (error) {
     console.error("[UPDATE_PASSPHRASE]", error);
-    return actionError("Failed to update passphrase", error);
+    return actionError("Failed to update passphrase", error as Error);
   }
 }
 
@@ -112,6 +112,6 @@ export async function getWrappedKeyForVerification(): Promise<
     });
   } catch (error) {
     console.error("[GET_WRAPPED_KEY]", error);
-    return actionError("Failed to get key", error);
+    return actionError("Failed to get key", error as Error);
   }
 }

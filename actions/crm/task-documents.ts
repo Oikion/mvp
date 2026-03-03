@@ -58,7 +58,7 @@ export async function connectDocumentToTask(
     return actionSuccess();
   } catch (error) {
     console.error("[CONNECT_DOCUMENT_TO_TASK]", error);
-    return actionError("Failed to connect document", error);
+    return actionError("Failed to connect document", error as Error);
   }
 }
 
@@ -97,6 +97,6 @@ export async function disconnectDocumentFromTask(
     return actionSuccess();
   } catch (error) {
     console.error("[DISCONNECT_DOCUMENT_FROM_TASK]", error);
-    return actionError("Failed to disconnect document", error);
+    return actionError("Failed to disconnect document", error as Error);
   }
 }

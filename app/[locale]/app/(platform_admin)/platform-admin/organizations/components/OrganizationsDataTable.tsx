@@ -25,9 +25,6 @@ import {
   AlertTriangle,
   Ban,
   Trash2,
-  TrendingUp,
-  Loader2,
-  Sparkles,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -49,16 +46,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { OrganizationActionDialog } from "./OrganizationActionDialog";
-import { toast } from "sonner";
 import type { PlatformOrganization } from "@/actions/platform-admin/get-organizations";
 
 interface OrganizationsDataTableProps {
@@ -92,112 +80,6 @@ export function OrganizationsDataTable({
   const [selectedOrg, setSelectedOrg] = React.useState<PlatformOrganization | null>(null);
   const [actionType, setActionType] = React.useState<"warnAll" | "suspendAll" | "deleteOrg">("warnAll");
   
-  // Market Intel access state
-  const [marketIntelAccess, setMarketIntelAccess] = React.useState<Record<string, boolean>>({});
-  const [loadingMarketIntel, setLoadingMarketIntel] = React.useState<Record<string, boolean>>({});
-  
-  // AI access state
-  const [aiAccess, setAiAccess] = React.useState<Record<string, boolean>>({});
-  const [loadingAi, setLoadingAi] = React.useState<Record<string, boolean>>({});
-
-  // Load Market Intel access status on mount
-  React.useEffect(() => {
-    const loadMarketIntelStatus = async () => {
-      try {
-        const res = await fetch("/api/platform-admin/features?feature=market_intel");
-        if (res.ok) {
-          const data = await res.json();
-          const accessMap: Record<string, boolean> = {};
-          for (const feature of data.features || []) {
-            accessMap[feature.organizationId] = feature.isEnabled;
-          }
-          setMarketIntelAccess(accessMap);
-        }
-      } catch (error) {
-        console.error("Failed to load Market Intel access:", error);
-      }
-    };
-    loadMarketIntelStatus();
-  }, []);
-
-  // Load AI access status on mount
-  React.useEffect(() => {
-    const loadAiStatus = async () => {
-      try {
-        const res = await fetch("/api/platform-admin/features?feature=ai_assistant");
-        if (res.ok) {
-          const data = await res.json();
-          const accessMap: Record<string, boolean> = {};
-          for (const feature of data.features || []) {
-            accessMap[feature.organizationId] = feature.isEnabled;
-          }
-          setAiAccess(accessMap);
-        }
-      } catch (error) {
-        console.error("Failed to load AI access:", error);
-      }
-    };
-    loadAiStatus();
-  }, []);
-
-  // Toggle Market Intel access
-  const toggleMarketIntelAccess = async (orgId: string, currentValue: boolean) => {
-    setLoadingMarketIntel(prev => ({ ...prev, [orgId]: true }));
-    try {
-      const res = await fetch("/api/platform-admin/features", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organizationId: orgId,
-          feature: "market_intel",
-          isEnabled: !currentValue
-        })
-      });
-
-      if (res.ok) {
-        setMarketIntelAccess(prev => ({ ...prev, [orgId]: !currentValue }));
-        toast.success(!currentValue ? "Market Intel access granted" : "Market Intel access revoked");
-      } else {
-        const data = await res.json();
-        toast.error(data.error || "Failed to update access");
-      }
-    } catch (error) {
-      console.error("Failed to toggle Market Intel access:", error);
-      toast.error("Failed to update access");
-    } finally {
-      setLoadingMarketIntel(prev => ({ ...prev, [orgId]: false }));
-    }
-  };
-
-  // Toggle AI access
-  const toggleAiAccess = async (orgId: string, currentValue: boolean) => {
-    setLoadingAi(prev => ({ ...prev, [orgId]: true }));
-    try {
-      const res = await fetch("/api/platform-admin/features", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organizationId: orgId,
-          feature: "ai_assistant",
-          isEnabled: !currentValue
-        })
-      });
-
-      if (res.ok) {
-        setAiAccess(prev => ({ ...prev, [orgId]: !currentValue }));
-        toast.success(!currentValue ? t("organizationsExt.ai.accessGranted") : t("organizationsExt.ai.accessRevoked"));
-      } else {
-        const data = await res.json();
-        toast.error(data.error || t("organizationsExt.ai.updateError"));
-      }
-    } catch (error) {
-      console.error("Failed to toggle AI access:", error);
-      toast.error(t("organizationsExt.ai.updateError"));
-    } finally {
-      setLoadingAi(prev => ({ ...prev, [orgId]: false }));
-    }
-  };
-
   // Update URL with search params
   const updateSearchParams = React.useCallback(
     (params: Record<string, string>) => {
@@ -284,90 +166,6 @@ export function OrganizationsDataTable({
           {row.original.id.slice(0, 16)}...
         </span>
       ),
-    },
-    {
-      id: "marketIntel",
-      header: () => (
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-4 w-4" />
-          <span>M.I.</span>
-        </div>
-      ),
-      cell: ({ row }) => {
-        const orgId = row.original.id;
-        const hasAccess = marketIntelAccess[orgId] ?? false;
-        const isLoading = loadingMarketIntel[orgId] ?? false;
-
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Switch
-                      checked={hasAccess}
-                      onCheckedChange={() => toggleMarketIntelAccess(orgId, hasAccess)}
-                      className="data-[state=checked]:bg-cyan-500"
-                    />
-                  )}
-                  {hasAccess && (
-                    <Badge variant="secondary" className="text-xs bg-cyan-100 text-cyan-700">
-                      Active
-                    </Badge>
-                  )}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{hasAccess ? "Revoke Market Intelligence access" : "Grant Market Intelligence access"}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        );
-      },
-    },
-    {
-      id: "ai",
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4" />
-          <span>AI</span>
-        </div>
-      ),
-      cell: ({ row }) => {
-        const orgId = row.original.id;
-        const hasAccess = aiAccess[orgId] ?? false;
-        const isLoading = loadingAi[orgId] ?? false;
-
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Switch
-                      checked={hasAccess}
-                      onCheckedChange={() => toggleAiAccess(orgId, hasAccess)}
-                      className="data-[state=checked]:bg-purple-500"
-                    />
-                  )}
-                  {hasAccess && (
-                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
-                      {t("organizationsExt.ai.active")}
-                    </Badge>
-                  )}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{hasAccess ? t("organizationsExt.ai.revokeAccess") : t("organizationsExt.ai.grantAccess")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        );
-      },
     },
     {
       id: "actions",

@@ -129,11 +129,6 @@ export async function deleteAccount(
         where: { userId },
       });
 
-      // Delete AI conversations
-      await tx.aiConversation.deleteMany({
-        where: { userId },
-      });
-
       // Finally, delete the user record
       await tx.users.delete({
         where: { id: userId },
@@ -159,7 +154,7 @@ export async function deleteAccount(
     return actionSuccess();
   } catch (error) {
     console.error("[DELETE_ACCOUNT]", error);
-    return actionError("Failed to delete account", error);
+    return actionError("Failed to delete account", error as Error);
   }
 }
 
@@ -298,13 +293,6 @@ export async function deleteOrganization(
         where: { organizationId },
       });
 
-      // =============================================================================
-      // Step 11: Delete AI and automation data
-      // =============================================================================
-      await tx.aiConversation.deleteMany({
-        where: { organizationId },
-      });
-
       await tx.backgroundJob.deleteMany({
         where: { organizationId },
       });
@@ -345,6 +333,6 @@ export async function deleteOrganization(
     return actionSuccess();
   } catch (error) {
     console.error("[DELETE_ORGANIZATION]", error);
-    return actionError("Failed to delete organization", error); 
+    return actionError("Failed to delete organization", error as Error);
   }
 }

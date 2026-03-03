@@ -41,7 +41,7 @@ export async function getAgencyContactFormSettings(): Promise<
     });
   } catch (err) {
     console.error("[GET_AGENCY_CONTACT_FORM_SETTINGS]", err);
-    return actionError("Failed to load contact form settings", err);
+    return actionError("Failed to load contact form settings", err as Error);
   }
 }
 
@@ -76,7 +76,7 @@ export async function updateAgencyContactFormSettings(
     return actionSuccess();
   } catch (err) {
     console.error("[UPDATE_AGENCY_CONTACT_FORM_SETTINGS]", err);
-    return actionError("Failed to update contact form settings", err);
+    return actionError("Failed to update contact form settings", err as Error);
   }
 }
 
@@ -116,6 +116,6 @@ export async function submitAgencyContactForm(
     return actionSuccess();
   } catch (err) {
     console.error("[SUBMIT_AGENCY_CONTACT_FORM]", err);
-    return actionError("Failed to submit contact form", err);
+    return actionError("Failed to submit contact form", err as Error);
   }
 }

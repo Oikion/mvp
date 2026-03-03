@@ -21,12 +21,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Lock, Shield, Globe, Building2, MapPin, Home, Mail, Share2, Plus, Trash2, GripVertical } from "lucide-react";
+import { Loader2, Lock, Shield, Globe, Building2, MapPin, Mail, Share2, Plus, Trash2, GripVertical } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 
 import type { AgencyProfile } from "@prisma/client";
-import { ShowcasePropertyManager } from "./ShowcasePropertyManager";
 import { LogoUpload } from "./LogoUpload";
 import { upsertAgencyProfile, type AgencyProfileInput } from "@/actions/organization/agency-profile";
 import {
@@ -64,8 +63,6 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface AgencyProfileEditorProps {
   profile: AgencyProfile | null;
-  showcaseProperties: unknown[];
-  availableProperties: unknown[];
   clerkOrgName: string;
   clerkOrgSlug: string;
   onSave?: () => void;
@@ -109,8 +106,6 @@ const FIELD_TYPE_OPTIONS: { value: ContactFormFieldType; label: string }[] = [
 
 export function AgencyProfileEditor({
   profile,
-  showcaseProperties: _showcaseProperties,
-  availableProperties: _availableProperties,
   clerkOrgName,
   clerkOrgSlug,
   onSave,
@@ -268,7 +263,7 @@ export function AgencyProfileEditor({
 
   return (
     <Tabs defaultValue="profile" className="w-full">
-      <TabsList className="inline-grid grid-cols-5 mb-6">
+      <TabsList className="inline-grid grid-cols-4 mb-6">
         <TabsTrigger value="profile">
           <Building2 className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Profile</span>
@@ -276,10 +271,6 @@ export function AgencyProfileEditor({
         <TabsTrigger value="location">
           <MapPin className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Location</span>
-        </TabsTrigger>
-        <TabsTrigger value="showcase">
-          <Home className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">Showcase</span>
         </TabsTrigger>
         <TabsTrigger value="contact">
           <Mail className="h-4 w-4 shrink-0" />
@@ -616,10 +607,6 @@ export function AgencyProfileEditor({
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="showcase" className="space-y-6">
-            <ShowcasePropertyManager profileSlug={profile?.slug} />
           </TabsContent>
 
           <TabsContent value="contact" className="space-y-6">

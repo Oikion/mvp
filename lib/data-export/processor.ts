@@ -67,18 +67,14 @@ export async function processDataExportRequest(requestId: string): Promise<Expor
     const request = await prismadb.dataExportRequest.update({
       where: { id: requestId },
       data: { status: DataExportStatus.PROCESSING },
-      include: {
-        RequestedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
     });
 
-    const { organizationId, RequestedBy: user } = request;
+    const { organizationId, requestedById } = request;
+    const userRecord = await prismadb.users.findUnique({
+      where: { id: requestedById },
+      select: { id: true, name: true, email: true },
+    });
+    const user = userRecord ?? { id: requestedById, name: null, email: "" };
 
     // Fetch all organization data
     const exportData = await fetchOrganizationData(organizationId, user);
@@ -114,7 +110,6 @@ export async function processDataExportRequest(requestId: string): Promise<Expor
         status: DataExportStatus.COMPLETED,
         downloadUrl,
         expiresAt,
-        completedAt: new Date(),
       },
     });
 
@@ -132,7 +127,6 @@ export async function processDataExportRequest(requestId: string): Promise<Expor
       where: { id: requestId },
       data: {
         status: DataExportStatus.FAILED,
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
       },
     });
 

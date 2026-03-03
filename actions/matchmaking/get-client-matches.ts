@@ -134,7 +134,7 @@ export async function getClientMatches(
   const propertiesForMatching: PropertyForMatching[] = properties.map(p => ({
     id: p.id,
     property_name: p.property_name,
-    price: p.price,
+    price: p.price !== null && p.price !== undefined ? Number(p.price) : null,
     property_type: p.property_type as PropertyForMatching["property_type"],
     transaction_type: p.transaction_type as PropertyForMatching["transaction_type"],
     property_status: p.property_status as PropertyForMatching["property_status"],
@@ -146,7 +146,7 @@ export async function getClientMatches(
     bathrooms: p.bathrooms,
     size_net_sqm: p.size_net_sqm,
     size_gross_sqm: p.size_gross_sqm,
-    square_feet: p.square_feet,
+    square_feet: p.square_feet !== null && p.square_feet !== undefined ? Number(p.square_feet) : null,
     floor: p.floor,
     elevator: p.elevator,
     accepts_pets: p.accepts_pets,
@@ -179,7 +179,7 @@ export async function getClientMatches(
       property: {
         id: property.id,
         property_name: property.property_name,
-        price: property.price,
+        price: property.price !== null && property.price !== undefined ? Number(property.price) : null,
         property_type: property.property_type as MatchResultWithProperty["property"]["property_type"],
         bedrooms: property.bedrooms,
         area: property.area,

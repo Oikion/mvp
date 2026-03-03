@@ -378,7 +378,7 @@ export function AudienceMemberManager({
       <QuickAddClient
         open={quickAddClientOpen}
         onOpenChange={setQuickAddClientOpen}
-        users={orgUsers}
+        organizationUsers={orgUsers.map(u => ({ ...u, name: u.name ?? "" }))}
         onContinueToFull={handleClientCreated}
       />
     </Dialog>

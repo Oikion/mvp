@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,7 @@ const visibilities = [
 ];
 
 export const VisibilityCell = ({ propertyId, visibility }: VisibilityCellProps) => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const t = useTranslations("mls");
 
@@ -39,7 +41,7 @@ export const VisibilityCell = ({ propertyId, visibility }: VisibilityCellProps) 
       });
       toast.success(t("MlsPropertiesTable.visibilityUpdated") || "Visibility updated");
       // Refresh the page to show updated data
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       toast.error("Error updating visibility");
     } finally {

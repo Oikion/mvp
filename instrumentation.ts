@@ -1,5 +1,3 @@
-import { registerOTel } from "@vercel/otel";
-
 export function register() {
-  registerOTel({ serviceName: "oikion-mvp" });
+  // OpenTelemetry registration (disabled — @vercel/otel not installed)
 }

@@ -23,6 +23,7 @@ const VALID_LEGALIZATION_STATUSES = new Set(["LEGALIZED", "IN_PROGRESS", "UNDECL
 const VALID_FURNISHED_STATUSES = new Set(["NO", "PARTIALLY", "FULLY"]);
 const VALID_PRICE_TYPES = new Set(["RENTAL", "SALE", "PER_ACRE", "PER_SQM"]);
 const VALID_PORTAL_VISIBILITIES = new Set(["PRIVATE", "SELECTED", "PUBLIC"]);
+const VALID_FRONTAGE_TYPES = new Set(["MAIN_ROAD", "SECONDARY_ROAD", "PEDESTRIAN", "CORNER", "SQUARE", "CUL_DE_SAC", "NONE"]);
 
 // Map form property_status values to Prisma enum values
 const PROPERTY_STATUS_MAP: Record<string, string> = {
@@ -107,8 +108,14 @@ export async function POST(req: Request) {
       building_permit_no,
       building_permit_year,
       land_registry_kaek,
+      land_registry_office,
+      building_block_ot,
       legalization_status,
       etaireia_diaxeirisis,
+      region,
+      regional_unit,
+      objective_zone,
+      frontage_type,
       monthly_common_charges,
       amenities,
       orientation,
@@ -145,7 +152,12 @@ export async function POST(req: Request) {
     if (floor !== undefined) data.floor = nullIfEmpty(floor);
     if (building_permit_no !== undefined) data.building_permit_no = nullIfEmpty(building_permit_no);
     if (land_registry_kaek !== undefined) data.land_registry_kaek = nullIfEmpty(land_registry_kaek);
+    if (land_registry_office !== undefined) data.land_registry_office = nullIfEmpty(land_registry_office);
+    if (building_block_ot !== undefined) data.building_block_ot = nullIfEmpty(building_block_ot);
     if (etaireia_diaxeirisis !== undefined) data.etaireia_diaxeirisis = nullIfEmpty(etaireia_diaxeirisis);
+    if (region !== undefined) data.region = nullIfEmpty(region);
+    if (regional_unit !== undefined) data.regional_unit = nullIfEmpty(regional_unit);
+    if (objective_zone !== undefined) data.objective_zone = nullIfEmpty(objective_zone);
     if (accessibility !== undefined) data.accessibility = nullIfEmpty(accessibility);
     if (description !== undefined) data.description = nullIfEmpty(description);
     if (assigned_to !== undefined) data.assigned_to = nullIfEmpty(assigned_to);
@@ -213,6 +225,9 @@ export async function POST(req: Request) {
         data.portal_visibility = portal_visibility;
       }
     }
+    if (frontage_type !== undefined && frontage_type !== null && frontage_type !== "" && VALID_FRONTAGE_TYPES.has(frontage_type)) {
+      data.frontage_type = frontage_type;
+    }
 
     // Boolean fields
     if (is_exclusive !== undefined) data.is_exclusive = is_exclusive === true || is_exclusive === "true";
@@ -254,10 +269,7 @@ export async function POST(req: Request) {
     }
 
     // Encrypt owner-sensitive fields with per-org DEK
-    if (data.primary_email !== undefined) {
-      const enc = await encryptPropertyForOrg({ primary_email: data.primary_email }, organizationId);
-      data.primary_email = enc.primary_email;
-    }
+    Object.assign(data, await encryptPropertyForOrg(data, organizationId));
 
     let property;
 
