@@ -152,13 +152,14 @@ function NavMainMenuItem({
   // Get notification count for this item
   const notificationCount = item.notificationKey ? notificationCounts[item.notificationKey] ?? 0 : 0
 
+  const normalizedCurrentPath = currentPath.split('?')[0].split('#')[0].replace(/\/$/, '')
+
   // Derive parent button active state:
   // When a sub-item exactly matches the current path, suppress parent highlight.
   // The Collapsible defaultOpen still uses item.isActive (prefix match) for auto-expand.
-  const normalizedCurrentPathForParent = currentPath.split('?')[0].split('#')[0].replace(/\/$/, '')
   const hasActiveSubItem =
     (item.items ?? []).some(
-      (sub) => normalizedCurrentPathForParent === sub.url.replace(/\/$/, '')
+      (sub) => normalizedCurrentPath === sub.url.replace(/\/$/, '')
     )
   const isParentButtonActive = item.items?.length
     ? !hasActiveSubItem && !!item.isActive
@@ -216,7 +217,6 @@ function NavMainMenuItem({
                 {item.items.map((subItem, subIndex) => {
                   // Check if sub-item is active by exact pathname matching
                   // Remove query params and hash, normalize trailing slashes
-                  const normalizedCurrentPath = currentPath.split('?')[0].split('#')[0].replace(/\/$/, '')
                   const normalizedSubItemUrl = subItem.url.replace(/\/$/, '')
                   const isSubItemActive = normalizedCurrentPath === normalizedSubItemUrl
                   return (
