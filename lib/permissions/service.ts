@@ -94,60 +94,56 @@ async function getOrganizationRolePermissions(
 }
 
 /**
- * Get module access for a user, combining role defaults with user-specific overrides
+ * Get module access for a user, combining role defaults with user-specific overrides.
+ * Always applies the org-level "network" feature flag at the end, regardless of role.
  */
 async function getUserModuleAccess(
   organizationId: string,
   userId: string,
   role: OrgRole
 ): Promise<ModuleId[]> {
-  // Owners and Leads always have access to all modules
-  if (role === OrgRole.OWNER || role === OrgRole.LEAD) {
-    return [...ALL_MODULES];
-  }
-
-  // Members have access to all modules except admin-specific ones
-  if (role === OrgRole.MEMBER) {
-    return ALL_MODULES.filter((m) => m !== "admin");
-  }
-
-  // For Viewers, check role-level and user-level access
-
-  // Get role-level module access
-  const roleAccess = await prismadb.roleModuleAccess.findMany({
-    where: {
-      organizationId,
-      role,
-    },
-  });
-
-  // Get user-level overrides
-  const userAccess = await prismadb.userModuleAccess.findMany({
-    where: {
-      organizationId,
-      userId,
-    },
-  });
-
-  // Start with default viewer modules if no role-level config exists
+  // Build base module set from role
   let modules: Set<ModuleId>;
-  if (roleAccess.length === 0) {
-    modules = new Set(DEFAULT_VIEWER_MODULES);
+
+  if (role === OrgRole.OWNER || role === OrgRole.LEAD) {
+    modules = new Set(ALL_MODULES);
+  } else if (role === OrgRole.MEMBER) {
+    modules = new Set(ALL_MODULES.filter((m) => m !== "admin"));
   } else {
-    modules = new Set(
-      roleAccess
-        .filter((r) => r.hasAccess)
-        .map((r) => r.moduleId as ModuleId)
-    );
+    // VIEWER: check role-level and user-level overrides
+    const [roleAccess, userAccess] = await Promise.all([
+      prismadb.roleModuleAccess.findMany({ where: { organizationId, role } }),
+      prismadb.userModuleAccess.findMany({ where: { organizationId, userId } }),
+    ]);
+
+    if (roleAccess.length === 0) {
+      modules = new Set(DEFAULT_VIEWER_MODULES);
+    } else {
+      modules = new Set(
+        roleAccess.filter((r) => r.hasAccess).map((r) => r.moduleId as ModuleId)
+      );
+    }
+
+    for (const access of userAccess) {
+      if (access.hasAccess) {
+        modules.add(access.moduleId as ModuleId);
+      } else {
+        modules.delete(access.moduleId as ModuleId);
+      }
+    }
   }
 
-  // Apply user-level overrides
-  for (const access of userAccess) {
-    if (access.hasAccess) {
-      modules.add(access.moduleId as ModuleId);
-    } else {
-      modules.delete(access.moduleId as ModuleId);
-    }
+  // Org-level feature gate: strip "network" if not enabled for this org.
+  // This applies to all roles — even owners cannot access network on a locked-out org.
+  const networkFeature = await prismadb.organizationFeature.findUnique({
+    where: {
+      organizationId_feature: { organizationId, feature: "network" },
+    },
+    select: { isEnabled: true },
+  });
+
+  if (!networkFeature?.isEnabled) {
+    modules.delete("network");
   }
 
   return Array.from(modules);
