@@ -81,6 +81,7 @@ export const TitleCell = ({ mandateId, value }: TitleCellProps) => {
       <span
         className="font-medium truncate max-w-[200px] cursor-pointer hover:text-primary hover:underline decoration-dotted underline-offset-2 transition-colors"
         onClick={() => {
+          cancelledRef.current = false;
           setInputValue(value ?? "");
           setIsEditing(true);
         }}
