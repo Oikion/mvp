@@ -4,12 +4,14 @@ import { SettingsIcon } from "@/components/ui/SettingsIcon"
 import { ChartBarIcon } from "@/components/ui/ChartBarIcon"
 import { DashboardIcon } from "@/components/ui/DashboardIcon"
 import { ContactRoundIcon } from "@/components/ui/ContactRoundIcon"
+import { ClipboardListIcon } from "@/components/ui/ClipboardListIcon"
 import { FeedbackIcon } from "@/components/ui/FeedbackIcon"
 import { CalendarIcon } from "@/components/ui/CalendarIcon"
 import { FileTextIcon } from "@/components/ui/FileTextIcon"
 // HandCoinsIcon import removed - was used for Deals navigation (retained for future use)
 // import { HandCoinsIcon } from "@/components/ui/HandCoinsIcon"
-import { NetworkIcon } from "@/components/ui/NetworkIcon"
+// NetworkIcon import removed - was used for Connections standalone nav item (merged into Profile)
+// import { NetworkIcon } from "@/components/ui/NetworkIcon"
 import { InboxIcon } from "@/components/ui/InboxIcon"
 import { UserCogIcon } from "@/components/ui/UserCogIcon"
 import { FeedIcon } from "@/components/ui/FeedIcon"
@@ -83,7 +85,7 @@ export function getNavigationConfig({
     return accessibleModules.includes(moduleId)
   }
 
-  // Overview - Dashboard & Feed
+  // Overview - Dashboard & Upcoming
   const overviewItems: NavItem[] = [
     ...(canAccess("dashboard") ? [{
       title: dict.navigation.ModuleMenu.dashboard,
@@ -93,10 +95,10 @@ export function getNavigationConfig({
       moduleId: "dashboard" as ModuleId,
     }] : []),
     ...(canAccess("feed") ? [{
-      title: dict.navigation.ModuleMenu.feed || "Feed",
-      url: "/app/feed",
+      title: dict.navigation.ModuleMenu.feed || "Upcoming",
+      url: "/app/upcoming",
       icon: FeedIcon,
-      isActive: isRouteActive(pathname, "/app/feed", locale),
+      isActive: isRouteActive(pathname, "/app/upcoming", locale),
       moduleId: "feed" as ModuleId,
     }] : []),
   ]
@@ -130,58 +132,61 @@ export function getNavigationConfig({
       moduleId: "crm" as ModuleId,
       notificationKey: "crm",
     }] : []),
+    // Mandates module - buyer/renter briefs (shares CRM permission)
+    ...(canAccess("crm") ? [{
+      title: dict.navigation.ModuleMenu.mandates?.title || "Mandates",
+      url: "/app/mandates",
+      icon: ClipboardListIcon,
+      isActive: isRouteActive(pathname, "/app/mandates", locale),
+      moduleId: "crm" as ModuleId,
+      notificationKey: "mandates",
+    }] : []),
   ]
 
-  // Network - Social Feed, Connections, Audiences, Shared, Deals, Public Profile
-  const networkItems: NavItem[] = [
+  // Network - Feed, Profile, Messages, Audiences, Shared
+  // Outer gate: org must have the "network" feature enabled.
+  // Inner gates: per-user/per-role module access within an enabled org.
+  const networkItems: NavItem[] = canAccess("network") ? [
     ...(canAccess("social") ? [{
-      title: dict.navigation.ModuleMenu.social?.socialFeed || "Social Feed",
-      url: "/app/social-feed",
+      title: dict.navigation.ModuleMenu.social?.feed || "Feed",
+      url: "/app/network/feed",
       icon: SocialFeedIcon,
-      isActive: isRouteActive(pathname, "/app/social-feed", locale),
+      isActive: isRouteActive(pathname, "/app/network/feed", locale),
       moduleId: "social" as ModuleId,
       notificationKey: "socialFeed",
     }] : []),
     ...(canAccess("social") ? [{
-      title: dict.navigation.ModuleMenu.social?.publicProfile || "Public Profile",
-      url: "/app/profile/public",
+      title: dict.navigation.ModuleMenu.social?.profile || "Profile",
+      url: "/app/network/profile",
       icon: UserCogIcon,
-      isActive: isRouteActive(pathname, "/app/profile/public", locale),
-      moduleId: "social" as ModuleId,
-    }] : []),
-    ...(canAccess("social") ? [{
-      title: dict.navigation.ModuleMenu.social?.connections || "Connections",
-      url: "/app/connections",
-      icon: NetworkIcon,
-      isActive: isRouteActive(pathname, "/app/connections", locale),
+      isActive: isRouteActive(pathname, "/app/network/profile", locale),
       moduleId: "social" as ModuleId,
       notificationKey: "connections",
     }] : []),
+    ...(canAccess("social") ? [{
+      title: dict.navigation.ModuleMenu.social?.messages || "Messages",
+      url: "/app/network/messages",
+      icon: MessageCircleIcon,
+      isActive: isRouteActive(pathname, "/app/network/messages", locale),
+      moduleId: "social" as ModuleId,
+      notificationKey: "messages",
+    }] : []),
     ...(canAccess("audiences") ? [{
       title: dict.navigation.ModuleMenu.social?.audiences || "Audiences",
-      url: "/app/audiences",
+      url: "/app/network/audiences",
       icon: UsersIcon,
-      isActive: isRouteActive(pathname, "/app/audiences", locale),
+      isActive: isRouteActive(pathname, "/app/network/audiences", locale),
       moduleId: "audiences" as ModuleId,
     }] : []),
     ...(canAccess("social") ? [{
       title: dict.navigation.ModuleMenu.social?.sharedWithMe || "Shared With Me",
-      url: "/app/shared-with-me",
+      url: "/app/network/shared",
       icon: InboxIcon,
-      isActive: isRouteActive(pathname, "/app/shared-with-me", locale),
+      isActive: isRouteActive(pathname, "/app/network/shared", locale),
       moduleId: "social" as ModuleId,
       notificationKey: "sharedWithMe",
     }] : []),
-    // Deals navigation removed - functionality retained for future use
-    // ...(canAccess("deals") ? [{
-    //   title: dict.navigation.ModuleMenu.social?.deals || "Deals",
-    //   url: "/app/deals",
-    //   icon: HandCoinsIcon,
-    //   isActive: isRouteActive(pathname, "/app/deals", locale),
-    //   moduleId: "deals" as ModuleId,
-    //   notificationKey: "deals",
-    // }] : []),
-  ]
+  ] : []
 
   // Tools - Calendar, Messages, Documents, Reports
   const toolsItems: NavItem[] = [
@@ -192,15 +197,6 @@ export function getNavigationConfig({
       isActive: isRouteActive(pathname, "/app/calendar", locale),
       moduleId: "calendar" as ModuleId,
       notificationKey: "calendar",
-    }] : []),
-    // Messages - always show if user has access (uses "social" permission for now)
-    ...(canAccess("social") ? [{
-      title: dict.navigation.ModuleMenu.messages || "Messages",
-      url: "/app/messages",
-      icon: MessageCircleIcon,
-      isActive: isRouteActive(pathname, "/app/messages", locale),
-      moduleId: "social" as ModuleId, // Using social permission for messaging
-      notificationKey: "messages",
     }] : []),
     ...(canAccess("documents") ? [{
       title: dict.navigation.ModuleMenu.documents,
@@ -234,7 +230,7 @@ export function getNavigationConfig({
       icon: Target,
       isActive: isRouteActive(pathname, "/app/matchmaking", locale),
       badge: "1.0",
-      badgeClassName: "bg-warning hover:bg-orange-600 text-white border-0 shadow-sm",
+      badgeClassName: "bg-warning/15 text-warning border-0 shadow-sm hover:bg-warning/25",
       iconClassName: "text-warning",
       labelClassName: "text-warning dark:text-orange-400 font-semibold",
     }] : []),
