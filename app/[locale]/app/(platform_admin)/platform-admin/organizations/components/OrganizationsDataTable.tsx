@@ -25,6 +25,8 @@ import {
   AlertTriangle,
   Ban,
   Trash2,
+  Network,
+  Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +50,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OrganizationActionDialog } from "./OrganizationActionDialog";
 import type { PlatformOrganization } from "@/actions/platform-admin/get-organizations";
+import { toggleNetworkFeature } from "@/actions/platform-admin/toggle-network-feature";
 
 interface OrganizationsDataTableProps {
   organizations: PlatformOrganization[];
@@ -79,6 +82,9 @@ export function OrganizationsDataTable({
   const [actionDialogOpen, setActionDialogOpen] = React.useState(false);
   const [selectedOrg, setSelectedOrg] = React.useState<PlatformOrganization | null>(null);
   const [actionType, setActionType] = React.useState<"warnAll" | "suspendAll" | "deleteOrg">("warnAll");
+
+  // Network feature toggle state
+  const [networkTogglingOrgId, setNetworkTogglingOrgId] = React.useState<string | null>(null);
   
   // Update URL with search params
   const updateSearchParams = React.useCallback(
@@ -107,6 +113,27 @@ export function OrganizationsDataTable({
       updateSearchParams({ page: newPage.toString() });
     },
     [updateSearchParams]
+  );
+
+  // Network feature toggle handler
+  const handleToggleNetwork = React.useCallback(
+    async (org: PlatformOrganization) => {
+      setNetworkTogglingOrgId(org.id);
+      try {
+        const result = await toggleNetworkFeature({
+          organizationId: org.id,
+          isEnabled: !org.networkEnabled,
+        });
+        if (result.success) {
+          router.refresh();
+        } else {
+          console.error("Failed to toggle network:", result.error);
+        }
+      } finally {
+        setNetworkTogglingOrgId(null);
+      }
+    },
+    [router]
   );
 
   // Open action dialog
@@ -179,6 +206,18 @@ export function OrganizationsDataTable({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("organizations.actionsLabel")}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => handleToggleNetwork(row.original)}
+              disabled={networkTogglingOrgId === row.original.id}
+            >
+              {networkTogglingOrgId === row.original.id ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Network className="mr-2 h-4 w-4 text-muted-foreground" />
+              )}
+              {row.original.networkEnabled ? "Disable Network" : "Enable Network"}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => openActionDialog(row.original, "warnAll")}>
               <AlertTriangle className="mr-2 h-4 w-4 text-warning" />
