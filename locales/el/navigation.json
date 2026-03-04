@@ -26,7 +26,6 @@
       "title": "Κοινωνικά",
       "socialFeed": "Κοινωνική Ροή",
       "connections": "Συνδέσεις",
-      "audiences": "Κοινά",
       "sharedWithMe": "Μοιράστηκαν μαζί μου",
       "deals": "Συνεργασίες",
       "publicProfile": "Δημόσιο Προφίλ"
@@ -45,7 +44,11 @@
     "feedback": "Ανατροφοδότηση",
     "calendar": "Ημερολόγιο",
     "messages": "Μηνύματα",
-    "platformAdmin": "Διαχείριση Πλατφόρμας"
+    "platformAdmin": "Διαχείριση Πλατφόρμας",
+    "pinnedSection": "Καρφιτσωμένα",
+    "pinToTop": "Καρφίτσωσε στην κορυφή",
+    "unpin": "Ξεκαρφίτσωσε",
+    "pinLimitReached": "Μέγιστο 5 καρφιτσώματα"
   },
   "Navigation": {
     "upgradeToPro": "Αναβάθμιση σε Pro",
@@ -61,6 +64,8 @@
     "themes": {
       "light": "Φωτεινό",
       "dark": "Σκοτεινό",
+      "estate": "Estate",
+      "estateDark": "Estate Σκοτεινό",
       "pearlSand": "Pearl Sand",
       "twilightLavender": "Twilight Lavender",
       "system": "Σύστημα"

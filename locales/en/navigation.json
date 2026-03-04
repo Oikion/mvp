@@ -26,7 +26,6 @@
       "title": "Social",
       "socialFeed": "Social Feed",
       "connections": "Connections",
-      "audiences": "Audiences",
       "sharedWithMe": "Shared With Me",
       "deals": "Deals",
       "publicProfile": "Public Profile"
@@ -45,7 +44,11 @@
     "feedback": "Feedback",
     "calendar": "Calendar",
     "messages": "Messages",
-    "platformAdmin": "Platform Admin"
+    "platformAdmin": "Platform Admin",
+    "pinnedSection": "Pinned",
+    "pinToTop": "Pin to top",
+    "unpin": "Unpin",
+    "pinLimitReached": "Maximum 5 pins"
   },
   "Navigation": {
     "upgradeToPro": "Upgrade to Pro",
@@ -61,6 +64,8 @@
     "themes": {
       "light": "Light",
       "dark": "Dark",
+      "estate": "Estate",
+      "estateDark": "Estate Dark",
       "pearlSand": "Pearl Sand",
       "twilightLavender": "Twilight Lavender",
       "system": "System"
