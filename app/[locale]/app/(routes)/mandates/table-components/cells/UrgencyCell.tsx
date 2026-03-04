@@ -58,7 +58,7 @@ export const UrgencyCell = ({ mandateId, urgency }: UrgencyCellProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={loading}>
-        <button className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1">
+        <button type="button" className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1">
           {trigger}
         </button>
       </DropdownMenuTrigger>
