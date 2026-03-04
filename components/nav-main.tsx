@@ -1,13 +1,15 @@
 "use client"
 
-import { 
-  ChevronDown, 
-  ChevronRight, 
-  LayoutGrid, 
-  Briefcase, 
-  Wrench, 
-  Globe2, 
+import {
+  ChevronDown,
+  ChevronRight,
+  LayoutGrid,
+  Briefcase,
+  Wrench,
+  Globe2,
   Building2,
+  Pin,
+  PinOff,
   type LucideIcon
 } from "lucide-react"
 import { Link } from "@/navigation"
@@ -28,6 +30,12 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
@@ -128,7 +136,7 @@ const getCategoryStyle = (label: string): CategoryStyle => {
       activeBorder: "border-l-slate-500",
     },
   }
-  
+
   return styleMap[label] || {
     icon: LayoutGrid,
     iconColor: "text-sidebar-foreground/70",
@@ -137,18 +145,18 @@ const getCategoryStyle = (label: string): CategoryStyle => {
   }
 }
 
-function NavMainMenuItem({ 
-  item, 
+function NavMainMenuItem({
+  item,
   pathname = "",
   notificationCounts = {},
-}: { 
+}: {
   readonly item: NavMainItem
   readonly pathname?: string
   readonly notificationCounts?: NotificationCounts
 }) {
   const iconRef = React.useRef<any>(null)
   const currentPath = pathname || ""
-  
+
   // Get notification count for this item
   const notificationCount = item.notificationKey ? notificationCounts[item.notificationKey] ?? 0 : 0
 
@@ -177,23 +185,23 @@ function NavMainMenuItem({
         >
           {/* prefetch=true enables eager prefetching for faster navigation */}
           <Link href={item.url} prefetch={true}>
-            <item.icon 
-              ref={iconRef} 
-              size={16} 
-              className={cn("mr-1", item.iconClassName || item.labelClassName)} 
+            <item.icon
+              ref={iconRef}
+              size={16}
+              className={cn("mr-1", item.iconClassName || item.labelClassName)}
             />
             <span className={item.labelClassName}>{item.title}</span>
             {/* Notification badge takes priority over static badge */}
             {notificationCount > 0 ? (
-              <Badge 
-                variant="destructive" 
+              <Badge
+                variant="destructive"
                 className="ml-auto text-[10px] py-0 px-1.5 h-4 min-w-4 flex items-center justify-center animate-pulse"
               >
                 {notificationCount > 99 ? "99+" : notificationCount}
               </Badge>
             ) : item.badge ? (
-              <Badge 
-                variant={item.badgeClassName ? "outline" : "secondary"} 
+              <Badge
+                variant={item.badgeClassName ? "outline" : "secondary"}
                 className={cn(
                   "ml-auto text-[10px] py-0 px-1.5 h-4 font-semibold",
                   item.badgeClassName
@@ -238,22 +246,132 @@ function NavMainMenuItem({
   )
 }
 
+function PinnableNavItem({
+  item,
+  pathname,
+  notificationCounts = {},
+  isPinned,
+  pinsCount,
+  onTogglePin,
+  dict,
+}: {
+  readonly item: NavMainItem
+  readonly pathname: string
+  readonly notificationCounts?: NotificationCounts
+  readonly isPinned: boolean
+  readonly pinsCount: number
+  readonly onTogglePin: (url: string) => void
+  readonly dict?: any
+}) {
+  const MAX_PINS = 5
+  const canPin = !isPinned && pinsCount < MAX_PINS
+
+  const pinLabel = dict?.navigation?.ModuleMenu?.pinToTop ?? "Pin to top"
+  const unpinLabel = dict?.navigation?.ModuleMenu?.unpin ?? "Unpin"
+  const limitLabel = dict?.navigation?.ModuleMenu?.pinLimitReached ?? "Maximum 5 pins"
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div>
+          <NavMainMenuItem
+            item={item}
+            pathname={pathname}
+            notificationCounts={notificationCounts}
+          />
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-48">
+        {isPinned ? (
+          <ContextMenuItem
+            onSelect={() => onTogglePin(item.url)}
+            className="gap-2"
+          >
+            <PinOff className="h-4 w-4 text-muted-foreground" />
+            {unpinLabel}
+          </ContextMenuItem>
+        ) : canPin ? (
+          <ContextMenuItem
+            onSelect={() => onTogglePin(item.url)}
+            className="gap-2"
+          >
+            <Pin className="h-4 w-4 text-muted-foreground" />
+            {pinLabel}
+          </ContextMenuItem>
+        ) : (
+          <ContextMenuItem disabled className="gap-2">
+            <Pin className="h-4 w-4 text-muted-foreground" />
+            {limitLabel}
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
+  )
+}
+
+function NavPinnedSection({
+  items,
+  pathname,
+  notificationCounts = {},
+  onTogglePin,
+  dict,
+}: {
+  readonly items: NavMainItem[]
+  readonly pathname: string
+  readonly notificationCounts?: NotificationCounts
+  readonly onTogglePin: (url: string) => void
+  readonly dict?: any
+}) {
+  const label = dict?.navigation?.ModuleMenu?.pinnedSection ?? "Pinned"
+
+  return (
+    <SidebarGroup className="py-0 mb-1">
+      <div className="flex items-center gap-2 px-2 py-1.5 group-data-[collapsible=icon]:hidden">
+        <Pin className="h-4 w-4 text-sidebar-foreground/50" />
+        <span className="text-[13px] font-bold tracking-normal text-sidebar-foreground">
+          {label}
+        </span>
+      </div>
+      <SidebarMenu className="mt-0.5 border-l-2 ml-2 pl-1 border-l-sidebar-foreground/20">
+        {items.map((item, index) => (
+          <PinnableNavItem
+            key={item.url || `pinned-${index}`}
+            item={item}
+            pathname={pathname}
+            notificationCounts={notificationCounts}
+            isPinned={true}
+            pinsCount={items.length}
+            onTogglePin={onTogglePin}
+            dict={dict}
+          />
+        ))}
+      </SidebarMenu>
+    </SidebarGroup>
+  )
+}
+
 // Collapsible category group component
-function CollapsibleNavGroup({ 
-  group, 
+function CollapsibleNavGroup({
+  group,
   pathname,
   defaultOpen = true,
   showAlphaBadge = false,
   notificationCounts = {},
-}: { 
+  pinnedUrls,
+  onTogglePin,
+  dict,
+}: {
   readonly group: NavGroup
   readonly pathname: string
   readonly defaultOpen?: boolean
   readonly showAlphaBadge?: boolean
   readonly notificationCounts?: NotificationCounts
+  readonly pinnedUrls?: string[]
+  readonly onTogglePin?: (url: string) => void
+  readonly dict?: any
 }) {
   const [isOpen, setIsOpen] = React.useState(defaultOpen)
-  
+
   // Check if any item in this group is active
   const hasActiveItem = React.useMemo(() => {
     return group.items.some(item => item.isActive)
@@ -304,19 +422,19 @@ function CollapsibleNavGroup({
               )}
               {/* Show total notification count for collapsed group */}
               {!isOpen && groupNotificationCount > 0 && (
-                <Badge 
-                  variant="destructive" 
+                <Badge
+                  variant="destructive"
                   className="text-[10px] py-0 px-1.5 h-4 min-w-4 flex items-center justify-center"
                 >
                   {groupNotificationCount > 99 ? "99+" : groupNotificationCount}
                 </Badge>
               )}
             </span>
-            <ChevronDown 
+            <ChevronDown
               className={cn(
                 "h-4 w-4 text-sidebar-foreground/60 transition-transform duration-200",
                 !isOpen && "-rotate-90"
-              )} 
+              )}
             />
           </button>
         </CollapsibleTrigger>
@@ -329,11 +447,15 @@ function CollapsibleNavGroup({
             categoryStyle.activeBorder
           )}>
             {group.items.map((item, index) => (
-              <NavMainMenuItem 
-                key={item.url || `${item.title}-${index}`} 
-                item={item} 
+              <PinnableNavItem
+                key={item.url || `${item.title}-${index}`}
+                item={item}
                 pathname={pathname}
                 notificationCounts={notificationCounts}
+                isPinned={pinnedUrls?.includes(item.url) ?? false}
+                pinsCount={pinnedUrls?.length ?? 0}
+                onTogglePin={onTogglePin ?? (() => {})}
+                dict={dict}
               />
             ))}
           </SidebarMenu>
@@ -359,23 +481,43 @@ export function NavMain({
   readonly dict?: any
 }) {
   const currentPath = pathname || ""
-  
+
+  const pinnedItems = React.useMemo(() => {
+    if (!pinnedUrls.length) return []
+    const allItems = groups.flatMap((g) => g.items)
+    return pinnedUrls
+      .map((url) => allItems.find((item) => item.url === url))
+      .filter((item): item is NavMainItem => item !== undefined)
+  }, [pinnedUrls, groups])
+
   // Check if label should have Alpha badge (Tools/Network in English or Greek)
   const shouldShowAlphaBadge = (label: string) => {
     const alphaLabels = ["Tools", "Network", "Εργαλεία", "Δίκτυο"]
     return alphaLabels.includes(label)
   }
-  
+
   return (
     <>
+      {pinnedItems.length > 0 && (
+        <NavPinnedSection
+          items={pinnedItems}
+          pathname={currentPath}
+          notificationCounts={notificationCounts}
+          onTogglePin={onTogglePin ?? (() => {})}
+          dict={dict}
+        />
+      )}
       {groups.map((group, groupIndex) => (
-        <CollapsibleNavGroup 
+        <CollapsibleNavGroup
           key={group.label || `group-${groupIndex}`}
           group={group}
           pathname={currentPath}
           defaultOpen={true}
           showAlphaBadge={shouldShowAlphaBadge(group.label)}
           notificationCounts={notificationCounts}
+          pinnedUrls={pinnedUrls}
+          onTogglePin={onTogglePin}
+          dict={dict}
         />
       ))}
     </>
