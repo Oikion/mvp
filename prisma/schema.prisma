@@ -76,35 +76,6 @@ enum SubmissionStatus {
   ARCHIVED
 }
 
-model Audience {
-  id             String           @id
-  name           String
-  description    String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime
-  createdById    String
-  organizationId String?
-  isAutoSync     Boolean          @default(false)
-  Users          Users            @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  AudienceMember AudienceMember[]
-  SharedEntity   SharedEntity[]
-
-  @@index([createdById])
-  @@index([organizationId])
-}
-
-model AudienceMember {
-  id         String   @id
-  audienceId String
-  userId     String
-  addedAt    DateTime @default(now())
-  Audience   Audience @relation(fields: [audienceId], references: [id], onDelete: Cascade)
-  Users      Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([audienceId, userId])
-  @@index([audienceId])
-  @@index([userId])
-}
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model CalendarEvent {
@@ -304,6 +275,7 @@ model Clients {
   Users_watching_accounts          Users[]              @relation("watching_accounts")
   PropertyShowing                  PropertyShowing[]
   ExternalContact                  ExternalContact[]
+  Mandate                          Mandate[]
 
   @@index([assigned_to])
   @@index([client_status])
@@ -781,13 +753,10 @@ model SharedEntity {
   permissions                            SharePermission  @default(VIEW_COMMENT)
   message                                String?
   createdAt                              DateTime         @default(now())
-  audienceId                             String?
-  Audience                               Audience?        @relation(fields: [audienceId], references: [id])
   Users_SharedEntity_sharedByIdToUsers   Users            @relation("SharedEntity_sharedByIdToUsers", fields: [sharedById], references: [id], onDelete: Cascade)
   Users_SharedEntity_sharedWithIdToUsers Users            @relation("SharedEntity_sharedWithIdToUsers", fields: [sharedWithId], references: [id], onDelete: Cascade)
 
   @@unique([entityType, entityId, sharedWithId])
-  @@index([audienceId])
   @@index([entityType, entityId])
   @@index([sharedById])
   @@index([sharedWithId])
@@ -912,11 +881,10 @@ model Users {
   referralApplicationStatus                          ReferralApplicationStatus?
   layoutPreference                                   LayoutPreference              @default(DEFAULT)
   dashboardConfig                                    Json?
+  pinnedNavUrls                                      String[]                      @default([])
   AgentConnection_AgentConnection_followerIdToUsers  AgentConnection[]             @relation("AgentConnection_followerIdToUsers")
   AgentConnection_AgentConnection_followingIdToUsers AgentConnection[]             @relation("AgentConnection_followingIdToUsers")
   AgentProfile                                       AgentProfile?
-  Audience                                           Audience[]
-  AudienceMember                                     AudienceMember[]
   CalendarEvent                                      CalendarEvent[]
   ClientComment                                      ClientComment[]
   Client_Contacts_Client_Contacts_assigned_toToUsers Client_Contacts[]             @relation("Client_Contacts_assigned_toToUsers")
@@ -951,6 +919,8 @@ model Users {
   ReferredByReferral                                 Referral?                     @relation("ReferredUser")
   MessagesSent                                       Message[]                     @relation("MessagesSent")
   OrganizationEncryptionKey                          OrganizationEncryptionKey[]
+  Mandate                                            Mandate[]                     @relation("MandateAssignedTo")
+  MandateComment                                     MandateComment[]              @relation("MandateComments")
 
   @@index([clerkUserId])
   @@index([email])
@@ -1500,6 +1470,98 @@ enum TransactionType {
   EXCHANGE
 }
 
+enum MandateStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  FULFILLED
+  EXPIRED
+  CANCELLED
+}
+
+enum MandateUrgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ============================================
+// MANDATES MODULE
+// ============================================
+
+model Mandate {
+  id                  String            @id
+  organizationId      String
+  createdAt           DateTime          @default(now())
+  createdBy           String?
+  updatedAt           DateTime?
+  updatedBy           String?
+  assigned_to         String?
+  title               String
+  transaction_type    TransactionType?
+  property_type       PropertyType?
+  property_purpose    PropertyPurpose?
+  areas_of_interest   Json?
+  municipality        String?
+  region              String?
+  size_min_sqm        Decimal?
+  size_max_sqm        Decimal?
+  plot_size_min_sqm   Decimal?
+  plot_size_max_sqm   Decimal?
+  budget_min          Decimal?
+  budget_max          Decimal?
+  bedrooms_min        Int?
+  bedrooms_max        Int?
+  bathrooms_min       Int?
+  bathrooms_max       Int?
+  floor_min           Int?
+  floor_max           Int?
+  ground_floor_only   Boolean?          @default(false)
+  condition           PropertyCondition[]
+  year_built_min      Int?
+  year_built_max      Int?
+  heating_type        HeatingType[]
+  energy_cert_min     EnergyCertClass?
+  furnished           FurnishedStatus?
+  elevator            Boolean?
+  parking             Boolean?
+  pets_allowed        Boolean?
+  amenities           Json?
+  inside_city_plan    Boolean?
+  legalization_ok     Boolean?          @default(false)
+  status              MandateStatus     @default(DRAFT)
+  urgency             MandateUrgency?   @default(MEDIUM)
+  timeline            Timeline?
+  expires_at          DateTime?
+  notes               String?
+  communication_notes Json?
+  clientId            String?
+  client_linked_at    DateTime?
+  draft_status        Boolean?          @default(false)
+  client              Clients?          @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  assigned_to_user    Users?            @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
+  comments            MandateComment[]
+
+  @@index([organizationId])
+  @@index([clientId])
+  @@index([assigned_to])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MandateComment {
+  id         String   @id
+  mandateId  String
+  userId     String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  mandate    Mandate  @relation(fields: [mandateId], references: [id], onDelete: Cascade)
+  user       Users    @relation("MandateComments", fields: [userId], references: [id])
+
+  @@index([mandateId])
+}
 
 // ============================================
 // ATTACHMENTS - Reusable file attachments
@@ -2549,7 +2611,7 @@ enum XeSyncItemStatus {
 model OrganizationFeature {
   id             String    @id @default(uuid())
   organizationId String
-  feature        String    // "market_intel", "ai_matching", etc.
+  feature        String    // e.g. "ai_matching", "network", etc.
   isEnabled      Boolean   @default(false)
   grantedBy      String?   // Platform admin userId who granted access
   grantedAt      DateTime?
@@ -2564,33 +2626,6 @@ model OrganizationFeature {
   @@index([isEnabled])
 }
 
-/// Tracks in-progress and completed scrape jobs for Market Intelligence
-model ScrapeJob {
-  id              String         @id @default(uuid())
-  organizationId  String
-  status          ScrapeJobStatus @default(PENDING)
-  currentPlatform String?        // Currently processing platform
-  currentAction   Json?          // {type, message, propertyTitle?, platform?, page?} for dynamic status
-  progress        Json           @default("{}") // {platform: {total, passed, failed, errors[]}}
-  platforms       String[]       @default([])   // Platforms to scrape
-  startedAt       DateTime       @default(now())
-  completedAt     DateTime?
-  errorMessage    String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-
-  @@index([organizationId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-enum ScrapeJobStatus {
-  PENDING    // Job created, waiting to start
-  RUNNING    // Currently executing
-  COMPLETED  // Successfully finished
-  FAILED     // Failed with error
-  CANCELLED  // Cancelled by user
-}
 
 // ===========================================
 // Background Job Orchestration (K8s Jobs)
