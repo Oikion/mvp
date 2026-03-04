@@ -6,6 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLocale } from "next-intl"
+import { useTheme } from "next-themes"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -23,6 +24,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { getNavigationConfig } from "@/config/navigation"
+import { normalizePath } from "@/lib/navigation/route-utils"
 import { useWorkspaceContext } from "@/hooks/use-workspace-context"
 import { type ModuleId } from "@/lib/permissions/types"
 import { useNotificationCounts } from "@/hooks/swr"
@@ -56,6 +58,15 @@ export function AppSidebar({
   const locale = useLocale()
   const [feedbackOpen, setFeedbackOpen] = React.useState(false)
   const { isPersonalWorkspace } = useWorkspaceContext()
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => setMounted(true), [])
+  const isDarkSidebar = mounted && (
+    theme === "dark" ||
+    theme === "estate-dark" ||
+    theme === "twilight-lavender" ||
+    (theme === "system" && resolvedTheme === "dark")
+  )
 
   // Fetch notification counts for sidebar badges (polls every 30 seconds)
   const { counts: notificationCounts } = useNotificationCounts({
@@ -82,7 +93,11 @@ export function AppSidebar({
         <div className="px-2 py-3">
           <Link href={`/${locale}`} className="inline-block">
             <Image
-              src="/assets/logo.svg"
+              src={
+                isDarkSidebar
+                  ? "/assets/logos/logo-white.svg"
+                  : "/assets/logos/logo-dark.svg"
+              }
               alt="Oikion"
               width={96}
               height={24}
@@ -100,9 +115,9 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain 
-          groups={navGroups} 
-          pathname={pathname} 
+        <NavMain
+          groups={navGroups}
+          pathname={normalizePath(pathname, locale)}
           notificationCounts={notificationCounts}
         />
       </SidebarContent>

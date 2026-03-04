@@ -1,0 +1,257 @@
+{
+  "MandatesPage": {
+    "title": "Mandates",
+    "description": "Manage buyer and renter briefs"
+  },
+  "Stats": {
+    "totalMandates": "Total Mandates",
+    "activeMandates": "Active",
+    "unlinkedMandates": "Unlinked",
+    "urgentMandates": "Urgent",
+    "addMandate": "Add Mandate"
+  },
+  "MandateForm": {
+    "title": "New Mandate",
+    "editTitle": "Edit Mandate",
+    "steps": {
+      "basics": "Basics",
+      "location": "Location & Size",
+      "requirements": "Requirements",
+      "features": "Features",
+      "assignment": "Assignment"
+    },
+    "stepDescriptions": {
+      "basics": "Transaction type and property category",
+      "location": "Preferred areas and size requirements",
+      "requirements": "Rooms, budget, and timeline",
+      "features": "Condition, amenities, and preferences",
+      "assignment": "Agent assignment and client link"
+    },
+    "fields": {
+      "title": "Title",
+      "titlePlaceholder": "e.g., 2-bed apartment in Glyfada",
+      "transactionType": "Transaction Type",
+      "propertyType": "Property Type",
+      "propertyTypePlaceholder": "Select type",
+      "propertyPurpose": "Property Purpose",
+      "propertyPurposePlaceholder": "Select purpose",
+      "areasOfInterest": "Areas of Interest",
+      "areasPlaceholder": "Type an area and press Enter",
+      "removeArea": "Remove area",
+      "municipality": "Municipality",
+      "region": "Region",
+      "sizeSection": "Size",
+      "sizeMinSqm": "Min Size (sqm)",
+      "sizeMaxSqm": "Max Size (sqm)",
+      "plotSizeSection": "Plot Size",
+      "plotSizeMinSqm": "Min Plot Size (sqm)",
+      "plotSizeMaxSqm": "Max Plot Size (sqm)",
+      "roomsSection": "Rooms",
+      "budgetSection": "Budget",
+      "budgetMin": "Min Budget (€)",
+      "budgetMax": "Max Budget (€)",
+      "bedroomsMin": "Min Bedrooms",
+      "bedroomsMax": "Max Bedrooms",
+      "bathroomsMin": "Min Bathrooms",
+      "bathroomsMax": "Max Bathrooms",
+      "floorSection": "Floor",
+      "floorMin": "Min Floor",
+      "floorMax": "Max Floor",
+      "any": "Any",
+      "basement": "Basement",
+      "ground": "Ground Floor",
+      "groundFloorOnly": "Ground Floor Only",
+      "condition": "Acceptable Conditions",
+      "yearBuiltSection": "Year Built",
+      "yearBuiltMin": "Built After",
+      "yearBuiltMax": "Built Before",
+      "heatingType": "Acceptable Heating Types",
+      "energyCertMin": "Min Energy Certificate",
+      "furnished": "Furnished Preference",
+      "requirementsSection": "Requirements",
+      "elevator": "Elevator Required",
+      "parking": "Parking Required",
+      "petsAllowed": "Pet-Friendly Required",
+      "amenities": "Desired Amenities",
+      "legalSection": "Legal",
+      "insideCityPlan": "Inside City Plan",
+      "legalizationOk": "Accept Legalization Issues",
+      "status": "Status",
+      "urgency": "Urgency",
+      "timeline": "Timeline",
+      "expiresAt": "Expires On",
+      "notes": "Notes",
+      "notesPlaceholder": "Agent notes about this mandate...",
+      "assignedTo": "Assigned Agent",
+      "client": "Linked Client",
+      "clientId": "Linked Client",
+      "clientPlaceholder": "Search clients...",
+      "noClientsFound": "No clients found",
+      "noClient": "No client linked",
+      "transactionTypePlaceholder": "Select transaction type",
+      "clientSearchPlaceholder": "Search clients..."
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "ACTIVE": "Active",
+      "PAUSED": "Paused",
+      "FULFILLED": "Fulfilled",
+      "EXPIRED": "Expired",
+      "CANCELLED": "Cancelled"
+    },
+    "urgency": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    },
+    "validation": {
+      "titleRequired": "Title is required",
+      "transactionTypeRequired": "Transaction type is required",
+      "budgetMinMax": "Min budget must be less than max budget",
+      "sizeMinMax": "Min size must be less than max size",
+      "bedroomsMinMax": "Min bedrooms must be less than max",
+      "floorMinMax": "Min floor must be less than max floor",
+      "yearBuiltMinMax": "Min year must be less than max year"
+    },
+    "transactionType": {
+      "SALE": "Sale",
+      "RENTAL": "Rental",
+      "SHORT_TERM": "Short-term",
+      "EXCHANGE": "Exchange"
+    },
+    "propertyType": {
+      "APARTMENT": "Apartment",
+      "HOUSE": "House",
+      "MAISONETTE": "Maisonette",
+      "WAREHOUSE": "Warehouse",
+      "PARKING": "Parking",
+      "PLOT": "Plot",
+      "FARM": "Farm",
+      "INDUSTRIAL": "Industrial",
+      "COMMERCIAL": "Commercial",
+      "OTHER": "Other"
+    },
+    "propertyPurpose": {
+      "RESIDENTIAL": "Residential",
+      "COMMERCIAL": "Commercial",
+      "LAND": "Land",
+      "PARKING": "Parking",
+      "OTHER": "Other"
+    },
+    "condition": {
+      "EXCELLENT": "Excellent",
+      "VERY_GOOD": "Very Good",
+      "GOOD": "Good",
+      "NEEDS_RENOVATION": "Needs Renovation"
+    },
+    "heating": {
+      "AUTONOMOUS": "Autonomous",
+      "CENTRAL": "Central",
+      "NATURAL_GAS": "Natural Gas",
+      "HEAT_PUMP": "Heat Pump",
+      "ELECTRIC": "Electric",
+      "NONE": "None"
+    },
+    "amenities": {
+      "AC": "Air Conditioning",
+      "POOL": "Swimming Pool",
+      "GARDEN": "Garden",
+      "BALCONY": "Balcony",
+      "STORAGE": "Storage Room",
+      "FIREPLACE": "Fireplace",
+      "ALARM": "Security Alarm",
+      "SOLAR_WATER_HEATER": "Solar Water Heater",
+      "EV_CHARGING": "EV Charging",
+      "SMART_HOME": "Smart Home"
+    },
+    "timeline": {
+      "IMMEDIATE": "Immediate",
+      "ONE_THREE_MONTHS": "1–3 Months",
+      "THREE_SIX_MONTHS": "3–6 Months",
+      "SIX_PLUS_MONTHS": "6+ Months"
+    },
+    "energyCert": {
+      "A_PLUS": "A+",
+      "A": "A",
+      "B_PLUS": "B+",
+      "B": "B",
+      "C": "C",
+      "D": "D",
+      "E": "E",
+      "F": "F",
+      "G": "G",
+      "IN_PROGRESS": "In Progress"
+    },
+    "furnished": {
+      "NO": "Unfurnished",
+      "PARTIALLY": "Partially Furnished",
+      "FULLY": "Fully Furnished"
+    },
+    "wizard": {
+      "success": "Mandate created successfully",
+      "error": "Failed to create mandate"
+    },
+    "buttons": {
+      "previous": "Previous",
+      "next": "Next",
+      "submit": "Submit"
+    }
+  },
+  "MandatesTable": {
+    "title": "Title",
+    "transactionType": "Type",
+    "budget": "Budget",
+    "status": "Status",
+    "urgency": "Urgency",
+    "client": "Client",
+    "assignedTo": "Agent",
+    "created": "Created",
+    "actions": "Actions",
+    "filterPlaceholder": "Search mandates...",
+    "noResults": "No mandates found",
+    "noClient": "No client"
+  },
+  "MandateView": {
+    "briefSummary": "Brief Summary",
+    "location": "Location",
+    "sizeAndRooms": "Size & Rooms",
+    "budgetAndTimeline": "Budget & Timeline",
+    "featuresAndPreferences": "Features & Preferences",
+    "legal": "Legal",
+    "statusAndAssignment": "Status & Assignment",
+    "linkedClient": "Linked Client",
+    "linkClient": "Link Client",
+    "unlinkClient": "Unlink Client",
+    "linkClientTitle": "Link a Client",
+    "linkClientDescription": "Search and select a client to link to this mandate",
+    "unlinkConfirmTitle": "Unlink Client",
+    "unlinkConfirmDescription": "Are you sure you want to remove the client link from this mandate?",
+    "linkedOn": "Linked on",
+    "searchClients": "Search clients...",
+    "noClientsFound": "No clients found",
+    "comments": "Comments",
+    "edit": "Edit",
+    "view": "View",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this mandate?"
+  },
+  "QuickAdd": {
+    "title": "Quick Add Mandate",
+    "description": "Create a mandate with basic details",
+    "create": "Create",
+    "continueToWizard": "Continue to Full Wizard"
+  },
+  "Filters": {
+    "status": "Status",
+    "urgency": "Urgency",
+    "transactionType": "Transaction Type",
+    "propertyType": "Property Type",
+    "budgetRange": "Budget Range",
+    "linkedStatus": "Client Link",
+    "linked": "Linked",
+    "unlinked": "Unlinked",
+    "assignedTo": "Assigned Agent",
+    "resetFilters": "Reset Filters"
+  }
+}

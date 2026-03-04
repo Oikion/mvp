@@ -214,7 +214,7 @@ export const getColumns = (
             <DropdownMenuItem asChild>
               <Link href={`/app/mandates/${mandate.id}`} className="flex items-center gap-2">
                 <Eye className="h-4 w-4" />
-                {t("MandateView.edit").replace("Edit", "View")}
+                {t("MandateView.view")}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>

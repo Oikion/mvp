@@ -347,10 +347,16 @@ export function NavMain({
   groups,
   pathname = "",
   notificationCounts = {},
+  pinnedUrls = [],
+  onTogglePin,
+  dict,
 }: {
   readonly groups: NavGroup[]
   readonly pathname?: string
   readonly notificationCounts?: NotificationCounts
+  readonly pinnedUrls?: string[]
+  readonly onTogglePin?: (url: string) => void
+  readonly dict?: any
 }) {
   const currentPath = pathname || ""
   
