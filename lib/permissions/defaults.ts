@@ -80,6 +80,7 @@ export const ALL_MODULES: ModuleId[] = [
   "audiences",
   "employees",
   "admin",
+  "network",
 ];
 
 /**
@@ -110,6 +111,7 @@ export const RESTRICTED_MODULES: Record<ModuleId, keyof PermissionConfig | null>
   audiences: null,
   employees: "canInviteUsers", // Need invite permission to see employees
   admin: "canManageRoles", // Need role management to access admin
+  network: null, // No special permission needed — gated by org-level feature flag
 };
 
 /**
@@ -169,4 +171,5 @@ export const MODULE_DISPLAY_NAMES: Record<ModuleId, string> = {
   audiences: "Audiences",
   employees: "Team Members",
   admin: "Admin Settings",
+  network: "Network",
 };

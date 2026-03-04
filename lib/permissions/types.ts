@@ -44,7 +44,8 @@ export type ModuleId =
   | "social"
   | "audiences"
   | "employees"
-  | "admin";
+  | "admin"
+  | "network";
 
 /**
  * User permission context - combines role, org permissions, and module access
