@@ -313,12 +313,14 @@ function NavPinnedSection({
   items,
   pathname,
   notificationCounts = {},
+  pinnedCount,
   onTogglePin,
   dict,
 }: {
   readonly items: NavMainItem[]
   readonly pathname: string
   readonly notificationCounts?: NotificationCounts
+  readonly pinnedCount?: number
   readonly onTogglePin: (url: string) => void
   readonly dict?: any
 }) {
@@ -340,7 +342,7 @@ function NavPinnedSection({
             pathname={pathname}
             notificationCounts={notificationCounts}
             isPinned={true}
-            pinsCount={items.length}
+            pinsCount={pinnedCount ?? items.length}
             onTogglePin={onTogglePin}
             dict={dict}
           />
@@ -454,7 +456,7 @@ function CollapsibleNavGroup({
                 notificationCounts={notificationCounts}
                 isPinned={pinnedUrls?.includes(item.url) ?? false}
                 pinsCount={pinnedUrls?.length ?? 0}
-                onTogglePin={onTogglePin ?? (() => {})}
+                onTogglePin={onTogglePin ?? (() => { if (process.env.NODE_ENV === 'development') console.warn('[NavMain] onTogglePin not provided') })}
                 dict={dict}
               />
             ))}
@@ -503,7 +505,8 @@ export function NavMain({
           items={pinnedItems}
           pathname={currentPath}
           notificationCounts={notificationCounts}
-          onTogglePin={onTogglePin ?? (() => {})}
+          pinnedCount={pinnedUrls.length}
+          onTogglePin={onTogglePin ?? (() => { if (process.env.NODE_ENV === 'development') console.warn('[NavMain] onTogglePin not provided') })}
           dict={dict}
         />
       )}
