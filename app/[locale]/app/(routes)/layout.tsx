@@ -207,6 +207,7 @@ export default async function AppLayout({
             hasReferralCode={!!referralCode}
             referralApplicationStatus={user.referralApplicationStatus as "PENDING" | "APPROVED" | "DENIED" | null}
             accessibleModules={permissionContext?.moduleAccess}
+            pinnedNavUrls={user.pinnedNavUrls ?? []}
           />
           <SidebarInset className="flex flex-col h-screen overflow-hidden bg-surface-2">
             <header className="flex h-16 shrink-0 items-center gap-2 justify-between">
