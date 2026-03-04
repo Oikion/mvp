@@ -2,6 +2,7 @@
 
 import { clerkClient } from "@clerk/nextjs/server";
 import { requirePlatformAdmin, logAdminAction } from "@/lib/platform-admin";
+import { prismadb } from "@/lib/prisma";
 
 export interface PlatformOrganization {
   id: string;
@@ -10,6 +11,7 @@ export interface PlatformOrganization {
   memberCount: number;
   createdAt: Date;
   imageUrl: string | null;
+  networkEnabled: boolean;
 }
 
 export interface GetOrganizationsOptions {
@@ -81,6 +83,16 @@ export async function getPlatformOrganizations(
       filteredOrgs = filteredOrgs.slice(offset, offset + limit);
     }
 
+    // Fetch network feature status for all orgs on this page in one query (avoids N+1)
+    const orgIds = filteredOrgs.map((org) => org.id);
+    const networkFeatures = await prismadb.organizationFeature.findMany({
+      where: { organizationId: { in: orgIds }, feature: "network" },
+      select: { organizationId: true, isEnabled: true },
+    });
+    const networkEnabledByOrgId = new Map(
+      networkFeatures.map((f) => [f.organizationId, f.isEnabled])
+    );
+
     // Get member counts for each organization
     const organizations: PlatformOrganization[] = await Promise.all(
       filteredOrgs.map(async (org) => {
@@ -102,6 +114,7 @@ export async function getPlatformOrganizations(
           memberCount,
           createdAt: new Date(org.createdAt),
           imageUrl: org.imageUrl,
+          networkEnabled: networkEnabledByOrgId.get(org.id) ?? false,
         };
       })
     );
