@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { updateMandate } from "@/actions/mandates/update-mandate";
 import { toast } from "sonner";
@@ -16,9 +16,14 @@ export const TitleCell = ({ mandateId, value }: TitleCellProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value ?? "");
   const [loading, setLoading] = useState(false);
+  const cancelledRef = useRef(false);
   const tCommon = useTranslations("common");
 
   const handleSave = async () => {
+    if (cancelledRef.current) {
+      cancelledRef.current = false;
+      return;
+    }
     const trimmed = inputValue.trim();
     if (!trimmed) {
       setInputValue(value ?? "");
@@ -43,6 +48,7 @@ export const TitleCell = ({ mandateId, value }: TitleCellProps) => {
   };
 
   const handleCancel = () => {
+    cancelledRef.current = true;
     setInputValue(value ?? "");
     setIsEditing(false);
   };
