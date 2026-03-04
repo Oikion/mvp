@@ -152,13 +152,25 @@ function NavMainMenuItem({
   // Get notification count for this item
   const notificationCount = item.notificationKey ? notificationCounts[item.notificationKey] ?? 0 : 0
 
+  // Derive parent button active state:
+  // When a sub-item exactly matches the current path, suppress parent highlight.
+  // The Collapsible defaultOpen still uses item.isActive (prefix match) for auto-expand.
+  const normalizedCurrentPathForParent = currentPath.split('?')[0].split('#')[0].replace(/\/$/, '')
+  const hasActiveSubItem =
+    (item.items ?? []).some(
+      (sub) => normalizedCurrentPathForParent === sub.url.replace(/\/$/, '')
+    )
+  const isParentButtonActive = item.items?.length
+    ? !hasActiveSubItem && !!item.isActive
+    : !!item.isActive
+
   return (
     <Collapsible asChild defaultOpen={item.isActive}>
       <SidebarMenuItem>
-        <SidebarMenuButton 
-          asChild 
+        <SidebarMenuButton
+          asChild
           tooltip={item.title}
-          isActive={item.isActive}
+          isActive={isParentButtonActive}
           onMouseEnter={() => iconRef.current?.startAnimation?.()}
           onMouseLeave={() => iconRef.current?.stopAnimation?.()}
         >
