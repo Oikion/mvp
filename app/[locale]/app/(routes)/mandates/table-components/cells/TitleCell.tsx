@@ -16,6 +16,8 @@ export const TitleCell = ({ mandateId, value }: TitleCellProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value ?? "");
   const [loading, setLoading] = useState(false);
+  // Guard against onBlur firing a save after Escape: handleCancel sets this to
+  // true, handleSave checks it immediately and bails out, and onClick resets it.
   const cancelledRef = useRef(false);
   const tCommon = useTranslations("common");
 
