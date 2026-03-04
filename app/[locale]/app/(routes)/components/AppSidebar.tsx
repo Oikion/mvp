@@ -9,6 +9,7 @@ import { useLocale } from "next-intl"
 import { useTheme } from "next-themes"
 
 import { NavMain } from "@/components/nav-main"
+import { updatePinnedNavUrls } from "@/actions/user/pin-nav"
 import { NavUser } from "@/components/nav-user"
 import { NavSecondary } from "@/components/nav-secondary"
 import { ReferralPromoBox } from "@/components/referral/ReferralPromoBox"
@@ -42,30 +43,53 @@ interface AppSidebarProps {
   hasReferralCode?: boolean
   referralApplicationStatus?: "PENDING" | "APPROVED" | "DENIED" | null
   accessibleModules?: ModuleId[]
+  pinnedNavUrls?: string[]
 }
 
-export function AppSidebar({ 
-  modules, 
-  dict, 
-  user, 
+export function AppSidebar({
+  modules,
+  dict,
+  user,
   isPlatformAdmin = false,
   referralBoxDismissed = false,
   hasReferralCode = false,
   referralApplicationStatus = null,
   accessibleModules,
+  pinnedNavUrls,
 }: AppSidebarProps) {
   const pathname = usePathname()
   const locale = useLocale()
   const [feedbackOpen, setFeedbackOpen] = React.useState(false)
+  const [pinnedUrls, setPinnedUrls] = React.useState<string[]>(
+    pinnedNavUrls ?? []
+  )
   const { isPersonalWorkspace } = useWorkspaceContext()
   const { theme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => setMounted(true), [])
-  const isDarkSidebar = mounted && (
-    theme === "dark" ||
-    theme === "estate-dark" ||
-    theme === "twilight-lavender" ||
-    (theme === "system" && resolvedTheme === "dark")
+  const isDarkSidebar =
+    mounted &&
+    (theme === "dark" ||
+      theme === "estate-dark" ||
+      theme === "twilight-lavender" ||
+      (theme === "system" && resolvedTheme === "dark"))
+
+  const handleTogglePin = React.useCallback(
+    async (url: string) => {
+      const isCurrentlyPinned = pinnedUrls.includes(url)
+      const next = isCurrentlyPinned
+        ? pinnedUrls.filter((u) => u !== url)
+        : [...pinnedUrls, url].slice(0, 5)
+      const previous = pinnedUrls
+
+      setPinnedUrls(next)
+
+      const result = await updatePinnedNavUrls(next)
+      if (!result.success) {
+        setPinnedUrls(previous)
+      }
+    },
+    [pinnedUrls]
   )
 
   // Fetch notification counts for sidebar badges (polls every 30 seconds)
@@ -73,17 +97,18 @@ export function AppSidebar({
     refreshInterval: 30000,
   })
 
-  const { navGroups, navSecondaryItems } = React.useMemo(() => 
-    getNavigationConfig({
-      dict,
-      modules,
-      pathname,
-      locale,
-      onFeedbackClick: () => setFeedbackOpen(true),
-      isPlatformAdmin,
-      isPersonalWorkspace,
-      accessibleModules,
-    }), 
+  const { navGroups, navSecondaryItems } = React.useMemo(
+    () =>
+      getNavigationConfig({
+        dict,
+        modules,
+        pathname,
+        locale,
+        onFeedbackClick: () => setFeedbackOpen(true),
+        isPlatformAdmin,
+        isPersonalWorkspace,
+        accessibleModules,
+      }),
     [pathname, locale, modules, dict, isPlatformAdmin, isPersonalWorkspace, accessibleModules]
   )
 
@@ -119,13 +144,16 @@ export function AppSidebar({
           groups={navGroups}
           pathname={normalizePath(pathname, locale)}
           notificationCounts={notificationCounts}
+          pinnedUrls={pinnedUrls}
+          onTogglePin={handleTogglePin}
+          dict={dict}
         />
       </SidebarContent>
       <SidebarFooter>
         {/* Feedback link moved to footer, above referral box */}
         <NavSecondary items={navSecondaryItems} />
         {/* Referral promo box - between feedback and user profile */}
-        <ReferralPromoBox 
+        <ReferralPromoBox
           initialDismissed={referralBoxDismissed}
           hasReferralCode={hasReferralCode}
           applicationStatus={referralApplicationStatus}
