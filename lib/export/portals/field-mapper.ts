@@ -417,5 +417,5 @@ export function generateListingUrl(
   baseUrl: string,
   pattern: string = "/:id"
 ): string {
-  return baseUrl + pattern.replace(":id", property.friendlyId ?? property.id);
+  return baseUrl + pattern.replace(":id", property.friendlyId);
 }

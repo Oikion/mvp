@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface CalendarEvent {
   id: number;
   eventId?: string;
-  friendlyId?: string;
+  friendlyId: string;
   title: string;
   description?: string;
   startTime: string;
@@ -90,7 +90,7 @@ export function EventListSidebar({
    */
   const handleEventClick = (event: CalendarEvent) => {
     if (event.eventId) {
-      router.push(`/app/calendar/events/${event.friendlyId ?? event.eventId}`);
+      router.push(`/app/calendar/events/${event.friendlyId}`);
     }
   };
 

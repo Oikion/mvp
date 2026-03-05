@@ -18,6 +18,7 @@ export interface UpcomingItem {
   linkedEntity?: {
     type: "property" | "client";
     id: string;
+    friendlyId: string;
     name: string;
   };
   isOverdue?: boolean;
@@ -62,11 +63,11 @@ export async function getUpcomingItems(): Promise<{
       orderBy: { startTime: "asc" },
       include: {
         Clients: {
-          select: { id: true, client_name: true },
+          select: { id: true, friendlyId: true, client_name: true },
           take: 1,
         },
         Properties: {
-          select: { id: true, property_name: true },
+          select: { id: true, friendlyId: true, property_name: true },
           take: 1,
         },
       },
@@ -81,12 +82,14 @@ export async function getUpcomingItems(): Promise<{
         linkedEntity = {
           type: "property",
           id: event.Properties[0].id,
+          friendlyId: event.Properties[0].friendlyId,
           name: event.Properties[0].property_name || "Property",
         };
       } else if (event.Clients?.[0]) {
         linkedEntity = {
           type: "client",
           id: event.Clients[0].id,
+          friendlyId: event.Clients[0].friendlyId,
           name: event.Clients[0].client_name || "Client",
         };
       }
@@ -123,7 +126,7 @@ export async function getUpcomingItems(): Promise<{
       orderBy: { dueDateAt: "asc" },
       include: {
         Clients: {
-          select: { id: true, client_name: true },
+          select: { id: true, friendlyId: true, client_name: true },
         },
       },
     });
@@ -139,6 +142,7 @@ export async function getUpcomingItems(): Promise<{
         linkedEntity = {
           type: "client",
           id: task.Clients.id,
+          friendlyId: task.Clients.friendlyId,
           name: task.Clients.client_name || "Client",
         };
       }

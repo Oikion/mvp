@@ -56,7 +56,7 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
       <div className="flex items-center gap-1">
         <NameCell clientId={row.original.id} value={row.original.name ?? ""} />
         <Link
-          href={`/app/crm/clients/${row.original.friendlyId ?? row.original.id}`}
+          href={`/app/crm/clients/${row.original.friendlyId}`}
           className="ml-1 text-muted-foreground hover:text-primary transition-colors"
           title="View details"
           onClick={(e) => e.stopPropagation()}

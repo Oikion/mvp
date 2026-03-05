@@ -36,8 +36,8 @@ export async function generateStaticParams() {
       const { properties } = await getPublicPropertiesByOrg(org.slug, { limit: 50 });
 
       for (const property of properties) {
-        params.push({ org_username: org.slug, propertyId: property.friendlyId ?? property.id, locale: "en" });
-        params.push({ org_username: org.slug, propertyId: property.friendlyId ?? property.id, locale: "el" });
+        params.push({ org_username: org.slug, propertyId: property.friendlyId, locale: "en" });
+        params.push({ org_username: org.slug, propertyId: property.friendlyId, locale: "el" });
       }
     }
 

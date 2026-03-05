@@ -51,7 +51,7 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
   // Keyboard navigation callbacks
   const handleRowOpen = useCallback(
     (row: Row<any>) => {
-      const propertyId = row.original.friendlyId ?? row.original.id;
+      const propertyId = row.original.friendlyId;
       router.push(`/${locale}/app/mls/properties/${propertyId}`);
     },
     [router, locale]
@@ -59,7 +59,7 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
 
   const handleRowEdit = useCallback(
     (row: Row<any>) => {
-      const propertyId = row.original.friendlyId ?? row.original.id;
+      const propertyId = row.original.friendlyId;
       router.push(`/${locale}/app/mls/properties/${propertyId}?edit=true`);
     },
     [router, locale]

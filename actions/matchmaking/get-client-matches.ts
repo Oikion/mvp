@@ -76,6 +76,7 @@ export async function getClientMatches(
     },
     select: {
       id: true,
+      friendlyId: true,
       property_name: true,
       price: true,
       property_type: true,
@@ -178,6 +179,7 @@ export async function getClientMatches(
       breakdown: includeBreakdown ? result.breakdown : [],
       property: {
         id: property.id,
+        friendlyId: property.friendlyId,
         property_name: property.property_name,
         price: property.price !== null && property.price !== undefined ? Number(property.price) : null,
         property_type: property.property_type as MatchResultWithProperty["property"]["property_type"],

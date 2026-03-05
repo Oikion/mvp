@@ -6,11 +6,8 @@ import axios from "axios";
 import { DataTableRowActions } from "@/components/ui/data-table/data-table-row-actions";
 
 interface PropertyRowActionsProps {
-  row: Row<{
-    id: string;
-    property_name?: string;
-    [key: string]: unknown;
-  }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  row: Row<any>;
 }
 
 /**
@@ -31,8 +28,8 @@ export function PropertyRowActions({ row }: PropertyRowActionsProps) {
       entityType="property"
       entityId={data.id}
       entityName={data.property_name}
-      onView={() => router.push(`/app/mls/properties/${data.friendlyId ?? data.id}`)}
-      onEdit={() => router.push(`/app/mls/properties/${data.friendlyId ?? data.id}?edit=true`)}
+      onView={() => router.push(`/app/mls/properties/${data.friendlyId}`)}
+      onEdit={() => router.push(`/app/mls/properties/${data.friendlyId}?edit=true`)}
       onDelete={handleDelete}
       onSchedule={true}
       onShare={true}

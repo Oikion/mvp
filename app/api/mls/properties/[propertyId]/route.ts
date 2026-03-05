@@ -31,7 +31,7 @@ export async function GET(
     const property = await prismaTenant.properties.findFirst({
       where: {
         organizationId,
-        OR: [{ friendlyId: propertyId }, { id: propertyId }],
+        friendlyId: propertyId,
       },
     });
 
@@ -71,7 +71,7 @@ export async function DELETE(
     const property = await prismaTenant.properties.findFirst({
       where: {
         organizationId,
-        OR: [{ friendlyId: propertyId }, { id: propertyId }],
+        friendlyId: propertyId,
       },
       select: { id: true, assigned_to: true },
     });

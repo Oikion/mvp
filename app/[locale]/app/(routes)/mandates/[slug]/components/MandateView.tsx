@@ -76,7 +76,7 @@ interface MandateUser {
 
 interface MandateClient {
   id: string
-  friendlyId?: string
+  friendlyId: string
   client_name: string
   primary_email?: string | null
   primary_phone?: string | null
@@ -784,7 +784,7 @@ export default function MandateView({
                         className="text-sm font-medium hover:underline truncate block text-left"
                         onClick={() =>
                           router.push(
-                            `/app/crm/clients/${mandate.client!.friendlyId ?? mandate.client!.id}`
+                            `/app/crm/clients/${mandate.client!.friendlyId}`
                           )
                         }
                       >

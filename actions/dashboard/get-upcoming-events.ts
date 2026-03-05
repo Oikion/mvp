@@ -4,7 +4,7 @@ import { decryptCalendarEventForOrg, decryptClientForOrg } from "@/lib/model-enc
 
 export interface UpcomingEvent {
   id: string;
-  friendlyId?: string;
+  friendlyId: string;
   title: string | null;
   description: string | null;
   startTime: Date;
@@ -58,6 +58,7 @@ export const getUpcomingEvents = async (limit: number = 5): Promise<UpcomingEven
     },
     select: {
       id: true,
+      friendlyId: true,
       title: true,
       description: true,
       startTime: true,
@@ -103,6 +104,7 @@ export const getUpcomingEvents = async (limit: number = 5): Promise<UpcomingEven
       );
       return {
         id: dec.id,
+        friendlyId: dec.friendlyId,
         title: dec.title,
         description: dec.description,
         startTime: dec.startTime,

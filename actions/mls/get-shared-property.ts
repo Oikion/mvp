@@ -15,10 +15,10 @@ export async function getSharedProperty(propertyId: string) {
     return null;
   }
 
-  // First, resolve the property by friendlyId or id (no org filter)
+  // Resolve the property by friendlyId (no org filter)
   const resolvedProperty = await prismadb.properties.findFirst({
     where: {
-      OR: [{ friendlyId: propertyId }, { id: propertyId }],
+      friendlyId: propertyId,
     },
     select: { id: true },
   });
@@ -125,10 +125,10 @@ export async function hasPropertyShareAccess(propertyId: string): Promise<boolea
     return false;
   }
 
-  // Resolve the property by friendlyId or id
+  // Resolve the property by friendlyId
   const resolvedProperty = await prismadb.properties.findFirst({
     where: {
-      OR: [{ friendlyId: propertyId }, { id: propertyId }],
+      friendlyId: propertyId,
     },
     select: { id: true },
   });

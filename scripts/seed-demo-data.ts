@@ -773,8 +773,14 @@ async function seedClients(
     skipDuplicates: true,
   });
 
+  // Fetch the auto-generated UUID ids for use as FK references
+  const createdClients = await prismadb.clients.findMany({
+    where: { friendlyId: { in: clientIds }, organizationId: orgId },
+    select: { id: true },
+  });
+
   console.log(`✓ Created ${clients.length} clients`);
-  return clientIds;
+  return createdClients.map(c => c.id);
 }
 
 // ============================================
@@ -896,7 +902,7 @@ async function seedTasks(
     const title = titleTemplate.replace("{client}", clientName);
 
     tasks.push({
-      id: taskIds[i],
+      friendlyId: taskIds[i],
       title: title,
       content: `Task related to ${clientName}. ${pick(["High priority follow-up", "Standard procedure", "Routine check", "Urgent action required", "Schedule for next week"])}`,
       priority: pick(TASK_PRIORITIES),
@@ -964,7 +970,7 @@ async function seedDocuments(
     }
 
     documents.push({
-      id: docId,
+      friendlyId: docId,
       document_name: `${docName} - ${rand(1000, 9999)}`,
       document_system_type: docConfig.systemType,
       document_file_mimeType: docConfig.mimeType,
@@ -1051,7 +1057,7 @@ async function seedDeals(
       : null;
 
     deals.push({
-      id: dealId,
+      friendlyId: dealId,
       organizationId: orgId,
       propertyId: property.id,
       clientId: client,

@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
 
 interface DocumentCardProps {
   id: string;
-  friendlyId?: string;
+  friendlyId: string;
   document_name: string;
   description?: string | null;
   createdAt?: Date | null;
@@ -19,8 +19,8 @@ interface DocumentCardProps {
   shareableLink?: string | null;
   passwordProtected?: boolean;
   viewsCount?: number;
-  onView?: (id: string, friendlyId?: string) => void;
-  onShare?: (id: string, friendlyId?: string) => void;
+  onView?: (id: string, friendlyId: string) => void;
+  onShare?: (id: string, friendlyId: string) => void;
   onDelete?: (id: string) => void;
 }
 

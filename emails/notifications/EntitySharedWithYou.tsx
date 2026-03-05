@@ -92,14 +92,15 @@ const translations = {
   },
 };
 
-const getEntityUrl = (type: EntityType, id: string, friendlyId?: string): string => {
+const getEntityUrl = (type: EntityType, id: string, friendlyId: string | undefined): string => {
+  const slug = friendlyId || id;
   switch (type) {
     case "PROPERTY":
-      return `${baseUrl}/app/properties/${friendlyId ?? id}`;
+      return `${baseUrl}/app/properties/${slug}`;
     case "CLIENT":
-      return `${baseUrl}/app/crm/accounts/${friendlyId ?? id}`;
+      return `${baseUrl}/app/crm/accounts/${slug}`;
     case "DOCUMENT":
-      return `${baseUrl}/app/documents/${friendlyId ?? id}`;
+      return `${baseUrl}/app/documents/${slug}`;
     default:
       return baseUrl;
   }

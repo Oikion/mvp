@@ -5,7 +5,7 @@ import { getCurrentUserSafe } from "@/lib/get-current-user";
 
 export interface SharedPropertyData {
   id: string;
-  friendlyId?: string;
+  friendlyId: string;
   shareId: string;
   property_name: string | null;
   property_type: string | null;
@@ -91,7 +91,7 @@ export const getSharedProperties = async (): Promise<SharedPropertyData[]> => {
 
       return {
         id: property.id,
-        friendlyId: property.friendlyId ?? undefined,
+        friendlyId: property.friendlyId,
         shareId: share.id,
         property_name: property.property_name,
         property_type: property.property_type as string | null,

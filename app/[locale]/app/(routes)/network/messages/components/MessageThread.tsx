@@ -82,10 +82,10 @@ function getEntityIcon(type: string) {
 }
 
 // Get entity link path
-function getEntityPath(type: string, id: string, locale: string, friendlyId?: string) {
+function getEntityPath(type: string, id: string, locale: string, friendlyId: string) {
   switch (type) {
     case "property":
-      return `/${locale}/app/mls/properties/${friendlyId ?? id}`;
+      return `/${locale}/app/mls/properties/${friendlyId}`;
     case "client":
       return `/${locale}/app/crm/clients/${id}`;
     case "document":

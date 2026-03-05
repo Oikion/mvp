@@ -19,7 +19,7 @@ import {
 
 export const getColumns = (users: { id: string; name: string | null }[] = []): ColumnDef<{
   id: string;
-  friendlyId?: string;
+  friendlyId: string;
   createdAt: Date;
   property_name?: string;
   price?: number | string | null;
@@ -71,7 +71,7 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
       return <DataTableColumnHeader column={column} title={t("MlsPropertiesTable.name")} />
     },
     cell: ({ row }) => (
-      <Link href={`/app/mls/properties/${row.original.friendlyId ?? row.original.id}`}>
+      <Link href={`/app/mls/properties/${row.original.friendlyId}`}>
         <NameCell
           propertyId={row.original.id}
           value={row.original.property_name ?? ""}

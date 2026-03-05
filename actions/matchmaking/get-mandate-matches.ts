@@ -110,6 +110,7 @@ async function fetchActiveMandates(organizationId: string) {
     },
     select: {
       id: true,
+      friendlyId: true,
       title: true,
       transaction_type: true,
       property_type: true,
@@ -154,6 +155,7 @@ async function fetchActiveProperties(organizationId: string) {
     },
     select: {
       id: true,
+      friendlyId: true,
       property_name: true,
       price: true,
       property_type: true,
@@ -416,6 +418,7 @@ function buildTopMatches(
         ...m,
         client: {
           id: mandate.id,
+          friendlyId: mandate.friendlyId,
           client_name: mandate.title || "Untitled Mandate",
           full_name: null,
           intent: mandateIntent ?? mandate.transaction_type,
@@ -425,6 +428,7 @@ function buildTopMatches(
         },
         property: {
           id: property.id,
+          friendlyId: property.friendlyId,
           property_name: property.property_name,
           price: property.price !== null && property.price !== undefined ? Number(property.price) : null,
           property_type: property.property_type,
@@ -491,6 +495,7 @@ function buildUnmatchedMandates(
       const mandateIntent = mapTransactionToIntent(m.transaction_type);
       return {
         id: m.id,
+        friendlyId: m.friendlyId,
         client_name: m.title || "Untitled Mandate",
         full_name: null,
         intent: (mandateIntent ?? m.transaction_type) as ClientSummary["intent"],
@@ -528,6 +533,7 @@ function buildHotProperties(
       const stats = counts.get(p.id) ?? { count: 0, totalScore: 0, topScore: 0 };
       return {
         id: p.id,
+        friendlyId: p.friendlyId,
         property_name: p.property_name,
         price: p.price !== null && p.price !== undefined ? Number(p.price) : null,
         property_type: p.property_type as PropertyWithMatchStats["property_type"],

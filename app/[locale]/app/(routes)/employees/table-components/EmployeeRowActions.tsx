@@ -5,11 +5,8 @@ import { useRouter } from "next/navigation";
 import { DataTableRowActions } from "@/components/ui/data-table/data-table-row-actions";
 
 interface EmployeeRowActionsProps {
-  row: Row<{
-    id: string;
-    name?: string | null;
-    [key: string]: unknown;
-  }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  row: Row<any>;
 }
 
 /**

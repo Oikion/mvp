@@ -209,7 +209,7 @@ export function CalendarView() {
                         className="text-base cursor-pointer flex-1"
                         onClick={() => {
                           if (event.eventId) {
-                            router.push(`/app/calendar/events/${event.friendlyId ?? event.eventId}`);
+                            router.push(`/app/calendar/events/${event.friendlyId}`);
                           }
                         }}
                       >

@@ -128,9 +128,12 @@ export const POST = withExternalApi(
     }
 
     // Create document
+    const { generateFriendlyId } = await import("@/lib/friendly-id");
+    const docFriendlyId = await generateFriendlyId(prismadb, "Documents", context.organizationId);
     const document = await prismadb.documents.create({
       data: {
         id: crypto.randomUUID(),
+        friendlyId: docFriendlyId,
         organizationId: context.organizationId,
         created_by_user: context.createdById,
         createdBy: context.createdById,

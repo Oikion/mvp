@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 interface CalendarEvent {
   id: number;
   eventId?: string;
-  friendlyId?: string;
+  friendlyId: string;
   title: string;
   description?: string;
   startTime: string;
@@ -182,7 +182,7 @@ export function MonthView({
                       onClick={(e) => {
                         e.stopPropagation();
                         if (event.eventId) {
-                          router.push(`/app/calendar/events/${event.friendlyId ?? event.eventId}`);
+                          router.push(`/app/calendar/events/${event.friendlyId}`);
                         }
                       }}
                       onDoubleClick={(e) => {

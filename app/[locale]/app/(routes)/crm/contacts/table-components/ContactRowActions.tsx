@@ -16,12 +16,8 @@ import { UpdateContactForm } from "../components/UpdateContactForm";
 import { useTranslations } from "next-intl";
 
 interface ContactRowActionsProps {
-  row: Row<{
-    id: string;
-    first_name?: string | null;
-    last_name?: string | null;
-    [key: string]: unknown;
-  }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  row: Row<any>;
 }
 
 /**

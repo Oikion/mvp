@@ -20,7 +20,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 
 export interface QuickViewItem {
   id: string;
-  friendlyId?: string;
+  friendlyId: string;
   name?: string;
   property_name?: string;
   client_name?: string;
@@ -210,7 +210,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
               const statusInfo = getStatusInfo(item);
               const displayName = item.name || item.property_name || item.client_name || tCommon("unnamed");
               const displayEmail = item.email || item.primary_email;
-              const viewHref = isProperties ? `/${locale}/app/mls/properties/${item.friendlyId ?? item.id}` : `/${locale}/app/crm/clients/${item.friendlyId ?? item.id}`;
+              const viewHref = isProperties ? `/${locale}/app/mls/properties/${item.friendlyId}` : `/${locale}/app/crm/clients/${item.friendlyId}`;
               const editHref = `${viewHref}?action=edit`;
               const isDeleting = deletingId === item.id;
               

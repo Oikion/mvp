@@ -251,7 +251,7 @@ export default function ClientView({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <LinkedEntitiesPanel
           type="properties"
-          entities={properties as unknown as Array<{ id: string; property_name: string; property_type?: string; property_status?: string; address_street?: string; address_city?: string; area?: string; price?: number; assigned_to_user?: { id: string; name: string }; }>}
+          entities={properties as unknown as Array<{ id: string; friendlyId: string; property_name: string; property_type?: string; property_status?: string; address_street?: string; address_city?: string; area?: string; price?: number; assigned_to_user?: { id: string; name: string }; }>}
           isLoading={isLoadingLinked || isLinking || isUnlinking}
           onLinkEntity={isReadOnly ? undefined : () => setLinkPropertyDialogOpen(true)}
           onUnlinkEntity={isReadOnly ? undefined : handleUnlinkProperty}
@@ -261,7 +261,7 @@ export default function ClientView({
 
         <LinkedEntitiesPanel
           type="events"
-          entities={allEvents as unknown as Array<{ id: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
+          entities={allEvents as unknown as Array<{ id: string; friendlyId: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
           isLoading={isLoadingLinked}
           showAddButton={false}
           emptyMessage="No calendar events for this client yet."

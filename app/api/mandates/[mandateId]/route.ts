@@ -27,7 +27,7 @@ export async function GET(
 
     const mandate = await prismadb.mandate.findFirst({
       where: {
-        id: mandateId,
+        friendlyId: mandateId,
         organizationId,
       },
       include: {
@@ -109,7 +109,7 @@ export async function DELETE(
 
     // Verify the mandate belongs to the current organization
     const existingMandate = await prismadb.mandate.findFirst({
-      where: { id: mandateId, organizationId },
+      where: { friendlyId: mandateId, organizationId },
     });
 
     if (!existingMandate) {
@@ -121,7 +121,7 @@ export async function DELETE(
 
     // Delete mandate (MandateComment cascade handled by Prisma onDelete: Cascade)
     await prismadb.mandate.delete({
-      where: { id: mandateId },
+      where: { id: existingMandate.id },
     });
 
     await invalidateCache(

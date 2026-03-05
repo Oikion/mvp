@@ -3,7 +3,7 @@ import useSWR from "swr";
 interface CalendarEvent {
   id: number;
   eventId?: string; // Database ID for navigation
-  friendlyId?: string;
+  friendlyId: string;
   title: string;
   description?: string;
   startTime: string;

@@ -166,7 +166,7 @@ export interface ValidationWarning {
  */
 export interface PropertyData {
   id: string;
-  friendlyId?: string;
+  friendlyId: string;
   property_name: string;
   price?: number | null;
   property_type?: string | null;

@@ -6,12 +6,8 @@ import axios from "axios";
 import { DataTableRowActions } from "@/components/ui/data-table/data-table-row-actions";
 
 interface ClientRowActionsProps {
-  row: Row<{
-    id: string;
-    name?: string;
-    client_name?: string;
-    [key: string]: unknown;
-  }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  row: Row<any>;
 }
 
 /**
@@ -32,8 +28,8 @@ export function ClientRowActions({ row }: ClientRowActionsProps) {
       entityType="client"
       entityId={data.id}
       entityName={data.name || data.client_name}
-      onView={() => router.push(`/app/crm/clients/${data.friendlyId ?? data.id}`)}
-      onEdit={() => router.push(`/app/crm/clients/${data.friendlyId ?? data.id}?edit=true`)}
+      onView={() => router.push(`/app/crm/clients/${data.friendlyId}`)}
+      onEdit={() => router.push(`/app/crm/clients/${data.friendlyId}?edit=true`)}
       onDelete={handleDelete}
       onSchedule={true}
       onShare={true}

@@ -54,7 +54,7 @@ export interface SocialPost {
   };
   linkedEntity?: {
     id: string;
-    friendlyId?: string;
+    friendlyId: string;
     type: "property" | "client" | "mandate";
     title: string;
     subtitle?: string;
@@ -106,11 +106,11 @@ export function FeedPostCard({
     if (!post.linkedEntity) return "#";
     switch (post.linkedEntity.type) {
       case "property":
-        return `/app/mls/properties/${post.linkedEntity.friendlyId ?? post.linkedEntity.id}`;
+        return `/app/mls/properties/${post.linkedEntity.friendlyId}`;
       case "client":
-        return `/app/crm/clients/${post.linkedEntity.friendlyId ?? post.linkedEntity.id}`;
+        return `/app/crm/clients/${post.linkedEntity.friendlyId}`;
       case "mandate":
-        return `/app/crm/mandates/${post.linkedEntity.friendlyId ?? post.linkedEntity.id}`;
+        return `/app/crm/mandates/${post.linkedEntity.friendlyId}`;
       default:
         return "#";
     }

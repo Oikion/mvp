@@ -392,7 +392,7 @@ function UnmatchedMandatesList({
 
             <div className="flex-1 min-w-0">
               <Link
-                href={`/${locale}/app/mandates/${mandate.friendlyId ?? mandate.id}`}
+                href={`/${locale}/app/mandates/${mandate.friendlyId}`}
                 className="font-medium hover:text-primary"
               >
                 {mandate.client_name}
@@ -418,7 +418,7 @@ function UnmatchedMandatesList({
             </div>
 
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/app/mandates/${mandate.friendlyId ?? mandate.id}`}>
+              <Link href={`/${locale}/app/mandates/${mandate.friendlyId}`}>
                 {t("mandateMatches.unmatched.review")}
                 <ArrowRight className="h-4 w-4 ml-1" />
               </Link>

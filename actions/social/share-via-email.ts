@@ -60,7 +60,7 @@ async function getPropertyDetails(
   return {
     title: property.property_name,
     description: description || property.description || undefined,
-    url: `${baseUrl}/app/mls/properties/${property.friendlyId ?? property.id}`,
+    url: `${baseUrl}/app/mls/properties/${property.friendlyId}`,
   };
 }
 
@@ -97,7 +97,7 @@ async function getClientDetails(
   return {
     title: client.client_name,
     description: description || undefined,
-    url: `${baseUrl}/app/crm/clients/${client.friendlyId ?? client.id}`,
+    url: `${baseUrl}/app/crm/clients/${client.friendlyId}`,
   };
 }
 

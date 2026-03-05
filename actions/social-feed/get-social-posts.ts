@@ -26,6 +26,7 @@ export interface SocialPost {
   };
   linkedEntity?: {
     id: string;
+    friendlyId: string;
     type: "property" | "client" | "mandate";
     title: string;
     subtitle?: string;
@@ -144,6 +145,35 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
       return false;
     });
 
+    // Batch-fetch friendlyIds for linked entities
+    const linkedPropertyIds = filteredPosts
+      .filter((p) => p.linkedEntityId && p.linkedEntityType === "property")
+      .map((p) => p.linkedEntityId!);
+    const linkedClientIds = filteredPosts
+      .filter((p) => p.linkedEntityId && p.linkedEntityType === "client")
+      .map((p) => p.linkedEntityId!);
+    const linkedMandateIds = filteredPosts
+      .filter((p) => p.linkedEntityId && p.linkedEntityType === "mandate")
+      .map((p) => p.linkedEntityId!);
+
+    const friendlyIdMap = new Map<string, string>();
+
+    const [linkedProps, linkedClients, linkedMandates] = await Promise.all([
+      linkedPropertyIds.length > 0
+        ? prismadb.properties.findMany({ where: { id: { in: linkedPropertyIds } }, select: { id: true, friendlyId: true } })
+        : [],
+      linkedClientIds.length > 0
+        ? prismadb.clients.findMany({ where: { id: { in: linkedClientIds } }, select: { id: true, friendlyId: true } })
+        : [],
+      linkedMandateIds.length > 0
+        ? prismadb.mandate.findMany({ where: { id: { in: linkedMandateIds } }, select: { id: true, friendlyId: true } })
+        : [],
+    ]);
+
+    for (const e of [...linkedProps, ...linkedClients, ...linkedMandates]) {
+      friendlyIdMap.set(e.id, e.friendlyId);
+    }
+
     return filteredPosts.map((post) => ({
       id: post.id,
       slug: post.slug,
@@ -159,6 +189,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
       },
       linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
         id: post.linkedEntityId,
+        friendlyId: friendlyIdMap.get(post.linkedEntityId) || post.linkedEntityId,
         type: post.linkedEntityType as "property" | "client" | "mandate",
         title: post.linkedEntityTitle || "Untitled",
         subtitle: post.linkedEntitySubtitle || undefined,

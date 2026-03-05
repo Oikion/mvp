@@ -25,7 +25,7 @@ export const GET = withExternalApi(
     const property = await prismadb.properties.findFirst({
       where: {
         organizationId: context.organizationId,
-        OR: [{ friendlyId: propertyId }, { id: propertyId }],
+        friendlyId: propertyId,
       },
       select: {
         id: true,
@@ -167,7 +167,7 @@ export const PUT = withExternalApi(
     const existingProperty = await prismadb.properties.findFirst({
       where: {
         organizationId: context.organizationId,
-        OR: [{ friendlyId: propertyId }, { id: propertyId }],
+        friendlyId: propertyId,
       },
     });
 
@@ -291,7 +291,7 @@ export const DELETE = withExternalApi(
     const existingProperty = await prismadb.properties.findFirst({
       where: {
         organizationId: context.organizationId,
-        OR: [{ friendlyId: propertyId }, { id: propertyId }],
+        friendlyId: propertyId,
       },
     });
 

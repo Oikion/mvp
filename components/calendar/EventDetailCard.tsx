@@ -169,7 +169,7 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
                   variant="ghost"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => router.push(`/app/crm/clients/${client.friendlyId ?? client.id}`)}
+                  onClick={() => router.push(`/app/crm/clients/${client.friendlyId}`)}
                 >
                   <LinkIcon className="h-3 w-3 mr-2" />
                   {client.client_name}
@@ -190,7 +190,7 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
                   variant="ghost"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => router.push(`/app/mls/properties/${property.friendlyId ?? property.id}`)}
+                  onClick={() => router.push(`/app/mls/properties/${property.friendlyId}`)}
                 >
                   <LinkIcon className="h-3 w-3 mr-2" />
                   {property.property_name}
@@ -211,7 +211,7 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
                   variant="ghost"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => router.push(`/app/documents/${doc.friendlyId ?? doc.id}`)}
+                  onClick={() => router.push(`/app/documents/${doc.friendlyId}`)}
                 >
                   <LinkIcon className="h-3 w-3 mr-2" />
                   {doc.document_name}

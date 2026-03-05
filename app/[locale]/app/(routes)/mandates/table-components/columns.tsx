@@ -188,7 +188,7 @@ export const getColumns = (
       }
       return (
         <Link
-          href={`/app/crm/clients/${client.friendlyId ?? client.id}`}
+          href={`/app/crm/clients/${client.friendlyId}`}
           className="text-sm hover:text-primary transition-colors truncate max-w-[150px] inline-block"
           onClick={(e) => e.stopPropagation()}
         >
@@ -213,13 +213,13 @@ export const getColumns = (
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/app/mandates/${mandate.friendlyId ?? mandate.id}`} className="flex items-center gap-2">
+              <Link href={`/app/mandates/${mandate.friendlyId}`} className="flex items-center gap-2">
                 <Eye className="h-4 w-4" />
                 {t("MandateView.view")}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href={`/app/mandates/${mandate.friendlyId ?? mandate.id}?edit=true`} className="flex items-center gap-2">
+              <Link href={`/app/mandates/${mandate.friendlyId}?edit=true`} className="flex items-center gap-2">
                 <Pencil className="h-4 w-4" />
                 {t("MandateView.edit")}
               </Link>

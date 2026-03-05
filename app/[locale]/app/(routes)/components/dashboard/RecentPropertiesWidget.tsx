@@ -10,6 +10,7 @@ import { PropertyCard } from "@/app/[locale]/app/(routes)/mls/components/Propert
 
 interface RecentProperty {
   id: string;
+  friendlyId: string;
   property_name: string;
   price?: number;
   property_status?: string;

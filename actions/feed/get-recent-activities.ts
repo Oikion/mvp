@@ -70,7 +70,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         avatar: assignedUser.avatar || undefined,
       } : undefined,
       entityId: property.id,
-      entityFriendlyId: (property as any).friendlyId ?? undefined,
+      entityFriendlyId: (property as any).friendlyId,
       metadata: {
         propertyType: property.property_type,
         transactionType: property.transaction_type,
@@ -114,7 +114,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         avatar: assignedUser.avatar || undefined,
       } : undefined,
       entityId: client.id,
-      entityFriendlyId: (client as any).friendlyId ?? undefined,
+      entityFriendlyId: (client as any).friendlyId,
       metadata: {
         personType: client.person_type,
         intent: client.intent,
@@ -158,7 +158,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         avatar: createdBy.avatar || undefined,
       } : undefined,
       entityId: doc.id,
-      entityFriendlyId: (doc as any).friendlyId ?? undefined,
+      entityFriendlyId: (doc as any).friendlyId,
       metadata: {
         documentType: doc.document_type,
         mimeType: doc.document_file_mimeType,
@@ -187,7 +187,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         timestamp: event.createdAt?.toISOString() || new Date().toISOString(),
         actor: undefined,
         entityId: event.id,
-        entityFriendlyId: (event as any).friendlyId ?? undefined,
+        entityFriendlyId: (event as any).friendlyId,
         metadata: {
           startTime: event.startTime instanceof Date ? event.startTime.toISOString() : event.startTime,
           endTime: event.endTime instanceof Date ? event.endTime.toISOString() : event.endTime,

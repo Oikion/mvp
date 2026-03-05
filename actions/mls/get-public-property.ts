@@ -9,7 +9,7 @@ import { prismadb } from "@/lib/prisma";
 export async function getPublicProperty(propertyId: string) {
   const property = await prismadb.properties.findFirst({
     where: {
-      OR: [{ friendlyId: propertyId }, { id: propertyId }],
+      friendlyId: propertyId,
       portal_visibility: "PUBLIC",
       property_status: "ACTIVE",
     },

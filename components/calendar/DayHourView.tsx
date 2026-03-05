@@ -46,7 +46,7 @@ import { toast } from "sonner";
 interface CalendarEvent {
   id: number;
   eventId?: string;
-  friendlyId?: string;
+  friendlyId: string;
   title: string;
   description?: string;
   startTime: string;
@@ -260,7 +260,7 @@ function DraggableEvent({
       style={style}
       onClick={() => {
         if (event.eventId) {
-          router.push(`/app/calendar/events/${event.friendlyId ?? event.eventId}`);
+          router.push(`/app/calendar/events/${event.friendlyId}`);
         }
       }}
     >

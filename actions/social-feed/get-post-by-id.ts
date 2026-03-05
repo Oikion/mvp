@@ -18,7 +18,7 @@ export interface PostWithAuthor {
   };
   linkedEntity?: {
     id: string;
-    friendlyId?: string;
+    friendlyId: string;
     type: "property" | "client";
     title: string;
     subtitle?: string;
@@ -129,6 +129,28 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
     }
   }
 
+  // Look up friendlyId for linked entity if present
+  let linkedEntityFriendlyId: string | undefined;
+  if (post.linkedEntityId && post.linkedEntityType) {
+    try {
+      if (post.linkedEntityType === "property") {
+        const prop = await prismadb.properties.findUnique({
+          where: { id: post.linkedEntityId },
+          select: { friendlyId: true },
+        });
+        linkedEntityFriendlyId = prop?.friendlyId;
+      } else if (post.linkedEntityType === "client") {
+        const client = await prismadb.clients.findUnique({
+          where: { id: post.linkedEntityId },
+          select: { friendlyId: true },
+        });
+        linkedEntityFriendlyId = client?.friendlyId;
+      }
+    } catch {
+      // Entity may have been deleted
+    }
+  }
+
   // Build the response
   const postData: PostWithAuthor = {
     id: post.id,
@@ -145,6 +167,7 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
     },
     linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
       id: post.linkedEntityId,
+      friendlyId: linkedEntityFriendlyId || post.linkedEntityId,
       type: post.linkedEntityType as "property" | "client",
       title: post.linkedEntityTitle || "",
       subtitle: post.linkedEntitySubtitle || undefined,

@@ -88,6 +88,7 @@ export async function getPropertyMatches(
     },
     select: {
       id: true,
+      friendlyId: true,
       client_name: true,
       full_name: true,
       intent: true,
@@ -166,6 +167,7 @@ export async function getPropertyMatches(
       breakdown: includeBreakdown ? result.breakdown : [],
       client: {
         id: client.id,
+        friendlyId: client.friendlyId,
         client_name: client.client_name,
         full_name: client.full_name,
         intent: client.intent as MatchResultWithClient["client"]["intent"],

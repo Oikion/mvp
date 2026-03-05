@@ -66,7 +66,7 @@ export async function getPublicPropertyByOrg(orgSlug: string, propertyId: string
 
   const property = await prismadb.properties.findFirst({
     where: {
-      OR: [{ friendlyId: propertyId }, { id: propertyId }],
+      friendlyId: propertyId,
       organizationId: organization.id,
       portal_visibility: "PUBLIC",
       property_status: "ACTIVE",

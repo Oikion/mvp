@@ -11,6 +11,7 @@ type ProfileType = {
     username?: string | null;
     properties?: Array<{
       id: string;
+      friendlyId: string;
       property_name: string;
       address_city?: string | null;
       address_state?: string | null;

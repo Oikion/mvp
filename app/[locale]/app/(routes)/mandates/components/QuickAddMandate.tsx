@@ -154,7 +154,7 @@ export function QuickAddMandate({
         assigned_to: values.assigned_to || undefined,
       });
 
-      const draftId = response.data.friendlyId ?? response.data.id;
+      const draftId = response.data.friendlyId;
 
       form.reset();
       onOpenChange(false);

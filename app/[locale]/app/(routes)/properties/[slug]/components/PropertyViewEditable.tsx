@@ -908,7 +908,7 @@ export function PropertyViewEditable({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <LinkedEntitiesPanel
           type="clients"
-          entities={clients as unknown as Array<{ id: string; client_name: string; client_type?: string; client_status?: string; primary_email?: string; primary_phone?: string; intent?: string; assigned_to_user?: { id: string; name: string }; }>}
+          entities={clients as unknown as Array<{ id: string; friendlyId: string; client_name: string; client_type?: string; client_status?: string; primary_email?: string; primary_phone?: string; intent?: string; assigned_to_user?: { id: string; name: string }; }>}
           isLoading={isLoadingLinked || isLinking || isUnlinking}
           onLinkEntity={isReadOnly ? undefined : () => setLinkClientDialogOpen(true)}
           onUnlinkEntity={isReadOnly ? undefined : handleUnlinkClient}
@@ -918,7 +918,7 @@ export function PropertyViewEditable({
 
         <LinkedEntitiesPanel
           type="events"
-          entities={allEvents as unknown as Array<{ id: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
+          entities={allEvents as unknown as Array<{ id: string; friendlyId: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
           isLoading={isLoadingLinked}
           showAddButton={false}
           emptyMessage="No calendar events for this property yet."

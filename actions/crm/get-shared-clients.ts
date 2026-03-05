@@ -6,7 +6,7 @@ import { decryptClientForOrg } from "@/lib/model-encryption";
 
 export interface SharedClientData {
   id: string;
-  friendlyId?: string;
+  friendlyId: string;
   shareId: string;
   client_name: string;
   primary_email: string | null;

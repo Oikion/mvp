@@ -16,11 +16,21 @@ export async function getSharedClient(clientId: string) {
     return null;
   }
 
+  // Resolve friendlyId to UUID
+  const resolvedClient = await prismadb.clients.findFirst({
+    where: { friendlyId: clientId },
+    select: { id: true },
+  });
+
+  if (!resolvedClient) {
+    return null;
+  }
+
   // Check if the client is shared with the current user
   const share = await prismadb.sharedEntity.findFirst({
     where: {
       entityType: "CLIENT",
-      entityId: clientId,
+      entityId: resolvedClient.id,
       sharedWithId: currentUser.id,
     },
     select: {
@@ -44,7 +54,7 @@ export async function getSharedClient(clientId: string) {
 
   // Fetch the client (without organization restriction)
   const client = await prismadb.clients.findUnique({
-    where: { id: clientId },
+    where: { id: resolvedClient.id },
     include: {
       Users_Clients_assigned_toToUsers: {
         select: {
@@ -110,10 +120,20 @@ export async function hasClientShareAccess(clientId: string): Promise<boolean> {
     return false;
   }
 
+  // Resolve friendlyId to UUID
+  const resolvedClient = await prismadb.clients.findFirst({
+    where: { friendlyId: clientId },
+    select: { id: true },
+  });
+
+  if (!resolvedClient) {
+    return false;
+  }
+
   const share = await prismadb.sharedEntity.findFirst({
     where: {
       entityType: "CLIENT",
-      entityId: clientId,
+      entityId: resolvedClient.id,
       sharedWithId: currentUser.id,
     },
     select: { id: true },

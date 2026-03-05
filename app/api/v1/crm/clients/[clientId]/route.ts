@@ -25,7 +25,7 @@ export const GET = withExternalApi(
     const client = await prismadb.clients.findFirst({
       where: {
         organizationId: context.organizationId,
-        OR: [{ friendlyId: clientId }, { id: clientId }],
+        friendlyId: clientId,
       },
       select: {
         id: true,
@@ -157,7 +157,7 @@ export const PUT = withExternalApi(
     const existingClient = await prismadb.clients.findFirst({
       where: {
         organizationId: context.organizationId,
-        OR: [{ friendlyId: clientId }, { id: clientId }],
+        friendlyId: clientId,
       },
     });
 
@@ -285,7 +285,7 @@ export const DELETE = withExternalApi(
     const existingClient = await prismadb.clients.findFirst({
       where: {
         organizationId: context.organizationId,
-        OR: [{ friendlyId: clientId }, { id: clientId }],
+        friendlyId: clientId,
       },
     });
 

@@ -35,7 +35,7 @@ export interface UpcomingItem {
   linkedEntity?: {
     type: "property" | "client";
     id: string;
-    friendlyId?: string;
+    friendlyId: string;
     name: string;
   };
   isOverdue?: boolean;
@@ -163,8 +163,8 @@ function UpcomingItemCard({ item, locale, t }: { item: UpcomingItem; locale: str
           {item.linkedEntity && (
             <Link 
               href={item.linkedEntity.type === "property"
-                ? `/app/mls/properties/${item.linkedEntity.friendlyId ?? item.linkedEntity.id}`
-                : `/app/crm/clients/${item.linkedEntity.friendlyId ?? item.linkedEntity.id}`
+                ? `/app/mls/properties/${item.linkedEntity.friendlyId}`
+                : `/app/crm/clients/${item.linkedEntity.friendlyId}`
               }
               className="flex items-center gap-1 hover:text-primary"
             >

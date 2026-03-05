@@ -28,7 +28,7 @@ import { useParams } from "next/navigation";
 
 interface Deal {
   id: string;
-  friendlyId?: string | null;
+  friendlyId: string;
   title: string | null;
   status: string;
   propertyAgentSplit: any;
@@ -189,7 +189,7 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
 
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <Link href={`/app/deals/${deal.friendlyId ?? deal.id}`}>
+                <Link href={`/app/deals/${deal.friendlyId}`}>
                   <Button variant="outline" size="sm">
                     <ExternalLink className="h-4 w-4" />
                   </Button>

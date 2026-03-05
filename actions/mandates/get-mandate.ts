@@ -22,7 +22,7 @@ export const getMandate = async (mandateId: string) => {
 
   const data = await prismadb.mandate.findFirst({
     where: {
-      id: mandateId,
+      friendlyId: mandateId,
       organizationId,
     },
     include: {

@@ -44,6 +44,7 @@ export async function getMatchAnalytics(): Promise<MatchAnalytics> {
       },
       select: {
         id: true,
+        friendlyId: true,
         client_name: true,
         full_name: true,
         intent: true,
@@ -66,6 +67,7 @@ export async function getMatchAnalytics(): Promise<MatchAnalytics> {
       },
       select: {
         id: true,
+        friendlyId: true,
         property_name: true,
         price: true,
         property_type: true,
@@ -177,6 +179,7 @@ export async function getMatchAnalytics(): Promise<MatchAnalytics> {
         ...m,
         client: {
           id: client.id,
+          friendlyId: client.friendlyId,
           client_name: client.client_name,
           full_name: client.full_name,
           intent: client.intent,
@@ -186,6 +189,7 @@ export async function getMatchAnalytics(): Promise<MatchAnalytics> {
         },
         property: {
           id: property.id,
+          friendlyId: property.friendlyId,
           property_name: property.property_name,
           price: property.price !== null && property.price !== undefined ? Number(property.price) : null,
           property_type: property.property_type,
@@ -227,6 +231,7 @@ export async function getMatchAnalytics(): Promise<MatchAnalytics> {
     .filter(c => (clientBestScores.get(c.id) ?? 0) < MATCH_THRESHOLDS.FAIR)
     .map(c => ({
       id: c.id,
+      friendlyId: c.friendlyId,
       client_name: c.client_name,
       full_name: c.full_name,
       intent: c.intent as ClientSummary["intent"],
@@ -256,6 +261,7 @@ export async function getMatchAnalytics(): Promise<MatchAnalytics> {
       const stats = propertyMatchCounts.get(p.id) ?? { count: 0, totalScore: 0, topScore: 0 };
       return {
         id: p.id,
+        friendlyId: p.friendlyId,
         property_name: p.property_name,
         price: p.price !== null && p.price !== undefined ? Number(p.price) : null,
         property_type: p.property_type as PropertyWithMatchStats["property_type"],

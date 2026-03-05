@@ -80,7 +80,7 @@ enum SubmissionStatus {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model CalendarEvent {
   id                 String               @id @default(uuid())
-  friendlyId         String?
+  friendlyId         String
   createdAt          DateTime             @default(now())
   updatedAt          DateTime
   calendarEventId    Int                  @unique
@@ -211,7 +211,7 @@ model Client_Properties {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Clients {
   id                               String               @id @default(uuid())
-  friendlyId                       String?
+  friendlyId                       String
   createdAt                        DateTime             @default(now())
   createdBy                        String?
   updatedAt                        DateTime?
@@ -291,7 +291,7 @@ model Clients {
 
 model Deal {
   id                                String     @id @default(uuid())
-  friendlyId                        String?
+  friendlyId                        String
   organizationId                    String     // SECURITY: Required for tenant isolation
   propertyId                        String
   clientId                          String
@@ -375,7 +375,7 @@ model DocumentView {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Documents {
   id                                             String               @id @default(uuid())
-  friendlyId                                     String?
+  friendlyId                                     String
   date_created                                   DateTime?            @default(now())
   createdAt                                      DateTime?            @default(now())
   last_updated                                   DateTime?
@@ -627,7 +627,7 @@ model ProfileShowcaseProperty {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Properties {
   id                                  String                    @id @default(uuid())
-  friendlyId                          String?
+  friendlyId                          String
   createdAt                           DateTime                  @default(now())
   createdBy                           String?
   updatedAt                           DateTime?
@@ -947,7 +947,7 @@ model Users {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model crm_Accounts_Tasks {
   id                                    String                        @id @default(uuid())
-  friendlyId                            String?
+  friendlyId                            String
   content                               String?
   createdAt                             DateTime?                     @default(now())
   createdBy                             String?
@@ -1512,7 +1512,7 @@ enum MandateUrgency {
 
 model Mandate {
   id                  String            @id @default(uuid())
-  friendlyId          String?
+  friendlyId          String
   organizationId      String
   createdAt           DateTime          @default(now())
   createdBy           String?

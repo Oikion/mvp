@@ -51,7 +51,7 @@ import { isMac } from "@/hooks/use-keyboard-shortcuts";
  */
 interface EntityItem {
   id: string;
-  friendlyId?: string;
+  friendlyId: string;
   name: string;
   index: number;
 }
@@ -141,6 +141,7 @@ export function MentionShortcutOverlay() {
     // Map to EntityItem with index
     return entityResults.map((item, index) => ({
       id: item.value,
+      friendlyId: (item.metadata?.friendlyId as string) || item.value,
       name: item.label,
       index,
     }));
@@ -166,13 +167,13 @@ export function MentionShortcutOverlay() {
 
       switch (activeCategory) {
         case "clients":
-          path = `/${locale}/app/crm/clients/${item.friendlyId ?? item.id}`;
+          path = `/${locale}/app/crm/clients/${item.friendlyId}`;
           break;
         case "properties":
-          path = `/${locale}/app/mls/properties/${item.friendlyId ?? item.id}`;
+          path = `/${locale}/app/mls/properties/${item.friendlyId}`;
           break;
         case "documents":
-          path = `/${locale}/app/documents/${item.friendlyId ?? item.id}`;
+          path = `/${locale}/app/documents/${item.friendlyId}`;
           break;
       }
 

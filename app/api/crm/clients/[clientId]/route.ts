@@ -33,7 +33,7 @@ export async function GET(
     const client = await prismaTenant.clients.findFirst({
       where: {
         organizationId,
-        OR: [{ friendlyId: clientId }, { id: clientId }],
+        friendlyId: clientId,
       },
     });
 
@@ -124,7 +124,7 @@ export async function PUT(
     const existingClient = await prismadb.clients.findFirst({
       where: {
         organizationId,
-        OR: [{ friendlyId: clientId }, { id: clientId }],
+        friendlyId: clientId,
       },
     });
 
