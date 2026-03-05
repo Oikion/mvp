@@ -41,7 +41,7 @@ export async function deleteSocialPost(postId: string) {
       where: { id: postId },
     });
 
-    revalidatePath("/social-feed");
+    revalidatePath("/network/feed");
 
     // Publish Ably event for real-time updates
     try {

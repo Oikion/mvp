@@ -117,42 +117,22 @@ const CommandSeparator = React.forwardRef<
 ))
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName
 
-interface CommandItemProps extends React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item> {
-  /** Explicit click handler for better mouse support with shouldFilter={false} */
-  onClick?: (e: React.MouseEvent) => void;
-}
-
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
-  CommandItemProps
->(({ className, onSelect, onClick, ...props }, ref) => {
-  const handleClick = React.useCallback((e: React.MouseEvent) => {
-    // Call the onClick handler if provided
-    onClick?.(e);
-    
-    // Also trigger onSelect for consistency
-    if (onSelect && props.value) {
-      onSelect(props.value as string);
-    }
-  }, [onClick, onSelect, props.value]);
-
-  return (
-    <CommandPrimitive.Item
-      ref={ref}
-      className={cn(
-        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
-        "aria-selected:bg-accent aria-selected:text-accent-foreground",
-        "hover:bg-accent/50 focus:bg-accent/50",
-        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        "transition-colors duration-150",
-        className
-      )}
-      onSelect={onSelect}
-      onClick={handleClick}
-      {...props}
-    />
-  );
-})
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
+      "data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground",
+      "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
+      "transition-colors duration-150",
+      className
+    )}
+    {...props}
+  />
+))
 
 CommandItem.displayName = CommandPrimitive.Item.displayName
 

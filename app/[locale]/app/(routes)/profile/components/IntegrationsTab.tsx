@@ -3,7 +3,6 @@
 import { useLocale } from "next-intl";
 import { N8NWorkflowsSection } from "@/components/integrations/n8n-workflows-section";
 import { XEAgentSettingsForm } from "@/components/integrations/xe-agent-settings-form";
-import { MessagingIntegrationsTab } from "./MessagingIntegrationsTab";
 
 export function IntegrationsTab() {
   const locale = useLocale() as "en" | "el";
@@ -26,8 +25,6 @@ export function IntegrationsTab() {
 
       {/* XE.gr Settings Section */}
       <XEAgentSettingsForm />
-
-      <MessagingIntegrationsTab />
     </div>
   );
 }

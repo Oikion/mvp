@@ -82,7 +82,7 @@ export async function POST(req: Request) {
       .filter(Boolean)
       .join(" ") || "Unknown Contact";
 
-    const conversationId = await generateFriendlyId(prismadb, "Conversation");
+    const conversationId = await generateFriendlyId(prismadb, "Conversation", organizationId);
     const conversation = await prismadb.conversation.create({
       data: {
         id: conversationId,

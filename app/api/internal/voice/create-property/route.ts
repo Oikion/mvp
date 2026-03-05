@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate friendly ID
-    const propertyId = await generateFriendlyId(prismadb, "Properties");
+    const propertyId = await generateFriendlyId(prismadb, "Properties", organizationId);
 
     // Create property
     const property = await prismadb.properties.create({

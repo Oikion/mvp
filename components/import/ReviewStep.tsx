@@ -24,6 +24,7 @@ interface ReviewStepProps {
   };
   fieldsDict: FieldsDict;
   data: Record<string, unknown>[];
+  fieldMapping: Record<string, string>;
   errorCount: number;
   entityType: "client" | "property";
 }
@@ -32,6 +33,7 @@ export function ReviewStep({
   dict,
   fieldsDict,
   data,
+  fieldMapping,
   errorCount,
   entityType,
 }: ReviewStepProps) {
@@ -160,7 +162,7 @@ export function ReviewStep({
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-muted-foreground">
-                {availableColumns.length}
+                {Object.values(fieldMapping).filter(Boolean).length}
               </p>
               <p className="text-sm text-muted-foreground">Fields mapped</p>
             </div>

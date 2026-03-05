@@ -81,7 +81,6 @@ export {
   type ReportAction,
   type DealAction,
   type MatchmakingAction,
-  type AudienceAction,
   type SocialAction,
   type TaskAction,
   type AdminAction,

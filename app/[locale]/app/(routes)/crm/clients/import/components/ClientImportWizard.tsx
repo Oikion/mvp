@@ -108,12 +108,13 @@ export function ClientImportWizard({ dict, locale }: ClientImportWizardProps) {
   const { toast } = useAppToast();
 
   const handleImport = useCallback(
-    async (data: Record<string, unknown>[]): Promise<ImportResult> => {
+    async (data: Record<string, unknown>[], signal?: AbortSignal): Promise<ImportResult> => {
       try {
         const response = await fetch("/api/crm/clients/import", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ clients: data }),
+          signal,
         });
 
         if (!response.ok) {

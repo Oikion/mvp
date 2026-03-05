@@ -166,6 +166,55 @@ export function formatPriceRange(
 }
 
 /**
+ * Format a currency value in compact notation (K, M, B) without scientific notation.
+ * Numbers that appear to be data errors (>= 1e12) are rendered as "—".
+ *
+ * @param value - Numeric value to format
+ * @param currency - Currency code. Default: "EUR"
+ * @param decimals - Decimal places for the compact suffix. Default: 1
+ * @returns Formatted string like "€1.5M", "€250K", "€2.3B"
+ *
+ * @example
+ * ```tsx
+ * formatCompactCurrency(1500000, "EUR")    // "€1.5M"
+ * formatCompactCurrency(250000, "EUR")     // "€250K"
+ * formatCompactCurrency(2300000000, "EUR") // "€2.3B"
+ * formatCompactCurrency(0, "EUR")          // "€0"
+ * formatCompactCurrency(null)              // "—"
+ * ```
+ */
+export function formatCompactCurrency(
+  value: number | string | null | undefined,
+  currency: Currency = DEFAULT_CURRENCY,
+  decimals = 1
+): string {
+  const symbol = CURRENCY_SYMBOLS[currency];
+  const numValue = typeof value === "string" ? Number.parseFloat(value) : value;
+
+  if (numValue === null || numValue === undefined || !Number.isFinite(numValue)) {
+    return "—";
+  }
+
+  const abs = Math.abs(numValue);
+  const sign = numValue < 0 ? "-" : "";
+
+  // Values above 1 trillion are almost certainly data errors; show placeholder
+  if (abs >= 1_000_000_000_000) {
+    return `${sign}${symbol}—`;
+  }
+  if (abs >= 1_000_000_000) {
+    return `${sign}${symbol}${(abs / 1_000_000_000).toFixed(decimals)}B`;
+  }
+  if (abs >= 1_000_000) {
+    return `${sign}${symbol}${(abs / 1_000_000).toFixed(decimals)}M`;
+  }
+  if (abs >= 1_000) {
+    return `${sign}${symbol}${(abs / 1_000).toFixed(decimals)}K`;
+  }
+  return `${sign}${symbol}${abs.toFixed(0)}`;
+}
+
+/**
  * Parse a currency string to number
  *
  * @param value - Currency string to parse

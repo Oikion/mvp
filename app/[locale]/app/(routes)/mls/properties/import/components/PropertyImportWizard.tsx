@@ -108,12 +108,13 @@ export function PropertyImportWizard({ dict, locale }: PropertyImportWizardProps
   const { toast } = useAppToast();
 
   const handleImport = useCallback(
-    async (data: Record<string, unknown>[]): Promise<ImportResult> => {
+    async (data: Record<string, unknown>[], signal?: AbortSignal): Promise<ImportResult> => {
       try {
         const response = await fetch("/api/mls/properties/import", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ properties: data }),
+          signal,
         });
 
         if (!response.ok) {

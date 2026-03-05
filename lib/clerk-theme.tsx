@@ -167,22 +167,6 @@ function getThemeVariables(theme: string): Record<string, string> {
         colorBorder: getVar("--border") || "hsl(0, 0%, 27.3%)",
       };
 
-    case "pearl-sand":
-      return {
-        ...baseVars,
-        colorPrimary: getColor("--primary") || "#6b5d4f",
-        colorBackground: getVar("--surface-3") || getVar("--card") || "hsl(35, 15%, 97%)",
-        colorText: getVar("--foreground") || "hsl(30, 10%, 20%)",
-        colorTextSecondary: getVar("--text-secondary") || "hsl(30, 10%, 45%)",
-        colorInputBackground: getVar("--input") || getVar("--surface-3") || "#ffffff",
-        colorInputText: getVar("--foreground") || "hsl(30, 10%, 20%)",
-        colorInputBorder: getVar("--border") || "hsl(35, 15%, 75%)",
-        colorNeutral: getVar("--muted") || "hsl(35, 10%, 92%)",
-        colorAlphaShade: getVar("--muted") || "hsl(35, 10%, 92%)",
-        colorShimmer: "rgba(0, 0, 0, 0.03)",
-        colorBorder: getVar("--border") || "hsl(35, 15%, 75%)",
-      };
-
     case "twilight-lavender":
       return {
         ...baseVars,
@@ -197,6 +181,38 @@ function getThemeVariables(theme: string): Record<string, string> {
         colorAlphaShade: getVar("--muted") || "hsl(265, 20%, 20%)",
         colorShimmer: "rgba(255, 255, 255, 0.05)",
         colorBorder: getVar("--border") || "hsl(265, 20%, 30%)",
+      };
+
+    case "estate":
+      return {
+        ...baseVars,
+        colorPrimary: getColor("--primary") || "#262F27",
+        colorBackground: getVar("--surface-3") || getVar("--card") || "hsl(0, 0%, 100%)",
+        colorText: getVar("--foreground") || "hsl(127, 11%, 17%)",
+        colorTextSecondary: getVar("--text-secondary") || "hsl(124, 7%, 42%)",
+        colorInputBackground: getVar("--input") || getVar("--surface-3") || "#ffffff",
+        colorInputText: getVar("--foreground") || "hsl(127, 11%, 17%)",
+        colorInputBorder: getVar("--border") || "hsl(36, 20%, 84%)",
+        colorNeutral: getVar("--muted") || "hsl(36, 20%, 90%)",
+        colorAlphaShade: getVar("--muted") || "hsl(36, 20%, 90%)",
+        colorShimmer: "rgba(0, 0, 0, 0.03)",
+        colorBorder: getVar("--border") || "hsl(36, 20%, 84%)",
+      };
+
+    case "estate-dark":
+      return {
+        ...baseVars,
+        colorPrimary: getColor("--primary") || "#7B8C7C",
+        colorBackground: getVar("--surface-3") || getVar("--card") || "hsl(130, 10%, 16%)",
+        colorText: getVar("--foreground") || "hsl(40, 20%, 95%)",
+        colorTextSecondary: getVar("--text-secondary") || "hsl(124, 10%, 60%)",
+        colorInputBackground: getVar("--input") || getVar("--surface-3") || "hsl(130, 10%, 20%)",
+        colorInputText: getVar("--foreground") || "hsl(40, 20%, 95%)",
+        colorInputBorder: getVar("--border") || "hsl(130, 10%, 20%)",
+        colorNeutral: getVar("--muted") || "hsl(130, 10%, 18%)",
+        colorAlphaShade: getVar("--muted") || "hsl(130, 10%, 18%)",
+        colorShimmer: "rgba(255, 255, 255, 0.05)",
+        colorBorder: getVar("--border") || "hsl(130, 10%, 20%)",
       };
 
     default:
@@ -222,7 +238,7 @@ function getThemeVariables(theme: string): Record<string, string> {
  */
 function createClerkAppearance(theme: string | undefined): any {
   const variables = getThemeVariables(theme || "light");
-  const isDarkTheme = theme === "dark" || theme === "twilight-lavender";
+  const isDarkTheme = theme === "dark" || theme === "twilight-lavender" || theme === "estate-dark";
 
   // Get background colors
   const surface3 = getHSLValueRaw("--surface-3");

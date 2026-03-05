@@ -94,7 +94,7 @@ export async function sendMessage(params: {
     const encryptedContent = (await encryptMessageForOrg({ content: params.content }, organizationId)).content ?? params.content;
 
     // Create message
-    const messageId = await generateFriendlyId(prismadb, "Message");
+    const messageId = await generateFriendlyId(prismadb, "Message", organizationId);
     const message = await prismadb.message.create({
       data: {
         id: messageId,

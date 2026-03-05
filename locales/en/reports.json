@@ -30,8 +30,7 @@
     "sales": "Sales Performance",
     "clients": "Client Development",
     "listings": "Listing Performance",
-    "productivity": "Productivity",
-    "market": "Market Intelligence"
+    "productivity": "Productivity"
   },
   "metrics": {
     "leadConversionRate": "Lead Conversion Rate",

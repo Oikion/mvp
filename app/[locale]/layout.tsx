@@ -36,7 +36,6 @@ import socialFeedEn from "@/locales/en/socialFeed.json";
 import connectionsEn from "@/locales/en/connections.json";
 import dealsEn from "@/locales/en/deals.json";
 import sharedWithMeEn from "@/locales/en/sharedWithMe.json";
-import audiencesEn from "@/locales/en/audiences.json";
 import profileEn from "@/locales/en/profile.json";
 import templatesEn from "@/locales/en/templates.json";
 import websiteEn from "@/locales/en/website.json";
@@ -51,6 +50,7 @@ import messagesEn from "@/locales/en/messages.json";
 import onboardingEn from "@/locales/en/onboarding.json";
 import platformAdminEn from "@/locales/en/platformAdmin.json";
 import shareEn from "@/locales/en/share.json";
+import mandatesEn from "@/locales/en/mandates.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -73,7 +73,6 @@ import socialFeedEl from "@/locales/el/socialFeed.json";
 import connectionsEl from "@/locales/el/connections.json";
 import dealsEl from "@/locales/el/deals.json";
 import sharedWithMeEl from "@/locales/el/sharedWithMe.json";
-import audiencesEl from "@/locales/el/audiences.json";
 import profileEl from "@/locales/el/profile.json";
 import templatesEl from "@/locales/el/templates.json";
 import websiteEl from "@/locales/el/website.json";
@@ -88,6 +87,7 @@ import messagesEl from "@/locales/el/messages.json";
 import onboardingEl from "@/locales/el/onboarding.json";
 import platformAdminEl from "@/locales/el/platformAdmin.json";
 import shareEl from "@/locales/el/share.json";
+import mandatesEl from "@/locales/el/mandates.json";
 
 const inter = Inter({ 
   subsets: ["latin"], 
@@ -133,7 +133,6 @@ function getLocales(locale: string) {
     messages.connections = connectionsEl;
     messages.deals = dealsEl;
     messages.sharedWithMe = sharedWithMeEl;
-    messages.audiences = audiencesEl;
     messages.profile = profileEl;
     messages.templates = templatesEl;
     messages.notifications = notificationsEl;
@@ -150,6 +149,7 @@ function getLocales(locale: string) {
     messages.onboarding = onboardingEl;
     messages.platformAdmin = platformAdminEl;
     messages.share = shareEl;
+    messages.mandates = mandatesEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -178,7 +178,6 @@ function getLocales(locale: string) {
     messages.connections = connectionsEn;
     messages.deals = dealsEn;
     messages.sharedWithMe = sharedWithMeEn;
-    messages.audiences = audiencesEn;
     messages.profile = profileEn;
     messages.templates = templatesEn;
     messages.notifications = notificationsEn;
@@ -195,6 +194,7 @@ function getLocales(locale: string) {
     messages.onboarding = onboardingEn;
     messages.platformAdmin = platformAdminEn;
     messages.share = shareEn;
+    messages.mandates = mandatesEn;
   }
 
   if (Object.keys(messages).length === 0) {

@@ -3,7 +3,6 @@
 import useSWR, { useSWRConfig } from "swr";
 import useSWRMutation from "swr/mutation";
 import { ChannelType } from "@prisma/client";
-import type { MessagingPlatform } from "@/types/messaging";
 import type { TokenRequest } from "ably";
 
 // Types
@@ -58,16 +57,6 @@ export interface Message {
   threadCount: number;
   isEdited: boolean;
   createdAt: Date;
-  externalPlatform?: MessagingPlatform | null;
-  externalMessageId?: string | null;
-  externalContactId?: string | null;
-  externalContact?: {
-    id: string;
-    displayName: string | null;
-    avatarUrl: string | null;
-    phoneNumber: string | null;
-    platformUserId: string;
-  } | null;
   attachments: Array<{
     id: string;
     fileName: string;
@@ -162,8 +151,10 @@ export function useChannels(options?: { enabled?: boolean; refreshInterval?: num
     options?.enabled !== false ? "/api/messaging/channels" : null,
     fetcher,
     {
-      refreshInterval: options?.refreshInterval || 0,
+      refreshInterval: options?.refreshInterval ?? 0,
       revalidateOnMount: true,
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
     }
   );
 
@@ -224,8 +215,10 @@ export function useConversations(options?: { enabled?: boolean; refreshInterval?
     options?.enabled !== false ? "/api/messaging/conversations" : null,
     fetcher,
     {
-      refreshInterval: options?.refreshInterval || 30000, // Default 30s polling
+      refreshInterval: options?.refreshInterval ?? 0, // Ably handles real-time; no polling needed
       revalidateOnMount: true,
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
     }
   );
 
@@ -244,16 +237,14 @@ export function useConversations(options?: { enabled?: boolean; refreshInterval?
 export function useMessages(params: {
   channelId?: string;
   conversationId?: string;
-  externalContactId?: string;
   enabled?: boolean;
   refreshInterval?: number;
 }) {
   const queryParams = new URLSearchParams();
   if (params.channelId) queryParams.set("channelId", params.channelId);
   if (params.conversationId) queryParams.set("conversationId", params.conversationId);
-  if (params.externalContactId) queryParams.set("externalContactId", params.externalContactId);
 
-  const key = params.enabled !== false && (params.channelId || params.conversationId || params.externalContactId)
+  const key = params.enabled !== false && (params.channelId || params.conversationId)
     ? `/api/messaging/messages?${queryParams.toString()}`
     : null;
 
@@ -435,6 +426,45 @@ export function useStartDM() {
 
   return {
     startDM: trigger,
+    isStarting: isMutating,
+    error,
+  };
+}
+
+/**
+ * Hook to create a group DM conversation with multiple org members
+ */
+export function useStartGroupDM() {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation<
+    { conversationId: string },
+    Error,
+    string,
+    { participantIds: string[]; name?: string }
+  >(
+    "/api/messaging/conversations/group",
+    async (url, { arg }) => {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(arg),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to create group conversation");
+      }
+      return res.json();
+    },
+    {
+      onSuccess: () => {
+        globalMutate("/api/messaging/conversations");
+      },
+    }
+  );
+
+  return {
+    startGroupDM: trigger,
     isStarting: isMutating,
     error,
   };
@@ -740,12 +770,11 @@ export function getCredentialsKey(): string {
 /**
  * Get the SWR cache key for messages
  */
-export function getMessagesKey(params: { channelId?: string; conversationId?: string; externalContactId?: string }): string | null {
-  if (!params.channelId && !params.conversationId && !params.externalContactId) return null;
+export function getMessagesKey(params: { channelId?: string; conversationId?: string }): string | null {
+  if (!params.channelId && !params.conversationId) return null;
   const queryParams = new URLSearchParams();
   if (params.channelId) queryParams.set("channelId", params.channelId);
   if (params.conversationId) queryParams.set("conversationId", params.conversationId);
-  if (params.externalContactId) queryParams.set("externalContactId", params.externalContactId);
   return `/api/messaging/messages?${queryParams.toString()}`;
 }
 

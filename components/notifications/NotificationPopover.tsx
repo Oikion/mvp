@@ -171,9 +171,9 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
         // Organization invites - navigate to organization settings where they can accept
         router.push("/app/organization");
       } else if (notification.type.includes("CONNECTION")) {
-        router.push("/app/connections");
+        router.push("/app/network/profile?tab=connections");
       } else if (notification.type.includes("SOCIAL")) {
-        router.push("/app/social-feed");
+        router.push("/app/network/feed");
       } else {
         router.push("/app/notifications");
       }
@@ -202,19 +202,19 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
         router.push(`/app/documents/${notification.entityId}`);
         break;
       case "SOCIAL_POST":
-        router.push(`/app/social-feed?postId=${notification.entityId}`);
+        router.push(`/app/network/feed?postId=${notification.entityId}`);
         break;
       case "DEAL":
         router.push(`/app/deals/${notification.entityId}`);
         break;
       case "CONNECTION":
-        router.push("/app/connections");
+        router.push("/app/network/profile?tab=requests");
         break;
       case "USER":
         if (notification.metadata?.slug) {
           router.push(`/agent/${notification.metadata.slug}`);
         } else {
-          router.push("/app/connections");
+          router.push("/app/network/profile?tab=connections");
         }
         break;
       case "FEEDBACK":

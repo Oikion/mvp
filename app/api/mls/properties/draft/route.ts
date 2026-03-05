@@ -296,7 +296,7 @@ export async function POST(req: Request) {
       data.organizationId = organizationId;
       
       // Generate friendly ID
-      const propertyId = await generateFriendlyId(prismadb, "Properties");
+      const propertyId = await generateFriendlyId(prismadb, "Properties", organizationId);
       data.id = propertyId;
       
       // Set minimum required fields for draft

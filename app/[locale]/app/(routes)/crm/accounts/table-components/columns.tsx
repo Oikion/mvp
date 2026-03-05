@@ -81,6 +81,20 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
     enableHiding: true,
   },
   {
+    accessorKey: "phone",
+    header: ({ column }) => {
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.phone")} />
+    },
+    cell: ({ row }) => (
+      <div className="text-muted-foreground">
+        {row.original.phone || "—"}
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
     accessorKey: "contacts",
     header: ({ column }) => {
       const t = useTranslations("crm");

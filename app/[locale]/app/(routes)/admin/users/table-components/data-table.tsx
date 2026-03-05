@@ -13,8 +13,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
 } from "@tanstack/react-table";
+import { useTableWithPageSize } from "@/lib/hooks/use-table-with-page-size";
 
 import {
   Table,
@@ -45,7 +45,7 @@ export function AdminUserDataTable<TData, TValue>({
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const table = useReactTable({
+  const table = useTableWithPageSize({
     data,
     columns,
     state: {

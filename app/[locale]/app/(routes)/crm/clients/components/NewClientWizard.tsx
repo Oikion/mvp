@@ -51,12 +51,12 @@ type Props = {
 // Schema shape without validation messages (those are added inside the component)
 const baseSchema = z.object({
   // Step 1
-  person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]),
+  person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]).optional(),
   full_name: z.string().optional(),
   company_name: z.string().optional(),
   primary_phone: z.string().optional(),
   primary_email: z.string().email().optional().or(z.literal("")),
-  intent: z.enum(["BUY", "RENT", "SELL", "LEASE", "INVEST"]),
+  intent: z.enum(["BUY", "RENT", "SELL", "LEASE", "INVEST"]).optional(),
   // Step 2
   secondary_phone: z.string().optional().or(z.literal("")),
   secondary_email: z.string().email().optional().or(z.literal("")),
@@ -102,7 +102,7 @@ const baseSchema = z.object({
   gdpr_consent: z.boolean().optional().default(false),
   allow_marketing: z.boolean().optional().default(false),
   lead_source: z.enum(["REFERRAL", "WEB", "PORTAL", "WALK_IN", "SOCIAL"]).optional(),
-  assigned_to: z.string().min(1),
+  assigned_to: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof baseSchema>;
@@ -121,18 +121,6 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
 
   // Build schema with translated validation messages
   const formSchema = useMemo(() => baseSchema
-    .refine(
-      (data) => !!(data.primary_phone?.length) || !!(data.primary_email?.length),
-      { path: ["primary_email"], message: t("CrmForm.validation.phoneOrEmailRequired") }
-    )
-    .refine(
-      (data) => {
-        if (data.person_type === "INDIVIDUAL") return !!(data.full_name?.length);
-        if (data.person_type === "COMPANY") return !!(data.company_name?.length);
-        return true;
-      },
-      { path: ["full_name"], message: t("CrmForm.validation.nameRequired") }
-    )
     .refine(
       (data) => {
         if (data.afm && data.afm.length > 0) return /^\d{9}$/.test(data.afm);
@@ -434,7 +422,12 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
         ...restData
       } = data;
 
-      const submitData = { ...restData, property_preferences, draft_status: false };
+      // Convert empty strings to undefined so the API schema (which expects UUID
+      // for assigned_to, email format for emails, etc.) doesn't reject them
+      const cleaned = Object.fromEntries(
+        Object.entries(restData).map(([k, v]) => [k, typeof v === "string" && v.trim() === "" ? undefined : v])
+      );
+      const submitData = { ...cleaned, property_preferences, draft_status: false };
 
       if (draftId) {
         await axios.put(`/api/crm/clients/${draftId}`, submitData);
@@ -464,7 +457,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
           <div className="space-y-4">
             <FormField control={form.control} name="person_type" render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("CrmForm.fields.personType")} *</FormLabel>
+                <FormLabel>{t("CrmForm.fields.personType")}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl><SelectTrigger><SelectValue placeholder={t("CrmForm.fields.personTypePlaceholder")} /></SelectTrigger></FormControl>
                   <SelectContent>
@@ -481,7 +474,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
             <ConditionalFormSection condition={personType === "INDIVIDUAL" || personType === "INVESTOR" || personType === "BROKER"}>
               <FormField control={form.control} name="full_name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.fullName")} *</FormLabel>
+                  <FormLabel>{t("CrmForm.fields.fullName")}</FormLabel>
                   <FormControl><Input {...field} placeholder={t("CrmForm.fields.fullNamePlaceholder")} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -491,7 +484,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
             <ConditionalFormSection condition={personType === "COMPANY"}>
               <FormField control={form.control} name="company_name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.companyName")} *</FormLabel>
+                  <FormLabel>{t("CrmForm.fields.companyName")}</FormLabel>
                   <FormControl><Input {...field} placeholder={t("CrmForm.fields.companyNamePlaceholder")} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -501,14 +494,14 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="primary_phone" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.primaryPhone")} *</FormLabel>
+                  <FormLabel>{t("CrmForm.fields.primaryPhone")}</FormLabel>
                   <FormControl><Input {...field} placeholder={t("CrmForm.fields.primaryPhonePlaceholder")} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="primary_email" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.primaryEmail")} *</FormLabel>
+                  <FormLabel>{t("CrmForm.fields.primaryEmail")}</FormLabel>
                   <FormControl><Input {...field} type="email" placeholder={t("CrmForm.fields.primaryEmailPlaceholder")} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -517,7 +510,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
 
             <FormField control={form.control} name="intent" render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("CrmForm.fields.intent")} *</FormLabel>
+                <FormLabel>{t("CrmForm.fields.intent")}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl><SelectTrigger><SelectValue placeholder={t("CrmForm.fields.intentPlaceholder")} /></SelectTrigger></FormControl>
                   <SelectContent>
@@ -1027,7 +1020,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
 
             <FormField control={form.control} name="assigned_to" render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("CrmForm.fields.agentOwner")} *</FormLabel>
+                <FormLabel>{t("CrmForm.fields.agentOwner")}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl><SelectTrigger><SelectValue placeholder={tCommon("selectAgent")} /></SelectTrigger></FormControl>
                   <SelectContent>

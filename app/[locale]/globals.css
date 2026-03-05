@@ -231,6 +231,8 @@
   }
 
   .dark, [data-theme="dark"] {
+    color-scheme: dark;
+
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     
@@ -412,171 +414,6 @@
     --palette-rose-border: 347 40% 35%;
   }
 
-  /* Pearl Sand Theme - Dusty Beige */
-  [data-theme="pearl-sand"] {
-    --background: 35 15% 95%; /* Dustier, slightly darker background */
-    --foreground: 30 10% 20%;
-    
-    --card: 35 15% 97%;
-    --card-foreground: 30 10% 20%;
-    
-    --popover: 35 15% 97%;
-    --popover-foreground: 30 10% 20%;
-    
-    --primary: 35 15% 30%; /* Desaturated, earthy primary */
-    --primary-foreground: 35 20% 97%;
-    
-    --secondary: 35 10% 90%;
-    --secondary-foreground: 35 15% 30%;
-    
-    --muted: 35 10% 92%;
-    --muted-foreground: 30 10% 45%;
-    
-    --accent: 35 15% 92%;
-    --accent-foreground: 35 15% 30%;
-    
-    --destructive: 0 70% 55%; /* Slightly muted destructive */
-    --destructive-foreground: 35 20% 97%;
-    
-    --border: 35 15% 86%;
-    --input: 35 15% 86%;
-    --ring: 35 15% 30%;
-    
-    --sidebar-background: 35 15% 93%;
-    --sidebar-foreground: 30 10% 25%;
-    --sidebar-primary: 35 15% 30%;
-    --sidebar-primary-foreground: 35 20% 97%;
-    --sidebar-accent: 35 10% 88%;
-    --sidebar-accent-foreground: 35 15% 30%;
-    --sidebar-border: 35 15% 84%;
-
-    /* Compatibility Mapping */
-    --surface-1: 35 15% 95%;
-    --surface-2: 35 15% 93%;
-    --surface-3: 35 15% 97%;
-
-    /* Explicit Text Overrides */
-    --text-primary: 30 10% 20%;
-    --text-secondary: 30 10% 45%;
-
-    /* ============================================
-       PALETTE COLORS - Pearl Sand Theme
-       Warm, earthy tones complementing beige base
-       ============================================ */
-    
-    /* Gray - Warm gray */
-    --palette-gray: 30 8% 42%;
-    --palette-gray-subtle: 30 10% 92%;
-    --palette-gray-solid: 30 8% 58%;
-    --palette-gray-solid-fg: 35 20% 98%;
-    --palette-gray-border: 30 10% 82%;
-
-    /* Brown - Emphasized for this theme */
-    --palette-brown: 25 45% 28%;
-    --palette-brown-subtle: 28 30% 91%;
-    --palette-brown-solid: 25 45% 40%;
-    --palette-brown-solid-fg: 35 20% 98%;
-    --palette-brown-border: 28 25% 75%;
-
-    /* Red - Warm red, slightly muted */
-    --palette-red: 5 65% 40%;
-    --palette-red-subtle: 5 55% 94%;
-    --palette-red-solid: 5 65% 50%;
-    --palette-red-solid-fg: 35 20% 98%;
-    --palette-red-border: 5 45% 82%;
-
-    /* Orange - Natural warm orange */
-    --palette-orange: 28 85% 38%;
-    --palette-orange-subtle: 28 70% 93%;
-    --palette-orange-solid: 28 85% 50%;
-    --palette-orange-solid-fg: 35 20% 98%;
-    --palette-orange-border: 28 60% 78%;
-
-    /* Amber - Golden, prominent in this theme */
-    --palette-amber: 35 80% 38%;
-    --palette-amber-subtle: 38 65% 92%;
-    --palette-amber-solid: 35 80% 48%;
-    --palette-amber-solid-fg: 35 80% 12%;
-    --palette-amber-border: 38 55% 75%;
-
-    /* Yellow - Warm golden yellow */
-    --palette-yellow: 42 88% 35%;
-    --palette-yellow-subtle: 45 75% 92%;
-    --palette-yellow-solid: 42 88% 50%;
-    --palette-yellow-solid-fg: 42 88% 12%;
-    --palette-yellow-border: 45 65% 72%;
-
-    /* Lime - Warm olive lime */
-    --palette-lime: 78 65% 32%;
-    --palette-lime-subtle: 78 50% 92%;
-    --palette-lime-solid: 78 65% 42%;
-    --palette-lime-solid-fg: 78 65% 12%;
-    --palette-lime-border: 78 45% 75%;
-
-    /* Green - Sage/olive green */
-    --palette-green: 135 55% 30%;
-    --palette-green-subtle: 135 40% 93%;
-    --palette-green-solid: 135 55% 42%;
-    --palette-green-solid-fg: 35 20% 98%;
-    --palette-green-border: 135 35% 78%;
-
-    /* Teal - Warm teal */
-    --palette-teal: 168 50% 30%;
-    --palette-teal-subtle: 168 35% 92%;
-    --palette-teal-solid: 168 50% 40%;
-    --palette-teal-solid-fg: 35 20% 98%;
-    --palette-teal-border: 168 35% 76%;
-
-    /* Cyan - Muted cyan */
-    --palette-cyan: 188 70% 32%;
-    --palette-cyan-subtle: 188 50% 93%;
-    --palette-cyan-solid: 188 70% 42%;
-    --palette-cyan-solid-fg: 35 20% 98%;
-    --palette-cyan-border: 188 45% 78%;
-
-    /* Blue - Dusty blue */
-    --palette-blue: 212 65% 42%;
-    --palette-blue-subtle: 212 50% 94%;
-    --palette-blue-solid: 212 65% 55%;
-    --palette-blue-solid-fg: 35 20% 98%;
-    --palette-blue-border: 212 45% 82%;
-
-    /* Indigo - Warm indigo */
-    --palette-indigo: 235 60% 48%;
-    --palette-indigo-subtle: 235 45% 94%;
-    --palette-indigo-solid: 235 60% 60%;
-    --palette-indigo-solid-fg: 35 20% 98%;
-    --palette-indigo-border: 235 40% 82%;
-
-    /* Violet - Dusty violet */
-    --palette-violet: 258 50% 45%;
-    --palette-violet-subtle: 258 40% 94%;
-    --palette-violet-solid: 258 50% 55%;
-    --palette-violet-solid-fg: 35 20% 98%;
-    --palette-violet-border: 258 35% 82%;
-
-    /* Fuchsia - Warm fuchsia */
-    --palette-fuchsia: 288 60% 42%;
-    --palette-fuchsia-subtle: 288 45% 94%;
-    --palette-fuchsia-solid: 288 60% 52%;
-    --palette-fuchsia-solid-fg: 35 20% 98%;
-    --palette-fuchsia-border: 288 40% 82%;
-
-    /* Pink - Dusty rose pink */
-    --palette-pink: 325 60% 42%;
-    --palette-pink-subtle: 325 45% 94%;
-    --palette-pink-solid: 325 60% 55%;
-    --palette-pink-solid-fg: 35 20% 98%;
-    --palette-pink-border: 325 40% 84%;
-
-    /* Rose - Warm terracotta rose */
-    --palette-rose: 350 55% 42%;
-    --palette-rose-subtle: 350 42% 94%;
-    --palette-rose-solid: 350 55% 52%;
-    --palette-rose-solid-fg: 35 20% 98%;
-    --palette-rose-border: 350 38% 82%;
-  }
-
   /* Twilight Lavender Theme - Dark Cool/Purple */
   [data-theme="twilight-lavender"] {
     color-scheme: dark;
@@ -743,30 +580,421 @@
     --palette-rose-solid-fg: 260 20% 98%;
     --palette-rose-border: 345 35% 32%;
   }
+
+  /* ============================================
+     Oikion Light Theme — Brand Identity
+     Pine Charcoal + Sage Green + Warm Beige
+     Based on brand guide palette:
+       #262F27 Pine Charcoal → 127 11% 17%
+       #7B8C7C Sage Green    → 124 7% 52%
+       #E8E2D9 Beige Mid     → 36 25% 88%
+       #F2EFE9 Warm Beige    → 40 26% 93%
+       #FFFFFF White
+     ============================================ */
+  [data-theme="estate"] {
+    --background: 40 26% 93%;
+    --foreground: 127 11% 17%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 127 11% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 127 11% 17%;
+
+    --primary: 127 11% 17%;
+    --primary-foreground: 40 26% 97%;
+
+    --secondary: 36 25% 88%;
+    --secondary-foreground: 127 11% 17%;
+
+    --muted: 36 20% 90%;
+    --muted-foreground: 124 7% 42%;
+
+    --accent: 124 7% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 40 26% 97%;
+
+    --border: 36 20% 84%;
+    --input: 36 20% 84%;
+    --ring: 124 7% 52%;
+
+    --sidebar-background: 40 20% 91%;
+    --sidebar-foreground: 127 11% 20%;
+    --sidebar-primary: 127 11% 17%;
+    --sidebar-primary-foreground: 40 26% 97%;
+    --sidebar-accent: 36 20% 87%;
+    --sidebar-accent-foreground: 127 11% 17%;
+    --sidebar-border: 36 20% 82%;
+    --sidebar-ring: 124 7% 52%;
+
+    /* Legacy Surface Support */
+    --surface-1: 40 26% 93%;
+    --surface-2: 36 25% 88%;
+    --surface-3: 0 0% 100%;
+
+    /* Button Specifics */
+    --button-primary: 127 11% 17%;
+    --button-primary-foreground: 40 26% 97%;
+    --button-secondary: 36 25% 88%;
+    --button-secondary-foreground: 127 11% 17%;
+    --button-success: 142 60% 36%;
+    --button-success-foreground: 0 0% 100%;
+    --button-destructive: 0 70% 55%;
+    --button-destructive-foreground: 40 26% 97%;
+
+    /* Status Colors */
+    --success: 142 60% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 80% 48%;
+    --warning-foreground: 38 80% 10%;
+    --error: 0 70% 55%;
+    --error-foreground: 40 26% 97%;
+    --info: 200 70% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* Text Overrides */
+    --text-primary: 127 11% 17%;
+    --text-secondary: 124 7% 42%;
+
+    /* Chart Colors — earthy tones */
+    --chart-1: 124 7% 52%;
+    --chart-2: 172 50% 38%;
+    --chart-3: 127 11% 30%;
+    --chart-4: 38 65% 55%;
+    --chart-5: 0 55% 55%;
+
+    /* ============================================
+       PALETTE COLORS - Oikion Light
+       Forest/earthy tones to complement green base
+       ============================================ */
+
+    /* Gray - Green-tinted warm gray */
+    --palette-gray: 127 5% 44%;
+    --palette-gray-subtle: 127 5% 93%;
+    --palette-gray-solid: 127 5% 60%;
+    --palette-gray-solid-fg: 0 0% 100%;
+    --palette-gray-border: 127 5% 82%;
+
+    /* Brown - Natural earth */
+    --palette-brown: 25 40% 28%;
+    --palette-brown-subtle: 25 25% 92%;
+    --palette-brown-solid: 25 40% 42%;
+    --palette-brown-solid-fg: 0 0% 100%;
+    --palette-brown-border: 25 20% 78%;
+
+    /* Red - Warm red */
+    --palette-red: 2 65% 42%;
+    --palette-red-subtle: 2 55% 95%;
+    --palette-red-solid: 2 65% 52%;
+    --palette-red-solid-fg: 0 0% 100%;
+    --palette-red-border: 2 45% 84%;
+
+    /* Orange - Earthy orange */
+    --palette-orange: 26 85% 38%;
+    --palette-orange-subtle: 26 70% 94%;
+    --palette-orange-solid: 26 85% 50%;
+    --palette-orange-solid-fg: 0 0% 100%;
+    --palette-orange-border: 26 60% 80%;
+
+    /* Amber - Golden amber */
+    --palette-amber: 36 78% 38%;
+    --palette-amber-subtle: 36 65% 93%;
+    --palette-amber-solid: 36 78% 48%;
+    --palette-amber-solid-fg: 36 78% 12%;
+    --palette-amber-border: 36 55% 76%;
+
+    /* Yellow - Warm gold */
+    --palette-yellow: 44 85% 35%;
+    --palette-yellow-subtle: 44 72% 93%;
+    --palette-yellow-solid: 44 85% 50%;
+    --palette-yellow-solid-fg: 44 85% 12%;
+    --palette-yellow-border: 44 62% 74%;
+
+    /* Lime - Olive lime */
+    --palette-lime: 80 60% 32%;
+    --palette-lime-subtle: 80 48% 93%;
+    --palette-lime-solid: 80 60% 42%;
+    --palette-lime-solid-fg: 80 60% 12%;
+    --palette-lime-border: 80 42% 76%;
+
+    /* Green - Sage/forest green */
+    --palette-green: 138 50% 30%;
+    --palette-green-subtle: 138 38% 94%;
+    --palette-green-solid: 138 50% 42%;
+    --palette-green-solid-fg: 0 0% 100%;
+    --palette-green-border: 138 32% 78%;
+
+    /* Teal - Forest teal */
+    --palette-teal: 168 45% 30%;
+    --palette-teal-subtle: 168 32% 93%;
+    --palette-teal-solid: 168 45% 40%;
+    --palette-teal-solid-fg: 0 0% 100%;
+    --palette-teal-border: 168 30% 77%;
+
+    /* Cyan - Muted cypress */
+    --palette-cyan: 188 60% 32%;
+    --palette-cyan-subtle: 188 45% 94%;
+    --palette-cyan-solid: 188 60% 42%;
+    --palette-cyan-solid-fg: 0 0% 100%;
+    --palette-cyan-border: 188 40% 79%;
+
+    /* Blue - Dusty blue */
+    --palette-blue: 210 55% 42%;
+    --palette-blue-subtle: 210 42% 95%;
+    --palette-blue-solid: 210 55% 55%;
+    --palette-blue-solid-fg: 0 0% 100%;
+    --palette-blue-border: 210 38% 82%;
+
+    /* Indigo - Muted indigo */
+    --palette-indigo: 236 50% 48%;
+    --palette-indigo-subtle: 236 38% 95%;
+    --palette-indigo-solid: 236 50% 60%;
+    --palette-indigo-solid-fg: 0 0% 100%;
+    --palette-indigo-border: 236 35% 83%;
+
+    /* Violet - Dusty violet */
+    --palette-violet: 260 45% 45%;
+    --palette-violet-subtle: 260 35% 95%;
+    --palette-violet-solid: 260 45% 55%;
+    --palette-violet-solid-fg: 0 0% 100%;
+    --palette-violet-border: 260 32% 83%;
+
+    /* Fuchsia - Muted fuchsia */
+    --palette-fuchsia: 290 50% 42%;
+    --palette-fuchsia-subtle: 290 38% 95%;
+    --palette-fuchsia-solid: 290 50% 52%;
+    --palette-fuchsia-solid-fg: 0 0% 100%;
+    --palette-fuchsia-border: 290 35% 83%;
+
+    /* Pink - Dusty rose */
+    --palette-pink: 328 50% 42%;
+    --palette-pink-subtle: 328 38% 95%;
+    --palette-pink-solid: 328 50% 55%;
+    --palette-pink-solid-fg: 0 0% 100%;
+    --palette-pink-border: 328 35% 85%;
+
+    /* Rose - Terracotta rose */
+    --palette-rose: 348 50% 42%;
+    --palette-rose-subtle: 348 38% 95%;
+    --palette-rose-solid: 348 50% 52%;
+    --palette-rose-solid-fg: 0 0% 100%;
+    --palette-rose-border: 348 35% 83%;
+  }
+
+  /* ============================================
+     Oikion Dark Theme — Brand Identity (Dark)
+     Pine Charcoal background, Sage Green accent
+     ============================================ */
+  [data-theme="estate-dark"] {
+    color-scheme: dark;
+
+    --background: 130 12% 10%;
+    --foreground: 40 20% 95%;
+
+    --card: 130 10% 13%;
+    --card-foreground: 40 20% 95%;
+
+    --popover: 130 10% 13%;
+    --popover-foreground: 40 20% 95%;
+
+    --primary: 124 20% 62%;
+    --primary-foreground: 130 12% 10%;
+
+    --secondary: 130 8% 22%;
+    --secondary-foreground: 40 20% 95%;
+
+    --muted: 130 10% 18%;
+    --muted-foreground: 124 10% 60%;
+
+    --accent: 130 10% 22%;
+    --accent-foreground: 40 20% 95%;
+
+    --destructive: 0 65% 60%;
+    --destructive-foreground: 0 0% 10%;
+
+    --border: 130 8% 24%;
+    --input: 130 8% 28%;
+    --ring: 124 20% 62%;
+
+    --sidebar-background: 130 12% 8%;
+    --sidebar-foreground: 40 15% 88%;
+    --sidebar-primary: 124 20% 62%;
+    --sidebar-primary-foreground: 130 12% 10%;
+    --sidebar-accent: 130 10% 18%;
+    --sidebar-accent-foreground: 40 20% 95%;
+    --sidebar-border: 130 10% 18%;
+    --sidebar-ring: 124 20% 62%;
+
+    /* Legacy Surface Support */
+    --surface-1: 130 12% 10%;
+    --surface-2: 130 10% 13%;
+    --surface-3: 130 10% 16%;
+
+    /* Button Specifics */
+    --button-primary: 124 20% 62%;
+    --button-primary-foreground: 130 12% 10%;
+    --button-secondary: 130 10% 18%;
+    --button-secondary-foreground: 40 20% 95%;
+    --button-success: 142 60% 48%;
+    --button-success-foreground: 142 60% 10%;
+    --button-destructive: 0 65% 60%;
+    --button-destructive-foreground: 0 0% 10%;
+
+    /* Status Colors */
+    --success: 142 60% 48%;
+    --success-foreground: 142 60% 10%;
+    --warning: 38 80% 55%;
+    --warning-foreground: 38 80% 10%;
+    --error: 0 65% 60%;
+    --error-foreground: 0 0% 10%;
+    --info: 200 70% 55%;
+    --info-foreground: 0 0% 100%;
+
+    /* Text Overrides */
+    --text-primary: 40 20% 95%;
+    --text-secondary: 124 10% 60%;
+
+    /* Chart Colors */
+    --chart-1: 124 20% 62%;
+    --chart-2: 172 50% 48%;
+    --chart-3: 38 65% 55%;
+    --chart-4: 260 45% 62%;
+    --chart-5: 0 55% 60%;
+
+    /* ============================================
+       PALETTE COLORS - Oikion Dark
+       Forest tones for dark pine background
+       ============================================ */
+
+    /* Gray - Green-tinted cool gray */
+    --palette-gray: 130 8% 62%;
+    --palette-gray-subtle: 130 8% 16%;
+    --palette-gray-solid: 130 8% 48%;
+    --palette-gray-solid-fg: 40 20% 98%;
+    --palette-gray-border: 130 8% 28%;
+
+    /* Brown - Warm earth */
+    --palette-brown: 25 32% 58%;
+    --palette-brown-subtle: 25 18% 15%;
+    --palette-brown-solid: 25 32% 44%;
+    --palette-brown-solid-fg: 40 20% 98%;
+    --palette-brown-border: 25 18% 30%;
+
+    /* Red - Softened red */
+    --palette-red: 2 65% 62%;
+    --palette-red-subtle: 2 40% 14%;
+    --palette-red-solid: 2 65% 52%;
+    --palette-red-solid-fg: 40 20% 98%;
+    --palette-red-border: 2 40% 32%;
+
+    /* Orange - Warm orange */
+    --palette-orange: 26 85% 58%;
+    --palette-orange-subtle: 26 50% 14%;
+    --palette-orange-solid: 26 85% 50%;
+    --palette-orange-solid-fg: 40 20% 98%;
+    --palette-orange-border: 26 50% 32%;
+
+    /* Amber - Golden amber */
+    --palette-amber: 38 82% 55%;
+    --palette-amber-subtle: 38 45% 14%;
+    --palette-amber-solid: 38 82% 48%;
+    --palette-amber-solid-fg: 38 82% 10%;
+    --palette-amber-border: 38 50% 30%;
+
+    /* Yellow - Warm gold */
+    --palette-yellow: 46 88% 55%;
+    --palette-yellow-subtle: 46 45% 13%;
+    --palette-yellow-solid: 46 88% 48%;
+    --palette-yellow-solid-fg: 46 88% 10%;
+    --palette-yellow-border: 46 48% 28%;
+
+    /* Lime - Forest lime */
+    --palette-lime: 84 65% 52%;
+    --palette-lime-subtle: 84 35% 13%;
+    --palette-lime-solid: 84 65% 42%;
+    --palette-lime-solid-fg: 84 65% 10%;
+    --palette-lime-border: 84 38% 28%;
+
+    /* Green - Bright sage */
+    --palette-green: 142 55% 52%;
+    --palette-green-subtle: 142 32% 13%;
+    --palette-green-solid: 142 55% 42%;
+    --palette-green-solid-fg: 40 20% 98%;
+    --palette-green-border: 142 35% 28%;
+
+    /* Teal - Forest aqua */
+    --palette-teal: 172 52% 52%;
+    --palette-teal-subtle: 172 30% 13%;
+    --palette-teal-solid: 172 52% 40%;
+    --palette-teal-solid-fg: 40 20% 98%;
+    --palette-teal-border: 172 32% 28%;
+
+    /* Cyan - Cool cypress */
+    --palette-cyan: 192 75% 52%;
+    --palette-cyan-subtle: 192 40% 13%;
+    --palette-cyan-solid: 192 75% 42%;
+    --palette-cyan-solid-fg: 40 20% 98%;
+    --palette-cyan-border: 192 42% 30%;
+
+    /* Blue - Bright forest blue */
+    --palette-blue: 214 70% 62%;
+    --palette-blue-subtle: 214 40% 14%;
+    --palette-blue-solid: 214 70% 52%;
+    --palette-blue-solid-fg: 40 20% 98%;
+    --palette-blue-border: 214 40% 32%;
+
+    /* Indigo - Deep indigo */
+    --palette-indigo: 240 65% 68%;
+    --palette-indigo-subtle: 240 35% 14%;
+    --palette-indigo-solid: 240 65% 58%;
+    --palette-indigo-solid-fg: 40 20% 98%;
+    --palette-indigo-border: 240 35% 32%;
+
+    /* Violet - Cool violet */
+    --palette-violet: 264 55% 66%;
+    --palette-violet-subtle: 264 30% 14%;
+    --palette-violet-solid: 264 55% 55%;
+    --palette-violet-solid-fg: 40 20% 98%;
+    --palette-violet-border: 264 32% 32%;
+
+    /* Fuchsia - Forest fuchsia */
+    --palette-fuchsia: 292 60% 64%;
+    --palette-fuchsia-subtle: 292 35% 14%;
+    --palette-fuchsia-solid: 292 60% 52%;
+    --palette-fuchsia-solid-fg: 40 20% 98%;
+    --palette-fuchsia-border: 292 35% 32%;
+
+    /* Pink - Soft pink */
+    --palette-pink: 330 58% 65%;
+    --palette-pink-subtle: 330 32% 14%;
+    --palette-pink-solid: 330 58% 52%;
+    --palette-pink-solid-fg: 40 20% 98%;
+    --palette-pink-border: 330 32% 32%;
+
+    /* Rose - Forest rose */
+    --palette-rose: 348 55% 62%;
+    --palette-rose-subtle: 348 30% 14%;
+    --palette-rose-solid: 348 55% 52%;
+    --palette-rose-solid-fg: 40 20% 98%;
+    --palette-rose-border: 348 30% 32%;
+  }
 }
 
-/* Twilight Lavender scrollbar - applied outside @layer for higher specificity */
-[data-theme="twilight-lavender"] [data-sidebar="content"] {
-  scrollbar-width: thin !important;
-  scrollbar-color: hsl(265 20% 30% / 0.5) transparent !important;
+/* Estate Dark: shared progress track/connection color */
+[data-theme="estate-dark"] {
+  --progress-track-bg: 130 10% 28%;
 }
 
-[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar {
-  width: 4px !important;
+[data-theme="estate-dark"] [data-progress-root],
+[data-theme="estate-dark"] [data-progress-bar] .progress-bar-connection-incomplete {
+  background-color: hsl(var(--progress-track-bg)) !important;
 }
 
-[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-track {
-  background: transparent !important;
-}
-
-[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-thumb {
-  background-color: hsl(265 20% 30% / 0.5) !important;
-  border-radius: 2px !important;
-}
-
-[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(265 20% 40% / 0.7) !important;
-}
+/* Sidebar scrollbar colors are set via inline styles on SidebarContent component
+ * using standard CSS scrollbar-width + scrollbar-color properties.
+ * See components/ui/sidebar.tsx → SidebarContent */
 
 @layer base {
   * {
@@ -775,6 +1003,13 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+}
+
+/* Fix Radix Popover/Combobox inside Dialog — the Dialog sets pointer-events:none
+   on <body> and only re-enables it for its own portal. Popover portals render as
+   siblings, so their positioning wrapper inherits the block. */
+[data-radix-popper-content-wrapper] {
+  pointer-events: auto !important;
 }
 
 /* Animations */
@@ -1029,61 +1264,3 @@
   75% { transform: rotate(3deg); }
 }
 
-/* Sidebar Scrollbar Styles - Minimal & Theme-Aware */
-[data-sidebar="sidebar"] [data-sidebar="content"],
-[data-sidebar="content"] {
-  /* Firefox scrollbar */
-  scrollbar-width: thin !important;
-  scrollbar-color: hsl(var(--sidebar-border) / 0.3) transparent !important;
-}
-
-/* WebKit browsers (Chrome, Safari, Edge) */
-[data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar,
-[data-sidebar="content"]::-webkit-scrollbar {
-  width: 4px !important;
-}
-
-[data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-track,
-[data-sidebar="content"]::-webkit-scrollbar-track {
-  background: transparent !important;
-}
-
-[data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
-[data-sidebar="content"]::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--sidebar-border) / 0.3) !important;
-  border-radius: 2px !important;
-  transition: background-color 0.2s ease !important;
-}
-
-[data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
-[data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--sidebar-border) / 0.6) !important;
-}
-
-/* Dark mode adjustments */
-.dark [data-sidebar="sidebar"] [data-sidebar="content"],
-.dark [data-sidebar="content"],
-[data-theme="dark"] [data-sidebar="sidebar"] [data-sidebar="content"],
-[data-theme="dark"] [data-sidebar="content"],
-[data-theme="twilight-lavender"] [data-sidebar="sidebar"] [data-sidebar="content"],
-[data-theme="twilight-lavender"] [data-sidebar="content"] {
-  scrollbar-color: hsl(var(--sidebar-border) / 0.4) transparent !important;
-}
-
-.dark [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
-.dark [data-sidebar="content"]::-webkit-scrollbar-thumb,
-[data-theme="dark"] [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
-[data-theme="dark"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
-[data-theme="twilight-lavender"] [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb,
-[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--sidebar-border) / 0.4) !important;
-}
-
-.dark [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
-.dark [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
-[data-theme="dark"] [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
-[data-theme="dark"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
-[data-theme="twilight-lavender"] [data-sidebar="sidebar"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover,
-[data-theme="twilight-lavender"] [data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--sidebar-border) / 0.7) !important;
-}

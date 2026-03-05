@@ -13,9 +13,9 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
   Row,
 } from "@tanstack/react-table";
+import { useTableWithPageSize } from "@/lib/hooks/use-table-with-page-size";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTablePagination } from "./data-table-pagination";
@@ -68,7 +68,7 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const table = useReactTable({
+  const table = useTableWithPageSize({
     data,
     columns,
     state: { sorting, columnVisibility, rowSelection, columnFilters },

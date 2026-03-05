@@ -90,7 +90,7 @@ export async function warnOrganizationMembers(
       if (!user) continue;
 
       // Create in-app notification
-      const notificationId = await generateFriendlyId(prismadb, "Notification");
+      const notificationId = await generateFriendlyId(prismadb, "Notification", SYSTEM_ORG_ID);
       await prismadb.notification.create({
         data: {
           id: notificationId,
@@ -212,7 +212,7 @@ export async function suspendOrganization(
       }
 
       // Create in-app notification
-      const notificationId = await generateFriendlyId(prismadb, "Notification");
+      const notificationId = await generateFriendlyId(prismadb, "Notification", SYSTEM_ORG_ID);
       await prismadb.notification.create({
         data: {
           id: notificationId,
@@ -319,7 +319,7 @@ export async function deleteOrganization(
       if (!user) continue;
 
       // Create in-app notification
-      const notificationId = await generateFriendlyId(prismadb, "Notification");
+      const notificationId = await generateFriendlyId(prismadb, "Notification", SYSTEM_ORG_ID);
       await prismadb.notification.create({
         data: {
           id: notificationId,

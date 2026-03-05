@@ -17,7 +17,7 @@ function generatePostSlug(): string {
 }
 
 interface CreateSocialPostInput {
-  type: "property" | "client" | "text";
+  type: "property" | "client" | "mandate" | "document" | "text";
   content: string;
   linkedEntityId?: string;
   attachmentIds?: string[];
@@ -81,7 +81,7 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
   let linkedEntityMetadata: Record<string, any> | undefined = undefined;
 
   // Fetch linked entity details if provided
-  if (linkedEntityId && (type === "property" || type === "client")) {
+  if (linkedEntityId && type !== "text") {
     const prisma = prismaForOrg(orgId);
 
     if (type === "property") {
@@ -128,12 +128,34 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
           budgetMax: client.budget_max ? Number(client.budget_max) : null,
         };
       }
+    } else if (type === "mandate") {
+      const mandate = await prisma.mandate.findUnique({
+        where: { id: linkedEntityId },
+        select: { title: true, transaction_type: true, property_type: true },
+      });
+
+      if (mandate) {
+        linkedEntityTitle = mandate.title || "Unnamed Mandate";
+        linkedEntityMetadata = {
+          transactionType: mandate.transaction_type,
+          propertyType: mandate.property_type,
+        };
+      }
+    } else if (type === "document") {
+      const document = await prisma.documents.findUnique({
+        where: { id: linkedEntityId },
+        select: { document_name: true },
+      });
+
+      if (document) {
+        linkedEntityTitle = document.document_name || "Unnamed Document";
+      }
     }
   }
 
   try {
     // Generate friendly ID and URL slug
-    const postId = await generateFriendlyId(prismadb, "SocialPost");
+    const postId = await generateFriendlyId(prismadb, "SocialPost", orgId);
     const postSlug = generatePostSlug();
 
     const post = await prismadb.socialPost.create({
@@ -167,7 +189,7 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
       });
     }
 
-    revalidatePath("/social-feed");
+    revalidatePath("/network/feed");
 
     // Publish Ably event for real-time updates
     try {

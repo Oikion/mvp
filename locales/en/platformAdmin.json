@@ -33,6 +33,8 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System",
+    "estate": "Estate",
+    "estateDark": "Estate Dark",
     "pearlSand": "Pearl Sand",
     "twilightLavender": "Twilight Lavender"
   },

@@ -14,6 +14,7 @@ import { Globe, Activity, DollarSign, TrendingUp } from "lucide-react";
 import { useOrgUsers } from "@/hooks/swr";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
 import { GridToolbar } from "@/components/ui/grid-toolbar";
+import { formatCompactCurrency } from "@/lib/formatting";
 
 interface ListingsPageViewProps {
   listings: any[];
@@ -45,7 +46,7 @@ export default function ListingsPageView({ listings = [] }: ListingsPageViewProp
   const activeListings = listings.filter(
     (p) => p.property_status === "ACTIVE"
   ).length;
-  const totalValue = listings.reduce((sum, p) => sum + (p.price || 0), 0);
+  const totalValue = listings.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
   const avgPrice = totalListings > 0 ? totalValue / totalListings : 0;
 
   // Filter data for grid view
@@ -105,13 +106,13 @@ export default function ListingsPageView({ listings = [] }: ListingsPageViewProp
         />
         <StatsCard
           title={t("Listings.totalValue") || "Total Value"}
-          value={`€${(totalValue / 1000000).toFixed(1)}M`}
+          value={formatCompactCurrency(totalValue)}
           icon={<DollarSign className="h-4 w-4" />}
           description={t("Listings.publishedListingValue") || "Published listing value"}
         />
         <StatsCard
           title={t("Listings.avgPrice") || "Avg. Price"}
-          value={`€${(avgPrice / 1000).toFixed(0)}K`}
+          value={formatCompactCurrency(avgPrice)}
           icon={<TrendingUp className="h-4 w-4" />}
           description={t("Listings.averageListingPrice") || "Average listing price"}
         />

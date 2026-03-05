@@ -1,0 +1,245 @@
+{
+  "pageTitle": "AI Assistant",
+  "pageDescription": "Your intelligent assistant for managing properties, clients, and more",
+  "newChat": "New Chat",
+  "welcome": "How can I help you today?",
+  "welcomeDescription": "I can help you manage clients, properties, schedule events, draft messages, and more.",
+  "inputPlaceholder": "Type @ to mention entities or a message...",
+  "thinking": "Thinking...",
+  "conversationDeleted": "Conversation deleted",
+  "deleteError": "Failed to delete conversation",
+  "sendError": "Failed to send message",
+  "noConversations": "No conversations yet",
+  "startChatting": "Start a new chat to get started",
+  "untitled": "Untitled",
+  "actionsPerformed": "Actions performed",
+  "loading": "Loading...",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "continueInAssistant": "Continue in AI Assistant",
+  "disclaimer": "AI can make mistakes. Verify important information.",
+  "deleteConversation": {
+    "title": "Delete conversation?",
+    "description": "This action cannot be undone. All messages in this conversation will be permanently deleted."
+  },
+  "accessDenied": {
+    "title": "Access Not Granted",
+    "description": "Your organization does not have access to the AI Assistant. You can apply for test access to try out this feature."
+  },
+  "contextPanel": {
+    "title": "Ask AI",
+    "clear": "Clear",
+    "context": "Context: {type} - {name}",
+    "suggestions": "Suggested questions",
+    "placeholder": "Ask about this..."
+  },
+  "suggestions": {
+    "client": {
+      "findMatchingProperties": "Find matching properties for this client",
+      "summarizePreferences": "Summarize this client's preferences",
+      "draftFollowUp": "Draft a follow-up email",
+      "propertiesViewed": "What properties have they viewed?"
+    },
+    "property": {
+      "findInterestedClients": "Find clients interested in this property",
+      "generateDescription": "Generate a property description",
+      "suggestPrice": "Suggest a listing price based on comparables",
+      "createInvitation": "Create an open house invitation"
+    },
+    "document": {
+      "summarize": "Summarize this document",
+      "extractInfo": "Extract key information",
+      "mainTerms": "What are the main terms?",
+      "parties": "Who are the parties involved?"
+    },
+    "message": {
+      "draftResponse": "Draft a response",
+      "summarize": "Summarize this conversation",
+      "actionItems": "What action items were discussed?",
+      "translate": "Translate to English/Greek"
+    },
+    "event": {
+      "whoShouldAttend": "Who should be invited?",
+      "findTimeSlots": "Find available time slots",
+      "sendReminder": "Send reminder to attendees",
+      "createFollowUp": "Create follow-up tasks"
+    }
+  },
+  "commandPalette": {
+    "placeholder": "Ask AI anything or search...",
+    "recentCommands": "Recent commands",
+    "goTo": "Go to",
+    "aiSuggestions": "AI Suggestions",
+    "askAI": "Ask AI",
+    "noResults": "No results found. Press Enter to ask AI.",
+    "toToggle": "to toggle",
+    "toSelect": "to select",
+    "close": "Close",
+    "aiResponse": "AI Response"
+  },
+  "welcomeScreen": {
+    "greetings": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "assistantIntro": "I'm your AI assistant. I can help you manage clients, properties, schedule events, and more.",
+    "suggestedActions": "Suggested actions",
+    "tryAsking": "Try asking",
+    "capabilities": {
+      "crm": "CRM Management",
+      "properties": "Property Listings",
+      "calendar": "Calendar & Events",
+      "documents": "Documents",
+      "matching": "Smart Matching"
+    },
+    "examplePrompts": {
+      "scheduleViewing": "Schedule a viewing for tomorrow at 3pm",
+      "findClients": "Find clients with budget over €200,000",
+      "createProperty": "Create a new property listing in Athens",
+      "checkCalendar": "What's on my calendar this week?",
+      "addReminder": "Add a reminder for the Smith meeting",
+      "findMatches": "Find properties matching John's preferences"
+    }
+  },
+  "errors": {
+    "failedToGetResponse": "Failed to get AI response",
+    "failedToDeleteConversation": "Failed to delete conversation",
+    "failedToSendMessage": "Failed to send message",
+    "genericError": "Sorry, I encountered an error. Please try again.",
+    "actionFailed": "Action failed",
+    "actionCompleted": "Action completed",
+    "executedActions": "Executed {count} action(s)"
+  },
+  "settings": {
+    "title": "AI Settings",
+    "description": "Configure AI assistant behavior and capabilities for your organization",
+    "tabs": {
+      "agents": "AI Agents",
+      "general": "General Settings"
+    },
+    "agents": {
+      "system": "System Agents",
+      "custom": "Custom Agents",
+      "noSystem": "No system agents configured",
+      "noCustom": "No custom agents configured. Custom agents can be added by platform administrators.",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "default": "Default",
+      "configure": "Configure",
+      "model": "Model",
+      "temperature": "Temperature",
+      "maxSteps": "Max Steps",
+      "tools": "Tools",
+      "available": "available",
+      "availableTools": "Available Tools",
+      "more": "more"
+    },
+    "provider": {
+      "title": "AI Provider Settings",
+      "description": "Configure the AI provider and model settings for your organization",
+      "defaultProvider": "Default AI Provider",
+      "defaultProviderDesc": "The AI provider used for all agents unless overridden",
+      "defaultModel": "Default Model",
+      "defaultModelDesc": "The default model used for AI operations",
+      "contactAdmin": "Contact your platform administrator to change provider settings or add custom API keys."
+    },
+    "usage": {
+      "title": "Usage & Limits",
+      "description": "Monitor AI usage and configure limits for your organization",
+      "requestsToday": "Requests Today",
+      "tokensUsed": "Tokens Used",
+      "monthlyLimit": "Monthly Limit",
+      "unlimited": "Unlimited"
+    },
+    "toast": {
+      "toggleSuccess": "{state}",
+      "toggleError": "Failed to toggle agent"
+    }
+  },
+  "descriptionGenerator": {
+    "incompleteData": "Incomplete data",
+    "fillTypeAndLocation": "Please fill in at least the type and location of the property.",
+    "success": "Success",
+    "descriptionCreated": "Description created",
+    "descriptionWithImages": "Description created (with {count} photo analysis)",
+    "errorCreating": "Error creating description",
+    "error": "Error",
+    "aiDescription": "AI Description",
+    "regenerate": "Regenerate",
+    "generating": "Generating...",
+    "aiOptions": "AI Options",
+    "tone": "Tone: {tone}",
+    "language": "Language: {language}",
+    "greek": "Greek",
+    "english": "English",
+    "generateNow": "Generate now",
+    "tones": {
+      "professional": "Professional",
+      "friendly": "Friendly",
+      "luxurious": "Luxurious",
+      "casual": "Casual"
+    }
+  },
+  "toolResults": {
+    "untitledEvent": "Untitled Event",
+    "unnamedClient": "Unnamed Client",
+    "unnamedProperty": "Unnamed Property",
+    "unnamedDeal": "Unnamed Deal",
+    "unnamedDocument": "Unnamed Document",
+    "item": "item",
+    "items": "items",
+    "upcomingEvents": "Retrieved upcoming events",
+    "foundAvailableSlots": "Found available slots",
+    "createdReminder": "Created reminder"
+  },
+  "quickActions": {
+    "createClient": "Create a new client",
+    "createClientPrompt": "Create a client named",
+    "createProperty": "Create a property listing",
+    "createPropertyPrompt": "Create a property: apartment for sale in",
+    "scheduleEvent": "Schedule an event",
+    "scheduleEventPrompt": "Schedule a meeting for tomorrow at 3pm",
+    "setReminder": "Set a reminder",
+    "setReminderPrompt": "Remind me to call",
+    "checkCalendar": "What's on my calendar?",
+    "checkCalendarPrompt": "What do I have scheduled today?",
+    "searchClients": "Search clients",
+    "searchClientsPrompt": "Find clients who want to buy",
+    "searchProperties": "Search properties",
+    "searchPropertiesPrompt": "Find apartments in",
+    "linkEntities": "Link entities",
+    "linkEntitiesPrompt": "Link client to property"
+  },
+  "toolLabels": {
+    "list_clients": "Listed clients",
+    "create_client": "Created client",
+    "search_clients": "Searched clients",
+    "get_client_details": "Retrieved client details",
+    "list_properties": "Listed properties",
+    "create_property": "Created property",
+    "search_properties": "Searched properties",
+    "list_events": "Listed calendar events",
+    "create_event": "Created calendar event",
+    "query_calendar": "Queried calendar",
+    "list_tasks": "Listed tasks",
+    "create_task": "Created task",
+    "list_documents": "Listed documents",
+    "analyze_document": "Analyzed document",
+    "find_matches_for_client": "Found matching properties",
+    "find_matches_for_property": "Found matching clients",
+    "link_entities": "Linked entities",
+    "draft_message_response": "Drafted message",
+    "get_upcoming_birthdays": "Retrieved upcoming birthdays"
+  },
+  "mentions": {
+    "placeholder": "Search clients, properties, events...",
+    "noResults": "No results found",
+    "categories": {
+      "clients": "Clients",
+      "properties": "Properties",
+      "events": "Events",
+      "documents": "Documents"
+    }
+  }
+}

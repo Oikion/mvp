@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowRight, Loader2, MoreHorizontal, BedDouble, Bath, Ruler, MapPin, Home } from "lucide-react";
+import { ArrowRight, Loader2, MoreHorizontal, BedDouble, Bath, Ruler, MapPin, Home, Mail, UserCircle, Calendar } from "lucide-react";
 import moment from "moment";
 import { useAppToast } from "@/hooks/use-app-toast";
 
@@ -183,8 +183,8 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 flex-shrink-0">
         <div className="flex items-center gap-2">
           {icon}
           <CardTitle className="text-lg">{title}</CardTitle>
@@ -196,10 +196,10 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
           </Link>
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 min-h-0 overflow-y-auto">
         {items.length === 0 ? (
           <div className="text-sm text-muted-foreground py-4 text-center">
-            {isProperties 
+            {isProperties
               ? tDashboard("noRecentProperties")
               : tDashboard("noRecentClients")}
           </div>
@@ -340,65 +340,91 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
                 );
               }
               
-              // Client card (original design)
+              // Client row (matching property row layout)
               return (
-                <div
+                <Link
                   key={item.id}
-                  className="rounded-lg border bg-card p-3 shadow-sm"
+                  href={viewHref}
+                  className="block rounded-lg border bg-card shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-200"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium text-sm truncate">{displayName}</p>
-                    <Badge
-                      variant={statusInfo.variant as any}
-                      className="whitespace-nowrap"
-                    >
-                      {statusInfo.label}
-                    </Badge>
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                    {displayEmail && (
-                      <span className="truncate max-w-[150px]">{displayEmail}</span>
-                    )}
-                    {item.assigned_to_user?.name && (
-                      <span className="truncate">
-                        {tCommon("assigned")} {item.assigned_to_user.name}
-                      </span>
-                    )}
-                    <span>{moment(item.createdAt).format("MMM DD, YYYY")}</span>
-                  </div>
-                  <div className="mt-3 flex justify-end">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">{tCommon("actions")}</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuItem asChild>
-                          <Link href={viewHref} className="w-full">
-                            {tCommon("view")}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={editHref} className="w-full">
-                            {tCommon("edit")}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => handleDelete(item, displayName)}
-                          disabled={isDeleting}
-                        >
-                          {isDeleting && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <div className="flex gap-3 p-3">
+                    {/* Client avatar */}
+                    <div className="relative h-20 w-20 flex-shrink-0 rounded-md bg-muted overflow-hidden">
+                      <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                        <UserCircle className="h-8 w-8" />
+                      </div>
+                    </div>
+
+                    {/* Client info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm truncate">{displayName}</p>
+                          {displayEmail && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <Mail className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{displayEmail}</span>
+                            </p>
                           )}
-                          {tCommon("delete")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Badge
+                            variant={statusInfo.variant as any}
+                            className="whitespace-nowrap text-xs"
+                          >
+                            {statusInfo.label}
+                          </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <MoreHorizontal className="h-3.5 w-3.5" />
+                                <span className="sr-only">{tCommon("actions")}</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem asChild>
+                                <Link href={viewHref} className="w-full">
+                                  {tCommon("view")}
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={editHref} className="w-full">
+                                  {tCommon("edit")}
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleDelete(item, displayName);
+                                }}
+                                disabled={isDeleting}
+                              >
+                                {isDeleting && (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                )}
+                                {tCommon("delete")}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+
+                      {/* Details row */}
+                      <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+                        {item.assigned_to_user?.name && (
+                          <span className="truncate">
+                            {tCommon("assigned")} {item.assigned_to_user.name}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {moment(item.createdAt).format("MMM DD, YYYY")}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { ArrowLeft, ArrowRight, Upload, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 
 import { UploadStep } from "./UploadStep";
-import { TwoPanelMappingStep } from "./TwoPanelMappingStep";
+import { TableMappingStep } from "./TableMappingStep";
 import { ValidationStep } from "./ValidationStep";
 import { ReviewStep } from "./ReviewStep";
 import { CompleteStep } from "./CompleteStep";
@@ -137,7 +137,7 @@ interface ImportWizardStepsProps {
   fieldsDict: FieldsDict;
   schema: z.ZodSchema;
   fieldDefinitions: readonly FieldDefinition[];
-  onImport: (data: Record<string, unknown>[]) => Promise<ImportResult>;
+  onImport: (data: Record<string, unknown>[], signal?: AbortSignal) => Promise<ImportResult>;
   onComplete?: () => void;
   onCancel?: () => void;
   viewUrl?: string;
@@ -177,6 +177,7 @@ export function ImportWizardSteps({
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
   const [isImporting, setIsImporting] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Data state
   const [file, setFile] = useState<File | null>(null);
@@ -207,6 +208,12 @@ export function ImportWizardSteps({
 
   const handleBack = useCallback(() => {
     if (currentStep > 0) {
+      // Cancel any in-flight import when going back
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+        setIsImporting(false);
+      }
       setDirection(-1);
       setCurrentStep((prev) => prev - 1);
     }
@@ -272,12 +279,16 @@ export function ImportWizardSteps({
   }, [parsedData, fieldMapping, schema]);
 
   const handleImport = useCallback(async () => {
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     setIsImporting(true);
     try {
-      const result = await onImport(validData);
+      const result = await onImport(validData, controller.signal);
+      if (controller.signal.aborted) return;
       setImportResult(result);
       handleNext();
     } catch (error) {
+      if (controller.signal.aborted) return;
       console.error("Import failed:", error);
       setImportResult({
         imported: 0,
@@ -288,6 +299,7 @@ export function ImportWizardSteps({
       handleNext();
     } finally {
       setIsImporting(false);
+      abortControllerRef.current = null;
     }
   }, [validData, onImport, dict.errors.serverError, handleNext]);
 
@@ -325,7 +337,7 @@ export function ImportWizardSteps({
         );
       case 1:
         return (
-          <TwoPanelMappingStep
+          <TableMappingStep
             dict={dict.mapping}
             fieldsDict={fieldsDict}
             csvHeaders={csvHeaders}
@@ -353,6 +365,7 @@ export function ImportWizardSteps({
             dict={dict.review}
             fieldsDict={fieldsDict}
             data={validData}
+            fieldMapping={fieldMapping}
             errorCount={validationErrors.length > 0 ? parsedData.length - validData.length : 0}
             entityType={entityType}
           />
@@ -392,7 +405,7 @@ export function ImportWizardSteps({
   ];
 
   return (
-    <div className="flex flex-col gap-6 h-full min-h-0">
+    <div className="flex flex-col gap-6">
       {/* Progress Bar */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -412,14 +425,9 @@ export function ImportWizardSteps({
 
       {/* Step Indicator */}
       <div className="flex items-center justify-between mb-4 relative">
-        <div className="absolute top-4 left-0 right-0 h-0.5 pointer-events-none z-0">
-          <div
-            className="flex w-full"
-            style={{
-              paddingLeft: "calc(1rem + 16px)",
-              paddingRight: "calc(1rem + 16px)",
-            }}
-          >
+        {/* Connecting line spanning from center of first step to center of last */}
+        <div className="absolute top-4 left-[calc(10%-4px)] right-[calc(10%-4px)] h-0.5 pointer-events-none z-0">
+          <div className="flex w-full h-full">
             {stepTitles.slice(0, -1).map((_, index) => (
               <div
                 key={`line-${index}`}
@@ -435,11 +443,11 @@ export function ImportWizardSteps({
           {stepTitles.map((title, index) => (
             <div key={index} className="flex flex-col items-center flex-1">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm relative z-10 ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm relative z-10 ring-4 ring-background ${
                   currentStep === index
                     ? "bg-primary text-primary-foreground"
                     : currentStep > index
-                    ? "bg-primary/20 text-primary"
+                    ? "bg-muted text-primary"
                     : "bg-muted text-muted-foreground"
                 }`}
               >
@@ -460,7 +468,7 @@ export function ImportWizardSteps({
       </div>
 
       {/* Step Content with Animation */}
-      <div className="relative flex-1 overflow-hidden">
+      <div className="relative min-h-[400px] overflow-hidden">
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentStep}
@@ -473,7 +481,7 @@ export function ImportWizardSteps({
               x: { type: "spring", stiffness: 300, damping: 30 },
               opacity: { duration: 0.2 },
             }}
-            className="absolute inset-0 px-1 overflow-y-auto"
+            className="px-1"
           >
             {renderStep()}
           </motion.div>

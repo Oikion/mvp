@@ -14,7 +14,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -59,18 +59,14 @@ export default async function PlatformAdminDashboardPage({
 
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-2 mb-8">
-          <Button asChild>
-            <Link href={`/${locale}/app/platform-admin/users`}>
-              <Users className="h-4 w-4 mr-2" />
-              {t("dashboard.manageUsers")}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href={`/${locale}/app/platform-admin/organizations`}>
-              <Building2 className="h-4 w-4 mr-2" />
-              {t("dashboard.viewOrganizations")}
-            </Link>
-          </Button>
+          <Link href={`/${locale}/app/platform-admin/users`} className={buttonVariants({ variant: "default" })}>
+            <Users className="h-4 w-4" />
+            {t("dashboard.manageUsers")}
+          </Link>
+          <Link href={`/${locale}/app/platform-admin/organizations`} className={buttonVariants({ variant: "outline" })}>
+            <Building2 className="h-4 w-4" />
+            {t("dashboard.viewOrganizations")}
+          </Link>
         </div>
 
         {/* Metrics Grid */}

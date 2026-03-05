@@ -143,7 +143,7 @@ export function getNavigationConfig({
     }] : []),
   ]
 
-  // Network - Feed, Profile, Messages, Audiences, Shared
+  // Network - Feed, Profile, Messages, Shared
   // Outer gate: org must have the "network" feature enabled.
   // Inner gates: per-user/per-role module access within an enabled org.
   const networkItems: NavItem[] = canAccess("network") ? [
@@ -156,27 +156,12 @@ export function getNavigationConfig({
       notificationKey: "socialFeed",
     }] : []),
     ...(canAccess("social") ? [{
-      title: dict.navigation.ModuleMenu.social?.profile || "Profile",
-      url: "/app/network/profile",
-      icon: UserCogIcon,
-      isActive: isRouteActive(pathname, "/app/network/profile", locale),
-      moduleId: "social" as ModuleId,
-      notificationKey: "connections",
-    }] : []),
-    ...(canAccess("social") ? [{
       title: dict.navigation.ModuleMenu.social?.messages || "Messages",
       url: "/app/network/messages",
       icon: MessageCircleIcon,
       isActive: isRouteActive(pathname, "/app/network/messages", locale),
       moduleId: "social" as ModuleId,
       notificationKey: "messages",
-    }] : []),
-    ...(canAccess("audiences") ? [{
-      title: dict.navigation.ModuleMenu.social?.audiences || "Audiences",
-      url: "/app/network/audiences",
-      icon: UsersIcon,
-      isActive: isRouteActive(pathname, "/app/network/audiences", locale),
-      moduleId: "audiences" as ModuleId,
     }] : []),
     ...(canAccess("social") ? [{
       title: dict.navigation.ModuleMenu.social?.sharedWithMe || "Shared With Me",
@@ -185,6 +170,14 @@ export function getNavigationConfig({
       isActive: isRouteActive(pathname, "/app/network/shared", locale),
       moduleId: "social" as ModuleId,
       notificationKey: "sharedWithMe",
+    }] : []),
+    ...(canAccess("social") ? [{
+      title: dict.navigation.ModuleMenu.social?.profile || "Profile",
+      url: "/app/network/profile",
+      icon: UserCogIcon,
+      isActive: isRouteActive(pathname, "/app/network/profile", locale),
+      moduleId: "social" as ModuleId,
+      notificationKey: "connections",
     }] : []),
   ] : []
 
@@ -230,9 +223,9 @@ export function getNavigationConfig({
       icon: Target,
       isActive: isRouteActive(pathname, "/app/matchmaking", locale),
       badge: "1.0",
-      badgeClassName: "bg-warning/15 text-warning border-0 shadow-sm hover:bg-warning/25",
-      iconClassName: "text-warning",
-      labelClassName: "text-warning dark:text-orange-400 font-semibold",
+      badgeClassName: "bg-rose-400/15 text-rose-400 dark:text-rose-400/70 border-0 shadow-sm hover:bg-rose-400/25",
+      iconClassName: "text-rose-400 dark:text-rose-400/70",
+      labelClassName: "text-rose-400 dark:text-rose-400/70 font-semibold",
     }] : []),
   ]
 

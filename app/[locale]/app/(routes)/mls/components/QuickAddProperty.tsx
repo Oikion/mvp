@@ -35,52 +35,19 @@ import {
 } from "@/components/ui/sheet";
 
 const createQuickAddSchema = (t: (key: string) => string, tCommon: (key: string) => string) => z.object({
-  property_name: z.string().optional(),
-  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"], {
-    required_error: t("PropertyForm.validation.propertyTypeRequired"),
-  }),
+  property_name: z.string().min(1, t("PropertyForm.validation.propertyNameRequired")),
+  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]).optional(),
   property_type_other: z.string().optional(),
-  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"], {
-    required_error: t("PropertyForm.validation.transactionTypeRequired"),
-  }),
-  municipality: z.string().min(1, t("PropertyForm.validation.municipalityRequired")),
+  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]).optional(),
+  municipality: z.string().optional(),
   area: z.string().optional(),
   postal_code: z.string().optional(),
   size_net_sqm: z.coerce.number().optional(),
   plot_size_sqm: z.coerce.number().optional(),
   bedrooms: z.coerce.number().optional(),
   floor: z.string().optional(),
-  price: z.coerce.number().min(0, t("PropertyForm.validation.priceRequired")),
-  assigned_to: z.string().min(1, tCommon("selectAgent")),
-}).superRefine((data, ctx) => {
-  // Validate area/postal code
-  if (!data.area && !data.postal_code) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: t("PropertyForm.validation.areaOrPostalCodeRequired"),
-      path: ["area"],
-    });
-  }
-
-  // Validate size based on type
-  const isResidentialOrCommercial = ["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE"].includes(data.property_type);
-  const isLand = ["PLOT", "FARM"].includes(data.property_type);
-
-  if (isResidentialOrCommercial && (!data.size_net_sqm || data.size_net_sqm <= 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: t("PropertyForm.validation.sizeRequired"),
-      path: ["size_net_sqm"],
-    });
-  }
-
-  if (isLand && (!data.plot_size_sqm || data.plot_size_sqm <= 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: t("PropertyForm.validation.sizeRequired"),
-      path: ["plot_size_sqm"],
-    });
-  }
+  price: z.coerce.number().optional(),
+  assigned_to: z.string().optional(),
 });
 
 type Props = {
@@ -128,9 +95,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
   const onSubmit = async (data: QuickAddFormValues) => {
     setIsLoading(true);
     try {
-      // Use provided name or generate one
-      const property_name = data.property_name?.trim() 
-        || `${data.property_type || "Property"} - ${data.municipality || ""} ${data.area || ""}`.trim();
+      const property_name = data.property_name.trim();
 
       const response = await axios.post("/api/mls/properties", {
         ...data,
@@ -175,7 +140,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
               name="property_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("PropertyForm.fields.propertyName")}</FormLabel>
+                  <FormLabel required>{t("PropertyForm.fields.propertyName")}</FormLabel>
                   <FormControl>
                     <Input 
                       disabled={isLoading} 
@@ -192,7 +157,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
               <FormSelectWithOther<QuickAddFormValues, "property_type">
                 name="property_type"
                 otherFieldName="property_type_other"
-                label={`${t("PropertyForm.fields.propertyType")} *`}
+                label={t("PropertyForm.fields.propertyType")}
                 placeholder={t("PropertyForm.fields.propertyTypePlaceholder")}
                 otherLabel={t("PropertyForm.fields.specifyOther")}
                 otherPlaceholder={t("PropertyForm.fields.specifyOtherPlaceholder")}
@@ -215,7 +180,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
                 name="transaction_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("PropertyForm.fields.transactionType")} *</FormLabel>
+                    <FormLabel>{t("PropertyForm.fields.transactionType")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -240,7 +205,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
               name="municipality"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("PropertyForm.fields.municipality")} *</FormLabel>
+                  <FormLabel>{t("PropertyForm.fields.municipality")}</FormLabel>
                   <FormControl>
                     <Input disabled={isLoading} placeholder={t("PropertyForm.fields.municipalityPlaceholder")} {...field} />
                   </FormControl>
@@ -284,7 +249,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
                 name="size_net_sqm"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("PropertyForm.fields.sizeNetSqm")} *</FormLabel>
+                    <FormLabel>{t("PropertyForm.fields.sizeNetSqm")}</FormLabel>
                     <FormControl>
                       <Input disabled={isLoading} type="number" placeholder="0" {...field}
                         onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
@@ -358,7 +323,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
                 name="plot_size_sqm"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("PropertyForm.fields.plotSizeSqm")} *</FormLabel>
+                    <FormLabel>{t("PropertyForm.fields.plotSizeSqm")}</FormLabel>
                     <FormControl>
                       <Input disabled={isLoading} type="number" placeholder="0" {...field}
                         onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
@@ -376,7 +341,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("PropertyForm.fields.price")} (€) *</FormLabel>
+                  <FormLabel>{t("PropertyForm.fields.price")} (€)</FormLabel>
                   <FormControl>
                     <Input disabled={isLoading} type="number" placeholder="0" {...field}
                       onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
@@ -393,7 +358,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
               name="assigned_to"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("PropertyForm.fields.agentOwner")} *</FormLabel>
+                  <FormLabel>{t("PropertyForm.fields.agentOwner")}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>

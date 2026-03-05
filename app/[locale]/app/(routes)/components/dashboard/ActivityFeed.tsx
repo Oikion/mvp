@@ -81,7 +81,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities }) => {
           <CardTitle className="text-lg">{t("recentActivity")}</CardTitle>
         </div>
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/${locale}/app/feed`} className="flex items-center gap-1">
+          <Link href={`/${locale}/app/upcoming`} className="flex items-center gap-1">
             {tCommon("viewAll")}
             <ArrowRight className="h-4 w-4" />
           </Link>

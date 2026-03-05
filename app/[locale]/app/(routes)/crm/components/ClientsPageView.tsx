@@ -44,6 +44,7 @@ export default function ClientsPageView({
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [activeTab, setActiveTab] = useState("agency");
   const t = useTranslations("crm");
+  const commonT = useTranslations("common");
   const params = useParams();
   const locale = (params?.locale as string) || "en";
   const searchParams = useSearchParams();
@@ -196,7 +197,7 @@ export default function ClientsPageView({
           value={sharedClients.length.toString()}
           icon={<Share2 className="h-4 w-4" />}
           description={t("Stats.fromConnections")}
-          actionHref={`/${locale}/app/connections`}
+          actionHref={`/${locale}/app/network/profile?tab=find`}
           actionLabel={t("Stats.findAgents")}
           emptyMessage={t("Stats.connectToReceive")}
         />
@@ -235,7 +236,19 @@ export default function ClientsPageView({
                   <CardDescription>{t("Tabs.agencyClientsDescription")}</CardDescription>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <ViewToggle view={view} setView={setView} />
+                  <Button
+                    variant="ghost"
+                    onClick={() => setQuickAddOpen(true)}
+                  >
+                    + {commonT("quickAdd")}
+                  </Button>
+                  <QuickAddClient
+                    open={quickAddOpen}
+                    onOpenChange={setQuickAddOpen}
+                    organizationUsers={users}
+                    locale={locale}
+                    onSuccess={() => {}}
+                  />
                   <ExportButton
                     module="crm"
                     totalRows={agencyClients.length}
@@ -251,22 +264,9 @@ export default function ClientsPageView({
                     asChild
                   >
                     <Link href={`/${locale}/app/crm/import`}>
-                      Import
+                      {commonT("import")}
                     </Link>
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setQuickAddOpen(true)}
-                  >
-                    + {t("CrmForm.quickAddTitle")}
-                  </Button>
-                  <QuickAddClient
-                    open={quickAddOpen}
-                    onOpenChange={setQuickAddOpen}
-                    organizationUsers={users}
-                    locale={locale}
-                    onSuccess={() => {}}
-                  />
                   <Sheet open={open} onOpenChange={() => setOpen(false)}>
                     <Button className="flex-1 sm:flex-none" onClick={() => setOpen(true)}>
                       + {t("CrmForm.title")}
@@ -297,6 +297,7 @@ export default function ClientsPageView({
                   columns={getColumns(users)}
                   industries={[]}
                   users={users}
+                  toolbarRight={<ViewToggle view={view} setView={setView} />}
                 />
               ) : (
                 <div className="space-y-4">
@@ -308,6 +309,7 @@ export default function ClientsPageView({
                     selectedFilters={selectedFilters}
                     onFilterChange={handleFilterChange}
                     onReset={handleReset}
+                    rightContent={<ViewToggle view={view} setView={setView} />}
                   />
                   {filteredAgencyClients.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">

@@ -17,14 +17,20 @@ export function isAblyConfigured(): boolean {
   return !!ABLY_API_KEY;
 }
 
+// Cached Ably REST client (singleton per process)
+let cachedAblyClient: Ably.Rest | null = null;
+
 /**
- * Create an Ably REST client for server-side operations
+ * Get or create a cached Ably REST client for server-side operations.
+ * Reuses the same client instance across requests to avoid
+ * connection overhead (~200-500ms per new client).
  */
 export function getAblyClient(): Ably.Rest | null {
   if (!ABLY_API_KEY) {
     return null;
   }
-  return new Ably.Rest({ key: ABLY_API_KEY });
+  cachedAblyClient ??= new Ably.Rest({ key: ABLY_API_KEY });
+  return cachedAblyClient;
 }
 
 /**
@@ -48,7 +54,7 @@ export async function createAblyTokenRequest(
     return null;
   }
 
-  const client = new Ably.Rest({ key: ABLY_API_KEY });
+  const client = getAblyClient()!;
 
   // Define capabilities for this user
   // They can subscribe to their org's channels and their own user channel

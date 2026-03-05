@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     } = validationResult.data;
 
     // Generate friendly ID
-    const clientId = await generateFriendlyId(prismadb, "Clients");
+    const clientId = await generateFriendlyId(prismadb, "Clients", organizationId);
 
     const newClient = await prismadb.clients.create({
       data: await encryptClientForOrg({

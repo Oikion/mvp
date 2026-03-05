@@ -22,7 +22,6 @@ import socialFeedEn from "./locales/en/socialFeed.json";
 import connectionsEn from "./locales/en/connections.json";
 import dealsEn from "./locales/en/deals.json";
 import sharedWithMeEn from "./locales/en/sharedWithMe.json";
-import audiencesEn from "./locales/en/audiences.json";
 import profileEn from "./locales/en/profile.json";
 import templatesEn from "./locales/en/templates.json";
 import shareEn from "./locales/en/share.json";
@@ -33,6 +32,7 @@ import authEn from "./locales/en/auth.json";
 import signInEn from "./locales/en/signIn.json";
 import referralsEn from "./locales/en/referrals.json";
 import messagesEn from "./locales/en/messages.json";
+import mandatesEn from "./locales/en/mandates.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -55,7 +55,6 @@ import socialFeedEl from "./locales/el/socialFeed.json";
 import connectionsEl from "./locales/el/connections.json";
 import dealsEl from "./locales/el/deals.json";
 import sharedWithMeEl from "./locales/el/sharedWithMe.json";
-import audiencesEl from "./locales/el/audiences.json";
 import profileEl from "./locales/el/profile.json";
 import templatesEl from "./locales/el/templates.json";
 import shareEl from "./locales/el/share.json";
@@ -66,6 +65,7 @@ import authEl from "./locales/el/auth.json";
 import signInEl from "./locales/el/signIn.json";
 import referralsEl from "./locales/el/referrals.json";
 import messagesEl from "./locales/el/messages.json";
+import mandatesEl from "./locales/el/mandates.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -97,7 +97,6 @@ function loadMessages(locale: string) {
     messages.connections = connectionsEl;
     messages.deals = dealsEl;
     messages.sharedWithMe = sharedWithMeEl;
-    messages.audiences = audiencesEl;
     messages.profile = profileEl;
     messages.templates = templatesEl;
     messages.share = shareEl;
@@ -108,6 +107,7 @@ function loadMessages(locale: string) {
     messages.signIn = signInEl;
     messages.referrals = referralsEl;
     messages.messages = messagesEl;
+    messages.mandates = mandatesEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -141,7 +141,6 @@ function loadMessages(locale: string) {
     messages.connections = connectionsEn;
     messages.deals = dealsEn;
     messages.sharedWithMe = sharedWithMeEn;
-    messages.audiences = audiencesEn;
     messages.profile = profileEn;
     messages.templates = templatesEn;
     messages.share = shareEn;
@@ -152,6 +151,7 @@ function loadMessages(locale: string) {
     messages.signIn = signInEn;
     messages.referrals = referralsEn;
     messages.messages = messagesEn;
+    messages.mandates = mandatesEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))

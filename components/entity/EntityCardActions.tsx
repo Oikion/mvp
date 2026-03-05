@@ -39,7 +39,7 @@ export interface CardAction {
  */
 export interface EntityCardActionsProps {
   /** Type of entity */
-  entityType: "property" | "client" | "contact" | "audience";
+  entityType: "property" | "client" | "contact";
   /** ID of the entity */
   entityId: string;
   /** Display name for dialogs */
@@ -120,8 +120,6 @@ export function EntityCardActions({
         return `/app/crm/clients/${entityId}`;
       case "contact":
         return `/app/crm/contacts/${entityId}`;
-      case "audience":
-        return `/app/audiences/${entityId}`;
       default:
         return "#";
     }

@@ -69,7 +69,7 @@ export async function createDocument(input: CreateDocumentInput) {
     const shareableLink = input.linkEnabled ? createShareLink() : null;
 
     // Generate friendly ID
-    const documentId = await generateFriendlyId(prismadb, "Documents");
+    const documentId = await generateFriendlyId(prismadb, "Documents", organizationId);
 
     const encryptedFields = await encryptDocumentForOrg({
       document_name: input.document_name,

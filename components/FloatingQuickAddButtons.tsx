@@ -8,6 +8,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
+import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useTranslations } from "next-intl";
 import axios from "axios";
@@ -62,14 +63,17 @@ export function FloatingQuickAddButtons() {
   const tCommon = useTranslations("common");
   const tCrm = useTranslations("crm");
   const tMls = useTranslations("mls");
+  const tMandates = useTranslations("mandates");
   const [clientOpen, setClientOpen] = useState(false);
   const [propertyOpen, setPropertyOpen] = useState(false);
+  const [mandateOpen, setMandateOpen] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const isModalOpen = useIsModalOpen();
 
   // Determine if we should show CRM or MLS buttons
   const isCrmRoute = pathname?.includes("/crm");
   const isMlsRoute = pathname?.includes("/mls");
+  const isMandatesRoute = pathname?.includes("/mandates");
 
   // Fetch users for assignment
   useEffect(() => {
@@ -84,7 +88,7 @@ export function FloatingQuickAddButtons() {
     fetchUsers();
   }, []);
 
-  if (!isCrmRoute && !isMlsRoute) {
+  if (!isCrmRoute && !isMlsRoute && !isMandatesRoute) {
     return null;
   }
 
@@ -134,6 +138,26 @@ export function FloatingQuickAddButtons() {
               toast.success(tCommon, { description: tCommon, isTranslationKey: false });
               // Could navigate to edit page here if needed
             }}
+          />
+        </>
+      )}
+
+      {isMandatesRoute && (
+        <>
+          {!isModalOpen && (
+            <Button
+              onClick={() => setMandateOpen(true)}
+              className="fixed bottom-6 right-6 z-[60] h-14 w-14 rounded-full shadow-lg"
+              size="icon"
+            >
+              <Plus className="h-6 w-6" />
+              <span className="sr-only">{tMandates("QuickAdd.title")}</span>
+            </Button>
+          )}
+          <QuickAddMandate
+            open={mandateOpen}
+            onOpenChange={setMandateOpen}
+            organizationUsers={users}
           />
         </>
       )}

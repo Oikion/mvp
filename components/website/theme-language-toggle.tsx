@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Moon, Sun, Palette, Check } from 'lucide-react'
+import { Moon, Sun, Palette, Home, Check } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useLocale, useTranslations } from 'next-intl'
 import { availableLocales } from '@/lib/locales'
@@ -50,7 +50,8 @@ export function ThemeAndLanguageToggle() {
   const themes = [
     { value: 'light', label: t('themes.light'), icon: Sun },
     { value: 'dark', label: t('themes.dark'), icon: Moon },
-    { value: 'pearl-sand', label: t('themes.pearlSand'), icon: Palette },
+    { value: 'estate', label: t('themes.estate'), icon: Home },
+    { value: 'estate-dark', label: t('themes.estateDark'), icon: Home },
     { value: 'twilight-lavender', label: t('themes.twilightLavender'), icon: Palette },
   ]
 

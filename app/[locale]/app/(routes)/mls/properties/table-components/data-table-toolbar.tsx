@@ -11,8 +11,9 @@ import { useTranslations } from "next-intl";
 import { PropertyFilterDrawer, type PropertyFilters } from "./PropertyFilterDrawer";
 import { useOrgUsers } from "@/hooks/swr";
 
-export function DataTableToolbar<TData>({ table }: { table: Table<TData> }) {
+export function DataTableToolbar<TData>({ table, rightContent }: { table: Table<TData>; rightContent?: React.ReactNode }) {
   const t = useTranslations("mls");
+  const commonT = useTranslations("common");
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -123,7 +124,7 @@ export function DataTableToolbar<TData>({ table }: { table: Table<TData> }) {
   return (
     <div className="flex flex-col gap-2">
       {/* Main toolbar row */}
-      <div className="flex items-center">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Input
             placeholder={t("MlsPropertiesTable.filterPlaceholder")}
@@ -139,7 +140,7 @@ export function DataTableToolbar<TData>({ table }: { table: Table<TData> }) {
             onClick={() => setFilterOpen(true)}
           >
             <Filter className="mr-2 h-4 w-4" />
-            Filters
+            {commonT("filters")}
             {activeFilterCount > 0 && (
               <Badge
                 variant="secondary"
@@ -150,6 +151,7 @@ export function DataTableToolbar<TData>({ table }: { table: Table<TData> }) {
             )}
           </Button>
         </div>
+        {rightContent}
       </div>
 
       {/* Active filter chips row */}
@@ -252,7 +254,7 @@ export function DataTableToolbar<TData>({ table }: { table: Table<TData> }) {
             className="h-6 px-2 text-xs text-muted-foreground"
             onClick={handleReset}
           >
-            Clear all
+            {commonT("clearAll")}
           </Button>
         </div>
       )}

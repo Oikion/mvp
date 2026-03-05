@@ -122,9 +122,9 @@ export function CompleteStep({
       <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
         {viewUrl && hasImported && (
           <Button asChild>
-            <Link href={viewUrl}>
+            <Link href={viewUrl} className="inline-flex items-center gap-2 whitespace-nowrap">
               {dict.viewImported.replace("{entity}", entityLabel)}
-              <ExternalLink className="h-4 w-4 ml-2" />
+              <ExternalLink className="h-4 w-4 shrink-0" />
             </Link>
           </Button>
         )}

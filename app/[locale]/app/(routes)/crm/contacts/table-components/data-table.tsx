@@ -13,8 +13,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
 } from "@tanstack/react-table";
+import { useTableWithPageSize } from "@/lib/hooks/use-table-with-page-size";
 
 import {
   Table,
@@ -48,7 +48,7 @@ export function ContactsDataTable<TData, TValue>({
 
   const [hide, setHide] = React.useState(false);
 
-  const table = useReactTable({
+  const table = useTableWithPageSize({
     data,
     columns,
     state: {

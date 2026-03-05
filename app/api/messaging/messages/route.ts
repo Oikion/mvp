@@ -147,7 +147,7 @@ export async function POST(req: Request) {
     }
 
     // Create message
-    const messageId = await generateFriendlyId(prismadb, "Message");
+    const messageId = await generateFriendlyId(prismadb, "Message", organizationId);
     const message = await prismadb.message.create({
       data: {
         id: messageId,
@@ -359,7 +359,6 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const channelId = url.searchParams.get("channelId");
     const conversationId = url.searchParams.get("conversationId");
-    const externalContactId = url.searchParams.get("externalContactId");
     const parentId = url.searchParams.get("parentId");
     const limit = parseInt(url.searchParams.get("limit") || "50");
     const before = url.searchParams.get("before");
@@ -374,9 +373,9 @@ export async function GET(req: Request) {
 
     // For thread fetching (parentId provided), we don't require channelId/conversationId
     // as they can be derived from the parent message
-    if (!channelId && !conversationId && !externalContactId && !parentId) {
+    if (!channelId && !conversationId && !parentId) {
       return NextResponse.json(
-        { error: "Channel, conversation, external contact, or parent message ID is required" },
+        { error: "Channel, conversation, or parent message ID is required" },
         { status: 400 }
       );
     }
@@ -421,24 +420,7 @@ export async function GET(req: Request) {
       }
     }
 
-    if (externalContactId) {
-      const externalContact = await prismadb.externalContact.findFirst({
-        where: {
-          id: externalContactId,
-          integration: {
-            organizationId,
-          },
-        },
-        select: { id: true },
-      });
 
-      if (!externalContact) {
-        return NextResponse.json(
-          { error: "External contact not found or access denied" },
-          { status: 403 }
-        );
-      }
-    }
 
     // If fetching thread replies, get parent message context
     let parentMessage = null;
@@ -459,15 +441,6 @@ export async function GET(req: Request) {
                   slug: true,
                 },
               },
-            },
-          },
-          externalContact: {
-            select: {
-              id: true,
-              displayName: true,
-              avatarUrl: true,
-              phoneNumber: true,
-              platformUserId: true,
             },
           },
           attachments: true,
@@ -501,14 +474,11 @@ export async function GET(req: Request) {
     // For thread replies, use parent's channelId/conversationId if not provided
     const effectiveChannelId = channelId || parentMessage?.channelId;
     const effectiveConversationId = conversationId || parentMessage?.conversationId;
-    const effectiveExternalContactId = externalContactId || parentMessage?.externalContactId;
 
     if (effectiveChannelId) {
       whereClause.channelId = effectiveChannelId;
     } else if (effectiveConversationId) {
       whereClause.conversationId = effectiveConversationId;
-    } else if (effectiveExternalContactId) {
-      whereClause.externalContactId = effectiveExternalContactId;
     }
 
     // Pagination cursor
@@ -549,15 +519,6 @@ export async function GET(req: Request) {
             },
           },
         },
-          externalContact: {
-            select: {
-              id: true,
-              displayName: true,
-              avatarUrl: true,
-              phoneNumber: true,
-              platformUserId: true,
-            },
-          },
         attachments: true,
         reactions: {
           select: {
@@ -601,10 +562,6 @@ export async function GET(req: Request) {
         threadCount: msg._count.replies,
         isEdited: msg.isEdited,
         createdAt: msg.createdAt,
-        externalPlatform: msg.externalPlatform,
-        externalMessageId: msg.externalMessageId,
-        externalContactId: msg.externalContactId,
-        externalContact: msg.externalContact,
         attachments: msg.attachments,
         reactions: msg.reactions,
         mentions: msg.mentions,
@@ -632,10 +589,6 @@ export async function GET(req: Request) {
         threadCount: parentMessage.threadCount,
         isEdited: parentMessage.isEdited,
         createdAt: parentMessage.createdAt,
-        externalPlatform: parentMessage.externalPlatform,
-        externalMessageId: parentMessage.externalMessageId,
-        externalContactId: parentMessage.externalContactId,
-        externalContact: parentMessage.externalContact,
         attachments: parentMessage.attachments,
         reactions: parentMessage.reactions,
         mentions: parentMessage.mentions,

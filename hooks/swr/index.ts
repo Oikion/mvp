@@ -108,10 +108,6 @@ export type { Task } from "./useTask";
 export { useConnections } from "./useConnections";
 export type { Connection, ConnectionUser } from "./useConnections";
 
-// Audiences
-export { useAudiences } from "./useAudiences";
-export type { Audience, AudienceMember } from "./useAudiences";
-
 // ============================================================
 // Mutation Hooks
 // ============================================================
@@ -210,11 +206,6 @@ export type {
 
 export { useUnreadMessageCount } from "./useUnreadMessageCount";
 
-export { useExternalIntegrations } from "./useExternalIntegrations";
-export type { ExternalIntegration } from "./useExternalIntegrations";
-
-export { useExternalConversations } from "./useExternalConversations";
-export type { ExternalConversation } from "./useExternalConversations";
 
 // ============================================================
 // Tags

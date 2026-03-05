@@ -247,6 +247,7 @@
       "NONE": "None"
     },
     "validation": {
+      "propertyNameRequired": "Property name is required",
       "propertyTypeRequired": "Property type is required",
       "transactionTypeRequired": "Transaction type is required",
       "municipalityRequired": "Municipality is required",

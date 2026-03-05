@@ -5,29 +5,33 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Users, 
-  Building2, 
-  Target, 
+import {
+  Users,
+  Building2,
+  Target,
   TrendingUp,
   AlertCircle,
   Flame,
   ArrowRight,
-  BarChart3
+  BarChart3,
+  FileText,
 } from "lucide-react";
 import type { MatchAnalytics } from "@/lib/matchmaking";
+import type { MandateMatchAnalytics } from "@/actions/matchmaking/get-mandate-matches";
 import { TopMatchesGrid } from "./TopMatchesGrid";
 import { MatchDistributionChart } from "./MatchDistributionChart";
 import { UnmatchedClientsList } from "./UnmatchedClientsList";
 import { HotPropertiesList } from "./HotPropertiesList";
+import { MandateMatchesTab } from "./MandateMatchesTab";
 
 interface Props {
   locale: string;
   dict: any;
   analytics: MatchAnalytics;
+  mandateAnalytics?: MandateMatchAnalytics;
 }
 
-export function MatchmakingDashboard({ locale, dict, analytics }: Props) {
+export function MatchmakingDashboard({ locale, dict, analytics, mandateAnalytics }: Props) {
   const t = useTranslations("matchmaking");
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -92,7 +96,7 @@ export function MatchmakingDashboard({ locale, dict, analytics }: Props) {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="inline-grid grid-cols-4">
+        <TabsList className="inline-grid grid-cols-5">
           <TabsTrigger value="overview">
             <BarChart3 className="h-4 w-4 shrink-0" />
             {t("dashboard.tabs.overview")}
@@ -100,6 +104,10 @@ export function MatchmakingDashboard({ locale, dict, analytics }: Props) {
           <TabsTrigger value="matches">
             <Target className="h-4 w-4 shrink-0" />
             {t("dashboard.tabs.matches")}
+          </TabsTrigger>
+          <TabsTrigger value="mandates">
+            <FileText className="h-4 w-4 shrink-0" />
+            {t("dashboard.tabs.mandates")}
           </TabsTrigger>
           <TabsTrigger value="unmatched">
             <AlertCircle className="h-4 w-4 shrink-0" />
@@ -221,6 +229,20 @@ export function MatchmakingDashboard({ locale, dict, analytics }: Props) {
               <TopMatchesGrid matches={analytics.topMatches} locale={locale} />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Mandate Matches Tab */}
+        <TabsContent value="mandates">
+          {mandateAnalytics ? (
+            <MandateMatchesTab analytics={mandateAnalytics} locale={locale} />
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>{t("mandateMatches.noData")}</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Unmatched Clients Tab */}

@@ -116,7 +116,7 @@ export async function POST(req: Request) {
           clientId = await findAvailableIdWithSuffix(client.id.trim(), organizationId);
         } else {
           // Generate a new friendly ID
-          clientId = await generateFriendlyId(prismadb, "Clients");
+          clientId = await generateFriendlyId(prismadb, "Clients", organizationId);
         }
         
         await prismadb.clients.create({

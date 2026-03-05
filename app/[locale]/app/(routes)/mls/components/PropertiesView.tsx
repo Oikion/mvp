@@ -24,6 +24,7 @@ import { useActionModal } from "@/hooks/use-action-modal";
 import { Row } from "@tanstack/react-table";
 import axios from "axios";
 import { toast } from "sonner";
+import { formatCompactCurrency } from "@/lib/formatting";
 
 export default function PropertiesView({ data = [] }: { data: any[] }) {
   const [open, setOpen] = useState(false);
@@ -114,7 +115,7 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
   // Stats
   const totalProperties = data.length;
   const activeProperties = data.filter(p => p.property_status === 'ACTIVE').length;
-  const totalValue = data.reduce((sum, p) => sum + (p.price || 0), 0);
+  const totalValue = data.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
   const newProperties = data.filter(p => moment(p.createdAt).isAfter(moment().subtract(30, 'days'))).length;
 
   // Filter data for grid view
@@ -174,7 +175,7 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
         />
         <StatsCard
           title={t("stats.portfolioValue")}
-          value={`€${(totalValue / 1000000).toFixed(1)}M`}
+          value={formatCompactCurrency(totalValue)}
           icon={<DollarSign className="h-4 w-4" />}
           description={t("stats.totalListingValue")}
         />

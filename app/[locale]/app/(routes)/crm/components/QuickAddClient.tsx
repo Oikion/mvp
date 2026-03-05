@@ -8,7 +8,6 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations, useLocale } from "next-intl";
-import Link from "next/link";
 import {
   Form,
   FormControl,
@@ -33,7 +32,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 
 const createQuickAddClientSchema = (
   t: (key: string) => string,
@@ -41,29 +39,14 @@ const createQuickAddClientSchema = (
 ) =>
   z
     .object({
-      client_name: z.string().min(1, t("CrmForm.validation.nameRequired")),
-      person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"], {
-        required_error: t("CrmForm.validation.personTypeRequired"),
-      }),
+      client_name: z.string().optional().default(""),
+      person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]).optional(),
       primary_email: z.string().optional(),
       primary_phone: z.string().optional(),
-      assigned_to: z.string().min(1, tCommon("selectAgent")),
+      assigned_to: z.string().optional(),
     })
     .superRefine((data, ctx) => {
       const hasEmail = !!data.primary_email?.trim();
-      const hasPhone = !!data.primary_phone?.trim();
-      if (!hasEmail && !hasPhone) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: t("CrmForm.validation.phoneOrEmailRequired"),
-          path: ["primary_email"],
-        });
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: t("CrmForm.validation.phoneOrEmailRequired"),
-          path: ["primary_phone"],
-        });
-      }
       if (hasEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.primary_email!.trim())) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -114,11 +97,11 @@ export function QuickAddClient({
     setIsLoading(true);
     try {
       await axios.post("/api/crm/clients", {
-        client_name: data.client_name.trim(),
-        person_type: data.person_type,
+        client_name: data.client_name?.trim() || undefined,
+        person_type: data.person_type || undefined,
         primary_email: data.primary_email?.trim() || undefined,
         primary_phone: data.primary_phone?.trim() || undefined,
-        assigned_to: data.assigned_to,
+        assigned_to: data.assigned_to || undefined,
         draft_status: false,
       });
 
@@ -169,7 +152,7 @@ export function QuickAddClient({
               name="client_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.fullName")} *</FormLabel>
+                  <FormLabel>{t("CrmForm.fields.fullName")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
@@ -188,7 +171,7 @@ export function QuickAddClient({
               name="person_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.personType")} *</FormLabel>
+                  <FormLabel>{t("CrmForm.fields.personType")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value ?? ""}>
                     <FormControl>
                       <SelectTrigger disabled={isLoading}>
@@ -215,14 +198,14 @@ export function QuickAddClient({
               )}
             />
 
-            {/* Email + Phone — at least one required */}
+            {/* Email + Phone */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="primary_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.primaryEmail")} *</FormLabel>
+                    <FormLabel>{t("CrmForm.fields.primaryEmail")}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -240,7 +223,7 @@ export function QuickAddClient({
                 name="primary_phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("CrmForm.fields.primaryPhone")} *</FormLabel>
+                    <FormLabel>{t("CrmForm.fields.primaryPhone")}</FormLabel>
                     <FormControl>
                       <Input
                         type="tel"
@@ -261,7 +244,7 @@ export function QuickAddClient({
               name="assigned_to"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.agentOwner")} *</FormLabel>
+                  <FormLabel>{t("CrmForm.fields.agentOwner")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value ?? ""}>
                     <FormControl>
                       <SelectTrigger disabled={isLoading}>
@@ -296,17 +279,6 @@ export function QuickAddClient({
               </Button>
             </div>
 
-            {/* Footer: Continue to Full Wizard */}
-            <Separator />
-            <div className="text-center pb-2">
-              <Link
-                href={`/${locale}/app/crm/clients/new`}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
-                onClick={() => onOpenChange(false)}
-              >
-                {t("CrmForm.title")} — full wizard
-              </Link>
-            </div>
           </form>
         </Form>
       </SheetContent>

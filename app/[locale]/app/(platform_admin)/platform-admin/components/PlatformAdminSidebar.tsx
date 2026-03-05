@@ -29,6 +29,7 @@ import {
   Share2,
   Zap,
   Settings,
+  Home,
 } from "lucide-react";
 
 import {
@@ -188,7 +189,8 @@ export function PlatformAdminSidebar({ adminUser, locale }: PlatformAdminSidebar
   const themes = [
     { value: "light", label: t("theme.light"), icon: Sun },
     { value: "dark", label: t("theme.dark"), icon: Moon },
-    { value: "pearl-sand", label: t("theme.pearlSand"), icon: Palette },
+    { value: "estate", label: t("theme.estate"), icon: Home },
+    { value: "estate-dark", label: t("theme.estateDark"), icon: Home },
     { value: "twilight-lavender", label: t("theme.twilightLavender"), icon: Palette },
   ];
 

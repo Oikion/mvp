@@ -116,17 +116,6 @@ export type MatchmakingAction =
   | "matchmaking:view_analytics";
 
 // =============================================================================
-// AUDIENCES MODULE
-// =============================================================================
-
-export type AudienceAction =
-  | "audience:read"
-  | "audience:create"
-  | "audience:update"
-  | "audience:delete"
-  | "audience:sync";
-
-// =============================================================================
 // SOCIAL / FEED MODULE
 // =============================================================================
 
@@ -232,7 +221,6 @@ export type ActionPermission =
   | ReportAction
   | DealAction
   | MatchmakingAction
-  | AudienceAction
   | SocialAction
   | TaskAction
   | AdminAction
@@ -324,13 +312,6 @@ export const ACTION_MODULES = {
     "matchmaking:view",
     "matchmaking:run",
     "matchmaking:view_analytics",
-  ] as const,
-  audience: [
-    "audience:read",
-    "audience:create",
-    "audience:update",
-    "audience:delete",
-    "audience:sync",
   ] as const,
   social: [
     "social:read",
@@ -511,13 +492,6 @@ export const ACTION_DESCRIPTIONS: Record<ActionPermission, string> = {
   "matchmaking:view": "View property-client matches",
   "matchmaking:run": "Run matchmaking algorithms",
   "matchmaking:view_analytics": "View matchmaking analytics",
-  
-  // Audience actions
-  "audience:read": "View audiences",
-  "audience:create": "Create new audiences",
-  "audience:update": "Edit audience details",
-  "audience:delete": "Delete audiences",
-  "audience:sync": "Sync audience members",
   
   // Social actions
   "social:read": "View social feed",

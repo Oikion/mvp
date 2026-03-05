@@ -1,3 +1,0 @@
-{
-  "/[locale]/app/(routes)/organization/[[...rest]]/page": "app/[locale]/app/(routes)/organization/[[...rest]]/page.js"
-}

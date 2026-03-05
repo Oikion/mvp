@@ -410,7 +410,7 @@ export async function POST(req: Request) {
     }
 
     // Generate friendly ID for the event
-    const friendlyEventId = await generateFriendlyId(prismadb, "CalendarEvent");
+    const friendlyEventId = await generateFriendlyId(prismadb, "CalendarEvent", organizationId);
 
     // Encrypt sensitive fields before storing
     const encryptedFields = await encryptCalendarEventForOrg(

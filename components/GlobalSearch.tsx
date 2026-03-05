@@ -514,7 +514,7 @@ export function GlobalSearch() {
                           )}
                           {renderRelationshipBadges(result.relationships as Relationships)}
                         </div>
-                        <ArrowRight className="h-3 w-3 ml-2 text-muted-foreground opacity-0 group-aria-selected:opacity-100 transition-opacity" />
+                        <ArrowRight className="h-3 w-3 ml-2 text-muted-foreground opacity-0 group-data-[selected=true]:opacity-100 transition-opacity" />
                       </CommandItem>
                     );
                   })}

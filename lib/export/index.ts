@@ -40,6 +40,7 @@ export {
   // Column definitions
   CRM_COLUMNS,
   MLS_COLUMNS,
+  MANDATE_COLUMNS,
   CALENDAR_COLUMNS,
   REPORTS_COLUMNS,
   // Functions

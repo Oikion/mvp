@@ -15,6 +15,7 @@ import {
   Moon,
   Check,
   Gift,
+  Home,
 } from "lucide-react"
 
 import {
@@ -76,7 +77,8 @@ export function NavUser({
   const themes = [
     { value: "light", label: t("Navigation.themes.light"), icon: Sun },
     { value: "dark", label: t("Navigation.themes.dark"), icon: Moon },
-    { value: "pearl-sand", label: t("Navigation.themes.pearlSand"), icon: Palette },
+    { value: "estate", label: t("Navigation.themes.estate"), icon: Home },
+    { value: "estate-dark", label: t("Navigation.themes.estateDark"), icon: Home },
     { value: "twilight-lavender", label: t("Navigation.themes.twilightLavender"), icon: Palette },
   ]
 

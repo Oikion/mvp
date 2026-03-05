@@ -143,7 +143,7 @@ export const POST = withExternalApi(
     }
 
     // Generate friendly ID
-    const taskId = await generateFriendlyId(prismadb, "crm_Accounts_Tasks");
+    const taskId = await generateFriendlyId(prismadb, "crm_Accounts_Tasks", context.organizationId);
 
     // Parse due date
     let dueDateAt = null;

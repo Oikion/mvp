@@ -180,8 +180,9 @@ export async function getUnreadCountsByPage(): Promise<PageNotificationCounts> {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 
-    // Get all unread notifications with their types
-    const unreadNotifications = await prismadb.notification.findMany({
+    // Count unread notifications by type at the DB level (single aggregation query)
+    const grouped = await prismadb.notification.groupBy({
+      by: ["type"],
       where: {
         userId: user.id,
         organizationId: {
@@ -189,18 +190,17 @@ export async function getUnreadCountsByPage(): Promise<PageNotificationCounts> {
         },
         read: false,
       },
-      select: {
-        type: true,
-      },
+      _count: { type: true },
     });
 
-    // Count notifications by page
-    const counts: PageNotificationCounts = {};
+    const typeCounts: Record<string, number> = {};
+    for (const row of grouped) {
+      typeCounts[row.type] = row._count.type;
+    }
 
+    const counts: PageNotificationCounts = {};
     for (const [page, types] of Object.entries(PAGE_NOTIFICATION_TYPES)) {
-      counts[page] = unreadNotifications.filter((n) =>
-        types.includes(n.type)
-      ).length;
+      counts[page] = types.reduce((sum, t) => sum + (typeCounts[t] ?? 0), 0);
     }
 
     return counts;

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Moon, Sun, Palette } from "lucide-react";
+import { Moon, Sun, Palette, Home } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,8 @@ export function ThemeToggle() {
   const themes = [
     { value: "light", label: "Light", icon: Sun },
     { value: "dark", label: "Dark", icon: Moon },
-    { value: "pearl-sand", label: "Pearl Sand", icon: Palette },
+    { value: "estate", label: "Estate", icon: Home },
+    { value: "estate-dark", label: "Estate Dark", icon: Home },
     { value: "twilight-lavender", label: "Twilight Lavender", icon: Palette },
   ];
 

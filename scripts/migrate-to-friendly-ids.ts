@@ -168,15 +168,6 @@ const ENTITY_CONFIGS: EntityConfig[] = [
       { table: "SocialPostComment", column: "postId" },
     ],
   },
-  {
-    model: "Audience",
-    prefix: "aud",
-    orderBy: "createdAt",
-    foreignKeys: [
-      { table: "AudienceMember", column: "audienceId" },
-      { table: "SharedEntity", column: "audienceId" },
-    ],
-  },
 ];
 
 // Generate friendly ID from counter

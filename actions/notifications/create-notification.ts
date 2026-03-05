@@ -23,7 +23,7 @@ export async function createNotification(params: CreateNotificationParams) {
     const prismaTenant = prismaForOrg(organizationId);
 
     // Generate friendly ID
-    const notificationId = await generateFriendlyId(prismadb, "Notification");
+    const notificationId = await generateFriendlyId(prismadb, "Notification", organizationId);
 
     const notification = await prismaTenant.notification.create({
       data: {
@@ -61,7 +61,7 @@ export async function createNotificationsForUsers(
     const prismaTenant = prismaForOrg(organizationId);
 
     // Generate friendly IDs for all notifications
-    const notificationIds = await generateFriendlyIds(prismadb, "Notification", userIds.length);
+    const notificationIds = await generateFriendlyIds(prismadb, "Notification", userIds.length, organizationId);
 
     const notifications = await prismaTenant.notification.createMany({
       data: userIds.map((userId, index) => ({

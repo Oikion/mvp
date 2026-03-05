@@ -9,7 +9,7 @@ import { isPlatformAdmin } from "@/lib/platform-admin";
  * GET /api/platform-admin/features
  * 
  * List all organizations with feature access.
- * Optional query params: feature (default: market_intel)
+ * Required query params: feature
  */
 export async function GET(request: Request) {
   try {
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
  * DELETE /api/platform-admin/features
  * 
  * Revoke feature access from an organization.
- * Query params: organizationId, feature (optional, default: market_intel)
+ * Query params: organizationId, feature
  */
 export async function DELETE(request: Request) {
   try {

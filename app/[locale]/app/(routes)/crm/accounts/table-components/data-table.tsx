@@ -13,8 +13,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
 } from "@tanstack/react-table";
+import { useTableWithPageSize } from "@/lib/hooks/use-table-with-page-size";
 
 import {
   Table,
@@ -33,6 +33,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   industries: any[];
   users: any[];
+  toolbarRight?: React.ReactNode;
 }
 
 export function AccountDataTable<TData, TValue>({
@@ -40,6 +41,7 @@ export function AccountDataTable<TData, TValue>({
   data,
   industries,
   users,
+  toolbarRight,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -49,7 +51,7 @@ export function AccountDataTable<TData, TValue>({
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const table = useReactTable({
+  const table = useTableWithPageSize({
     data,
     columns,
     state: {
@@ -73,7 +75,7 @@ export function AccountDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} users={users} />
+      <DataTableToolbar table={table} users={users} rightContent={toolbarRight} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

@@ -18,7 +18,7 @@ const Container = ({
   children,
 }: ContainerProps) => {
   return (
-    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+    <div className="flex flex-col">
       <div className="shrink-0">
         <div className="flex items-start justify-between gap-4">
           <Heading
@@ -34,7 +34,7 @@ const Container = ({
         </div>
         <Separator className="mt-4" />
       </div>
-      <div className="flex-1 overflow-y-auto min-h-0 pb-8 pt-6 space-y-5 text-sm">
+      <div className="pb-8 pt-6 space-y-5 text-sm">
         {children}
       </div>
     </div>

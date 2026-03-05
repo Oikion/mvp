@@ -120,7 +120,7 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
           <CardTitle className="text-lg">{t("recentMessages")}</CardTitle>
         </div>
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/${locale}/app/messages`} className="flex items-center gap-1">
+          <Link href={`/${locale}/app/network/messages`} className="flex items-center gap-1">
             {tCommon("viewAll")}
             <ArrowRight className="h-4 w-4" />
           </Link>
@@ -137,7 +137,7 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
               {sortedConversations.slice(0, 5).map((conv) => (
                 <Link
                   key={conv.id}
-                  href={`/${locale}/app/messages?conversation=${conv.id}`}
+                  href={`/${locale}/app/network/messages?conversation=${conv.id}`}
                   className="flex items-center gap-3 rounded-lg p-2 -mx-2 hover:bg-muted/50 transition-colors"
                 >
                   {getAvatar(conv)}

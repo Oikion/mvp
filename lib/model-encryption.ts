@@ -445,6 +445,109 @@ export async function decryptPropertyForOrg<T extends PropertyWithEncryptedField
 }
 
 // ─────────────────────────────────────────────
+// Mandates
+// ─────────────────────────────────────────────
+
+const MANDATE_ENCRYPTED_STRING_FIELDS = [
+  "title",
+  "notes",
+] as const;
+
+type MandateStringField = (typeof MANDATE_ENCRYPTED_STRING_FIELDS)[number];
+type MandateWithEncryptedFields = Partial<Record<MandateStringField, string | null | undefined>> & {
+  communication_notes?: Prisma.JsonValue | null;
+};
+
+export function encryptMandate<T extends MandateWithEncryptedFields>(data: T): T {
+  const result = { ...data } as T & MandateWithEncryptedFields;
+  for (const field of MANDATE_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptField(
+        result[field] as string | null | undefined
+      );
+    }
+  }
+  if ("communication_notes" in result) {
+    result.communication_notes = encryptJson(result.communication_notes);
+  }
+  return result as T;
+}
+
+export function decryptMandate<T extends MandateWithEncryptedFields>(record: T): T {
+  const result = { ...record } as T & MandateWithEncryptedFields;
+  for (const field of MANDATE_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptField(
+        result[field] as string | null | undefined
+      );
+    }
+  }
+  if ("communication_notes" in result) {
+    result.communication_notes = decryptJson(result.communication_notes);
+  }
+  return result as T;
+}
+
+export async function encryptMandateForOrg<T extends MandateWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & MandateWithEncryptedFields;
+  for (const field of MANDATE_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  if ("communication_notes" in result) {
+    result.communication_notes = encryptJsonWithKey(result.communication_notes, dek);
+  }
+  return result as T;
+}
+
+export async function decryptMandateForOrg<T extends MandateWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...record } as T & MandateWithEncryptedFields;
+  for (const field of MANDATE_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  if ("communication_notes" in result) {
+    result.communication_notes = decryptJsonWithKey(result.communication_notes, dek);
+  }
+  return result as T;
+}
+
+// ─────────────────────────────────────────────
+// MandateComment (content field)
+// Delegates to Message helpers (structurally identical)
+// ─────────────────────────────────────────────
+
+export async function encryptMandateCommentForOrg<T extends MessageWithContent>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  return encryptMessageForOrg(data, orgId);
+}
+
+export async function decryptMandateCommentForOrg<T extends MessageWithContent>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  return decryptMessageForOrg(record, orgId);
+}
+
+// ─────────────────────────────────────────────
 // PropertyComment (content field)
 // Note: PropertyComment has no organizationId — pass the parent property's orgId.
 // Structurally identical to Message ({content?: string | null}), so delegates to

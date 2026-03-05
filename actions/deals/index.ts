@@ -90,7 +90,7 @@ export async function createDeal(input: CreateDealInput) {
   }
 
   // Generate friendly ID
-  const dealId = await generateFriendlyId(prismadb, "Deal");
+  const dealId = await generateFriendlyId(prismadb, "Deal", organizationId);
 
   const deal = await prismadb.deal.create({
     data: {

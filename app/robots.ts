@@ -20,11 +20,9 @@ export default function robots(): MetadataRoute.Robots {
           '/settings/', // Block settings
           '/calendar/', // Block calendar
           '/documents/', // Block documents
-          '/connections/', // Block connections
-          '/shared-with-me/', // Block shared items
           '/deals/', // Block deals
-          '/social-feed/', // Block social feed
-          '/feed/', // Block feed
+          '/network/', // Block network subsystem (feed, profile, messages, shared)
+          '/upcoming/', // Block upcoming agenda
           '/employees/', // Block employees
           '/reports/', // Block reports
           '/book/', // Block booking (unless made public)

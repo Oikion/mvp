@@ -42,6 +42,8 @@ export interface GridToolbarProps {
   onFilterChange?: (filterId: string, values: string[]) => void;
   /** Callback to reset all filters */
   onReset?: () => void;
+  /** Optional content to render on the right side of the toolbar */
+  rightContent?: React.ReactNode;
 }
 
 /**
@@ -56,6 +58,7 @@ export function GridToolbar({
   selectedFilters = {},
   onFilterChange,
   onReset,
+  rightContent,
 }: GridToolbarProps) {
   const t = useTranslations("common");
 
@@ -192,6 +195,7 @@ export function GridToolbar({
           </Button>
         )}
       </div>
+      {rightContent}
     </div>
   );
 }

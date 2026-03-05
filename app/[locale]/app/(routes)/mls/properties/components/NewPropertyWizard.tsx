@@ -42,19 +42,16 @@ type Props = {
 
 const formSchema = z.object({
   // Step 1
-  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"], {
-    required_error: "Property type is required",
-  }),
+  property_name: z.string().min(1, "Property name is required"),
+  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]).optional(),
   property_type_other: z.string().optional(),
-  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"], {
-    required_error: "Transaction type is required",
-  }),
+  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]).optional(),
   property_status: z.enum(["AVAILABLE", "RESERVED", "NEGOTIATION", "RENTED", "SOLD"]).optional(),
   is_exclusive: z.boolean().optional().default(false),
   
   // Step 2: Τοποθεσία
   country: z.string().optional().default("GR"),
-  municipality: z.string().min(1, "Municipality is required"),
+  municipality: z.string().optional(),
   area: z.string().optional(),
   postal_code: z.string().optional(),
   address_privacy_level: z.enum(["EXACT", "PARTIAL", "HIDDEN"]).optional(),
@@ -102,7 +99,7 @@ const formSchema = z.object({
   accessibility: z.string().optional().or(z.literal("")),
   
   // Step 8: Τιμή & Διαθεσιμότητα
-  price: z.coerce.number().min(0, "Price is required"),
+  price: z.coerce.number().optional(),
   price_type: z.enum(["RENTAL", "SALE", "PER_ACRE", "PER_SQM"]).optional(),
   available_from: z.string().optional(),
   accepts_pets: z.boolean().optional(),
@@ -111,47 +108,8 @@ const formSchema = z.object({
   // Step 9: Media & Δημοσίευση
   virtual_tour_url: z.string().url().optional().or(z.literal("")),
   portal_visibility: z.enum(["PRIVATE", "SELECTED", "PUBLIC"]).optional(),
-  assigned_to: z.string().min(1, "Assigned agent is required"),
-}).refine(
-  (data) => {
-    // Require area OR postal_code
-    return !!(data.area?.length) || !!(data.postal_code?.length);
-  },
-  {
-    path: ["area"],
-    message: "Area or postal code is required",
-  }
-).refine(
-  (data) => {
-    // Require size based on property type
-    const isResidentialOrCommercial = ["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE"].includes(data.property_type);
-    const isLand = ["PLOT", "FARM"].includes(data.property_type);
-    
-    if (isResidentialOrCommercial) {
-      return !!(data.size_net_sqm && data.size_net_sqm > 0);
-    }
-    if (isLand) {
-      return !!(data.plot_size_sqm && data.plot_size_sqm > 0);
-    }
-    return true;
-  },
-  {
-    path: ["size_net_sqm"],
-    message: "Size is required for this property type",
-  }
-).refine(
-  (data) => {
-    // Postal code validation: 5 digits if provided
-    if (data.postal_code && data.postal_code.length > 0) {
-      return /^\d{5}$/.test(data.postal_code);
-    }
-    return true;
-  },
-  {
-    path: ["postal_code"],
-    message: "Postal code must be 5 digits",
-  }
-);
+  assigned_to: z.string().optional(),
+});
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -219,6 +177,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      property_name: "",
       property_type: undefined,
       property_type_other: "",
       transaction_type: undefined,
@@ -282,6 +241,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
             const draft = response.data.property;
             // Reset form with draft data
             form.reset({
+              property_name: draft.property_name || "",
               property_type: draft.property_type || undefined,
               property_type_other: draft.property_type_other || "",
               transaction_type: draft.transaction_type || undefined,
@@ -356,8 +316,8 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     try {
       const response = await axios.post("/api/mls/properties/draft", {
         id: draftId,
-        property_name: data.property_type || "Draft Property",
         ...data,
+        property_name: (data as any).property_name || data.property_type || "Draft Property",
       });
       
       if (response.data?.property?.id && !draftId) {
@@ -398,7 +358,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   }, [debouncedValues, currentStep, form, saveDraft, lastSavedData, hasUserInteracted]);
 
   const STEP_FIELDS: Record<number, (keyof FormValues)[]> = {
-    1: ["property_type", "property_type_other", "transaction_type", "property_status", "is_exclusive"],
+    1: ["property_name", "property_type", "property_type_other", "transaction_type", "property_status", "is_exclusive"],
     2: ["country", "municipality", "area", "postal_code", "address_privacy_level", "region", "regional_unit", "objective_zone"],
     3: ["size_net_sqm", "size_gross_sqm", "floor", "floors_total", "plot_size_sqm", "inside_city_plan", "frontage_type"],
     4: ["bedrooms", "bathrooms", "heating_type", "energy_cert_class"],
@@ -413,41 +373,6 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     const fieldsToValidate = STEP_FIELDS[step] ?? [];
     const result = await form.trigger(fieldsToValidate as any);
     if (!result) return false;
-
-    // Step 2: area/postal_code "at least one" rule is a root-level refine,
-    // which form.trigger() does not cover — enforce manually here.
-    if (step === 2) {
-      const { area, postal_code } = form.getValues();
-      if (!area?.length && !postal_code?.length) {
-        form.setError("area", { type: "manual", message: "Area or postal code is required" });
-        return false;
-      }
-    }
-
-    // Step 3: size fields are conditionally required via root-level refine,
-    // which form.trigger() does not cover — enforce manually here.
-    if (step === 3) {
-      const { property_type, size_net_sqm, plot_size_sqm, inside_city_plan } = form.getValues();
-      const isResidentialOrCommercial = ["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE"].includes(property_type);
-      const isLand = ["PLOT", "FARM"].includes(property_type);
-      let stepValid = true;
-
-      if (isResidentialOrCommercial && (!size_net_sqm || size_net_sqm <= 0)) {
-        form.setError("size_net_sqm", { type: "manual", message: "Size is required for this property type" });
-        stepValid = false;
-      }
-      if (isLand) {
-        if (!plot_size_sqm || plot_size_sqm <= 0) {
-          form.setError("plot_size_sqm", { type: "manual", message: "Plot size is required" });
-          stepValid = false;
-        }
-        if (inside_city_plan === null || inside_city_plan === undefined) {
-          form.setError("inside_city_plan", { type: "manual", message: "Required" });
-          stepValid = false;
-        }
-      }
-      if (!stepValid) return false;
-    }
 
     return true;
   };
@@ -480,11 +405,8 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      const property_name = `${data.property_type || "Property"} - ${data.municipality || ""} ${data.area || ""}`.trim();
-
-      const response = await axios.post("/api/mls/properties", {
+      await axios.post("/api/mls/properties", {
         ...data,
-        property_name,
         draft_status: false,
         id: draftId, // Update existing draft if exists
       });
@@ -527,10 +449,23 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
       case 1:
         return (
           <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="property_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required>{t("fields.propertyName")}</FormLabel>
+                  <FormControl>
+                    <Input disabled={isLoading} placeholder={t("fields.propertyNamePlaceholder")} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormSelectWithOther<FormValues, "property_type">
               name="property_type"
               otherFieldName="property_type_other"
-              label={`${t("fields.propertyType")} *`}
+              label={t("fields.propertyType")}
               placeholder={t("fields.propertyTypePlaceholder")}
               otherLabel={t("fields.specifyOther")}
               otherPlaceholder={t("fields.specifyOtherPlaceholder")}
@@ -554,7 +489,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               name="transaction_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel required>{t("fields.transactionType")}</FormLabel>
+                  <FormLabel>{t("fields.transactionType")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value ?? ""}>
                     <FormControl>
                       <SelectTrigger>
@@ -629,7 +564,6 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               regionalUnitFieldName="regional_unit"
               defaultCountry="GR"
               disabled={isLoading}
-              requireAreaOrPostal
             />
 
             <FormField
@@ -690,7 +624,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                     name="size_net_sqm"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel required>{t("fields.sizeNetSqm")}</FormLabel>
+                        <FormLabel>{t("fields.sizeNetSqm")}</FormLabel>
                         <FormControl>
                           <Input disabled={isLoading} type="number" placeholder="0" {...field}
                             onChange={(e) => field.onChange(e.target.value ? Number.parseFloat(e.target.value) : undefined)}
@@ -766,7 +700,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                   name="plot_size_sqm"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel required>{t("fields.plotSizeSqm")}</FormLabel>
+                      <FormLabel>{t("fields.plotSizeSqm")}</FormLabel>
                       <FormControl>
                         <Input disabled={isLoading} type="number" placeholder="0" {...field}
                           onChange={(e) => field.onChange(e.target.value ? Number.parseFloat(e.target.value) : undefined)}
@@ -783,7 +717,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                     name="inside_city_plan"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel required>{t("fields.insideCityPlan")}</FormLabel>
+                        <FormLabel>{t("fields.insideCityPlan")}</FormLabel>
                         <Select onValueChange={(val) => field.onChange(val === "true")} value={field.value == null ? "" : field.value.toString()}>
                           <FormControl>
                             <SelectTrigger>
@@ -1268,7 +1202,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel required>{t("fields.price")} (€)</FormLabel>
+                    <FormLabel>{t("fields.price")} (€)</FormLabel>
                     <FormControl>
                       <Input disabled={isLoading} type="number" placeholder="0" {...field}
                         onChange={(e) => field.onChange(e.target.value ? Number.parseFloat(e.target.value) : undefined)}
@@ -1396,7 +1330,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               name="assigned_to"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel required>{t("fields.agentOwner")}</FormLabel>
+                  <FormLabel>{t("fields.agentOwner")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value ?? ""}>
                     <FormControl>
                       <SelectTrigger>

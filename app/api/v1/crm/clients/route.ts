@@ -143,7 +143,7 @@ export const POST = withExternalApi(
     }
 
     // Generate friendly ID
-    const clientId = await generateFriendlyId(prismadb, "Clients");
+    const clientId = await generateFriendlyId(prismadb, "Clients", context.organizationId);
 
     // Create client
     const client = await prismadb.clients.create({

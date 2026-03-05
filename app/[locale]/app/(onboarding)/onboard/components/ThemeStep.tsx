@@ -33,8 +33,12 @@ const THEMES: {
     previewColor: "#0B0B0C",
   },
   {
-    value: "pearl-sand",
-    previewColor: "#F0EFEB",
+    value: "estate",
+    previewColor: "#E8E2D9",
+  },
+  {
+    value: "estate-dark",
+    previewColor: "#1C221D",
   },
   {
     value: "twilight-lavender",

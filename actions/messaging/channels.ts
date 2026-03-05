@@ -3,7 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
-import { ChannelType, ChannelMemberRole } from "@prisma/client";
+import { ChannelType, ChannelMemberRole, Prisma } from "@prisma/client";
 import { requireAction } from "@/lib/permissions";
 import { isCurrentOrgPersonal } from "@/lib/personal-workspace-guard";
 
@@ -53,7 +53,7 @@ export async function createChannel(params: {
     }
 
     // Create channel in database
-    const channelId = await generateFriendlyId(prismadb, "Channel");
+    const channelId = await generateFriendlyId(prismadb, "Channel", organizationId);
     const channel = await prismadb.channel.create({
       data: {
         id: channelId,
@@ -157,32 +157,35 @@ export async function getOrganizationChannels(): Promise<{
       },
     });
 
-    // Get unread counts for each channel
-    const channelsWithUnread = await Promise.all(
-      channels.map(async (channel) => {
-        const unreadCount = await prismadb.message.count({
-          where: {
-            channelId: channel.id,
-            isDeleted: false,
-            senderId: { not: user.id },
-            readReceipts: {
-              none: { userId: user.id },
-            },
-          },
-        });
+    // Batch unread counts in a single query instead of N+1
+    const channelIds = channels.map((c) => c.id);
+    const unreadCounts =
+      channelIds.length > 0
+        ? await prismadb.$queryRaw<Array<{ channelId: string; count: bigint }>>`
+            SELECT m."channelId", COUNT(*)::bigint as count
+            FROM "Message" m
+            WHERE m."channelId" IN (${Prisma.join(channelIds)})
+              AND m."isDeleted" = false
+              AND m."senderId" != ${user.id}
+              AND NOT EXISTS (
+                SELECT 1 FROM "MessageRead" mr
+                WHERE mr."messageId" = m."id" AND mr."userId" = ${user.id}
+              )
+            GROUP BY m."channelId"
+          `
+        : [];
+    const unreadMap = new Map(unreadCounts.map((r) => [r.channelId, Number(r.count)]));
 
-        return {
-          id: channel.id,
-          name: channel.name,
-          slug: channel.slug,
-          description: channel.description,
-          channelType: channel.channelType,
-          isDefault: channel.isDefault,
-          memberCount: channel._count.members,
-          unreadCount,
-        };
-      })
-    );
+    const channelsWithUnread = channels.map((channel) => ({
+      id: channel.id,
+      name: channel.name,
+      slug: channel.slug,
+      description: channel.description,
+      channelType: channel.channelType,
+      isDefault: channel.isDefault,
+      memberCount: channel._count.members,
+      unreadCount: unreadMap.get(channel.id) ?? 0,
+    }));
 
     return { success: true, channels: channelsWithUnread };
   } catch (error) {
@@ -360,7 +363,7 @@ export async function createDefaultChannels(organizationId: string, creatorUserI
       }
 
       // Create channel
-      const channelId = await generateFriendlyId(prismadb, "Channel");
+      const channelId = await generateFriendlyId(prismadb, "Channel", organizationId);
       await prismadb.channel.create({
         data: {
           id: channelId,

@@ -33,6 +33,8 @@
     "light": "Φωτεινό",
     "dark": "Σκοτεινό",
     "system": "Σύστημα",
+    "estate": "Estate",
+    "estateDark": "Estate Σκοτεινό",
     "pearlSand": "Pearl Sand",
     "twilightLavender": "Twilight Lavender"
   },

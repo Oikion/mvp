@@ -59,9 +59,11 @@ const feedbackTypeIcons = {
 
 interface FeedbackFormProps {
   setOpen: (open: boolean) => void;
+  initialFeedbackType?: string;
+  initialFeedback?: string;
 }
 
-const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
+const FeedbackForm = ({ setOpen, initialFeedbackType, initialFeedback }: FeedbackFormProps) => {
   const t = useTranslations("feedback");
   const [loading, setLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -99,8 +101,8 @@ const FeedbackForm = ({ setOpen }: FeedbackFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      feedbackType: "",
-      feedback: "",
+      feedbackType: initialFeedbackType ?? "",
+      feedback: initialFeedback ?? "",
       consentToCapture: false,
     },
   });

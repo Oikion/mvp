@@ -13,20 +13,20 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
 } from "@tanstack/react-table";
+import { useTableWithPageSize } from "@/lib/hooks/use-table-with-page-size";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 
-export function PropertyDataTable<TData, TValue>({ columns, data }: { columns: ColumnDef<TData, TValue>[]; data: TData[] }) {
+export function PropertyDataTable<TData, TValue>({ columns, data, toolbarRight }: { columns: ColumnDef<TData, TValue>[]; data: TData[]; toolbarRight?: React.ReactNode }) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const table = useReactTable({
+  const table = useTableWithPageSize({
     data,
     columns,
     state: { sorting, columnVisibility, rowSelection, columnFilters },
@@ -45,7 +45,7 @@ export function PropertyDataTable<TData, TValue>({ columns, data }: { columns: C
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar table={table} rightContent={toolbarRight} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

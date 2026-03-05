@@ -12,7 +12,6 @@ import {
 import {
   type DashboardConfig,
   type ResponsiveLayouts,
-  type GridPosition,
 } from "./types";
 import {
   normalizeDashboardConfig,
@@ -32,7 +31,6 @@ interface DashboardConfigContextValue {
   updateWidgetVisibility: (widgetId: string, visible: boolean) => Promise<void>;
   updateLayouts: (layouts: ResponsiveLayouts) => Promise<void>;
   resetToDefault: () => Promise<void>;
-  sortWidgets: () => Promise<void>;
 }
 
 // Context
@@ -170,82 +168,6 @@ export function DashboardConfigProvider({
     await updateConfig(freshConfig);
   }, [updateConfig]);
 
-  const sortWidgets = useCallback(async () => {
-    const COLS_MAP = { lg: 48, md: 48, sm: 24, xs: 12, xxs: 12 };
-
-    const compactLayout = (
-      positions: GridPosition[],
-      cols: number,
-    ): GridPosition[] => {
-      const visibleWidgets = positions.filter(
-        (pos) => config.widgets[pos.i]?.visible
-      );
-
-      const sorted = [...visibleWidgets].sort((a, b) => {
-        if (a.y !== b.y) return a.y - b.y;
-        return a.x - b.x;
-      });
-
-      const occupied: boolean[][] = [];
-      const getRow = (y: number) => {
-        if (!occupied[y]) occupied[y] = new Array(cols).fill(false);
-        return occupied[y];
-      };
-
-      const markOccupied = (x: number, y: number, w: number, h: number) => {
-        for (let row = y; row < y + h; row++) {
-          const rowCells = getRow(row);
-          for (let col = x; col < x + w; col++) {
-            rowCells[col] = true;
-          }
-        }
-      };
-
-      const canPlace = (x: number, y: number, w: number, h: number): boolean => {
-        if (x + w > cols) return false;
-        for (let row = y; row < y + h; row++) {
-          const rowCells = getRow(row);
-          for (let col = x; col < x + w; col++) {
-            if (rowCells[col]) return false;
-          }
-        }
-        return true;
-      };
-
-      const findPosition = (w: number, h: number): { x: number; y: number } => {
-        for (let y = 0; ; y++) {
-          for (let x = 0; x <= cols - w; x++) {
-            if (canPlace(x, y, w, h)) {
-              return { x, y };
-            }
-          }
-        }
-      };
-
-      const compacted: GridPosition[] = sorted.map((widget) => {
-        const { x, y } = findPosition(widget.w, widget.h);
-        markOccupied(x, y, widget.w, widget.h);
-        return { ...widget, x, y };
-      });
-
-      const hiddenWidgets = positions.filter(
-        (pos) => !config.widgets[pos.i]?.visible
-      );
-
-      return [...compacted, ...hiddenWidgets];
-    };
-
-    const newLayouts: ResponsiveLayouts = {
-      lg: compactLayout(config.layouts.lg, COLS_MAP.lg),
-      md: compactLayout(config.layouts.md, COLS_MAP.md),
-      sm: compactLayout(config.layouts.sm, COLS_MAP.sm),
-      xs: compactLayout(config.layouts.xs, COLS_MAP.xs),
-      xxs: compactLayout(config.layouts.xxs, COLS_MAP.xxs),
-    };
-
-    await updateLayouts(newLayouts);
-  }, [config.layouts, config.widgets, updateLayouts]);
-
   const value = useMemo(
     () => ({
       config,
@@ -257,7 +179,6 @@ export function DashboardConfigProvider({
       updateWidgetVisibility,
       updateLayouts,
       resetToDefault,
-      sortWidgets,
     }),
     [
       config,
@@ -269,7 +190,6 @@ export function DashboardConfigProvider({
       updateWidgetVisibility,
       updateLayouts,
       resetToDefault,
-      sortWidgets,
     ]
   );
 

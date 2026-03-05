@@ -20,6 +20,7 @@ export const getClients = async () => {
       id: true,
       client_name: true,
       primary_email: true,
+      primary_phone: true,
       client_status: true,
       createdAt: true,
       assigned_to: true,
@@ -50,6 +51,7 @@ export const getClients = async () => {
         ...dec,
         name: dec.client_name,
         email: dec.primary_email,
+        phone: dec.primary_phone,
         status: dec.client_status === "ACTIVE" ? "Active" : "IN_PROGRESS",
         assigned_to_user: dec.Users_Clients_assigned_toToUsers,
         contacts: (dec.Client_Contacts || []).map((p) => ({

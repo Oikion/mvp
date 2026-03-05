@@ -16,7 +16,7 @@ import { rateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 // ============================================
 
 export type ExportFormat = "xlsx" | "xls" | "csv" | "pdf" | "xml";
-export type ExportModule = "crm" | "mls" | "calendar" | "reports";
+export type ExportModule = "crm" | "mls" | "mandates" | "calendar" | "reports";
 
 export interface ExportAuditLog {
   userId: string;
@@ -52,6 +52,7 @@ export interface ExportResult {
 export const EXPORT_ROW_LIMITS: Record<ExportModule, number> = {
   crm: 10000,
   mls: 10000,
+  mandates: 10000,
   calendar: 1000,
   reports: Infinity, // Aggregated data only
 };

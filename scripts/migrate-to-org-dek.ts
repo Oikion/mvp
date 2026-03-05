@@ -197,7 +197,7 @@ async function migrateMessages(): Promise<Stats> {
         await prismadb.message.update({
           where: { id: record.id },
           data: { content: encrypted.content },
-          select: { id: true }, // avoid selecting unmigrated columns (e.g. externalPlatform)
+          select: { id: true },
         });
         stats.updated++;
       } catch (err) {

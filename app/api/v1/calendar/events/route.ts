@@ -151,7 +151,7 @@ export const POST = withExternalApi(
     }
 
     // Generate IDs
-    const friendlyEventId = await generateFriendlyId(prismadb, "CalendarEvent");
+    const friendlyEventId = await generateFriendlyId(prismadb, "CalendarEvent", context.organizationId);
     const calendarEventId = Math.abs(Math.floor(Date.now() / 1000));
 
     // Create event

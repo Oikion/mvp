@@ -250,7 +250,7 @@ export const PROTECTED_ROUTES = {
     "/app/crm/contacts",
     "/app/crm/accounts",
     "/app/documents",
-    "/app/messages",
+    "/app/network/messages",
     "/app/reports",
     "/app/admin",
     "/app/platform-admin",

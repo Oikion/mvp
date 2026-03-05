@@ -247,6 +247,7 @@
       "NONE": "Χωρίς"
     },
     "validation": {
+      "propertyNameRequired": "Το όνομα ακινήτου είναι υποχρεωτικό",
       "propertyTypeRequired": "Ο τύπος ακινήτου είναι υποχρεωτικός",
       "transactionTypeRequired": "Ο τύπος συναλλαγής είναι υποχρεωτικός",
       "municipalityRequired": "Ο δήμος είναι υποχρεωτικός",

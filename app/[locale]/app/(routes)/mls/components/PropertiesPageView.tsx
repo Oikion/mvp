@@ -26,6 +26,7 @@ import { GridToolbar } from "@/components/ui/grid-toolbar";
 import { ExportButton } from "@/components/export";
 import { PublishToPortalsModal } from "@/components/modals/PublishToPortalsModal";
 import { statuses } from "../properties/table-data/data";
+import { formatCompactCurrency } from "@/lib/formatting";
 
 interface PropertiesPageViewProps {
   agencyProperties: any[];
@@ -46,6 +47,7 @@ export default function PropertiesPageView({
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [selectedForPublish, setSelectedForPublish] = useState<any[]>([]);
   const t = useTranslations("mls");
+  const commonT = useTranslations("common");
   const params = useParams();
   const router = useRouter();
   const locale = (params?.locale as string) || "en";
@@ -162,7 +164,7 @@ export default function PropertiesPageView({
         />
         <StatsCard
           title={t("Stats.portfolioValue")}
-          value={`€${(totalValue / 1000000).toFixed(1)}M`}
+          value={formatCompactCurrency(totalValue)}
           icon={<DollarSign className="h-4 w-4" />}
           description={t("Stats.totalListingValue")}
           actionLabel={t("Stats.addProperty")}
@@ -174,7 +176,7 @@ export default function PropertiesPageView({
           value={sharedProperties.length.toString()}
           icon={<Share2 className="h-4 w-4" />}
           description={t("Stats.fromConnections")}
-          actionHref={`/${locale}/app/connections`}
+          actionHref={`/${locale}/app/network/profile?tab=find`}
           actionLabel={t("Stats.findAgents")}
           emptyMessage={t("Stats.connectToReceive")}
         />
@@ -213,7 +215,17 @@ export default function PropertiesPageView({
                   <CardDescription>{t("Tabs.agencyPropertiesDescription")}</CardDescription>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <ViewToggle view={view} setView={setView} />
+                  <Button
+                    variant="ghost"
+                    onClick={() => setQuickAddOpen(true)}
+                  >
+                    + {commonT("quickAdd")}
+                  </Button>
+                  <QuickAddProperty
+                    open={quickAddOpen}
+                    onOpenChange={setQuickAddOpen}
+                    users={users}
+                  />
                   <ExportButton
                     module="mls"
                     totalRows={agencyProperties.length}
@@ -232,20 +244,9 @@ export default function PropertiesPageView({
                     asChild
                   >
                     <Link href={`/${locale}/app/mls/import`}>
-                      Import
+                      {commonT("import")}
                     </Link>
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setQuickAddOpen(true)}
-                  >
-                    + {t("QuickAdd.property.title")}
-                  </Button>
-                  <QuickAddProperty
-                    open={quickAddOpen}
-                    onOpenChange={setQuickAddOpen}
-                    users={users}
-                  />
                   <Sheet open={open} onOpenChange={() => setOpen(false)}>
                     <Button onClick={() => setOpen(true)} className="flex-1 sm:flex-none">
                       + {t("PropertyForm.title")}
@@ -274,6 +275,7 @@ export default function PropertiesPageView({
                 <PropertyDataTable
                   data={agencyProperties}
                   columns={getColumns(users)}
+                  toolbarRight={<ViewToggle view={view} setView={setView} />}
                 />
               ) : (
                 <div className="space-y-4">
@@ -285,6 +287,7 @@ export default function PropertiesPageView({
                     selectedFilters={selectedFilters}
                     onFilterChange={handleFilterChange}
                     onReset={handleReset}
+                    rightContent={<ViewToggle view={view} setView={setView} />}
                   />
                   {filteredAgencyProperties.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">

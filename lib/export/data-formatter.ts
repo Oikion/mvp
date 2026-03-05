@@ -187,6 +187,84 @@ export const REPORTS_COLUMNS: ColumnDefinition[] = [
 ];
 
 // ============================================
+// MANDATE COLUMN DEFINITIONS
+// ============================================
+
+export const MANDATE_COLUMNS: ColumnDefinition[] = [
+  { key: "id", label: "ID", type: "string", width: 18 },
+  { key: "createdAt", label: "Created", labelEl: "Δημιουργήθηκε", type: "datetime", width: 18 },
+  { key: "title", label: "Title", labelEl: "Τίτλος", type: "string", width: 30 },
+  {
+    key: "transaction_type",
+    label: "Transaction",
+    labelEl: "Συναλλαγή",
+    type: "enum",
+    width: 14,
+    enumLabels: {
+      SALE: "Sale",
+      RENTAL: "Rental",
+      SHORT_TERM: "Short Term",
+    },
+  },
+  {
+    key: "property_type",
+    label: "Property Type",
+    labelEl: "Τύπος Ακινήτου",
+    type: "enum",
+    width: 15,
+    enumLabels: {
+      RESIDENTIAL: "Residential",
+      COMMERCIAL: "Commercial",
+      LAND: "Land",
+      APARTMENT: "Apartment",
+      HOUSE: "House",
+      MAISONETTE: "Maisonette",
+      OTHER: "Other",
+    },
+  },
+  {
+    key: "status",
+    label: "Status",
+    labelEl: "Κατάσταση",
+    type: "enum",
+    width: 12,
+    enumLabels: {
+      DRAFT: "Draft",
+      ACTIVE: "Active",
+      PAUSED: "Paused",
+      FULFILLED: "Fulfilled",
+      EXPIRED: "Expired",
+      CANCELLED: "Cancelled",
+    },
+  },
+  {
+    key: "urgency",
+    label: "Urgency",
+    labelEl: "Επείγον",
+    type: "enum",
+    width: 10,
+    enumLabels: {
+      LOW: "Low",
+      MEDIUM: "Medium",
+      HIGH: "High",
+      CRITICAL: "Critical",
+    },
+  },
+  { key: "budget_min", label: "Budget Min", labelEl: "Ελάχ. Προϋπολογισμός", type: "currency", width: 15 },
+  { key: "budget_max", label: "Budget Max", labelEl: "Μέγ. Προϋπολογισμός", type: "currency", width: 15 },
+  { key: "size_min_sqm", label: "Size Min (m²)", labelEl: "Ελάχ. Εμβαδόν (τ.μ.)", type: "number", width: 14 },
+  { key: "size_max_sqm", label: "Size Max (m²)", labelEl: "Μέγ. Εμβαδόν (τ.μ.)", type: "number", width: 14 },
+  { key: "bedrooms_min", label: "Beds Min", labelEl: "Ελάχ. Υ/Δ", type: "number", width: 10 },
+  { key: "bedrooms_max", label: "Beds Max", labelEl: "Μέγ. Υ/Δ", type: "number", width: 10 },
+  { key: "municipality", label: "Municipality", labelEl: "Δήμος", type: "string", width: 18 },
+  { key: "region", label: "Region", labelEl: "Περιοχή", type: "string", width: 18 },
+  { key: "client_name", label: "Linked Client", labelEl: "Συνδεδεμένος Πελάτης", type: "string", width: 20 },
+  { key: "assigned_to_name", label: "Assigned To", labelEl: "Ανατέθηκε σε", type: "string", width: 20 },
+  { key: "expires_at", label: "Expires", labelEl: "Λήξη", type: "date", width: 14 },
+  { key: "notes", label: "Notes", labelEl: "Σημειώσεις", type: "string", width: 40 },
+];
+
+// ============================================
 // COLUMN GETTERS BY MODULE
 // ============================================
 
@@ -196,6 +274,8 @@ export function getColumnsForModule(module: ExportModule): ColumnDefinition[] {
       return CRM_COLUMNS;
     case "mls":
       return MLS_COLUMNS;
+    case "mandates":
+      return MANDATE_COLUMNS;
     case "calendar":
       return CALENDAR_COLUMNS;
     case "reports":

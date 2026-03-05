@@ -88,9 +88,9 @@ const getCategoryStyle = (label: string): CategoryStyle => {
     },
     "Tools": {
       icon: Wrench,
-      iconColor: "text-warning dark:text-warning",
-      hoverBg: "hover:bg-warning/10",
-      activeBorder: "border-l-amber-500",
+      iconColor: "text-rose-400 dark:text-rose-400/70",
+      hoverBg: "hover:bg-rose-400/10",
+      activeBorder: "border-l-rose-400",
     },
     "Network": {
       icon: Globe2,
@@ -119,9 +119,9 @@ const getCategoryStyle = (label: string): CategoryStyle => {
     },
     "Εργαλεία": {
       icon: Wrench,
-      iconColor: "text-warning dark:text-warning",
-      hoverBg: "hover:bg-warning/10",
-      activeBorder: "border-l-amber-500",
+      iconColor: "text-rose-400 dark:text-rose-400/70",
+      hoverBg: "hover:bg-rose-400/10",
+      activeBorder: "border-l-rose-400",
     },
     "Δίκτυο": {
       icon: Globe2,
@@ -418,7 +418,7 @@ function CollapsibleNavGroup({
               <CategoryIcon className={cn("h-4 w-4", categoryStyle.iconColor)} />
               {group.label}
               {showAlphaBadge && (
-                <Badge variant="warning" className="text-[10px] py-0 px-1.5">
+                <Badge className="text-[10px] py-0 px-1.5 border-transparent bg-rose-400/15 text-rose-400 dark:text-rose-400/70 hover:bg-rose-400/25">
                   Alpha
                 </Badge>
               )}

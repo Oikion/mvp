@@ -12,7 +12,6 @@ export interface ShareEntityData {
   entityType: ShareEntityType;
   entityId: string;
   sharedWithId?: string;
-  audienceId?: string;
   permissions?: SharePermission;
   message?: string | null;
 }
@@ -31,7 +30,6 @@ export interface ShareResponse {
 export interface BulkShareResponse {
   success: boolean;
   sharedCount: number;
-  audienceName: string;
 }
 
 // ============================================================
@@ -61,7 +59,7 @@ async function shareEntityFetcher(
 // ============================================================
 
 /**
- * Hook to share an entity with another user or audience
+ * Hook to share an entity with another user
  * Invalidates share-related caches after mutation
  */
 export function useShareEntity() {
@@ -98,26 +96,9 @@ export function useShareEntity() {
     });
   };
 
-  const shareWithAudience = async (
-    entityType: ShareEntityType,
-    entityId: string,
-    audienceId: string,
-    permissions: SharePermission = "VIEW_COMMENT",
-    message?: string
-  ) => {
-    return trigger({
-      entityType,
-      entityId,
-      audienceId,
-      permissions,
-      message: message || null,
-    });
-  };
-
   return {
     shareEntity: trigger,
     shareWithUser,
-    shareWithAudience,
     isSharing: isMutating,
     error,
     result: data,

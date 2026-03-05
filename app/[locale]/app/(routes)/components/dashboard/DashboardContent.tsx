@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import {
   DollarSignIcon,
@@ -11,7 +10,6 @@ import {
   Settings2,
   Pencil,
   Check,
-  ArrowUpDown,
 } from "lucide-react";
 
 import { DashboardConfigProvider, useDashboardConfig } from "@/lib/dashboard";
@@ -24,7 +22,6 @@ import { UpcomingEvents } from "./UpcomingEvents";
 import { DocumentsWidget } from "./DocumentsWidget";
 import { RecentMessages } from "./RecentMessages";
 import { QuickViewList } from "./QuickViewList";
-import { RecentPropertiesWidget } from "./RecentPropertiesWidget";
 import { VisitorsChart } from "./VisitorsChart";
 import { StatsChart } from "./StatsChart";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -88,20 +85,7 @@ interface DashboardDictionaryContainer {
 function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; dict: DashboardDictionaryContainer }>) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
-  const { isEditMode, setIsEditMode, sortWidgets } = useDashboardConfig();
-
-  // Keyboard shortcut for sort (⌘⇧S)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-        sortWidgets();
-      }
-    };
-
-    globalThis.window.addEventListener("keydown", handleKeyDown);
-    return () => globalThis.window.removeEventListener("keydown", handleKeyDown);
-  }, [sortWidgets]);
+  const { isEditMode, setIsEditMode } = useDashboardConfig();
 
   // Render individual widget based on ID
   // Note: PhysicsGrid handles the wrapper — no WidgetWrapper needed here.
@@ -245,7 +229,17 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
         );
 
       case "recent-properties":
-        return <RecentPropertiesWidget properties={data.recentProperties as any} />;
+        return (
+          <QuickViewList
+            title={dict.dashboard.recentProperties}
+            items={(data.recentProperties as any[]).map((p: any) => ({
+              ...p,
+              image_url: p.linkedDocuments?.[0]?.document_file_url ?? null,
+            })) as unknown as QuickViewItem[]}
+            viewAllHref={`/${locale}/app/mls`}
+            icon={<Building2 className="h-5 w-5 text-muted-foreground" />}
+          />
+        );
 
       case "documents":
         return <DocumentsWidget documents={data.recentDocuments} />;
@@ -261,21 +255,6 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
       <div className="flex items-center justify-between">
         <DashboardHeader userName={data.user.name} />
         <div className="flex items-center gap-3">
-          {/* Sort button — compact widgets and remove gaps */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => sortWidgets()}
-            className="gap-2"
-            title={t("customize.sortTooltip")}
-          >
-            <ArrowUpDown className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("customize.sort")}</span>
-            <kbd className="hidden md:inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-              <span className="text-xs">⌘</span>⇧S
-            </kbd>
-          </Button>
-
           {/* Edit Layout toggle — enables drag/resize directly on the grid */}
           <Button
             variant={isEditMode ? "default" : "outline"}

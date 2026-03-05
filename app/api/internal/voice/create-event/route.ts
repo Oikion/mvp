@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate IDs
-    const friendlyEventId = await generateFriendlyId(prismadb, "CalendarEvent");
+    const friendlyEventId = await generateFriendlyId(prismadb, "CalendarEvent", organizationId);
     const calendarEventId = Math.abs(Math.floor(Date.now() / 1000));
 
     // Create event

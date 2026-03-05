@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import sendEmail from "@/lib/sendmail";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
 import { invalidateCache } from "@/lib/cache-invalidate";
@@ -36,8 +36,10 @@ export async function POST(req: Request) {
       type,
     } = body;
 
+    const organizationId = await getCurrentOrgId();
+
     // Generate friendly ID
-    const contactId = await generateFriendlyId(prismadb, "Client_Contacts");
+    const contactId = await generateFriendlyId(prismadb, "Client_Contacts", organizationId);
 
     const newContact = await prismadb.client_Contacts.create({
       data: {

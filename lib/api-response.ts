@@ -328,6 +328,10 @@ export function handlePrismaError(
     const prismaError = error as { code: string; message?: string };
     
     switch (prismaError.code) {
+      // Prisma Accelerate service unavailable
+      case "P5010":
+        return apiError("Database service temporarily unavailable. Please try again.", 503);
+
       // Connection errors
       case "P2024":
         return apiError("Database connection error. Please try again.", 503);

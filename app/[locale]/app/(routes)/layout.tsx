@@ -154,16 +154,11 @@ export default async function AppLayout({
   // The page may show incomplete data briefly, but this is better than an infinite loop
   
   // Migration: Ensure user has a personal workspace (for existing users)
-  // This runs silently in the background and doesn't block rendering
+  // Fire-and-forget: does not block rendering, errors are caught inside the action
   if (onboardingCompleted && userId) {
-    try {
-      const { ensurePersonalWorkspace } = await import("@/actions/organization/ensure-personal-workspace");
-      await ensurePersonalWorkspace();
-      // Don't await or block - this is a background migration
-    } catch (error) {
-      // Silently fail - migration will retry on next page load
-      console.error("Failed to ensure personal workspace:", error);
-    }
+    void import("@/actions/organization/ensure-personal-workspace").then(
+      ({ ensurePersonalWorkspace }) => ensurePersonalWorkspace()
+    );
   }
   
   // #region agent log

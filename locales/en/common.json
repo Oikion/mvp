@@ -1,5 +1,7 @@
 {
   "new": "New",
+  "quickAdd": "Quick Add",
+  "import": "Import",
   "learnMore": "Learn more",
   "tryIt": "Try it",
   "getStarted": "Get Started",
@@ -38,6 +40,8 @@
   "update": "Update",
   "save": "Save",
   "toggleColumns": "Toggle columns",
+  "filters": "Filters",
+  "clearAll": "Clear all",
   "filterPlaceholder": "Search for a client...",
   "viewAll": "View All",
   "assigned": "Assigned:",

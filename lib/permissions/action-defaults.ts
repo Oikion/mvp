@@ -105,13 +105,6 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "matchmaking:run": "none",
   "matchmaking:view_analytics": "none",
   
-  // Audiences - No access
-  "audience:read": "none",
-  "audience:create": "none",
-  "audience:update": "none",
-  "audience:delete": "none",
-  "audience:sync": "none",
-  
   // Social - Read only
   "social:read": "all",
   "social:create_post": "none",
@@ -256,13 +249,6 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "matchmaking:view": "all",
   "matchmaking:run": "all",
   "matchmaking:view_analytics": "all",
-  
-  // Audiences - Read own
-  "audience:read": "own",
-  "audience:create": "all",
-  "audience:update": "own",
-  "audience:delete": "own",
-  "audience:sync": "own",
   
   // Social - Full access to own posts
   "social:read": "all",
@@ -409,13 +395,6 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "matchmaking:run": "all",
   "matchmaking:view_analytics": "all",
   
-  // Audiences - Full access
-  "audience:read": "all",
-  "audience:create": "all",
-  "audience:update": "all",
-  "audience:delete": "all",
-  "audience:sync": "all",
-  
   // Social - Full access
   "social:read": "all",
   "social:create_post": "all",
@@ -560,13 +539,6 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "matchmaking:view": "all",
   "matchmaking:run": "all",
   "matchmaking:view_analytics": "all",
-  
-  // Audiences - Full access
-  "audience:read": "all",
-  "audience:create": "all",
-  "audience:update": "all",
-  "audience:delete": "all",
-  "audience:sync": "all",
   
   // Social - Full access
   "social:read": "all",

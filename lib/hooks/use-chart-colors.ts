@@ -11,8 +11,9 @@ function getTremorColorForTheme(theme: string | undefined): string {
   switch (theme) {
     case "dark":
       return "blue"; // Blue works well on dark backgrounds
-    case "pearl-sand":
-      return "amber"; // Warm amber matches beige/taupe theme
+    case "estate":
+    case "estate-dark":
+      return "emerald"; // Green matches estate/sage theme
     case "twilight-lavender":
       return "violet"; // Violet matches lavender theme
     case "light":
@@ -53,7 +54,8 @@ export function useChartColors() {
     const colorMap: Record<string, string[]> = {
       light: ["blue", "emerald", "amber", "violet", "rose"],
       dark: ["blue", "cyan", "amber", "violet", "rose"],
-      "pearl-sand": ["amber", "orange", "yellow", "rose", "emerald"],
+      estate: ["emerald", "teal", "amber", "blue", "rose"],
+      "estate-dark": ["emerald", "cyan", "amber", "violet", "rose"],
       "twilight-lavender": ["violet", "purple", "fuchsia", "blue", "rose"],
     };
 

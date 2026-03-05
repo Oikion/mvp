@@ -25,6 +25,9 @@ const deleteSchema = z.object({
   reason: z.string().min(10, "Reason must be at least 10 characters").max(1000),
 });
 
+// System-level organization ID for platform admin notifications
+const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
+
 // Initialize Resend if available
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -66,7 +69,7 @@ export async function sendUserWarning(userId: string, reason: string): Promise<A
     await logAdminAction(admin.clerkId, "SEND_WARNING", userId, { reason: sanitizedReason });
 
     // Create in-app notification
-    const notificationId = await generateFriendlyId(prismadb, "Notification");
+    const notificationId = await generateFriendlyId(prismadb, "Notification", SYSTEM_ORG_ID);
     
     await prismadb.notification.create({
       data: {
@@ -163,7 +166,7 @@ export async function suspendUser(userId: string, reason: string): Promise<Actio
     });
 
     // Create in-app notification
-    const notificationId = await generateFriendlyId(prismadb, "Notification");
+    const notificationId = await generateFriendlyId(prismadb, "Notification", SYSTEM_ORG_ID);
     
     await prismadb.notification.create({
       data: {
@@ -262,7 +265,7 @@ export async function unsuspendUser(userId: string, note?: string): Promise<Acti
     });
 
     // Create in-app notification
-    const notificationId = await generateFriendlyId(prismadb, "Notification");
+    const notificationId = await generateFriendlyId(prismadb, "Notification", SYSTEM_ORG_ID);
     
     await prismadb.notification.create({
       data: {

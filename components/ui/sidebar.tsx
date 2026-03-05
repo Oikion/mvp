@@ -408,7 +408,7 @@ SidebarSeparator.displayName = "SidebarSeparator"
 const SidebarContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
->(({ className, ...props }, ref) => {
+>(({ className, style, ...props }, ref) => {
   return (
     <div
       ref={ref}
@@ -417,6 +417,11 @@ const SidebarContent = React.forwardRef<
         "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
         className
       )}
+      style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'hsl(var(--sidebar-border) / 0.3) hsl(var(--sidebar-background))',
+        ...style,
+      }}
       {...props}
     />
   )

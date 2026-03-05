@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
@@ -54,7 +55,7 @@ export async function startDirectMessage(targetUserId: string): Promise<{
     }
 
     // Create new conversation
-    const conversationId = await generateFriendlyId(prismadb, "Conversation");
+    const conversationId = await generateFriendlyId(prismadb, "Conversation", organizationId);
     console.log("[MESSAGING] Creating new DM conversation:", conversationId, "between", currentUser.id, "and", targetUserId);
     
     const conversation = await prismadb.conversation.create({
@@ -154,7 +155,7 @@ export async function startClientConversation(clientId: string): Promise<{
     }
 
     // Create conversation linked to client
-    const conversationId = await generateFriendlyId(prismadb, "Conversation");
+    const conversationId = await generateFriendlyId(prismadb, "Conversation", organizationId);
     const conversation = await prismadb.conversation.create({
       data: {
         id: conversationId,
@@ -258,7 +259,7 @@ export async function startPropertyConversation(propertyId: string): Promise<{
     }
 
     // Create conversation linked to property
-    const conversationId = await generateFriendlyId(prismadb, "Conversation");
+    const conversationId = await generateFriendlyId(prismadb, "Conversation", organizationId);
     const conversation = await prismadb.conversation.create({
       data: {
         id: conversationId,
@@ -419,71 +420,76 @@ export async function getUserConversations(): Promise<{
     });
     const userMap = new Map(users.map((u) => [u.id, u]));
 
-    // Get unread counts for each conversation
-    const conversationsWithUnread = await Promise.all(
-      conversations.map(async (conv) => {
-        const unreadCount = await prismadb.message.count({
-          where: {
-            conversationId: conv.id,
-            isDeleted: false,
-            senderId: { not: currentUser.id },
-            readReceipts: {
-              none: { userId: currentUser.id },
-            },
-          },
-        });
+    // Batch unread counts in a single query instead of N+1
+    const conversationIds = conversations.map((c) => c.id);
+    const unreadCounts =
+      conversationIds.length > 0
+        ? await prismadb.$queryRaw<Array<{ conversationId: string; count: bigint }>>`
+            SELECT m."conversationId", COUNT(*)::bigint as count
+            FROM "Message" m
+            WHERE m."conversationId" IN (${Prisma.join(conversationIds)})
+              AND m."isDeleted" = false
+              AND m."senderId" != ${currentUser.id}
+              AND NOT EXISTS (
+                SELECT 1 FROM "MessageRead" mr
+                WHERE mr."messageId" = m."id" AND mr."userId" = ${currentUser.id}
+              )
+            GROUP BY m."conversationId"
+          `
+        : [];
+    const unreadMap = new Map(unreadCounts.map((r) => [r.conversationId, Number(r.count)]));
 
-        // Determine type
-        let type: "dm" | "group" | "entity" = "dm";
-        if (conv.entityType && conv.entityId) {
-          type = "entity";
-        } else if (conv.isGroup) {
-          type = "group";
+    const conversationsWithUnread = conversations.map((conv) => {
+      // Determine type
+      let type: "dm" | "group" | "entity" = "dm";
+      if (conv.entityType && conv.entityId) {
+        type = "entity";
+      } else if (conv.isGroup) {
+        type = "group";
+      }
+
+      // For DMs without a name, use the other participant's name
+      let displayName = conv.name;
+      if (!displayName && !conv.isGroup && conv.participants.length === 2) {
+        const otherParticipant = conv.participants.find((p) => p.userId !== currentUser.id);
+        if (otherParticipant) {
+          const otherUser = userMap.get(otherParticipant.userId);
+          displayName = otherUser?.name || otherUser?.email || null;
         }
+      }
 
-        // For DMs without a name, use the other participant's name
-        let displayName = conv.name;
-        if (!displayName && !conv.isGroup && conv.participants.length === 2) {
-          const otherParticipant = conv.participants.find((p) => p.userId !== currentUser.id);
-          if (otherParticipant) {
-            const otherUser = userMap.get(otherParticipant.userId);
-            displayName = otherUser?.name || otherUser?.email || null;
-          }
-        }
-
-        // Enrich participants with user details
-        const enrichedParticipants = conv.participants.map((p) => {
-          const user = userMap.get(p.userId);
-          return {
-            userId: p.userId,
-            name: user?.name || null,
-            avatar: user?.avatar || null,
-          };
-        });
-
-        // Check if current user has muted this conversation
-        const currentUserParticipant = conv.participants.find(
-          (p) => p.userId === currentUser.id
-        );
-        const isMuted = currentUserParticipant?.mutedUntil
-          ? new Date(currentUserParticipant.mutedUntil) > new Date()
-          : false;
-
+      // Enrich participants with user details
+      const enrichedParticipants = conv.participants.map((p) => {
+        const user = userMap.get(p.userId);
         return {
-          id: conv.id,
-          name: displayName,
-          isGroup: conv.isGroup,
-          type,
-          entity: conv.entityType && conv.entityId
-            ? { type: conv.entityType, id: conv.entityId }
-            : undefined,
-          participants: enrichedParticipants,
-          lastMessage: conv.messages[0] || undefined,
-          unreadCount,
-          isMuted,
+          userId: p.userId,
+          name: user?.name || null,
+          avatar: user?.avatar || null,
         };
-      })
-    );
+      });
+
+      // Check if current user has muted this conversation
+      const currentUserParticipant = conv.participants.find(
+        (p) => p.userId === currentUser.id
+      );
+      const isMuted = currentUserParticipant?.mutedUntil
+        ? new Date(currentUserParticipant.mutedUntil) > new Date()
+        : false;
+
+      return {
+        id: conv.id,
+        name: displayName,
+        isGroup: conv.isGroup,
+        type,
+        entity: conv.entityType && conv.entityId
+          ? { type: conv.entityType, id: conv.entityId }
+          : undefined,
+        participants: enrichedParticipants,
+        lastMessage: conv.messages[0] || undefined,
+        unreadCount: unreadMap.get(conv.id) ?? 0,
+        isMuted,
+      };
+    });
 
     return { success: true, conversations: conversationsWithUnread };
   } catch (error) {
@@ -518,7 +524,7 @@ export async function createGroupConversation(params: {
     // Ensure current user is included
     const allParticipants = Array.from(new Set([currentUser.id, ...params.participantIds]));
 
-    const conversationId = await generateFriendlyId(prismadb, "Conversation");
+    const conversationId = await generateFriendlyId(prismadb, "Conversation", organizationId);
     const conversation = await prismadb.conversation.create({
       data: {
         id: conversationId,
@@ -778,3 +784,4 @@ export async function deleteConversation(conversationId: string): Promise<{
     return { success: false, error: "Failed to delete conversation" };
   }
 }
+

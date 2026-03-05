@@ -160,11 +160,11 @@ export async function POST(req: Request) {
             propertyId = await findAvailableIdWithSuffix(normalizedId, organizationId);
           } else {
             // If normalization results in empty string, generate a friendly ID
-            propertyId = await generateFriendlyId(prismadb, "Properties");
+            propertyId = await generateFriendlyId(prismadb, "Properties", organizationId);
           }
         } else {
           // Generate a new friendly ID
-          propertyId = await generateFriendlyId(prismadb, "Properties");
+          propertyId = await generateFriendlyId(prismadb, "Properties", organizationId);
         }
         
         await prismadb.properties.create({

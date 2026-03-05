@@ -138,7 +138,7 @@ async function getPostDetails(
   return {
     title,
     description: post.Users?.name ? `Posted by ${post.Users.name}` : undefined,
-    url: `${baseUrl}/social-feed?post=${post.id}`,
+    url: `${baseUrl}/network/feed?post=${post.id}`,
   };
 }
 

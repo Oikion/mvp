@@ -53,11 +53,6 @@ Every static route MUST resolve to a valid `page.tsx` in the app router. Check a
 | `/app/deals/[dealId]` | `app/[locale]/app/(routes)/deals/[dealId]/page.tsx` |
 | `/app/reports` | `app/[locale]/app/(routes)/reports/page.tsx` |
 | `/app/matchmaking` | `app/[locale]/app/(routes)/matchmaking/page.tsx` |
-| `/app/market-intelligence` | `app/[locale]/app/(routes)/market-intelligence/page.tsx` |
-| `/app/market-intelligence/listings` | `app/[locale]/app/(routes)/market-intelligence/listings/page.tsx` |
-| `/app/market-intelligence/price-tracker` | `app/[locale]/app/(routes)/market-intelligence/price-tracker/page.tsx` |
-| `/app/market-intelligence/opportunities` | `app/[locale]/app/(routes)/market-intelligence/opportunities/page.tsx` |
-| `/app/market-intelligence/settings` | `app/[locale]/app/(routes)/market-intelligence/settings/page.tsx` |
 | `/app/ai` | `app/[locale]/app/(routes)/ai/page.tsx` |
 | `/app/profile` | `app/[locale]/app/(routes)/profile/page.tsx` |
 | `/app/profile/social` | `app/[locale]/app/(routes)/profile/social/page.tsx` |

@@ -10,6 +10,7 @@ import {
   FileText,
   FileSpreadsheet,
   Loader2,
+  Paperclip,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,10 @@ interface AttachmentUploaderProps {
   maxSizeMB?: number;
   disabled?: boolean;
   className?: string;
+  /** Replaces the drop zone with a Paperclip icon button */
+  compact?: boolean;
+  /** When true (use with compact), renders only the trigger button — no file list */
+  triggerOnly?: boolean;
 }
 
 const MAX_FILE_SIZE_MB = 10;
@@ -49,6 +54,8 @@ export function AttachmentUploader({
   maxSizeMB = MAX_FILE_SIZE_MB,
   disabled = false,
   className,
+  compact = false,
+  triggerOnly = false,
 }: AttachmentUploaderProps) {
   const t = useTranslations("attachments");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -207,54 +214,78 @@ export function AttachmentUploader({
   };
 
   return (
-    <div className={cn("space-y-3", className)}>
-      {/* Drop Zone */}
+    <div className={cn(compact ? "space-y-2" : "space-y-3", className)}>
+      {/* Trigger — compact icon button or full drop zone */}
       {canAddMore && (
-        <div
-          className={cn(
-            "border-2 border-dashed rounded-lg p-4 transition-colors",
-            isDragOver
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-muted-foreground/50",
-            disabled && "opacity-50 pointer-events-none"
-          )}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="flex flex-col items-center gap-2 text-center">
-            <Upload className="h-8 w-8 text-muted-foreground" />
-            <div className="text-sm">
-              <button
-                type="button"
-                className="text-primary hover:underline font-medium"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={disabled}
-              >
-                {t("clickToUpload")}
-              </button>
-              <span className="text-muted-foreground">
-                {" "}
-                {t("orDragDrop")}
-              </span>
+        compact ? (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-muted-foreground hover:text-foreground"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled}
+              title="Attach files"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+              disabled={disabled}
+            />
+          </>
+        ) : (
+          <div
+            className={cn(
+              "border-2 border-dashed rounded-lg p-4 transition-colors",
+              isDragOver
+                ? "border-primary bg-primary/5"
+                : "border-muted-foreground/25 hover:border-muted-foreground/50",
+              disabled && "opacity-50 pointer-events-none"
+            )}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <div className="flex flex-col items-center gap-2 text-center">
+              <Upload className="h-8 w-8 text-muted-foreground" />
+              <div className="text-sm">
+                <button
+                  type="button"
+                  className="text-primary hover:underline font-medium"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={disabled}
+                >
+                  {t("clickToUpload")}
+                </button>
+                <span className="text-muted-foreground">
+                  {" "}
+                  {t("orDragDrop")}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("maxSize", { size: maxSizeMB })} • {t("maxFiles", { count: maxFiles })}
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {t("maxSize", { size: maxSizeMB })} • {t("maxFiles", { count: maxFiles })}
-            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+              disabled={disabled}
+            />
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            className="hidden"
-            onChange={handleFileSelect}
-            disabled={disabled}
-          />
-        </div>
+        )
       )}
 
       {/* Uploading Files */}
-      {uploadingFiles.length > 0 && (
+      {!triggerOnly && uploadingFiles.length > 0 && (
         <div className="space-y-2">
           {uploadingFiles.map((file) => (
             <div
@@ -272,7 +303,7 @@ export function AttachmentUploader({
       )}
 
       {/* Attached Files */}
-      {attachments.length > 0 && (
+      {!triggerOnly && attachments.length > 0 && (
         <div className="space-y-2">
           {attachments.map((attachment) => {
             const Icon = getFileIcon(attachment.fileType);
@@ -320,7 +351,7 @@ export function AttachmentUploader({
       )}
 
       {/* File count indicator */}
-      {attachments.length > 0 && (
+      {!triggerOnly && attachments.length > 0 && (
         <p className="text-xs text-muted-foreground text-right">
           {attachments.length}/{maxFiles} {t("filesAttached")}
         </p>

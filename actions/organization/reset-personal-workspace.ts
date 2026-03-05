@@ -44,8 +44,6 @@ export async function resetPersonalWorkspace() {
       await tx.socialPostLike.deleteMany({});
       await tx.socialPost.deleteMany({});
       await tx.sharedEntity.deleteMany({});
-      await tx.audienceMember.deleteMany({});
-      await tx.audience.deleteMany({});
       await tx.notification.deleteMany({});
       await tx.feedback.deleteMany({});
       await tx.attachment.deleteMany({});

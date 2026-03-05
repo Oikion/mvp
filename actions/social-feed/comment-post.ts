@@ -136,7 +136,7 @@ export async function addComment(
     }
 
     // Revalidate the feed
-    revalidatePath("/social-feed");
+    revalidatePath("/network/feed");
 
     // Get updated comment count
     const newCommentCount = await prismadb.socialPostComment.count({
@@ -230,7 +230,7 @@ export async function deleteComment(commentId: string): Promise<DeleteCommentRes
     });
 
     // Revalidate the feed
-    revalidatePath("/social-feed");
+    revalidatePath("/network/feed");
 
     // Get updated comment count
     const newCommentCount = await prismadb.socialPostComment.count({

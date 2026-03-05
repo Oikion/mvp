@@ -219,6 +219,7 @@
     "assignedTo": "Assigned to",
     "name": "Name",
     "email": "E-mail",
+    "phone": "Phone",
     "accountContact": "Account contact",
     "status": "Status",
     "unassigned": "Unassigned",

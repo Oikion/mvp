@@ -280,7 +280,7 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
               {connections.length === 0 && (
                 <p className="text-xs text-muted-foreground">
                   {t.createDialog.noConnections}{" "}
-                  <Link href="/app/connections" className="text-primary hover:underline">
+                  <Link href="/app/network/profile?tab=find" className="text-primary hover:underline">
                     {t.createDialog.findAgents}
                   </Link>
                 </p>

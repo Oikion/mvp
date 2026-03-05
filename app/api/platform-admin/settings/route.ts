@@ -11,23 +11,9 @@ const MANAGED_SETTINGS = [
   {
     name: "cron_secret",
     displayName: "Cron Secret",
-    description: "Secret key for authenticating cron job requests (e.g., Market Intelligence)",
+    description: "Secret key for authenticating cron job requests",
     category: "security",
     sensitive: true,
-  },
-  {
-    name: "market_intel_enabled",
-    displayName: "Market Intelligence Enabled",
-    description: "Global toggle for the Market Intelligence feature",
-    category: "features",
-    sensitive: false,
-  },
-  {
-    name: "market_intel_max_orgs",
-    displayName: "Max Organizations (Market Intel)",
-    description: "Maximum number of organizations that can enable Market Intelligence",
-    category: "limits",
-    sensitive: false,
   },
   {
     name: "resend_smtp",

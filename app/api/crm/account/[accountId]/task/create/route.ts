@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     });
 
     // Generate friendly ID
-    const taskId = await generateFriendlyId(prismadb, "crm_Accounts_Tasks");
+    const taskId = await generateFriendlyId(prismadb, "crm_Accounts_Tasks", organizationId);
 
     const task = await prismadb.crm_Accounts_Tasks.create({
       data: {

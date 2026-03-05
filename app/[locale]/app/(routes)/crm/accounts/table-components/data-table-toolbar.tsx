@@ -15,11 +15,13 @@ import { ClientFilterDrawer, type ClientFilters } from "./ClientFilterDrawer";
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   users?: { id: string; name: string }[];
+  rightContent?: React.ReactNode;
 }
 
 export function DataTableToolbar<TData>({
   table,
   users = [],
+  rightContent,
 }: DataTableToolbarProps<TData>) {
   const commonT = useTranslations("common");
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -233,7 +235,7 @@ export function DataTableToolbar<TData>({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Input
             placeholder={commonT("filterPlaceholder")}
@@ -250,7 +252,7 @@ export function DataTableToolbar<TData>({
             onClick={() => setDrawerOpen(true)}
           >
             <Filter className="h-4 w-4" />
-            Filters
+            {commonT("filters")}
             {drawerFilterCount > 0 && (
               <Badge
                 variant="secondary"
@@ -274,6 +276,7 @@ export function DataTableToolbar<TData>({
             </Button>
           )}
         </div>
+        {rightContent}
       </div>
 
       {/* Active filter chips */}
@@ -304,7 +307,7 @@ export function DataTableToolbar<TData>({
               }}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
             >
-              Clear all
+              {commonT("clearAll")}
             </button>
           )}
         </div>

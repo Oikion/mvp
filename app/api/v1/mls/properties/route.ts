@@ -178,7 +178,7 @@ export const POST = withExternalApi(
     }
 
     // Generate friendly ID
-    const propertyId = await generateFriendlyId(prismadb, "Properties");
+    const propertyId = await generateFriendlyId(prismadb, "Properties", context.organizationId);
 
     // Create property
     const property = await prismadb.properties.create({

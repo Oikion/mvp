@@ -18,7 +18,7 @@ interface ProgressBarProps {
 
 export function ProgressBar({ steps, currentStep, className, onStepClick }: Readonly<ProgressBarProps>) {
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn("w-full", className)} data-progress-bar>
       <div className="flex items-start justify-between mb-4 relative">
         {/* Connecting lines container - behind icons */}
         <div className="absolute top-4 left-0 right-0 h-0.5 pointer-events-none z-0">
@@ -37,7 +37,7 @@ export function ProgressBar({ steps, currentStep, className, onStepClick }: Read
                   key={`line-${stepIndex}`}
                   className={cn(
                     "h-0.5 flex-1",
-                    isCompleted ? "bg-primary" : "bg-muted"
+                    isCompleted ? "bg-primary" : "bg-muted progress-bar-connection-incomplete"
                   )}
                 />
               );

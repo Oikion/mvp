@@ -29,8 +29,8 @@ export function useNotificationCounts(options: UseNotificationCountsOptions = {}
     key,
     {
       refreshInterval,
-      // Revalidate when window regains focus
-      revalidateOnFocus: true,
+      // Don't revalidate on focus — 30s polling is sufficient for badge counts
+      revalidateOnFocus: false,
       // Don't show stale data for notification counts
       revalidateOnMount: true,
     }

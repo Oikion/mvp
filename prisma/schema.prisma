@@ -274,7 +274,6 @@ model Clients {
   CalendarEvent                    CalendarEvent[]      @relation("EventToClients")
   Users_watching_accounts          Users[]              @relation("watching_accounts")
   PropertyShowing                  PropertyShowing[]
-  ExternalContact                  ExternalContact[]
   Mandate                          Mandate[]
 
   @@index([assigned_to])
@@ -2197,7 +2196,8 @@ enum ChannelType {
 /// Direct message conversations (1:1 or group DMs)
 model Conversation {
   id             String                    @id @default(uuid())
-  organizationId String
+  organizationId String?                   // null for SHARED scope
+  scope          ConversationScope         @default(ORG)
   name           String?                   // For group DMs, optional name
   isGroup        Boolean                   @default(false)
   createdById    String?
@@ -2208,10 +2208,13 @@ model Conversation {
   entityType     ConversationEntityType?
   entityId       String?
 
-  messages     Message[]
-  participants ConversationParticipant[]
+  messages       Message[]
+  participants   ConversationParticipant[]
+  keyShares      ConversationKeyShare[]
+  orgMemberships ConversationOrgMembership[]
 
   @@index([organizationId])
+  @@index([scope])
   @@index([entityType, entityId])
   @@index([createdById])
 }
@@ -2230,6 +2233,7 @@ model ConversationParticipant {
 
   @@unique([conversationId, userId])
   @@index([userId])
+  @@index([userId, leftAt])
 }
 
 /// Types of entities that can be linked to conversations
@@ -2240,64 +2244,43 @@ enum ConversationEntityType {
   PROJECT
 }
 
-/// Supported external messaging platforms
-enum MessagingPlatform {
-  VIBER
-  WHATSAPP
-  MESSENGER
+/// Per-conversation encryption key share.
+/// For SHARED conversations, each participant gets the conversation's symmetric key
+/// wrapped (encrypted) with their personal workspace org DEK.
+model ConversationKeyShare {
+  id             String   @id @default(uuid())
+  conversationId String
+  userId         String
+  encryptedKey   String   @db.Text  // Conversation AES-256 key, encrypted with user's personal workspace DEK
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
 }
 
-/// External messaging platform integration configuration
-model MessagingIntegration {
-  id                String            @id @default(uuid())
-  organizationId    String
-  platform          MessagingPlatform
-  displayName       String?
+/// Tracks which organizations are invited to a SHARED conversation.
+/// When autoSync is true, new members joining the org are automatically
+/// added to the conversation and given a ConversationKeyShare.
+model ConversationOrgMembership {
+  id             String   @id @default(uuid())
+  conversationId String
+  organizationId String
+  autoSync       Boolean  @default(true)   // Auto-add new org members
+  addedById      String                     // Who invited the org
+  addedAt        DateTime @default(now())
 
-  // Platform credentials (encrypted at rest in app layer)
-  accessToken       String?
-  refreshToken      String?
-  tokenExpiresAt    DateTime?
-  webhookSecret     String?
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  // Platform-specific identifiers
-  platformAccountId String?
-  phoneNumber       String?
-
-  isActive          Boolean           @default(true)
-  connectedAt       DateTime          @default(now())
-  lastSyncAt        DateTime?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-
-  externalContacts  ExternalContact[]
-
-  @@unique([organizationId, platform, platformAccountId])
+  @@unique([conversationId, organizationId])
   @@index([organizationId])
-  @@index([platform])
 }
 
-/// External contacts messaging via external platforms
-model ExternalContact {
-  id             String               @id @default(uuid())
-  integrationId  String
-  platformUserId String
-  displayName    String?
-  avatarUrl      String?
-  phoneNumber    String?
-  clientId       String?
-  lastMessageAt  DateTime?
-  isBlocked      Boolean              @default(false)
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
-
-  integration    MessagingIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
-  client         Clients?             @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  messages       Message[]
-
-  @@unique([integrationId, platformUserId])
-  @@index([integrationId])
-  @@index([clientId])
+/// Conversation scope determines encryption and visibility rules
+enum ConversationScope {
+  ORG       // Intra-org: groups, entity chats. Encrypted with org DEK.
+  PERSONAL  // 1:1 DMs in personal workspace. Encrypted with personal workspace DEK.
+  SHARED    // Cross-org groups. Encrypted with per-conversation key.
 }
 
 /// Messages in channels or conversations
@@ -2323,12 +2306,6 @@ model Message {
   isDeleted      Boolean   @default(false)
   deletedAt      DateTime?
 
-  // External platform fields
-  externalPlatform  MessagingPlatform?
-  externalMessageId String?
-  externalContactId String?
-  externalMetadata  Json?
-  
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -2337,7 +2314,6 @@ model Message {
   conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   parent       Message?      @relation("MessageThread", fields: [parentId], references: [id], onDelete: SetNull)
   replies      Message[]     @relation("MessageThread")
-  externalContact ExternalContact? @relation(fields: [externalContactId], references: [id], onDelete: SetNull)
   sender       Users         @relation("MessagesSent", fields: [senderId], references: [id])
   
   reactions   MessageReaction[]
@@ -2352,8 +2328,9 @@ model Message {
   @@index([parentId])
   @@index([createdAt])
   @@index([isDeleted])
-  @@index([externalContactId])
-  @@index([externalPlatform, externalMessageId])
+  // Composite indexes for common query patterns (message listing + unread counts)
+  @@index([channelId, isDeleted, createdAt])
+  @@index([conversationId, isDeleted, createdAt])
 }
 
 enum MessageContentType {

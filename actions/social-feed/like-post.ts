@@ -86,7 +86,7 @@ export async function toggleLikePost(postId: string): Promise<LikeResult> {
     });
 
     // Revalidate the feed to update cache
-    revalidatePath("/social-feed");
+    revalidatePath("/network/feed");
 
     // Publish Ably event for real-time updates
     try {

@@ -97,17 +97,6 @@ export function useCacheInvalidation() {
   }, [globalMutate]);
 
   /**
-   * Invalidate all audience-related caches
-   */
-  const invalidateAudiences = useCallback(() => {
-    return globalMutate(
-      (key) => typeof key === "string" && key.includes("/api/audiences"),
-      undefined,
-      { revalidate: true }
-    );
-  }, [globalMutate]);
-
-  /**
    * Invalidate a specific cache key
    */
   const invalidateKey = useCallback(
@@ -155,7 +144,6 @@ export function useCacheInvalidation() {
     invalidateClients,
     invalidateDocuments,
     invalidateShares,
-    invalidateAudiences,
     // Generic invalidators
     invalidateKey,
     invalidatePattern,

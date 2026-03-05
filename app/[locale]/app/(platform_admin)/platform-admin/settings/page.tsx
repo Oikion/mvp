@@ -396,26 +396,7 @@ export default function PlatformAdminSettingsPage() {
               </div>
             )}
 
-            {editingKey === "market_intel_enabled" && (
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant={editValue === "true" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setEditValue("true")}
-                >
-                  Enabled
-                </Button>
-                <Button
-                  type="button"
-                  variant={editValue === "false" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setEditValue("false")}
-                >
-                  Disabled
-                </Button>
-              </div>
-            )}
+
           </div>
 
           <DialogFooter>

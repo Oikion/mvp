@@ -42,7 +42,6 @@ export type ModuleId =
   | "reports"
   | "deals"
   | "social"
-  | "audiences"
   | "employees"
   | "admin"
   | "network";

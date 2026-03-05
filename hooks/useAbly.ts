@@ -329,7 +329,13 @@ interface AblyMessageEvent {
 
 interface AblyTypingEvent {
   userId: string;
+  userName?: string;
   isTyping: boolean;
+}
+
+export interface TypingUser {
+  userId: string;
+  userName: string;
 }
 
 /**
@@ -345,7 +351,7 @@ export function useAblyMessages(params: {
   onMessageDelete?: (messageId: string) => void;
 }) {
   const { mutate } = useSWRConfig();
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const typingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Build channel name
@@ -397,29 +403,34 @@ export function useAblyMessages(params: {
 
     const handleTyping = (message: { data: unknown }) => {
       const data = message.data as AblyTypingEvent;
-      
+
+      // Ignore own typing events
+      if (data.userId === params.credentials?.userId) return;
+
       // Clear existing timeout for this user
       const existingTimeout = typingTimeoutsRef.current.get(data.userId);
       if (existingTimeout) {
         clearTimeout(existingTimeout);
       }
 
+      const typingUser: TypingUser = { userId: data.userId, userName: data.userName || "Someone" };
+
       if (data.isTyping) {
         setTypingUsers(prev => {
-          if (!prev.includes(data.userId)) {
-            return [...prev, data.userId];
+          if (!prev.some(u => u.userId === data.userId)) {
+            return [...prev, typingUser];
           }
           return prev;
         });
 
         // Auto-clear after 5 seconds
         const timeout = setTimeout(() => {
-          setTypingUsers(prev => prev.filter(id => id !== data.userId));
+          setTypingUsers(prev => prev.filter(u => u.userId !== data.userId));
           typingTimeoutsRef.current.delete(data.userId);
         }, 5000);
         typingTimeoutsRef.current.set(data.userId, timeout);
       } else {
-        setTypingUsers(prev => prev.filter(id => id !== data.userId));
+        setTypingUsers(prev => prev.filter(u => u.userId !== data.userId));
         typingTimeoutsRef.current.delete(data.userId);
       }
     };
@@ -442,10 +453,11 @@ export function useAblyMessages(params: {
   }, [channel, isSubscribed, params, mutate]);
 
   // Send typing indicator
-  const sendTyping = useCallback(async (isTyping: boolean) => {
+  const sendTyping = useCallback(async (isTyping: boolean, userName?: string) => {
     if (params.credentials?.userId) {
       await publish("typing", {
         userId: params.credentials.userId,
+        userName,
         isTyping,
       });
     }

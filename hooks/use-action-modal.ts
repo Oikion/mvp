@@ -5,7 +5,7 @@ import { create } from "zustand";
 /**
  * Entity types that can be used with action modals
  */
-export type ActionEntityType = "property" | "client" | "contact" | "audience";
+export type ActionEntityType = "property" | "client" | "contact";
 
 /**
  * Share entity types for the ShareModal
