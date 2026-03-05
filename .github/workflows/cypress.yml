@@ -18,11 +18,10 @@ jobs:
           postgres-version: 16
           database: nextcrm
           user: nextcrm
-          password: nextcrm
 
       - name: Set DATABASE_URL for PostgreSQL
         run: |
-          echo "DATABASE_URL=postgres://nextcrm:nextcrm@localhost:5432/nextcrm" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgres://nextcrm@localhost:5432/nextcrm" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v3
