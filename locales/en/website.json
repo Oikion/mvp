@@ -293,8 +293,15 @@
       "title": "Accessibility Statement",
       "subtitle": "We are committed to ensuring digital accessibility for people of all abilities."
     }
+  },
+  "unsubscribe": {
+    "title": "Unsubscribe",
+    "description": "You are about to unsubscribe from all Oikion emails. You will no longer receive newsletters or product updates.",
+    "confirm": "Unsubscribe",
+    "cancel": "Cancel",
+    "successTitle": "You've been unsubscribed",
+    "successMessage": "You will no longer receive emails from Oikion. If this was a mistake, you can re-subscribe at any time from our website.",
+    "errorMessage": "Something went wrong. Please try again or contact support@oikion.com.",
+    "invalidLink": "This unsubscribe link is invalid or has been tampered with. If you need help, contact support@oikion.com."
   }
 }
-
-
-
