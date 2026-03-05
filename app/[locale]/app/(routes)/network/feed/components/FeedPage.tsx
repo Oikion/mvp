@@ -148,6 +148,7 @@ export function FeedPage({
       : localPosts.filter((p) => {
           if (filter === "properties") return p.type === "property";
           if (filter === "clients") return p.type === "client";
+          if (filter === "mandates") return p.type === "mandate";
           if (filter === "updates") return p.type === "text";
           return true;
         });

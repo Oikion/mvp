@@ -53,8 +53,7 @@ const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
 const THEME_LABELS: Record<SupportedTheme, string> = {
   light: "Light",
   dark: "Dark",
-  estate: "Estate",
-  "estate-dark": "Estate Dark",
+  "pearl-sand": "Pearl Sand",
   "twilight-lavender": "Twilight Lavender",
   system: "System",
 };

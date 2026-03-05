@@ -165,7 +165,7 @@ export async function getCurrentSequenceValue(
   const orgId = resolveOrgId(entityType, organizationId);
 
   const sequence = await prisma.idSequence.findFirst({
-    where: { prefix, organizationId: orgId },
+    where: { prefix },
     select: { lastValue: true },
   });
 
@@ -192,14 +192,11 @@ export async function initializeSequence(
   const compositeId = `${prefix}:${orgId}`;
 
   await prisma.idSequence.upsert({
-    where: {
-      prefix_organizationId: { prefix, organizationId: orgId },
-    },
+    where: { prefix },
     update: { lastValue: startValue },
     create: {
       id: compositeId,
       prefix,
-      organizationId: orgId,
       lastValue: startValue,
       updatedAt: new Date(),
     },

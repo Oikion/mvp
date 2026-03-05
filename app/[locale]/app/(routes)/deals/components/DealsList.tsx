@@ -42,7 +42,7 @@ interface Deal {
     id: string;
     property_name: string;
     property_type: string | null;
-    price: number | null;
+    price: any;
     address_city: string | null;
     linkedDocuments: { document_file_url: string }[];
   } | null;

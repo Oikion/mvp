@@ -147,13 +147,14 @@ export async function POST(request: NextRequest) {
     });
 
     // Format price for voice output
-    const formatPrice = (price: number | null) => {
+    const formatPrice = (price: unknown) => {
       if (!price) return null;
+      const numPrice = Number(price);
       return new Intl.NumberFormat("el-GR", {
         style: "currency",
         currency: "EUR",
         maximumFractionDigits: 0,
-      }).format(price);
+      }).format(numPrice);
     };
 
     return NextResponse.json({

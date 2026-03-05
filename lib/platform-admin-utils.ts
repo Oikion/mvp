@@ -63,7 +63,9 @@ export type AdminActionType =
   | "VIEW_RESERVED_NAMES"
   | "CREATE_RESERVED_NAME"
   | "UPDATE_RESERVED_NAME"
-  | "DELETE_RESERVED_NAME";
+  | "DELETE_RESERVED_NAME"
+  | "ENABLE_NETWORK_FEATURE"
+  | "DISABLE_NETWORK_FEATURE";
 
 /**
  * Validate that a reason/message is safe and not malicious

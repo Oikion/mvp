@@ -46,7 +46,7 @@ export async function GET(
     const comments = await prismadb.mandateComment.findMany({
       where: { mandateId },
       include: {
-        Users: {
+        user: {
           select: {
             id: true,
             name: true,
@@ -62,7 +62,7 @@ export async function GET(
       comments: await Promise.all(
         comments.map(async (c) => ({
           ...(await decryptMandateCommentForOrg(c, organizationId)),
-          user: c.Users,
+          user: c.user,
         }))
       ),
     });
@@ -142,7 +142,7 @@ export async function POST(
         content: encryptedContent ?? content.trim(),
       },
       include: {
-        Users: {
+        user: {
           select: {
             id: true,
             name: true,
@@ -159,7 +159,7 @@ export async function POST(
     );
 
     return NextResponse.json(
-      { comment: { ...decryptedComment, user: comment.Users } },
+      { comment: { ...decryptedComment, user: comment.user } },
       { status: 201 }
     );
   } catch (error) {

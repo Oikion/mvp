@@ -218,10 +218,7 @@ export function ConversationSettings({
                           const result = await removeGroupMember(conversation.id, p.userId);
                           setRemovingId(null);
                           if (!result.success) {
-                            toast({
-                              title: result.error ?? "Could not remove member",
-                              variant: "destructive",
-                            });
+                            toast.error(result.error ?? "Could not remove member", { isTranslationKey: false });
                           }
                         }}
                       >
@@ -275,10 +272,7 @@ export function ConversationSettings({
                               setIsAdding(false);
                               setAddMemberSearch("");
                               if (!result.success) {
-                                toast({
-                                  title: result.error ?? "Could not add member",
-                                  variant: "destructive",
-                                });
+                                toast.error(result.error ?? "Could not add member", { isTranslationKey: false });
                               }
                             }}
                           >

@@ -5,5 +5,4 @@
 
 export * from "./onboarding";
 export * from "./clerk";
-export * from "./messaging";
 

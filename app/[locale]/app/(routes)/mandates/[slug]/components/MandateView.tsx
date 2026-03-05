@@ -138,7 +138,7 @@ interface Mandate {
   draft_status?: boolean | null
   createdAt?: string
   updatedAt?: string | null
-  MandateComment?: MandateCommentData[]
+  comments?: MandateCommentData[]
 }
 
 interface MandateViewProps {

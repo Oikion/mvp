@@ -33,6 +33,7 @@
     "viewDetails": "View Details",
     "sharedProperty": "shared a property",
     "sharedClient": "shared a client",
+    "sharedMandate": "shared a mandate",
     "postedUpdate": "posted an update",
     "deletePost": "Delete",
     "deleteConfirm": "Are you sure you want to delete this post?",
@@ -55,12 +56,14 @@
     "all": "All Posts",
     "properties": "Properties",
     "clients": "Clients",
+    "mandates": "Mandates",
     "updates": "Updates"
   },
   "findAgents": "Find Agents",
   "badges": {
     "client": "Client",
-    "property": "Property"
+    "property": "Property",
+    "mandate": "Mandate"
   },
   "visibility": {
     "public": "Public",

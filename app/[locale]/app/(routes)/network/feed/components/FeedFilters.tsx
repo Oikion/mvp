@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, User, FileText, LayoutGrid } from "lucide-react";
+import { Building2, User, FileText, LayoutGrid, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FeedFiltersProps {
@@ -18,6 +18,12 @@ const FILTERS = [
     fallback: "Properties",
   },
   { value: "clients", icon: User, labelKey: "clients", fallback: "Clients" },
+  {
+    value: "mandates",
+    icon: ClipboardList,
+    labelKey: "mandates",
+    fallback: "Mandates",
+  },
   {
     value: "updates",
     icon: FileText,

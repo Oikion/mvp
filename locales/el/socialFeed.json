@@ -33,6 +33,7 @@
     "viewDetails": "Προβολή Λεπτομερειών",
     "sharedProperty": "κοινοποίησε ένα ακίνητο",
     "sharedClient": "κοινοποίησε έναν πελάτη",
+    "sharedMandate": "κοινοποίησε μια εντολή",
     "postedUpdate": "δημοσίευσε μια ενημέρωση",
     "deletePost": "Διαγραφή",
     "deleteConfirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή τη δημοσίευση;",
@@ -55,12 +56,14 @@
     "all": "Όλες οι Δημοσιεύσεις",
     "properties": "Ακίνητα",
     "clients": "Πελάτες",
+    "mandates": "Εντολές",
     "updates": "Ενημερώσεις"
   },
   "findAgents": "Εύρεση Πρακτόρων",
   "badges": {
     "client": "Πελάτης",
-    "property": "Ακίνητο"
+    "property": "Ακίνητο",
+    "mandate": "Εντολή"
   },
   "visibility": {
     "public": "Δημόσιο",

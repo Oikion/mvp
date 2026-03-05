@@ -14,7 +14,7 @@ export interface SocialPostAttachment {
 export interface SocialPost {
   id: string;
   slug?: string | null;
-  type: "property" | "client" | "text";
+  type: "property" | "client" | "mandate" | "text";
   content: string;
   timestamp: string;
   author: {
@@ -26,7 +26,7 @@ export interface SocialPost {
   };
   linkedEntity?: {
     id: string;
-    type: "property" | "client";
+    type: "property" | "client" | "mandate";
     title: string;
     subtitle?: string;
     image?: string;
@@ -147,7 +147,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
     return filteredPosts.map((post) => ({
       id: post.id,
       slug: post.slug,
-      type: post.postType as "property" | "client" | "text",
+      type: post.postType as "property" | "client" | "mandate" | "text",
       content: post.content || "",
       timestamp: post.createdAt.toISOString(),
       author: {
@@ -159,7 +159,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
       },
       linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
         id: post.linkedEntityId,
-        type: post.linkedEntityType as "property" | "client",
+        type: post.linkedEntityType as "property" | "client" | "mandate",
         title: post.linkedEntityTitle || "Untitled",
         subtitle: post.linkedEntitySubtitle || undefined,
         metadata: post.linkedEntityMetadata as Record<string, any> || undefined,

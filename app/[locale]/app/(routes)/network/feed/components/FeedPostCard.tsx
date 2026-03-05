@@ -12,6 +12,7 @@ import {
   Globe,
   Shield,
   Users,
+  ClipboardList,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +42,7 @@ interface PostAttachment {
 export interface SocialPost {
   id: string;
   slug?: string | null;
-  type: "property" | "client" | "text";
+  type: "property" | "client" | "mandate" | "text";
   content: string;
   timestamp: string;
   author: {
@@ -53,7 +54,7 @@ export interface SocialPost {
   };
   linkedEntity?: {
     id: string;
-    type: "property" | "client";
+    type: "property" | "client" | "mandate";
     title: string;
     subtitle?: string;
     image?: string;
@@ -93,6 +94,8 @@ export function FeedPostCard({
         return t?.post?.sharedProperty || "shared a property";
       case "client":
         return t?.post?.sharedClient || "shared a client";
+      case "mandate":
+        return t?.post?.sharedMandate || "shared a mandate";
       default:
         return t?.post?.postedUpdate || "posted an update";
     }
@@ -105,6 +108,8 @@ export function FeedPostCard({
         return `/app/mls/properties/${post.linkedEntity.id}`;
       case "client":
         return `/app/crm/clients/${post.linkedEntity.id}`;
+      case "mandate":
+        return `/app/crm/mandates/${post.linkedEntity.id}`;
       default:
         return "#";
     }
@@ -116,6 +121,8 @@ export function FeedPostCard({
         return <Building2 className="h-4 w-4" />;
       case "client":
         return <User className="h-4 w-4" />;
+      case "mandate":
+        return <ClipboardList className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
     }
@@ -127,6 +134,8 @@ export function FeedPostCard({
         return "bg-primary/10 text-primary border-primary/20";
       case "client":
         return "bg-success/10 text-success border-success/20";
+      case "mandate":
+        return "bg-warning/10 text-warning border-warning/20";
       default:
         return "bg-gray-500/10 text-muted-foreground border-gray-500/20";
     }
@@ -270,7 +279,9 @@ export function FeedPostCard({
                         ? t?.badges?.client || "Client"
                         : post.linkedEntity.type === "property"
                           ? t?.badges?.property || "Property"
-                          : post.linkedEntity.type}
+                          : post.linkedEntity.type === "mandate"
+                            ? t?.badges?.mandate || "Mandate"
+                            : post.linkedEntity.type}
                     </Badge>
                   </div>
                   <h4 className="font-medium mt-1 truncate text-sm">
@@ -286,6 +297,18 @@ export function FeedPostCard({
                       &euro;{post.linkedEntity.metadata.price.toLocaleString()}
                     </p>
                   )}
+                  {post.linkedEntity.type === "mandate" &&
+                    (post.linkedEntity.metadata?.budgetMin ||
+                      post.linkedEntity.metadata?.budgetMax) && (
+                      <p className="text-sm font-semibold text-warning mt-1">
+                        &euro;
+                        {post.linkedEntity.metadata.budgetMin?.toLocaleString() ||
+                          "0"}
+                        {post.linkedEntity.metadata.budgetMax
+                          ? ` – €${post.linkedEntity.metadata.budgetMax.toLocaleString()}`
+                          : "+"}
+                      </p>
+                    )}
                 </div>
               </div>
             </div>

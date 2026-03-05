@@ -57,7 +57,7 @@ const createEventFormSchema = (t: (key: string) => string) => z.object({
   description: z.string().optional(),
   startTime: z.date(),
   endTime: z.date(),
-  location: z.union([z.string(), z.custom<LocationData>()]).optional(),
+  location: z.string().optional(),
   eventType: z.string().optional(),
   eventTypeOther: z.string().optional(),
   assignedUserId: z.string().optional(),
@@ -164,10 +164,7 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
 
   async function onSubmit(data: EventFormValues) {
     try {
-      // Extract location string from LocationData if needed
-      const locationString = typeof data.location === "string" 
-        ? data.location 
-        : (data.location as LocationData)?.address || "";
+      const locationString = data.location || "";
 
       await updateEvent({
         title: data.title,

@@ -43,10 +43,10 @@ export const getMandate = async (mandateId: string) => {
           client_status: true,
         },
       },
-      MandateComment: {
+      comments: {
         orderBy: { createdAt: "desc" },
         include: {
-          Users: {
+          user: {
             select: {
               id: true,
               name: true,
@@ -67,7 +67,7 @@ export const getMandate = async (mandateId: string) => {
 
   // Decrypt comment content for each MandateComment
   const decryptedComments = [];
-  for (const comment of decryptedData.MandateComment) {
+  for (const comment of decryptedData.comments) {
     try {
       const dec = await decryptMandateCommentForOrg(comment, organizationId);
       decryptedComments.push(dec);
@@ -83,7 +83,7 @@ export const getMandate = async (mandateId: string) => {
 
   const mappedData = {
     ...decryptedData,
-    MandateComment: decryptedComments,
+    comments: decryptedComments,
   };
 
   // Serialize to plain objects - converts Decimal to number, Date to string

@@ -37,9 +37,9 @@ export async function GET(
         client: {
           select: { id: true, client_name: true, primary_email: true, primary_phone: true },
         },
-        MandateComment: {
+        comments: {
           include: {
-            Users: {
+            user: {
               select: {
                 id: true,
                 name: true,

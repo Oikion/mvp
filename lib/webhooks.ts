@@ -496,7 +496,7 @@ export async function dispatchPropertyWebhook(
     property_name: string;
     property_status?: string | null;
     property_type?: string | null;
-    price?: number | null;
+    price?: unknown;
     assigned_to?: string | null;
   }
 ): Promise<void> {
