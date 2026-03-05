@@ -79,7 +79,8 @@ enum SubmissionStatus {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model CalendarEvent {
-  id                 String               @id
+  id                 String               @id @default(uuid())
+  friendlyId         String?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime
   calendarEventId    Int                  @unique
@@ -108,9 +109,11 @@ model CalendarEvent {
   Clients            Clients[]            @relation("EventToClients")
   Properties         Properties[]         @relation("EventToProperties")
 
+  @@unique([friendlyId, organizationId])
   @@index([assignedUserId])
   @@index([calendarEventId])
   @@index([eventType])
+  @@index([friendlyId])
   @@index([organizationId])
   @@index([startTime])
 }
@@ -207,7 +210,8 @@ model Client_Properties {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Clients {
-  id                               String               @id
+  id                               String               @id @default(uuid())
+  friendlyId                       String?
   createdAt                        DateTime             @default(now())
   createdBy                        String?
   updatedAt                        DateTime?
@@ -276,15 +280,18 @@ model Clients {
   PropertyShowing                  PropertyShowing[]
   Mandate                          Mandate[]
 
+  @@unique([friendlyId, organizationId])
   @@index([assigned_to])
   @@index([client_status])
   @@index([createdAt])
+  @@index([friendlyId])
   @@index([organizationId])
   @@index([lead_source])
 }
 
 model Deal {
-  id                                String     @id
+  id                                String     @id @default(uuid())
+  friendlyId                        String?
   organizationId                    String     // SECURITY: Required for tenant isolation
   propertyId                        String
   clientId                          String
@@ -315,8 +322,10 @@ model Deal {
   MarketingSpend                    MarketingSpend? @relation(fields: [marketingSpendId], references: [id])
   AgentHours                        AgentHours[]
 
+  @@unique([friendlyId, organizationId])
   @@index([clientAgentId])
   @@index([clientId])
+  @@index([friendlyId])
   @@index([organizationId])
   @@index([propertyAgentId])
   @@index([propertyId])
@@ -365,7 +374,8 @@ model DocumentView {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Documents {
-  id                                             String               @id
+  id                                             String               @id @default(uuid())
+  friendlyId                                     String?
   date_created                                   DateTime?            @default(now())
   createdAt                                      DateTime?            @default(now())
   last_updated                                   DateTime?
@@ -412,9 +422,11 @@ model Documents {
   Properties                                     Properties[]
   crm_Accounts_Tasks_DocumentsToTasksExplicit    crm_Accounts_Tasks[] @relation("DocumentsToTasksExplicit")
 
+  @@unique([friendlyId, organizationId])
   @@index([assigned_user])
   @@index([created_by_user])
   @@index([date_created])
+  @@index([friendlyId])
   @@index([linkEnabled])
   @@index([organizationId])
   @@index([shareableLink])
@@ -517,12 +529,15 @@ model FeedbackComment {
 }
 
 model IdSequence {
-  id        String   @id
-  prefix    String   @unique
-  lastValue Int      @default(0)
-  updatedAt DateTime
+  id             String   @id
+  prefix         String
+  organizationId String   @default("__global__")
+  lastValue      Int      @default(0)
+  updatedAt      DateTime
 
+  @@unique([prefix, organizationId])
   @@index([prefix])
+  @@index([organizationId])
 }
 
 model ImageUpload {
@@ -611,7 +626,8 @@ model ProfileShowcaseProperty {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Properties {
-  id                                  String                    @id
+  id                                  String                    @id @default(uuid())
+  friendlyId                          String?
   createdAt                           DateTime                  @default(now())
   createdBy                           String?
   updatedAt                           DateTime?
@@ -702,8 +718,10 @@ model Properties {
   PropertyShowing                     PropertyShowing[]
   XeSyncItems                         XeSyncItem[]
 
+  @@unique([friendlyId, organizationId])
   @@index([assigned_to])
   @@index([createdAt])
+  @@index([friendlyId])
   @@index([organizationId])
   @@index([portal_visibility])
   @@index([property_status])
@@ -928,7 +946,8 @@ model Users {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model crm_Accounts_Tasks {
-  id                                    String                        @id
+  id                                    String                        @id @default(uuid())
+  friendlyId                            String?
   content                               String?
   createdAt                             DateTime?                     @default(now())
   createdBy                             String?
@@ -950,6 +969,8 @@ model crm_Accounts_Tasks {
   Documents_DocumentsToCrmAccountsTasks Documents[]                   @relation("DocumentsToCrmAccountsTasks")
   Documents_DocumentsToTasksExplicit    Documents[]                   @relation("DocumentsToTasksExplicit")
 
+  @@unique([friendlyId, organizationId])
+  @@index([friendlyId])
   @@index([organizationId])
 }
 
@@ -1490,7 +1511,8 @@ enum MandateUrgency {
 // ============================================
 
 model Mandate {
-  id                  String            @id
+  id                  String            @id @default(uuid())
+  friendlyId          String?
   organizationId      String
   createdAt           DateTime          @default(now())
   createdBy           String?
@@ -1542,6 +1564,8 @@ model Mandate {
   assigned_to_user    Users?            @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
   comments            MandateComment[]
 
+  @@unique([friendlyId, organizationId])
+  @@index([friendlyId])
   @@index([organizationId])
   @@index([clientId])
   @@index([assigned_to])

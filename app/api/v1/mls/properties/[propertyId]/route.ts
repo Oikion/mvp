@@ -24,8 +24,8 @@ export const GET = withExternalApi(
 
     const property = await prismadb.properties.findFirst({
       where: {
-        id: propertyId,
         organizationId: context.organizationId,
+        OR: [{ friendlyId: propertyId }, { id: propertyId }],
       },
       select: {
         id: true,
@@ -166,8 +166,8 @@ export const PUT = withExternalApi(
     // Verify property exists and belongs to organization
     const existingProperty = await prismadb.properties.findFirst({
       where: {
-        id: propertyId,
         organizationId: context.organizationId,
+        OR: [{ friendlyId: propertyId }, { id: propertyId }],
       },
     });
 
@@ -239,7 +239,7 @@ export const PUT = withExternalApi(
     if (portalVisibility !== undefined) updateData.portal_visibility = portalVisibility;
 
     const property = await prismadb.properties.update({
-      where: { id: propertyId },
+      where: { id: existingProperty.id },
       data: updateData,
       select: {
         id: true,
@@ -290,8 +290,8 @@ export const DELETE = withExternalApi(
     // Verify property exists and belongs to organization
     const existingProperty = await prismadb.properties.findFirst({
       where: {
-        id: propertyId,
         organizationId: context.organizationId,
+        OR: [{ friendlyId: propertyId }, { id: propertyId }],
       },
     });
 
@@ -301,7 +301,7 @@ export const DELETE = withExternalApi(
 
     // Delete property
     await prismadb.properties.delete({
-      where: { id: propertyId },
+      where: { id: existingProperty.id },
     });
 
     // Dispatch webhook

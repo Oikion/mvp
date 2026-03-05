@@ -105,11 +105,11 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
   const getEntityLink = () => {
     switch (entityType) {
       case "PROPERTY":
-        return `/app/mls/properties/${entity.id}`;
+        return `/app/mls/properties/${entity.friendlyId ?? entity.id}`;
       case "CLIENT":
-        return `/app/crm/accounts/${entity.id}`;
+        return `/app/crm/accounts/${entity.friendlyId ?? entity.id}`;
       case "DOCUMENT":
-        return `/app/documents/${entity.id}`;
+        return `/app/documents/${entity.friendlyId ?? entity.id}`;
       default:
         return "#";
     }

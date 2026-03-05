@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 interface MandateCardProps {
   data: {
     id: string;
+    friendlyId?: string;
     title: string;
     transaction_type: string;
     property_type?: string | null;
@@ -166,7 +167,7 @@ export const MandateCard = memo(
         <CardFooter className="pt-0 flex justify-end">
           <Button variant="ghost" size="sm" className="w-full" asChild>
             <Link
-              href={`/app/mandates/${data.id}`}
+              href={`/app/mandates/${data.friendlyId ?? data.id}`}
               className="inline-flex items-center gap-2"
             >
               <Eye className="h-4 w-4" />

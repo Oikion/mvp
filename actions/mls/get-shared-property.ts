@@ -15,11 +15,25 @@ export async function getSharedProperty(propertyId: string) {
     return null;
   }
 
+  // First, resolve the property by friendlyId or id (no org filter)
+  const resolvedProperty = await prismadb.properties.findFirst({
+    where: {
+      OR: [{ friendlyId: propertyId }, { id: propertyId }],
+    },
+    select: { id: true },
+  });
+
+  if (!resolvedProperty) {
+    return null;
+  }
+
+  const resolvedId = resolvedProperty.id;
+
   // Check if the property is shared with the current user
   const share = await prismadb.sharedEntity.findFirst({
     where: {
       entityType: "PROPERTY",
-      entityId: propertyId,
+      entityId: resolvedId,
       sharedWithId: currentUser.id,
     },
     select: {
@@ -41,9 +55,9 @@ export async function getSharedProperty(propertyId: string) {
     return null;
   }
 
-  // Fetch the property (without organization restriction)
+  // Fetch the property with full includes
   const property = await prismadb.properties.findUnique({
-    where: { id: propertyId },
+    where: { id: resolvedId },
     include: {
       Users_Properties_assigned_toToUsers: {
         select: {
@@ -105,16 +119,28 @@ export async function getSharedProperty(propertyId: string) {
  */
 export async function hasPropertyShareAccess(propertyId: string): Promise<boolean> {
   const currentUser = await getCurrentUserSafe();
-  
+
   // Return false if no user context
   if (!currentUser) {
+    return false;
+  }
+
+  // Resolve the property by friendlyId or id
+  const resolvedProperty = await prismadb.properties.findFirst({
+    where: {
+      OR: [{ friendlyId: propertyId }, { id: propertyId }],
+    },
+    select: { id: true },
+  });
+
+  if (!resolvedProperty) {
     return false;
   }
 
   const share = await prismadb.sharedEntity.findFirst({
     where: {
       entityType: "PROPERTY",
-      entityId: propertyId,
+      entityId: resolvedProperty.id,
       sharedWithId: currentUser.id,
     },
     select: { id: true },

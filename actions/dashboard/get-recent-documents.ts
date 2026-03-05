@@ -1,5 +1,6 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { decryptDocumentForOrg, decryptClientForOrg } from "@/lib/model-encryption";
 
 export interface RecentDocument {
   id: string;
@@ -66,23 +67,36 @@ export const getRecentDocuments = async (limit: number = 5): Promise<RecentDocum
     take: limit,
   });
 
-  return documents.map((doc) => ({
-    id: doc.id,
-    name: doc.document_name,
-    description: doc.description,
-    mimeType: doc.document_file_mimeType,
-    url: doc.document_file_url,
-    size: doc.size,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
-    createdBy: doc.Users_Documents_created_by_userToUsers
-      ? {
-          id: doc.Users_Documents_created_by_userToUsers.id,
-          name: doc.Users_Documents_created_by_userToUsers.name,
-          avatar: doc.Users_Documents_created_by_userToUsers.avatar,
-        }
-      : null,
-    linkedClients: doc.Clients.map((c) => ({ id: c.id, name: c.client_name })),
-    linkedProperties: doc.Properties.map((p) => ({ id: p.id, name: p.property_name })),
-  }));
+  // Decrypt document fields and linked entity names
+  return Promise.all(
+    documents.map(async (doc) => {
+      const decDoc = await decryptDocumentForOrg(doc, organizationId);
+      // Decrypt linked client names (client_name is encrypted)
+      const linkedClients = await Promise.all(
+        doc.Clients.map(async (c) => {
+          const dc = await decryptClientForOrg(c, organizationId);
+          return { id: dc.id, name: dc.client_name };
+        })
+      );
+      return {
+        id: decDoc.id,
+        name: decDoc.document_name,
+        description: decDoc.description,
+        mimeType: decDoc.document_file_mimeType,
+        url: decDoc.document_file_url,
+        size: decDoc.size,
+        createdAt: decDoc.createdAt,
+        updatedAt: decDoc.updatedAt,
+        createdBy: decDoc.Users_Documents_created_by_userToUsers
+          ? {
+              id: decDoc.Users_Documents_created_by_userToUsers.id,
+              name: decDoc.Users_Documents_created_by_userToUsers.name,
+              avatar: decDoc.Users_Documents_created_by_userToUsers.avatar,
+            }
+          : null,
+        linkedClients,
+        linkedProperties: doc.Properties.map((p) => ({ id: p.id, name: p.property_name })),
+      };
+    })
+  );
 };

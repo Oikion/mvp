@@ -37,8 +37,8 @@ export async function generateStaticParams() {
 
       for (const property of properties) {
         if (property.id) {
-          params.push({ org_username: org.slug, slug: property.id, locale: "en" });
-          params.push({ org_username: org.slug, slug: property.id, locale: "el" });
+          params.push({ org_username: org.slug, slug: property.friendlyId ?? property.id, locale: "en" });
+          params.push({ org_username: org.slug, slug: property.friendlyId ?? property.id, locale: "el" });
         }
       }
     }

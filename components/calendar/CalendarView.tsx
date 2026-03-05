@@ -209,7 +209,7 @@ export function CalendarView() {
                         className="text-base cursor-pointer flex-1"
                         onClick={() => {
                           if (event.eventId) {
-                            router.push(`/app/calendar/events/${event.eventId}`);
+                            router.push(`/app/calendar/events/${event.friendlyId ?? event.eventId}`);
                           }
                         }}
                       >
@@ -218,6 +218,7 @@ export function CalendarView() {
                       {event.eventId && (
                         <EventActionsMenu
                           eventId={event.eventId}
+                          eventFriendlyId={event.friendlyId}
                           event={event}
                           onEventUpdated={handleEventUpdated}
                           onEventDeleted={handleEventDeleted}

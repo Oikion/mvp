@@ -198,7 +198,7 @@ export async function POST(req: Request) {
 
     const newMandate = await prismadb.mandate.create({
       data: {
-        id: mandateId,
+        friendlyId: mandateId,
         organizationId,
         createdBy: user.id,
         updatedBy: user.id,

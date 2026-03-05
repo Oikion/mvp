@@ -1,8 +1,10 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe, getCurrentUser } from "@/lib/get-current-user";
+import { decryptCalendarEventForOrg, decryptClientForOrg } from "@/lib/model-encryption";
 
 export interface UpcomingEvent {
   id: string;
+  friendlyId?: string;
   title: string | null;
   description: string | null;
   startTime: Date;
@@ -88,22 +90,35 @@ export const getUpcomingEvents = async (limit: number = 5): Promise<UpcomingEven
     take: limit,
   });
 
-  return events.map((event) => ({
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    startTime: event.startTime,
-    endTime: event.endTime,
-    location: event.location,
-    eventType: event.eventType,
-    assignedUser: event.Users
-      ? {
-          id: event.Users.id,
-          name: event.Users.name,
-          avatar: event.Users.avatar,
-        }
-      : null,
-    clients: event.Clients.map((c) => ({ id: c.id, name: c.client_name })),
-    properties: event.Properties.map((p) => ({ id: p.id, name: p.property_name })),
-  }));
+  // Decrypt event fields and linked entity names
+  return Promise.all(
+    events.map(async (event) => {
+      const dec = await decryptCalendarEventForOrg(event, organizationId);
+      // Decrypt linked client names
+      const clients = await Promise.all(
+        event.Clients.map(async (c) => {
+          const dc = await decryptClientForOrg(c, organizationId);
+          return { id: dc.id, name: dc.client_name };
+        })
+      );
+      return {
+        id: dec.id,
+        title: dec.title,
+        description: dec.description,
+        startTime: dec.startTime,
+        endTime: dec.endTime,
+        location: dec.location,
+        eventType: dec.eventType,
+        assignedUser: dec.Users
+          ? {
+              id: dec.Users.id,
+              name: dec.Users.name,
+              avatar: dec.Users.avatar,
+            }
+          : null,
+        clients,
+        properties: event.Properties.map((p) => ({ id: p.id, name: p.property_name })),
+      };
+    })
+  );
 };

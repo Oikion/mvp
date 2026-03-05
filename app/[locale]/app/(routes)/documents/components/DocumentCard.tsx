@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 
 interface DocumentCardProps {
   id: string;
+  friendlyId?: string;
   document_name: string;
   description?: string | null;
   createdAt?: Date | null;
@@ -18,13 +19,14 @@ interface DocumentCardProps {
   shareableLink?: string | null;
   passwordProtected?: boolean;
   viewsCount?: number;
-  onView?: (id: string) => void;
-  onShare?: (id: string) => void;
+  onView?: (id: string, friendlyId?: string) => void;
+  onShare?: (id: string, friendlyId?: string) => void;
   onDelete?: (id: string) => void;
 }
 
 export function DocumentCard({
   id,
+  friendlyId,
   document_name,
   description,
   createdAt,
@@ -98,7 +100,7 @@ export function DocumentCard({
             variant="outline"
             size="sm"
             leftIcon={<Eye className="h-4 w-4" />}
-            onClick={() => onView?.(id)}
+            onClick={() => onView?.(id, friendlyId)}
           >
             {t("documentCard.view")}
           </Button>
@@ -106,7 +108,7 @@ export function DocumentCard({
             variant="outline"
             size="sm"
             leftIcon={<Share2 className="h-4 w-4" />}
-            onClick={() => onShare?.(id)}
+            onClick={() => onShare?.(id, friendlyId)}
           >
             {t("documentCard.share")}
           </Button>

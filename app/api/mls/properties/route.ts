@@ -291,10 +291,10 @@ export async function POST(req: Request) {
       });
     } else {
       // Create new property with friendly ID
-      const propertyId = await generateFriendlyId(prismadb, "Properties", organizationId);
+      const friendlyId = await generateFriendlyId(prismadb, "Properties", organizationId);
       property = await prismadb.properties.create({
         data: {
-          id: propertyId,
+          friendlyId,
           ...data,
         },
       });

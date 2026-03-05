@@ -48,6 +48,7 @@ interface SearchMeta {
 interface SearchApiResponse {
   properties?: Array<{
     id: string;
+    friendlyId?: string;
     property_name?: string;
     area?: string;
     municipality?: string;
@@ -55,12 +56,14 @@ interface SearchApiResponse {
   }>;
   clients?: Array<{
     id: string;
+    friendlyId?: string;
     client_name?: string;
     primary_email?: string;
     relationships?: Relationships;
   }>;
   contacts?: Array<{
     id: string;
+    friendlyId?: string;
     contact_first_name?: string;
     contact_last_name?: string;
     email?: string;
@@ -68,12 +71,14 @@ interface SearchApiResponse {
   }>;
   documents?: Array<{
     id: string;
+    friendlyId?: string;
     document_name?: string;
     description?: string;
     relationships?: Relationships;
   }>;
   events?: Array<{
     id: string;
+    friendlyId?: string;
     title?: string;
     startTime?: string;
     location?: string;
@@ -119,7 +124,7 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
         type: "property",
         title: prop.property_name || "Unnamed Property",
         subtitle: prop.area || prop.municipality || undefined,
-        url: `/app/mls/properties/${prop.id}`,
+        url: `/app/mls/properties/${prop.friendlyId ?? prop.id}`,
         relationships: prop.relationships,
       });
     });
@@ -133,7 +138,7 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
         type: "client",
         title: client.client_name || "Unnamed Client",
         subtitle: client.primary_email || undefined,
-        url: `/app/crm/clients/${client.id}`,
+        url: `/app/crm/clients/${client.friendlyId ?? client.id}`,
         relationships: client.relationships,
       });
     });
@@ -149,7 +154,7 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
         type: "contact",
         title: fullName || "Unnamed Contact",
         subtitle: contact.email || undefined,
-        url: `/app/crm/contacts/${contact.id}`,
+        url: `/app/crm/contacts/${contact.friendlyId ?? contact.id}`,
         relationships: contact.relationships,
       });
     });
@@ -163,7 +168,7 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
         type: "document",
         title: doc.document_name || "Unnamed Document",
         subtitle: doc.description || undefined,
-        url: `/app/documents/${doc.id}`,
+        url: `/app/documents/${doc.friendlyId ?? doc.id}`,
         relationships: doc.relationships,
       });
     });
@@ -185,7 +190,7 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
         type: "event",
         title: event.title || "Untitled Event",
         subtitle: subtitleParts.length > 0 ? subtitleParts.join(" • ") : undefined,
-        url: `/app/calendar/events/${event.id}`,
+        url: `/app/calendar/events/${event.friendlyId ?? event.id}`,
         relationships: event.relationships,
       });
     });

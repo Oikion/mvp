@@ -39,6 +39,7 @@ import {
 interface CalendarEvent {
   id: number;
   eventId?: string;
+  friendlyId?: string;
   title: string;
   description?: string;
   startTime: string;
@@ -459,7 +460,7 @@ export function WeekView({
                         style={{ top: `${top}px`, height: `${height}px` }}
                         onClick={() => {
                           if (event.eventId) {
-                            router.push(`/app/calendar/events/${event.eventId}`);
+                            router.push(`/app/calendar/events/${event.friendlyId ?? event.eventId}`);
                           }
                         }}
                       >
@@ -472,6 +473,7 @@ export function WeekView({
                               <div onClick={(e) => e.stopPropagation()}>
                                 <EventActionsMenu
                                   eventId={event.eventId}
+                                  eventFriendlyId={event.friendlyId}
                                   event={event}
                                   onEventUpdated={onEventUpdated}
                                   onEventDeleted={onEventDeleted}

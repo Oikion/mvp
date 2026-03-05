@@ -67,12 +67,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate friendly ID
-    const clientId = await generateFriendlyId(prismadb, "Clients", organizationId);
+    const friendlyId = await generateFriendlyId(prismadb, "Clients", organizationId);
 
     // Create client
     const client = await prismadb.clients.create({
       data: {
-        id: clientId,
+        friendlyId,
         organizationId,
         createdBy: userId,
         updatedBy: userId,

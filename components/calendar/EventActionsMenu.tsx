@@ -36,6 +36,7 @@ const fetchRefs: Record<string, boolean> = {}; // Track ongoing fetches per even
 
 interface EventActionsMenuProps {
   eventId: string;
+  eventFriendlyId?: string;
   event?: any; // Optional event data for edit form
   onEventUpdated?: () => void;
   onEventDeleted?: () => void;
@@ -43,6 +44,7 @@ interface EventActionsMenuProps {
 
 export function EventActionsMenu({
   eventId,
+  eventFriendlyId,
   event,
   onEventUpdated,
   onEventDeleted,
@@ -225,7 +227,7 @@ export function EventActionsMenu({
             onClick={(e) => {
               e.stopPropagation();
               if (eventId) {
-                router.push(`/app/calendar/events/${eventId}`);
+                router.push(`/app/calendar/events/${eventFriendlyId ?? eventId}`);
               }
             }}
           >

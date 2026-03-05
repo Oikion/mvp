@@ -15,9 +15,9 @@ export const getClient = async (clientId: string) => {
     return null;
   }
   const data = await prismadb.clients.findFirst({
-    where: { 
-      id: clientId,
+    where: {
       organizationId,
+      OR: [{ friendlyId: clientId }, { id: clientId }],
     },
     include: {
       Users_Clients_assigned_toToUsers: { select: { name: true, id: true } },

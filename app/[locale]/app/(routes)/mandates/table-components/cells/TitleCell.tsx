@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 
 interface TitleCellProps {
   mandateId: string;
+  mandateFriendlyId?: string;
   value: string | null | undefined;
 }
 
-export const TitleCell = ({ mandateId, value }: TitleCellProps) => {
+export const TitleCell = ({ mandateId, mandateFriendlyId, value }: TitleCellProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value ?? "");
   const [loading, setLoading] = useState(false);
@@ -92,7 +93,7 @@ export const TitleCell = ({ mandateId, value }: TitleCellProps) => {
         {value || <span className="text-muted-foreground">—</span>}
       </span>
       <Link
-        href={`/app/mandates/${mandateId}`}
+        href={`/app/mandates/${mandateFriendlyId ?? mandateId}`}
         className="ml-1 text-muted-foreground hover:text-primary transition-colors shrink-0"
         title="View details"
         onClick={(e) => e.stopPropagation()}

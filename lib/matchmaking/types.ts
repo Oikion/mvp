@@ -183,6 +183,7 @@ export interface MatchResult {
 export interface MatchResultWithClient extends MatchResult {
   client: {
     id: string;
+    friendlyId?: string;
     client_name: string;
     full_name?: string | null;
     intent?: ClientIntent | null;
@@ -198,6 +199,7 @@ export interface MatchResultWithClient extends MatchResult {
 export interface MatchResultWithProperty extends MatchResult {
   property: {
     id: string;
+    friendlyId?: string;
     property_name: string;
     price?: number | null;
     property_type?: PropertyType | null;
@@ -218,6 +220,7 @@ export interface MatchResultWithProperty extends MatchResult {
  */
 export interface ClientSummary {
   id: string;
+  friendlyId?: string;
   client_name: string;
   full_name?: string | null;
   intent?: ClientIntent | null;
@@ -233,6 +236,7 @@ export interface ClientSummary {
  */
 export interface PropertySummary {
   id: string;
+  friendlyId?: string;
   property_name: string;
   price?: number | null;
   property_type?: PropertyType | null;

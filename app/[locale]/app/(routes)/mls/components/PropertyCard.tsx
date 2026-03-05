@@ -17,6 +17,7 @@ import { EntityCardActions } from "@/components/entity";
 interface PropertyCardProps {
   data: {
     id: string;
+    friendlyId?: string;
     property_name: string;
     property_status?: string;
     price?: number;
@@ -56,8 +57,8 @@ export const PropertyCard = memo(function PropertyCard({ data, index = 0 }: Prop
   }, [data.id]);
 
   const handleEdit = useCallback(() => {
-    router.push(`/app/mls/properties/${data.id}?edit=true`);
-  }, [router, data.id]);
+    router.push(`/app/mls/properties/${data.friendlyId ?? data.id}?edit=true`);
+  }, [router, data.friendlyId, data.id]);
 
   const handleActionComplete = useCallback(() => {
     router.refresh();
@@ -109,7 +110,7 @@ export const PropertyCard = memo(function PropertyCard({ data, index = 0 }: Prop
               entityType="property"
               entityId={data.id}
               entityName={data.property_name}
-              viewHref={`/app/mls/properties/${data.id}`}
+              viewHref={`/app/mls/properties/${data.friendlyId ?? data.id}`}
               onEdit={handleEdit}
               onDelete={handleDelete}
               showSchedule
@@ -159,7 +160,7 @@ export const PropertyCard = memo(function PropertyCard({ data, index = 0 }: Prop
           {data.assigned_to_user?.name || t("MlsPropertiesTable.unassigned")}
         </div>
         <Button variant="outline" size="sm" asChild>
-          <Link href={`/app/mls/properties/${data.id}`} className="inline-flex items-center gap-2">
+          <Link href={`/app/mls/properties/${data.friendlyId ?? data.id}`} className="inline-flex items-center gap-2">
             <Eye className="h-4 w-4" />
             {t("MlsPropertiesTable.details")}
           </Link>

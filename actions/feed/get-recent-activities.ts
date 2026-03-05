@@ -2,6 +2,12 @@
 
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
+import {
+  decryptPropertyForOrg,
+  decryptClientForOrg,
+  decryptDocumentForOrg,
+  decryptCalendarEventForOrg,
+} from "@/lib/model-encryption";
 
 export interface ActivityItem {
   id: string;
@@ -16,6 +22,7 @@ export interface ActivityItem {
     avatar?: string;
   };
   entityId: string;
+  entityFriendlyId?: string;
   metadata?: Record<string, any>;
 }
 
@@ -43,7 +50,11 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     },
   });
 
-  for (const property of properties) {
+  const decryptedProperties = await Promise.all(
+    properties.map((p) => decryptPropertyForOrg(p, orgId))
+  );
+
+  for (const property of decryptedProperties) {
     const isUpdated = property.updatedAt && property.updatedAt > property.createdAt;
     const assignedUser = property.Users_Properties_assigned_toToUsers;
     activities.push({
@@ -59,6 +70,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         avatar: assignedUser.avatar || undefined,
       } : undefined,
       entityId: property.id,
+      entityFriendlyId: (property as any).friendlyId ?? undefined,
       metadata: {
         propertyType: property.property_type,
         transactionType: property.transaction_type,
@@ -82,7 +94,11 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     },
   });
 
-  for (const client of clients) {
+  const decryptedClients = await Promise.all(
+    clients.map((c) => decryptClientForOrg(c, orgId))
+  );
+
+  for (const client of decryptedClients) {
     const isUpdated = client.updatedAt && client.updatedAt > client.createdAt;
     const assignedUser = client.Users_Clients_assigned_toToUsers;
     activities.push({
@@ -98,6 +114,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         avatar: assignedUser.avatar || undefined,
       } : undefined,
       entityId: client.id,
+      entityFriendlyId: (client as any).friendlyId ?? undefined,
       metadata: {
         personType: client.person_type,
         intent: client.intent,
@@ -121,7 +138,11 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     },
   });
 
-  for (const doc of documents) {
+  const decryptedDocs = await Promise.all(
+    documents.map((d) => decryptDocumentForOrg(d, orgId))
+  );
+
+  for (const doc of decryptedDocs) {
     const isUpdated = doc.updatedAt && doc.createdAt && doc.updatedAt > doc.createdAt;
     const createdBy = doc.Users_Documents_created_by_userToUsers;
     activities.push({
@@ -137,6 +158,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         avatar: createdBy.avatar || undefined,
       } : undefined,
       entityId: doc.id,
+      entityFriendlyId: (doc as any).friendlyId ?? undefined,
       metadata: {
         documentType: doc.document_type,
         mimeType: doc.document_file_mimeType,
@@ -151,7 +173,11 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
       orderBy: { createdAt: "desc" },
     });
 
-    for (const event of events) {
+    const decryptedEvents = await Promise.all(
+      events.map((e) => decryptCalendarEventForOrg(e, orgId))
+    );
+
+    for (const event of decryptedEvents) {
       activities.push({
         id: `event-${event.id}`,
         type: "event",
@@ -161,6 +187,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         timestamp: event.createdAt?.toISOString() || new Date().toISOString(),
         actor: undefined,
         entityId: event.id,
+        entityFriendlyId: (event as any).friendlyId ?? undefined,
         metadata: {
           startTime: event.startTime instanceof Date ? event.startTime.toISOString() : event.startTime,
           endTime: event.endTime instanceof Date ? event.endTime.toISOString() : event.endTime,

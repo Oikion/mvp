@@ -22,6 +22,7 @@ interface PropertyUpdatedEmailProps {
   recipientName: string;
   actorName: string;
   propertyId: string;
+  propertyFriendlyId?: string;
   propertyName: string;
   propertyAddress?: string;
   updateType: UpdateType;
@@ -134,6 +135,7 @@ export const PropertyUpdatedEmail = ({
   recipientName,
   actorName,
   propertyId,
+  propertyFriendlyId,
   propertyName,
   propertyAddress,
   updateType,
@@ -142,7 +144,7 @@ export const PropertyUpdatedEmail = ({
 }: PropertyUpdatedEmailProps) => {
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
   const config = updateConfig[updateType];
-  const propertyUrl = `${baseUrl}/app/properties/${propertyId}`;
+  const propertyUrl = `${baseUrl}/app/properties/${propertyFriendlyId ?? propertyId}`;
 
   return (
     <Html>

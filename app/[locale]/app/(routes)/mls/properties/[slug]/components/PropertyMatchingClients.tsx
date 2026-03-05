@@ -174,7 +174,7 @@ export function PropertyMatchingClients({ propertyId, locale = "en" }: Props) {
                 {/* Client Info */}
                 <div className="flex-1 min-w-0">
                   <Link
-                    href={`/${locale}/app/crm/clients/${match.clientId}`}
+                    href={`/${locale}/app/crm/clients/${match.client?.friendlyId ?? match.clientId}`}
                     className="font-medium hover:text-primary truncate block"
                   >
                     {match.client.full_name || match.client.client_name}
@@ -190,7 +190,7 @@ export function PropertyMatchingClients({ propertyId, locale = "en" }: Props) {
                       {formatBudget(match.client.budget_min, match.client.budget_max)}
                     </span>
                     {match.client.client_status && (
-                      <Badge 
+                      <Badge
                         variant={match.client.client_status === "ACTIVE" ? "default" : "secondary"}
                         className="text-xs"
                       >
@@ -221,7 +221,7 @@ export function PropertyMatchingClients({ propertyId, locale = "en" }: Props) {
 
                 {/* View Button */}
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/${locale}/app/crm/clients/${match.clientId}`}>
+                  <Link href={`/${locale}/app/crm/clients/${match.client?.friendlyId ?? match.clientId}`}>
                     {t("common.view")}
                   </Link>
                 </Button>

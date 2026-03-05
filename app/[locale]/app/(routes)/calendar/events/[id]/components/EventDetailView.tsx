@@ -306,7 +306,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
                       <Button
                         variant="ghost"
                         className="w-full justify-start h-auto p-0"
-                        onClick={() => router.push(`/app/crm/clients/${client.id}`)}
+                        onClick={() => router.push(`/app/crm/clients/${client.friendlyId ?? client.id}`)}
                       >
                         <div className="flex items-center gap-3 w-full">
                           <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -340,7 +340,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
                       <Button
                         variant="ghost"
                         className="w-full justify-start h-auto p-0"
-                        onClick={() => router.push(`/app/mls/properties/${property.id}`)}
+                        onClick={() => router.push(`/app/mls/properties/${property.friendlyId ?? property.id}`)}
                       >
                         <div className="flex items-center gap-3 w-full">
                           <Home className="h-4 w-4 text-muted-foreground" />
@@ -376,7 +376,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
                       <Button
                         variant="ghost"
                         className="w-full justify-start h-auto p-0"
-                        onClick={() => router.push(`/app/documents/${doc.id}`)}
+                        onClick={() => router.push(`/app/documents/${doc.friendlyId ?? doc.id}`)}
                       >
                         <div className="flex items-center gap-3 w-full">
                           <FileText className="h-4 w-4 text-muted-foreground" />

@@ -488,6 +488,7 @@ function getEmailComponent(
         entityType: (metadata?.entityType || "PROPERTY") as "PROPERTY" | "CLIENT" | "DOCUMENT",
         entityName: entityName || "",
         entityId: entityId || "",
+        entityFriendlyId: metadata?.friendlyId,
         personalMessage: metadata?.shareMessage,
         userLanguage,
       });
@@ -499,6 +500,7 @@ function getEmailComponent(
         entityType: (metadata?.entityType || "PROPERTY") as "PROPERTY" | "CLIENT" | "DOCUMENT",
         entityName: entityName || "",
         entityId: entityId || "",
+        entityFriendlyId: metadata?.friendlyId,
         userLanguage,
       });
 
@@ -631,6 +633,7 @@ function getEmailComponent(
         recipientName,
         creatorName: actorName || "Someone",
         propertyId: entityId || "",
+        propertyFriendlyId: metadata?.friendlyId,
         propertyName: entityName || metadata?.propertyName || "",
         propertyAddress: metadata?.propertyAddress,
         isAssigned: false,
@@ -642,6 +645,7 @@ function getEmailComponent(
         recipientName,
         creatorName: actorName || "Someone",
         propertyId: entityId || "",
+        propertyFriendlyId: metadata?.friendlyId,
         propertyName: entityName || metadata?.propertyName || "",
         propertyAddress: metadata?.propertyAddress,
         isAssigned: true,
@@ -667,6 +671,7 @@ function getEmailComponent(
         recipientName,
         actorName: actorName || "Someone",
         propertyId: entityId || "",
+        propertyFriendlyId: metadata?.friendlyId,
         propertyName: entityName || metadata?.propertyName || "",
         propertyAddress: metadata?.propertyAddress,
         updateType: category === "PROPERTY_DELETED" ? "DELETED" : "UPDATED",

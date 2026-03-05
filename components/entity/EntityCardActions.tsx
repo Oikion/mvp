@@ -42,6 +42,8 @@ export interface EntityCardActionsProps {
   entityType: "property" | "client" | "contact";
   /** ID of the entity */
   entityId: string;
+  /** Friendly ID for URL display (falls back to entityId) */
+  entityFriendlyId?: string;
   /** Display name for dialogs */
   entityName?: string;
   /** Link to view the entity (if different from default) */
@@ -95,6 +97,7 @@ export interface EntityCardActionsProps {
 export function EntityCardActions({
   entityType,
   entityId,
+  entityFriendlyId,
   entityName,
   viewHref,
   onEdit,
@@ -115,11 +118,11 @@ export function EntityCardActions({
   const getDefaultViewPath = (): string => {
     switch (entityType) {
       case "property":
-        return `/app/mls/properties/${entityId}`;
+        return `/app/mls/properties/${entityFriendlyId ?? entityId}`;
       case "client":
-        return `/app/crm/clients/${entityId}`;
+        return `/app/crm/clients/${entityFriendlyId ?? entityId}`;
       case "contact":
-        return `/app/crm/contacts/${entityId}`;
+        return `/app/crm/contacts/${entityFriendlyId ?? entityId}`;
       default:
         return "#";
     }

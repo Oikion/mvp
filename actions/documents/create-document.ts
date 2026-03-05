@@ -69,7 +69,7 @@ export async function createDocument(input: CreateDocumentInput) {
     const shareableLink = input.linkEnabled ? createShareLink() : null;
 
     // Generate friendly ID
-    const documentId = await generateFriendlyId(prismadb, "Documents", organizationId);
+    const friendlyId = await generateFriendlyId(prismadb, "Documents", organizationId);
 
     const encryptedFields = await encryptDocumentForOrg({
       document_name: input.document_name,
@@ -79,7 +79,7 @@ export async function createDocument(input: CreateDocumentInput) {
     // Create document - use compressed size and final mime type
     const document = await prismaTenant.documents.create({
       data: {
-        id: documentId,
+        friendlyId,
         document_name: encryptedFields.document_name ?? input.document_name,
         description: encryptedFields.description,
         document_file_url: uploadResult.url,

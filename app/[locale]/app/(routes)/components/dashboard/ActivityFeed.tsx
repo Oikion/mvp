@@ -56,13 +56,13 @@ const getActionColor = (action: ActivityItem["action"]): BadgeVariant => {
 const getActivityHref = (activity: ActivityItem, locale: string): string => {
   switch (activity.type) {
     case "property":
-      return `/${locale}/app/mls/properties/${activity.entityId}`;
+      return `/${locale}/app/mls/properties/${activity.entityFriendlyId ?? activity.entityId}`;
     case "client":
-      return `/${locale}/app/crm/clients/${activity.entityId}`;
+      return `/${locale}/app/crm/clients/${activity.entityFriendlyId ?? activity.entityId}`;
     case "document":
-      return `/${locale}/app/documents?id=${activity.entityId}`;
+      return `/${locale}/app/documents?id=${activity.entityFriendlyId ?? activity.entityId}`;
     case "event":
-      return `/${locale}/app/calendar/events/${activity.entityId}`;
+      return `/${locale}/app/calendar/events/${activity.entityFriendlyId ?? activity.entityId}`;
     default:
       return `/${locale}/app`;
   }

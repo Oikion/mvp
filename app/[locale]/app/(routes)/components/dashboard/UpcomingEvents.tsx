@@ -96,7 +96,7 @@ export const UpcomingEvents: React.FC<UpcomingEventsProps> = ({ events }) => {
               {events.map((event) => (
                 <Link
                   key={event.id}
-                  href={`/${locale}/app/calendar/events/${event.id}`}
+                  href={`/${locale}/app/calendar/events/${event.friendlyId ?? event.id}`}
                   className="block rounded-lg border p-3 hover:border-primary/30 hover:shadow-sm transition-all"
                 >
                   <div className="flex items-start justify-between gap-2">

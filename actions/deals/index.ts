@@ -90,11 +90,11 @@ export async function createDeal(input: CreateDealInput) {
   }
 
   // Generate friendly ID
-  const dealId = await generateFriendlyId(prismadb, "Deal", organizationId);
+  const friendlyId = await generateFriendlyId(prismadb, "Deal", organizationId);
 
   const deal = await prismadb.deal.create({
     data: {
-      id: dealId,
+      friendlyId,
       organizationId, // SECURITY: Always set organizationId for tenant isolation
       propertyId: input.propertyId,
       clientId: input.clientId,

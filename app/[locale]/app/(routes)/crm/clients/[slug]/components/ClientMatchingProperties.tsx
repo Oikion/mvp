@@ -173,7 +173,7 @@ export function ClientMatchingProperties({ clientId, locale = "en" }: Props) {
                 {/* Property Info */}
                 <div className="flex-1 min-w-0">
                   <Link
-                    href={`/${locale}/app/mls/properties/${match.propertyId}`}
+                    href={`/${locale}/app/mls/properties/${match.property?.friendlyId ?? match.propertyId}`}
                     className="font-medium hover:text-primary truncate block"
                   >
                     {match.property.property_name}
@@ -226,7 +226,7 @@ export function ClientMatchingProperties({ clientId, locale = "en" }: Props) {
 
                 {/* View Button */}
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/${locale}/app/mls/properties/${match.propertyId}`}>
+                  <Link href={`/${locale}/app/mls/properties/${match.property?.friendlyId ?? match.propertyId}`}>
                     {t("common.view")}
                   </Link>
                 </Button>

@@ -71,7 +71,7 @@ export function TopMatchesGrid({ matches, locale }: Props) {
             </Avatar>
             <div className="min-w-0">
               <Link 
-                href={`/${locale}/app/crm/clients/${match.clientId}`}
+                href={`/${locale}/app/crm/clients/${match.client?.friendlyId ?? match.clientId}`}
                 className="font-medium hover:text-primary truncate block"
               >
                 {match.client.full_name || match.client.client_name}
@@ -132,7 +132,7 @@ export function TopMatchesGrid({ matches, locale }: Props) {
             </div>
             <div className="min-w-0">
               <Link
-                href={`/${locale}/app/mls/properties/${match.propertyId}`}
+                href={`/${locale}/app/mls/properties/${match.property?.friendlyId ?? match.propertyId}`}
                 className="font-medium hover:text-primary truncate block"
               >
                 {match.property.property_name}
@@ -162,12 +162,12 @@ export function TopMatchesGrid({ matches, locale }: Props) {
           {/* Actions */}
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/app/crm/clients/${match.clientId}`}>
+              <Link href={`/${locale}/app/crm/clients/${match.client?.friendlyId ?? match.clientId}`}>
                 {t("topMatches.viewClient")}
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/app/mls/properties/${match.propertyId}`}>
+              <Link href={`/${locale}/app/mls/properties/${match.property?.friendlyId ?? match.propertyId}`}>
                 {t("topMatches.viewProperty")}
               </Link>
             </Button>

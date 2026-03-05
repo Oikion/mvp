@@ -5,6 +5,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { requireAction } from "@/lib/permissions";
+import { decryptMessageForOrg } from "@/lib/model-encryption";
 
 /**
  * Start or get a direct message conversation with another user
@@ -439,7 +440,7 @@ export async function getUserConversations(): Promise<{
         : [];
     const unreadMap = new Map(unreadCounts.map((r) => [r.conversationId, Number(r.count)]));
 
-    const conversationsWithUnread = conversations.map((conv) => {
+    const conversationsWithUnread = await Promise.all(conversations.map(async (conv) => {
       // Determine type
       let type: "dm" | "group" | "entity" = "dm";
       if (conv.entityType && conv.entityId) {
@@ -485,11 +486,13 @@ export async function getUserConversations(): Promise<{
           ? { type: conv.entityType, id: conv.entityId }
           : undefined,
         participants: enrichedParticipants,
-        lastMessage: conv.messages[0] || undefined,
+        lastMessage: conv.messages[0]
+          ? await decryptMessageForOrg(conv.messages[0], organizationId)
+          : undefined,
         unreadCount: unreadMap.get(conv.id) ?? 0,
         isMuted,
       };
-    });
+    }));
 
     return { success: true, conversations: conversationsWithUnread };
   } catch (error) {

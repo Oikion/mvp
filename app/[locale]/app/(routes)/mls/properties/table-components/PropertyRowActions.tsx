@@ -31,8 +31,8 @@ export function PropertyRowActions({ row }: PropertyRowActionsProps) {
       entityType="property"
       entityId={data.id}
       entityName={data.property_name}
-      onView={() => router.push(`/app/mls/properties/${data.id}`)}
-      onEdit={() => router.push(`/app/mls/properties/${data.id}?edit=true`)}
+      onView={() => router.push(`/app/mls/properties/${data.friendlyId ?? data.id}`)}
+      onEdit={() => router.push(`/app/mls/properties/${data.friendlyId ?? data.id}?edit=true`)}
       onDelete={handleDelete}
       onSchedule={true}
       onShare={true}

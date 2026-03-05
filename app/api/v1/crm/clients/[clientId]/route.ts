@@ -24,8 +24,8 @@ export const GET = withExternalApi(
 
     const client = await prismadb.clients.findFirst({
       where: {
-        id: clientId,
         organizationId: context.organizationId,
+        OR: [{ friendlyId: clientId }, { id: clientId }],
       },
       select: {
         id: true,
@@ -156,8 +156,8 @@ export const PUT = withExternalApi(
     // Verify client exists and belongs to organization
     const existingClient = await prismadb.clients.findFirst({
       where: {
-        id: clientId,
         organizationId: context.organizationId,
+        OR: [{ friendlyId: clientId }, { id: clientId }],
       },
     });
 
@@ -233,7 +233,7 @@ export const PUT = withExternalApi(
     if (billingCountry !== undefined) updateData.billing_country = billingCountry;
 
     const client = await prismadb.clients.update({
-      where: { id: clientId },
+      where: { id: existingClient.id },
       data: updateData,
       select: {
         id: true,
@@ -284,8 +284,8 @@ export const DELETE = withExternalApi(
     // Verify client exists and belongs to organization
     const existingClient = await prismadb.clients.findFirst({
       where: {
-        id: clientId,
         organizationId: context.organizationId,
+        OR: [{ friendlyId: clientId }, { id: clientId }],
       },
     });
 
@@ -295,7 +295,7 @@ export const DELETE = withExternalApi(
 
     // Delete client
     await prismadb.clients.delete({
-      where: { id: clientId },
+      where: { id: existingClient.id },
     });
 
     // Dispatch webhook

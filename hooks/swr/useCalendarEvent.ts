@@ -2,16 +2,19 @@ import useSWR from "swr";
 
 interface LinkedClient {
   id: string;
+  friendlyId?: string;
   client_name: string;
 }
 
 interface LinkedProperty {
   id: string;
+  friendlyId?: string;
   property_name: string;
 }
 
 interface LinkedDocument {
   id: string;
+  friendlyId?: string;
   document_name: string;
   document_file_url?: string | null;
 }

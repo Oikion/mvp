@@ -128,7 +128,7 @@ function generateXeXml(property: PropertyData, locale: string): string {
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
   xml += `<properties>\n`;
   xml += `  <property>\n`;
-  xml += `    <id>${escapeXml(property.id)}</id>\n`;
+  xml += `    <id>${escapeXml(property.friendlyId ?? property.id)}</id>\n`;
   xml += `    <title>${escapeXml(property.property_name)}</title>\n`;
   xml += `    <type>${mapPropertyType(property.property_type)}</type>\n`;
   xml += `    <transaction>${mapTransactionType(property.transaction_type)}</transaction>\n`;
@@ -763,6 +763,7 @@ export async function GET(
       // Prepare property data
       const propertyData: PropertyData = {
         id: property.id,
+        friendlyId: property.friendlyId ?? undefined,
         property_name: property.property_name,
         property_type: property.property_type,
         transaction_type: property.transaction_type,

@@ -68,7 +68,7 @@ export function HotPropertiesList({ properties, locale }: Props) {
           {/* Property Info */}
           <div className="flex-1 min-w-0">
             <Link 
-              href={`/${locale}/app/mls/properties/${property.id}`}
+              href={`/${locale}/app/mls/properties/${property.friendlyId ?? property.id}`}
               className="font-medium hover:text-primary truncate block"
             >
               {property.property_name}
@@ -122,7 +122,7 @@ export function HotPropertiesList({ properties, locale }: Props) {
 
           {/* Action */}
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/${locale}/app/mls/properties/${property.id}`}>
+            <Link href={`/${locale}/app/mls/properties/${property.friendlyId ?? property.id}`}>
               {t("hotProperties.view")}
               <ArrowRight className="h-4 w-4 ml-1" />
             </Link>

@@ -29,9 +29,9 @@ export async function GET(
     const prismaTenant = prismaForOrg(organizationId);
 
     const property = await prismaTenant.properties.findFirst({
-      where: { 
-        id: propertyId,
+      where: {
         organizationId,
+        OR: [{ friendlyId: propertyId }, { id: propertyId }],
       },
     });
 
@@ -69,8 +69,11 @@ export async function DELETE(
 
     // Get the property to check ownership
     const property = await prismaTenant.properties.findFirst({
-      where: { id: propertyId, organizationId },
-      select: { assigned_to: true },
+      where: {
+        organizationId,
+        OR: [{ friendlyId: propertyId }, { id: propertyId }],
+      },
+      select: { id: true, assigned_to: true },
     });
 
     if (!property) {
@@ -81,7 +84,7 @@ export async function DELETE(
     const deleteCheck = await canPerformActionOnEntity(
       "property:delete",
       "property",
-      propertyId,
+      property.id,
       property.assigned_to
     );
     if (!deleteCheck.allowed) {
@@ -92,7 +95,7 @@ export async function DELETE(
     }
 
     await prismaTenant.properties.delete({
-      where: { id: propertyId },
+      where: { id: property.id },
     });
 
     await invalidateCache([

@@ -35,6 +35,7 @@ export const getRecentProperties = async (limit: number = 5) => {
   });
   
   // Map to PropertyCard-compatible shape, serializing non-plain types explicitly
+  // Note: property_name is not encrypted; only primary_email/communication_notes are encrypted for properties
   return data.map((p) => ({
     id: p.id,
     property_name: p.property_name ?? "",

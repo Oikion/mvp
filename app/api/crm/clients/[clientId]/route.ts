@@ -31,9 +31,9 @@ export async function GET(
     const prismaTenant = prismaForOrg(organizationId);
 
     const client = await prismaTenant.clients.findFirst({
-      where: { 
-        id: clientId,
+      where: {
         organizationId,
+        OR: [{ friendlyId: clientId }, { id: clientId }],
       },
     });
 
@@ -122,7 +122,10 @@ export async function PUT(
 
     // Verify the client belongs to the current organization before updating
     const existingClient = await prismadb.clients.findFirst({
-      where: { id: clientId, organizationId },
+      where: {
+        organizationId,
+        OR: [{ friendlyId: clientId }, { id: clientId }],
+      },
     });
 
     if (!existingClient) {
@@ -133,7 +136,7 @@ export async function PUT(
     const updateCheck = await canPerformActionOnEntity(
       "client:update",
       "client",
-      clientId,
+      existingClient.id,
       existingClient.assigned_to
     );
     if (!updateCheck.allowed) {
@@ -155,7 +158,7 @@ export async function PUT(
     }
 
     const updatedClient = await prismadb.clients.update({
-      where: { id: clientId },
+      where: { id: existingClient.id },
       data: {
         updatedBy: user.id,
         client_name,

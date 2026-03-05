@@ -46,6 +46,7 @@ import { toast } from "sonner";
 interface CalendarEvent {
   id: number;
   eventId?: string;
+  friendlyId?: string;
   title: string;
   description?: string;
   startTime: string;
@@ -259,7 +260,7 @@ function DraggableEvent({
       style={style}
       onClick={() => {
         if (event.eventId) {
-          router.push(`/app/calendar/events/${event.eventId}`);
+          router.push(`/app/calendar/events/${event.friendlyId ?? event.eventId}`);
         }
       }}
     >
@@ -270,6 +271,7 @@ function DraggableEvent({
             <div onClick={(e) => e.stopPropagation()}>
               <EventActionsMenu
                 eventId={event.eventId}
+                eventFriendlyId={event.friendlyId}
                 event={event}
                 onEventUpdated={onUpdate}
                 onEventDeleted={onDelete}

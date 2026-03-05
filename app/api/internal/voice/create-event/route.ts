@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     // Create event
     const event = await prismadb.calendarEvent.create({
       data: {
-        id: friendlyEventId,
+        friendlyId: friendlyEventId,
         calendarEventId,
         calendarUserId: 0,
         organizationId,

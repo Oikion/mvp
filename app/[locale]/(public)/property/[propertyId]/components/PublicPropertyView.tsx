@@ -490,7 +490,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
               <CardContent className="p-4 text-center">
                 <p className="text-sm text-muted-foreground">Κωδικός Ακινήτου</p>
                 <p className="font-mono font-semibold text-foreground">
-                  {property.id.slice(0, 8).toUpperCase()}
+                  {(property.friendlyId ?? property.id).slice(0, 8).toUpperCase()}
                 </p>
               </CardContent>
             </Card>

@@ -9,6 +9,7 @@ import Image from "next/image";
 interface PublicPropertyViewProps {
   property: {
     id: string;
+    friendlyId?: string;
     slug?: string;
     property_name: string;
     property_type?: string | null;
@@ -232,7 +233,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
 
               <div className="pt-4 border-t">
                 <p className="text-xs text-muted-foreground text-center">
-                  Property ID: {property.id.slice(0, 8)}...
+                  Property ID: {property.friendlyId ?? property.id}
                 </p>
               </div>
             </CardContent>

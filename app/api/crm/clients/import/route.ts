@@ -118,10 +118,10 @@ export async function POST(req: Request) {
           // Generate a new friendly ID
           clientId = await generateFriendlyId(prismadb, "Clients", organizationId);
         }
-        
+
         await prismadb.clients.create({
           data: {
-            id: clientId,
+            friendlyId: clientId,
             createdBy: user.id,
             updatedBy: user.id,
             organizationId,

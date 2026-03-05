@@ -25,18 +25,21 @@ export const ENTITY_PREFIXES = {
 
 export type EntityType = keyof typeof ENTITY_PREFIXES;
 
-/** Sentinel value for entities that are not org-scoped (e.g., Users) */
+/** Sentinel value for entities that use a global (non-org-scoped) sequence */
 const GLOBAL_ORG_ID = "__global__";
 
-/** Entity types that use a global (non-org-scoped) sequence */
-const GLOBAL_ENTITIES: Set<EntityType> = new Set<EntityType>(["Users"]);
+/** Core business entities with per-org friendly ID sequences */
+const ORG_SCOPED_ENTITIES = new Set<EntityType>([
+  "Properties", "Clients", "Mandates", "Documents",
+  "crm_Accounts_Tasks", "Deal", "CalendarEvent",
+]);
 
 /**
  * Resolves the effective organizationId for sequence operations.
- * Global entities always use "__global__". Org-scoped entities require an organizationId.
+ * Org-scoped entities get per-org sequences; all others use the global sequence.
  */
 function resolveOrgId(entityType: EntityType, organizationId?: string): string {
-  if (GLOBAL_ENTITIES.has(entityType)) return GLOBAL_ORG_ID;
+  if (!ORG_SCOPED_ENTITIES.has(entityType)) return GLOBAL_ORG_ID;
   if (!organizationId) {
     throw new Error(
       `generateFriendlyId: organizationId is required for entity type "${entityType}"`
@@ -164,12 +167,13 @@ export async function getCurrentSequenceValue(
   const prefix = ENTITY_PREFIXES[entityType];
   const orgId = resolveOrgId(entityType, organizationId);
 
-  const sequence = await prisma.idSequence.findFirst({
-    where: { prefix },
-    select: { lastValue: true },
-  });
+  const result = await prisma.$queryRaw<Array<{ lastValue: number }>>`
+    SELECT "lastValue" FROM "IdSequence"
+    WHERE prefix = ${prefix} AND "organizationId" = ${orgId}
+    LIMIT 1
+  `;
 
-  return sequence?.lastValue ?? 0;
+  return result[0]?.lastValue ?? 0;
 }
 
 /**
@@ -191,14 +195,12 @@ export async function initializeSequence(
   const orgId = resolveOrgId(entityType, organizationId);
   const compositeId = `${prefix}:${orgId}`;
 
-  await prisma.idSequence.upsert({
-    where: { prefix },
-    update: { lastValue: startValue },
-    create: {
-      id: compositeId,
-      prefix,
-      lastValue: startValue,
-      updatedAt: new Date(),
-    },
-  });
+  await prisma.$queryRaw`
+    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
+    VALUES (${compositeId}, ${prefix}, ${orgId}, ${startValue}, NOW())
+    ON CONFLICT (prefix, "organizationId")
+    DO UPDATE SET
+      "lastValue" = ${startValue},
+      "updatedAt" = NOW()
+  `;
 }

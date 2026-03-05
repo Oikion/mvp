@@ -54,36 +54,36 @@ function normalizePropertyId(id: string): string {
 }
 
 /**
- * Find the next available ID with suffix if the base ID already exists
+ * Find the next available friendlyId with suffix if the base ID already exists
  * For example: if "PROP-123" exists, returns "PROP-123-1", if that exists too, returns "PROP-123-2", etc.
  */
 async function findAvailableIdWithSuffix(
   baseId: string,
   organizationId: string
 ): Promise<string> {
-  // Check if base ID exists
+  // Check if base friendlyId exists
   const existing = await prismadb.properties.findFirst({
-    where: { id: baseId, organizationId },
+    where: { friendlyId: baseId, organizationId },
   });
 
   if (!existing) {
     return baseId;
   }
 
-  // Find all IDs that start with the base ID followed by a dash and number
+  // Find all friendlyIds that start with the base ID followed by a dash and number
   const existingWithSuffix = await prismadb.properties.findMany({
     where: {
       organizationId,
-      id: { startsWith: baseId },
+      friendlyId: { startsWith: baseId },
     },
-    select: { id: true },
+    select: { friendlyId: true },
   });
 
   // Extract suffix numbers and find the max
   let maxSuffix = 0;
   const regex = new RegExp(String.raw`^${baseId}-(\d+)$`);
   existingWithSuffix.forEach((p) => {
-    const match = regex.exec(p.id);
+    const match = p.friendlyId ? regex.exec(p.friendlyId) : null;
     if (match) {
       const suffix = Number.parseInt(match[1], 10);
       if (suffix > maxSuffix) maxSuffix = suffix;
@@ -150,26 +150,26 @@ export async function POST(req: Request) {
     // to properly check for duplicates and generate suffixes
     for (const property of validProperties) {
       try {
-        // Determine the ID to use
-        let propertyId: string;
-        
+        // Determine the friendly ID to use
+        let friendlyId: string;
+
         if (property.id && property.id.trim() !== "") {
           // User provided an ID - normalize it to be URL-safe, then check for duplicates
           const normalizedId = normalizePropertyId(property.id);
           if (normalizedId) {
-            propertyId = await findAvailableIdWithSuffix(normalizedId, organizationId);
+            friendlyId = await findAvailableIdWithSuffix(normalizedId, organizationId);
           } else {
             // If normalization results in empty string, generate a friendly ID
-            propertyId = await generateFriendlyId(prismadb, "Properties", organizationId);
+            friendlyId = await generateFriendlyId(prismadb, "Properties", organizationId);
           }
         } else {
           // Generate a new friendly ID
-          propertyId = await generateFriendlyId(prismadb, "Properties", organizationId);
+          friendlyId = await generateFriendlyId(prismadb, "Properties", organizationId);
         }
-        
+
         await prismadb.properties.create({
           data: {
-            id: propertyId,
+            friendlyId,
             createdBy: user.id,
             updatedBy: user.id,
             organizationId,

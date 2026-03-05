@@ -21,6 +21,7 @@ import {
 
 interface HotProperty {
   id: string;
+  friendlyId?: string;
   property_name: string;
   price: number | null;
   address_city: string | null;
@@ -117,7 +118,7 @@ export const MatchmakingWidget: React.FC<MatchmakingWidgetProps> = ({
                   {hotProperties.slice(0, 5).map((property, index) => (
                     <Link
                       key={property.id}
-                      href={`/${locale}/app/mls/properties/${property.id}`}
+                      href={`/${locale}/app/mls/properties/${property.friendlyId ?? property.id}`}
                       className="flex items-center gap-3 rounded-lg p-2 -mx-2 hover:bg-muted/50 transition-colors"
                     >
                       <div className="relative h-10 w-10 rounded-md bg-muted overflow-hidden shrink-0">

@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 
 interface Document {
   id: string;
+  friendlyId?: string | null;
   document_name: string;
   description?: string | null;
   createdAt?: Date | null;
@@ -43,12 +44,12 @@ export function DocumentGrid({ documents }: DocumentGridProps) {
   const t = useTranslations("documents");
   const router = useRouter();
 
-  const handleView = (id: string) => {
-    router.push(`/app/documents/${id}`);
+  const handleView = (id: string, friendlyId?: string) => {
+    router.push(`/app/documents/${friendlyId ?? id}`);
   };
 
-  const handleShare = (id: string) => {
-    router.push(`/app/documents/${id}?tab=share`);
+  const handleShare = (id: string, friendlyId?: string) => {
+    router.push(`/app/documents/${friendlyId ?? id}?tab=share`);
   };
 
   const handleDelete = async (id: string) => {
@@ -89,6 +90,7 @@ export function DocumentGrid({ documents }: DocumentGridProps) {
             <DocumentCard
               key={document.id}
               id={document.id}
+              friendlyId={document.friendlyId ?? undefined}
               document_name={document.document_name}
               description={document.description}
               createdAt={document.createdAt}

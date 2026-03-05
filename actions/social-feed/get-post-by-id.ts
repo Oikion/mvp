@@ -18,6 +18,7 @@ export interface PostWithAuthor {
   };
   linkedEntity?: {
     id: string;
+    friendlyId?: string;
     type: "property" | "client";
     title: string;
     subtitle?: string;

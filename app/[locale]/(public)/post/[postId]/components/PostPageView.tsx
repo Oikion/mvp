@@ -90,7 +90,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
     if (!post.linkedEntity) return "#";
     switch (post.linkedEntity.type) {
       case "property":
-        return `/property/${post.linkedEntity.id}`;
+        return `/property/${post.linkedEntity.friendlyId ?? post.linkedEntity.id}`;
       default:
         return "#";
     }

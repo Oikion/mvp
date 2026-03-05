@@ -26,6 +26,7 @@ import { toast } from "sonner";
 
 interface LinkedProperty {
   id: string;
+  friendlyId?: string;
   property_name: string;
   property_type?: string;
   property_status?: string;
@@ -40,6 +41,7 @@ interface LinkedProperty {
 
 interface LinkedClient {
   id: string;
+  friendlyId?: string;
   client_name: string;
   client_type?: string;
   client_status?: string;
@@ -51,6 +53,7 @@ interface LinkedClient {
 
 interface LinkedEvent {
   id: string;
+  friendlyId?: string;
   title: string;
   description?: string;
   startTime: string;
@@ -88,7 +91,7 @@ function PropertyCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
-      onClick={() => router.push(`/app/mls/properties/${property.id}`)}
+      onClick={() => router.push(`/app/mls/properties/${property.friendlyId ?? property.id}`)}
     >
       {onUnlink && (
         <Button
@@ -155,7 +158,7 @@ function ClientCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
-      onClick={() => router.push(`/app/crm/clients/${client.id}`)}
+      onClick={() => router.push(`/app/crm/clients/${client.friendlyId ?? client.id}`)}
     >
       {onUnlink && (
         <Button
@@ -220,7 +223,7 @@ function EventCard({ event }: { event: LinkedEvent }) {
         "p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group",
         isPast && "opacity-60"
       )}
-      onClick={() => router.push(`/app/calendar/events/${event.id}`)}
+      onClick={() => router.push(`/app/calendar/events/${event.friendlyId ?? event.id}`)}
     >
       <div className="flex items-start gap-3">
         <div

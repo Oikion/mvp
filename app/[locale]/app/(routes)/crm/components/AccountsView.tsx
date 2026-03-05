@@ -52,14 +52,14 @@ const AccountsView = ({ data = [], crmData }: any) => {
   const handleRowOpen = useCallback(
     (row: Row<any>) => {
       const clientId = row.original.id;
-      router.push(`/${locale}/app/crm/clients/${clientId}`);
+      router.push(`/${locale}/app/crm/clients/${row.original.friendlyId ?? clientId}`);
     },
     [router, locale]
   );
 
   const handleRowEdit = useCallback(
     (row: Row<any>) => {
-      const clientId = row.original.id;
+      const clientId = row.original.friendlyId ?? row.original.id;
       // Navigate to client edit page or open edit dialog
       router.push(`/${locale}/app/crm/clients/${clientId}?edit=true`);
     },

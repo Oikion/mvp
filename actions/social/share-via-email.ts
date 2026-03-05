@@ -36,6 +36,7 @@ async function getPropertyDetails(
     },
     select: {
       id: true,
+      friendlyId: true,
       property_name: true,
       property_type: true,
       price: true,
@@ -59,7 +60,7 @@ async function getPropertyDetails(
   return {
     title: property.property_name,
     description: description || property.description || undefined,
-    url: `${baseUrl}/app/mls/properties/${property.id}`,
+    url: `${baseUrl}/app/mls/properties/${property.friendlyId ?? property.id}`,
   };
 }
 
@@ -79,6 +80,7 @@ async function getClientDetails(
     },
     select: {
       id: true,
+      friendlyId: true,
       client_name: true,
       primary_email: true,
       intent: true,
@@ -95,7 +97,7 @@ async function getClientDetails(
   return {
     title: client.client_name,
     description: description || undefined,
-    url: `${baseUrl}/app/crm/clients/${client.id}`,
+    url: `${baseUrl}/app/crm/clients/${client.friendlyId ?? client.id}`,
   };
 }
 

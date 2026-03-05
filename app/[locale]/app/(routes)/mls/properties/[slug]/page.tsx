@@ -46,7 +46,7 @@ export default async function PropertyDetailPage({
   const sharePermission = shareInfo?.permissions as "VIEW_ONLY" | "VIEW_COMMENT" | null;
 
   return (
-    <Container title={property.property_name} description={`Property ID: ${property.id}`}>
+    <Container title={property.property_name} description={`Property ID: ${property.friendlyId ?? property.id}`}>
       <div className="max-w-5xl space-y-4">
         {isSharedView && shareInfo && (
           <SharedAccessBanner shareInfo={shareInfo} entityType="property" />

@@ -4,6 +4,7 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com/app";
 
 interface PropertyData {
   id: string;
+  friendlyId?: string;
   property_name: string;
   description?: string | null;
   price?: number | null;
@@ -37,7 +38,7 @@ interface PropertyJsonLdProps {
  * This component renders schema.org RealEstateListing markup for SEO
  */
 export function PropertyJsonLd({ property, orgSlug, locale }: PropertyJsonLdProps) {
-  const canonicalUrl = `${baseUrl}/${locale}/${orgSlug}/${property.id}`;
+  const canonicalUrl = `${baseUrl}/${locale}/${orgSlug}/${property.friendlyId ?? property.id}`;
   const orgName = property.organization?.name || orgSlug;
 
   // Build the JSON-LD object with only defined values

@@ -466,7 +466,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                     </p>
                   )}
                 </div>
-                <Link href={`/app/mls/properties/${deal.property.id}`}>
+                <Link href={`/app/mls/properties/${deal.property.friendlyId ?? deal.property.id}`}>
                   <Button variant="outline" size="sm">
                     <ExternalLink className="h-4 w-4" />
                   </Button>

@@ -42,6 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
       select: {
         id: true,
+        friendlyId: true,
         updatedAt: true,
       },
     });
@@ -68,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Generate property URLs
     const propertyUrls: MetadataRoute.Sitemap = publicProperties.map((property) => ({
-      url: `${baseUrl}/en/property/${property.id}`,
+      url: `${baseUrl}/en/property/${property.friendlyId ?? property.id}`,
       lastModified: property.updatedAt || new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
@@ -76,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Generate Greek locale property URLs
     const propertyUrlsGreek: MetadataRoute.Sitemap = publicProperties.map((property) => ({
-      url: `${baseUrl}/el/property/${property.id}`,
+      url: `${baseUrl}/el/property/${property.friendlyId ?? property.id}`,
       lastModified: property.updatedAt || new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,

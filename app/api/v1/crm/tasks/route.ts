@@ -157,7 +157,7 @@ export const POST = withExternalApi(
     // Create task
     const task = await prismadb.crm_Accounts_Tasks.create({
       data: {
-        id: taskId,
+        friendlyId: taskId,
         organizationId: context.organizationId,
         createdBy: context.createdById,
         updatedBy: context.createdById,

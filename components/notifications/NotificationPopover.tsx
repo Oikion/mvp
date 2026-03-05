@@ -186,7 +186,7 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
         router.push(`/app/crm/clients/${notification.entityId}`);
         break;
       case "PROPERTY":
-        router.push(`/app/mls/properties/${notification.entityId}`);
+        router.push(`/app/mls/properties/${(notification.metadata as Record<string, string> | null)?.friendlyId ?? notification.entityId}`);
         break;
       case "CALENDAR_EVENT":
         router.push(`/app/calendar?eventId=${notification.entityId}`);

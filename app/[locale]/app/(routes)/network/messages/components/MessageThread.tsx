@@ -82,10 +82,10 @@ function getEntityIcon(type: string) {
 }
 
 // Get entity link path
-function getEntityPath(type: string, id: string, locale: string) {
+function getEntityPath(type: string, id: string, locale: string, friendlyId?: string) {
   switch (type) {
     case "property":
-      return `/${locale}/app/mls/properties/${id}`;
+      return `/${locale}/app/mls/properties/${friendlyId ?? id}`;
     case "client":
       return `/${locale}/app/crm/clients/${id}`;
     case "document":
@@ -455,7 +455,8 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                             href={getEntityPath(
                               message.entityAttachment.type,
                               message.entityAttachment.id,
-                              locale
+                              locale,
+                              message.entityAttachment.friendlyId
                             )}
                             className="block mt-2"
                           >

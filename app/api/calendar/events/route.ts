@@ -421,7 +421,7 @@ export async function POST(req: Request) {
     // Create event in database
     const event = await prismadb.calendarEvent.create({
       data: {
-        id: friendlyEventId,
+        friendlyId: friendlyEventId,
         calendarEventId: eventId,
         calendarUserId: 0, // Legacy field maintained for backwards compatibility
         organizationId,

@@ -20,6 +20,7 @@ interface PropertyCreatedEmailProps {
   recipientName: string;
   creatorName: string;
   propertyId: string;
+  propertyFriendlyId?: string;
   propertyName: string;
   propertyAddress?: string;
   isAssigned?: boolean;
@@ -132,6 +133,7 @@ export const PropertyCreatedEmail = ({
   recipientName,
   creatorName,
   propertyId,
+  propertyFriendlyId,
   propertyName,
   propertyAddress,
   isAssigned = false,
@@ -139,7 +141,7 @@ export const PropertyCreatedEmail = ({
 }: PropertyCreatedEmailProps) => {
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
   const type = isAssigned ? "assigned" : "created";
-  const propertyUrl = `${baseUrl}/app/properties/${propertyId}`;
+  const propertyUrl = `${baseUrl}/app/properties/${propertyFriendlyId ?? propertyId}`;
 
   return (
     <Html>

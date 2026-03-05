@@ -18,7 +18,7 @@ export function DataTableRowActions<TData>({ row }: { row: Row<TData> }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px]">
-        <DropdownMenuItem onClick={() => router.push(`/mls/properties/${data?.id}`)}>View</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push(`/mls/properties/${data?.friendlyId ?? data?.id}`)}>View</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

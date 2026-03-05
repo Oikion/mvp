@@ -573,7 +573,7 @@ async function seedProperties(
     const propertyName = pick(nameTemplates).replace("{area}", location.area);
 
     const property = {
-      id: propertyIds[i],
+      friendlyId: propertyIds[i],
       property_name: propertyName,
       property_type: propertyType,
       property_status: status,
@@ -635,8 +635,14 @@ async function seedProperties(
     skipDuplicates: true,
   });
 
+  // Fetch the auto-generated UUID ids for use as FK references
+  const createdProperties = await prismadb.properties.findMany({
+    where: { friendlyId: { in: propertyIds }, organizationId: orgId },
+    select: { id: true },
+  });
+
   console.log(`✓ Created ${properties.length} properties`);
-  return propertyIds;
+  return createdProperties.map(p => p.id);
 }
 
 // ============================================

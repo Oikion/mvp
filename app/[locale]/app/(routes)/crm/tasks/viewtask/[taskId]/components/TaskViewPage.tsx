@@ -165,7 +165,7 @@ export function TaskViewPage({ taskId }: { taskId: string }) {
                     <Button
                       variant="link"
                       className="h-auto p-0 font-medium"
-                      onClick={() => router.push(`/app/crm/clients/${task.crm_accounts?.id}`)}
+                      onClick={() => router.push(`/app/crm/clients/${task.crm_accounts?.friendlyId ?? task.crm_accounts?.id}`)}
                     >
                       {task.crm_accounts.client_name}
                     </Button>

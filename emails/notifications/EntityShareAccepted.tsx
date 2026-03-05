@@ -24,6 +24,7 @@ interface EntityShareAcceptedEmailProps {
   entityType: EntityType;
   entityName: string;
   entityId: string;
+  entityFriendlyId?: string;
   userLanguage: string;
 }
 
@@ -90,14 +91,14 @@ const translations = {
   },
 };
 
-const getEntityUrl = (type: EntityType, id: string): string => {
+const getEntityUrl = (type: EntityType, id: string, friendlyId?: string): string => {
   switch (type) {
     case "PROPERTY":
-      return `${baseUrl}/app/properties/${id}`;
+      return `${baseUrl}/app/properties/${friendlyId ?? id}`;
     case "CLIENT":
-      return `${baseUrl}/app/crm/accounts/${id}`;
+      return `${baseUrl}/app/crm/accounts/${friendlyId ?? id}`;
     case "DOCUMENT":
-      return `${baseUrl}/app/documents/${id}`;
+      return `${baseUrl}/app/documents/${friendlyId ?? id}`;
     default:
       return baseUrl;
   }
@@ -109,10 +110,11 @@ export const EntityShareAcceptedEmail = ({
   entityType,
   entityName,
   entityId,
+  entityFriendlyId,
   userLanguage,
 }: EntityShareAcceptedEmailProps) => {
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
-  const entityUrl = getEntityUrl(entityType, entityId);
+  const entityUrl = getEntityUrl(entityType, entityId, entityFriendlyId);
   const entityInfo = t.entityTypes[entityType];
   const icon = entityIcons[entityType];
 

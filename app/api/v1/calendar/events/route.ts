@@ -157,7 +157,7 @@ export const POST = withExternalApi(
     // Create event
     const event = await prismadb.calendarEvent.create({
       data: {
-        id: friendlyEventId,
+        friendlyId: friendlyEventId,
         calendarEventId,
         calendarUserId: 0,
         organizationId: context.organizationId,

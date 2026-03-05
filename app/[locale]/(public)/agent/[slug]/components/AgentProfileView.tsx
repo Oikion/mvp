@@ -40,6 +40,7 @@ interface AgentProfileViewProps {
       username?: string | null;
       properties?: Array<{
         id: string;
+        friendlyId?: string;
         property_name: string;
         address_city?: string | null;
         address_state?: string | null;
@@ -500,7 +501,7 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
                           whileHover={{ y: -8, transition: { duration: 0.2 } }}
                         >
                           <Link
-                            href={`/${locale}/property/${property.id}`}
+                            href={`/${locale}/property/${property.friendlyId ?? property.id}`}
                             className="block group"
                           >
                             <div className="overflow-hidden rounded-2xl border-2 border-border bg-background hover:border-primary/50 transition-all duration-300 hover:shadow-xl">

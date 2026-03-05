@@ -247,7 +247,7 @@ export async function POST(req: Request) {
 
       // Generate friendly ID
       const mandateId = await generateFriendlyId(prismadb, "Mandates", organizationId);
-      data.id = mandateId;
+      data.friendlyId = mandateId;
 
       // Set minimum required fields for draft
       if (!data.title) {

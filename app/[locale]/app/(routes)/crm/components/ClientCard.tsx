@@ -21,6 +21,7 @@ interface Contact {
 interface ClientCardProps {
   data: {
     id: string;
+    friendlyId?: string;
     name: string;
     status?: string;
     email?: string;
@@ -61,8 +62,8 @@ export const ClientCard = memo(function ClientCard({ data }: ClientCardProps) {
   }, [data.id]);
 
   const handleEdit = useCallback(() => {
-    router.push(`/app/crm/clients/${data.id}?edit=true`);
-  }, [router, data.id]);
+    router.push(`/app/crm/clients/${data.friendlyId ?? data.id}?edit=true`);
+  }, [router, data.id, data.friendlyId]);
 
   const handleActionComplete = useCallback(() => {
     router.refresh();
@@ -97,7 +98,8 @@ export const ClientCard = memo(function ClientCard({ data }: ClientCardProps) {
             entityType="client"
             entityId={data.id}
             entityName={data.name}
-            viewHref={`/app/crm/clients/${data.id}`}
+            viewHref={`/app/crm/clients/${data.friendlyId ?? data.id}`}
+            entityFriendlyId={data.friendlyId}
             onEdit={handleEdit}
             onDelete={handleDelete}
             showSchedule
@@ -139,7 +141,7 @@ export const ClientCard = memo(function ClientCard({ data }: ClientCardProps) {
 
       <CardFooter className="pt-0 flex justify-end">
         <Button variant="ghost" size="sm" className="w-full" asChild>
-          <Link href={`/app/crm/clients/${data.id}`} className="inline-flex items-center gap-2">
+          <Link href={`/app/crm/clients/${data.friendlyId ?? data.id}`} className="inline-flex items-center gap-2">
             <Eye className="h-4 w-4" />
             {commonT("view")}
           </Link>

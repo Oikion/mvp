@@ -75,6 +75,7 @@ export interface Message {
   entityAttachment?: {
     type: "property" | "client" | "document" | "event";
     id: string;
+    friendlyId?: string;
     title: string;
     subtitle?: string;
     metadata?: Record<string, unknown>;

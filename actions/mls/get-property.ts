@@ -15,9 +15,9 @@ export const getProperty = async (propertyId: string) => {
     return null;
   }
   const data = await prismadb.properties.findFirst({
-    where: { 
-      id: propertyId,
+    where: {
       organizationId,
+      OR: [{ friendlyId: propertyId }, { id: propertyId }],
     },
     include: {
       Users_Properties_assigned_toToUsers: { select: { name: true, id: true } },
