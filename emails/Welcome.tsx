@@ -14,6 +14,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { buildUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 interface WelcomeEmailProps {
   email: string;
@@ -26,6 +27,8 @@ export const WelcomeEmail = ({
   email,
   isEarlyAccess = false,
 }: WelcomeEmailProps) => {
+  const unsubscribeUrl = buildUnsubscribeUrl(email);
+
   const previewText = isEarlyAccess
     ? "Welcome to Oikion Early Access - You're in!"
     : "Welcome to the Oikion Newsletter";
@@ -136,7 +139,7 @@ export const WelcomeEmail = ({
                 © {new Date().getFullYear()} Oikion. All rights reserved.
               </Text>
               <Text className="text-zinc-400 text-xs text-center m-0 mt-3">
-                <Link href={`${baseUrl}/unsubscribe?email=${encodeURIComponent(email)}`} className="text-zinc-500 underline">
+                <Link href={unsubscribeUrl} className="text-zinc-500 underline">
                   Unsubscribe
                 </Link>
                 {" • "}

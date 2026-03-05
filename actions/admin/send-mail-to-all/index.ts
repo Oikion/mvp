@@ -64,6 +64,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
             title: title,
             message: message,
             username: user?.name!,
+            email: user?.email || "",
           })
         );
 
@@ -87,6 +88,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
           title: title,
           message: message,
           username: user?.name!,
+          email: user?.email || "",
         }),
       });
     }

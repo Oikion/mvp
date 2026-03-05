@@ -14,11 +14,13 @@ import {
 } from "@react-email/components";
 import { Markdown } from "@react-email/markdown";
 import * as React from "react";
+import { buildUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
 interface MessageToAllUsersEmailProps {
   username: string;
   title: string;
   message: string;
+  email: string;
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
@@ -28,8 +30,10 @@ export const MessageToAllUsers = ({
   title,
   message,
   username,
+  email,
 }: MessageToAllUsersEmailProps) => {
   const previewText = `${title} - Important announcement from ${appName}`;
+  const unsubscribeUrl = buildUnsubscribeUrl(email);
 
   return (
     <Html>
@@ -114,7 +118,7 @@ export const MessageToAllUsers = ({
                 © {new Date().getFullYear()} Oikion. All rights reserved.
               </Text>
               <Text className="text-zinc-400 text-xs text-center m-0 mt-2">
-                <Link href={`${baseUrl}/unsubscribe`} className="text-zinc-500 underline">
+                <Link href={unsubscribeUrl} className="text-zinc-500 underline">
                   Unsubscribe
                 </Link>
                 {" • "}
