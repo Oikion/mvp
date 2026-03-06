@@ -8,6 +8,19 @@ import { useTranslations } from "next-intl";
 import { DataTableToolbar as SharedDataTableToolbar, type FilterChip } from "@/components/ui/data-table/data-table-toolbar";
 import { ClientFilterDrawer, type ClientFilters } from "./ClientFilterDrawer";
 
+const STATUS_LABELS: Record<string, string> = {
+  LEAD: "Lead", ACTIVE: "Active", INACTIVE: "Inactive", CONVERTED: "Converted", LOST: "Lost",
+};
+const TYPE_LABELS: Record<string, string> = {
+  BUYER: "Buyer", SELLER: "Seller", RENTER: "Renter", INVESTOR: "Investor", REFERRAL_PARTNER: "Referral Partner",
+};
+const INTENT_LABELS: Record<string, string> = {
+  BUY: "Buy", RENT: "Rent", SELL: "Sell", LEASE: "Lease", INVEST: "Invest",
+};
+const SOURCE_LABELS: Record<string, string> = {
+  REFERRAL: "Referral", WEB: "Web", PORTAL: "Portal", WALK_IN: "Walk-in", SOCIAL: "Social",
+};
+
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   users?: { id: string; name: string }[];
@@ -98,19 +111,6 @@ export function DataTableToolbar<TData>({
       activeFilters.status.length > 0 ? activeFilters.status : undefined
     );
   }, [activeFilters.status, table]);
-
-  const STATUS_LABELS: Record<string, string> = {
-    LEAD: "Lead", ACTIVE: "Active", INACTIVE: "Inactive", CONVERTED: "Converted", LOST: "Lost",
-  };
-  const TYPE_LABELS: Record<string, string> = {
-    BUYER: "Buyer", SELLER: "Seller", RENTER: "Renter", INVESTOR: "Investor", REFERRAL_PARTNER: "Referral Partner",
-  };
-  const INTENT_LABELS: Record<string, string> = {
-    BUY: "Buy", RENT: "Rent", SELL: "Sell", LEASE: "Lease", INVEST: "Invest",
-  };
-  const SOURCE_LABELS: Record<string, string> = {
-    REFERRAL: "Referral", WEB: "Web", PORTAL: "Portal", WALK_IN: "Walk-in", SOCIAL: "Social",
-  };
 
   const chips: FilterChip[] = React.useMemo(() => {
     const result: FilterChip[] = [];
