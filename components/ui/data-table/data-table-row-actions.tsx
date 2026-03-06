@@ -32,7 +32,7 @@ export interface QuickAction {
 /**
  * Entity types supported by the unified row actions
  */
-export type EntityType = "property" | "client" | "contact" | "event" | "task" | "employee" | "user";
+export type EntityType = "property" | "client" | "contact" | "event" | "task" | "employee" | "user" | "mandate";
 
 /**
  * Props for the unified DataTableRowActions component
@@ -126,6 +126,8 @@ export function DataTableRowActions<TData extends { id?: string }>({
         return "/app/calendar/events";
       case "task":
         return "/app/crm/tasks/viewtask";
+      case "mandate":
+        return "/app/mandates";
       case "employee":
         return "/app/employees";
       case "user":
@@ -300,7 +302,7 @@ export function DataTableRowActions<TData extends { id?: string }>({
           >
             <Trash2 className="mr-2 h-4 w-4" />
             {t("delete")}
-            <DropdownMenuShortcut>⌘/Ctrl+⌫</DropdownMenuShortcut>
+            <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
