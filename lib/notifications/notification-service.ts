@@ -102,13 +102,13 @@ export async function notifyOrganization(
     // Get actual org members via Clerk (proper tenant isolation)
     const { users } = await getOrgMembersFromDb({
       organizationId,
-      select: { id: true },
+      select: { id: true, userStatus: true },
     });
 
-    // Filter out the actor
-    const recipientIds = excludeUserId
-      ? users.filter((u: { id: string }) => u.id !== excludeUserId).map((u: { id: string }) => u.id)
-      : users.map((u: { id: string }) => u.id);
+    // Only notify active users, excluding the actor (recipientIds are Prisma Users.id values)
+    const recipientIds = users
+      .filter((u) => u.userStatus === "ACTIVE" && u.id !== excludeUserId)
+      .map((u) => u.id);
 
     if (recipientIds.length === 0) {
       return;
@@ -241,10 +241,6 @@ export async function cleanupOldNotifications(daysOld: number = 90): Promise<num
     return 0;
   }
 }
-
-
-
-
 
 
 
