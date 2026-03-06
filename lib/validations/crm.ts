@@ -58,11 +58,22 @@ export const financingTypeSchema = z.enum([
   "OTHER",
 ]).optional();
 
+// Budget range refinement — shared by create and update schemas
+const budgetRangeRefinement = [
+  (data: { budget_min?: number | null; budget_max?: number | null }) => {
+    if (data.budget_min != null && data.budget_max != null) {
+      return data.budget_min <= data.budget_max;
+    }
+    return true;
+  },
+  { message: "Minimum budget cannot exceed maximum budget", path: ["budget_max"] as string[] },
+] as const;
+
 /**
- * Schema for creating a new client
- * Validates all allowed fields and prevents injection of internal fields
+ * Base object schema for client fields (no refinements).
+ * Used internally so updateClientSchema can call .partial() on a ZodObject.
  */
-export const createClientSchema = z.object({
+const clientFieldsSchema = z.object({
   // Basic info
   client_name: z.string().min(1, "Client name is required").max(255),
   primary_email: z.string().email().optional().or(z.literal("")),
@@ -83,7 +94,7 @@ export const createClientSchema = z.object({
   language: z.string().max(10).optional(),
   
   // Greek-specific identifiers
-  afm: z.string().max(20).optional(), // Tax ID
+  afm: z.string().regex(/^\d{9}$/, "AFM must be exactly 9 digits").optional().or(z.literal("")), // Tax ID
   doy: z.string().max(100).optional(), // Tax office
   id_doc: z.string().max(100).optional(), // ID document
   company_gemi: z.string().max(50).optional(), // Company registry
@@ -123,7 +134,7 @@ export const createClientSchema = z.object({
   
   // Billing address
   billing_street: z.string().max(255).optional(),
-  billing_postal_code: z.string().max(20).optional(),
+  billing_postal_code: z.string().regex(/^\d{5}$/, "Greek postal code must be exactly 5 digits").optional().or(z.literal("")),
   billing_city: z.string().max(100).optional(),
   billing_state: z.string().max(100).optional(),
   billing_country: z.string().max(100).optional(),
@@ -144,12 +155,22 @@ export const createClientSchema = z.object({
 }).strict(); // Reject unknown fields to prevent mass assignment
 
 /**
+ * Schema for creating a new client
+ * Validates all allowed fields and prevents injection of internal fields
+ */
+export const createClientSchema = clientFieldsSchema
+  // CRM-002: Budget range consistency
+  .refine(...budgetRangeRefinement);
+
+/**
  * Schema for updating an existing client
  * All fields optional except id
  */
 export const updateClientSchema = z.object({
   id: z.string().min(1, "Client ID is required"),
-}).merge(createClientSchema.partial()).strict();
+}).merge(clientFieldsSchema.partial()).strict()
+  // CRM-002: Budget range consistency (re-applied — .partial() drops refines)
+  .refine(...budgetRangeRefinement);
 
 /**
  * Schema for client search/filter parameters
