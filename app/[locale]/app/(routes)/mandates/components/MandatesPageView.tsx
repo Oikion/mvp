@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useParams, useSearchParams } from "next/navigation";
+import { SharedActionModals } from "@/components/entity";
 
 interface MandatesPageViewProps {
   mandates: any[];
@@ -326,6 +327,9 @@ export default function MandatesPageView({
           )}
         </CardContent>
       </Card>
+
+      {/* Shared modals for delete, share, schedule actions */}
+      <SharedActionModals />
     </div>
   );
 }
