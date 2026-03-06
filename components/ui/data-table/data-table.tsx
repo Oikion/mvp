@@ -132,11 +132,10 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar 
-        table={table} 
+      <DataTableToolbar
+        table={table}
         searchKey={searchKey}
         searchPlaceholder={searchPlaceholder}
-        filters={filters}
       />
       <div
         ref={containerRef}

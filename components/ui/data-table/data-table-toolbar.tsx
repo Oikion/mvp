@@ -18,9 +18,9 @@ export interface FilterChip {
 export interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   /** Column accessor key used for the text-search input */
-  searchKey: string;
+  searchKey?: string;
   /** Placeholder text for the search input */
-  searchPlaceholder: string;
+  searchPlaceholder?: string;
   /** Number to show in the badge on the Filters button */
   filterCount?: number;
   /** Active filter chips to render below the toolbar */
@@ -55,16 +55,19 @@ export function DataTableToolbar<TData>({
       {/* Row 1: search + filter controls + right slot */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Input
-            placeholder={searchPlaceholder}
-            value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-            onChange={(e) => table.getColumn(searchKey)?.setFilterValue(e.target.value)}
-            className="h-10 w-[240px] lg:w-[320px]"
-          />
+          {searchKey && (
+            <Input
+              placeholder={searchPlaceholder ?? ""}
+              value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
+              onChange={(e) => table.getColumn(searchKey)?.setFilterValue(e.target.value)}
+              className="h-10 w-[240px] lg:w-[320px]"
+            />
+          )}
           <Button
             variant="outline"
             className="h-10 gap-1.5"
             onClick={onFilterOpen}
+            aria-haspopup="dialog"
           >
             <Filter className="h-4 w-4" />
             {commonT("filters")}
@@ -94,9 +97,9 @@ export function DataTableToolbar<TData>({
       {/* Row 2 (conditional): active filter chips */}
       {chips.length > 0 && (
         <div className="flex items-center gap-1.5 flex-wrap">
-          {chips.map((chip, i) => (
+          {chips.map((chip) => (
             <span
-              key={i}
+              key={chip.label}
               className="inline-flex items-center gap-1 rounded-full bg-secondary text-secondary-foreground px-2.5 py-0.5 text-xs font-medium"
             >
               {chip.label}
