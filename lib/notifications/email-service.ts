@@ -92,7 +92,13 @@ const categoryToPreference: Record<NotificationCategory, PreferenceCategory> = {
   ENTITY_SHARE_ACCEPTED: "social",
   CONNECTION_REQUEST: "social",
   CONNECTION_ACCEPTED: "social",
-  
+
+  // Messaging notifications
+  MESSAGE_RECEIVED: "social",
+  MESSAGE_MENTION: "social",
+  CHANNEL_INVITE: "social",
+  CHANNEL_MESSAGE: "social",
+
   // System notifications
   SYSTEM: "system",
   WELCOME: "system",
