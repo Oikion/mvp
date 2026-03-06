@@ -11,6 +11,8 @@ import {
   NotificationCategory,
   NotificationEntityType,
 } from "./types";
+import { getOrgMembersFromDb } from "@/lib/org-members";
+import { sendNotificationEmailToUsers, type NotificationEmailData } from "./email-service";
 
 /**
  * Create a single notification
@@ -80,6 +82,7 @@ export async function createBulkNotifications(
 
 /**
  * Create notification for all users in an organization (except actor)
+ * Also sends email notifications via Resend based on user preferences
  */
 export async function notifyOrganization(
   organizationId: string,
@@ -96,25 +99,24 @@ export async function notifyOrganization(
   }
 ): Promise<void> {
   try {
-    // Get all users in the organization
-    // Note: In a multi-org setup, you'd need to query based on org membership
-    // For now, we'll use a simpler approach
-    const users = await prismadb.users.findMany({
-      where: {
-        userStatus: "ACTIVE",
-        ...(excludeUserId ? { id: { not: excludeUserId } } : {}),
-      },
-      select: {
-        id: true,
-      },
+    // Get actual org members via Clerk (proper tenant isolation)
+    const { users } = await getOrgMembersFromDb({
+      organizationId,
+      select: { id: true },
     });
 
-    if (users.length === 0) {
+    // Filter out the actor
+    const recipientIds = excludeUserId
+      ? users.filter((u: { id: string }) => u.id !== excludeUserId).map((u: { id: string }) => u.id)
+      : users.map((u: { id: string }) => u.id);
+
+    if (recipientIds.length === 0) {
       return;
     }
 
+    // Create in-app notifications
     await createBulkNotifications({
-      userIds: users.map((u) => u.id),
+      userIds: recipientIds,
       organizationId,
       type,
       title,
@@ -124,6 +126,20 @@ export async function notifyOrganization(
       actorId: options?.actorId,
       actorName: options?.actorName,
       metadata: options?.metadata,
+    });
+
+    // Send email notifications (fire-and-forget, respects user preferences)
+    const emailData: Omit<NotificationEmailData, "recipientName"> = {
+      actorName: options?.actorName,
+      actorId: options?.actorId,
+      entityId: options?.entityId,
+      entityName: options?.metadata?.entityName || options?.metadata?.clientName || options?.metadata?.propertyName,
+      entityType: options?.entityType,
+      metadata: options?.metadata,
+    };
+
+    sendNotificationEmailToUsers(recipientIds, type, emailData).catch((err) => {
+      console.error("[NOTIFICATION_SERVICE] Email delivery failed (non-blocking):", err);
     });
   } catch (error) {
     console.error("[NOTIFICATION_SERVICE] Failed to notify organization:", error);
