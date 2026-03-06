@@ -3,18 +3,14 @@
 import { Table } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Filter, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
+
+import { DataTableToolbar, type FilterChip } from "@/components/ui/data-table/data-table-toolbar";
 import { PropertyFilterDrawer, type PropertyFilters } from "./PropertyFilterDrawer";
 import { useOrgUsers } from "@/hooks/swr";
 
-export function DataTableToolbar<TData>({ table, rightContent }: { table: Table<TData>; rightContent?: React.ReactNode }) {
+export function DataTableToolbar_Properties<TData>({ table, rightContent }: Readonly<{ table: Table<TData>; rightContent?: React.ReactNode }>) {
   const t = useTranslations("mls");
-  const commonT = useTranslations("common");
-
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -22,7 +18,7 @@ export function DataTableToolbar<TData>({ table, rightContent }: { table: Table<
   const [filterOpen, setFilterOpen] = useState(false);
   const { users } = useOrgUsers();
 
-  // Parse active filters from URL search params
+  // Parse active filters from URL
   const activeFilters: PropertyFilters = useMemo(
     () => ({
       status: searchParams.get("status")?.split(",").filter(Boolean) ?? [],
@@ -36,7 +32,7 @@ export function DataTableToolbar<TData>({ table, rightContent }: { table: Table<
     [searchParams]
   );
 
-  const activeFilterCount = [
+  const filterCount = [
     activeFilters.status.length > 0,
     activeFilters.propertyType.length > 0,
     activeFilters.transactionType.length > 0,
@@ -46,14 +42,12 @@ export function DataTableToolbar<TData>({ table, rightContent }: { table: Table<
     activeFilters.assignedTo !== "",
   ].filter(Boolean).length;
 
-  // Apply URL filter state to TanStack table column filters
+  // Sync URL filters → TanStack column filters
   useEffect(() => {
-    const statusCol = table.getColumn("property_status");
-    statusCol?.setFilterValue(
+    table.getColumn("property_status")?.setFilterValue(
       activeFilters.status.length > 0 ? activeFilters.status : undefined
     );
-    const typeCol = table.getColumn("property_type");
-    typeCol?.setFilterValue(
+    table.getColumn("property_type")?.setFilterValue(
       activeFilters.propertyType.length > 0 ? activeFilters.propertyType : undefined
     );
   }, [activeFilters, table]);
@@ -85,181 +79,57 @@ export function DataTableToolbar<TData>({ table, rightContent }: { table: Table<
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  // Remove a single filter chip value from URL params
   const removeFilter = (key: keyof PropertyFilters, value?: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (key === "status") {
-      const next = activeFilters.status.filter((v) => v !== value);
-      if (next.length) params.set("status", next.join(","));
-      else params.delete("status");
-    } else if (key === "propertyType") {
-      const next = activeFilters.propertyType.filter((v) => v !== value);
-      if (next.length) params.set("type", next.join(","));
-      else params.delete("type");
-    } else if (key === "transactionType") {
-      const next = activeFilters.transactionType.filter((v) => v !== value);
-      if (next.length) params.set("txType", next.join(","));
-      else params.delete("txType");
-    } else if (key === "priceMin") {
-      params.delete("priceMin");
-    } else if (key === "priceMax") {
-      params.delete("priceMax");
-    } else if (key === "municipality") {
-      params.delete("municipality");
-    } else if (key === "assignedTo") {
-      params.delete("assignedTo");
-    }
-    router.push(`${pathname}?${params.toString()}`);
+    const updated = { ...activeFilters };
+    if (key === "priceMin") updated.priceMin = null;
+    else if (key === "priceMax") updated.priceMax = null;
+    else if (key === "municipality") updated.municipality = "";
+    else if (key === "assignedTo") updated.assignedTo = "";
+    else if (value) (updated[key] as string[]) = (activeFilters[key] as string[]).filter((v) => v !== value);
+    handleApply(updated);
   };
 
-  // Map user id to display name for chips
   const userNameById = useMemo(() => {
     const map: Record<string, string> = {};
-    users.forEach((u) => {
-      map[u.id] = u.name ?? u.id;
-    });
+    users.forEach((u) => { map[u.id] = u.name ?? u.id; });
     return map;
   }, [users]);
 
+  // Build chips array with prefixed labels matching Clients/Mandates pattern
+  const chips: FilterChip[] = useMemo(() => {
+    const result: FilterChip[] = [];
+    activeFilters.status.forEach((v) =>
+      result.push({ label: `Status: ${v}`, onRemove: () => removeFilter("status", v) })
+    );
+    activeFilters.propertyType.forEach((v) =>
+      result.push({ label: `Type: ${v}`, onRemove: () => removeFilter("propertyType", v) })
+    );
+    activeFilters.transactionType.forEach((v) =>
+      result.push({ label: `Tx: ${v}`, onRemove: () => removeFilter("transactionType", v) })
+    );
+    if (activeFilters.priceMin !== null)
+      result.push({ label: `Min: €${activeFilters.priceMin.toLocaleString()}`, onRemove: () => removeFilter("priceMin") });
+    if (activeFilters.priceMax !== null)
+      result.push({ label: `Max: €${activeFilters.priceMax.toLocaleString()}`, onRemove: () => removeFilter("priceMax") });
+    if (activeFilters.municipality)
+      result.push({ label: `Location: ${activeFilters.municipality}`, onRemove: () => removeFilter("municipality") });
+    if (activeFilters.assignedTo)
+      result.push({ label: `Agent: ${userNameById[activeFilters.assignedTo] ?? activeFilters.assignedTo}`, onRemove: () => removeFilter("assignedTo") });
+    return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilters, userNameById]);
+
   return (
-    <div className="flex flex-col gap-2">
-      {/* Main toolbar row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder={t("MlsPropertiesTable.filterPlaceholder")}
-            value={(table.getColumn("property_name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("property_name")?.setFilterValue(event.target.value)
-            }
-            className="h-10 w-[240px] lg:w-[320px]"
-          />
-          <Button
-            variant="outline"
-            className="h-10"
-            onClick={() => setFilterOpen(true)}
-          >
-            <Filter className="mr-2 h-4 w-4" />
-            {commonT("filters")}
-            {activeFilterCount > 0 && (
-              <Badge
-                variant="secondary"
-                className="ml-2 rounded-full px-1.5 py-0.5 text-xs"
-              >
-                {activeFilterCount}
-              </Badge>
-            )}
-          </Button>
-        </div>
-        {rightContent}
-      </div>
-
-      {/* Active filter chips row */}
-      {activeFilterCount > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {activeFilters.status.map((s) => (
-            <Badge key={s} variant="secondary" className="gap-1 pr-1">
-              {s}
-              <button
-                type="button"
-                aria-label={`Remove ${s} filter`}
-                onClick={() => removeFilter("status", s)}
-                className="ml-1 rounded-sm hover:bg-muted-foreground/20 p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-          {activeFilters.propertyType.map((pt) => (
-            <Badge key={pt} variant="secondary" className="gap-1 pr-1">
-              {pt}
-              <button
-                type="button"
-                aria-label={`Remove ${pt} filter`}
-                onClick={() => removeFilter("propertyType", pt)}
-                className="ml-1 rounded-sm hover:bg-muted-foreground/20 p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-          {activeFilters.transactionType.map((tt) => (
-            <Badge key={tt} variant="secondary" className="gap-1 pr-1">
-              {tt}
-              <button
-                type="button"
-                aria-label={`Remove ${tt} filter`}
-                onClick={() => removeFilter("transactionType", tt)}
-                className="ml-1 rounded-sm hover:bg-muted-foreground/20 p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-          {activeFilters.priceMin !== null && (
-            <Badge variant="secondary" className="gap-1 pr-1">
-              Min €{activeFilters.priceMin.toLocaleString()}
-              <button
-                type="button"
-                aria-label="Remove min price filter"
-                onClick={() => removeFilter("priceMin")}
-                className="ml-1 rounded-sm hover:bg-muted-foreground/20 p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          )}
-          {activeFilters.priceMax !== null && (
-            <Badge variant="secondary" className="gap-1 pr-1">
-              Max €{activeFilters.priceMax.toLocaleString()}
-              <button
-                type="button"
-                aria-label="Remove max price filter"
-                onClick={() => removeFilter("priceMax")}
-                className="ml-1 rounded-sm hover:bg-muted-foreground/20 p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          )}
-          {activeFilters.municipality !== "" && (
-            <Badge variant="secondary" className="gap-1 pr-1">
-              {activeFilters.municipality}
-              <button
-                type="button"
-                aria-label="Remove municipality filter"
-                onClick={() => removeFilter("municipality")}
-                className="ml-1 rounded-sm hover:bg-muted-foreground/20 p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          )}
-          {activeFilters.assignedTo !== "" && (
-            <Badge variant="secondary" className="gap-1 pr-1">
-              {userNameById[activeFilters.assignedTo] ?? activeFilters.assignedTo}
-              <button
-                type="button"
-                aria-label="Remove assigned-to filter"
-                onClick={() => removeFilter("assignedTo")}
-                className="ml-1 rounded-sm hover:bg-muted-foreground/20 p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 px-2 text-xs text-muted-foreground"
-            onClick={handleReset}
-          >
-            {commonT("clearAll")}
-          </Button>
-        </div>
-      )}
-
-      {/* Filter Drawer */}
+    <DataTableToolbar
+      table={table}
+      searchKey="property_name"
+      searchPlaceholder={t("MlsPropertiesTable.filterPlaceholder")}
+      filterCount={filterCount}
+      chips={chips}
+      onFilterOpen={() => setFilterOpen(true)}
+      onReset={handleReset}
+      rightContent={rightContent}
+    >
       <PropertyFilterDrawer
         open={filterOpen}
         onOpenChange={setFilterOpen}
@@ -268,6 +138,6 @@ export function DataTableToolbar<TData>({ table, rightContent }: { table: Table<
         onApply={handleApply}
         onReset={handleReset}
       />
-    </div>
+    </DataTableToolbar>
   );
 }

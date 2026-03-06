@@ -18,7 +18,7 @@ import { useTableWithPageSize } from "@/lib/hooks/use-table-with-page-size";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTablePagination } from "./data-table-pagination";
-import { DataTableToolbar } from "./data-table-toolbar";
+import { DataTableToolbar_Properties as PropertiesToolbar } from "./data-table-toolbar";
 
 export function PropertyDataTable<TData, TValue>({ columns, data, toolbarRight }: { columns: ColumnDef<TData, TValue>[]; data: TData[]; toolbarRight?: React.ReactNode }) {
   const [rowSelection, setRowSelection] = React.useState({});
@@ -45,7 +45,7 @@ export function PropertyDataTable<TData, TValue>({ columns, data, toolbarRight }
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} rightContent={toolbarRight} />
+      <PropertiesToolbar table={table} rightContent={toolbarRight} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
