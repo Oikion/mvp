@@ -1,18 +1,13 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
 import moment from "moment";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
+  DataTableSelectCheckbox,
+  DataTableSelectAllCheckbox,
+} from "@/components/ui/data-table/data-table-select-checkbox";
+import { MandateRowActions } from "./MandateRowActions";
 
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { TitleCell } from "./cells/TitleCell";
@@ -43,25 +38,8 @@ export const getColumns = (
 ): ColumnDef<any>[] => [
   {
     id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-[2px]"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-[2px]"
-      />
-    ),
+    header: ({ table }) => <DataTableSelectAllCheckbox table={table} />,
+    cell: ({ row, table }) => <DataTableSelectCheckbox row={row} table={table} />,
     enableSorting: false,
     enableHiding: false,
   },
@@ -201,37 +179,6 @@ export const getColumns = (
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const mandate = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href={`/app/mandates/${mandate.friendlyId}`} className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                {t("MandateView.view")}
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href={`/app/mandates/${mandate.friendlyId}?edit=true`} className="flex items-center gap-2">
-                <Pencil className="h-4 w-4" />
-                {t("MandateView.edit")}
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
-              {t("MandateView.delete")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <MandateRowActions row={row} />,
   },
 ];
