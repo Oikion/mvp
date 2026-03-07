@@ -39,12 +39,24 @@ interface LinkedEvent {
   }[];
 }
 
+interface LinkedMandate {
+  id: string;
+  friendlyId: string;
+  title: string;
+  transaction_type?: string;
+  status?: string;
+  urgency?: string;
+  budget_min?: number;
+  budget_max?: number;
+}
+
 interface ClientLinkedData {
   client?: {
     id: string;
     client_name: string;
   };
   properties: LinkedProperty[];
+  mandates: LinkedMandate[];
   events: {
     upcoming: LinkedEvent[];
     past: LinkedEvent[];
@@ -52,6 +64,7 @@ interface ClientLinkedData {
   };
   counts: {
     properties: number;
+    mandates: number;
     events: number;
     upcomingEvents: number;
   };
@@ -80,8 +93,9 @@ export function useClientLinked(
   return {
     linkedData: data ?? null,
     properties: data?.properties ?? [],
+    mandates: data?.mandates ?? [],
     events: data?.events ?? { upcoming: [], past: [], total: 0 },
-    counts: data?.counts ?? { properties: 0, events: 0, upcomingEvents: 0 },
+    counts: data?.counts ?? { properties: 0, mandates: 0, events: 0, upcomingEvents: 0 },
     isLoading,
     isValidating,
     error,

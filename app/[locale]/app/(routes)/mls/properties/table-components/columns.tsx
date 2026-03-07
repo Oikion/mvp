@@ -2,7 +2,6 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import moment from "moment";
-import Link from "next/link";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { useTranslations } from "next-intl";
 import { PropertyRowActions } from "./PropertyRowActions";
@@ -71,12 +70,10 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
       return <DataTableColumnHeader column={column} title={t("MlsPropertiesTable.name")} />
     },
     cell: ({ row }) => (
-      <Link href={`/app/mls/properties/${row.original.friendlyId}`}>
-        <NameCell
-          propertyId={row.original.id}
-          value={row.original.property_name ?? ""}
-        />
-      </Link>
+      <NameCell
+        propertyId={row.original.id}
+        value={row.original.property_name ?? ""}
+      />
     ),
     enableSorting: false,
     enableHiding: true,

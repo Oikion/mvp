@@ -90,7 +90,6 @@ export async function POST(req: Request) {
       expires_at,
       notes,
       communication_notes,
-      clientId,
       assigned_to,
     } = body;
 
@@ -106,7 +105,6 @@ export async function POST(req: Request) {
     if (region !== undefined) data.region = nullIfEmpty(region);
     if (notes !== undefined) data.notes = nullIfEmpty(notes);
     if (assigned_to !== undefined) data.assigned_to = nullIfEmpty(assigned_to);
-    if (clientId !== undefined) data.clientId = nullIfEmpty(clientId);
 
     // Enum fields - validate before setting
     if (transaction_type !== undefined && transaction_type !== null && transaction_type !== "") {

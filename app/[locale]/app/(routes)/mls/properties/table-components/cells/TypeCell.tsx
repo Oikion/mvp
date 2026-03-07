@@ -66,7 +66,7 @@ export const TypeCell = ({ propertyId, value }: TypeCellProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={loading}>
-        <button className="outline-none focus:ring-2 focus:ring-ring rounded cursor-pointer flex items-center gap-1 whitespace-nowrap hover:bg-muted/50 px-2 py-1 -mx-2 transition-colors text-sm">
+        <button className="outline-none focus:ring-2 focus:ring-ring rounded cursor-pointer flex items-center gap-1 whitespace-nowrap hover:bg-muted/50 px-2 py-1 -mx-2 transition-colors text-sm" onClick={(e) => e.stopPropagation()}>
           <span>{getLabel(value)}</span>
           <ChevronDown className="h-3 w-3 text-muted-foreground" />
         </button>

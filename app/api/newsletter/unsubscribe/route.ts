@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { verifyUnsubscribeToken } from "@/lib/unsubscribe-token";
 import { RESEND_SEGMENTS } from "@/lib/resend-segments";
-import prismadb from "@/lib/prisma";
+import { prismadb } from "@/lib/prisma";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)

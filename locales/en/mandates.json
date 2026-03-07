@@ -39,7 +39,10 @@
       "areasPlaceholder": "Type an area and press Enter",
       "removeArea": "Remove area",
       "municipality": "Municipality",
+      "municipalityPlaceholder": "Enter municipality",
       "region": "Region",
+      "regionPlaceholder": "e.g. Attica",
+      "areasOfInterestPlaceholder": "Type an area and press Enter",
       "sizeSection": "Size",
       "sizeMinSqm": "Min Size (sqm)",
       "sizeMaxSqm": "Max Size (sqm)",
@@ -234,7 +237,10 @@
     "edit": "Edit",
     "view": "View",
     "delete": "Delete",
-    "confirmDelete": "Are you sure you want to delete this mandate?"
+    "confirmDelete": "Are you sure you want to delete this mandate?",
+    "calendarEvents": "Calendar Events",
+    "createEvent": "Create Event",
+    "noCalendarEvents": "No calendar events for this mandate yet."
   },
   "QuickAdd": {
     "title": "Quick Add Mandate",

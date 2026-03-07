@@ -39,8 +39,8 @@ const createQuickAddClientSchema = (
 ) =>
   z
     .object({
-      client_name: z.string().optional().default(""),
-      person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]).optional(),
+      client_name: z.string().min(1, t("CrmForm.validation.nameRequired")),
+      person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"], { required_error: t("CrmForm.validation.personTypeRequired") }),
       primary_email: z.string().optional(),
       primary_phone: z.string().optional(),
       assigned_to: z.string().optional(),
@@ -152,7 +152,7 @@ export function QuickAddClient({
               name="client_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.fullName")}</FormLabel>
+                  <FormLabel required>{t("CrmForm.fields.fullName")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
@@ -171,7 +171,7 @@ export function QuickAddClient({
               name="person_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.personType")}</FormLabel>
+                  <FormLabel required>{t("CrmForm.fields.personType")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value ?? ""}>
                     <FormControl>
                       <SelectTrigger disabled={isLoading}>

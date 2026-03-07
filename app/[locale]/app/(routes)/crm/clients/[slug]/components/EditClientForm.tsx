@@ -29,9 +29,10 @@ import { Textarea } from "@/components/ui/textarea";
 const clientTypeOptions = [
   { value: "BUYER", label: "Buyer" },
   { value: "SELLER", label: "Seller" },
-  { value: "RENTER", label: "Renter" },
+  { value: "LANDLORD", label: "Landlord" },
+  { value: "TENANT", label: "Tenant" },
   { value: "INVESTOR", label: "Investor" },
-  { value: "REFERRAL_PARTNER", label: "Referral Partner" },
+  { value: "OTHER", label: "Other" },
 ];
 
 const clientStatusOptions = [
@@ -42,9 +43,17 @@ const clientStatusOptions = [
   { value: "LOST", label: "Lost" },
 ];
 
+const personTypeOptions = [
+  { value: "INDIVIDUAL", label: "Individual" },
+  { value: "COMPANY", label: "Company" },
+  { value: "INVESTOR", label: "Investor" },
+  { value: "BROKER", label: "Broker" },
+];
+
 const editClientSchema = z.object({
   id: z.string().min(1),
-  client_name: z.string().min(2),
+  client_name: z.string().min(1, "Client name is required").max(255),
+  person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]),
   primary_email: z.string().email().optional().nullable(),
   client_type: z.string().optional().nullable(),
   client_status: z.string().optional().nullable(),
@@ -58,6 +67,7 @@ type EditClientFormValues = z.infer<typeof editClientSchema>;
 interface EditClientInitialData {
   id: string;
   client_name: string;
+  person_type: string;
   primary_email?: string | null;
   client_type?: string | null;
   client_status?: string | null;
@@ -77,6 +87,7 @@ export function EditClientForm({ initialData }: { initialData: EditClientInitial
     defaultValues: {
       id: initialData.id,
       client_name: initialData.client_name,
+      person_type: initialData.person_type as "INDIVIDUAL" | "COMPANY" | "INVESTOR" | "BROKER",
       primary_email: initialData.primary_email,
       client_type: initialData.client_type || undefined,
       client_status: initialData.client_status || undefined,
@@ -108,6 +119,28 @@ export function EditClientForm({ initialData }: { initialData: EditClientInitial
               <FormControl>
                 <Input disabled={isLoading} placeholder="John Doe" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="person_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Person type</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {personTypeOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

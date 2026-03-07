@@ -50,7 +50,7 @@ export const TransactionTypeCell = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={loading}>
-        <button type="button" className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1">
+        <button type="button" className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           {current ? (
             <Badge variant={current.variant as any} className="hover:opacity-80 transition-opacity text-xs">
               {t(`MandateForm.transactionType.${current.value}` as any)}

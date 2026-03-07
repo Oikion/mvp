@@ -5,6 +5,7 @@ import { prismadb } from "@/lib/prisma";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { notifyAccountWatchers } from "@/lib/notifications";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
+import { decryptClientForOrg, encryptClientForOrg } from "@/lib/model-encryption";
 
 export async function GET(
   _req: Request,
@@ -41,8 +42,9 @@ export async function GET(
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
 
-    // Serialize to plain object (convert Decimal to number, Date to string)
-    const serialized = JSON.parse(JSON.stringify(client));
+    // Decrypt encrypted fields, then serialize to plain object
+    const decrypted = await decryptClientForOrg(client, organizationId);
+    const serialized = JSON.parse(JSON.stringify(decrypted));
 
     return NextResponse.json({ client: serialized }, { status: 200 });
   } catch (error) {
@@ -120,13 +122,12 @@ export async function PUT(
       member_of,
     } = body;
 
-    // Verify the client belongs to the current organization before updating
-    const existingClient = await prismadb.clients.findFirst({
-      where: {
-        organizationId,
-        friendlyId: clientId,
-      },
-    });
+    // Verify the client belongs to the current organization before updating.
+    // Accept both UUID (from wizard autosave draftId) and friendlyId (from client detail routes).
+    const existingClient =
+      (await prismadb.clients.findFirst({ where: { organizationId, id: clientId } })) ??
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (await prismadb.clients.findFirst({ where: { organizationId, friendlyId: clientId } as any }));
 
     if (!existingClient) {
       return NextResponse.json({ error: "Client not found or access denied" }, { status: 404 });
@@ -157,9 +158,7 @@ export async function PUT(
       }
     }
 
-    const updatedClient = await prismadb.clients.update({
-      where: { id: existingClient.id },
-      data: {
+    const rawData = {
         updatedBy: user.id,
         client_name,
         primary_email,
@@ -210,7 +209,14 @@ export async function PUT(
         description,
         assigned_to,
         member_of,
-      },
+    };
+
+    // Encrypt sensitive fields before writing to DB
+    const encryptedData = await encryptClientForOrg(rawData, organizationId);
+
+    const updatedClient = await prismadb.clients.update({
+      where: { id: existingClient.id },
+      data: { ...rawData, ...encryptedData },
     });
 
     await invalidateCache(["clients:list", `account:${clientId}`, assigned_to ? `user:${assigned_to}` : ""].filter(Boolean));

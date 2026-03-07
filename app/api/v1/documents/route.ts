@@ -9,6 +9,7 @@ import {
   parseFilterParams,
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
+import { decryptDocumentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/v1/documents
@@ -71,9 +72,14 @@ export const GET = withExternalApi(
     const items = hasMore ? documents.slice(0, -1) : documents;
     const nextCursor = hasMore ? items[items.length - 1]?.id : null;
 
+    // Decrypt encrypted document fields
+    const decryptedItems = await Promise.all(
+      items.map((d) => decryptDocumentForOrg(d, context.organizationId))
+    );
+
     return createApiSuccessResponse(
       {
-        documents: items.map((doc) => ({
+        documents: decryptedItems.map((doc) => ({
           id: doc.id,
           name: doc.document_name,
           type: doc.document_type,

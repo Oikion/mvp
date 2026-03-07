@@ -71,7 +71,7 @@ export const VisibilityCell = ({ propertyId, visibility }: VisibilityCellProps) 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={loading}>
-        <button className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1">
+        <button className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <Badge
             variant={getVariant(currentVisibility) as any}
             className="hover:opacity-80 transition-opacity"

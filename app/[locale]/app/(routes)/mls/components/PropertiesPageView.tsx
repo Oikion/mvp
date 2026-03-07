@@ -275,6 +275,7 @@ export default function PropertiesPageView({
                 <PropertyDataTable
                   data={agencyProperties}
                   columns={getColumns(users)}
+                  getRowHref={(row: any) => `/app/mls/properties/${row.friendlyId}`}
                   toolbarRight={<ViewToggle view={view} setView={setView} />}
                 />
               ) : (

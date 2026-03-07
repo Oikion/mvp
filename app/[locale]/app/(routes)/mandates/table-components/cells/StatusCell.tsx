@@ -49,7 +49,7 @@ export const StatusCell = ({ mandateId, status }: StatusCellProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={loading}>
-        <button type="button" className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1">
+        <button type="button" className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <Badge variant={current.variant as any} className="hover:opacity-80 transition-opacity text-xs">
             {t(`MandateForm.status.${current.value}` as any)}
             <ChevronDown className="ml-1 h-3 w-3" />

@@ -22,8 +22,9 @@ import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 // Full schema matching NewPropertyWizard
 const formSchema = z.object({
   id: z.string().min(1),
+  property_name: z.string().min(1, "Property name is required").max(255),
   // Step 1: Basics
-  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]).optional(),
+  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]),
   property_type_other: z.string().optional(),
   transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]).optional(),
   property_status: z.enum(["AVAILABLE", "RESERVED", "NEGOTIATION", "RENTED", "SOLD"]).optional(),
@@ -116,6 +117,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
   const mappedData = useMemo(() => {
     const data: Record<string, unknown> = {
       ...initialData,
+      property_name: initialData?.property_name || "",
       property_type_other: initialData?.property_type_other || "",
       // Map legacy status values
       property_status: initialData?.property_status === "ACTIVE" ? "AVAILABLE" :
@@ -213,6 +215,16 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
 
           {/* Tab 1: Basics */}
           <TabsContent value="basics" className="space-y-4 mt-4">
+            <FormField control={form.control} name="property_name" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("PropertyForm.fields.propertyName")}</FormLabel>
+                <FormControl>
+                  <Input disabled={isLoading} placeholder={t("PropertyForm.fields.propertyNamePlaceholder")} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+
             <FormSelectWithOther<FormValues, "property_type">
               name="property_type"
               otherFieldName="property_type_other"

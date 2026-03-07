@@ -43,24 +43,26 @@ export const AssignedUserCell = ({
   const currentValue = assignedTo || "unassigned";
 
   return (
-    <Select
-      value={currentValue}
-      onValueChange={handleValueChange}
-      disabled={loading}
-    >
-      <SelectTrigger className="h-8 w-[180px] border-none bg-transparent shadow-none hover:bg-muted/50 focus:ring-0 px-2">
-        <SelectValue placeholder={t("CrmAccountsTable.unassigned")} />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="unassigned">{t("CrmAccountsTable.unassigned")}</SelectItem>
+    <div onClick={(e) => e.stopPropagation()}>
+      <Select
+        value={currentValue}
+        onValueChange={handleValueChange}
+        disabled={loading}
+      >
+        <SelectTrigger className="h-8 w-[180px] border-none bg-transparent shadow-none hover:bg-muted/50 focus:ring-0 px-2">
+          <SelectValue placeholder={t("CrmAccountsTable.unassigned")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="unassigned">{t("CrmAccountsTable.unassigned")}</SelectItem>
 
-        {users.map((user) => (
-          <SelectItem key={user.id} value={user.id}>
-            {user.name || user.email}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+          {users.map((user) => (
+            <SelectItem key={user.id} value={user.id}>
+              {user.name || user.email}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 };
 

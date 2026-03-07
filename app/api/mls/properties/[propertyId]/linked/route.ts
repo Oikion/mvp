@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { decryptCalendarEventForOrg, decryptClientForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/mls/properties/[propertyId]/linked
@@ -97,14 +98,20 @@ export async function GET(
       },
     });
 
-    // Map to expected field names
-    const linkedClients = linkedClientsRaw.map((lc) => ({
-      ...lc,
-      client: lc.Clients ? {
-        ...lc.Clients,
-        assigned_to_user: lc.Clients.Users_Clients_assigned_toToUsers,
-      } : null,
-    }));
+    // Decrypt and map to expected field names
+    const linkedClients = await Promise.all(
+      linkedClientsRaw.map(async (lc) => {
+        if (!lc.Clients) return { ...lc, client: null };
+        const decrypted = await decryptClientForOrg(lc.Clients, property.organizationId);
+        return {
+          ...lc,
+          client: {
+            ...decrypted,
+            assigned_to_user: lc.Clients.Users_Clients_assigned_toToUsers,
+          },
+        };
+      })
+    );
 
     // Fetch linked calendar events (use property's org for shared properties)
     const linkedEventsRaw = await prismadb.calendarEvent.findMany({
@@ -144,12 +151,56 @@ export async function GET(
       },
     });
 
-    // Map to expected field names
-    const linkedEvents = linkedEventsRaw.map((event) => ({
-      ...event,
-      assignedUser: event.Users,
-      linkedClients: event.Clients,
-    }));
+    // Decrypt and map to expected field names
+    const linkedEvents = await Promise.all(
+      linkedEventsRaw.map(async (event) => {
+        const decrypted = await decryptCalendarEventForOrg(event, property.organizationId);
+        // Also decrypt linked client names
+        const decryptedClients = await Promise.all(
+          event.Clients.map(async (c) => {
+            const dc = await decryptClientForOrg(c, property.organizationId);
+            return { id: dc.id, client_name: dc.client_name };
+          })
+        );
+        return {
+          ...decrypted,
+          assignedUser: event.Users,
+          linkedClients: decryptedClients,
+        };
+      })
+    );
+
+    // Fetch linked mandates
+    const linkedMandatesRaw = await prismadb.mandate_Properties.findMany({
+      where: { propertyId },
+      include: {
+        Mandate: {
+          select: {
+            id: true,
+            friendlyId: true,
+            title: true,
+            transaction_type: true,
+            status: true,
+            urgency: true,
+            budget_min: true,
+            budget_max: true,
+            organizationId: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Filter to same org and decrypt titles
+    const mandates = await Promise.all(
+      linkedMandatesRaw
+        .filter((lm) => lm.Mandate.organizationId === property!.organizationId)
+        .map(async (lm) => {
+          const { organizationId: _, ...rest } = lm.Mandate;
+          const decrypted = await decryptMandateForOrg(rest, property!.organizationId);
+          return decrypted;
+        })
+    );
 
     // Get upcoming events (future events)
     const now = new Date();
@@ -187,6 +238,7 @@ export async function GET(
     return NextResponse.json({
       property: serializePrismaObject(property),
       clients: serializePrismaObject(linkedClients.map((lc) => lc.client)),
+      mandates: serializePrismaObject(mandates),
       events: {
         upcoming: serializePrismaObject(upcomingEvents),
         past: serializePrismaObject(pastEvents),
@@ -194,6 +246,7 @@ export async function GET(
       },
       counts: {
         clients: linkedClients.length,
+        mandates: mandates.length,
         events: linkedEvents.length,
         upcomingEvents: upcomingEvents.length,
       },

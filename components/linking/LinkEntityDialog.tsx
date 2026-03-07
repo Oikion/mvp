@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Building2, User, Search, Loader2 } from "lucide-react";
+import { Building2, User, FileText, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   useUnifiedEntitySearch,
@@ -43,9 +43,9 @@ interface Entity {
 interface LinkEntityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entityType: "property" | "client";
+  entityType: "property" | "client" | "mandate";
   sourceId: string;
-  sourceType: "client" | "property";
+  sourceType: "client" | "property" | "mandate";
   alreadyLinkedIds?: string[];
   onLink: (entityIds: string[]) => Promise<void>;
   title?: string;
@@ -68,17 +68,21 @@ export function LinkEntityDialog({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const Icon = entityType === "property" ? Building2 : User;
-  const defaultTitle = entityType === "property" 
-    ? t("dialogs.linkProperties") 
+  const iconMap = { property: Building2, client: User, mandate: FileText };
+  const Icon = iconMap[entityType];
+  const defaultTitle = entityType === "property"
+    ? t("dialogs.linkProperties")
+    : entityType === "mandate"
+    ? t("dialogs.linkMandates")
     : t("dialogs.linkClients");
-  const defaultDescription =
-    entityType === "property"
-      ? t("placeholders.searchProperties")
-      : t("placeholders.searchClients");
+  const defaultDescription = entityType === "property"
+    ? t("placeholders.searchProperties")
+    : entityType === "mandate"
+    ? t("placeholders.searchMandates")
+    : t("placeholders.searchClients");
 
   // Map entityType to unified search type
-  const searchType: UnifiedEntityType = entityType === "property" ? "property" : "client";
+  const searchType: UnifiedEntityType = entityType;
 
   // Use unified entity search for fast, cached results
   const {
@@ -211,9 +215,11 @@ export function LinkEntityDialog({
               </div>
             ) : filteredEntities.length === 0 ? (
               <div className="text-center py-8 text-sm text-muted-foreground">
-                {entities.length === 0
-                  ? entityType === "property" 
-                    ? t("emptyStates.noPropertiesAvailable") 
+                {transformedEntities.length === 0
+                  ? entityType === "property"
+                    ? t("emptyStates.noPropertiesAvailable")
+                    : entityType === "mandate"
+                    ? t("emptyStates.noMandatesAvailable")
                     : t("emptyStates.noClientsAvailable")
                   : t("emptyStates.searchNoResults")}
               </div>

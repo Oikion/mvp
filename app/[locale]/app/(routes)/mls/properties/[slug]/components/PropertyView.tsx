@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { EditPropertyForm } from "./EditPropertyForm";
 import { CreateBookingButton } from "@/components/calendar/CreateBookingButton";
 import { LinkedEntitiesPanel, LinkEntityDialog } from "@/components/linking";
+import { EventCreateForm } from "@/components/calendar/EventCreateForm";
 import { ShareModal } from "@/components/social/ShareModal";
 import { toast } from "sonner";
 import axios from "axios";
@@ -30,6 +31,8 @@ import {
   usePropertyLinked,
   useLinkClientsToProperty,
   useUnlinkClientFromProperty,
+  useLinkMandatesToProperty,
+  useUnlinkMandateFromProperty,
 } from "@/hooks/swr";
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
 
@@ -80,6 +83,8 @@ export default function PropertyView({
 }: PropertyViewProps) {
   const [open, setOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
+  const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
+  const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [visibility, setVisibility] = useState(data.portal_visibility || "PRIVATE");
   const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
@@ -88,16 +93,21 @@ export default function PropertyView({
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
 
   // Use SWR for linked data fetching
-  const { 
-    clients, 
-    events, 
-    isLoading: isLoadingLinked, 
-    mutate: mutateLinked 
+  const {
+    clients,
+    mandates: linkedMandates,
+    events,
+    isLoading: isLoadingLinked,
+    mutate: mutateLinked
   } = usePropertyLinked(data?.id);
 
-  // Use mutation hooks for linking/unlinking
+  // Use mutation hooks for linking/unlinking clients
   const { linkClients, isLinking } = useLinkClientsToProperty(data.id);
   const { unlinkClient, isUnlinking } = useUnlinkClientFromProperty(data.id);
+
+  // Use mutation hooks for linking/unlinking mandates
+  const { linkMandates, isLinking: isLinkingMandates } = useLinkMandatesToProperty(data.id);
+  const { unlinkMandate, isUnlinking: isUnlinkingMandates } = useUnlinkMandateFromProperty(data.id);
 
   useEffect(() => {
     setOpen(defaultEditOpen);
@@ -131,6 +141,27 @@ export default function PropertyView({
     } catch (error) {
       console.error("Failed to unlink client:", error);
       toast.error("Failed to unlink client");
+    }
+  };
+
+  const handleLinkMandates = async (mandateIds: string[]) => {
+    try {
+      await linkMandates(mandateIds);
+      await mutateLinked();
+    } catch (error) {
+      console.error("Failed to link mandates:", error);
+      throw error;
+    }
+  };
+
+  const handleUnlinkMandate = async (mandateId: string) => {
+    try {
+      await unlinkMandate(mandateId);
+      toast.success("Mandate unlinked successfully");
+      await mutateLinked();
+    } catch (error) {
+      console.error("Failed to unlink mandate:", error);
+      toast.error("Failed to unlink mandate");
     }
   };
 
@@ -359,7 +390,7 @@ export default function PropertyView({
       <PropertyMatchingClients propertyId={data.id} locale={locale} />
 
       {/* Linked Entities Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <LinkedEntitiesPanel
           type="clients"
           entities={clients as unknown as Array<{ id: string; friendlyId: string; client_name: string; client_type?: string; client_status?: string; primary_email?: string; primary_phone?: string; intent?: string; assigned_to_user?: { id: string; name: string }; }>}
@@ -371,13 +402,34 @@ export default function PropertyView({
         />
 
         <LinkedEntitiesPanel
+          type="mandates"
+          entities={linkedMandates}
+          isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
+          onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
+          onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
+          showAddButton={!isReadOnly}
+          emptyMessage="No mandates linked to this property yet."
+        />
+
+        <LinkedEntitiesPanel
           type="events"
           entities={allEvents as unknown as Array<{ id: string; friendlyId: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
           isLoading={isLoadingLinked}
           showAddButton={false}
+          onCreateEvent={!isReadOnly ? () => setCreateEventOpen(true) : undefined}
           emptyMessage="No calendar events for this property yet."
         />
       </div>
+
+      {/* Create Event Sheet - pre-linked to this property */}
+      {!isReadOnly && (
+        <EventCreateForm
+          open={createEventOpen}
+          onOpenChange={setCreateEventOpen}
+          propertyId={data.id}
+          onSuccess={() => mutateLinked()}
+        />
+      )}
 
       {/* Export History Section - Only for non-shared view */}
       {!isReadOnly && (
@@ -422,6 +474,21 @@ export default function PropertyView({
           onLink={handleLinkClients}
           title="Link Clients to Property"
           description="Select clients who are interested in or viewing this property."
+        />
+      )}
+
+      {/* Link Mandate Dialog - Only for non-shared view */}
+      {!isReadOnly && (
+        <LinkEntityDialog
+          open={linkMandateDialogOpen}
+          onOpenChange={setLinkMandateDialogOpen}
+          entityType="mandate"
+          sourceId={data.id}
+          sourceType="property"
+          alreadyLinkedIds={(linkedMandates ?? []).map((m: any) => m.id)}
+          onLink={handleLinkMandates}
+          title="Link Mandates to Property"
+          description="Select mandates associated with this property."
         />
       )}
 

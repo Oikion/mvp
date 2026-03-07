@@ -8,6 +8,7 @@ import {
   DataTableSelectAllCheckbox,
 } from "@/components/ui/data-table/data-table-select-checkbox";
 import { MandateRowActions } from "./MandateRowActions";
+import { Badge } from "@/components/ui/badge";
 
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { TitleCell } from "./cells/TitleCell";
@@ -79,7 +80,6 @@ export const getColumns = (
     cell: ({ row }) => (
       <TitleCell
         mandateId={row.original.id}
-        mandateFriendlyId={row.original.friendlyId}
         value={row.original.title}
       />
     ),
@@ -156,22 +156,30 @@ export const getColumns = (
       <DataTableColumnHeader column={column} title={t("MandatesTable.client")} />
     ),
     cell: ({ row }) => {
-      const client = row.original.client;
-      if (!client?.client_name) {
+      const clients = row.original.Mandate_Clients ?? [];
+      if (clients.length === 0) {
         return (
           <span className="text-muted-foreground/60 italic text-xs">
             {t("MandatesTable.noClient")}
           </span>
         );
       }
+      const first = clients[0].Clients;
       return (
-        <Link
-          href={`/app/crm/clients/${client.friendlyId}`}
-          className="text-sm hover:text-primary transition-colors truncate max-w-[150px] inline-block"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {client.client_name}
-        </Link>
+        <div className="flex items-center gap-1">
+          <Link
+            href={`/app/crm/clients/${first.friendlyId}`}
+            className="text-sm hover:text-primary transition-colors truncate max-w-[150px] inline-block"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {first.client_name}
+          </Link>
+          {clients.length > 1 && (
+            <Badge variant="secondary" className="text-[10px]">
+              +{clients.length - 1}
+            </Badge>
+          )}
+        </div>
       );
     },
     enableSorting: false,

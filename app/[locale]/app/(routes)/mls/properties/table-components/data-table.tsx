@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -20,7 +21,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar_Properties as PropertiesToolbar } from "./data-table-toolbar";
 
-export function PropertyDataTable<TData, TValue>({ columns, data, toolbarRight }: { columns: ColumnDef<TData, TValue>[]; data: TData[]; toolbarRight?: React.ReactNode }) {
+export function PropertyDataTable<TData, TValue>({ columns, data, getRowHref, toolbarRight }: { columns: ColumnDef<TData, TValue>[]; data: TData[]; getRowHref?: (row: TData) => string; toolbarRight?: React.ReactNode }) {
+  const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -62,7 +64,16 @@ export function PropertyDataTable<TData, TValue>({ columns, data, toolbarRight }
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className={getRowHref ? "cursor-pointer" : undefined}
+                  onClick={getRowHref ? (e: React.MouseEvent) => {
+                    const target = e.target as HTMLElement;
+                    if (target.closest('button, a, input, select, textarea, [role="combobox"], [role="menuitem"], [data-radix-collection-item]')) return;
+                    router.push(getRowHref(row.original));
+                  } : undefined}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}

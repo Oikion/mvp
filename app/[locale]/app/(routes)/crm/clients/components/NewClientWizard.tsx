@@ -51,7 +51,8 @@ type Props = {
 // Schema shape without validation messages (those are added inside the component)
 const baseSchema = z.object({
   // Step 1
-  person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]).optional(),
+  client_name: z.string().optional(), // required — enforced via superRefine with translated message
+  person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]).optional(), // required — enforced via superRefine
   full_name: z.string().optional(),
   company_name: z.string().optional(),
   primary_phone: z.string().optional(),
@@ -127,7 +128,20 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
         return true;
       },
       { path: ["afm"], message: t("CrmForm.validation.afmInvalid") }
-    ),
+    )
+    .superRefine((data, ctx) => {
+      if (!data.person_type) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["person_type"], message: t("CrmForm.validation.personTypeRequired") });
+      } else if (data.person_type === "COMPANY") {
+        if (!data.company_name || data.company_name.trim() === "") {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["company_name"], message: t("CrmForm.validation.nameRequired") });
+        }
+      } else {
+        if (!data.full_name || data.full_name.trim() === "") {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["full_name"], message: t("CrmForm.validation.nameRequired") });
+        }
+      }
+    }),
     [t]
   );
 
@@ -184,6 +198,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      client_name: "",
       person_type: undefined,
       full_name: "",
       company_name: "",
@@ -243,6 +258,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
             const draft = response.data.client;
             const prefs = draft.property_preferences || {};
             form.reset({
+              client_name: draft.client_name || "",
               person_type: draft.person_type || undefined,
               full_name: draft.full_name || "",
               company_name: draft.company_name || "",
@@ -300,6 +316,15 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
     };
     loadDraft();
   }, [initialDraftId, draftId, form]);
+
+  // Derive client_name from the contextual name field so autosave and submit always have it
+  const watchedPersonType = form.watch("person_type");
+  const watchedFullName = form.watch("full_name");
+  const watchedCompanyName = form.watch("company_name");
+  useEffect(() => {
+    const derived = watchedPersonType === "COMPANY" ? watchedCompanyName : watchedFullName;
+    form.setValue("client_name", derived ?? "", { shouldValidate: false, shouldDirty: false });
+  }, [watchedPersonType, watchedFullName, watchedCompanyName, form]);
 
   const formValues = form.watch();
   const debouncedValues = useDebounce(JSON.stringify(formValues), 500);
@@ -457,7 +482,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
           <div className="space-y-4">
             <FormField control={form.control} name="person_type" render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("CrmForm.fields.personType")}</FormLabel>
+                <FormLabel>{t("CrmForm.fields.personType")} <span className="text-destructive">*</span></FormLabel>
                 <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl><SelectTrigger><SelectValue placeholder={t("CrmForm.fields.personTypePlaceholder")} /></SelectTrigger></FormControl>
                   <SelectContent>
@@ -474,7 +499,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
             <ConditionalFormSection condition={personType === "INDIVIDUAL" || personType === "INVESTOR" || personType === "BROKER"}>
               <FormField control={form.control} name="full_name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.fullName")}</FormLabel>
+                  <FormLabel>{t("CrmForm.fields.fullName")} <span className="text-destructive">*</span></FormLabel>
                   <FormControl><Input {...field} placeholder={t("CrmForm.fields.fullNamePlaceholder")} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -484,7 +509,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
             <ConditionalFormSection condition={personType === "COMPANY"}>
               <FormField control={form.control} name="company_name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("CrmForm.fields.companyName")}</FormLabel>
+                  <FormLabel>{t("CrmForm.fields.companyName")} <span className="text-destructive">*</span></FormLabel>
                   <FormControl><Input {...field} placeholder={t("CrmForm.fields.companyNamePlaceholder")} /></FormControl>
                   <FormMessage />
                 </FormItem>

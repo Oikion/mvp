@@ -36,7 +36,10 @@
       "areasOfInterest": "Περιοχές Ενδιαφέροντος",
       "areasPlaceholder": "Πληκτρολογήστε περιοχή και πατήστε Enter",
       "municipality": "Δήμος",
+      "municipalityPlaceholder": "Εισάγετε δήμο",
       "region": "Περιφέρεια",
+      "regionPlaceholder": "π.χ. Αττική",
+      "areasOfInterestPlaceholder": "Πληκτρολογήστε περιοχή και πατήστε Enter",
       "sizeMinSqm": "Ελάχιστο Εμβαδόν (τ.μ.)",
       "sizeMaxSqm": "Μέγιστο Εμβαδόν (τ.μ.)",
       "plotSizeMinSqm": "Ελάχιστο Οικόπεδο (τ.μ.)",
@@ -234,7 +237,10 @@
     "edit": "Επεξεργασία",
     "view": "Προβολή",
     "delete": "Διαγραφή",
-    "confirmDelete": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή την ανάθεση;"
+    "confirmDelete": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή την ανάθεση;",
+    "calendarEvents": "Ημερολογιακά Γεγονότα",
+    "createEvent": "Δημιουργία Γεγονότος",
+    "noCalendarEvents": "Δεν υπάρχουν ημερολογιακά γεγονότα για αυτή την ανάθεση."
   },
   "QuickAdd": {
     "title": "Γρήγορη Προσθήκη Ανάθεσης",

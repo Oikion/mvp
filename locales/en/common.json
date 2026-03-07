@@ -203,6 +203,7 @@
     "search": "Search...",
     "searchClients": "Search clients...",
     "searchProperties": "Search properties...",
+    "searchMandates": "Search mandates...",
     "searchUsers": "Search users...",
     "selectUser": "Select a user",
     "selectClient": "Select a client",
@@ -266,6 +267,7 @@
     "noUserData": "No user data.",
     "noClientsAvailable": "No clients available. Create clients first.",
     "noPropertiesAvailable": "No properties available. Create properties first.",
+    "noMandatesAvailable": "No mandates available. Create mandates first.",
     "loadFailed": "Failed to load. Please refresh the page.",
     "noOptionFound": "No option found."
   },
@@ -361,6 +363,7 @@
     "cancelRequest": "Cancel Request?",
     "linkClients": "Link Clients to Property",
     "linkProperties": "Link Properties to Client",
+    "linkMandates": "Link Mandates",
     "shareWithAgents": "Share with Agents",
     "feedback": "Feedback",
     "sidebar": "Sidebar"

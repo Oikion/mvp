@@ -140,7 +140,6 @@ async function fetchActiveMandates(organizationId: string) {
       status: true,
       assigned_to: true,
       organizationId: true,
-      clientId: true,
     },
   });
 }

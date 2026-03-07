@@ -78,7 +78,7 @@ export const PriceCell = ({ propertyId, price }: PriceCellProps) => {
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-1 min-w-[140px]">
+      <div className="flex items-center gap-1 min-w-[140px]" onClick={(e) => e.stopPropagation()}>
         <div className="relative flex-1">
           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">€</span>
           <Input
@@ -116,7 +116,7 @@ export const PriceCell = ({ propertyId, price }: PriceCellProps) => {
 
   return (
     <button
-      onClick={() => setIsEditing(true)}
+      onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
       className="group flex items-center gap-2 whitespace-nowrap cursor-pointer hover:bg-muted/50 rounded px-2 py-1 -mx-2 transition-colors"
     >
       <span>{formatPrice(numericPrice)}</span>

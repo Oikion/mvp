@@ -208,6 +208,32 @@ model Client_Properties {
   @@index([propertyId])
 }
 
+model Mandate_Properties {
+  id         String     @id @default(uuid())
+  createdAt  DateTime   @default(now())
+  mandateId  String
+  propertyId String
+  Mandate    Mandate    @relation(fields: [mandateId], references: [id], onDelete: Cascade)
+  Properties Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([mandateId, propertyId])
+  @@index([mandateId])
+  @@index([propertyId])
+}
+
+model Mandate_Clients {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  mandateId String
+  clientId  String
+  Mandate   Mandate  @relation(fields: [mandateId], references: [id], onDelete: Cascade)
+  Clients   Clients  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([mandateId, clientId])
+  @@index([mandateId])
+  @@index([clientId])
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Clients {
   id                               String               @id @default(uuid())
@@ -278,7 +304,7 @@ model Clients {
   CalendarEvent                    CalendarEvent[]      @relation("EventToClients")
   Users_watching_accounts          Users[]              @relation("watching_accounts")
   PropertyShowing                  PropertyShowing[]
-  Mandate                          Mandate[]
+  Mandate_Clients                  Mandate_Clients[]
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_to])
@@ -717,6 +743,7 @@ model Properties {
   Users_watching_properties           Users[]                   @relation("watching_properties")
   PropertyShowing                     PropertyShowing[]
   XeSyncItems                         XeSyncItem[]
+  Mandate_Properties                  Mandate_Properties[]
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_to])
@@ -1557,17 +1584,15 @@ model Mandate {
   expires_at          DateTime?
   notes               String?
   communication_notes Json?
-  clientId            String?
-  client_linked_at    DateTime?
   draft_status        Boolean?          @default(false)
-  client              Clients?          @relation(fields: [clientId], references: [id], onDelete: SetNull)
   assigned_to_user    Users?            @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
   comments            MandateComment[]
+  Mandate_Properties  Mandate_Properties[]
+  Mandate_Clients     Mandate_Clients[]
 
   @@unique([friendlyId, organizationId])
   @@index([friendlyId])
   @@index([organizationId])
-  @@index([clientId])
   @@index([assigned_to])
   @@index([status])
   @@index([createdAt])

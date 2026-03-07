@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { decryptMessageForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/crm/clients/[clientId]/comments
@@ -69,8 +70,13 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ 
-      comments: comments.map(c => ({ ...c, user: c.Users }))
+    // Decrypt comment content
+    const decryptedComments = await Promise.all(
+      comments.map((c) => decryptMessageForOrg(c, organizationId))
+    );
+
+    return NextResponse.json({
+      comments: decryptedComments.map(c => ({ ...c, user: c.Users }))
     });
   } catch (error) {
     console.error("[CLIENT_COMMENTS_GET]", error);

@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { UpdateAccountForm } from "../../../accounts/components/UpdateAccountForm";
 import { CreateBookingButton } from "@/components/calendar/CreateBookingButton";
 import { LinkedEntitiesPanel, LinkEntityDialog } from "@/components/linking";
+import { EventCreateForm } from "@/components/calendar/EventCreateForm";
 import { ShareModal } from "@/components/social/ShareModal";
 import { ClientComments } from "./ClientComments";
 import { ClientMatchingProperties } from "./ClientMatchingProperties";
@@ -18,6 +19,8 @@ import {
   useClientLinked,
   useLinkPropertiesToClient,
   useUnlinkPropertyFromClient,
+  useLinkMandatesToClient,
+  useUnlinkMandateFromClient,
 } from "@/hooks/swr";
 import { QuickExportButton } from "@/components/export";
 
@@ -77,11 +80,14 @@ export default function ClientView({
 }: ClientViewProps) {
   const [open, setOpen] = useState(defaultEditOpen);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
+  const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
+  const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Use SWR for linked data fetching
   const {
     properties,
+    mandates: linkedMandates,
     events,
     isLoading: isLoadingLinked,
     mutate: mutateLinked,
@@ -90,6 +96,8 @@ export default function ClientView({
   // Use mutation hooks for linking/unlinking
   const { linkProperties, isLinking } = useLinkPropertiesToClient(data.id);
   const { unlinkProperty, isUnlinking } = useUnlinkPropertyFromClient(data.id);
+  const { linkMandates, isLinking: isLinkingMandates } = useLinkMandatesToClient(data.id);
+  const { unlinkMandate, isUnlinking: isUnlinkingMandates } = useUnlinkMandateFromClient(data.id);
 
   useEffect(() => {
     setOpen(defaultEditOpen);
@@ -115,6 +123,27 @@ export default function ClientView({
     } catch (error) {
       console.error("Failed to unlink property:", error);
       toast.error("Failed to unlink property");
+    }
+  };
+
+  const handleLinkMandates = async (mandateIds: string[]) => {
+    try {
+      await linkMandates(mandateIds);
+      await mutateLinked();
+    } catch (error) {
+      console.error("Failed to link mandates:", error);
+      throw error;
+    }
+  };
+
+  const handleUnlinkMandate = async (mandateId: string) => {
+    try {
+      await unlinkMandate(mandateId);
+      toast.success("Mandate unlinked successfully");
+      await mutateLinked();
+    } catch (error) {
+      console.error("Failed to unlink mandate:", error);
+      toast.error("Failed to unlink mandate");
     }
   };
 
@@ -264,9 +293,30 @@ export default function ClientView({
           entities={allEvents as unknown as Array<{ id: string; friendlyId: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
           isLoading={isLoadingLinked}
           showAddButton={false}
+          onCreateEvent={!isReadOnly ? () => setCreateEventOpen(true) : undefined}
           emptyMessage="No calendar events for this client yet."
         />
+
+        <LinkedEntitiesPanel
+          type="mandates"
+          entities={linkedMandates}
+          isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
+          onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
+          onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
+          showAddButton={!isReadOnly}
+          emptyMessage="No mandates linked to this client yet."
+        />
       </div>
+
+      {/* Create Event Sheet - pre-linked to this client */}
+      {!isReadOnly && (
+        <EventCreateForm
+          open={createEventOpen}
+          onOpenChange={setCreateEventOpen}
+          clientId={data.id}
+          onSuccess={() => mutateLinked()}
+        />
+      )}
 
       {/* Comments Section - Show for org members and sharees with VIEW_COMMENT */}
       {currentUserId && (
@@ -289,6 +339,21 @@ export default function ClientView({
           onLink={handleLinkProperties}
           title="Link Properties to Client"
           description="Select properties that this client is interested in or owns."
+        />
+      )}
+
+      {/* Link Mandate Dialog - Only for non-shared view */}
+      {!isReadOnly && (
+        <LinkEntityDialog
+          open={linkMandateDialogOpen}
+          onOpenChange={setLinkMandateDialogOpen}
+          entityType="mandate"
+          sourceId={data.id}
+          sourceType="client"
+          alreadyLinkedIds={(linkedMandates ?? []).map((m: any) => m.id)}
+          onLink={handleLinkMandates}
+          title="Link Mandates to Client"
+          description="Select mandates associated with this client."
         />
       )}
 

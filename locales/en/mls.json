@@ -302,7 +302,9 @@
     "scheduleEvent": "Schedule Event",
     "scheduleEventTitle": "Schedule Event",
     "scheduleEventDesc": "Schedule an appointment or event for this property",
-    "share": "Share Property"
+    "share": "Share Property",
+    "nameUpdated": "Name updated successfully",
+    "nameRequired": "Property name is required"
   },
   "Tabs": {
     "agencyProperties": "Agency Properties",

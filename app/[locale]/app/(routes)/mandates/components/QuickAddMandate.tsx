@@ -36,7 +36,7 @@ import {
 const createQuickAddMandateSchema = (t: (key: string) => string) =>
   z.object({
     title: z.string().min(1, t("MandateForm.validation.titleRequired")).max(200),
-    transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]).optional(),
+    transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"], { required_error: t("MandateForm.validation.transactionTypeRequired") }),
     property_type: z
       .enum([
         "RESIDENTIAL",
@@ -196,7 +196,7 @@ export function QuickAddMandate({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("MandateForm.fields.title")}</FormLabel>
+                  <FormLabel required>{t("MandateForm.fields.title")}</FormLabel>
                   <FormControl>
                     <Input
                       disabled={isLoading}
@@ -215,7 +215,7 @@ export function QuickAddMandate({
               name="transaction_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("MandateForm.fields.transactionType")}</FormLabel>
+                  <FormLabel required>{t("MandateForm.fields.transactionType")}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value ?? ""}>
                     <FormControl>
                       <SelectTrigger disabled={isLoading}>

@@ -74,6 +74,7 @@ export const NameCell = ({ propertyId, value }: NameCellProps) => {
     return (
       <div
         className="flex items-center gap-1 min-w-[160px]"
+        onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <Input

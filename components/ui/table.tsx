@@ -100,7 +100,7 @@ const TableRow = React.forwardRef<
     className={cn(
       "border-b border-border transition-colors duration-fast ease-in-out",
       "hover:bg-muted/50",
-      "data-[state=selected]:bg-accent data-[state=selected]:text-accent-foreground",
+      "data-[state=selected]:bg-accent/20 data-[state=selected]:text-foreground",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       className
     )}

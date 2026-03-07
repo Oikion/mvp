@@ -25,6 +25,7 @@ import {
 } from "@/lib/export";
 import { requireCanExport } from "@/lib/permissions/guards";
 import { shouldUseK8sForExport, submitExportJob } from "@/lib/export/job-handler";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -200,8 +201,13 @@ export async function GET(req: NextRequest) {
       select: { id: true, name: true },
     });
     
+    // Decrypt encrypted client fields before export
+    const decryptedClients = await Promise.all(
+      clients.map((c) => decryptClientForOrg(c, orgId))
+    );
+
     // Transform data for export
-    const exportData = clients.map(client => ({
+    const exportData = decryptedClients.map(client => ({
       ...client,
       assigned_to_name: client.Users_Clients_assigned_toToUsers?.name || "",
       // Convert Decimal fields to numbers

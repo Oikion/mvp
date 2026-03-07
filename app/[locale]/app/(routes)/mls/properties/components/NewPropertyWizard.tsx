@@ -43,7 +43,7 @@ type Props = {
 const formSchema = z.object({
   // Step 1
   property_name: z.string().min(1, "Property name is required"),
-  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]).optional(),
+  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]),
   property_type_other: z.string().optional(),
   transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]).optional(),
   property_status: z.enum(["AVAILABLE", "RESERVED", "NEGOTIATION", "RENTED", "SOLD"]).optional(),
@@ -470,6 +470,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               otherLabel={t("fields.specifyOther")}
               otherPlaceholder={t("fields.specifyOtherPlaceholder")}
               disabled={isLoading}
+              required
               options={[
                 { value: "APARTMENT", label: t("propertyType.APARTMENT") },
                 { value: "HOUSE", label: t("propertyType.HOUSE") },

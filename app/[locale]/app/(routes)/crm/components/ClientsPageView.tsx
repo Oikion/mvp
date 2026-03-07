@@ -297,6 +297,7 @@ export default function ClientsPageView({
                   columns={getColumns(users)}
                   industries={[]}
                   users={users}
+                  getRowHref={(row: any) => `/app/crm/clients/${row.friendlyId}`}
                   toolbarRight={<ViewToggle view={view} setView={setView} />}
                 />
               ) : (

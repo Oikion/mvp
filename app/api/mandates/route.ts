@@ -100,9 +100,9 @@ export async function GET(req: Request) {
     }
 
     if (linked === "true") {
-      where.clientId = { not: null };
+      where.Mandate_Clients = { some: {} };
     } else if (linked === "false") {
-      where.clientId = null;
+      where.Mandate_Clients = { none: {} };
     }
 
     // Fetch one extra to check if there are more items
@@ -116,8 +116,19 @@ export async function GET(req: Request) {
         assigned_to_user: {
           select: { id: true, name: true, email: true, avatar: true },
         },
-        client: {
-          select: { id: true, client_name: true },
+        Mandate_Clients: {
+          include: {
+            Clients: {
+              select: { id: true, friendlyId: true, client_name: true, client_status: true, primary_email: true, primary_phone: true },
+            },
+          },
+        },
+        Mandate_Properties: {
+          include: {
+            Properties: {
+              select: { id: true, friendlyId: true, property_name: true, property_type: true, property_status: true },
+            },
+          },
         },
       },
     });
@@ -262,10 +273,6 @@ export async function POST(req: Request) {
         timeline: validated.timeline,
         expires_at: validated.expires_at,
 
-        // Client link
-        clientId: validated.clientId,
-        client_linked_at: validated.clientId ? new Date() : undefined,
-
         // Draft
         draft_status: validated.draft_status ?? false,
       },
@@ -404,7 +411,6 @@ export async function PUT(req: Request) {
     if (validated.urgency !== undefined) updateData.urgency = validated.urgency;
     if (validated.timeline !== undefined) updateData.timeline = validated.timeline;
     if (validated.expires_at !== undefined) updateData.expires_at = validated.expires_at;
-    if (validated.clientId !== undefined) updateData.clientId = validated.clientId;
     if (validated.assigned_to !== undefined) updateData.assigned_to = validated.assigned_to;
     if (validated.draft_status !== undefined) updateData.draft_status = validated.draft_status;
 

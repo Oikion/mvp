@@ -17,34 +17,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { useAppToast } from "@/hooks/use-app-toast"
 import {
   ArrowLeft,
   Edit,
-  Link2,
-  Unlink,
   User,
   MapPin,
   Home,
@@ -53,15 +29,23 @@ import {
   Shield,
   Check,
   X,
-  ChevronsUpDown,
   MessageSquare,
   FileText,
   Clock,
 } from "lucide-react"
 import { format } from "date-fns"
-import { useClients } from "@/hooks/swr/useClients"
+import { useMandateLinked } from "@/hooks/swr/useMandateLinked"
+import {
+  useLinkPropertiesToMandate,
+  useUnlinkPropertyFromMandate,
+  useLinkClientsToMandate,
+  useUnlinkClientFromMandate,
+} from "@/hooks/swr/useLinkMutations"
+import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel"
+import { LinkEntityDialog } from "@/components/linking/LinkEntityDialog"
 import EditMandateForm from "./EditMandateForm"
 import MandateComments from "./MandateComments"
+import { EventCreateForm } from "@/components/calendar/EventCreateForm"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -215,23 +199,27 @@ export default function MandateView({
 }: MandateViewProps) {
   const router = useRouter()
   const t = useTranslations("mandates")
-  const { toast } = useAppToast()
-
   // Sheet state (edit form)
   const [editOpen, setEditOpen] = useState(false)
+  const [createEventOpen, setCreateEventOpen] = useState(false)
 
-  // Client link dialog
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false)
-  const [unlinkDialogOpen, setUnlinkDialogOpen] = useState(false)
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
-  const [clientPopoverOpen, setClientPopoverOpen] = useState(false)
-  const [isLinking, setIsLinking] = useState(false)
-  const [isUnlinking, setIsUnlinking] = useState(false)
+  // Linked entities
+  const {
+    properties: linkedProperties,
+    clients: linkedClients,
+    events,
+    isLoading: isLoadingLinked,
+    mutate: mutateLinked,
+  } = useMandateLinked(mandate.id)
 
-  // Clients list for linking
-  const { clients, isLoading: isLoadingClients } = useClients({
-    enabled: linkDialogOpen,
-  })
+  const allEvents = [...(events.upcoming || []), ...(events.past || [])]
+  const { linkProperties, isLinking: isLinkingProperties } = useLinkPropertiesToMandate(mandate.id)
+  const { unlinkProperty, isUnlinking: isUnlinkingProperties } = useUnlinkPropertyFromMandate(mandate.id)
+  const { linkClients, isLinking: isLinkingClients } = useLinkClientsToMandate(mandate.id)
+  const { unlinkClient, isUnlinking: isUnlinkingClients } = useUnlinkClientFromMandate(mandate.id)
+
+  const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false)
+  const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false)
 
   // Open edit sheet if action=edit was passed via URL
   useEffect(() => {
@@ -244,57 +232,6 @@ export default function MandateView({
   const displayEnum = (value: string | null | undefined) => {
     if (!value) return null
     return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-  }
-
-  // --- Mutations ---
-  const handleLinkClient = async () => {
-    if (!selectedClientId) return
-    setIsLinking(true)
-    try {
-      const res = await fetch(`/api/mandates/${mandate.id}/link-client`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId: selectedClientId }),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || "Failed to link client")
-      }
-      toast.success("updateSuccess")
-      setLinkDialogOpen(false)
-      setSelectedClientId(null)
-      router.refresh()
-    } catch (err) {
-      toast.error("linkEntitiesFailed", {
-        description:
-          err instanceof Error ? err.message : "Failed to link client",
-      })
-    } finally {
-      setIsLinking(false)
-    }
-  }
-
-  const handleUnlinkClient = async () => {
-    setIsUnlinking(true)
-    try {
-      const res = await fetch(`/api/mandates/${mandate.id}/link-client`, {
-        method: "DELETE",
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || "Failed to unlink client")
-      }
-      toast.success("unlinkSuccess")
-      setUnlinkDialogOpen(false)
-      router.refresh()
-    } catch (err) {
-      toast.error("unlinkFailed", {
-        description:
-          err instanceof Error ? err.message : "Failed to unlink client",
-      })
-    } finally {
-      setIsUnlinking(false)
-    }
   }
 
   const handleEditSave = () => {
@@ -764,85 +701,45 @@ export default function MandateView({
             </CardContent>
           </Card>
 
-          {/* Client Link */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Link2 className="h-4 w-4" />
-                {t("MandateView.linkedClient")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {mandate.client ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <User className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <button
-                        className="text-sm font-medium hover:underline truncate block text-left"
-                        onClick={() =>
-                          router.push(
-                            `/app/crm/clients/${mandate.client!.friendlyId}`
-                          )
-                        }
-                      >
-                        {mandate.client.client_name}
-                      </button>
-                      {mandate.client.client_status && (
-                        <Badge variant="outline" className="text-xs mt-0.5">
-                          {displayEnum(mandate.client.client_status)}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
+          {/* Linked Clients */}
+          <LinkedEntitiesPanel
+            type="clients"
+            entities={linkedClients}
+            isLoading={isLoadingLinked || isLinkingClients || isUnlinkingClients}
+            onLinkEntity={() => setLinkClientDialogOpen(true)}
+            onUnlinkEntity={(clientId) => unlinkClient(clientId)}
+            emptyMessage={t("linkedEntities.noClients") ?? "No clients linked yet"}
+          />
 
-                  {mandate.client_linked_at && (
-                    <p className="text-xs text-muted-foreground">
-                      {t("MandateView.linkedOn")}:{" "}
-                      {format(
-                        new Date(mandate.client_linked_at),
-                        "dd/MM/yyyy"
-                      )}
-                    </p>
-                  )}
+          {/* Linked Properties */}
+          <LinkedEntitiesPanel
+            type="properties"
+            entities={linkedProperties}
+            isLoading={isLoadingLinked || isLinkingProperties || isUnlinkingProperties}
+            onLinkEntity={() => setLinkPropertyDialogOpen(true)}
+            onUnlinkEntity={(propertyId) => unlinkProperty(propertyId)}
+            emptyMessage={t("linkedEntities.noProperties") ?? "No properties linked yet"}
+          />
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-destructive hover:text-destructive"
-                    onClick={() => setUnlinkDialogOpen(true)}
-                  >
-                    <Unlink className="mr-2 h-4 w-4" />
-                    {t("MandateView.unlinkClient")}
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center py-4 space-y-3">
-                  <div className="flex items-center justify-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                      <User className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {t("MandateForm.fields.noClient")}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => setLinkDialogOpen(true)}
-                  >
-                    <Link2 className="mr-2 h-4 w-4" />
-                    {t("MandateView.linkClient")}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Calendar Events */}
+          <LinkedEntitiesPanel
+            type="events"
+            entities={allEvents as unknown as Array<{ id: string; friendlyId: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
+            isLoading={isLoadingLinked}
+            showAddButton={false}
+            onCreateEvent={() => setCreateEventOpen(true)}
+            emptyMessage={t("MandateView.noCalendarEvents")}
+          />
         </div>
       </div>
+
+      {/* Create Event Sheet - pre-linked to mandate's client if available */}
+      <EventCreateForm
+        open={createEventOpen}
+        onOpenChange={setCreateEventOpen}
+        clientId={mandate.clientId ?? undefined}
+        onSuccess={() => mutateLinked()}
+      />
 
       {/* ================================================================== */}
       {/* Edit Sheet                                                         */}
@@ -861,116 +758,28 @@ export default function MandateView({
       {/* ================================================================== */}
       {/* Link Client Dialog                                                 */}
       {/* ================================================================== */}
-      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("MandateView.linkClientTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("MandateView.linkClientDescription")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Popover
-              open={clientPopoverOpen}
-              onOpenChange={setClientPopoverOpen}
-            >
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={clientPopoverOpen}
-                  className="w-full justify-between"
-                >
-                  {selectedClientId
-                    ? clients.find((c) => c.value === selectedClientId)
-                        ?.label ?? "Select client..."
-                    : t("MandateView.searchClients")}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="start">
-                <Command>
-                  <CommandInput placeholder={t("MandateView.searchClients")} />
-                  <CommandList>
-                    <CommandEmpty>
-                      {isLoadingClients
-                        ? "Loading..."
-                        : t("MandateView.noClientsFound")}
-                    </CommandEmpty>
-                    <CommandGroup>
-                      {clients.map((client) => (
-                        <CommandItem
-                          key={client.value}
-                          value={client.label}
-                          onSelect={() => {
-                            setSelectedClientId(client.value)
-                            setClientPopoverOpen(false)
-                          }}
-                        >
-                          <Check
-                            className={`mr-2 h-4 w-4 ${
-                              selectedClientId === client.value
-                                ? "opacity-100"
-                                : "opacity-0"
-                            }`}
-                          />
-                          {client.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setLinkDialogOpen(false)
-                setSelectedClientId(null)
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleLinkClient}
-              disabled={!selectedClientId || isLinking}
-            >
-              {isLinking ? "Linking..." : t("MandateView.linkClient")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <LinkEntityDialog
+        open={linkClientDialogOpen}
+        onOpenChange={setLinkClientDialogOpen}
+        entityType="client"
+        sourceId={mandate.id}
+        sourceType="mandate"
+        alreadyLinkedIds={linkedClients.map((c: any) => c.id)}
+        onLink={async (ids: string[]) => { await linkClients(ids); }}
+      />
 
       {/* ================================================================== */}
-      {/* Unlink Client Confirmation Dialog                                   */}
+      {/* Link Property Dialog                                               */}
       {/* ================================================================== */}
-      <Dialog open={unlinkDialogOpen} onOpenChange={setUnlinkDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("MandateView.unlinkConfirmTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("MandateView.unlinkConfirmDescription")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setUnlinkDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleUnlinkClient}
-              disabled={isUnlinking}
-            >
-              {isUnlinking ? "Unlinking..." : t("MandateView.unlinkClient")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <LinkEntityDialog
+        open={linkPropertyDialogOpen}
+        onOpenChange={setLinkPropertyDialogOpen}
+        entityType="property"
+        sourceId={mandate.id}
+        sourceType="mandate"
+        alreadyLinkedIds={linkedProperties.map((p: any) => p.id)}
+        onLink={async (ids: string[]) => { await linkProperties(ids); }}
+      />
     </div>
   )
 }

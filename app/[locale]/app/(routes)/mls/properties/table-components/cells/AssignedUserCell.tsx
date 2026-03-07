@@ -50,6 +50,8 @@ export const AssignedUserCell = ({
   const currentValue = assignedTo || "unassigned";
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+    <div onClick={(e) => e.stopPropagation()}>
     <Select
       value={currentValue}
       onValueChange={handleValueChange}
@@ -70,6 +72,7 @@ export const AssignedUserCell = ({
         ))}
       </SelectContent>
     </Select>
+    </div>
   );
 };
 

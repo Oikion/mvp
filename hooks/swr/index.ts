@@ -142,12 +142,19 @@ export type {
   BulkShareResponse,
 } from "./useShareMutations";
 
-// Link Mutations (Property-Client linking)
+// Mandate Linked Entities
+export { useMandateLinked, getMandateLinkedKey } from "./useMandateLinked";
+
+// Link Mutations (Property-Client linking, Property-Mandate linking)
 export {
   useLinkClientsToProperty,
   useUnlinkClientFromProperty,
   useLinkPropertiesToClient,
   useUnlinkPropertyFromClient,
+  useLinkMandatesToProperty,
+  useUnlinkMandateFromProperty,
+  useLinkMandatesToClient,
+  useUnlinkMandateFromClient,
 } from "./useLinkMutations";
 
 // ============================================================

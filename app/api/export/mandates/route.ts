@@ -130,13 +130,16 @@ export async function GET(req: NextRequest) {
         bedrooms_max: true,
         municipality: true,
         region: true,
-        clientId: true,
         assigned_to: true,
         expires_at: true,
         notes: true,
         communication_notes: true,
-        client: {
-          select: { client_name: true },
+        Mandate_Clients: {
+          include: {
+            Clients: {
+              select: { client_name: true },
+            },
+          },
         },
         assigned_to_user: {
           select: { name: true },
@@ -206,7 +209,7 @@ export async function GET(req: NextRequest) {
         return {
           ...decrypted,
           // Add derived display fields
-          client_name: decrypted.client?.client_name || "",
+          client_name: (decrypted as any).Mandate_Clients?.[0]?.Clients?.client_name || "",
           assigned_to_name: decrypted.assigned_to_user?.name || "",
           // Convert Decimal fields to numbers
           budget_min: decrypted.budget_min ? Number(decrypted.budget_min) : null,

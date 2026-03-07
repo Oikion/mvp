@@ -12,6 +12,7 @@ import {
   Building2,
   User,
   Calendar,
+  FileText,
   Plus,
   ExternalLink,
   Clock,
@@ -66,12 +67,25 @@ interface LinkedEvent {
   linkedProperties?: { id: string; property_name: string }[];
 }
 
+interface LinkedMandate {
+  id: string;
+  friendlyId: string;
+  title: string;
+  transaction_type?: string;
+  status?: string;
+  urgency?: string;
+  budget_min?: number;
+  budget_max?: number;
+}
+
 interface LinkedEntitiesPanelProps {
-  type: "properties" | "clients" | "events";
-  entities: LinkedProperty[] | LinkedClient[] | LinkedEvent[];
+  type: "properties" | "clients" | "events" | "mandates";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  entities: any[];
   isLoading?: boolean;
   onLinkEntity?: () => void;
   onUnlinkEntity?: (entityId: string) => void;
+  onCreateEvent?: () => void;
   emptyMessage?: string;
   maxHeight?: string;
   showAddButton?: boolean;
@@ -211,6 +225,63 @@ function ClientCard({
   );
 }
 
+function MandateCard({
+  mandate,
+  onUnlink,
+}: {
+  mandate: LinkedMandate;
+  onUnlink?: () => void;
+}) {
+  const router = useRouter();
+  const budgetLabel = mandate.budget_min || mandate.budget_max
+    ? `€${(mandate.budget_min ?? 0).toLocaleString()} - €${(mandate.budget_max ?? 0).toLocaleString()}`
+    : null;
+
+  return (
+    <div
+      className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
+      onClick={() => router.push(`/app/mandates/${mandate.friendlyId}`)}
+    >
+      {onUnlink && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+            onUnlink();
+          }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-md bg-primary/10">
+          <FileText className="h-4 w-4 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-sm truncate">{mandate.title}</h4>
+          {budgetLabel && (
+            <p className="text-xs text-muted-foreground truncate">{budgetLabel}</p>
+          )}
+          <div className="flex items-center gap-2 mt-1.5">
+            {mandate.transaction_type && (
+              <Badge variant="outline" className="text-[10px] h-5">{mandate.transaction_type}</Badge>
+            )}
+            {mandate.status && (
+              <Badge variant={mandate.status === "ACTIVE" ? "default" : "secondary"} className="text-[10px] h-5">{mandate.status}</Badge>
+            )}
+            {mandate.urgency && (
+              <Badge variant={mandate.urgency === "HIGH" || mandate.urgency === "CRITICAL" ? "destructive" : "secondary"} className="text-[10px] h-5">{mandate.urgency}</Badge>
+            )}
+          </div>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+    </div>
+  );
+}
+
 function EventCard({ event }: { event: LinkedEvent }) {
   const router = useRouter();
   const eventDate = new Date(event.startTime);
@@ -284,6 +355,7 @@ export function LinkedEntitiesPanel({
   isLoading,
   onLinkEntity,
   onUnlinkEntity,
+  onCreateEvent,
   emptyMessage,
   maxHeight = "400px",
   showAddButton = true,
@@ -292,18 +364,21 @@ export function LinkedEntitiesPanel({
     properties: Building2,
     clients: User,
     events: Calendar,
+    mandates: FileText,
   };
 
   const titleMap = {
     properties: "Linked Properties",
     clients: "Linked Clients",
     events: "Calendar Events",
+    mandates: "Linked Mandates",
   };
 
   const defaultEmptyMap = {
     properties: "No linked properties yet",
     clients: "No linked clients yet",
     events: "No calendar events yet",
+    mandates: "No linked mandates yet",
   };
 
   const Icon = iconMap[type];
@@ -323,12 +398,20 @@ export function LinkedEntitiesPanel({
               </Badge>
             )}
           </CardTitle>
-          {showAddButton && onLinkEntity && (
-            <Button variant="outline" size="sm" onClick={onLinkEntity}>
-              <Plus className="h-3 w-3 mr-1" />
-              Link
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {onCreateEvent && (
+              <Button variant="outline" size="sm" onClick={onCreateEvent}>
+                <Plus className="h-3 w-3 mr-1" />
+                Create Event
+              </Button>
+            )}
+            {showAddButton && onLinkEntity && (
+              <Button variant="outline" size="sm" onClick={onLinkEntity}>
+                <Plus className="h-3 w-3 mr-1" />
+                Link
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -363,6 +446,14 @@ export function LinkedEntitiesPanel({
               {type === "events" &&
                 (entities as LinkedEvent[]).map((event) => (
                   <EventCard key={event.id} event={event} />
+                ))}
+              {type === "mandates" &&
+                (entities as LinkedMandate[]).map((mandate) => (
+                  <MandateCard
+                    key={mandate.id}
+                    mandate={mandate}
+                    onUnlink={onUnlinkEntity ? () => onUnlinkEntity(mandate.id) : undefined}
+                  />
                 ))}
             </div>
           </ScrollArea>

@@ -18,7 +18,7 @@ import { useMemo } from "react";
 // Types
 // ============================================
 
-export type EntityType = "client" | "property" | "document" | "event";
+export type EntityType = "client" | "property" | "document" | "event" | "mandate";
 
 export interface EntitySearchResult {
   value: string;
@@ -64,6 +64,7 @@ export interface UseUnifiedEntitySearchOptions {
     propertyStatus?: string;
     documentType?: string;
     eventType?: string;
+    mandateStatus?: string;
   };
   
   /**
@@ -88,8 +89,8 @@ async function entitySearchFetcher(url: string): Promise<EntitySearchResponse> {
   if (res.status === 429) {
     console.warn("[EntitySearch] Rate limited, returning empty results");
     return {
-      results: { client: [], property: [], document: [], event: [] },
-      timing: { total: 0, perType: { client: 0, property: 0, document: 0, event: 0 } },
+      results: { client: [], property: [], document: [], event: [], mandate: [] },
+      timing: { total: 0, perType: { client: 0, property: 0, document: 0, event: 0, mandate: 0 } },
     };
   }
 
@@ -109,7 +110,7 @@ export function useUnifiedEntitySearch(
   options: UseUnifiedEntitySearchOptions = {}
 ) {
   const {
-    types = ["client", "property", "document", "event"],
+    types = ["client", "property", "document", "event", "mandate"],
     limit = 10,
     debounceMs = 300,
     filters = {},
@@ -135,6 +136,7 @@ export function useUnifiedEntitySearch(
     if (filters.propertyStatus) filterParams.set("propertyStatus", filters.propertyStatus);
     if (filters.documentType) filterParams.set("documentType", filters.documentType);
     if (filters.eventType) filterParams.set("eventType", filters.eventType);
+    if (filters.mandateStatus) filterParams.set("mandateStatus", filters.mandateStatus);
 
     const filterString = filterParams.toString();
     const filterSuffix = filterString ? `&${filterString}` : "";
@@ -186,6 +188,7 @@ export function useUnifiedEntitySearch(
         property: [],
         document: [],
         event: [],
+        mandate: [],
       };
     }
     return data.results;
@@ -258,6 +261,16 @@ export function useEventSearch(
   options: Omit<UseUnifiedEntitySearchOptions, "types"> = {}
 ) {
   return useUnifiedEntitySearch(query, { ...options, types: ["event"] });
+}
+
+/**
+ * Hook for searching only mandates
+ */
+export function useMandateSearch(
+  query: string,
+  options: Omit<UseUnifiedEntitySearchOptions, "types"> = {}
+) {
+  return useUnifiedEntitySearch(query, { ...options, types: ["mandate"] });
 }
 
 // Default export

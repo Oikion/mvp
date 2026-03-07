@@ -87,6 +87,8 @@ export interface FormSelectWithOtherProps<
   inputClassName?: string;
   /** Whether the "Other" input is required when "Other" is selected */
   otherRequired?: boolean;
+  /** Whether the select field itself is required (shows asterisk on label) */
+  required?: boolean;
   /** Custom render for select items (children) */
   children?: React.ReactNode;
   /** Whether to render as controlled from outside (for FormField usage) */
@@ -115,6 +117,7 @@ export function FormSelectWithOther<
   triggerClassName,
   inputClassName,
   otherRequired = false,
+  required = false,
   children,
   controlledField,
 }: Readonly<FormSelectWithOtherProps<TFieldValues, TName>>) {
@@ -157,7 +160,7 @@ export function FormSelectWithOther<
 
         return (
           <FormItem className={className}>
-            {label && <FormLabel>{label}</FormLabel>}
+            {label && <FormLabel required={required}>{label}</FormLabel>}
             <div className="space-y-2">
               <Select
                 value={currentValue || ""}

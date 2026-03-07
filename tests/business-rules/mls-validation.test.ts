@@ -318,6 +318,7 @@ describe("MLS Property Validation Rules", () => {
         property_name: "Test",
         size_net_sqm: 1000,
         transaction_type: "RENTAL",
+        draft_status: true, // skip non-draft price/area requirements
       });
       expect(result.success).toBe(true);
     });

@@ -141,7 +141,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 const propertyFieldsSchema = z.object({
   // Basic info
   property_name: z.string().min(1, "Property name is required").max(255),
-  property_type: propertyTypeSchema.optional(),
+  property_type: propertyTypeSchema,
   property_status: propertyStatusSchema.optional(),
   transaction_type: transactionTypeSchema.optional(),
   
@@ -345,6 +345,7 @@ export const createPropertySchema = propertyFieldsSchema
     },
     {
       message: "Net size cannot exceed gross size",
+      path: ["size_net_sqm"],
     }
   )
   // Greek postal code format validation (5 digits if provided)

@@ -291,6 +291,7 @@ export default function MandatesPageView({
               data={mandates}
               columns={getColumns(t, users)}
               users={users}
+              getRowHref={(row: any) => `/app/mandates/${row.friendlyId ?? row.id}`}
               toolbarRight={<ViewToggle view={view} setView={setView} />}
             />
           ) : (

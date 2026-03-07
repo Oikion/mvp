@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -32,6 +33,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   users: any[];
+  getRowHref?: (row: TData) => string;
   toolbarRight?: React.ReactNode;
 }
 
@@ -39,8 +41,10 @@ export function MandateDataTable<TData, TValue>({
   columns,
   data,
   users,
+  getRowHref,
   toolbarRight,
 }: DataTableProps<TData, TValue>) {
+  const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -98,6 +102,12 @@ export function MandateDataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className={getRowHref ? "cursor-pointer" : undefined}
+                  onClick={getRowHref ? (e: React.MouseEvent) => {
+                    const target = e.target as HTMLElement;
+                    if (target.closest('button, a, input, select, textarea, [role="combobox"], [role="menuitem"], [data-radix-collection-item]')) return;
+                    router.push(getRowHref(row.original));
+                  } : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

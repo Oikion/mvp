@@ -11,6 +11,7 @@ import {
 } from "@/lib/external-api-middleware";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchCalendarWebhook } from "@/lib/webhooks";
+import { decryptCalendarEventForOrg, decryptClientForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/v1/calendar/events
@@ -77,9 +78,23 @@ export const GET = withExternalApi(
     const items = hasMore ? events.slice(0, -1) : events;
     const nextCursor = hasMore ? items[items.length - 1]?.id : null;
 
+    // Decrypt encrypted event fields and linked client names
+    const decryptedItems = await Promise.all(
+      items.map(async (event) => {
+        const dec = await decryptCalendarEventForOrg(event, context.organizationId);
+        const clients = await Promise.all(
+          event.Clients.map(async (c) => {
+            const dc = await decryptClientForOrg(c, context.organizationId);
+            return { id: dc.id, client_name: dc.client_name };
+          })
+        );
+        return { ...dec, Clients: clients };
+      })
+    );
+
     return createApiSuccessResponse(
       {
-        events: items.map((event) => ({
+        events: decryptedItems.map((event) => ({
           id: event.id,
           title: event.title,
           description: event.description,

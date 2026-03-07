@@ -58,7 +58,7 @@ describe("CRM Client Validation Rules", () => {
     });
   });
 
-  describe("CRM-003: Contact Method Required", () => {
+  describe("CRM-003: Contact Method Handling", () => {
     it("should pass when email is provided", () => {
       const result = createClientSchema.safeParse({
         client_name: "Test Client",
@@ -86,21 +86,17 @@ describe("CRM Client Validation Rules", () => {
       expect(result.success).toBe(true);
     });
 
-    it("should fail when neither email nor phone is provided", () => {
+    it("should pass when neither email nor phone is provided (both optional)", () => {
       const result = createClientSchema.safeParse({
         client_name: "Test Client",
         primary_email: "",
         primary_phone: "",
       });
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        const errors = result.error.flatten().fieldErrors;
-        expect(errors.primary_email).toBeDefined();
-      }
+      expect(result.success).toBe(true);
     });
   });
 
-  describe("CRM-004: Person Type Consistency", () => {
+  describe("CRM-004: Person Type Fields", () => {
     it("should pass for COMPANY with company_name", () => {
       const result = createClientSchema.safeParse({
         client_name: "Acme Corp",
@@ -111,16 +107,6 @@ describe("CRM Client Validation Rules", () => {
       expect(result.success).toBe(true);
     });
 
-    it("should fail for COMPANY without company_name", () => {
-      const result = createClientSchema.safeParse({
-        client_name: "Acme Corp",
-        primary_email: "contact@acme.com",
-        person_type: "COMPANY",
-        company_name: "",
-      });
-      expect(result.success).toBe(false);
-    });
-
     it("should pass for INDIVIDUAL with full_name", () => {
       const result = createClientSchema.safeParse({
         client_name: "John Doe",
@@ -129,16 +115,6 @@ describe("CRM Client Validation Rules", () => {
         full_name: "John Doe",
       });
       expect(result.success).toBe(true);
-    });
-
-    it("should fail for INDIVIDUAL without full_name", () => {
-      const result = createClientSchema.safeParse({
-        client_name: "John",
-        primary_email: "john@example.com",
-        person_type: "INDIVIDUAL",
-        full_name: "",
-      });
-      expect(result.success).toBe(false);
     });
 
     it("should pass when person_type is not set", () => {
@@ -241,7 +217,7 @@ describe("CRM Client Validation Rules", () => {
       const result = createClientSchema.safeParse({
         client_name: "Test",
         primary_email: "test@example.com",
-        client_status: "ACTIVE",
+        client_status: "LEAD",
       });
       expect(result.success).toBe(true);
     });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { decryptCalendarEventForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/crm/clients/[clientId]/linked
@@ -122,12 +123,49 @@ export async function GET(
       },
     });
 
-    // Map to expected field names
-    const linkedEvents = linkedEventsRaw.map((event) => ({
-      ...event,
-      assignedUser: event.Users,
-      linkedProperties: event.Properties,
-    }));
+    // Decrypt and map to expected field names
+    const linkedEvents = await Promise.all(
+      linkedEventsRaw.map(async (event) => {
+        const decrypted = await decryptCalendarEventForOrg(event, organizationId);
+        return {
+          ...decrypted,
+          assignedUser: event.Users,
+          linkedProperties: event.Properties,
+        };
+      })
+    );
+
+    // Fetch linked mandates
+    const linkedMandatesRaw = await prismadb.mandate_Clients.findMany({
+      where: { clientId },
+      include: {
+        Mandate: {
+          select: {
+            id: true,
+            friendlyId: true,
+            title: true,
+            transaction_type: true,
+            status: true,
+            urgency: true,
+            budget_min: true,
+            budget_max: true,
+            organizationId: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Filter to same org and decrypt titles
+    const mandates = await Promise.all(
+      linkedMandatesRaw
+        .filter((lm) => lm.Mandate.organizationId === organizationId)
+        .map(async (lm) => {
+          const { organizationId: _, ...rest } = lm.Mandate;
+          const decrypted = await decryptMandateForOrg(rest, organizationId);
+          return decrypted;
+        })
+    );
 
     // Get upcoming events (future events)
     const now = new Date();
@@ -165,6 +203,7 @@ export async function GET(
     return NextResponse.json({
       client: serializePrismaObject(client),
       properties: serializePrismaObject(linkedProperties.map((lp) => lp.property)),
+      mandates: serializePrismaObject(mandates),
       events: {
         upcoming: serializePrismaObject(upcomingEvents),
         past: serializePrismaObject(pastEvents),
@@ -172,6 +211,7 @@ export async function GET(
       },
       counts: {
         properties: linkedProperties.length,
+        mandates: mandates.length,
         events: linkedEvents.length,
         upcomingEvents: upcomingEvents.length,
       },

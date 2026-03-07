@@ -64,24 +64,27 @@ export const EmailCell = ({ clientId, value }: EmailCellProps) => {
 
   if (isEditing) {
     return (
-      <Input
-        ref={inputRef}
-        type="email"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onBlur={handleSave}
-        onKeyDown={handleKeyDown}
-        disabled={loading}
-        autoFocus
-        className="h-7 min-w-[160px] px-2 py-0 text-sm border-input"
-      />
+      <div onClick={(e) => e.stopPropagation()}>
+        <Input
+          ref={inputRef}
+          type="email"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={handleKeyDown}
+          disabled={loading}
+          autoFocus
+          className="h-7 min-w-[160px] px-2 py-0 text-sm border-input"
+        />
+      </div>
     );
   }
 
   return (
     <div
       className="whitespace-nowrap cursor-pointer hover:text-primary hover:underline decoration-dotted underline-offset-2 transition-colors"
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation();
         setInputValue(value ?? "");
         setIsEditing(true);
       }}

@@ -95,6 +95,8 @@
       "amenitiesPreferredPlaceholder": "Επιλέξτε επιθυμητές παροχές..."
     },
     "fields": {
+      "clientName": "Όνομα Πελάτη",
+      "clientNamePlaceholder": "Εισάγετε όνομα πελάτη",
       "personType": "Τύπος πελάτη",
       "personTypePlaceholder": "Επιλέξτε τύπο",
       "fullName": "Ονοματεπώνυμο",
@@ -187,6 +189,7 @@
       "SOCIAL": "Κοινωνικά δίκτυα"
     },
     "validation": {
+      "clientNameRequired": "Το όνομα πελάτη είναι υποχρεωτικό",
       "personTypeRequired": "Ο τύπος πελάτη είναι υποχρεωτικός",
       "nameRequired": "Το όνομα είναι υποχρεωτικό",
       "phoneOrEmailRequired": "Το τηλέφωνο ή το email είναι υποχρεωτικό",

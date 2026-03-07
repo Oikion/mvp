@@ -64,46 +64,55 @@ export const propertyPurposeSchema = z.enum([
  * Base schema for mandate fields
  * Used internally - use createMandateSchema for actual validation
  */
+// Helper: nullable coerced number — prevents z.coerce.number() from turning
+// null into 0.  z.null() is checked first so null never reaches Number().
+const nullableNum = (constraints?: { min?: number; int?: boolean }) => {
+  let num = z.coerce.number();
+  if (constraints?.int) num = num.int();
+  if (constraints?.min !== undefined) num = num.min(constraints.min);
+  return z.union([z.null(), num]).optional();
+};
+
 const mandateFieldsSchema = z.object({
   // Basic info
   title: z.string().min(1, "Title is required").max(200),
-  transaction_type: transactionTypeSchema.optional(),
-  property_type: propertyTypeSchema.optional(),
-  property_purpose: propertyPurposeSchema.optional(),
+  transaction_type: transactionTypeSchema,
+  property_type: propertyTypeSchema.optional().nullable(),
+  property_purpose: propertyPurposeSchema.optional().nullable(),
 
   // Location preferences
   areas_of_interest: z.array(z.string()).optional(),
-  municipality: z.string().max(100).optional(),
-  region: z.string().max(100).optional(),
+  municipality: z.string().max(100).optional().nullable(),
+  region: z.string().max(100).optional().nullable(),
 
   // Size criteria
-  size_min_sqm: z.coerce.number().min(0).optional(),
-  size_max_sqm: z.coerce.number().min(0).optional(),
-  plot_size_min_sqm: z.coerce.number().min(0).optional(),
-  plot_size_max_sqm: z.coerce.number().min(0).optional(),
+  size_min_sqm: nullableNum({ min: 0 }),
+  size_max_sqm: nullableNum({ min: 0 }),
+  plot_size_min_sqm: nullableNum({ min: 0 }),
+  plot_size_max_sqm: nullableNum({ min: 0 }),
 
   // Budget criteria
-  budget_min: z.coerce.number().min(0).optional(),
-  budget_max: z.coerce.number().min(0).optional(),
+  budget_min: nullableNum({ min: 0 }),
+  budget_max: nullableNum({ min: 0 }),
 
   // Room criteria
-  bedrooms_min: z.coerce.number().int().min(0).optional(),
-  bedrooms_max: z.coerce.number().int().min(0).optional(),
-  bathrooms_min: z.coerce.number().int().min(0).optional(),
-  bathrooms_max: z.coerce.number().int().min(0).optional(),
+  bedrooms_min: nullableNum({ int: true, min: 0 }),
+  bedrooms_max: nullableNum({ int: true, min: 0 }),
+  bathrooms_min: nullableNum({ int: true, min: 0 }),
+  bathrooms_max: nullableNum({ int: true, min: 0 }),
 
   // Floor criteria
-  floor_min: z.coerce.number().int().optional(),
-  floor_max: z.coerce.number().int().optional(),
+  floor_min: nullableNum({ int: true }),
+  floor_max: nullableNum({ int: true }),
   ground_floor_only: z.boolean().optional(),
 
   // Property features
   condition: z.array(propertyConditionSchema).optional(),
-  year_built_min: z.coerce.number().int().min(1800).optional(),
-  year_built_max: z.coerce.number().int().optional(),
+  year_built_min: nullableNum({ int: true, min: 1800 }),
+  year_built_max: nullableNum({ int: true }),
   heating_type: z.array(heatingTypeSchema).optional(),
-  energy_cert_min: energyCertClassSchema.optional(),
-  furnished: furnishedStatusSchema.optional(),
+  energy_cert_min: energyCertClassSchema.optional().nullable(),
+  furnished: furnishedStatusSchema.optional().nullable(),
   elevator: z.boolean().optional(),
   parking: z.boolean().optional(),
   pets_allowed: z.boolean().optional(),
@@ -114,16 +123,15 @@ const mandateFieldsSchema = z.object({
   legalization_ok: z.boolean().optional(),
 
   // Status and management
-  status: mandateStatusSchema.optional(),
-  urgency: mandateUrgencySchema.optional(),
-  timeline: timelineSchema.optional(),
-  expires_at: z.coerce.date().optional(),
-  notes: z.string().max(5000).optional(),
+  status: mandateStatusSchema.optional().nullable(),
+  urgency: mandateUrgencySchema.optional().nullable(),
+  timeline: timelineSchema.optional().nullable(),
+  expires_at: z.union([z.null(), z.coerce.date()]).optional(),
+  notes: z.string().max(5000).optional().nullable(),
   communication_notes: z.any().optional(),
 
   // Relationships
-  clientId: z.string().optional(),
-  assigned_to: z.string().uuid().optional(),
+  assigned_to: z.string().uuid().optional().nullable(),
 
   // Draft flag
   draft_status: z.boolean().optional(),

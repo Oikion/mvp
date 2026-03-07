@@ -11,6 +11,7 @@ import {
 } from "@/lib/external-api-middleware";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchClientWebhook } from "@/lib/webhooks";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/v1/crm/clients
@@ -75,9 +76,14 @@ export const GET = withExternalApi(
     const items = hasMore ? clients.slice(0, -1) : clients;
     const nextCursor = hasMore ? items[items.length - 1]?.id : null;
 
+    // Decrypt encrypted client fields
+    const decryptedItems = await Promise.all(
+      items.map((c) => decryptClientForOrg(c, context.organizationId))
+    );
+
     return createApiSuccessResponse(
       {
-        clients: items.map((client) => ({
+        clients: decryptedItems.map((client) => ({
           id: client.id,
           name: client.client_name,
           email: client.primary_email,

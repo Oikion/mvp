@@ -128,7 +128,7 @@ const editFormSchema = z.object({
     "FULFILLED",
     "EXPIRED",
     "CANCELLED",
-  ]),
+  ]).optional().nullable(),
   urgency: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional().nullable(),
 
   // Location

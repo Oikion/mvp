@@ -1,36 +1,38 @@
 "use client";
 
-import { useState, useRef } from "react";
-import Link from "next/link";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { updateMandate } from "@/actions/mandates/update-mandate";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { Pencil, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface TitleCellProps {
   mandateId: string;
-  mandateFriendlyId?: string;
   value: string | null | undefined;
 }
 
-export const TitleCell = ({ mandateId, mandateFriendlyId, value }: TitleCellProps) => {
+export const TitleCell = ({ mandateId, value }: TitleCellProps) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [inputValue, setInputValue] = useState(value ?? "");
+  const [editValue, setEditValue] = useState(value ?? "");
   const [loading, setLoading] = useState(false);
-  // Guard against onBlur firing a save after Escape: handleCancel sets this to
-  // true, handleSave checks it immediately and bails out, and onClick resets it.
-  const cancelledRef = useRef(false);
   const tCommon = useTranslations("common");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
 
   const handleSave = async () => {
-    if (cancelledRef.current) {
-      cancelledRef.current = false;
-      return;
-    }
-    const trimmed = inputValue.trim();
+    const trimmed = editValue.trim();
     if (!trimmed) {
-      setInputValue(value ?? "");
-      setIsEditing(false);
+      toast.error(tCommon("error"), { description: "Title is required" });
       return;
     }
     if (trimmed === (value ?? "").trim()) {
@@ -41,65 +43,93 @@ export const TitleCell = ({ mandateId, mandateFriendlyId, value }: TitleCellProp
     try {
       await updateMandate({ id: mandateId, title: trimmed });
       toast.success(tCommon("success"));
+      setIsEditing(false);
+      router.refresh();
     } catch {
       toast.error(tCommon("error"));
-      setInputValue(value ?? "");
+      setEditValue(value ?? "");
     } finally {
       setLoading(false);
-      setIsEditing(false);
     }
   };
 
   const handleCancel = () => {
-    cancelledRef.current = true;
-    setInputValue(value ?? "");
+    setEditValue(value ?? "");
     setIsEditing(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      e.preventDefault();
       handleSave();
     } else if (e.key === "Escape") {
       handleCancel();
     }
   };
 
+  const handleBlur = () => {
+    if (isEditing && !loading) {
+      handleSave();
+    }
+  };
+
   if (isEditing) {
     return (
-      <Input
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onBlur={handleSave}
-        onKeyDown={handleKeyDown}
-        disabled={loading}
-        autoFocus
-        className="h-7 min-w-[160px] px-2 py-0 text-sm border-input"
-      />
+      <div
+        className="flex items-center gap-1 min-w-[160px]"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <Input
+          ref={inputRef}
+          type="text"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          className="h-8 px-2 w-full text-sm"
+          placeholder="Mandate title"
+          disabled={loading}
+        />
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7 text-success hover:text-success hover:bg-success/10 dark:hover:bg-success/20"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            handleSave();
+          }}
+          disabled={loading}
+        >
+          <Check className="h-4 w-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            handleCancel();
+          }}
+          disabled={loading}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-1">
-      <span
-        className="font-medium truncate max-w-[200px] cursor-pointer hover:text-primary hover:underline decoration-dotted underline-offset-2 transition-colors"
-        onClick={() => {
-          cancelledRef.current = false;
-          setInputValue(value ?? "");
-          setIsEditing(true);
-        }}
-        title={tCommon("edit")}
-      >
-        {value || <span className="text-muted-foreground">—</span>}
-      </span>
-      <Link
-        href={`/app/mandates/${mandateFriendlyId ?? mandateId}`}
-        className="ml-1 text-muted-foreground hover:text-primary transition-colors shrink-0"
-        title="View details"
-        onClick={(e) => e.stopPropagation()}
-      >
-        &#x2197;
-      </Link>
-    </div>
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setEditValue(value ?? "");
+        setIsEditing(true);
+      }}
+      className="group flex items-center gap-2 font-medium truncate max-w-[200px] cursor-pointer hover:bg-muted/50 rounded px-2 py-1 -mx-2 transition-colors text-left"
+    >
+      <span>{value || "—"}</span>
+      <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+    </button>
   );
 };

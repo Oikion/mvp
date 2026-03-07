@@ -13,6 +13,13 @@ import { prismadb } from "@/lib/prisma";
 import { put } from "@vercel/blob";
 import resendHelper from "@/lib/resend";
 import { DataExportStatus } from "@prisma/client";
+import {
+  decryptClientForOrg,
+  decryptPropertyForOrg,
+  decryptCalendarEventForOrg,
+  decryptDocumentForOrg,
+  decryptMessageForOrg,
+} from "@/lib/model-encryption";
 
 // =============================================================================
 // Types
@@ -283,6 +290,23 @@ async function fetchOrganizationData(
     }),
   ]);
 
+  // Decrypt all encrypted model data before export
+  const decryptedClients = await Promise.all(
+    clients.map((c) => decryptClientForOrg(c, organizationId))
+  );
+  const decryptedProperties = await Promise.all(
+    properties.map((p) => decryptPropertyForOrg(p, organizationId))
+  );
+  const decryptedCalendarEvents = await Promise.all(
+    calendarEvents.map((e) => decryptCalendarEventForOrg(e, organizationId))
+  );
+  const decryptedDocuments = await Promise.all(
+    documents.map((d) => decryptDocumentForOrg(d, organizationId))
+  );
+  const decryptedMessages = await Promise.all(
+    messages.map((m) => decryptMessageForOrg(m, organizationId))
+  );
+
   // Calculate total records
   const totalRecords =
     clients.length +
@@ -304,17 +328,17 @@ async function fetchOrganizationData(
     organizationId,
     requestedBy: user,
     data: {
-      clients,
+      clients: decryptedClients,
       clientContacts,
-      properties,
+      properties: decryptedProperties,
       propertyContacts,
-      documents,
-      calendarEvents,
+      documents: decryptedDocuments,
+      calendarEvents: decryptedCalendarEvents,
       tasks,
       notifications,
       feedback,
       socialPosts,
-      messages,
+      messages: decryptedMessages,
       apiKeys,
       webhooks,
     },

@@ -95,6 +95,8 @@
       "amenitiesPreferredPlaceholder": "Select preferred amenities..."
     },
     "fields": {
+      "clientName": "Client Name",
+      "clientNamePlaceholder": "Enter client name",
       "personType": "Client Type",
       "personTypePlaceholder": "Select type",
       "fullName": "Full Name",
@@ -187,6 +189,7 @@
       "SOCIAL": "Social media"
     },
     "validation": {
+      "clientNameRequired": "Client name is required",
       "personTypeRequired": "Client type is required",
       "nameRequired": "Name is required",
       "phoneOrEmailRequired": "Phone or email is required",

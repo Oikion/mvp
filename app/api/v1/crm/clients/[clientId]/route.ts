@@ -8,6 +8,7 @@ import {
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
 import { dispatchClientWebhook } from "@/lib/webhooks";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/v1/crm/clients/[clientId]
@@ -84,47 +85,50 @@ export const GET = withExternalApi(
       return createApiErrorResponse("Client not found", 404);
     }
 
+    // Decrypt encrypted client fields
+    const decrypted = await decryptClientForOrg(client, context.organizationId);
+
     return createApiSuccessResponse({
       client: {
-        id: client.id,
-        name: client.client_name,
-        email: client.primary_email,
-        phone: client.primary_phone,
-        secondaryEmail: client.secondary_email,
-        secondaryPhone: client.secondary_phone,
-        status: client.client_status,
-        type: client.client_type,
-        personType: client.person_type,
-        intent: client.intent,
-        companyName: client.company_name,
-        fullName: client.full_name,
-        language: client.language,
-        leadSource: client.lead_source,
-        channels: client.channels,
-        areasOfInterest: client.areas_of_interest,
-        budgetMin: client.budget_min,
-        budgetMax: client.budget_max,
-        timeline: client.timeline,
-        financingType: client.financing_type,
-        gdprConsent: client.gdpr_consent,
-        allowMarketing: client.allow_marketing,
-        description: client.description,
+        id: decrypted.id,
+        name: decrypted.client_name,
+        email: decrypted.primary_email,
+        phone: decrypted.primary_phone,
+        secondaryEmail: decrypted.secondary_email,
+        secondaryPhone: decrypted.secondary_phone,
+        status: decrypted.client_status,
+        type: decrypted.client_type,
+        personType: decrypted.person_type,
+        intent: decrypted.intent,
+        companyName: decrypted.company_name,
+        fullName: decrypted.full_name,
+        language: decrypted.language,
+        leadSource: decrypted.lead_source,
+        channels: decrypted.channels,
+        areasOfInterest: decrypted.areas_of_interest,
+        budgetMin: decrypted.budget_min,
+        budgetMax: decrypted.budget_max,
+        timeline: decrypted.timeline,
+        financingType: decrypted.financing_type,
+        gdprConsent: decrypted.gdpr_consent,
+        allowMarketing: decrypted.allow_marketing,
+        description: decrypted.description,
         billingAddress: {
-          street: client.billing_street,
-          city: client.billing_city,
-          state: client.billing_state,
-          postalCode: client.billing_postal_code,
-          country: client.billing_country,
+          street: decrypted.billing_street,
+          city: decrypted.billing_city,
+          state: decrypted.billing_state,
+          postalCode: decrypted.billing_postal_code,
+          country: decrypted.billing_country,
         },
         shippingAddress: {
-          street: client.shipping_street,
-          city: client.shipping_city,
-          state: client.shipping_state,
-          postalCode: client.shipping_postal_code,
-          country: client.shipping_country,
+          street: decrypted.shipping_street,
+          city: decrypted.shipping_city,
+          state: decrypted.shipping_state,
+          postalCode: decrypted.shipping_postal_code,
+          country: decrypted.shipping_country,
         },
-        assignedTo: client.Users_Clients_assigned_toToUsers,
-        contacts: client.Client_Contacts.map((c) => ({
+        assignedTo: decrypted.Users_Clients_assigned_toToUsers,
+        contacts: decrypted.Client_Contacts.map((c) => ({
           id: c.id,
           firstName: c.contact_first_name,
           lastName: c.contact_last_name,
@@ -132,8 +136,8 @@ export const GET = withExternalApi(
           phone: c.mobile_phone,
           type: c.contact_type,
         })),
-        createdAt: client.createdAt.toISOString(),
-        updatedAt: client.updatedAt?.toISOString(),
+        createdAt: decrypted.createdAt.toISOString(),
+        updatedAt: decrypted.updatedAt?.toISOString(),
       },
     });
   },

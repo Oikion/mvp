@@ -35,7 +35,7 @@ export const updateMandate = async (data: any) => {
       ...encryptedData,
       updatedAt: new Date(),
       updatedBy: user.id,
-    },
+    } as any,
   });
 
   revalidatePath("/mandates");

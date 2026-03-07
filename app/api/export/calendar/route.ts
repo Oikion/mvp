@@ -19,6 +19,7 @@ import {
   generateCalendarPDF,
 } from "@/lib/export";
 import { startOfMonth, endOfMonth, parseISO } from "date-fns";
+import { decryptCalendarEventForOrg } from "@/lib/model-encryption";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -141,8 +142,13 @@ export async function GET(req: NextRequest) {
       return createRowLimitResponse(rowCheck);
     }
     
+    // Decrypt encrypted event fields before export
+    const decryptedEvents = await Promise.all(
+      events.map((e) => decryptCalendarEventForOrg(e, orgId))
+    );
+
     // Transform data for export
-    const exportData = events.map(event => ({
+    const exportData = decryptedEvents.map(event => ({
       id: event.id,
       title: event.title || "",
       description: event.description || "",

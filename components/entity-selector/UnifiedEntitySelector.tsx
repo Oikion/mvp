@@ -26,6 +26,7 @@ import {
   Home,
   FileText,
   Calendar,
+  ScrollText,
   Loader2,
   ChevronDown,
 } from "lucide-react";
@@ -184,6 +185,11 @@ const ENTITY_CONFIG: Record<
     label: "Events",
     colorClass: "text-purple-500",
   },
+  mandate: {
+    icon: ScrollText,
+    label: "Mandates",
+    colorClass: "text-orange-500",
+  },
 };
 
 // ============================================
@@ -320,7 +326,7 @@ export function UnifiedEntitySelector({
 
   // Handle remove (multi mode)
   const handleRemove = useCallback(
-    (valueToRemove: string, e: React.MouseEvent) => {
+    (valueToRemove: string, e: React.MouseEvent | React.KeyboardEvent) => {
       e.stopPropagation();
       e.preventDefault();
       
@@ -431,14 +437,16 @@ export function UnifiedEntitySelector({
           return (
             <Badge key={val} variant="secondary" className="max-w-[150px]">
               <span className="truncate">{entity?.label || val}</span>
-              <button
-                type="button"
-                className="ml-1 rounded-full outline-none focus:ring-2 focus:ring-ring"
+              <span
+                role="button"
+                tabIndex={0}
+                className="ml-1 rounded-full outline-none focus:ring-2 focus:ring-ring cursor-pointer"
                 onClick={(e) => handleRemove(val, e)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleRemove(val, e); }}
                 onMouseDown={(e) => e.stopPropagation()}
               >
                 <X className="h-3 w-3" />
-              </button>
+              </span>
             </Badge>
           );
         })}

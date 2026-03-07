@@ -66,7 +66,7 @@ export const StatusCell = ({ propertyId, status }: StatusCellProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={loading}>
-        <button className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1">
+        <button className="outline-none focus:ring-2 focus:ring-ring rounded-full cursor-pointer flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <Badge
             variant={getVariant(currentStatus) as any}
             className="hover:opacity-80 transition-opacity"

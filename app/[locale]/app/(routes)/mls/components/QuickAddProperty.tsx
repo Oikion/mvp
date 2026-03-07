@@ -36,7 +36,7 @@ import {
 
 const createQuickAddSchema = (t: (key: string) => string, tCommon: (key: string) => string) => z.object({
   property_name: z.string().min(1, t("PropertyForm.validation.propertyNameRequired")),
-  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]).optional(),
+  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"], { required_error: t("PropertyForm.validation.propertyTypeRequired") }),
   property_type_other: z.string().optional(),
   transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]).optional(),
   municipality: z.string().optional(),
@@ -162,6 +162,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
                 otherLabel={t("PropertyForm.fields.specifyOther")}
                 otherPlaceholder={t("PropertyForm.fields.specifyOtherPlaceholder")}
                 disabled={isLoading}
+                required
                 options={[
                   { value: "APARTMENT", label: t("PropertyForm.propertyType.APARTMENT") },
                   { value: "HOUSE", label: t("PropertyForm.propertyType.HOUSE") },

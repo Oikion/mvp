@@ -75,7 +75,7 @@ type Props = {
 // optional during wizard flow (draft_status: true bypasses .refine() rules).
 const baseSchema = z.object({
   // Step 1: Basics
-  title: z.string().optional(),
+  title: z.string().min(1, "Title is required"),
   transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]),
   property_type: z
     .enum([
@@ -386,7 +386,7 @@ export function NewMandateWizard({
               inside_city_plan: draft.inside_city_plan || false,
               legalization_ok: draft.legalization_ok || false,
               assigned_to: draft.assigned_to || "",
-              clientId: draft.clientId || "",
+              clientId: draft.Mandate_Clients?.[0]?.Clients?.id || "",
               notes: draft.notes || "",
               expires_at: draft.expires_at
                 ? new Date(draft.expires_at).toISOString().split("T")[0]
@@ -415,9 +415,11 @@ export function NewMandateWizard({
       if (Object.keys(data).length === 0) return;
       setAutosaveStatus("saving");
       try {
+        // Strip clientId — client linking uses junction table, not draft field
+        const { clientId: _clientId, ...draftData } = data;
         const response = await axios.post("/api/mandates/draft", {
           id: draftId,
-          ...data,
+          ...draftData,
         });
         if (response.data?.mandate?.id && !draftId) {
           setDraftId(response.data.mandate.id);
@@ -584,12 +586,33 @@ export function NewMandateWizard({
         cleaned.expires_at = new Date(cleaned.expires_at).toISOString();
       }
 
+      // Extract clientId before sending — client linking now uses junction table
+      const selectedClientId = cleaned.clientId;
+      delete cleaned.clientId;
+
       const submitData = { ...cleaned, draft_status: false };
 
+      let mandateInternalId: string | undefined;
+
       if (draftId) {
-        await axios.put(`/api/mandates/${draftId}`, submitData);
+        const res = await axios.put(`/api/mandates/${draftId}`, submitData);
+        mandateInternalId = res.data?.mandate?.id;
       } else {
-        await axios.post("/api/mandates", submitData);
+        const res = await axios.post("/api/mandates", submitData);
+        mandateInternalId = res.data?.mandate?.id;
+      }
+
+      // Link client via junction table if one was selected
+      if (selectedClientId && mandateInternalId) {
+        try {
+          await axios.post("/api/mandates/link-entities", {
+            mandateId: mandateInternalId,
+            clientIds: [selectedClientId],
+          });
+        } catch (linkError) {
+          console.error("Failed to link client to mandate:", linkError);
+          // Non-fatal — mandate was created, just link failed
+        }
       }
 
       toast.success("createSuccess", {
@@ -670,7 +693,7 @@ export function NewMandateWizard({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("MandateForm.fields.title")}</FormLabel>
+                  <FormLabel required>{t("MandateForm.fields.title")}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -688,7 +711,7 @@ export function NewMandateWizard({
               name="transaction_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
+                  <FormLabel required>
                     {t("MandateForm.fields.transactionType")}
                   </FormLabel>
                   <Select
