@@ -18,7 +18,7 @@ interface CompleteStepProps {
     done: string;
   };
   result: ImportResult | null;
-  entityType: "client" | "property";
+  entityType: "client" | "property" | "mandate";
   viewUrl?: string;
   onImportMore: () => void;
   onDone?: () => void;

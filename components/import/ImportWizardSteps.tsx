@@ -4,6 +4,12 @@ import { useState, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ArrowLeft, ArrowRight, Upload, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 
@@ -132,7 +138,7 @@ export interface ImportResult {
 }
 
 interface ImportWizardStepsProps {
-  entityType: "client" | "property";
+  entityType: "client" | "property" | "mandate";
   dict: ImportWizardDict;
   fieldsDict: FieldsDict;
   schema: z.ZodSchema;
@@ -177,6 +183,7 @@ export function ImportWizardSteps({
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
   const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Data state
@@ -278,27 +285,61 @@ export function ImportWizardSteps({
     return { errors, valid };
   }, [parsedData, fieldMapping, schema]);
 
+  const BATCH_SIZE = 25;
+
   const handleImport = useCallback(async () => {
     const controller = new AbortController();
     abortControllerRef.current = controller;
     setIsImporting(true);
+    setImportProgress(0);
+
+    const aggregated: ImportResult = {
+      imported: 0,
+      skipped: 0,
+      failed: 0,
+      errors: [],
+    };
+
     try {
-      const result = await onImport(validData, controller.signal);
-      if (controller.signal.aborted) return;
-      setImportResult(result);
+      // Split validData into batches for real progress tracking
+      const totalBatches = Math.ceil(validData.length / BATCH_SIZE);
+
+      for (let i = 0; i < totalBatches; i++) {
+        if (controller.signal.aborted) return;
+
+        const batch = validData.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
+        const result = await onImport(batch, controller.signal);
+
+        if (controller.signal.aborted) return;
+
+        aggregated.imported += result.imported;
+        aggregated.skipped += result.skipped;
+        aggregated.failed += result.failed;
+        if (result.errors) {
+          aggregated.errors!.push(...result.errors);
+        }
+
+        setImportProgress(Math.round(((i + 1) / totalBatches) * 100));
+      }
+
+      setImportResult(aggregated);
       handleNext();
     } catch (error) {
       if (controller.signal.aborted) return;
       console.error("Import failed:", error);
       setImportResult({
-        imported: 0,
-        skipped: 0,
-        failed: validData.length,
-        errors: [{ row: 0, field: "", error: dict.errors.serverError }],
+        imported: aggregated.imported,
+        skipped: aggregated.skipped,
+        failed: aggregated.failed + (validData.length - aggregated.imported - aggregated.skipped - aggregated.failed),
+        errors: [
+          ...(aggregated.errors || []),
+          { row: 0, field: "", error: dict.errors.serverError },
+        ],
       });
       handleNext();
     } finally {
       setIsImporting(false);
+      setImportProgress(0);
       abortControllerRef.current = null;
     }
   }, [validData, onImport, dict.errors.serverError, handleNext]);
@@ -513,14 +554,34 @@ export function ImportWizardSteps({
               {dict.buttons.back}
             </Button>
             {currentStep === 3 ? (
-              <Button
-                onClick={handleImport}
-                disabled={!canProceed() || isImporting}
-                className="gap-2"
-              >
-                {isImporting ? "Importing..." : dict.buttons.import}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip open={isImporting ? undefined : false}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={handleImport}
+                      disabled={!canProceed() || isImporting}
+                      className="gap-2 relative overflow-hidden"
+                    >
+                      {/* Progress fill overlay */}
+                      {isImporting && (
+                        <span
+                          className="absolute inset-0 bg-primary-foreground/20 transition-[width] duration-300 ease-out pointer-events-none"
+                          style={{ width: `${importProgress}%` }}
+                        />
+                      )}
+                      <span className="relative z-10 flex items-center gap-2">
+                        {isImporting
+                          ? `${importProgress}%`
+                          : dict.buttons.import}
+                        {!isImporting && <ArrowRight className="w-4 h-4" />}
+                      </span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p>{importProgress}% imported</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ) : currentStep === 2 ? (
               <Button
                 onClick={() => {

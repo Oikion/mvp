@@ -8,6 +8,18 @@
 type EnumMapping = Record<string, string>;
 
 /**
+ * Split a comma-separated string into an array of trimmed values.
+ * Pass-through for arrays, returns empty array for other types.
+ */
+export function splitArrayField(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String);
+  if (typeof value === "string" && value.trim()) {
+    return value.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+/**
  * Property Type mappings
  */
 export const propertyTypeMap: EnumMapping = {
@@ -558,6 +570,29 @@ export const leadSourceMap: EnumMapping = {
   "κοινωνικά μέσα": "SOCIAL",
 };
 
+export const mandateStatusMap: EnumMapping = {
+  "draft": "DRAFT", "new": "DRAFT",
+  "active": "ACTIVE", "open": "ACTIVE",
+  "paused": "PAUSED", "on hold": "PAUSED", "hold": "PAUSED",
+  "fulfilled": "FULFILLED", "completed": "FULFILLED", "done": "FULFILLED",
+  "expired": "EXPIRED",
+  "cancelled": "CANCELLED", "canceled": "CANCELLED",
+  // Greek
+  "πρόχειρο": "DRAFT", "νέο": "DRAFT",
+  "ενεργή": "ACTIVE", "ενεργό": "ACTIVE",
+  "σε παύση": "PAUSED",
+  "εκπληρώθηκε": "FULFILLED", "ολοκληρώθηκε": "FULFILLED",
+  "έληξε": "EXPIRED",
+  "ακυρώθηκε": "CANCELLED",
+};
+
+export const mandateUrgencyMap: EnumMapping = {
+  "low": "LOW", "χαμηλή": "LOW", "χαμηλό": "LOW",
+  "medium": "MEDIUM", "normal": "MEDIUM", "μέτρια": "MEDIUM", "μέτριο": "MEDIUM",
+  "high": "HIGH", "υψηλή": "HIGH", "υψηλό": "HIGH",
+  "critical": "CRITICAL", "urgent": "CRITICAL", "κρίσιμη": "CRITICAL", "κρίσιμο": "CRITICAL", "επείγον": "CRITICAL",
+};
+
 /**
  * Normalize an enum value using the provided mapping
  * Returns the normalized value or the original if no match found
@@ -652,5 +687,50 @@ export function normalizeClientEnums(
   return normalized;
 }
 
+export const mandateEnumMappings = {
+  status: mandateStatusMap,
+  urgency: mandateUrgencyMap,
+  timeline: timelineMap,
+  transaction_type: transactionTypeMap,
+  property_type: propertyTypeMap,
+  property_purpose: propertyPurposeMap,
+  energy_cert_min: energyCertClassMap,
+  furnished: furnishedStatusMap,
+};
 
+const mandateArrayEnumFields: Record<string, EnumMapping> = {
+  condition: propertyConditionMap,
+  heating_type: heatingTypeMap,
+};
 
+export function normalizeMandateEnums(
+  row: Record<string, unknown>
+): Record<string, unknown> {
+  const normalized = { ...row };
+
+  // Scalar enum fields
+  for (const [field, mapping] of Object.entries(mandateEnumMappings)) {
+    if (normalized[field] !== undefined && normalized[field] !== null && normalized[field] !== "") {
+      normalized[field] = normalizeEnumValue(normalized[field], mapping);
+    }
+  }
+
+  // Array enum fields: split comma-separated, normalize each element
+  for (const [field, mapping] of Object.entries(mandateArrayEnumFields)) {
+    if (normalized[field] !== undefined && normalized[field] !== null && normalized[field] !== "") {
+      const values = splitArrayField(normalized[field]);
+      normalized[field] = values
+        .map((v) => normalizeEnumValue(v, mapping))
+        .filter((v): v is string => v !== null);
+    }
+  }
+
+  // Non-enum array fields: just split to array
+  for (const field of ["areas_of_interest", "amenities"]) {
+    if (normalized[field] !== undefined && normalized[field] !== null && normalized[field] !== "") {
+      normalized[field] = splitArrayField(normalized[field]);
+    }
+  }
+
+  return normalized;
+}

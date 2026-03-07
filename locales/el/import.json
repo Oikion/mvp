@@ -3,6 +3,7 @@
     "title": "Εισαγωγή {entity}",
     "titleClients": "Εισαγωγή Πελατών",
     "titleProperties": "Εισαγωγή Ακινήτων",
+    "titleMandates": "Εισαγωγή Εντολών",
     "description": "Ανεβάστε ένα αρχείο CSV, Excel ή XML για μαζική εισαγωγή {entity}",
     "progress": "Βήμα {current} από {total}",
     "steps": {
@@ -363,6 +364,140 @@
           "LEGALIZED": "Τακτοποιημένο",
           "IN_PROGRESS": "Σε Εξέλιξη",
           "UNDECLARED": "Αδήλωτο"
+        }
+      }
+    },
+    "mandate": {
+      "groups": {
+        "basic": "Βασικές Πληροφορίες",
+        "budget": "Προϋπολογισμός",
+        "size": "Απαιτήσεις Μεγέθους",
+        "rooms": "Απαιτήσεις Δωματίων",
+        "building": "Προτιμήσεις Κτιρίου",
+        "location": "Τοποθεσία",
+        "preferences": "Προτιμήσεις",
+        "other": "Άλλα"
+      },
+      "fields": {
+        "id": "Κωδικός Εντολής",
+        "title": "Τίτλος",
+        "transaction_type": "Τύπος Συναλλαγής",
+        "property_type": "Τύπος Ακινήτου",
+        "property_purpose": "Σκοπός Ακινήτου",
+        "status": "Κατάσταση",
+        "urgency": "Επείγον",
+        "timeline": "Χρονοδιάγραμμα",
+        "budget_min": "Ελάχιστος Προϋπολογισμός",
+        "budget_max": "Μέγιστος Προϋπολογισμός",
+        "size_min_sqm": "Ελάχ. Μέγεθος (τ.μ.)",
+        "size_max_sqm": "Μέγ. Μέγεθος (τ.μ.)",
+        "plot_size_min_sqm": "Ελάχ. Οικόπεδο (τ.μ.)",
+        "plot_size_max_sqm": "Μέγ. Οικόπεδο (τ.μ.)",
+        "bedrooms_min": "Ελάχ. Υπνοδωμάτια",
+        "bedrooms_max": "Μέγ. Υπνοδωμάτια",
+        "bathrooms_min": "Ελάχ. Μπάνια",
+        "bathrooms_max": "Μέγ. Μπάνια",
+        "floor_min": "Ελάχ. Όροφος",
+        "floor_max": "Μέγ. Όροφος",
+        "year_built_min": "Ελάχ. Έτος Κατασκευής",
+        "year_built_max": "Μέγ. Έτος Κατασκευής",
+        "condition": "Κατάσταση",
+        "heating_type": "Τύπος Θέρμανσης",
+        "energy_cert_min": "Ελάχ. Ενεργειακή Κλάση",
+        "furnished": "Επιπλωμένο",
+        "ground_floor_only": "Μόνο Ισόγειο",
+        "elevator": "Απαιτείται Ασανσέρ",
+        "parking": "Απαιτείται Πάρκινγκ",
+        "pets_allowed": "Κατοικίδια",
+        "inside_city_plan": "Εντός Σχεδίου",
+        "legalization_ok": "Δεκτή Τακτοποίηση",
+        "municipality": "Δήμος",
+        "region": "Περιφέρεια",
+        "areas_of_interest": "Περιοχές Ενδιαφέροντος",
+        "amenities": "Παροχές",
+        "notes": "Σημειώσεις",
+        "expires_at": "Λήγει"
+      },
+      "enums": {
+        "status": {
+          "DRAFT": "Πρόχειρη",
+          "ACTIVE": "Ενεργή",
+          "PAUSED": "Σε Παύση",
+          "FULFILLED": "Εκπληρώθηκε",
+          "EXPIRED": "Έληξε",
+          "CANCELLED": "Ακυρώθηκε"
+        },
+        "urgency": {
+          "LOW": "Χαμηλή",
+          "MEDIUM": "Μέτρια",
+          "HIGH": "Υψηλή",
+          "CRITICAL": "Κρίσιμη"
+        },
+        "transaction_type": {
+          "SALE": "Πώληση",
+          "RENTAL": "Ενοικίαση",
+          "SHORT_TERM": "Βραχυπρόθεσμη",
+          "EXCHANGE": "Ανταλλαγή"
+        },
+        "property_type": {
+          "RESIDENTIAL": "Κατοικία",
+          "COMMERCIAL": "Επαγγελματικό",
+          "LAND": "Γη",
+          "RENTAL": "Ενοικίαση",
+          "VACATION": "Διακοπές",
+          "APARTMENT": "Διαμέρισμα",
+          "HOUSE": "Σπίτι",
+          "MAISONETTE": "Μεζονέτα",
+          "WAREHOUSE": "Αποθήκη",
+          "PARKING": "Πάρκινγκ",
+          "PLOT": "Οικόπεδο",
+          "FARM": "Αγρόκτημα",
+          "INDUSTRIAL": "Βιομηχανικό",
+          "OTHER": "Άλλο"
+        },
+        "property_purpose": {
+          "RESIDENTIAL": "Κατοικία",
+          "COMMERCIAL": "Επαγγελματικό",
+          "LAND": "Γη",
+          "PARKING": "Πάρκινγκ",
+          "OTHER": "Άλλο"
+        },
+        "timeline": {
+          "IMMEDIATE": "Άμεσα",
+          "ONE_THREE_MONTHS": "1-3 Μήνες",
+          "THREE_SIX_MONTHS": "3-6 Μήνες",
+          "SIX_PLUS_MONTHS": "6+ Μήνες"
+        },
+        "condition": {
+          "EXCELLENT": "Άριστη",
+          "VERY_GOOD": "Πολύ Καλή",
+          "GOOD": "Καλή",
+          "NEEDS_RENOVATION": "Χρειάζεται Ανακαίνιση"
+        },
+        "heating_type": {
+          "AUTONOMOUS": "Αυτόνομη",
+          "CENTRAL": "Κεντρική",
+          "NATURAL_GAS": "Φυσικό Αέριο",
+          "HEAT_PUMP": "Αντλία Θερμότητας",
+          "ELECTRIC": "Ηλεκτρική",
+          "NONE": "Χωρίς"
+        },
+        "energy_cert_class": {
+          "A_PLUS": "Α+",
+          "A": "Α",
+          "B": "Β",
+          "C": "Γ",
+          "D": "Δ",
+          "E": "Ε",
+          "F": "Ζ",
+          "G": "Η",
+          "H": "Θ",
+          "IN_PROGRESS": "Σε Εξέλιξη"
+        },
+        "furnished": {
+          "NO": "Όχι",
+          "PARTIALLY": "Μερικώς",
+          "FULLY": "Πλήρως"
         }
       }
     }

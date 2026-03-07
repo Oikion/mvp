@@ -26,7 +26,7 @@ interface ReviewStepProps {
   data: Record<string, unknown>[];
   fieldMapping: Record<string, string>;
   errorCount: number;
-  entityType: "client" | "property";
+  entityType: "client" | "property" | "mandate";
 }
 
 export function ReviewStep({

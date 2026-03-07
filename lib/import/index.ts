@@ -58,9 +58,35 @@ export {
   clientEnumMappings,
 } from "./enum-normalizer";
 
+// Mandate import
+export {
+  mandateImportSchema,
+  mandateImportFieldDefinitions,
+  MandateStatusEnum,
+  MandateUrgencyEnum,
+  type MandateImportData,
+  type MandateImportFieldKey,
+} from "./mandate-import-schema";
 
+// Import engine
+export {
+  executeImport,
+  type ImportEntityConfig,
+  type ImportResult as EngineImportResult,
+  type ImportError,
+} from "./engine";
 
+// Entity configs
+export { clientImportConfig } from "./client-import-config";
+export { propertyImportConfig } from "./property-import-config";
+export { mandateImportConfig } from "./mandate-import-config";
 
+// Mandate enum normalizer additions
+export {
+  normalizeMandateEnums,
+  splitArrayField,
+  mandateEnumMappings,
+} from "./enum-normalizer";
 
 
 

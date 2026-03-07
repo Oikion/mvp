@@ -32,7 +32,7 @@ interface UploadStepProps {
     data: Record<string, unknown>[]
   ) => void;
   currentFile: File | null;
-  entityType: "client" | "property";
+  entityType: "client" | "property" | "mandate";
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
