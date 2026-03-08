@@ -21,7 +21,8 @@
     "settings": "Settings",
     "aiTools": "AI Tools",
     "aiAgents": "AI Agents",
-    "aiPrompts": "AI Prompts"
+    "aiPrompts": "AI Prompts",
+    "dataRequests": "Data Requests"
   },
   "sidebar": {
     "management": "Management",
@@ -856,6 +857,64 @@
       "newSecret": "Generated new secret",
       "copied": "Copied to clipboard",
       "loadError": "Failed to load settings"
+    }
+  },
+  "dataRequests": {
+    "title": "Data Requests",
+    "description": "Manage data export and deletion requests from users",
+    "metrics": {
+      "total": "Total Requests",
+      "pendingDeletions": "Pending Deletions",
+      "pendingExports": "Pending Exports",
+      "completed": "Completed",
+      "rejected": "Rejected"
+    },
+    "table": {
+      "user": "User",
+      "organization": "Organization",
+      "type": "Type",
+      "status": "Status",
+      "created": "Created",
+      "gracePeriod": "Grace Period",
+      "actions": "Actions",
+      "export": "Export",
+      "deletion": "Deletion",
+      "noRequests": "No data requests found",
+      "search": "Search by email or organization..."
+    },
+    "filters": {
+      "allTypes": "All Types",
+      "exports": "Exports",
+      "deletions": "Deletions",
+      "allStatuses": "All Statuses"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "execute": "Execute Deletion",
+      "view": "View Details",
+      "approveTitle": "Approve Deletion Request",
+      "approveDescription": "This will approve the user's data deletion request. The data will be eligible for deletion after the grace period ends.",
+      "rejectTitle": "Reject Deletion Request",
+      "rejectDescription": "Please provide a reason for rejecting this request. The user will be notified.",
+      "executeTitle": "Execute Data Deletion",
+      "executeDescription": "This will permanently delete all organization data. This action cannot be undone.",
+      "executeConfirm": "Type DELETE to confirm",
+      "noteLabel": "Note (optional)",
+      "noteRequired": "Note (required)",
+      "notePlaceholder": "Add a note for the user...",
+      "success": "Action completed successfully",
+      "error": "Action failed"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "PROCESSING": "Processing",
+      "COMPLETED": "Completed",
+      "FAILED": "Failed",
+      "EXPIRED": "Expired",
+      "CANCELLED": "Cancelled",
+      "REJECTED": "Rejected"
     }
   }
 }

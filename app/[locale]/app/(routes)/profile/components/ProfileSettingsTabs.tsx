@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Shield, Gift, Plug } from "lucide-react";
+import { User, Bell, Shield, Gift, Plug, Database } from "lucide-react";
 import { Users, AgentProfile } from "@prisma/client";
 
 import { ProfileTab } from "./ProfileTab";
@@ -11,8 +11,9 @@ import { NotificationsTab } from "./NotificationsTab";
 import { PrivacySecurityTab } from "./PrivacySecurityTab";
 import { ReferralsTab } from "./ReferralsTab";
 import { IntegrationsTab } from "./IntegrationsTab";
+import { DataControlTab } from "./DataControlTab";
 
-const VALID_TABS = ["profile", "notifications", "referrals", "integrations", "privacy"] as const;
+const VALID_TABS = ["profile", "notifications", "referrals", "integrations", "privacy", "data-control"] as const;
 type TabValue = (typeof VALID_TABS)[number];
 
 function getValidTab(tab: string | null): TabValue {
@@ -56,7 +57,7 @@ export function ProfileSettingsTabs({ user, agentProfile }: ProfileSettingsTabsP
   if (!isHydrated) {
     return (
       <div className="w-full">
-        <div className="inline-grid grid-cols-5 mb-8 h-10 items-center justify-center rounded-lg bg-sidebar-accent p-1">
+        <div className="inline-grid grid-cols-6 mb-8 h-10 items-center justify-center rounded-lg bg-sidebar-accent p-1">
           {/* Skeleton tab list */}
         </div>
       </div>
@@ -65,7 +66,7 @@ export function ProfileSettingsTabs({ user, agentProfile }: ProfileSettingsTabsP
 
   return (
     <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-      <TabsList className="inline-grid grid-cols-5 mb-8">
+      <TabsList className="inline-grid grid-cols-6 mb-8">
         <TabsTrigger value="profile">
           <User className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Profile</span>
@@ -85,6 +86,10 @@ export function ProfileSettingsTabs({ user, agentProfile }: ProfileSettingsTabsP
         <TabsTrigger value="privacy">
           <Shield className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline">Privacy & Security</span>
+        </TabsTrigger>
+        <TabsTrigger value="data-control">
+          <Database className="h-4 w-4 shrink-0" />
+          <span className="hidden sm:inline">Data Control</span>
         </TabsTrigger>
       </TabsList>
 
@@ -106,6 +111,10 @@ export function ProfileSettingsTabs({ user, agentProfile }: ProfileSettingsTabsP
 
       <TabsContent value="privacy">
         <PrivacySecurityTab user={user} agentProfile={agentProfile} />
+      </TabsContent>
+
+      <TabsContent value="data-control">
+        <DataControlTab />
       </TabsContent>
     </Tabs>
   );

@@ -1,16 +1,66 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useClerk } from "@clerk/nextjs";
-import { Database, Lock, Unlock, Download, Trash2, UserX, AlertTriangle, Clock } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Database,
+  Lock,
+  Unlock,
+  Download,
+  Trash2,
+  UserX,
+  AlertTriangle,
+  Clock,
+  FileDown,
+  Users,
+  Home,
+  FileText,
+  Calendar,
+  CheckSquare,
+  MessageSquare,
+  Share2,
+  Bell,
+  Key,
+  Webhook,
+  ClipboardList,
+  XCircle,
+  CheckCircle,
+  Loader2,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -31,24 +81,98 @@ import {
   wrapKey,
 } from "@/lib/crypto";
 import { setupOrganizationEncryption } from "@/actions/encryption";
-import { requestDataExport, getDataExportStatus } from "@/actions/data-export/request-data-export";
+import {
+  requestDataExport,
+  getDataExportStatus,
+} from "@/actions/data-export/request-data-export";
+import {
+  requestDataDeletion,
+  getDataDeletionStatus,
+  cancelDataDeletion,
+} from "@/actions/data-deletion/request-data-deletion";
 import { disableAccount } from "@/actions/user/disable-account";
 import { deleteAccount } from "@/actions/user/delete-account";
 import { useHasPermission } from "@/lib/permissions/hooks";
 import { Loading } from "@/components/ui/loading";
 
 // =============================================================================
+// Data Categories (for "Your Data" section)
+// =============================================================================
+
+const DATA_CATEGORIES = [
+  { key: "clients", icon: Users },
+  { key: "properties", icon: Home },
+  { key: "mandates", icon: ClipboardList },
+  { key: "documents", icon: FileText },
+  { key: "calendar", icon: Calendar },
+  { key: "tasks", icon: CheckSquare },
+  { key: "messages", icon: MessageSquare },
+  { key: "socialPosts", icon: Share2 },
+  { key: "notifications", icon: Bell },
+  { key: "apiKeys", icon: Key },
+  { key: "webhooks", icon: Webhook },
+] as const;
+
+// =============================================================================
+// Your Data Section
+// =============================================================================
+
+function YourDataSection() {
+  const t = useTranslations("profile.dataControl");
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Database className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle>{t("yourData.title")}</CardTitle>
+            <CardDescription>{t("yourData.description")}</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Accordion type="single" collapsible className="w-full">
+          {DATA_CATEGORIES.map((category) => {
+            const Icon = category.icon;
+            return (
+              <AccordionItem key={category.key} value={category.key}>
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {t(`yourData.categories.${category.key}.title`)}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <p className="text-sm text-muted-foreground pl-7">
+                    {t(`yourData.categories.${category.key}.description`)}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      </CardContent>
+    </Card>
+  );
+}
+
+// =============================================================================
 // Helper Components
 // =============================================================================
 
-function EncryptionStatusBadge({ 
-  isEnabled, 
-  isUnlocked, 
-  hasAccess 
-}: { 
-  isEnabled: boolean; 
-  isUnlocked: boolean; 
-  hasAccess: boolean; 
+function EncryptionStatusBadge({
+  isEnabled,
+  isUnlocked,
+  hasAccess,
+}: {
+  isEnabled: boolean;
+  isUnlocked: boolean;
+  hasAccess: boolean;
 }) {
   if (!isEnabled) {
     return <Badge variant="secondary">Not Configured</Badge>;
@@ -77,21 +201,30 @@ function EncryptionStatusBadge({
 // =============================================================================
 
 function EncryptionSetupSection() {
-  const { isEnabled, hasAccess, isUnlocked, isLoading, unlock, lock, remainingTime, refreshStatus } = useEncryption();
+  const {
+    isEnabled,
+    hasAccess,
+    isUnlocked,
+    isLoading,
+    unlock,
+    lock,
+    remainingTime,
+    refreshStatus,
+  } = useEncryption();
   const isAdmin = useHasPermission("canManageRoles");
   const { toast } = useAppToast();
-  const success = (msg: string) => toast.success(msg, { isTranslationKey: false });
-  const showError = (msg: string) => toast.error(msg, { isTranslationKey: false });
-  
+  const success = (msg: string) =>
+    toast.success(msg, { isTranslationKey: false });
+  const showError = (msg: string) =>
+    toast.error(msg, { isTranslationKey: false });
+
   const [passphrase, setPassphrase] = useState("");
   const [confirmPassphrase, setConfirmPassphrase] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSetupDialog, setShowSetupDialog] = useState(false);
 
-  // Handle unlock
   const handleUnlock = async () => {
     if (!passphrase) return;
-    
     setIsSubmitting(true);
     try {
       const unlocked = await unlock(passphrase);
@@ -108,15 +241,12 @@ function EncryptionSetupSection() {
     }
   };
 
-  // Handle setup
   const handleSetup = async () => {
-    // Validate passphrase
     const validation = validatePassphrase(passphrase);
     if (!validation.isValid) {
       showError(validation.error || "Invalid passphrase");
       return;
     }
-
     if (passphrase !== confirmPassphrase) {
       showError("Passphrases do not match");
       return;
@@ -124,17 +254,11 @@ function EncryptionSetupSection() {
 
     setIsSubmitting(true);
     try {
-      // Generate OMK
       const omk = await generateOMK();
-      
-      // Generate salt and derive KEK
       const salt = generateSalt();
       const kek = await deriveKEK(passphrase, salt);
-      
-      // Wrap OMK with KEK
       const wrappedKey = await wrapKey(omk, kek);
-      
-      // Store on server
+
       const result = await setupOrganizationEncryption({
         wrappedKey,
         salt: saltToBase64(salt),
@@ -181,30 +305,33 @@ function EncryptionSetupSection() {
           Data Encryption
         </CardTitle>
         <CardDescription>
-          End-to-end encryption protects your data so only authorized team members can access it
+          End-to-end encryption protects your data so only authorized team
+          members can access it
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Status */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Status:</span>
-          <EncryptionStatusBadge isEnabled={isEnabled} isUnlocked={isUnlocked} hasAccess={hasAccess} />
+          <EncryptionStatusBadge
+            isEnabled={isEnabled}
+            isUnlocked={isUnlocked}
+            hasAccess={hasAccess}
+          />
         </div>
 
-        {/* Remaining time warning */}
         {isUnlocked && remainingTime !== null && remainingTime <= 60 && (
           <Alert variant="destructive">
             <Clock className="h-4 w-4" />
             <AlertTitle>Auto-lock Warning</AlertTitle>
             <AlertDescription>
-              Your session will lock in {remainingTime} seconds due to inactivity.
+              Your session will lock in {remainingTime} seconds due to
+              inactivity.
             </AlertDescription>
           </Alert>
         )}
 
         <Separator />
 
-        {/* Not enabled - show setup for admins */}
         {!isEnabled && isAdmin && (
           <Dialog open={showSetupDialog} onOpenChange={setShowSetupDialog}>
             <DialogTrigger asChild>
@@ -217,8 +344,9 @@ function EncryptionSetupSection() {
               <DialogHeader>
                 <DialogTitle>Enable End-to-End Encryption</DialogTitle>
                 <DialogDescription>
-                  Create a secure passphrase to protect your organization&apos;s data. 
-                  This passphrase will be required to access encrypted data.
+                  Create a secure passphrase to protect your
+                  organization&apos;s data. This passphrase will be required to
+                  access encrypted data.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -226,7 +354,8 @@ function EncryptionSetupSection() {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Important</AlertTitle>
                   <AlertDescription>
-                    Store this passphrase securely. If lost, encrypted data cannot be recovered.
+                    Store this passphrase securely. If lost, encrypted data
+                    cannot be recovered.
                   </AlertDescription>
                 </Alert>
                 <div className="space-y-2">
@@ -243,7 +372,9 @@ function EncryptionSetupSection() {
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-passphrase">Confirm Passphrase</Label>
+                  <Label htmlFor="confirm-passphrase">
+                    Confirm Passphrase
+                  </Label>
                   <Input
                     id="confirm-passphrase"
                     type="password"
@@ -254,18 +385,24 @@ function EncryptionSetupSection() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowSetupDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSetupDialog(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleSetup} disabled={isSubmitting}>
-                  {isSubmitting ? <Loading variant="spinner" size="sm" /> : "Enable Encryption"}
+                  {isSubmitting ? (
+                    <Loading variant="spinner" size="sm" />
+                  ) : (
+                    "Enable Encryption"
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         )}
 
-        {/* Enabled but locked - show unlock */}
         {isEnabled && hasAccess && !isUnlocked && (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -279,21 +416,30 @@ function EncryptionSetupSection() {
                   onChange={(e) => setPassphrase(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
                 />
-                <Button onClick={handleUnlock} disabled={isSubmitting || !passphrase}>
-                  {isSubmitting ? <Loading variant="spinner" size="sm" /> : <Unlock className="h-4 w-4" />}
+                <Button
+                  onClick={handleUnlock}
+                  disabled={isSubmitting || !passphrase}
+                >
+                  {isSubmitting ? (
+                    <Loading variant="spinner" size="sm" />
+                  ) : (
+                    <Unlock className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Unlocked - show lock button */}
         {isUnlocked && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
               {remainingTime !== null && (
-                <span>Auto-lock in {Math.floor(remainingTime / 60)}:{String(remainingTime % 60).padStart(2, "0")}</span>
+                <span>
+                  Auto-lock in {Math.floor(remainingTime / 60)}:
+                  {String(remainingTime % 60).padStart(2, "0")}
+                </span>
               )}
             </div>
             <Button variant="outline" onClick={lock}>
@@ -303,13 +449,13 @@ function EncryptionSetupSection() {
           </div>
         )}
 
-        {/* No access */}
         {isEnabled && !hasAccess && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Access Required</AlertTitle>
             <AlertDescription>
-              You don&apos;t have encryption access. Contact your organization admin to be granted access.
+              You don&apos;t have encryption access. Contact your organization
+              admin to be granted access.
             </AlertDescription>
           </Alert>
         )}
@@ -319,7 +465,7 @@ function EncryptionSetupSection() {
 }
 
 // =============================================================================
-// Data Request Section
+// Data Export Section
 // =============================================================================
 
 interface ExportRequest {
@@ -331,164 +477,494 @@ interface ExportRequest {
   createdAt: Date;
 }
 
-function ExportStatusContent({
-  isLoadingStatus,
-  pendingExport,
-  completedExport,
-  isRequesting,
-  onRequestData,
-}: {
-  isLoadingStatus: boolean;
-  pendingExport: ExportRequest | null;
-  completedExport: ExportRequest | null;
-  isRequesting: boolean;
-  onRequestData: () => void;
-}) {
-  if (isLoadingStatus) {
-    return <Loading variant="dots" size="sm" />;
-  }
-
-  if (pendingExport) {
-    return (
-      <Alert>
-        <Clock className="h-4 w-4" />
-        <AlertTitle>Export in Progress</AlertTitle>
-        <AlertDescription>
-          Your data export is being processed. You will receive an email with the download link.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (completedExport?.downloadUrl) {
-    return (
-      <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
-        <Download className="h-4 w-4 text-green-600" />
-        <AlertTitle className="text-green-700 dark:text-green-400">Export Ready</AlertTitle>
-        <AlertDescription className="space-y-2">
-          <p>Your data export is ready for download.</p>
-          <a
-            href={completedExport.downloadUrl}
-            download
-            className="inline-flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-400 underline"
-          >
-            <Download className="h-3 w-3" />
-            Download Export
-          </a>
-          {completedExport.expiresAt && (
-            <p className="text-xs text-muted-foreground">
-              Expires: {new Date(completedExport.expiresAt).toLocaleDateString()}
-            </p>
-          )}
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  return (
-    <>
-      <Button variant="outline" onClick={onRequestData} disabled={isRequesting}>
-        {isRequesting ? <Loading variant="spinner" size="sm" /> : <Download className="h-4 w-4 mr-2" />}
-        Request Data Export
-      </Button>
-      <p className="text-sm text-muted-foreground">
-        Your data will be prepared and sent to your email within a few minutes.
-      </p>
-    </>
-  );
-}
-
-function DataRequestSection() {
+function DataExportSection() {
+  const t = useTranslations("profile.dataControl");
+  const tCommon = useTranslations("common");
   const { toast } = useAppToast();
-  const success = (msg: string) => toast.success(msg, { isTranslationKey: false });
-  const showError = (msg: string) => toast.error(msg, { isTranslationKey: false });
-  const [isRequesting, setIsRequesting] = useState(false);
-  const [isLoadingStatus, setIsLoadingStatus] = useState(true);
-  const [pendingExport, setPendingExport] = useState<ExportRequest | null>(null);
-  const [completedExport, setCompletedExport] = useState<ExportRequest | null>(null);
 
-  // Load existing export status on mount
-  useEffect(() => {
-    async function loadExportStatus() {
-      try {
-        const result = await getDataExportStatus();
-        if (result.success && result.data?.requests) {
-          const pending = result.data.requests.find(
-            (r) => r.status === "PENDING" || r.status === "PROCESSING"
-          );
-          const completed = result.data.requests.find(
-            (r) => r.status === "COMPLETED" && r.downloadUrl
-          );
-          setPendingExport(pending ? (pending as ExportRequest) : null);
-          setCompletedExport(completed ? (completed as ExportRequest) : null);
-        }
-      } catch (err) {
-        console.error("Failed to load export status:", err);
-      } finally {
-        setIsLoadingStatus(false);
-      }
-    }
-    loadExportStatus();
-  }, []);
+  const [exportRequests, setExportRequests] = useState<ExportRequest[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
+  const [loadingExports, setLoadingExports] = useState(true);
 
-  const handleRequestData = async () => {
-    setIsRequesting(true);
+  const loadExportStatus = useCallback(async () => {
     try {
-      const result = await requestDataExport({ processImmediately: true });
+      const result = await getDataExportStatus();
       if (result.success && result.data) {
-        success("Data export request submitted. You will receive an email when ready.");
-        setPendingExport({
-          id: result.data.requestId,
-          status: "PENDING",
-          format: "json",
-          downloadUrl: null,
-          expiresAt: null,
-          createdAt: new Date(),
-        });
-      } else {
-        showError(!result.success ? result.error : "Failed to request data export");
+        setExportRequests(result.data.requests as ExportRequest[]);
       }
     } catch {
-      showError("Failed to request data export");
+      // Silently fail
     } finally {
-      setIsRequesting(false);
+      setLoadingExports(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadExportStatus();
+  }, [loadExportStatus]);
+
+  const handleRequestExport = async () => {
+    setIsExporting(true);
+    try {
+      const result = await requestDataExport({ processImmediately: true });
+      if (result.success) {
+        toast.success(t("export.requestExport"), {
+          description: t("export.processing"),
+          isTranslationKey: false,
+        });
+        await loadExportStatus();
+      } else {
+        toast.error(tCommon("toast.error"), {
+          description: result.error,
+          isTranslationKey: false,
+        });
+      }
+    } catch {
+      toast.error(tCommon("toast.error"));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const getExportStatusBadge = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-green-500/10 border-green-500/30 text-green-700"
+          >
+            <CheckCircle className="h-3 w-3 mr-1" />
+            {t("export.ready")}
+          </Badge>
+        );
+      case "PENDING":
+      case "PROCESSING":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-blue-500/10 border-blue-500/30 text-blue-700"
+          >
+            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            {t("export.processing")}
+          </Badge>
+        );
+      case "EXPIRED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-muted border-muted-foreground/30"
+          >
+            <Clock className="h-3 w-3 mr-1" />
+            {t("export.expired")}
+          </Badge>
+        );
+      case "FAILED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-red-500/10 border-red-500/30 text-red-700"
+          >
+            <XCircle className="h-3 w-3 mr-1" />
+            {t("export.failed")}
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Download className="h-5 w-5" />
-          Request My Data
-        </CardTitle>
-        <CardDescription>
-          Download a copy of all your organization&apos;s data in JSON format
-        </CardDescription>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-blue-500/10">
+            <Download className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <CardTitle>{t("export.title")}</CardTitle>
+            <CardDescription>{t("export.description")}</CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <ExportStatusContent
-          isLoadingStatus={isLoadingStatus}
-          pendingExport={pendingExport}
-          completedExport={completedExport}
-          isRequesting={isRequesting}
-          onRequestData={handleRequestData}
-        />
+        <Button
+          onClick={handleRequestExport}
+          disabled={isExporting}
+          variant="outline"
+        >
+          {isExporting ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <FileDown className="h-4 w-4 mr-2" />
+          )}
+          {t("export.requestExport")}
+        </Button>
+
+        {loadingExports ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : exportRequests.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t("export.noRequests")}
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {exportRequests.map((req) => (
+              <div
+                key={req.id}
+                className="flex items-center justify-between p-3 rounded-lg border bg-muted/50"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    {getExportStatusBadge(req.status)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("export.requestedAt")}{" "}
+                    {new Date(req.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                {req.status === "COMPLETED" && req.downloadUrl && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a
+                      href={req.downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      {t("export.download")}
+                    </a>
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 // =============================================================================
-// Account Actions Section
+// Data Deletion Request Section
+// =============================================================================
+
+function DataDeletionSection() {
+  const t = useTranslations("profile.dataControl");
+  const tCommon = useTranslations("common");
+  const { toast } = useAppToast();
+
+  const [deletionRequest, setDeletionRequest] = useState<{
+    id: string;
+    status: string;
+    reason: string | null;
+    reviewNote: string | null;
+    gracePeriodEndsAt: Date;
+    createdAt: Date;
+  } | null>(null);
+  const [loadingDeletion, setLoadingDeletion] = useState(true);
+  const [deletionReason, setDeletionReason] = useState("");
+  const [understood, setUnderstood] = useState(false);
+  const [isSubmittingDeletion, setIsSubmittingDeletion] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  const loadDeletionStatus = useCallback(async () => {
+    try {
+      const result = await getDataDeletionStatus();
+      if (result.success && result.data) {
+        setDeletionRequest(result.data.request);
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setLoadingDeletion(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDeletionStatus();
+  }, [loadDeletionStatus]);
+
+  const handleRequestDeletion = async () => {
+    setIsSubmittingDeletion(true);
+    try {
+      const result = await requestDataDeletion(deletionReason || undefined);
+      if (result.success) {
+        toast.success(t("deletion.submit"), {
+          description: t("deletion.pendingDescription"),
+          isTranslationKey: false,
+        });
+        setDeletionReason("");
+        setUnderstood(false);
+        await loadDeletionStatus();
+      } else {
+        toast.error(tCommon("toast.error"), {
+          description: result.error,
+          isTranslationKey: false,
+        });
+      }
+    } catch {
+      toast.error(tCommon("toast.error"));
+    } finally {
+      setIsSubmittingDeletion(false);
+    }
+  };
+
+  const handleCancelDeletion = async () => {
+    if (!deletionRequest) return;
+    setIsCancelling(true);
+    try {
+      const result = await cancelDataDeletion(deletionRequest.id);
+      if (result.success) {
+        toast.success(t("deletion.cancelled"), {
+          description: t("deletion.cancelledDescription"),
+          isTranslationKey: false,
+        });
+        setDeletionRequest(null);
+      } else {
+        toast.error(tCommon("toast.error"), {
+          description: result.error,
+          isTranslationKey: false,
+        });
+      }
+    } catch {
+      toast.error(tCommon("toast.error"));
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const daysRemaining = deletionRequest
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(deletionRequest.gracePeriodEndsAt).getTime() - Date.now()) /
+            (1000 * 60 * 60 * 24)
+        )
+      )
+    : 0;
+
+  const getDeletionStatusBadge = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-amber-500/10 border-amber-500/30 text-amber-700"
+          >
+            <Clock className="h-3 w-3 mr-1" />
+            {t("deletion.pendingTitle")}
+          </Badge>
+        );
+      case "APPROVED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-green-500/10 border-green-500/30 text-green-700"
+          >
+            <CheckCircle className="h-3 w-3 mr-1" />
+            {t("deletion.approved")}
+          </Badge>
+        );
+      case "REJECTED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-red-500/10 border-red-500/30 text-red-700"
+          >
+            <XCircle className="h-3 w-3 mr-1" />
+            {t("deletion.rejected")}
+          </Badge>
+        );
+      case "COMPLETED":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-muted border-muted-foreground/30"
+          >
+            {t("deletion.completed")}
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  return (
+    <Card className="border-destructive/50">
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-destructive/10">
+            <Trash2 className="h-5 w-5 text-destructive" />
+          </div>
+          <div>
+            <CardTitle className="text-destructive">
+              {t("deletion.title")}
+            </CardTitle>
+            <CardDescription>{t("deletion.description")}</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loadingDeletion ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : deletionRequest &&
+          ["PENDING", "APPROVED"].includes(deletionRequest.status) ? (
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
+                <div className="space-y-2">
+                  {getDeletionStatusBadge(deletionRequest.status)}
+                  <p className="text-sm text-muted-foreground">
+                    {deletionRequest.status === "PENDING"
+                      ? t("deletion.pendingDescription")
+                      : t("deletion.approvedDescription")}
+                  </p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">
+                      {t("deletion.gracePeriodEnds")}:{" "}
+                      {new Date(
+                        deletionRequest.gracePeriodEndsAt
+                      ).toLocaleDateString()}
+                    </span>
+                    <span className="text-muted-foreground">
+                      ({daysRemaining} {t("deletion.daysRemaining")})
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {deletionRequest.status === "PENDING" && (
+              <Button
+                variant="outline"
+                onClick={handleCancelDeletion}
+                disabled={isCancelling}
+              >
+                {isCancelling ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <XCircle className="h-4 w-4 mr-2" />
+                )}
+                {t("deletion.cancelRequest")}
+              </Button>
+            )}
+          </div>
+        ) : deletionRequest && deletionRequest.status === "REJECTED" ? (
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg border border-red-500/30 bg-red-500/5">
+              <div className="space-y-2">
+                {getDeletionStatusBadge("REJECTED")}
+                <p className="text-sm text-muted-foreground">
+                  {t("deletion.rejected")}
+                </p>
+                {deletionRequest.reviewNote && (
+                  <p className="text-sm italic">
+                    {t("deletion.rejectedDescription")}{" "}
+                    &quot;{deletionRequest.reviewNote}&quot;
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between p-4 rounded-lg border border-destructive/30 bg-destructive/5">
+            <div className="space-y-1">
+              <p className="font-medium">{t("deletion.title")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("deletion.description")}
+              </p>
+            </div>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {t("deletion.requestDeletion")}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {t("deletion.confirmTitle")}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("deletion.confirmDescription")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="deletion-reason">
+                      {t("deletion.reasonLabel")}
+                    </Label>
+                    <Textarea
+                      id="deletion-reason"
+                      placeholder={t("deletion.reasonPlaceholder")}
+                      value={deletionReason}
+                      onChange={(e) => setDeletionReason(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="understand"
+                      checked={understood}
+                      onCheckedChange={(checked) =>
+                        setUnderstood(checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor="understand"
+                      className="text-sm leading-5 cursor-pointer"
+                    >
+                      {t("deletion.understand")}
+                    </Label>
+                  </div>
+                </div>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel>
+                    {tCommon("buttons.cancel")}
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleRequestDeletion}
+                    disabled={!understood || isSubmittingDeletion}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isSubmittingDeletion && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
+                    {t("deletion.submit")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// =============================================================================
+// Account Actions Section (existing)
 // =============================================================================
 
 function AccountActionsSection() {
   const router = useRouter();
   const { signOut } = useClerk();
   const { toast } = useAppToast();
-  const success = (msg: string) => toast.success(msg, { isTranslationKey: false });
-  const showError = (msg: string) => toast.error(msg, { isTranslationKey: false });
+  const success = (msg: string) =>
+    toast.success(msg, { isTranslationKey: false });
+  const showError = (msg: string) =>
+    toast.error(msg, { isTranslationKey: false });
   const [showDisableDialog, setShowDisableDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -499,9 +975,10 @@ function AccountActionsSection() {
     try {
       const result = await disableAccount();
       if (result.success) {
-        success("Account disabled successfully. You will be logged out.");
+        success(
+          "Account disabled successfully. You will be logged out."
+        );
         setShowDisableDialog(false);
-        // Sign out and redirect to home
         setTimeout(async () => {
           await signOut();
           router.push("/");
@@ -526,9 +1003,10 @@ function AccountActionsSection() {
     try {
       const result = await deleteAccount(deleteConfirmation);
       if (result.success) {
-        success("Account deleted successfully. You will be redirected.");
+        success(
+          "Account deleted successfully. You will be redirected."
+        );
         setShowDeleteDialog(false);
-        // Sign out and redirect to home
         setTimeout(async () => {
           await signOut();
           router.push("/");
@@ -555,7 +1033,6 @@ function AccountActionsSection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Disable Account */}
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div>
             <h4 className="font-medium flex items-center gap-2">
@@ -566,7 +1043,10 @@ function AccountActionsSection() {
               Temporarily disable your account. You can re-enable it later.
             </p>
           </div>
-          <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
+          <Dialog
+            open={showDisableDialog}
+            onOpenChange={setShowDisableDialog}
+          >
             <DialogTrigger asChild>
               <Button variant="outline">Disable</Button>
             </DialogTrigger>
@@ -574,23 +1054,34 @@ function AccountActionsSection() {
               <DialogHeader>
                 <DialogTitle>Disable Account</DialogTitle>
                 <DialogDescription>
-                  Your account will be disabled and you will be logged out. 
-                  Your data will be preserved and you can re-enable your account by contacting support.
+                  Your account will be disabled and you will be logged out. Your
+                  data will be preserved and you can re-enable your account by
+                  contacting support.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowDisableDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDisableDialog(false)}
+                >
                   Cancel
                 </Button>
-                <Button variant="destructive" onClick={handleDisableAccount} disabled={isSubmitting}>
-                  {isSubmitting ? <Loading variant="spinner" size="sm" /> : "Disable Account"}
+                <Button
+                  variant="destructive"
+                  onClick={handleDisableAccount}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loading variant="spinner" size="sm" />
+                  ) : (
+                    "Disable Account"
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Delete Account */}
         <div className="flex items-center justify-between p-4 border border-destructive/50 rounded-lg bg-destructive/5">
           <div>
             <h4 className="font-medium flex items-center gap-2 text-destructive">
@@ -598,18 +1089,25 @@ function AccountActionsSection() {
               Delete My Data
             </h4>
             <p className="text-sm text-muted-foreground">
-              Permanently delete your account and all associated data. This cannot be undone.
+              Permanently delete your account and all associated data. This
+              cannot be undone.
             </p>
           </div>
-          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <Dialog
+            open={showDeleteDialog}
+            onOpenChange={setShowDeleteDialog}
+          >
             <DialogTrigger asChild>
               <Button variant="destructive">Delete</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle className="text-destructive">Delete Account</DialogTitle>
+                <DialogTitle className="text-destructive">
+                  Delete Account
+                </DialogTitle>
                 <DialogDescription>
-                  This will permanently delete your account and all data including:
+                  This will permanently delete your account and all data
+                  including:
                 </DialogDescription>
               </DialogHeader>
               <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 py-2">
@@ -631,15 +1129,24 @@ function AccountActionsSection() {
                 onChange={(e) => setDeleteConfirmation(e.target.value)}
               />
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(false)}
+                >
                   Cancel
                 </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleDeleteAccount} 
-                  disabled={isSubmitting || deleteConfirmation !== "DELETE MY DATA"}
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteAccount}
+                  disabled={
+                    isSubmitting || deleteConfirmation !== "DELETE MY DATA"
+                  }
                 >
-                  {isSubmitting ? <Loading variant="spinner" size="sm" /> : "Delete Account"}
+                  {isSubmitting ? (
+                    <Loading variant="spinner" size="sm" />
+                  ) : (
+                    "Delete Account"
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -657,14 +1164,13 @@ function AccountActionsSection() {
 export function DataControlTab() {
   const { resetIdleTimer } = useEncryption();
 
-  // Reset idle timer on any activity in this tab
   useEffect(() => {
     const handleActivity = () => resetIdleTimer();
-    
+
     globalThis.addEventListener("mousemove", handleActivity);
     globalThis.addEventListener("keydown", handleActivity);
     globalThis.addEventListener("click", handleActivity);
-    
+
     return () => {
       globalThis.removeEventListener("mousemove", handleActivity);
       globalThis.removeEventListener("keydown", handleActivity);
@@ -674,8 +1180,14 @@ export function DataControlTab() {
 
   return (
     <div className="space-y-6">
+      <YourDataSection />
+      <Separator />
       <EncryptionSetupSection />
-      <DataRequestSection />
+      <Separator />
+      <DataExportSection />
+      <Separator />
+      <DataDeletionSection />
+      <Separator />
       <AccountActionsSection />
     </div>
   );
