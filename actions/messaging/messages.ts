@@ -5,7 +5,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { MessageContentType } from "@prisma/client";
 import { requireAction } from "@/lib/permissions";
-import { encryptMessageForOrg, decryptMessageForOrg } from "@/lib/model-encryption";
+// E2EE: Server is now a pass-through relay. Client encrypts/decrypts.
 
 /**
  * Send a message to a channel or conversation
@@ -13,8 +13,13 @@ import { encryptMessageForOrg, decryptMessageForOrg } from "@/lib/model-encrypti
 export async function sendMessage(params: {
   channelId?: string;
   conversationId?: string;
-  content: string;
+  content: string; // E2EE ciphertext (client encrypts before sending)
   parentId?: string; // For threading
+  // E2EE metadata
+  sessionId?: string;
+  messageIndex?: number;
+  dhPublicKey?: string;
+  previousChainLen?: number;
 }): Promise<{
   success: boolean;
   message?: {
@@ -90,10 +95,7 @@ export async function sendMessage(params: {
       mentions.push(match[2]); // User ID from mention
     }
 
-    // Encrypt content before storing
-    const encryptedContent = (await encryptMessageForOrg({ content: params.content }, organizationId)).content ?? params.content;
-
-    // Create message
+    // Store ciphertext directly — server is a pass-through relay
     const messageId = await generateFriendlyId(prismadb, "Message", organizationId);
     const message = await prismadb.message.create({
       data: {
@@ -102,9 +104,14 @@ export async function sendMessage(params: {
         channelId: params.channelId,
         conversationId: params.conversationId,
         senderId: currentUser.id,
-        content: encryptedContent,
+        content: params.content,
         contentType: "TEXT",
         parentId: params.parentId,
+        // E2EE metadata
+        sessionId: params.sessionId,
+        messageIndex: params.messageIndex,
+        dhPublicKey: params.dhPublicKey,
+        previousChainLen: params.previousChainLen,
         mentions: mentions.length > 0 ? {
           createMany: {
             data: mentions.map(userId => ({ userId })),
@@ -263,14 +270,8 @@ export async function getMessages(params: {
     const hasMore = messages.length > limit;
     const resultMessages = hasMore ? messages.slice(0, -1) : messages;
 
-    // Group reactions by emoji
-    const formattedMessages = await Promise.all(resultMessages.map(async msg => {
-      let decrypted: typeof msg;
-      try {
-        decrypted = await decryptMessageForOrg(msg, msg.organizationId);
-      } catch {
-        decrypted = { ...msg, content: "[message could not be decrypted]" };
-      }
+    // Return raw ciphertext — client decrypts via E2EE
+    const formattedMessages = resultMessages.map(msg => {
       const reactionMap = new Map<string, string[]>();
       msg.reactions.forEach(r => {
         if (!reactionMap.has(r.emoji)) {
@@ -280,23 +281,28 @@ export async function getMessages(params: {
       });
 
       return {
-        id: decrypted.id,
-        content: decrypted.content,
-        contentType: decrypted.contentType,
-        senderId: decrypted.senderId,
-        parentId: decrypted.parentId,
-        threadCount: decrypted.threadCount,
-        isEdited: decrypted.isEdited,
-        createdAt: decrypted.createdAt,
-        editedAt: decrypted.editedAt,
+        id: msg.id,
+        content: msg.content, // E2EE ciphertext — client decrypts
+        contentType: msg.contentType,
+        senderId: msg.senderId,
+        parentId: msg.parentId,
+        threadCount: msg.threadCount,
+        isEdited: msg.isEdited,
+        createdAt: msg.createdAt,
+        editedAt: msg.editedAt,
+        // E2EE metadata for client-side decryption
+        sessionId: msg.sessionId,
+        messageIndex: msg.messageIndex,
+        dhPublicKey: msg.dhPublicKey,
+        previousChainLen: msg.previousChainLen,
         reactions: Array.from(reactionMap.entries()).map(([emoji, userIds]) => ({
           emoji,
           count: userIds.length,
           userIds,
         })),
-        attachments: decrypted.attachments,
+        attachments: msg.attachments,
       };
-    }));
+    });
 
     // Reverse to get oldest first for display
     formattedMessages.reverse();
@@ -341,11 +347,11 @@ export async function editMessage(
       return { success: false, error: "Cannot edit deleted message" };
     }
 
-    const encryptedContent = (await encryptMessageForOrg({ content }, message.organizationId)).content ?? content;
+    // Store ciphertext directly — client re-encrypts before sending
     await prismadb.message.update({
       where: { id: messageId },
       data: {
-        content: encryptedContent,
+        content, // E2EE ciphertext
         isEdited: true,
         editedAt: new Date(),
       },
@@ -380,13 +386,13 @@ export async function deleteMessage(messageId: string): Promise<{
       return { success: false, error: "Can only delete your own messages" };
     }
 
-    const deletedContent = (await encryptMessageForOrg({ content: "[Message deleted]" }, message.organizationId)).content ?? "[Message deleted]";
+    // Tombstone — clear content, no encryption needed
     await prismadb.message.update({
       where: { id: messageId },
       data: {
         isDeleted: true,
         deletedAt: new Date(),
-        content: deletedContent,
+        content: "",
       },
     });
 

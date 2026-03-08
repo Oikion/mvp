@@ -5,7 +5,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { requireAction } from "@/lib/permissions";
-import { decryptMessageForOrg } from "@/lib/model-encryption";
+// E2EE: server no longer decrypts messages — clients decrypt locally
 
 /**
  * Start or get a direct message conversation with another user
@@ -486,9 +486,7 @@ export async function getUserConversations(): Promise<{
           ? { type: conv.entityType, id: conv.entityId }
           : undefined,
         participants: enrichedParticipants,
-        lastMessage: conv.messages[0]
-          ? await decryptMessageForOrg(conv.messages[0], organizationId)
-          : undefined,
+        lastMessage: conv.messages[0] ?? undefined,
         unreadCount: unreadMap.get(conv.id) ?? 0,
         isMuted,
       };
