@@ -445,7 +445,7 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                             {format(new Date(message.createdAt), "HH:mm")}
                           </span>
                           {(message as typeof message & { _isE2EE?: boolean })._isE2EE && (
-                            <Lock className="h-3 w-3 text-muted-foreground" title="End-to-end encrypted" />
+                            <Lock className="h-3 w-3 text-muted-foreground" aria-label="End-to-end encrypted" />
                           )}
                           {message.isEdited && (
                             <span className="text-xs text-muted-foreground">(edited)</span>

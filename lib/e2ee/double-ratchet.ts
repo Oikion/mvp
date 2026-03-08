@@ -182,9 +182,9 @@ export class DoubleRatchet {
 
   async serialize(): Promise<string> {
     const skippedObj: Record<string, string> = {};
-    for (const [key, val] of this.skippedKeys) {
+    this.skippedKeys.forEach((val, key) => {
       skippedObj[key] = bufferToBase64(val);
-    }
+    });
     return JSON.stringify({
       rootKey: bufferToBase64(this.rootKey),
       sendChainKey: this.sendChainKey ? bufferToBase64(this.sendChainKey) : null,

@@ -193,8 +193,6 @@ export async function createGroupConversation(params: {
   name?: string;
   createdById: string;
   participantIds: string[];
-  entityType?: "CLIENT" | "PROPERTY" | "DEAL" | "PROJECT";
-  entityId?: string;
 }) {
   return prismadb.conversation.create({
     data: {
@@ -202,8 +200,6 @@ export async function createGroupConversation(params: {
       name: params.name,
       isGroup: true,
       createdById: params.createdById,
-      entityType: params.entityType,
-      entityId: params.entityId,
       participants: {
         create: params.participantIds.map((userId) => ({ userId })),
       },

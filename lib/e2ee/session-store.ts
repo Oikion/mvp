@@ -48,7 +48,7 @@ function getDB(): Promise<IDBPDatabase> {
  */
 async function encryptForStorage(key: string, value: string, kek: ArrayBuffer): Promise<EncryptedEntry> {
   const plaintext = new TextEncoder().encode(value);
-  const { ciphertext, iv } = await aesGcmEncrypt(plaintext.buffer as ArrayBuffer, kek);
+  const { ciphertext, iv } = await aesGcmEncrypt(plaintext, kek);
   return {
     id: key,
     ciphertext: bufferToBase64(ciphertext),

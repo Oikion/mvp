@@ -33,8 +33,8 @@ export async function deriveSharedSecret(
 // ─── AES-256-GCM ──────────────────────────
 
 export async function aesGcmEncrypt(
-  plaintext: ArrayBuffer,
-  rawKey: ArrayBuffer
+  plaintext: BufferSource,
+  rawKey: BufferSource
 ): Promise<{ ciphertext: ArrayBuffer; iv: ArrayBuffer }> {
   const iv = generateRandomBytes(IV_BYTES);
   const key = await crypto.subtle.importKey("raw", rawKey, AES_GCM, false, ["encrypt"]);
@@ -43,9 +43,9 @@ export async function aesGcmEncrypt(
 }
 
 export async function aesGcmDecrypt(
-  ciphertext: ArrayBuffer,
-  rawKey: ArrayBuffer,
-  iv: ArrayBuffer
+  ciphertext: BufferSource,
+  rawKey: BufferSource,
+  iv: BufferSource
 ): Promise<ArrayBuffer> {
   const key = await crypto.subtle.importKey("raw", rawKey, AES_GCM, false, ["decrypt"]);
   return crypto.subtle.decrypt({ name: AES_GCM, iv }, key, ciphertext);
@@ -54,9 +54,9 @@ export async function aesGcmDecrypt(
 // ─── HKDF ──────────────────────────────────
 
 export async function hkdfDerive(
-  ikm: ArrayBuffer,
-  salt: ArrayBuffer,
-  info: ArrayBuffer,
+  ikm: BufferSource,
+  salt: BufferSource,
+  info: BufferSource,
   length: number
 ): Promise<ArrayBuffer> {
   const key = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
@@ -70,8 +70,8 @@ export async function hkdfDerive(
 // ─── HMAC-SHA256 ───────────────────────────
 
 export async function hmacSign(
-  rawKey: ArrayBuffer,
-  data: ArrayBuffer
+  rawKey: BufferSource,
+  data: BufferSource
 ): Promise<ArrayBuffer> {
   const key = await crypto.subtle.importKey(
     "raw", rawKey, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
@@ -81,7 +81,7 @@ export async function hmacSign(
 
 // ─── SHA-256 ───────────────────────────────
 
-export async function sha256(data: ArrayBuffer): Promise<ArrayBuffer> {
+export async function sha256(data: BufferSource): Promise<ArrayBuffer> {
   return crypto.subtle.digest("SHA-256", data);
 }
 
@@ -180,7 +180,7 @@ export function base64ToBuffer(base64: string): ArrayBuffer {
   return bytes.buffer;
 }
 
-export function concatBuffers(...buffers: ArrayBuffer[]): ArrayBuffer {
+export function concatBuffers(...buffers: ArrayBufferLike[]): ArrayBuffer {
   const total = buffers.reduce((sum, b) => sum + b.byteLength, 0);
   const result = new Uint8Array(total);
   let offset = 0;
