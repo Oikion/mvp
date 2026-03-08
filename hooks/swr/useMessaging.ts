@@ -27,11 +27,7 @@ export interface Conversation {
   id: string;
   name: string | null;
   isGroup: boolean;
-  type: "dm" | "group" | "entity";
-  entity?: {
-    type: string;
-    id: string;
-  };
+  type: "dm" | "group";
   participants: Array<{ userId: string }>;
   lastMessage?: {
     content: string;

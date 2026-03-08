@@ -98,7 +98,6 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
   // Filter conversations by type
   const directMessages = conversations.filter((c) => c.type === "dm");
   const groupConversations = conversations.filter((c) => c.type === "group");
-  const entityConversations = conversations.filter((c) => c.type === "entity");
 
   // Handle channel selection
   const handleSelectChannel = (channelId: string) => {
@@ -370,32 +369,6 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
                 </div>
               )}
 
-              {/* Entity-linked conversations */}
-              {entityConversations.length > 0 && (
-                <div className="mt-4">
-                  <div className="px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    CRM Conversations
-                  </div>
-                  <ConversationList
-                    items={entityConversations.map((e) => ({
-                      id: e.id,
-                      name: e.name || `${e.entity?.type} Conversation`,
-                      type: "entity" as const,
-                      entityType: e.entity?.type,
-                      lastMessage: e.lastMessage?.content,
-                      unreadCount: e.unreadCount,
-                    }))}
-                    selectedId={selectedConversationId}
-                    onSelect={handleSelectConversation}
-                    isLoading={false}
-                    emptyMessage=""
-                    onMarkAsRead={handleMarkAsRead}
-                    onMuteToggle={handleMuteToggle}
-                    onLeave={handleLeave}
-                    onDelete={handleDelete}
-                  />
-                </div>
-              )}
             </TabsContent>
           </ScrollArea>
         </Tabs>
@@ -450,9 +423,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
                   </>
                 ) : selectedConversation ? (
                   <>
-                    {selectedConversation.type === "entity" ? (
-                      <Users className="h-5 w-5 text-muted-foreground" />
-                    ) : selectedConversation.isGroup ? (
+                    {selectedConversation.isGroup ? (
                       <Users className="h-5 w-5 text-muted-foreground" />
                     ) : (
                       <MessageCircle className="h-5 w-5 text-muted-foreground" />

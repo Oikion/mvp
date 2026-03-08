@@ -72,9 +72,6 @@ export function ConversationSettings({
   };
 
   const getConversationIcon = () => {
-    if (conversation?.type === "entity") {
-      return <Users className="h-5 w-5" />;
-    }
     if (conversation?.isGroup) {
       return <Users className="h-5 w-5" />;
     }
@@ -154,22 +151,13 @@ export function ConversationSettings({
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Type</span>
                   <Badge variant="secondary" className="capitalize">
-                    {conversation.type === "dm" ? "Direct Message" : 
-                     conversation.type === "entity" ? "CRM Linked" : "Group"}
+                    {conversation.type === "dm" ? "Direct Message" : "Group"}
                   </Badge>
                 </div>
                 {conversation.participants && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Participants</span>
                     <span>{conversation.participants.length}</span>
-                  </div>
-                )}
-                {conversation.entity && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Linked to</span>
-                    <Badge variant="outline" className="capitalize">
-                      {conversation.entity.type}
-                    </Badge>
                   </div>
                 )}
                 {conversation.lastMessage && (
@@ -337,7 +325,7 @@ export function ConversationSettings({
               </Button>
             )}
             
-            {conversation && conversation.type !== "entity" && (
+            {conversation && (
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"

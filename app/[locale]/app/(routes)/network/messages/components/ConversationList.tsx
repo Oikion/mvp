@@ -16,13 +16,12 @@ import { ChannelType } from "@prisma/client";
 export interface ConversationItem {
   id: string;
   name: string;
-  type: "channel" | "dm" | "group" | "entity";
+  type: "channel" | "dm" | "group";
   avatar?: string;
   lastMessage?: string;
   unreadCount?: number;
   isDefault?: boolean;
   channelType?: ChannelType;
-  entityType?: string;
   isMuted?: boolean;
 }
 
@@ -91,7 +90,7 @@ export function ConversationList({
                     <Hash className="h-4 w-4 text-muted-foreground" />
                   )}
                 </div>
-              ) : item.type === "entity" || item.type === "group" ? (
+              ) : item.type === "group" ? (
                 <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded bg-muted">
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </div>

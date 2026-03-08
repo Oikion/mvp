@@ -33,7 +33,6 @@ export async function startDirectMessage(targetUserId: string): Promise<{
     const existingConversation = await prismadb.conversation.findFirst({
       where: {
         isGroup: false,
-        entityType: null, // Only pure DMs, not entity-linked conversations
         AND: [
           { participants: { some: { userId: currentUser.id, leftAt: null } } },
           { participants: { some: { userId: targetUserId, leftAt: null } } },
@@ -104,249 +103,6 @@ export async function startDirectMessage(targetUserId: string): Promise<{
 }
 
 /**
- * Start a direct message from a CRM client contact
- * Links the conversation to the client for context
- */
-export async function startClientConversation(clientId: string): Promise<{
-  success: boolean;
-  conversationId?: string;
-  error?: string;
-}> {
-  try {
-    const currentUser = await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
-
-    // Get the client
-    const client = await prismadb.clients.findFirst({
-      where: {
-        id: clientId,
-        organizationId,
-      },
-      select: {
-        id: true,
-        client_name: true,
-        assigned_to: true,
-      },
-    });
-
-    if (!client) {
-      return { success: false, error: "Client not found" };
-    }
-
-    // Check if there's already a conversation linked to this client
-    const existingConversation = await prismadb.conversation.findFirst({
-      where: {
-        entityType: "CLIENT",
-        entityId: clientId,
-        organizationId,
-      },
-    });
-
-    if (existingConversation) {
-      return {
-        success: true,
-        conversationId: existingConversation.id,
-      };
-    }
-
-    // Get participants (current user + assigned user if different)
-    const participantIds = [currentUser.id];
-    if (client.assigned_to && client.assigned_to !== currentUser.id) {
-      participantIds.push(client.assigned_to);
-    }
-
-    // Create conversation linked to client
-    const conversationId = await generateFriendlyId(prismadb, "Conversation", organizationId);
-    const conversation = await prismadb.conversation.create({
-      data: {
-        id: conversationId,
-        organizationId,
-        name: `Client: ${client.client_name}`,
-        isGroup: participantIds.length > 2,
-        createdById: currentUser.id,
-        entityType: "CLIENT",
-        entityId: clientId,
-        participants: {
-          create: participantIds.map((userId) => ({ userId })),
-        },
-      },
-    });
-
-    // Emit Ably event for real-time update
-    try {
-      const { publishToChannel, getUserChannelName } = await import("@/lib/ably");
-      for (const userId of participantIds) {
-        if (userId !== currentUser.id) {
-          await publishToChannel(
-            getUserChannelName(userId),
-            "conversation:created",
-            {
-              id: conversation.id,
-              isGroup: participantIds.length > 2,
-              entityType: "CLIENT",
-              entityId: clientId,
-            }
-          );
-        }
-      }
-    } catch {
-      // Ably not configured, skip real-time notification
-    }
-
-    return {
-      success: true,
-      conversationId: conversation.id,
-    };
-  } catch (error) {
-    console.error("[MESSAGING] Start client conversation error:", error);
-    return { success: false, error: "Failed to start conversation" };
-  }
-}
-
-/**
- * Start a direct message conversation about a property
- * Links the conversation to the property for context
- */
-export async function startPropertyConversation(propertyId: string): Promise<{
-  success: boolean;
-  conversationId?: string;
-  error?: string;
-}> {
-  try {
-    const currentUser = await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
-
-    // Get the property
-    const property = await prismadb.properties.findFirst({
-      where: {
-        id: propertyId,
-        organizationId,
-      },
-      select: {
-        id: true,
-        property_name: true,
-        assigned_to: true,
-        watchers: true,
-      },
-    });
-
-    if (!property) {
-      return { success: false, error: "Property not found" };
-    }
-
-    // Check if there's already a conversation linked to this property
-    const existingConversation = await prismadb.conversation.findFirst({
-      where: {
-        entityType: "PROPERTY",
-        entityId: propertyId,
-        organizationId,
-      },
-    });
-
-    if (existingConversation) {
-      return {
-        success: true,
-        conversationId: existingConversation.id,
-      };
-    }
-
-    // Get participants (current user + assigned user + watchers)
-    let participantIds = [currentUser.id];
-    if (property.assigned_to && property.assigned_to !== currentUser.id) {
-      participantIds.push(property.assigned_to);
-    }
-    if (property.watchers && property.watchers.length > 0) {
-      participantIds = Array.from(new Set([...participantIds, ...property.watchers]));
-    }
-
-    // Create conversation linked to property
-    const conversationId = await generateFriendlyId(prismadb, "Conversation", organizationId);
-    const conversation = await prismadb.conversation.create({
-      data: {
-        id: conversationId,
-        organizationId,
-        name: `Property: ${property.property_name}`,
-        isGroup: participantIds.length > 2,
-        createdById: currentUser.id,
-        entityType: "PROPERTY",
-        entityId: propertyId,
-        participants: {
-          create: participantIds.map((userId) => ({ userId })),
-        },
-      },
-    });
-
-    // Emit Ably event for real-time update
-    try {
-      const { publishToChannel, getUserChannelName } = await import("@/lib/ably");
-      for (const userId of participantIds) {
-        if (userId !== currentUser.id) {
-          await publishToChannel(
-            getUserChannelName(userId),
-            "conversation:created",
-            {
-              id: conversation.id,
-              isGroup: participantIds.length > 2,
-              entityType: "PROPERTY",
-              entityId: propertyId,
-            }
-          );
-        }
-      }
-    } catch {
-      // Ably not configured, skip real-time notification
-    }
-
-    return {
-      success: true,
-      conversationId: conversation.id,
-    };
-  } catch (error) {
-    console.error("[MESSAGING] Start property conversation error:", error);
-    return { success: false, error: "Failed to start conversation" };
-  }
-}
-
-/**
- * Get conversations linked to an entity
- */
-export async function getEntityConversations(
-  entityType: "CLIENT" | "PROPERTY" | "DEAL",
-  entityId: string
-): Promise<{
-  success: boolean;
-  conversations?: Array<{
-    id: string;
-    name: string | null;
-    createdAt: Date;
-  }>;
-  error?: string;
-}> {
-  try {
-    const organizationId = await getCurrentOrgId();
-
-    const conversations = await prismadb.conversation.findMany({
-      where: {
-        entityType,
-        entityId,
-        organizationId,
-      },
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return { success: true, conversations };
-  } catch (error) {
-    console.error("[MESSAGING] Get entity conversations error:", error);
-    return { success: false, error: "Failed to get conversations" };
-  }
-}
-
-/**
  * Get all conversations for the current user
  */
 export async function getUserConversations(): Promise<{
@@ -355,11 +111,7 @@ export async function getUserConversations(): Promise<{
     id: string;
     name: string | null;
     isGroup: boolean;
-    type: "dm" | "group" | "entity";
-    entity?: {
-      type: string;
-      id: string;
-    };
+    type: "dm" | "group";
     participants: Array<{ userId: string; name?: string | null; avatar?: string | null }>;
     lastMessage?: {
       content: string;
@@ -441,13 +193,7 @@ export async function getUserConversations(): Promise<{
     const unreadMap = new Map(unreadCounts.map((r) => [r.conversationId, Number(r.count)]));
 
     const conversationsWithUnread = await Promise.all(conversations.map(async (conv) => {
-      // Determine type
-      let type: "dm" | "group" | "entity" = "dm";
-      if (conv.entityType && conv.entityId) {
-        type = "entity";
-      } else if (conv.isGroup) {
-        type = "group";
-      }
+      const type: "dm" | "group" = conv.isGroup ? "group" : "dm";
 
       // For DMs without a name, use the other participant's name
       let displayName = conv.name;
@@ -482,9 +228,6 @@ export async function getUserConversations(): Promise<{
         name: displayName,
         isGroup: conv.isGroup,
         type,
-        entity: conv.entityType && conv.entityId
-          ? { type: conv.entityType, id: conv.entityId }
-          : undefined,
         participants: enrichedParticipants,
         lastMessage: conv.messages[0] ?? undefined,
         unreadCount: unreadMap.get(conv.id) ?? 0,

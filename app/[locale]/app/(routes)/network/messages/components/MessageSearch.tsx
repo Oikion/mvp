@@ -27,7 +27,7 @@ interface MessageSearchProps {
 interface SearchResult {
   topic: string;
   topicName?: string;
-  topicType: "channel" | "dm" | "entity";
+  topicType: "channel" | "dm" | "group";
   messages: Array<{
     seq: number;
     from: string;
@@ -91,13 +91,13 @@ export function MessageSearch({ locale, children }: MessageSearchProps) {
     router.push(url);
   };
 
-  const getTopicIcon = (type: "channel" | "dm" | "entity") => {
+  const getTopicIcon = (type: "channel" | "dm" | "group") => {
     switch (type) {
       case "channel":
         return <Hash className="h-4 w-4" />;
       case "dm":
         return <MessageCircle className="h-4 w-4" />;
-      case "entity":
+      case "group":
         return <Users className="h-4 w-4" />;
     }
   };

@@ -31,9 +31,6 @@ export {
 // Direct Messages / Conversations
 export {
   startDirectMessage,
-  startClientConversation,
-  startPropertyConversation,
-  getEntityConversations,
   getUserConversations,
   createGroupConversation,
   addConversationParticipants,

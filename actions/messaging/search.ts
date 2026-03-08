@@ -26,7 +26,7 @@ interface SearchResult {
   channelId?: string;
   conversationId?: string;
   name: string;
-  type: "channel" | "dm" | "group" | "entity";
+  type: "channel" | "dm" | "group";
   messages: MessageSearchResult[];
 }
 
@@ -107,7 +107,6 @@ export async function searchMessages(params: {
             id: true,
             name: true,
             isGroup: true,
-            entityType: true,
           },
         },
       },
@@ -130,17 +129,14 @@ export async function searchMessages(params: {
       const key = msg.channelId || msg.conversationId || "";
       
       if (!resultMap.has(key)) {
-        let type: "channel" | "dm" | "group" | "entity" = "dm";
+        let type: "channel" | "dm" | "group" = "dm";
         let name = "";
 
         if (msg.channel) {
           type = "channel";
           name = msg.channel.name;
         } else if (msg.conversation) {
-          if (msg.conversation.entityType) {
-            type = "entity";
-            name = msg.conversation.name || `${msg.conversation.entityType} Conversation`;
-          } else if (msg.conversation.isGroup) {
+          if (msg.conversation.isGroup) {
             type = "group";
             name = msg.conversation.name || "Group";
           } else {
