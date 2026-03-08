@@ -42,7 +42,7 @@ model AgentProfile {
   visibility              ProfileVisibility         @default(PERSONAL)
   hideFromAgentSearch     Boolean                   @default(false)
   contactFormEnabled      Boolean                   @default(false)
-  contactFormFields       Json?                     // Custom form field configuration
+  contactFormFields       Json? // Custom form field configuration
   Users                   Users                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   ProfileShowcaseProperty ProfileShowcaseProperty[]
   AgentContactSubmission  AgentContactSubmission[]
@@ -57,11 +57,11 @@ model AgentContactSubmission {
   profileId    String
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
-  formData     Json             // Flexible storage for custom fields (name, email, phone, message, etc.)
+  formData     Json // Flexible storage for custom fields (name, email, phone, message, etc.)
   status       SubmissionStatus @default(NEW)
-  notes        String?          // Agent's internal notes about this submission
-  senderName   String?          // Cached for quick display
-  senderEmail  String?          // Cached for quick display
+  notes        String? // Agent's internal notes about this submission
+  senderName   String? // Cached for quick display
+  senderEmail  String? // Cached for quick display
   AgentProfile AgentProfile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@index([profileId])
@@ -75,7 +75,6 @@ enum SubmissionStatus {
   CONTACTED
   ARCHIVED
 }
-
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model CalendarEvent {
@@ -316,35 +315,35 @@ model Clients {
 }
 
 model Deal {
-  id                                String     @id @default(uuid())
-  friendlyId                        String
-  organizationId                    String     // SECURITY: Required for tenant isolation
-  propertyId                        String
-  clientId                          String
-  propertyAgentId                   String
-  clientAgentId                     String
-  propertyAgentSplit                Decimal    @default(50)
-  clientAgentSplit                  Decimal    @default(50)
-  totalCommission                   Decimal?
-  commissionCurrency                String     @default("EUR")
-  status                            DealStatus @default(PROPOSED)
-  proposedById                      String
-  title                             String?
-  notes                             String?
-  closedAt                          DateTime?
-  createdAt                         DateTime   @default(now())
-  updatedAt                         DateTime
+  id                 String      @id @default(uuid())
+  friendlyId         String
+  organizationId     String // SECURITY: Required for tenant isolation
+  propertyId         String
+  clientId           String
+  propertyAgentId    String
+  clientAgentId      String
+  propertyAgentSplit Decimal     @default(50)
+  clientAgentSplit   Decimal     @default(50)
+  totalCommission    Decimal?
+  commissionCurrency String      @default("EUR")
+  status             DealStatus  @default(PROPOSED)
+  proposedById       String
+  title              String?
+  notes              String?
+  closedAt           DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime
   // New fields for metrics tracking
-  contractDate                      DateTime?  // When offer was accepted
-  hoursWorked                       Decimal?   // Total hours worked on this deal
-  dealType                          DealType?  // SELLER or BUYER transaction
-  leadSource                        LeadSource? // Lead source for this deal
-  marketingSpendId                  String?    // Link to marketing spend
-  
-  Users_Deal_clientAgentIdToUsers   Users      @relation("Deal_clientAgentIdToUsers", fields: [clientAgentId], references: [id])
-  Clients                           Clients    @relation(fields: [clientId], references: [id])
-  Users_Deal_propertyAgentIdToUsers Users      @relation("Deal_propertyAgentIdToUsers", fields: [propertyAgentId], references: [id])
-  Properties                        Properties @relation(fields: [propertyId], references: [id])
+  contractDate       DateTime? // When offer was accepted
+  hoursWorked        Decimal? // Total hours worked on this deal
+  dealType           DealType? // SELLER or BUYER transaction
+  leadSource         LeadSource? // Lead source for this deal
+  marketingSpendId   String? // Link to marketing spend
+
+  Users_Deal_clientAgentIdToUsers   Users           @relation("Deal_clientAgentIdToUsers", fields: [clientAgentId], references: [id])
+  Clients                           Clients         @relation(fields: [clientId], references: [id])
+  Users_Deal_propertyAgentIdToUsers Users           @relation("Deal_propertyAgentIdToUsers", fields: [propertyAgentId], references: [id])
+  Properties                        Properties      @relation(fields: [propertyId], references: [id])
   MarketingSpend                    MarketingSpend? @relation(fields: [marketingSpendId], references: [id])
   AgentHours                        AgentHours[]
 
@@ -359,8 +358,8 @@ model Deal {
   @@index([dealType])
   @@index([leadSource])
   @@index([marketingSpendId])
-  @@index([createdAt])           // Performance: For sorting
-  @@index([closedAt])            // Performance: For completed deals queries
+  @@index([createdAt]) // Performance: For sorting
+  @@index([closedAt]) // Performance: For completed deals queries
   @@index([organizationId, status]) // Performance: Composite for common query pattern
   @@index([organizationId, createdAt]) // Performance: Composite for listing
 }
@@ -514,11 +513,11 @@ model Feedback {
   emailSent        Boolean           @default(false)
   emailSentAt      DateTime?
   adminNotes       String?
-  consoleLogs      Json?             // @deprecated - legacy field, use consoleLogsUrl instead
-  consoleLogsUrl   String?           // Vercel Blob URL for console logs text file
+  consoleLogs      Json? // @deprecated - legacy field, use consoleLogsUrl instead
+  consoleLogsUrl   String? // Vercel Blob URL for console logs text file
   reviewedAt       DateTime?
   reviewedBy       String?
-  screenshot       String?           // Vercel Blob URL for screenshot image
+  screenshot       String? // Vercel Blob URL for screenshot image
   status           String            @default("pending")
   adminResponse    String?
   respondedAt      DateTime?
@@ -545,7 +544,7 @@ model FeedbackComment {
   // Attachment fields (optional - for file uploads)
   attachmentUrl  String? // Vercel Blob URL
   attachmentName String? // Original file name
-  attachmentSize Int?    // File size in bytes
+  attachmentSize Int? // File size in bytes
   attachmentType String? // MIME type
 
   Feedback Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
@@ -652,86 +651,86 @@ model ProfileShowcaseProperty {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Properties {
-  id                                  String                    @id @default(uuid())
-  friendlyId                          String
-  createdAt                           DateTime                  @default(now())
-  createdBy                           String?
-  updatedAt                           DateTime?
-  updatedBy                           String?
-  assigned_to                         String?
-  property_name                       String
-  primary_email                       String?
-  property_type                       PropertyType?
-  property_status                     PropertyStatus?           @default(ACTIVE)
-  property_preferences                Json?
-  communication_notes                 Json?
-  address_street                      String?
-  address_city                        String?
-  address_state                       String?
-  address_zip                         String?
-  price                               Decimal?
-  bedrooms                            Int?
-  bathrooms                           Float?
-  square_feet                         Decimal?
-  lot_size                            Float?
-  year_built                          Int?
-  description                         String?
-  watchers                            String[]
-  organizationId                      String                    @default("00000000-0000-0000-0000-000000000000")
-  accepts_pets                        Boolean?
-  accessibility                       String?
-  address_privacy_level               AddressPrivacyLevel?
-  amenities                           Json?
-  area                                String?
-  available_from                      DateTime?
-  build_coefficient                   Decimal?
-  building_block_ot                   String?
-  building_permit_no                  String?
-  building_permit_year                Int?
-  condition                           PropertyCondition?
-  coverage_ratio                      Decimal?
-  draft_status                        Boolean?                  @default(false)
-  elevator                            Boolean?
-  energy_cert_class                   EnergyCertClass?
-  etaireia_diaxeirisis                String?
-  floor                               String?
-  floors_total                        Int?
-  frontage_m                          Decimal?
-  frontage_type                       FrontageType?
-  furnished                           FurnishedStatus?
-  heating_type                        HeatingType?
-  inside_city_plan                    Boolean?
-  is_exclusive                        Boolean?                  @default(false)
-  land_registry_kaek                  String?
-  land_registry_office                String?
-  legalization_status                 LegalizationStatus?
-  min_lease_months                    Int?
-  monthly_common_charges              Decimal?
-  municipality                        String?
-  objective_zone                      String?
-  orientation                         Json?
-  plot_size_sqm                       Decimal?
-  portal_visibility                   PortalVisibility?
-  postal_code                         String?
-  price_type                          PriceType?
-  region                              String?
-  regional_unit                       String?
-  renovated_year                      Int?
-  size_gross_sqm                      Decimal?
-  size_net_sqm                        Decimal?
-  transaction_type                    TransactionType?
+  id                     String               @id @default(uuid())
+  friendlyId             String
+  createdAt              DateTime             @default(now())
+  createdBy              String?
+  updatedAt              DateTime?
+  updatedBy              String?
+  assigned_to            String?
+  property_name          String
+  primary_email          String?
+  property_type          PropertyType?
+  property_status        PropertyStatus?      @default(ACTIVE)
+  property_preferences   Json?
+  communication_notes    Json?
+  address_street         String?
+  address_city           String?
+  address_state          String?
+  address_zip            String?
+  price                  Decimal?
+  bedrooms               Int?
+  bathrooms              Float?
+  square_feet            Decimal?
+  lot_size               Float?
+  year_built             Int?
+  description            String?
+  watchers               String[]
+  organizationId         String               @default("00000000-0000-0000-0000-000000000000")
+  accepts_pets           Boolean?
+  accessibility          String?
+  address_privacy_level  AddressPrivacyLevel?
+  amenities              Json?
+  area                   String?
+  available_from         DateTime?
+  build_coefficient      Decimal?
+  building_block_ot      String?
+  building_permit_no     String?
+  building_permit_year   Int?
+  condition              PropertyCondition?
+  coverage_ratio         Decimal?
+  draft_status           Boolean?             @default(false)
+  elevator               Boolean?
+  energy_cert_class      EnergyCertClass?
+  etaireia_diaxeirisis   String?
+  floor                  String?
+  floors_total           Int?
+  frontage_m             Decimal?
+  frontage_type          FrontageType?
+  furnished              FurnishedStatus?
+  heating_type           HeatingType?
+  inside_city_plan       Boolean?
+  is_exclusive           Boolean?             @default(false)
+  land_registry_kaek     String?
+  land_registry_office   String?
+  legalization_status    LegalizationStatus?
+  min_lease_months       Int?
+  monthly_common_charges Decimal?
+  municipality           String?
+  objective_zone         String?
+  orientation            Json?
+  plot_size_sqm          Decimal?
+  portal_visibility      PortalVisibility?
+  postal_code            String?
+  price_type             PriceType?
+  region                 String?
+  regional_unit          String?
+  renovated_year         Int?
+  size_gross_sqm         Decimal?
+  size_net_sqm           Decimal?
+  transaction_type       TransactionType?
   // New fields for metrics tracking
-  listPrice                           Decimal?          // Original listing price
-  salePrice                           Decimal?          // Final sale price
-  saleDate                            DateTime?         // When property sold
-  contractDate                        DateTime?         // When contract was signed
-  daysOnMarket                        Int?              // Calculated days on market
-  estimatedPrice                      Decimal?          // For CMA accuracy tracking
-  
+  listPrice              Decimal? // Original listing price
+  salePrice              Decimal? // Final sale price
+  saleDate               DateTime? // When property sold
+  contractDate           DateTime? // When contract was signed
+  daysOnMarket           Int? // Calculated days on market
+  estimatedPrice         Decimal? // For CMA accuracy tracking
+
   // XE.gr Portal Publishing
-  xePublished                         Boolean           @default(false)
-  xeRefId                             String?           @unique  // External reference ID for XE
-  
+  xePublished Boolean @default(false)
+  xeRefId     String? @unique // External reference ID for XE
+
   Client_Properties                   Client_Properties[]
   Deal                                Deal[]
   ProfileShowcaseProperty             ProfileShowcaseProperty[]
@@ -965,6 +964,9 @@ model Users {
   OrganizationEncryptionKey                          OrganizationEncryptionKey[]
   Mandate                                            Mandate[]                     @relation("MandateAssignedTo")
   MandateComment                                     MandateComment[]              @relation("MandateComments")
+  identityKey                                        UserIdentityKey?
+  e2eePepper                                         UserE2eePepper?
+  preKeys                                            UserPreKey[]
 
   @@index([clerkUserId])
   @@index([email])
@@ -1015,13 +1017,11 @@ model crm_Accounts_Tasks_Comments {
   @@index([organizationId])
 }
 
-
 model modulStatus {
   id        String  @id
   name      String
   isVisible Boolean
 }
-
 
 model systemServices {
   id              String  @id
@@ -1048,16 +1048,16 @@ model system_Modules_Enabled {
 model MarketingSpend {
   id             String            @id @default(uuid())
   organizationId String
-  userId         String            // Agent who made the spend
+  userId         String // Agent who made the spend
   amount         Decimal
   spendDate      DateTime          @default(now())
   category       MarketingCategory
-  leadSource     LeadSource?       // Optional link to lead source
+  leadSource     LeadSource? // Optional link to lead source
   description    String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
-  
-  Deal           Deal[]            // Deals attributed to this marketing spend
+
+  Deal Deal[] // Deals attributed to this marketing spend
 
   @@index([organizationId])
   @@index([userId])
@@ -1069,16 +1069,16 @@ model MarketingSpend {
 model AgentHours {
   id             String       @id @default(uuid())
   organizationId String
-  userId         String       // Agent tracking hours
+  userId         String // Agent tracking hours
   date           DateTime     @default(now())
   hoursWorked    Decimal
   activityType   ActivityType
-  dealId         String?      // Optional link to specific deal
+  dealId         String? // Optional link to specific deal
   description    String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  
-  Deal           Deal?        @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  Deal Deal? @relation(fields: [dealId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([userId])
@@ -1091,17 +1091,17 @@ model PropertyShowing {
   id             String        @id @default(uuid())
   organizationId String
   propertyId     String
-  clientId       String?       // Client who was shown the property
-  agentId        String        // Agent who conducted the showing
+  clientId       String? // Client who was shown the property
+  agentId        String // Agent who conducted the showing
   showingDate    DateTime      @default(now())
   result         ShowingResult @default(NO_INTEREST)
   notes          String?
-  duration       Int?          // Duration in minutes
+  duration       Int? // Duration in minutes
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  
-  Properties     Properties    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  Clients        Clients?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  Properties Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  Clients    Clients?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([propertyId])
@@ -1112,27 +1112,27 @@ model PropertyShowing {
 }
 
 model MarketData {
-  id                 String   @id @default(uuid())
-  organizationId     String
-  date               DateTime @default(now())
-  area               String   // Geographic area
-  priceRange         String?  // Price range category (e.g., "0-100k", "100k-200k")
-  activeListings     Int      @default(0)
-  soldListings       Int      @default(0)
-  newListings        Int      @default(0)
-  medianSalePrice    Decimal?
-  averageSalePrice   Decimal?
+  id                  String   @id @default(uuid())
+  organizationId      String
+  date                DateTime @default(now())
+  area                String // Geographic area
+  priceRange          String? // Price range category (e.g., "0-100k", "100k-200k")
+  activeListings      Int      @default(0)
+  soldListings        Int      @default(0)
+  newListings         Int      @default(0)
+  medianSalePrice     Decimal?
+  averageSalePrice    Decimal?
   averageDaysOnMarket Decimal?
-  absorptionRate     Decimal? // Calculated: soldListings / activeListings
-  medianListPrice    Decimal?
-  pricePerSqft       Decimal?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  absorptionRate      Decimal? // Calculated: soldListings / activeListings
+  medianListPrice     Decimal?
+  pricePerSqft        Decimal?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
+  @@unique([organizationId, date, area, priceRange])
   @@index([organizationId])
   @@index([date])
   @@index([area])
-  @@unique([organizationId, date, area, priceRange])
 }
 
 // ============================================
@@ -1178,9 +1178,9 @@ enum ShowingResult {
 }
 
 enum DealType {
-  SELLER  // Listing side transaction
-  BUYER   // Buyer side transaction
-  DUAL    // Both sides (dual agency)
+  SELLER // Listing side transaction
+  BUYER // Buyer side transaction
+  DUAL // Both sides (dual agency)
 }
 
 // ============================================
@@ -1322,8 +1322,8 @@ enum Language {
 }
 
 enum LayoutPreference {
-  DEFAULT  // Centered, max-width constrained
-  WIDE     // Full-width, expanded
+  DEFAULT // Centered, max-width constrained
+  WIDE // Full-width, expanded
 }
 
 enum LeadSource {
@@ -1538,10 +1538,10 @@ enum MandateUrgency {
 // ============================================
 
 model Mandate {
-  id                  String            @id @default(uuid())
+  id                  String               @id @default(uuid())
   friendlyId          String
   organizationId      String
-  createdAt           DateTime          @default(now())
+  createdAt           DateTime             @default(now())
   createdBy           String?
   updatedAt           DateTime?
   updatedBy           String?
@@ -1565,7 +1565,7 @@ model Mandate {
   bathrooms_max       Int?
   floor_min           Int?
   floor_max           Int?
-  ground_floor_only   Boolean?          @default(false)
+  ground_floor_only   Boolean?             @default(false)
   condition           PropertyCondition[]
   year_built_min      Int?
   year_built_max      Int?
@@ -1577,15 +1577,15 @@ model Mandate {
   pets_allowed        Boolean?
   amenities           Json?
   inside_city_plan    Boolean?
-  legalization_ok     Boolean?          @default(false)
-  status              MandateStatus     @default(DRAFT)
-  urgency             MandateUrgency?   @default(MEDIUM)
+  legalization_ok     Boolean?             @default(false)
+  status              MandateStatus        @default(DRAFT)
+  urgency             MandateUrgency?      @default(MEDIUM)
   timeline            Timeline?
   expires_at          DateTime?
   notes               String?
   communication_notes Json?
-  draft_status        Boolean?          @default(false)
-  assigned_to_user    Users?            @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
+  draft_status        Boolean?             @default(false)
+  assigned_to_user    Users?               @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
   comments            MandateComment[]
   Mandate_Properties  Mandate_Properties[]
   Mandate_Clients     Mandate_Clients[]
@@ -1599,14 +1599,14 @@ model Mandate {
 }
 
 model MandateComment {
-  id         String   @id
-  mandateId  String
-  userId     String
-  content    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  mandate    Mandate  @relation(fields: [mandateId], references: [id], onDelete: Cascade)
-  user       Users    @relation("MandateComments", fields: [userId], references: [id])
+  id        String   @id
+  mandateId String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  mandate   Mandate  @relation(fields: [mandateId], references: [id], onDelete: Cascade)
+  user      Users    @relation("MandateComments", fields: [userId], references: [id])
 
   @@index([mandateId])
 }
@@ -1623,7 +1623,7 @@ model Attachment {
 
   // File metadata
   fileName String
-  fileSize Int    // bytes
+  fileSize Int // bytes
   fileType String // MIME type
   url      String // Vercel Blob URL
 
@@ -1649,10 +1649,10 @@ model Attachment {
 model ApiKey {
   id             String    @id @default(uuid())
   organizationId String
-  name           String    // "n8n Integration", "Make.com"
-  keyPrefix      String    // First 8 chars for display "oik_abc1..."
+  name           String // "n8n Integration", "Make.com"
+  keyPrefix      String // First 8 chars for display "oik_abc1..."
   keyHash        String    @unique // SHA256 hash of full key
-  scopes         String[]  // ["calendar:read", "crm:write", ...]
+  scopes         String[] // ["calendar:read", "crm:write", ...]
   lastUsedAt     DateTime?
   expiresAt      DateTime?
   revokedAt      DateTime?
@@ -1674,7 +1674,7 @@ model ApiLog {
   endpoint     String
   method       String
   statusCode   Int
-  responseTime Int      // milliseconds
+  responseTime Int // milliseconds
   ipAddress    String?
   userAgent    String?
   createdAt    DateTime @default(now())
@@ -1686,16 +1686,16 @@ model ApiLog {
 }
 
 model WebhookEndpoint {
-  id              String            @id @default(uuid())
-  organizationId  String
-  url             String
-  name            String
-  events          String[]          // ["client.created", "property.updated", ...]
-  secret          String            // For HMAC signature
-  isActive        Boolean           @default(true)
-  createdById     String
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id             String   @id @default(uuid())
+  organizationId String
+  url            String
+  name           String
+  events         String[] // ["client.created", "property.updated", ...]
+  secret         String // For HMAC signature
+  isActive       Boolean  @default(true)
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   createdBy       Users             @relation(fields: [createdById], references: [id], onDelete: Cascade)
   WebhookDelivery WebhookDelivery[]
@@ -1706,15 +1706,15 @@ model WebhookEndpoint {
 }
 
 model WebhookDelivery {
-  id          String    @id @default(uuid())
-  endpointId  String
-  event       String
-  payload     Json
-  statusCode  Int?
+  id           String    @id @default(uuid())
+  endpointId   String
+  event        String
+  payload      Json
+  statusCode   Int?
   responseBody String?
-  attempts    Int       @default(0)
-  deliveredAt DateTime?
-  createdAt   DateTime  @default(now())
+  attempts     Int       @default(0)
+  deliveredAt  DateTime?
+  createdAt    DateTime  @default(now())
 
   WebhookEndpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
 
@@ -1732,8 +1732,8 @@ model BlogPost {
   title          String
   slug           String         @unique
   excerpt        String?
-  content        String         // HTML or Markdown content
-  featuredImage  String?        // URL to featured image
+  content        String // HTML or Markdown content
+  featuredImage  String? // URL to featured image
   status         BlogPostStatus @default(DRAFT)
   authorId       String?
   tags           String[]
@@ -1741,11 +1741,11 @@ model BlogPost {
   seoTitle       String?
   seoDescription String?
   publishedAt    DateTime?
-  scheduledAt    DateTime?      // For scheduled publishing
+  scheduledAt    DateTime? // For scheduled publishing
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-  createdVia     String?        // "n8n", "manual", "api"
-  n8nWorkflowId  String?        // Reference to n8n workflow that created it
+  createdVia     String? // "n8n", "manual", "api"
+  n8nWorkflowId  String? // Reference to n8n workflow that created it
 
   @@index([organizationId])
   @@index([status])
@@ -1754,23 +1754,23 @@ model BlogPost {
 }
 
 model NewsletterSubscriber {
-  id                String    @id @default(uuid())
-  organizationId    String
-  email             String
-  firstName         String?
-  lastName          String?
-  status            SubscriberStatus @default(ACTIVE)
-  source            String?   // "website", "import", "n8n", "manual"
-  tags              String[]
-  subscribedAt      DateTime  @default(now())
-  unsubscribedAt    DateTime?
-  lastEmailSentAt   DateTime?
-  emailsSentCount   Int       @default(0)
-  emailsOpenedCount Int       @default(0)
-  emailsClickedCount Int      @default(0)
-  metadata          Json?     // Additional custom fields
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id                 String           @id @default(uuid())
+  organizationId     String
+  email              String
+  firstName          String?
+  lastName           String?
+  status             SubscriberStatus @default(ACTIVE)
+  source             String? // "website", "import", "n8n", "manual"
+  tags               String[]
+  subscribedAt       DateTime         @default(now())
+  unsubscribedAt     DateTime?
+  lastEmailSentAt    DateTime?
+  emailsSentCount    Int              @default(0)
+  emailsOpenedCount  Int              @default(0)
+  emailsClickedCount Int              @default(0)
+  metadata           Json? // Additional custom fields
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -1779,30 +1779,30 @@ model NewsletterSubscriber {
 }
 
 model NewsletterCampaign {
-  id              String                @id @default(uuid())
-  organizationId  String
-  subject         String
-  previewText     String?
-  content         String                // HTML content
-  fromName        String?
-  fromEmail       String?
-  replyTo         String?
-  status          CampaignStatus        @default(DRAFT)
-  recipientCount  Int                   @default(0)
-  sentCount       Int                   @default(0)
-  openCount       Int                   @default(0)
-  clickCount      Int                   @default(0)
-  bounceCount     Int                   @default(0)
-  unsubscribeCount Int                  @default(0)
-  scheduledAt     DateTime?
-  sentAt          DateTime?
-  completedAt     DateTime?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-  createdVia      String?               // "n8n", "manual", "api"
-  n8nWorkflowId   String?
-  tags            String[]              // For filtering/grouping campaigns
-  resendBatchId   String?               // Resend batch ID for tracking
+  id               String         @id @default(uuid())
+  organizationId   String
+  subject          String
+  previewText      String?
+  content          String // HTML content
+  fromName         String?
+  fromEmail        String?
+  replyTo          String?
+  status           CampaignStatus @default(DRAFT)
+  recipientCount   Int            @default(0)
+  sentCount        Int            @default(0)
+  openCount        Int            @default(0)
+  clickCount       Int            @default(0)
+  bounceCount      Int            @default(0)
+  unsubscribeCount Int            @default(0)
+  scheduledAt      DateTime?
+  sentAt           DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  createdVia       String? // "n8n", "manual", "api"
+  n8nWorkflowId    String?
+  tags             String[] // For filtering/grouping campaigns
+  resendBatchId    String? // Resend batch ID for tracking
 
   @@index([organizationId])
   @@index([status])
@@ -1810,29 +1810,29 @@ model NewsletterCampaign {
 }
 
 model SocialPostLog {
-  id               String             @id @default(uuid())
-  organizationId   String
-  platform         SocialPlatform
-  platformPostId   String?            // External ID from the platform
-  platformPostUrl  String?            // Direct link to the post
-  content          String?            // Text content of the post
-  mediaUrls        String[]           // Images/videos attached
-  status           SocialPostStatus   @default(PENDING)
-  errorMessage     String?            // Error details if failed
-  scheduledAt      DateTime?
-  postedAt         DateTime?
-  likes            Int                @default(0)
-  comments         Int                @default(0)
-  shares           Int                @default(0)
-  impressions      Int                @default(0)
-  reach            Int                @default(0)
-  engagementRate   Decimal?
-  lastSyncedAt     DateTime?          // Last time metrics were updated
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  createdVia       String?            // "n8n", "manual", "api"
-  n8nWorkflowId    String?
-  n8nExecutionId   String?            // Specific execution that created this
+  id              String           @id @default(uuid())
+  organizationId  String
+  platform        SocialPlatform
+  platformPostId  String? // External ID from the platform
+  platformPostUrl String? // Direct link to the post
+  content         String? // Text content of the post
+  mediaUrls       String[] // Images/videos attached
+  status          SocialPostStatus @default(PENDING)
+  errorMessage    String? // Error details if failed
+  scheduledAt     DateTime?
+  postedAt        DateTime?
+  likes           Int              @default(0)
+  comments        Int              @default(0)
+  shares          Int              @default(0)
+  impressions     Int              @default(0)
+  reach           Int              @default(0)
+  engagementRate  Decimal?
+  lastSyncedAt    DateTime? // Last time metrics were updated
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  createdVia      String? // "n8n", "manual", "api"
+  n8nWorkflowId   String?
+  n8nExecutionId  String? // Specific execution that created this
 
   @@index([organizationId])
   @@index([platform])
@@ -1841,15 +1841,15 @@ model SocialPostLog {
 }
 
 model N8nConfig {
-  id                String    @id @default(uuid())
-  organizationId    String    @unique
-  baseUrl           String    // n8n instance URL
-  webhookSecret     String    // Secret for validating webhooks from n8n
-  isActive          Boolean   @default(true)
-  lastHealthCheck   DateTime?
-  lastHealthStatus  String?   // "healthy", "unreachable", "error"
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id               String    @id @default(uuid())
+  organizationId   String    @unique
+  baseUrl          String // n8n instance URL
+  webhookSecret    String // Secret for validating webhooks from n8n
+  isActive         Boolean   @default(true)
+  lastHealthCheck  DateTime?
+  lastHealthStatus String? // "healthy", "unreachable", "error"
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([organizationId])
   @@index([isActive])
@@ -1857,16 +1857,16 @@ model N8nConfig {
 
 /// Per-agent n8n workflow assignments
 model N8nAgentWorkflow {
-  id              String    @id @default(uuid())
-  organizationId  String
-  agentId         String    // Clerk user ID
-  workflowId      String    // n8n workflow ID
-  workflowName    String    // Cached workflow name for display
-  isActive        Boolean   @default(true)
-  lastRunAt       DateTime?
-  lastRunStatus   String?   // "success", "error", etc.
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(uuid())
+  organizationId String
+  agentId        String // Clerk user ID
+  workflowId     String // n8n workflow ID
+  workflowName   String // Cached workflow name for display
+  isActive       Boolean   @default(true)
+  lastRunAt      DateTime?
+  lastRunStatus  String? // "success", "error", etc.
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@unique([organizationId, agentId, workflowId])
   @@index([organizationId])
@@ -1925,8 +1925,8 @@ enum SocialPostStatus {
 model ChangelogCustomCategory {
   id        String   @id @default(uuid())
   name      String
-  color     String   // Color from preset (e.g., "blue", "red")
-  icon      String   // Icon name from preset (e.g., "sparkles", "bug")
+  color     String // Color from preset (e.g., "blue", "red")
+  icon      String // Icon name from preset (e.g., "sparkles", "bug")
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1938,17 +1938,17 @@ model ChangelogCustomCategory {
 }
 
 model ChangelogEntry {
-  id               String                   @id @default(uuid())
-  version          String                   // Semantic version (e.g., "1.2.3")
+  id               String          @id @default(uuid())
+  version          String // Semantic version (e.g., "1.2.3")
   title            String
-  description      String                   // HTML from rich text editor
-  customCategoryId String?                  // Reference to custom category
-  status           ChangelogStatus          @default(DRAFT)
-  tags             Json?                    // Array of {name: string, color: string}
+  description      String // HTML from rich text editor
+  customCategoryId String? // Reference to custom category
+  status           ChangelogStatus @default(DRAFT)
+  tags             Json? // Array of {name: string, color: string}
   publishedAt      DateTime?
   createdById      String
-  createdAt        DateTime                 @default(now())
-  updatedAt        DateTime                 @updatedAt
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   customCategory ChangelogCustomCategory? @relation(fields: [customCategoryId], references: [id], onDelete: SetNull)
   createdBy      Users                    @relation(fields: [createdById], references: [id], onDelete: Cascade)
@@ -2001,13 +2001,13 @@ model ReservedName {
 // ============================================
 
 model ReferralCode {
-  id             String     @id @default(uuid())
-  userId         String     @unique
-  code           String     @unique
-  commissionRate Decimal    @default(10) // Default 10%
-  isActive       Boolean    @default(true)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  code           String   @unique
+  commissionRate Decimal  @default(10) // Default 10%
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   user      Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
   referrals Referral[]
@@ -2017,14 +2017,14 @@ model ReferralCode {
 }
 
 model Referral {
-  id              String         @id @default(uuid())
-  referralCodeId  String
-  referredUserId  String         @unique
-  status          ReferralStatus @default(PENDING)
-  totalEarnings   Decimal        @default(0)
-  convertedAt     DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id             String         @id @default(uuid())
+  referralCodeId String
+  referredUserId String         @unique
+  status         ReferralStatus @default(PENDING)
+  totalEarnings  Decimal        @default(0)
+  convertedAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   referralCode ReferralCode     @relation(fields: [referralCodeId], references: [id])
   referredUser Users            @relation("ReferredUser", fields: [referredUserId], references: [id])
@@ -2106,7 +2106,7 @@ model OrganizationRolePermission {
   id             String   @id @default(uuid())
   organizationId String
   role           OrgRole
-  permissions    Json     // { "canEdit": true, "canDelete": true, ... }
+  permissions    Json // { "canEdit": true, "canDelete": true, ... }
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -2158,20 +2158,20 @@ enum OrgRole {
 // ============================================
 
 model ExportHistory {
-  id              String           @id @default(uuid())
-  organizationId  String
-  userId          String
-  entityType      ExportEntityType
-  entityId        String           // Property/Client ID or "bulk-{timestamp}" for bulk exports
-  entityIds       String[]         // For bulk exports, list all IDs
-  exportFormat    String           // xlsx, csv, pdf, xml
-  exportTemplate  String?          // CMA, SHORTLIST, ROI, MARKET_TRENDS
-  destination     String?          // "client", "xe.gr", "spitogatos", etc.
-  filename        String           // Generated descriptive filename
-  rowCount        Int              @default(1)
-  dataSnapshot    Json?            // Snapshot of key fields for change detection
-  changeFields    String[]         // Fields to track for change detection
-  createdAt       DateTime         @default(now())
+  id             String           @id @default(uuid())
+  organizationId String
+  userId         String
+  entityType     ExportEntityType
+  entityId       String // Property/Client ID or "bulk-{timestamp}" for bulk exports
+  entityIds      String[] // For bulk exports, list all IDs
+  exportFormat   String // xlsx, csv, pdf, xml
+  exportTemplate String? // CMA, SHORTLIST, ROI, MARKET_TRENDS
+  destination    String? // "client", "xe.gr", "spitogatos", etc.
+  filename       String // Generated descriptive filename
+  rowCount       Int              @default(1)
+  dataSnapshot   Json? // Snapshot of key fields for change detection
+  changeFields   String[] // Fields to track for change detection
+  createdAt      DateTime         @default(now())
 
   @@index([organizationId])
   @@index([entityType, entityId])
@@ -2194,20 +2194,23 @@ enum ExportEntityType {
 
 /// Organization channels for team communication
 model Channel {
-  id             String          @id @default(uuid())
+  id             String      @id @default(uuid())
   organizationId String
-  name           String          // Channel display name (e.g., "General")
-  slug           String          // URL-safe name (e.g., "general")
+  name           String // Channel display name (e.g., "General")
+  slug           String // URL-safe name (e.g., "general")
   description    String?
-  channelType    ChannelType     @default(PUBLIC)
-  isDefault      Boolean         @default(false) // Auto-join on org membership
-  isArchived     Boolean         @default(false)
+  channelType    ChannelType @default(PUBLIC)
+  isDefault      Boolean     @default(false) // Auto-join on org membership
+  isArchived     Boolean     @default(false)
   createdById    String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  messages       Message[]
-  members        ChannelMember[]
+  isE2ee Boolean @default(true)
+
+  messages      Message[]
+  members       ChannelMember[]
+  groupSessions GroupSession[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -2222,7 +2225,7 @@ model ChannelMember {
   userId     String
   role       ChannelMemberRole @default(MEMBER)
   joinedAt   DateTime          @default(now())
-  mutedUntil DateTime?         // Mute notifications until this time
+  mutedUntil DateTime? // Mute notifications until this time
 
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 
@@ -2237,34 +2240,31 @@ enum ChannelMemberRole {
 }
 
 enum ChannelType {
-  PUBLIC       // Anyone in org can join
-  PRIVATE      // Invite only
+  PUBLIC // Anyone in org can join
+  PRIVATE // Invite only
   ANNOUNCEMENT // Admin-only posting, everyone reads
 }
 
 /// Direct message conversations (1:1 or group DMs)
 model Conversation {
-  id             String                    @id @default(uuid())
-  organizationId String?                   // null for SHARED scope
-  scope          ConversationScope         @default(ORG)
-  name           String?                   // For group DMs, optional name
-  isGroup        Boolean                   @default(false)
+  id             String            @id @default(uuid())
+  organizationId String? // null for SHARED scope
+  scope          ConversationScope @default(ORG)
+  name           String? // For group DMs, optional name
+  isGroup        Boolean           @default(false)
+  isE2ee         Boolean           @default(true)
   createdById    String?
-  createdAt      DateTime                  @default(now())
-  updatedAt      DateTime                  @updatedAt
-
-  // Optional entity link (for CRM context)
-  entityType     ConversationEntityType?
-  entityId       String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
   messages       Message[]
   participants   ConversationParticipant[]
-  keyShares      ConversationKeyShare[]
+  directSession  DirectSession?
+  groupSessions  GroupSession[]
   orgMemberships ConversationOrgMembership[]
 
   @@index([organizationId])
   @@index([scope])
-  @@index([entityType, entityId])
   @@index([createdById])
 }
 
@@ -2285,29 +2285,6 @@ model ConversationParticipant {
   @@index([userId, leftAt])
 }
 
-/// Types of entities that can be linked to conversations
-enum ConversationEntityType {
-  CLIENT
-  PROPERTY
-  DEAL
-  PROJECT
-}
-
-/// Per-conversation encryption key share.
-/// For SHARED conversations, each participant gets the conversation's symmetric key
-/// wrapped (encrypted) with their personal workspace org DEK.
-model ConversationKeyShare {
-  id             String   @id @default(uuid())
-  conversationId String
-  userId         String
-  encryptedKey   String   @db.Text  // Conversation AES-256 key, encrypted with user's personal workspace DEK
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
-  @@unique([conversationId, userId])
-  @@index([userId])
-}
-
 /// Tracks which organizations are invited to a SHARED conversation.
 /// When autoSync is true, new members joining the org are automatically
 /// added to the conversation and given a ConversationKeyShare.
@@ -2315,8 +2292,8 @@ model ConversationOrgMembership {
   id             String   @id @default(uuid())
   conversationId String
   organizationId String
-  autoSync       Boolean  @default(true)   // Auto-add new org members
-  addedById      String                     // Who invited the org
+  autoSync       Boolean  @default(true) // Auto-add new org members
+  addedById      String // Who invited the org
   addedAt        DateTime @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -2327,36 +2304,42 @@ model ConversationOrgMembership {
 
 /// Conversation scope determines encryption and visibility rules
 enum ConversationScope {
-  ORG       // Intra-org: groups, entity chats. Encrypted with org DEK.
-  PERSONAL  // 1:1 DMs in personal workspace. Encrypted with personal workspace DEK.
-  SHARED    // Cross-org groups. Encrypted with per-conversation key.
+  ORG // Intra-org: groups, entity chats. Encrypted with org DEK.
+  PERSONAL // 1:1 DMs in personal workspace. Encrypted with personal workspace DEK.
+  SHARED // Cross-org groups. Encrypted with per-conversation key.
 }
 
 /// Messages in channels or conversations
 model Message {
-  id             String    @id @default(uuid())
+  id             String @id @default(uuid())
   organizationId String
-  
+
   // Either channelId OR conversationId (not both)
   channelId      String?
   conversationId String?
-  
-  senderId       String
-  content        String    @db.Text
-  contentType    MessageContentType @default(TEXT)
-  
-  // Threading support
-  parentId       String?   // Reply to another message
-  threadCount    Int       @default(0) // Count of replies (denormalized for performance)
-  
-  // Edit tracking
-  isEdited       Boolean   @default(false)
-  editedAt       DateTime?
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  senderId    String
+  content     String             @db.Text
+  contentType MessageContentType @default(TEXT)
+
+  // E2EE metadata
+  sessionId        String?
+  messageIndex     Int?
+  dhPublicKey      String?
+  previousChainLen Int?
+
+  // Threading support
+  parentId    String? // Reply to another message
+  threadCount Int     @default(0) // Count of replies (denormalized for performance)
+
+  // Edit tracking
+  isEdited  Boolean   @default(false)
+  editedAt  DateTime?
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   channel      Channel?      @relation(fields: [channelId], references: [id], onDelete: Cascade)
@@ -2364,11 +2347,11 @@ model Message {
   parent       Message?      @relation("MessageThread", fields: [parentId], references: [id], onDelete: SetNull)
   replies      Message[]     @relation("MessageThread")
   sender       Users         @relation("MessagesSent", fields: [senderId], references: [id])
-  
-  reactions   MessageReaction[]
-  attachments MessageAttachment[]
+
+  reactions    MessageReaction[]
+  attachments  MessageAttachment[]
   readReceipts MessageRead[]
-  mentions    MessageMention[]
+  mentions     MessageMention[]
 
   @@index([organizationId])
   @@index([channelId])
@@ -2384,8 +2367,96 @@ model Message {
 
 enum MessageContentType {
   TEXT
-  SYSTEM   // Join/leave notifications, etc.
-  FILE     // File-only message
+  SYSTEM // Join/leave notifications, etc.
+  FILE // File-only message
+}
+
+// ─── E2EE Identity & Keys ─────────────────
+
+enum PreKeyType {
+  SIGNED
+  ONE_TIME
+}
+
+model UserIdentityKey {
+  id                String       @id @default(uuid())
+  userId            String       @unique
+  publicKey         String
+  wrappedPrivateKey String
+  salt              String
+  pbkdfIterations   Int          @default(100000)
+  keyVersion        Int          @default(1)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  user              Users        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preKeys           UserPreKey[]
+}
+
+model UserE2eePepper {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  pepper    String
+  createdAt DateTime @default(now())
+  user      Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserPreKey {
+  id          String          @id @default(uuid())
+  userId      String
+  keyType     PreKeyType
+  publicKey   String
+  signature   String?
+  isConsumed  Boolean         @default(false)
+  expiresAt   DateTime?
+  createdAt   DateTime        @default(now())
+  user        Users           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "UserPreKey_user_fkey")
+  identityKey UserIdentityKey @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "UserPreKey_identity_fkey")
+
+  @@index([userId, keyType, isConsumed])
+}
+
+// ─── E2EE Sessions ────────────────────────
+
+model GroupSession {
+  id             String              @id @default(uuid())
+  conversationId String?
+  channelId      String?
+  creatorUserId  String
+  sessionIndex   Int
+  messageCount   Int                 @default(0)
+  maxMessages    Int                 @default(100)
+  rotatedAt      DateTime?
+  isActive       Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  conversation   Conversation?       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  channel        Channel?            @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  shares         GroupSessionShare[]
+
+  @@index([conversationId, isActive])
+  @@index([channelId, isActive])
+}
+
+model GroupSessionShare {
+  id               String       @id @default(uuid())
+  groupSessionId   String
+  userId           String
+  encryptedSession String
+  startingIndex    Int          @default(0)
+  createdAt        DateTime     @default(now())
+  session          GroupSession @relation(fields: [groupSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([groupSessionId, userId])
+}
+
+model DirectSession {
+  id              String       @id @default(uuid())
+  conversationId  String       @unique
+  initiatorUserId String
+  responderUserId String
+  initialMessage  String
+  isEstablished   Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
 
 /// Message reactions (emoji)
@@ -2393,7 +2464,7 @@ model MessageReaction {
   id        String   @id @default(uuid())
   messageId String
   userId    String
-  emoji     String   // Unicode emoji or custom emoji code
+  emoji     String // Unicode emoji or custom emoji code
   createdAt DateTime @default(now())
 
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
@@ -2422,9 +2493,9 @@ model MessageAttachment {
   id        String   @id @default(uuid())
   messageId String
   fileName  String
-  fileSize  Int      // bytes
-  fileType  String   // MIME type
-  url       String   // Vercel Blob URL
+  fileSize  Int // bytes
+  fileType  String // MIME type
+  url       String // Vercel Blob URL
   createdAt DateTime @default(now())
 
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
@@ -2436,7 +2507,7 @@ model MessageAttachment {
 model MessageMention {
   id        String   @id @default(uuid())
   messageId String
-  userId    String   // The user who was mentioned
+  userId    String // The user who was mentioned
   createdAt DateTime @default(now())
 
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
@@ -2461,11 +2532,11 @@ model TypingIndicator {
 
 /// User presence status
 model UserPresence {
-  id           String         @id @default(uuid())
-  userId       String         @unique
-  status       PresenceStatus @default(OFFLINE)
-  lastSeenAt   DateTime       @default(now())
-  statusMessage String?       // Custom status message
+  id            String         @id @default(uuid())
+  userId        String         @unique
+  status        PresenceStatus @default(OFFLINE)
+  lastSeenAt    DateTime       @default(now())
+  statusMessage String? // Custom status message
 
   @@index([status])
   @@index([lastSeenAt])
@@ -2484,59 +2555,59 @@ enum PresenceStatus {
 
 /// Organization-level XE.gr integration settings
 model XeIntegration {
-  id              String   @id @default(uuid())
-  organizationId  String   @unique
-  
+  id             String @id @default(uuid())
+  organizationId String @unique
+
   // Authentication credentials
-  username        String
-  password        String   // Should be encrypted in production
-  authToken       String
-  agentId         String   // XE agent/store ID
-  
+  username  String
+  password  String // Should be encrypted in production
+  authToken String
+  agentId   String // XE agent/store ID
+
   // Configuration
-  isActive        Boolean  @default(false)
-  autoPublish     Boolean  @default(false)
+  isActive        Boolean           @default(false)
+  autoPublish     Boolean           @default(false)
   publicationType XePublicationType @default(BASIC)
-  trademark       String?  // Optional trademark/branding
-  testMode        Boolean  @default(false) // Use test/sandbox mode
-  
+  trademark       String? // Optional trademark/branding
+  testMode        Boolean           @default(false) // Use test/sandbox mode
+
   // Tracking
-  lastSyncAt      DateTime?
-  lastPackageId   String?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  lastSyncAt    DateTime?
+  lastPackageId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  agentSettings   XeAgentSettings[]
-  syncHistory     XeSyncHistory[]
-  
+  agentSettings XeAgentSettings[]
+  syncHistory   XeSyncHistory[]
+
   @@index([organizationId])
   @@index([isActive])
 }
 
 /// Per-agent XE.gr publishing settings
 model XeAgentSettings {
-  id              String   @id @default(uuid())
-  integrationId   String
-  agentId         String   // Clerk user ID
-  
+  id            String @id @default(uuid())
+  integrationId String
+  agentId       String // Clerk user ID
+
   // Agent-specific XE credentials
-  xeOwnerId       String   // Item.ownerId from XE API
-  majorPhone      String   // Certified phone number
-  otherPhones     String[] // Array of additional certified phones
-  
+  xeOwnerId   String // Item.ownerId from XE API
+  majorPhone  String // Certified phone number
+  otherPhones String[] // Array of additional certified phones
+
   // Publishing preferences
-  isActive        Boolean  @default(true)
-  autoPublish     Boolean  @default(true)
+  isActive        Boolean           @default(true)
+  autoPublish     Boolean           @default(true)
   publicationType XePublicationType @default(BASIC)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  integration     XeIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
-  
+  integration XeIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
   @@unique([integrationId, agentId])
   @@index([integrationId])
   @@index([agentId])
@@ -2544,30 +2615,30 @@ model XeAgentSettings {
 
 /// Package submission history for XE.gr
 model XeSyncHistory {
-  id              String   @id @default(uuid())
-  integrationId   String
-  packageId       String   @unique // XE package ID
-  
+  id            String @id @default(uuid())
+  integrationId String
+  packageId     String @unique // XE package ID
+
   // Sync metadata
-  policy          XeSyncPolicy
-  requestType     XeSyncRequestType
-  totalItems      Int
-  successCount    Int      @default(0)
-  failureCount    Int      @default(0)
-  
+  policy       XeSyncPolicy
+  requestType  XeSyncRequestType
+  totalItems   Int
+  successCount Int               @default(0)
+  failureCount Int               @default(0)
+
   // Status tracking
-  status          XeSyncStatus @default(PENDING)
-  errorMessage    String?
-  responseEmail   String?  // Email notification reference
-  
+  status        XeSyncStatus @default(PENDING)
+  errorMessage  String?
+  responseEmail String? // Email notification reference
+
   // Timestamps
-  submittedAt     DateTime @default(now())
-  processedAt     DateTime?
-  
+  submittedAt DateTime  @default(now())
+  processedAt DateTime?
+
   // Relations
-  integration     XeIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
-  items           XeSyncItem[]
-  
+  integration XeIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  items       XeSyncItem[]
+
   @@index([integrationId])
   @@index([status])
   @@index([submittedAt])
@@ -2575,22 +2646,22 @@ model XeSyncHistory {
 
 /// Individual property sync status within a package
 model XeSyncItem {
-  id           String   @id @default(uuid())
-  syncId       String
-  propertyId   String
-  
-  refId        String   // External reference ID sent to XE
+  id         String @id @default(uuid())
+  syncId     String
+  propertyId String
+
+  refId        String // External reference ID sent to XE
   status       XeSyncItemStatus @default(PENDING)
   errorMessage String?
-  xeAdId       String?  // XE's internal ad ID if returned
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
+  xeAdId       String? // XE's internal ad ID if returned
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  sync         XeSyncHistory @relation(fields: [syncId], references: [id], onDelete: Cascade)
-  property     Properties    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  
+  sync     XeSyncHistory @relation(fields: [syncId], references: [id], onDelete: Cascade)
+  property Properties    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
   @@unique([syncId, propertyId])
   @@index([syncId])
   @@index([propertyId])
@@ -2637,12 +2708,12 @@ enum XeSyncItemStatus {
 model OrganizationFeature {
   id             String    @id @default(uuid())
   organizationId String
-  feature        String    // e.g. "ai_matching", "network", etc.
+  feature        String // e.g. "ai_matching", "network", etc.
   isEnabled      Boolean   @default(false)
-  grantedBy      String?   // Platform admin userId who granted access
+  grantedBy      String? // Platform admin userId who granted access
   grantedAt      DateTime?
   expiresAt      DateTime? // Optional expiry date
-  metadata       Json?     // Feature-specific configuration
+  metadata       Json? // Feature-specific configuration
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -2651,7 +2722,6 @@ model OrganizationFeature {
   @@index([feature])
   @@index([isEnabled])
 }
-
 
 // ===========================================
 // Background Job Orchestration (K8s Jobs)
@@ -2662,19 +2732,19 @@ model BackgroundJob {
   type            BackgroundJobType
   organizationId  String
   status          BackgroundJobStatus @default(PENDING)
-  progress        Int                 @default(0)   // 0-100
+  progress        Int                 @default(0) // 0-100
   progressMessage String?
-  k8sJobName      String?                          // K8s Job resource name
-  k8sPodName      String?                          // K8s Pod name for logs
-  payload         Json                             // Job-specific input data
-  result          Json?                            // Job-specific result data
+  k8sJobName      String? // K8s Job resource name
+  k8sPodName      String? // K8s Pod name for logs
+  payload         Json // Job-specific input data
+  result          Json? // Job-specific result data
   errorMessage    String?
   createdAt       DateTime            @default(now())
   startedAt       DateTime?
   completedAt     DateTime?
-  createdBy       String?                          // User who initiated the job
+  createdBy       String? // User who initiated the job
   priority        JobPriority         @default(NORMAL)
-  
+
   @@index([organizationId, type])
   @@index([status])
   @@index([k8sJobName])
@@ -2688,11 +2758,11 @@ enum BackgroundJobType {
 }
 
 enum BackgroundJobStatus {
-  PENDING     // Waiting to be scheduled
-  RUNNING     // K8s Job is running
-  COMPLETED   // Successfully finished
-  FAILED      // Failed with error
-  CANCELLED   // Cancelled by user or system
+  PENDING // Waiting to be scheduled
+  RUNNING // K8s Job is running
+  COMPLETED // Successfully finished
+  FAILED // Failed with error
+  CANCELLED // Cancelled by user or system
 }
 
 enum JobPriority {
@@ -2706,22 +2776,22 @@ enum JobPriority {
 // ============================================
 
 model OrganizationSettings {
-  id                   String   @id @default(cuid())
-  organizationId       String   @unique // Clerk organization ID
+  id             String @id @default(cuid())
+  organizationId String @unique // Clerk organization ID
 
   // Database Silo Settings (K8s multi-tenancy)
-  databaseSiloEnabled  Boolean  @default(false)
-  databaseHost         String?  // Dedicated database host
-  databasePort         Int?     @default(5432)
-  databaseName         String?  // Dedicated database name
-  databaseUser         String?  // Database credentials (encrypted)
-  databasePassword     String?  // Database credentials (encrypted)
-  databaseSslEnabled   Boolean  @default(true)
+  databaseSiloEnabled Boolean @default(false)
+  databaseHost        String? // Dedicated database host
+  databasePort        Int?    @default(5432)
+  databaseName        String? // Dedicated database name
+  databaseUser        String? // Database credentials (encrypted)
+  databasePassword    String? // Database credentials (encrypted)
+  databaseSslEnabled  Boolean @default(true)
 
   // K8s Namespace Settings
-  k8sNamespace         String?  // Dedicated K8s namespace for org
-  k8sResourceQuota     Json?    // CPU/Memory limits
-  k8sStorageClass      String?  @default("standard")
+  k8sNamespace     String? // Dedicated K8s namespace for org
+  k8sResourceQuota Json? // CPU/Memory limits
+  k8sStorageClass  String? @default("standard")
 
   // Feature Toggles
   customBrandingEnabled Boolean @default(false)
@@ -2729,9 +2799,9 @@ model OrganizationSettings {
   customDomain          String?
 
   // Audit
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  createdBy            String?  // User who created these settings
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String? // User who created these settings
 
   @@index([organizationId])
   @@index([databaseSiloEnabled])
@@ -2739,19 +2809,18 @@ model OrganizationSettings {
 
 /// Audit log for organization settings changes
 model OrganizationSettingsAudit {
-  id              String   @id @default(cuid())
-  organizationId  String
-  settingKey      String   // Which setting was changed
-  oldValue        String?  // Previous value (sanitized)
-  newValue        String?  // New value (sanitized)
-  changedBy       String   // User who made the change
-  changedAt       DateTime @default(now())
-  ipAddress       String?
-  
+  id             String   @id @default(cuid())
+  organizationId String
+  settingKey     String // Which setting was changed
+  oldValue       String? // Previous value (sanitized)
+  newValue       String? // New value (sanitized)
+  changedBy      String // User who made the change
+  changedAt      DateTime @default(now())
+  ipAddress      String?
+
   @@index([organizationId])
   @@index([changedAt])
 }
-
 
 // ============================================
 // ORG ENCRYPTION KEYS
@@ -2772,30 +2841,30 @@ model OrgEncryptionKey {
 // ============================================================
 
 model AgencyProfile {
-  id                    String                   @id @default(cuid())
-  organizationId        String                   @unique
-  name                  String
-  slug                  String                   @unique
-  logo                  String?
-  description           String?                  @db.Text
-  phone                 String?
-  email                 String?
-  website               String?
-  address               String?
-  city                  String?
-  region                String?
-  postalCode            String?
-  country               String                   @default("GR")
-  latitude              Float?
-  longitude             Float?
-  socialLinks           Json?
-  visibility            ProfileVisibility        @default(PERSONAL)
-  yearFounded           Int?
-  licenseNumber         String?
-  contactFormEnabled    Boolean                  @default(false)
-  contactFormFields     Json?
-  createdAt             DateTime                 @default(now())
-  updatedAt             DateTime                 @updatedAt
+  id                      String                    @id @default(cuid())
+  organizationId          String                    @unique
+  name                    String
+  slug                    String                    @unique
+  logo                    String?
+  description             String?                   @db.Text
+  phone                   String?
+  email                   String?
+  website                 String?
+  address                 String?
+  city                    String?
+  region                  String?
+  postalCode              String?
+  country                 String                    @default("GR")
+  latitude                Float?
+  longitude               Float?
+  socialLinks             Json?
+  visibility              ProfileVisibility         @default(PERSONAL)
+  yearFounded             Int?
+  licenseNumber           String?
+  contactFormEnabled      Boolean                   @default(false)
+  contactFormFields       Json?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
   AgencyContactSubmission AgencyContactSubmission[]
 
   @@index([slug])
@@ -2837,17 +2906,17 @@ model OrganizationEncryptionStatus {
 }
 
 model OrganizationEncryptionKey {
-  id             String                        @id @default(cuid())
+  id             String                       @id @default(cuid())
   organizationId String
   userId         String
-  wrappedKey     String                        @db.Text
+  wrappedKey     String                       @db.Text
   salt           String
   keyVersion     Int
   grantedById    String
-  grantedAt      DateTime                      @default(now())
+  grantedAt      DateTime                     @default(now())
   revokedAt      DateTime?
-  User           Users                         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status         OrganizationEncryptionStatus  @relation(fields: [organizationId], references: [organizationId])
+  User           Users                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status         OrganizationEncryptionStatus @relation(fields: [organizationId], references: [organizationId])
 
   @@index([organizationId])
   @@index([userId])
@@ -2930,4 +2999,3 @@ model AdminSecurityAudit {
   @@index([userId])
   @@index([createdAt])
 }
-
