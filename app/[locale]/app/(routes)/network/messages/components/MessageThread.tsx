@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { format, isSameDay, isToday, isYesterday } from "date-fns";
@@ -11,6 +11,7 @@ import {
   Copy,
   ExternalLink,
   FileText,
+  Lock,
   Loader2,
   MessageSquare,
   MoreHorizontal,
@@ -51,6 +52,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useAblyConnection, useAblyMessages } from "@/hooks/useAbly";
 import { useAddReaction, useDeleteMessage, useEditMessage, useMessages } from "@/hooks/swr/useMessaging";
+import { useE2EE } from "@/hooks/useE2EE";
 
 import type { Message, MessagingCredentials } from "@/hooks/swr/useMessaging";
 
@@ -138,11 +140,65 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
   const [editContent, setEditContent] = useState("");
 
   // Fetch messages using SWR
-  const { messages, isLoading, error, hasMore, mutate } = useMessages({
+  const { messages: rawMessages, isLoading, error, hasMore, mutate } = useMessages({
     channelId,
     conversationId,
     enabled: !!(channelId || conversationId),
   });
+
+  // E2EE decryption
+  const { isUnlocked, decryptDM, decryptGroup } = useE2EE();
+  const [decryptedContent, setDecryptedContent] = useState<Record<string, string>>({});
+
+  // Decrypt E2EE messages when they arrive
+  useEffect(() => {
+    if (!isUnlocked || rawMessages.length === 0) return;
+    let cancelled = false;
+
+    async function decryptMessages() {
+      const newDecrypted: Record<string, string> = {};
+      for (const msg of rawMessages) {
+        // Skip already-decrypted or non-E2EE messages
+        if (decryptedContent[msg.id] || !msg.sessionId) continue;
+        try {
+          if (msg.conversationId && msg.dhPublicKey != null) {
+            // DM — Double Ratchet
+            const payload = JSON.parse(msg.content);
+            newDecrypted[msg.id] = await decryptDM(msg.conversationId, payload);
+          } else if (msg.sessionId && msg.messageIndex != null) {
+            // Group — Megolm
+            const payload = JSON.parse(msg.content);
+            newDecrypted[msg.id] = await decryptGroup(
+              msg.sessionId,
+              payload.messageIndex,
+              payload.ciphertext,
+              payload.iv,
+            );
+          }
+        } catch (err) {
+          console.error(`[E2EE] Failed to decrypt message ${msg.id}:`, err);
+          newDecrypted[msg.id] = "[Unable to decrypt]";
+        }
+      }
+      if (!cancelled && Object.keys(newDecrypted).length > 0) {
+        setDecryptedContent((prev) => ({ ...prev, ...newDecrypted }));
+      }
+    }
+
+    decryptMessages();
+    return () => { cancelled = true; };
+  }, [rawMessages, isUnlocked, decryptDM, decryptGroup]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Merge decrypted content into messages
+  const messages = useMemo(
+    () =>
+      rawMessages.map((msg) => ({
+        ...msg,
+        content: decryptedContent[msg.id] ?? msg.content,
+        _isE2EE: !!msg.sessionId,
+      })),
+    [rawMessages, decryptedContent],
+  );
 
   // Reaction hook
   const { addReaction, isAdding: isAddingReaction } = useAddReaction();
@@ -388,6 +444,9 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                           <span className="text-xs text-muted-foreground">
                             {format(new Date(message.createdAt), "HH:mm")}
                           </span>
+                          {(message as typeof message & { _isE2EE?: boolean })._isE2EE && (
+                            <Lock className="h-3 w-3 text-muted-foreground" title="End-to-end encrypted" />
+                          )}
                           {message.isEdited && (
                             <span className="text-xs text-muted-foreground">(edited)</span>
                           )}

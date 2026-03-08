@@ -57,6 +57,11 @@ export interface Message {
   threadCount: number;
   isEdited: boolean;
   createdAt: Date;
+  // E2EE metadata — present when message is encrypted
+  sessionId?: string | null;
+  messageIndex?: number | null;
+  dhPublicKey?: string | null;
+  previousChainLen?: number | null;
   attachments: Array<{
     id: string;
     fileName: string;
@@ -333,6 +338,11 @@ export function useSendMessage(params?: { channelId?: string; conversationId?: s
       conversationId?: string;
       content: string;
       parentId?: string;
+      // E2EE fields — set by the E2EE layer before sending
+      sessionId?: string;
+      messageIndex?: number;
+      dhPublicKey?: string;
+      previousChainLen?: number;
       attachments?: Array<{
         fileName: string;
         fileSize: number;

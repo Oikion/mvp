@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAblyMessages } from "@/hooks/useAbly";
 import { useSendMessage } from "@/hooks/swr/useMessaging";
+import { useE2EE } from "@/hooks/useE2EE";
 import { ShareEntityDialog } from "./ShareEntityDialog";
 import type { SharedEntity } from "./ShareEntityDialog";
 import type { MessagingCredentials } from "@/hooks/swr/useMessaging";
@@ -68,6 +69,9 @@ export function MessageComposer({
 
   // Use the SWR mutation hook for sending messages
   const { sendMessage, isSending } = useSendMessage({ channelId, conversationId });
+
+  // E2EE encryption
+  const { isUnlocked, encryptDM, encryptGroup } = useE2EE();
 
   const { user } = useUser();
   const displayName = useMemo(
@@ -144,13 +148,47 @@ export function MessageComposer({
       if (onSend) {
         await onSend(message, attachments);
       } else {
-        // Use the SWR mutation hook
-        // Include shared entity info in the message metadata
-        await sendMessage({ 
+        // Encrypt message if E2EE is unlocked
+        let content = message;
+        let e2eeFields: {
+          sessionId?: string;
+          messageIndex?: number;
+          dhPublicKey?: string;
+          previousChainLen?: number;
+        } = {};
+
+        if (isUnlocked && message.trim()) {
+          try {
+            if (conversationId) {
+              // 1:1 DM — Double Ratchet
+              const encrypted = await encryptDM(conversationId, message);
+              content = JSON.stringify(encrypted);
+              e2eeFields = {
+                dhPublicKey: encrypted.header.dhPublicKey,
+                previousChainLen: encrypted.header.previousChainLength,
+                messageIndex: encrypted.header.messageNumber,
+              };
+            } else if (channelId) {
+              // Group/Channel — Megolm
+              const encrypted = await encryptGroup(channelId, message);
+              content = JSON.stringify(encrypted);
+              e2eeFields = {
+                sessionId: encrypted.sessionId,
+                messageIndex: encrypted.messageIndex,
+              };
+            }
+          } catch (err) {
+            console.error("[E2EE] Encryption failed, sending unencrypted:", err);
+            // Fall back to unencrypted
+          }
+        }
+
+        await sendMessage({
           channelId,
           conversationId,
-          content: message,
+          content,
           parentId: replyTo?.messageId,
+          ...e2eeFields,
           entityAttachment: sharedEntity ? {
             type: sharedEntity.type,
             id: sharedEntity.id,
