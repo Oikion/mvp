@@ -18,6 +18,7 @@ import { getOnboardingStatus } from "@/types/onboarding"
 import { AppProviders } from "@/components/providers/AppProviders"
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper"
 import { LayoutToggle } from "@/components/layout/LayoutToggle"
+import { E2EESessionButton } from "@/components/layout/E2EESessionButton"
 // Use cached versions for request deduplication (performance optimization)
 import {
   getAuth,
@@ -212,6 +213,7 @@ export default async function AppLayout({
                 <DynamicBreadcrumb />
               </div>
               <div className="flex items-center gap-2 px-4">
+                <E2EESessionButton />
                 <LayoutToggle />
                 <NotificationBell />
               </div>
