@@ -31,7 +31,12 @@ interface SearchResult {
 }
 
 /**
- * Search messages across all user's conversations and channels
+ * Search messages across all user's conversations and channels.
+ *
+ * NOTE: With E2EE enabled, message content is ciphertext on the server,
+ * so full-text search will not match E2EE messages. This function only
+ * searches unencrypted (legacy) messages. Client-side search should be
+ * used for E2EE messages.
  */
 export async function searchMessages(params: {
   query: string;
