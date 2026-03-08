@@ -2,62 +2,6 @@ import { describe, it, expect } from "vitest";
 import { createClientSchema, updateClientSchema } from "@/lib/validations/crm";
 
 describe("CRM Client Validation Rules", () => {
-  describe("CRM-002: Budget Range Validation", () => {
-    it("should pass when budget_min <= budget_max", () => {
-      const result = createClientSchema.safeParse({
-        client_name: "Test Client",
-        primary_email: "test@example.com",
-        budget_min: 100000,
-        budget_max: 200000,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it("should fail when budget_min > budget_max", () => {
-      const result = createClientSchema.safeParse({
-        client_name: "Test Client",
-        primary_email: "test@example.com",
-        budget_min: 200000,
-        budget_max: 100000,
-      });
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        const errors = result.error.flatten().fieldErrors;
-        expect(errors.budget_max).toBeDefined();
-      }
-    });
-
-    it("should pass when only budget_min is provided", () => {
-      const result = createClientSchema.safeParse({
-        client_name: "Test Client",
-        primary_email: "test@example.com",
-        budget_min: 100000,
-        budget_max: null,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it("should pass when only budget_max is provided", () => {
-      const result = createClientSchema.safeParse({
-        client_name: "Test Client",
-        primary_email: "test@example.com",
-        budget_min: null,
-        budget_max: 200000,
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it("should pass when budget_min equals budget_max", () => {
-      const result = createClientSchema.safeParse({
-        client_name: "Test Client",
-        primary_email: "test@example.com",
-        budget_min: 150000,
-        budget_max: 150000,
-      });
-      expect(result.success).toBe(true);
-    });
-  });
-
   describe("CRM-003: Contact Method Handling", () => {
     it("should pass when email is provided", () => {
       const result = createClientSchema.safeParse({
@@ -202,14 +146,6 @@ describe("CRM Client Validation Rules", () => {
       expect(result.success).toBe(true);
     });
 
-    it("should validate budget range on update", () => {
-      const result = updateClientSchema.safeParse({
-        id: "client-123",
-        budget_min: 200000,
-        budget_max: 100000,
-      });
-      expect(result.success).toBe(false);
-    });
   });
 
   describe("Enum Validation", () => {

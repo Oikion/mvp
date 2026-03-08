@@ -142,7 +142,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 const propertyFieldsSchema = z.object({
   // Basic info
   property_name: z.string().min(1, "Property name is required").max(255),
-  property_type: propertyTypeSchema,
+  property_type: propertyTypeSchema.optional(),
   property_status: propertyStatusSchema.optional(),
   transaction_type: transactionTypeSchema.optional(),
   

@@ -55,7 +55,7 @@ const clientFieldsSchema = z.object({
   secondary_email: z.string().email().optional().or(z.literal("")),
   
   // Type information
-  person_type: personTypeSchema,
+  person_type: personTypeSchema.optional(),
   client_type: clientTypeSchema,
   client_status: clientStatusSchema,
 
