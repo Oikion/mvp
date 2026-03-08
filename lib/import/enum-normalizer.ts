@@ -117,6 +117,10 @@ export const transactionTypeMap: EnumMapping = {
   "βραχυπρόθεσμη": "SHORT_TERM",
   "βραχυχρόνια": "SHORT_TERM",
   "ανταλλαγή": "EXCHANGE",
+  "auction": "AUCTION",
+  "foreclosure": "AUCTION",
+  "πλειστηριασμός": "AUCTION",
+  "πλειστηριασμος": "AUCTION",
 };
 
 /**
@@ -644,10 +648,6 @@ export const clientEnumMappings = {
   client_type: clientTypeMap,
   client_status: clientStatusMap,
   person_type: personTypeMap,
-  intent: clientIntentMap,
-  purpose: propertyPurposeMap,
-  timeline: timelineMap,
-  financing_type: financingTypeMap,
   lead_source: leadSourceMap,
 };
 

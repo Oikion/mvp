@@ -38,7 +38,7 @@ const createQuickAddSchema = (t: (key: string) => string, tCommon: (key: string)
   property_name: z.string().min(1, t("PropertyForm.validation.propertyNameRequired")),
   property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"], { required_error: t("PropertyForm.validation.propertyTypeRequired") }),
   property_type_other: z.string().optional(),
-  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]).optional(),
+  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE", "AUCTION"]).optional(),
   municipality: z.string().optional(),
   area: z.string().optional(),
   postal_code: z.string().optional(),
@@ -193,6 +193,7 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
                         <SelectItem value="RENTAL">{t("PropertyForm.transactionType.RENTAL")}</SelectItem>
                         <SelectItem value="SHORT_TERM">{t("PropertyForm.transactionType.SHORT_TERM")}</SelectItem>
                         <SelectItem value="EXCHANGE">{t("PropertyForm.transactionType.EXCHANGE")}</SelectItem>
+                        <SelectItem value="AUCTION">{t("PropertyForm.transactionType.AUCTION")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

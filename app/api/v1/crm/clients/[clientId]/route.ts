@@ -38,18 +38,12 @@ export const GET = withExternalApi(
         client_status: true,
         client_type: true,
         person_type: true,
-        intent: true,
         assigned_to: true,
         company_name: true,
         full_name: true,
         language: true,
         lead_source: true,
         channels: true,
-        areas_of_interest: true,
-        budget_min: true,
-        budget_max: true,
-        timeline: true,
-        financing_type: true,
         gdpr_consent: true,
         allow_marketing: true,
         description: true,
@@ -99,17 +93,11 @@ export const GET = withExternalApi(
         status: decrypted.client_status,
         type: decrypted.client_type,
         personType: decrypted.person_type,
-        intent: decrypted.intent,
         companyName: decrypted.company_name,
         fullName: decrypted.full_name,
         language: decrypted.language,
         leadSource: decrypted.lead_source,
         channels: decrypted.channels,
-        areasOfInterest: decrypted.areas_of_interest,
-        budgetMin: decrypted.budget_min,
-        budgetMax: decrypted.budget_max,
-        timeline: decrypted.timeline,
-        financingType: decrypted.financing_type,
         gdprConsent: decrypted.gdpr_consent,
         allowMarketing: decrypted.allow_marketing,
         description: decrypted.description,
@@ -179,18 +167,12 @@ export const PUT = withExternalApi(
       status,
       type,
       personType,
-      intent,
       assignedTo,
       companyName,
       fullName,
       language,
       leadSource,
       channels,
-      areasOfInterest,
-      budgetMin,
-      budgetMax,
-      timeline,
-      financingType,
       gdprConsent,
       allowMarketing,
       description,
@@ -215,18 +197,12 @@ export const PUT = withExternalApi(
     if (status !== undefined) updateData.client_status = status;
     if (type !== undefined) updateData.client_type = type;
     if (personType !== undefined) updateData.person_type = personType;
-    if (intent !== undefined) updateData.intent = intent;
     if (assignedTo !== undefined) updateData.assigned_to = assignedTo;
     if (companyName !== undefined) updateData.company_name = companyName;
     if (fullName !== undefined) updateData.full_name = fullName;
     if (language !== undefined) updateData.language = language;
     if (leadSource !== undefined) updateData.lead_source = leadSource;
     if (channels !== undefined) updateData.channels = channels;
-    if (areasOfInterest !== undefined) updateData.areas_of_interest = areasOfInterest;
-    if (budgetMin !== undefined) updateData.budget_min = budgetMin;
-    if (budgetMax !== undefined) updateData.budget_max = budgetMax;
-    if (timeline !== undefined) updateData.timeline = timeline;
-    if (financingType !== undefined) updateData.financing_type = financingType;
     if (gdprConsent !== undefined) updateData.gdpr_consent = gdprConsent;
     if (allowMarketing !== undefined) updateData.allow_marketing = allowMarketing;
     if (description !== undefined) updateData.description = description;

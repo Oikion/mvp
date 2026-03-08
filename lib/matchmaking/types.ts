@@ -12,7 +12,7 @@ import type { Decimal } from "@prisma/client/runtime/library";
 
 export type ClientIntent = "BUY" | "RENT" | "SELL" | "LEASE" | "INVEST";
 export type PropertyPurpose = "RESIDENTIAL" | "COMMERCIAL" | "LAND" | "PARKING" | "OTHER";
-export type TransactionType = "SALE" | "RENTAL" | "SHORT_TERM" | "EXCHANGE";
+export type TransactionType = "SALE" | "RENTAL" | "SHORT_TERM" | "EXCHANGE" | "AUCTION";
 export type PropertyType = 
   | "RESIDENTIAL" | "COMMERCIAL" | "LAND" | "RENTAL" | "VACATION"
   | "APARTMENT" | "HOUSE" | "MAISONETTE" | "WAREHOUSE" | "PARKING"

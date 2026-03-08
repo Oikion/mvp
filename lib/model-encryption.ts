@@ -65,6 +65,9 @@ function decryptJson(
 
 const CLIENT_ENCRYPTED_STRING_FIELDS = [
   "client_name",
+  "full_name",
+  "company_name",
+  "company_id",
   "primary_email",
   "secondary_email",
   "primary_phone",

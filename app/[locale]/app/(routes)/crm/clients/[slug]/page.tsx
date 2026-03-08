@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
-import Container from "../../../components/ui/Container";
 import { getClient } from "@/actions/crm/get-client";
 import { getSharedClient } from "@/actions/crm/get-shared-client";
-
-type ShareInfo = NonNullable<Awaited<ReturnType<typeof getSharedClient>>>["_shareInfo"] | null;
 import { getCurrentUser } from "@/lib/get-current-user";
 import ClientView from "./components/ClientView";
 import { SharedAccessBanner } from "../../../mls/properties/[slug]/components/SharedAccessBanner";
+
+type ShareInfo = NonNullable<Awaited<ReturnType<typeof getSharedClient>>>["_shareInfo"] | null;
+
+export const dynamic = "force-dynamic";
 
 export default async function ClientDetailPage({
   params,
@@ -41,25 +42,23 @@ export default async function ClientDetailPage({
 
   // Don't allow edit action for shared views
   const defaultEditOpen = isSharedView ? false : resolvedSearchParams?.action === "edit";
-  
+
   // Determine share permission for comments
   const sharePermission = shareInfo?.permissions as "VIEW_ONLY" | "VIEW_COMMENT" | null;
 
   return (
-    <Container title={client.client_name} description={`Client ID: ${client.id}`}>
-      <div className="max-w-5xl space-y-4">
-        {isSharedView && shareInfo && (
-          <SharedAccessBanner shareInfo={shareInfo} entityType="client" />
-        )}
-        <ClientView 
-          data={client} 
-          defaultEditOpen={defaultEditOpen} 
-          isReadOnly={isSharedView}
-          sharePermission={sharePermission}
-          currentUserId={currentUser.id}
-          locale={locale}
-        />
-      </div>
-    </Container>
+    <div className="space-y-4">
+      {isSharedView && shareInfo && (
+        <SharedAccessBanner shareInfo={shareInfo} entityType="client" />
+      )}
+      <ClientView
+        data={client}
+        defaultEditOpen={defaultEditOpen}
+        isReadOnly={isSharedView}
+        sharePermission={sharePermission}
+        currentUserId={currentUser.id}
+        locale={locale}
+      />
+    </div>
   );
 }

@@ -62,16 +62,42 @@ export default function ClientsPageView({
     moment(c.createdAt).isAfter(moment().subtract(30, "days"))
   ).length;
 
+  // 6-month chart data for stats cards
+  const monthlyChartData = useMemo(() => {
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const m = moment().subtract(5 - i, "months");
+      return { start: m.clone().startOf("month"), end: m.clone().endOf("month") };
+    });
+
+    const totalChartData = months.map(({ end }) => ({
+      value: agencyClients.filter((c: any) => moment(c.createdAt).isSameOrBefore(end)).length,
+    }));
+
+    const activeChartData = months.map(({ end }) => ({
+      value: agencyClients.filter(
+        (c: any) => c.status === "Active" && moment(c.createdAt).isSameOrBefore(end)
+      ).length,
+    }));
+
+    const newChartData = months.map(({ start, end }) => ({
+      value: agencyClients.filter((c: any) => {
+        const d = moment(c.createdAt);
+        return d.isSameOrAfter(start) && d.isSameOrBefore(end);
+      }).length,
+    }));
+
+    const sharedChartData = months.map(() => ({ value: 1 }));
+
+    return { totalChartData, activeChartData, newChartData, sharedChartData };
+  }, [agencyClients]);
+
   // Filter data for grid view — merges GridToolbar state with URL-based drawer filters
   const filteredAgencyClients = useMemo(() => {
     // URL-based filters (set by the filter drawer in the table toolbar)
     const urlStatus = searchParams.get("status")?.split(",").filter(Boolean) ?? [];
     const urlClientType = searchParams.get("clientType")?.split(",").filter(Boolean) ?? [];
-    const urlIntent = searchParams.get("intent")?.split(",").filter(Boolean) ?? [];
     const urlLeadSource = searchParams.get("leadSource")?.split(",").filter(Boolean) ?? [];
     const urlAssignedTo = searchParams.get("assignedTo") ?? "";
-    const urlBudgetMin = searchParams.get("budgetMin") ? Number(searchParams.get("budgetMin")) : null;
-    const urlBudgetMax = searchParams.get("budgetMax") ? Number(searchParams.get("budgetMax")) : null;
 
     return agencyClients.filter((item: any) => {
       // Text search filter
@@ -93,31 +119,19 @@ export default function ClientsPageView({
       const matchesClientType =
         urlClientType.length === 0 || urlClientType.includes(item.client_type);
 
-      const matchesIntent =
-        urlIntent.length === 0 || urlIntent.includes(item.intent);
-
       const matchesLeadSource =
         urlLeadSource.length === 0 || urlLeadSource.includes(item.lead_source);
 
       const matchesAssignedTo =
         !urlAssignedTo || item.assigned_to === urlAssignedTo;
 
-      const budget = item.budget ?? item.budget_max ?? null;
-      const matchesBudgetMin =
-        urlBudgetMin === null || budget === null || budget >= urlBudgetMin;
-      const matchesBudgetMax =
-        urlBudgetMax === null || budget === null || budget <= urlBudgetMax;
-
       return (
         matchesSearch &&
         matchesGridStatus &&
         matchesUrlStatus &&
         matchesClientType &&
-        matchesIntent &&
         matchesLeadSource &&
-        matchesAssignedTo &&
-        matchesBudgetMin &&
-        matchesBudgetMax
+        matchesAssignedTo
       );
     });
   }, [agencyClients, searchQuery, selectedFilters, searchParams]);
@@ -168,6 +182,8 @@ export default function ClientsPageView({
           value={totalClients.toString()}
           icon={<Users className="h-4 w-4" />}
           description={t("Stats.allContacts")}
+          chartData={monthlyChartData.totalChartData}
+          chartColor="hsl(var(--chart-1))"
           actionLabel={t("Stats.addClient")}
           emptyMessage={t("Stats.noClientsYet")}
           onAction={() => setOpen(true)}
@@ -177,6 +193,8 @@ export default function ClientsPageView({
           value={activeClients.toString()}
           icon={<UserCheck className="h-4 w-4" />}
           description={t("Stats.currentlyActive")}
+          chartData={monthlyChartData.activeChartData}
+          chartColor="hsl(var(--chart-2))"
           trendUp={activeClients > 0}
           actionLabel={t("Stats.addClient")}
           emptyMessage={t("Stats.noActiveClients")}
@@ -187,6 +205,8 @@ export default function ClientsPageView({
           value={newClients.toString()}
           icon={<UserPlus className="h-4 w-4" />}
           description={t("Stats.addedThisMonth")}
+          chartData={monthlyChartData.newChartData}
+          chartColor="hsl(var(--chart-3))"
           trendUp={newClients > 0}
           actionLabel={t("Stats.addClient")}
           emptyMessage={t("Stats.noRecentActivity")}
@@ -197,6 +217,9 @@ export default function ClientsPageView({
           value={sharedClients.length.toString()}
           icon={<Share2 className="h-4 w-4" />}
           description={t("Stats.fromConnections")}
+          chartData={monthlyChartData.sharedChartData}
+          chartColor="hsl(var(--muted-foreground))"
+          chartPlaceholder
           actionHref={`/${locale}/app/network/profile?tab=find`}
           actionLabel={t("Stats.findAgents")}
           emptyMessage={t("Stats.connectToReceive")}

@@ -95,7 +95,6 @@ export const clientImportConfig: ImportEntityConfig<ClientImportData> = {
       client_type: item.client_type || null,
       client_status: item.client_status || "LEAD",
       person_type: item.person_type || null,
-      intent: item.intent || null,
 
       // Company details
       company_name: item.company_name || null,
@@ -116,17 +115,6 @@ export const clientImportConfig: ImportEntityConfig<ClientImportData> = {
       billing_state: e("billing_state") || null,
       billing_postal_code: e("billing_postal_code") || null,
       billing_country: e("billing_country") || null,
-
-      // Preferences
-      purpose: item.purpose || null,
-      budget_min: item.budget_min ?? null,
-      budget_max: item.budget_max ?? null,
-      timeline: item.timeline || null,
-
-      // Financing
-      financing_type: item.financing_type || null,
-      preapproval_bank: item.preapproval_bank || null,
-      needs_mortgage_help: item.needs_mortgage_help || false,
 
       // Lead source & consent
       lead_source: item.lead_source || null,

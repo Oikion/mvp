@@ -31,6 +31,7 @@ export const TransactionTypeEnum = z.enum([
   "RENTAL",
   "SHORT_TERM",
   "EXCHANGE",
+  "AUCTION",
 ]);
 
 export const HeatingTypeEnum = z.enum([
@@ -247,7 +248,7 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
     required: false, 
     group: "classification", 
     aliases: ["transaction", "deal_type", "listing_type", "sale_rent", "offer_type"],
-    description: "Transaction type (SALE, RENTAL, SHORT_TERM)"
+    description: "Transaction type (SALE, RENTAL, SHORT_TERM, EXCHANGE, AUCTION)"
   },
 
   // Address

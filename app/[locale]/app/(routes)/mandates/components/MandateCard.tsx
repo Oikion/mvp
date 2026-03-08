@@ -57,7 +57,7 @@ const TRANSACTION_VARIANT: Record<string, "default" | "secondary" | "destructive
   EXCHANGE: "outline",
 };
 
-function formatBudget(min?: number | string | null, max?: number | string | null): string {
+function formatBudget(min?: number | string | null, max?: number | string | null, upToLabel?: string): string {
   const minVal = min ? Number(min) : null;
   const maxVal = max ? Number(max) : null;
 
@@ -69,7 +69,7 @@ function formatBudget(min?: number | string | null, max?: number | string | null
 
   if (minVal && maxVal) return `\u20AC${fmt(minVal)} - \u20AC${fmt(maxVal)}`;
   if (minVal) return `\u20AC${fmt(minVal)}+`;
-  if (maxVal) return `up to \u20AC${fmt(maxVal)}`;
+  if (maxVal) return `${upToLabel ?? "up to"} \u20AC${fmt(maxVal)}`;
   return "\u2014";
 }
 
@@ -100,7 +100,7 @@ export const MandateCard = memo(
               <h3 className="font-semibold text-base truncate">{data.title}</h3>
               <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                 <Badge variant={TRANSACTION_VARIANT[data.transaction_type] ?? "outline"} className="text-xs">
-                  {data.transaction_type}
+                  {t(`MandateForm.transactionType.${data.transaction_type}`) || data.transaction_type}
                 </Badge>
                 <Badge variant={STATUS_VARIANT[data.status] ?? "secondary"} className="text-xs">
                   {t(`MandateForm.status.${data.status}`)}
@@ -119,7 +119,7 @@ export const MandateCard = memo(
           {/* Budget */}
           <div className="text-muted-foreground">
             <span className="font-medium text-foreground">
-              {formatBudget(data.budget_min, data.budget_max)}
+              {formatBudget(data.budget_min, data.budget_max, t("budget.upTo"))}
             </span>
           </div>
 

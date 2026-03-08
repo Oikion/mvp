@@ -61,28 +61,28 @@ const URGENCY_OPTIONS = [
 ];
 
 const TRANSACTION_TYPE_OPTIONS = [
-  { value: "SALE", label: "Sale" },
-  { value: "RENTAL", label: "Rental" },
-  { value: "SHORT_TERM", label: "Short Term" },
-  { value: "EXCHANGE", label: "Exchange" },
+  { value: "SALE", labelKey: "MandateForm.transactionType.SALE" },
+  { value: "RENTAL", labelKey: "MandateForm.transactionType.RENTAL" },
+  { value: "SHORT_TERM", labelKey: "MandateForm.transactionType.SHORT_TERM" },
+  { value: "EXCHANGE", labelKey: "MandateForm.transactionType.EXCHANGE" },
+  { value: "AUCTION", labelKey: "MandateForm.transactionType.AUCTION" },
 ];
 
 const PROPERTY_TYPE_OPTIONS = [
-  { value: "APARTMENT", label: "Apartment" },
-  { value: "HOUSE", label: "House" },
-  { value: "MAISONETTE", label: "Maisonette" },
-  { value: "COMMERCIAL", label: "Commercial" },
-  { value: "LAND", label: "Land" },
-  { value: "PLOT", label: "Plot" },
-  { value: "WAREHOUSE", label: "Warehouse" },
-  { value: "PARKING", label: "Parking" },
-  { value: "FARM", label: "Farm" },
-  { value: "RESIDENTIAL", label: "Residential" },
-  { value: "VACATION", label: "Vacation" },
+  { value: "APARTMENT", labelKey: "MandateForm.propertyType.APARTMENT" },
+  { value: "HOUSE", labelKey: "MandateForm.propertyType.HOUSE" },
+  { value: "MAISONETTE", labelKey: "MandateForm.propertyType.MAISONETTE" },
+  { value: "COMMERCIAL", labelKey: "MandateForm.propertyType.COMMERCIAL" },
+  { value: "PLOT", labelKey: "MandateForm.propertyType.PLOT" },
+  { value: "WAREHOUSE", labelKey: "MandateForm.propertyType.WAREHOUSE" },
+  { value: "PARKING", labelKey: "MandateForm.propertyType.PARKING" },
+  { value: "FARM", labelKey: "MandateForm.propertyType.FARM" },
+  { value: "INDUSTRIAL", labelKey: "MandateForm.propertyType.INDUSTRIAL" },
+  { value: "OTHER", labelKey: "MandateForm.propertyType.OTHER" },
 ];
 
 const LINKED_STATUS_OPTIONS = [
-  { value: "", label: "All" },
+  { value: "", labelKey: "Filters.all" },
   { value: "linked", labelKey: "Filters.linked" },
   { value: "unlinked", labelKey: "Filters.unlinked" },
 ];
@@ -102,12 +102,13 @@ function countActiveFilters(filters: MandateFilters): number {
 
 interface CheckboxGroupProps {
   label: string;
+  clearLabel: string;
   options: { value: string; label: string }[];
   selected: string[];
   onChange: (values: string[]) => void;
 }
 
-function CheckboxGroup({ label, options, selected, onChange }: CheckboxGroupProps) {
+function CheckboxGroup({ label, clearLabel, options, selected, onChange }: CheckboxGroupProps) {
   const toggle = (value: string) => {
     if (selected.includes(value)) {
       onChange(selected.filter((v) => v !== value));
@@ -126,7 +127,7 @@ function CheckboxGroup({ label, options, selected, onChange }: CheckboxGroupProp
             onClick={() => onChange([])}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            Clear
+            {clearLabel}
           </button>
         )}
       </div>
@@ -193,13 +194,23 @@ export function MandateFilterDrawer({
     onOpenChange(false);
   };
 
-  // Build translated options for status and urgency
+  // Build translated options
   const statusOptions = STATUS_OPTIONS.map((o) => ({
     value: o.value,
     label: t(o.labelKey),
   }));
 
   const urgencyOptions = URGENCY_OPTIONS.map((o) => ({
+    value: o.value,
+    label: t(o.labelKey),
+  }));
+
+  const transactionTypeOptions = TRANSACTION_TYPE_OPTIONS.map((o) => ({
+    value: o.value,
+    label: t(o.labelKey),
+  }));
+
+  const propertyTypeOptions = PROPERTY_TYPE_OPTIONS.map((o) => ({
     value: o.value,
     label: t(o.labelKey),
   }));
@@ -215,7 +226,7 @@ export function MandateFilterDrawer({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
-              <SheetTitle>{t("Filters.status").replace("Status", "Filters")}</SheetTitle>
+              <SheetTitle>{t("Filters.title")}</SheetTitle>
               {activeCount > 0 && (
                 <Badge variant="secondary" className="h-5 px-1.5 text-xs">
                   {activeCount}
@@ -230,6 +241,7 @@ export function MandateFilterDrawer({
           {/* Status */}
           <CheckboxGroup
             label={t("Filters.status")}
+            clearLabel={t("Filters.clear")}
             options={statusOptions}
             selected={localFilters.status}
             onChange={(values) =>
@@ -242,6 +254,7 @@ export function MandateFilterDrawer({
           {/* Urgency */}
           <CheckboxGroup
             label={t("Filters.urgency")}
+            clearLabel={t("Filters.clear")}
             options={urgencyOptions}
             selected={localFilters.urgency}
             onChange={(values) =>
@@ -254,7 +267,8 @@ export function MandateFilterDrawer({
           {/* Transaction Type */}
           <CheckboxGroup
             label={t("Filters.transactionType")}
-            options={TRANSACTION_TYPE_OPTIONS}
+            clearLabel={t("Filters.clear")}
+            options={transactionTypeOptions}
             selected={localFilters.transactionType}
             onChange={(values) =>
               setLocalFilters((prev) => ({ ...prev, transactionType: values }))
@@ -266,7 +280,8 @@ export function MandateFilterDrawer({
           {/* Property Type */}
           <CheckboxGroup
             label={t("Filters.propertyType")}
-            options={PROPERTY_TYPE_OPTIONS}
+            clearLabel={t("Filters.clear")}
+            options={propertyTypeOptions}
             selected={localFilters.propertyType}
             onChange={(values) =>
               setLocalFilters((prev) => ({ ...prev, propertyType: values }))
@@ -287,7 +302,7 @@ export function MandateFilterDrawer({
                   }
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Clear
+                  {t("Filters.clear")}
                 </button>
               )}
             </div>
@@ -308,7 +323,7 @@ export function MandateFilterDrawer({
                     htmlFor={`filter-linked-${option.value || "all"}`}
                     className="text-sm font-normal cursor-pointer leading-none"
                   >
-                    {option.labelKey ? t(option.labelKey) : option.label}
+                    {t(option.labelKey)}
                   </Label>
                 </div>
               ))}
@@ -329,7 +344,7 @@ export function MandateFilterDrawer({
                   }
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Clear
+                  {t("Filters.clear")}
                 </button>
               )}
             </div>
@@ -343,10 +358,10 @@ export function MandateFilterDrawer({
               }
             >
               <SelectTrigger className="h-9">
-                <SelectValue placeholder="Anyone" />
+                <SelectValue placeholder={t("Filters.anyone")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__anyone__">Anyone</SelectItem>
+                <SelectItem value="__anyone__">{t("Filters.anyone")}</SelectItem>
                 {users.map((user) => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.name}
@@ -374,7 +389,7 @@ export function MandateFilterDrawer({
                   }
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Clear
+                  {t("Filters.clear")}
                 </button>
               )}
             </div>
@@ -385,7 +400,7 @@ export function MandateFilterDrawer({
                 </span>
                 <Input
                   type="number"
-                  placeholder="Min"
+                  placeholder={t("Filters.min")}
                   value={localFilters.budgetMin ?? ""}
                   onChange={(e) =>
                     setLocalFilters((prev) => ({
@@ -404,7 +419,7 @@ export function MandateFilterDrawer({
                 </span>
                 <Input
                   type="number"
-                  placeholder="Max"
+                  placeholder={t("Filters.max")}
                   value={localFilters.budgetMax ?? ""}
                   onChange={(e) =>
                     setLocalFilters((prev) => ({
@@ -431,7 +446,7 @@ export function MandateFilterDrawer({
             {t("Filters.resetFilters")}
           </Button>
           <Button className="flex-1" onClick={handleApply}>
-            Apply
+            {t("Filters.apply")}
             {countActiveFilters(localFilters) > 0 && (
               <Badge
                 variant="secondary"

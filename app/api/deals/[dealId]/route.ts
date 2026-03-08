@@ -44,7 +44,6 @@ export async function GET(
             client_name: true,
             primary_email: true,
             primary_phone: true,
-            intent: true,
             client_status: true,
           },
         },

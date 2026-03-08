@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Euro, AlertTriangle, ArrowRight } from "lucide-react";
+import { User, AlertTriangle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ClientSummary } from "@/lib/matchmaking";
@@ -13,24 +13,8 @@ interface Props {
   locale: string;
 }
 
-function formatPrice(price: number | null | undefined): string {
-  if (!price) return "N/A";
-  return new Intl.NumberFormat("el-GR", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(price);
-}
-
 export function UnmatchedClientsList({ clients, locale }: Props) {
   const t = useTranslations("matchmaking");
-
-  function formatBudget(min: number | null | undefined, max: number | null | undefined): string {
-    if (!min && !max) return t("common.noBudget");
-    if (!min) return t("common.budgetUpTo", { amount: formatPrice(max) });
-    if (!max) return t("common.budgetFrom", { amount: formatPrice(min) });
-    return `${formatPrice(min)} - ${formatPrice(max)}`;
-  }
 
   if (clients.length === 0) {
     return (
@@ -80,13 +64,11 @@ export function UnmatchedClientsList({ clients, locale }: Props) {
                 {client.full_name || client.client_name}
               </Link>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 flex-wrap">
-                <Badge variant="outline" className="text-xs">
-                  {client.intent || t("common.noIntent")}
-                </Badge>
-                <span className="flex items-center gap-1">
-                  <Euro className="h-3 w-3" />
-                  {formatBudget(client.budget_min, client.budget_max)}
-                </span>
+                {client.client_status && (
+                  <Badge variant="outline" className="text-xs">
+                    {client.client_status}
+                  </Badge>
+                )}
               </div>
             </div>
 

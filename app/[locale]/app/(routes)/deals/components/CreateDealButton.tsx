@@ -47,7 +47,6 @@ interface Property {
 interface Client {
   id: string;
   client_name: string;
-  intent: string | null;
 }
 
 interface Connection {
@@ -234,14 +233,7 @@ export function CreateDealButton({ translations: t }: CreateDealButtonProps) {
                 <SelectContent>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
-                      <div className="flex items-center justify-between w-full gap-4">
-                        <span>{client.client_name}</span>
-                        {client.intent && (
-                          <span className="text-muted-foreground text-xs">
-                            {client.intent}
-                          </span>
-                        )}
-                      </div>
+                      <span>{client.client_name}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>

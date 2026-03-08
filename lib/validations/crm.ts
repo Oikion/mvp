@@ -30,14 +30,6 @@ export const clientTypeSchema = z.enum([
   "OTHER",
 ]).optional();
 
-// Intent values
-export const intentSchema = z.enum([
-  "BUY",
-  "RENT",
-  "SELL",
-  "LEASE",
-]).optional();
-
 // Lead source values
 export const leadSourceSchema = z.enum([
   "WEBSITE",
@@ -49,25 +41,6 @@ export const leadSourceSchema = z.enum([
   "PORTAL",
   "OTHER",
 ]).optional();
-
-// Financing type values
-export const financingTypeSchema = z.enum([
-  "CASH",
-  "MORTGAGE",
-  "BANK_LOAN",
-  "OTHER",
-]).optional();
-
-// Budget range refinement — shared by create and update schemas
-const budgetRangeRefinement = [
-  (data: { budget_min?: number | null; budget_max?: number | null }) => {
-    if (data.budget_min != null && data.budget_max != null) {
-      return data.budget_min <= data.budget_max;
-    }
-    return true;
-  },
-  { message: "Minimum budget cannot exceed maximum budget", path: ["budget_max"] as string[] },
-] as const;
 
 /**
  * Base object schema for client fields (no refinements).
@@ -85,8 +58,7 @@ const clientFieldsSchema = z.object({
   person_type: personTypeSchema,
   client_type: clientTypeSchema,
   client_status: clientStatusSchema,
-  intent: intentSchema,
-  
+
   // Personal/Company details
   full_name: z.string().max(255).optional(),
   company_name: z.string().max(255).optional(),
@@ -98,19 +70,6 @@ const clientFieldsSchema = z.object({
   doy: z.string().max(100).optional(), // Tax office
   id_doc: z.string().max(100).optional(), // ID document
   company_gemi: z.string().max(50).optional(), // Company registry
-  
-  // Property preferences
-  purpose: z.string().max(255).optional(),
-  areas_of_interest: z.string().optional(),
-  budget_min: z.number().min(0).optional().nullable(),
-  budget_max: z.number().min(0).optional().nullable(),
-  timeline: z.string().max(100).optional(),
-  property_preferences: z.string().optional(),
-  
-  // Financial
-  financing_type: financingTypeSchema,
-  preapproval_bank: z.string().max(100).optional(),
-  needs_mortgage_help: z.boolean().optional(),
   
   // Consent
   gdpr_consent: z.boolean().optional(),
@@ -158,9 +117,7 @@ const clientFieldsSchema = z.object({
  * Schema for creating a new client
  * Validates all allowed fields and prevents injection of internal fields
  */
-export const createClientSchema = clientFieldsSchema
-  // CRM-002: Budget range consistency
-  .refine(...budgetRangeRefinement);
+export const createClientSchema = clientFieldsSchema;
 
 /**
  * Schema for updating an existing client
@@ -168,9 +125,7 @@ export const createClientSchema = clientFieldsSchema
  */
 export const updateClientSchema = z.object({
   id: z.string().min(1, "Client ID is required"),
-}).merge(clientFieldsSchema.partial()).strict()
-  // CRM-002: Budget range consistency (re-applied — .partial() drops refines)
-  .refine(...budgetRangeRefinement);
+}).merge(clientFieldsSchema.partial()).strict();
 
 /**
  * Schema for client search/filter parameters

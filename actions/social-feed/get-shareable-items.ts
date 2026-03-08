@@ -44,7 +44,6 @@ export async function getShareableItems(): Promise<{
       select: {
         id: true,
         client_name: true,
-        intent: true,
         person_type: true,
       },
     });
@@ -60,7 +59,7 @@ export async function getShareableItems(): Promise<{
         id: c.id,
         type: "client" as const,
         title: c.client_name || "Unnamed Client",
-        subtitle: c.intent || undefined,
+        subtitle: c.person_type || undefined,
       })),
     };
   } catch (error) {

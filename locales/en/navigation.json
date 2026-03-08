@@ -93,7 +93,7 @@
     "signOut": "Sign out"
   },
   "GlobalSearch": {
-    "placeholder": "Search properties, clients, contacts, documents, events...",
+    "placeholder": "Search properties, clients, mandates, contacts, documents, events...",
     "noResults": "No results found.",
     "minLength": "Type at least 2 characters to search",
     "navigation": "Go to",
@@ -101,6 +101,7 @@
     "types": {
       "property": "Properties",
       "client": "Clients",
+      "mandate": "Mandates",
       "contact": "Contacts",
       "document": "Documents",
       "event": "Calendar Events"

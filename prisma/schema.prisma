@@ -246,7 +246,6 @@ model Clients {
   primary_email                    String?
   client_type                      ClientType?
   client_status                    ClientStatus?        @default(LEAD)
-  property_preferences             Json?
   communication_notes              Json?
   billing_city                     String?
   billing_country                  String?
@@ -270,29 +269,20 @@ model Clients {
   organizationId                   String               @default("00000000-0000-0000-0000-000000000000")
   afm                              String?
   allow_marketing                  Boolean?             @default(false)
-  areas_of_interest                Json?
-  budget_max                       Decimal?
-  budget_min                       Decimal?
   channels                         String[]
   company_gemi                     String?
   company_name                     String?
   doy                              String?
   draft_status                     Boolean?             @default(false)
-  financing_type                   FinancingType?
   full_name                        String?
   gdpr_consent                     Boolean?             @default(false)
   id_doc                           String?
-  intent                           ClientIntent?
   language                         Language?            @default(en)
   lead_source                      LeadSource?
-  needs_mortgage_help              Boolean?             @default(false)
   person_type                      PersonType?
-  preapproval_bank                 String?
   primary_phone                    String?
-  purpose                          PropertyPurpose?
   secondary_email                  String?
   secondary_phone                  String?
-  timeline                         Timeline?
   ClientComment                    ClientComment[]
   Client_Contacts                  Client_Contacts[]
   Client_Properties                Client_Properties[]
@@ -1215,14 +1205,6 @@ enum ClientContactType {
   REFERRAL
 }
 
-enum ClientIntent {
-  BUY
-  RENT
-  SELL
-  LEASE
-  INVEST
-}
-
 enum ClientStatus {
   LEAD
   ACTIVE
@@ -1273,12 +1255,6 @@ enum EnergyCertClass {
   G
   H
   IN_PROGRESS
-}
-
-enum FinancingType {
-  CASH
-  MORTGAGE
-  PREAPPROVAL_PENDING
 }
 
 enum FrontageType {
@@ -1515,6 +1491,7 @@ enum TransactionType {
   RENTAL
   SHORT_TERM
   EXCHANGE
+  AUCTION
 }
 
 enum MandateStatus {

@@ -80,7 +80,6 @@ export async function getShareableEntities(): Promise<ShareableEntities> {
       select: {
         id: true,
         client_name: true,
-        intent: true,
         person_type: true,
       },
     });
@@ -138,7 +137,7 @@ export async function getShareableEntities(): Promise<ShareableEntities> {
         id: c.id,
         type: "client" as const,
         title: c.client_name || "Unnamed Client",
-        subtitle: c.intent || undefined,
+        subtitle: c.person_type || undefined,
       })),
       documents: documents.map((d) => ({
         id: d.id,
@@ -223,7 +222,6 @@ export async function getEntityDetails(
           select: {
             id: true,
             client_name: true,
-            intent: true,
             person_type: true,
           },
         });
@@ -234,9 +232,8 @@ export async function getEntityDetails(
             id: client.id,
             type: "client",
             title: client.client_name || "Unnamed Client",
-            subtitle: client.intent || undefined,
+            subtitle: client.person_type || undefined,
             metadata: {
-              intent: client.intent,
               personType: client.person_type,
             },
           },

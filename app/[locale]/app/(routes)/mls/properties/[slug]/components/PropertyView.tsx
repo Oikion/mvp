@@ -1,32 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import moment from "moment";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { EditPropertyForm } from "./EditPropertyForm";
-import { CreateBookingButton } from "@/components/calendar/CreateBookingButton";
-import { LinkedEntitiesPanel, LinkEntityDialog } from "@/components/linking";
-import { EventCreateForm } from "@/components/calendar/EventCreateForm";
-import { ShareModal } from "@/components/social/ShareModal";
-import { toast } from "sonner";
-import axios from "axios";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import {
+  ArrowLeft,
+  Edit,
+  User,
+  Home,
+  MapPin,
+  FileText,
+  DollarSign,
+  Clock,
+  Share2,
+  MessageSquare,
   Globe,
   Eye,
   ExternalLink,
-  Share2,
   Copy,
   Check,
   Lock,
   Users,
 } from "lucide-react";
+import Link from "next/link";
+import { EditPropertyForm } from "./EditPropertyForm";
+import { LinkedEntitiesPanel, LinkEntityDialog } from "@/components/linking";
+import { EventCreateForm } from "@/components/calendar/EventCreateForm";
+import { EntityQuickActions } from "@/components/entity-actions/EntityQuickActions";
+import { ShareModal } from "@/components/social/ShareModal";
 import { PropertyComments } from "./PropertyComments";
 import { PropertyMatchingClients } from "./PropertyMatchingClients";
+import { toast } from "sonner";
+import axios from "axios";
 import {
   usePropertyLinked,
   useLinkClientsToProperty,
@@ -35,15 +55,17 @@ import {
   useUnlinkMandateFromProperty,
 } from "@/hooks/swr";
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
+import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 
-const formatDateTime = (value?: Date | string | null) => {
-  if (!value) return "N/A";
-  return moment(value).format("DD/MM/YYYY, HH:mm:ss");
-};
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface PropertyViewProps {
   data: {
     id: string;
+    friendlyId?: string;
     property_name: string;
     property_type?: string | null;
     property_status?: string | null;
@@ -73,50 +95,83 @@ interface PropertyViewProps {
   locale?: string;
 }
 
-export default function PropertyView({ 
-  data, 
-  defaultEditOpen = false, 
+// ---------------------------------------------------------------------------
+// Status badge styles
+// ---------------------------------------------------------------------------
+
+const statusColors: Record<string, string> = {
+  AVAILABLE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  DRAFT: "bg-muted text-muted-foreground",
+  SOLD: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  RENTED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  RESERVED: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  WITHDRAWN: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+  INACTIVE: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+};
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("el-GR", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const displayEnum = (value: string | null | undefined) => {
+  if (!value) return null;
+  return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+export default function PropertyView({
+  data,
+  defaultEditOpen = false,
   isReadOnly = false,
   sharePermission = null,
   currentUserId = "",
   locale = "en",
 }: PropertyViewProps) {
-  const [open, setOpen] = useState(defaultEditOpen);
+  const router = useRouter();
+  const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [createMandateOpen, setCreateMandateOpen] = useState(false);
   const [visibility, setVisibility] = useState(data.portal_visibility || "PRIVATE");
   const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
   const [copied, setCopied] = useState(false);
-  // Public URL - components should provide org-scoped slug URL
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
 
-  // Use SWR for linked data fetching
+  // Organization users for QuickAddMandate
+  const { users: orgUsers } = useOrgUsers({ enabled: !isReadOnly });
+
+  // Linked entities via SWR
   const {
     clients,
     mandates: linkedMandates,
     events,
     isLoading: isLoadingLinked,
-    mutate: mutateLinked
+    mutate: mutateLinked,
   } = usePropertyLinked(data?.id);
 
-  // Use mutation hooks for linking/unlinking clients
   const { linkClients, isLinking } = useLinkClientsToProperty(data.id);
   const { unlinkClient, isUnlinking } = useUnlinkClientFromProperty(data.id);
-
-  // Use mutation hooks for linking/unlinking mandates
   const { linkMandates, isLinking: isLinkingMandates } = useLinkMandatesToProperty(data.id);
   const { unlinkMandate, isUnlinking: isUnlinkingMandates } = useUnlinkMandateFromProperty(data.id);
 
   useEffect(() => {
-    setOpen(defaultEditOpen);
+    setEditOpen(defaultEditOpen);
   }, [defaultEditOpen]);
 
-  // Set public URL after mount to avoid hydration mismatch
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Note: This should be updated to use org-scoped slug URL when org context is available
       setPublicUrl(`${window.location.origin}/property/${data.id}`);
     }
   }, [data.id]);
@@ -124,7 +179,6 @@ export default function PropertyView({
   const handleLinkClients = async (clientIds: string[]) => {
     try {
       await linkClients(clientIds);
-      // Revalidate SWR cache
       await mutateLinked();
     } catch (error) {
       console.error("Failed to link clients:", error);
@@ -136,7 +190,6 @@ export default function PropertyView({
     try {
       await unlinkClient(clientId);
       toast.success("Client unlinked successfully");
-      // Revalidate SWR cache
       await mutateLinked();
     } catch (error) {
       console.error("Failed to unlink client:", error);
@@ -189,239 +242,435 @@ export default function PropertyView({
   };
 
   const copyPublicUrl = () => {
-    // publicUrl is already set to full URL after mount, safe to use here
     navigator.clipboard.writeText(publicUrl);
     setCopied(true);
     toast.success("URL copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const Row = ({ label, value }: { label: string; value: string | number | undefined | null | Record<string, unknown> }) => {
-    const displayValue = value === null || value === undefined
-      ? "N/A"
-      : typeof value === "object"
-      ? JSON.stringify(value)
-      : String(value);
-    return (
-      <div className="-mx-2 flex items-start justify-between space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">
-        <div className="space-y-1">
-          <p className="text-sm font-medium leading-none">{label}</p>
-          <p className="text-sm text-muted-foreground break-all">{displayValue}</p>
-        </div>
-      </div>
-    );
-  };
-
-  // Combine upcoming and past events for the events panel
+  // Derived values
   const allEvents = [...(events.upcoming || []), ...(events.past || [])];
+  const address = [data.address_street, data.address_city, data.address_state, data.address_zip].filter(Boolean).join(", ");
+
+  // =========================================================================
+  // Render
+  // =========================================================================
 
   return (
     <div className="space-y-6">
-      {/* Public Visibility Card - Only show for non-shared (owner) view */}
-      {!isReadOnly && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Globe className="h-5 w-5 text-primary" />
-                <div>
-                  <CardTitle className="text-lg">Public Visibility</CardTitle>
-                  <CardDescription>Control who can see this property</CardDescription>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {visibility === "PUBLIC" ? (
-                  <Badge className="bg-success/15 text-success dark:text-success hover:bg-success/20 flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    Public
-                  </Badge>
-                ) : visibility === "SELECTED" ? (
-                  <Badge className="bg-primary/15 text-primary dark:text-primary hover:bg-primary/20 flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    Connections Only
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Lock className="h-3 w-3" />
-                    Private
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Visibility Options */}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={visibility === "PRIVATE" ? "default" : "outline"}
-                size="sm"
-                leftIcon={<Lock className="h-4 w-4" />}
-                onClick={() => handleVisibilityChange("PRIVATE")}
-                disabled={isUpdatingVisibility}
-              >
-                Private
-              </Button>
-              <Button
-                variant={visibility === "SELECTED" ? "default" : "outline"}
-                size="sm"
-                leftIcon={<Users className="h-4 w-4" />}
-                onClick={() => handleVisibilityChange("SELECTED")}
-                disabled={isUpdatingVisibility}
-              >
-                Connections Only
-              </Button>
-              <Button
-                variant={visibility === "PUBLIC" ? "default" : "outline"}
-                size="sm"
-                leftIcon={<Globe className="h-4 w-4" />}
-                onClick={() => handleVisibilityChange("PUBLIC")}
-                disabled={isUpdatingVisibility}
-              >
-                Public
-              </Button>
-            </div>
-
-            {/* Public URL Preview */}
-            {visibility === "PUBLIC" && (
-              <div className="p-3 bg-muted rounded-lg space-y-2">
-                <p className="text-sm font-medium">Public URL</p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm bg-background px-3 py-2 rounded border truncate">
-                    {publicUrl}
-                  </code>
-                  <Button variant="outline" size="sm" onClick={copyPublicUrl}>
-                    {copied ? (
-                      <Check className="h-4 w-4 text-success" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Link href={`/property/${data.id}`} target="_blank">
-                    <Button variant="outline" size="sm">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {/* Share with Connections */}
-            <div className="flex items-center justify-between pt-2 border-t">
-              <div>
-                <p className="text-sm font-medium">Share with Connections</p>
-                <p className="text-xs text-muted-foreground">
-                  Share this property with your agent network
-                </p>
-              </div>
-              <Button 
-                variant="outline" 
-                leftIcon={<Share2 className="h-4 w-4" />}
-                onClick={() => setShareModalOpen(true)}
-              >
-                Share
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Main Property Card */}
-      <Card>
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
+      {/* ------------------------------------------------------------------ */}
+      {/* Header                                                             */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push(`/${locale}/app/mls/properties`)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <div>
-            <CardTitle>{data.property_name}</CardTitle>
-          </div>
-          {!isReadOnly && (
-            <div className="flex gap-2">
-              <QuickExportButton
-                entityType="property"
-                entityId={data.id}
-                entityName={data.property_name}
-                publicUrl={publicUrl}
-                variant="outline"
-                size="default"
-              />
-              <CreateBookingButton
-                propertyId={data.id}
-                eventType="property-viewing"
-                prefilledData={{
-                  notes: `Property: ${data.property_name}${data.address_street ? ` - ${data.address_street}` : ''}`,
-                }}
-              />
-              <Sheet open={open} onOpenChange={setOpen}>
-                <Button onClick={() => setOpen(true)}>Edit</Button>
-                <SheetContent className="w-full sm:min-w-[600px] lg:min-w-[900px] space-y-2">
-                  <SheetHeader>
-                    <SheetTitle>Edit Property</SheetTitle>
-                  </SheetHeader>
-                  <div className="h-full overflow-y-auto p-2">
-                    <EditPropertyForm initialData={data} />
-                  </div>
-                </SheetContent>
-              </Sheet>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {data.property_name}
+              </h1>
+              {data.property_status && (
+                <Badge
+                  className={statusColors[data.property_status] ?? statusColors.DRAFT}
+                  variant="secondary"
+                >
+                  {displayEnum(data.property_status)}
+                </Badge>
+              )}
+              {data.property_type && (
+                <Badge variant="outline">
+                  {displayEnum(data.property_type)}
+                </Badge>
+              )}
             </div>
-          )}
-        </CardHeader>
-        <Separator />
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-          <div>
-            <Row label="Type" value={data.property_type} />
-            <Row label="Status" value={data.property_status} />
-            <Row label="Assigned to" value={data.assigned_to_user?.name} />
-            <Row label="Price" value={data.price} />
-            <Row label="Bedrooms" value={data.bedrooms} />
-            <Row label="Bathrooms" value={data.bathrooms} />
-            <Row label="Square feet" value={data.size_net_sqm} />
-            <Row label="Lot size" value={data.lot_size} />
-            <Row label="Year built" value={data.year_built} />
-            <Row label="Created" value={formatDateTime(data.createdAt)} />
-            <Row label="Updated" value={formatDateTime(data.updatedAt)} />
+            <p className="text-sm text-muted-foreground mt-0.5">
+              ID: {data.friendlyId ?? data.id}
+            </p>
           </div>
-          <div>
-            <Row label="Description" value={data.description} />
-            <Row label="Address" value={[data.address_street, data.address_city, data.address_state, data.address_zip].filter(Boolean).join(", ")} />
-            <Row label="Preferences" value={data.property_preferences as Record<string, unknown> | null | undefined} />
-            <Row label="Notes" value={data.communication_notes as Record<string, unknown> | null | undefined} />
+        </div>
+        {!isReadOnly && (
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setEditOpen(true)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+            <EntityQuickActions
+              entityType="property"
+              onCreateMandate={() => setCreateMandateOpen(true)}
+              onCreateEvent={() => setCreateEventOpen(true)}
+              onLinkClient={() => setLinkClientDialogOpen(true)}
+              onLinkMandate={() => setLinkMandateDialogOpen(true)}
+            />
+            <QuickExportButton
+              entityType="property"
+              entityId={data.id}
+              entityName={data.property_name}
+              publicUrl={publicUrl}
+              variant="outline"
+              size="default"
+            />
+            <Button
+              variant="outline"
+              leftIcon={<Share2 className="h-4 w-4" />}
+              onClick={() => setShareModalOpen(true)}
+            >
+              Share
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Matching Clients Section */}
-      <PropertyMatchingClients propertyId={data.id} locale={locale} />
-
-      {/* Linked Entities Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        <LinkedEntitiesPanel
-          type="clients"
-          entities={clients as unknown as Array<{ id: string; friendlyId: string; client_name: string; client_type?: string; client_status?: string; primary_email?: string; primary_phone?: string; intent?: string; assigned_to_user?: { id: string; name: string }; }>}
-          isLoading={isLoadingLinked || isLinking || isUnlinking}
-          onLinkEntity={isReadOnly ? undefined : () => setLinkClientDialogOpen(true)}
-          onUnlinkEntity={isReadOnly ? undefined : handleUnlinkClient}
-          showAddButton={!isReadOnly}
-          emptyMessage="No clients linked to this property yet."
-        />
-
-        <LinkedEntitiesPanel
-          type="mandates"
-          entities={linkedMandates}
-          isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
-          onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
-          onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
-          showAddButton={!isReadOnly}
-          emptyMessage="No mandates linked to this property yet."
-        />
-
-        <LinkedEntitiesPanel
-          type="events"
-          entities={allEvents as unknown as Array<{ id: string; friendlyId: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
-          isLoading={isLoadingLinked}
-          showAddButton={false}
-          onCreateEvent={!isReadOnly ? () => setCreateEventOpen(true) : undefined}
-          emptyMessage="No calendar events for this property yet."
-        />
+        )}
       </div>
 
-      {/* Create Event Sheet - pre-linked to this property */}
+      <Separator />
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* ================================================================ */}
+        {/* Left column (2/3)                                                */}
+        {/* ================================================================ */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Property Details */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <DollarSign className="h-4 w-4" />
+                Property Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <DetailField label="Type" value={displayEnum(data.property_type)} />
+                <DetailField label="Status" value={displayEnum(data.property_status)} />
+                <DetailField
+                  label="Price"
+                  value={data.price != null ? formatCurrency(data.price) : null}
+                />
+                <DetailField label="Year Built" value={data.year_built} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Size & Rooms */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Home className="h-4 w-4" />
+                Size & Rooms
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <DetailField
+                  label="Net Area"
+                  value={data.size_net_sqm != null ? `${data.size_net_sqm} m\u00B2` : null}
+                />
+                <DetailField
+                  label="Lot Size"
+                  value={data.lot_size != null ? `${data.lot_size} m\u00B2` : null}
+                />
+                <DetailField label="Bedrooms" value={data.bedrooms} />
+                <DetailField label="Bathrooms" value={data.bathrooms} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Location */}
+          {address && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MapPin className="h-4 w-4" />
+                  Location
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <DetailField label="Street" value={data.address_street} />
+                  <DetailField label="City" value={data.address_city} />
+                  <DetailField label="State / Region" value={data.address_state} />
+                  <DetailField label="ZIP Code" value={data.address_zip} />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Notes */}
+          {!!(data.description || data.property_preferences || data.communication_notes) && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <FileText className="h-4 w-4" />
+                  Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.description && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Description
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">{data.description}</p>
+                  </div>
+                )}
+                {!!(data.property_preferences && typeof data.property_preferences === "object" && Object.keys(data.property_preferences as Record<string, unknown>).length > 0) && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Preferences
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {JSON.stringify(data.property_preferences, null, 2)}
+                    </p>
+                  </div>
+                )}
+                {!!(data.communication_notes && typeof data.communication_notes === "object" && Object.keys(data.communication_notes as Record<string, unknown>).length > 0) && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Communication Notes
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {typeof data.communication_notes === "string"
+                        ? data.communication_notes
+                        : JSON.stringify(data.communication_notes, null, 2)}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Matching Clients */}
+          <PropertyMatchingClients propertyId={data.id} locale={locale} />
+
+          {/* Comments */}
+          {currentUserId && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MessageSquare className="h-4 w-4" />
+                  Comments
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PropertyComments
+                  propertyId={data.id}
+                  canComment={!isReadOnly || sharePermission === "VIEW_COMMENT"}
+                  currentUserId={currentUserId}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* ================================================================ */}
+        {/* Right column (1/3) - sidebar cards                               */}
+        {/* ================================================================ */}
+        <div className="space-y-6">
+          {/* Status & Assignment */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <User className="h-4 w-4" />
+                Status & Assignment
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <DetailField
+                label="Status"
+                value={
+                  data.property_status ? (
+                    <Badge
+                      className={statusColors[data.property_status] ?? statusColors.DRAFT}
+                      variant="secondary"
+                    >
+                      {displayEnum(data.property_status)}
+                    </Badge>
+                  ) : null
+                }
+              />
+              <DetailField
+                label="Type"
+                value={displayEnum(data.property_type)}
+              />
+              <DetailField
+                label="Assigned to"
+                value={data.assigned_to_user?.name}
+              />
+
+              <Separator />
+
+              <div className="grid gap-1 text-xs text-muted-foreground">
+                {data.createdAt && (
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" />
+                    Created: {format(new Date(data.createdAt), "dd/MM/yyyy HH:mm")}
+                  </div>
+                )}
+                {data.updatedAt && (
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" />
+                    Updated: {format(new Date(data.updatedAt), "dd/MM/yyyy HH:mm")}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Portal Visibility - Only for owner view */}
+          {!isReadOnly && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Globe className="h-4 w-4" />
+                  Public Visibility
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  {visibility === "PUBLIC" ? (
+                    <Badge className="bg-success/15 text-success dark:text-success hover:bg-success/20 flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
+                      Public
+                    </Badge>
+                  ) : visibility === "SELECTED" ? (
+                    <Badge className="bg-primary/15 text-primary dark:text-primary hover:bg-primary/20 flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      Connections Only
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Lock className="h-3 w-3" />
+                      Private
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant={visibility === "PRIVATE" ? "default" : "outline"}
+                    size="sm"
+                    leftIcon={<Lock className="h-4 w-4" />}
+                    onClick={() => handleVisibilityChange("PRIVATE")}
+                    disabled={isUpdatingVisibility}
+                  >
+                    Private
+                  </Button>
+                  <Button
+                    variant={visibility === "SELECTED" ? "default" : "outline"}
+                    size="sm"
+                    leftIcon={<Users className="h-4 w-4" />}
+                    onClick={() => handleVisibilityChange("SELECTED")}
+                    disabled={isUpdatingVisibility}
+                  >
+                    Connections
+                  </Button>
+                  <Button
+                    variant={visibility === "PUBLIC" ? "default" : "outline"}
+                    size="sm"
+                    leftIcon={<Globe className="h-4 w-4" />}
+                    onClick={() => handleVisibilityChange("PUBLIC")}
+                    disabled={isUpdatingVisibility}
+                  >
+                    Public
+                  </Button>
+                </div>
+
+                {visibility === "PUBLIC" && (
+                  <div className="p-3 bg-muted rounded-lg space-y-2">
+                    <p className="text-sm font-medium">Public URL</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-sm bg-background px-3 py-2 rounded border truncate">
+                        {publicUrl}
+                      </code>
+                      <Button variant="outline" size="sm" onClick={copyPublicUrl}>
+                        {copied ? (
+                          <Check className="h-4 w-4 text-success" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Link href={`/property/${data.id}`} target="_blank">
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Linked Clients */}
+          <LinkedEntitiesPanel
+            type="clients"
+            entities={clients as unknown as Array<{ id: string; friendlyId: string; client_name: string; client_type?: string; client_status?: string; primary_email?: string; primary_phone?: string; assigned_to_user?: { id: string; name: string }; }>}
+            isLoading={isLoadingLinked || isLinking || isUnlinking}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkClientDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkClient}
+            showAddButton={!isReadOnly}
+            emptyMessage="No clients linked to this property yet."
+          />
+
+          {/* Linked Mandates */}
+          <LinkedEntitiesPanel
+            type="mandates"
+            entities={linkedMandates}
+            isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
+            showAddButton={!isReadOnly}
+            emptyMessage="No mandates linked to this property yet."
+          />
+
+          {/* Calendar Events */}
+          <LinkedEntitiesPanel
+            type="events"
+            entities={allEvents as unknown as Array<{ id: string; friendlyId: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
+            isLoading={isLoadingLinked}
+            showAddButton={false}
+            onCreateEvent={!isReadOnly ? () => setCreateEventOpen(true) : undefined}
+            emptyMessage="No calendar events for this property yet."
+          />
+
+          {/* Export History */}
+          {!isReadOnly && (
+            <ExportHistoryPanel
+              entityType="PROPERTY"
+              entityId={data.id}
+              entityName={data.property_name}
+              onReExport={(record) => {
+                const params = new URLSearchParams({
+                  format: record.exportFormat,
+                  scope: "filtered",
+                });
+                if (record.destination) params.set("destination", record.destination);
+                if (record.exportTemplate) params.set("template", record.exportTemplate);
+                window.open(`/api/export/mls?${params.toString()}`, "_blank");
+              }}
+              maxItems={5}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* ================================================================== */}
+      {/* Edit Sheet                                                         */}
+      {/* ================================================================== */}
+      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Property</SheetTitle>
+          </SheetHeader>
+          <div className="mt-6">
+            <EditPropertyForm initialData={data} />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Create Event Sheet */}
       {!isReadOnly && (
         <EventCreateForm
           open={createEventOpen}
@@ -431,38 +680,7 @@ export default function PropertyView({
         />
       )}
 
-      {/* Export History Section - Only for non-shared view */}
-      {!isReadOnly && (
-        <ExportHistoryPanel
-          entityType="PROPERTY"
-          entityId={data.id}
-          entityName={data.property_name}
-          onReExport={(record) => {
-            // Trigger re-export with same format and destination
-            const params = new URLSearchParams({
-              format: record.exportFormat,
-              scope: "filtered",
-            });
-            if (record.destination) params.set("destination", record.destination);
-            if (record.exportTemplate) params.set("template", record.exportTemplate);
-            
-            // Navigate to export or trigger download
-            window.open(`/api/export/mls?${params.toString()}`, "_blank");
-          }}
-          maxItems={5}
-        />
-      )}
-
-      {/* Comments Section - Show for org members and sharees with VIEW_COMMENT */}
-      {currentUserId && (
-        <PropertyComments
-          propertyId={data.id}
-          canComment={!isReadOnly || sharePermission === "VIEW_COMMENT"}
-          currentUserId={currentUserId}
-        />
-      )}
-
-      {/* Link Client Dialog - Only for non-shared view */}
+      {/* Link Client Dialog */}
       {!isReadOnly && (
         <LinkEntityDialog
           open={linkClientDialogOpen}
@@ -477,7 +695,7 @@ export default function PropertyView({
         />
       )}
 
-      {/* Link Mandate Dialog - Only for non-shared view */}
+      {/* Link Mandate Dialog */}
       {!isReadOnly && (
         <LinkEntityDialog
           open={linkMandateDialogOpen}
@@ -492,7 +710,7 @@ export default function PropertyView({
         />
       )}
 
-      {/* Share Modal - Only for non-shared view */}
+      {/* Share Modal */}
       {!isReadOnly && (
         <ShareModal
           open={shareModalOpen}
@@ -502,6 +720,46 @@ export default function PropertyView({
           entityName={data.property_name}
         />
       )}
+
+      {/* Quick Add Mandate */}
+      {!isReadOnly && (
+        <QuickAddMandate
+          open={createMandateOpen}
+          onOpenChange={setCreateMandateOpen}
+          organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
+          preLinkedPropertyId={data.id}
+          onSuccess={() => mutateLinked()}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Reusable sub-component
+// ---------------------------------------------------------------------------
+
+function DetailField({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode | string | number | null | undefined;
+}) {
+  return (
+    <div>
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <div className="mt-0.5 text-sm">
+        {value !== null && value !== undefined ? (
+          typeof value === "string" || typeof value === "number" ? (
+            <span>{value}</span>
+          ) : (
+            value
+          )
+        ) : (
+          <span className="text-muted-foreground/60">-</span>
+        )}
+      </div>
     </div>
   );
 }

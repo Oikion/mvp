@@ -12,7 +12,6 @@ export interface SharedClientData {
   primary_email: string | null;
   primary_phone: string | null;
   client_status: string | null;
-  intent: string | null;
   createdAt: Date;
   sharedAt: Date;
   permissions: string;
@@ -65,7 +64,6 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
           primary_email: true,
           primary_phone: true,
           client_status: true,
-          intent: true,
           createdAt: true,
         },
       });
@@ -80,7 +78,6 @@ export const getSharedClients = async (): Promise<SharedClientData[]> => {
         primary_email: client.primary_email,
         primary_phone: client.primary_phone,
         client_status: client.client_status as string | null,
-        intent: client.intent as string | null,
         createdAt: client.createdAt,
         sharedAt: share.createdAt,
         permissions: share.permissions,

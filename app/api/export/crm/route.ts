@@ -123,8 +123,6 @@ export async function GET(req: NextRequest) {
         primary_phone: true,
         client_type: true,
         client_status: true,
-        budget_min: true,
-        budget_max: true,
         billing_city: true,
         billing_country: true,
         description: true,
@@ -210,9 +208,6 @@ export async function GET(req: NextRequest) {
     const exportData = decryptedClients.map(client => ({
       ...client,
       assigned_to_name: client.Users_Clients_assigned_toToUsers?.name || "",
-      // Convert Decimal fields to numbers
-      budget_min: client.budget_min ? Number(client.budget_min) : null,
-      budget_max: client.budget_max ? Number(client.budget_max) : null,
     }));
     
     // Create audit log

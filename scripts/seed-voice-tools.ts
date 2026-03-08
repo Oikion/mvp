@@ -171,7 +171,7 @@ const voiceTools: VoiceToolDefinition[] = [
         },
         transactionType: {
           type: "string",
-          enum: ["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"],
+          enum: ["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE", "AUCTION"],
           description: "Type of transaction (sale, rent, etc.)",
         },
         price: {

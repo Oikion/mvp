@@ -54,11 +54,6 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
             >
               {statusLabel}
             </Badge>
-            {data.intent && (
-              <Badge variant="outline" className="text-xs">
-                {data.intent}
-              </Badge>
-            )}
           </div>
         </div>
       </CardHeader>

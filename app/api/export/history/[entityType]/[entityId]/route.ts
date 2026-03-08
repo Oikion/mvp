@@ -105,8 +105,6 @@ export async function GET(
         where: { id: entityId, organizationId: orgId },
         select: {
           client_status: true,
-          budget_min: true,
-          budget_max: true,
           primary_email: true,
           primary_phone: true,
         },
@@ -114,8 +112,6 @@ export async function GET(
       if (client) {
         currentData = {
           client_status: client.client_status,
-          budget_min: client.budget_min ? Number(client.budget_min) : null,
-          budget_max: client.budget_max ? Number(client.budget_max) : null,
           primary_email: client.primary_email,
           primary_phone: client.primary_phone,
         };

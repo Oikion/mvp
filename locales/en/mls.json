@@ -153,7 +153,8 @@
       "SALE": "Sale",
       "RENTAL": "Rental",
       "SHORT_TERM": "Short Term",
-      "EXCHANGE": "Exchange"
+      "EXCHANGE": "Exchange",
+      "AUCTION": "Auction"
     },
     "status": {
       "ACTIVE": "Active",

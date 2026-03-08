@@ -5,7 +5,6 @@ import { SlidersHorizontal, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
@@ -26,11 +25,8 @@ import {
 export interface ClientFilters {
   status: string[];
   clientType: string[];
-  intent: string[];
   leadSource: string[];
   assignedTo: string;
-  budgetMin: number | null;
-  budgetMax: number | null;
 }
 
 interface ClientFilterDrawerProps {
@@ -58,14 +54,6 @@ const CLIENT_TYPE_OPTIONS = [
   { value: "REFERRAL_PARTNER", label: "Referral Partner" },
 ];
 
-const INTENT_OPTIONS = [
-  { value: "BUY", label: "Buy" },
-  { value: "RENT", label: "Rent" },
-  { value: "SELL", label: "Sell" },
-  { value: "LEASE", label: "Lease" },
-  { value: "INVEST", label: "Invest" },
-];
-
 const LEAD_SOURCE_OPTIONS = [
   { value: "REFERRAL", label: "Referral" },
   { value: "WEB", label: "Web" },
@@ -78,11 +66,8 @@ function countActiveFilters(filters: ClientFilters): number {
   let count = 0;
   if (filters.status.length > 0) count++;
   if (filters.clientType.length > 0) count++;
-  if (filters.intent.length > 0) count++;
   if (filters.leadSource.length > 0) count++;
   if (filters.assignedTo) count++;
-  if (filters.budgetMin !== null) count++;
-  if (filters.budgetMax !== null) count++;
   return count;
 }
 
@@ -140,11 +125,8 @@ function CheckboxGroup({ label, options, selected, onChange }: CheckboxGroupProp
 const EMPTY_FILTERS: ClientFilters = {
   status: [],
   clientType: [],
-  intent: [],
   leadSource: [],
   assignedTo: "",
-  budgetMin: null,
-  budgetMax: null,
 };
 
 export function ClientFilterDrawer({
@@ -224,18 +206,6 @@ export function ClientFilterDrawer({
 
           <Separator />
 
-          {/* Intent */}
-          <CheckboxGroup
-            label="Intent"
-            options={INTENT_OPTIONS}
-            selected={localFilters.intent}
-            onChange={(values) =>
-              setLocalFilters((prev) => ({ ...prev, intent: values }))
-            }
-          />
-
-          <Separator />
-
           {/* Lead Source */}
           <CheckboxGroup
             label="Lead Source"
@@ -287,68 +257,6 @@ export function ClientFilterDrawer({
             </Select>
           </div>
 
-          <Separator />
-
-          {/* Budget Range */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Budget Range</h4>
-              {(localFilters.budgetMin !== null || localFilters.budgetMax !== null) && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setLocalFilters((prev) => ({
-                      ...prev,
-                      budgetMin: null,
-                      budgetMax: null,
-                    }))
-                  }
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  €
-                </span>
-                <Input
-                  type="number"
-                  placeholder="Min"
-                  value={localFilters.budgetMin ?? ""}
-                  onChange={(e) =>
-                    setLocalFilters((prev) => ({
-                      ...prev,
-                      budgetMin: e.target.value ? Number(e.target.value) : null,
-                    }))
-                  }
-                  className="h-9 pl-7"
-                  min={0}
-                />
-              </div>
-              <span className="text-muted-foreground text-sm shrink-0">—</span>
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  €
-                </span>
-                <Input
-                  type="number"
-                  placeholder="Max"
-                  value={localFilters.budgetMax ?? ""}
-                  onChange={(e) =>
-                    setLocalFilters((prev) => ({
-                      ...prev,
-                      budgetMax: e.target.value ? Number(e.target.value) : null,
-                    }))
-                  }
-                  className="h-9 pl-7"
-                  min={0}
-                />
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}

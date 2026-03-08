@@ -27,6 +27,7 @@ import { ExportButton } from "@/components/export";
 import { PublishToPortalsModal } from "@/components/modals/PublishToPortalsModal";
 import { statuses } from "../properties/table-data/data";
 import { formatCompactCurrency } from "@/lib/formatting";
+import moment from "moment";
 
 interface PropertiesPageViewProps {
   agencyProperties: any[];
@@ -109,6 +110,34 @@ export default function PropertiesPageView({
   ).length;
   const totalValue = agencyProperties.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
 
+  // 6-month chart data for stats cards
+  const monthlyChartData = useMemo(() => {
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const m = moment().subtract(5 - i, "months");
+      return { start: m.clone().startOf("month"), end: m.clone().endOf("month") };
+    });
+
+    const totalChartData = months.map(({ end }) => ({
+      value: agencyProperties.filter((p: any) => moment(p.createdAt).isSameOrBefore(end)).length,
+    }));
+
+    const activeChartData = months.map(({ end }) => ({
+      value: agencyProperties.filter(
+        (p: any) => p.property_status === "ACTIVE" && moment(p.createdAt).isSameOrBefore(end)
+      ).length,
+    }));
+
+    const valueChartData = months.map(({ end }) => ({
+      value: agencyProperties
+        .filter((p: any) => moment(p.createdAt).isSameOrBefore(end))
+        .reduce((sum: number, p: any) => sum + (Number(p.price) || 0), 0),
+    }));
+
+    const sharedChartData = months.map(() => ({ value: 1 }));
+
+    return { totalChartData, activeChartData, valueChartData, sharedChartData };
+  }, [agencyProperties]);
+
   const filteredSharedProperties = useMemo(() => {
     return sharedProperties.filter((item) =>
       item.property_name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -148,6 +177,8 @@ export default function PropertiesPageView({
           value={totalProperties.toString()}
           icon={<Home className="h-4 w-4" />}
           description={t("Stats.allTimeProperties")}
+          chartData={monthlyChartData.totalChartData}
+          chartColor="hsl(var(--chart-1))"
           actionLabel={t("Stats.addProperty")}
           emptyMessage={t("Stats.noPropertiesYet")}
           onAction={() => setOpen(true)}
@@ -157,6 +188,8 @@ export default function PropertiesPageView({
           value={activeProperties.toString()}
           icon={<Activity className="h-4 w-4" />}
           description={t("Stats.currentlyOnMarket")}
+          chartData={monthlyChartData.activeChartData}
+          chartColor="hsl(var(--chart-2))"
           trendUp={activeProperties > 0}
           actionLabel={t("Stats.addProperty")}
           emptyMessage={t("Stats.noActiveListings")}
@@ -167,6 +200,8 @@ export default function PropertiesPageView({
           value={formatCompactCurrency(totalValue)}
           icon={<DollarSign className="h-4 w-4" />}
           description={t("Stats.totalListingValue")}
+          chartData={monthlyChartData.valueChartData}
+          chartColor="hsl(var(--chart-3))"
           actionLabel={t("Stats.addProperty")}
           emptyMessage={t("Stats.addPropertiesToTrack")}
           onAction={() => setOpen(true)}
@@ -176,6 +211,9 @@ export default function PropertiesPageView({
           value={sharedProperties.length.toString()}
           icon={<Share2 className="h-4 w-4" />}
           description={t("Stats.fromConnections")}
+          chartData={monthlyChartData.sharedChartData}
+          chartColor="hsl(var(--muted-foreground))"
+          chartPlaceholder
           actionHref={`/${locale}/app/network/profile?tab=find`}
           actionLabel={t("Stats.findAgents")}
           emptyMessage={t("Stats.connectToReceive")}

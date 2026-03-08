@@ -24,35 +24,6 @@ export const PersonTypeEnum = z.enum([
   "BROKER",
 ]);
 
-export const ClientIntentEnum = z.enum([
-  "BUY",
-  "RENT",
-  "SELL",
-  "LEASE",
-  "INVEST",
-]);
-
-export const PropertyPurposeEnum = z.enum([
-  "RESIDENTIAL",
-  "COMMERCIAL",
-  "LAND",
-  "PARKING",
-  "OTHER",
-]);
-
-export const TimelineEnum = z.enum([
-  "IMMEDIATE",
-  "ONE_THREE_MONTHS",
-  "THREE_SIX_MONTHS",
-  "SIX_PLUS_MONTHS",
-]);
-
-export const FinancingTypeEnum = z.enum([
-  "CASH",
-  "MORTGAGE",
-  "PREAPPROVAL_PENDING",
-]);
-
 export const LeadSourceEnum = z.enum([
   "REFERRAL",
   "WEB",
@@ -91,7 +62,6 @@ export const clientImportSchema = z.object({
   client_type: ClientTypeEnum.optional().nullable(),
   client_status: ClientStatusEnum.optional().nullable(),
   person_type: PersonTypeEnum.optional().nullable(),
-  intent: ClientIntentEnum.optional().nullable(),
 
   // Company details - coerce to handle numeric IDs from CSV
   company_id: z.coerce.string().optional().or(z.literal("")),
@@ -114,17 +84,6 @@ export const clientImportSchema = z.object({
   billing_state: z.coerce.string().optional().or(z.literal("")),
   billing_postal_code: z.coerce.string().optional().or(z.literal("")),
   billing_country: z.coerce.string().optional().or(z.literal("")),
-
-  // Property preferences
-  purpose: PropertyPurposeEnum.optional().nullable(),
-  budget_min: z.coerce.number().positive().optional().nullable(),
-  budget_max: z.coerce.number().positive().optional().nullable(),
-  timeline: TimelineEnum.optional().nullable(),
-
-  // Financing
-  financing_type: FinancingTypeEnum.optional().nullable(),
-  preapproval_bank: z.coerce.string().optional().or(z.literal("")),
-  needs_mortgage_help: z.coerce.boolean().optional().default(false),
 
   // Lead source and consent
   lead_source: LeadSourceEnum.optional().nullable(),
@@ -231,14 +190,6 @@ export const clientImportFieldDefinitions: readonly ClientFieldDefinition[] = [
     aliases: ["entity_type", "customer_category", "typos_prosopou"],
     description: "Person type (INDIVIDUAL, COMPANY, etc.)"
   },
-  { 
-    key: "intent", 
-    required: false, 
-    group: "classification", 
-    aliases: ["interest", "looking_for", "prothesi", "purpose"],
-    description: "Client intent (BUY, RENT, SELL, LEASE, INVEST)"
-  },
-
   // Company
   { 
     key: "company_name", 
@@ -341,59 +292,6 @@ export const clientImportFieldDefinitions: readonly ClientFieldDefinition[] = [
     group: "address", 
     aliases: ["country", "chora"],
     description: "Country"
-  },
-
-  // Preferences
-  { 
-    key: "purpose", 
-    required: false, 
-    group: "preferences", 
-    aliases: ["property_purpose", "looking_for", "property_type_interest"],
-    description: "Property purpose interest (RESIDENTIAL, COMMERCIAL, etc.)"
-  },
-  { 
-    key: "budget_min", 
-    required: false, 
-    group: "preferences", 
-    aliases: ["min_budget", "minimum_budget", "budget_from", "elachisto_budget"],
-    description: "Minimum budget (EUR)"
-  },
-  { 
-    key: "budget_max", 
-    required: false, 
-    group: "preferences", 
-    aliases: ["max_budget", "maximum_budget", "budget_to", "megisto_budget"],
-    description: "Maximum budget (EUR)"
-  },
-  { 
-    key: "timeline", 
-    required: false, 
-    group: "preferences", 
-    aliases: ["timeframe", "purchase_timeline", "when", "chronodiagranna"],
-    description: "Purchase/rental timeline"
-  },
-
-  // Financing
-  { 
-    key: "financing_type", 
-    required: false, 
-    group: "financing", 
-    aliases: ["payment_method", "financing", "finance_type", "tropos_plironis"],
-    description: "Financing type (CASH, MORTGAGE, etc.)"
-  },
-  { 
-    key: "preapproval_bank", 
-    required: false, 
-    group: "financing", 
-    aliases: ["bank", "mortgage_bank", "trapeza"],
-    description: "Pre-approval bank name"
-  },
-  { 
-    key: "needs_mortgage_help", 
-    required: false, 
-    group: "financing", 
-    aliases: ["mortgage_help", "needs_financing_help", "voitheia_daniou"],
-    description: "Needs mortgage assistance (true/false)"
   },
 
   // Other

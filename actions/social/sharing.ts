@@ -236,7 +236,6 @@ export async function getSharedWithMe(entityType?: SharedEntityType) {
               primary_email: true,
               primary_phone: true,
               client_status: true,
-              intent: true,
             },
           });
           break;

@@ -89,6 +89,7 @@ function generateXeXml(property: PropertyData, locale: string): string {
       SALE: "sale",
       RENTAL: "rent",
       SHORT_TERM: "short_term_rent",
+      AUCTION: "auction",
     };
     return typeMap[type || ""] || "sale";
   };

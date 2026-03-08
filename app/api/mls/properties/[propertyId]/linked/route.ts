@@ -81,7 +81,6 @@ export async function GET(
             client_status: true,
             primary_email: true,
             primary_phone: true,
-            intent: true,
             createdAt: true,
             updatedAt: true,
             Users_Clients_assigned_toToUsers: {

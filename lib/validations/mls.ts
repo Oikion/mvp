@@ -45,6 +45,7 @@ export const transactionTypeSchema = z.enum([
   "RENTAL",
   "SHORT_TERM",
   "EXCHANGE",
+  "AUCTION",
 ]);
 
 // Heating type - matches Prisma HeatingType enum

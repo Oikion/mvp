@@ -46,6 +46,7 @@ import { LinkEntityDialog } from "@/components/linking/LinkEntityDialog"
 import EditMandateForm from "./EditMandateForm"
 import MandateComments from "./MandateComments"
 import { EventCreateForm } from "@/components/calendar/EventCreateForm"
+import { EntityQuickActions } from "@/components/entity-actions/EntityQuickActions"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -77,6 +78,7 @@ interface MandateCommentData {
 
 interface Mandate {
   id: string
+  friendlyId?: string
   title: string
   status: string
   urgency?: string | null
@@ -172,12 +174,13 @@ const formatCurrency = (value: number) =>
 function formatRange(
   min: number | null | undefined,
   max: number | null | undefined,
-  formatter?: (v: number) => string
+  formatter?: (v: number) => string,
+  upToLabel?: string
 ) {
   const fmt = formatter ?? String
   if (min != null && max != null) return `${fmt(min)} - ${fmt(max)}`
   if (min != null) return `${fmt(min)}+`
-  if (max != null) return `up to ${fmt(max)}`
+  if (max != null) return `${upToLabel ?? "up to"} ${fmt(max)}`
   return null
 }
 
@@ -240,24 +243,29 @@ export default function MandateView({
   }
 
   // --- Derived values ---
-  const budgetRange = formatRange(mandate.budget_min, mandate.budget_max, formatCurrency)
+  const upTo = t("budget.upTo")
+  const budgetRange = formatRange(mandate.budget_min, mandate.budget_max, formatCurrency, upTo)
   const sizeRange = formatRange(
     mandate.size_min_sqm,
     mandate.size_max_sqm,
-    (v) => `${v} m\u00B2`
+    (v) => `${v} m\u00B2`,
+    upTo
   )
   const plotSizeRange = formatRange(
     mandate.plot_size_min_sqm,
     mandate.plot_size_max_sqm,
-    (v) => `${v} m\u00B2`
+    (v) => `${v} m\u00B2`,
+    upTo
   )
-  const bedroomsRange = formatRange(mandate.bedrooms_min, mandate.bedrooms_max)
+  const bedroomsRange = formatRange(mandate.bedrooms_min, mandate.bedrooms_max, undefined, upTo)
   const bathroomsRange = formatRange(
     mandate.bathrooms_min,
-    mandate.bathrooms_max
+    mandate.bathrooms_max,
+    undefined,
+    upTo
   )
-  const floorRange = formatRange(mandate.floor_min, mandate.floor_max)
-  const yearRange = formatRange(mandate.year_built_min, mandate.year_built_max)
+  const floorRange = formatRange(mandate.floor_min, mandate.floor_max, undefined, upTo)
+  const yearRange = formatRange(mandate.year_built_min, mandate.year_built_max, undefined, upTo)
 
   const areas = Array.isArray(mandate.areas_of_interest)
     ? mandate.areas_of_interest
@@ -311,14 +319,22 @@ export default function MandateView({
               )}
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">
-              ID: {mandate.id}
+              ID: {mandate.friendlyId ?? mandate.id}
             </p>
           </div>
         </div>
-        <Button onClick={() => setEditOpen(true)}>
-          <Edit className="mr-2 h-4 w-4" />
-          {t("MandateView.edit")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setEditOpen(true)}>
+            <Edit className="mr-2 h-4 w-4" />
+            {t("MandateView.edit")}
+          </Button>
+          <EntityQuickActions
+            entityType="mandate"
+            onCreateEvent={() => setCreateEventOpen(true)}
+            onLinkProperty={() => setLinkPropertyDialogOpen(true)}
+            onLinkClient={() => setLinkClientDialogOpen(true)}
+          />
+        </div>
       </div>
 
       <Separator />
@@ -593,7 +609,7 @@ export default function MandateView({
                 {mandate.communication_notes && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground mb-1">
-                        Communication Notes
+                        {t("MandateView.communicationNotes")}
                       </p>
                       <p className="text-sm whitespace-pre-wrap">
                         {typeof mandate.communication_notes === "string"
@@ -688,13 +704,13 @@ export default function MandateView({
                 {mandate.createdAt && (
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3 w-3" />
-                    Created: {format(new Date(mandate.createdAt), "dd/MM/yyyy HH:mm")}
+                    {t("MandateView.created")} {format(new Date(mandate.createdAt), "dd/MM/yyyy HH:mm")}
                   </div>
                 )}
                 {mandate.updatedAt && (
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3 w-3" />
-                    Updated: {format(new Date(mandate.updatedAt), "dd/MM/yyyy HH:mm")}
+                    {t("MandateView.updated")} {format(new Date(mandate.updatedAt), "dd/MM/yyyy HH:mm")}
                   </div>
                 )}
               </div>

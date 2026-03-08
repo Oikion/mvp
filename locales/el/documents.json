@@ -3,6 +3,33 @@
     "title": "Έγγραφα",
     "description": "Διαχειριστείτε και μοιραστείτε τα έγγραφά σας με πελάτες, ακίνητα και συμβάντα"
   },
+  "DocumentsPage": {
+    "title": "Βιβλιοθήκη Εγγράφων",
+    "description": "Διαχειριστείτε, μοιραστείτε και εξάγετε τα έγγραφά σας"
+  },
+  "DocumentsTable": {
+    "created": "Δημιουργία",
+    "name": "Όνομα",
+    "type": "Τύπος",
+    "description": "Περιγραφή",
+    "sharing": "Κοινοποίηση",
+    "views": "Προβολές",
+    "private": "Ιδιωτικό",
+    "shared": "Κοινόχρηστο",
+    "sharedProtected": "Προστατευμένο",
+    "filterPlaceholder": "Αναζήτηση εγγράφων...",
+    "noResults": "Δεν βρέθηκαν έγγραφα"
+  },
+  "DocumentSystemType": {
+    "INVOICE": "Τιμολόγιο",
+    "RECEIPT": "Απόδειξη",
+    "CONTRACT": "Συμβόλαιο",
+    "OFFER": "Προσφορά",
+    "OTHER": "Άλλο"
+  },
+  "Filters": {
+    "documentType": "Τύπος Εγγράφου"
+  },
   "edit": "Επεξεργασία",
   "download": "Λήψη",
   "documentPreview": "Προεπισκόπηση Εγγράφου",

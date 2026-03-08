@@ -4,6 +4,7 @@ import { KeyboardShortcutsProvider } from "@/components/providers/KeyboardShortc
 import { KeyboardShortcutsModal } from "@/components/modals/KeyboardShortcutsModal";
 import { AriaLiveProvider } from "@/components/ui/aria-live";
 import { LayoutPreferenceProvider, LayoutPreferenceValue } from "@/lib/layout-preference";
+import { E2EEProvider } from "@/hooks/useE2EE";
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -25,10 +26,12 @@ export function AppProviders({
   return (
     <AriaLiveProvider>
       <LayoutPreferenceProvider initialLayout={initialLayoutPreference}>
-        <KeyboardShortcutsProvider>
-          {children}
-          <KeyboardShortcutsModal />
-        </KeyboardShortcutsProvider>
+        <E2EEProvider>
+          <KeyboardShortcutsProvider>
+            {children}
+            <KeyboardShortcutsModal />
+          </KeyboardShortcutsProvider>
+        </E2EEProvider>
       </LayoutPreferenceProvider>
     </AriaLiveProvider>
   );

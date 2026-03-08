@@ -16,22 +16,7 @@ import { StatusCell } from "./cells/StatusCell";
 import { UrgencyCell } from "./cells/UrgencyCell";
 import { AssignedUserCell } from "./cells/AssignedUserCell";
 import { TransactionTypeCell } from "./cells/TransactionTypeCell";
-
-function formatBudget(min?: number | string | null, max?: number | string | null): string {
-  const minVal = min ? Number(min) : null;
-  const maxVal = max ? Number(max) : null;
-
-  const fmt = (n: number) => {
-    if (n >= 1_000_000) return `\u20AC${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `\u20AC${(n / 1_000).toFixed(0)}K`;
-    return `\u20AC${n.toLocaleString()}`;
-  };
-
-  if (minVal && maxVal) return `${fmt(minVal)} - ${fmt(maxVal)}`;
-  if (minVal) return `${fmt(minVal)}+`;
-  if (maxVal) return `up to ${fmt(maxVal)}`;
-  return "\u2014";
-}
+import { BudgetCell } from "./cells/BudgetCell";
 
 export const getColumns = (
   t: (key: string) => string,
@@ -109,9 +94,11 @@ export const getColumns = (
       <DataTableColumnHeader column={column} title={t("MandatesTable.budget")} />
     ),
     cell: ({ row }) => (
-      <div className="whitespace-nowrap">
-        {formatBudget(row.original.budget_min, row.original.budget_max)}
-      </div>
+      <BudgetCell
+        mandateId={row.original.id}
+        budgetMin={row.original.budget_min}
+        budgetMax={row.original.budget_max}
+      />
     ),
     enableSorting: false,
     enableHiding: true,

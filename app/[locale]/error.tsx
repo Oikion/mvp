@@ -65,13 +65,13 @@ export default function LocaleError({
             </Button>
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" asChild size="lg">
-                <a href="/app">
+                <a href="/app" className="inline-flex items-center justify-center">
                   <LayoutDashboard className="w-4 h-4 mr-2" />
                   Back to Dashboard
                 </a>
               </Button>
               <Button variant="outline" asChild size="lg">
-                <a href="/">
+                <a href="/" className="inline-flex items-center justify-center">
                   <Globe className="w-4 h-4 mr-2" />
                   Back to Website
                 </a>

@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { User, Euro, Info, Target, RefreshCw, ExternalLink } from "lucide-react";
+import { User, Info, Target, RefreshCw, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { getPropertyMatches } from "@/actions/matchmaking";
@@ -22,16 +22,6 @@ interface Props {
   propertyId: string;
   locale?: string;
 }
-
-function formatPrice(price: number | null | undefined): string {
-  if (!price) return "N/A";
-  return new Intl.NumberFormat("el-GR", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(price);
-}
-
 
 function getScoreColor(score: number): string {
   if (score >= 85) return "bg-success";
@@ -63,12 +53,6 @@ function MatchScoreTooltip({ breakdown }: { breakdown: CriterionScore[] }) {
 export function PropertyMatchingClients({ propertyId, locale = "en" }: Props) {
   const t = useTranslations("matchmaking");
 
-  function formatBudget(min: number | null | undefined, max: number | null | undefined): string {
-    if (!min && !max) return t("common.noBudget");
-    if (!min) return t("common.budgetUpTo", { amount: formatPrice(max) });
-    if (!max) return t("common.budgetFrom", { amount: formatPrice(min) });
-    return `${formatPrice(min)} - ${formatPrice(max)}`;
-  }
   const [matches, setMatches] = useState<MatchResultWithClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -180,15 +164,6 @@ export function PropertyMatchingClients({ propertyId, locale = "en" }: Props) {
                     {match.client.full_name || match.client.client_name}
                   </Link>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
-                    {match.client.intent && (
-                      <Badge variant="outline" className="text-xs">
-                        {match.client.intent}
-                      </Badge>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <Euro className="h-3 w-3" />
-                      {formatBudget(match.client.budget_min, match.client.budget_max)}
-                    </span>
                     {match.client.client_status && (
                       <Badge
                         variant={match.client.client_status === "ACTIVE" ? "default" : "secondary"}

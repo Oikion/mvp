@@ -67,7 +67,7 @@ export async function getPublicProperty(propertyId: string) {
 export async function getPublicProperties(options?: {
   limit?: number;
   offset?: number;
-  transactionType?: "SALE" | "RENTAL" | "SHORT_TERM";
+  transactionType?: "SALE" | "RENTAL" | "SHORT_TERM" | "EXCHANGE" | "AUCTION";
   propertyType?: string;
   minPrice?: number;
   maxPrice?: number;

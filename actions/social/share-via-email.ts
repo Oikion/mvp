@@ -83,14 +83,13 @@ async function getClientDetails(
       friendlyId: true,
       client_name: true,
       primary_email: true,
-      intent: true,
       client_status: true,
     },
   });
 
   if (!client) return null;
 
-  const description = [client.intent, client.client_status]
+  const description = [client.client_status]
     .filter(Boolean)
     .join(" • ");
 

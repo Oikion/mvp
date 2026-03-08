@@ -28,10 +28,8 @@ export async function POST(request: NextRequest) {
             email: "maria@example.com",
             phone: "+30 694 123 4567",
             status: "ACTIVE",
-            intent: "BUY",
-            areasOfInterest: "Glyfada, Voula",
-            budgetMin: 200000,
-            budgetMax: 350000,
+
+
             lastUpdated: new Date().toISOString(),
           },
           {
@@ -41,10 +39,8 @@ export async function POST(request: NextRequest) {
             email: "nikos@example.com",
             phone: "+30 697 987 6543",
             status: "LEAD",
-            intent: "RENT",
-            areasOfInterest: "Kolonaki, Kifisia",
-            budgetMin: null,
-            budgetMax: 1500,
+
+
             lastUpdated: new Date().toISOString(),
           },
         ],
@@ -59,7 +55,6 @@ export async function POST(request: NextRequest) {
       search,
       name,
       status,
-      intent,
       limit = 10,
     } = body;
 
@@ -83,10 +78,6 @@ export async function POST(request: NextRequest) {
       where.client_status = status;
     }
 
-    if (intent) {
-      where.intent = intent;
-    }
-
     // Fetch clients
     const clients = await prismadb.clients.findMany({
       where,
@@ -99,10 +90,6 @@ export async function POST(request: NextRequest) {
         primary_email: true,
         primary_phone: true,
         client_status: true,
-        intent: true,
-        areas_of_interest: true,
-        budget_min: true,
-        budget_max: true,
         updatedAt: true,
       },
     });
@@ -116,10 +103,6 @@ export async function POST(request: NextRequest) {
         email: client.primary_email,
         phone: client.primary_phone,
         status: client.client_status,
-        intent: client.intent,
-        areasOfInterest: client.areas_of_interest,
-        budgetMin: client.budget_min,
-        budgetMax: client.budget_max,
         lastUpdated: client.updatedAt?.toISOString(),
       })),
       count: clients.length,

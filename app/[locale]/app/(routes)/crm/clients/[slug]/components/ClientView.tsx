@@ -1,20 +1,43 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import moment from "moment";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import {
+  ArrowLeft,
+  Edit,
+  User,
+  Mail,
+  MapPin,
+  FileText,
+  Building2,
+  Clock,
+  Share2,
+  MessageSquare,
+} from "lucide-react";
 import { UpdateAccountForm } from "../../../accounts/components/UpdateAccountForm";
-import { CreateBookingButton } from "@/components/calendar/CreateBookingButton";
 import { LinkedEntitiesPanel, LinkEntityDialog } from "@/components/linking";
 import { EventCreateForm } from "@/components/calendar/EventCreateForm";
+import { EntityQuickActions } from "@/components/entity-actions/EntityQuickActions";
 import { ShareModal } from "@/components/social/ShareModal";
 import { ClientComments } from "./ClientComments";
-import { ClientMatchingProperties } from "./ClientMatchingProperties";
+
 import { toast } from "sonner";
-import { Share2, Users } from "lucide-react";
 import {
   useClientLinked,
   useLinkPropertiesToClient,
@@ -23,15 +46,17 @@ import {
   useUnlinkMandateFromClient,
 } from "@/hooks/swr";
 import { QuickExportButton } from "@/components/export";
+import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 
-const formatDateTime = (value?: Date | string | null) => {
-  if (!value) return "N/A";
-  return moment(value).format("DD/MM/YYYY, HH:mm:ss");
-};
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface ClientViewProps {
   data: {
     id: string;
+    friendlyId?: string;
     client_name: string;
     client_type?: string;
     client_status?: string;
@@ -52,7 +77,7 @@ interface ClientViewProps {
     shipping_city?: string;
     shipping_state?: string;
     shipping_country?: string;
-    property_preferences?: Record<string, unknown>;
+
     communication_notes?: Record<string, unknown>;
     assigned_to?: string;
     assigned_to_user?: { name: string };
@@ -70,21 +95,42 @@ interface ClientViewProps {
   locale?: string;
 }
 
-export default function ClientView({ 
-  data, 
-  defaultEditOpen = false, 
+// ---------------------------------------------------------------------------
+// Status badge styles
+// ---------------------------------------------------------------------------
+
+const statusColors: Record<string, string> = {
+  LEAD: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  ACTIVE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  INACTIVE: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+  CONVERTED: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  LOST: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+};
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+export default function ClientView({
+  data,
+  defaultEditOpen = false,
   isReadOnly = false,
   sharePermission = null,
   currentUserId = "",
   locale = "en",
 }: ClientViewProps) {
-  const [open, setOpen] = useState(defaultEditOpen);
+  const router = useRouter();
+  const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
   const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [createMandateOpen, setCreateMandateOpen] = useState(false);
 
-  // Use SWR for linked data fetching
+  // Organization users for QuickAddMandate
+  const { users: orgUsers } = useOrgUsers({ enabled: !isReadOnly });
+
+  // Linked entities via SWR
   const {
     properties,
     mandates: linkedMandates,
@@ -93,20 +139,18 @@ export default function ClientView({
     mutate: mutateLinked,
   } = useClientLinked(data?.id);
 
-  // Use mutation hooks for linking/unlinking
   const { linkProperties, isLinking } = useLinkPropertiesToClient(data.id);
   const { unlinkProperty, isUnlinking } = useUnlinkPropertyFromClient(data.id);
   const { linkMandates, isLinking: isLinkingMandates } = useLinkMandatesToClient(data.id);
   const { unlinkMandate, isUnlinking: isUnlinkingMandates } = useUnlinkMandateFromClient(data.id);
 
   useEffect(() => {
-    setOpen(defaultEditOpen);
+    setEditOpen(defaultEditOpen);
   }, [defaultEditOpen]);
 
   const handleLinkProperties = async (propertyIds: string[]) => {
     try {
       await linkProperties(propertyIds);
-      // Revalidate SWR cache
       await mutateLinked();
     } catch (error) {
       console.error("Failed to link properties:", error);
@@ -118,7 +162,6 @@ export default function ClientView({
     try {
       await unlinkProperty(propertyId);
       toast.success("Property unlinked successfully");
-      // Revalidate SWR cache
       await mutateLinked();
     } catch (error) {
       console.error("Failed to unlink property:", error);
@@ -147,168 +190,345 @@ export default function ClientView({
     }
   };
 
-  const Row = ({ label, value }: { label: string; value: string | number | undefined | null }) => (
-    <div className="-mx-2 flex items-start justify-between space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">
-      <div className="space-y-1">
-        <p className="text-sm font-medium leading-none">{label}</p>
-        <p className="text-sm text-muted-foreground break-all">{value ?? "N/A"}</p>
-      </div>
-    </div>
-  );
+  const handleEditSave = () => {
+    setEditOpen(false);
+    router.refresh();
+  };
 
-  // Combine upcoming and past events for the events panel
+  // Derived values
   const allEvents = [...(events.upcoming || []), ...(events.past || [])];
+  const billingAddress = [data.billing_street, data.billing_city, data.billing_state, data.billing_postal_code, data.billing_country].filter(Boolean).join(", ");
+  const shippingAddress = [data.shipping_street, data.shipping_city, data.shipping_state, data.shipping_postal_code, data.shipping_country].filter(Boolean).join(", ");
+
+  const displayEnum = (value: string | null | undefined) => {
+    if (!value) return null;
+    return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
+  // =========================================================================
+  // Render
+  // =========================================================================
 
   return (
     <div className="space-y-6">
-      {/* Share with Connections Card - Only for non-shared view */}
-      {!isReadOnly && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-primary" />
-                <div>
-                  <CardTitle className="text-lg">Share with Connections</CardTitle>
-                  <CardDescription>Collaborate with other agents on this client</CardDescription>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                leftIcon={<Share2 className="h-4 w-4" />}
-                onClick={() => setShareModalOpen(true)}
-              >
-                Share
-              </Button>
+      {/* ------------------------------------------------------------------ */}
+      {/* Header                                                             */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push(`/${locale}/app/crm/clients`)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {data.client_name}
+              </h1>
+              {data.client_status && (
+                <Badge
+                  className={statusColors[data.client_status] ?? statusColors.LEAD}
+                  variant="secondary"
+                >
+                  {displayEnum(data.client_status)}
+                </Badge>
+              )}
+              {data.client_type && (
+                <Badge variant="outline">
+                  {displayEnum(data.client_type)}
+                </Badge>
+              )}
             </div>
-          </CardHeader>
-        </Card>
-      )}
-
-      {/* Main Client Card */}
-      <Card>
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>{data.client_name}</CardTitle>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              ID: {data.friendlyId ?? data.id}
+            </p>
           </div>
-          {!isReadOnly && (
-            <div className="flex gap-2">
-              <QuickExportButton
-                entityType="client"
-                entityId={data.id}
-                entityName={data.client_name}
-                variant="outline"
-                size="default"
-              />
-              <CreateBookingButton
-                clientId={data.id}
-                prefilledData={{
-                  name: data.client_name || undefined,
-                  email: data.primary_email || undefined,
-                }}
-              />
-              <Sheet open={open} onOpenChange={setOpen}>
-                <Button onClick={() => setOpen(true)}>Edit</Button>
-                <SheetContent className="w-full sm:min-w-[600px] lg:min-w-[900px] space-y-2">
-                  <SheetHeader>
-                    <SheetTitle>Edit Client</SheetTitle>
-                  </SheetHeader>
-                  <div className="h-full overflow-y-auto p-2">
-                    <UpdateAccountForm
-                      initialData={{
-                        id: data.id,
-                        v: data.v ?? 0,
-                        name: data.client_name,
-                        office_phone: data.office_phone ?? "",
-                        website: data.website ?? "",
-                        fax: data.fax ?? "",
-                        company_id: data.company_id ?? "",
-                        vat: data.vat ?? "",
-                        email: data.primary_email ?? "",
-                        billing_street: data.billing_street ?? "",
-                        billing_postal_code: data.billing_postal_code ?? "",
-                        billing_city: data.billing_city ?? "",
-                        billing_state: data.billing_state ?? "",
-                        billing_country: data.billing_country ?? "",
-                        shipping_street: data.shipping_street ?? "",
-                        shipping_postal_code: data.shipping_postal_code ?? "",
-                        shipping_city: data.shipping_city ?? "",
-                        shipping_state: data.shipping_state ?? "",
-                        shipping_country: data.shipping_country ?? "",
-                        description: data.description ?? "",
-                        assigned_to: data.assigned_to ?? "",
-                        status: data.client_status ?? "",
-                        annual_revenue: data.annual_revenue ?? "",
-                        member_of: data.member_of ?? "",
-                        industry: data.industry ?? "",
-                      }}
-                      open={setOpen}
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          )}
-        </CardHeader>
-        <Separator />
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-          <div>
-            <Row label="Email" value={data.primary_email} />
-            <Row label="Phone" value={data.office_phone} />
-            <Row label="Type" value={data.client_type} />
-            <Row label="Status" value={data.client_status} />
-            <Row label="Assigned to" value={data.assigned_to_user?.name} />
-            <Row label="Created" value={formatDateTime(data.createdAt)} />
-            <Row label="Updated" value={formatDateTime(data.updatedAt)} />
+        </div>
+        {!isReadOnly && (
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setEditOpen(true)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+            <EntityQuickActions
+              entityType="client"
+              onCreateMandate={() => setCreateMandateOpen(true)}
+              onCreateEvent={() => setCreateEventOpen(true)}
+              onLinkProperty={() => setLinkPropertyDialogOpen(true)}
+              onLinkMandate={() => setLinkMandateDialogOpen(true)}
+            />
+            <QuickExportButton
+              entityType="client"
+              entityId={data.id}
+              entityName={data.client_name}
+              variant="outline"
+              size="default"
+            />
+            <Button
+              variant="outline"
+              leftIcon={<Share2 className="h-4 w-4" />}
+              onClick={() => setShareModalOpen(true)}
+            >
+              Share
+            </Button>
           </div>
-          <div>
-            <Row label="Description" value={data.description} />
-            <Row label="Property preferences" value={data.property_preferences ? JSON.stringify(data.property_preferences) : "N/A"} />
-            <Row label="Communication notes" value={data.communication_notes ? JSON.stringify(data.communication_notes) : "N/A"} />
-            <Row label="Billing address" value={[data.billing_street, data.billing_city, data.billing_state, data.billing_postal_code, data.billing_country].filter(Boolean).join(", ")} />
-            <Row label="Shipping address" value={[data.shipping_street, data.shipping_city, data.shipping_state, data.shipping_postal_code, data.shipping_country].filter(Boolean).join(", ")} />
-            <Row label="Website" value={data.website} />
-            <Row label="VAT" value={data.vat} />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Matching Properties Section */}
-      <ClientMatchingProperties clientId={data.id} locale={locale} />
-
-      {/* Linked Entities Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <LinkedEntitiesPanel
-          type="properties"
-          entities={properties as unknown as Array<{ id: string; friendlyId: string; property_name: string; property_type?: string; property_status?: string; address_street?: string; address_city?: string; area?: string; price?: number; assigned_to_user?: { id: string; name: string }; }>}
-          isLoading={isLoadingLinked || isLinking || isUnlinking}
-          onLinkEntity={isReadOnly ? undefined : () => setLinkPropertyDialogOpen(true)}
-          onUnlinkEntity={isReadOnly ? undefined : handleUnlinkProperty}
-          showAddButton={!isReadOnly}
-          emptyMessage="No properties linked to this client yet."
-        />
-
-        <LinkedEntitiesPanel
-          type="events"
-          entities={allEvents as unknown as Array<{ id: string; friendlyId: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
-          isLoading={isLoadingLinked}
-          showAddButton={false}
-          onCreateEvent={!isReadOnly ? () => setCreateEventOpen(true) : undefined}
-          emptyMessage="No calendar events for this client yet."
-        />
-
-        <LinkedEntitiesPanel
-          type="mandates"
-          entities={linkedMandates}
-          isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
-          onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
-          onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
-          showAddButton={!isReadOnly}
-          emptyMessage="No mandates linked to this client yet."
-        />
+        )}
       </div>
 
-      {/* Create Event Sheet - pre-linked to this client */}
+      <Separator />
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* ================================================================ */}
+        {/* Left column (2/3)                                                */}
+        {/* ================================================================ */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Contact Information */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Mail className="h-4 w-4" />
+                Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <DetailField label="Email" value={data.primary_email} />
+                <DetailField label="Phone" value={data.office_phone} />
+                <DetailField label="Fax" value={data.fax} />
+                <DetailField label="Website" value={data.website} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Addresses */}
+          {(billingAddress || shippingAddress) && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MapPin className="h-4 w-4" />
+                  Addresses
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <DetailField label="Billing Address" value={billingAddress || null} />
+                  <DetailField label="Shipping Address" value={shippingAddress || null} />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Business Details */}
+          {(data.vat || data.company_id || data.industry || data.annual_revenue || data.member_of) && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Building2 className="h-4 w-4" />
+                  Business Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <DetailField label="VAT" value={data.vat} />
+                  <DetailField label="Company ID" value={data.company_id} />
+                  <DetailField label="Industry" value={data.industry} />
+                  <DetailField label="Annual Revenue" value={data.annual_revenue} />
+                  <DetailField label="Member of" value={data.member_of} />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Notes */}
+          {(data.description || data.communication_notes) && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <FileText className="h-4 w-4" />
+                  Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {data.description && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Description
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">{data.description}</p>
+                  </div>
+                )}
+
+                {data.communication_notes && Object.keys(data.communication_notes).length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Communication Notes
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {typeof data.communication_notes === "string"
+                        ? data.communication_notes
+                        : JSON.stringify(data.communication_notes, null, 2)}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Comments */}
+          {currentUserId && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MessageSquare className="h-4 w-4" />
+                  Comments
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ClientComments
+                  clientId={data.id}
+                  canComment={!isReadOnly || sharePermission === "VIEW_COMMENT"}
+                  currentUserId={currentUserId}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* ================================================================ */}
+        {/* Right column (1/3) - sidebar cards                               */}
+        {/* ================================================================ */}
+        <div className="space-y-6">
+          {/* Status & Assignment */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <User className="h-4 w-4" />
+                Status & Assignment
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <DetailField
+                label="Status"
+                value={
+                  data.client_status ? (
+                    <Badge
+                      className={statusColors[data.client_status] ?? statusColors.LEAD}
+                      variant="secondary"
+                    >
+                      {displayEnum(data.client_status)}
+                    </Badge>
+                  ) : null
+                }
+              />
+              <DetailField
+                label="Type"
+                value={displayEnum(data.client_type)}
+              />
+              <DetailField
+                label="Assigned to"
+                value={data.assigned_to_user?.name}
+              />
+
+              <Separator />
+
+              <div className="grid gap-1 text-xs text-muted-foreground">
+                {data.createdAt && (
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" />
+                    Created: {format(new Date(data.createdAt), "dd/MM/yyyy HH:mm")}
+                  </div>
+                )}
+                {data.updatedAt && (
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" />
+                    Updated: {format(new Date(data.updatedAt), "dd/MM/yyyy HH:mm")}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Linked Properties */}
+          <LinkedEntitiesPanel
+            type="properties"
+            entities={properties as unknown as Array<{ id: string; friendlyId: string; property_name: string; property_type?: string; property_status?: string; address_street?: string; address_city?: string; area?: string; price?: number; assigned_to_user?: { id: string; name: string }; }>}
+            isLoading={isLoadingLinked || isLinking || isUnlinking}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkPropertyDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkProperty}
+            showAddButton={!isReadOnly}
+            emptyMessage="No properties linked to this client yet."
+          />
+
+          {/* Linked Mandates */}
+          <LinkedEntitiesPanel
+            type="mandates"
+            entities={linkedMandates}
+            isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
+            showAddButton={!isReadOnly}
+            emptyMessage="No mandates linked to this client yet."
+          />
+
+          {/* Calendar Events */}
+          <LinkedEntitiesPanel
+            type="events"
+            entities={allEvents as unknown as Array<{ id: string; friendlyId: string; title: string; description?: string; startTime: string; endTime: string; location?: string; status?: string; eventType?: string; }>}
+            isLoading={isLoadingLinked}
+            showAddButton={false}
+            onCreateEvent={!isReadOnly ? () => setCreateEventOpen(true) : undefined}
+            emptyMessage="No calendar events for this client yet."
+          />
+        </div>
+      </div>
+
+      {/* ================================================================== */}
+      {/* Edit Sheet                                                         */}
+      {/* ================================================================== */}
+      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Client</SheetTitle>
+          </SheetHeader>
+          <div className="mt-6">
+            <UpdateAccountForm
+              initialData={{
+                id: data.id,
+                v: data.v ?? 0,
+                name: data.client_name,
+                office_phone: data.office_phone ?? "",
+                website: data.website ?? "",
+                fax: data.fax ?? "",
+                company_id: data.company_id ?? "",
+                vat: data.vat ?? "",
+                email: data.primary_email ?? "",
+                billing_street: data.billing_street ?? "",
+                billing_postal_code: data.billing_postal_code ?? "",
+                billing_city: data.billing_city ?? "",
+                billing_state: data.billing_state ?? "",
+                billing_country: data.billing_country ?? "",
+                shipping_street: data.shipping_street ?? "",
+                shipping_postal_code: data.shipping_postal_code ?? "",
+                shipping_city: data.shipping_city ?? "",
+                shipping_state: data.shipping_state ?? "",
+                shipping_country: data.shipping_country ?? "",
+                description: data.description ?? "",
+                assigned_to: data.assigned_to ?? "",
+                status: data.client_status ?? "",
+                annual_revenue: data.annual_revenue ?? "",
+                member_of: data.member_of ?? "",
+                industry: data.industry ?? "",
+              }}
+              open={setEditOpen}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Create Event Sheet */}
       {!isReadOnly && (
         <EventCreateForm
           open={createEventOpen}
@@ -318,16 +538,7 @@ export default function ClientView({
         />
       )}
 
-      {/* Comments Section - Show for org members and sharees with VIEW_COMMENT */}
-      {currentUserId && (
-        <ClientComments
-          clientId={data.id}
-          canComment={!isReadOnly || sharePermission === "VIEW_COMMENT"}
-          currentUserId={currentUserId}
-        />
-      )}
-
-      {/* Link Property Dialog - Only for non-shared view */}
+      {/* Link Property Dialog */}
       {!isReadOnly && (
         <LinkEntityDialog
           open={linkPropertyDialogOpen}
@@ -342,7 +553,7 @@ export default function ClientView({
         />
       )}
 
-      {/* Link Mandate Dialog - Only for non-shared view */}
+      {/* Link Mandate Dialog */}
       {!isReadOnly && (
         <LinkEntityDialog
           open={linkMandateDialogOpen}
@@ -357,7 +568,7 @@ export default function ClientView({
         />
       )}
 
-      {/* Share Modal - Only for non-shared view */}
+      {/* Share Modal */}
       {!isReadOnly && (
         <ShareModal
           open={shareModalOpen}
@@ -367,6 +578,46 @@ export default function ClientView({
           entityName={data.client_name}
         />
       )}
+
+      {/* Quick Add Mandate */}
+      {!isReadOnly && (
+        <QuickAddMandate
+          open={createMandateOpen}
+          onOpenChange={setCreateMandateOpen}
+          organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
+          preLinkedClientId={data.id}
+          onSuccess={() => mutateLinked()}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Reusable sub-component
+// ---------------------------------------------------------------------------
+
+function DetailField({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode | string | null | undefined;
+}) {
+  return (
+    <div>
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <div className="mt-0.5 text-sm">
+        {value !== null && value !== undefined ? (
+          typeof value === "string" ? (
+            <span>{value}</span>
+          ) : (
+            value
+          )
+        ) : (
+          <span className="text-muted-foreground/60">-</span>
+        )}
+      </div>
     </div>
   );
 }

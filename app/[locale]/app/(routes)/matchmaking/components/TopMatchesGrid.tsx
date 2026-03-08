@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Building2, User, ArrowRight, Info, Bed, MapPin, Euro } from "lucide-react";
+import { Building2, User, ArrowRight, Info, Bed, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { MatchResultWithClient, MatchResultWithProperty } from "@/lib/matchmaking";
@@ -77,14 +77,10 @@ export function TopMatchesGrid({ matches, locale }: Props) {
                 {match.client.full_name || match.client.client_name}
               </Link>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="outline" className="text-xs">
-                  {match.client.intent}
-                </Badge>
-                {match.client.budget_max && (
-                  <span className="flex items-center gap-1">
-                    <Euro className="h-3 w-3" />
-                    {formatPrice(match.client.budget_max)}
-                  </span>
+                {match.client.client_status && (
+                  <Badge variant="outline" className="text-xs">
+                    {match.client.client_status}
+                  </Badge>
                 )}
               </div>
             </div>

@@ -469,7 +469,6 @@ export async function getMyDeals(status?: DealStatus) {
           id: true,
           client_name: true,
           primary_email: true,
-          intent: true,
         },
       },
       Users_Deal_propertyAgentIdToUsers: {
@@ -541,7 +540,6 @@ export async function getDeal(dealId: string) {
           client_name: true,
           primary_email: true,
           primary_phone: true,
-          intent: true,
           client_status: true,
         },
       },

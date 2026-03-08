@@ -35,28 +35,18 @@ export async function POST(req: Request) {
       person_type,
       full_name,
       company_name,
-      intent,
       channels,
       language,
       afm,
       doy,
       id_doc,
       company_gemi,
-      purpose,
-      areas_of_interest,
-      budget_min,
-      budget_max,
-      timeline,
-      financing_type,
-      preapproval_bank,
-      needs_mortgage_help,
       gdpr_consent,
       allow_marketing,
       lead_source,
       assigned_to,
       client_type,
       client_status,
-      property_preferences,
       communication_notes,
       office_phone,
       website,
@@ -95,7 +85,6 @@ export async function POST(req: Request) {
     if (doy !== undefined) data.doy = nullIfEmpty(doy);
     if (id_doc !== undefined) data.id_doc = nullIfEmpty(id_doc);
     if (company_gemi !== undefined) data.company_gemi = nullIfEmpty(company_gemi);
-    if (preapproval_bank !== undefined) data.preapproval_bank = nullIfEmpty(preapproval_bank);
     if (office_phone !== undefined) data.office_phone = nullIfEmpty(office_phone);
     if (website !== undefined) data.website = nullIfEmpty(website);
     if (fax !== undefined) data.fax = nullIfEmpty(fax);
@@ -119,20 +108,8 @@ export async function POST(req: Request) {
     if (person_type !== undefined && person_type !== null && person_type !== "") {
       data.person_type = person_type;
     }
-    if (intent !== undefined && intent !== null && intent !== "") {
-      data.intent = intent;
-    }
     if (language !== undefined && language !== null && language !== "") {
       data.language = language;
-    }
-    if (purpose !== undefined && purpose !== null && purpose !== "") {
-      data.purpose = purpose;
-    }
-    if (timeline !== undefined && timeline !== null && timeline !== "") {
-      data.timeline = timeline;
-    }
-    if (financing_type !== undefined && financing_type !== null && financing_type !== "") {
-      data.financing_type = financing_type;
     }
     if (lead_source !== undefined && lead_source !== null && lead_source !== "") {
       data.lead_source = lead_source;
@@ -145,9 +122,6 @@ export async function POST(req: Request) {
     }
 
     // Boolean fields
-    if (needs_mortgage_help !== undefined) {
-      data.needs_mortgage_help = needs_mortgage_help === true || needs_mortgage_help === "true";
-    }
     if (gdpr_consent !== undefined) {
       data.gdpr_consent = gdpr_consent === true || gdpr_consent === "true";
     }
@@ -155,22 +129,12 @@ export async function POST(req: Request) {
       data.allow_marketing = allow_marketing === true || allow_marketing === "true";
     }
 
-    // Number fields (Decimal) - convert strings to numbers or null
-    if (budget_min !== undefined) data.budget_min = toNumber(budget_min);
-    if (budget_max !== undefined) data.budget_max = toNumber(budget_max);
-
     // Array fields
     if (channels !== undefined && channels !== null) {
       data.channels = Array.isArray(channels) ? channels : [];
     }
 
     // JSON fields
-    if (areas_of_interest !== undefined && areas_of_interest !== null) {
-      data.areas_of_interest = areas_of_interest;
-    }
-    if (property_preferences !== undefined && property_preferences !== null) {
-      data.property_preferences = property_preferences;
-    }
     if (communication_notes !== undefined && communication_notes !== null) {
       data.communication_notes = communication_notes;
     }

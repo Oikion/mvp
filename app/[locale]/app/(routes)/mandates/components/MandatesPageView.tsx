@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useParams, useSearchParams } from "next/navigation";
+import moment from "moment";
 import { SharedActionModals } from "@/components/entity";
 
 interface MandatesPageViewProps {
@@ -63,6 +64,40 @@ export default function MandatesPageView({
   const urgentMandates = mandates.filter(
     (m: any) => m.urgency === "HIGH" || m.urgency === "CRITICAL"
   ).length;
+
+  // 6-month chart data for stats cards
+  const monthlyChartData = useMemo(() => {
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const m = moment().subtract(5 - i, "months");
+      return { start: m.clone().startOf("month"), end: m.clone().endOf("month") };
+    });
+
+    const totalChartData = months.map(({ end }) => ({
+      value: mandates.filter((m: any) => moment(m.createdAt).isSameOrBefore(end)).length,
+    }));
+
+    const activeChartData = months.map(({ end }) => ({
+      value: mandates.filter(
+        (m: any) => m.status === "ACTIVE" && moment(m.createdAt).isSameOrBefore(end)
+      ).length,
+    }));
+
+    const unlinkedChartData = months.map(({ end }) => ({
+      value: mandates.filter(
+        (m: any) => !m.clientId && moment(m.createdAt).isSameOrBefore(end)
+      ).length,
+    }));
+
+    const urgentChartData = months.map(({ end }) => ({
+      value: mandates.filter(
+        (m: any) =>
+          (m.urgency === "HIGH" || m.urgency === "CRITICAL") &&
+          moment(m.createdAt).isSameOrBefore(end)
+      ).length,
+    }));
+
+    return { totalChartData, activeChartData, unlinkedChartData, urgentChartData };
+  }, [mandates]);
 
   // Filter data for both views
   const filteredMandates = useMemo(() => {
@@ -191,6 +226,8 @@ export default function MandatesPageView({
           value={totalMandates.toString()}
           icon={<FileText className="h-4 w-4" />}
           description={t("MandatesPage.description")}
+          chartData={monthlyChartData.totalChartData}
+          chartColor="hsl(var(--chart-1))"
           actionLabel={t("Stats.addMandate")}
           emptyMessage={t("MandatesPage.description")}
         />
@@ -199,6 +236,8 @@ export default function MandatesPageView({
           value={activeMandates.toString()}
           icon={<CheckCircle2 className="h-4 w-4" />}
           description={t("MandateForm.status.ACTIVE")}
+          chartData={monthlyChartData.activeChartData}
+          chartColor="hsl(var(--chart-2))"
           trendUp={activeMandates > 0}
           actionLabel={t("Stats.addMandate")}
           emptyMessage={t("MandateForm.status.ACTIVE")}
@@ -208,6 +247,8 @@ export default function MandatesPageView({
           value={unlinkedMandates.toString()}
           icon={<LinkIcon className="h-4 w-4" />}
           description={t("MandateForm.fields.noClient")}
+          chartData={monthlyChartData.unlinkedChartData}
+          chartColor="hsl(var(--chart-4))"
           trendUp={false}
           actionLabel={t("Stats.addMandate")}
           emptyMessage={t("MandateForm.fields.noClient")}
@@ -217,6 +258,8 @@ export default function MandatesPageView({
           value={urgentMandates.toString()}
           icon={<AlertTriangle className="h-4 w-4" />}
           description={`${t("MandateForm.urgency.HIGH")} / ${t("MandateForm.urgency.CRITICAL")}`}
+          chartData={monthlyChartData.urgentChartData}
+          chartColor="hsl(var(--chart-5))"
           trendUp={false}
           actionLabel={t("Stats.addMandate")}
           emptyMessage={`${t("MandateForm.urgency.HIGH")} / ${t("MandateForm.urgency.CRITICAL")}`}

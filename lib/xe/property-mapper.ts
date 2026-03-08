@@ -55,6 +55,7 @@ const TRANSACTION_TYPE_TO_XE: Record<string, XeTransactionType> = {
   RENTAL: "LET.NORMAL",
   SHORT_TERM: "LET.NORMAL",
   EXCHANGE: "SELL.EXCHANGE",
+  AUCTION: "SELL.AUCTION",
 };
 
 /**

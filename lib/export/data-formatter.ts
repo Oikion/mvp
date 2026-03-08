@@ -77,8 +77,6 @@ export const CRM_COLUMNS: ColumnDefinition[] = [
       LOST: "Lost",
     },
   },
-  { key: "budget_min", label: "Budget Min", labelEl: "Ελάχ. Προϋπολογισμός", type: "currency", width: 15 },
-  { key: "budget_max", label: "Budget Max", labelEl: "Μέγ. Προϋπολογισμός", type: "currency", width: 15 },
   { key: "billing_city", label: "City", labelEl: "Πόλη", type: "string", width: 15 },
   { key: "billing_country", label: "Country", labelEl: "Χώρα", type: "string", width: 15 },
   { key: "description", label: "Description", labelEl: "Περιγραφή", type: "string", width: 40 },
@@ -265,6 +263,41 @@ export const MANDATE_COLUMNS: ColumnDefinition[] = [
 ];
 
 // ============================================
+// DOCUMENT COLUMN DEFINITIONS
+// ============================================
+
+export const DOCUMENT_COLUMNS: ColumnDefinition[] = [
+  { key: "friendlyId", label: "ID", type: "string", width: 12 },
+  { key: "createdAt", label: "Created", labelEl: "Δημιουργήθηκε", type: "datetime", width: 18 },
+  { key: "document_name", label: "Name", labelEl: "Όνομα", type: "string", width: 30 },
+  { key: "description", label: "Description", labelEl: "Περιγραφή", type: "string", width: 40 },
+  {
+    key: "document_system_type",
+    label: "Type",
+    labelEl: "Τύπος",
+    type: "enum",
+    width: 15,
+    enumLabels: {
+      INVOICE: "Invoice",
+      RECEIPT: "Receipt",
+      CONTRACT: "Contract",
+      OFFER: "Offer",
+      OTHER: "Other",
+    },
+  },
+  { key: "document_file_mimeType", label: "File Type", labelEl: "Τύπος Αρχείου", type: "string", width: 18 },
+  { key: "linkEnabled", label: "Shared", labelEl: "Κοινόχρηστο", type: "boolean", width: 10 },
+  { key: "passwordProtected", label: "Password Protected", labelEl: "Προστασία Κωδικού", type: "boolean", width: 12 },
+  { key: "viewsCount", label: "Views", labelEl: "Προβολές", type: "number", width: 8 },
+  { key: "lastViewedAt", label: "Last Viewed", labelEl: "Τελ. Προβολή", type: "datetime", width: 18 },
+  { key: "expiresAt", label: "Expires", labelEl: "Λήξη", type: "datetime", width: 18 },
+  { key: "created_by_name", label: "Created By", labelEl: "Δημιουργήθηκε από", type: "string", width: 20 },
+  { key: "assigned_to_name", label: "Assigned To", labelEl: "Ανατέθηκε σε", type: "string", width: 20 },
+  { key: "linked_clients", label: "Linked Clients", labelEl: "Συνδεδεμένοι Πελάτες", type: "string", width: 30 },
+  { key: "linked_properties", label: "Linked Properties", labelEl: "Συνδεδεμένα Ακίνητα", type: "string", width: 30 },
+];
+
+// ============================================
 // COLUMN GETTERS BY MODULE
 // ============================================
 
@@ -280,6 +313,8 @@ export function getColumnsForModule(module: ExportModule): ColumnDefinition[] {
       return CALENDAR_COLUMNS;
     case "reports":
       return REPORTS_COLUMNS;
+    case "documents":
+      return DOCUMENT_COLUMNS;
     default:
       return [];
   }

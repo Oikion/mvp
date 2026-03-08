@@ -9,7 +9,20 @@ import {
   FurnishedStatusEnum,
 } from "./property-import-schema";
 
-import { PropertyPurposeEnum, TimelineEnum } from "./client-import-schema";
+export const PropertyPurposeEnum = z.enum([
+  "RESIDENTIAL",
+  "COMMERCIAL",
+  "LAND",
+  "PARKING",
+  "OTHER",
+]);
+
+export const TimelineEnum = z.enum([
+  "IMMEDIATE",
+  "ONE_THREE_MONTHS",
+  "THREE_SIX_MONTHS",
+  "SIX_PLUS_MONTHS",
+]);
 
 // Enum values matching Prisma schema
 export const MandateStatusEnum = z.enum([

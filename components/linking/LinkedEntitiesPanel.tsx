@@ -48,7 +48,6 @@ interface LinkedClient {
   client_status?: string;
   primary_email?: string;
   primary_phone?: string;
-  intent?: string;
   assigned_to_user?: { id: string; name: string };
 }
 
@@ -210,11 +209,6 @@ function ClientCard({
                 className="text-[10px] h-5"
               >
                 {client.client_status}
-              </Badge>
-            )}
-            {client.intent && (
-              <Badge variant="secondary" className="text-[10px] h-5">
-                {client.intent}
               </Badge>
             )}
           </div>

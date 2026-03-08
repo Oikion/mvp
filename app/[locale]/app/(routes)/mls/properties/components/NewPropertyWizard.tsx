@@ -45,7 +45,7 @@ const formSchema = z.object({
   property_name: z.string().min(1, "Property name is required"),
   property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]),
   property_type_other: z.string().optional(),
-  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]).optional(),
+  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE", "AUCTION"]).optional(),
   property_status: z.enum(["AVAILABLE", "RESERVED", "NEGOTIATION", "RENTED", "SOLD"]).optional(),
   is_exclusive: z.boolean().optional().default(false),
   
@@ -502,6 +502,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                       <SelectItem value="RENTAL">{t("transactionType.RENTAL")}</SelectItem>
                       <SelectItem value="SHORT_TERM">{t("transactionType.SHORT_TERM")}</SelectItem>
                       <SelectItem value="EXCHANGE">{t("transactionType.EXCHANGE")}</SelectItem>
+                      <SelectItem value="AUCTION">{t("transactionType.AUCTION")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

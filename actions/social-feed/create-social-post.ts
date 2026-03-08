@@ -111,21 +111,15 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
         where: { id: linkedEntityId },
         select: {
           client_name: true,
-          intent: true,
           person_type: true,
-          budget_min: true,
-          budget_max: true,
         },
       });
 
       if (client) {
         linkedEntityTitle = client.client_name || "Unnamed Client";
-        linkedEntitySubtitle = client.intent || undefined;
+        linkedEntitySubtitle = client.person_type || undefined;
         linkedEntityMetadata = {
-          intent: client.intent,
           personType: client.person_type,
-          budgetMin: client.budget_min ? Number(client.budget_min) : null,
-          budgetMax: client.budget_max ? Number(client.budget_max) : null,
         };
       }
     } else if (type === "mandate") {

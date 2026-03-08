@@ -1,12 +1,11 @@
 import { notFound } from "next/navigation";
-import Container from "../../../components/ui/Container";
 import { getProperty } from "@/actions/mls/get-property";
 import { getSharedProperty } from "@/actions/mls/get-shared-property";
-
-type ShareInfo = NonNullable<Awaited<ReturnType<typeof getSharedProperty>>>["_shareInfo"] | null;
 import { getCurrentUser } from "@/lib/get-current-user";
 import PropertyView from "./components/PropertyView";
 import { SharedAccessBanner } from "./components/SharedAccessBanner";
+
+type ShareInfo = NonNullable<Awaited<ReturnType<typeof getSharedProperty>>>["_shareInfo"] | null;
 
 export default async function PropertyDetailPage({
   params,
@@ -41,25 +40,23 @@ export default async function PropertyDetailPage({
 
   // Don't allow edit action for shared views
   const defaultEditOpen = isSharedView ? false : resolvedSearchParams?.action === "edit";
-  
+
   // Determine share permission for comments
   const sharePermission = shareInfo?.permissions as "VIEW_ONLY" | "VIEW_COMMENT" | null;
 
   return (
-    <Container title={property.property_name} description={`Property ID: ${property.friendlyId}`}>
-      <div className="max-w-5xl space-y-4">
-        {isSharedView && shareInfo && (
-          <SharedAccessBanner shareInfo={shareInfo} entityType="property" />
-        )}
-        <PropertyView 
-          data={property} 
-          defaultEditOpen={defaultEditOpen} 
-          isReadOnly={isSharedView}
-          sharePermission={sharePermission}
-          currentUserId={currentUser.id}
-          locale={locale}
-        />
-      </div>
-    </Container>
+    <div className="space-y-4">
+      {isSharedView && shareInfo && (
+        <SharedAccessBanner shareInfo={shareInfo} entityType="property" />
+      )}
+      <PropertyView
+        data={property}
+        defaultEditOpen={defaultEditOpen}
+        isReadOnly={isSharedView}
+        sharePermission={sharePermission}
+        currentUserId={currentUser.id}
+        locale={locale}
+      />
+    </div>
   );
 }

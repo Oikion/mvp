@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
           email: body.email || null,
           phone: body.phone || null,
           status: body.status || "LEAD",
-          intent: body.intent || null,
           createdAt: new Date().toISOString(),
         },
         message: `Client "${clientName}" would be created (test mode - no actual data created)`,
@@ -47,12 +46,8 @@ export async function POST(request: NextRequest) {
       email,
       phone,
       status,
-      intent,
       type,
       notes,
-      areasOfInterest,
-      budgetMin,
-      budgetMax,
     } = body;
 
     // Build client name from firstName + lastName if name not provided
@@ -81,12 +76,8 @@ export async function POST(request: NextRequest) {
         primary_email: email || null,
         primary_phone: phone || null,
         client_status: status || "LEAD",
-        intent: intent || null,
         client_type: type || null,
         description: notes || null,
-        areas_of_interest: areasOfInterest || null,
-        budget_min: budgetMin || null,
-        budget_max: budgetMax || null,
         assigned_to: userId, // Assign to current user by default
         draft_status: false,
       },
@@ -96,7 +87,6 @@ export async function POST(request: NextRequest) {
         primary_email: true,
         primary_phone: true,
         client_status: true,
-        intent: true,
         createdAt: true,
       },
     });
@@ -109,7 +99,6 @@ export async function POST(request: NextRequest) {
         email: client.primary_email,
         phone: client.primary_phone,
         status: client.client_status,
-        intent: client.intent,
         createdAt: client.createdAt.toISOString(),
       },
       message: `Client "${client.client_name}" created successfully`,

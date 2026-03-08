@@ -51,7 +51,6 @@ interface Deal {
     id: string;
     client_name: string;
     primary_email: string | null;
-    intent: string | null;
   };
   propertyAgent: {
     id: string;

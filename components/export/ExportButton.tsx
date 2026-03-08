@@ -54,7 +54,7 @@ import { useRecordExport } from "@/hooks/swr";
 // ============================================
 
 export type ExportFormat = "xlsx" | "xls" | "csv" | "pdf" | "xml";
-export type ExportModule = "crm" | "mls" | "mandates" | "calendar" | "reports";
+export type ExportModule = "crm" | "mls" | "mandates" | "calendar" | "reports" | "documents";
 export type ExportScope = "filtered" | "all";
 export type CalendarViewType = "list" | "grid";
 export type ExportTemplate = "CMA" | "SHORTLIST" | "ROI" | "MARKET_TRENDS" | null;
@@ -133,6 +133,7 @@ const DEFAULT_FORMATS: Record<ExportModule, ExportFormat[]> = {
   mandates: ["xlsx", "xls", "csv", "pdf", "xml"],
   calendar: ["pdf"], // Calendar only supports PDF
   reports: ["xlsx", "xls", "csv", "pdf", "xml"],
+  documents: ["xlsx", "csv", "pdf"],
 };
 
 // Template definitions

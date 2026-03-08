@@ -117,7 +117,6 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
       entityFriendlyId: (client as any).friendlyId,
       metadata: {
         personType: client.person_type,
-        intent: client.intent,
         status: client.client_status,
       },
     });

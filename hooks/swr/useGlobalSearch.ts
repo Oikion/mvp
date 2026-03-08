@@ -15,19 +15,20 @@ interface Relationships {
   clients?: { count: number; preview?: RelationshipPreview[] };
   properties?: { count: number; preview?: RelationshipPreview[] };
   events?: { count: number; preview?: RelationshipPreview[] };
+  mandates?: { count: number; preview?: RelationshipPreview[] };
   client?: { id: string; client_name: string } | null;
 }
 
 export interface SearchResult {
   id: string;
-  type: "property" | "client" | "contact" | "document" | "event";
+  type: "property" | "client" | "contact" | "document" | "event" | "mandate";
   title: string;
   subtitle?: string;
   url: string;
   relationships?: Relationships;
 }
 
-export type SearchEntityType = "property" | "client" | "contact" | "document" | "event";
+export type SearchEntityType = "property" | "client" | "contact" | "document" | "event" | "mandate";
 
 interface SearchMeta {
   query: string;
@@ -39,6 +40,7 @@ interface SearchMeta {
     contacts: number;
     documents: number;
     events: number;
+    mandates: number;
     total: number;
   };
   hasMore: boolean;
@@ -83,6 +85,17 @@ interface SearchApiResponse {
     startTime?: string;
     location?: string;
     attendeeName?: string;
+    relationships?: Relationships;
+  }>;
+  mandates?: Array<{
+    id: string;
+    friendlyId: string;
+    title?: string;
+    transaction_type?: string;
+    budget_min?: number;
+    budget_max?: number;
+    status?: string;
+    urgency?: string;
     relationships?: Relationships;
   }>;
   meta?: SearchMeta;
@@ -196,13 +209,37 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
     });
   }
 
+  // Format mandates
+  if (data.mandates && Array.isArray(data.mandates)) {
+    data.mandates.forEach((mandate) => {
+      const subtitleParts: string[] = [];
+      if (mandate.transaction_type) subtitleParts.push(mandate.transaction_type);
+      if (mandate.budget_min || mandate.budget_max) {
+        const min = mandate.budget_min ? `€${Number(mandate.budget_min).toLocaleString()}` : "";
+        const max = mandate.budget_max ? `€${Number(mandate.budget_max).toLocaleString()}` : "";
+        if (min && max) subtitleParts.push(`${min}–${max}`);
+        else if (min) subtitleParts.push(`from ${min}`);
+        else if (max) subtitleParts.push(`up to ${max}`);
+      }
+
+      formattedResults.push({
+        id: mandate.id,
+        type: "mandate",
+        title: mandate.title || "Untitled Mandate",
+        subtitle: subtitleParts.length > 0 ? subtitleParts.join(" · ") : undefined,
+        url: `/app/mandates/${mandate.friendlyId}`,
+        relationships: mandate.relationships,
+      });
+    });
+  }
+
   return {
     results: formattedResults,
     meta: data.meta || {
       query: "",
       page: 1,
       limit: 50,
-      counts: { properties: 0, clients: 0, contacts: 0, documents: 0, events: 0, total: 0 },
+      counts: { properties: 0, clients: 0, contacts: 0, documents: 0, events: 0, mandates: 0, total: 0 },
       hasMore: false,
       timing: 0,
     },

@@ -101,7 +101,6 @@ async function searchClients(
       primary_email: true,
       primary_phone: true,
       client_status: true,
-      intent: true,
     },
     orderBy: [{ updatedAt: "desc" }, { client_name: "asc" }],
     take: limit,
@@ -119,7 +118,6 @@ async function searchClients(
     metadata: {
       subtitle: client.primary_email || client.primary_phone || undefined,
       status: client.client_status || undefined,
-      intent: client.intent || undefined,
     },
   }));
 

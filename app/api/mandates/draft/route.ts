@@ -6,7 +6,7 @@ import { generateFriendlyId } from "@/lib/friendly-id";
 import { encryptMandateForOrg } from "@/lib/model-encryption";
 
 // Valid enum values for mandate draft fields
-const VALID_TRANSACTION_TYPES = new Set(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]);
+const VALID_TRANSACTION_TYPES = new Set(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE", "AUCTION"]);
 const VALID_PROPERTY_TYPES = new Set([
   "RESIDENTIAL", "COMMERCIAL", "LAND", "RENTAL", "VACATION",
   "APARTMENT", "HOUSE", "MAISONETTE", "WAREHOUSE", "PARKING",

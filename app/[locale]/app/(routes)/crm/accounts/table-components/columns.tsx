@@ -3,7 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
 import moment from "moment";
-import Link from "next/link";
 
 import { Account } from "../table-data/schema";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -12,6 +11,7 @@ import { AssignedUserCell } from "./cells/AssignedUserCell";
 import { StatusCell } from "./cells/StatusCell";
 import { NameCell } from "./cells/NameCell";
 import { EmailCell } from "./cells/EmailCell";
+import { PhoneCell } from "./cells/PhoneCell";
 
 export const getColumns = (users: { id: string; name: string | null }[] = []): ColumnDef<Account>[] => [
   {
@@ -53,17 +53,7 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.name")} />
     },
     cell: ({ row }) => (
-      <div className="flex items-center gap-1">
-        <NameCell clientId={row.original.id} value={row.original.name ?? ""} />
-        <Link
-          href={`/app/crm/clients/${row.original.friendlyId}`}
-          className="ml-1 text-muted-foreground hover:text-primary transition-colors"
-          title="View details"
-          onClick={(e) => e.stopPropagation()}
-        >
-          ↗
-        </Link>
-      </div>
+      <NameCell clientId={row.original.id} value={row.original.name ?? ""} />
     ),
     enableSorting: false,
     enableHiding: true,
@@ -87,9 +77,7 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
       return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.phone")} />
     },
     cell: ({ row }) => (
-      <div className="text-muted-foreground">
-        {row.original.phone || "—"}
-      </div>
+      <PhoneCell clientId={row.original.id} value={row.original.phone} />
     ),
     enableSorting: false,
     enableHiding: true,

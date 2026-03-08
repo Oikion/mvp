@@ -3,6 +3,33 @@
     "title": "Documents",
     "description": "Manage and share your documents with clients, properties, and events"
   },
+  "DocumentsPage": {
+    "title": "Documents Library",
+    "description": "Manage, share, and export your documents"
+  },
+  "DocumentsTable": {
+    "created": "Created",
+    "name": "Name",
+    "type": "Type",
+    "description": "Description",
+    "sharing": "Sharing",
+    "views": "Views",
+    "private": "Private",
+    "shared": "Shared",
+    "sharedProtected": "Protected",
+    "filterPlaceholder": "Search documents...",
+    "noResults": "No documents found"
+  },
+  "DocumentSystemType": {
+    "INVOICE": "Invoice",
+    "RECEIPT": "Receipt",
+    "CONTRACT": "Contract",
+    "OFFER": "Offer",
+    "OTHER": "Other"
+  },
+  "Filters": {
+    "documentType": "Document Type"
+  },
   "edit": "Edit",
   "download": "Download",
   "documentPreview": "Document Preview",

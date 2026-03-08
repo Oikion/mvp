@@ -651,16 +651,12 @@ async function seedProperties(
 
 async function seedClients(
   orgId: string,
-  userIds: Array<{ id: string; name: string | null }>,
-  propertyAreas: string[]
+  userIds: Array<{ id: string; name: string | null }>
 ): Promise<string[]> {
   console.log(`\n👥 Creating ${CONFIG.CLIENTS_COUNT} clients...`);
 
   const clientIds = await generateFriendlyIds("Clients", CONFIG.CLIENTS_COUNT);
   const clients: any[] = [];
-
-  // Get unique areas from properties for matchmaking
-  const uniqueAreas = [...new Set(propertyAreas)];
 
   for (let i = 0; i < CONFIG.CLIENTS_COUNT; i++) {
     const firstName = pick(GREEK_FIRST_NAMES);
@@ -671,55 +667,16 @@ async function seedClients(
 
     // Client type distribution
     const typeRoll = Math.random();
-    let clientType: string, intent: string;
+    let clientType: string;
     if (typeRoll < 0.50) {
       clientType = "BUYER";
-      intent = "BUY";
     } else if (typeRoll < 0.75) {
       clientType = "RENTER";
-      intent = "RENT";
     } else if (typeRoll < 0.90) {
       clientType = "INVESTOR";
-      intent = "INVEST";
     } else {
       clientType = "SELLER";
-      intent = "SELL";
     }
-
-    // Budget based on intent
-    let budgetMin: number, budgetMax: number;
-    if (intent === "RENT") {
-      budgetMin = rand(300, 1500);
-      budgetMax = budgetMin + rand(200, 1000);
-    } else {
-      budgetMin = rand(50000, 500000);
-      budgetMax = budgetMin + rand(50000, 300000);
-    }
-
-    // Areas of interest (pick 2-5 areas that match properties)
-    const areasCount = rand(2, 5);
-    const areasOfInterest = shuffle(uniqueAreas).slice(0, areasCount);
-
-    // Property preferences for matchmaking
-    const propertyPreferences = {
-      bedrooms_min: rand(1, 2),
-      bedrooms_max: rand(3, 5),
-      bathrooms_min: 1,
-      bathrooms_max: rand(2, 4),
-      size_min_sqm: rand(50, 100),
-      size_max_sqm: rand(120, 250),
-      floor_min: rand(-1, 0),
-      floor_max: rand(3, 8),
-      requires_elevator: Math.random() > 0.5,
-      requires_parking: Math.random() > 0.4,
-      requires_pet_friendly: Math.random() > 0.7,
-      furnished_preference: Math.random() > 0.6 ? pick(FURNISHED_OPTIONS) : "ANY",
-      heating_preferences: Math.random() > 0.5 ? [pick(HEATING_TYPES), pick(HEATING_TYPES)] : undefined,
-      energy_class_min: Math.random() > 0.6 ? pick(["A", "B", "C", "D"]) : undefined,
-      condition_preferences: Math.random() > 0.5 ? ["EXCELLENT", "VERY_GOOD", "GOOD"] : undefined,
-      amenities_required: Math.random() > 0.6 ? shuffle(AMENITIES_LIST).slice(0, rand(1, 3)) : undefined,
-      amenities_preferred: Math.random() > 0.5 ? shuffle(AMENITIES_LIST).slice(0, rand(2, 5)) : undefined,
-    };
 
     const client = {
       id: clientIds[i],
@@ -727,31 +684,19 @@ async function seedClients(
       full_name: clientName,
       client_type: clientType,
       client_status: pick(CLIENT_STATUSES),
-      intent: intent,
-      purpose: pick(PURPOSES),
       person_type: Math.random() > 0.85 ? "COMPANY" : "INDIVIDUAL",
-      
+
       // Contact
       primary_email: generateEmail(firstName, lastName),
       primary_phone: generatePhone(),
-      
-      // Budget
-      budget_min: budgetMin,
-      budget_max: budgetMax,
-      
-      // Preferences for matchmaking
-      areas_of_interest: areasOfInterest,
-      property_preferences: propertyPreferences,
-      
+
       // Additional
-      timeline: pick(TIMELINES),
-      financing_type: intent === "BUY" ? pick(FINANCING_TYPES) : "CASH",
       lead_source: pick(LEAD_SOURCES),
       gdpr_consent: true,
       allow_marketing: Math.random() > 0.3,
-      
+
       // Description
-      description: `${clientType === "BUYER" ? "Looking to buy" : clientType === "RENTER" ? "Searching for rental" : clientType === "INVESTOR" ? "Investment opportunity seeker" : "Property owner"} in ${areasOfInterest.join(", ")}. Budget: €${budgetMin.toLocaleString()} - €${budgetMax.toLocaleString()}.`,
+      description: `${clientType === "BUYER" ? "Looking to buy" : clientType === "RENTER" ? "Searching for rental" : clientType === "INVESTOR" ? "Investment opportunity seeker" : "Property owner"} — contact for details.`,
       
       // Assignment
       assigned_to: assignedUser.id,
@@ -1431,10 +1376,10 @@ function generatePropertiesCSV(count: number): string {
 
 function generateClientsCSV(count: number): string {
   const headers = [
-    "client_name", "client_type", "client_status", "intent", "purpose",
-    "budget_min", "budget_max", "primary_email", "primary_phone",
-    "billing_city", "billing_state", "person_type", "timeline",
-    "financing_type", "lead_source", "description"
+    "client_name", "client_type", "client_status",
+    "primary_email", "primary_phone",
+    "billing_city", "billing_state", "person_type",
+    "lead_source", "description"
   ];
 
   const rows: string[][] = [headers];
@@ -1443,25 +1388,16 @@ function generateClientsCSV(count: number): string {
     const firstName = pick(GREEK_FIRST_NAMES);
     const lastName = pick(GREEK_LAST_NAMES);
     const clientType = pick(CLIENT_TYPES);
-    const intent = clientType === "BUYER" ? "BUY" : clientType === "RENTER" ? "RENT" : clientType === "INVESTOR" ? "INVEST" : "SELL";
-    const budgetMin = intent === "RENT" ? rand(400, 1200) : rand(100000, 400000);
-    const budgetMax = budgetMin + (intent === "RENT" ? rand(200, 600) : rand(50000, 200000));
 
     rows.push([
       `"${firstName} ${lastName}"`,
       clientType,
       pick(CLIENT_STATUSES),
-      intent,
-      pick(PURPOSES),
-      String(budgetMin),
-      String(budgetMax),
       generateEmail(firstName, lastName),
       generatePhone(),
       pick(["Athens", "Thessaloniki", "Piraeus"]),
       "Attica",
       Math.random() > 0.85 ? "COMPANY" : "INDIVIDUAL",
-      pick(TIMELINES),
-      pick(FINANCING_TYPES),
       pick(LEAD_SOURCES),
       `"Looking for property in Athens area"`
     ]);
@@ -1540,15 +1476,8 @@ async function main() {
       // Step 3: Seed properties
       propertyIds = await seedProperties(orgId, orgUsers);
       
-      // Get areas from created properties for client matchmaking
-      const propertyAreas = await prismadb.properties.findMany({
-        where: { id: { in: propertyIds } },
-        select: { area: true },
-      });
-      const areas = propertyAreas.map(p => p.area).filter(Boolean) as string[];
-
-      // Step 4: Seed clients with matchmaking data
-      clientIds = await seedClients(orgId, orgUsers, areas);
+      // Step 4: Seed clients
+      clientIds = await seedClients(orgId, orgUsers);
 
       // Step 5: Seed social posts
       await seedSocialPosts(orgId, orgUsers, propertyIds, clientIds);

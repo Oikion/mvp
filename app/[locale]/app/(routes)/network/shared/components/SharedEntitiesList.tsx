@@ -200,11 +200,6 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
                     {entity.client_status}
                   </Badge>
                 )}
-                {entity.intent && (
-                  <Badge variant="secondary" className="text-xs">
-                    {entity.intent}
-                  </Badge>
-                )}
               </div>
             </div>
           </div>

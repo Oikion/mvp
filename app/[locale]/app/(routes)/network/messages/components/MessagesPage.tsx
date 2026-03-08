@@ -40,8 +40,6 @@ import { StartDMDialog } from "./StartDMDialog";
 import { MessageSearch } from "./MessageSearch";
 import { ConversationSettings } from "./ConversationSettings";
 import { ThreadPanel } from "./ThreadPanel";
-import { E2EEOnboarding } from "./E2EEOnboarding";
-import { PinEntryDialog } from "@/components/e2ee/PinEntryDialog";
 import { useE2EE } from "@/hooks/useE2EE";
 import type { ConversationItem } from "./ConversationList";
 import type { Message } from "@/hooks/swr/useMessaging";
@@ -56,8 +54,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
   const searchParams = useSearchParams();
   const t = useTranslations("messages");
   const { toast } = useAppToast();
-  const { isSetUp, isUnlocked, isLoading: isLoadingE2EE, unlock } = useE2EE();
-  const [showPinDialog, setShowPinDialog] = useState(false);
+  const { isSetUp, isLoading: isLoadingE2EE } = useE2EE();
 
   const selectedChannelId = searchParams.get("channelId");
   const selectedConversationId = searchParams.get("conversationId");
@@ -200,42 +197,9 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
   const selectedChannel = channels.find((c) => c.id === selectedChannelId);
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId);
 
-  // E2EE gate — require setup before accessing messaging
-  if (!isLoadingE2EE && !isSetUp) {
-    return (
-      <div className="flex h-[calc(100vh-7.5rem)] overflow-hidden rounded-xl border">
-        <E2EEOnboarding />
-      </div>
-    );
-  }
-
-  // E2EE is set up but locked — prompt for PIN
-  if (!isLoadingE2EE && isSetUp && !isUnlocked) {
-    return (
-      <div className="flex h-[calc(100vh-7.5rem)] overflow-hidden rounded-xl border">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center max-w-md space-y-4">
-            <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
-            <h3 className="text-lg font-semibold">Messaging is Locked</h3>
-            <p className="text-sm text-muted-foreground">
-              Enter your E2EE PIN to unlock messaging and read your encrypted conversations.
-            </p>
-            <Button onClick={() => setShowPinDialog(true)}>
-              Unlock Messaging
-            </Button>
-            <PinEntryDialog
-              open={showPinDialog}
-              onOpenChange={setShowPinDialog}
-              onSubmit={async (pin) => {
-                await unlock(pin);
-                setShowPinDialog(false);
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // E2EE is opt-in: show a dismissible banner if not set up, don't block access
+  const [e2eeBannerDismissed, setE2eeBannerDismissed] = useState(false);
+  const showE2eeBanner = !isLoadingE2EE && !isSetUp && !e2eeBannerDismissed;
 
   // Error state - check for specific error types (only when credentials fully failed, not loading)
   if (credentialsError && !isLoadingCredentials) {
@@ -307,7 +271,25 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
   const hasSelection = selectedChannelId || selectedConversationId;
 
   return (
-    <div className="flex h-[calc(100vh-7.5rem)] overflow-hidden rounded-xl border">
+    <div className="flex flex-col h-[calc(100vh-7.5rem)] overflow-hidden rounded-xl border">
+      {/* E2EE opt-in banner */}
+      {showE2eeBanner && (
+        <div className="flex items-center justify-between gap-3 px-4 py-2 bg-primary/5 border-b text-sm">
+          <div className="flex items-center gap-2">
+            <Lock className="h-4 w-4 text-primary" />
+            <span>
+              Enable end-to-end encryption for secure messaging.{" "}
+              <a href={`/${locale}/app/settings/security`} className="font-medium underline underline-offset-2 hover:text-primary">
+                Set up E2EE
+              </a>
+            </span>
+          </div>
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setE2eeBannerDismissed(true)}>
+            Dismiss
+          </Button>
+        </div>
+      )}
+      <div className="flex flex-1 min-h-0">
       {/* Sidebar */}
       <div
         className="w-80 border-r flex flex-col bg-sidebar text-sidebar-foreground rounded-l-xl"
@@ -546,6 +528,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
           credentials={credentials}
         />
       )}
+      </div>
     </div>
   );
 }

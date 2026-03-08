@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
+import { decryptMandateForOrg } from "@/lib/model-encryption";
 
 /**
  * Entity types that can be searched
  */
-type SearchEntityType = "property" | "client" | "contact" | "document" | "event";
+type SearchEntityType = "property" | "client" | "contact" | "document" | "event" | "mandate";
 
 /**
  * Request body for search
@@ -31,6 +32,7 @@ interface SearchResponse {
   contacts: any[];
   documents: any[];
   events: any[];
+  mandates: any[];
   meta: {
     query: string;
     page: number;
@@ -41,6 +43,7 @@ interface SearchResponse {
       contacts: number;
       documents: number;
       events: number;
+      mandates: number;
       total: number;
     };
     hasMore: boolean;
@@ -57,7 +60,7 @@ export async function POST(req: Request) {
     const body: SearchRequestBody = await req.json();
 
     const query = body.query?.trim();
-    const types = body.types || ["property", "client", "contact", "document", "event"];
+    const types = body.types || ["property", "client", "contact", "document", "event", "mandate"];
     const page = Math.max(1, body.page || 1);
     const limit = Math.min(100, Math.max(1, body.limit || 50));
     const includeRelationships = body.includeRelationships !== false;
@@ -70,11 +73,12 @@ export async function POST(req: Request) {
         contacts: [],
         documents: [],
         events: [],
+        mandates: [],
         meta: {
           query: query || "",
           page,
           limit,
-          counts: { properties: 0, clients: 0, contacts: 0, documents: 0, events: 0, total: 0 },
+          counts: { properties: 0, clients: 0, contacts: 0, documents: 0, events: 0, mandates: 0, total: 0 },
           hasMore: false,
           timing: performance.now() - startTime,
         },
@@ -114,7 +118,11 @@ export async function POST(req: Request) {
               take: 3,
               orderBy: { startTime: "desc" },
             },
-            _count: { select: { Client_Properties: true, CalendarEvent: true } },
+            Mandate_Properties: {
+              include: { Mandate: { select: { id: true, title: true, friendlyId: true } } },
+              take: 3,
+            },
+            _count: { select: { Client_Properties: true, CalendarEvent: true, Mandate_Properties: true } },
           } : undefined,
           take: limit,
           skip,
@@ -150,7 +158,11 @@ export async function POST(req: Request) {
               take: 3,
               orderBy: { startTime: "desc" },
             },
-            _count: { select: { Client_Properties: true, CalendarEvent: true } },
+            Mandate_Clients: {
+              include: { Mandate: { select: { id: true, title: true, friendlyId: true } } },
+              take: 3,
+            },
+            _count: { select: { Client_Properties: true, CalendarEvent: true, Mandate_Clients: true } },
           } : undefined,
           take: limit,
           skip,
@@ -254,14 +266,78 @@ export async function POST(req: Request) {
       countPromises.push(Promise.resolve(0));
     }
 
+    // Mandates search (encrypted title — fetch, decrypt, filter in-memory)
+    if (types.includes("mandate")) {
+      const mandateWhere: any = {};
+
+      // We can only filter by plaintext fields at DB level
+      // friendlyId is plaintext, so we can use it
+      // title is encrypted, so we fetch a larger batch and filter after decryption
+      const fetchLimit = Math.max(limit * 5, 50);
+
+      searchPromises.push(
+        db.mandate.findMany({
+          where: mandateWhere,
+          include: includeRelationships ? {
+            Mandate_Clients: {
+              include: { Clients: { select: { id: true, client_name: true } } },
+              take: 3,
+            },
+            Mandate_Properties: {
+              include: { Properties: { select: { id: true, property_name: true } } },
+              take: 3,
+            },
+            _count: { select: { Mandate_Clients: true, Mandate_Properties: true } },
+          } : undefined,
+          take: fetchLimit,
+          orderBy: { createdAt: "desc" },
+        }).then(async (mandates: any[]) => {
+          // Decrypt and filter in memory
+          const decrypted = await Promise.all(
+            mandates.map((m: any) => decryptMandateForOrg(m, organizationId))
+          );
+          const searchTerm = query.toLowerCase();
+          const filtered = decrypted.filter((m: any) => {
+            const title = (m.title || "").toLowerCase();
+            const fid = (m.friendlyId || "").toLowerCase();
+            const txType = (m.transaction_type || "").toLowerCase();
+            return title.includes(searchTerm) || fid.includes(searchTerm) || txType.includes(searchTerm);
+          });
+          return filtered.slice(skip, skip + limit);
+        }).catch(() => [])
+      );
+      // Count also needs decrypt + filter
+      countPromises.push(
+        db.mandate.findMany({
+          where: mandateWhere,
+          select: { id: true, title: true, friendlyId: true, transaction_type: true },
+          take: 500,
+        }).then(async (mandates: any[]) => {
+          const decrypted = await Promise.all(
+            mandates.map((m: any) => decryptMandateForOrg(m, organizationId))
+          );
+          const searchTerm = query.toLowerCase();
+          return decrypted.filter((m: any) => {
+            const title = (m.title || "").toLowerCase();
+            const fid = (m.friendlyId || "").toLowerCase();
+            const txType = (m.transaction_type || "").toLowerCase();
+            return title.includes(searchTerm) || fid.includes(searchTerm) || txType.includes(searchTerm);
+          }).length;
+        }).catch(() => 0)
+      );
+    } else {
+      searchPromises.push(Promise.resolve([]));
+      countPromises.push(Promise.resolve(0));
+    }
+
     // Execute all searches and counts in parallel
     const [searchResults, counts] = await Promise.all([
       Promise.all(searchPromises),
       Promise.all(countPromises),
     ]);
 
-    const [properties, clients, contacts, documents, events] = searchResults;
-    const [propertiesCount, clientsCount, contactsCount, documentsCount, eventsCount] = counts;
+    const [properties, clients, contacts, documents, events, mandates] = searchResults;
+    const [propertiesCount, clientsCount, contactsCount, documentsCount, eventsCount, mandatesCount] = counts;
 
     // Helper function to serialize Prisma objects
     const serializePrismaObject = (obj: any): any => {
@@ -293,6 +369,10 @@ export async function POST(req: Request) {
           count: p._count?.CalendarEvent || 0,
           preview: p.CalendarEvent || [],
         },
+        mandates: {
+          count: p._count?.Mandate_Properties || 0,
+          preview: p.Mandate_Properties?.map((mp: any) => mp.Mandate) || [],
+        },
       } : undefined,
     }));
 
@@ -306,6 +386,10 @@ export async function POST(req: Request) {
         events: {
           count: c._count?.CalendarEvent || 0,
           preview: c.CalendarEvent || [],
+        },
+        mandates: {
+          count: c._count?.Mandate_Clients || 0,
+          preview: c.Mandate_Clients?.map((mc: any) => mc.Mandate) || [],
         },
       } : undefined,
     }));
@@ -340,8 +424,22 @@ export async function POST(req: Request) {
       } : undefined,
     }));
 
-    const totalCount = propertiesCount + clientsCount + contactsCount + documentsCount + eventsCount;
-    const totalResults = properties.length + clients.length + contacts.length + documents.length + events.length;
+    const transformedMandates = mandates.map((m: any) => ({
+      ...m,
+      relationships: includeRelationships ? {
+        clients: {
+          count: m._count?.Mandate_Clients || 0,
+          preview: m.Mandate_Clients?.map((mc: any) => mc.Clients) || [],
+        },
+        properties: {
+          count: m._count?.Mandate_Properties || 0,
+          preview: m.Mandate_Properties?.map((mp: any) => mp.Properties) || [],
+        },
+      } : undefined,
+    }));
+
+    const totalCount = propertiesCount + clientsCount + contactsCount + documentsCount + eventsCount + mandatesCount;
+    const totalResults = properties.length + clients.length + contacts.length + documents.length + events.length + mandates.length;
 
     const response: SearchResponse = {
       properties: serializePrismaObject(transformedProperties),
@@ -349,6 +447,7 @@ export async function POST(req: Request) {
       contacts: serializePrismaObject(transformedContacts),
       documents: serializePrismaObject(transformedDocuments),
       events: serializePrismaObject(transformedEvents),
+      mandates: serializePrismaObject(transformedMandates),
       meta: {
         query,
         page,
@@ -359,6 +458,7 @@ export async function POST(req: Request) {
           contacts: contactsCount,
           documents: documentsCount,
           events: eventsCount,
+          mandates: mandatesCount,
           total: totalCount,
         },
         hasMore: skip + totalResults < totalCount,

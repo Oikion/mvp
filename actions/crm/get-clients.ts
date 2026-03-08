@@ -18,6 +18,7 @@ export const getClients = async () => {
     where: { organizationId },
     select: {
       id: true,
+      friendlyId: true,
       client_name: true,
       primary_email: true,
       primary_phone: true,

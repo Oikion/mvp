@@ -70,7 +70,7 @@ export interface PortalPublishPayload {
 // Bulk Export Payload
 export interface BulkExportPayload {
   type: 'bulk-export';
-  exportType: 'crm' | 'mls' | 'mandates' | 'reports' | 'calendar';
+  exportType: 'crm' | 'mls' | 'mandates' | 'reports' | 'calendar' | 'documents';
   format: 'xlsx' | 'xls' | 'csv' | 'pdf' | 'xml';
   filters?: Record<string, unknown>;
   locale?: 'en' | 'el';

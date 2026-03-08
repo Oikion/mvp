@@ -503,11 +503,6 @@ export function DealDetail({ deal }: DealDetailProps) {
             <CardContent className="space-y-3">
               <div>
                 <h4 className="font-semibold">{deal.client.client_name}</h4>
-                {deal.client.intent && (
-                  <Badge variant="secondary" className="mt-1">
-                    {deal.client.intent}
-                  </Badge>
-                )}
               </div>
               {deal.client.primary_email && (
                 <a

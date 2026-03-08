@@ -43,7 +43,6 @@ export async function GET(req: Request) {
             id: true,
             client_name: true,
             primary_email: true,
-            intent: true,
           },
         },
         Users_Deal_propertyAgentIdToUsers: {

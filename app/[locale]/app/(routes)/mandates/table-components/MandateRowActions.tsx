@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import { DataTableRowActions } from "@/components/ui/data-table/data-table-row-actions";
 import RightViewModalNoTrigger from "@/components/modals/right-view-notrigger";
@@ -10,6 +11,7 @@ import EditMandateForm from "../[slug]/components/EditMandateForm";
 
 interface Mandate {
   id: string;
+  friendlyId?: string;
   title: string;
   status: string;
   urgency?: string | null;
@@ -61,6 +63,7 @@ interface MandateRowActionsProps {
  */
 export function MandateRowActions({ row }: MandateRowActionsProps) {
   const router = useRouter();
+  const t = useTranslations("mandates");
   const data = row.original as Mandate;
   const [editOpen, setEditOpen] = useState(false);
 
@@ -72,7 +75,7 @@ export function MandateRowActions({ row }: MandateRowActionsProps) {
     <>
       <RightViewModalNoTrigger
         title={data.title}
-        description="Edit mandate details"
+        description={t("MandateView.editDescription")}
         open={editOpen}
         setOpen={setEditOpen}
       >
@@ -90,7 +93,7 @@ export function MandateRowActions({ row }: MandateRowActionsProps) {
         entityType="mandate"
         entityId={data.id}
         entityName={data.title}
-        onView={() => router.push(`/app/mandates/${data.id}`)}
+        onView={() => router.push(`/app/mandates/${data.friendlyId ?? data.id}`)}
         onEdit={() => setEditOpen(true)}
         onDelete={handleDelete}
         onActionComplete={() => router.refresh()}

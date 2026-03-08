@@ -19,12 +19,12 @@ import {
   TrendingUp,
   CheckCircle2,
   ArrowRight,
-  Euro,
   Bed,
   MapPin,
   Info,
   AlertTriangle,
   BarChart3,
+  Euro,
 } from "lucide-react";
 import Link from "next/link";
 import type { MandateMatchAnalytics } from "@/actions/matchmaking/get-mandate-matches";
@@ -226,14 +226,10 @@ function TopMandateMatchesGrid({
                 {match.client.client_name}
               </Link>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="outline" className="text-xs">
-                  {match.client.intent}
-                </Badge>
-                {match.client.budget_max && (
-                  <span className="flex items-center gap-1">
-                    <Euro className="h-3 w-3" />
-                    {formatPrice(match.client.budget_max)}
-                  </span>
+                {match.client.client_status && (
+                  <Badge variant="outline" className="text-xs">
+                    {match.client.client_status}
+                  </Badge>
                 )}
               </div>
             </div>

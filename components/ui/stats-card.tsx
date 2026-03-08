@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Sparkles, Eye } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { MiniAreaChart } from "@/components/ui/mini-area-chart";
 
 interface StatsCardProps {
   title: string;
@@ -33,6 +34,12 @@ interface StatsCardProps {
   className?: string;
   /** Custom actions to render in the action area (overrides default buttons when provided) */
   customActions?: React.ReactNode;
+  /** Mini chart data points. When provided, renders a mini area chart. */
+  chartData?: Array<{ value: number }>;
+  /** Color for the mini chart stroke/fill */
+  chartColor?: string;
+  /** Force placeholder chart mode (muted, dashed) */
+  chartPlaceholder?: boolean;
 }
 
 export function StatsCard({
@@ -52,6 +59,9 @@ export function StatsCard({
   addLabel,
   className,
   customActions,
+  chartData,
+  chartColor,
+  chartPlaceholder,
 }: StatsCardProps) {
   // Determine if we're in a zero-state (value is 0 or "0" or "€0.0M" etc.)
   const isZeroState = 
@@ -118,7 +128,19 @@ export function StatsCard({
             )}
           </p>
         </div>
-        
+
+        {/* Mini area chart */}
+        {chartData && chartData.length > 0 && (
+          <div className="mt-2">
+            <MiniAreaChart
+              data={chartData}
+              color={chartColor}
+              height={40}
+              placeholder={isZeroState || chartPlaceholder}
+            />
+          </div>
+        )}
+
         {/* Action buttons */}
         <div className="mt-3 pt-2 min-h-[36px]">
           {customActions ? (

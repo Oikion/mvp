@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Trash2, Send, Loader2 } from "lucide-react"
 import { format } from "date-fns"
+import { useTranslations } from "next-intl"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -54,6 +55,8 @@ function getInitials(name: string | null | undefined, email: string): string {
 
 export default function MandateComments({ mandateId }: Readonly<MandateCommentsProps>) {
   const { toast } = useAppToast()
+  const t = useTranslations("mandates")
+  const tCommon = useTranslations("common")
 
   // Current user for optimistic updates
   const { user: clerkUser } = useUser()
@@ -92,7 +95,7 @@ export default function MandateComments({ mandateId }: Readonly<MandateCommentsP
     } catch (err) {
       toast.error("commentFailed", {
         description:
-          err instanceof Error ? err.message : "Failed to add comment",
+          err instanceof Error ? err.message : t("MandateView.commentFailed"),
       })
     }
   }
@@ -105,7 +108,7 @@ export default function MandateComments({ mandateId }: Readonly<MandateCommentsP
     } catch (err) {
       toast.error("commentFailed", {
         description:
-          err instanceof Error ? err.message : "Failed to delete comment",
+          err instanceof Error ? err.message : t("MandateView.deleteCommentFailed"),
       })
     } finally {
       setDeleteTarget(null)
@@ -138,7 +141,7 @@ export default function MandateComments({ mandateId }: Readonly<MandateCommentsP
         </Avatar>
         <div className="flex-1 space-y-2">
           <Textarea
-            placeholder="Add a comment..."
+            placeholder={t("MandateView.commentPlaceholder")}
             rows={2}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
@@ -156,7 +159,7 @@ export default function MandateComments({ mandateId }: Readonly<MandateCommentsP
               ) : (
                 <Send className="mr-2 h-4 w-4" />
               )}
-              Post
+              {t("MandateView.postComment")}
             </Button>
           </div>
         </div>
@@ -171,7 +174,7 @@ export default function MandateComments({ mandateId }: Readonly<MandateCommentsP
 
       {!isLoading && comments.length === 0 && (
         <p className="text-center text-sm text-muted-foreground py-6">
-          No comments yet. Be the first to add one.
+          {t("MandateView.noComments")}
         </p>
       )}
 
@@ -240,14 +243,13 @@ export default function MandateComments({ mandateId }: Readonly<MandateCommentsP
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+            <AlertDialogTitle>{t("MandateView.deleteCommentTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this comment? This action cannot
-              be undone.
+              {t("MandateView.deleteCommentDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -255,7 +257,7 @@ export default function MandateComments({ mandateId }: Readonly<MandateCommentsP
               {isDeleting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              Delete
+              {tCommon("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

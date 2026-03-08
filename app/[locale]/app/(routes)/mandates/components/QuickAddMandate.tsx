@@ -36,7 +36,7 @@ import {
 const createQuickAddMandateSchema = (t: (key: string) => string) =>
   z.object({
     title: z.string().min(1, t("MandateForm.validation.titleRequired")).max(200),
-    transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"], { required_error: t("MandateForm.validation.transactionTypeRequired") }),
+    transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE", "AUCTION"], { required_error: t("MandateForm.validation.transactionTypeRequired") }),
     property_type: z
       .enum([
         "RESIDENTIAL",
@@ -66,6 +66,8 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   organizationUsers: { id: string; name: string }[];
   onSuccess?: () => void;
+  preLinkedClientId?: string;
+  preLinkedPropertyId?: string;
 };
 
 export function QuickAddMandate({
@@ -73,6 +75,8 @@ export function QuickAddMandate({
   onOpenChange,
   organizationUsers,
   onSuccess,
+  preLinkedClientId,
+  preLinkedPropertyId,
 }: Props) {
   const router = useRouter();
   const { toast } = useAppToast();
@@ -101,7 +105,7 @@ export function QuickAddMandate({
   const onSubmit = async (data: QuickAddMandateFormValues) => {
     setIsLoading(true);
     try {
-      await axios.post("/api/mandates", {
+      const response = await axios.post("/api/mandates", {
         title: data.title.trim(),
         transaction_type: data.transaction_type,
         property_type: data.property_type || undefined,
@@ -111,6 +115,24 @@ export function QuickAddMandate({
         assigned_to: data.assigned_to || undefined,
         draft_status: false,
       });
+
+      const newMandateId = response.data.mandate?.id;
+
+      // Auto-link pre-linked entities if provided
+      if (newMandateId) {
+        if (preLinkedClientId) {
+          await axios.post("/api/mandates/link-entities", {
+            mandateId: newMandateId,
+            clientIds: [preLinkedClientId],
+          });
+        }
+        if (preLinkedPropertyId) {
+          await axios.post("/api/mandates/link-entities", {
+            mandateId: newMandateId,
+            propertyIds: [preLinkedPropertyId],
+          });
+        }
+      }
 
       toast.success("createSuccess", { description: tCommon("mandateCreated") });
 
@@ -236,6 +258,9 @@ export function QuickAddMandate({
                       </SelectItem>
                       <SelectItem value="EXCHANGE">
                         {tMls("PropertyForm.transactionType.EXCHANGE")}
+                      </SelectItem>
+                      <SelectItem value="AUCTION">
+                        {t("MandateForm.transactionType.AUCTION")}
                       </SelectItem>
                     </SelectContent>
                   </Select>

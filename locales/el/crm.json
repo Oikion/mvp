@@ -12,87 +12,17 @@
       "basics": "Βασικά",
       "contact": "Επικοινωνία",
       "legal": "Νομικά",
-      "preferences": "Ανάγκες / Προτιμήσεις",
-      "propertyDetails": "Χαρακτηριστικά Ακινήτου",
-      "financing": "Χρηματοδότηση",
       "consent": "Συναίνεση & GDPR"
     },
     "stepDescriptions": {
       "basics": "Βασικές πληροφορίες πελάτη",
       "contact": "Προτιμήσεις επικοινωνίας",
       "legal": "Νομικά στοιχεία (προαιρετικά)",
-      "preferences": "Ανάγκες και προτιμήσεις ακινήτου",
-      "propertyDetails": "Δωμάτια, εμβαδόν, όροφος και παροχές",
-      "financing": "Στοιχεία χρηματοδότησης",
       "consent": "Συναίνεση και προσωπικά δεδομένα"
     },
     "wizard": {
       "success": "Ο πελάτης δημιουργήθηκε με επιτυχία",
-      "error": "Αποτυχία δημιουργίας πελάτη. Δοκιμάστε ξανά.",
-      "financingNotApplicable": "Τα στοιχεία χρηματοδότησης δεν ισχύουν για αυτόν τον σκοπό."
-    },
-    "heating": {
-      "AUTONOMOUS": "Αυτόνομη",
-      "CENTRAL": "Κεντρική",
-      "NATURAL_GAS": "Φυσικό Αέριο",
-      "HEAT_PUMP": "Αντλία Θερμότητας",
-      "ELECTRIC": "Ηλεκτρική",
-      "NONE": "Χωρίς"
-    },
-    "condition": {
-      "EXCELLENT": "Άριστη",
-      "VERY_GOOD": "Πολύ Καλή",
-      "GOOD": "Καλή",
-      "NEEDS_RENOVATION": "Χρειάζεται Ανακαίνιση"
-    },
-    "amenities": {
-      "pool": "Πισίνα",
-      "gym": "Γυμναστήριο",
-      "garden": "Κήπος",
-      "terrace": "Βεράντα",
-      "balcony": "Μπαλκόνι",
-      "storage": "Αποθήκη",
-      "security": "Ασφάλεια",
-      "fireplace": "Τζάκι",
-      "air_conditioning": "Κλιματισμός",
-      "solar_panels": "Ηλιακά Πάνελ",
-      "smart_home": "Έξυπνο Σπίτι",
-      "alarm": "Συναγερμός",
-      "ev_charging": "Φόρτιση Ηλεκτρικού"
-    },
-    "propertyPrefs": {
-      "rooms": "Δωμάτια",
-      "bedroomsMin": "Ελάχιστα Υπνοδωμάτια",
-      "bedroomsMax": "Μέγιστα Υπνοδωμάτια",
-      "bathroomsMin": "Ελάχιστα Μπάνια",
-      "bathroomsMax": "Μέγιστα Μπάνια",
-      "any": "Οποιοδήποτε",
-      "size": "Εμβαδόν (τ.μ.)",
-      "sizeMin": "Ελάχιστο Εμβαδόν",
-      "sizeMax": "Μέγιστο Εμβαδόν",
-      "floor": "Όροφος",
-      "floorFrom": "Από Όροφο",
-      "floorTo": "Έως Όροφο",
-      "basement": "Υπόγειο",
-      "ground": "Ισόγειο",
-      "groundFloorOnly": "Μόνο ισόγειο",
-      "requirements": "Απαιτήσεις",
-      "elevator": "Ανελκυστήρας",
-      "parking": "Parking",
-      "petFriendly": "Κατοικίδια OK",
-      "furnished": "Επιπλωμένο",
-      "furnishedNo": "Μη Επιπλωμένο",
-      "furnishedPartially": "Μερικώς Επιπλωμένο",
-      "furnishedFully": "Πλήρως Επιπλωμένο",
-      "energyClass": "Ενεργειακή Κλάση (ελάχ.)",
-      "heatingType": "Τύπος Θέρμανσης",
-      "heatingPlaceholder": "Επιλέξτε τύπους θέρμανσης...",
-      "conditionLabel": "Κατάσταση Ακινήτου",
-      "conditionPlaceholder": "Επιλέξτε καταστάσεις...",
-      "amenitiesRequired": "Απαραίτητες Παροχές",
-      "amenitiesRequiredPlaceholder": "Επιλέξτε απαραίτητες παροχές...",
-      "amenitiesPreferred": "Επιθυμητές Παροχές",
-      "amenitiesPreferredPlaceholder": "Επιλέξτε επιθυμητές παροχές..."
+      "error": "Αποτυχία δημιουργίας πελάτη. Δοκιμάστε ξανά."
     },
     "fields": {
       "clientName": "Όνομα Πελάτη",
@@ -109,8 +39,6 @@
       "primaryEmailPlaceholder": "email@example.com",
       "secondaryPhone": "Εναλλακτικό τηλέφωνο",
       "secondaryEmail": "Εναλλακτικό email",
-      "intent": "Σκοπός",
-      "intentPlaceholder": "Επιλέξτε σκοπό",
       "channels": "Προτίμηση επικοινωνίας",
       "channelsPlaceholder": "Επιλέξτε κανάλια",
       "language": "Γλώσσα",
@@ -121,18 +49,8 @@
       "idDoc": "ΑΔΤ/Διαβατήριο",
       "companyGemi": "ΓΕΜΗ",
       "companyGemiPlaceholder": "Αριθμός ΓΕΜΗ",
-      "purpose": "Σκοπός ακινήτου",
-      "purposePlaceholder": "Επιλέξτε σκοπό",
       "areas": "Περιοχές ενδιαφέροντος",
       "areasPlaceholder": "Επιλέξτε περιοχές",
-      "budgetMin": "Ελάχιστος προϋπολογισμός",
-      "budgetMax": "Μέγιστος προϋπολογισμός",
-      "timeline": "Πότε;",
-      "timelinePlaceholder": "Επιλέξτε χρονοδιάγραμμα",
-      "financingType": "Τύπος χρηματοδότησης",
-      "financingTypePlaceholder": "Επιλέξτε τύπο",
-      "preapprovalBank": "Τράπεζα προέγκρισης",
-      "needsMortgageHelp": "Χρειάζεται βοήθεια με στεγαστικό",
       "notes": "Σημειώσεις",
       "notesPlaceholder": "Προσθέστε μια γρήγορη σημείωση...",
       "gdprConsent": "Συναίνεση GDPR",
@@ -149,37 +67,12 @@
       "INVESTOR": "Επενδυτής",
       "BROKER": "Μεσίτης/Πράκτορας"
     },
-    "intents": {
-      "BUY": "Αγορά",
-      "RENT": "Ενοικίαση",
-      "SELL": "Πώληση",
-      "LEASE": "Εκμίσθωση",
-      "INVEST": "Επένδυση"
-    },
     "channels": {
       "CALL": "Κλήση",
       "SMS": "SMS",
       "WHATSAPP": "WhatsApp",
       "VIBER": "Viber",
       "EMAIL": "Email"
-    },
-    "purpose": {
-      "RESIDENTIAL": "Κατοικία",
-      "COMMERCIAL": "Επαγγελματικό",
-      "LAND": "Γη",
-      "PARKING": "Χώρος Parking",
-      "OTHER": "Άλλο"
-    },
-    "timeline": {
-      "IMMEDIATE": "Άμεσα",
-      "ONE_THREE_MONTHS": "1-3 μήνες",
-      "THREE_SIX_MONTHS": "3-6 μήνες",
-      "SIX_PLUS_MONTHS": "6+ μήνες"
-    },
-    "financingType": {
-      "CASH": "Μετρητά",
-      "MORTGAGE": "Στεγαστικό",
-      "PREAPPROVAL_PENDING": "Εκκρεμεί προέγκριση"
     },
     "leadSource": {
       "REFERRAL": "Σύσταση",
@@ -193,9 +86,11 @@
       "personTypeRequired": "Ο τύπος πελάτη είναι υποχρεωτικός",
       "nameRequired": "Το όνομα είναι υποχρεωτικό",
       "phoneOrEmailRequired": "Το τηλέφωνο ή το email είναι υποχρεωτικό",
-      "intentRequired": "Ο σκοπός είναι υποχρεωτικός",
       "afmInvalid": "Το ΑΦΜ πρέπει να έχει 9 ψηφία",
       "emailInvalid": "Μη έγκυρο email"
+    },
+    "actions": {
+      "createMandate": "Δημιουργία Εντολής"
     },
     "buttons": {
       "saveDraft": "Αποθήκευση πρόχειρου",
@@ -347,4 +242,3 @@
     }
   }
 }
-

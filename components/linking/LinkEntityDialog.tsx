@@ -101,7 +101,7 @@ export function LinkEntityDialog({
     const results = groupedResults[searchType] || [];
     return results
       .map((result) => {
-        const typeValue = result.metadata.propertyType || result.metadata.intent;
+        const typeValue = result.metadata.propertyType || result.metadata.transactionType;
         return {
           id: result.value,
           name: result.label,
@@ -207,14 +207,14 @@ export function LinkEntityDialog({
           )}
 
           {/* Entity list */}
-          <ScrollArea className="h-[300px] pr-4">
+          <ScrollArea className="h-[300px]">
             {showLoading && filteredEntities.length === 0 ? (
-              <div className="flex items-center justify-center py-8 gap-2">
+              <div className="flex items-center justify-center py-8 gap-2 pr-3">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">Searching...</span>
               </div>
             ) : filteredEntities.length === 0 ? (
-              <div className="text-center py-8 text-sm text-muted-foreground">
+              <div className="text-center py-8 text-sm text-muted-foreground pr-3">
                 {transformedEntities.length === 0
                   ? entityType === "property"
                     ? t("emptyStates.noPropertiesAvailable")
@@ -224,7 +224,7 @@ export function LinkEntityDialog({
                   : t("emptyStates.searchNoResults")}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 pr-3">
                 {filteredEntities.map((entity) => (
                   <div
                     key={entity.id}

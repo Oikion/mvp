@@ -91,7 +91,7 @@ export const SHORTLIST_COLUMNS: ColumnDefinition[] = [
   },
   { key: "transaction_type", label: "Transaction", labelEl: "Συναλλαγή", type: "enum", width: 12,
     enumLabels: {
-      SALE: "Sale", RENTAL: "Rental", SHORT_TERM: "Short Term",
+      SALE: "Sale", RENTAL: "Rental", SHORT_TERM: "Short Term", EXCHANGE: "Exchange", AUCTION: "Auction",
     },
   },
   { key: "price", label: "Price", labelEl: "Τιμή", type: "currency", width: 15 },
