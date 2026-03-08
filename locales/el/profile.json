@@ -11,7 +11,8 @@
     "socialLinks": "Κοινωνικά Δίκτυα",
     "profile": "Προφίλ",
     "notifications": "Ειδοποιήσεις",
-    "privacy": "Απόρρητο & Ασφάλεια"
+    "privacy": "Απόρρητο & Ασφάλεια",
+    "dataControl": "Έλεγχος Δεδομένων"
   },
   "notifications": {
     "title": "Προτιμήσεις Ειδοποιήσεων",

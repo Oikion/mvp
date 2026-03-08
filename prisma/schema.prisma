@@ -2930,6 +2930,38 @@ model DataExportRequest {
 }
 
 // ============================================================
+// Data Deletion Request (GDPR data control)
+// ============================================================
+
+enum DataDeletionStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+model DataDeletionRequest {
+  id                String              @id @default(cuid())
+  organizationId    String
+  requestedById     String
+  reason            String?
+  status            DataDeletionStatus  @default(PENDING)
+  reviewedById      String?
+  reviewedAt        DateTime?
+  reviewNote        String?
+  gracePeriodEndsAt DateTime
+  executedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([organizationId])
+  @@index([requestedById])
+  @@index([status])
+}
+
+// ============================================================
 // Admin Audit Log (platform admin action history)
 // ============================================================
 

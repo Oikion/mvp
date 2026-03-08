@@ -11,7 +11,8 @@
     "socialLinks": "Social Links",
     "profile": "Profile",
     "notifications": "Notifications",
-    "privacy": "Privacy & Security"
+    "privacy": "Privacy & Security",
+    "dataControl": "Data Control"
   },
   "notifications": {
     "title": "Notification Preferences",
@@ -191,5 +192,95 @@
     "sale": "Sale",
     "rental": "Rental",
     "sqm": "sqm"
+  },
+  "dataControl": {
+    "title": "Data Control",
+    "description": "Manage your data, request exports, or delete your account data",
+    "yourData": {
+      "title": "Your Data",
+      "description": "Overview of data we collect and store for your organization",
+      "categories": {
+        "clients": {
+          "title": "Clients",
+          "description": "Contact information, communication notes, and client status"
+        },
+        "properties": {
+          "title": "Properties",
+          "description": "Property listings, details, photos, and contacts"
+        },
+        "mandates": {
+          "title": "Mandates",
+          "description": "Search mandates, requirements, and linked entities"
+        },
+        "documents": {
+          "title": "Documents",
+          "description": "Uploaded files, metadata, and sharing history"
+        },
+        "calendar": {
+          "title": "Calendar Events",
+          "description": "Appointments, showings, and reminders"
+        },
+        "tasks": {
+          "title": "Tasks",
+          "description": "To-do items, assignments, and comments"
+        },
+        "messages": {
+          "title": "Messages",
+          "description": "Conversations and direct messages"
+        },
+        "socialPosts": {
+          "title": "Social Posts",
+          "description": "Feed posts, comments, and likes"
+        },
+        "notifications": {
+          "title": "Notifications",
+          "description": "System and activity notifications"
+        },
+        "apiKeys": {
+          "title": "API Keys",
+          "description": "Key names, scopes, and usage (keys are never stored in plain text)"
+        },
+        "webhooks": {
+          "title": "Webhooks",
+          "description": "Webhook endpoint URLs and event subscriptions"
+        }
+      }
+    },
+    "export": {
+      "title": "Download My Data",
+      "description": "Request a copy of all your organization's data",
+      "requestExport": "Request Data Export",
+      "processing": "Your export is being prepared...",
+      "ready": "Your export is ready for download",
+      "download": "Download",
+      "expired": "Expired",
+      "failed": "Export failed",
+      "noRequests": "You haven't requested any data exports yet.",
+      "requestedAt": "Requested",
+      "expiresAt": "Expires"
+    },
+    "deletion": {
+      "title": "Request Data Deletion",
+      "description": "Request permanent deletion of all your organization's data",
+      "requestDeletion": "Request Data Deletion",
+      "confirmTitle": "Are you sure?",
+      "confirmDescription": "This will initiate a request to permanently delete all your organization's data. There is a 30-day grace period during which you can cancel.",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "Tell us why you're requesting deletion...",
+      "understand": "I understand that after the grace period, this action cannot be undone",
+      "submit": "Submit Deletion Request",
+      "pendingTitle": "Deletion Request Pending",
+      "pendingDescription": "Your data deletion request is being reviewed. You can cancel before the grace period ends.",
+      "gracePeriodEnds": "Grace period ends",
+      "daysRemaining": "days remaining",
+      "cancelRequest": "Cancel Request",
+      "cancelled": "Request cancelled",
+      "cancelledDescription": "Your data deletion request has been cancelled.",
+      "approved": "Your deletion request has been approved",
+      "approvedDescription": "Your data will be deleted after the grace period ends.",
+      "rejected": "Your deletion request was not approved",
+      "rejectedDescription": "The admin provided the following note:",
+      "completed": "Your data has been deleted"
+    }
   }
 }
