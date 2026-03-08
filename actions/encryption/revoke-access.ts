@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAction } from "@/lib/permissions/action-guards";
-import { getCurrentOrgId, getCurrentUserId } from "@/lib/get-current-user";
+import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
 import { prismadb } from "@/lib/prisma";
 
@@ -17,7 +17,8 @@ export async function revokeEncryptionAccess(
   if (guard) return guard;
 
   const organizationId = await getCurrentOrgId();
-  const currentUserId = await getCurrentUserId();
+  const currentUser = await getCurrentUser();
+  const currentUserId = currentUser.id;
 
   try {
     // Prevent revoking own access
@@ -71,7 +72,8 @@ export async function checkEncryptionAccess(): Promise<ActionResponse<boolean>> 
   if (guard) return guard;
 
   const organizationId = await getCurrentOrgId();
-  const userId = await getCurrentUserId();
+  const user = await getCurrentUser();
+  const userId = user.id;
 
   try {
     // Get encryption status

@@ -266,52 +266,33 @@ export async function executeDataDeletion(
     const orgId = request.organizationId;
 
     // Delete org data in order (respecting foreign keys)
+    // Models with onDelete: Cascade on their FK will auto-delete children
+    // when the parent is deleted, so we only need to explicitly delete
+    // models that don't cascade or need to go first.
     await prismadb.$transaction([
       // Messages & conversations
       prismadb.message.deleteMany({ where: { organizationId: orgId } }),
-      // Social
-      prismadb.socialPostComment.deleteMany({
-        where: { post: { organizationId: orgId } },
-      }),
-      prismadb.socialPostLike.deleteMany({
-        where: { post: { organizationId: orgId } },
-      }),
+      // Social (comments & likes cascade via onDelete: Cascade on SocialPost FK)
       prismadb.socialPost.deleteMany({ where: { organizationId: orgId } }),
-      // Calendar
-      prismadb.calendarReminder.deleteMany({
-        where: { event: { organizationId: orgId } },
-      }),
-      prismadb.eventInvitee.deleteMany({
-        where: { event: { organizationId: orgId } },
-      }),
+      // Calendar (reminders & invitees cascade via onDelete: Cascade)
       prismadb.calendarEvent.deleteMany({ where: { organizationId: orgId } }),
-      // Tasks
-      prismadb.crm_Accounts_Tasks_Comments.deleteMany({
-        where: { task: { organizationId: orgId } },
-      }),
+      // Tasks (comments cascade via onDelete: Cascade)
       prismadb.crm_Accounts_Tasks.deleteMany({
         where: { organizationId: orgId },
       }),
       // Documents
       prismadb.documents.deleteMany({ where: { organizationId: orgId } }),
-      // Properties
-      prismadb.propertyComment.deleteMany({
-        where: { property: { organizationId: orgId } },
-      }),
-      prismadb.propertyShowing.deleteMany({
-        where: { property: { organizationId: orgId } },
-      }),
+      // Property contacts (no cascade, has relation filter)
       prismadb.property_Contacts.deleteMany({
         where: { Properties: { organizationId: orgId } },
       }),
+      // Properties (comments & showings cascade via onDelete: Cascade)
       prismadb.properties.deleteMany({ where: { organizationId: orgId } }),
-      // Clients
-      prismadb.clientComment.deleteMany({
-        where: { client: { organizationId: orgId } },
-      }),
+      // Client contacts
       prismadb.client_Contacts.deleteMany({
         where: { organizationId: orgId },
       }),
+      // Clients (comments cascade via onDelete: Cascade)
       prismadb.clients.deleteMany({ where: { organizationId: orgId } }),
       // Mandates
       prismadb.mandate.deleteMany({ where: { organizationId: orgId } }),

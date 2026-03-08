@@ -2,6 +2,7 @@
 
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
 export interface ShareableItem {
   id: string;
@@ -55,12 +56,17 @@ export async function getShareableItems(): Promise<{
         title: p.property_name || "Unnamed Property",
         subtitle: [p.municipality, p.area].filter(Boolean).join(", ") || undefined,
       })),
-      clients: clients.map((c) => ({
-        id: c.id,
-        type: "client" as const,
-        title: c.client_name || "Unnamed Client",
-        subtitle: c.person_type || undefined,
-      })),
+      clients: await Promise.all(
+        clients.map(async (c) => {
+          const decrypted = await decryptClientForOrg(c, orgId);
+          return {
+            id: decrypted.id,
+            type: "client" as const,
+            title: decrypted.client_name || "Unnamed Client",
+            subtitle: decrypted.person_type || undefined,
+          };
+        })
+      ),
     };
   } catch (error) {
     console.error("Error fetching shareable items:", error);

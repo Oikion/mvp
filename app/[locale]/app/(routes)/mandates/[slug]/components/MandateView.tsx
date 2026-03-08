@@ -18,6 +18,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import {
   ArrowLeft,
   Edit,
@@ -32,7 +34,10 @@ import {
   MessageSquare,
   FileText,
   Clock,
+  Globe,
 } from "lucide-react"
+import { toast } from "sonner"
+import { setMandateNetworkVisible } from "@/actions/network/manage-network-settings"
 import { format } from "date-fns"
 import { useMandateLinked } from "@/hooks/swr/useMandateLinked"
 import {
@@ -123,6 +128,7 @@ interface Mandate {
   client?: MandateClient | null
   client_linked_at?: string | null
   draft_status?: boolean | null
+  networkVisible?: boolean | null
   createdAt?: string
   updatedAt?: string | null
   comments?: MandateCommentData[]
@@ -223,6 +229,9 @@ export default function MandateView({
 
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false)
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false)
+
+  const [networkVisible, setNetworkVisible] = useState(mandate.networkVisible ?? false)
+  const [isUpdatingNetwork, setIsUpdatingNetwork] = useState(false)
 
   // Open edit sheet if action=edit was passed via URL
   useEffect(() => {
@@ -713,6 +722,44 @@ export default function MandateView({
                     {t("MandateView.updated")} {format(new Date(mandate.updatedAt), "dd/MM/yyyy HH:mm")}
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Oikion Network visibility */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Globe className="h-4 w-4" />
+                Oikion Network
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between gap-4">
+                <Label htmlFor="network-visible-mandate" className="flex flex-col gap-1 cursor-pointer">
+                  <span className="font-medium text-sm">Share in network</span>
+                  <span className="text-xs text-muted-foreground">
+                    {networkVisible
+                      ? "Visible to network peers for cross-agency matching."
+                      : "Not shared with the network."}
+                  </span>
+                </Label>
+                <Switch
+                  id="network-visible-mandate"
+                  checked={networkVisible}
+                  disabled={isUpdatingNetwork}
+                  onCheckedChange={async (checked) => {
+                    setIsUpdatingNetwork(true)
+                    const prev = networkVisible
+                    setNetworkVisible(checked)
+                    const result = await setMandateNetworkVisible(mandate.id, checked)
+                    if (!result.success) {
+                      setNetworkVisible(prev)
+                      toast.error("Failed to update network visibility")
+                    }
+                    setIsUpdatingNetwork(false)
+                  }}
+                />
               </div>
             </CardContent>
           </Card>

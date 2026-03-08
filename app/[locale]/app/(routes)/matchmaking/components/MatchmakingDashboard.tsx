@@ -18,20 +18,23 @@ import {
 } from "lucide-react";
 import type { MatchAnalytics } from "@/lib/matchmaking";
 import type { MandateMatchAnalytics } from "@/actions/matchmaking/get-mandate-matches";
+import type { CrossOrgMatchSummary } from "@/actions/network/get-cross-org-matches";
 import { TopMatchesGrid } from "./TopMatchesGrid";
 import { MatchDistributionChart } from "./MatchDistributionChart";
 import { UnmatchedClientsList } from "./UnmatchedClientsList";
 import { HotPropertiesList } from "./HotPropertiesList";
 import { MandateMatchesTab } from "./MandateMatchesTab";
+import { NetworkMatchesSection } from "./NetworkMatchesSection";
 
 interface Props {
   locale: string;
   dict: any;
   analytics: MatchAnalytics;
   mandateAnalytics?: MandateMatchAnalytics;
+  networkMatches?: CrossOrgMatchSummary;
 }
 
-export function MatchmakingDashboard({ locale, dict, analytics, mandateAnalytics }: Props) {
+export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, networkMatches }: Props) {
   const t = useTranslations("matchmaking");
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -239,9 +242,13 @@ export function MatchmakingDashboard({ locale, dict, analytics, mandateAnalytics
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>{t("mandateMatches.noData")}</p>
               </CardContent>
             </Card>
+          )}
+          {networkMatches && (
+            <div className="mt-6">
+              <NetworkMatchesSection summary={networkMatches} locale={locale} />
+            </div>
           )}
         </TabsContent>
 

@@ -35,6 +35,7 @@
     },
     "tabs": {
       "overview": "Overview",
+      "mandates": "Mandates",
       "matches": "Top Matches",
       "unmatched": "Needs Attention",
       "hot": "Hot Properties"
@@ -49,6 +50,34 @@
       "excellentMatches": "Excellent Matches",
       "clientsNeedProperties": "Clients Need Properties",
       "highDemandProperties": "High Demand Properties"
+    }
+  },
+  "mandateMatches": {
+    "stats": {
+      "totalMandates": "Total Mandates",
+      "activeMandates": "Active Mandates",
+      "mandatesWithMatches": "Mandates with Matches",
+      "avgMatchScore": "Avg Match Score"
+    },
+    "topMatches": {
+      "title": "Top Mandate-Property Matches",
+      "description": "Best matching mandate-property pairs based on client preferences and criteria",
+      "noMatches": "No matches found above the threshold.",
+      "noMatchesHint": "Add more mandates or properties to see matches.",
+      "viewMandate": "View Mandate"
+    },
+    "distribution": {
+      "title": "Match Score Distribution",
+      "description": "Distribution of match scores across all mandate-property pairs"
+    },
+    "unmatched": {
+      "title": "Mandates Without Good Matches",
+      "description": "These mandates have no properties matching their criteria above 50%",
+      "allMatched": "All mandates have good matches!",
+      "allMatchedDesc": "Every active mandate has at least one property matching above 50%.",
+      "needsAttention": "mandates need attention",
+      "attentionDesc": "These mandates have no properties matching their preferences above 50%. Consider expanding search criteria or adding new properties.",
+      "review": "Review"
     }
   },
   "topMatches": {

@@ -260,9 +260,9 @@ export function FeedPostComposer({
       {visibilityAlert && (
         <Alert className={visibilityAlert.className}>
           {visibilityAlert.icon}
-          <AlertDescription className="flex items-center justify-between">
+          <AlertDescription className="flex items-center justify-between gap-3">
             <span className="text-sm">{visibilityAlert.message}</span>
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" className="flex-shrink-0" asChild>
               <Link href="/app/profile/public">
                 <Settings className="h-3 w-3 mr-1" />
                 {t?.privacy?.settings || "Settings"}

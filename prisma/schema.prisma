@@ -733,6 +733,7 @@ model Properties {
   PropertyShowing                     PropertyShowing[]
   XeSyncItems                         XeSyncItem[]
   Mandate_Properties                  Mandate_Properties[]
+  networkVisible                      Boolean              @default(false)
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_to])
@@ -743,6 +744,7 @@ model Properties {
   @@index([property_status])
   @@index([saleDate])
   @@index([xePublished])
+  @@index([networkVisible])
 }
 
 model PropertyComment {
@@ -1562,6 +1564,7 @@ model Mandate {
   notes               String?
   communication_notes Json?
   draft_status        Boolean?             @default(false)
+  networkVisible      Boolean              @default(false)
   assigned_to_user    Users?               @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
   comments            MandateComment[]
   Mandate_Properties  Mandate_Properties[]
@@ -1573,6 +1576,7 @@ model Mandate {
   @@index([assigned_to])
   @@index([status])
   @@index([createdAt])
+  @@index([networkVisible])
 }
 
 model MandateComment {
@@ -3007,4 +3011,76 @@ model AdminSecurityAudit {
   @@index([eventType])
   @@index([userId])
   @@index([createdAt])
+}
+
+// ============================================================
+// Oikion Network — Cross-Org Matchmaking
+// ============================================================
+
+enum OrgNetworkMembership {
+  NONE
+  POOL
+  BILATERAL
+  BOTH
+}
+
+enum NetworkPrivacyLevel {
+  ANONYMIZED
+  AGENCY_IDENTIFIED
+  FULL
+}
+
+enum PartnerStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  REVOKED
+}
+
+/// Per-org network participation settings
+model OrgNetworkSettings {
+  id                   String               @id @default(cuid())
+  organizationId       String               @unique
+  membership           OrgNetworkMembership @default(NONE)
+  shareProperties      Boolean              @default(false)
+  shareMandates        Boolean              @default(false)
+  propertyPrivacyLevel NetworkPrivacyLevel  @default(ANONYMIZED)
+  mandatePrivacyLevel  NetworkPrivacyLevel  @default(ANONYMIZED)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@index([membership])
+}
+
+/// Bilateral org-to-org partnership requests
+model OrgNetworkPartner {
+  id             String        @id @default(cuid())
+  initiatorOrgId String
+  partnerOrgId   String
+  status         PartnerStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  acceptedAt     DateTime?
+
+  @@unique([initiatorOrgId, partnerOrgId])
+  @@index([initiatorOrgId])
+  @@index([partnerOrgId])
+  @@index([status])
+}
+
+/// Cross-org match results computed by background job
+model CrossOrgMatch {
+  id            String   @id @default(cuid())
+  mandateOrgId  String
+  mandateId     String
+  propertyOrgId String
+  propertyId    String
+  matchScore    Int
+  breakdown     Json
+  computedAt    DateTime @default(now())
+  expiresAt     DateTime
+
+  @@unique([mandateId, propertyId])
+  @@index([mandateOrgId])
+  @@index([propertyOrgId])
+  @@index([expiresAt])
 }

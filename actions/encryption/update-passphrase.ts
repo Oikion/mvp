@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAuth } from "@/lib/permissions/action-guards";
-import { getCurrentOrgId, getCurrentUserId } from "@/lib/get-current-user";
+import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
 import { prismadb } from "@/lib/prisma";
 
@@ -27,7 +27,8 @@ export async function updateEncryptionPassphrase(
   if (guard) return guard;
 
   const organizationId = await getCurrentOrgId();
-  const userId = await getCurrentUserId();
+  const user = await getCurrentUser();
+  const userId = user.id;
 
   try {
     // Get encryption status
@@ -82,7 +83,8 @@ export async function getWrappedKeyForVerification(): Promise<
   if (guard) return guard;
 
   const organizationId = await getCurrentOrgId();
-  const userId = await getCurrentUserId();
+  const user = await getCurrentUser();
+  const userId = user.id;
 
   try {
     const status = await prismadb.organizationEncryptionStatus.findUnique({

@@ -21,5 +21,75 @@
   "viewProfile": "View profile",
   "viewPost": "View post",
   "likes": "Likes",
-  "comments": "Comments"
+  "comments": "Comments",
+  "matchmaking": {
+    "settingsTitle": "Oikion Network",
+    "settingsDescription": "Share your listings and mandates with other agencies for cross-agency matchmaking.",
+    "membership": {
+      "label": "Network participation",
+      "NONE": "Not participating",
+      "POOL": "Global pool",
+      "BILATERAL": "Bilateral partners only",
+      "BOTH": "Pool + bilateral partners",
+      "noneDesc": "Your data is not shared with any other agency.",
+      "poolDesc": "Your shared data is visible to all pool members.",
+      "bilateralDesc": "Your shared data is only visible to agencies you have accepted as partners.",
+      "bothDesc": "Your shared data is visible to all pool members and your bilateral partners."
+    },
+    "sharing": {
+      "label": "What to share",
+      "properties": "Share my active properties",
+      "mandates": "Share my active mandates",
+      "propertiesDesc": "Other agencies can match their mandates against your network-visible properties.",
+      "mandatesDesc": "Other agencies can match their properties against your network-visible mandates."
+    },
+    "privacy": {
+      "propertiesLabel": "Property visibility level",
+      "mandatesLabel": "Mandate visibility level",
+      "ANONYMIZED": "Anonymized",
+      "AGENCY_IDENTIFIED": "Agency identified",
+      "FULL": "Full details",
+      "ANONYMIZEDDesc": "Specs only — no agency name or contact info.",
+      "AGENCY_IDENTIFIEDDesc": "Specs + your agency name and logo.",
+      "FULLDesc": "Specs + agency name + listing agent contact."
+    },
+    "partners": {
+      "title": "Bilateral Partners",
+      "description": "Invite specific agencies to exchange data with — regardless of pool membership.",
+      "invite": "Invite agency",
+      "invitePlaceholder": "Agency slug (e.g. acme-real-estate)",
+      "pending": "Pending",
+      "accepted": "Active",
+      "rejected": "Rejected",
+      "revoked": "Revoked",
+      "accept": "Accept",
+      "reject": "Decline",
+      "revoke": "Revoke",
+      "initiatedBy": "Invited by you",
+      "receivedFrom": "Invited by",
+      "noPartners": "No bilateral partners yet.",
+      "inviteSuccess": "Invitation sent.",
+      "inviteError": "Could not send invitation."
+    },
+    "dashboard": {
+      "title": "Network Matches",
+      "description": "Cross-agency matches found by the Oikion Network",
+      "notMember": "Join the Oikion Network to see cross-agency matches.",
+      "joinCta": "Configure network settings",
+      "noResults": "No network matches yet.",
+      "noResultsHint": "Matches are computed every 30 minutes. Make sure some properties or mandates are marked as network-visible.",
+      "lastComputed": "Last updated",
+      "badge": "Network",
+      "fromAgency": "From",
+      "unknownAgency": "Network agency",
+      "viewMandate": "View mandate",
+      "viewProperty": "View property",
+      "contactAgent": "Contact agent"
+    },
+    "recordToggle": {
+      "label": "Share in network",
+      "enabledDesc": "Visible to your network peers for matching.",
+      "disabledDesc": "Not shared with the network."
+    }
+  }
 }

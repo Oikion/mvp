@@ -28,6 +28,9 @@ import {
   XCircle,
   CheckCircle,
   Loader2,
+  RefreshCw,
+  Copy,
+  Check,
 } from "lucide-react";
 import {
   Card,
@@ -70,7 +73,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useEncryption } from "@/components/providers/EncryptionProvider";
+import { useEncryption, EncryptionProvider } from "@/components/providers/EncryptionProvider";
 import { useAppToast } from "@/hooks/use-app-toast";
 import {
   validatePassphrase,
@@ -210,7 +213,22 @@ function EncryptionSetupSection() {
     lock,
     remainingTime,
     refreshStatus,
+    resetIdleTimer,
   } = useEncryption();
+
+  // Reset idle timer on user activity (only when encryption is active)
+  useEffect(() => {
+    if (!isUnlocked) return;
+    const handleActivity = () => resetIdleTimer();
+    globalThis.addEventListener("mousemove", handleActivity);
+    globalThis.addEventListener("keydown", handleActivity);
+    globalThis.addEventListener("click", handleActivity);
+    return () => {
+      globalThis.removeEventListener("mousemove", handleActivity);
+      globalThis.removeEventListener("keydown", handleActivity);
+      globalThis.removeEventListener("click", handleActivity);
+    };
+  }, [isUnlocked, resetIdleTimer]);
   const isAdmin = useHasPermission("canManageRoles");
   const { toast } = useAppToast();
   const success = (msg: string) =>
@@ -220,8 +238,55 @@ function EncryptionSetupSection() {
 
   const [passphrase, setPassphrase] = useState("");
   const [confirmPassphrase, setConfirmPassphrase] = useState("");
+  const [passphraseError, setPassphraseError] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSetupDialog, setShowSetupDialog] = useState(false);
+
+  const passphraseStrength = useCallback((p: string) => {
+    if (!p) return null;
+    const checks = [p.length >= 12, /[A-Z]/.test(p), /[a-z]/.test(p), /[0-9]/.test(p), /[^A-Za-z0-9]/.test(p)];
+    const score = checks.filter(Boolean).length;
+    if (score <= 2) return { label: "Weak", color: "bg-destructive", width: "w-1/4" };
+    if (score === 3) return { label: "Fair", color: "bg-amber-500", width: "w-2/4" };
+    if (score === 4) return { label: "Good", color: "bg-yellow-400", width: "w-3/4" };
+    return { label: "Strong", color: "bg-green-500", width: "w-full" };
+  }, []);
+
+  const handlePassphraseChange = (value: string) => {
+    setPassphrase(value);
+    if (value) {
+      const v = validatePassphrase(value);
+      setPassphraseError(v.isValid ? null : (v.error ?? null));
+    } else {
+      setPassphraseError(null);
+    }
+    if (confirmPassphrase) {
+      setConfirmError(value !== confirmPassphrase ? "Passphrases do not match" : null);
+    }
+  };
+
+  const handleConfirmChange = (value: string) => {
+    setConfirmPassphrase(value);
+    setConfirmError(value && value !== passphrase ? "Passphrases do not match" : null);
+  };
+
+  const generatePassphrase = useCallback(async () => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    const array = crypto.getRandomValues(new Uint8Array(20));
+    // Guarantee at least one of each required class
+    const pick = (set: string) => set[crypto.getRandomValues(new Uint8Array(1))[0] % set.length];
+    const base = Array.from(array).map((b) => chars[b % chars.length]).join("");
+    const seeded = pick("ABCDEFGHIJKLMNOPQRSTUVWXYZ") + pick("abcdefghijklmnopqrstuvwxyz") + pick("0123456789") + base.slice(3);
+    const shuffled = seeded.split("").sort(() => (crypto.getRandomValues(new Uint8Array(1))[0] > 127 ? 1 : -1)).join("");
+    handlePassphraseChange(shuffled);
+    setConfirmPassphrase(shuffled);
+    setConfirmError(null);
+    await navigator.clipboard.writeText(shuffled);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, []);
 
   const handleUnlock = async () => {
     if (!passphrase) return;
@@ -244,11 +309,11 @@ function EncryptionSetupSection() {
   const handleSetup = async () => {
     const validation = validatePassphrase(passphrase);
     if (!validation.isValid) {
-      showError(validation.error || "Invalid passphrase");
+      setPassphraseError(validation.error ?? "Invalid passphrase");
       return;
     }
     if (passphrase !== confirmPassphrase) {
-      showError("Passphrases do not match");
+      setConfirmError("Passphrases do not match");
       return;
     }
 
@@ -333,7 +398,16 @@ function EncryptionSetupSection() {
         <Separator />
 
         {!isEnabled && isAdmin && (
-          <Dialog open={showSetupDialog} onOpenChange={setShowSetupDialog}>
+          <Dialog open={showSetupDialog} onOpenChange={(open) => {
+            setShowSetupDialog(open);
+            if (!open) {
+              setPassphrase("");
+              setConfirmPassphrase("");
+              setPassphraseError(null);
+              setConfirmError(null);
+              setCopied(false);
+            }
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Lock className="h-4 w-4 mr-2" />
@@ -359,17 +433,64 @@ function EncryptionSetupSection() {
                   </AlertDescription>
                 </Alert>
                 <div className="space-y-2">
-                  <Label htmlFor="setup-passphrase">Passphrase</Label>
-                  <Input
-                    id="setup-passphrase"
-                    type="password"
-                    placeholder="Enter a strong passphrase (12+ characters)"
-                    value={passphrase}
-                    onChange={(e) => setPassphrase(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Must contain uppercase, lowercase, and numbers
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="setup-passphrase">Passphrase</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 gap-1.5 text-xs text-muted-foreground"
+                      onClick={generatePassphrase}
+                    >
+                      {copied ? (
+                        <><Check className="h-3 w-3 text-green-500" />Copied!</>
+                      ) : (
+                        <><RefreshCw className="h-3 w-3" />Generate & copy</>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="setup-passphrase"
+                      type="password"
+                      placeholder="Enter a strong passphrase (12+ characters)"
+                      value={passphrase}
+                      onChange={(e) => handlePassphraseChange(e.target.value)}
+                      className={passphraseError ? "border-destructive focus-visible:ring-destructive" : ""}
+                    />
+                    {passphrase && (
+                      <button
+                        type="button"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(passphrase);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        }}
+                      >
+                        {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      </button>
+                    )}
+                  </div>
+                  {passphrase && (() => {
+                    const s = passphraseStrength(passphrase);
+                    return s ? (
+                      <div className="space-y-1">
+                        <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                          <div className={`h-full rounded-full transition-all ${s.color} ${s.width}`} />
+                        </div>
+                        <p className="text-xs text-muted-foreground">Strength: {s.label}</p>
+                      </div>
+                    ) : null;
+                  })()}
+                  {passphraseError && (
+                    <p className="text-xs text-destructive">{passphraseError}</p>
+                  )}
+                  {!passphraseError && !passphrase && (
+                    <p className="text-xs text-muted-foreground">
+                      Must contain uppercase, lowercase, and numbers (12+ chars)
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-passphrase">
@@ -380,18 +501,28 @@ function EncryptionSetupSection() {
                     type="password"
                     placeholder="Confirm your passphrase"
                     value={confirmPassphrase}
-                    onChange={(e) => setConfirmPassphrase(e.target.value)}
+                    onChange={(e) => handleConfirmChange(e.target.value)}
+                    className={confirmError ? "border-destructive focus-visible:ring-destructive" : ""}
                   />
+                  {confirmError && (
+                    <p className="text-xs text-destructive">{confirmError}</p>
+                  )}
                 </div>
               </div>
               <DialogFooter>
                 <Button
                   variant="outline"
-                  onClick={() => setShowSetupDialog(false)}
+                  onClick={() => {
+                    setShowSetupDialog(false);
+                    setPassphrase("");
+                    setConfirmPassphrase("");
+                    setPassphraseError(null);
+                    setConfirmError(null);
+                  }}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleSetup} disabled={isSubmitting}>
+                <Button onClick={handleSetup} disabled={isSubmitting || !!passphraseError || !!confirmError || !passphrase || !confirmPassphrase}>
                   {isSubmitting ? (
                     <Loading variant="spinner" size="sm" />
                   ) : (
@@ -1162,27 +1293,13 @@ function AccountActionsSection() {
 // =============================================================================
 
 export function DataControlTab() {
-  const { resetIdleTimer } = useEncryption();
-
-  useEffect(() => {
-    const handleActivity = () => resetIdleTimer();
-
-    globalThis.addEventListener("mousemove", handleActivity);
-    globalThis.addEventListener("keydown", handleActivity);
-    globalThis.addEventListener("click", handleActivity);
-
-    return () => {
-      globalThis.removeEventListener("mousemove", handleActivity);
-      globalThis.removeEventListener("keydown", handleActivity);
-      globalThis.removeEventListener("click", handleActivity);
-    };
-  }, [resetIdleTimer]);
-
   return (
     <div className="space-y-6">
       <YourDataSection />
       <Separator />
-      <EncryptionSetupSection />
+      <EncryptionProvider>
+        <EncryptionSetupSection />
+      </EncryptionProvider>
       <Separator />
       <DataExportSection />
       <Separator />

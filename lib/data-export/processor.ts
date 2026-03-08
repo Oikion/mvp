@@ -10,7 +10,7 @@
  */
 
 import { prismadb } from "@/lib/prisma";
-import { put } from "@vercel/blob";
+import { uploadToBlob } from "@/lib/vercel-blob";
 import resendHelper from "@/lib/resend";
 import { DataExportStatus } from "@prisma/client";
 import {
@@ -88,27 +88,15 @@ export async function processDataExportRequest(requestId: string): Promise<Expor
 
     // Generate JSON export
     const jsonContent = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([jsonContent], { type: "application/json" });
 
     // Upload to Vercel Blob with 24-hour expiration
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const filename = `export-${organizationId}-${Date.now()}.json`;
 
-    let downloadUrl: string;
-
-    try {
-      const { url } = await put(filename, blob, {
-        access: "public",
-        addRandomSuffix: true,
-      });
-      downloadUrl = url;
-    } catch (uploadError) {
-      console.error("[DATA_EXPORT] Upload failed:", uploadError);
-      
-      // Fallback: Store as base64 in database (not ideal for large exports)
-      // In production, you'd want a proper file storage solution
-      downloadUrl = `data:application/json;base64,${Buffer.from(jsonContent).toString("base64")}`;
-    }
+    const { url: downloadUrl } = await uploadToBlob(filename, Buffer.from(jsonContent), {
+      contentType: "application/json",
+      addRandomSuffix: true,
+    });
 
     // Update request with download URL
     await prismadb.dataExportRequest.update({

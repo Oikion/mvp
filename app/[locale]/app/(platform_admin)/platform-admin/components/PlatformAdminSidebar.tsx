@@ -30,6 +30,8 @@ import {
   Zap,
   Settings,
   Home,
+  Database,
+  Globe,
 } from "lucide-react";
 
 import {
@@ -123,6 +125,18 @@ export function PlatformAdminSidebar({ adminUser, locale }: PlatformAdminSidebar
       label: t("nav.feedback"),
       icon: MessageSquare,
       active: pathname.includes("/platform-admin/feedback"),
+    },
+    {
+      href: `/${locale}/app/platform-admin/data-requests`,
+      label: t("nav.dataRequests"),
+      icon: Database,
+      active: pathname.includes("/platform-admin/data-requests"),
+    },
+    {
+      href: `/${locale}/app/platform-admin/network`,
+      label: t("nav.network"),
+      icon: Globe,
+      active: pathname.includes("/platform-admin/network"),
     },
   ];
 

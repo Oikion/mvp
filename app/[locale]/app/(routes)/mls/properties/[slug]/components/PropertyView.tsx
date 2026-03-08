@@ -57,6 +57,9 @@ import {
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
 import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { setPropertyNetworkVisible } from "@/actions/network/manage-network-settings";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -83,6 +86,7 @@ interface PropertyViewProps {
     property_preferences?: unknown;
     communication_notes?: unknown;
     portal_visibility?: string | null;
+    networkVisible?: boolean | null;
     assigned_to_user?: { name: string | null } | null;
     createdAt?: string | Date | null;
     updatedAt?: string | Date | null;
@@ -146,6 +150,8 @@ export default function PropertyView({
   const [createMandateOpen, setCreateMandateOpen] = useState(false);
   const [visibility, setVisibility] = useState(data.portal_visibility || "PRIVATE");
   const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
+  const [networkVisible, setNetworkVisible] = useState(data.networkVisible ?? false);
+  const [isUpdatingNetwork, setIsUpdatingNetwork] = useState(false);
   const [copied, setCopied] = useState(false);
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
 
@@ -599,6 +605,46 @@ export default function PropertyView({
                     </div>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Oikion Network visibility */}
+          {!isReadOnly && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Globe className="h-4 w-4" />
+                  Oikion Network
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between gap-4">
+                  <Label htmlFor="network-visible-property" className="flex flex-col gap-1 cursor-pointer">
+                    <span className="font-medium text-sm">Share in network</span>
+                    <span className="text-xs text-muted-foreground">
+                      {networkVisible
+                        ? "Visible to network peers for cross-agency matching."
+                        : "Not shared with the network."}
+                    </span>
+                  </Label>
+                  <Switch
+                    id="network-visible-property"
+                    checked={networkVisible}
+                    disabled={isUpdatingNetwork}
+                    onCheckedChange={async (checked) => {
+                      setIsUpdatingNetwork(true);
+                      const prev = networkVisible;
+                      setNetworkVisible(checked);
+                      const result = await setPropertyNetworkVisible(data.id, checked);
+                      if (!result.success) {
+                        setNetworkVisible(prev);
+                        toast.error("Failed to update network visibility");
+                      }
+                      setIsUpdatingNetwork(false);
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
           )}

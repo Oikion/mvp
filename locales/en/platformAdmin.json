@@ -22,7 +22,8 @@
     "aiTools": "AI Tools",
     "aiAgents": "AI Agents",
     "aiPrompts": "AI Prompts",
-    "dataRequests": "Data Requests"
+    "dataRequests": "Data Requests",
+    "network": "Oikion Network"
   },
   "sidebar": {
     "management": "Management",

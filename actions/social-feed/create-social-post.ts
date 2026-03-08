@@ -3,6 +3,7 @@
 import { getCurrentOrgIdSafe, getCurrentUserSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { prismaForOrg } from "@/lib/tenant";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 import { revalidatePath } from "next/cache";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { randomBytes } from "crypto";
@@ -116,10 +117,11 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
       });
 
       if (client) {
-        linkedEntityTitle = client.client_name || "Unnamed Client";
-        linkedEntitySubtitle = client.person_type || undefined;
+        const decrypted = await decryptClientForOrg(client, orgId);
+        linkedEntityTitle = decrypted.client_name || "Unnamed Client";
+        linkedEntitySubtitle = decrypted.person_type || undefined;
         linkedEntityMetadata = {
-          personType: client.person_type,
+          personType: decrypted.person_type,
         };
       }
     } else if (type === "mandate") {

@@ -1,18 +1,19 @@
-import React from "react";
 import Container from "../components/ui/Container";
 import { getDictionary } from "@/dictionaries";
 import { getMatchAnalytics } from "@/actions/matchmaking/get-match-analytics";
 import { getMandateMatchAnalytics } from "@/actions/matchmaking/get-mandate-matches";
+import { getCrossOrgMatches } from "@/actions/network/get-cross-org-matches";
 import { MatchmakingDashboard } from "./components/MatchmakingDashboard";
 
 const MatchmakingPage = async ({ params }: { params: Promise<{ locale: string }> }) => {
   const { locale } = await params;
   const dict = await getDictionary(locale);
 
-  // Fetch client and mandate match analytics in parallel
-  const [analytics, mandateAnalytics] = await Promise.all([
+  // Fetch all analytics in parallel
+  const [analytics, mandateAnalytics, networkMatches] = await Promise.all([
     getMatchAnalytics(),
     getMandateMatchAnalytics(),
+    getCrossOrgMatches(),
   ]);
 
   return (
@@ -25,6 +26,7 @@ const MatchmakingPage = async ({ params }: { params: Promise<{ locale: string }>
         dict={dict}
         analytics={analytics}
         mandateAnalytics={mandateAnalytics}
+        networkMatches={networkMatches}
       />
     </Container>
   );

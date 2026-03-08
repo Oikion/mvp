@@ -8,7 +8,12 @@
       "Bash(pnpm add idb fake-indexeddb)",
       "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\)/settings -type f -name \"*.tsx\" -o -name \"*.ts\")",
       "Bash(ls -la /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(platform_admin\\\\\\)/platform-admin/)",
-      "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\)/profile -type f -name \"*.tsx\" -o -name \"*.ts\")"
+      "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\)/profile -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "Bash(ls /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(platform_admin\\\\\\)/platform-admin/)",
+      "Bash(ls -la \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/matchmaking/\")",
+      "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/matchmaking/components/UnmatchedClientsList.tsx\")",
+      "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/crm/clients/[slug]/components/ClientMatchingProperties.tsx\")",
+      "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/mls/properties/[slug]/components/PropertyMatchingClients.tsx\")"
     ]
   }
 }

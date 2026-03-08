@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAction } from "@/lib/permissions/action-guards";
-import { getCurrentOrgId, getCurrentUserId } from "@/lib/get-current-user";
+import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
 import { prismadb } from "@/lib/prisma";
 
@@ -29,7 +29,8 @@ export async function grantEncryptionAccess(
   if (guard) return guard;
 
   const organizationId = await getCurrentOrgId();
-  const grantedById = await getCurrentUserId();
+  const currentUser = await getCurrentUser();
+  const grantedById = currentUser.id;
 
   try {
     // Get encryption status

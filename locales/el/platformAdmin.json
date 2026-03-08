@@ -22,7 +22,8 @@
     "aiTools": "AI Εργαλεία",
     "aiAgents": "AI Agents",
     "aiPrompts": "AI Prompts",
-    "dataRequests": "Αιτήματα Δεδομένων"
+    "dataRequests": "Αιτήματα Δεδομένων",
+    "network": "Oikion Network"
   },
   "sidebar": {
     "management": "Διαχείριση",
