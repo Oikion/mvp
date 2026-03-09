@@ -55,6 +55,7 @@ import {
   ChevronRight,
   Plus,
   Send,
+  BellRing,
   Sparkles,
   Bug,
   Zap,
@@ -78,6 +79,7 @@ import { ChangelogForm } from "./ChangelogForm";
 import {
   deleteChangelogEntry,
   publishChangelogEntry,
+  sendChangelogNotification,
   type ChangelogEntryData,
 } from "@/actions/platform-admin/changelog-actions";
 import { toast } from "sonner";
@@ -163,6 +165,8 @@ export function ChangelogClient({
   const [deleteConfirm, setDeleteConfirm] = useState<ChangelogEntryData | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPublishing, setIsPublishing] = useState<string | null>(null);
+  const [isNotifying, setIsNotifying] = useState<string | null>(null);
+  const [notifyConfirm, setNotifyConfirm] = useState<ChangelogEntryData | null>(null);
 
   const handleStatusFilter = (status: string) => {
     const params = new URLSearchParams();
@@ -200,17 +204,44 @@ export function ChangelogClient({
   const handlePublish = async (id: string) => {
     setIsPublishing(id);
     try {
-      const result = await publishChangelogEntry(id);
-      if (result.success) {
-        toast.success("Entry published successfully");
-        router.refresh();
+      const publishResult = await publishChangelogEntry(id);
+      if (!publishResult.success) {
+        toast.error(publishResult.error || "Failed to publish entry");
+        return;
+      }
+      toast.success("Entry published! Sending notifications...");
+      router.refresh();
+
+      // Send notification — non-blocking after publish
+      const notifyResult = await sendChangelogNotification(id);
+      if (notifyResult.success) {
+        toast.success(`Notified ${notifyResult.recipientCount} users`);
       } else {
-        toast.error(result.error || "Failed to publish entry");
+        toast.error(`Published, but notification failed: ${notifyResult.error}`);
       }
     } catch {
       toast.error("An error occurred");
     } finally {
       setIsPublishing(null);
+    }
+  };
+
+  const handleNotify = async () => {
+    if (!notifyConfirm) return;
+    setIsNotifying(notifyConfirm.id);
+    try {
+      const result = await sendChangelogNotification(notifyConfirm.id);
+      if (result.success) {
+        toast.success(`Notified ${result.recipientCount} users`);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to send notification");
+      }
+    } catch {
+      toast.error("An error occurred");
+    } finally {
+      setIsNotifying(null);
+      setNotifyConfirm(null);
     }
   };
 
@@ -444,6 +475,17 @@ export function ChangelogClient({
                             <Send className="h-4 w-4" />
                           </Button>
                         )}
+                        {entry.status === "PUBLISHED" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setNotifyConfirm(entry)}
+                            disabled={isNotifying === entry.id}
+                            title="Send notification email to users"
+                          >
+                            <BellRing className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -610,6 +652,29 @@ export function ChangelogClient({
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? "Archiving..." : "Archive"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Notify Confirmation */}
+      <AlertDialog open={!!notifyConfirm} onOpenChange={() => setNotifyConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send Changelog Notification?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Send an email notification for{" "}
+              <span className="font-semibold">v{notifyConfirm?.version}: {notifyConfirm?.title}</span>{" "}
+              to all opted-in users.
+              {notifyConfirm?.broadcastCount
+                ? ` This entry has been sent ${notifyConfirm.broadcastCount} time${notifyConfirm.broadcastCount === 1 ? "" : "s"} before.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!isNotifying}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleNotify} disabled={!!isNotifying}>
+              {isNotifying ? "Sending..." : "Send Notification"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
