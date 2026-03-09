@@ -69,7 +69,8 @@ export type AdminActionType =
   | "VIEW_DATA_REQUESTS"
   | "APPROVE_DATA_DELETION"
   | "REJECT_DATA_DELETION"
-  | "EXECUTE_DATA_DELETION";
+  | "EXECUTE_DATA_DELETION"
+  | "SEND_CHANGELOG_NOTIFICATION";
 
 /**
  * Validate that a reason/message is safe and not malicious

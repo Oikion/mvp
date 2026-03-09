@@ -6,6 +6,10 @@ import { z } from "zod";
 import { ChangelogStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import type { ChangelogTag, ChangelogCategoryData } from "@/lib/changelog-constants";
+import { render } from "@react-email/render";
+import { ChangelogNotification } from "@/emails/changelog/ChangelogNotification";
+import resendHelper from "@/lib/resend";
+import { format } from "date-fns";
 
 // Tag validation schema
 const tagSchema = z.object({
@@ -65,6 +69,8 @@ export interface ChangelogEntryData {
   status: ChangelogStatus;
   tags: ChangelogTag[];
   publishedAt: string | null;
+  lastNotifiedAt: string | null;
+  broadcastCount: number;
   createdAt: string;
   updatedAt: string;
   createdBy: {
@@ -604,6 +610,8 @@ export async function getChangelogEntries(options?: {
         status: entry.status,
         tags: (entry.tags as unknown as ChangelogTag[]) || [],
         publishedAt: entry.publishedAt?.toISOString() || null,
+        lastNotifiedAt: entry.lastNotifiedAt?.toISOString() || null,
+        broadcastCount: entry.broadcastCount,
         createdAt: entry.createdAt.toISOString(),
         updatedAt: entry.updatedAt.toISOString(),
         createdBy: entry.createdBy,
@@ -660,6 +668,8 @@ export async function getPublishedChangelogEntries(): Promise<ChangelogEntryData
       status: entry.status,
       tags: (entry.tags as unknown as ChangelogTag[]) || [],
       publishedAt: entry.publishedAt?.toISOString() || null,
+      lastNotifiedAt: entry.lastNotifiedAt?.toISOString() || null,
+      broadcastCount: entry.broadcastCount,
       createdAt: entry.createdAt.toISOString(),
       updatedAt: entry.updatedAt.toISOString(),
       createdBy: entry.createdBy,
@@ -732,5 +742,231 @@ export async function getVersionSuggestionData(): Promise<{
   } catch (error) {
     console.error("[GET_VERSION_SUGGESTION_DATA]", error);
     return { latestVersion: null, categories: [] };
+  }
+}
+
+// ============================================
+// NOTIFICATION BROADCAST ACTIONS
+// ============================================
+
+export interface ChangelogBroadcastData {
+  id: string;
+  changelogEntryId: string;
+  sentAt: string;
+  recipientCount: number;
+  emailCount: number;
+  sentBy: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+  } | null;
+  entry: {
+    version: string;
+    title: string;
+  };
+}
+
+/**
+ * Send changelog notification email to all opted-in registered users.
+ * Auto-triggered on publish and available as manual resend for published entries.
+ * Requires platform admin access.
+ */
+export async function sendChangelogNotification(
+  changelogEntryId: string
+): Promise<ActionResult & { recipientCount?: number; broadcastId?: string }> {
+  try {
+    const admin = await requirePlatformAdmin();
+
+    if (!changelogEntryId) {
+      return { success: false, error: "Entry ID is required" };
+    }
+
+    const entry = await prismadb.changelogEntry.findUnique({
+      where: { id: changelogEntryId },
+      include: { customCategory: true },
+    });
+
+    if (!entry) {
+      return { success: false, error: "Changelog entry not found" };
+    }
+
+    if (entry.status !== ChangelogStatus.PUBLISHED) {
+      return { success: false, error: "Only published entries can be sent as notifications" };
+    }
+
+    const adminUser = await prismadb.users.findUnique({
+      where: { clerkUserId: admin.clerkId },
+      select: { id: true },
+    });
+
+    if (!adminUser) {
+      return { success: false, error: "Admin user not found" };
+    }
+
+    const recipients = await prismadb.users.findMany({
+      where: {
+        OR: [
+          { UserNotificationSettings: { systemEmailEnabled: true } },
+          { UserNotificationSettings: null },
+        ],
+      },
+      select: { id: true, email: true, firstName: true, lastName: true },
+    });
+
+    if (recipients.length === 0) {
+      return { success: false, error: "No opted-in recipients found" };
+    }
+
+    const resend = await resendHelper();
+    const tags = (entry.tags as Array<{ name: string; color: string }>) || [];
+    const publishedAtFormatted = entry.publishedAt
+      ? format(entry.publishedAt, "MMMM d, yyyy")
+      : format(new Date(), "MMMM d, yyyy");
+
+    const BATCH_SIZE = 50;
+    const allEmailIds: string[] = [];
+
+    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+      const chunk = recipients.slice(i, i + BATCH_SIZE);
+
+      const emails = await Promise.all(
+        chunk.map(async (user) => {
+          const html = await render(
+            ChangelogNotification({
+              username: user.firstName || user.email!.split("@")[0],
+              email: user.email!,
+              version: entry.version,
+              title: entry.title,
+              description: entry.description,
+              category: entry.customCategory
+                ? {
+                    name: entry.customCategory.name,
+                    color: entry.customCategory.color,
+                    icon: entry.customCategory.icon,
+                  }
+                : null,
+              tags,
+              publishedAt: publishedAtFormatted,
+            })
+          );
+
+          return {
+            from: `Oikion <noreply@mail.oikion.com>`,
+            to: user.email!,
+            subject: `What's new in Oikion — v${entry.version}: ${entry.title}`,
+            html,
+          };
+        })
+      );
+
+      const { data, error } = await resend.batch.send(emails);
+
+      if (error) {
+        console.error("[SEND_CHANGELOG_NOTIFICATION] Batch error:", error);
+      }
+
+      if (data) {
+        const ids = data.data
+          .filter((r): r is { id: string } => r !== null && typeof r.id === "string")
+          .map((r) => r.id);
+        allEmailIds.push(...ids);
+      }
+    }
+
+    const broadcast = await prismadb.changelogBroadcast.create({
+      data: {
+        changelogEntryId,
+        recipientCount: recipients.length,
+        resendEmailIds: allEmailIds,
+        sentById: adminUser.id,
+      },
+    });
+
+    await prismadb.changelogEntry.update({
+      where: { id: changelogEntryId },
+      data: {
+        lastNotifiedAt: new Date(),
+        broadcastCount: { increment: 1 },
+      },
+    });
+
+    await logAdminAction(admin.clerkId, "SEND_CHANGELOG_NOTIFICATION", changelogEntryId, {
+      recipientCount: recipients.length,
+      emailsSent: allEmailIds.length,
+      broadcastId: broadcast.id,
+    });
+
+    revalidatePath("/app/platform-admin/changelog");
+    revalidatePath("/app/platform-admin/newsletter");
+
+    return {
+      success: true,
+      recipientCount: recipients.length,
+      broadcastId: broadcast.id,
+    };
+  } catch (error) {
+    console.error("[SEND_CHANGELOG_NOTIFICATION]", error);
+    return { success: false, error: "Failed to send changelog notification" };
+  }
+}
+
+/**
+ * Get changelog broadcast history.
+ * Optionally filtered by a specific changelog entry.
+ * Requires platform admin access.
+ */
+export async function getChangelogBroadcasts(options?: {
+  changelogEntryId?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<{ broadcasts: ChangelogBroadcastData[]; total: number }> {
+  try {
+    await requirePlatformAdmin();
+
+    const page = options?.page || 1;
+    const pageSize = options?.pageSize || 20;
+    const skip = (page - 1) * pageSize;
+
+    const where = options?.changelogEntryId
+      ? { changelogEntryId: options.changelogEntryId }
+      : {};
+
+    const [broadcasts, total] = await Promise.all([
+      prismadb.changelogBroadcast.findMany({
+        where,
+        take: pageSize,
+        skip,
+        orderBy: { sentAt: "desc" },
+        include: {
+          sentBy: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
+          changelogEntry: {
+            select: { version: true, title: true },
+          },
+        },
+      }),
+      prismadb.changelogBroadcast.count({ where }),
+    ]);
+
+    return {
+      broadcasts: broadcasts.map((b) => ({
+        id: b.id,
+        changelogEntryId: b.changelogEntryId,
+        sentAt: b.sentAt.toISOString(),
+        recipientCount: b.recipientCount,
+        emailCount: b.resendEmailIds.length,
+        sentBy: b.sentBy,
+        entry: {
+          version: b.changelogEntry.version,
+          title: b.changelogEntry.title,
+        },
+      })),
+      total,
+    };
+  } catch (error) {
+    console.error("[GET_CHANGELOG_BROADCASTS]", error);
+    return { broadcasts: [], total: 0 };
   }
 }
