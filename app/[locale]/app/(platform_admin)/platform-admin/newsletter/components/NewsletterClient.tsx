@@ -44,7 +44,10 @@ import {
   Workflow,
   UserPlus,
   UserMinus,
+  BellRing,
+  ExternalLink,
 } from "lucide-react";
+import type { ChangelogBroadcastData } from "@/actions/platform-admin/changelog-actions";
 import { format } from "date-fns";
 
 interface Campaign {
@@ -91,6 +94,9 @@ interface Subscriber {
 interface NewsletterClientProps {
   campaigns: Campaign[];
   subscribers: Subscriber[];
+  broadcasts: ChangelogBroadcastData[];
+  totalBroadcasts: number;
+  totalBroadcastPages: number;
   stats: {
     totalSubscribers: number;
     activeSubscribers: number;
@@ -109,6 +115,9 @@ interface NewsletterClientProps {
 export function NewsletterClient({
   campaigns,
   subscribers,
+  broadcasts,
+  totalBroadcasts,
+  totalBroadcastPages,
   stats,
   currentPage,
   totalCampaignPages,
@@ -204,7 +213,12 @@ export function NewsletterClient({
     }
   };
 
-  const totalPages = activeTab === "campaigns" ? totalCampaignPages : totalSubscriberPages;
+  const totalPages =
+    activeTab === "campaigns"
+      ? totalCampaignPages
+      : activeTab === "subscribers"
+      ? totalSubscriberPages
+      : totalBroadcastPages;
 
   return (
     <div className="space-y-6">
@@ -295,7 +309,7 @@ export function NewsletterClient({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="inline-grid grid-cols-2">
+        <TabsList className="inline-grid grid-cols-3">
           <TabsTrigger value="campaigns">
             <Mail className="h-4 w-4 shrink-0" />
             Campaigns ({stats.totalCampaigns})
@@ -303,6 +317,10 @@ export function NewsletterClient({
           <TabsTrigger value="subscribers">
             <Users className="h-4 w-4 shrink-0" />
             Subscribers ({stats.totalSubscribers})
+          </TabsTrigger>
+          <TabsTrigger value="broadcasts">
+            <BellRing className="h-4 w-4 shrink-0" />
+            Broadcasts ({totalBroadcasts})
           </TabsTrigger>
         </TabsList>
 
@@ -453,6 +471,99 @@ export function NewsletterClient({
                         </TableCell>
                         <TableCell>
                           {format(new Date(subscriber.subscribedAt), "MMM d, yyyy")}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Changelog Broadcasts Tab */}
+        <TabsContent value="broadcasts">
+          <Card>
+            <CardHeader>
+              <CardTitle>Changelog Broadcasts</CardTitle>
+              <CardDescription>
+                History of changelog notification emails sent to registered users
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Version</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Recipients</TableHead>
+                    <TableHead>Emails Sent</TableHead>
+                    <TableHead>Sent By</TableHead>
+                    <TableHead>Sent At</TableHead>
+                    <TableHead className="text-right">View</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {broadcasts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <BellRing className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-muted-foreground">No changelog broadcasts yet</p>
+                        <p className="text-sm text-muted-foreground">
+                          Publish a changelog entry to send the first notification
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    broadcasts.map((broadcast) => (
+                      <TableRow key={broadcast.id}>
+                        <TableCell>
+                          <Badge variant="outline" className="font-mono">
+                            v{broadcast.entry.version}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <p className="font-medium truncate max-w-[180px]">
+                            {broadcast.entry.title}
+                          </p>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3 text-muted-foreground" />
+                            {broadcast.recipientCount}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Send className="h-3 w-3 text-muted-foreground" />
+                            {broadcast.emailCount}
+                            {broadcast.emailCount < broadcast.recipientCount && (
+                              <Badge variant="outline" className="text-xs ml-1 text-destructive border-destructive/30">
+                                {broadcast.recipientCount - broadcast.emailCount} failed
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {broadcast.sentBy
+                            ? `${broadcast.sentBy.firstName || ""} ${broadcast.sentBy.lastName || ""}`.trim() ||
+                              broadcast.sentBy.email
+                            : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(broadcast.sentAt), "MMM d, yyyy HH:mm")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" asChild>
+                            <a
+                              href="https://resend.com/emails"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="View in Resend dashboard"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))

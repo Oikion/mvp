@@ -3,6 +3,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { NewsletterClient } from "./components/NewsletterClient";
+import { getChangelogBroadcasts } from "@/actions/platform-admin/changelog-actions";
 
 export default async function NewsletterPage({
   params,
@@ -37,6 +38,12 @@ export default async function NewsletterPage({
     }),
     prismadb.newsletterSubscriber.count(),
   ]);
+
+  // Get changelog broadcasts
+  const { broadcasts, total: totalBroadcasts } = await getChangelogBroadcasts({
+    page: currentPage,
+    pageSize,
+  });
 
   // Get stats
   const [activeSubscribers, sentCampaigns, totalOpens, totalClicks] = await Promise.all([
@@ -79,6 +86,9 @@ export default async function NewsletterPage({
           currentPage={currentPage}
           totalCampaignPages={Math.ceil(totalCampaigns / pageSize)}
           totalSubscriberPages={Math.ceil(totalSubscribers / pageSize)}
+          broadcasts={broadcasts}
+          totalBroadcasts={totalBroadcasts}
+          totalBroadcastPages={Math.ceil(totalBroadcasts / pageSize)}
           currentTab={tab || "campaigns"}
           locale={locale}
         />
