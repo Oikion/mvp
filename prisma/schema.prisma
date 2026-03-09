@@ -950,6 +950,7 @@ model Users {
   ApiKey                                             ApiKey[]
   WebhookEndpoint                                    WebhookEndpoint[]
   ChangelogEntry                                     ChangelogEntry[]
+  ChangelogBroadcast                                 ChangelogBroadcast[]
   ReferralCode                                       ReferralCode?
   ReferredByReferral                                 Referral?                     @relation("ReferredUser")
   MessagesSent                                       Message[]                     @relation("MessagesSent")
@@ -1931,6 +1932,11 @@ model ChangelogEntry {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
+  // Notification tracking
+  lastNotifiedAt   DateTime?
+  broadcastCount   Int             @default(0)
+  broadcasts       ChangelogBroadcast[]
+
   customCategory ChangelogCustomCategory? @relation(fields: [customCategoryId], references: [id], onDelete: SetNull)
   createdBy      Users                    @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
@@ -1939,6 +1945,21 @@ model ChangelogEntry {
   @@index([version])
   @@index([createdById])
   @@index([customCategoryId])
+}
+
+model ChangelogBroadcast {
+  id               String   @id @default(uuid())
+  changelogEntryId String
+  sentAt           DateTime @default(now())
+  recipientCount   Int
+  resendEmailIds   String[]
+  sentById         String
+
+  changelogEntry   ChangelogEntry @relation(fields: [changelogEntryId], references: [id], onDelete: Cascade)
+  sentBy           Users          @relation(fields: [sentById], references: [id], onDelete: Cascade)
+
+  @@index([changelogEntryId])
+  @@index([sentAt])
 }
 
 enum ChangelogStatus {
