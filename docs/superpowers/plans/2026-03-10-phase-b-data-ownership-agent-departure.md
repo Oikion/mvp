@@ -35,6 +35,9 @@
 | `locales/en/dataOwnership.json` | English translations |
 | `locales/el/dataOwnership.json` | Greek translations |
 | `emails/notifications/AgentDepartureReport.tsx` | Departure report email template |
+| `app/[locale]/app/(routes)/consent-required/page.tsx` | Re-consent page (shown when agent hasn't consented to current policy version) |
+| `app/api/invitations/[invitationId]/accept/route.ts` | API route: accept Clerk invitation |
+| `app/api/invitations/[invitationId]/decline/route.ts` | API route: decline Clerk invitation |
 | `tests/lib/data-ownership/policy-era.test.ts` | Unit tests: policy era lookup |
 | `tests/lib/data-ownership/entity-migrator.test.ts` | Unit tests: entity migration logic |
 | `tests/lib/data-ownership/departure-integration.test.ts` | Integration tests: full departure flow |
@@ -44,10 +47,9 @@
 | File | Changes |
 |---|---|
 | `prisma/schema.prisma` | Add `DataOwnershipMode` enum, `DepartureReason` enum, `OrgMemberConsent` model, `DepartureLog` model, extend `OrganizationSettings`, add `cancellationReason` to `Deal` |
-| `lib/user-departure/index.ts` | Add data ownership branch to `handleUserDeparture()` |
+| `lib/user-departure/index.ts` | Add data ownership branch to `handleUserDeparture()` — **NOTE: This file is created by Phase A. If Phase A is not yet deployed, create it as part of this plan.** |
 | `proxy.ts` | Add consent enforcement check for authenticated routes |
 | `app/[locale]/app/(onboarding)/onboard/components/OnboardingSteps.tsx` | Add data ownership step after org creation |
-| `app/[locale]/app/(routes)/settings/components/OrgSettingsPage.tsx` | Add "Data Ownership" section |
 | `config/navigation.tsx` | Add departures route to settings nav |
 | `locales/en/common.json` | Add `deletedUser` related strings if not from Phase A |
 | `locales/el/common.json` | Same |
@@ -400,7 +402,7 @@ git commit -m "feat(phase-b): add policy era lookup service with tests"
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
-import { requireAction } from "@/lib/permissions/service";
+import { requireAction } from "@/lib/permissions";
 import { DataOwnershipMode } from "@prisma/client";
 
 /**
@@ -415,7 +417,8 @@ export async function setOwnershipMode(mode: DataOwnershipMode) {
     return { success: false, error: "Unauthorized" };
   }
 
-  await requireAction("org:manage_settings");
+  const guard = await requireAction("org:manage_settings");
+  if (guard) return guard;
 
   const now = new Date();
 
@@ -482,7 +485,7 @@ git commit -m "feat(phase-b): add setOwnershipMode server action"
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
-import { requireAction } from "@/lib/permissions/service";
+import { requireAction } from "@/lib/permissions";
 import { DataOwnershipMode } from "@prisma/client";
 import type { PolicyEra } from "@/lib/data-ownership/types";
 
@@ -498,7 +501,8 @@ export async function changeOwnershipMode(newMode: DataOwnershipMode) {
     return { success: false, error: "Unauthorized" };
   }
 
-  await requireAction("org:manage_settings");
+  const guard = await requireAction("org:manage_settings");
+  if (guard) return guard;
 
   const settings = await prismadb.organizationSettings.findUnique({
     where: { organizationId },
@@ -664,7 +668,7 @@ git commit -m "feat(phase-b): add recordConsent and hasCurrentConsent actions"
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
-import { requireAction } from "@/lib/permissions/service";
+import { requireAction } from "@/lib/permissions";
 
 /**
  * Get departure logs for the current org.
@@ -676,7 +680,8 @@ export async function getDepartureLogs() {
     return { success: false, error: "Unauthorized", logs: [] };
   }
 
-  await requireAction("org:manage_settings");
+  const guard = await requireAction("org:manage_settings");
+  if (guard) return guard;
 
   const logs = await prismadb.departureLog.findMany({
     where: { organizationId },
@@ -697,7 +702,8 @@ export async function getDepartureLog(departureId: string) {
     return { success: false, error: "Unauthorized", log: null };
   }
 
-  await requireAction("org:manage_settings");
+  const guard = await requireAction("org:manage_settings");
+  if (guard) return guard;
 
   const log = await prismadb.departureLog.findFirst({
     where: { id: departureId, organizationId },
@@ -740,12 +746,16 @@ import { decryptClientForOrg, encryptClientForOrg } from "@/lib/model-encryption
 import { decryptMandateForOrg, encryptMandateForOrg } from "@/lib/model-encryption";
 import { getOrgDek } from "@/lib/key-management";
 import { isOrgPersonal } from "@/lib/personal-workspace-guard";
-import type { MigratedEntities, CancelledDeals, EntityCounts } from "./types";
+import { getPolicyForEntity } from "./index";
+import type { MigratedEntities, CancelledDeals, EntityCounts, PolicyEra } from "./types";
+import { DataOwnershipMode } from "@prisma/client";
 
 interface MigrationContext {
   userId: string;
   sourceOrgId: string;
   personalOrgId: string;
+  currentMode: DataOwnershipMode;
+  policyHistory: PolicyEra[] | null;
 }
 
 /**
@@ -768,6 +778,10 @@ export async function migrateAgentEntities(
   });
 
   for (const prop of properties) {
+    // Per-entity policy era check: skip migration if this entity belongs to an AGENCY era
+    const entityPolicy = getPolicyForEntity(prop.createdAt, ctx.currentMode, ctx.policyHistory);
+    if (entityPolicy.mode === "AGENCY") continue; // This entity stays with the org (SetNull)
+
     // Decrypt from source org
     const decrypted = await decryptPropertyForOrg(prop, ctx.sourceOrgId);
 
@@ -801,7 +815,7 @@ export async function migrateAgentEntities(
       });
     }
 
-    migratedEntities.properties.push({ id: newProp.id, title: prop.title || prop.id });
+    migratedEntities.properties.push({ id: newProp.id, title: prop.property_name || prop.id });
 
     // Cancel active deals for this property
     const activeDeals = await tx.deal.findMany({
@@ -840,6 +854,10 @@ export async function migrateAgentEntities(
   });
 
   for (const client of clients) {
+    // Per-entity policy era check
+    const clientPolicy = getPolicyForEntity(client.createdAt, ctx.currentMode, ctx.policyHistory);
+    if (clientPolicy.mode === "AGENCY") continue;
+
     const decrypted = await decryptClientForOrg(client, ctx.sourceOrgId);
     const encrypted = await encryptClientForOrg(decrypted, ctx.personalOrgId);
 
@@ -857,7 +875,7 @@ export async function migrateAgentEntities(
 
     // Delete child records
     await tx.clientComment.deleteMany({ where: { clientId: client.id } });
-    await tx.client_Contacts.deleteMany({ where: { client: client.id } });
+    await tx.client_Contacts.deleteMany({ where: { clientsIDs: client.id } });
     await tx.sharedEntity.deleteMany({ where: { entityId: client.id, entityType: "client" } });
 
     await tx.clients.delete({ where: { id: client.id } });
@@ -869,6 +887,10 @@ export async function migrateAgentEntities(
   });
 
   for (const mandate of mandates) {
+    // Per-entity policy era check
+    const mandatePolicy = getPolicyForEntity(mandate.createdAt, ctx.currentMode, ctx.policyHistory);
+    if (mandatePolicy.mode === "AGENCY") continue;
+
     const decrypted = await decryptMandateForOrg(mandate, ctx.sourceOrgId);
     const encrypted = await encryptMandateForOrg(decrypted, ctx.personalOrgId);
 
@@ -956,6 +978,8 @@ if (useAgentMigration) {
         userId,
         sourceOrgId: orgId,
         personalOrgId: personalOrg.id,
+        currentMode: ownershipMode,
+        policyHistory,
       });
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
@@ -1525,7 +1549,7 @@ export function DataOwnershipBanner({ needsSelection }: DataOwnershipBannerProps
           />
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Confirm"}
+              {saving ? t("saving") : t("confirm")}
             </Button>
           </div>
         </DialogContent>
@@ -1983,6 +2007,122 @@ if (auth.orgId && auth.userId && !isPublicRoute(req)) {
 ```bash
 git add proxy.ts
 git commit -m "feat(phase-b): add consent enforcement in middleware"
+```
+
+### Task 16b: Consent-Required Page
+
+**Files:**
+- Create: `app/[locale]/app/(routes)/consent-required/page.tsx`
+
+- [ ] **Step 1: Create the consent-required page**
+
+This page is the redirect target when middleware detects missing consent. It shows the `DataPolicyConsentModal` in policy-change variant.
+
+```tsx
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { prismadb } from "@/lib/prisma";
+import { ConsentRequiredClient } from "./ConsentRequiredClient";
+
+export default async function ConsentRequiredPage({ params }: { params: { locale: string } }) {
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) redirect(`/${params.locale}/app/sign-in`);
+
+  const settings = await prismadb.organizationSettings.findUnique({
+    where: { organizationId: orgId },
+    select: { dataOwnershipMode: true, policyVersion: true, policyHistory: true },
+  });
+
+  if (!settings) redirect(`/${params.locale}/app`);
+
+  // Find the agent's original consent to determine which mode they joined under
+  const originalConsent = await prismadb.orgMemberConsent.findFirst({
+    where: { organizationId: orgId, userId },
+    orderBy: { policyVersion: "asc" },
+  });
+
+  return (
+    <ConsentRequiredClient
+      orgId={orgId}
+      mode={settings.dataOwnershipMode}
+      originalMode={originalConsent?.consentedMode ?? settings.dataOwnershipMode}
+      locale={params.locale}
+    />
+  );
+}
+```
+
+Create the client component (`ConsentRequiredClient.tsx`) that renders `DataPolicyConsentModal` with variant `"policy-change"`. On accept, call `recordConsent()` and redirect to `/app`. On decline (leave), call Clerk's leave org API and trigger departure.
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add "app/[locale]/app/(routes)/consent-required/"
+git commit -m "feat(phase-b): add consent-required page for re-consent flow"
+```
+
+### Task 16c: Invitation Accept/Decline API Routes
+
+**Files:**
+- Create: `app/api/invitations/[invitationId]/accept/route.ts`
+- Create: `app/api/invitations/[invitationId]/decline/route.ts`
+
+- [ ] **Step 1: Create accept route**
+
+```typescript
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { invitationId: string } }
+) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const clerk = await clerkClient();
+    await clerk.invitations.revokeInvitation(params.invitationId);
+    // Note: The actual Clerk invitation acceptance flow varies.
+    // The implementing engineer should verify the correct Clerk API for
+    // accepting org invitations programmatically vs. using Clerk's built-in flow.
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to accept invitation" }, { status: 500 });
+  }
+}
+```
+
+- [ ] **Step 2: Create decline route**
+
+```typescript
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { invitationId: string } }
+) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const clerk = await clerkClient();
+    await clerk.invitations.revokeInvitation(params.invitationId);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to decline invitation" }, { status: 500 });
+  }
+}
+```
+
+**Note for implementing engineer:** Clerk's invitation acceptance flow may need to be handled differently depending on the Clerk SDK version. Review Clerk's `organizationInvitations` API for the correct accept/decline pattern. The invitation page may need to use Clerk's `useOrganizationList().setActive()` or `acceptInvitation()` methods on the client side instead of these API routes.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add "app/api/invitations/"
+git commit -m "feat(phase-b): add invitation accept/decline API routes"
 ```
 
 ### Task 17: Onboarding Integration
