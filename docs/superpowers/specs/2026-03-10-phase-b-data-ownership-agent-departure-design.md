@@ -65,6 +65,13 @@ Tracks each agent's consent per policy version. Agents without a consent record 
 ### 1.4 Departure Log Model
 
 ```prisma
+enum DepartureReason {
+  LEFT_ORG
+  REMOVED_FROM_ORG
+  ACCOUNT_DELETED
+  ADMIN_FORCE_DELETED
+}
+
 model DepartureLog {
   id               String            @id @default(uuid())
   organizationId   String
@@ -78,10 +85,38 @@ model DepartureLog {
   createdAt        DateTime          @default(now())
 
   @@index([organizationId, createdAt])
+  @@index([userId])
 }
 ```
 
+**TypeScript interfaces for JSON fields:**
+```typescript
+type MigratedEntities = { properties: {id: string, title: string}[], clients: {id: string, name: string}[], mandates: {id: string, title: string}[] };
+type CancelledDeals = {id: string, title: string}[];
+type EntityCounts = { properties: number, clients: number, mandates: number, deals: number };
+```
+
 Persists a summary of what happened during departure for org admin reference.
+
+### 1.5 Deal Model Extension
+
+Add a `cancellationReason` field to the existing `Deal` model:
+
+```prisma
+model Deal {
+  // ... existing fields ...
+  cancellationReason  String?   // e.g. "AGENT_DEPARTED", "MANUAL", etc.
+}
+```
+
+### 1.6 Personal Workspace Lifecycle
+
+Every user gets a personal workspace (a Clerk organization with `publicMetadata.type === "personal"`) automatically during onboarding. It is:
+- Created in `OnboardingSteps.tsx` via `createOrganization()` with personal metadata
+- Protected by `lib/personal-workspace-guard.ts` — cannot be deleted, left, or have members invited
+- Restored automatically if accidentally deleted (via Clerk `organization.deleted` webhook)
+
+The departure service can always assume the agent has a personal workspace. If for any reason it doesn't exist, the service must create one before migration using the same pattern as `restorePersonalWorkspaceIfNeeded()`.
 
 ---
 
@@ -113,13 +148,12 @@ Clicking opens a modal with the same two-card selector. Only `ORG_OWNER` and `AD
 ### Changing the Policy Later
 
 Available in Organization Settings (ORG_OWNER only). Changing the mode:
-1. Sets `previousOwnershipMode` by closing the current `policyHistory` entry (`to: now()`)
+1. Closes the current `policyHistory` entry by setting its `to` field to `now()`
 2. Appends new entry: `{mode: newMode, from: now(), to: null}`
 3. Updates `dataOwnershipMode`, `dataOwnershipChangedAt`, `dataOwnershipChangedBy`
 4. Increments `policyVersion`
-5. All agents must re-consent (see Section 3)
-
-**Guard**: Change is blocked if no other agents are in the org (only the owner — nothing to affect).
+5. Creates a new `OrgMemberConsent` record for the ORG_OWNER at the new `policyVersion` (implicit consent as the policy setter)
+6. All other agents must re-consent on next login (see Section 3)
 
 ---
 
@@ -183,10 +217,12 @@ For each entity (Property, Client, Mandate) currently assigned to the departing 
 
 1. **Decrypt source data** — If entity has encrypted fields, decrypt using source org's DEK
 2. **Copy to personal workspace** — Create duplicate in agent's personal org with new ID. Re-encrypt with personal workspace's DEK. Strip org-specific relations (other users' comments, shared entity links).
-3. **Handle Deals** — Active deals (`PROPOSED`, `NEGOTIATING`, `ACCEPTED`, `IN_PROGRESS`) involving migrated properties: set status to `CANCELLED` with reason `AGENT_DEPARTED`. Completed deals stay untouched. Other agent in each broken deal receives notification.
-4. **Delete from org** — Remove original entity. Cascading deletes handle child records (comments, attachments).
-5. **Log** — Create `DepartureLog` record with entity names and counts.
-6. **Notify** — Email org owner with departure report link.
+3. **Handle Deals** — Active deals (`PROPOSED`, `NEGOTIATING`, `ACCEPTED`, `IN_PROGRESS`) involving migrated properties: set status to `CANCELLED`, set `cancellationReason` to `"AGENT_DEPARTED"`. Completed deals stay untouched. Other agent in each broken deal receives notification.
+4. **Delete from org** — Remove original entity and explicitly delete its child records (comments, attachments, shared entity links) within the transaction. Note: Phase A changed these relations to `onDelete: SetNull`, so cascading deletes do NOT apply — the departure service must handle deletion explicitly.
+5. **Handle property images** — Copy image file references (URLs) to the migrated entity. Image files in blob storage (Vercel Blob / S3) are NOT duplicated — the URLs remain valid as they are publicly accessible. The departure service copies `PropertyImage` records with updated `propertyId` references.
+6. **Handle cross-org shares** — Invalidate any `SharedEntity` records and Polis/network matches referencing migrated entities. Set `SharedEntity` status to expired/invalidated. Network matches involving the migrated property are removed from the match cache.
+7. **Log** — Create `DepartureLog` record with entity names and counts.
+8. **Notify** — Email org owner with departure report link.
 
 ### What Migrates vs What Stays
 
@@ -196,7 +232,12 @@ For each entity (Property, Client, Mandate) currently assigned to the departing 
 | Client core data (name, contact, notes) | Shared entity links |
 | Mandate core data (terms, requirements) | Deal records (stay in org, marked cancelled) |
 | Agent's own comments on their entities | Tasks assigned by others |
-| Attachments uploaded by the agent | Calendar events (org-scoped) |
+| Attachments uploaded by the agent | Calendar events (Phase A SetNull handles these) |
+| Property images (URL references copied) | Cross-org shared entity links (invalidated) |
+
+### Account Deletion vs Org Departure
+
+**Critical rule**: AGENT mode migration (copying data to personal workspace) only applies when the departure reason is `LEFT_ORG` or `REMOVED_FROM_ORG`. For `ACCOUNT_DELETED` and `ADMIN_FORCE_DELETED`, the user's personal workspace will also be deleted, so migrating data there is pointless. In these cases, **AGENCY mode (SetNull) is always used regardless of the org's data ownership setting**. The departure log records `policyApplied: AGENCY` with a note that account deletion overrode the org policy.
 
 ### Departure Report
 
@@ -268,7 +309,7 @@ Blocked by Clerk — owner must transfer ownership first. No special handling ne
 
 ### Edge Case 4: Race Condition During Departure
 
-The departure service runs in a Prisma transaction. Entities created after the transaction snapshot are not included. They become orphaned (assigned to a user no longer in the org). Phase A's periodic SetNull cleanup or manual admin reassignment handles these.
+The departure service runs in a Prisma interactive transaction with `isolationLevel: Serializable` to prevent entities being created mid-departure. Entities created after the transaction snapshot are not included. They become orphaned (assigned to a user no longer in the org). Phase A's SetNull cleanup or manual admin reassignment handles these.
 
 ### Edge Case 5: Encrypted Data Migration
 
