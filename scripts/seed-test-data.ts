@@ -637,7 +637,1175 @@ const DM_MESSAGES = {
 };
 
 // ============================================
-// PLACEHOLDER MAIN (future chunks will fill in)
+// TASK 5: PURGE ORG DATA
+// ============================================
+
+async function purgeOrgData(
+  orgId: string,
+  orgUsers: Array<{ id: string; name: string | null; clerkUserId?: string }>
+): Promise<void> {
+  console.log(`\nPurging ALL seed data for organization ${orgId}...`);
+
+  // Collect all user IDs including synthetic seed users
+  const syntheticUsers = await prismadb.users.findMany({
+    where: { clerkUserId: { startsWith: "user_seed_" } },
+    select: { id: true },
+  });
+  const allUserIds = [
+    ...orgUsers.map((u) => u.id),
+    ...syntheticUsers.map((u) => u.id),
+  ];
+
+  // Collect parent IDs for FK-safe child deletes
+  const orgChannelIds = (await prismadb.channel.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((c) => c.id);
+
+  const orgConversationIds = (await prismadb.conversation.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((c) => c.id);
+
+  const orgMessageIds = (await prismadb.message.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((m) => m.id);
+
+  const orgPostIds = (await prismadb.socialPost.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((p) => p.id);
+
+  const orgPropertyIds = (await prismadb.properties.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((p) => p.id);
+
+  const orgClientIds = (await prismadb.clients.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((c) => c.id);
+
+  const orgMandateIds = (await prismadb.mandate.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((m) => m.id);
+
+  const orgTaskIds = (await prismadb.crm_Accounts_Tasks.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((t) => t.id);
+
+  const orgEventIds = (await prismadb.calendarEvent.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((e) => e.id);
+
+  const orgDocIds = (await prismadb.documents.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((d) => d.id);
+
+  // Agent profile IDs for this org's users
+  const orgAgentProfileIds = (await prismadb.agentProfile.findMany({
+    where: { userId: { in: allUserIds } }, select: { id: true },
+  })).map((p) => p.id);
+
+  // Agency profile IDs
+  const orgAgencyProfileIds = (await prismadb.agencyProfile.findMany({
+    where: { organizationId: orgId }, select: { id: true },
+  })).map((p) => p.id);
+
+  // Ordered deletes — each step wrapped in try/catch
+  const deletes: Array<{ name: string; run: () => Promise<{ count: number }> }> = [
+    // 1. Message sub-entities
+    { name: "MessageReaction", run: () => prismadb.messageReaction.deleteMany({ where: { messageId: { in: orgMessageIds } } }) },
+    { name: "MessageRead", run: () => prismadb.messageRead.deleteMany({ where: { messageId: { in: orgMessageIds } } }) },
+    { name: "MessageMention", run: () => prismadb.messageMention.deleteMany({ where: { messageId: { in: orgMessageIds } } }) },
+    { name: "MessageAttachment", run: () => prismadb.messageAttachment.deleteMany({ where: { messageId: { in: orgMessageIds } } }) },
+
+    // 2. Messages
+    { name: "Messages", run: () => prismadb.message.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 3. Channel/Conversation members
+    { name: "ChannelMember", run: () => prismadb.channelMember.deleteMany({ where: { channelId: { in: orgChannelIds } } }) },
+    { name: "ConversationParticipant", run: () => prismadb.conversationParticipant.deleteMany({ where: { conversationId: { in: orgConversationIds } } }) },
+    { name: "ConversationOrgMembership", run: () => prismadb.conversationOrgMembership.deleteMany({ where: { conversationId: { in: orgConversationIds } } }) },
+
+    // 4. Channels, Conversations
+    { name: "Channels", run: () => prismadb.channel.deleteMany({ where: { organizationId: orgId } }) },
+    { name: "Conversations", run: () => prismadb.conversation.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 5. Social post sub-entities
+    { name: "SocialPostLike", run: () => prismadb.socialPostLike.deleteMany({ where: { postId: { in: orgPostIds } } }) },
+    { name: "SocialPostComment", run: () => prismadb.socialPostComment.deleteMany({ where: { postId: { in: orgPostIds } } }) },
+    { name: "Attachment (social)", run: () => prismadb.attachment.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 6. Social posts
+    { name: "SocialPost", run: () => prismadb.socialPost.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 7. Entity comments
+    { name: "PropertyComment", run: () => prismadb.propertyComment.deleteMany({ where: { propertyId: { in: orgPropertyIds } } }) },
+    { name: "ClientComment", run: () => prismadb.clientComment.deleteMany({ where: { clientId: { in: orgClientIds } } }) },
+    { name: "MandateComment", run: () => prismadb.mandateComment.deleteMany({ where: { mandateId: { in: orgMandateIds } } }) },
+
+    // 8. Task comments → Tasks
+    { name: "TaskComments", run: () => prismadb.crm_Accounts_Tasks_Comments.deleteMany({ where: { crm_account_task: { in: orgTaskIds } } }) },
+    { name: "Tasks", run: () => prismadb.crm_Accounts_Tasks.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 9. Calendar sub-entities → Events
+    { name: "CalendarReminder", run: () => prismadb.calendarReminder.deleteMany({ where: { eventId: { in: orgEventIds } } }) },
+    { name: "EventInvitee", run: () => prismadb.eventInvitee.deleteMany({ where: { eventId: { in: orgEventIds } } }) },
+    { name: "CalendarEvent", run: () => prismadb.calendarEvent.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 10. Property showings
+    { name: "PropertyShowing", run: () => prismadb.propertyShowing.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 11. Deals (BEFORE properties/clients — FK Restrict)
+    { name: "Deal", run: () => prismadb.deal.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 12. Join tables
+    { name: "Client_Properties", run: () => prismadb.client_Properties.deleteMany({ where: { OR: [{ clientId: { in: orgClientIds } }, { propertyId: { in: orgPropertyIds } }] } }) },
+    { name: "Mandate_Properties", run: () => prismadb.mandate_Properties.deleteMany({ where: { OR: [{ mandateId: { in: orgMandateIds } }, { propertyId: { in: orgPropertyIds } }] } }) },
+    { name: "Mandate_Clients", run: () => prismadb.mandate_Clients.deleteMany({ where: { OR: [{ mandateId: { in: orgMandateIds } }, { clientId: { in: orgClientIds } }] } }) },
+
+    // 13. Property images
+    { name: "PropertyImage", run: () => prismadb.propertyImage.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 14. Document views → Documents
+    { name: "DocumentView", run: () => prismadb.documentView.deleteMany({ where: { documentId: { in: orgDocIds } } }) },
+    { name: "Documents", run: () => prismadb.documents.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 15. Shared entities
+    { name: "SharedEntity", run: () => prismadb.sharedEntity.deleteMany({ where: { OR: [{ sharedById: { in: allUserIds } }, { sharedWithId: { in: allUserIds } }] } }) },
+
+    // 16. Notifications
+    { name: "Notification", run: () => prismadb.notification.deleteMany({ where: { userId: { in: allUserIds } } }) },
+
+    // 17. Agent profiles chain
+    { name: "AgentContactSubmission", run: () => prismadb.agentContactSubmission.deleteMany({ where: { profileId: { in: orgAgentProfileIds } } }) },
+    { name: "ProfileShowcaseProperty", run: () => prismadb.profileShowcaseProperty.deleteMany({ where: { profileId: { in: orgAgentProfileIds } } }) },
+    { name: "AgentProfile", run: () => prismadb.agentProfile.deleteMany({ where: { userId: { in: allUserIds } } }) },
+
+    // 18. Agency profiles chain
+    { name: "AgencyContactSubmission", run: () => prismadb.agencyContactSubmission.deleteMany({ where: { profileId: { in: orgAgencyProfileIds } } }) },
+    { name: "AgencyProfile", run: () => prismadb.agencyProfile.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 19. Agent connections
+    { name: "AgentConnection", run: () => prismadb.agentConnection.deleteMany({ where: { OR: [{ followerId: { in: allUserIds } }, { followingId: { in: allUserIds } }] } }) },
+
+    // 20. Network entities
+    { name: "CrossOrgMatch", run: () => prismadb.crossOrgMatch.deleteMany({ where: { OR: [{ mandateOrgId: orgId }, { propertyOrgId: orgId }] } }) },
+    { name: "OrgNetworkPartner", run: () => prismadb.orgNetworkPartner.deleteMany({ where: { OR: [{ initiatorOrgId: orgId }, { partnerOrgId: orgId }] } }) },
+    { name: "OrgNetworkSettings", run: () => prismadb.orgNetworkSettings.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 21. Core entities (mandates before properties for Mandate_Properties FK)
+    { name: "Mandates", run: () => prismadb.mandate.deleteMany({ where: { organizationId: orgId } }) },
+    { name: "Properties", run: () => prismadb.properties.deleteMany({ where: { organizationId: orgId } }) },
+    { name: "Clients", run: () => prismadb.clients.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 22. Misc org-filtered tables
+    { name: "ExportHistory", run: () => prismadb.exportHistory.deleteMany({ where: { organizationId: orgId } }) },
+    { name: "AgentHours", run: () => prismadb.agentHours.deleteMany({ where: { organizationId: orgId } }) },
+    { name: "MarketingSpend", run: () => prismadb.marketingSpend.deleteMany({ where: { organizationId: orgId } }) },
+
+    // 23. Synthetic users (clerkUserId starts with "user_seed_")
+    { name: "Synthetic Users", run: () => prismadb.users.deleteMany({ where: { clerkUserId: { startsWith: "user_seed_" } } }) },
+  ];
+
+  for (const del of deletes) {
+    try {
+      const result = await del.run();
+      if (result.count > 0) console.log(`  Deleted ${result.count} ${del.name}`);
+    } catch (e: any) {
+      console.warn(`  Warning deleting ${del.name}: ${e.message?.slice(0, 120)}`);
+    }
+  }
+
+  console.log(`Purge complete for org ${orgId}`);
+}
+
+// ============================================
+// TASK 6: SYNTHETIC USERS
+// ============================================
+
+async function createSyntheticUsers(ctx: OrgContext): Promise<void> {
+  console.log(`\nCreating synthetic users for ${ctx.prefix} org...`);
+
+  const isAlpha = ctx.prefix === "alpha";
+  const now = new Date();
+
+  const synthetics = [
+    {
+      id: uuid(),
+      clerkUserId: `user_seed_${ctx.prefix}_departed`,
+      email: `departed.agent.${ctx.prefix}@seed.oikion.test`,
+      name: isAlpha ? "Nikos Departed" : "Sofia Departed",
+      account_name: isAlpha ? "Nikos Departed" : "Sofia Departed",
+      firstName: isAlpha ? "Nikos" : "Sofia",
+      lastName: "Departed",
+      userStatus: "INACTIVE" as const,
+      userLanguage: "el" as const,
+      created_on: now,
+      onboardingCompleted: true,
+    },
+    {
+      id: uuid(),
+      clerkUserId: `user_seed_${ctx.prefix}_inactive`,
+      email: `inactive.agent.${ctx.prefix}@seed.oikion.test`,
+      name: isAlpha ? "Dimitris Inactive" : "Elena Inactive",
+      account_name: isAlpha ? "Dimitris Inactive" : "Elena Inactive",
+      firstName: isAlpha ? "Dimitris" : "Elena",
+      lastName: "Inactive",
+      userStatus: "INACTIVE" as const,
+      userLanguage: "el" as const,
+      created_on: now,
+      onboardingCompleted: true,
+    },
+    {
+      id: uuid(),
+      clerkUserId: `user_seed_${ctx.prefix}_deleted`,
+      email: `deleted.agent.${ctx.prefix}@seed.oikion.test`,
+      name: null,
+      account_name: "[Deleted User]",
+      firstName: null,
+      lastName: null,
+      userStatus: "INACTIVE" as const,
+      userLanguage: "el" as const,
+      created_on: now,
+      onboardingCompleted: false,
+    },
+  ];
+
+  await prismadb.users.createMany({ data: synthetics });
+
+  // Push synthetic users into ctx.allUsers for later use
+  for (const s of synthetics) {
+    ctx.allUsers.push({ id: s.id, name: s.name, clerkUserId: s.clerkUserId });
+  }
+
+  console.log(`  Created ${synthetics.length} synthetic users (departed, inactive, deleted)`);
+}
+
+// ============================================
+// TASK 7: SEED CLIENTS (15 per org)
+// ============================================
+
+async function seedClients(ctx: OrgContext): Promise<string[]> {
+  console.log(`\nCreating 15 clients for ${ctx.prefix} org...`);
+
+  const friendlyIds = await generateFriendlyIds("Clients", 15, ctx.orgId);
+  const now = new Date();
+
+  // Find departed user for client #10
+  const departedUser = ctx.allUsers.find((u) => u.clerkUserId === `user_seed_${ctx.prefix}_departed`);
+  const departedUserId = departedUser?.id ?? ctx.primaryUserId;
+
+  // Greek names for deterministic variety
+  const names = [
+    { first: "Alexandros", last: "Papadopoulos" },
+    { first: "Maria", last: "Konstantinou" },
+    { first: "Giorgos", last: "Nikolaou" },
+    { first: "Elena", last: "Dimitriou" },
+    { first: "Nikos", last: "Georgiou" },
+    { first: "Sofia", last: "Antoniou" },
+    { first: "Dimitris", last: "Papanikolaou" },
+    { first: "Anna", last: "Vasileiou" },
+    { first: "Kostas", last: "Papadimitriou" },
+    { first: "Katerina", last: "Ioannou" },
+    { first: "Stavros", last: "Karagiannis" },
+    { first: "Christina", last: "Makri" },
+    { first: "Panagiotis", last: "Alexiou" },
+    { first: "Irini", last: "Christodoulou" },
+    { first: "Michalis", last: "Stefanou" },
+  ];
+
+  const clientsRaw: Record<string, unknown>[] = [];
+
+  const makeBase = (i: number, overrides: Record<string, unknown>) => {
+    const n = names[i];
+    return {
+      id: uuid(),
+      friendlyId: friendlyIds[i],
+      organizationId: ctx.orgId,
+      client_name: `${n.first} ${n.last}`,
+      full_name: `${n.first} ${n.last}`,
+      primary_email: generateEmail(n.first, n.last),
+      primary_phone: generatePhone(),
+      assigned_to: ctx.primaryUserId,
+      createdBy: ctx.primaryUserId,
+      createdAt: generateHistoricalDate(6),
+      updatedAt: now,
+      language: "el",
+      person_type: "INDIVIDUAL",
+      gdpr_consent: true,
+      allow_marketing: Math.random() > 0.5,
+      ...overrides,
+    };
+  };
+
+  // #1 BUYER ACTIVE PERSONAL — full contact, REFERRAL source, communication_notes
+  clientsRaw.push(makeBase(0, {
+    client_type: "BUYER",
+    client_status: "ACTIVE",
+    visibility: "PERSONAL",
+    lead_source: "REFERRAL",
+    secondary_email: `${names[0].first.toLowerCase()}.work@gmail.com`,
+    secondary_phone: generatePhone(),
+    description: "Searching for 3-bed apartment in central Athens, budget up to €350K",
+    communication_notes: [
+      { date: "2026-02-15", note: "Initial call — looking for Kolonaki or Pagkrati", by: ctx.primaryUserId },
+      { date: "2026-02-20", note: "Sent 3 property options, awaiting feedback", by: ctx.primaryUserId },
+    ],
+  }));
+
+  // #2 BUYER ACTIVE PERSONAL — full contact, WEB source, communication_notes
+  clientsRaw.push(makeBase(1, {
+    client_type: "BUYER",
+    client_status: "ACTIVE",
+    visibility: "PERSONAL",
+    lead_source: "WEB",
+    secondary_phone: generatePhone(),
+    description: "First-time buyer, interested in Kifisia area",
+    communication_notes: [
+      { date: "2026-03-01", note: "Registered via website form", by: ctx.primaryUserId },
+      { date: "2026-03-05", note: "Phone consultation scheduled for Friday", by: ctx.primaryUserId },
+    ],
+  }));
+
+  // #3 SELLER ACTIVE SECURE — will be linked to properties
+  clientsRaw.push(makeBase(2, {
+    client_type: "SELLER",
+    client_status: "ACTIVE",
+    visibility: "SECURE",
+    lead_source: "WALK_IN",
+    description: "Owns apartment in Glyfada, wants to sell",
+  }));
+
+  // #4 SELLER ACTIVE SECURE — will be linked to properties
+  clientsRaw.push(makeBase(3, {
+    client_type: "SELLER",
+    client_status: "ACTIVE",
+    visibility: "SECURE",
+    lead_source: "REFERRAL",
+    description: "Inherited house in Marousi, looking to sell quickly",
+  }));
+
+  // #5 RENTER LEAD PERSONAL — will be linked to mandate
+  clientsRaw.push(makeBase(4, {
+    client_type: "RENTER",
+    client_status: "LEAD",
+    visibility: "PERSONAL",
+    lead_source: "PORTAL",
+    description: "Looking for rental in central Athens, max €1200/mo",
+  }));
+
+  // #6 INVESTOR ACTIVE PUBLIC — person_type INVESTOR, company fields
+  clientsRaw.push(makeBase(5, {
+    client_type: "INVESTOR",
+    client_status: "ACTIVE",
+    visibility: "PUBLIC",
+    person_type: "INVESTOR",
+    lead_source: "REFERRAL",
+    company_name: "Mediterranean Investments S.A.",
+    company_id: "801234567",
+    description: "Portfolio investor, interested in multi-unit properties",
+  }));
+
+  // #7 REFERRAL_PARTNER CONVERTED SECURE — person_type COMPANY
+  clientsRaw.push(makeBase(6, {
+    client_type: "REFERRAL_PARTNER",
+    client_status: "CONVERTED",
+    visibility: "SECURE",
+    person_type: "COMPANY",
+    company_name: "Ελληνική Κτηματική Α.Ε.",
+    office_phone: "2101234567",
+    lead_source: "REFERRAL",
+    description: "Partner agency for north Athens referrals",
+  }));
+
+  // #8 BUYER LOST PERSONAL — lead_source SOCIAL
+  clientsRaw.push(makeBase(7, {
+    client_type: "BUYER",
+    client_status: "LOST",
+    visibility: "PERSONAL",
+    lead_source: "SOCIAL",
+    description: "Was interested in Voula but found another agent",
+  }));
+
+  // #9 BUYER LEAD PERSONAL — draft_status true
+  clientsRaw.push(makeBase(8, {
+    client_type: "BUYER",
+    client_status: "LEAD",
+    visibility: "PERSONAL",
+    draft_status: true,
+    lead_source: "WEB",
+    description: "Draft client — incomplete info",
+  }));
+
+  // #10 SELLER ACTIVE PERSONAL — assigned_to departed user
+  clientsRaw.push(makeBase(9, {
+    client_type: "SELLER",
+    client_status: "ACTIVE",
+    visibility: "PERSONAL",
+    assigned_to: departedUserId,
+    lead_source: "WALK_IN",
+    description: "Assigned to departed agent — testing null-safety",
+  }));
+
+  // #11 BUYER ACTIVE SECURE — cross-org sharing
+  clientsRaw.push(makeBase(10, {
+    client_type: "BUYER",
+    client_status: "ACTIVE",
+    visibility: "SECURE",
+    lead_source: "REFERRAL",
+    description: "Looking for luxury property, will be shared cross-org",
+  }));
+
+  // #12 BUYER ACTIVE SECURE — cross-org sharing
+  clientsRaw.push(makeBase(11, {
+    client_type: "BUYER",
+    client_status: "ACTIVE",
+    visibility: "SECURE",
+    lead_source: "WEB",
+    description: "Investment buyer, interested in multiple areas",
+  }));
+
+  // #13 INVESTOR ACTIVE PUBLIC — ALL billing + shipping address fields
+  clientsRaw.push(makeBase(12, {
+    client_type: "INVESTOR",
+    client_status: "ACTIVE",
+    visibility: "PUBLIC",
+    person_type: "COMPANY",
+    company_name: "Αθηναϊκή Ακίνητα Ε.Π.Ε.",
+    company_id: "998877665",
+    lead_source: "PORTAL",
+    billing_street: "Βασ. Σοφίας 42",
+    billing_city: "Αθήνα",
+    billing_state: "Αττική",
+    billing_postal_code: "10674",
+    billing_country: "GR",
+    shipping_street: "Λεωφ. Κηφισίας 120",
+    shipping_city: "Αθήνα",
+    shipping_state: "Αττική",
+    shipping_postal_code: "11526",
+    description: "Corporate investor with full address records",
+  }));
+
+  // #14 SELLER ACTIVE PERSONAL — AFM, DOY, company_gemi
+  clientsRaw.push(makeBase(13, {
+    client_type: "SELLER",
+    client_status: "ACTIVE",
+    visibility: "PERSONAL",
+    afm: "123456789",
+    doy: "Α' Αθηνών",
+    company_gemi: "123456789000",
+    lead_source: "WALK_IN",
+    description: "Has complete tax/legal documentation",
+  }));
+
+  // #15 BUYER INACTIVE PERSONAL — status filtering test
+  clientsRaw.push(makeBase(14, {
+    client_type: "BUYER",
+    client_status: "INACTIVE",
+    visibility: "PERSONAL",
+    lead_source: "WEB",
+    description: "Inactive buyer — used for status filtering tests",
+  }));
+
+  // Encrypt all clients
+  const encryptedClients = clientsRaw.map((c) => encryptClientData(c, ctx.dek));
+
+  await prismadb.clients.createMany({ data: encryptedClients as any[] });
+
+  const ids = clientsRaw.map((c) => c.id as string);
+  console.log(`  Created ${ids.length} clients`);
+  return ids;
+}
+
+// ============================================
+// TASK 8: SEED PROPERTIES (20 per org)
+// ============================================
+
+async function seedProperties(ctx: OrgContext): Promise<string[]> {
+  console.log(`\nCreating 20 properties for ${ctx.prefix} org...`);
+
+  const friendlyIds = await generateFriendlyIds("Properties", 20, ctx.orgId);
+  const now = new Date();
+
+  const departedUser = ctx.allUsers.find((u) => u.clerkUserId === `user_seed_${ctx.prefix}_departed`);
+  const departedUserId = departedUser?.id ?? ctx.primaryUserId;
+
+  // Helper to find area data
+  const area = (name: string) => ATHENS_AREAS.find((a) => a.area === name) ?? ATHENS_AREAS[0];
+  const islandArea = ISLAND_AREAS.find((a) => a.area === "Mykonos Town") ?? ISLAND_AREAS[0];
+
+  const makeBase = (i: number, overrides: Record<string, unknown>) => {
+    const loc = overrides._location as typeof ATHENS_AREAS[0] | undefined;
+    delete overrides._location;
+    const areaData = loc ?? pick(ATHENS_AREAS);
+
+    return {
+      id: uuid(),
+      friendlyId: friendlyIds[i],
+      organizationId: ctx.orgId,
+      assigned_to: ctx.primaryUserId,
+      createdBy: ctx.primaryUserId,
+      createdAt: generateHistoricalDate(8),
+      updatedAt: now,
+      area: areaData.area,
+      address_city: areaData.city,
+      address_state: areaData.state,
+      municipality: areaData.municipality,
+      address_street: `${pick(GREEK_STREETS)} ${rand(1, 150)}`,
+      address_zip: `${rand(10000, 19999)}`,
+      condition: pick([...PROPERTY_CONDITIONS]),
+      energy_cert_class: pick([...ENERGY_CLASSES]),
+      heating_type: pick([...HEATING_TYPES]),
+      furnished: pick([...FURNISHED_OPTIONS]),
+      year_built: rand(1970, 2024),
+      ...overrides,
+    };
+  };
+
+  const propName = (type: string, areaName: string) => {
+    const templates = PROPERTY_NAME_TEMPLATES[type] ?? [`${type} in {area}`];
+    return pick(templates).replace("{area}", areaName);
+  };
+
+  const propertiesRaw: Record<string, unknown>[] = [];
+
+  // #1 APARTMENT ACTIVE PUBLIC SALE — Kolonaki, 85sqm, 3rd floor, €280K
+  propertiesRaw.push(makeBase(0, {
+    _location: area("Kolonaki"),
+    property_name: propName("APARTMENT", "Kolonaki"),
+    property_type: "APARTMENT",
+    property_status: "ACTIVE",
+    visibility: "PUBLIC",
+    transaction_type: "SALE",
+    price: 280000,
+    price_type: "SALE",
+    size_net_sqm: 85,
+    size_gross_sqm: 95,
+    bedrooms: 2,
+    bathrooms: 1,
+    floor: "3",
+    floors_total: 6,
+    elevator: true,
+    amenities: generateRandomAmenities(),
+  }));
+
+  // #2 APARTMENT ACTIVE PUBLIC SALE — Kifisia, 110sqm, 2nd floor, €320K
+  propertiesRaw.push(makeBase(1, {
+    _location: area("Kifisia"),
+    property_name: propName("APARTMENT", "Kifisia"),
+    property_type: "APARTMENT",
+    property_status: "ACTIVE",
+    visibility: "PUBLIC",
+    transaction_type: "SALE",
+    price: 320000,
+    price_type: "SALE",
+    size_net_sqm: 110,
+    size_gross_sqm: 125,
+    bedrooms: 3,
+    bathrooms: 2,
+    floor: "2",
+    floors_total: 5,
+    elevator: true,
+    amenities: generateRandomAmenities(),
+  }));
+
+  // #3 APARTMENT ACTIVE PUBLIC SALE — Glyfada, 95sqm, 1st floor, €250K
+  propertiesRaw.push(makeBase(2, {
+    _location: area("Glyfada"),
+    property_name: propName("APARTMENT", "Glyfada"),
+    property_type: "APARTMENT",
+    property_status: "ACTIVE",
+    visibility: "PUBLIC",
+    transaction_type: "SALE",
+    price: 250000,
+    price_type: "SALE",
+    size_net_sqm: 95,
+    size_gross_sqm: 105,
+    bedrooms: 2,
+    bathrooms: 1,
+    floor: "1",
+    floors_total: 4,
+    elevator: true,
+    amenities: generateRandomAmenities(),
+  }));
+
+  // #4 HOUSE ACTIVE SECURE SALE — Marousi, 180sqm, garden, €450K
+  propertiesRaw.push(makeBase(3, {
+    _location: area("Marousi"),
+    property_name: propName("HOUSE", "Marousi"),
+    property_type: "HOUSE",
+    property_status: "ACTIVE",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    price: 450000,
+    price_type: "SALE",
+    size_net_sqm: 180,
+    size_gross_sqm: 200,
+    lot_size: 350,
+    bedrooms: 4,
+    bathrooms: 2,
+    floor: "0",
+    floors_total: 2,
+    amenities: { ...generateRandomAmenities(), garden: true },
+  }));
+
+  // #5 HOUSE ACTIVE SECURE SALE — Chalandri, 150sqm, full amenities, €380K
+  propertiesRaw.push(makeBase(4, {
+    _location: area("Chalandri"),
+    property_name: propName("HOUSE", "Chalandri"),
+    property_type: "HOUSE",
+    property_status: "ACTIVE",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    price: 380000,
+    price_type: "SALE",
+    size_net_sqm: 150,
+    size_gross_sqm: 170,
+    lot_size: 280,
+    bedrooms: 3,
+    bathrooms: 2,
+    floor: "0",
+    floors_total: 2,
+    amenities: { parking: true, garden: true, pool: true, airConditioning: true, fireplace: true, security: true, storage: true, balcony: true },
+  }));
+
+  // #6 MAISONETTE ACTIVE PUBLIC SALE — Pagkrati, 120sqm, €220K
+  propertiesRaw.push(makeBase(5, {
+    _location: area("Pagkrati"),
+    property_name: propName("MAISONETTE", "Pagkrati"),
+    property_type: "MAISONETTE",
+    property_status: "ACTIVE",
+    visibility: "PUBLIC",
+    transaction_type: "SALE",
+    price: 220000,
+    price_type: "SALE",
+    size_net_sqm: 120,
+    size_gross_sqm: 135,
+    bedrooms: 3,
+    bathrooms: 2,
+    floor: "0",
+    floors_total: 2,
+    amenities: generateRandomAmenities(),
+  }));
+
+  // #7 WAREHOUSE ACTIVE SECURE SALE — Piraeus, 500sqm, €350K
+  propertiesRaw.push(makeBase(6, {
+    _location: area("Piraeus"),
+    property_name: propName("WAREHOUSE", "Piraeus"),
+    property_type: "WAREHOUSE",
+    property_status: "ACTIVE",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    price: 350000,
+    price_type: "SALE",
+    size_net_sqm: 500,
+    size_gross_sqm: 520,
+    floor: "0",
+    floors_total: 1,
+  }));
+
+  // #8 PLOT ACTIVE PUBLIC SALE — Rafina, plot_size_sqm: 800, €200K
+  propertiesRaw.push(makeBase(7, {
+    _location: area("Rafina"),
+    property_name: propName("PLOT", "Rafina"),
+    property_type: "PLOT",
+    property_status: "ACTIVE",
+    visibility: "PUBLIC",
+    transaction_type: "SALE",
+    price: 200000,
+    price_type: "SALE",
+    plot_size_sqm: 800,
+    size_net_sqm: 0,
+    inside_city_plan: true,
+  }));
+
+  // #9 APARTMENT SOLD PERSONAL SALE — Kolonaki, salePrice: 295000, saleDate
+  const saleDate = new Date();
+  saleDate.setMonth(saleDate.getMonth() - 2);
+  propertiesRaw.push(makeBase(8, {
+    _location: area("Kolonaki"),
+    property_name: propName("APARTMENT", "Kolonaki"),
+    property_type: "APARTMENT",
+    property_status: "SOLD",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    price: 300000,
+    listPrice: 300000,
+    salePrice: 295000,
+    saleDate: saleDate,
+    daysOnMarket: 45,
+    price_type: "SALE",
+    size_net_sqm: 90,
+    size_gross_sqm: 100,
+    bedrooms: 2,
+    bathrooms: 1,
+    floor: "4",
+    floors_total: 6,
+    elevator: true,
+  }));
+
+  // #10 HOUSE PENDING PERSONAL SALE — Kifisia, deal attached
+  propertiesRaw.push(makeBase(9, {
+    _location: area("Kifisia"),
+    property_name: propName("HOUSE", "Kifisia"),
+    property_type: "HOUSE",
+    property_status: "PENDING",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    price: 520000,
+    price_type: "SALE",
+    size_net_sqm: 200,
+    size_gross_sqm: 230,
+    lot_size: 400,
+    bedrooms: 4,
+    bathrooms: 3,
+    floor: "0",
+    floors_total: 2,
+    amenities: { ...generateRandomAmenities(), garden: true, pool: true },
+  }));
+
+  // #11 APARTMENT OFF_MARKET PERSONAL SALE — Nea Smyrni
+  propertiesRaw.push(makeBase(10, {
+    _location: area("Nea Smyrni"),
+    property_name: propName("APARTMENT", "Nea Smyrni"),
+    property_type: "APARTMENT",
+    property_status: "OFF_MARKET",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    price: 180000,
+    price_type: "SALE",
+    size_net_sqm: 75,
+    size_gross_sqm: 85,
+    bedrooms: 2,
+    bathrooms: 1,
+    floor: "1",
+    floors_total: 4,
+  }));
+
+  // #12 COMMERCIAL WITHDRAWN PERSONAL SALE — Syntagma
+  propertiesRaw.push(makeBase(11, {
+    _location: area("Syntagma"),
+    property_name: propName("COMMERCIAL", "Syntagma"),
+    property_type: "COMMERCIAL",
+    property_status: "WITHDRAWN",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    price: 650000,
+    price_type: "SALE",
+    size_net_sqm: 200,
+    size_gross_sqm: 220,
+    floor: "0",
+    floors_total: 1,
+  }));
+
+  // #13 APARTMENT ACTIVE PUBLIC RENTAL — Koukaki, €1200/mo
+  propertiesRaw.push(makeBase(12, {
+    _location: area("Koukaki"),
+    property_name: propName("APARTMENT", "Koukaki"),
+    property_type: "APARTMENT",
+    property_status: "ACTIVE",
+    visibility: "PUBLIC",
+    transaction_type: "RENTAL",
+    price: 1200,
+    price_type: "RENTAL",
+    size_net_sqm: 80,
+    size_gross_sqm: 90,
+    bedrooms: 2,
+    bathrooms: 1,
+    floor: "2",
+    floors_total: 5,
+    elevator: true,
+    furnished: "FULLY",
+    amenities: { ...generateRandomAmenities(), airConditioning: true },
+  }));
+
+  // #14 VACATION ACTIVE SECURE SHORT_TERM — Mykonos, €200/night
+  propertiesRaw.push(makeBase(13, {
+    _location: islandArea,
+    property_name: "Mykonos Summer Villa",
+    property_type: "VACATION",
+    property_status: "ACTIVE",
+    visibility: "SECURE",
+    transaction_type: "SHORT_TERM",
+    price: 200,
+    price_type: "RENTAL",
+    size_net_sqm: 120,
+    size_gross_sqm: 140,
+    bedrooms: 3,
+    bathrooms: 2,
+    lot_size: 500,
+    furnished: "FULLY",
+    amenities: { pool: true, airConditioning: true, garden: true, parking: true, jacuzzi: true },
+  }));
+
+  // #15 HOUSE ACTIVE PERSONAL SALE — draft
+  propertiesRaw.push(makeBase(14, {
+    _location: pick(ATHENS_AREAS),
+    property_name: "Draft Property (Incomplete)",
+    property_type: "HOUSE",
+    property_status: "ACTIVE",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    draft_status: true,
+    price: 300000,
+    price_type: "SALE",
+    size_net_sqm: 150,
+    bedrooms: 3,
+    bathrooms: 2,
+  }));
+
+  // #16 APARTMENT ACTIVE PERSONAL SALE — assigned to departed user
+  propertiesRaw.push(makeBase(15, {
+    _location: pick(ATHENS_AREAS),
+    property_name: propName("APARTMENT", "Athens"),
+    property_type: "APARTMENT",
+    property_status: "ACTIVE",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    assigned_to: departedUserId,
+    price: 260000,
+    price_type: "SALE",
+    size_net_sqm: 88,
+    size_gross_sqm: 98,
+    bedrooms: 2,
+    bathrooms: 1,
+    floor: "3",
+    floors_total: 5,
+  }));
+
+  // #17 APARTMENT ACTIVE SECURE SALE — full legal fields
+  propertiesRaw.push(makeBase(16, {
+    _location: pick(ATHENS_AREAS),
+    property_name: propName("APARTMENT", "Athens"),
+    property_type: "APARTMENT",
+    property_status: "ACTIVE",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    price: 310000,
+    price_type: "SALE",
+    size_net_sqm: 100,
+    size_gross_sqm: 115,
+    bedrooms: 3,
+    bathrooms: 1,
+    floor: "2",
+    floors_total: 5,
+    land_registry_kaek: "12345678901234",
+    building_permit_no: "123/2020",
+    building_permit_year: 2020,
+    inside_city_plan: true,
+    elevator: true,
+  }));
+
+  // #18 HOUSE ACTIVE PUBLIC SALE — Psychiko, 350sqm, lot 800, €1.8M, all amenities
+  propertiesRaw.push(makeBase(17, {
+    _location: area("Psychiko"),
+    property_name: propName("HOUSE", "Psychiko"),
+    property_type: "HOUSE",
+    property_status: "ACTIVE",
+    visibility: "PUBLIC",
+    transaction_type: "SALE",
+    price: 1800000,
+    price_type: "SALE",
+    size_net_sqm: 350,
+    size_gross_sqm: 400,
+    lot_size: 800,
+    bedrooms: 5,
+    bathrooms: 4,
+    floor: "0",
+    floors_total: 3,
+    condition: "EXCELLENT",
+    year_built: 2022,
+    amenities: {
+      parking: true, storage: true, balcony: true, garden: true, pool: true,
+      gym: true, security: true, fireplace: true, airConditioning: true,
+      underfloorHeating: true, solarPanels: true, doubleGlazing: true,
+      alarm: true, intercom: true, cctv: true, sauna: true, jacuzzi: true,
+      rooftop: true,
+    },
+  }));
+
+  // #19 APARTMENT ACTIVE SECURE SALE — Kolonaki, 95sqm, €280K — MATCHMAKING TARGET
+  propertiesRaw.push(makeBase(18, {
+    _location: area("Kolonaki"),
+    property_name: "Matchmaking Target A — Kolonaki Apartment",
+    property_type: "APARTMENT",
+    property_status: "ACTIVE",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    price: 280000,
+    price_type: "SALE",
+    size_net_sqm: 95,
+    size_gross_sqm: 105,
+    bedrooms: 2,
+    bathrooms: 1,
+    floor: "3",
+    floors_total: 6,
+    elevator: true,
+    amenities: { balcony: true, airConditioning: true, doubleGlazing: true },
+  }));
+
+  // #20 HOUSE ACTIVE SECURE SALE — Kolonaki, 120sqm, €340K — MATCHMAKING TARGET
+  propertiesRaw.push(makeBase(19, {
+    _location: area("Kolonaki"),
+    property_name: "Matchmaking Target B — Kolonaki House",
+    property_type: "HOUSE",
+    property_status: "ACTIVE",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    price: 340000,
+    price_type: "SALE",
+    size_net_sqm: 120,
+    size_gross_sqm: 140,
+    lot_size: 200,
+    bedrooms: 3,
+    bathrooms: 2,
+    floor: "0",
+    floors_total: 2,
+    amenities: { garden: true, parking: true, airConditioning: true, fireplace: true },
+  }));
+
+  // Encrypt all properties
+  const encryptedProperties = propertiesRaw.map((p) => encryptPropertyData(p, ctx.dek));
+
+  await prismadb.properties.createMany({ data: encryptedProperties as any[] });
+
+  const ids = propertiesRaw.map((p) => p.id as string);
+  console.log(`  Created ${ids.length} properties`);
+  return ids;
+}
+
+// ============================================
+// TASK 9: SEED MANDATES (11 per org)
+// ============================================
+
+async function seedMandates(ctx: OrgContext): Promise<string[]> {
+  console.log(`\nCreating 11 mandates for ${ctx.prefix} org...`);
+
+  const friendlyIds = await generateFriendlyIds("Mandate", 11, ctx.orgId);
+  const now = new Date();
+
+  const makeBase = (i: number, overrides: Record<string, unknown>) => ({
+    id: uuid(),
+    friendlyId: friendlyIds[i],
+    organizationId: ctx.orgId,
+    assigned_to: ctx.primaryUserId,
+    createdBy: ctx.primaryUserId,
+    createdAt: generateHistoricalDate(6),
+    updatedAt: now,
+    ...overrides,
+  });
+
+  const mandatesRaw: Record<string, unknown>[] = [];
+
+  // #1 ACTIVE MEDIUM SECURE SALE — Kolonaki/Kifisia, 200K-400K, 70-130sqm
+  mandatesRaw.push(makeBase(0, {
+    title: "Buyer search: 2-3 bed apartment in Kolonaki or Kifisia",
+    status: "ACTIVE",
+    urgency: "MEDIUM",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    property_type: "APARTMENT",
+    areas_of_interest: ["Kolonaki", "Kifisia"],
+    budget_min: 200000,
+    budget_max: 400000,
+    size_min_sqm: 70,
+    size_max_sqm: 130,
+    bedrooms_min: 2,
+    bedrooms_max: 3,
+    bathrooms_min: 1,
+    timeline: "ONE_THREE_MONTHS",
+    notes: "Client prefers high floors with elevator, modern finishes",
+  }));
+
+  // #2 ACTIVE MEDIUM SECURE SALE — Glyfada/Voula, 250K-500K
+  mandatesRaw.push(makeBase(1, {
+    title: "Family home search in southern suburbs",
+    status: "ACTIVE",
+    urgency: "MEDIUM",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    property_type: "HOUSE",
+    areas_of_interest: ["Glyfada", "Voula"],
+    budget_min: 250000,
+    budget_max: 500000,
+    size_min_sqm: 120,
+    size_max_sqm: 250,
+    bedrooms_min: 3,
+    bedrooms_max: 5,
+    bathrooms_min: 2,
+    timeline: "THREE_SIX_MONTHS",
+    notes: "Family with 2 kids, needs garden and parking",
+  }));
+
+  // #3 ACTIVE CRITICAL SECURE SALE — immediate timeline
+  mandatesRaw.push(makeBase(2, {
+    title: "URGENT: Relocation — apartment needed ASAP",
+    status: "ACTIVE",
+    urgency: "CRITICAL",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    property_type: "APARTMENT",
+    areas_of_interest: ["Marousi", "Chalandri", "Kifisia"],
+    budget_min: 180000,
+    budget_max: 350000,
+    size_min_sqm: 60,
+    size_max_sqm: 120,
+    bedrooms_min: 2,
+    timeline: "IMMEDIATE",
+    notes: "Corporate relocation, needs to close within 30 days",
+  }));
+
+  // #4 ACTIVE LOW PERSONAL RENTAL — rental mandate
+  mandatesRaw.push(makeBase(3, {
+    title: "Rental search: central Athens apartment",
+    status: "ACTIVE",
+    urgency: "LOW",
+    visibility: "PERSONAL",
+    transaction_type: "RENTAL",
+    property_type: "APARTMENT",
+    areas_of_interest: ["Koukaki", "Pagkrati", "Nea Smyrni"],
+    budget_min: 800,
+    budget_max: 1500,
+    size_min_sqm: 50,
+    size_max_sqm: 100,
+    bedrooms_min: 1,
+    bedrooms_max: 2,
+    timeline: "ONE_THREE_MONTHS",
+    notes: "Young professional, prefers furnished, pet-friendly",
+  }));
+
+  // #5 FULFILLED MEDIUM PERSONAL SALE — linked to completed deal later
+  mandatesRaw.push(makeBase(4, {
+    title: "Completed: Villa purchase in Kifisia",
+    status: "FULFILLED",
+    urgency: "MEDIUM",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    property_type: "HOUSE",
+    areas_of_interest: ["Kifisia", "Ekali"],
+    budget_min: 400000,
+    budget_max: 700000,
+    size_min_sqm: 150,
+    size_max_sqm: 300,
+    bedrooms_min: 3,
+    timeline: "THREE_SIX_MONTHS",
+    notes: "Successfully matched and closed",
+  }));
+
+  // #6 EXPIRED LOW PERSONAL SALE — expired 30 days ago
+  const expiredDate = new Date();
+  expiredDate.setDate(expiredDate.getDate() - 30);
+  mandatesRaw.push(makeBase(5, {
+    title: "Expired: Investment apartment search",
+    status: "EXPIRED",
+    urgency: "LOW",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    property_type: "APARTMENT",
+    areas_of_interest: ["Kallithea", "Nea Smyrni"],
+    budget_min: 100000,
+    budget_max: 200000,
+    size_min_sqm: 40,
+    size_max_sqm: 80,
+    expires_at: expiredDate,
+    notes: "Client lost interest, mandate expired",
+  }));
+
+  // #7 DRAFT MEDIUM PERSONAL SALE — draft status
+  mandatesRaw.push(makeBase(6, {
+    title: "Draft: Preliminary property search",
+    status: "DRAFT",
+    urgency: "MEDIUM",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    property_type: "APARTMENT",
+    draft_status: true,
+    areas_of_interest: ["Pagkrati"],
+    budget_min: 150000,
+    budget_max: 250000,
+    notes: "Incomplete — awaiting client confirmation",
+  }));
+
+  // #8 PAUSED HIGH PERSONAL SALE
+  mandatesRaw.push(makeBase(7, {
+    title: "Paused: Luxury penthouse search",
+    status: "PAUSED",
+    urgency: "HIGH",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    property_type: "APARTMENT",
+    areas_of_interest: ["Kolonaki", "Psychiko", "Filothei"],
+    budget_min: 500000,
+    budget_max: 1200000,
+    size_min_sqm: 150,
+    size_max_sqm: 300,
+    bedrooms_min: 3,
+    bathrooms_min: 2,
+    notes: "Client traveling abroad, resume search in April",
+  }));
+
+  // #9 CANCELLED LOW PERSONAL SALE
+  mandatesRaw.push(makeBase(8, {
+    title: "Cancelled: Office space search",
+    status: "CANCELLED",
+    urgency: "LOW",
+    visibility: "PERSONAL",
+    transaction_type: "SALE",
+    property_type: "COMMERCIAL",
+    areas_of_interest: ["Syntagma", "Kolonaki"],
+    budget_min: 200000,
+    budget_max: 500000,
+    size_min_sqm: 80,
+    size_max_sqm: 200,
+    notes: "Client decided to lease instead of purchase",
+  }));
+
+  // #10 ACTIVE MEDIUM PUBLIC SALE — PLOT land search
+  mandatesRaw.push(makeBase(9, {
+    title: "Land search: buildable plot in east Attica",
+    status: "ACTIVE",
+    urgency: "MEDIUM",
+    visibility: "PUBLIC",
+    transaction_type: "SALE",
+    property_type: "PLOT",
+    areas_of_interest: ["Rafina"],
+    budget_min: 150000,
+    budget_max: 350000,
+    plot_size_min_sqm: 500,
+    plot_size_max_sqm: 1500,
+    inside_city_plan: true,
+    notes: "Developer looking for residential plot, must be inside city plan",
+  }));
+
+  // #11 ACTIVE HIGH SECURE SALE — CROSS-ORG MATCH: Kolonaki, 70-130sqm, €180K-€400K, APARTMENT
+  mandatesRaw.push(makeBase(10, {
+    title: "Cross-org match: Kolonaki apartment buyer",
+    status: "ACTIVE",
+    urgency: "HIGH",
+    visibility: "SECURE",
+    transaction_type: "SALE",
+    property_type: "APARTMENT",
+    areas_of_interest: ["Kolonaki"],
+    budget_min: 180000,
+    budget_max: 400000,
+    size_min_sqm: 70,
+    size_max_sqm: 130,
+    bedrooms_min: 2,
+    bedrooms_max: 3,
+    bathrooms_min: 1,
+    timeline: "ONE_THREE_MONTHS",
+    notes: "MATCHMAKING TARGET — should match properties #19 and #20 cross-org",
+  }));
+
+  // Encrypt all mandates
+  const encryptedMandates = mandatesRaw.map((m) => encryptMandateData(m, ctx.dek));
+
+  await prismadb.mandate.createMany({ data: encryptedMandates as any[] });
+
+  const ids = mandatesRaw.map((m) => m.id as string);
+  console.log(`  Created ${ids.length} mandates`);
+  return ids;
+}
+
+// ============================================
+// MAIN
 // ============================================
 
 async function main() {
@@ -682,9 +1850,29 @@ async function main() {
   console.log(`\nAlpha org: ${alphaCtx.orgId} (${alphaCtx.allUsers.length} users)`);
   console.log(`Beta org:  ${betaCtx.orgId} (${betaCtx.allUsers.length} users)`);
 
-  // TODO: Chunk 2+ will add purge, seed entities, cross-org scenarios
+  // Step 1: Purge existing data
+  if (!skipPurge) {
+    await purgeOrgData(alphaCtx.orgId, alphaCtx.allUsers);
+    await purgeOrgData(betaCtx.orgId, betaCtx.allUsers);
+  } else {
+    console.log("\nSkipping purge (--skip-purge flag)");
+  }
 
-  console.log("\n=== CHUNK 1 SCAFFOLD COMPLETE (no data seeded yet) ===");
+  // Step 2: Create synthetic users
+  await createSyntheticUsers(alphaCtx);
+  await createSyntheticUsers(betaCtx);
+
+  // Step 3: Seed core entities
+  for (const ctx of [alphaCtx, betaCtx]) {
+    const clientIds = await seedClients(ctx);
+    const propertyIds = await seedProperties(ctx);
+    const mandateIds = await seedMandates(ctx);
+    console.log(`\n${ctx.prefix} org seeded: ${clientIds.length} clients, ${propertyIds.length} properties, ${mandateIds.length} mandates`);
+  }
+
+  // TODO: Chunk 3+ will add deals, tasks, calendar, documents, social posts, messaging, cross-org scenarios
+
+  console.log("\n=== CHUNK 2 COMPLETE — purge, synthetic users, clients, properties, mandates ===");
 
   await prismadb.$disconnect();
 }
