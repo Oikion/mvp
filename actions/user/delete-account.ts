@@ -5,6 +5,7 @@ import { getCurrentUserId, getCurrentOrgId } from "@/lib/get-current-user";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
 import { prismadb } from "@/lib/prisma";
 import { clerkClient } from "@clerk/nextjs/server";
+import { createClerkClient } from "@clerk/backend";
 import { isOrgOwner } from "@/lib/org-admin";
 import { handleUserDeparture } from "@/lib/user-departure";
 
