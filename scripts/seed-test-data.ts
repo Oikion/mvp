@@ -145,7 +145,7 @@ const CLIENT_ENCRYPTED_STRING_FIELDS = [
   "id_doc", "company_gemi", "description", "billing_street", "billing_city",
   "billing_state", "billing_postal_code", "billing_country",
   "shipping_street", "shipping_city", "shipping_state",
-  "shipping_postal_code",
+  "shipping_postal_code", "shipping_country",
 ] as const;
 
 function encryptClientData(data: Record<string, unknown>, dek: Buffer): Record<string, unknown> {
@@ -1080,6 +1080,7 @@ async function seedClients(ctx: OrgContext): Promise<string[]> {
     shipping_city: "Αθήνα",
     shipping_state: "Αττική",
     shipping_postal_code: "11526",
+    shipping_country: "GR",
     description: "Corporate investor with full address records",
   }));
 
@@ -2397,7 +2398,7 @@ async function seedCalendarEvents(
   // Encrypt calendar data
   const encryptedEvents = eventsRaw.map((e) => encryptCalendarData(e as Record<string, unknown>, ctx.dek));
 
-  await prismadb.calendarEvent.createMany({ data: encryptedEvents as any[] });
+  await prismadb.calendarEvent.createMany({ data: encryptedEvents as any[], skipDuplicates: true });
 
   // Create event-to-property and event-to-client relations via raw SQL (implicit m2m)
   const eventPropertyLinks: Array<[string, string]> = [
@@ -3273,6 +3274,100 @@ async function seedMessaging(ctx: OrgContext): Promise<void> {
   await prismadb.message.createMany({ data: dmMsgRecords as any[] });
   console.log(`  Created 1 conversation with ${dmMsgRecords.length} DM messages`);
 
+  // --- Group DM (alpha org only) ---
+  if (ctx.prefix === "alpha" && ctx.allUsers.length >= 3) {
+    const groupConvId = uuid();
+    const groupParticipants = ctx.allUsers.filter(u => u.id !== ctx.primaryUserId).slice(0, 2);
+    await prismadb.conversation.create({
+      data: {
+        id: groupConvId,
+        organizationId: ctx.orgId,
+        scope: "ORG",
+        isGroup: true,
+        isE2ee: false,
+        name: "Alpha Team Chat",
+        createdById: ctx.primaryUserId,
+      },
+    });
+    await prismadb.conversationParticipant.createMany({
+      data: [
+        { id: uuid(), conversationId: groupConvId, userId: ctx.primaryUserId },
+        ...groupParticipants.map(u => ({ id: uuid(), conversationId: groupConvId, userId: u.id })),
+      ],
+    });
+    const groupMsgContents = [
+      "Hey team, let's coordinate on the Kolonaki listings",
+      "Sure, I'll prepare the comparables by tomorrow",
+      "I spoke with the owner — they're flexible on price",
+      "Great news! Let's schedule a viewing for Thursday",
+    ];
+    const groupMsgRecords: Array<Record<string, unknown>> = [];
+    const senders = [ctx.primaryUserId, groupParticipants[0].id, groupParticipants[1].id, ctx.primaryUserId];
+    for (let i = 0; i < groupMsgContents.length; i++) {
+      const id = uuid();
+      const createdAt = new Date(now.getTime() - (groupMsgContents.length - i) * 3 * 60 * 60 * 1000);
+      allMessageIds.push(id);
+      allMessageCreatedAts.set(id, createdAt);
+      groupMsgRecords.push({
+        id,
+        organizationId: ctx.orgId,
+        conversationId: groupConvId,
+        senderId: senders[i],
+        content: groupMsgContents[i],
+        contentType: "TEXT",
+        createdAt,
+        parentId: null,
+        threadCount: 0,
+      });
+    }
+    await prismadb.message.createMany({ data: groupMsgRecords as any[] });
+    console.log(`  Created group DM with ${groupMsgRecords.length} messages`);
+  }
+
+  // --- Departed-user DM ---
+  const departedConvId = uuid();
+  await prismadb.conversation.create({
+    data: {
+      id: departedConvId,
+      organizationId: ctx.orgId,
+      scope: "ORG",
+      isGroup: false,
+      isE2ee: false,
+      createdById: ctx.primaryUserId,
+    },
+  });
+  await prismadb.conversationParticipant.createMany({
+    data: [
+      { id: uuid(), conversationId: departedConvId, userId: ctx.primaryUserId },
+      { id: uuid(), conversationId: departedConvId, userId: departedUserId },
+    ],
+  });
+  const departedMsgRecords: Array<Record<string, unknown>> = [];
+  const departedMsgDefs: Array<{ sender: string; content: string; hoursAgo: number }> = [
+    { sender: departedUserId, content: "Hi, I wanted to hand off the Glyfada listing notes before I leave", hoursAgo: 72 },
+    { sender: ctx.primaryUserId, content: "Thanks for the heads up. Can you share the client contact details?", hoursAgo: 70 },
+    { sender: ctx.primaryUserId, content: "I'll take it from here. Good luck!", hoursAgo: 68 },
+  ];
+  for (const def of departedMsgDefs) {
+    const id = uuid();
+    const createdAt = new Date(now.getTime() - def.hoursAgo * 60 * 60 * 1000);
+    allMessageIds.push(id);
+    allMessageCreatedAts.set(id, createdAt);
+    departedMsgRecords.push({
+      id,
+      organizationId: ctx.orgId,
+      conversationId: departedConvId,
+      senderId: def.sender,
+      content: def.content,
+      contentType: "TEXT",
+      createdAt,
+      parentId: null,
+      threadCount: 0,
+    });
+  }
+  await prismadb.message.createMany({ data: departedMsgRecords as any[] });
+  console.log(`  Created departed-user DM with ${departedMsgRecords.length} messages`);
+
   // --- Message sub-entities ---
 
   // MessageReaction: on 4 messages
@@ -3526,6 +3621,21 @@ async function seedAgentProfiles(
     await prismadb.profileShowcaseProperty.createMany({ data: showcaseData as any[] });
   }
   console.log(`  Created ${showcaseData.length} showcase property links`);
+
+  // --- Agent Contact Submissions for PUBLIC profiles ---
+  const agentSubmissions: Array<Record<string, unknown>> = [];
+  for (let i = 0; i < profiles.length; i++) {
+    if (profiles[i].visibility === "PUBLIC") {
+      agentSubmissions.push(
+        { id: uuid(), profileId: profileIds[i], formData: { name: "Interested Buyer", email: "buyer@example.com", phone: "+306912345678", message: "I'm interested in properties in Kolonaki" }, status: "NEW", senderName: "Interested Buyer", senderEmail: "buyer@example.com", createdAt: generateHistoricalDate(1) },
+        { id: uuid(), profileId: profileIds[i], formData: { name: "Property Owner", email: "owner@example.com", message: "I want to list my property" }, status: "CONTACTED", senderName: "Property Owner", senderEmail: "owner@example.com", createdAt: generateHistoricalDate(3) },
+      );
+    }
+  }
+  if (agentSubmissions.length > 0) {
+    await prismadb.agentContactSubmission.createMany({ data: agentSubmissions as any[] });
+  }
+  console.log(`  Created ${agentSubmissions.length} agent contact submissions`);
 }
 
 // ============================================
@@ -3658,12 +3768,17 @@ async function seedAgentConnections(
   const alphaSecond = findSecond(alpha);
   const betaSecond = findSecond(beta);
 
-  const connections = [
+  const connections: Array<Record<string, unknown>> = [
     { id: uuid(), followerId: alpha.primaryUserId, followingId: beta.primaryUserId, status: "ACCEPTED", createdAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000) },
     { id: uuid(), followerId: beta.primaryUserId, followingId: alpha.primaryUserId, status: "ACCEPTED", createdAt: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 27 * 24 * 60 * 60 * 1000) },
-    { id: uuid(), followerId: betaSecond, followingId: alpha.primaryUserId, status: "PENDING", createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000) },
-    { id: uuid(), followerId: alphaSecond, followingId: beta.primaryUserId, status: "REJECTED", createdAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000) },
   ];
+  // Only add connections 3 & 4 when second users are distinct from primary
+  if (betaSecond !== beta.primaryUserId) {
+    connections.push({ id: uuid(), followerId: betaSecond, followingId: alpha.primaryUserId, status: "PENDING", createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000) });
+  }
+  if (alphaSecond !== alpha.primaryUserId) {
+    connections.push({ id: uuid(), followerId: alphaSecond, followingId: beta.primaryUserId, status: "REJECTED", createdAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000) });
+  }
 
   await prismadb.agentConnection.createMany({ data: connections as any[], skipDuplicates: true });
   console.log(`  Created ${connections.length} agent connections`);
