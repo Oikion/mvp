@@ -35,6 +35,7 @@
     "db:reset": "prisma migrate reset",
     "db:status": "prisma migrate status",
     "db:validate": "tsx scripts/validate-migrations.ts",
+    "seed:test": "tsx scripts/seed-test-data.ts",
     "migrate:colors": "tsx scripts/design-system/migrate-colors.ts",
     "migrate:colors:dry": "tsx scripts/design-system/migrate-colors.ts --dry-run",
     "generate:color-pdf": "npx tsx scripts/generate-color-palette-pdf.ts",

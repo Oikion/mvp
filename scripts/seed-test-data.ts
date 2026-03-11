@@ -3320,10 +3320,586 @@ async function seedMessaging(ctx: OrgContext): Promise<void> {
 }
 
 // ============================================
+// CHUNK 5: JOIN TABLES
+// ============================================
+
+async function seedJoinTables(
+  ctx: OrgContext,
+  clientIds: string[],
+  propertyIds: string[],
+  mandateIds: string[],
+): Promise<void> {
+  console.log(`\n[${ctx.prefix}] Seeding join tables...`);
+
+  // --- Client_Properties ---
+  const cpData: Array<{ id: string; clientId: string; propertyId: string }> = [];
+  const addCP = (cIdx: number, pIdx: number) => {
+    if (clientIds[cIdx] && propertyIds[pIdx]) {
+      cpData.push({ id: uuid(), clientId: clientIds[cIdx], propertyId: propertyIds[pIdx] });
+    }
+  };
+
+  // Sellers → their listings
+  addCP(2, 0); addCP(2, 1);
+  addCP(3, 2); addCP(3, 3);
+  // Investor → 4 properties
+  addCP(5, 0); addCP(5, 1); addCP(5, 3); if (propertyIds[17]) addCP(5, 17);
+  // Buyers → properties of interest
+  addCP(0, 0); addCP(0, 2); addCP(0, 4);
+  addCP(1, 1); addCP(1, 3);
+
+  await prismadb.client_Properties.createMany({ data: cpData, skipDuplicates: true });
+  console.log(`  Created ${cpData.length} Client_Properties links`);
+
+  // --- Mandate_Properties ---
+  const mpData: Array<{ id: string; mandateId: string; propertyId: string }> = [];
+  const addMP = (mIdx: number, pIdx: number) => {
+    if (mandateIds[mIdx] && propertyIds[pIdx]) {
+      mpData.push({ id: uuid(), mandateId: mandateIds[mIdx], propertyId: propertyIds[pIdx] });
+    }
+  };
+
+  // Fulfilled mandate → SOLD property
+  if (mandateIds[4]) addMP(4, 8);
+  // Active mandates → candidate properties
+  addMP(0, 0); addMP(0, 2); addMP(0, 4);
+  addMP(1, 1); addMP(1, 3);
+  // Cross-org mandate → matchmaking targets
+  if (mandateIds[10]) { addMP(10, 18); addMP(10, 19); }
+
+  await prismadb.mandate_Properties.createMany({ data: mpData, skipDuplicates: true });
+  console.log(`  Created ${mpData.length} Mandate_Properties links`);
+
+  // --- Mandate_Clients ---
+  const mcData: Array<{ id: string; mandateId: string; clientId: string }> = [];
+  const addMC = (mIdx: number, cIdx: number) => {
+    if (mandateIds[mIdx] && clientIds[cIdx]) {
+      mcData.push({ id: uuid(), mandateId: mandateIds[mIdx], clientId: clientIds[cIdx] });
+    }
+  };
+
+  addMC(0, 0); addMC(0, 1); // co-buyers on mandate 0
+  addMC(1, 1);
+  addMC(2, 2);
+  addMC(3, 3);
+  addMC(4, 4);
+  addMC(5, 5);
+  addMC(6, 6);
+  addMC(7, 7);
+  addMC(8, 8);
+  addMC(9, 9);
+  if (mandateIds[10]) addMC(10, 10);
+
+  await prismadb.mandate_Clients.createMany({ data: mcData, skipDuplicates: true });
+  console.log(`  Created ${mcData.length} Mandate_Clients links`);
+}
+
+// ============================================
+// CHUNK 5: PROPERTY IMAGES
+// ============================================
+
+async function seedPropertyImages(
+  ctx: OrgContext,
+  propertyIds: string[],
+): Promise<void> {
+  console.log(`\n[${ctx.prefix}] Seeding property images...`);
+
+  const images: Array<Record<string, unknown>> = [];
+
+  function addImage(propertyId: string, position: number, caption: string) {
+    images.push({
+      id: uuid(),
+      propertyId,
+      organizationId: ctx.orgId,
+      url: `https://placehold.co/1200x800.png?text=Property+Photo+${position + 1}`,
+      blobPathname: `${ctx.orgId}/${propertyId}/photo-${position}.jpg`,
+      position,
+      isPrimary: position === 0,
+      caption,
+      width: 1200,
+      height: 800,
+      fileSize: 250000,
+      originalFileSize: 500000,
+      mimeType: "image/jpeg",
+      originalFileName: `property-photo-${position + 1}.jpg`,
+    });
+  }
+
+  // Luxury property (index 17): 3 images
+  if (propertyIds[17]) {
+    addImage(propertyIds[17], 0, "Living room with panoramic view");
+    addImage(propertyIds[17], 1, "Master bedroom suite");
+    addImage(propertyIds[17], 2, "Rooftop terrace");
+  }
+  // Match target 1 (index 18): 2 images
+  if (propertyIds[18]) {
+    addImage(propertyIds[18], 0, "Exterior facade");
+    addImage(propertyIds[18], 1, "Open plan kitchen");
+  }
+  // Match target 2 (index 19): 1 image
+  if (propertyIds[19]) {
+    addImage(propertyIds[19], 0, "Street view");
+  }
+
+  if (images.length > 0) {
+    await prismadb.propertyImage.createMany({ data: images as any[] });
+  }
+  console.log(`  Created ${images.length} property images`);
+}
+
+// ============================================
+// CHUNK 5: AGENT PROFILES
+// ============================================
+
+async function seedAgentProfiles(
+  alpha: OrgContext,
+  beta: OrgContext,
+  alphaPropertyIds: string[],
+  betaPropertyIds: string[],
+): Promise<void> {
+  console.log("\n[cross-org] Seeding agent profiles...");
+
+  const profiles: Array<{ ctx: OrgContext; userId: string; slug: string; visibility: string; specializations: string[]; serviceAreas: string[]; years: number }> = [];
+
+  // Helper: find a second real (non-synthetic) user
+  function findSecondReal(ctx: OrgContext): string | null {
+    const second = ctx.allUsers.find(u => u.id !== ctx.primaryUserId && !(u.clerkUserId ?? "").startsWith("user_seed_"));
+    return second?.id ?? null;
+  }
+
+  const alphaSecond = findSecondReal(alpha);
+  const betaSecond = findSecondReal(beta);
+
+  profiles.push({ ctx: alpha, userId: alpha.primaryUserId, slug: "agent-alpha-1", visibility: "PUBLIC", specializations: ["Residential", "Luxury"], serviceAreas: ["Athens", "Kolonaki"], years: 12 });
+  if (alphaSecond) {
+    profiles.push({ ctx: alpha, userId: alphaSecond, slug: "agent-alpha-2", visibility: "PERSONAL", specializations: ["Commercial", "Investment"], serviceAreas: ["Piraeus", "Glyfada"], years: 8 });
+  }
+  profiles.push({ ctx: beta, userId: beta.primaryUserId, slug: "agent-beta-1", visibility: "PUBLIC", specializations: ["Residential", "Rentals"], serviceAreas: ["Thessaloniki", "Kalamaria"], years: 15 });
+  if (betaSecond) {
+    profiles.push({ ctx: beta, userId: betaSecond, slug: "agent-beta-2", visibility: "SECURE", specializations: ["Land", "Development"], serviceAreas: ["Halkidiki", "Thermi"], years: 10 });
+  }
+
+  const profileIds: string[] = [];
+  for (const p of profiles) {
+    const id = uuid();
+    profileIds.push(id);
+    await prismadb.agentProfile.create({
+      data: {
+        id,
+        userId: p.userId,
+        slug: p.slug,
+        bio: `Experienced real estate agent specializing in ${p.specializations.join(" and ").toLowerCase()} properties across ${p.serviceAreas.join(", ")}.`,
+        specializations: p.specializations,
+        serviceAreas: p.serviceAreas,
+        languages: ["el", "en"],
+        yearsExperience: p.years,
+        socialLinks: { linkedin: `https://linkedin.com/in/${p.slug}` },
+        visibility: p.visibility as any,
+        contactFormEnabled: p.visibility === "PUBLIC",
+        contactFormFields: [
+          { name: "name", required: true },
+          { name: "email", required: true },
+          { name: "phone" },
+          { name: "message", required: true },
+        ],
+        updatedAt: new Date(),
+      },
+    });
+  }
+  console.log(`  Created ${profiles.length} agent profiles`);
+
+  // Showcase properties for PUBLIC profiles
+  const showcaseData: Array<Record<string, unknown>> = [];
+  // Alpha primary (PUBLIC) → alpha properties
+  const publicAlphaPropertyIndices = [0, 17, 18].filter(i => alphaPropertyIds[i]);
+  for (let i = 0; i < publicAlphaPropertyIndices.length; i++) {
+    showcaseData.push({ id: uuid(), profileId: profileIds[0], propertyId: alphaPropertyIds[publicAlphaPropertyIndices[i]], order: i });
+  }
+  // Beta primary (PUBLIC) → beta properties
+  const publicBetaIdx = profiles.findIndex(p => p.slug === "agent-beta-1");
+  const publicBetaPropertyIndices = [0, 1, 17].filter(i => betaPropertyIds[i]);
+  for (let i = 0; i < publicBetaPropertyIndices.length; i++) {
+    showcaseData.push({ id: uuid(), profileId: profileIds[publicBetaIdx], propertyId: betaPropertyIds[publicBetaPropertyIndices[i]], order: i });
+  }
+
+  if (showcaseData.length > 0) {
+    await prismadb.profileShowcaseProperty.createMany({ data: showcaseData as any[] });
+  }
+  console.log(`  Created ${showcaseData.length} showcase property links`);
+}
+
+// ============================================
+// CHUNK 5: AGENCY PROFILES
+// ============================================
+
+async function seedAgencyProfiles(
+  alpha: OrgContext,
+  beta: OrgContext,
+): Promise<void> {
+  console.log("\n[cross-org] Seeding agency profiles...");
+
+  const contactFormFields = [
+    { name: "name", required: true },
+    { name: "email", required: true },
+    { name: "phone" },
+    { name: "message", required: true },
+  ];
+
+  const alphaProfileId = uuid();
+  const betaProfileId = uuid();
+
+  await prismadb.agencyProfile.create({
+    data: {
+      id: alphaProfileId,
+      organizationId: alpha.orgId,
+      name: "Alpha Real Estate",
+      slug: "alpha-real-estate",
+      description: "Premier real estate agency in Athens specializing in residential and luxury properties.",
+      phone: "+30 210 1234567",
+      email: "info@alpha-realestate.gr",
+      website: "https://alpha-realestate.gr",
+      city: "Athens",
+      region: "Attica",
+      country: "GR",
+      visibility: "PUBLIC",
+      yearFounded: 2015,
+      licenseNumber: "RE-ATT-2015-001",
+      contactFormEnabled: true,
+      contactFormFields,
+      socialLinks: { facebook: "https://facebook.com/alpha-realestate", instagram: "https://instagram.com/alpha_re" },
+    },
+  });
+
+  await prismadb.agencyProfile.create({
+    data: {
+      id: betaProfileId,
+      organizationId: beta.orgId,
+      name: "Beta Properties",
+      slug: "beta-properties",
+      description: "Leading property management and sales firm in Thessaloniki and Northern Greece.",
+      phone: "+30 2310 987654",
+      email: "contact@beta-properties.gr",
+      website: "https://beta-properties.gr",
+      city: "Thessaloniki",
+      region: "Central Macedonia",
+      country: "GR",
+      visibility: "PUBLIC",
+      yearFounded: 2018,
+      licenseNumber: "RE-THK-2018-042",
+      contactFormEnabled: true,
+      contactFormFields,
+      socialLinks: { facebook: "https://facebook.com/beta-properties" },
+    },
+  });
+
+  console.log("  Created 2 agency profiles");
+
+  // Contact submissions
+  const submissions: Array<Record<string, unknown>> = [];
+  // Alpha: 2 submissions (NEW, CONTACTED)
+  submissions.push({
+    id: uuid(),
+    profileId: alphaProfileId,
+    formData: { name: "Maria Georgiou", email: "maria.g@gmail.com", phone: "6971234567", message: "Interested in Kolonaki apartment listings" },
+    status: "NEW",
+    senderName: "Maria Georgiou",
+    senderEmail: "maria.g@gmail.com",
+  });
+  submissions.push({
+    id: uuid(),
+    profileId: alphaProfileId,
+    formData: { name: "Petros Nikolaou", email: "p.nikolaou@outlook.com", message: "Looking for commercial space in Piraeus" },
+    status: "CONTACTED",
+    senderName: "Petros Nikolaou",
+    senderEmail: "p.nikolaou@outlook.com",
+    notes: "Called back, scheduled viewing for next week",
+  });
+  // Beta: 2 submissions (READ, ARCHIVED)
+  submissions.push({
+    id: uuid(),
+    profileId: betaProfileId,
+    formData: { name: "Elena Papadaki", email: "elena.p@yahoo.gr", phone: "6985551234", message: "Do you have rentals in Kalamaria?" },
+    status: "READ",
+    senderName: "Elena Papadaki",
+    senderEmail: "elena.p@yahoo.gr",
+  });
+  submissions.push({
+    id: uuid(),
+    profileId: betaProfileId,
+    formData: { name: "Kostas Dimitriou", email: "k.dimitriou@protonmail.com", message: "Investment opportunity inquiry" },
+    status: "ARCHIVED",
+    senderName: "Kostas Dimitriou",
+    senderEmail: "k.dimitriou@protonmail.com",
+    notes: "Not a serious lead",
+  });
+
+  await prismadb.agencyContactSubmission.createMany({ data: submissions as any[] });
+  console.log(`  Created ${submissions.length} agency contact submissions`);
+}
+
+// ============================================
+// CHUNK 5: AGENT CONNECTIONS
+// ============================================
+
+async function seedAgentConnections(
+  alpha: OrgContext,
+  beta: OrgContext,
+): Promise<void> {
+  console.log("\n[cross-org] Seeding agent connections...");
+
+  const now = new Date();
+
+  // Find second users (prefer real, fallback to synthetic)
+  function findSecond(ctx: OrgContext): string {
+    const second = ctx.allUsers.find(u => u.id !== ctx.primaryUserId);
+    return second?.id ?? ctx.primaryUserId;
+  }
+
+  const alphaSecond = findSecond(alpha);
+  const betaSecond = findSecond(beta);
+
+  const connections = [
+    { id: uuid(), followerId: alpha.primaryUserId, followingId: beta.primaryUserId, status: "ACCEPTED", createdAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000) },
+    { id: uuid(), followerId: beta.primaryUserId, followingId: alpha.primaryUserId, status: "ACCEPTED", createdAt: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 27 * 24 * 60 * 60 * 1000) },
+    { id: uuid(), followerId: betaSecond, followingId: alpha.primaryUserId, status: "PENDING", createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000) },
+    { id: uuid(), followerId: alphaSecond, followingId: beta.primaryUserId, status: "REJECTED", createdAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000), updatedAt: new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000) },
+  ];
+
+  await prismadb.agentConnection.createMany({ data: connections as any[], skipDuplicates: true });
+  console.log(`  Created ${connections.length} agent connections`);
+}
+
+// ============================================
+// CHUNK 5: SHARED ENTITIES
+// ============================================
+
+async function seedSharedEntities(
+  alpha: OrgContext,
+  beta: OrgContext,
+  alphaPropertyIds: string[],
+  alphaClientIds: string[],
+  alphaDocIds: string[],
+): Promise<void> {
+  console.log("\n[cross-org] Seeding shared entities...");
+
+  const now = new Date();
+  const departedUser = alpha.allUsers.find(u => (u.clerkUserId ?? "").includes("departed"));
+  const departedUserId = departedUser?.id ?? alpha.primaryUserId;
+
+  const entities: Array<Record<string, unknown>> = [];
+
+  if (alphaPropertyIds[17]) {
+    entities.push({ id: uuid(), entityType: "PROPERTY", entityId: alphaPropertyIds[17], sharedById: alpha.primaryUserId, sharedWithId: beta.primaryUserId, permissions: "VIEW_COMMENT", message: "Check out this luxury listing", createdAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000) });
+  }
+  if (alphaPropertyIds[0]) {
+    entities.push({ id: uuid(), entityType: "PROPERTY", entityId: alphaPropertyIds[0], sharedById: alpha.primaryUserId, sharedWithId: beta.primaryUserId, permissions: "VIEW_ONLY", message: "For your buyer client", createdAt: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000) });
+  }
+  if (alphaClientIds[6]) {
+    entities.push({ id: uuid(), entityType: "CLIENT", entityId: alphaClientIds[6], sharedById: alpha.primaryUserId, sharedWithId: beta.primaryUserId, permissions: "VIEW_COMMENT", message: "Shared referral contact", createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000) });
+  }
+  if (alphaDocIds[0]) {
+    entities.push({ id: uuid(), entityType: "DOCUMENT", entityId: alphaDocIds[0], sharedById: alpha.primaryUserId, sharedWithId: beta.primaryUserId, permissions: "VIEW_ONLY", message: "Contract for review", createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000) });
+  }
+  if (alphaPropertyIds[18]) {
+    entities.push({ id: uuid(), entityType: "PROPERTY", entityId: alphaPropertyIds[18], sharedById: departedUserId, sharedWithId: beta.primaryUserId, permissions: "VIEW_COMMENT", message: null, createdAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000) });
+  }
+
+  if (entities.length > 0) {
+    await prismadb.sharedEntity.createMany({ data: entities as any[], skipDuplicates: true });
+  }
+  console.log(`  Created ${entities.length} shared entities`);
+}
+
+// ============================================
+// CHUNK 5: NETWORK SETTINGS & CROSS-ORG MATCHES
+// ============================================
+
+async function seedNetworkAndMatching(
+  alpha: OrgContext,
+  beta: OrgContext,
+  alphaMandateIds: string[],
+  alphaPropertyIds: string[],
+  betaMandateIds: string[],
+  betaPropertyIds: string[],
+): Promise<void> {
+  console.log("\n[cross-org] Seeding network settings & cross-org matches...");
+
+  const now = new Date();
+
+  // Network settings
+  await prismadb.orgNetworkSettings.create({
+    data: {
+      organizationId: alpha.orgId,
+      membership: "BOTH",
+      shareProperties: true,
+      shareMandates: true,
+      propertyPrivacyLevel: "AGENCY_IDENTIFIED",
+      mandatePrivacyLevel: "AGENCY_IDENTIFIED",
+    },
+  });
+
+  await prismadb.orgNetworkSettings.create({
+    data: {
+      organizationId: beta.orgId,
+      membership: "BOTH",
+      shareProperties: true,
+      shareMandates: true,
+      propertyPrivacyLevel: "FULL",
+      mandatePrivacyLevel: "FULL",
+    },
+  });
+  console.log("  Created 2 org network settings");
+
+  // Partnership
+  await prismadb.orgNetworkPartner.create({
+    data: {
+      initiatorOrgId: alpha.orgId,
+      partnerOrgId: beta.orgId,
+      status: "ACCEPTED",
+      createdAt: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000),
+      acceptedAt: new Date(now.getTime() - 24 * 24 * 60 * 60 * 1000),
+    },
+  });
+  console.log("  Created 1 org network partnership");
+
+  // Cross-org matches
+  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const matches: Array<Record<string, unknown>> = [];
+
+  if (betaMandateIds[10] && alphaPropertyIds[18]) {
+    matches.push({ mandateOrgId: beta.orgId, mandateId: betaMandateIds[10], propertyOrgId: alpha.orgId, propertyId: alphaPropertyIds[18], matchScore: 92, breakdown: { location: 95, size: 90, budget: 88, type: 95 }, expiresAt });
+  }
+  if (betaMandateIds[10] && alphaPropertyIds[19]) {
+    matches.push({ mandateOrgId: beta.orgId, mandateId: betaMandateIds[10], propertyOrgId: alpha.orgId, propertyId: alphaPropertyIds[19], matchScore: 85, breakdown: { location: 95, size: 80, budget: 82, type: 85 }, expiresAt });
+  }
+  if (alphaMandateIds[0] && betaPropertyIds[0]) {
+    matches.push({ mandateOrgId: alpha.orgId, mandateId: alphaMandateIds[0], propertyOrgId: beta.orgId, propertyId: betaPropertyIds[0], matchScore: 78, breakdown: { location: 80, size: 75, budget: 78, type: 80 }, expiresAt });
+  }
+  if (alphaMandateIds[2] && betaPropertyIds[1]) {
+    matches.push({ mandateOrgId: alpha.orgId, mandateId: alphaMandateIds[2], propertyOrgId: beta.orgId, propertyId: betaPropertyIds[1], matchScore: 75, breakdown: { location: 72, size: 78, budget: 75, type: 76 }, expiresAt });
+  }
+
+  if (matches.length > 0) {
+    await prismadb.crossOrgMatch.createMany({ data: matches as any[], skipDuplicates: true });
+  }
+  console.log(`  Created ${matches.length} cross-org matches`);
+
+  // Cross-org SHARED conversation
+  const convId = uuid();
+  await prismadb.conversation.create({
+    data: {
+      id: convId,
+      organizationId: null,
+      scope: "SHARED",
+      isGroup: false,
+      isE2ee: false,
+      createdById: alpha.primaryUserId,
+    },
+  });
+
+  await prismadb.conversationParticipant.createMany({
+    data: [
+      { id: uuid(), conversationId: convId, userId: alpha.primaryUserId },
+      { id: uuid(), conversationId: convId, userId: beta.primaryUserId },
+    ],
+  });
+
+  await prismadb.conversationOrgMembership.createMany({
+    data: [
+      { id: uuid(), conversationId: convId, organizationId: alpha.orgId, addedById: alpha.primaryUserId },
+      { id: uuid(), conversationId: convId, organizationId: beta.orgId, addedById: beta.primaryUserId },
+    ],
+  });
+
+  const dealMsgs = DM_MESSAGES.deal_discussion;
+  const msgRecords: Array<Record<string, unknown>> = [];
+  for (let i = 0; i < dealMsgs.length; i++) {
+    const sender = i % 2 === 0 ? alpha.primaryUserId : beta.primaryUserId;
+    const senderOrgId = i % 2 === 0 ? alpha.orgId : beta.orgId;
+    msgRecords.push({
+      id: uuid(),
+      organizationId: senderOrgId,
+      conversationId: convId,
+      senderId: sender,
+      content: dealMsgs[i],
+      contentType: "TEXT",
+      createdAt: new Date(now.getTime() - (dealMsgs.length - i) * 3 * 60 * 60 * 1000),
+      parentId: null,
+      threadCount: 0,
+    });
+  }
+
+  await prismadb.message.createMany({ data: msgRecords as any[] });
+  console.log(`  Created 1 shared conversation with ${msgRecords.length} messages`);
+}
+
+// ============================================
+// CHUNK 5: NOTIFICATIONS
+// ============================================
+
+async function seedNotifications(
+  ctx: OrgContext,
+  clientIds: string[],
+  propertyIds: string[],
+): Promise<void> {
+  console.log(`\n[${ctx.prefix}] Seeding notifications...`);
+
+  const now = new Date();
+  const secondUser = ctx.allUsers.find(u => u.id !== ctx.primaryUserId);
+
+  const templates = [
+    { type: "PROPERTY_CREATED", entityType: "PROPERTY", entityId: propertyIds[0], title: "New Property", message: "New property listing created in Kolonaki" },
+    { type: "PROPERTY_UPDATED", entityType: "PROPERTY", entityId: propertyIds[1], title: "Property Updated", message: "Property details updated for Kifisia apartment" },
+    { type: "PROPERTY_ASSIGNED", entityType: "PROPERTY", entityId: propertyIds[3], title: "Property Assigned", message: "You have been assigned a new property" },
+    { type: "CLIENT_CREATED", entityType: "ACCOUNT", entityId: clientIds[0], title: "New Client", message: "New client added to your portfolio" },
+    { type: "CLIENT_ASSIGNED", entityType: "ACCOUNT", entityId: clientIds[1], title: "Client Assigned", message: "New client assigned to you" },
+    { type: "DEAL_PROPOSED", entityType: "DEAL", entityId: null, title: "Deal Proposed", message: "A new deal has been proposed for your property" },
+    { type: "DEAL_ACCEPTED", entityType: "DEAL", entityId: null, title: "Deal Accepted", message: "Your deal proposal has been accepted" },
+    { type: "DEAL_COMPLETED", entityType: "DEAL", entityId: null, title: "Deal Completed", message: "Congratulations! Deal closed successfully" },
+    { type: "ACCOUNT_TASK_CREATED", entityType: "TASK", entityId: null, title: "New Task", message: "A new task has been created for your client" },
+    { type: "TASK_ASSIGNED", entityType: "TASK", entityId: null, title: "Task Assigned", message: "You have been assigned a new task" },
+    { type: "CALENDAR_REMINDER", entityType: "CALENDAR_EVENT", entityId: null, title: "Reminder", message: "Property viewing in 30 minutes" },
+    { type: "SOCIAL_POST_LIKED", entityType: "SOCIAL_POST", entityId: null, title: "Post Liked", message: "Someone liked your post" },
+    { type: "SOCIAL_POST_COMMENTED", entityType: "SOCIAL_POST", entityId: null, title: "New Comment", message: "New comment on your post" },
+    { type: "DOCUMENT_SHARED", entityType: "DOCUMENT", entityId: null, title: "Document Shared", message: "A document has been shared with you" },
+    { type: "SYSTEM", entityType: "USER", entityId: null, title: "System Update", message: "Platform maintenance scheduled for this weekend" },
+  ];
+
+  const notifications: Array<Record<string, unknown>> = [];
+  for (let i = 0; i < templates.length; i++) {
+    const t = templates[i];
+    const isRead = i < 6; // first 6 are read
+    const isSocial = t.type === "SOCIAL_POST_LIKED" || t.type === "SOCIAL_POST_COMMENTED";
+    const createdAt = new Date(now.getTime() - (templates.length - i) * 4 * 60 * 60 * 1000);
+
+    notifications.push({
+      id: uuid(),
+      userId: ctx.primaryUserId,
+      organizationId: ctx.orgId,
+      type: t.type,
+      title: t.title,
+      message: t.message,
+      entityType: t.entityType,
+      entityId: t.entityId,
+      read: isRead,
+      readAt: isRead ? new Date(createdAt.getTime() + rand(5, 120) * 60 * 1000) : null,
+      actorId: isSocial ? (secondUser?.id ?? ctx.primaryUserId) : null,
+      actorName: isSocial ? (secondUser?.name ?? "Agent") : null,
+      createdAt,
+      updatedAt: createdAt,
+    });
+  }
+
+  await prismadb.notification.createMany({ data: notifications as any[] });
+  console.log(`  Created ${notifications.length} notifications (${notifications.filter(n => n.read).length} read)`);
+}
+
+// ============================================
 // MAIN
 // ============================================
 
 async function main() {
+  const startTime = Date.now();
   console.log("=== COMPREHENSIVE TEST SEED ===\n");
 
   const { alphaUser, betaUser, skipPurge } = parseArgs();
@@ -3377,43 +3953,64 @@ async function main() {
   await createSyntheticUsers(alphaCtx);
   await createSyntheticUsers(betaCtx);
 
-  // Step 3: Seed core entities + secondary entities
-  for (const ctx of [alphaCtx, betaCtx]) {
+  // Step 3: Seed per-org entities, storing IDs
+  interface OrgData {
+    clientIds: string[];
+    propertyIds: string[];
+    mandateIds: string[];
+    dealIds: string[];
+    docIds: string[];
+    eventIds: string[];
+  }
+
+  async function seedOrg(ctx: OrgContext): Promise<OrgData> {
     const clientIds = await seedClients(ctx);
     const propertyIds = await seedProperties(ctx);
     const mandateIds = await seedMandates(ctx);
     console.log(`\n${ctx.prefix} org seeded: ${clientIds.length} clients, ${propertyIds.length} properties, ${mandateIds.length} mandates`);
 
-    // Step 4: Deals
     const dealIds = await seedDeals(ctx, clientIds, propertyIds);
-
-    // Step 5: Documents
     const docIds = await seedDocuments(ctx, clientIds, propertyIds);
-
-    // Step 6: Calendar events
     const eventIds = await seedCalendarEvents(ctx, clientIds, propertyIds);
-
-    // Step 7: Tasks (depend on events and docs)
     await seedTasks(ctx, clientIds, eventIds, docIds);
-
-    // Step 8: Property showings
     await seedPropertyShowings(ctx, clientIds, propertyIds);
-
-    // Step 9: Entity comments
     await seedEntityComments(ctx, clientIds, propertyIds, mandateIds);
-
-    // Step 10: Social feed
     await seedSocialFeed(ctx, propertyIds);
-
-    // Step 11: Messaging
     await seedMessaging(ctx);
 
-    console.log(`\n${ctx.prefix} org complete: ${dealIds.length} deals, ${docIds.length} docs, ${eventIds.length} events, tasks + showings + comments + social + messaging`);
+    // Chunk 5 per-org: join tables, images, notifications
+    await seedJoinTables(ctx, clientIds, propertyIds, mandateIds);
+    await seedPropertyImages(ctx, propertyIds);
+    await seedNotifications(ctx, clientIds, propertyIds);
+
+    console.log(`\n${ctx.prefix} org complete: ${dealIds.length} deals, ${docIds.length} docs, ${eventIds.length} events`);
+    return { clientIds, propertyIds, mandateIds, dealIds, docIds, eventIds };
   }
 
-  // TODO: Chunk 5 will add cross-org scenarios
+  const alphaData = await seedOrg(alphaCtx);
+  const betaData = await seedOrg(betaCtx);
 
-  console.log("\n=== CHUNK 4 COMPLETE — all core + secondary + social + messaging seeded ===");
+  // Step 4: Cross-org seeding
+  console.log("\n--- Cross-org seeding ---");
+  await seedAgentProfiles(alphaCtx, betaCtx, alphaData.propertyIds, betaData.propertyIds);
+  await seedAgencyProfiles(alphaCtx, betaCtx);
+  await seedAgentConnections(alphaCtx, betaCtx);
+  await seedSharedEntities(alphaCtx, betaCtx, alphaData.propertyIds, alphaData.clientIds, alphaData.docIds);
+  await seedNetworkAndMatching(
+    alphaCtx, betaCtx,
+    alphaData.mandateIds, alphaData.propertyIds,
+    betaData.mandateIds, betaData.propertyIds,
+  );
+
+  // Summary
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log(`
+✅ Seed complete for 2 organizations
+  Alpha (${alphaCtx.orgId}): ${alphaData.clientIds.length} clients, ${alphaData.propertyIds.length} properties, ${alphaData.mandateIds.length} mandates, ${alphaData.dealIds.length} deals, ${alphaData.docIds.length} docs, ${alphaData.eventIds.length} events
+  Beta  (${betaCtx.orgId}): ${betaData.clientIds.length} clients, ${betaData.propertyIds.length} properties, ${betaData.mandateIds.length} mandates, ${betaData.dealIds.length} deals, ${betaData.docIds.length} docs, ${betaData.eventIds.length} events
+  Cross-org: 4 matches, 5 shared entities, 1 partnership, 4 connections, 1 shared conversation
+  Total time: ${elapsed}s
+`);
 
   await prismadb.$disconnect();
 }
