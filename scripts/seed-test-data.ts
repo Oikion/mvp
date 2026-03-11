@@ -1805,6 +1805,1031 @@ async function seedMandates(ctx: OrgContext): Promise<string[]> {
 }
 
 // ============================================
+// TASK 10: SEED DEALS (6 per org)
+// ============================================
+
+async function seedDeals(
+  ctx: OrgContext,
+  clientIds: string[],
+  propertyIds: string[]
+): Promise<string[]> {
+  console.log(`\nCreating 6 deals for ${ctx.prefix} org...`);
+
+  const friendlyIds = await generateFriendlyIds("Deal", 6, ctx.orgId);
+  const now = new Date();
+
+  // Find a second user for agent assignments
+  const secondUser = ctx.allUsers.find((u) => u.id !== ctx.primaryUserId);
+  const secondUserId = secondUser?.id ?? ctx.primaryUserId;
+
+  const dealsRaw = [
+    // Deal 1: COMPLETED — sold property, converted client
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[0],
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[8],
+      clientId: clientIds[6],
+      status: "COMPLETED" as const,
+      propertyAgentId: ctx.primaryUserId,
+      clientAgentId: secondUserId,
+      propertyAgentSplit: 50,
+      clientAgentSplit: 50,
+      totalCommission: 8850, // 3% of 295000
+      commissionCurrency: "EUR",
+      dealType: "DUAL" as const,
+      proposedById: ctx.primaryUserId,
+      title: "Πώληση Κολωνάκι - Ολοκληρωμένη",
+      notes: "Επιτυχής πώληση. Ο πελάτης ήταν πολύ ικανοποιημένος.",
+      closedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      contractDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+    },
+    // Deal 2: IN_PROGRESS — pending property, buyer client
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[1],
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[9],
+      clientId: clientIds[0],
+      status: "IN_PROGRESS" as const,
+      propertyAgentId: ctx.primaryUserId,
+      clientAgentId: secondUserId,
+      propertyAgentSplit: 50,
+      clientAgentSplit: 50,
+      totalCommission: null,
+      commissionCurrency: "EUR",
+      dealType: "BUYER" as const,
+      proposedById: ctx.primaryUserId,
+      title: "Αγορά σε εξέλιξη - Κηφισιά",
+      notes: "Ο αγοραστής ενδιαφέρεται πολύ. Αναμένεται τελική προσφορά.",
+      closedAt: null,
+      contractDate: null,
+      createdAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+    },
+    // Deal 3: ACCEPTED — house, buyer client, recent contract
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[2],
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[3],
+      clientId: clientIds[1],
+      status: "ACCEPTED" as const,
+      propertyAgentId: ctx.primaryUserId,
+      clientAgentId: ctx.primaryUserId,
+      propertyAgentSplit: 60,
+      clientAgentSplit: 40,
+      totalCommission: 12000,
+      commissionCurrency: "EUR",
+      dealType: "SELLER" as const,
+      proposedById: ctx.primaryUserId,
+      title: "Αποδεκτή Προσφορά - Κατοικία",
+      notes: "Συμβόλαιο υπεγράφη. Αναμένεται ολοκλήρωση.",
+      closedAt: null,
+      contractDate: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+    },
+    // Deal 4: NEGOTIATING — apartment, shared buyer (early stage)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[3],
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[1],
+      clientId: clientIds[10],
+      status: "NEGOTIATING" as const,
+      propertyAgentId: ctx.primaryUserId,
+      clientAgentId: ctx.primaryUserId,
+      propertyAgentSplit: 50,
+      clientAgentSplit: 50,
+      totalCommission: null,
+      commissionCurrency: "EUR",
+      dealType: "DUAL" as const,
+      proposedById: ctx.primaryUserId,
+      title: "Διαπραγμάτευση - Διαμέρισμα",
+      notes: "Πρώιμο στάδιο διαπραγματεύσεων. Ο αγοραστής ζήτησε μείωση τιμής.",
+      closedAt: null,
+      contractDate: null,
+      createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+    },
+    // Deal 5: PROPOSED — luxury property, investor (cross-org scenario)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[4],
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[17],
+      clientId: clientIds[5],
+      status: "PROPOSED" as const,
+      propertyAgentId: ctx.primaryUserId,
+      clientAgentId: null,
+      propertyAgentSplit: 50,
+      clientAgentSplit: 50,
+      totalCommission: null,
+      commissionCurrency: "EUR",
+      dealType: "SELLER" as const,
+      proposedById: ctx.primaryUserId,
+      title: "Πρόταση - Luxury Villa Ψυχικό",
+      notes: "Αναμένεται απάντηση από τον επενδυτή.",
+      closedAt: null,
+      contractDate: null,
+      createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+    },
+    // Deal 6: CANCELLED — fallen through
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[5],
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[2],
+      clientId: clientIds[7],
+      status: "CANCELLED" as const,
+      propertyAgentId: ctx.primaryUserId,
+      clientAgentId: ctx.primaryUserId,
+      propertyAgentSplit: 50,
+      clientAgentSplit: 50,
+      totalCommission: null,
+      commissionCurrency: "EUR",
+      dealType: "BUYER" as const,
+      proposedById: ctx.primaryUserId,
+      title: "Ακυρωμένη Συναλλαγή - Διαμέρισμα",
+      notes: "Ο αγοραστής αποσύρθηκε λόγω αδυναμίας χρηματοδότησης.",
+      closedAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      contractDate: null,
+      createdAt: new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+    },
+  ];
+
+  await prismadb.deal.createMany({ data: dealsRaw as any[] });
+
+  const ids = dealsRaw.map((d) => d.id);
+  console.log(`  Created ${ids.length} deals`);
+  return ids;
+}
+
+// ============================================
+// TASK 11: SEED DOCUMENTS (8 per org)
+// ============================================
+
+async function seedDocuments(
+  ctx: OrgContext,
+  clientIds: string[],
+  propertyIds: string[]
+): Promise<string[]> {
+  console.log(`\nCreating 8 documents for ${ctx.prefix} org...`);
+
+  const friendlyIds = await generateFriendlyIds("Documents", 8, ctx.orgId);
+  const now = new Date();
+  const placeholderUrl = "https://placehold.co/800x1200.png?text=Document";
+
+  const docsRaw = [
+    // Doc 1: CONTRACT — sale contract linked to sold property & converted client
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[0],
+      organizationId: ctx.orgId,
+      document_name: "Συμβόλαιο Πώλησης - Κολωνάκι",
+      document_system_type: "CONTRACT" as const,
+      document_file_url: placeholderUrl,
+      document_file_mimeType: "application/pdf",
+      size: 245000,
+      description: "Συμβόλαιο πώλησης ακινήτου στο Κολωνάκι. Υπογεγραμμένο αντίγραφο.",
+      status: "active",
+      created_by_user: ctx.primaryUserId,
+      assigned_user: ctx.primaryUserId,
+      linkedPropertiesIds: [propertyIds[8]],
+      accountsIDs: [clientIds[6]],
+      createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      date_created: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      last_updated: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+    },
+    // Doc 2: INVOICE — commission invoice
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[1],
+      organizationId: ctx.orgId,
+      document_name: "Τιμολόγιο Μεσιτείας #2026-001",
+      document_system_type: "INVOICE" as const,
+      document_file_url: placeholderUrl,
+      document_file_mimeType: "application/pdf",
+      size: 85000,
+      description: "Τιμολόγιο μεσιτικής αμοιβής για πώληση Κολωνάκι.",
+      status: "active",
+      created_by_user: ctx.primaryUserId,
+      assigned_user: ctx.primaryUserId,
+      linkedPropertiesIds: [propertyIds[8]],
+      accountsIDs: [clientIds[6]],
+      createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
+      date_created: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
+      last_updated: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
+    },
+    // Doc 3: OFFER — purchase offer
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[2],
+      organizationId: ctx.orgId,
+      document_name: "Πρόταση Αγοράς - Κηφισιά",
+      document_system_type: "OFFER" as const,
+      document_file_url: placeholderUrl,
+      document_file_mimeType: "application/pdf",
+      size: 120000,
+      description: "Γραπτή πρόταση αγοράς διαμερίσματος στην Κηφισιά.",
+      status: "active",
+      created_by_user: ctx.primaryUserId,
+      assigned_user: ctx.primaryUserId,
+      linkedPropertiesIds: [propertyIds[1]],
+      accountsIDs: [clientIds[10]],
+      createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+      date_created: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+      last_updated: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+    },
+    // Doc 4: RECEIPT — deposit payment receipt
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[3],
+      organizationId: ctx.orgId,
+      document_name: "Απόδειξη Πληρωμής Προκαταβολής",
+      document_system_type: "RECEIPT" as const,
+      document_file_url: placeholderUrl,
+      document_file_mimeType: "application/pdf",
+      size: 45000,
+      description: "Απόδειξη πληρωμής προκαταβολής για ακίνητο Κολωνάκι.",
+      status: "active",
+      created_by_user: ctx.primaryUserId,
+      assigned_user: ctx.primaryUserId,
+      linkedPropertiesIds: [propertyIds[8]],
+      accountsIDs: [],
+      createdAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+      date_created: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+      last_updated: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+    },
+    // Doc 5: OTHER — floor plan (image)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[4],
+      organizationId: ctx.orgId,
+      document_name: "Κάτοψη - Luxury Villa Ψυχικό",
+      document_system_type: "OTHER" as const,
+      document_file_url: placeholderUrl,
+      document_file_mimeType: "image/jpeg",
+      size: 1500000,
+      description: "Κάτοψη πολυτελούς βίλας στο Ψυχικό. Αρχιτεκτονικό σχέδιο.",
+      status: "active",
+      created_by_user: ctx.primaryUserId,
+      assigned_user: ctx.primaryUserId,
+      linkedPropertiesIds: [propertyIds[17]],
+      accountsIDs: [],
+      createdAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      date_created: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      last_updated: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+    },
+    // Doc 6: OTHER — company ID document
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[5],
+      organizationId: ctx.orgId,
+      document_name: "Ταυτότητα Εταιρείας",
+      document_system_type: "OTHER" as const,
+      document_file_url: placeholderUrl,
+      document_file_mimeType: "application/pdf",
+      size: 350000,
+      description: "Νομιμοποιητικά έγγραφα εταιρείας πελάτη.",
+      status: "active",
+      created_by_user: ctx.primaryUserId,
+      assigned_user: ctx.primaryUserId,
+      linkedPropertiesIds: [],
+      accountsIDs: [clientIds[12]],
+      createdAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+      date_created: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+      last_updated: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+    },
+    // Doc 7: CONTRACT — rental agreement
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[6],
+      organizationId: ctx.orgId,
+      document_name: "Μισθωτήριο Συμβόλαιο - Κουκάκι",
+      document_system_type: "CONTRACT" as const,
+      document_file_url: placeholderUrl,
+      document_file_mimeType: "application/pdf",
+      size: 180000,
+      description: "Μισθωτήριο συμβόλαιο ακινήτου στο Κουκάκι.",
+      status: "active",
+      created_by_user: ctx.primaryUserId,
+      assigned_user: ctx.primaryUserId,
+      linkedPropertiesIds: [propertyIds[12]],
+      accountsIDs: [clientIds[4]],
+      createdAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+      date_created: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+      last_updated: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+    },
+    // Doc 8: OTHER — energy certificate
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[7],
+      organizationId: ctx.orgId,
+      document_name: "Ενεργειακό Πιστοποιητικό",
+      document_system_type: "OTHER" as const,
+      document_file_url: placeholderUrl,
+      document_file_mimeType: "application/pdf",
+      size: 95000,
+      description: "Ενεργειακό πιστοποιητικό ακινήτου. Κατηγορία Β+.",
+      status: "active",
+      created_by_user: ctx.primaryUserId,
+      assigned_user: ctx.primaryUserId,
+      linkedPropertiesIds: [propertyIds[16]],
+      accountsIDs: [],
+      createdAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+      date_created: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+      last_updated: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+    },
+  ];
+
+  // Encrypt document_name and description
+  const encryptedDocs = docsRaw.map((d) => encryptDocumentData(d as Record<string, unknown>, ctx.dek));
+
+  await prismadb.documents.createMany({ data: encryptedDocs as any[] });
+
+  const ids = docsRaw.map((d) => d.id);
+  console.log(`  Created ${ids.length} documents`);
+  return ids;
+}
+
+// ============================================
+// TASK 12: SEED CALENDAR EVENTS (10 per org)
+// ============================================
+
+async function seedCalendarEvents(
+  ctx: OrgContext,
+  clientIds: string[],
+  propertyIds: string[]
+): Promise<string[]> {
+  console.log(`\nCreating 10 calendar events for ${ctx.prefix} org...`);
+
+  const friendlyIds = await generateFriendlyIds("CalendarEvent", 10, ctx.orgId);
+  const now = new Date();
+  const calIdOffset = ctx.prefix === "alpha" ? 1000 : 2000;
+
+  function pastDate(days: number): Date {
+    return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  }
+  function futureDate(days: number): Date {
+    return new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  }
+  function addHours(date: Date, hours: number): Date {
+    return new Date(date.getTime() + hours * 60 * 60 * 1000);
+  }
+
+  const eventsRaw = [
+    // Event 1: Past property viewing (2 weeks ago)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[0],
+      calendarEventId: calIdOffset + 1,
+      organizationId: ctx.orgId,
+      title: "Προβολή Ακινήτου - Κολωνάκι",
+      description: "Προβολή ακινήτου με ενδιαφερόμενο αγοραστή στο Κολωνάκι.",
+      eventType: "PROPERTY_VIEWING" as const,
+      startTime: pastDate(14),
+      endTime: addHours(pastDate(14), 1),
+      location: "Κολωνάκι, Αθήνα",
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [30, 60],
+      attendeeEmail: "papadopoulos@example.com",
+      attendeeName: "Αλέξανδρος Παπαδόπουλος",
+      notes: "Ο πελάτης ενδιαφέρθηκε ιδιαίτερα για τον φωτισμό.",
+      status: "completed",
+      updatedAt: pastDate(14),
+    },
+    // Event 2: Past property viewing (1 week ago)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[1],
+      calendarEventId: calIdOffset + 2,
+      organizationId: ctx.orgId,
+      title: "Προβολή Κατοικίας - Κηφισιά",
+      description: "Προβολή μονοκατοικίας στην Κηφισιά.",
+      eventType: "PROPERTY_VIEWING" as const,
+      startTime: pastDate(7),
+      endTime: addHours(pastDate(7), 1.5),
+      location: "Κηφισιά, Αθήνα",
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [30],
+      attendeeEmail: "nikolaou@example.com",
+      attendeeName: "Μαρία Νικολάου",
+      notes: "Ο πελάτης ζήτησε δεύτερη επίσκεψη.",
+      status: "completed",
+      updatedAt: pastDate(7),
+    },
+    // Event 3: Past luxury property viewing (3 days ago)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[2],
+      calendarEventId: calIdOffset + 3,
+      organizationId: ctx.orgId,
+      title: "Luxury Viewing - Ψυχικό",
+      description: "Προβολή πολυτελούς βίλας στο Ψυχικό για επενδυτή.",
+      eventType: "PROPERTY_VIEWING" as const,
+      startTime: pastDate(3),
+      endTime: addHours(pastDate(3), 2),
+      location: "Ψυχικό, Αθήνα",
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [30, 60],
+      attendeeEmail: "investor@example.com",
+      attendeeName: "Κώστας Επενδυτής",
+      notes: "VIP πελάτης. Ενδιαφέρεται σοβαρά.",
+      status: "completed",
+      updatedAt: pastDate(3),
+    },
+    // Event 4: Past client consultation (1 month ago)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[3],
+      calendarEventId: calIdOffset + 4,
+      organizationId: ctx.orgId,
+      title: "Συμβουλευτική Πελάτη",
+      description: "Αρχική συνάντηση με νέο πελάτη για αξιολόγηση αναγκών.",
+      eventType: "CLIENT_CONSULTATION" as const,
+      startTime: pastDate(30),
+      endTime: addHours(pastDate(30), 1),
+      location: "Γραφείο",
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [60],
+      attendeeEmail: null,
+      attendeeName: null,
+      notes: "Πελάτης αναζητά 3αρι στα νότια προάστια.",
+      status: "completed",
+      updatedAt: pastDate(30),
+    },
+    // Event 5: Past team meeting (5 days ago)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[4],
+      calendarEventId: calIdOffset + 5,
+      organizationId: ctx.orgId,
+      title: "Weekly Team Standup",
+      description: "Εβδομαδιαία ενημέρωση ομάδας.",
+      eventType: "MEETING" as const,
+      startTime: pastDate(5),
+      endTime: addHours(pastDate(5), 1),
+      location: "Αίθουσα Συνεδριάσεων",
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [30],
+      attendeeEmail: null,
+      attendeeName: null,
+      notes: "Αναθεώρηση στόχων εβδομάδας.",
+      status: "completed",
+      updatedAt: pastDate(5),
+    },
+    // Event 6: Future reminder (3 days from now)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[5],
+      calendarEventId: calIdOffset + 6,
+      organizationId: ctx.orgId,
+      title: "Follow up on mandate",
+      description: "Υπενθύμιση για follow-up εντολής.",
+      eventType: "REMINDER" as const,
+      startTime: futureDate(3),
+      endTime: addHours(futureDate(3), 0.5),
+      location: null,
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [30, 60],
+      attendeeEmail: null,
+      attendeeName: null,
+      notes: "Επικοινωνία με πελάτη για ανανέωση εντολής.",
+      status: "scheduled",
+      updatedAt: now,
+    },
+    // Event 7: Future task deadline (1 week from now)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[6],
+      calendarEventId: calIdOffset + 7,
+      organizationId: ctx.orgId,
+      title: "Deadline: Αναφορά Αγοράς",
+      description: "Προθεσμία υποβολής αναφοράς αγοράς Q1.",
+      eventType: "TASK_DEADLINE" as const,
+      startTime: futureDate(7),
+      endTime: addHours(futureDate(7), 1),
+      location: null,
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [60],
+      attendeeEmail: null,
+      attendeeName: null,
+      notes: "Πρέπει να ολοκληρωθεί πριν την παρουσίαση.",
+      status: "scheduled",
+      updatedAt: now,
+    },
+    // Event 8: Past general event (2 weeks ago)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[7],
+      calendarEventId: calIdOffset + 8,
+      organizationId: ctx.orgId,
+      title: "Εκδήλωση Δικτύωσης",
+      description: "Εκδήλωση networking για επαγγελματίες ακινήτων.",
+      eventType: "OTHER" as const,
+      startTime: pastDate(14),
+      endTime: addHours(pastDate(14), 3),
+      location: "Μέγαρο Μουσικής",
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [60],
+      attendeeEmail: null,
+      attendeeName: null,
+      notes: "Γνωρίστηκαν 5 νέες επαφές.",
+      status: "completed",
+      updatedAt: pastDate(14),
+    },
+    // Event 9: Future property viewing (5 days from now) — matchmaking
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[8],
+      calendarEventId: calIdOffset + 9,
+      organizationId: ctx.orgId,
+      title: "Προβολή Ακινήτου - Matchmaking",
+      description: "Προγραμματισμένη προβολή από Polis matching.",
+      eventType: "PROPERTY_VIEWING" as const,
+      startTime: futureDate(5),
+      endTime: addHours(futureDate(5), 1),
+      location: "Γλυφάδα, Αθήνα",
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [30, 60],
+      attendeeEmail: "match@example.com",
+      attendeeName: "Αγοραστής από Polis",
+      notes: "Ακίνητο από cross-org match.",
+      status: "scheduled",
+      updatedAt: now,
+    },
+    // Event 10: Past property viewing (4 days ago) — with result
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[9],
+      calendarEventId: calIdOffset + 10,
+      organizationId: ctx.orgId,
+      title: "Προβολή Ακινήτου - Αποτέλεσμα",
+      description: "Ολοκληρωμένη προβολή με αξιολόγηση αποτελέσματος.",
+      eventType: "PROPERTY_VIEWING" as const,
+      startTime: pastDate(4),
+      endTime: addHours(pastDate(4), 1),
+      location: "Βούλα, Αθήνα",
+      assignedUserId: ctx.primaryUserId,
+      reminderMinutes: [30],
+      attendeeEmail: "client3@example.com",
+      attendeeName: "Πελάτης Τρίτος",
+      notes: "Ο πελάτης ενδιαφέρθηκε αλλά ζήτησε χρόνο.",
+      status: "completed",
+      updatedAt: pastDate(4),
+    },
+  ];
+
+  // Encrypt calendar data
+  const encryptedEvents = eventsRaw.map((e) => encryptCalendarData(e as Record<string, unknown>, ctx.dek));
+
+  await prismadb.calendarEvent.createMany({ data: encryptedEvents as any[] });
+
+  // Create event-to-property and event-to-client relations via raw SQL (implicit m2m)
+  const eventPropertyLinks: Array<[string, string]> = [
+    [eventsRaw[0].id, propertyIds[0]],
+    [eventsRaw[1].id, propertyIds[3]],
+    [eventsRaw[2].id, propertyIds[17]],
+    [eventsRaw[8].id, propertyIds[18]],
+    [eventsRaw[9].id, propertyIds[4]],
+  ];
+
+  const eventClientLinks: Array<[string, string]> = [
+    [eventsRaw[0].id, clientIds[0]],
+    [eventsRaw[1].id, clientIds[1]],
+    [eventsRaw[2].id, clientIds[5]],
+    [eventsRaw[3].id, clientIds[2]],
+    [eventsRaw[8].id, clientIds[0]],
+    [eventsRaw[9].id, clientIds[3]],
+  ];
+
+  for (const [eventId, propId] of eventPropertyLinks) {
+    try {
+      await prismadb.$executeRaw`
+        INSERT INTO "_EventToProperties" ("A", "B")
+        VALUES (${eventId}, ${propId})
+        ON CONFLICT DO NOTHING
+      `;
+    } catch (e: any) {
+      console.warn(`  Warning linking event-property: ${e.message?.slice(0, 80)}`);
+    }
+  }
+
+  for (const [eventId, clientId] of eventClientLinks) {
+    try {
+      await prismadb.$executeRaw`
+        INSERT INTO "_EventToClients" ("A", "B")
+        VALUES (${eventId}, ${clientId})
+        ON CONFLICT DO NOTHING
+      `;
+    } catch (e: any) {
+      console.warn(`  Warning linking event-client: ${e.message?.slice(0, 80)}`);
+    }
+  }
+
+  // Create EventInvitee records (1-2 per event)
+  const invitees: Array<Record<string, unknown>> = [];
+  for (let i = 0; i < eventsRaw.length; i++) {
+    const event = eventsRaw[i];
+    // First invitee — always the primary user
+    invitees.push({
+      id: uuid(),
+      eventId: event.id,
+      userId: ctx.primaryUserId,
+      status: i < 5 ? "ACCEPTED" : "PENDING",
+      respondedAt: i < 5 ? pastDate(1) : null,
+      organizationId: ctx.orgId,
+    });
+    // Second invitee for some events (team meeting, consultations)
+    if (i === 4 || i === 0 || i === 8) {
+      const otherUser = ctx.allUsers.find((u) => u.id !== ctx.primaryUserId);
+      if (otherUser) {
+        invitees.push({
+          id: uuid(),
+          eventId: event.id,
+          userId: otherUser.id,
+          status: i === 4 ? "ACCEPTED" : "PENDING",
+          respondedAt: i === 4 ? pastDate(5) : null,
+          organizationId: ctx.orgId,
+        });
+      }
+    }
+  }
+
+  if (invitees.length > 0) {
+    await prismadb.eventInvitee.createMany({ data: invitees as any[] });
+    console.log(`  Created ${invitees.length} event invitees`);
+  }
+
+  // Create CalendarReminder records (1-2 per event)
+  const reminders: Array<Record<string, unknown>> = [];
+  for (let i = 0; i < eventsRaw.length; i++) {
+    const event = eventsRaw[i];
+    const isPast = event.startTime < now;
+
+    // First reminder (30 min before)
+    reminders.push({
+      id: uuid(),
+      eventId: event.id,
+      reminderMinutes: 30,
+      scheduledFor: new Date(event.startTime.getTime() - 30 * 60 * 1000),
+      sentAt: isPast ? new Date(event.startTime.getTime() - 30 * 60 * 1000) : null,
+      status: isPast ? "SENT" : "PENDING",
+      notificationType: "EMAIL" as const,
+      organizationId: ctx.orgId,
+      updatedAt: now,
+    });
+
+    // Second reminder (60 min before) for events with reminderMinutes including 60
+    if (event.reminderMinutes.includes(60)) {
+      reminders.push({
+        id: uuid(),
+        eventId: event.id,
+        reminderMinutes: 60,
+        scheduledFor: new Date(event.startTime.getTime() - 60 * 60 * 1000),
+        sentAt: isPast ? new Date(event.startTime.getTime() - 60 * 60 * 1000) : null,
+        status: isPast ? "SENT" : "PENDING",
+        notificationType: "EMAIL" as const,
+        organizationId: ctx.orgId,
+        updatedAt: now,
+      });
+    }
+  }
+
+  if (reminders.length > 0) {
+    await prismadb.calendarReminder.createMany({ data: reminders as any[] });
+    console.log(`  Created ${reminders.length} calendar reminders`);
+  }
+
+  const ids = eventsRaw.map((e) => e.id);
+  console.log(`  Created ${ids.length} calendar events`);
+  return ids;
+}
+
+// ============================================
+// TASK 13: SEED TASKS (8 per org)
+// ============================================
+
+async function seedTasks(
+  ctx: OrgContext,
+  clientIds: string[],
+  eventIds: string[],
+  docIds: string[]
+): Promise<void> {
+  console.log(`\nCreating 8 tasks for ${ctx.prefix} org...`);
+
+  const friendlyIds = await generateFriendlyIds("crm_Accounts_Tasks", 8, ctx.orgId);
+  const now = new Date();
+
+  // Find departed user for null-test scenario
+  const departedUser = ctx.allUsers.find((u) => u.clerkUserId?.includes("departed"));
+
+  const tasksRaw = [
+    // Task 1: Overdue follow-up call
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[0],
+      organizationId: ctx.orgId,
+      title: "Follow-up call - Παπαδόπουλος",
+      content: "Τηλεφωνική επικοινωνία με τον πελάτη Παπαδόπουλο για ενημέρωση προόδου.",
+      priority: "high",
+      dueDateAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // overdue
+      user: ctx.primaryUserId,
+      account: clientIds[0],
+      calendarEventId: null,
+      createdBy: ctx.primaryUserId,
+      createdAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      tags: null,
+    },
+    // Task 2: Prepare for viewing (linked to upcoming viewing event)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[1],
+      organizationId: ctx.orgId,
+      title: "Prepare for viewing",
+      content: "Ετοιμασία φακέλου ακινήτου και εκτύπωση εγγράφων για την προβολή.",
+      priority: "medium",
+      dueDateAt: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000),
+      user: ctx.primaryUserId,
+      account: null,
+      calendarEventId: eventIds[8], // upcoming viewing event
+      createdBy: ctx.primaryUserId,
+      createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      tags: null,
+    },
+    // Task 3: Completed task with 3 comments
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[2],
+      organizationId: ctx.orgId,
+      title: "Update listing photos",
+      content: "Ανανέωση φωτογραφιών καταχώρησης με νέες εικόνες μετά την ανακαίνιση.",
+      priority: "low",
+      dueDateAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      user: ctx.primaryUserId,
+      account: null,
+      calendarEventId: null,
+      createdBy: ctx.primaryUserId,
+      createdAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      tags: { status: "completed" },
+    },
+    // Task 4: Contract review - high priority
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[3],
+      organizationId: ctx.orgId,
+      title: "Contract review - Κηφισιά",
+      content: "Αναθεώρηση συμβολαίου πώλησης ακινήτου στην Κηφισιά πριν την υπογραφή.",
+      priority: "high",
+      dueDateAt: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
+      user: ctx.primaryUserId,
+      account: null,
+      calendarEventId: null,
+      createdBy: ctx.primaryUserId,
+      createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      tags: null,
+    },
+    // Task 5: Assigned to departed user (null-safety test)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[4],
+      organizationId: ctx.orgId,
+      title: "Client follow-up",
+      content: "Follow-up με πελάτη - ανατέθηκε σε πράκτορα που αποχώρησε.",
+      priority: "medium",
+      dueDateAt: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000),
+      user: departedUser?.id ?? null,
+      account: null,
+      calendarEventId: null,
+      createdBy: ctx.primaryUserId,
+      createdAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      tags: null,
+    },
+    // Task 6: Document collection (linked to docs via task relations)
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[5],
+      organizationId: ctx.orgId,
+      title: "Document collection",
+      content: "Συλλογή απαραίτητων εγγράφων για ολοκλήρωση συναλλαγής.",
+      priority: "medium",
+      dueDateAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+      user: ctx.primaryUserId,
+      account: null,
+      calendarEventId: null,
+      createdBy: ctx.primaryUserId,
+      createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      tags: null,
+    },
+    // Task 7: Unassigned backlog
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[6],
+      organizationId: ctx.orgId,
+      title: "Market research report",
+      content: "Σύνταξη αναφοράς αγοράς για τα νότια προάστια Q1 2026.",
+      priority: "low",
+      dueDateAt: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000),
+      user: null,
+      account: null,
+      calendarEventId: null,
+      createdBy: ctx.primaryUserId,
+      createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      tags: null,
+    },
+    // Task 8: Post-viewing follow-up
+    {
+      id: uuid(),
+      friendlyId: friendlyIds[7],
+      organizationId: ctx.orgId,
+      title: "Post-viewing follow-up",
+      content: "Επικοινωνία με πελάτη μετά την προβολή ακινήτου για εντυπώσεις.",
+      priority: "medium",
+      dueDateAt: new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000),
+      user: ctx.primaryUserId,
+      account: clientIds[3],
+      calendarEventId: null,
+      createdBy: ctx.primaryUserId,
+      createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      tags: null,
+    },
+  ];
+
+  await prismadb.crm_Accounts_Tasks.createMany({ data: tasksRaw as any[] });
+  console.log(`  Created ${tasksRaw.length} tasks`);
+
+  // Link task 6 to documents via the implicit m2m relation
+  for (const docId of [docIds[0], docIds[3]]) {
+    try {
+      await prismadb.$executeRaw`
+        INSERT INTO "_DocumentsToCrmAccountsTasks" ("A", "B")
+        VALUES (${docId}, ${tasksRaw[5].id})
+        ON CONFLICT DO NOTHING
+      `;
+    } catch (e: any) {
+      console.warn(`  Warning linking task-doc: ${e.message?.slice(0, 80)}`);
+    }
+  }
+
+  // Create task comments (1-3 per task, task #3 gets 3 comments)
+  const comments: Array<Record<string, unknown>> = [];
+
+  // Task 3 — 3 comments (thread test)
+  const task3Comments = [
+    "Οι φωτογραφίες ανέβηκαν. Χρειάζεται review.",
+    "Εγκρίθηκαν! Πολύ καλές εικόνες.",
+    "Δημοσιεύτηκαν στο portal. Ευχαριστώ!",
+  ];
+  for (let i = 0; i < task3Comments.length; i++) {
+    comments.push({
+      id: uuid(),
+      comment: encryptCommentContent(task3Comments[i], ctx.dek),
+      crm_account_task: tasksRaw[2].id,
+      user: ctx.allUsers[i % ctx.allUsers.length]?.id ?? ctx.primaryUserId,
+      organizationId: ctx.orgId,
+      createdAt: new Date(now.getTime() - (10 - i) * 24 * 60 * 60 * 1000),
+    });
+  }
+
+  // Other tasks — 1 comment each for tasks 1, 4, 6, 8
+  const otherTaskComments: Array<[number, string]> = [
+    [0, "Προσπάθησα να τηλεφωνήσω αλλά δεν απάντησε. Θα ξαναδοκιμάσω αύριο."],
+    [3, "Ο δικηγόρος επιβεβαίωσε ότι το συμβόλαιο είναι σωστό."],
+    [5, "Λείπει ακόμα το ενεργειακό πιστοποιητικό."],
+    [7, "Ο πελάτης δήλωσε ενδιαφέρον για δεύτερη προβολή."],
+  ];
+  for (const [taskIdx, commentText] of otherTaskComments) {
+    comments.push({
+      id: uuid(),
+      comment: encryptCommentContent(commentText, ctx.dek),
+      crm_account_task: tasksRaw[taskIdx].id,
+      user: ctx.primaryUserId,
+      organizationId: ctx.orgId,
+      createdAt: new Date(now.getTime() - rand(1, 5) * 24 * 60 * 60 * 1000),
+    });
+  }
+
+  if (comments.length > 0) {
+    await prismadb.crm_Accounts_Tasks_Comments.createMany({ data: comments as any[] });
+    console.log(`  Created ${comments.length} task comments`);
+  }
+}
+
+// ============================================
+// TASK 13: SEED PROPERTY SHOWINGS (6 per org)
+// ============================================
+
+async function seedPropertyShowings(
+  ctx: OrgContext,
+  clientIds: string[],
+  propertyIds: string[]
+): Promise<void> {
+  console.log(`\nCreating 6 property showings for ${ctx.prefix} org...`);
+
+  const now = new Date();
+
+  const showings = [
+    // Showing 1: NO_SHOW
+    {
+      id: uuid(),
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[0],
+      clientId: clientIds[0],
+      agentId: ctx.primaryClerkId, // Clerk user ID, NOT DB ID
+      showingDate: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+      result: "NO_SHOW" as const,
+      duration: 0,
+      notes: "Ο πελάτης δεν εμφανίστηκε στο ραντεβού.",
+    },
+    // Showing 2: NO_INTEREST
+    {
+      id: uuid(),
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[1],
+      clientId: clientIds[1],
+      agentId: ctx.primaryClerkId,
+      showingDate: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+      result: "NO_INTEREST" as const,
+      duration: 30,
+      notes: "Ο πελάτης δεν ενδιαφέρθηκε. Αναζητά μεγαλύτερο ακίνητο.",
+    },
+    // Showing 3: INTERESTED
+    {
+      id: uuid(),
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[3],
+      clientId: clientIds[5],
+      agentId: ctx.primaryClerkId,
+      showingDate: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      result: "INTERESTED" as const,
+      duration: 45,
+      notes: "Ο πελάτης ενδιαφέρθηκε. Ζήτησε επιπλέον πληροφορίες.",
+    },
+    // Showing 4: VERY_INTERESTED
+    {
+      id: uuid(),
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[17],
+      clientId: clientIds[5],
+      agentId: ctx.primaryClerkId,
+      showingDate: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+      result: "VERY_INTERESTED" as const,
+      duration: 60,
+      notes: "Ο πελάτης πολύ ενθουσιασμένος. Σκέφτεται να κάνει προσφορά.",
+    },
+    // Showing 5: OFFER_MADE
+    {
+      id: uuid(),
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[18],
+      clientId: clientIds[0],
+      agentId: ctx.primaryClerkId,
+      showingDate: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+      result: "OFFER_MADE" as const,
+      duration: 75,
+      notes: "Ο πελάτης κατέθεσε γραπτή προσφορά μετά την προβολή.",
+    },
+    // Showing 6: CONTRACT_SIGNED
+    {
+      id: uuid(),
+      organizationId: ctx.orgId,
+      propertyId: propertyIds[8],
+      clientId: clientIds[6],
+      agentId: ctx.primaryClerkId,
+      showingDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+      result: "CONTRACT_SIGNED" as const,
+      duration: 90,
+      notes: "Υπογραφή συμβολαίου μετά την τελική προβολή.",
+    },
+  ];
+
+  await prismadb.propertyShowing.createMany({ data: showings as any[] });
+  console.log(`  Created ${showings.length} property showings`);
+}
+
+// ============================================
 // MAIN
 // ============================================
 
@@ -1862,17 +2887,34 @@ async function main() {
   await createSyntheticUsers(alphaCtx);
   await createSyntheticUsers(betaCtx);
 
-  // Step 3: Seed core entities
+  // Step 3: Seed core entities + secondary entities
   for (const ctx of [alphaCtx, betaCtx]) {
     const clientIds = await seedClients(ctx);
     const propertyIds = await seedProperties(ctx);
     const mandateIds = await seedMandates(ctx);
     console.log(`\n${ctx.prefix} org seeded: ${clientIds.length} clients, ${propertyIds.length} properties, ${mandateIds.length} mandates`);
+
+    // Step 4: Deals
+    const dealIds = await seedDeals(ctx, clientIds, propertyIds);
+
+    // Step 5: Documents
+    const docIds = await seedDocuments(ctx, clientIds, propertyIds);
+
+    // Step 6: Calendar events
+    const eventIds = await seedCalendarEvents(ctx, clientIds, propertyIds);
+
+    // Step 7: Tasks (depend on events and docs)
+    await seedTasks(ctx, clientIds, eventIds, docIds);
+
+    // Step 8: Property showings
+    await seedPropertyShowings(ctx, clientIds, propertyIds);
+
+    console.log(`\n${ctx.prefix} org complete: ${dealIds.length} deals, ${docIds.length} docs, ${eventIds.length} events, tasks + showings`);
   }
 
-  // TODO: Chunk 3+ will add deals, tasks, calendar, documents, social posts, messaging, cross-org scenarios
+  // TODO: Chunk 4+ will add social posts, messaging, cross-org scenarios
 
-  console.log("\n=== CHUNK 2 COMPLETE — purge, synthetic users, clients, properties, mandates ===");
+  console.log("\n=== CHUNK 3 COMPLETE — all core + secondary entities seeded ===");
 
   await prismadb.$disconnect();
 }
