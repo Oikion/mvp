@@ -3,10 +3,12 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
-import { syncClerkUser, deleteClerkUser } from "@/lib/clerk-sync";
+import { syncClerkUser } from "@/lib/clerk-sync";
 import { restorePersonalWorkspaceIfNeeded } from "@/lib/personal-workspace-guard";
+import { handleUserDeparture } from "@/lib/user-departure";
 import { syncUserToMessaging, disableUserMessaging } from "@/actions/messaging";
 import { prismadb } from "@/lib/prisma";
+import { createClerkClient } from "@clerk/backend";
 import { randomUUID } from "crypto";
 
 export async function POST(req: Request) {
@@ -74,16 +76,39 @@ export async function POST(req: Request) {
   if (eventType === "user.deleted") {
     const { id } = evt.data;
     if (id) {
-      // Disable messaging for the user before deleting
-      const prismadb = (await import("@/lib/prisma")).prismadb;
-      const user = await prismadb.users.findFirst({
+      const dbUser = await prismadb.users.findFirst({
         where: { clerkUserId: id },
       });
-      if (user) {
-        await disableUserMessaging(user.id);
+
+      if (dbUser) {
+        // Disable messaging before departure processing
+        await disableUserMessaging(dbUser.id).catch((err) => {
+          console.error("[WEBHOOK] Failed to disable messaging:", err);
+        });
+
+        // Extract org IDs from the webhook payload
+        // When user.deleted fires, the user is already gone from Clerk,
+        // so we must rely on the payload's organization_memberships
+        const orgMemberships = (evt.data as { organization_memberships?: Array<{ organization: { id: string } }> })
+          .organization_memberships ?? [];
+        const orgIds = orgMemberships.map((m) => m.organization.id);
+
+        // Run departure for each org the user belonged to
+        for (const orgId of orgIds) {
+          try {
+            const result = await handleUserDeparture(dbUser.id, orgId, "ACCOUNT_DELETED");
+            console.log(`[WEBHOOK] Departure for user ${dbUser.id} from org ${orgId}:`, result);
+          } catch (err) {
+            console.error(`[WEBHOOK] Departure failed for org ${orgId}:`, err);
+          }
+        }
+
+        // Finally, delete the Users row from DB
+        await prismadb.users.delete({
+          where: { id: dbUser.id },
+        });
+        console.log(`[WEBHOOK] Deleted Users row for ${dbUser.id} (clerk: ${id})`);
       }
-      
-      await deleteClerkUser(id);
     }
   }
 
@@ -104,22 +129,50 @@ export async function POST(req: Request) {
     }
   }
 
-  // Handle membership removal from personal workspace - prevent leaving
+  // Handle membership removal — Pathway E (departure service)
   if (eventType === "organizationMembership.deleted") {
     const data = evt.data as {
       organization?: { id: string; public_metadata?: Record<string, unknown> };
       public_user_data?: { user_id: string };
     };
-    
+
     const orgMetadata = data.organization?.public_metadata;
-    const userId = data.public_user_data?.user_id;
+    const clerkUserId = data.public_user_data?.user_id;
     const orgId = data.organization?.id;
-    
-    // If this was a personal workspace membership deletion, restore it
-    if (orgMetadata?.type === "personal" && userId && orgId) {
-      console.log(`User ${userId} left personal workspace ${orgId}. This should not happen.`);
-      // The user leaving their own personal workspace shouldn't happen via UI
-      // but if it does, they can re-create it through ensure-personal-workspace
+
+    if (clerkUserId && orgId) {
+      // Block personal workspace removal — restore membership
+      if (orgMetadata?.type === "personal") {
+        console.warn(`[WEBHOOK] User ${clerkUserId} removed from personal workspace ${orgId}. Restoring...`);
+        try {
+          const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+          await clerk.organizations.createOrganizationMembership({
+            organizationId: orgId,
+            userId: clerkUserId,
+            role: "org:admin",
+          });
+          console.log(`[WEBHOOK] Restored personal workspace membership for ${clerkUserId}`);
+        } catch (restoreErr) {
+          console.error("[WEBHOOK] Failed to restore personal workspace membership:", restoreErr);
+        }
+        // Do NOT run departure for personal workspaces
+      } else {
+        // Regular org membership removal — run departure
+        const dbUser = await prismadb.users.findFirst({
+          where: { clerkUserId },
+        });
+
+        if (dbUser) {
+          try {
+            const result = await handleUserDeparture(dbUser.id, orgId, "REMOVED_FROM_ORG");
+            console.log(`[WEBHOOK] Departure for user ${dbUser.id} from org ${orgId}:`, result);
+          } catch (err) {
+            console.error(`[WEBHOOK] Departure failed for user ${dbUser.id} from org ${orgId}:`, err);
+          }
+        } else {
+          console.warn(`[WEBHOOK] No DB user found for clerk ID ${clerkUserId} during membership removal`);
+        }
+      }
     }
   }
 

@@ -4,17 +4,18 @@ import { requireAuth } from "@/lib/permissions/action-guards";
 import { getCurrentUserId, getCurrentOrgId } from "@/lib/get-current-user";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
 import { prismadb } from "@/lib/prisma";
-import { createClerkClient } from "@clerk/backend";
+import { clerkClient } from "@clerk/nextjs/server";
 import { isOrgOwner } from "@/lib/org-admin";
+import { handleUserDeparture } from "@/lib/user-departure";
 
 /**
  * Delete the current user's account and all associated data
- * 
+ *
  * This is a destructive operation that:
- * 1. Deletes all user data across models
- * 2. Revokes encryption access
- * 3. Deletes Clerk user
- * 
+ * 1. Runs handleUserDeparture for each org membership (SetNull on user refs)
+ * 2. Deletes the Users row
+ * 3. Deletes the Clerk user
+ *
  * WARNING: This cannot be undone!
  */
 export async function deleteAccount(
@@ -33,9 +34,9 @@ export async function deleteAccount(
     // Get user info
     const user = await prismadb.users.findUnique({
       where: { id: userId },
-      select: { 
-        id: true, 
-        email: true, 
+      select: {
+        id: true,
+        email: true,
         clerkUserId: true,
         name: true,
       },
@@ -45,103 +46,42 @@ export async function deleteAccount(
       return actionError("User not found", "NOT_FOUND");
     }
 
-    // Start deletion in a transaction
-    await prismadb.$transaction(async (tx) => {
-      // Delete user's encryption keys
-      await tx.organizationEncryptionKey.deleteMany({
-        where: { userId },
-      });
+    // Get all org memberships from Clerk
+    const clerk = await clerkClient();
+    let orgMemberships: { organization: { id: string } }[] = [];
 
-      // Delete data export requests
-      await tx.dataExportRequest.deleteMany({
-        where: { requestedById: userId },
-      });
-
-      // Delete notifications
-      await tx.notification.deleteMany({
-        where: { userId },
-      });
-
-      // Delete calendar events assigned to user
-      await tx.calendarEvent.deleteMany({
-        where: { assignedUserId: userId },
-      });
-
-      // Delete comments
-      await tx.clientComment.deleteMany({
-        where: { userId },
-      });
-
-      await tx.propertyComment.deleteMany({
-        where: { userId },
-      });
-
-      // Delete social posts
-      await tx.socialPost.deleteMany({
-        where: { authorId: userId },
-      });
-
-      await tx.socialPostComment.deleteMany({
-        where: { userId },
-      });
-
-      await tx.socialPostLike.deleteMany({
-        where: { userId },
-      });
-
-      // Delete tasks
-      await tx.crm_Accounts_Tasks.deleteMany({
-        where: { createdBy: userId },
-      });
-
-      // Delete task comments
-      await tx.crm_Accounts_Tasks_Comments.deleteMany({
-        where: { user: userId },
-      });
-
-      // Delete feedback
-      await tx.feedback.deleteMany({
-        where: { userId },
-      });
-
-      // Delete documents created by user
-      await tx.documents.deleteMany({
-        where: { created_by_user: userId },
-      });
-
-      // Delete API keys
-      await tx.apiKey.deleteMany({
-        where: { createdById: userId },
-      });
-
-      // Delete webhook endpoints
-      await tx.webhookEndpoint.deleteMany({
-        where: { createdById: userId },
-      });
-
-      // Delete agent profile
-      await tx.agentProfile.deleteMany({
-        where: { userId },
-      });
-
-      // Delete referral code
-      await tx.referralCode.deleteMany({
-        where: { userId },
-      });
-
-      // Finally, delete the user record
-      await tx.users.delete({
-        where: { id: userId },
-      });
-    });
-
-    // Delete Clerk user (after database transaction succeeds)
     if (user.clerkUserId) {
       try {
-        const clerk = createClerkClient({
-          secretKey: process.env.CLERK_SECRET_KEY,
-        });
+        const membershipList =
+          await clerk.users.getOrganizationMembershipList({
+            userId: user.clerkUserId,
+          });
+        orgMemberships = membershipList.data;
+      } catch (err) {
+        console.error(
+          "[DELETE_ACCOUNT] Failed to fetch org memberships:",
+          err
+        );
+      }
+    }
 
+    // Run departure service for each org
+    for (const membership of orgMemberships) {
+      await handleUserDeparture(
+        user.id,
+        membership.organization.id,
+        "ACCOUNT_DELETED"
+      );
+    }
+
+    // Delete the Users row
+    await prismadb.users.delete({
+      where: { id: userId },
+    });
+
+    // Delete Clerk user (after database deletion succeeds)
+    if (user.clerkUserId) {
+      try {
         await clerk.users.deleteUser(user.clerkUserId);
       } catch (clerkError) {
         // Log but don't fail - database deletion was successful

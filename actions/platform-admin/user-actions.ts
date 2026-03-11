@@ -5,6 +5,7 @@ import { prismadb } from "@/lib/prisma";
 import { requirePlatformAdmin, logAdminAction } from "@/lib/platform-admin";
 import { sanitizeAdminMessage } from "@/lib/platform-admin-utils";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { handleUserDeparture } from "@/lib/user-departure";
 import { Resend } from "resend";
 import { z } from "zod";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
@@ -386,19 +387,53 @@ export async function deleteUser(userId: string, reason: string): Promise<Action
       }
     }
 
-    // Delete user from Clerk first
+    // Handle departure from each org the user belongs to
     if (user.clerkUserId) {
       try {
         const clerk = await clerkClient();
-        await clerk.users.deleteUser(user.clerkUserId);
+
+        // Get all org memberships for this user
+        const memberships = await clerk.users.getOrganizationMembershipList({
+          userId: user.clerkUserId,
+        });
+
+        // Run departure for each org (nullify references, clean up personal data)
+        for (const membership of memberships.data) {
+          try {
+            const result = await handleUserDeparture(
+              user.id,
+              membership.organization.id,
+              "ADMIN_FORCE_DELETED"
+            );
+            if (result.errors.length > 0) {
+              console.warn(
+                `[DELETE_USER] Departure warnings for org ${membership.organization.id}:`,
+                result.errors
+              );
+            }
+          } catch (departureError) {
+            console.error(
+              `[DELETE_USER] Departure failed for org ${membership.organization.id}:`,
+              departureError
+            );
+            // Continue with other orgs
+          }
+        }
+
+        // Delete user from Clerk
+        try {
+          await clerk.users.deleteUser(user.clerkUserId);
+        } catch (clerkError) {
+          console.error("[CLERK_DELETE_USER]", clerkError);
+          // Continue with database deletion even if Clerk fails
+        }
       } catch (clerkError) {
-        console.error("[CLERK_DELETE_USER]", clerkError);
+        console.error("[CLERK_GET_MEMBERSHIPS]", clerkError);
         // Continue with database deletion even if Clerk fails
       }
     }
 
-    // Delete user from database
-    // Note: This will cascade to related records based on schema relations
+    // Delete the Users row (references already nullified by handleUserDeparture)
     await prismadb.users.delete({
       where: { id: userId },
     });

@@ -333,9 +333,8 @@ export async function deleteUserOwnedOrganizations(clerkUserId: string) {
           );
 
           if (isUserAdmin) {
-            // Clean up database records BEFORE deleting from Clerk
-            // This ensures data is removed even if Clerk deletion fails
-            await cleanupOrganizationData([organizationId]);
+            // Note: org data cleanup is now handled by the departure service
+            // via the organizationMembership.deleted webhook event
 
             // Delete the organization through Clerk API
             try {
@@ -417,8 +416,8 @@ export async function deleteOrganizationBySlug(slug: string) {
 
     const organizationId = foundOrganization.id;
 
-    // Clean up database records
-    await cleanupOrganizationData([organizationId]);
+    // Note: org data cleanup is now handled by the departure service
+    // via the organizationMembership.deleted webhook event
 
     // Delete from Clerk
     await clerk.organizations.deleteOrganization(organizationId);
@@ -441,29 +440,6 @@ export async function deleteOrganizationBySlug(slug: string) {
   }
 }
 
-/**
- * Clean up database records that reference deleted organization IDs
- */
-async function cleanupOrganizationData(organizationIds: string[]) {
-  try {
-    // Delete clients (CRM accounts) associated with these organizations
-    await prismadb.clients.deleteMany({
-      where: {
-        organizationId: {
-          in: organizationIds,
-        },
-      },
-    });
-
-    // Delete properties associated with these organizations
-    await prismadb.properties.deleteMany({
-      where: {
-        organizationId: {
-          in: organizationIds,
-        },
-      },
-    });
-  } catch (error) {
-    // Don't throw - we want to continue even if cleanup fails partially
-  }
-}
+// cleanupOrganizationData removed — departure is now handled by
+// handleUserDeparture() in lib/user-departure, called from the
+// Clerk webhook handler (organizationMembership.deleted / user.deleted).
