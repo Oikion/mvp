@@ -2830,6 +2830,496 @@ async function seedPropertyShowings(
 }
 
 // ============================================
+// TASK 14: ENTITY COMMENTS
+// ============================================
+
+async function seedEntityComments(
+  ctx: OrgContext,
+  clientIds: string[],
+  propertyIds: string[],
+  mandateIds: string[]
+): Promise<void> {
+  console.log(`\nSeeding entity comments for ${ctx.prefix} org...`);
+
+  const now = new Date();
+  const departedUser = ctx.allUsers.find((u) => u.clerkUserId === `user_seed_${ctx.prefix}_departed`);
+  const departedUserId = departedUser?.id ?? null;
+  const pickUser = () => pick(ctx.allUsers).id;
+
+  // --- PropertyComment (encrypted content) ---
+  const propCommentContents = [
+    "Excellent property, client very interested",
+    "Price negotiation in progress",
+    "Needs minor repairs in bathroom",
+    "Client requested second viewing",
+    "Photos updated, ready for listing",
+    "Great location, close to metro",
+    "Owner flexible on price",
+    "Energy certificate pending",
+    "Balcony view is the main selling point",
+    "Parking space included in price",
+    "Recently renovated kitchen",
+    "Tenant vacating end of month",
+    "Building has elevator - important for elderly clients",
+    "Neighborhood quiet, family-friendly",
+    "Comparable sold for 10% more last month",
+  ];
+  const propCommentTargets = [0, 1, 3, 4, 8, 17, 18, 19];
+  const propComments: Array<Record<string, unknown>> = [];
+  for (const idx of propCommentTargets) {
+    if (!propertyIds[idx]) continue;
+    const count = rand(3, 5);
+    for (let i = 0; i < count; i++) {
+      const isDeparted = i === 0 && idx === 18;
+      propComments.push({
+        id: uuid(),
+        propertyId: propertyIds[idx],
+        userId: isDeparted ? departedUserId : pickUser(),
+        content: encryptCommentContent(pick(propCommentContents), ctx.dek),
+        createdAt: new Date(now.getTime() - rand(1, 90) * 24 * 60 * 60 * 1000),
+        updatedAt: now,
+      });
+    }
+  }
+  await prismadb.propertyComment.createMany({ data: propComments as any[] });
+  console.log(`  Created ${propComments.length} property comments`);
+
+  // --- ClientComment (NOT encrypted) ---
+  const clientCommentContents = [
+    "Initial meeting completed",
+    "Follow-up scheduled",
+    "Documents pending",
+    "Very responsive client",
+    "Budget confirmed",
+    "Prefers south-facing properties",
+    "Looking for investment opportunities",
+    "Referred by existing client",
+    "Speaks English and Greek fluently",
+    "Requires mortgage pre-approval",
+    "Interested in Kolonaki area primarily",
+    "Timeline: within 3 months",
+  ];
+  const clientCommentTargets = [0, 1, 2, 3, 5, 6, 7, 10, 13, 14];
+  const clientComments: Array<Record<string, unknown>> = [];
+  for (const idx of clientCommentTargets) {
+    if (!clientIds[idx]) continue;
+    const count = rand(2, 4);
+    for (let i = 0; i < count; i++) {
+      const isDeparted = i === 0 && idx === 13;
+      clientComments.push({
+        id: uuid(),
+        clientId: clientIds[idx],
+        userId: isDeparted ? departedUserId : pickUser(),
+        content: pick(clientCommentContents),
+        createdAt: new Date(now.getTime() - rand(1, 90) * 24 * 60 * 60 * 1000),
+        updatedAt: now,
+      });
+    }
+  }
+  await prismadb.clientComment.createMany({ data: clientComments as any[] });
+  console.log(`  Created ${clientComments.length} client comments`);
+
+  // --- MandateComment (encrypted content) ---
+  const mandateCommentContents = [
+    "Search criteria updated",
+    "3 matching properties found",
+    "Client reviewing shortlist",
+    "Viewing scheduled for Friday",
+    "Budget revised upward by 15%",
+    "Area preference changed to include Glyfada",
+    "Mandate extended for 3 more months",
+    "Client satisfied with progress",
+  ];
+  const mandateCommentTargets = [0, 1, 2, 3, 4, 10];
+  const mandateComments: Array<Record<string, unknown>> = [];
+  for (const idx of mandateCommentTargets) {
+    if (!mandateIds[idx]) continue;
+    const count = rand(2, 3);
+    for (let i = 0; i < count; i++) {
+      mandateComments.push({
+        id: uuid(),
+        mandateId: mandateIds[idx],
+        userId: pickUser(),
+        content: encryptCommentContent(pick(mandateCommentContents), ctx.dek),
+        createdAt: new Date(now.getTime() - rand(1, 60) * 24 * 60 * 60 * 1000),
+        updatedAt: now,
+      });
+    }
+  }
+  await prismadb.mandateComment.createMany({ data: mandateComments as any[] });
+  console.log(`  Created ${mandateComments.length} mandate comments`);
+}
+
+// ============================================
+// TASK 15: SOCIAL FEED
+// ============================================
+
+async function seedSocialFeed(ctx: OrgContext, propertyIds: string[]): Promise<void> {
+  console.log(`\nSeeding social feed for ${ctx.prefix} org...`);
+
+  const now = new Date();
+  const departedUser = ctx.allUsers.find((u) => u.clerkUserId === `user_seed_${ctx.prefix}_departed`);
+  const departedUserId = departedUser?.id ?? ctx.primaryUserId;
+
+  const slugs = await generateFriendlyIds("SocialPost", 12, ctx.orgId);
+
+  const postDefs = [
+    { postType: "property_listed", content: "Just listed a stunning apartment in Kolonaki! 3 bed, 85sqm with balcony and metro access.", linkedPropIdx: 0, authorId: ctx.primaryUserId, monthsAgo: 0.5 },
+    { postType: "deal_closed", content: "Another successful deal closed in Kolonaki! \uD83C\uDF89", linkedPropIdx: 8, authorId: ctx.primaryUserId, monthsAgo: 1 },
+    { postType: "client_converted", content: "Welcome our newest investor client to the portfolio", linkedPropIdx: null, authorId: ctx.primaryUserId, monthsAgo: 1.5 },
+    { postType: "general", content: "Team meeting highlights: great Q2 results", linkedPropIdx: null, authorId: ctx.primaryUserId, monthsAgo: 2 },
+    { postType: "property_sold", content: "SOLD! Beautiful apartment in Glyfada", linkedPropIdx: 2, authorId: ctx.primaryUserId, monthsAgo: 2.5 },
+    { postType: "milestone", content: "Record month for our agency! 15 viewings completed", linkedPropIdx: null, authorId: ctx.primaryUserId, monthsAgo: 3 },
+    { postType: "property_listed", content: "Exclusive listing: Luxury villa in Psychiko, 350sqm with pool and garden.", linkedPropIdx: 17, authorId: ctx.primaryUserId, monthsAgo: 0.3 },
+    { postType: "general", content: "Athens property market update: prices up 8% in central areas", linkedPropIdx: null, authorId: ctx.primaryUserId, monthsAgo: 1.2 },
+    { postType: "property_listed", content: "New listing in Kolonaki", linkedPropIdx: 18, authorId: departedUserId, monthsAgo: 4 },
+    { postType: "general", content: "Great article about the real estate market trends", linkedPropIdx: null, authorId: ctx.primaryUserId, monthsAgo: 3.5 },
+    { postType: "deal_closed", content: "Cross-org collaboration: helped a colleague close a deal", linkedPropIdx: null, authorId: ctx.primaryUserId, monthsAgo: 1.8 },
+    { postType: "general", content: "Happy Monday everyone!", linkedPropIdx: null, authorId: ctx.primaryUserId, monthsAgo: 6 },
+  ];
+
+  const postIds: string[] = [];
+  const posts: Array<Record<string, unknown>> = [];
+
+  for (let i = 0; i < postDefs.length; i++) {
+    const def = postDefs[i];
+    const id = uuid();
+    postIds.push(id);
+    const createdAt = new Date(now.getTime() - def.monthsAgo * 30 * 24 * 60 * 60 * 1000);
+    posts.push({
+      id,
+      slug: slugs[i].toLowerCase(),
+      organizationId: ctx.orgId,
+      authorId: def.authorId,
+      postType: def.postType,
+      content: def.content,
+      linkedEntityId: def.linkedPropIdx != null ? propertyIds[def.linkedPropIdx] : null,
+      linkedEntityType: def.linkedPropIdx != null ? "PROPERTY" : null,
+      linkedEntityTitle: def.linkedPropIdx != null ? `Property ${def.linkedPropIdx + 1}` : null,
+      createdAt,
+      updatedAt: createdAt,
+    });
+  }
+
+  await prismadb.socialPost.createMany({ data: posts as any[] });
+  console.log(`  Created ${posts.length} social posts`);
+
+  // --- Likes ---
+  const likeDefs: Array<{ postIdx: number; count: number }> = [
+    { postIdx: 0, count: 4 }, { postIdx: 1, count: 5 }, { postIdx: 2, count: 2 },
+    { postIdx: 4, count: 3 }, { postIdx: 5, count: 2 }, { postIdx: 6, count: 5 },
+    { postIdx: 8, count: 1 }, { postIdx: 10, count: 3 },
+  ];
+  const likes: Array<Record<string, unknown>> = [];
+  for (const ld of likeDefs) {
+    const shuffledUsers = shuffle([...ctx.allUsers]);
+    const count = Math.min(ld.count, shuffledUsers.length);
+    for (let i = 0; i < count; i++) {
+      likes.push({
+        id: uuid(),
+        postId: postIds[ld.postIdx],
+        userId: shuffledUsers[i].id,
+        createdAt: new Date(now.getTime() - rand(0, 30) * 24 * 60 * 60 * 1000),
+      });
+    }
+  }
+  await prismadb.socialPostLike.createMany({ data: likes as any[] });
+  console.log(`  Created ${likes.length} social post likes`);
+
+  // --- Comments (parent comments first, then replies) ---
+  const commentContents = [
+    "Great listing!", "Congratulations!", "Interested client here",
+    "What's the asking price?", "Beautiful property", "Well done team!",
+    "Amazing work!", "Keep it up!", "Fantastic news!", "Love this!",
+    "Can you share more details?", "When is the open house?",
+    "Perfect location", "My client might be interested",
+  ];
+
+  const parentComments: Array<Record<string, unknown> & { _postIdx: number }> = [];
+  const replies: Array<Record<string, unknown>> = [];
+
+  // Post 1 (idx 0): 3 comments, 1 reply
+  for (let i = 0; i < 2; i++) {
+    parentComments.push({ _postIdx: 0, id: uuid(), postId: postIds[0], userId: pickUser(), content: commentContents[i], createdAt: new Date(now.getTime() - rand(1, 14) * 24 * 60 * 60 * 1000), updatedAt: now, parentId: null });
+  }
+  // third is a reply to first
+  const post1Parent = parentComments[0];
+
+  // Post 2 (idx 1): 2 comments
+  for (let i = 0; i < 2; i++) {
+    parentComments.push({ _postIdx: 1, id: uuid(), postId: postIds[1], userId: pickUser(), content: commentContents[2 + i], createdAt: new Date(now.getTime() - rand(1, 20) * 24 * 60 * 60 * 1000), updatedAt: now, parentId: null });
+  }
+
+  // Post 4 (idx 3): 3 comments
+  for (let i = 0; i < 3; i++) {
+    parentComments.push({ _postIdx: 3, id: uuid(), postId: postIds[3], userId: pickUser(), content: commentContents[4 + i], createdAt: new Date(now.getTime() - rand(1, 30) * 24 * 60 * 60 * 1000), updatedAt: now, parentId: null });
+  }
+
+  // Post 7 (idx 6): 4 comments, 2 replies
+  for (let i = 0; i < 2; i++) {
+    parentComments.push({ _postIdx: 6, id: uuid(), postId: postIds[6], userId: pickUser(), content: commentContents[7 + i], createdAt: new Date(now.getTime() - rand(1, 10) * 24 * 60 * 60 * 1000), updatedAt: now, parentId: null });
+  }
+  const post7Parents = parentComments.filter(c => c._postIdx === 6);
+
+  // Post 8 (idx 7): 1 comment
+  parentComments.push({ _postIdx: 7, id: uuid(), postId: postIds[7], userId: pickUser(), content: commentContents[9], createdAt: new Date(now.getTime() - rand(1, 20) * 24 * 60 * 60 * 1000), updatedAt: now, parentId: null });
+
+  // Post 6 (idx 5): 1 comment
+  parentComments.push({ _postIdx: 5, id: uuid(), postId: postIds[5], userId: pickUser(), content: commentContents[10], createdAt: new Date(now.getTime() - rand(1, 40) * 24 * 60 * 60 * 1000), updatedAt: now, parentId: null });
+
+  // Post 11 (idx 10): 2 comments, one from departed
+  parentComments.push({ _postIdx: 10, id: uuid(), postId: postIds[10], userId: departedUserId, content: commentContents[11], createdAt: new Date(now.getTime() - rand(1, 30) * 24 * 60 * 60 * 1000), updatedAt: now, parentId: null });
+  parentComments.push({ _postIdx: 10, id: uuid(), postId: postIds[10], userId: pickUser(), content: commentContents[12], createdAt: new Date(now.getTime() - rand(1, 30) * 24 * 60 * 60 * 1000), updatedAt: now, parentId: null });
+
+  // Create parent comments (strip _postIdx)
+  const parentData = parentComments.map(({ _postIdx, ...rest }) => rest);
+  await prismadb.socialPostComment.createMany({ data: parentData as any[] });
+
+  // Now create replies
+  // Reply to post1Parent
+  replies.push({ id: uuid(), postId: postIds[0], userId: pickUser(), content: "Thanks! Let me know if you want a viewing", parentId: post1Parent.id, createdAt: new Date(now.getTime() - rand(0, 7) * 24 * 60 * 60 * 1000), updatedAt: now });
+
+  // 2 replies to post7Parents
+  if (post7Parents.length >= 2) {
+    replies.push({ id: uuid(), postId: postIds[6], userId: pickUser(), content: "My client is very interested in this one", parentId: post7Parents[0].id, createdAt: new Date(now.getTime() - rand(0, 5) * 24 * 60 * 60 * 1000), updatedAt: now });
+    replies.push({ id: uuid(), postId: postIds[6], userId: pickUser(), content: "Can we arrange a private viewing?", parentId: post7Parents[1].id, createdAt: new Date(now.getTime() - rand(0, 5) * 24 * 60 * 60 * 1000), updatedAt: now });
+  }
+
+  if (replies.length > 0) {
+    await prismadb.socialPostComment.createMany({ data: replies as any[] });
+  }
+  console.log(`  Created ${parentComments.length + replies.length} social post comments`);
+
+  // --- Attachment on post 10 (idx 9) ---
+  await prismadb.attachment.create({
+    data: {
+      id: uuid(),
+      organizationId: ctx.orgId,
+      uploadedById: ctx.primaryUserId,
+      fileName: "market-trends.jpg",
+      fileSize: 250000,
+      fileType: "image/jpeg",
+      url: "https://placehold.co/800x600.png?text=Market+Trends",
+      socialPostId: postIds[9],
+    },
+  });
+  console.log(`  Created 1 social post attachment`);
+
+  function pickUser() { return pick(ctx.allUsers).id; }
+}
+
+// ============================================
+// TASK 16: MESSAGING (CHANNELS, CONVERSATIONS, MESSAGES)
+// ============================================
+
+async function seedMessaging(ctx: OrgContext): Promise<void> {
+  console.log(`\nSeeding messaging for ${ctx.prefix} org...`);
+
+  const now = new Date();
+  const departedUser = ctx.allUsers.find((u) => u.clerkUserId === `user_seed_${ctx.prefix}_departed`);
+  const departedUserId = departedUser?.id ?? ctx.primaryUserId;
+  const pickUser = () => pick(ctx.allUsers).id;
+  const allMessageIds: string[] = [];
+  const allMessageCreatedAts: Map<string, Date> = new Map();
+
+  // --- Channels ---
+  const channelDefs = [
+    { name: "General", slug: "general", channelType: "PUBLIC" as const, isDefault: true },
+    { name: "Management", slug: "management", channelType: "PRIVATE" as const, isDefault: false },
+    { name: "Announcements", slug: "announcements", channelType: "ANNOUNCEMENT" as const, isDefault: false },
+  ];
+
+  const channelIds: string[] = [];
+  for (const def of channelDefs) {
+    const id = uuid();
+    channelIds.push(id);
+    await prismadb.channel.create({
+      data: {
+        id,
+        organizationId: ctx.orgId,
+        name: def.name,
+        slug: def.slug,
+        channelType: def.channelType,
+        isDefault: def.isDefault,
+        isArchived: false,
+        isE2ee: false,
+        createdById: ctx.primaryUserId,
+        createdAt: new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000),
+      },
+    });
+  }
+  console.log(`  Created ${channelIds.length} channels`);
+
+  // --- Channel Members ---
+  const memberData: Array<Record<string, unknown>> = [];
+  // #general: all users
+  for (const user of ctx.allUsers) {
+    memberData.push({
+      id: uuid(),
+      channelId: channelIds[0],
+      userId: user.id,
+      role: user.id === ctx.primaryUserId ? "OWNER" : "MEMBER",
+    });
+  }
+  // #management: primary + first 1-2 real (non-synthetic) users
+  const realUsers = ctx.allUsers.filter(u => !u.clerkUserId?.startsWith("user_seed_"));
+  memberData.push({ id: uuid(), channelId: channelIds[1], userId: ctx.primaryUserId, role: "OWNER" });
+  for (const u of realUsers.slice(0, 2)) {
+    if (u.id !== ctx.primaryUserId) {
+      memberData.push({ id: uuid(), channelId: channelIds[1], userId: u.id, role: "ADMIN" });
+    }
+  }
+  // #announcements: all users
+  for (const user of ctx.allUsers) {
+    memberData.push({
+      id: uuid(),
+      channelId: channelIds[2],
+      userId: user.id,
+      role: user.id === ctx.primaryUserId ? "OWNER" : "MEMBER",
+    });
+  }
+  await prismadb.channelMember.createMany({ data: memberData as any[] });
+  console.log(`  Created ${memberData.length} channel members`);
+
+  // --- Channel Messages ---
+  const generalMsgs = CHANNEL_MESSAGES.general;
+  const managementMsgs = CHANNEL_MESSAGES.management;
+  const announcementMsgs = CHANNEL_MESSAGES.announcements;
+
+  // Helper to create a message and track it
+  function makeMsg(channelId: string, senderId: string, content: string, contentType: string, daysAgo: number, parentId?: string): Record<string, unknown> {
+    const id = uuid();
+    const createdAt = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+    allMessageIds.push(id);
+    allMessageCreatedAts.set(id, createdAt);
+    return { id, organizationId: ctx.orgId, channelId, senderId, content, contentType, createdAt, parentId: parentId ?? null, threadCount: 0 };
+  }
+
+  // #general: 10 messages + 1 system + thread
+  const generalMessages: Array<Record<string, unknown>> = [];
+  for (let i = 0; i < Math.min(10, generalMsgs.length); i++) {
+    const sender = i === 8 ? departedUserId : pickUser();
+    generalMessages.push(makeMsg(channelIds[0], sender, generalMsgs[i], "TEXT", 30 - i * 3));
+  }
+  // System message
+  generalMessages.push(makeMsg(channelIds[0], ctx.primaryUserId, `user_seed_${ctx.prefix}_departed has left the channel`, "SYSTEM", 15));
+
+  // Thread on first general message
+  const threadParentId = generalMessages[0].id as string;
+  const threadReplies = [
+    makeMsg(channelIds[0], pickUser(), "Yes! The Kolonaki ones look great", "TEXT", 29),
+    makeMsg(channelIds[0], pickUser(), "I have a client who might be interested", "TEXT", 28),
+    makeMsg(channelIds[0], ctx.primaryUserId, "Let's discuss at the meeting", "TEXT", 27),
+  ];
+  for (const r of threadReplies) { r.parentId = threadParentId; }
+  generalMessages[0].threadCount = 3;
+
+  const allChannelMessages = [...generalMessages, ...threadReplies];
+
+  // #management: 4 messages
+  for (let i = 0; i < Math.min(4, managementMsgs.length); i++) {
+    allChannelMessages.push(makeMsg(channelIds[1], ctx.primaryUserId, managementMsgs[i], "TEXT", 20 - i * 5));
+  }
+
+  // #announcements: 2 messages
+  for (let i = 0; i < Math.min(2, announcementMsgs.length); i++) {
+    allChannelMessages.push(makeMsg(channelIds[2], ctx.primaryUserId, announcementMsgs[i], "TEXT", 25 - i * 10));
+  }
+
+  await prismadb.message.createMany({ data: allChannelMessages as any[] });
+  console.log(`  Created ${allChannelMessages.length} channel messages`);
+
+  // --- Org-scoped Conversation (1:1 DM) ---
+  const teammate = ctx.allUsers.find(u => u.id !== ctx.primaryUserId) ?? ctx.allUsers[0];
+  const convId = uuid();
+  await prismadb.conversation.create({
+    data: {
+      id: convId,
+      organizationId: ctx.orgId,
+      scope: "ORG",
+      isGroup: false,
+      isE2ee: false,
+      createdById: ctx.primaryUserId,
+    },
+  });
+
+  await prismadb.conversationParticipant.createMany({
+    data: [
+      { id: uuid(), conversationId: convId, userId: ctx.primaryUserId },
+      { id: uuid(), conversationId: convId, userId: teammate.id },
+    ],
+  });
+
+  const dmMessages = DM_MESSAGES.general_dm;
+  const dmMsgRecords: Array<Record<string, unknown>> = [];
+  for (let i = 0; i < dmMessages.length; i++) {
+    const sender = i % 2 === 0 ? ctx.primaryUserId : teammate.id;
+    const id = uuid();
+    const createdAt = new Date(now.getTime() - (dmMessages.length - i) * 2 * 60 * 60 * 1000);
+    allMessageIds.push(id);
+    allMessageCreatedAts.set(id, createdAt);
+    dmMsgRecords.push({
+      id,
+      organizationId: ctx.orgId,
+      conversationId: convId,
+      senderId: sender,
+      content: dmMessages[i],
+      contentType: "TEXT",
+      createdAt,
+      parentId: null,
+      threadCount: 0,
+    });
+  }
+  await prismadb.message.createMany({ data: dmMsgRecords as any[] });
+  console.log(`  Created 1 conversation with ${dmMsgRecords.length} DM messages`);
+
+  // --- Message sub-entities ---
+
+  // MessageReaction: on 4 messages
+  const reactionTargets = shuffle(allMessageIds).slice(0, 4);
+  const reactions: Array<Record<string, unknown>> = [];
+  for (const msgId of reactionTargets) {
+    reactions.push({ id: uuid(), messageId: msgId, userId: pickUser(), emoji: "\uD83D\uDC4D" });
+    reactions.push({ id: uuid(), messageId: msgId, userId: pickUser(), emoji: "\uD83C\uDFE0" });
+  }
+  await prismadb.messageReaction.createMany({ data: reactions as any[], skipDuplicates: true });
+  console.log(`  Created ${reactions.length} message reactions`);
+
+  // MessageAttachment: on 2 messages
+  const attachTargets = shuffle(allMessageIds).slice(0, 2);
+  const attachments: Array<Record<string, unknown>> = [];
+  attachments.push({ id: uuid(), messageId: attachTargets[0], fileName: "floor-plan.pdf", fileSize: 150000, fileType: "application/pdf", url: "https://placehold.co/600x400.png?text=Floor+Plan" });
+  attachments.push({ id: uuid(), messageId: attachTargets[1], fileName: "property-photo.jpg", fileSize: 320000, fileType: "image/jpeg", url: "https://placehold.co/800x600.png?text=Property+Photo" });
+  await prismadb.messageAttachment.createMany({ data: attachments as any[] });
+  console.log(`  Created ${attachments.length} message attachments`);
+
+  // MessageMention: on 3 messages
+  const mentionTargets = shuffle(allMessageIds).slice(0, 3);
+  const mentions: Array<Record<string, unknown>> = [];
+  for (const msgId of mentionTargets) {
+    mentions.push({ id: uuid(), messageId: msgId, userId: pickUser() });
+  }
+  await prismadb.messageMention.createMany({ data: mentions as any[], skipDuplicates: true });
+  console.log(`  Created ${mentions.length} message mentions`);
+
+  // MessageRead: ~60% of messages
+  const readCount = Math.floor(allMessageIds.length * 0.6);
+  const readTargets = shuffle(allMessageIds).slice(0, readCount);
+  const reads: Array<Record<string, unknown>> = [];
+  for (const msgId of readTargets) {
+    const msgCreated = allMessageCreatedAts.get(msgId) ?? now;
+    reads.push({
+      id: uuid(),
+      messageId: msgId,
+      userId: pickUser(),
+      readAt: new Date(msgCreated.getTime() + rand(1, 30) * 60 * 1000),
+    });
+  }
+  await prismadb.messageRead.createMany({ data: reads as any[], skipDuplicates: true });
+  console.log(`  Created ${reads.length} message read receipts`);
+}
+
+// ============================================
 // MAIN
 // ============================================
 
@@ -2909,12 +3399,21 @@ async function main() {
     // Step 8: Property showings
     await seedPropertyShowings(ctx, clientIds, propertyIds);
 
-    console.log(`\n${ctx.prefix} org complete: ${dealIds.length} deals, ${docIds.length} docs, ${eventIds.length} events, tasks + showings`);
+    // Step 9: Entity comments
+    await seedEntityComments(ctx, clientIds, propertyIds, mandateIds);
+
+    // Step 10: Social feed
+    await seedSocialFeed(ctx, propertyIds);
+
+    // Step 11: Messaging
+    await seedMessaging(ctx);
+
+    console.log(`\n${ctx.prefix} org complete: ${dealIds.length} deals, ${docIds.length} docs, ${eventIds.length} events, tasks + showings + comments + social + messaging`);
   }
 
-  // TODO: Chunk 4+ will add social posts, messaging, cross-org scenarios
+  // TODO: Chunk 5 will add cross-org scenarios
 
-  console.log("\n=== CHUNK 3 COMPLETE — all core + secondary entities seeded ===");
+  console.log("\n=== CHUNK 4 COMPLETE — all core + secondary + social + messaging seeded ===");
 
   await prismadb.$disconnect();
 }
