@@ -19,7 +19,7 @@ import { SocialFeedIcon } from "@/components/ui/SocialFeedIcon"
 import { UsersIcon } from "@/components/ui/UsersIcon"
 import { ShieldIcon } from "@/components/ui/ShieldIcon"
 import { MessageCircleIcon } from "@/components/ui/MessageCircleIcon"
-import { Target, UserMinus } from "lucide-react"
+import { Target } from "lucide-react"
 import { type ModuleId } from "@/lib/permissions/types"
 import { isRouteActive } from "@/lib/navigation/route-utils"
 

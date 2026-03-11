@@ -57,6 +57,7 @@ export function CreateOrganizationForm() {
   const [showOwnershipDialog, setShowOwnershipDialog] = useState(false);
   const [selectedOwnershipMode, setSelectedOwnershipMode] = useState<DataOwnershipMode>("AGENCY");
   const [isSavingOwnership, setIsSavingOwnership] = useState(false);
+  const [createdOrgId, setCreatedOrgId] = useState<string | null>(null);
   const { createOrganization, setActive } = useOrganizationList();
   const t = useTranslations("dataOwnership.selector");
 
@@ -89,6 +90,8 @@ export function CreateOrganizationForm() {
       }
 
       toast.success("Success", { description: "Organization created successfully!", isTranslationKey: false });
+
+      setCreatedOrgId(organization.id);
 
       // Set the new org as active so setOwnershipMode can target it
       if (setActive) {
@@ -135,7 +138,7 @@ export function CreateOrganizationForm() {
   const handleOwnershipConfirm = async () => {
     setIsSavingOwnership(true);
     try {
-      await setOwnershipMode(selectedOwnershipMode);
+      await setOwnershipMode(selectedOwnershipMode, createdOrgId ?? undefined);
     } catch {
       console.error("Failed to set data ownership mode");
     }

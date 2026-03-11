@@ -551,7 +551,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
       // 4b. Set the data ownership mode for the newly created agency org
       if (agencyOrgId) {
         try {
-          await setOwnershipMode(dataOwnershipMode);
+          await setOwnershipMode(dataOwnershipMode, agencyOrgId);
         } catch {
           // Non-blocking — org owner can set this later via banner
           console.error("Failed to set data ownership mode during onboarding");

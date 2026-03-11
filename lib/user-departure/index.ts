@@ -250,7 +250,7 @@ async function sendDepartureEmail(
     });
     const members = await clerk.organizations.getOrganizationMembershipList({
       organizationId: orgId,
-      role: ["org:admin"],
+      role: ["org:admin", "org:owner"],
       limit: 5,
     });
 

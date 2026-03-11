@@ -19,12 +19,18 @@ import { requireAction } from "@/lib/permissions/action-guards";
  * Permission: admin:manage_org_settings (ORG_OWNER or ADMIN)
  */
 export async function setOwnershipMode(
-  mode: DataOwnershipMode
+  mode: DataOwnershipMode,
+  targetOrgId?: string
 ): Promise<ActionResponse> {
-  const guard = await requireAction("admin:manage_org_settings");
-  if (guard) return guard;
+  // When called during onboarding, the JWT may not yet carry the new orgId,
+  // so we accept an explicit targetOrgId parameter.
+  if (!targetOrgId) {
+    const guard = await requireAction("admin:manage_org_settings");
+    if (guard) return guard;
+  }
 
-  const { orgId, userId } = await auth();
+  const { orgId: sessionOrgId, userId } = await auth();
+  const orgId = targetOrgId || sessionOrgId;
   if (!orgId || !userId) {
     return actionError("Not authenticated");
   }

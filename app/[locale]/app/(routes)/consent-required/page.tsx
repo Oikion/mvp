@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { prismadb } from "@/lib/prisma";
@@ -51,10 +51,20 @@ export default async function ConsentRequiredPage() {
   // Get original consent mode for "leave instead" consequence text
   const originalMode = await getOriginalConsentMode(orgId, userId);
 
+  // Fetch human-readable org name
+  let orgName = orgId;
+  try {
+    const clerk = await clerkClient();
+    const org = await clerk.organizations.getOrganization({ organizationId: orgId });
+    orgName = org.name;
+  } catch {
+    // Fall back to orgId
+  }
+
   return (
     <ConsentRequiredClient
       mode={settings.dataOwnershipMode}
-      orgName={orgId}
+      orgName={orgName}
       originalMode={originalMode}
       policyVersion={settings.policyVersion}
     />
