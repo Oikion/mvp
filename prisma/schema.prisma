@@ -321,6 +321,7 @@ model Deal {
   proposedById       String?
   title              String?
   notes              String?
+  cancellationReason String?
   closedAt           DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime
@@ -1512,6 +1513,11 @@ enum DepartureReason {
   REMOVED_FROM_ORG
   ACCOUNT_DELETED
   ADMIN_FORCE_DELETED
+}
+
+enum DataOwnershipMode {
+  AGENCY
+  AGENT
 }
 
 enum MandateStatus {
@@ -2824,6 +2830,14 @@ model OrganizationSettings {
   updatedAt DateTime @updatedAt
   createdBy String? // User who created these settings
 
+  // Data Ownership Policy
+  dataOwnershipMode      DataOwnershipMode @default(AGENCY)
+  dataOwnershipSetAt     DateTime?
+  dataOwnershipChangedAt DateTime?
+  dataOwnershipChangedBy String?
+  policyVersion          Int               @default(1)
+  policyHistory          Json?             // [{mode: "AGENCY"|"AGENT", from: ISO, to: ISO|null}]
+
   @@index([organizationId])
   @@index([databaseSiloEnabled])
 }
@@ -2841,6 +2855,39 @@ model OrganizationSettingsAudit {
 
   @@index([organizationId])
   @@index([changedAt])
+}
+
+// ============================================
+// DATA OWNERSHIP CONSENT & DEPARTURE LOGS
+// ============================================
+
+model OrgMemberConsent {
+  id             String            @id @default(uuid())
+  organizationId String
+  userId         String
+  consentedMode  DataOwnershipMode
+  consentedAt    DateTime          @default(now())
+  policyVersion  Int               @default(1)
+
+  @@unique([organizationId, userId, policyVersion])
+  @@index([organizationId, userId])
+}
+
+model DepartureLog {
+  id               String            @id @default(uuid())
+  organizationId   String
+  userId           String
+  userName         String
+  reason           DepartureReason
+  policyApplied    DataOwnershipMode
+  migratedEntities Json
+  cancelledDeals   Json
+  entityCounts     Json
+  notes            String?
+  createdAt        DateTime          @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([userId])
 }
 
 // ============================================
