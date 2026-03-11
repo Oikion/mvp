@@ -132,7 +132,7 @@ export async function handleUserDeparture(
       ? "Account deletion overrode AGENT policy — data stays with org"
       : null;
 
-  await prismadb.departureLog.create({
+  const departureLog = await prismadb.departureLog.create({
     data: {
       id: crypto.randomUUID(),
       organizationId: orgId,
@@ -155,6 +155,9 @@ export async function handleUserDeparture(
       notes: departureLogNotes,
     },
   });
+
+  // Step 7b: Send departure email to org owner (fire-and-forget)
+  void sendDepartureEmail(orgId, departureLog.id, userName, policyApplied, migrationResult);
 
   // Step 8: Audit log
   console.log(
@@ -223,4 +226,71 @@ async function getUserNameSnapshot(userId: string): Promise<string> {
     return [user.first_name, user.last_name].filter(Boolean).join(" ");
   }
   return user.username ?? "Unknown User";
+}
+
+/**
+ * Send departure report email to the org owner (fire-and-forget).
+ */
+async function sendDepartureEmail(
+  orgId: string,
+  departureLogId: string,
+  agentName: string,
+  policyApplied: DataOwnershipMode,
+  migrationResult: MigrationResult | null
+) {
+  try {
+    const { Resend } = await import("resend");
+    const { default: AgentDepartureReport } = await import(
+      "@/emails/notifications/AgentDepartureReport"
+    );
+
+    // Find org owner
+    const clerk = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    const members = await clerk.organizations.getOrganizationMembershipList({
+      organizationId: orgId,
+      role: ["org:admin"],
+      limit: 5,
+    });
+
+    const ownerMembership = members.data[0];
+    if (!ownerMembership) return;
+
+    const ownerUser = await prismadb.users.findFirst({
+      where: { clerkUserId: ownerMembership.publicUserData?.userId },
+      select: { email: true, name: true, userLanguage: true },
+    });
+    if (!ownerUser?.email) return;
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const counts = migrationResult?.entityCounts ?? {
+      properties: 0,
+      clients: 0,
+      mandates: 0,
+      deals: 0,
+    };
+
+    await resend.emails.send({
+      from: "Oikion <notifications@oikion.com>",
+      to: ownerUser.email,
+      subject:
+        ownerUser.userLanguage === "el"
+          ? `Αναφορά Αποχώρησης: ${agentName}`
+          : `Departure Report: ${agentName}`,
+      react: AgentDepartureReport({
+        ownerName: ownerUser.name || ownerUser.email.split("@")[0],
+        agentName,
+        departureDate: new Date().toLocaleDateString(
+          ownerUser.userLanguage === "el" ? "el-GR" : "en-US"
+        ),
+        policyApplied,
+        entityCounts: counts,
+        departureLogId,
+        language: ownerUser.userLanguage || "en",
+      }),
+    });
+  } catch (error) {
+    console.error("[UserDeparture] Failed to send departure email:", error);
+  }
 }

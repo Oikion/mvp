@@ -19,7 +19,7 @@ import { SocialFeedIcon } from "@/components/ui/SocialFeedIcon"
 import { UsersIcon } from "@/components/ui/UsersIcon"
 import { ShieldIcon } from "@/components/ui/ShieldIcon"
 import { MessageCircleIcon } from "@/components/ui/MessageCircleIcon"
-import { Target } from "lucide-react"
+import { Target, UserMinus } from "lucide-react"
 import { type ModuleId } from "@/lib/permissions/types"
 import { isRouteActive } from "@/lib/navigation/route-utils"
 
@@ -247,6 +247,16 @@ export function getNavigationConfig({
         icon: SettingsIcon,
         isActive: isRouteActive(pathname, "/app/admin", locale) && !isRouteActive(pathname, "/app/platform-admin", locale),
         moduleId: "admin" as ModuleId,
+        items: [
+          {
+            title: dict.navigation.ModuleMenu.settings,
+            url: "/app/admin",
+          },
+          {
+            title: dict.navigation.ModuleMenu.departures || "Departures",
+            url: "/app/settings/departures",
+          },
+        ],
       }] : []),
     ]),
     // Platform Admin - only visible to platform admins
