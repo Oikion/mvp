@@ -84,7 +84,7 @@ model CalendarEvent {
   updatedAt          DateTime
   calendarEventId    Int                  @unique
   calendarUserId     Int                  @default(0)
-  organizationId     String               @default("00000000-0000-0000-0000-000000000000")
+  organizationId     String
   title              String?
   description        String?
   startTime          DateTime
@@ -100,7 +100,7 @@ model CalendarEvent {
   reminderMinutes    Int[]
   remindersSent      Json?
   eventType          CalendarEventType?
-  Users              Users?               @relation(fields: [assignedUserId], references: [id])
+  Users              Users?               @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
   CalendarReminder   CalendarReminder[]
   EventInvitee       EventInvitee[]
   crm_Accounts_Tasks crm_Accounts_Tasks[]
@@ -127,7 +127,7 @@ model CalendarReminder {
   sentAt           DateTime?
   status           ReminderStatus   @default(PENDING)
   notificationType NotificationType @default(EMAIL)
-  organizationId   String           @default("00000000-0000-0000-0000-000000000000")
+  organizationId   String
   CalendarEvent    CalendarEvent    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([eventId])
@@ -141,10 +141,10 @@ model ClientComment {
   createdAt DateTime @default(now())
   updatedAt DateTime
   clientId  String
-  userId    String
+  userId    String?
   content   String
   Clients   Clients  @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  Users     Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Users     Users?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([clientId])
   @@index([createdAt])
@@ -182,14 +182,15 @@ model Client_Contacts {
   notes                                    String[]
   clientsIDs                               String?
   documentsIDs                             String[]
-  organizationId                           String             @default("00000000-0000-0000-0000-000000000000")
-  Users_Client_Contacts_assigned_toToUsers Users?             @relation("Client_Contacts_assigned_toToUsers", fields: [assigned_to], references: [id])
+  organizationId                           String
+  Users_Client_Contacts_assigned_toToUsers Users?             @relation("Client_Contacts_assigned_toToUsers", fields: [assigned_to], references: [id], onDelete: SetNull)
   Clients                                  Clients?           @relation(fields: [clientsIDs], references: [id])
-  Users_Client_Contacts_created_byToUsers  Users?             @relation("Client_Contacts_created_byToUsers", fields: [created_by], references: [id])
+  Users_Client_Contacts_created_byToUsers  Users?             @relation("Client_Contacts_created_byToUsers", fields: [created_by], references: [id], onDelete: SetNull)
   Documents                                Documents[]        @relation("DocumentsToClientContacts")
 
   @@index([assigned_to])
   @@index([clientsIDs])
+  @@index([created_by])
   @@index([created_on])
   @@index([organizationId])
 }
@@ -266,7 +267,7 @@ model Clients {
   website                          String?
   documentsIDs                     String[]
   watchers                         String[]
-  organizationId                   String               @default("00000000-0000-0000-0000-000000000000")
+  organizationId                   String
   afm                              String?
   allow_marketing                  Boolean?             @default(false)
   channels                         String[]
@@ -286,7 +287,7 @@ model Clients {
   ClientComment                    ClientComment[]
   Client_Contacts                  Client_Contacts[]
   Client_Properties                Client_Properties[]
-  Users_Clients_assigned_toToUsers Users?               @relation("Clients_assigned_toToUsers", fields: [assigned_to], references: [id])
+  Users_Clients_assigned_toToUsers Users?               @relation("Clients_assigned_toToUsers", fields: [assigned_to], references: [id], onDelete: SetNull)
   Deal                             Deal[]
   crm_Accounts_Tasks               crm_Accounts_Tasks[]
   Documents                        Documents[]          @relation("DocumentsToClients")
@@ -310,14 +311,14 @@ model Deal {
   organizationId     String // SECURITY: Required for tenant isolation
   propertyId         String
   clientId           String
-  propertyAgentId    String
-  clientAgentId      String
+  propertyAgentId    String?
+  clientAgentId      String?
   propertyAgentSplit Decimal     @default(50)
   clientAgentSplit   Decimal     @default(50)
   totalCommission    Decimal?
   commissionCurrency String      @default("EUR")
   status             DealStatus  @default(PROPOSED)
-  proposedById       String
+  proposedById       String?
   title              String?
   notes              String?
   closedAt           DateTime?
@@ -330,9 +331,9 @@ model Deal {
   leadSource         LeadSource? // Lead source for this deal
   marketingSpendId   String? // Link to marketing spend
 
-  Users_Deal_clientAgentIdToUsers   Users           @relation("Deal_clientAgentIdToUsers", fields: [clientAgentId], references: [id])
+  Users_Deal_clientAgentIdToUsers   Users?          @relation("Deal_clientAgentIdToUsers", fields: [clientAgentId], references: [id], onDelete: SetNull)
   Clients                           Clients         @relation(fields: [clientId], references: [id])
-  Users_Deal_propertyAgentIdToUsers Users           @relation("Deal_propertyAgentIdToUsers", fields: [propertyAgentId], references: [id])
+  Users_Deal_propertyAgentIdToUsers Users?          @relation("Deal_propertyAgentIdToUsers", fields: [propertyAgentId], references: [id], onDelete: SetNull)
   Properties                        Properties      @relation(fields: [propertyId], references: [id])
   MarketingSpend                    MarketingSpend? @relation(fields: [marketingSpendId], references: [id])
   AgentHours                        AgentHours[]
@@ -380,7 +381,7 @@ model DocumentView {
   viewerUserAgent String?
   viewerUserId    String?
   Documents       Documents @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  Users           Users?    @relation(fields: [viewerUserId], references: [id])
+  Users           Users?    @relation(fields: [viewerUserId], references: [id], onDelete: SetNull)
 
   @@index([documentId])
   @@index([viewedAt])
@@ -425,10 +426,10 @@ model Documents {
   passwordProtected                              Boolean              @default(false)
   shareableLink                                  String?              @unique
   viewsCount                                     Int                  @default(0)
-  organizationId                                 String               @default("00000000-0000-0000-0000-000000000000")
+  organizationId                                 String
   DocumentView                                   DocumentView[]
-  Users_Documents_assigned_userToUsers           Users?               @relation("Documents_assigned_userToUsers", fields: [assigned_user], references: [id])
-  Users_Documents_created_by_userToUsers         Users?               @relation("Documents_created_by_userToUsers", fields: [created_by_user], references: [id])
+  Users_Documents_assigned_userToUsers           Users?               @relation("Documents_assigned_userToUsers", fields: [assigned_user], references: [id], onDelete: SetNull)
+  Users_Documents_created_by_userToUsers         Users?               @relation("Documents_created_by_userToUsers", fields: [created_by_user], references: [id], onDelete: SetNull)
   Documents_Types                                Documents_Types?     @relation(fields: [document_type], references: [id])
   CalendarEvent                                  CalendarEvent[]      @relation("DocumentsToCalendarEvents")
   Client_Contacts                                Client_Contacts[]    @relation("DocumentsToClientContacts")
@@ -441,6 +442,7 @@ model Documents {
   @@index([assigned_user])
   @@index([created_by_user])
   @@index([date_created])
+  @@index([document_type])
   @@index([friendlyId])
   @@index([linkEnabled])
   @@index([organizationId])
@@ -469,7 +471,7 @@ model EventInvitee {
   status         InviteStatus  @default(PENDING)
   respondedAt    DateTime?
   createdAt      DateTime      @default(now())
-  organizationId String        @default("00000000-0000-0000-0000-000000000000")
+  organizationId String
   CalendarEvent  CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
   Users          Users         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -487,7 +489,7 @@ model Feedback {
   userId           String?
   userEmail        String?
   userName         String?
-  organizationId   String            @default("00000000-0000-0000-0000-000000000000")
+  organizationId   String
   feedbackType     String
   feedback         String
   url              String?
@@ -594,7 +596,7 @@ model MyAccount {
   bank_code            String?
   bank_IBAN            String?
   bank_SWIFT           String?
-  organizationId       String  @default("00000000-0000-0000-0000-000000000000")
+  organizationId       String
 
   @@index([organizationId])
 }
@@ -604,7 +606,7 @@ model Notification {
   createdAt      DateTime                @default(now())
   updatedAt      DateTime
   userId         String
-  organizationId String                  @default("00000000-0000-0000-0000-000000000000")
+  organizationId String
   type           NotificationCategory
   title          String
   message        String
@@ -666,7 +668,7 @@ model Properties {
   year_built             Int?
   description            String?
   watchers               String[]
-  organizationId         String               @default("00000000-0000-0000-0000-000000000000")
+  organizationId         String
   accepts_pets           Boolean?
   accessibility          String?
   address_privacy_level  AddressPrivacyLevel?
@@ -724,7 +726,7 @@ model Properties {
   Client_Properties                   Client_Properties[]
   Deal                                Deal[]
   ProfileShowcaseProperty             ProfileShowcaseProperty[]
-  Users_Properties_assigned_toToUsers Users?                    @relation("Properties_assigned_toToUsers", fields: [assigned_to], references: [id])
+  Users_Properties_assigned_toToUsers Users?                    @relation("Properties_assigned_toToUsers", fields: [assigned_to], references: [id], onDelete: SetNull)
   PropertyComment                     PropertyComment[]
   Property_Contacts                   Property_Contacts[]
   Documents                           Documents[]
@@ -733,7 +735,7 @@ model Properties {
   PropertyShowing                     PropertyShowing[]
   XeSyncItems                         XeSyncItem[]
   Mandate_Properties                  Mandate_Properties[]
-  networkVisible                      Boolean              @default(false)
+  networkVisible                      Boolean                   @default(false)
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_to])
@@ -752,10 +754,10 @@ model PropertyComment {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime
   propertyId String
-  userId     String
+  userId     String?
   content    String
   Properties Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  Users      Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Users      Users?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([propertyId])
@@ -775,21 +777,24 @@ model Property_Contacts {
   contact_first_name String?
   contact_last_name  String
   contact_type       String?
-  Users              Users?      @relation(fields: [assigned_to], references: [id])
+  Users              Users?      @relation(fields: [assigned_to], references: [id], onDelete: SetNull)
   Properties         Properties? @relation(fields: [property], references: [id])
+
+  @@index([assigned_to])
+  @@index([property])
 }
 
 model SharedEntity {
   id                                     String           @id
   entityType                             SharedEntityType
   entityId                               String
-  sharedById                             String
-  sharedWithId                           String
+  sharedById                             String?
+  sharedWithId                           String?
   permissions                            SharePermission  @default(VIEW_COMMENT)
   message                                String?
   createdAt                              DateTime         @default(now())
-  Users_SharedEntity_sharedByIdToUsers   Users            @relation("SharedEntity_sharedByIdToUsers", fields: [sharedById], references: [id], onDelete: Cascade)
-  Users_SharedEntity_sharedWithIdToUsers Users            @relation("SharedEntity_sharedWithIdToUsers", fields: [sharedWithId], references: [id], onDelete: Cascade)
+  Users_SharedEntity_sharedByIdToUsers   Users?           @relation("SharedEntity_sharedByIdToUsers", fields: [sharedById], references: [id], onDelete: SetNull)
+  Users_SharedEntity_sharedWithIdToUsers Users?           @relation("SharedEntity_sharedWithIdToUsers", fields: [sharedWithId], references: [id], onDelete: SetNull)
 
   @@unique([entityType, entityId, sharedWithId])
   @@index([entityType, entityId])
@@ -803,7 +808,7 @@ model SocialPost {
   createdAt            DateTime            @default(now())
   updatedAt            DateTime
   organizationId       String
-  authorId             String
+  authorId             String?
   postType             String
   content              String?
   linkedEntityId       String?
@@ -811,7 +816,7 @@ model SocialPost {
   linkedEntityTitle    String?
   linkedEntitySubtitle String?
   linkedEntityMetadata Json?
-  Users                Users               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  Users                Users?              @relation(fields: [authorId], references: [id], onDelete: SetNull)
   SocialPostComment    SocialPostComment[]
   SocialPostLike       SocialPostLike[]
   attachments          Attachment[]
@@ -828,13 +833,13 @@ model SocialPostComment {
   createdAt               DateTime            @default(now())
   updatedAt               DateTime
   postId                  String
-  userId                  String
+  userId                  String?
   content                 String
   parentId                String?
   SocialPostComment       SocialPostComment?  @relation("SocialPostCommentToSocialPostComment", fields: [parentId], references: [id], onDelete: Cascade)
   other_SocialPostComment SocialPostComment[] @relation("SocialPostCommentToSocialPostComment")
   SocialPost              SocialPost          @relation(fields: [postId], references: [id], onDelete: Cascade)
-  Users                   Users               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Users                   Users?              @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([parentId])
@@ -846,9 +851,9 @@ model SocialPostLike {
   id         String     @id
   createdAt  DateTime   @default(now())
   postId     String
-  userId     String
+  userId     String?
   SocialPost SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  Users      Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Users      Users?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@unique([postId, userId])
   @@index([postId])
@@ -983,17 +988,20 @@ model crm_Accounts_Tasks {
   user                                  String?
   account                               String?
   calendarEventId                       String?
-  organizationId                        String                        @default("00000000-0000-0000-0000-000000000000")
+  organizationId                        String
   Clients                               Clients?                      @relation(fields: [account], references: [id])
   CalendarEvent                         CalendarEvent?                @relation(fields: [calendarEventId], references: [id])
-  Users                                 Users?                        @relation(fields: [user], references: [id])
+  Users                                 Users?                        @relation(fields: [user], references: [id], onDelete: SetNull)
   crm_Accounts_Tasks_Comments           crm_Accounts_Tasks_Comments[]
   Documents_DocumentsToCrmAccountsTasks Documents[]                   @relation("DocumentsToCrmAccountsTasks")
   Documents_DocumentsToTasksExplicit    Documents[]                   @relation("DocumentsToTasksExplicit")
 
   @@unique([friendlyId, organizationId])
+  @@index([account])
+  @@index([calendarEventId])
   @@index([friendlyId])
   @@index([organizationId])
+  @@index([user])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -1002,12 +1010,14 @@ model crm_Accounts_Tasks_Comments {
   comment            String
   createdAt          DateTime           @default(now())
   crm_account_task   String
-  user               String
-  organizationId     String             @default("00000000-0000-0000-0000-000000000000")
+  user               String?
+  organizationId     String
   crm_Accounts_Tasks crm_Accounts_Tasks @relation(fields: [crm_account_task], references: [id], onDelete: Cascade)
-  Users              Users              @relation(fields: [user], references: [id])
+  Users              Users?             @relation(fields: [user], references: [id], onDelete: SetNull)
 
+  @@index([crm_account_task])
   @@index([organizationId])
+  @@index([user])
 }
 
 model modulStatus {
@@ -1497,6 +1507,13 @@ enum TransactionType {
   AUCTION
 }
 
+enum DepartureReason {
+  LEFT_ORG
+  REMOVED_FROM_ORG
+  ACCOUNT_DELETED
+  ADMIN_FORCE_DELETED
+}
+
 enum MandateStatus {
   DRAFT
   ACTIVE
@@ -1583,14 +1600,15 @@ model Mandate {
 model MandateComment {
   id        String   @id
   mandateId String
-  userId    String
+  userId    String?
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   mandate   Mandate  @relation(fields: [mandateId], references: [id], onDelete: Cascade)
-  user      Users    @relation("MandateComments", fields: [userId], references: [id])
+  user      Users?   @relation("MandateComments", fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([mandateId])
+  @@index([userId])
 }
 
 // ============================================
@@ -1601,7 +1619,7 @@ model Attachment {
   id             String   @id @default(uuid())
   createdAt      DateTime @default(now())
   organizationId String
-  uploadedById   String
+  uploadedById   String?
 
   // File metadata
   fileName String
@@ -1616,7 +1634,7 @@ model Attachment {
   // Relations
   socialPost SocialPost? @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
   feedback   Feedback?   @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
-  uploadedBy Users       @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  uploadedBy Users?      @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
 
   @@index([socialPostId])
   @@index([feedbackId])
@@ -1928,17 +1946,17 @@ model ChangelogEntry {
   status           ChangelogStatus @default(DRAFT)
   tags             Json? // Array of {name: string, color: string}
   publishedAt      DateTime?
-  createdById      String
+  createdById      String?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
   // Notification tracking
-  lastNotifiedAt   DateTime?
-  broadcastCount   Int             @default(0)
-  broadcasts       ChangelogBroadcast[]
+  lastNotifiedAt DateTime?
+  broadcastCount Int                  @default(0)
+  broadcasts     ChangelogBroadcast[]
 
   customCategory ChangelogCustomCategory? @relation(fields: [customCategoryId], references: [id], onDelete: SetNull)
-  createdBy      Users                    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy      Users?                   @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([status])
   @@index([publishedAt])
@@ -1953,13 +1971,14 @@ model ChangelogBroadcast {
   sentAt           DateTime @default(now())
   recipientCount   Int
   resendEmailIds   String[]
-  sentById         String
+  sentById         String?
 
-  changelogEntry   ChangelogEntry @relation(fields: [changelogEntryId], references: [id], onDelete: Cascade)
-  sentBy           Users          @relation(fields: [sentById], references: [id], onDelete: Cascade)
+  changelogEntry ChangelogEntry @relation(fields: [changelogEntryId], references: [id], onDelete: Cascade)
+  sentBy         Users?         @relation(fields: [sentById], references: [id], onDelete: SetNull)
 
   @@index([changelogEntryId])
   @@index([sentAt])
+  @@index([sentById])
 }
 
 enum ChangelogStatus {
@@ -2004,14 +2023,14 @@ model ReservedName {
 
 model ReferralCode {
   id             String   @id @default(uuid())
-  userId         String   @unique
+  userId         String?  @unique
   code           String   @unique
   commissionRate Decimal  @default(10) // Default 10%
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  user      Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      Users?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   referrals Referral[]
 
   @@index([code])
@@ -2021,7 +2040,7 @@ model ReferralCode {
 model Referral {
   id             String         @id @default(uuid())
   referralCodeId String
-  referredUserId String         @unique
+  referredUserId String?        @unique
   status         ReferralStatus @default(PENDING)
   totalEarnings  Decimal        @default(0)
   convertedAt    DateTime?
@@ -2029,7 +2048,7 @@ model Referral {
   updatedAt      DateTime       @updatedAt
 
   referralCode ReferralCode     @relation(fields: [referralCodeId], references: [id])
-  referredUser Users            @relation("ReferredUser", fields: [referredUserId], references: [id])
+  referredUser Users?           @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: SetNull)
   payouts      ReferralPayout[]
 
   @@index([referralCodeId])
@@ -2320,7 +2339,7 @@ model Message {
   channelId      String?
   conversationId String?
 
-  senderId    String
+  senderId    String?
   content     String             @db.Text
   contentType MessageContentType @default(TEXT)
 
@@ -2348,7 +2367,7 @@ model Message {
   conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   parent       Message?      @relation("MessageThread", fields: [parentId], references: [id], onDelete: SetNull)
   replies      Message[]     @relation("MessageThread")
-  sender       Users         @relation("MessagesSent", fields: [senderId], references: [id])
+  sender       Users?        @relation("MessagesSent", fields: [senderId], references: [id], onDelete: SetNull)
 
   reactions    MessageReaction[]
   attachments  MessageAttachment[]
@@ -2968,18 +2987,18 @@ enum DataDeletionStatus {
 }
 
 model DataDeletionRequest {
-  id                String              @id @default(cuid())
+  id                String             @id @default(cuid())
   organizationId    String
   requestedById     String
   reason            String?
-  status            DataDeletionStatus  @default(PENDING)
+  status            DataDeletionStatus @default(PENDING)
   reviewedById      String?
   reviewedAt        DateTime?
   reviewNote        String?
   gracePeriodEndsAt DateTime
   executedAt        DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   @@index([organizationId])
   @@index([requestedById])
