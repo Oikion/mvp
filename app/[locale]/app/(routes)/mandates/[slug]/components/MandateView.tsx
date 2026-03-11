@@ -690,10 +690,11 @@ export default function MandateView({
               <DetailField
                 label={t("MandateForm.fields.assignedTo")}
                 value={
-                  mandate.assigned_to_user ? (
+                  mandate.assigned_to ? (
                     <span className="text-sm">
-                      {mandate.assigned_to_user.name ??
-                        mandate.assigned_to_user.email}
+                      {mandate.assigned_to_user?.name ??
+                        mandate.assigned_to_user?.email ??
+                        "Deleted User"}
                     </span>
                   ) : null
                 }

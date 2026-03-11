@@ -869,7 +869,7 @@ export function PropertyViewEditable({
                 <div className="-mx-2 flex items-start justify-between space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">Assigned To</p>
-                    <p className="text-sm text-muted-foreground">{data.assigned_to_user?.name || "N/A"}</p>
+                    <p className="text-sm text-muted-foreground">{data.assigned_to_user?.name ?? (data.assigned_to ? "Deleted User" : "N/A")}</p>
                   </div>
                 </div>
                 <div className="-mx-2 flex items-start justify-between space-x-4 rounded-md p-2 transition-all hover:bg-accent hover:text-accent-foreground">

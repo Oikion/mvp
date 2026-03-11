@@ -255,16 +255,16 @@ export function FeedCommentThread({
                 {/* Main Comment */}
                 <div className="flex items-start gap-2 group">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={comment.author.avatar} />
+                    <AvatarImage src={comment.author?.avatar} />
                     <AvatarFallback className="text-xs">
-                      {comment.author.name?.charAt(0)?.toUpperCase() || "U"}
+                      {comment.author?.name?.charAt(0)?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="bg-muted/50 rounded-lg px-3 py-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-sm">
-                          {comment.author.name}
+                          {comment.author?.name ?? "Deleted User"}
                         </span>
                         <div className="flex items-center gap-1">
                           <span className="text-xs text-muted-foreground">
@@ -297,7 +297,7 @@ export function FeedCommentThread({
                       onClick={() =>
                         setReplyingTo({
                           id: comment.id,
-                          authorName: comment.author.name,
+                          authorName: comment.author?.name ?? "Deleted User",
                         })
                       }
                     >
@@ -379,15 +379,15 @@ export function FeedCommentThread({
                       >
                         <CornerDownRight className="h-4 w-4 text-muted-foreground mt-2" />
                         <Avatar className="h-7 w-7">
-                          <AvatarImage src={reply.author.avatar} />
+                          <AvatarImage src={reply.author?.avatar} />
                           <AvatarFallback className="text-xs">
-                            {reply.author.name?.charAt(0)?.toUpperCase() || "U"}
+                            {reply.author?.name?.charAt(0)?.toUpperCase() || "U"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 bg-muted/30 rounded-lg px-3 py-2">
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-medium text-sm">
-                              {reply.author.name}
+                              {reply.author?.name ?? "Deleted User"}
                             </span>
                             <div className="flex items-center gap-1">
                               <span className="text-xs text-muted-foreground">

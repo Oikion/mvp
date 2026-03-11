@@ -152,9 +152,9 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
     if (existingInvitees && existingInvitees.length > 0) {
       const transformedInvitees: Invitee[] = existingInvitees.map((inv) => ({
         userId: inv.userId,
-        name: inv.user.name || inv.user.email,
-        email: inv.user.email,
-        avatar: inv.user.avatar,
+        name: inv.user?.name || inv.user?.email || "Deleted User",
+        email: inv.user?.email ?? "",
+        avatar: inv.user?.avatar ?? null,
         type: "organization" as const,
         status: inv.status,
       }));

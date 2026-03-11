@@ -121,9 +121,9 @@ export const GET = withExternalApi(
           convertedAt: referral.convertedAt?.toISOString() || null,
           createdAt: referral.createdAt.toISOString(),
           referrer: {
-            id: referral.referralCode.user.id,
-            name: referral.referralCode.user.name,
-            email: referral.referralCode.user.email,
+            id: referral.referralCode.user?.id ?? "",
+            name: referral.referralCode.user?.name ?? null,
+            email: referral.referralCode.user?.email ?? "",
           },
           referredUser: {
             id: referral.referredUser.id,
@@ -240,8 +240,8 @@ export const POST = withExternalApi(
           id: referral.id,
           status: referral.status,
           referrer: {
-            id: code.user.id,
-            name: code.user.name,
+            id: code.user?.id ?? "",
+            name: code.user?.name ?? null,
           },
           referredUser: {
             id: referredUser.id,

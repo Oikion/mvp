@@ -320,14 +320,14 @@ export function DealDetail({ deal }: DealDetailProps) {
                     {/* Property Agent */}
                     <div className="flex-1 text-center">
                       <Avatar className="h-16 w-16 mx-auto mb-2">
-                        <AvatarImage src={deal.propertyAgent.avatar || ""} />
+                        <AvatarImage src={deal.propertyAgent?.avatar || ""} />
                         <AvatarFallback className="bg-primary/15 text-primary dark:text-primary text-xl">
-                          {deal.propertyAgent.name?.charAt(0) || (
+                          {deal.propertyAgent?.name?.charAt(0) || (
                             <User className="h-6 w-6" />
                           )}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="font-semibold">{deal.propertyAgent.name}</p>
+                      <p className="font-semibold">{deal.propertyAgent?.name ?? "Deleted User"}</p>
                       <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                         <Building2 className="h-3 w-3" />
                         Property Agent
@@ -351,14 +351,14 @@ export function DealDetail({ deal }: DealDetailProps) {
                     {/* Client Agent */}
                     <div className="flex-1 text-center">
                       <Avatar className="h-16 w-16 mx-auto mb-2">
-                        <AvatarImage src={deal.clientAgent.avatar || ""} />
+                        <AvatarImage src={deal.clientAgent?.avatar || ""} />
                         <AvatarFallback className="bg-success/15 text-success dark:text-success text-xl">
-                          {deal.clientAgent.name?.charAt(0) || (
+                          {deal.clientAgent?.name?.charAt(0) || (
                             <User className="h-6 w-6" />
                           )}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="font-semibold">{deal.clientAgent.name}</p>
+                      <p className="font-semibold">{deal.clientAgent?.name ?? "Deleted User"}</p>
                       <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                         <Users className="h-3 w-3" />
                         Client Agent
@@ -611,7 +611,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                 <p className="text-sm text-muted-foreground">Split breakdown:</p>
                 <div className="flex justify-between mt-2">
                   <span>
-                    {deal.propertyAgent.name} ({Number(deal.propertyAgentSplit)}%)
+                    {deal.propertyAgent?.name ?? "Deleted User"} ({Number(deal.propertyAgentSplit)}%)
                   </span>
                   <span className="font-semibold">
                     {formatPrice(
@@ -623,7 +623,7 @@ export function DealDetail({ deal }: DealDetailProps) {
                 </div>
                 <div className="flex justify-between mt-1">
                   <span>
-                    {deal.clientAgent.name} ({Number(deal.clientAgentSplit)}%)
+                    {deal.clientAgent?.name ?? "Deleted User"} ({Number(deal.clientAgentSplit)}%)
                   </span>
                   <span className="font-semibold">
                     {formatPrice(

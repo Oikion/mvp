@@ -76,7 +76,7 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
 
   // Get connection user IDs to filter them out from team members
   const connectionUserIds = useMemo(() => {
-    return new Set(connections.map((conn) => conn.user.id));
+    return new Set(connections.map((conn) => conn.user?.id).filter(Boolean));
   }, [connections]);
 
   // Filter out current user and connections from team members list
@@ -99,8 +99,8 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
     const query = searchQuery.toLowerCase();
     return connections.filter(
       (conn) =>
-        conn.user.name?.toLowerCase().includes(query) ||
-        conn.user.email.toLowerCase().includes(query)
+        conn.user?.name?.toLowerCase().includes(query) ||
+        conn.user?.email?.toLowerCase().includes(query)
     );
   }, [connections, searchQuery]);
 
@@ -138,7 +138,7 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
 
   const selectedConnection = useMemo(() => {
     if (!selection || selection.type !== "connection") return null;
-    return connections.find((conn) => conn.user.id === selection.id);
+    return connections.find((conn) => conn.user?.id === selection.id);
   }, [selection, connections]);
 
   const handleSelect = (type: SelectionType, id: string) => {
@@ -267,23 +267,23 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
                           </div>
                           {filteredConnections.map((connection) => (
                             <button
-                              key={`connection-${connection.user.id}`}
+                              key={`connection-${connection.user?.id}`}
                               type="button"
-                              onClick={() => handleSelect("connection", connection.user.id)}
+                              onClick={() => handleSelect("connection", connection.user?.id ?? "")}
                               className="w-full flex items-center gap-3 px-2 py-1.5 rounded-sm text-left hover:bg-accent focus:bg-accent outline-none cursor-pointer transition-colors"
                             >
                               <Avatar className="h-8 w-8">
-                                <AvatarImage src={connection.user.avatar || undefined} />
+                                <AvatarImage src={connection.user?.avatar || undefined} />
                                 <AvatarFallback className="text-xs bg-success/10 text-success dark:bg-success/20/30 dark:text-success">
-                                  {getInitials(connection.user.name || connection.user.email || "U")}
+                                  {getInitials(connection.user?.name || connection.user?.email || "U")}
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate">
-                                  {connection.user.name || "Unknown"}
+                                  {connection.user?.name || "Deleted User"}
                                 </p>
                                 <p className="text-xs text-muted-foreground truncate">
-                                  {connection.user.email}
+                                  {connection.user?.email ?? ""}
                                 </p>
                               </div>
                               <Badge
@@ -294,7 +294,7 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
                                 Connection
                               </Badge>
                               {selection?.type === "connection" &&
-                                selection.id === connection.user.id && (
+                                selection.id === connection.user?.id && (
                                   <Check className="h-4 w-4 text-primary" />
                                 )}
                             </button>
@@ -408,11 +408,11 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
                       </>
                     ) : selectedConnection ? (
                       <>
-                        <AvatarImage src={selectedConnection.user.avatar || undefined} />
+                        <AvatarImage src={selectedConnection.user?.avatar || undefined} />
                         <AvatarFallback className="bg-success/10 text-success dark:bg-success/20/30 dark:text-success">
                           {getInitials(
-                            selectedConnection.user.name ||
-                              selectedConnection.user.email ||
+                            selectedConnection.user?.name ||
+                              selectedConnection.user?.email ||
                               "U"
                           )}
                         </AvatarFallback>
@@ -426,12 +426,12 @@ export function StartDMDialog({ open, onOpenChange }: StartDMDialogProps) {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium">
                       {selectedUser?.name ||
-                        selectedConnection?.user.name ||
+                        selectedConnection?.user?.name ||
                         selectedContact?.name}
                     </p>
                     <p className="text-sm text-muted-foreground truncate">
                       {selectedUser?.email ||
-                        selectedConnection?.user.email ||
+                        selectedConnection?.user?.email ||
                         selectedContact?.email ||
                         selectedContact?.clientName ||
                         "Contact"}

@@ -90,15 +90,15 @@ function generateJsonLd(post: any, locale: string) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SocialMediaPosting",
-    headline: post.linkedEntity?.title || `Post by ${post.author.name}`,
+    headline: post.linkedEntity?.title || `Post by ${post.author?.name ?? "Deleted User"}`,
     articleBody: post.content || "",
     author: {
       "@type": "Person",
-      name: post.author.name,
-      url: post.author.username
+      name: post.author?.name ?? "Deleted User",
+      url: post.author?.username
         ? `${baseUrl}/${locale}/agent/${post.author.username}`
         : undefined,
-      image: post.author.avatar || undefined,
+      image: post.author?.avatar || undefined,
     },
     datePublished: post.timestamp,
     interactionStatistic: [

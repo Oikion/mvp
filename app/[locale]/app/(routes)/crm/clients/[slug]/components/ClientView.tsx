@@ -80,7 +80,7 @@ interface ClientViewProps {
 
     communication_notes?: Record<string, unknown>;
     assigned_to?: string;
-    assigned_to_user?: { name: string };
+    assigned_to_user?: { name: string } | null;
     annual_revenue?: string;
     member_of?: string;
     industry?: string;
@@ -429,7 +429,7 @@ export default function ClientView({
               />
               <DetailField
                 label="Assigned to"
-                value={data.assigned_to_user?.name}
+                value={data.assigned_to_user?.name ?? (data.assigned_to ? "Deleted User" : undefined)}
               />
 
               <Separator />

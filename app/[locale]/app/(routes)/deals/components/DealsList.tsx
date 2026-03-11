@@ -56,12 +56,12 @@ interface Deal {
     id: string;
     name: string | null;
     avatar: string | null;
-  };
+  } | null;
   clientAgent: {
     id: string;
     name: string | null;
     avatar: string | null;
-  };
+  } | null;
 }
 
 interface DealsListProps {
@@ -203,13 +203,13 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                   {/* Property Agent */}
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={deal.propertyAgent.avatar || ""} />
+                      <AvatarImage src={deal.propertyAgent?.avatar || ""} />
                       <AvatarFallback className="text-xs bg-primary/15 text-primary dark:text-primary">
-                        {deal.propertyAgent.name?.charAt(0) || <User className="h-3 w-3" />}
+                        {deal.propertyAgent?.name?.charAt(0) || <User className="h-3 w-3" />}
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-sm">
-                      <p className="font-medium">{deal.propertyAgent.name}</p>
+                      <p className="font-medium">{deal.propertyAgent?.name ?? "Deleted User"}</p>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                         <Building2 className="h-3 w-3" />
                         {Number(deal.propertyAgentSplit)}%
@@ -222,13 +222,13 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
                   {/* Client Agent */}
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={deal.clientAgent.avatar || ""} />
+                      <AvatarImage src={deal.clientAgent?.avatar || ""} />
                       <AvatarFallback className="text-xs bg-success/15 text-success dark:text-success">
-                        {deal.clientAgent.name?.charAt(0) || <User className="h-3 w-3" />}
+                        {deal.clientAgent?.name?.charAt(0) || <User className="h-3 w-3" />}
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-sm">
-                      <p className="font-medium">{deal.clientAgent.name}</p>
+                      <p className="font-medium">{deal.clientAgent?.name ?? "Deleted User"}</p>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                         <Users className="h-3 w-3" />
                         {Number(deal.clientAgentSplit)}%

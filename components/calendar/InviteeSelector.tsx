@@ -77,11 +77,12 @@ export function InviteeSelector({
   // Transform connections to invitee format
   const connectionInvitees: Invitee[] = (connections || [])
     .filter((conn) => conn.status === "ACCEPTED")
+    .filter((conn) => conn.user != null)
     .map((conn) => ({
-      userId: conn.user.id,
-      name: conn.user.name || conn.user.email,
-      email: conn.user.email,
-      avatar: conn.user.avatar,
+      userId: conn.user!.id,
+      name: conn.user!.name || conn.user!.email,
+      email: conn.user!.email,
+      avatar: conn.user!.avatar,
       type: "connection" as const,
     }));
 

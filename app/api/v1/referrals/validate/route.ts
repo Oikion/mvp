@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get a display name for the referrer (anonymized)
-    const referrerName = referralCode.user.name || referralCode.user.firstName || "A friend";
+    const referrerName = referralCode.user?.name || referralCode.user?.firstName || "A friend";
     // Only show first name or first part of name for privacy
     const displayName = referrerName.split(" ")[0];
 

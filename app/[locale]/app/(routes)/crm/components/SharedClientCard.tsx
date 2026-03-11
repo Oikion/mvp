@@ -72,14 +72,14 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
         <div className="pt-3 border-t mt-3 space-y-2">
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={data.sharedBy.avatar || ""} />
+              <AvatarImage src={data.sharedBy?.avatar || ""} />
               <AvatarFallback className="text-xs bg-muted">
-                {data.sharedBy.name?.charAt(0) || "?"}
+                {data.sharedBy?.name?.charAt(0) || "?"}
               </AvatarFallback>
             </Avatar>
             <span className="text-xs text-muted-foreground">
               {t("SharedView.sharedBy")}{" "}
-              <span className="font-medium text-foreground">{data.sharedBy.name}</span>
+              <span className="font-medium text-foreground">{data.sharedBy?.name ?? "Deleted User"}</span>
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">

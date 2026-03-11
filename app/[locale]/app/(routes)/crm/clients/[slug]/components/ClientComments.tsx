@@ -188,9 +188,9 @@ export function ClientComments({
                 className="flex gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={comment.user.avatar || ""} />
+                  <AvatarImage src={comment.user?.avatar || ""} />
                   <AvatarFallback className="text-xs">
-                    {comment.user.name?.charAt(0) || (
+                    {comment.user?.name?.charAt(0) || (
                       <User className="h-3 w-3" />
                     )}
                   </AvatarFallback>
@@ -199,7 +199,7 @@ export function ClientComments({
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-sm font-medium truncate">
-                        {comment.user.name || comment.user.email}
+                        {comment.user?.name || comment.user?.email || "Deleted User"}
                       </span>
                       <span className="text-xs text-muted-foreground flex-shrink-0">
                         {formatDistanceToNow(new Date(comment.createdAt), {
@@ -207,7 +207,7 @@ export function ClientComments({
                         })}
                       </span>
                     </div>
-                    {comment.user.id === currentUserId && (
+                    {comment.user?.id === currentUserId && (
                       <Button
                         variant="ghost"
                         size="sm"

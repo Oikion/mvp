@@ -103,9 +103,9 @@ export const GET = withExternalApi(
         createdAt: referral.createdAt.toISOString(),
         updatedAt: referral.updatedAt.toISOString(),
         referrer: {
-          id: referral.referralCode.user.id,
-          name: referral.referralCode.user.name,
-          email: referral.referralCode.user.email,
+          id: referral.referralCode.user?.id ?? "",
+          name: referral.referralCode.user?.name ?? null,
+          email: referral.referralCode.user?.email ?? "",
           code: referral.referralCode.code,
           commissionRate: Number(referral.referralCode.commissionRate),
         },
@@ -222,9 +222,9 @@ export const PATCH = withExternalApi(
         createdAt: updatedReferral.createdAt.toISOString(),
         updatedAt: updatedReferral.updatedAt.toISOString(),
         referrer: {
-          id: updatedReferral.referralCode.user.id,
-          name: updatedReferral.referralCode.user.name,
-          email: updatedReferral.referralCode.user.email,
+          id: updatedReferral.referralCode.user?.id ?? "",
+          name: updatedReferral.referralCode.user?.name ?? null,
+          email: updatedReferral.referralCode.user?.email ?? "",
         },
         referredUser: {
           id: updatedReferral.referredUser.id,

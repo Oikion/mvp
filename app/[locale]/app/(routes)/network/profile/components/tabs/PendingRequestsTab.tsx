@@ -112,18 +112,18 @@ function ReceivedRequestItem({
       <div className="flex items-center gap-4">
         <Avatar className="h-12 w-12">
           <AvatarImage
-            src={request.user.avatar || ""}
-            alt={request.user.name || ""}
+            src={request.user?.avatar || ""}
+            alt={request.user?.name || ""}
           />
           <AvatarFallback className="bg-warning/15 text-warning dark:text-orange-400">
-            {request.user.name?.charAt(0) || <User className="h-5 w-5" />}
+            {request.user?.name?.charAt(0) || <User className="h-5 w-5" />}
           </AvatarFallback>
         </Avatar>
         <div>
           <div className="flex items-center gap-2">
-            <h4 className="font-medium">{request.user.name}</h4>
-            {request.user.agentProfile?.visibility !== "PERSONAL" &&
-              request.user.agentProfile?.slug && (
+            <h4 className="font-medium">{request.user?.name ?? "Deleted User"}</h4>
+            {request.user?.agentProfile?.visibility !== "PERSONAL" &&
+              request.user?.agentProfile?.slug && (
                 <Link
                   href={`/agent/${request.user.agentProfile.slug}`}
                   className="text-muted-foreground hover:text-primary"
@@ -133,7 +133,7 @@ function ReceivedRequestItem({
               )}
           </div>
           <p className="text-sm text-muted-foreground">
-            {request.user.email}
+            {request.user?.email ?? ""}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             {(t.pendingList?.sentAgo || "Sent {time} ago").replace(
@@ -141,8 +141,8 @@ function ReceivedRequestItem({
               formatDistanceToNow(new Date(request.createdAt), { locale: dateLocale })
             )}
           </p>
-          {request.user.agentProfile?.specializations &&
-            request.user.agentProfile.specializations.length > 0 && (
+          {request.user?.agentProfile?.specializations &&
+            request.user?.agentProfile.specializations.length > 0 && (
               <div className="flex gap-1 mt-2">
                 {request.user.agentProfile.specializations
                   .slice(0, 3)
@@ -206,20 +206,20 @@ function SentRequestItem({
       <div className="flex items-center gap-4">
         <Avatar className="h-12 w-12">
           <AvatarImage
-            src={connection.user.avatar || ""}
-            alt={connection.user.name || ""}
+            src={connection.user?.avatar || ""}
+            alt={connection.user?.name || ""}
           />
           <AvatarFallback className="bg-primary/10">
-            {connection.user.name?.charAt(0) || <User className="h-5 w-5" />}
+            {connection.user?.name?.charAt(0) || <User className="h-5 w-5" />}
           </AvatarFallback>
         </Avatar>
         <div>
-          <h4 className="font-medium">{connection.user.name}</h4>
+          <h4 className="font-medium">{connection.user?.name ?? "Deleted User"}</h4>
           <p className="text-sm text-muted-foreground">
-            {connection.user.email}
+            {connection.user?.email ?? ""}
           </p>
-          {connection.user.agentProfile?.specializations &&
-            connection.user.agentProfile.specializations.length > 0 && (
+          {connection.user?.agentProfile?.specializations &&
+            connection.user?.agentProfile.specializations.length > 0 && (
               <div className="flex gap-1 mt-1">
                 {connection.user.agentProfile.specializations
                   .slice(0, 2)
@@ -228,7 +228,7 @@ function SentRequestItem({
                       {spec}
                     </Badge>
                   ))}
-                {connection.user.agentProfile.specializations.length > 2 && (
+                {connection.user?.agentProfile?.specializations && connection.user.agentProfile.specializations.length > 2 && (
                   <Badge variant="secondary" className="text-xs">
                     +{connection.user.agentProfile.specializations.length - 2}
                   </Badge>
@@ -253,8 +253,8 @@ function SentRequestItem({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {connection.user.agentProfile?.visibility !== "PERSONAL" &&
-              connection.user.agentProfile?.slug && (
+            {connection.user?.agentProfile?.visibility !== "PERSONAL" &&
+              connection.user?.agentProfile?.slug && (
                 <DropdownMenuItem asChild>
                   <Link href={`/agent/${connection.user.agentProfile.slug}`}>
                     <ExternalLink className="h-4 w-4 mr-2" />

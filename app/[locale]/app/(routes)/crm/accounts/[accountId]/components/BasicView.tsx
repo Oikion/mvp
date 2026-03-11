@@ -156,7 +156,7 @@ export async function BasicView({ data }: OppsViewProps) {
                     Assigned to
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {data.assigned_to_user.name}
+                    {data.assigned_to_user?.name ?? "Deleted User"}
                   </p>
                 </div>
               </div>
@@ -391,7 +391,7 @@ export async function BasicView({ data }: OppsViewProps) {
             <div className="space-y-1">
               <p className="text-sm font-medium leading-none">Assigned to</p>
               <p className="text-sm text-muted-foreground">
-                {data.assigned_to_user.name}
+                {data.assigned_to_user?.name ?? "Deleted User"}
               </p>
             </div>
           </div>

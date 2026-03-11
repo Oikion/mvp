@@ -35,7 +35,7 @@ interface SharedEntity {
     name: string | null;
     email: string;
     avatar: string | null;
-  };
+  } | null;
   entity: any;
 }
 
@@ -251,13 +251,13 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
         <div className="mt-4 pt-3 border-t flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={sharedBy.avatar || ""} />
+              <AvatarImage src={sharedBy?.avatar || ""} />
               <AvatarFallback className="text-xs">
-                {sharedBy.name?.charAt(0)}
+                {sharedBy?.name?.charAt(0) || "?"}
               </AvatarFallback>
             </Avatar>
             <span className="text-muted-foreground">
-              {t.card.sharedBy} <span className="font-medium text-foreground">{sharedBy.name}</span>
+              {t.card.sharedBy} <span className="font-medium text-foreground">{sharedBy?.name ?? "Deleted User"}</span>
             </span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">

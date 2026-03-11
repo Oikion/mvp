@@ -36,7 +36,7 @@ export function NetworkFeed({
           <CardContent className="pt-4">
             <div className="flex gap-3">
               <Avatar className="h-10 w-10 shrink-0">
-                <AvatarImage src={post.author.avatar ?? undefined} alt="" />
+                <AvatarImage src={post.author?.avatar ?? undefined} alt="" />
                 <AvatarFallback>
                   <User className="h-5 w-5" aria-hidden />
                 </AvatarFallback>
@@ -44,10 +44,10 @@ export function NetworkFeed({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-sm">
                   <Link
-                    href={`/agent/${post.author.slug}`}
+                    href={`/agent/${post.author?.slug ?? ""}`}
                     className="font-medium text-primary hover:underline"
                   >
-                    {post.author.name ?? post.author.username ?? "Agent"}
+                    {post.author?.name ?? post.author?.username ?? "Deleted User"}
                   </Link>
                   <span className="text-muted-foreground">
                     · {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: dateLocale })}

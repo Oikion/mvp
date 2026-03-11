@@ -25,7 +25,7 @@ interface PropertyCardProps {
     bathrooms?: number;
     square_feet?: number;
     address_city?: string;
-    assigned_to_user?: { name: string };
+    assigned_to_user?: { name: string } | null;
     linkedDocuments?: Array<{ document_file_url?: string }>;
     updatedAt?: string | Date;
   };

@@ -52,7 +52,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
   };
 
   const getVisibilityBadge = () => {
-    switch (post.author.visibility) {
+    switch (post.author?.visibility) {
       case "PUBLIC":
         return (
           <Badge
@@ -122,7 +122,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
                 {locale === "el" ? "Ιδιωτική Δημοσίευση" : "Private Post"}
               </h1>
               <p className="text-muted-foreground dark:text-muted-foreground mb-6 max-w-md">
-                {post.author.visibility === "PERSONAL"
+                {post.author?.visibility === "PERSONAL"
                   ? locale === "el"
                     ? "Αυτή η δημοσίευση είναι μόνο για τις συνδέσεις του χρήστη."
                     : "This post is only visible to the author's connections."
@@ -163,16 +163,16 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
               <div className="flex items-center gap-3">
                 <Link
                   href={
-                    post.author.username
+                    post.author?.username
                       ? `/agent/${post.author.username}`
                       : "#"
                   }
                   className="hover:opacity-80 transition-opacity"
                 >
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={post.author.avatar || undefined} />
+                    <AvatarImage src={post.author?.avatar || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold">
-                      {post.author.name?.charAt(0)?.toUpperCase() || "U"}
+                      {post.author?.name?.charAt(0)?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                 </Link>
@@ -180,13 +180,13 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
                   <div className="flex items-center gap-2">
                     <Link
                       href={
-                        post.author.username
+                        post.author?.username
                           ? `/agent/${post.author.username}`
                           : "#"
                       }
                       className="font-semibold text-foreground dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors"
                     >
-                      {post.author.name}
+                      {post.author?.name ?? "Deleted User"}
                     </Link>
                     {getVisibilityBadge()}
                   </div>
@@ -300,7 +300,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
                 ? "Συνδεθείτε με τον μεσίτη για περισσότερες πληροφορίες."
                 : "Connect with the agent for more information."}
             </p>
-            {post.author.username && (
+            {post.author?.username && (
               <Button variant="secondary" asChild>
                 <Link href={`/agent/${post.author.username}`}>
                   {locale === "el" ? "Προβολή Προφίλ" : "View Profile"}

@@ -138,9 +138,9 @@ export const GET = withExternalApi(
     const processedTopReferrers = topReferrers
       .map((code) => ({
         user: {
-          id: code.user.id,
-          name: code.user.name,
-          email: code.user.email,
+          id: code.user?.id ?? "",
+          name: code.user?.name ?? null,
+          email: code.user?.email ?? "",
         },
         code: code.code,
         commissionRate: Number(code.commissionRate),

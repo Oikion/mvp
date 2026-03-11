@@ -168,9 +168,9 @@ export async function adminGetAllReferrals(
 
       return {
         id: ref.id,
-        referrerId: ref.referralCode.user.id,
-        referrerEmail: ref.referralCode.user.email,
-        referrerName: ref.referralCode.user.name,
+        referrerId: ref.referralCode.user?.id ?? "",
+        referrerEmail: ref.referralCode.user?.email ?? "",
+        referrerName: ref.referralCode.user?.name ?? null,
         referredUserId: ref.referredUser.id,
         referredUserEmail: ref.referredUser.email,
         referredUserName: ref.referredUser.name,
@@ -248,9 +248,9 @@ export async function adminGetAllReferralCodes(
 
     const processedCodes: AdminReferralCodeData[] = codes.map((code) => ({
       id: code.id,
-      userId: code.user.id,
-      userEmail: code.user.email,
-      userName: code.user.name,
+      userId: code.user?.id ?? "",
+      userEmail: code.user?.email ?? "",
+      userName: code.user?.name ?? null,
       code: code.code,
       commissionRate: Number(code.commissionRate),
       isActive: code.isActive,
@@ -367,9 +367,9 @@ export async function adminGetReferralDetails(referralId: string) {
     convertedAt: referral.convertedAt,
     createdAt: referral.createdAt,
     referrer: {
-      id: referral.referralCode.user.id,
-      email: referral.referralCode.user.email,
-      name: referral.referralCode.user.name,
+      id: referral.referralCode.user?.id ?? "",
+      email: referral.referralCode.user?.email ?? "",
+      name: referral.referralCode.user?.name ?? null,
       commissionRate: Number(referral.referralCode.commissionRate),
     },
     referredUser: {

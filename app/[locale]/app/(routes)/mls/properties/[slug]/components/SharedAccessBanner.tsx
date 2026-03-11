@@ -15,7 +15,7 @@ interface ShareInfo {
     name: string | null;
     email: string;
     avatar: string | null;
-  };
+  } | null;
 }
 
 interface SharedAccessBannerProps {
@@ -66,15 +66,15 @@ export function SharedAccessBanner({ shareInfo, entityType: _entityType }: Share
           
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={shareInfo.sharedBy.avatar || ""} />
+              <AvatarImage src={shareInfo.sharedBy?.avatar || ""} />
               <AvatarFallback className="text-xs bg-info/20">
-                {shareInfo.sharedBy.name?.charAt(0) || <User className="h-3 w-3" />}
+                {shareInfo.sharedBy?.name?.charAt(0) || <User className="h-3 w-3" />}
               </AvatarFallback>
             </Avatar>
             <span className="text-sm text-muted-foreground">
               Shared by{" "}
               <span className="font-medium text-foreground">
-                {shareInfo.sharedBy.name || shareInfo.sharedBy.email}
+                {shareInfo.sharedBy?.name || shareInfo.sharedBy?.email || "Deleted User"}
               </span>
             </span>
           </div>

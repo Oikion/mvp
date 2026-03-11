@@ -120,7 +120,7 @@ export async function validateReferralCode(code: string): Promise<{
     }
 
     // Get a display name for the referrer
-    const referrerName = referralCode.user.name || referralCode.user.firstName || "A friend";
+    const referrerName = referralCode.user?.name || referralCode.user?.firstName || "A friend";
 
     return {
       valid: true,

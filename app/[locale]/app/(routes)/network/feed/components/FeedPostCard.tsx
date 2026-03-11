@@ -51,7 +51,7 @@ export interface SocialPost {
     avatar?: string;
     organizationName?: string;
     visibility?: ProfileVisibility;
-  };
+  } | null;
   linkedEntity?: {
     id: string;
     friendlyId: string;
@@ -155,7 +155,7 @@ export function FeedPostCard({
       );
     }
 
-    switch (post.author.visibility) {
+    switch (post.author?.visibility) {
       case "PUBLIC":
         return (
           <Badge
@@ -187,9 +187,9 @@ export function FeedPostCard({
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={post.author.avatar} />
+              <AvatarImage src={post.author?.avatar} />
               <AvatarFallback>
-                {post.author.name?.charAt(0)?.toUpperCase() || "U"}
+                {post.author?.name?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -198,14 +198,14 @@ export function FeedPostCard({
                   href={`/app/network/profile`}
                   className="font-semibold text-sm text-foreground hover:text-primary hover:underline"
                 >
-                  {post.author.name}
+                  {post.author?.name ?? "Deleted User"}
                 </Link>
                 {getVisibilityBadge()}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                {post.author.organizationName && (
+                {post.author?.organizationName && (
                   <>
-                    <span>{post.author.organizationName}</span>
+                    <span>{post.author?.organizationName}</span>
                     <span className="text-muted-foreground/50">|</span>
                   </>
                 )}
