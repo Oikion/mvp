@@ -1,0 +1,83 @@
+{
+  "selector": {
+    "title": "Data Ownership Policy",
+    "description": "Choose who owns the data created by agents in your organization.",
+    "agency": {
+      "title": "Agency-Owned",
+      "description": "All data belongs to the agency. When agents leave, their data stays with the organization."
+    },
+    "agent": {
+      "title": "Agent-Owned",
+      "description": "Agents own the data they create. When agents leave, their data migrates to their personal workspace."
+    }
+  },
+  "banner": {
+    "title": "Data Ownership Policy Required",
+    "description": "Your organization hasn't set a data ownership policy yet. This determines what happens to data when agents leave.",
+    "chooseNow": "Choose now",
+    "askAdmin": "Ask your admin to set the data ownership policy."
+  },
+  "consent": {
+    "invitation": {
+      "title": "Data Ownership Consent",
+      "description": "Before joining {orgName}, please review and accept the data ownership policy.",
+      "policyDescription_AGENCY": "This organization uses an Agency-Owned data policy. All data you create will belong to the organization.",
+      "policyDescription_AGENT": "This organization uses an Agent-Owned data policy. Data you create will remain yours if you leave.",
+      "checkboxLabel": "I understand and accept this data ownership policy",
+      "accept": "Accept & Join",
+      "decline": "Decline"
+    },
+    "policyChange": {
+      "title": "Policy Change — Consent Required",
+      "description": "{orgName} has changed its data ownership policy.",
+      "newPolicy_AGENCY": "The new policy is Agency-Owned. All new data you create will belong to the organization.",
+      "newPolicy_AGENT": "The new policy is Agent-Owned. New data you create will remain yours if you leave.",
+      "note": "Existing data follows the policy that was active when it was created.",
+      "checkboxLabel": "I understand and accept the new data ownership policy",
+      "accept": "Accept New Policy",
+      "leaveInstead": "Leave Organization Instead",
+      "leaveWarning_AGENT": "If you leave, your agent-owned data will be migrated to your personal workspace. Active deals will be cancelled.",
+      "leaveWarning_AGENCY": "If you leave, your data will remain with the organization.",
+      "confirmLeave": "Confirm & Leave"
+    }
+  },
+  "settings": {
+    "title": "Data Ownership",
+    "currentMode": "Current Policy",
+    "mode_AGENCY": "Agency-Owned",
+    "mode_AGENT": "Agent-Owned",
+    "description_AGENCY": "All data belongs to the agency. When agents depart, data stays with the organization.",
+    "description_AGENT": "Agents own the data they create. When agents depart, their data migrates to their personal workspace.",
+    "changePolicy": "Change Policy",
+    "changePolicyWarning": "Changing the data ownership policy requires all agents to re-consent. Existing data follows the policy that was active when it was created (prospective-only).",
+    "policyVersion": "Policy Version",
+    "lastChanged": "Last Changed",
+    "viewDepartures": "View Departure History"
+  },
+  "departures": {
+    "title": "Departure History",
+    "empty": "No departures recorded yet.",
+    "agent": "Agent",
+    "date": "Date",
+    "reason": "Reason",
+    "policy": "Policy Applied",
+    "entities": "Entities Migrated",
+    "deals": "Deals Cancelled",
+    "detail": {
+      "title": "Departure Report",
+      "properties": "Properties",
+      "clients": "Clients",
+      "mandates": "Mandates",
+      "cancelledDeals": "Cancelled Deals",
+      "notes": "Notes"
+    },
+    "reason_LEFT_ORG": "Left Organization",
+    "reason_REMOVED_FROM_ORG": "Removed from Organization",
+    "reason_ACCOUNT_DELETED": "Account Deleted",
+    "reason_ADMIN_FORCE_DELETED": "Admin Force Deleted"
+  },
+  "consentRequired": {
+    "title": "Consent Required",
+    "description": "The organization's data ownership policy has been updated. You must review and accept the new policy to continue."
+  }
+}

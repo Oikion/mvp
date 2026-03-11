@@ -33,6 +33,7 @@ import signInEn from "./locales/en/signIn.json";
 import referralsEn from "./locales/en/referrals.json";
 import messagesEn from "./locales/en/messages.json";
 import mandatesEn from "./locales/en/mandates.json";
+import dataOwnershipEn from "./locales/en/dataOwnership.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -66,6 +67,7 @@ import signInEl from "./locales/el/signIn.json";
 import referralsEl from "./locales/el/referrals.json";
 import messagesEl from "./locales/el/messages.json";
 import mandatesEl from "./locales/el/mandates.json";
+import dataOwnershipEl from "./locales/el/dataOwnership.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -108,6 +110,7 @@ function loadMessages(locale: string) {
     messages.referrals = referralsEl;
     messages.messages = messagesEl;
     messages.mandates = mandatesEl;
+    messages.dataOwnership = dataOwnershipEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -152,6 +155,7 @@ function loadMessages(locale: string) {
     messages.referrals = referralsEn;
     messages.messages = messagesEn;
     messages.mandates = mandatesEn;
+    messages.dataOwnership = dataOwnershipEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))
