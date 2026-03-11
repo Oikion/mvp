@@ -85,10 +85,10 @@ export async function migrateAgentEntities(
         assigned_to: userId,
         property_name: reEncrypted.property_name,
         primary_email: reEncrypted.primary_email,
-        communication_notes: reEncrypted.communication_notes as Prisma.JsonValue,
+        communication_notes: reEncrypted.communication_notes as any,
         property_type: prop.property_type,
         property_status: prop.property_status,
-        property_preferences: prop.property_preferences as Prisma.JsonValue,
+        property_preferences: prop.property_preferences as any,
         address_street: prop.address_street,
         address_city: prop.address_city,
         address_state: prop.address_state,
@@ -116,8 +116,8 @@ export async function migrateAgentEntities(
         energy_cert_class: prop.energy_cert_class,
         furnished: prop.furnished,
         elevator: prop.elevator,
-        orientation: prop.orientation as Prisma.JsonValue,
-        amenities: prop.amenities as Prisma.JsonValue,
+        orientation: prop.orientation as any,
+        amenities: prop.amenities as any,
         createdBy: userId,
         createdAt: prop.createdAt,
         draft_status: false,
@@ -129,10 +129,11 @@ export async function migrateAgentEntities(
       await tx.propertyComment.create({
         data: {
           id: crypto.randomUUID(),
-          propertyId: newPropertyId,
-          userId,
+          Properties: { connect: { id: newPropertyId } },
+          Users: { connect: { id: userId } },
           content: comment.content,
           createdAt: comment.createdAt,
+          updatedAt: comment.createdAt,
         },
       });
     }
@@ -160,13 +161,14 @@ export async function migrateAgentEntities(
         await tx.notification.create({
           data: {
             id: crypto.randomUUID(),
-            userId: counterpartyId,
+            Users: { connect: { id: counterpartyId } },
             organizationId: sourceOrgId,
             type: "DEAL_UPDATED",
             title: `Deal "${deal.title ?? deal.friendlyId}" cancelled — agent departed`,
             message: `A deal has been cancelled because the assigned agent has left the organization.`,
             entityType: "DEAL",
             entityId: deal.id,
+            updatedAt: new Date(),
           },
         });
       }
@@ -234,7 +236,7 @@ export async function migrateAgentEntities(
         doy: reEncrypted.doy,
         id_doc: reEncrypted.id_doc,
         description: reEncrypted.description,
-        communication_notes: reEncrypted.communication_notes as Prisma.JsonValue,
+        communication_notes: reEncrypted.communication_notes as any,
         billing_street: reEncrypted.billing_street,
         billing_city: reEncrypted.billing_city,
         billing_state: reEncrypted.billing_state,
@@ -264,10 +266,11 @@ export async function migrateAgentEntities(
       await tx.clientComment.create({
         data: {
           id: crypto.randomUUID(),
-          clientId: newClientId,
-          userId,
+          Clients: { connect: { id: newClientId } },
+          Users: { connect: { id: userId } },
           content: comment.content,
           createdAt: comment.createdAt,
+          updatedAt: comment.createdAt,
         },
       });
     }
@@ -297,13 +300,14 @@ export async function migrateAgentEntities(
         await tx.notification.create({
           data: {
             id: crypto.randomUUID(),
-            userId: counterpartyId,
+            Users: { connect: { id: counterpartyId } },
             organizationId: sourceOrgId,
             type: "DEAL_UPDATED",
             title: `Deal "${deal.title ?? deal.friendlyId}" cancelled — agent departed`,
             message: `A deal has been cancelled because the assigned agent has left the organization.`,
             entityType: "DEAL",
             entityId: deal.id,
+            updatedAt: new Date(),
           },
         });
       }
@@ -353,11 +357,11 @@ export async function migrateAgentEntities(
         assigned_to: userId,
         title: reEncrypted.title,
         notes: reEncrypted.notes,
-        communication_notes: reEncrypted.communication_notes as Prisma.JsonValue,
+        communication_notes: reEncrypted.communication_notes as any,
         transaction_type: mandate.transaction_type,
         property_type: mandate.property_type,
         property_purpose: mandate.property_purpose,
-        areas_of_interest: mandate.areas_of_interest as Prisma.JsonValue,
+        areas_of_interest: mandate.areas_of_interest as any,
         municipality: mandate.municipality,
         region: mandate.region,
         size_min_sqm: mandate.size_min_sqm,
@@ -382,7 +386,7 @@ export async function migrateAgentEntities(
         elevator: mandate.elevator,
         parking: mandate.parking,
         pets_allowed: mandate.pets_allowed,
-        amenities: mandate.amenities as Prisma.JsonValue,
+        amenities: mandate.amenities as any,
         inside_city_plan: mandate.inside_city_plan,
         legalization_ok: mandate.legalization_ok,
         status: mandate.status,
@@ -400,8 +404,8 @@ export async function migrateAgentEntities(
       await tx.mandateComment.create({
         data: {
           id: crypto.randomUUID(),
-          mandateId: newMandateId,
-          userId,
+          mandate: { connect: { id: newMandateId } },
+          user: { connect: { id: userId } },
           content: comment.content,
           createdAt: comment.createdAt,
         },

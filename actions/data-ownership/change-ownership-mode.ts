@@ -90,7 +90,7 @@ export async function changeOwnershipMode(
           dataOwnershipChangedAt: now,
           dataOwnershipChangedBy: userId,
           policyVersion: newVersion,
-          policyHistory: updatedHistory,
+          policyHistory: updatedHistory as any,
         },
       }),
       // Auto-create owner's consent at the new version

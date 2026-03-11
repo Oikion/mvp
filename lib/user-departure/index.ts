@@ -140,24 +140,24 @@ export async function handleUserDeparture(
       userName,
       reason,
       policyApplied,
-      migratedEntities: migrationResult?.migratedEntities ?? {
+      migratedEntities: (migrationResult?.migratedEntities ?? {
         properties: [],
         clients: [],
         mandates: [],
-      },
-      cancelledDeals: migrationResult?.cancelledDeals ?? [],
-      entityCounts: migrationResult?.entityCounts ?? {
+      }) as any,
+      cancelledDeals: (migrationResult?.cancelledDeals ?? []) as any,
+      entityCounts: (migrationResult?.entityCounts ?? {
         properties: 0,
         clients: 0,
         mandates: 0,
         deals: 0,
-      },
+      }) as any,
       notes: departureLogNotes,
     },
   });
 
   // Step 7b: Send departure email to org owner (fire-and-forget)
-  void sendDepartureEmail(orgId, departureLog.id, userName, policyApplied, migrationResult);
+  void sendDepartureEmail(orgId, departureLog.id, userName, policyApplied, migrationResult ?? null);
 
   // Step 8: Audit log
   console.log(
@@ -217,13 +217,13 @@ async function findOrCreatePersonalWorkspace(userId: string): Promise<string> {
 async function getUserNameSnapshot(userId: string): Promise<string> {
   const user = await prismadb.users.findUnique({
     where: { id: userId },
-    select: { first_name: true, last_name: true, username: true },
+    select: { firstName: true, lastName: true, username: true },
   });
 
   if (!user) return "Unknown User";
 
-  if (user.first_name || user.last_name) {
-    return [user.first_name, user.last_name].filter(Boolean).join(" ");
+  if (user.firstName || user.lastName) {
+    return [user.firstName, user.lastName].filter(Boolean).join(" ");
   }
   return user.username ?? "Unknown User";
 }
