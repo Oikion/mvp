@@ -31,7 +31,7 @@ The codebase needs to:
 
 ## Section 1: Schema Migration
 
-### 1.1 Make 16 Required User-Reference Fields Optional
+### 1.1 Make 18 Required User-Reference Fields Optional
 
 These fields must become `String?` so `onDelete: SetNull` works.
 
@@ -48,6 +48,7 @@ These fields must become `String?` so `onDelete: SetNull` works.
 | SharedEntity | sharedWithId | `String` | `String?` |
 | Deal | clientAgentId | `String` | `String?` |
 | Deal | propertyAgentId | `String` | `String?` |
+| Deal | proposedById | `String` | `String?` |
 | Attachment | uploadedById | `String` | `String?` |
 | ChangelogEntry | createdById | `String` | `String?` |
 | ChangelogBroadcast | sentById | `String` | `String?` |
@@ -57,7 +58,7 @@ These fields must become `String?` so `onDelete: SetNull` works.
 
 ### 1.2 Set Explicit onDelete Rules
 
-**SetNull (org data — authorship is informational, 30 relations):**
+**SetNull (org data — authorship is informational, 31 relations):**
 
 | Model | Field | Current Rule | New Rule |
 |---|---|---|---|
@@ -72,6 +73,7 @@ These fields must become `String?` so `onDelete: SetNull` works.
 | crm_Accounts_Tasks_Comments | user | Restrict | SetNull |
 | Deal | clientAgentId | Restrict | SetNull |
 | Deal | propertyAgentId | Restrict | SetNull |
+| Deal | proposedById | Restrict | SetNull |
 | DocumentView | viewerUserId | Restrict | SetNull |
 | Documents | assigned_user | Restrict | SetNull |
 | Documents | created_by_user | Restrict | SetNull |
@@ -87,7 +89,7 @@ These fields must become `String?` so `onDelete: SetNull` works.
 | ChangelogBroadcast | sentById | Cascade | SetNull |
 | Message | senderId | Restrict | SetNull |
 | Mandate | assigned_to | SetNull | SetNull (already correct) |
-| ReferralCode | userId | Cascade | SetNull |
+| ReferralCode | userId | Cascade | SetNull (also set `isActive = false` in departure service) |
 | Referral | referredUserId | Restrict | SetNull |
 
 **Keep Cascade (user-personal data, 12 relations):**
@@ -107,7 +109,20 @@ These fields must become `String?` so `onDelete: SetNull` works.
 | ApiKey | createdById | API keys are credentials — invalidate on user deletion |
 | WebhookEndpoint | createdById | Tied to API key creator |
 
-### 1.3 Add 11 Missing Indexes
+### 1.3 Add DepartureReason Enum
+
+```prisma
+enum DepartureReason {
+  LEFT_ORG
+  REMOVED_FROM_ORG
+  ACCOUNT_DELETED
+  ADMIN_FORCE_DELETED
+}
+```
+
+This Prisma enum is used by Phase A's departure service and reused by Phase B's `DepartureLog` model.
+
+### 1.4 Add 11 Missing Indexes
 
 | Model | Field |
 |---|---|
@@ -123,7 +138,7 @@ These fields must become `String?` so `onDelete: SetNull` works.
 | crm_Accounts_Tasks_Comments | crm_account_task |
 | crm_Accounts_Tasks_Comments | user |
 
-### 1.4 Remove Sentinel organizationId Defaults
+### 1.5 Remove Sentinel organizationId Defaults
 
 Remove `@default("00000000-0000-0000-0000-000000000000")` from 13 models. No field should have a default or forced ID — if the org ID doesn't exist in Clerk it's invalid.
 
@@ -138,7 +153,9 @@ Remove `@default("00000000-0000-0000-0000-000000000000")` from 13 models. No fie
 ### File: `lib/user-departure/index.ts`
 
 ```typescript
-type DepartureReason = "left_org" | "removed_from_org" | "account_deleted" | "admin_force_deleted";
+// DepartureReason is a Prisma enum (added in Phase A schema migration)
+// enum DepartureReason { LEFT_ORG, REMOVED_FROM_ORG, ACCOUNT_DELETED, ADMIN_FORCE_DELETED }
+import { DepartureReason } from "@prisma/client";
 
 type DepartureResult = {
   orgId: string;
@@ -194,8 +211,8 @@ Create record with: userId, orgId, reason, timestamp, counts of affected records
 
 ### Per-org vs Full-account
 
-- **User leaves one org**: `handleUserDeparture(userId, orgId, "left_org")` — user still exists, only this org's references nulled
-- **User deletes account**: `handleUserDeparture(userId, orgId, "account_deleted")` called for EACH org, then Users row deleted (DB cascades clean up personal data)
+- **User leaves one org**: `handleUserDeparture(userId, orgId, "LEFT_ORG")` — user still exists, only this org's references nulled
+- **User deletes account**: `handleUserDeparture(userId, orgId, "ACCOUNT_DELETED")` called for EACH org, then Users row deleted (DB cascades clean up personal data)
 
 ### Personal Workspace Guard (server-side enforcement)
 
@@ -225,7 +242,7 @@ Returns `{ name: t("common.deletedUser"), email: "", avatar: null }` when user i
 
 ### UI Surfaces Requiring Null-Safety
 
-Every component that renders user references from the 30 SetNull fields:
+Every component that renders user references from the 31 SetNull fields:
 
 - Property/Client/Mandate views: `assigned_to` user name
 - Deal view: `clientAgentId`, `propertyAgentId` agent names
@@ -253,7 +270,7 @@ Replace 23 manual `deleteMany` calls with:
 1. Validate request (status, grace period) — keep as-is
 2. Set status → PROCESSING
 3. Get user's org memberships from Clerk
-4. For each org: `await handleUserDeparture(userId, orgId, "account_deleted")`
+4. For each org: `await handleUserDeparture(userId, orgId, "ACCOUNT_DELETED")`
 5. Delete Users row (triggers Cascade for personal data)
 6. Delete from Clerk
 7. Set status → COMPLETED
@@ -264,7 +281,7 @@ Replace 23 manual `deleteMany` calls with:
 Replace ~50 lines of manual deletes with:
 1. Verify "DELETE MY DATA" confirmation
 2. Get org memberships from Clerk
-3. For each org: `await handleUserDeparture(userId, orgId, "account_deleted")`
+3. For each org: `await handleUserDeparture(userId, orgId, "ACCOUNT_DELETED")`
 4. Delete Users row + Delete from Clerk
 
 ### Pathway C: Clerk Webhook (user.deleted)
@@ -273,7 +290,7 @@ Replace ~50 lines of manual deletes with:
 Replace soft-delete + minimal cleanup with:
 1. Find DB user by clerkUserId
 2. Extract org memberships from webhook event payload (user is already deleted in Clerk)
-3. For each org: `await handleUserDeparture(userId, orgId, "account_deleted")`
+3. For each org: `await handleUserDeparture(userId, orgId, "ACCOUNT_DELETED")`
 4. Delete Users row from DB
 
 Remove `cleanupOrganizationData()` from `clerk-sync.ts` (replaced by departure service).
@@ -284,7 +301,7 @@ Remove `cleanupOrganizationData()` from `clerk-sync.ts` (replaced by departure s
 Replace cascade-dependent deletion with:
 1. Verify admin permissions + log action + send email — keep as-is
 2. Get target user's org memberships from Clerk
-3. For each org: `await handleUserDeparture(targetUserId, orgId, "admin_force_deleted")`
+3. For each org: `await handleUserDeparture(targetUserId, orgId, "ADMIN_FORCE_DELETED")`
 4. Delete from Clerk + Delete Users row
 
 ### Pathway E: User Leaves / Removed From Org (NEW)
@@ -293,7 +310,7 @@ Replace cascade-dependent deletion with:
 New handler:
 1. Extract userId, orgId from webhook payload
 2. Check if org is personal workspace → block + restore
-3. `await handleUserDeparture(userId, orgId, "left_org" | "removed_from_org")`
+3. `await handleUserDeparture(userId, orgId, "LEFT_ORG" | "REMOVED_FROM_ORG")`
 4. User still exists — no Users row deletion
 
 This is the pathway Phase B extends with the `dataOwnership` check.
@@ -306,7 +323,7 @@ This is the pathway Phase B extends with the `dataOwnership` check.
 
 | Test File | Verifies |
 |---|---|
-| `departure-agency-owned.test.ts` | SetNull applied to all 30 relations for correct org only |
+| `departure-agency-owned.test.ts` | SetNull applied to all 31 relations for correct org only |
 | `departure-multi-org.test.ts` | Departure from org A doesn't affect org B data |
 | `departure-personal-workspace-blocked.test.ts` | Rejects departure if orgId is personal workspace |
 | `departure-encryption-safety.test.ts` | Blocks if would orphan org's last encryption key |
@@ -324,7 +341,7 @@ This is the pathway Phase B extends with the `dataOwnership` check.
 
 ### UI Null-Safety Verification
 
-Grep-based audit script: find every Prisma `include` of User relations (the 30 SetNull fields) and verify consuming components use `getUserDisplay()` or optional chaining.
+Grep-based audit script: find every Prisma `include` of User relations (the 31 SetNull fields) and verify consuming components use `getUserDisplay()` or optional chaining.
 
 ---
 
@@ -347,8 +364,9 @@ All counts must be zero. Non-zero rows must be assigned to correct org or delete
 ### Step 2: Schema Migration (single Prisma migration)
 
 One migration containing:
-- 17 fields: `String` → `String?`
-- 30 relations: add/change `onDelete` rules
+- `DepartureReason` enum (reused by Phase B)
+- 18 fields: `String` → `String?`
+- 31 relations: add/change `onDelete` rules
 - 11 indexes: CREATE INDEX
 - 13 models: remove `@default(...)` on organizationId
 

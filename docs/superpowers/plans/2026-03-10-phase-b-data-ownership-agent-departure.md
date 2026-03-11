@@ -74,9 +74,9 @@ enum DataOwnershipMode {
 }
 ```
 
-- [ ] **Step 2: Add DepartureReason enum**
+- [ ] **Step 2: Verify DepartureReason enum exists from Phase A**
 
-Add right after `DataOwnershipMode`:
+Phase A's migration adds the `DepartureReason` enum. Verify it exists in the schema:
 
 ```prisma
 enum DepartureReason {
@@ -86,6 +86,8 @@ enum DepartureReason {
   ADMIN_FORCE_DELETED
 }
 ```
+
+If Phase A has not been deployed yet, add this enum now.
 
 - [ ] **Step 3: Extend OrganizationSettings model**
 
@@ -748,7 +750,6 @@ import { getOrgDek } from "@/lib/key-management";
 import { isOrgPersonal } from "@/lib/personal-workspace-guard";
 import { getPolicyForEntity } from "./index";
 import type { MigratedEntities, CancelledDeals, EntityCounts, PolicyEra } from "./types";
-import { DataOwnershipMode } from "@prisma/client";
 
 interface MigrationContext {
   userId: string;
@@ -770,6 +771,19 @@ export async function migrateAgentEntities(
 ): Promise<{ migratedEntities: MigratedEntities; cancelledDeals: CancelledDeals; entityCounts: EntityCounts }> {
   const migratedEntities: MigratedEntities = { properties: [], clients: [], mandates: [] };
   const cancelledDeals: CancelledDeals = [];
+
+  // ─── Ensure personal workspace has encryption key ─────
+  // If the personal workspace has never initialized encryption, create a DEK now.
+  // This must happen before migrating any encrypted data.
+  const personalDek = await tx.orgEncryptionKey.findFirst({
+    where: { organizationId: ctx.personalOrgId },
+  });
+  if (!personalDek) {
+    // Initialize encryption for the personal workspace using the same pattern
+    // as org encryption setup (see lib/key-management.ts initializeOrgEncryption)
+    const { initializeOrgEncryption } = await import("@/lib/key-management");
+    await initializeOrgEncryption(ctx.personalOrgId, ctx.userId);
+  }
 
   // ─── Properties ───────────────────────────────
   const properties = await tx.properties.findMany({
@@ -802,15 +816,23 @@ export async function migrateAgentEntities(
       },
     });
 
-    // Copy property images
+    // Copy property images (field names match PropertyImage schema)
     if (images && images.length > 0) {
       await tx.propertyImage.createMany({
-        data: images.map((img: { url: string; alt: string | null; order: number; isPrimary: boolean }) => ({
+        data: images.map((img) => ({
           propertyId: newProp.id,
+          organizationId: ctx.personalOrgId,
           url: img.url,
-          alt: img.alt,
-          order: img.order,
+          blobPathname: img.blobPathname,
+          position: img.position,
           isPrimary: img.isPrimary,
+          caption: img.caption,
+          width: img.width,
+          height: img.height,
+          fileSize: img.fileSize,
+          originalFileSize: img.originalFileSize,
+          mimeType: img.mimeType,
+          originalFileName: img.originalFileName,
         })),
       });
     }
@@ -832,20 +854,47 @@ export async function migrateAgentEntities(
         data: { status: "CANCELLED", cancellationReason: "AGENT_DEPARTED" },
       });
       cancelledDeals.push({ id: deal.id, title: deal.title || deal.id });
+
+      // Notify the other agent in this deal
+      const otherAgentId = deal.propertyAgentId === ctx.userId
+        ? deal.clientAgentId
+        : deal.propertyAgentId;
+      if (otherAgentId) {
+        await tx.notification.create({
+          data: {
+            userId: otherAgentId,
+            organizationId: ctx.sourceOrgId,
+            type: "DEAL_STATUS_CHANGED",
+            title: `Deal "${deal.title || deal.friendlyId}" cancelled — agent departed`,
+            entityType: "DEAL",
+            entityId: deal.id,
+          },
+        });
+      }
     }
 
     // Invalidate shared entity links
     await tx.sharedEntity.deleteMany({
-      where: { entityId: prop.id, entityType: "property" },
+      where: { entityId: prop.id, entityType: "PROPERTY" },
     });
 
-    // Delete child records explicitly (Phase A uses SetNull, not Cascade)
-    await tx.propertyComment.deleteMany({ where: { propertyId: prop.id } });
-    await tx.property_Contacts.deleteMany({ where: { property: prop.id } });
-    await tx.propertyImage.deleteMany({ where: { propertyId: prop.id } });
+    // Check if property has Deal references (propertyId FK would break if deleted)
+    const dealCount = await tx.deal.count({ where: { propertyId: prop.id } });
 
-    // Delete original property from org
-    await tx.properties.delete({ where: { id: prop.id } });
+    if (dealCount > 0) {
+      // Property has deals — do NOT delete. Null out assigned_to instead (like AGENCY mode).
+      // The entity stays in the org unassigned; agent has their copy in personal workspace.
+      await tx.properties.update({
+        where: { id: prop.id },
+        data: { assigned_to: null },
+      });
+    } else {
+      // No deals reference this property — safe to delete
+      await tx.propertyComment.deleteMany({ where: { propertyId: prop.id } });
+      await tx.property_Contacts.deleteMany({ where: { property: prop.id } });
+      await tx.propertyImage.deleteMany({ where: { propertyId: prop.id } });
+      await tx.properties.delete({ where: { id: prop.id } });
+    }
   }
 
   // ─── Clients ──────────────────────────────────
@@ -873,12 +922,24 @@ export async function migrateAgentEntities(
 
     migratedEntities.clients.push({ id: newClient.id, name: client.client_name || client.id });
 
-    // Delete child records
-    await tx.clientComment.deleteMany({ where: { clientId: client.id } });
-    await tx.client_Contacts.deleteMany({ where: { clientsIDs: client.id } });
-    await tx.sharedEntity.deleteMany({ where: { entityId: client.id, entityType: "client" } });
+    // Invalidate shared entity links
+    await tx.sharedEntity.deleteMany({ where: { entityId: client.id, entityType: "CLIENT" } });
 
-    await tx.clients.delete({ where: { id: client.id } });
+    // Check if client has Deal references (clientId FK would break if deleted)
+    const clientDealCount = await tx.deal.count({ where: { clientId: client.id } });
+
+    if (clientDealCount > 0) {
+      // Client has deals — null out assigned_to, keep in org
+      await tx.clients.update({
+        where: { id: client.id },
+        data: { assigned_to: null },
+      });
+    } else {
+      // No deals — safe to delete
+      await tx.clientComment.deleteMany({ where: { clientId: client.id } });
+      await tx.client_Contacts.deleteMany({ where: { clientsIDs: client.id } });
+      await tx.clients.delete({ where: { id: client.id } });
+    }
   }
 
   // ─── Mandates ─────────────────────────────────
@@ -908,7 +969,7 @@ export async function migrateAgentEntities(
 
     // Delete child records
     await tx.mandateComment.deleteMany({ where: { mandateId: mandate.id } });
-    await tx.sharedEntity.deleteMany({ where: { entityId: mandate.id, entityType: "mandate" } });
+    await tx.sharedEntity.deleteMany({ where: { entityId: mandate.id, entityType: "MANDATE" } });
 
     await tx.mandate.delete({ where: { id: mandate.id } });
   }
@@ -1093,7 +1154,9 @@ git commit -m "feat(phase-b): extend handleUserDeparture with AGENT mode migrati
   },
   "banner": {
     "title": "Important: Please select your organization's data ownership policy.",
-    "action": "Choose now"
+    "action": "Choose now",
+    "confirm": "Confirm",
+    "saving": "Saving..."
   },
   "consent": {
     "invitation": {
@@ -1162,7 +1225,9 @@ git commit -m "feat(phase-b): extend handleUserDeparture with AGENT mode migrati
   },
   "banner": {
     "title": "Σημαντικό: Επιλέξτε την πολιτική ιδιοκτησίας δεδομένων του οργανισμού σας.",
-    "action": "Επιλέξτε τώρα"
+    "action": "Επιλέξτε τώρα",
+    "confirm": "Επιβεβαίωση",
+    "saving": "Αποθήκευση..."
   },
   "consent": {
     "invitation": {
@@ -2082,12 +2147,15 @@ export async function POST(
 
   try {
     const clerk = await clerkClient();
-    await clerk.invitations.revokeInvitation(params.invitationId);
-    // Note: The actual Clerk invitation acceptance flow varies.
-    // The implementing engineer should verify the correct Clerk API for
-    // accepting org invitations programmatically vs. using Clerk's built-in flow.
+    // Accept the org invitation via Clerk's organizationInvitations API
+    await clerk.organizationInvitations.acceptInvitation({
+      organizationInvitationId: params.invitationId,
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Failed to accept invitation:", error);
+    // Fallback: the implementing engineer should verify the correct Clerk SDK method.
+    // Alternatives: clerk.organizations.acceptInvitation() or client-side useOrganization().acceptInvitation()
     return NextResponse.json({ error: "Failed to accept invitation" }, { status: 500 });
   }
 }
@@ -2312,7 +2380,64 @@ git add config/navigation.tsx
 git commit -m "feat(phase-b): add departures to settings navigation and ownership section"
 ```
 
-### Task 21: Final Verification
+### Task 21: Entity Migrator Unit Tests
+
+**Files:**
+- Create: `tests/lib/data-ownership/entity-migrator.test.ts`
+
+- [ ] **Step 1: Write entity migrator tests**
+
+Create `tests/lib/data-ownership/entity-migrator.test.ts` covering:
+
+1. **AGENT mode migration**: Mock Prisma transaction. Verify properties/clients/mandates are copied to personal workspace with correct `organizationId`, original deleted from source org.
+2. **Deal-referenced entities stay**: Create property with Deal reference → verify property is NOT deleted, only `assigned_to` nulled.
+3. **PropertyImage copy**: Verify all fields (including `organizationId`, `blobPathname`, `position`, `caption`, `fileSize`, `originalFileSize`, `mimeType`) are copied correctly.
+4. **Policy era filtering**: Mix of AGENCY-era and AGENT-era entities → only AGENT-era entities migrate.
+5. **Encryption round-trip**: Verify decryptPropertyForOrg called with source org, encryptPropertyForOrg called with personal org.
+6. **Personal workspace DEK initialization**: If no DEK exists for personal workspace, verify `initializeOrgEncryption` is called.
+
+- [ ] **Step 2: Run tests**
+
+```bash
+pnpm jest tests/lib/data-ownership/entity-migrator.test.ts --no-coverage
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add tests/lib/data-ownership/entity-migrator.test.ts
+git commit -m "test(phase-b): add entity migrator unit tests"
+```
+
+### Task 22: Departure Integration Tests
+
+**Files:**
+- Create: `tests/lib/data-ownership/departure-integration.test.ts`
+
+- [ ] **Step 1: Write integration tests**
+
+Create `tests/lib/data-ownership/departure-integration.test.ts` covering:
+
+1. **Full AGENCY departure**: Set org to AGENCY mode → agent departs → verify all references nulled (Phase A behavior), departure log created with `policyApplied: AGENCY`.
+2. **Full AGENT departure**: Set org to AGENT mode → agent departs → verify entities copied to personal workspace, child records deleted, deals cancelled, departure log created with `policyApplied: AGENT`.
+3. **Account deletion override**: Org is AGENT mode → user deletes account → verify AGENCY mode used (no migration), departure log records override.
+4. **Mixed policy eras**: Change policy from AGENT→AGENCY → agent departs → pre-change entities migrate, post-change entities stay.
+5. **Deal cancellation notification**: Verify counterparty agent receives notification for cancelled deals.
+
+- [ ] **Step 2: Run tests**
+
+```bash
+pnpm jest tests/lib/data-ownership/departure-integration.test.ts --no-coverage
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add tests/lib/data-ownership/departure-integration.test.ts
+git commit -m "test(phase-b): add departure integration tests"
+```
+
+### Task 23: Final Verification
 
 - [ ] **Step 1: Run full build**
 

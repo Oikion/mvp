@@ -27,7 +27,7 @@
 ### Modified Files
 | File | Change |
 |---|---|
-| `prisma/schema.prisma` | 17 fields String→String?, 30 onDelete rules, 11 indexes, 13 sentinel removals |
+| `prisma/schema.prisma` | 18 fields String→String?, 31 onDelete rules, 11 indexes, 13 sentinel removals |
 | `lib/data-deletion/execute-deletion.ts` | Rewire to call `handleUserDeparture()` |
 | `actions/user/delete-account.ts` | Rewire to call `handleUserDeparture()` |
 | `app/api/webhooks/clerk/route.ts` | Add membership.deleted handler, rewire user.deleted |
@@ -131,7 +131,8 @@ Find the model. Change:
 
 - `clientAgentId` field: `String` → `String?`
 - `propertyAgentId` field: `String` → `String?`
-- Both `Users` relations: add `onDelete: SetNull` (currently Restrict)
+- `proposedById` field: `String` → `String?`
+- All three `Users` relations: add `onDelete: SetNull` (currently Restrict)
 
 - [ ] **Step 10: Edit Attachment model**
 
@@ -191,8 +192,8 @@ Expected: No errors.
 git add prisma/schema.prisma
 git commit -m "schema: make user-reference fields nullable with onDelete SetNull
 
-17 fields changed from String to String? for safe user departure.
-30 onDelete rules set explicitly (SetNull for org data, Cascade for personal).
+18 fields changed from String to String? for safe user departure.
+31 onDelete rules set explicitly (SetNull for org data, Cascade for personal).
 
 Part of Phase A: Cascade Safety & Deletion Unification."
 ```
@@ -203,6 +204,21 @@ Part of Phase A: Cascade Safety & Deletion Unification."
 
 **Files:**
 - Modify: `prisma/schema.prisma`
+
+- [ ] **Step 0: Add DepartureReason enum**
+
+Add this enum to the schema (near the existing enums section):
+
+```prisma
+enum DepartureReason {
+  LEFT_ORG
+  REMOVED_FROM_ORG
+  ACCOUNT_DELETED
+  ADMIN_FORCE_DELETED
+}
+```
+
+This is used by the departure service and will be reused by Phase B's `DepartureLog` model.
 
 - [ ] **Step 1: Add 11 missing indexes**
 
@@ -301,11 +317,8 @@ Combined with field optionality and onDelete changes in single migration."
 Create `lib/user-departure/types.ts`:
 
 ```typescript
-export type DepartureReason =
-  | "left_org"
-  | "removed_from_org"
-  | "account_deleted"
-  | "admin_force_deleted";
+// Re-export the Prisma enum for convenience
+export { DepartureReason } from "@prisma/client";
 
 export type DepartureResult = {
   orgId: string;
@@ -358,9 +371,11 @@ Create `lib/user-departure/index.ts`:
 import { prismadb } from "@/lib/prisma";
 import { isOrgPersonal } from "@/lib/personal-workspace-guard";
 import { nullifyOrgReferences } from "./nullify-org-references";
-import type { DepartureReason, DepartureResult } from "./types";
+import { DepartureReason } from "@prisma/client";
+import type { DepartureResult } from "./types";
 
-export { type DepartureReason, type DepartureResult } from "./types";
+export { DepartureReason } from "@prisma/client";
+export type { DepartureResult } from "./types";
 
 export async function handleUserDeparture(
   userId: string,
@@ -571,7 +586,7 @@ for (const orgId of orgIds) {
   const result = await handleUserDeparture(
     user.id,
     orgId,
-    "account_deleted"
+    "ACCOUNT_DELETED"
   );
   if (result.errors.length > 0) {
     console.error(`[DataDeletion] Departure errors for org ${orgId}:`, result.errors);
@@ -640,7 +655,7 @@ if (dbUser.clerkUserId) {
 
 // Depart from each org
 for (const orgId of orgIds) {
-  await handleUserDeparture(dbUser.id, orgId, "account_deleted");
+  await handleUserDeparture(dbUser.id, orgId, "ACCOUNT_DELETED");
 }
 
 // Delete Users row (cascades personal data)
@@ -705,7 +720,7 @@ if (eventType === "user.deleted") {
     );
 
     for (const orgId of orgIds) {
-      await handleUserDeparture(dbUser.id, orgId, "account_deleted");
+      await handleUserDeparture(dbUser.id, orgId, "ACCOUNT_DELETED");
     }
 
     // Delete Users row
@@ -744,7 +759,7 @@ if (eventType === "organizationMembership.deleted") {
     });
 
     if (dbUser) {
-      const result = await handleUserDeparture(dbUser.id, orgId, "removed_from_org");
+      const result = await handleUserDeparture(dbUser.id, orgId, "REMOVED_FROM_ORG");
       console.log(`[Webhook] User ${dbUser.id} departed org ${orgId}:`, result);
     }
   }
@@ -808,7 +823,7 @@ if (targetUser.clerkUserId) {
 
 // Depart from each org
 for (const orgId of orgIds) {
-  await handleUserDeparture(targetUser.id, orgId, "admin_force_deleted");
+  await handleUserDeparture(targetUser.id, orgId, "ADMIN_FORCE_DELETED");
 }
 
 // Delete from Clerk

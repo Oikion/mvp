@@ -65,12 +65,8 @@ Tracks each agent's consent per policy version. Agents without a consent record 
 ### 1.4 Departure Log Model
 
 ```prisma
-enum DepartureReason {
-  LEFT_ORG
-  REMOVED_FROM_ORG
-  ACCOUNT_DELETED
-  ADMIN_FORCE_DELETED
-}
+// DepartureReason enum is defined in Phase A's schema migration.
+// Reused here by DepartureLog:
 
 model DepartureLog {
   id               String            @id @default(uuid())
@@ -218,9 +214,9 @@ For each entity (Property, Client, Mandate) currently assigned to the departing 
 1. **Decrypt source data** — If entity has encrypted fields, decrypt using source org's DEK
 2. **Copy to personal workspace** — Create duplicate in agent's personal org with new ID. Re-encrypt with personal workspace's DEK. Strip org-specific relations (other users' comments, shared entity links).
 3. **Handle Deals** — Active deals (`PROPOSED`, `NEGOTIATING`, `ACCEPTED`, `IN_PROGRESS`) involving migrated properties: set status to `CANCELLED`, set `cancellationReason` to `"AGENT_DEPARTED"`. Completed deals stay untouched. Other agent in each broken deal receives notification.
-4. **Delete from org** — Remove original entity and explicitly delete its child records (comments, attachments, shared entity links) within the transaction. Note: Phase A changed these relations to `onDelete: SetNull`, so cascading deletes do NOT apply — the departure service must handle deletion explicitly.
+4. **Remove from org** — For entities **with no Deal references** (no row in `Deal` with matching `propertyId` or `clientId`): delete the original entity and explicitly delete its child records (comments, attachments, shared entity links) within the transaction. Note: Phase A changed these relations to `onDelete: SetNull`, so cascading deletes do NOT apply — the departure service must handle deletion explicitly. For entities **with Deal references**: do NOT delete — instead, null out `assigned_to` (same as AGENCY/SetNull behavior) so the Deal FK remains valid. The entity stays in the org as an unassigned record while the agent retains a copy in their personal workspace.
 5. **Handle property images** — Copy image file references (URLs) to the migrated entity. Image files in blob storage (Vercel Blob / S3) are NOT duplicated — the URLs remain valid as they are publicly accessible. The departure service copies `PropertyImage` records with updated `propertyId` references.
-6. **Handle cross-org shares** — Invalidate any `SharedEntity` records and Polis/network matches referencing migrated entities. Set `SharedEntity` status to expired/invalidated. Network matches involving the migrated property are removed from the match cache.
+6. **Handle cross-org shares** — Delete any `SharedEntity` records referencing migrated entities (`deleteMany` by `entityId`). Invalidate Polis/network match cache entries involving the migrated property (remove from cache, they'll be recomputed on next match run without the now-deleted entity).
 7. **Log** — Create `DepartureLog` record with entity names and counts.
 8. **Notify** — Email org owner with departure report link.
 
@@ -230,10 +226,11 @@ For each entity (Property, Client, Mandate) currently assigned to the departing 
 |---|---|
 | Property core data (details, photos, pricing) | Comments by other org members |
 | Client core data (name, contact, notes) | Shared entity links |
-| Mandate core data (terms, requirements) | Deal records (stay in org, marked cancelled) |
+| Mandate core data (terms, requirements) | Deal records (stay in org, active ones cancelled) |
+| | Properties/Clients with Deal references (stay in org, `assigned_to` nulled; agent gets copy) |
 | Agent's own comments on their entities | Tasks assigned by others |
 | Attachments uploaded by the agent | Calendar events (Phase A SetNull handles these) |
-| Property images (URL references copied) | Cross-org shared entity links (invalidated) |
+| Property images (URL references copied) | Cross-org shared entity links (deleted) |
 
 ### Account Deletion vs Org Departure
 
@@ -368,7 +365,8 @@ Single migration adding:
 - `DataOwnershipMode` enum
 - 6 fields on `OrganizationSettings`
 - `OrgMemberConsent` model
-- `DepartureLog` model
+- `DepartureLog` model (uses `DepartureReason` enum from Phase A)
+- `Deal.cancellationReason` field
 
 Non-destructive. All new fields are optional or have defaults.
 
