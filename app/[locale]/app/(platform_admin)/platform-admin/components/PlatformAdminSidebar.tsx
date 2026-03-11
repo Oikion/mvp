@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { updateUserTheme } from "@/actions/user/update-theme";
 import { useTranslations } from "next-intl";
 import { useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
@@ -48,6 +49,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -74,14 +76,20 @@ interface PlatformAdminUser {
 interface PlatformAdminSidebarProps {
   adminUser: PlatformAdminUser | null;
   locale: string;
+  counts: { pendingDeletions: number; pendingFeedback: number };
 }
 
-export function PlatformAdminSidebar({ adminUser, locale }: PlatformAdminSidebarProps) {
+export function PlatformAdminSidebar({ adminUser, locale, counts }: PlatformAdminSidebarProps) {
   const t = useTranslations("platformAdmin");
   const { signOut } = useClerk();
   const pathname = usePathname();
   const { isMobile } = useSidebar();
   const { setTheme, theme } = useTheme();
+
+  const handleThemeChange = (value: string) => {
+    setTheme(value);
+    updateUserTheme(value).catch(console.error);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -125,12 +133,14 @@ export function PlatformAdminSidebar({ adminUser, locale }: PlatformAdminSidebar
       label: t("nav.feedback"),
       icon: MessageSquare,
       active: pathname.includes("/platform-admin/feedback"),
+      badge: counts.pendingFeedback > 0 ? counts.pendingFeedback : null,
     },
     {
       href: `/${locale}/app/platform-admin/data-requests`,
       label: t("nav.dataRequests"),
       icon: Database,
       active: pathname.includes("/platform-admin/data-requests"),
+      badge: counts.pendingDeletions > 0 ? counts.pendingDeletions : null,
     },
     {
       href: `/${locale}/app/platform-admin/network`,
@@ -245,7 +255,15 @@ export function PlatformAdminSidebar({ adminUser, locale }: PlatformAdminSidebar
                   >
                     <Link href={item.href}>
                       <item.icon className="size-4" />
-                      <span>{item.label}</span>
+                      <span className="flex-1">{item.label}</span>
+                      {"badge" in item && !!item.badge && (
+                        <Badge
+                          variant="destructive"
+                          className="h-4 min-w-4 px-1 text-[10px] rounded-full"
+                        >
+                          {item.badge}
+                        </Badge>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -384,7 +402,7 @@ export function PlatformAdminSidebar({ adminUser, locale }: PlatformAdminSidebar
                         return (
                           <DropdownMenuItem
                             key={themeOption.value}
-                            onClick={() => setTheme(themeOption.value)}
+                            onClick={() => handleThemeChange(themeOption.value)}
                             className="flex items-center gap-2"
                           >
                             <ThemeIcon className="h-4 w-4" />
@@ -396,7 +414,7 @@ export function PlatformAdminSidebar({ adminUser, locale }: PlatformAdminSidebar
                         );
                       })}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setTheme("system")}>
+                      <DropdownMenuItem onClick={() => handleThemeChange("system")}>
                         <Sun className="mr-2 h-4 w-4" />
                         <span>{t("theme.system")}</span>
                         {theme === "system" && (

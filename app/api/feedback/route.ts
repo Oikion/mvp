@@ -6,6 +6,7 @@ import { prismadb } from "@/lib/prisma";
 import { uploadFeedbackFile } from "@/actions/upload";
 import { parseUserAgent } from "@/lib/user-agent-parser";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
+import { notifyAdminsByEmail } from "@/lib/admin-notify";
 
 export async function POST(req: Request) {
   const resend = await resendHelper();
@@ -23,6 +24,11 @@ export async function POST(req: Request) {
 
     if (!feedback) {
       return new NextResponse("Missing feedback", { status: 400 });
+    }
+
+    // Reject oversized screenshot payloads (5MB base64 limit)
+    if (screenshot && typeof screenshot === 'string' && screenshot.length > 5 * 1024 * 1024) {
+      return new NextResponse("Screenshot too large (max 5MB)", { status: 400 });
     }
 
     const feedbackTypeLabels: Record<string, string> = {
@@ -161,7 +167,13 @@ export async function POST(req: Request) {
     }
     
     await resend.emails.send(emailOptions);
-    
+
+    // Notify platform admins of new feedback
+    notifyAdminsByEmail({
+      subject: `[New Feedback] ${feedbackTypeLabel} from ${currentUser?.email || "Anonymous"}`,
+      html: `<p>New feedback received.</p><p><strong>Type:</strong> ${feedbackTypeLabel}</p><p><strong>From:</strong> ${currentUser?.email || "Anonymous"}</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || ""}/app/platform-admin/feedback">View in platform admin</a></p>`,
+    }).catch((err) => console.error("[FEEDBACK] Admin notify failed:", err));
+
     // Save feedback to database (upload screenshot and console logs to Vercel Blob)
     try {
       // Generate feedback ID first for use in blob paths

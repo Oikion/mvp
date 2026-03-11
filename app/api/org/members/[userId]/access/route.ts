@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClerkClient } from "@clerk/backend";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrganizationId } from "@/lib/permissions/action-guards";
 import { requireOwner } from "@/lib/permissions/guards";
@@ -20,6 +21,23 @@ export async function GET(
     if (!organizationId) {
       return NextResponse.json(
         { error: "Organization context required" },
+        { status: 403 }
+      );
+    }
+
+    // Verify the target user belongs to the caller's organization
+    const clerk = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    const memberships = await clerk.organizations.getOrganizationMembershipList({
+      organizationId,
+    });
+    const isMember = memberships.data.some(
+      (m) => m.publicUserData?.userId === userId
+    );
+    if (!isMember) {
+      return NextResponse.json(
+        { error: "User is not a member of this organization" },
         { status: 403 }
       );
     }

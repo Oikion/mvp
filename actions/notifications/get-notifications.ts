@@ -4,6 +4,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { NotificationCategory, Prisma } from "@prisma/client";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { cacheGet, cacheSet } from "@/lib/redis";
 
 // System-level organization ID for platform admin notifications
 const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
@@ -180,7 +181,12 @@ export async function getUnreadCountsByPage(): Promise<PageNotificationCounts> {
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 
-    // Count unread notifications by type at the DB level (single aggregation query)
+    // Check Redis cache (polled every 30s per user, 15s TTL deduplicates)
+    const cacheKey = `oik:notif:${organizationId}:${user.id}`;
+    const cached = await cacheGet<PageNotificationCounts>(cacheKey);
+    if (cached) return cached;
+
+    // Cache miss — count unread notifications by type (single aggregation query)
     const grouped = await prismadb.notification.groupBy({
       by: ["type"],
       where: {
@@ -202,6 +208,8 @@ export async function getUnreadCountsByPage(): Promise<PageNotificationCounts> {
     for (const [page, types] of Object.entries(PAGE_NOTIFICATION_TYPES)) {
       counts[page] = types.reduce((sum, t) => sum + (typeCounts[t] ?? 0), 0);
     }
+
+    await cacheSet(cacheKey, counts, 15); // 15-second TTL
 
     return counts;
   } catch (error) {

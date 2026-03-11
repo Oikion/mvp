@@ -133,6 +133,32 @@ export const POST = withExternalApi(
       return createApiErrorResponse("Missing required field: url", 400);
     }
 
+    // Validate that linked entities belong to the caller's organization
+    if (clientIds && Array.isArray(clientIds) && clientIds.length > 0) {
+      const ownedClients = await prismadb.clients.findMany({
+        where: { id: { in: clientIds }, organizationId: context.organizationId },
+        select: { id: true },
+      });
+      if (ownedClients.length !== clientIds.length) {
+        return createApiErrorResponse(
+          "One or more clientIds do not belong to your organization",
+          400
+        );
+      }
+    }
+    if (propertyIds && Array.isArray(propertyIds) && propertyIds.length > 0) {
+      const ownedProperties = await prismadb.properties.findMany({
+        where: { id: { in: propertyIds }, organizationId: context.organizationId },
+        select: { id: true },
+      });
+      if (ownedProperties.length !== propertyIds.length) {
+        return createApiErrorResponse(
+          "One or more propertyIds do not belong to your organization",
+          400
+        );
+      }
+    }
+
     // Create document
     const { generateFriendlyId } = await import("@/lib/friendly-id");
     const docFriendlyId = await generateFriendlyId(prismadb, "Documents", context.organizationId);

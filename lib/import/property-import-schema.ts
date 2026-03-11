@@ -76,9 +76,9 @@ export const PriceTypeEnum = z.enum([
   "PER_SQM",
 ]);
 
-export const PortalVisibilityEnum = z.enum([
-  "PRIVATE",
-  "SELECTED",
+export const ItemVisibilityEnum = z.enum([
+  "PERSONAL",
+  "SECURE",
   "PUBLIC",
 ]);
 
@@ -184,7 +184,7 @@ export const propertyImportSchema = z.object({
 
   // Visibility
   is_exclusive: z.coerce.boolean().optional().default(false),
-  portal_visibility: PortalVisibilityEnum.optional().nullable(),
+  visibility: ItemVisibilityEnum.optional().nullable(),
   address_privacy_level: AddressPrivacyLevelEnum.optional().nullable(),
 
   // Additional
@@ -585,12 +585,12 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
     aliases: ["exclusive", "exclusive_listing", "apokleistiki"],
     description: "Exclusive listing (true/false)"
   },
-  { 
-    key: "portal_visibility", 
-    required: false, 
-    group: "visibility", 
-    aliases: ["visibility", "publish_status", "oratotita"],
-    description: "Portal visibility (PRIVATE, SELECTED, PUBLIC)"
+  {
+    key: "visibility",
+    required: false,
+    group: "visibility",
+    aliases: ["portal_visibility", "publish_status", "oratotita"],
+    description: "Item visibility (PERSONAL, SECURE, PUBLIC)"
   },
   { 
     key: "address_privacy_level", 

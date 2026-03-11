@@ -59,28 +59,44 @@ export async function sendConnectionRequest(targetUserId: string) {
     }
   }
 
-  // Create new connection request
-  const connection = await prismadb.agentConnection.create({
-    data: {
-      id: crypto.randomUUID(),
-      followerId: currentUser.id,
-      followingId: targetUserId,
-      status: "PENDING",
-      updatedAt: new Date(),
-    },
-  });
+  // Create new connection request — wrap in try/catch
+  // to handle race condition where a concurrent request creates the
+  // same connection between findFirst and create (TOCTOU).
+  try {
+    const connection = await prismadb.agentConnection.create({
+      data: {
+        id: crypto.randomUUID(),
+        followerId: currentUser.id,
+        followingId: targetUserId,
+        status: "PENDING",
+        updatedAt: new Date(),
+      },
+    });
 
-  // Send notification to target user
-  await notifyConnectionRequest({
-    connectionId: connection.id,
-    requesterId: currentUser.id,
-    requesterName: currentUser.name || currentUser.email || "Someone",
-    targetId: targetUserId,
-    organizationId,
-  });
+    // Send notification to target user
+    await notifyConnectionRequest({
+      connectionId: connection.id,
+      requesterId: currentUser.id,
+      requesterName: currentUser.name || currentUser.email || "Someone",
+      targetId: targetUserId,
+      organizationId,
+    });
 
-  revalidatePath("/connections");
-  return { success: true, message: "Connection request sent" };
+    revalidatePath("/connections");
+    return { success: true, message: "Connection request sent" };
+  } catch (error: unknown) {
+    // Handle unique constraint violation (P2002) — a concurrent request
+    // already created this connection between our check and insert.
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      throw new Error("A connection request already exists");
+    }
+    throw error;
+  }
 }
 
 /**
@@ -346,6 +362,9 @@ export async function getConnectionStatus(targetUserId: string) {
 export async function searchAgentsToConnect(query: string, limit: number = 20) {
   const currentUser = await getCurrentUser();
 
+  query = query.slice(0, 200);
+  limit = Math.min(limit, 100);
+
   const agents = await prismadb.users.findMany({
     where: {
       id: { not: currentUser.id },
@@ -386,7 +405,7 @@ export async function searchAgentsToConnect(query: string, limit: number = 20) {
         select: {
           Properties_Properties_assigned_toToUsers: {
             where: {
-              portal_visibility: "PUBLIC",
+              visibility: "PUBLIC",
               property_status: "ACTIVE",
             },
           },

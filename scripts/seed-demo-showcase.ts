@@ -755,7 +755,7 @@ async function seedProperties(
       description: `${propertyName}. ${sizeNet > 0 ? `${sizeNet}sqm` : ""} ${bedrooms > 0 ? `with ${bedrooms} bedrooms` : ""}. ${pick(["Excellent condition", "Recently renovated", "Prime location", "Great investment", "Perfect for families"])}. Contact us for details.`,
       assigned_to: assignedUser.id, createdBy: assignedUser.id,
       organizationId: orgId, createdAt, updatedAt: createdAt,
-      portal_visibility: "PUBLIC", address_privacy_level: "PARTIAL",
+      visibility: "PUBLIC", address_privacy_level: "PARTIAL",
       primary_email: encrypted.primary_email,
       communication_notes: encrypted.communication_notes,
     });

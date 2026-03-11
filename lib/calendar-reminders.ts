@@ -104,6 +104,7 @@ export async function getUpcomingReminders(
               name: true,
               email: true,
               userLanguage: true,
+              userTheme: true,
             },
           },
           Clients: {
@@ -144,6 +145,7 @@ export async function sendReminderNotification(
               name: true,
               email: true,
               userLanguage: true,
+              userTheme: true,
             },
           },
           Clients: {
@@ -217,6 +219,7 @@ export async function sendReminderNotification(
           linkedClients: event.Clients || [],
           linkedProperties: event.Properties || [],
           userLanguage: user.userLanguage || "en",
+          userTheme: user.userTheme ?? "estate",
           eventUrl: `${process.env.NEXT_PUBLIC_APP_URL}/calendar`,
         }),
       });

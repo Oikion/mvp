@@ -14,8 +14,8 @@ interface VisibilityCellProps {
 }
 
 const visibilities: DropdownOption[] = [
-  { value: "PRIVATE", label: "Private", variant: "secondary", icon: Lock },
-  { value: "SELECTED", label: "Selected", variant: "info", icon: Users },
+  { value: "PERSONAL", label: "Personal", variant: "secondary", icon: Lock },
+  { value: "SECURE", label: "Secure", variant: "info", icon: Users },
   { value: "PUBLIC", label: "Public", variant: "success", icon: Globe },
 ];
 
@@ -25,13 +25,13 @@ export const VisibilityCell = ({ propertyId, visibility }: VisibilityCellProps) 
 
   const translatedVisibilities = visibilities.map((v) => ({
     ...v,
-    label: t(`PropertyForm.portalVisibility.${v.value}`) || v.label,
+    label: t(`PropertyForm.visibility.${v.value}`) || v.label,
   }));
 
   const handleSave = async (value: string) => {
     await axios.put("/api/mls/properties", {
       id: propertyId,
-      portal_visibility: value,
+      visibility: value,
     });
     toast.success(t("MlsPropertiesTable.visibilityUpdated") || "Visibility updated");
     router.refresh();
@@ -39,7 +39,7 @@ export const VisibilityCell = ({ propertyId, visibility }: VisibilityCellProps) 
 
   return (
     <EditableDropdownCell
-      value={visibility || "PRIVATE"}
+      value={visibility || "PERSONAL"}
       onSave={handleSave}
       options={translatedVisibilities}
       useBadge

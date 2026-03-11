@@ -509,5 +509,31 @@
       "step3": "Publish Properties",
       "step3Description": "Select properties from your MLS listings and publish to xe.gr."
     }
+  },
+  "propertyImages": {
+    "title": "Property Photos",
+    "dropzone": "Drag and drop images here, or click to browse",
+    "dropHere": "Drop images here",
+    "dropzoneHint": "JPG, PNG, WebP or GIF - max 10MB each",
+    "maxSize": "Max 10MB per image",
+    "maxCount": "Maximum {max} images",
+    "uploading": "Uploading...",
+    "uploaded": "Uploaded",
+    "compression": "Saved {percent}%",
+    "saved": "Saved {percent}%",
+    "setPrimary": "Set as primary image",
+    "isPrimary": "Primary image",
+    "primary": "Primary",
+    "delete": "Remove image",
+    "reorder": "Drag to reorder",
+    "retry": "Retry",
+    "dismiss": "Dismiss",
+    "count": "{current} / {max} images",
+    "errors": {
+      "tooLarge": "File is too large. Maximum 10MB.",
+      "invalidType": "Only image files are accepted.",
+      "maxReached": "Maximum {max} images reached.",
+      "uploadFailed": "Failed to upload image."
+    }
   }
 }

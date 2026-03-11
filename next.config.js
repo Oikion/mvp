@@ -177,20 +177,22 @@ const nextConfig = {
   // - API domain: *.clerk.accounts.dev
   // - Account Portal: *.accounts.clerk.dev
   async headers() {
-    // In development, allow localhost connections for debugging tools and Next.js devtools
+    // In development, allow localhost connections for debugging tools, Next.js devtools, and n8n
     const devConnectSrc = isDev ? " http://127.0.0.1:* http://localhost:* https://localhost:* ws://127.0.0.1:* ws://localhost:* wss://localhost:*" : "";
-    
+    const devLocalhost5678Frame = isDev ? " https://localhost:5678 http://localhost:5678" : "";
+    const devLocalhost5678Connect = isDev ? " https://localhost:5678 wss://localhost:5678" : "";
+
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://img.clerk.com https://images.clerk.dev https://lh3.googleusercontent.com https://res.cloudinary.com https://*.public.blob.vercel-storage.com",
       "font-src 'self' data:",
-      "frame-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com https://localhost:5678 http://localhost:5678",
+      `frame-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com${devLocalhost5678Frame}`,
       // Ably WebSocket connections for real-time messaging
       // Ably uses multiple domains: *.ably.io, *.ably.net (realtime), *.ably-realtime.com (fallbacks)
       // In dev mode, also allow localhost connections for debugging and Next.js devtools
-      `connect-src 'self' https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com https://challenges.cloudflare.com wss://*.clerk.accounts.dev wss://*.accounts.clerk.dev https://localhost:5678 wss://localhost:5678 https://*.ably.io wss://*.ably.io https://*.ably.net wss://*.ably.net https://*.ably-realtime.com wss://*.ably-realtime.com${devConnectSrc}`,
+      `connect-src 'self' https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://accounts.oikion.com https://challenges.cloudflare.com wss://*.clerk.accounts.dev wss://*.accounts.clerk.dev${devLocalhost5678Connect} https://*.ably.io wss://*.ably.io https://*.ably.net wss://*.ably.net https://*.ably-realtime.com wss://*.ably-realtime.com${devConnectSrc}`,
       "worker-src 'self' blob:",
     ];
     const cspValue = cspDirectives.join("; ");
@@ -202,6 +204,26 @@ const nextConfig = {
           {
             key: "Content-Security-Policy",
             value: cspValue,
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
           },
         ],
       },

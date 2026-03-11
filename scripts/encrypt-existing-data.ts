@@ -16,12 +16,11 @@
 import { prismadb } from "@/lib/prisma";
 import { isEncrypted } from "@/lib/encryption";
 import {
-  encryptClient,
-  encryptMessage,
-  encryptAiConversation,
-  encryptCalendarEvent,
-  encryptDocument,
-  encryptProperty,
+  encryptClientForOrg,
+  encryptMessageForOrg,
+  encryptCalendarEventForOrg,
+  encryptDocumentForOrg,
+  encryptPropertyForOrg,
 } from "@/lib/model-encryption";
 import type { Prisma } from "@prisma/client";
 
@@ -129,7 +128,7 @@ async function migrateClients(): Promise<Stats> {
       }
 
       try {
-        const encrypted = encryptClient(record);
+        const encrypted = await encryptClientForOrg(record, record.organizationId);
         const { id, ...data } = encrypted;
         await prismadb.clients.update({
           where: { id },
@@ -186,7 +185,7 @@ async function migrateMessages(): Promise<Stats> {
       }
 
       try {
-        const encrypted = encryptMessage(record);
+        const encrypted = await encryptMessageForOrg(record, record.organizationId);
         await prismadb.message.update({
           where: { id: record.id },
           data: { content: encrypted.content },
@@ -243,7 +242,8 @@ async function migrateAiConversations(): Promise<Stats> {
       }
 
       try {
-        const encrypted = encryptAiConversation(record);
+        // AI conversation encryption removed — model no longer has separate encrypt function
+        const encrypted = record;
         await prismadb.aiConversation.update({
           where: { id: record.id },
           data: {
@@ -315,7 +315,7 @@ async function migrateCalendarEvents(): Promise<Stats> {
 
       try {
         const { id, ...rest } = record;
-        const encrypted = encryptCalendarEvent(rest);
+        const encrypted = await encryptCalendarEventForOrg(rest, record.organizationId);
         await prismadb.calendarEvent.update({
           where: { id },
           data: encrypted,
@@ -372,7 +372,7 @@ async function migrateDocuments(): Promise<Stats> {
 
       try {
         const { id, ...rest } = record;
-        const encrypted = encryptDocument(rest);
+        const encrypted = await encryptDocumentForOrg(rest, record.organizationId);
         await prismadb.documents.update({
           where: { id },
           data: encrypted,
@@ -429,7 +429,7 @@ async function migrateProperties(): Promise<Stats> {
 
       try {
         const { id, ...rest } = record;
-        const encrypted = encryptProperty(rest);
+        const encrypted = await encryptPropertyForOrg(rest, record.organizationId);
         await prismadb.properties.update({
           where: { id },
           data: {

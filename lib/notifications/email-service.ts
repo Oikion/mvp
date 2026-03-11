@@ -162,6 +162,7 @@ async function getUserForEmail(userId: string) {
       email: true,
       name: true,
       userLanguage: true,
+      userTheme: true,
     },
   });
 }
@@ -413,10 +414,11 @@ export async function sendNotificationEmail(
 
     const language = user.userLanguage || "en";
     const recipientName = user.name || user.email.split("@")[0];
-    
+    const userTheme = user.userTheme || "estate";
+
     // Get Resend instance
     const resend = await resendHelper();
-    
+
     // Generate subject line
     const subject = getSubjectLine(category, language, data);
 
@@ -425,6 +427,7 @@ export async function sendNotificationEmail(
       ...data,
       recipientName,
       userLanguage: language,
+      userTheme,
     });
 
     if (!emailComponent) {
@@ -452,9 +455,9 @@ export async function sendNotificationEmail(
  */
 function getEmailComponent(
   category: NotificationCategory,
-  props: NotificationEmailData & { recipientName: string; userLanguage: string }
+  props: NotificationEmailData & { recipientName: string; userLanguage: string; userTheme?: string }
 ): React.ReactElement | null {
-  const { recipientName, userLanguage, actorName, entityId, entityName, metadata } = props;
+  const { recipientName, userLanguage, userTheme, actorName, entityId, entityName, metadata } = props;
 
   switch (category) {
     // Social notifications
@@ -465,6 +468,7 @@ function getEmailComponent(
         postContent: metadata?.postContent,
         postId: entityId || "",
         userLanguage,
+        userTheme,
       });
 
     case "SOCIAL_POST_COMMENTED":
@@ -475,6 +479,7 @@ function getEmailComponent(
         commentContent: metadata?.commentContent || "",
         postId: entityId || "",
         userLanguage,
+        userTheme,
       });
 
     case "SOCIAL_POST_MENTIONED":
@@ -484,6 +489,7 @@ function getEmailComponent(
         postContent: metadata?.postContent || "",
         postId: entityId || "",
         userLanguage,
+        userTheme,
       });
 
     // Entity sharing
@@ -497,6 +503,7 @@ function getEmailComponent(
         entityFriendlyId: metadata?.friendlyId,
         personalMessage: metadata?.shareMessage,
         userLanguage,
+        userTheme,
       });
 
     case "ENTITY_SHARE_ACCEPTED":
@@ -508,6 +515,7 @@ function getEmailComponent(
         entityId: entityId || "",
         entityFriendlyId: metadata?.friendlyId,
         userLanguage,
+        userTheme,
       });
 
     // Connections
@@ -518,6 +526,7 @@ function getEmailComponent(
         requesterTitle: metadata?.requesterTitle,
         connectionId: entityId || "",
         userLanguage,
+        userTheme,
       });
 
     case "CONNECTION_ACCEPTED":
@@ -526,6 +535,7 @@ function getEmailComponent(
         acceptedByName: actorName || "Someone",
         acceptedByTitle: metadata?.acceptedByTitle,
         userLanguage,
+        userTheme,
       });
 
     // Deals
@@ -538,6 +548,7 @@ function getEmailComponent(
         propertyName: metadata?.propertyName || "",
         clientName: metadata?.clientName || "",
         userLanguage,
+        userTheme,
       });
 
     case "DEAL_UPDATED":
@@ -552,6 +563,7 @@ function getEmailComponent(
         clientName: metadata?.clientName,
         status: metadata?.status || "UPDATED",
         userLanguage,
+        userTheme,
       });
 
     // Tasks
@@ -566,6 +578,7 @@ function getEmailComponent(
         dueDate: metadata?.dueDate,
         accountName: metadata?.accountName,
         userLanguage,
+        userTheme,
       });
 
     case "TASK_DUE_SOON":
@@ -579,6 +592,7 @@ function getEmailComponent(
         timeUntilDue: metadata?.timeUntilDue || "soon",
         accountName: metadata?.accountName,
         userLanguage,
+        userTheme,
       });
 
     // Calendar
@@ -593,6 +607,7 @@ function getEmailComponent(
         endTime: metadata?.endTime || new Date(),
         location: metadata?.location,
         userLanguage,
+        userTheme,
       });
 
     case "CALENDAR_EVENT_CREATED":
@@ -610,6 +625,7 @@ function getEmailComponent(
         action: category === "CALENDAR_EVENT_CREATED" ? "CREATED" :
                 category === "CALENDAR_EVENT_CANCELLED" ? "CANCELLED" : "UPDATED",
         userLanguage,
+        userTheme,
       });
 
     // CRM - Clients
@@ -621,6 +637,7 @@ function getEmailComponent(
         clientName: entityName || metadata?.clientName || "",
         isAssigned: false,
         userLanguage,
+        userTheme,
       });
 
     case "CLIENT_ASSIGNED":
@@ -631,6 +648,7 @@ function getEmailComponent(
         clientName: entityName || metadata?.clientName || "",
         isAssigned: true,
         userLanguage,
+        userTheme,
       });
 
     // CRM - Properties
@@ -644,6 +662,7 @@ function getEmailComponent(
         propertyAddress: metadata?.propertyAddress,
         isAssigned: false,
         userLanguage,
+        userTheme,
       });
 
     case "PROPERTY_ASSIGNED":
@@ -656,6 +675,7 @@ function getEmailComponent(
         propertyAddress: metadata?.propertyAddress,
         isAssigned: true,
         userLanguage,
+        userTheme,
       });
 
     // Account/Property updates (for watchers)
@@ -669,6 +689,7 @@ function getEmailComponent(
         updateType: category === "ACCOUNT_DELETED" ? "DELETED" : "UPDATED",
         changes: metadata?.changes,
         userLanguage,
+        userTheme,
       });
 
     case "PROPERTY_UPDATED":
@@ -683,6 +704,7 @@ function getEmailComponent(
         updateType: category === "PROPERTY_DELETED" ? "DELETED" : "UPDATED",
         changes: metadata?.changes,
         userLanguage,
+        userTheme,
       });
 
     // For other categories, return null (no email template available)

@@ -64,7 +64,12 @@ export async function getN8nConfig(): Promise<ActionResult<N8nConfigData | null>
       where: { organizationId },
     });
 
-    return { success: true, data: config };
+    return {
+      success: true,
+      data: config
+        ? { ...config, webhookSecret: "••••••••" }
+        : null,
+    };
   } catch (error) {
     console.error("[N8N_GET_CONFIG]", error);
     return { success: false, error: "Failed to get n8n configuration" };

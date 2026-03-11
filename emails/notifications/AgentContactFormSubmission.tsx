@@ -1,16 +1,12 @@
 import {
-  Body,
-  Container,
-  Head,
   Heading,
   Hr,
-  Html,
   Link,
-  Preview,
   Section,
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { BaseLayout, resolveColors } from "../components/BaseLayout";
 
 interface AgentContactFormSubmissionProps {
   agentName: string;
@@ -19,7 +15,10 @@ interface AgentContactFormSubmissionProps {
   formData: Record<string, any>;
   submissionId: string;
   locale?: string;
+  userTheme?: string;
 }
+
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 
 export const AgentContactFormSubmission = ({
   agentName,
@@ -28,233 +27,123 @@ export const AgentContactFormSubmission = ({
   formData,
   submissionId,
   locale = "en",
+  userTheme,
 }: AgentContactFormSubmissionProps) => {
+  const colors = resolveColors(userTheme);
   const isGreek = locale === "el";
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 
   const previewText = isGreek
     ? `Νέο μήνυμα από ${senderName}`
     : `New message from ${senderName}`;
 
   return (
-    <Html>
-      <Head />
-      <Preview>{previewText}</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Heading style={heading}>
-            {isGreek ? "Νέο Μήνυμα Επικοινωνίας" : "New Contact Form Message"}
-          </Heading>
+    <BaseLayout
+      previewText={previewText}
+      footerText={
+        isGreek
+          ? "Αυτό το email στάλθηκε αυτόματα από το Oikion. Μπορείτε να απαντήσετε απευθείας στον αποστολέα."
+          : "This email was sent automatically from Oikion. You can reply directly to the sender."
+      }
+      footerNote={`Submission ID: ${submissionId}`}
+      emailTheme={userTheme}
+    >
+      <Heading
+        style={{ color: colors.textPrimary }}
+        className="text-2xl font-semibold text-center p-0 m-0 mb-6"
+      >
+        {isGreek ? "Νέο Μήνυμα Επικοινωνίας" : "New Contact Form Message"}
+      </Heading>
 
-          <Text style={paragraph}>
-            {isGreek ? `Γεια σου ${agentName},` : `Hi ${agentName},`}
-          </Text>
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-4">
+        {isGreek ? `Γεια σου ${agentName},` : `Hi ${agentName},`}
+      </Text>
 
-          <Text style={paragraph}>
-            {isGreek
-              ? `Λάβατε νέο μήνυμα μέσω της φόρμας επικοινωνίας στο προφίλ σας.`
-              : `You received a new message through the contact form on your profile.`}
-          </Text>
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-6">
+        {isGreek
+          ? "Λάβατε νέο μήνυμα μέσω της φόρμας επικοινωνίας στο προφίλ σας."
+          : "You received a new message through the contact form on your profile."}
+      </Text>
 
-          <Section style={infoBox}>
-            <Text style={infoLabel}>
-              {isGreek ? "Αποστολέας:" : "From:"}
-            </Text>
-            <Text style={infoValue}>{senderName}</Text>
+      {/* Sender info */}
+      <Section
+        style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}
+        className="rounded-lg p-5 mb-6"
+      >
+        <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase m-0 mb-1">
+          {isGreek ? "Αποστολέας:" : "From:"}
+        </Text>
+        <Text style={{ color: colors.textPrimary }} className="text-base font-medium m-0 mb-4">
+          {senderName}
+        </Text>
+        <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase m-0 mb-1">
+          {isGreek ? "Email:" : "Email:"}
+        </Text>
+        <Text style={{ color: colors.textPrimary }} className="text-base font-medium m-0">
+          <Link href={`mailto:${senderEmail}`} style={{ color: colors.linkColor }}>
+            {senderEmail}
+          </Link>
+        </Text>
+      </Section>
 
-            <Text style={infoLabel}>
-              {isGreek ? "Email:" : "Email:"}
-            </Text>
-            <Text style={infoValue}>
-              <Link href={`mailto:${senderEmail}`} style={link}>
-                {senderEmail}
-              </Link>
-            </Text>
-          </Section>
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
 
-          <Hr style={hr} />
+      {/* Message Details */}
+      <Section className="mb-6">
+        <Text style={{ color: colors.textPrimary }} className="text-base font-semibold m-0 mb-4">
+          {isGreek ? "Λεπτομέρειες Μηνύματος:" : "Message Details:"}
+        </Text>
+        {Object.entries(formData).map(([key, value]) => {
+          if (key === "privacyConsent") return null;
 
-          <Section style={messageSection}>
-            <Text style={sectionTitle}>
-              {isGreek ? "Λεπτομέρειες Μηνύματος:" : "Message Details:"}
-            </Text>
-            {Object.entries(formData).map(([key, value]) => {
-              // Skip internal fields
-              if (key === "privacyConsent") return null;
-              
-              // Format the key for display
-              const formattedKey = key
-                .replace(/_/g, " ")
-                .replace(/([A-Z])/g, " $1")
-                .replace(/^./, (str) => str.toUpperCase())
-                .trim();
+          const formattedKey = key
+            .replace(/_/g, " ")
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase())
+            .trim();
 
-              return (
-                <div key={key} style={fieldRow}>
-                  <Text style={fieldLabel}>{formattedKey}:</Text>
-                  <Text style={fieldValue}>
-                    {typeof value === "boolean"
-                      ? value
-                        ? isGreek
-                          ? "Ναι"
-                          : "Yes"
-                        : isGreek
-                        ? "Όχι"
-                        : "No"
-                      : String(value || "-")}
-                  </Text>
-                </div>
-              );
-            })}
-          </Section>
+          return (
+            <div key={key} style={{ marginBottom: "12px" }}>
+              <Text style={{ color: colors.textMuted }} className="text-sm font-medium m-0 mb-1">
+                {formattedKey}:
+              </Text>
+              <Text style={{ color: colors.textPrimary, whiteSpace: "pre-wrap" as const }} className="text-sm m-0">
+                {typeof value === "boolean"
+                  ? value
+                    ? isGreek
+                      ? "Ναι"
+                      : "Yes"
+                    : isGreek
+                    ? "Όχι"
+                    : "No"
+                  : String(value || "-")}
+              </Text>
+            </div>
+          );
+        })}
+      </Section>
 
-          <Hr style={hr} />
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
 
-          <Section style={ctaSection}>
-            <Link
-              href={`${baseUrl}/app/crm/form-submissions`}
-              style={button}
-            >
-              {isGreek ? "Προβολή Υποβολών" : "View Submissions"}
-            </Link>
-          </Section>
-
-          <Text style={footer}>
-            {isGreek
-              ? "Αυτό το email στάλθηκε αυτόματα από το Oikion. Μπορείτε να απαντήσετε απευθείας στον αποστολέα."
-              : "This email was sent automatically from Oikion. You can reply directly to the sender."}
-          </Text>
-
-          <Text style={footerSmall}>
-            Submission ID: {submissionId}
-          </Text>
-        </Container>
-      </Body>
-    </Html>
+      {/* CTA */}
+      <Section className="text-center my-8">
+        <Link
+          href={`${baseUrl}/app/crm/form-submissions`}
+          style={{
+            backgroundColor: colors.buttonBg,
+            color: colors.buttonText,
+            borderRadius: "6px",
+            display: "inline-block",
+            fontSize: "14px",
+            fontWeight: "600",
+            padding: "12px 24px",
+            textDecoration: "none",
+          }}
+        >
+          {isGreek ? "Προβολή Υποβολών" : "View Submissions"}
+        </Link>
+      </Section>
+    </BaseLayout>
   );
 };
 
 export default AgentContactFormSubmission;
-
-// Styles
-const main = {
-  backgroundColor: "#f6f9fc",
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
-};
-
-const container = {
-  backgroundColor: "#ffffff",
-  margin: "0 auto",
-  padding: "40px 20px",
-  marginBottom: "64px",
-  maxWidth: "600px",
-  borderRadius: "8px",
-};
-
-const heading = {
-  color: "#1a1a1a",
-  fontSize: "24px",
-  fontWeight: "600",
-  textAlign: "center" as const,
-  margin: "0 0 30px",
-};
-
-const paragraph = {
-  color: "#525252",
-  fontSize: "16px",
-  lineHeight: "24px",
-  margin: "16px 0",
-};
-
-const infoBox = {
-  backgroundColor: "#f8fafc",
-  borderRadius: "8px",
-  padding: "20px",
-  margin: "24px 0",
-};
-
-const infoLabel = {
-  color: "#64748b",
-  fontSize: "12px",
-  fontWeight: "600",
-  textTransform: "uppercase" as const,
-  margin: "0 0 4px",
-};
-
-const infoValue = {
-  color: "#1a1a1a",
-  fontSize: "16px",
-  fontWeight: "500",
-  margin: "0 0 16px",
-};
-
-const link = {
-  color: "#2563eb",
-  textDecoration: "none",
-};
-
-const hr = {
-  borderColor: "#e5e7eb",
-  margin: "24px 0",
-};
-
-const messageSection = {
-  margin: "24px 0",
-};
-
-const sectionTitle = {
-  color: "#1a1a1a",
-  fontSize: "16px",
-  fontWeight: "600",
-  margin: "0 0 16px",
-};
-
-const fieldRow = {
-  marginBottom: "12px",
-};
-
-const fieldLabel = {
-  color: "#64748b",
-  fontSize: "14px",
-  fontWeight: "500",
-  margin: "0 0 4px",
-};
-
-const fieldValue = {
-  color: "#1a1a1a",
-  fontSize: "15px",
-  margin: "0",
-  whiteSpace: "pre-wrap" as const,
-};
-
-const ctaSection = {
-  textAlign: "center" as const,
-  margin: "32px 0",
-};
-
-const button = {
-  backgroundColor: "#2563eb",
-  borderRadius: "6px",
-  color: "#ffffff",
-  display: "inline-block",
-  fontSize: "14px",
-  fontWeight: "600",
-  padding: "12px 24px",
-  textDecoration: "none",
-};
-
-const footer = {
-  color: "#64748b",
-  fontSize: "14px",
-  lineHeight: "20px",
-  textAlign: "center" as const,
-  margin: "24px 0 8px",
-};
-
-const footerSmall = {
-  color: "#94a3b8",
-  fontSize: "12px",
-  textAlign: "center" as const,
-  margin: "0",
-};

@@ -1,18 +1,13 @@
 import {
-  Body,
   Button,
-  Container,
-  Head,
   Heading,
   Hr,
-  Html,
   Link,
-  Preview,
   Section,
-  Tailwind,
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { BaseLayout, EmailBadge, resolveColors } from "../components/BaseLayout";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 
@@ -27,6 +22,7 @@ interface DealStatusChangedEmailProps {
   clientName?: string;
   status: DealStatus;
   userLanguage: string;
+  userTheme?: string;
 }
 
 const statusConfig: Record<DealStatus, { icon: string; color: string }> = {
@@ -200,138 +196,113 @@ export const DealStatusChangedEmail = ({
   clientName,
   status,
   userLanguage,
+  userTheme,
 }: DealStatusChangedEmailProps) => {
+  const colors = resolveColors(userTheme);
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
   const statusT = t.statuses[status] || t.statuses.UPDATED;
   const statusStyle = statusConfig[status] || statusConfig.UPDATED;
   const dealUrl = `${baseUrl}/app/deals/${dealId}`;
 
   return (
-    <Html>
-      <Head>
-        <meta name="color-scheme" content="light" />
-        <meta name="supported-color-schemes" content="light" />
-      </Head>
-      <Preview>{t.preview(status)}</Preview>
-      <Tailwind>
-        <Body className="bg-zinc-50 my-auto mx-auto font-sans">
-          <Container className="bg-white border border-zinc-200 rounded-xl my-10 mx-auto p-0 max-w-[520px] overflow-hidden">
-            {/* Header */}
-            <Section className="bg-zinc-900 px-8 py-10 text-center">
-              <Text className="text-white text-2xl font-bold m-0 tracking-tight">
-                Oikion
-              </Text>
-              <Text className="text-zinc-400 text-sm m-0 mt-1">
-                Real Estate, Reimagined
-              </Text>
-            </Section>
+    <BaseLayout
+      previewText={t.preview(status)}
+      footerText={`${t.footer} ${t.footerNote}`}
+      emailTheme={userTheme}
+    >
+      <EmailBadge
+        icon={statusStyle.icon}
+        text={statusT.badge}
+        colorClass={statusStyle.color}
+      />
 
-            {/* Content */}
-            <Section className="px-8 py-10">
-              {/* Badge */}
-              <Section className="mb-6 text-center">
-                <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full border ${statusStyle.color}`}>
-                  {statusStyle.icon} {statusT.badge}
-                </span>
-              </Section>
+      <Heading
+        style={{ color: colors.textPrimary }}
+        className="text-2xl font-semibold text-center p-0 m-0 mb-3"
+      >
+        {statusT.title}
+      </Heading>
 
-              <Heading className="text-zinc-900 text-2xl font-semibold text-center p-0 m-0 mb-3">
-                {statusT.title}
-              </Heading>
+      <Text style={{ color: colors.textSecondary }} className="text-base text-center m-0 mb-6 leading-relaxed">
+        {statusT.subtitle}
+      </Text>
 
-              <Text className="text-zinc-500 text-base text-center m-0 mb-6 leading-relaxed">
-                {statusT.subtitle}
-              </Text>
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
 
-              <Hr className="border-zinc-200 my-6" />
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-4">
+        {t.greeting(recipientName)}
+      </Text>
 
-              {/* Greeting & Intro */}
-              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-4">
-                {t.greeting(recipientName)}
-              </Text>
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-6">
+        {statusT.intro(actorName)}
+      </Text>
 
-              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-6">
-                {statusT.intro(actorName)}
-              </Text>
+      {/* Deal Details */}
+      <Section
+        style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}
+        className="rounded-lg p-5 mb-6"
+      >
+        <Text style={{ color: colors.textMuted }} className="text-xs font-medium m-0 mb-4 uppercase tracking-wide">
+          {t.dealDetails}
+        </Text>
 
-              {/* Deal Details */}
-              <Section className="bg-zinc-50 border border-zinc-200 rounded-lg p-5 mb-6">
-                <Text className="text-zinc-500 text-xs font-medium m-0 mb-4 uppercase tracking-wide">
-                  {t.dealDetails}
-                </Text>
+        {dealTitle && (
+          <Section className="mb-4">
+            <Text style={{ color: colors.textPrimary }} className="text-lg font-semibold m-0">
+              {dealTitle}
+            </Text>
+          </Section>
+        )}
 
-                {dealTitle && (
-                  <Section className="mb-4">
-                    <Text className="text-zinc-900 text-lg font-semibold m-0">
-                      {dealTitle}
-                    </Text>
-                  </Section>
-                )}
+        <Section className="mb-3">
+          <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+            {t.propertyLabel}
+          </Text>
+          <Text style={{ color: colors.textPrimary }} className="text-sm font-medium m-0">
+            🏠 {propertyName}
+          </Text>
+        </Section>
 
-                <Section className="mb-3">
-                  <Text className="text-zinc-500 text-xs m-0 mb-1">
-                    {t.propertyLabel}
-                  </Text>
-                  <Text className="text-zinc-900 text-sm font-medium m-0">
-                    🏠 {propertyName}
-                  </Text>
-                </Section>
+        {clientName && (
+          <Section className="mb-3">
+            <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+              {t.clientLabel}
+            </Text>
+            <Text style={{ color: colors.textPrimary }} className="text-sm font-medium m-0">
+              👤 {clientName}
+            </Text>
+          </Section>
+        )}
 
-                {clientName && (
-                  <Section className="mb-3">
-                    <Text className="text-zinc-500 text-xs m-0 mb-1">
-                      {t.clientLabel}
-                    </Text>
-                    <Text className="text-zinc-900 text-sm font-medium m-0">
-                      👤 {clientName}
-                    </Text>
-                  </Section>
-                )}
+        <Section>
+          <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+            {t.newStatusLabel}
+          </Text>
+          <span className={`inline-block text-xs font-semibold px-2 py-1 rounded border ${statusStyle.color}`}>
+            {statusT.badge}
+          </span>
+        </Section>
+      </Section>
 
-                <Section>
-                  <Text className="text-zinc-500 text-xs m-0 mb-1">
-                    {t.newStatusLabel}
-                  </Text>
-                  <span className={`inline-block text-xs font-semibold px-2 py-1 rounded border ${statusStyle.color}`}>
-                    {statusT.badge}
-                  </span>
-                </Section>
-              </Section>
+      <Section className="text-center mb-6">
+        <Button
+          style={{ backgroundColor: colors.buttonBg, color: colors.buttonText }}
+          className="rounded-lg py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
+          href={dealUrl}
+        >
+          {t.ctaButton}
+        </Button>
+      </Section>
 
-              {/* CTA Button */}
-              <Section className="text-center mb-6">
-                <Button
-                  className="bg-zinc-900 rounded-lg text-white py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
-                  href={dealUrl}
-                >
-                  {t.ctaButton}
-                </Button>
-              </Section>
-
-              {/* Alternative Link */}
-              <Text className="text-zinc-500 text-xs text-center m-0 mb-2">
-                {t.altLink}
-              </Text>
-              <Text className="text-center m-0">
-                <Link href={dealUrl} className="text-blue-600 text-xs underline break-all">
-                  {dealUrl}
-                </Link>
-              </Text>
-            </Section>
-
-            {/* Footer */}
-            <Section className="bg-zinc-50 border-t border-zinc-200 px-8 py-6">
-              <Text className="text-zinc-400 text-xs text-center m-0 mb-2">
-                {t.footer} {t.footerNote}
-              </Text>
-              <Text className="text-zinc-400 text-xs text-center m-0 mt-3">
-                © {new Date().getFullYear()} Oikion. All rights reserved.
-              </Text>
-            </Section>
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+      <Text style={{ color: colors.textMuted }} className="text-xs text-center m-0 mb-2">
+        {t.altLink}
+      </Text>
+      <Text className="text-center m-0">
+        <Link href={dealUrl} style={{ color: colors.linkColor }} className="text-xs underline break-all">
+          {dealUrl}
+        </Link>
+      </Text>
+    </BaseLayout>
   );
 };
 

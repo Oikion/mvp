@@ -22,7 +22,7 @@ const VALID_ADDRESS_PRIVACY_LEVELS = new Set(["EXACT", "PARTIAL", "HIDDEN"]);
 const VALID_LEGALIZATION_STATUSES = new Set(["LEGALIZED", "IN_PROGRESS", "UNDECLARED"]);
 const VALID_FURNISHED_STATUSES = new Set(["NO", "PARTIALLY", "FULLY"]);
 const VALID_PRICE_TYPES = new Set(["RENTAL", "SALE", "PER_ACRE", "PER_SQM"]);
-const VALID_PORTAL_VISIBILITIES = new Set(["PRIVATE", "SELECTED", "PUBLIC"]);
+const VALID_PORTAL_VISIBILITIES = new Set(["PERSONAL", "SECURE", "PUBLIC"]);
 const VALID_FRONTAGE_TYPES = new Set(["MAIN_ROAD", "SECONDARY_ROAD", "PEDESTRIAN", "CORNER", "SQUARE", "CUL_DE_SAC", "NONE"]);
 
 // Map form property_status values to Prisma enum values
@@ -126,7 +126,7 @@ export async function POST(req: Request) {
       available_from,
       accepts_pets,
       min_lease_months,
-      portal_visibility,
+      visibility,
       square_feet,
       lot_size,
       description,
@@ -220,9 +220,9 @@ export async function POST(req: Request) {
         data.price_type = price_type;
       }
     }
-    if (portal_visibility !== undefined && portal_visibility !== null && portal_visibility !== "") {
-      if (VALID_PORTAL_VISIBILITIES.has(portal_visibility)) {
-        data.portal_visibility = portal_visibility;
+    if (visibility !== undefined && visibility !== null && visibility !== "") {
+      if (VALID_PORTAL_VISIBILITIES.has(visibility)) {
+        data.visibility = visibility;
       }
     }
     if (frontage_type !== undefined && frontage_type !== null && frontage_type !== "" && VALID_FRONTAGE_TYPES.has(frontage_type)) {
@@ -325,11 +325,12 @@ export async function POST(req: Request) {
     
     if (error instanceof Error) {
       errorMessage = error.message;
-      errorDetails = {
-        message: error.message,
-        name: error.name,
-        stack: error.stack,
-      };
+      if (process.env.NODE_ENV === "development") {
+        errorDetails = {
+          message: error.message,
+          name: error.name,
+        };
+      }
     }
     
     // Check if it's a Prisma validation error
@@ -350,10 +351,12 @@ export async function POST(req: Request) {
     });
     
     return NextResponse.json(
-      { 
-        error: errorMessage, 
-        details: errorDetails || errorMessage,
-        code: error?.code,
+      {
+        error: errorMessage,
+        ...(process.env.NODE_ENV === "development" && {
+          details: errorDetails || errorMessage,
+          code: error?.code,
+        }),
       },
       { status: 500 }
     );

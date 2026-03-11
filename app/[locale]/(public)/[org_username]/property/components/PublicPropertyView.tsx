@@ -14,7 +14,7 @@ interface PublicPropertyViewProps {
     property_name: string;
     property_type?: string | null;
     property_status?: string | null;
-    portal_visibility?: string | null;
+    visibility?: string | null;
     price?: number | null;
     bedrooms?: number | null;
     bathrooms?: number | null;

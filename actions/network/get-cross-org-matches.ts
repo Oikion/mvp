@@ -54,7 +54,7 @@ async function loadAgentInfo(userId: string | null) {
   if (!userId) return null;
   return prismadb.users.findUnique({
     where: { id: userId },
-    select: { first_name: true, last_name: true, phone: true },
+    select: { firstName: true, lastName: true },
   });
 }
 
@@ -115,8 +115,8 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
   const profiles = new Map(orgProfilesMap);
 
   // Load mandate + property rows needed for privacy-filtered output
-  const mandateIds = [...new Set(rows.map((r) => r.mandateId))];
-  const propertyIds = [...new Set(rows.map((r) => r.propertyId))];
+  const mandateIds = Array.from(new Set(rows.map((r) => r.mandateId)));
+  const propertyIds = Array.from(new Set(rows.map((r) => r.propertyId)));
 
   const [mandateRows, propertyRows] = await Promise.all([
     prismadb.mandate.findMany({
@@ -196,15 +196,15 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
     if (mandatePrivacy === "FULL" && mandate.assigned_to) {
       const agent = await loadAgentInfo(mandate.assigned_to);
       if (agent) {
-        mandateAgentName = [agent.first_name, agent.last_name].filter(Boolean).join(" ");
-        mandateAgentPhone = agent.phone ?? null;
+        mandateAgentName = [agent.firstName, agent.lastName].filter(Boolean).join(" ");
+        mandateAgentPhone = null;
       }
     }
     if (propertyPrivacy === "FULL" && property.assigned_to) {
       const agent = await loadAgentInfo(property.assigned_to);
       if (agent) {
-        propertyAgentName = [agent.first_name, agent.last_name].filter(Boolean).join(" ");
-        propertyAgentPhone = agent.phone ?? null;
+        propertyAgentName = [agent.firstName, agent.lastName].filter(Boolean).join(" ");
+        propertyAgentPhone = null;
       }
     }
 
@@ -262,7 +262,7 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
     results.push({
       id: row.id,
       matchScore: row.matchScore,
-      breakdown: row.breakdown as CriterionScore[],
+      breakdown: row.breakdown as unknown as CriterionScore[],
       computedAt: row.computedAt,
       viewingOrgHasMandate,
       mandate: filteredMandate,

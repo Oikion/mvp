@@ -1,5 +1,5 @@
 import { Ratelimit } from '@upstash/ratelimit';
-import { kv } from '@vercel/kv';
+import { redis, isRedisAvailable } from '@/lib/redis';
 
 // Rate limit tiers for different API types
 export type RateLimitTier = 'default' | 'strict' | 'lenient' | 'burst' | 'api';
@@ -21,22 +21,19 @@ const RATE_LIMIT_CONFIGS: Record<RateLimitTier, { requests: number; window: stri
 // Initialize rate limiters with Vercel KV
 const rateLimiters: Partial<Record<RateLimitTier, Ratelimit>> = {};
 
-// Check if Vercel KV is available (via KV_URL or KV_REST_API_URL)
-const isKvAvailable = !!(process.env.KV_URL || process.env.KV_REST_API_URL);
-
-if (isKvAvailable) {
+if (isRedisAvailable) {
   try {
     // Create rate limiters for each tier
     for (const [tier, config] of Object.entries(RATE_LIMIT_CONFIGS)) {
       rateLimiters[tier as RateLimitTier] = new Ratelimit({
-        redis: kv,
+        redis: redis,
         limiter: Ratelimit.slidingWindow(config.requests, config.window as Parameters<typeof Ratelimit.slidingWindow>[1]),
         analytics: true,
         prefix: `@oikion/ratelimit/${tier}`,
       });
     }
   } catch (error) {
-    console.error('[RATE_LIMIT_INIT] Failed to initialize Vercel KV:', error);
+    console.error('[RATE_LIMIT_INIT] Failed to initialize Upstash Redis:', error);
   }
 }
 
@@ -121,8 +118,8 @@ export async function rateLimit(
   identifier: string,
   tier: RateLimitTier = 'default'
 ): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
-  // Skip rate limiting entirely in development mode for faster HMR
-  if (process.env.NODE_ENV === 'development') {
+  // Skip rate limiting only when explicitly opted in (e.g., local development)
+  if (process.env.DISABLE_RATE_LIMITING === 'true') {
     const config = RATE_LIMIT_CONFIGS[tier];
     return {
       success: true,
@@ -139,7 +136,7 @@ export async function rateLimit(
     try {
       return await limiter.limit(identifier);
     } catch (error) {
-      console.error('[RATE_LIMIT_ERROR] Vercel KV error, falling back to in-memory:', error);
+      console.error('[RATE_LIMIT_ERROR] Upstash Redis error, falling back to in-memory:', error);
       // Fall through to in-memory fallback
     }
   }
@@ -153,13 +150,7 @@ export async function rateLimit(
  * Works with both server and edge runtime
  */
 export function getRateLimitIdentifier(req: Request): string {
-  // Try to get user ID from headers (if authenticated)
-  const userId = req.headers.get('x-user-id') || req.headers.get('x-clerk-user-id');
-  if (userId) {
-    return `user:${userId}`;
-  }
-
-  // Fallback to IP address
+  // Use IP address as identifier (headers like x-user-id are client-spoofable)
   const forwarded = req.headers.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0].trim() : req.headers.get('x-real-ip') || 'unknown';
   return `ip:${ip}`;

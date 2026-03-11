@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { ReservedNameType } from "@prisma/client";
 import { hash } from "bcryptjs";
 
+import { clerkClient } from "@clerk/nextjs/server";
 import { generateFriendlyId } from "@/lib/friendly-id";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { isReservedName } from "@/lib/reserved-names";
 
@@ -117,22 +118,42 @@ export async function POST(req: Request) {
       }
     }
     
-    return new NextResponse(
-      error instanceof Error ? error.message : "Failed to create user",
-      { status: 500 }
-    );
+    return new NextResponse("Failed to create user", { status: 500 });
   }
 }
 
 export async function GET() {
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgIdSafe();
 
-    if (!user?.is_admin) {
+    if (!user?.is_admin || !organizationId) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const users = await prismadb.users.findMany({});
+    // Users model has no organizationId — get org members from Clerk
+    const clerk = await clerkClient();
+    const memberships = await clerk.organizations.getOrganizationMembershipList({
+      organizationId,
+      limit: 200,
+    });
+    const memberClerkIds = memberships.data.map(m => m.publicUserData?.userId).filter(Boolean) as string[];
+
+    const users = await prismadb.users.findMany({
+      where: { clerkUserId: { in: memberClerkIds } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatar: true,
+        is_admin: true,
+        userStatus: true,
+        userLanguage: true,
+        created_on: true,
+      },
+      take: 200,
+    });
 
     return NextResponse.json(users);
   } catch (error: unknown) {
@@ -148,9 +169,6 @@ export async function GET() {
       return new NextResponse("Database connection error. Please try again.", { status: 503 });
     }
     
-    return new NextResponse(
-      error instanceof Error ? error.message : "Failed to fetch users",
-      { status: 500 }
-    );
+    return new NextResponse("Failed to fetch users", { status: 500 });
   }
 }

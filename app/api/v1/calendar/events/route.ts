@@ -156,12 +156,32 @@ export const POST = withExternalApi(
       return createApiErrorResponse("endTime must be after startTime", 400);
     }
 
-    // Build relations
+    // Validate that linked entities belong to the caller's organization
     const relations: Record<string, unknown> = {};
     if (clientIds && Array.isArray(clientIds) && clientIds.length > 0) {
+      const ownedClients = await prismadb.clients.findMany({
+        where: { id: { in: clientIds }, organizationId: context.organizationId },
+        select: { id: true },
+      });
+      if (ownedClients.length !== clientIds.length) {
+        return createApiErrorResponse(
+          "One or more clientIds do not belong to your organization",
+          400
+        );
+      }
       relations.Clients = { connect: clientIds.map((id: string) => ({ id })) };
     }
     if (propertyIds && Array.isArray(propertyIds) && propertyIds.length > 0) {
+      const ownedProperties = await prismadb.properties.findMany({
+        where: { id: { in: propertyIds }, organizationId: context.organizationId },
+        select: { id: true },
+      });
+      if (ownedProperties.length !== propertyIds.length) {
+        return createApiErrorResponse(
+          "One or more propertyIds do not belong to your organization",
+          400
+        );
+      }
       relations.Properties = { connect: propertyIds.map((id: string) => ({ id })) };
     }
 

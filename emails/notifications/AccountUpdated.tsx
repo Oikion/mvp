@@ -1,18 +1,13 @@
 import {
-  Body,
   Button,
-  Container,
-  Head,
   Heading,
   Hr,
-  Html,
   Link,
-  Preview,
   Section,
-  Tailwind,
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { BaseLayout, EmailBadge, resolveColors } from "../components/BaseLayout";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 
@@ -26,6 +21,7 @@ interface AccountUpdatedEmailProps {
   updateType: UpdateType;
   changes?: string[];
   userLanguage: string;
+  userTheme?: string;
 }
 
 const updateConfig: Record<UpdateType, { icon: string; color: string }> = {
@@ -134,126 +130,105 @@ export const AccountUpdatedEmail = ({
   updateType,
   changes,
   userLanguage,
+  userTheme,
 }: AccountUpdatedEmailProps) => {
+  const colors = resolveColors(userTheme);
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
   const config = updateConfig[updateType];
   const accountUrl = `${baseUrl}/app/crm/accounts/${accountId}`;
 
   return (
-    <Html>
-      <Head>
-        <meta name="color-scheme" content="light" />
-        <meta name="supported-color-schemes" content="light" />
-      </Head>
-      <Preview>{t.preview[updateType](accountName)}</Preview>
-      <Tailwind>
-        <Body className="bg-zinc-50 my-auto mx-auto font-sans">
-          <Container className="bg-white border border-zinc-200 rounded-xl my-10 mx-auto p-0 max-w-[520px] overflow-hidden">
-            {/* Header */}
-            <Section className="bg-zinc-900 px-8 py-10 text-center">
-              <Text className="text-white text-2xl font-bold m-0 tracking-tight">
-                Oikion
+    <BaseLayout
+      previewText={t.preview[updateType](accountName)}
+      footerText={`${t.footer} ${t.footerNote}`}
+      emailTheme={userTheme}
+    >
+      <EmailBadge
+        icon={config.icon}
+        text={t.badge[updateType]}
+        colorClass={config.color}
+      />
+
+      <Heading
+        style={{ color: colors.textPrimary }}
+        className="text-2xl font-semibold text-center p-0 m-0 mb-3"
+      >
+        {t.title[updateType]}
+      </Heading>
+
+      <Text style={{ color: colors.textSecondary }} className="text-base text-center m-0 mb-6 leading-relaxed">
+        {t.subtitle[updateType]}
+      </Text>
+
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
+
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-4">
+        {t.greeting(recipientName)}
+      </Text>
+
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-6">
+        {t.intro[updateType](actorName, accountName)}
+      </Text>
+
+      {/* Account Details Card */}
+      <Section
+        style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}
+        className="rounded-lg p-5 mb-6"
+      >
+        <Text style={{ color: colors.textMuted }} className="text-xs font-medium m-0 mb-4 uppercase tracking-wide">
+          {t.accountDetails}
+        </Text>
+
+        <Section className="mb-4">
+          <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+            {t.accountNameLabel}
+          </Text>
+          <Text
+            style={{ color: updateType === "DELETED" ? colors.textMuted : colors.textPrimary }}
+            className={`text-lg font-semibold m-0 ${updateType === "DELETED" ? "line-through" : ""}`}
+          >
+            👤 {accountName}
+          </Text>
+        </Section>
+
+        {changes && changes.length > 0 && updateType === "UPDATED" && (
+          <Section>
+            <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-2">
+              {t.changesLabel}
+            </Text>
+            {changes.map((change, index) => (
+              <Text key={index} style={{ color: colors.textSecondary }} className="text-sm m-0 mb-1">
+                • {change}
               </Text>
-              <Text className="text-zinc-400 text-sm m-0 mt-1">
-                Real Estate, Reimagined
-              </Text>
-            </Section>
+            ))}
+          </Section>
+        )}
+      </Section>
 
-            {/* Content */}
-            <Section className="px-8 py-10">
-              {/* Badge */}
-              <Section className="mb-6 text-center">
-                <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full border ${config.color}`}>
-                  {config.icon} {t.badge[updateType]}
-                </span>
-              </Section>
+      {/* CTA Button */}
+      {updateType !== "DELETED" && (
+        <>
+          <Section className="text-center mb-6">
+            <Button
+              style={{ backgroundColor: colors.buttonBg, color: colors.buttonText }}
+              className="rounded-lg py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
+              href={accountUrl}
+            >
+              {t.ctaButton}
+            </Button>
+          </Section>
 
-              <Heading className="text-zinc-900 text-2xl font-semibold text-center p-0 m-0 mb-3">
-                {t.title[updateType]}
-              </Heading>
-
-              <Text className="text-zinc-500 text-base text-center m-0 mb-6 leading-relaxed">
-                {t.subtitle[updateType]}
-              </Text>
-
-              <Hr className="border-zinc-200 my-6" />
-
-              {/* Greeting & Intro */}
-              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-4">
-                {t.greeting(recipientName)}
-              </Text>
-
-              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-6">
-                {t.intro[updateType](actorName, accountName)}
-              </Text>
-
-              {/* Account Details Card */}
-              <Section className="bg-zinc-50 border border-zinc-200 rounded-lg p-5 mb-6">
-                <Text className="text-zinc-500 text-xs font-medium m-0 mb-4 uppercase tracking-wide">
-                  {t.accountDetails}
-                </Text>
-
-                <Section className="mb-4">
-                  <Text className="text-zinc-500 text-xs m-0 mb-1">
-                    {t.accountNameLabel}
-                  </Text>
-                  <Text className={`text-lg font-semibold m-0 ${updateType === "DELETED" ? "line-through text-zinc-500" : "text-zinc-900"}`}>
-                    👤 {accountName}
-                  </Text>
-                </Section>
-
-                {changes && changes.length > 0 && updateType === "UPDATED" && (
-                  <Section>
-                    <Text className="text-zinc-500 text-xs m-0 mb-2">
-                      {t.changesLabel}
-                    </Text>
-                    {changes.map((change, index) => (
-                      <Text key={index} className="text-zinc-700 text-sm m-0 mb-1">
-                        • {change}
-                      </Text>
-                    ))}
-                  </Section>
-                )}
-              </Section>
-
-              {/* CTA Button */}
-              {updateType !== "DELETED" && (
-                <>
-                  <Section className="text-center mb-6">
-                    <Button
-                      className="bg-zinc-900 rounded-lg text-white py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
-                      href={accountUrl}
-                    >
-                      {t.ctaButton}
-                    </Button>
-                  </Section>
-
-                  {/* Alternative Link */}
-                  <Text className="text-zinc-500 text-xs text-center m-0 mb-2">
-                    {t.altLink}
-                  </Text>
-                  <Text className="text-center m-0">
-                    <Link href={accountUrl} className="text-blue-600 text-xs underline break-all">
-                      {accountUrl}
-                    </Link>
-                  </Text>
-                </>
-              )}
-            </Section>
-
-            {/* Footer */}
-            <Section className="bg-zinc-50 border-t border-zinc-200 px-8 py-6">
-              <Text className="text-zinc-400 text-xs text-center m-0 mb-2">
-                {t.footer} {t.footerNote}
-              </Text>
-              <Text className="text-zinc-400 text-xs text-center m-0 mt-3">
-                © {new Date().getFullYear()} Oikion. All rights reserved.
-              </Text>
-            </Section>
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+          <Text style={{ color: colors.textMuted }} className="text-xs text-center m-0 mb-2">
+            {t.altLink}
+          </Text>
+          <Text className="text-center m-0">
+            <Link href={accountUrl} style={{ color: colors.linkColor }} className="text-xs underline break-all">
+              {accountUrl}
+            </Link>
+          </Text>
+        </>
+      )}
+    </BaseLayout>
   );
 };
 

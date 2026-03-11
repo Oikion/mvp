@@ -103,7 +103,7 @@ function buildPropertyData(body: any, user: any, organizationId: string, isUpdat
     available_from,
     accepts_pets,
     min_lease_months,
-    portal_visibility,
+    visibility,
     square_feet,
     lot_size,
     description,
@@ -180,8 +180,8 @@ function buildPropertyData(body: any, user: any, organizationId: string, isUpdat
   if (price_type !== undefined && price_type !== null && price_type !== "") {
     data.price_type = price_type;
   }
-  if (portal_visibility !== undefined && portal_visibility !== null && portal_visibility !== "") {
-    data.portal_visibility = portal_visibility;
+  if (visibility !== undefined && visibility !== null && visibility !== "") {
+    data.visibility = visibility;
   }
   if (frontage_type !== undefined && frontage_type !== null && frontage_type !== "" && VALID_FRONTAGE_TYPES.has(frontage_type)) {
     data.frontage_type = frontage_type;

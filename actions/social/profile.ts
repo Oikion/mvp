@@ -192,6 +192,9 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
  * Check if a slug is available
  */
 export async function checkSlugAvailability(slug: string, excludeUserId?: string) {
+  const currentUser = await getCurrentUserSafe();
+  if (!currentUser) return false;
+
   const existing = await prismadb.agentProfile.findFirst({
     where: {
       slug,
@@ -213,8 +216,14 @@ export async function generateUniqueSlug(baseName: string): Promise<string> {
 
   let slug = baseSlug;
   let counter = 1;
+  const MAX_RETRIES = 10;
 
   while (!(await checkSlugAvailability(slug))) {
+    if (counter > MAX_RETRIES) {
+      // Append random suffix to guarantee uniqueness
+      slug = `${baseSlug}-${Date.now().toString(36)}`;
+      break;
+    }
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
@@ -341,7 +350,7 @@ export async function searchAgentProfiles(query: string, limit: number = 20) {
             select: {
               Properties_Properties_assigned_toToUsers: {
                 where: {
-                  portal_visibility: "PUBLIC",
+                  visibility: "PUBLIC",
                   property_status: "ACTIVE",
                 },
               },

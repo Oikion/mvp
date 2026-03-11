@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "crypto";
 import { prismadb } from "@/lib/prisma";
+import { cacheGet, cacheSet, cacheDel } from "@/lib/redis";
 
 // API Key prefix for easy identification
 const API_KEY_PREFIX = "oik_";
@@ -123,8 +124,32 @@ export async function validateApiKey(key: string): Promise<{
 
   // Hash the provided key
   const keyHash = hashApiKey(key);
+  const cacheKey = `oik:apikey:${keyHash}`;
 
-  // Look up the key in the database
+  // Check Redis cache first (avoids DB lookup on every /api/v1/* request)
+  interface CachedApiKey {
+    id: string;
+    organizationId: string;
+    name: string;
+    scopes: string[];
+    createdById: string;
+    expiresAt: string | null;
+    revokedAt: string | null;
+  }
+
+  const cached = await cacheGet<CachedApiKey>(cacheKey);
+  if (cached) {
+    if (cached.revokedAt) return { valid: false, error: "Invalid API key" };
+    if (cached.expiresAt && new Date(cached.expiresAt) < new Date()) return { valid: false, error: "Invalid API key" };
+    // Update last used timestamp (fire and forget)
+    prismadb.apiKey.update({ where: { id: cached.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
+    return {
+      valid: true,
+      apiKey: { id: cached.id, organizationId: cached.organizationId, name: cached.name, scopes: cached.scopes, createdById: cached.createdById },
+    };
+  }
+
+  // Cache miss — look up the key in the database
   const apiKey = await prismadb.apiKey.findUnique({
     where: { keyHash },
     select: {
@@ -139,17 +164,28 @@ export async function validateApiKey(key: string): Promise<{
   });
 
   if (!apiKey) {
-    return { valid: false, error: "API key not found" };
+    return { valid: false, error: "Invalid API key" };
   }
+
+  // Cache the result (including revoked/expired — we re-check on cache hit)
+  await cacheSet<CachedApiKey>(cacheKey, {
+    id: apiKey.id,
+    organizationId: apiKey.organizationId,
+    name: apiKey.name,
+    scopes: apiKey.scopes,
+    createdById: apiKey.createdById,
+    expiresAt: apiKey.expiresAt?.toISOString() ?? null,
+    revokedAt: apiKey.revokedAt?.toISOString() ?? null,
+  }, 300); // 5-minute TTL
 
   // Check if revoked
   if (apiKey.revokedAt) {
-    return { valid: false, error: "API key has been revoked" };
+    return { valid: false, error: "Invalid API key" };
   }
 
   // Check if expired
   if (apiKey.expiresAt && apiKey.expiresAt < new Date()) {
-    return { valid: false, error: "API key has expired" };
+    return { valid: false, error: "Invalid API key" };
   }
 
   // Update last used timestamp (fire and forget)
@@ -226,6 +262,12 @@ export async function createApiKey(params: {
  * Revoke an API key
  */
 export async function revokeApiKey(keyId: string, organizationId: string): Promise<boolean> {
+  // Fetch keyHash before revocation for cache invalidation
+  const keyRecord = await prismadb.apiKey.findUnique({
+    where: { id: keyId },
+    select: { keyHash: true },
+  });
+
   const result = await prismadb.apiKey.updateMany({
     where: {
       id: keyId,
@@ -236,6 +278,11 @@ export async function revokeApiKey(keyId: string, organizationId: string): Promi
       revokedAt: new Date(),
     },
   });
+
+  // Invalidate cached API key immediately on revocation
+  if (result.count > 0 && keyRecord) {
+    await cacheDel(`oik:apikey:${keyRecord.keyHash}`);
+  }
 
   return result.count > 0;
 }

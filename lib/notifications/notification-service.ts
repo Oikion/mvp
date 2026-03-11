@@ -5,6 +5,7 @@
 
 import { randomUUID } from "crypto";
 import { prismadb } from "@/lib/prisma";
+import { cacheDel } from "@/lib/redis";
 import {
   CreateNotificationInput,
   CreateBulkNotificationInput,
@@ -37,6 +38,9 @@ export async function createNotification(
         updatedAt: new Date(),
       },
     });
+
+    // Invalidate cached notification counts for the recipient
+    await cacheDel(`oik:notif:${input.organizationId}:${input.userId}`);
   } catch (error) {
     console.error("[NOTIFICATION_SERVICE] Failed to create notification:", error);
     // Don't throw - notifications are non-critical
@@ -74,6 +78,13 @@ export async function createBulkNotifications(
         updatedAt: now,
       })),
     });
+
+    // Invalidate cached notification counts for all recipients
+    await Promise.all(
+      uniqueUserIds.map((userId) =>
+        cacheDel(`oik:notif:${input.organizationId}:${userId}`)
+      )
+    );
   } catch (error) {
     console.error("[NOTIFICATION_SERVICE] Failed to create bulk notifications:", error);
     // Don't throw - notifications are non-critical

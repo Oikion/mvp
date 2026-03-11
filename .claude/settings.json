@@ -13,7 +13,11 @@
       "Bash(ls -la \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/matchmaking/\")",
       "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/matchmaking/components/UnmatchedClientsList.tsx\")",
       "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/crm/clients/[slug]/components/ClientMatchingProperties.tsx\")",
-      "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/mls/properties/[slug]/components/PropertyMatchingClients.tsx\")"
+      "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/mls/properties/[slug]/components/PropertyMatchingClients.tsx\")",
+      "Bash(grep -rn \"setTheme\\\\|theme.*update\\\\|updateTheme\\\\|userTheme\" /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\)/profile/ --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(grep -n \"toggleNetwork\\\\|Network\\\\|network\" /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(platform_admin\\\\\\)/platform-admin/organizations/components/OrganizationsDataTable.tsx)",
+      "Bash(git diff main -- app/[locale]/app/\\\\\\(platform_admin\\\\\\)/platform-admin/network/page.tsx app/[locale]/app/\\\\\\(routes\\\\\\)/settings/network/page.tsx)",
+      "Bash(git stash push -m \"pre-merge-main-changes\")"
     ]
   }
 }

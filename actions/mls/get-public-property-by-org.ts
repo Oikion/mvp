@@ -68,7 +68,7 @@ export async function getPublicPropertyByOrg(orgSlug: string, propertyId: string
     where: {
       friendlyId: propertyId,
       organizationId: organization.id,
-      portal_visibility: "PUBLIC",
+      visibility: "PUBLIC",
       property_status: "ACTIVE",
     },
     include: {
@@ -146,7 +146,7 @@ export async function getPublicPropertiesByOrg(orgSlug: string, options?: {
 
   const where = {
     organizationId: organization.id,
-    portal_visibility: "PUBLIC" as const,
+    visibility: "PUBLIC" as const,
     property_status: "ACTIVE" as const,
   };
 
@@ -187,7 +187,7 @@ export async function getOrganizationsWithPublicProperties() {
     const orgsWithProperties = await prismadb.properties.groupBy({
       by: ["organizationId"],
       where: {
-        portal_visibility: "PUBLIC",
+        visibility: "PUBLIC",
         property_status: "ACTIVE",
         organizationId: {
           not: "00000000-0000-0000-0000-000000000000",

@@ -6,58 +6,15 @@
  * JSON fields are serialized to string before encryption (sentinel prefix: value starts
  * with encrypted format iv:auth:ct when isEncrypted returns true).
  *
- * Usage on WRITE: const encrypted = encryptClient(data); await prismadb.clients.create({ data: encrypted });
- * Usage on READ:  const record = await prismadb.clients.findFirst(...); return decryptClient(record);
+ * All encryption uses per-org DEKs (Data Encryption Keys) via the *ForOrg() functions.
+ *
+ * Usage on WRITE: const encrypted = await encryptClientForOrg(data, orgId);
+ * Usage on READ:  const record = await prismadb.clients.findFirst(...); return decryptClientForOrg(record, orgId);
  */
 
-import { encrypt, decrypt, encryptWithKey, decryptWithKey, isEncrypted } from "@/lib/encryption";
+import { encryptWithKey, decryptWithKey, isEncrypted } from "@/lib/encryption";
 import { getOrgDek } from "@/lib/key-management";
 import type { Prisma } from "@prisma/client";
-
-// ─────────────────────────────────────────────
-// Internal helpers
-// ─────────────────────────────────────────────
-
-/** Encrypt a string field, handling null/undefined gracefully */
-function encryptField(value: string | null | undefined): string | null | undefined {
-  if (value == null) return value;
-  if (isEncrypted(value)) return value; // idempotent
-  return encrypt(value);
-}
-
-/** Decrypt a string field, handling null/undefined gracefully */
-function decryptField(value: string | null | undefined): string | null | undefined {
-  if (value == null) return value;
-  if (!isEncrypted(value)) return value; // legacy plain-text or empty
-  return decrypt(value);
-}
-
-/** Encrypt a JSON value by serialising to string first */
-function encryptJson(
-  value: Prisma.JsonValue | null | undefined
-): Prisma.JsonValue | null | undefined {
-  if (value == null) return value;
-  // Only skip if the raw value is already an encrypted string
-  if (typeof value === "string" && isEncrypted(value)) return value;
-  const str = typeof value === "string" ? value : JSON.stringify(value);
-  return encrypt(str) as Prisma.JsonValue;
-}
-
-/** Decrypt a JSON value that was encrypted as a string */
-function decryptJson(
-  value: Prisma.JsonValue | null | undefined
-): Prisma.JsonValue | null | undefined {
-  if (value == null) return value;
-  if (typeof value === "string" && isEncrypted(value)) {
-    const decrypted = decrypt(value);
-    try {
-      return JSON.parse(decrypted) as Prisma.JsonValue;
-    } catch {
-      return decrypted as Prisma.JsonValue;
-    }
-  }
-  return value; // legacy unencrypted JSON object
-}
 
 // ─────────────────────────────────────────────
 // Clients
@@ -97,51 +54,11 @@ type ClientWithEncryptedFields = Partial<Record<ClientStringField, string | null
   communication_notes?: Prisma.JsonValue | null;
 };
 
-export function encryptClient<T extends ClientWithEncryptedFields>(data: T): T {
-  const result = { ...data } as T & ClientWithEncryptedFields;
-  for (const field of CLIENT_ENCRYPTED_STRING_FIELDS) {
-    if (field in result) {
-      (result as Record<string, unknown>)[field] = encryptField(
-        result[field] as string | null | undefined
-      );
-    }
-  }
-  if ("communication_notes" in result) {
-    result.communication_notes = encryptJson(result.communication_notes);
-  }
-  return result as T;
-}
-
-export function decryptClient<T extends ClientWithEncryptedFields>(record: T): T {
-  const result = { ...record } as T & ClientWithEncryptedFields;
-  for (const field of CLIENT_ENCRYPTED_STRING_FIELDS) {
-    if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptField(
-        result[field] as string | null | undefined
-      );
-    }
-  }
-  if ("communication_notes" in result) {
-    result.communication_notes = decryptJson(result.communication_notes);
-  }
-  return result as T;
-}
-
 // ─────────────────────────────────────────────
 // Messages
 // ─────────────────────────────────────────────
 
 type MessageWithContent = { content?: string | null };
-
-export function encryptMessage<T extends MessageWithContent>(data: T): T {
-  if (!("content" in data)) return data;
-  return { ...data, content: encryptField(data.content) };
-}
-
-export function decryptMessage<T extends MessageWithContent>(record: T): T {
-  if (!("content" in record)) return record;
-  return { ...record, content: decryptField(record.content) };
-}
 
 // ─────────────────────────────────────────────
 // CalendarEvent
@@ -159,31 +76,6 @@ const CALENDAR_ENCRYPTED_FIELDS = [
 type CalendarStringField = (typeof CALENDAR_ENCRYPTED_FIELDS)[number];
 type CalendarWithEncryptedFields = Partial<Record<CalendarStringField, string | null | undefined>>;
 
-export function encryptCalendarEvent<T extends CalendarWithEncryptedFields>(data: T): T {
-  const result = { ...data } as T & CalendarWithEncryptedFields;
-  for (const field of CALENDAR_ENCRYPTED_FIELDS) {
-    if (field in result) {
-      (result as Record<string, unknown>)[field] = encryptField(
-        result[field] as string | null | undefined
-      );
-    }
-  }
-  return result as T;
-}
-
-export function decryptCalendarEvent<T extends CalendarWithEncryptedFields>(record: T): T {
-  const result = { ...record } as T & CalendarWithEncryptedFields;
-  for (const field of CALENDAR_ENCRYPTED_FIELDS) {
-    if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptField(
-        result[field] as string | null | undefined
-      );
-    }
-  }
-  return result as T;
-}
-
-
 // ─────────────────────────────────────────────
 // Documents
 // ─────────────────────────────────────────────
@@ -193,28 +85,6 @@ type DocumentWithEncryptedFields = {
   description?: string | null;
 };
 
-export function encryptDocument<T extends DocumentWithEncryptedFields>(data: T): T {
-  const result = { ...data };
-  if ("document_name" in result) {
-    result.document_name = encryptField(result.document_name) as string | null | undefined;
-  }
-  if ("description" in result) {
-    result.description = encryptField(result.description) as string | null | undefined;
-  }
-  return result as T;
-}
-
-export function decryptDocument<T extends DocumentWithEncryptedFields>(record: T): T {
-  const result = { ...record };
-  if ("document_name" in result) {
-    result.document_name = decryptField(result.document_name) as string | null | undefined;
-  }
-  if ("description" in result) {
-    result.description = decryptField(result.description) as string | null | undefined;
-  }
-  return result as T;
-}
-
 // ─────────────────────────────────────────────
 // Properties (limited — owner-sensitive fields only)
 // ─────────────────────────────────────────────
@@ -223,28 +93,6 @@ type PropertyWithEncryptedFields = {
   primary_email?: string | null;
   communication_notes?: Prisma.JsonValue | null;
 };
-
-export function encryptProperty<T extends PropertyWithEncryptedFields>(data: T): T {
-  const result = { ...data };
-  if ("primary_email" in result) {
-    result.primary_email = encryptField(result.primary_email) as string | null | undefined;
-  }
-  if ("communication_notes" in result) {
-    result.communication_notes = encryptJson(result.communication_notes);
-  }
-  return result as T;
-}
-
-export function decryptProperty<T extends PropertyWithEncryptedFields>(record: T): T {
-  const result = { ...record };
-  if ("primary_email" in result) {
-    result.primary_email = decryptField(result.primary_email) as string | null | undefined;
-  }
-  if ("communication_notes" in result) {
-    result.communication_notes = decryptJson(result.communication_notes);
-  }
-  return result as T;
-}
 
 // ─────────────────────────────────────────────
 // DEK-aware internal helpers (per-org encryption)
@@ -460,36 +308,6 @@ type MandateStringField = (typeof MANDATE_ENCRYPTED_STRING_FIELDS)[number];
 type MandateWithEncryptedFields = Partial<Record<MandateStringField, string | null | undefined>> & {
   communication_notes?: Prisma.JsonValue | null;
 };
-
-export function encryptMandate<T extends MandateWithEncryptedFields>(data: T): T {
-  const result = { ...data } as T & MandateWithEncryptedFields;
-  for (const field of MANDATE_ENCRYPTED_STRING_FIELDS) {
-    if (field in result) {
-      (result as Record<string, unknown>)[field] = encryptField(
-        result[field] as string | null | undefined
-      );
-    }
-  }
-  if ("communication_notes" in result) {
-    result.communication_notes = encryptJson(result.communication_notes);
-  }
-  return result as T;
-}
-
-export function decryptMandate<T extends MandateWithEncryptedFields>(record: T): T {
-  const result = { ...record } as T & MandateWithEncryptedFields;
-  for (const field of MANDATE_ENCRYPTED_STRING_FIELDS) {
-    if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptField(
-        result[field] as string | null | undefined
-      );
-    }
-  }
-  if ("communication_notes" in result) {
-    result.communication_notes = decryptJson(result.communication_notes);
-  }
-  return result as T;
-}
 
 export async function encryptMandateForOrg<T extends MandateWithEncryptedFields>(
   data: T,

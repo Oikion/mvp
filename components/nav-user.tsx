@@ -2,6 +2,8 @@
 // TODO: Fix type errors
 "use client"
 
+import { updateUserTheme } from "@/actions/user/update-theme"
+
 import {
   BadgeCheck,
   Bell,
@@ -64,6 +66,11 @@ export function NavUser({
   const { signOut } = useClerk()
   const { setTheme, theme } = useTheme()
   const locale = useLocale()
+
+  const handleThemeChange = (value: string) => {
+    setTheme(value)
+    updateUserTheme(value).catch(console.error)
+  }
   const pathname = usePathname()
   const t = useTranslations()
   const [isChangingLanguage, setIsChangingLanguage] = useState(false)
@@ -228,7 +235,7 @@ export function NavUser({
                     return (
                       <DropdownMenuItem
                         key={themeOption.value}
-                        onClick={() => setTheme(themeOption.value)}
+                        onClick={() => handleThemeChange(themeOption.value)}
                         className="flex items-center gap-2"
                       >
                         <ThemeIcon className="h-4 w-4" />
@@ -240,7 +247,7 @@ export function NavUser({
                     )
                   })}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setTheme("system")}>
+                  <DropdownMenuItem onClick={() => handleThemeChange("system")}>
                     <Sun className="h-4 w-4" />
                     <span>{t("Navigation.themes.system")}</span>
                     {theme === "system" && (

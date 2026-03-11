@@ -35,24 +35,56 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
   const prisma = prismaForOrg(orgId);
   const activities: ActivityItem[] = [];
 
-  // Fetch recent properties
-  const properties = await prisma.properties.findMany({
-    take: Math.floor(limit / 4),
-    orderBy: { createdAt: "desc" },
-    include: {
-      Users_Properties_assigned_toToUsers: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
+  // 30-day cutoff to bound all queries
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const perType = Math.floor(limit / 4);
+
+  // Run all four queries concurrently (fixes sequential execution)
+  const [properties, clients, documents, events] = await Promise.all([
+    prisma.properties.findMany({
+      take: perType,
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      orderBy: { createdAt: "desc" },
+      include: {
+        Users_Properties_assigned_toToUsers: {
+          select: { id: true, name: true, avatar: true },
         },
       },
-    },
-  });
+    }),
+    prisma.clients.findMany({
+      take: perType,
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      orderBy: { createdAt: "desc" },
+      include: {
+        Users_Clients_assigned_toToUsers: {
+          select: { id: true, name: true, avatar: true },
+        },
+      },
+    }),
+    prisma.documents.findMany({
+      take: perType,
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      orderBy: { createdAt: "desc" },
+      include: {
+        Users_Documents_created_by_userToUsers: {
+          select: { id: true, name: true, avatar: true },
+        },
+      },
+    }),
+    prisma.calendarEvent.findMany({
+      take: perType,
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      orderBy: { createdAt: "desc" },
+    }).catch(() => [] as Awaited<ReturnType<typeof prisma.calendarEvent.findMany>>),
+  ]);
 
-  const decryptedProperties = await Promise.all(
-    properties.map((p) => decryptPropertyForOrg(p, orgId))
-  );
+  // Decrypt all entity types concurrently
+  const [decryptedProperties, decryptedClients, decryptedDocs, decryptedEvents] = await Promise.all([
+    Promise.all(properties.map((p) => decryptPropertyForOrg(p, orgId))),
+    Promise.all(clients.map((c) => decryptClientForOrg(c, orgId))),
+    Promise.all(documents.map((d) => decryptDocumentForOrg(d, orgId))),
+    Promise.all(events.map((e) => decryptCalendarEventForOrg(e, orgId))),
+  ]);
 
   for (const property of decryptedProperties) {
     const isUpdated = property.updatedAt && property.updatedAt > property.createdAt;
@@ -79,25 +111,6 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     });
   }
 
-  // Fetch recent clients
-  const clients = await prisma.clients.findMany({
-    take: Math.floor(limit / 4),
-    orderBy: { createdAt: "desc" },
-    include: {
-      Users_Clients_assigned_toToUsers: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-        },
-      },
-    },
-  });
-
-  const decryptedClients = await Promise.all(
-    clients.map((c) => decryptClientForOrg(c, orgId))
-  );
-
   for (const client of decryptedClients) {
     const isUpdated = client.updatedAt && client.updatedAt > client.createdAt;
     const assignedUser = client.Users_Clients_assigned_toToUsers;
@@ -121,25 +134,6 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
       },
     });
   }
-
-  // Fetch recent documents
-  const documents = await prisma.documents.findMany({
-    take: Math.floor(limit / 4),
-    orderBy: { createdAt: "desc" },
-    include: {
-      Users_Documents_created_by_userToUsers: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-        },
-      },
-    },
-  });
-
-  const decryptedDocs = await Promise.all(
-    documents.map((d) => decryptDocumentForOrg(d, orgId))
-  );
 
   for (const doc of decryptedDocs) {
     const isUpdated = doc.updatedAt && doc.createdAt && doc.updatedAt > doc.createdAt;
@@ -165,37 +159,23 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     });
   }
 
-  // Fetch recent calendar events
-  try {
-    const events = await prisma.calendarEvent.findMany({
-      take: Math.floor(limit / 4),
-      orderBy: { createdAt: "desc" },
+  for (const event of decryptedEvents) {
+    activities.push({
+      id: `event-${event.id}`,
+      type: "event",
+      action: "created",
+      title: event.title || "Unnamed Event",
+      description: event.description || undefined,
+      timestamp: event.createdAt?.toISOString() || new Date().toISOString(),
+      actor: undefined,
+      entityId: event.id,
+      entityFriendlyId: (event as any).friendlyId,
+      metadata: {
+        startTime: event.startTime instanceof Date ? event.startTime.toISOString() : event.startTime,
+        endTime: event.endTime instanceof Date ? event.endTime.toISOString() : event.endTime,
+        location: event.location,
+      },
     });
-
-    const decryptedEvents = await Promise.all(
-      events.map((e) => decryptCalendarEventForOrg(e, orgId))
-    );
-
-    for (const event of decryptedEvents) {
-      activities.push({
-        id: `event-${event.id}`,
-        type: "event",
-        action: "created",
-        title: event.title || "Unnamed Event",
-        description: event.description || undefined,
-        timestamp: event.createdAt?.toISOString() || new Date().toISOString(),
-        actor: undefined,
-        entityId: event.id,
-        entityFriendlyId: (event as any).friendlyId,
-        metadata: {
-          startTime: event.startTime instanceof Date ? event.startTime.toISOString() : event.startTime,
-          endTime: event.endTime instanceof Date ? event.endTime.toISOString() : event.endTime,
-          location: event.location,
-        },
-      });
-    }
-  } catch (error) {
-    // CalendarEvent might not exist yet, skip silently
   }
 
   // Sort all activities by timestamp (most recent first)

@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { getPlatformAdminUser } from "@/lib/platform-admin";
 import { PlatformAdminSidebar } from "./platform-admin/components/PlatformAdminSidebar";
 import { logAdminAccess } from "@/actions/platform-admin/log-admin-access";
+import { getPlatformAdminCounts } from "@/actions/platform-admin/get-admin-counts";
 
 export default async function PlatformAdminLayout({
   children,
@@ -45,6 +46,11 @@ export default async function PlatformAdminLayout({
       }
     : null;
 
+  // Fetch sidebar badge counts (zero on error — never breaks layout)
+  const adminCounts = adminUserRaw
+    ? await getPlatformAdminCounts()
+    : { pendingDeletions: 0, pendingFeedback: 0 };
+
   // Get messages for client components
   const messages = await getMessages();
 
@@ -73,7 +79,7 @@ export default async function PlatformAdminLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <SidebarProvider>
-        <PlatformAdminSidebar adminUser={adminUser} locale={locale} />
+        <PlatformAdminSidebar adminUser={adminUser} locale={locale} counts={adminCounts} />
         <SidebarInset>
           <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />

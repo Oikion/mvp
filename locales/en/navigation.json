@@ -3,7 +3,7 @@
     "categories": {
       "overview": "Overview",
       "coreBusiness": "Core Business",
-      "network": "Network",
+      "network": "Polis",
       "tools": "Tools",
       "organization": "Organization"
     },
@@ -27,6 +27,7 @@
       "socialFeed": "Social Feed",
       "connections": "Connections",
       "sharedWithMe": "Shared With Me",
+      "sharingHub": "Sharing Hub",
       "deals": "Deals",
       "publicProfile": "Public Profile"
     },

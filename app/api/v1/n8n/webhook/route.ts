@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import { prismadb } from "@/lib/prisma";
+import { rateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 
 /**
  * Verify n8n webhook signature
@@ -26,6 +27,24 @@ function verifyWebhookSignature(payload: string, signature: string, secret: stri
  */
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: strict tier (10 req/min) based on IP
+    const identifier = getRateLimitIdentifier(req);
+    const rateLimitResult = await rateLimit(identifier, "strict");
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "Too many requests", message: "Rate limit exceeded. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((rateLimitResult.reset - Date.now()) / 1000)),
+            "X-RateLimit-Limit": String(rateLimitResult.limit),
+            "X-RateLimit-Remaining": String(rateLimitResult.remaining),
+            "X-RateLimit-Reset": String(rateLimitResult.reset),
+          },
+        }
+      );
+    }
+
     const webhookSecret = process.env.N8N_WEBHOOK_SECRET;
     
     // SECURITY: Always require webhook secret to be configured
@@ -119,7 +138,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[N8N_WEBHOOK_ERROR]", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Webhook processing failed" },
+      { error: "Webhook processing failed" },
       { status: 500 }
     );
   }

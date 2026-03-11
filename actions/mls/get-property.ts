@@ -1,3 +1,5 @@
+"use server";
+
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
@@ -22,6 +24,17 @@ export const getProperty = async (propertyId: string) => {
     include: {
       Users_Properties_assigned_toToUsers: { select: { name: true, id: true } },
       Property_Contacts: true,
+      PropertyImage: {
+        orderBy: { position: "asc" as const },
+        select: {
+          id: true,
+          url: true,
+          caption: true,
+          isPrimary: true,
+          width: true,
+          height: true,
+        },
+      },
     },
   });
   
@@ -34,6 +47,7 @@ export const getProperty = async (propertyId: string) => {
     ...decryptedData,
     assigned_to_user: decryptedData.Users_Properties_assigned_toToUsers,
     contacts: decryptedData.Property_Contacts,
+    images: (decryptedData as Record<string, unknown>).PropertyImage,
   };
 
   // Serialize to plain objects - converts Decimal to number, Date to string

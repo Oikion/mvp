@@ -30,12 +30,9 @@ import {
   Share2,
   MessageSquare,
   Globe,
-  Eye,
   ExternalLink,
   Copy,
   Check,
-  Lock,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { EditPropertyForm } from "./EditPropertyForm";
@@ -46,7 +43,6 @@ import { ShareModal } from "@/components/social/ShareModal";
 import { PropertyComments } from "./PropertyComments";
 import { PropertyMatchingClients } from "./PropertyMatchingClients";
 import { toast } from "sonner";
-import axios from "axios";
 import {
   usePropertyLinked,
   useLinkClientsToProperty,
@@ -57,9 +53,10 @@ import {
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
 import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { setPropertyNetworkVisible } from "@/actions/network/manage-network-settings";
+import { PropertyImageGallery } from "@/components/property-images/PropertyImageGallery";
+import { ItemVisibilitySelector } from "@/components/ItemVisibilitySelector";
+import { updatePropertyVisibility } from "@/actions/mls/update-property-visibility";
+import { ItemVisibility } from "@prisma/client";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -85,12 +82,19 @@ interface PropertyViewProps {
     address_zip?: string | null;
     property_preferences?: unknown;
     communication_notes?: unknown;
-    portal_visibility?: string | null;
-    networkVisible?: boolean | null;
+    visibility?: ItemVisibility | null;
     assigned_to_user?: { name: string | null } | null;
     createdAt?: string | Date | null;
     updatedAt?: string | Date | null;
     contacts?: unknown[];
+    images?: Array<{
+      id: string;
+      url: string;
+      caption?: string | null;
+      isPrimary: boolean;
+      width?: number | null;
+      height?: number | null;
+    }>;
   };
   defaultEditOpen?: boolean;
   isReadOnly?: boolean;
@@ -148,10 +152,7 @@ export default function PropertyView({
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [createMandateOpen, setCreateMandateOpen] = useState(false);
-  const [visibility, setVisibility] = useState(data.portal_visibility || "PRIVATE");
-  const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
-  const [networkVisible, setNetworkVisible] = useState(data.networkVisible ?? false);
-  const [isUpdatingNetwork, setIsUpdatingNetwork] = useState(false);
+  const [visibility, setVisibility] = useState<ItemVisibility>(data.visibility || "PERSONAL");
   const [copied, setCopied] = useState(false);
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
 
@@ -224,26 +225,13 @@ export default function PropertyView({
     }
   };
 
-  const handleVisibilityChange = async (newVisibility: string) => {
-    setIsUpdatingVisibility(true);
-    try {
-      await axios.put("/api/mls/properties", {
-        id: data.id,
-        portal_visibility: newVisibility,
-      });
-      setVisibility(newVisibility);
-      toast.success(
-        newVisibility === "PUBLIC"
-          ? "Property is now public!"
-          : newVisibility === "SELECTED"
-          ? "Property visible to connections only"
-          : "Property is now private"
-      );
-    } catch (error) {
-      console.error("Failed to update visibility:", error);
+  const handleVisibilityChange = async (newVisibility: ItemVisibility) => {
+    const prev = visibility;
+    setVisibility(newVisibility);
+    const result = await updatePropertyVisibility(data.id, newVisibility);
+    if (!result.success) {
+      setVisibility(prev);
       toast.error("Failed to update visibility");
-    } finally {
-      setIsUpdatingVisibility(false);
     }
   };
 
@@ -339,6 +327,11 @@ export default function PropertyView({
         {/* Left column (2/3)                                                */}
         {/* ================================================================ */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Image Gallery */}
+          {data.images && data.images.length > 0 && (
+            <PropertyImageGallery images={data.images} />
+          )}
+
           {/* Property Details */}
           <Card>
             <CardHeader className="pb-3">
@@ -525,64 +518,20 @@ export default function PropertyView({
             </CardContent>
           </Card>
 
-          {/* Portal Visibility - Only for owner view */}
+          {/* Visibility */}
           {!isReadOnly && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Globe className="h-4 w-4" />
-                  Public Visibility
+                  Visibility
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  {visibility === "PUBLIC" ? (
-                    <Badge className="bg-success/15 text-success dark:text-success hover:bg-success/20 flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      Public
-                    </Badge>
-                  ) : visibility === "SELECTED" ? (
-                    <Badge className="bg-primary/15 text-primary dark:text-primary hover:bg-primary/20 flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      Connections Only
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <Lock className="h-3 w-3" />
-                      Private
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={visibility === "PRIVATE" ? "default" : "outline"}
-                    size="sm"
-                    leftIcon={<Lock className="h-4 w-4" />}
-                    onClick={() => handleVisibilityChange("PRIVATE")}
-                    disabled={isUpdatingVisibility}
-                  >
-                    Private
-                  </Button>
-                  <Button
-                    variant={visibility === "SELECTED" ? "default" : "outline"}
-                    size="sm"
-                    leftIcon={<Users className="h-4 w-4" />}
-                    onClick={() => handleVisibilityChange("SELECTED")}
-                    disabled={isUpdatingVisibility}
-                  >
-                    Connections
-                  </Button>
-                  <Button
-                    variant={visibility === "PUBLIC" ? "default" : "outline"}
-                    size="sm"
-                    leftIcon={<Globe className="h-4 w-4" />}
-                    onClick={() => handleVisibilityChange("PUBLIC")}
-                    disabled={isUpdatingVisibility}
-                  >
-                    Public
-                  </Button>
-                </div>
-
+              <CardContent className="space-y-3">
+                <ItemVisibilitySelector
+                  value={visibility}
+                  onChange={handleVisibilityChange}
+                />
                 {visibility === "PUBLIC" && (
                   <div className="p-3 bg-muted rounded-lg space-y-2">
                     <p className="text-sm font-medium">Public URL</p>
@@ -605,46 +554,6 @@ export default function PropertyView({
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Oikion Network visibility */}
-          {!isReadOnly && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Globe className="h-4 w-4" />
-                  Oikion Network
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between gap-4">
-                  <Label htmlFor="network-visible-property" className="flex flex-col gap-1 cursor-pointer">
-                    <span className="font-medium text-sm">Share in network</span>
-                    <span className="text-xs text-muted-foreground">
-                      {networkVisible
-                        ? "Visible to network peers for cross-agency matching."
-                        : "Not shared with the network."}
-                    </span>
-                  </Label>
-                  <Switch
-                    id="network-visible-property"
-                    checked={networkVisible}
-                    disabled={isUpdatingNetwork}
-                    onCheckedChange={async (checked) => {
-                      setIsUpdatingNetwork(true);
-                      const prev = networkVisible;
-                      setNetworkVisible(checked);
-                      const result = await setPropertyNetworkVisible(data.id, checked);
-                      if (!result.success) {
-                        setNetworkVisible(prev);
-                        toast.error("Failed to update network visibility");
-                      }
-                      setIsUpdatingNetwork(false);
-                    }}
-                  />
-                </div>
               </CardContent>
             </Card>
           )}

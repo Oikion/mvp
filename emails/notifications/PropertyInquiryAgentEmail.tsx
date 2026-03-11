@@ -1,16 +1,12 @@
 import {
-  Body,
-  Container,
-  Head,
   Heading,
   Hr,
-  Html,
   Link,
-  Preview,
   Section,
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { BaseLayout, resolveColors } from "../components/BaseLayout";
 
 interface PropertyInquiryAgentEmailProps {
   agentName: string;
@@ -25,7 +21,10 @@ interface PropertyInquiryAgentEmailProps {
   message: string;
   inquiryId: string;
   locale?: string;
+  userTheme?: string;
 }
+
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 
 export const PropertyInquiryAgentEmail = ({
   agentName,
@@ -40,9 +39,10 @@ export const PropertyInquiryAgentEmail = ({
   message,
   inquiryId,
   locale = "en",
+  userTheme,
 }: PropertyInquiryAgentEmailProps) => {
+  const colors = resolveColors(userTheme);
   const isGreek = locale === "el";
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 
   const previewText = isGreek
     ? `Νέο αίτημα ανάθεσης από ${inquirerName}`
@@ -70,250 +70,152 @@ export const PropertyInquiryAgentEmail = ({
   };
 
   return (
-    <Html>
-      <Head />
-      <Preview>{previewText}</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Heading style={heading}>
-            {isGreek ? "Νέο Αίτημα Ανάθεσης" : "New Property Inquiry"}
-          </Heading>
+    <BaseLayout
+      previewText={previewText}
+      footerText={
+        isGreek
+          ? "Μπορείτε να απαντήσετε απευθείας στο email του ενδιαφερομένου ή να διαχειριστείτε το αίτημα στο Oikion."
+          : "You can reply directly to the inquirer's email or manage this inquiry in Oikion."
+      }
+      footerNote={`Inquiry ID: ${inquiryId}`}
+      emailTheme={userTheme}
+    >
+      <Heading
+        style={{ color: colors.textPrimary }}
+        className="text-2xl font-semibold text-center p-0 m-0 mb-6"
+      >
+        {isGreek ? "Νέο Αίτημα Ανάθεσης" : "New Property Inquiry"}
+      </Heading>
 
-          <Text style={paragraph}>
-            {isGreek ? `Γεια σου ${agentName},` : `Hi ${agentName},`}
-          </Text>
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-4">
+        {isGreek ? `Γεια σου ${agentName},` : `Hi ${agentName},`}
+      </Text>
 
-          <Text style={paragraph}>
-            {isGreek
-              ? `Λάβατε νέο αίτημα ανάθεσης από πιθανό πελάτη. Παρακάτω είναι οι λεπτομέρειες:`
-              : `You received a new property inquiry from a potential client. Here are the details:`}
-          </Text>
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-6">
+        {isGreek
+          ? "Λάβατε νέο αίτημα ανάθεσης από πιθανό πελάτη. Παρακάτω είναι οι λεπτομέρειες:"
+          : "You received a new property inquiry from a potential client. Here are the details:"}
+      </Text>
 
-          <Section style={infoBox}>
-            <Text style={infoLabel}>
-              {isGreek ? "Επικοινωνία:" : "Contact:"}
-            </Text>
-            <Text style={infoValue}>{inquirerName}</Text>
-            <Text style={infoValue}>
-              <Link href={`mailto:${inquirerEmail}`} style={link}>
-                {inquirerEmail}
-              </Link>
-            </Text>
-            {inquirerPhone && inquirerPhone !== "Not provided" && (
-              <Text style={infoValue}>
-                <Link href={`tel:${inquirerPhone}`} style={link}>
-                  {inquirerPhone}
-                </Link>
-              </Text>
-            )}
-          </Section>
-
-          <Hr style={hr} />
-
-          <Section style={messageSection}>
-            <Text style={sectionTitle}>
-              {isGreek ? "Λεπτομέρειες Ακινήτου:" : "Property Details:"}
-            </Text>
-
-            <div style={fieldRow}>
-              <Text style={fieldLabel}>
-                {isGreek ? "Τύπος Ακινήτου:" : "Property Type:"}
-              </Text>
-              <Text style={fieldValue}>{formatPropertyType(propertyType)}</Text>
-            </div>
-
-            <div style={fieldRow}>
-              <Text style={fieldLabel}>
-                {isGreek ? "Περιοχή:" : "Location:"}
-              </Text>
-              <Text style={fieldValue}>{location}</Text>
-            </div>
-
-            {budget && (
-              <div style={fieldRow}>
-                <Text style={fieldLabel}>
-                  {isGreek ? "Προϋπολογισμός:" : "Budget:"}
-                </Text>
-                <Text style={fieldValue}>{budget}</Text>
-              </div>
-            )}
-
-            {bedrooms && (
-              <div style={fieldRow}>
-                <Text style={fieldLabel}>
-                  {isGreek ? "Υπνοδωμάτια:" : "Bedrooms:"}
-                </Text>
-                <Text style={fieldValue}>{bedrooms}</Text>
-              </div>
-            )}
-
-            <div style={fieldRow}>
-              <Text style={fieldLabel}>
-                {isGreek ? "Χρονοδιάγραμμα:" : "Timeline:"}
-              </Text>
-              <Text style={fieldValue}>{formatTimeline(timeline)}</Text>
-            </div>
-
-            {message && (
-              <>
-                <Hr style={hr} />
-                <div style={fieldRow}>
-                  <Text style={fieldLabel}>
-                    {isGreek ? "Μήνυμα:" : "Message:"}
-                  </Text>
-                  <Text style={fieldValue}>{message}</Text>
-                </div>
-              </>
-            )}
-          </Section>
-
-          <Hr style={hr} />
-
-          <Section style={ctaSection}>
-            <Link
-              href={`${baseUrl}/app/assignments`}
-              style={button}
-            >
-              {isGreek ? "Προβολή Αιτημάτων" : "View Assignments"}
+      {/* Contact info */}
+      <Section
+        style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}
+        className="rounded-lg p-5 mb-6"
+      >
+        <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase m-0 mb-1">
+          {isGreek ? "Επικοινωνία:" : "Contact:"}
+        </Text>
+        <Text style={{ color: colors.textPrimary }} className="text-base font-medium m-0 mb-2">
+          {inquirerName}
+        </Text>
+        <Text style={{ color: colors.textPrimary }} className="text-base font-medium m-0 mb-2">
+          <Link href={`mailto:${inquirerEmail}`} style={{ color: colors.linkColor }}>
+            {inquirerEmail}
+          </Link>
+        </Text>
+        {inquirerPhone && inquirerPhone !== "Not provided" && (
+          <Text style={{ color: colors.textPrimary }} className="text-base font-medium m-0">
+            <Link href={`tel:${inquirerPhone}`} style={{ color: colors.linkColor }}>
+              {inquirerPhone}
             </Link>
-          </Section>
-
-          <Text style={footer}>
-            {isGreek
-              ? "Μπορείτε να απαντήσετε απευθείας στο email του ενδιαφερομένου ή να διαχειριστείτε το αίτημα στο Oikion."
-              : "You can reply directly to the inquirer's email or manage this inquiry in Oikion."}
           </Text>
+        )}
+      </Section>
 
-          <Text style={footerSmall}>
-            Inquiry ID: {inquiryId}
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
+
+      {/* Property Details */}
+      <Section className="mb-6">
+        <Text style={{ color: colors.textPrimary }} className="text-base font-semibold m-0 mb-4">
+          {isGreek ? "Λεπτομέρειες Ακινήτου:" : "Property Details:"}
+        </Text>
+
+        <div style={{ marginBottom: "12px" }}>
+          <Text style={{ color: colors.textMuted }} className="text-sm font-medium m-0 mb-1">
+            {isGreek ? "Τύπος Ακινήτου:" : "Property Type:"}
           </Text>
-        </Container>
-      </Body>
-    </Html>
+          <Text style={{ color: colors.textPrimary, whiteSpace: "pre-wrap" as const }} className="text-sm m-0">
+            {formatPropertyType(propertyType)}
+          </Text>
+        </div>
+
+        <div style={{ marginBottom: "12px" }}>
+          <Text style={{ color: colors.textMuted }} className="text-sm font-medium m-0 mb-1">
+            {isGreek ? "Περιοχή:" : "Location:"}
+          </Text>
+          <Text style={{ color: colors.textPrimary, whiteSpace: "pre-wrap" as const }} className="text-sm m-0">
+            {location}
+          </Text>
+        </div>
+
+        {budget && (
+          <div style={{ marginBottom: "12px" }}>
+            <Text style={{ color: colors.textMuted }} className="text-sm font-medium m-0 mb-1">
+              {isGreek ? "Προϋπολογισμός:" : "Budget:"}
+            </Text>
+            <Text style={{ color: colors.textPrimary, whiteSpace: "pre-wrap" as const }} className="text-sm m-0">
+              {budget}
+            </Text>
+          </div>
+        )}
+
+        {bedrooms && (
+          <div style={{ marginBottom: "12px" }}>
+            <Text style={{ color: colors.textMuted }} className="text-sm font-medium m-0 mb-1">
+              {isGreek ? "Υπνοδωμάτια:" : "Bedrooms:"}
+            </Text>
+            <Text style={{ color: colors.textPrimary, whiteSpace: "pre-wrap" as const }} className="text-sm m-0">
+              {bedrooms}
+            </Text>
+          </div>
+        )}
+
+        <div style={{ marginBottom: "12px" }}>
+          <Text style={{ color: colors.textMuted }} className="text-sm font-medium m-0 mb-1">
+            {isGreek ? "Χρονοδιάγραμμα:" : "Timeline:"}
+          </Text>
+          <Text style={{ color: colors.textPrimary, whiteSpace: "pre-wrap" as const }} className="text-sm m-0">
+            {formatTimeline(timeline)}
+          </Text>
+        </div>
+
+        {message && (
+          <>
+            <Hr style={{ borderColor: colors.hrColor }} className="my-4" />
+            <div style={{ marginBottom: "12px" }}>
+              <Text style={{ color: colors.textMuted }} className="text-sm font-medium m-0 mb-1">
+                {isGreek ? "Μήνυμα:" : "Message:"}
+              </Text>
+              <Text style={{ color: colors.textPrimary, whiteSpace: "pre-wrap" as const }} className="text-sm m-0">
+                {message}
+              </Text>
+            </div>
+          </>
+        )}
+      </Section>
+
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
+
+      {/* CTA */}
+      <Section className="text-center my-8">
+        <Link
+          href={`${baseUrl}/app/assignments`}
+          style={{
+            backgroundColor: colors.buttonBg,
+            color: colors.buttonText,
+            borderRadius: "6px",
+            display: "inline-block",
+            fontSize: "14px",
+            fontWeight: "600",
+            padding: "12px 24px",
+            textDecoration: "none",
+          }}
+        >
+          {isGreek ? "Προβολή Αιτημάτων" : "View Assignments"}
+        </Link>
+      </Section>
+    </BaseLayout>
   );
 };
 
 export default PropertyInquiryAgentEmail;
-
-// Styles
-const main = {
-  backgroundColor: "#f6f9fc",
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
-};
-
-const container = {
-  backgroundColor: "#ffffff",
-  margin: "0 auto",
-  padding: "40px 20px",
-  marginBottom: "64px",
-  maxWidth: "600px",
-  borderRadius: "8px",
-};
-
-const heading = {
-  color: "#1a1a1a",
-  fontSize: "24px",
-  fontWeight: "600",
-  textAlign: "center" as const,
-  margin: "0 0 30px",
-};
-
-const paragraph = {
-  color: "#525252",
-  fontSize: "16px",
-  lineHeight: "24px",
-  margin: "16px 0",
-};
-
-const infoBox = {
-  backgroundColor: "#f8fafc",
-  borderRadius: "8px",
-  padding: "20px",
-  margin: "24px 0",
-};
-
-const infoLabel = {
-  color: "#64748b",
-  fontSize: "12px",
-  fontWeight: "600",
-  textTransform: "uppercase" as const,
-  margin: "0 0 4px",
-};
-
-const infoValue = {
-  color: "#1a1a1a",
-  fontSize: "16px",
-  fontWeight: "500",
-  margin: "0 0 16px",
-};
-
-const link = {
-  color: "#2563eb",
-  textDecoration: "none",
-};
-
-const hr = {
-  borderColor: "#e5e7eb",
-  margin: "24px 0",
-};
-
-const messageSection = {
-  margin: "24px 0",
-};
-
-const sectionTitle = {
-  color: "#1a1a1a",
-  fontSize: "16px",
-  fontWeight: "600",
-  margin: "0 0 16px",
-};
-
-const fieldRow = {
-  marginBottom: "12px",
-};
-
-const fieldLabel = {
-  color: "#64748b",
-  fontSize: "14px",
-  fontWeight: "500",
-  margin: "0 0 4px",
-};
-
-const fieldValue = {
-  color: "#1a1a1a",
-  fontSize: "15px",
-  margin: "0",
-  whiteSpace: "pre-wrap" as const,
-};
-
-const ctaSection = {
-  textAlign: "center" as const,
-  margin: "32px 0",
-};
-
-const button = {
-  backgroundColor: "#2563eb",
-  borderRadius: "6px",
-  color: "#ffffff",
-  display: "inline-block",
-  fontSize: "14px",
-  fontWeight: "600",
-  padding: "12px 24px",
-  textDecoration: "none",
-};
-
-const footer = {
-  color: "#64748b",
-  fontSize: "14px",
-  lineHeight: "20px",
-  textAlign: "center" as const,
-  margin: "24px 0 8px",
-};
-
-const footerSmall = {
-  color: "#94a3b8",
-  fontSize: "12px",
-  textAlign: "center" as const,
-  margin: "0",
-};

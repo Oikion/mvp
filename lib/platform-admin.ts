@@ -3,6 +3,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import type { AdminActionType } from "./platform-admin-utils";
 import { prismadb } from "@/lib/prisma";
+import { cacheGet, cacheSet } from "@/lib/redis";
 
 /**
  * Platform Admin Security Layer
@@ -20,9 +21,9 @@ import { prismadb } from "@/lib/prisma";
  * platform-admin-utils.ts to avoid "use server" restrictions on sync functions.
  */
 
-// Cache for admin status to reduce API calls within same request
+// L1: In-process cache for within-request deduplication (2 seconds)
 const adminStatusCache = new Map<string, { isAdmin: boolean; timestamp: number }>();
-const CACHE_TTL = 5000; // 5 seconds
+const L1_CACHE_TTL = 2000; // 2 seconds (within-request dedup)
 
 /**
  * Check if the current authenticated user is a platform admin
@@ -41,18 +42,27 @@ export async function isPlatformAdmin(): Promise<boolean> {
       return false;
     }
 
-    // Check cache first
-    const cached = adminStatusCache.get(userId);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return cached.isAdmin;
+    // L1: In-process cache (survives within a single isolate lifetime)
+    const l1Cached = adminStatusCache.get(userId);
+    if (l1Cached && Date.now() - l1Cached.timestamp < L1_CACHE_TTL) {
+      return l1Cached.isAdmin;
     }
 
-    // Check env-based admin emails (works in all environments)
+    // L2: Redis cache (survives cold starts, shared across isolates)
+    const redisCached = await cacheGet<boolean>(`oik:admin:${userId}`);
+    if (redisCached !== null) {
+      adminStatusCache.set(userId, { isAdmin: redisCached, timestamp: Date.now() });
+      return redisCached;
+    }
+
+    // Cache miss — check env-based admin emails (works in all environments)
     // PLATFORM_ADMIN_EMAILS is the secure production list
     // PLATFORM_ADMIN_DEV_EMAILS is for development only
     const clerk = await clerkClient();
     const user = await clerk.users.getUser(userId);
     const userEmail = user.emailAddresses?.[0]?.emailAddress?.toLowerCase().trim();
+
+    let isAdmin = false;
 
     if (userEmail) {
       // Production admin emails (always checked)
@@ -62,35 +72,36 @@ export async function isPlatformAdmin(): Promise<boolean> {
           .replace(/"/g, "")
           .split(",")
           .map(e => e.toLowerCase().trim());
-        
+
         if (adminEmailList.includes(userEmail)) {
-          adminStatusCache.set(userId, { isAdmin: true, timestamp: Date.now() });
-          return true;
+          isAdmin = true;
         }
       }
 
       // Development bypass (disabled in production)
-      if (process.env.NODE_ENV !== "production") {
+      if (!isAdmin && process.env.NODE_ENV !== "production") {
         const devAdminEmails = process.env.PLATFORM_ADMIN_DEV_EMAILS;
         if (devAdminEmails) {
           const devEmailList = devAdminEmails
             .replace(/"/g, "")
             .split(",")
             .map(e => e.toLowerCase().trim());
-          
+
           if (devEmailList.includes(userEmail)) {
-            adminStatusCache.set(userId, { isAdmin: true, timestamp: Date.now() });
-            return true;
+            isAdmin = true;
           }
         }
       }
     }
 
     // Check Clerk privateMetadata for isPlatformAdmin flag (more secure than publicMetadata)
-    const isAdmin = user.privateMetadata?.isPlatformAdmin === true;
+    if (!isAdmin) {
+      isAdmin = user.privateMetadata?.isPlatformAdmin === true;
+    }
 
-    // Cache the result
+    // Cache in both L1 (in-process) and L2 (Redis, 60s TTL)
     adminStatusCache.set(userId, { isAdmin, timestamp: Date.now() });
+    await cacheSet(`oik:admin:${userId}`, isAdmin, 60);
 
     return isAdmin;
   } catch (error) {

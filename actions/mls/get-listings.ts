@@ -1,22 +1,24 @@
+"use server";
+
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 /**
- * Get properties that are published (portal_visibility = PUBLIC)
+ * Get properties that are published (visibility = PUBLIC)
  * These are the listings that have been made available on external portals
  */
 export const getListings = async () => {
   const organizationId = await getCurrentOrgIdSafe();
-  
+
   // Return empty array if no organization context
   if (!organizationId) {
     return [];
   }
-  
+
   const data = await prismadb.properties.findMany({
-    where: { 
+    where: {
       organizationId,
-      portal_visibility: "PUBLIC",
+      visibility: "PUBLIC",
     },
     include: {
       Users_Properties_assigned_toToUsers: { select: { name: true } },
@@ -31,6 +33,11 @@ export const getListings = async () => {
         },
         take: 1,
       },
+      PropertyImage: {
+        where: { isPrimary: true },
+        select: { url: true },
+        take: 1,
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -40,6 +47,7 @@ export const getListings = async () => {
     ...p,
     assigned_to_user: p.Users_Properties_assigned_toToUsers,
     linkedDocuments: p.Documents,
+    primaryImage: (p.PropertyImage as Array<{ url: string }>)?.[0] ?? null,
   }));
   
   // Serialize to plain objects - converts Decimal to number, Date to string

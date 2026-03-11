@@ -212,7 +212,7 @@ export const POST = withExternalApi(
         description: description || null,
         assigned_to: assignedTo || null,
         is_exclusive: isExclusive || false,
-        portal_visibility: portalVisibility || "PRIVATE",
+        visibility: portalVisibility || "PERSONAL",
         draft_status: false,
       },
       select: {

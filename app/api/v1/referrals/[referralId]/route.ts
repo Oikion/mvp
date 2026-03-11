@@ -8,6 +8,26 @@ import {
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
 import { Prisma } from "@prisma/client";
+import { clerkClient } from "@clerk/nextjs/server";
+
+async function getOrgUserIds(organizationId: string): Promise<string[]> {
+  const clerk = await clerkClient();
+  const memberships = await clerk.organizations.getOrganizationMembershipList({
+    organizationId,
+    limit: 200,
+  });
+  const memberClerkIds = memberships.data
+    .map(m => m.publicUserData?.userId)
+    .filter(Boolean) as string[];
+
+  if (memberClerkIds.length === 0) return [];
+
+  const users = await prismadb.users.findMany({
+    where: { clerkUserId: { in: memberClerkIds } },
+    select: { id: true },
+  });
+  return users.map(u => u.id);
+}
 
 // Type for referral with includes
 type ReferralWithIncludes = Prisma.ReferralGetPayload<{
@@ -51,11 +71,16 @@ export const GET = withExternalApi(
       return createApiErrorResponse("Referral ID is required", 400);
     }
 
+    // Scope to org members (Users has no organizationId — Clerk manages membership)
+    const orgUserIds = await getOrgUserIds(context.organizationId);
+    if (orgUserIds.length === 0) {
+      return createApiErrorResponse("Referral not found", 404);
+    }
+
     const referral = await prismadb.referral.findFirst({
       where: {
         id: referralId,
-        // Note: Organization filtering should be done at application level
-        // since Users doesn't have organizationId directly
+        referralCode: { userId: { in: orgUserIds } },
       },
       include: {
         referralCode: {
@@ -149,10 +174,16 @@ export const PATCH = withExternalApi(
     const body = await req.json();
     const { status, totalEarnings } = body;
 
-    // Find the referral
+    // Find the referral — scoped to the caller's organization via Clerk membership
+    const orgUserIds = await getOrgUserIds(context.organizationId);
+    if (orgUserIds.length === 0) {
+      return createApiErrorResponse("Referral not found", 404);
+    }
+
     const referral = await prismadb.referral.findFirst({
       where: {
         id: referralId,
+        referralCode: { userId: { in: orgUserIds } },
       },
     });
 

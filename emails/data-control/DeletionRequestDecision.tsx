@@ -8,6 +8,7 @@ import {
   EmailText,
   EmailHighlightBox,
   BADGE_COLORS,
+  resolveColors,
 } from "../components/BaseLayout";
 
 interface DeletionRequestDecisionEmailProps {
@@ -16,6 +17,7 @@ interface DeletionRequestDecisionEmailProps {
   decision: "approved" | "rejected";
   adminNote?: string;
   gracePeriodEndsAt?: string;
+  userTheme?: string;
 }
 
 export const DeletionRequestDecisionEmail = ({
@@ -24,7 +26,9 @@ export const DeletionRequestDecisionEmail = ({
   decision,
   adminNote,
   gracePeriodEndsAt,
+  userTheme,
 }: DeletionRequestDecisionEmailProps) => {
+  const colors = resolveColors(userTheme);
   const isApproved = decision === "approved";
 
   const gracePeriodDate = gracePeriodEndsAt
@@ -40,6 +44,7 @@ export const DeletionRequestDecisionEmail = ({
     <BaseLayout
       previewText={`Your data deletion request has been ${decision}`}
       footerText="This is an automated notification from Oikion."
+      emailTheme={userTheme}
     >
       <EmailHeader
         badge={{
@@ -57,30 +62,32 @@ export const DeletionRequestDecisionEmail = ({
             ? "Your data deletion request has been reviewed and approved."
             : "Your data deletion request has been reviewed."
         }
+        colors={colors}
       />
 
-      <EmailGreeting name={userName} text="Hello {name}," />
+      <EmailGreeting name={userName} text="Hello {name}," colors={colors} />
 
       {isApproved ? (
         <>
-          <EmailText>
+          <EmailText colors={colors}>
             Your request to delete your organization&apos;s data has been{" "}
             <strong>approved</strong>. The deletion will be executed after the
             grace period ends.
           </EmailText>
 
-          <EmailDetailsCard title="Request Details">
-            <EmailDetailRow label="Request ID" value={requestId} />
+          <EmailDetailsCard title="Request Details" colors={colors}>
+            <EmailDetailRow label="Request ID" value={requestId} colors={colors} />
             {gracePeriodDate && (
               <EmailDetailRow
                 label="Deletion Scheduled After"
                 value={gracePeriodDate}
                 isLast
+                colors={colors}
               />
             )}
           </EmailDetailsCard>
 
-          <EmailText>
+          <EmailText colors={colors}>
             You can still cancel this request before the grace period ends by
             going to your Account Settings and navigating to the Data Control
             tab.
@@ -88,13 +95,13 @@ export const DeletionRequestDecisionEmail = ({
         </>
       ) : (
         <>
-          <EmailText>
+          <EmailText colors={colors}>
             After careful review, your data deletion request has{" "}
             <strong>not been approved</strong> at this time.
           </EmailText>
 
-          <EmailDetailsCard title="Request Details">
-            <EmailDetailRow label="Request ID" value={requestId} isLast />
+          <EmailDetailsCard title="Request Details" colors={colors}>
+            <EmailDetailRow label="Request ID" value={requestId} isLast colors={colors} />
           </EmailDetailsCard>
         </>
       )}
@@ -112,7 +119,7 @@ export const DeletionRequestDecisionEmail = ({
       )}
 
       {!isApproved && (
-        <EmailText>
+        <EmailText colors={colors}>
           If you have questions about this decision, please contact our support
           team for further assistance.
         </EmailText>

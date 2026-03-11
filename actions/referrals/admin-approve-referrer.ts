@@ -1,6 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
+import { requirePlatformAdmin } from "@/lib/platform-admin";
 import { createReferralCode, formatReferralUrl } from "@/lib/referrals/create-referral-code";
 import resendHelper from "@/lib/resend";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
@@ -9,6 +10,7 @@ export async function approveReferrer(
   userId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    await requirePlatformAdmin();
     // Get user details
     const user = await prismadb.users.findUnique({
       where: { id: userId },

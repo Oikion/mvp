@@ -5,6 +5,7 @@
  * All mutations require ORG_OWNER or ADMIN role.
  */
 
+import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
@@ -15,16 +16,16 @@ import type { OrgNetworkMembership, NetworkPrivacyLevel, OrgNetworkSettings } fr
 // ─────────────────────────────────────────────────────────────────
 
 export async function getNetworkSettings(): Promise<OrgNetworkSettings | null> {
-  const orgId = await getCurrentOrgIdSafe();
-  if (!orgId) return null;
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) return null;
   return prismadb.orgNetworkSettings.findUnique({
     where: { organizationId: orgId },
   });
 }
 
 export async function getNetworkPartners() {
-  const orgId = await getCurrentOrgIdSafe();
-  if (!orgId) return [];
+  const { userId, orgId } = await auth();
+  if (!userId || !orgId) return [];
 
   const rows = await prismadb.orgNetworkPartner.findMany({
     where: {
@@ -68,7 +69,7 @@ export interface UpdateNetworkSettingsInput {
 }
 
 export async function updateNetworkSettings(input: UpdateNetworkSettingsInput) {
-  const guard = await requireAction("organization:manage_settings");
+  const guard = await requireAction("admin:manage_org_settings");
   if (guard) return { success: false, error: "Unauthorized" };
 
   const orgId = await getCurrentOrgIdSafe();
@@ -88,7 +89,7 @@ export async function updateNetworkSettings(input: UpdateNetworkSettingsInput) {
 // ─────────────────────────────────────────────────────────────────
 
 export async function inviteNetworkPartner(partnerOrgSlug: string) {
-  const guard = await requireAction("organization:manage_settings");
+  const guard = await requireAction("admin:manage_org_settings");
   if (guard) return { success: false, error: "Unauthorized" };
 
   const orgId = await getCurrentOrgIdSafe();
@@ -136,7 +137,7 @@ export async function respondToPartnerInvite(
   partnerId: string,
   accept: boolean,
 ) {
-  const guard = await requireAction("organization:manage_settings");
+  const guard = await requireAction("admin:manage_org_settings");
   if (guard) return { success: false, error: "Unauthorized" };
 
   const orgId = await getCurrentOrgIdSafe();
@@ -166,7 +167,7 @@ export async function respondToPartnerInvite(
 }
 
 export async function revokeNetworkPartner(partnerId: string) {
-  const guard = await requireAction("organization:manage_settings");
+  const guard = await requireAction("admin:manage_org_settings");
   if (guard) return { success: false, error: "Unauthorized" };
 
   const orgId = await getCurrentOrgIdSafe();
@@ -190,36 +191,3 @@ export async function revokeNetworkPartner(partnerId: string) {
   return { success: true };
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Per-record network visibility toggle
-// ─────────────────────────────────────────────────────────────────
-
-export async function setPropertyNetworkVisible(propertyId: string, visible: boolean) {
-  const guard = await requireAction("mls:edit_property");
-  if (guard) return { success: false, error: "Unauthorized" };
-
-  const orgId = await getCurrentOrgIdSafe();
-  if (!orgId) return { success: false, error: "No organization" };
-
-  await prismadb.properties.updateMany({
-    where: { id: propertyId, organizationId: orgId },
-    data: { networkVisible: visible },
-  });
-
-  return { success: true };
-}
-
-export async function setMandateNetworkVisible(mandateId: string, visible: boolean) {
-  const guard = await requireAction("mandates:edit");
-  if (guard) return { success: false, error: "Unauthorized" };
-
-  const orgId = await getCurrentOrgIdSafe();
-  if (!orgId) return { success: false, error: "No organization" };
-
-  await prismadb.mandate.updateMany({
-    where: { id: mandateId, organizationId: orgId },
-    data: { networkVisible: visible },
-  });
-
-  return { success: true };
-}

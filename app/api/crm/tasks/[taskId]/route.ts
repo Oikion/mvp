@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prismadb } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/get-current-user';
+import { getCurrentUser, getCurrentOrgIdSafe } from '@/lib/get-current-user';
 import { canPerformAction } from '@/lib/permissions/action-service';
 
 /**
@@ -19,6 +19,10 @@ export async function GET(
     }
 
     await getCurrentUser();
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { taskId } = await params;
 
     if (!taskId) {
@@ -28,8 +32,8 @@ export async function GET(
       );
     }
 
-    const task = await prismadb.crm_Accounts_Tasks.findUnique({
-      where: { id: taskId },
+    const task = await prismadb.crm_Accounts_Tasks.findFirst({
+      where: { id: taskId, organizationId },
       include: {
         Users: {
           select: {
@@ -99,6 +103,10 @@ export async function PUT(
 ) {
   try {
     const currentUser = await getCurrentUser();
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { taskId } = await params;
     const body = await req.json();
 
@@ -112,9 +120,9 @@ export async function PUT(
       taskStatus,
     } = body;
 
-    // Check if task exists
-    const existingTask = await prismadb.crm_Accounts_Tasks.findUnique({
-      where: { id: taskId },
+    // Check if task exists within the organization
+    const existingTask = await prismadb.crm_Accounts_Tasks.findFirst({
+      where: { id: taskId, organizationId },
     });
 
     if (!existingTask) {

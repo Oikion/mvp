@@ -22,7 +22,7 @@ export {
   PropertyConditionEnum,
   FurnishedStatusEnum,
   PriceTypeEnum,
-  PortalVisibilityEnum,
+  ItemVisibilityEnum,
   AddressPrivacyLevelEnum,
   LegalizationStatusEnum,
   type PropertyImportData,

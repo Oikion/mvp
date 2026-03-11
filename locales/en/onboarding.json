@@ -19,6 +19,8 @@
       "themeTitle": "Choose Your Style",
       "themeDescription": "Select a visual theme that suits you best. You can change this anytime.",
       "themes": {
+        "estate": "Estate",
+        "estate-dark": "Estate Dark",
         "light": "Light",
         "dark": "Dark",
         "pearl-sand": "Pearl Sand",
@@ -26,6 +28,8 @@
         "system": "System Default"
       },
       "themeDescriptions": {
+        "estate": "Warm & professional",
+        "estate-dark": "Dark & sophisticated",
         "light": "Clean and bright",
         "dark": "Easy on the eyes",
         "pearl-sand": "Warm and cozy",

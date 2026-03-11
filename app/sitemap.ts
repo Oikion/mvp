@@ -37,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch all public properties
     const publicProperties = await prismadb.properties.findMany({
       where: {
-        portal_visibility: 'PUBLIC',
+        visibility: 'PUBLIC',
         property_status: 'ACTIVE',
       },
       select: {

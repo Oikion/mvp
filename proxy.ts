@@ -318,9 +318,16 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
     // These routes skip Clerk auth and handle their own authentication via API keys
     // Rate limiting is handled within the route handlers using the 'api' tier
     if (isExternalApiRoute(req)) {
+      // Strip internal context headers to prevent auth bypass via forged headers
+      const requestHeaders = new Headers(req.headers);
+      ['x-internal-api-context', 'x-tool-context-org', 'x-tool-context-user',
+       'x-tool-context-source', 'x-tool-context-test-mode'].forEach(h => requestHeaders.delete(h));
+
       // Let the route handler manage authentication and rate limiting
       // The external-api-middleware handles API key validation and rate limiting
-      const response = NextResponse.next();
+      const response = NextResponse.next({
+        request: { headers: requestHeaders },
+      });
       
       // Add CORS headers for external API access
       // SECURITY: Only allow explicitly configured origins (not wildcard)

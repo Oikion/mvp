@@ -3,7 +3,6 @@ import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
 import {
   withExternalApi,
-  withInternalToolApi,
   createApiSuccessResponse,
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
@@ -11,13 +10,8 @@ import {
 /**
  * GET /api/v1/calendar/events/upcoming
  * Get upcoming calendar events for the next specified number of days
- * 
- * Supports both:
- * - External API calls (with API key authentication)
- * - Internal AI tool calls (with X-Tool-Context headers)
  */
-export const GET = withInternalToolApi(
-  withExternalApi(
+export const GET = withExternalApi(
     async (req: NextRequest, context: ExternalApiContext) => {
       const { searchParams } = new URL(req.url);
       
@@ -102,6 +96,5 @@ export const GET = withInternalToolApi(
         200
       );
     },
-    { requiredScopes: [API_SCOPES.CALENDAR_READ] }
-  )
+  { requiredScopes: [API_SCOPES.CALENDAR_READ] }
 );

@@ -223,7 +223,7 @@ export const POST = withExternalApi(
 
       console.error("[NEWSLETTER_SEND_ERROR]", error);
       return createApiErrorResponse(
-        error instanceof Error ? error.message : "Failed to send newsletter",
+        "Failed to send newsletter",
         500
       );
     }

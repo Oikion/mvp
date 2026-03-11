@@ -52,7 +52,7 @@ async function checkIndexes() {
 
   recommendations.push({
     model: "properties",
-    columns: ["organizationId", "property_status", "portal_visibility"],
+    columns: ["organizationId", "property_status", "visibility"],
     reason: "Common pattern: active properties visible on portal",
     priority: "HIGH",
   });

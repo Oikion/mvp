@@ -9,6 +9,30 @@ import {
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
 import { Prisma } from "@prisma/client";
+import { clerkClient } from "@clerk/nextjs/server";
+
+/**
+ * Get internal user IDs for all members of a Clerk organization.
+ * Users model has no organizationId — Clerk manages membership externally.
+ */
+async function getOrgUserIds(organizationId: string): Promise<string[]> {
+  const clerk = await clerkClient();
+  const memberships = await clerk.organizations.getOrganizationMembershipList({
+    organizationId,
+    limit: 200,
+  });
+  const memberClerkIds = memberships.data
+    .map(m => m.publicUserData?.userId)
+    .filter(Boolean) as string[];
+
+  if (memberClerkIds.length === 0) return [];
+
+  const users = await prismadb.users.findMany({
+    where: { clerkUserId: { in: memberClerkIds } },
+    select: { id: true },
+  });
+  return users.map(u => u.id);
+}
 
 // Type for referral with includes in list view
 type ReferralListItem = Prisma.ReferralGetPayload<{
@@ -55,17 +79,20 @@ export const GET = withExternalApi(
     const status = url.searchParams.get("status");
     const userId = url.searchParams.get("userId");
 
-    // Build where clause
-    const where: Prisma.ReferralWhereInput = {};
+    // Build where clause — scope to org members to prevent cross-tenant leakage
+    const orgUserIds = await getOrgUserIds(context.organizationId);
+    if (orgUserIds.length === 0) {
+      return createApiSuccessResponse({ referrals: [] }, 200, { nextCursor: null, hasMore: false, limit });
+    }
+
+    const where: Prisma.ReferralWhereInput = {
+      referralCode: {
+        userId: { in: userId ? [userId] : orgUserIds },
+      },
+    };
 
     if (status) {
       where.status = status.toUpperCase() as "PENDING" | "CONVERTED" | "CANCELLED";
-    }
-
-    if (userId) {
-      where.referralCode = {
-        userId,
-      };
     }
 
     // Fetch referrals

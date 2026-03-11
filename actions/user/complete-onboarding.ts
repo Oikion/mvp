@@ -21,6 +21,8 @@ export interface CompleteOnboardingParams {
   firstName: string;
   lastName: string;
   language: SupportedLanguage;
+  /** User's selected app theme (e.g. "estate", "estate-dark"). Stored for email theming. */
+  theme?: string;
   notificationSettings?: OnboardingNotificationSettings;
   privacyPreferences?: OnboardingPrivacyPreferences;
   // Referral code - passed from client if user was referred
@@ -171,6 +173,7 @@ export async function completeOnboarding(
         lastName: params.lastName.trim(),
         name: fullName,
         userLanguage: params.language,
+        userTheme: params.theme ?? "estate",
         onboardingCompleted: true,
         // Privacy preferences
         analyticsConsent: params.privacyPreferences?.analyticsConsent ?? true,

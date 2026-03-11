@@ -32,7 +32,7 @@ const MEMBERSHIPS: OrgNetworkMembership[] = ["NONE", "POOL", "BILATERAL", "BOTH"
 const PRIVACY_LEVELS: NetworkPrivacyLevel[] = ["ANONYMIZED", "AGENCY_IDENTIFIED", "FULL"];
 
 export function NetworkSettingsClient({ initialSettings, initialPartners, locale }: Props) {
-  const t = useTranslations("network.matchmaking");
+  const t = useTranslations("networkSettings");
   const [isPending, startTransition] = useTransition();
 
   const [membership, setMembership] = useState<OrgNetworkMembership>(

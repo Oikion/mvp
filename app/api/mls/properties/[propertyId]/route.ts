@@ -3,6 +3,7 @@ import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
+import { deleteFromBlob } from "@/lib/vercel-blob";
 
 export async function GET(
   _req: Request,
@@ -92,6 +93,26 @@ export async function DELETE(
         { error: deleteCheck.reason || "Permission denied" },
         { status: 403 }
       );
+    }
+
+    // Delete property images from blob storage before deleting the property
+    // (DB records cascade-delete automatically via onDelete: Cascade)
+    try {
+      const images = await prismaTenant.propertyImage.findMany({
+        where: { propertyId: property.id },
+        select: { url: true },
+      });
+
+      for (const image of images) {
+        try {
+          await deleteFromBlob(image.url);
+        } catch (blobErr) {
+          // Log but don't block property deletion if blob cleanup fails
+          console.error("[PROPERTY_DELETE] Failed to delete blob:", image.url, blobErr);
+        }
+      }
+    } catch (err) {
+      console.error("[PROPERTY_DELETE] Failed to fetch images for cleanup:", err);
     }
 
     await prismaTenant.properties.delete({

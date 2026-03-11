@@ -1,41 +1,62 @@
 import { prismadb } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
+import { z } from "zod";
+
+const createContactSchema = z.object({
+  name: z.string().min(1).max(200),
+  surname: z.string().min(1).max(200),
+  email: z.string().email().max(320),
+  phone: z.string().min(1).max(50),
+  company: z.string().min(1).max(200),
+  message: z.string().min(1).max(5000),
+  tag: z.string().min(1).max(100),
+  organizationId: z.string().uuid(),
+});
 
 export async function POST(req: Request) {
   const apiKey = req.headers.get("OIKION_TOKEN");
 
-  // Get API key from headers
   if (!apiKey) {
-    return NextResponse.json({ error: "API key is missing" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Here you would typically check the API key against a stored value
-  // For example, you could fetch it from a database or environment variable
-  const storedApiKey = process.env.OIKION_TOKEN; // Example of fetching from env
-  if (apiKey !== storedApiKey) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  const storedApiKey = process.env.OIKION_TOKEN;
+  if (!storedApiKey) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Constant-time comparison to prevent timing attacks
+  const keyBuffer = Buffer.from(apiKey);
+  const storedBuffer = Buffer.from(storedApiKey);
+  if (keyBuffer.length !== storedBuffer.length || !timingSafeEqual(keyBuffer, storedBuffer)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await req.json();
+  const parsed = createContactSchema.safeParse(body);
 
-  const { name, surname, email, phone, company, message, tag } = body;
-  if (!name || !surname || !email || !phone || !company || !message || !tag) {
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing required fields" },
+      { error: "Missing or invalid required fields" },
       { status: 400 }
     );
   }
 
+  const { name, surname, email, phone, company, message, tag, organizationId } = parsed.data;
+
   try {
-    await (prismadb as any).crm_Contacts.create({
+    await prismadb.client_Contacts.create({
       data: {
-        first_name: name,
-        last_name: surname,
+        id: crypto.randomUUID(),
+        contact_first_name: name,
+        contact_last_name: surname,
         email,
         mobile_phone: phone,
         type: "Prospect",
         tags: [tag],
         notes: ["Account: " + company, "Message: " + message],
+        organizationId,
       },
     });
     return NextResponse.json({ message: "Contact created" });

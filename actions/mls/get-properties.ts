@@ -29,6 +29,7 @@ export const getProperties = async () => {
   
   const data = await prismadb.properties.findMany({
     where: { organizationId },
+    take: 500,
     include: {
       Users_Properties_assigned_toToUsers: { select: { name: true } },
       Documents: {
@@ -42,6 +43,11 @@ export const getProperties = async () => {
         },
         take: 1,
       },
+      PropertyImage: {
+        where: { isPrimary: true },
+        select: { url: true },
+        take: 1,
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -53,6 +59,7 @@ export const getProperties = async () => {
       ...dec,
       assigned_to_user: dec.Users_Properties_assigned_toToUsers,
       linkedDocuments: dec.Documents,
+      primaryImage: (dec as Record<string, unknown>).PropertyImage ? ((dec as Record<string, unknown>).PropertyImage as Array<{ url: string }>)?.[0] ?? null : null,
     };
   }));
 

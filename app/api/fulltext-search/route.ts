@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
+import { clerkClient } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
   try {
@@ -43,19 +44,39 @@ export async function POST(req: Request) {
       take: 5,
     });
 
-    //Search in local user database
-    const resultsUser = await prismadb.users.findMany({
-      where: {
-        OR: [
-          { email: { contains: search, mode: "insensitive" } },
-          { account_name: { contains: search, mode: "insensitive" } },
-          { name: { contains: search, mode: "insensitive" } },
-          { username: { contains: search, mode: "insensitive" } },
-          // add more fields as needed
-        ],
-      },
-      take: 5,
-    });
+    //Search in local user database (scoped to current organization via Clerk)
+    let resultsUser: { id: string; name: string | null; email: string; username: string | null }[] = [];
+    if (organizationId) {
+      const clerk = await clerkClient();
+      const memberships = await clerk.organizations.getOrganizationMembershipList({
+        organizationId,
+        limit: 200,
+      });
+      const memberClerkIds = memberships.data
+        .map(m => m.publicUserData?.userId)
+        .filter(Boolean) as string[];
+
+      if (memberClerkIds.length > 0) {
+        resultsUser = await prismadb.users.findMany({
+          where: {
+            clerkUserId: { in: memberClerkIds },
+            OR: [
+              { email: { contains: search, mode: "insensitive" } },
+              { account_name: { contains: search, mode: "insensitive" } },
+              { name: { contains: search, mode: "insensitive" } },
+              { username: { contains: search, mode: "insensitive" } },
+            ],
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            username: true,
+          },
+          take: 5,
+        });
+      }
+    }
 
     const data = {
       clients: resultsCrmClients,
@@ -78,7 +99,7 @@ export async function POST(req: Request) {
     }
     
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Search failed" },
+      { error: "Search failed" },
       { status: 500 }
     );
   }

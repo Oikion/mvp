@@ -20,6 +20,7 @@ const GIF_TYPE = "image/gif";
 export const IMAGE_PRESETS = {
   avatar: { maxWidth: 512, maxHeight: 512, quality: 80 },
   general: { maxWidth: 1920, maxHeight: 1920, quality: 80 },
+  property: { maxWidth: 2048, maxHeight: 2048, quality: 82 },
 } as const;
 
 export type ImagePreset = keyof typeof IMAGE_PRESETS;

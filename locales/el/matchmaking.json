@@ -1,6 +1,11 @@
 {
   "title": "Matchmaking",
   "description": "Αναλυτικά συμβατότητας πελατών-ακινήτων",
+  "mode": {
+    "orgOnly": "Μόνο Οργανισμός",
+    "polis": "Oikion Polis",
+    "polisUnavailable": "Εγγραφείτε στο Oikion Polis για cross-agency matches. Ρυθμίστε στις Ρυθμίσεις → Polis."
+  },
   "loading": {
     "title": "Matchmaking",
     "description": "Φόρτωση αναλυτικών ταίριασματος..."

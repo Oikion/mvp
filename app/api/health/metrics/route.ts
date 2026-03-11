@@ -4,15 +4,27 @@ import {
   getQueryStats,
   isPoolHealthy,
 } from "@/lib/prisma-metrics";
+import { isPlatformAdmin } from "@/lib/platform-admin";
 
 /**
  * GET /api/health/metrics
  * Connection pool and query performance metrics
- * 
+ *
  * Returns detailed metrics about database connection pool health and query performance.
  * Used for monitoring and alerting in production.
+ *
+ * Requires platform admin authentication. Unauthenticated callers receive 401.
  */
 export async function GET() {
+  // Require platform admin — metrics contain sensitive internal data
+  const isAdmin = await isPlatformAdmin();
+  if (!isAdmin) {
+    return NextResponse.json(
+      { status: "error", error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   try {
     const connectionMetrics = getConnectionMetrics();
     const queryStats = getQueryStats();
@@ -46,12 +58,12 @@ export async function GET() {
     );
   } catch (error) {
     console.error("[METRICS_ENDPOINT_ERROR]", error);
-    
+
     return NextResponse.json(
       {
         status: "error",
         timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Internal server error",
       },
       { status: 500 }
     );

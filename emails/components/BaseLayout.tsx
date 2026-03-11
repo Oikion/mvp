@@ -13,6 +13,12 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import {
+  type EmailTheme,
+  type EmailThemeColors,
+  EMAIL_THEMES,
+  getEmailTheme,
+} from "../utils/theme";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 
@@ -21,6 +27,8 @@ export interface BaseLayoutProps {
   children: React.ReactNode;
   footerText?: string;
   footerNote?: string;
+  /** App theme string (e.g. "estate", "estate-dark", "dark"). Defaults to "estate". */
+  emailTheme?: string | null;
 }
 
 export interface BadgeProps {
@@ -33,54 +41,100 @@ export interface HeaderSectionProps {
   badge?: BadgeProps;
   title: string;
   subtitle?: string;
+  colors: EmailThemeColors;
 }
 
 export interface CTAButtonProps {
   href: string;
   text: string;
   altLinkText?: string;
+  colors: EmailThemeColors;
+}
+
+function resolveColors(emailTheme?: string | null): EmailThemeColors {
+  const key = getEmailTheme(emailTheme);
+  return EMAIL_THEMES[key];
 }
 
 /**
- * Base email layout component with Oikion branding
+ * Base email layout component with Oikion branding and theme support.
  */
 export function BaseLayout({
   previewText,
   children,
   footerText,
   footerNote,
+  emailTheme,
 }: BaseLayoutProps) {
+  const colors = resolveColors(emailTheme);
+  const isDark = getEmailTheme(emailTheme) === "estate-dark";
+
   return (
     <Html>
       <Head>
-        <meta name="color-scheme" content="light" />
-        <meta name="supported-color-schemes" content="light" />
+        <meta name="color-scheme" content={isDark ? "dark" : "light"} />
+        <meta name="supported-color-schemes" content={isDark ? "dark light" : "light"} />
       </Head>
       <Preview>{previewText}</Preview>
       <Tailwind>
-        <Body className="bg-zinc-50 my-auto mx-auto font-sans">
-          <Container className="bg-white border border-zinc-200 rounded-xl my-10 mx-auto p-0 max-w-[520px] overflow-hidden">
+        <Body
+          style={{ backgroundColor: colors.outerBg }}
+          className="my-auto mx-auto font-sans"
+        >
+          <Container
+            style={{
+              backgroundColor: colors.containerBg,
+              border: `1px solid ${colors.containerBorder}`,
+            }}
+            className="rounded-xl my-10 mx-auto p-0 max-w-[520px] overflow-hidden"
+          >
             {/* Header */}
-            <Section className="bg-zinc-900 px-8 py-10 text-center">
-              <Text className="text-white text-2xl font-bold m-0 tracking-tight">
+            <Section
+              style={{ backgroundColor: colors.headerBg }}
+              className="px-8 py-10 text-center"
+            >
+              <Text
+                style={{ color: colors.headerTitle }}
+                className="text-2xl font-bold m-0 tracking-tight"
+              >
                 Oikion
               </Text>
-              <Text className="text-zinc-400 text-sm m-0 mt-1">
+              <Text
+                style={{ color: colors.headerSubtitle }}
+                className="text-sm m-0 mt-1"
+              >
                 Real Estate, Reimagined
               </Text>
             </Section>
 
             {/* Content */}
-            <Section className="px-8 py-10">{children}</Section>
+            <Section
+              style={{ backgroundColor: colors.contentBg }}
+              className="px-8 py-10"
+            >
+              {children}
+            </Section>
 
             {/* Footer */}
-            <Section className="bg-zinc-50 border-t border-zinc-200 px-8 py-6">
-              {footerText && (
-                <Text className="text-zinc-400 text-xs text-center m-0 mb-2">
+            <Section
+              style={{
+                backgroundColor: colors.footerBg,
+                borderTop: `1px solid ${colors.footerBorder}`,
+              }}
+              className="px-8 py-6"
+            >
+              {(footerText || footerNote) && (
+                <Text
+                  style={{ color: colors.footerText }}
+                  className="text-xs text-center m-0 mb-2"
+                >
                   {footerText} {footerNote}
                 </Text>
               )}
-              <Text className="text-zinc-400 text-xs text-center m-0 mt-3">
+              <Text
+                style={{ color: colors.footerText }}
+                className="text-xs text-center m-0 mt-3"
+              >
                 © {new Date().getFullYear()} Oikion. All rights reserved.
               </Text>
             </Section>
@@ -92,9 +146,13 @@ export function BaseLayout({
 }
 
 /**
- * Badge component for email headers
+ * Badge component for email headers.
  */
-export function EmailBadge({ icon, text, colorClass = "bg-blue-50 text-blue-700 border-blue-200" }: BadgeProps) {
+export function EmailBadge({
+  icon,
+  text,
+  colorClass = "bg-blue-50 text-blue-700 border-blue-200",
+}: BadgeProps) {
   return (
     <Section className="mb-6 text-center">
       <span
@@ -107,34 +165,42 @@ export function EmailBadge({ icon, text, colorClass = "bg-blue-50 text-blue-700 
 }
 
 /**
- * Header section with optional badge, title, and subtitle
+ * Header section with optional badge, title, and subtitle.
+ * Accepts colors from the active theme.
  */
-export function EmailHeader({ badge, title, subtitle }: HeaderSectionProps) {
+export function EmailHeader({ badge, title, subtitle, colors }: HeaderSectionProps) {
   return (
     <>
       {badge && <EmailBadge {...badge} />}
-      <Heading className="text-zinc-900 text-2xl font-semibold text-center p-0 m-0 mb-3">
+      <Heading
+        style={{ color: colors.textPrimary }}
+        className="text-2xl font-semibold text-center p-0 m-0 mb-3"
+      >
         {title}
       </Heading>
       {subtitle && (
-        <Text className="text-zinc-500 text-base text-center m-0 mb-6 leading-relaxed">
+        <Text
+          style={{ color: colors.textSecondary }}
+          className="text-base text-center m-0 mb-6 leading-relaxed"
+        >
           {subtitle}
         </Text>
       )}
-      <Hr className="border-zinc-200 my-6" />
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
     </>
   );
 }
 
 /**
- * CTA Button with optional alternative link
+ * CTA Button with optional alternative link.
  */
-export function EmailCTAButton({ href, text, altLinkText }: CTAButtonProps) {
+export function EmailCTAButton({ href, text, altLinkText, colors }: CTAButtonProps) {
   return (
     <>
       <Section className="text-center mb-6">
         <Button
-          className="bg-zinc-900 rounded-lg text-white py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
+          style={{ backgroundColor: colors.buttonBg, color: colors.buttonText }}
+          className="rounded-lg py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
           href={href}
         >
           {text}
@@ -142,11 +208,18 @@ export function EmailCTAButton({ href, text, altLinkText }: CTAButtonProps) {
       </Section>
       {altLinkText && (
         <>
-          <Text className="text-zinc-500 text-xs text-center m-0 mb-2">
+          <Text
+            style={{ color: colors.textMuted }}
+            className="text-xs text-center m-0 mb-2"
+          >
             {altLinkText}
           </Text>
           <Text className="text-center m-0">
-            <Link href={href} className="text-blue-600 text-xs underline break-all">
+            <Link
+              href={href}
+              style={{ color: colors.linkColor }}
+              className="text-xs underline break-all"
+            >
               {href}
             </Link>
           </Text>
@@ -157,39 +230,76 @@ export function EmailCTAButton({ href, text, altLinkText }: CTAButtonProps) {
 }
 
 /**
- * Greeting text component
+ * Greeting text component.
  */
-export function EmailGreeting({ name, text }: { name: string; text: string }) {
+export function EmailGreeting({
+  name,
+  text,
+  colors,
+}: {
+  name: string;
+  text: string;
+  colors?: EmailThemeColors;
+}) {
   return (
-    <Text className="text-zinc-700 text-sm leading-6 m-0 mb-4">
+    <Text
+      style={colors ? { color: colors.textSecondary } : undefined}
+      className="text-sm leading-6 m-0 mb-4 text-zinc-700"
+    >
       {text.replace("{name}", name)}
     </Text>
   );
 }
 
 /**
- * Standard paragraph text
+ * Standard paragraph text.
  */
-export function EmailText({ children }: { children: React.ReactNode }) {
+export function EmailText({
+  children,
+  colors,
+}: {
+  children: React.ReactNode;
+  colors?: EmailThemeColors;
+}) {
   return (
-    <Text className="text-zinc-700 text-sm leading-6 m-0 mb-6">{children}</Text>
+    <Text
+      style={colors ? { color: colors.textSecondary } : undefined}
+      className="text-sm leading-6 m-0 mb-6 text-zinc-700"
+    >
+      {children}
+    </Text>
   );
 }
 
 /**
- * Details card component
+ * Details card component.
  */
 export function EmailDetailsCard({
   title,
   children,
+  colors,
 }: {
   title?: string;
   children: React.ReactNode;
+  colors?: EmailThemeColors;
 }) {
   return (
-    <Section className="bg-zinc-50 border border-zinc-200 rounded-lg p-5 mb-6">
+    <Section
+      style={
+        colors
+          ? {
+              backgroundColor: colors.cardBg,
+              border: `1px solid ${colors.cardBorder}`,
+            }
+          : undefined
+      }
+      className="bg-zinc-50 border border-zinc-200 rounded-lg p-5 mb-6"
+    >
       {title && (
-        <Text className="text-zinc-500 text-xs font-medium m-0 mb-4 uppercase tracking-wide">
+        <Text
+          style={colors ? { color: colors.textMuted } : undefined}
+          className="text-xs font-medium m-0 mb-4 uppercase tracking-wide text-zinc-500"
+        >
           {title}
         </Text>
       )}
@@ -199,22 +309,34 @@ export function EmailDetailsCard({
 }
 
 /**
- * Detail row component for key-value pairs
+ * Detail row component for key-value pairs.
  */
 export function EmailDetailRow({
   label,
   value,
   isLast = false,
+  colors,
 }: {
   label: string;
   value: React.ReactNode;
   isLast?: boolean;
+  colors?: EmailThemeColors;
 }) {
   return (
     <Section className={isLast ? "" : "mb-4"}>
-      <Text className="text-zinc-500 text-xs m-0 mb-1">{label}</Text>
+      <Text
+        style={colors ? { color: colors.textMuted } : undefined}
+        className="text-xs m-0 mb-1 text-zinc-500"
+      >
+        {label}
+      </Text>
       {typeof value === "string" ? (
-        <Text className="text-zinc-900 text-base font-semibold m-0">{value}</Text>
+        <Text
+          style={colors ? { color: colors.textPrimary } : undefined}
+          className="text-base font-semibold m-0 text-zinc-900"
+        >
+          {value}
+        </Text>
       ) : (
         value
       )}
@@ -223,7 +345,7 @@ export function EmailDetailRow({
 }
 
 /**
- * Highlighted message box (e.g., for personal messages)
+ * Highlighted message box (e.g., for personal messages).
  */
 export function EmailHighlightBox({
   title,
@@ -249,8 +371,10 @@ export function EmailHighlightBox({
           {title}
         </Text>
       )}
-      <Text className={`${textColor.replace("800", "900")} text-sm m-0 italic leading-relaxed`}>
-        "{content}"
+      <Text
+        className={`${textColor.replace("800", "900")} text-sm m-0 italic leading-relaxed`}
+      >
+        &ldquo;{content}&rdquo;
       </Text>
     </Section>
   );
@@ -304,4 +428,4 @@ export function getTranslations<T extends Record<string, any>>(
   return translations[language as SupportedLanguage] || translations.en;
 }
 
-export { baseUrl };
+export { baseUrl, resolveColors };

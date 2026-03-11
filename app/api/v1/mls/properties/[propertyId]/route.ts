@@ -61,7 +61,7 @@ export const GET = withExternalApi(
         description: true,
         assigned_to: true,
         is_exclusive: true,
-        portal_visibility: true,
+        visibility: true,
         available_from: true,
         accepts_pets: true,
         min_lease_months: true,
@@ -135,7 +135,7 @@ export const GET = withExternalApi(
         },
         description: property.description,
         isExclusive: property.is_exclusive,
-        portalVisibility: property.portal_visibility,
+        portalVisibility: property.visibility,
         assignedTo: property.Users_Properties_assigned_toToUsers,
         images: property.Documents.map((d) => ({
           id: d.id,
@@ -236,7 +236,7 @@ export const PUT = withExternalApi(
     if (description !== undefined) updateData.description = description;
     if (assignedTo !== undefined) updateData.assigned_to = assignedTo;
     if (isExclusive !== undefined) updateData.is_exclusive = isExclusive;
-    if (portalVisibility !== undefined) updateData.portal_visibility = portalVisibility;
+    if (portalVisibility !== undefined) updateData.visibility = portalVisibility;
 
     const property = await prismadb.properties.update({
       where: { id: existingProperty.id },

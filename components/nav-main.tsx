@@ -92,7 +92,7 @@ const getCategoryStyle = (label: string): CategoryStyle => {
       hoverBg: "hover:bg-rose-400/10",
       activeBorder: "border-l-rose-400",
     },
-    "Network": {
+    "Polis": {
       icon: Globe2,
       iconColor: "text-violet-500 dark:text-violet-400",
       hoverBg: "hover:bg-violet-500/10",
@@ -494,7 +494,7 @@ export function NavMain({
 
   // Check if label should have Alpha badge (Tools/Network in English or Greek)
   const shouldShowAlphaBadge = (label: string) => {
-    const alphaLabels = ["Tools", "Network", "Εργαλεία", "Δίκτυο"]
+    const alphaLabels = ["Tools", "Polis", "Εργαλεία"]
     return alphaLabels.includes(label)
   }
 

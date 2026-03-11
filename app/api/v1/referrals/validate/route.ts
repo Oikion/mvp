@@ -1,14 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
+import { rateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 
 /**
  * GET /api/v1/referrals/validate
  * Validate a referral code (public endpoint - no authentication required)
  * Query params: code (required)
- * 
- * This is a public endpoint to allow validation during registration
+ *
+ * This is a public endpoint to allow validation during registration.
+ * Rate limited with strict tier (10 req/min) to prevent enumeration.
  */
 export async function GET(req: NextRequest) {
+  // IP-based rate limiting — strict tier (10 req/min)
+  const identifier = getRateLimitIdentifier(req);
+  const rateLimitResult = await rateLimit(identifier, "strict");
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { success: false, error: "Too many requests. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil((rateLimitResult.reset - Date.now()) / 1000)),
+          "X-RateLimit-Limit": String(rateLimitResult.limit),
+          "X-RateLimit-Remaining": "0",
+        },
+      }
+    );
+  }
+
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
 

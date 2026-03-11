@@ -37,7 +37,7 @@ export async function GET(
             avatar: true,
             Properties_Properties_assigned_toToUsers: {
               where: {
-                portal_visibility: "PUBLIC",
+                visibility: "PUBLIC",
                 property_status: "ACTIVE",
               },
               select: {
@@ -69,7 +69,7 @@ export async function GET(
               select: {
                 Properties_Properties_assigned_toToUsers: {
                   where: {
-                    portal_visibility: "PUBLIC",
+                    visibility: "PUBLIC",
                     property_status: "ACTIVE",
                   },
                 },

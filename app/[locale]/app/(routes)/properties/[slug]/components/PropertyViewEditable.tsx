@@ -72,7 +72,7 @@ interface PropertyData {
   accepts_pets?: boolean | null;
   property_preferences?: unknown;
   communication_notes?: unknown;
-  portal_visibility?: string | null;
+  visibility?: string | null;
   assigned_to_user?: { name: string | null; id?: string } | null;
   assigned_to?: string | null;
   createdAt?: string | Date | null;
@@ -195,7 +195,7 @@ export function PropertyViewEditable({
   // UI states
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [visibility, setVisibility] = useState(data.portal_visibility || "PRIVATE");
+  const [visibility, setVisibility] = useState(data.visibility || "PERSONAL");
   const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
   const [copied, setCopied] = useState(false);
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
@@ -325,15 +325,15 @@ export function PropertyViewEditable({
     try {
       await axios.put("/api/mls/properties", {
         id: data.id,
-        portal_visibility: newVisibility,
+        visibility: newVisibility,
       });
       setVisibility(newVisibility);
       toast.success(
         newVisibility === "PUBLIC"
           ? "Property is now public!"
-          : newVisibility === "SELECTED"
+          : newVisibility === "SECURE"
           ? "Property visible to connections only"
-          : "Property is now private"
+          : "Property is now personal"
       );
     } catch (error) {
       console.error("Failed to update visibility:", error);
@@ -552,15 +552,15 @@ export function PropertyViewEditable({
                     <Eye className="h-3 w-3 mr-1" />
                     Public
                   </Badge>
-                ) : visibility === "SELECTED" ? (
+                ) : visibility === "SECURE" ? (
                   <Badge className="bg-primary/15 text-primary dark:text-primary hover:bg-primary/20">
                     <Users className="h-3 w-3 mr-1" />
-                    Connections Only
+                    Secure
                   </Badge>
                 ) : (
                   <Badge variant="secondary">
                     <Lock className="h-3 w-3 mr-1" />
-                    Private
+                    Personal
                   </Badge>
                 )}
               </div>
@@ -569,22 +569,22 @@ export function PropertyViewEditable({
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={visibility === "PRIVATE" ? "default" : "outline"}
+                variant={visibility === "PERSONAL" ? "default" : "outline"}
                 size="sm"
                 leftIcon={<Lock className="h-4 w-4" />}
-                onClick={() => handleVisibilityChange("PRIVATE")}
+                onClick={() => handleVisibilityChange("PERSONAL")}
                 disabled={isUpdatingVisibility}
               >
-                Private
+                Personal
               </Button>
               <Button
-                variant={visibility === "SELECTED" ? "default" : "outline"}
+                variant={visibility === "SECURE" ? "default" : "outline"}
                 size="sm"
                 leftIcon={<Users className="h-4 w-4" />}
-                onClick={() => handleVisibilityChange("SELECTED")}
+                onClick={() => handleVisibilityChange("SECURE")}
                 disabled={isUpdatingVisibility}
               >
-                Connections Only
+                Secure
               </Button>
               <Button
                 variant={visibility === "PUBLIC" ? "default" : "outline"}

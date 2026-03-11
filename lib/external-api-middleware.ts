@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Fix type errors
 import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey, hasScope, logApiRequest, ApiScope } from "@/lib/api-auth";
 import { rateLimit, getApiKeyRateLimitIdentifier } from "@/lib/rate-limit";
@@ -24,6 +22,15 @@ export interface ExternalApiContext {
 }
 
 /**
+ * Rate limit information returned from authentication
+ */
+export interface RateLimitInfo {
+  limit: number;
+  remaining: number;
+  reset: number;
+}
+
+/**
  * Result of external API authentication
  */
 export interface ExternalApiAuthResult {
@@ -31,6 +38,7 @@ export interface ExternalApiAuthResult {
   context?: ExternalApiContext;
   error?: string;
   statusCode?: number;
+  rateLimit?: RateLimitInfo;
 }
 
 /**
@@ -86,11 +94,18 @@ export async function authenticateExternalApi(
   const identifier = getApiKeyRateLimitIdentifier(validation.apiKey.id);
   const rateLimitResult = await rateLimit(identifier, "api");
 
+  const rateLimitInfo: RateLimitInfo = {
+    limit: rateLimitResult.limit,
+    remaining: rateLimitResult.remaining,
+    reset: rateLimitResult.reset,
+  };
+
   if (!rateLimitResult.success) {
     return {
       success: false,
       error: "Rate limit exceeded. Please try again later.",
       statusCode: 429,
+      rateLimit: rateLimitInfo,
     };
   }
 
@@ -103,6 +118,7 @@ export async function authenticateExternalApi(
       scopes: validation.apiKey.scopes,
       createdById: validation.apiKey.createdById,
     },
+    rateLimit: rateLimitInfo,
   };
 }
 
@@ -161,8 +177,6 @@ export function createApiSuccessResponse<T>(
 /**
  * Wrapper for external API route handlers
  * Handles authentication, scope checking, logging, and error handling
- * 
- * Also supports internal tool API calls when combined with withInternalToolApi
  */
 export function withExternalApi<T>(
   handler: (
@@ -177,27 +191,30 @@ export function withExternalApi<T>(
     const startTime = Date.now();
     let statusCode = 500;
     let apiKeyId: string | undefined;
+    let rateLimitInfo: RateLimitInfo | undefined;
+
+    /** Attach rate limit headers to a response if available */
+    function applyRateLimitHeaders(response: NextResponse): NextResponse {
+      if (rateLimitInfo) {
+        response.headers.set("X-RateLimit-Limit", String(rateLimitInfo.limit));
+        response.headers.set("X-RateLimit-Remaining", String(rateLimitInfo.remaining));
+        response.headers.set("X-RateLimit-Reset", String(rateLimitInfo.reset));
+      }
+      return response;
+    }
 
     try {
-      // Check if this is an internal tool API call with pre-set context
-      const internalContext = getInternalApiContextFromHeader(req);
-      
-      if (internalContext) {
-        // Internal tool call - skip API key auth, use internal context
-        // Internal tools have all scopes, so skip scope check
-        const response = await handler(req, internalContext);
-        statusCode = response.status;
-        return response;
-      }
-
       // Authenticate the request via API key
       const authResult = await authenticateExternalApi(req);
+      rateLimitInfo = authResult.rateLimit;
 
       if (!authResult.success || !authResult.context) {
         statusCode = authResult.statusCode || 401;
-        return createApiErrorResponse(
-          authResult.error || "Authentication failed",
-          statusCode
+        return applyRateLimitHeaders(
+          createApiErrorResponse(
+            authResult.error || "Authentication failed",
+            statusCode
+          )
         );
       }
 
@@ -209,9 +226,11 @@ export function withExternalApi<T>(
           const scopeCheck = requireScope(authResult.context, scope);
           if (!scopeCheck.allowed) {
             statusCode = 403;
-            return createApiErrorResponse(
-              scopeCheck.error || "Insufficient permissions",
-              statusCode
+            return applyRateLimitHeaders(
+              createApiErrorResponse(
+                scopeCheck.error || "Insufficient permissions",
+                statusCode
+              )
             );
           }
         }
@@ -220,17 +239,19 @@ export function withExternalApi<T>(
       // Call the actual handler
       const response = await handler(req, authResult.context);
       statusCode = response.status;
-      return response;
+      return applyRateLimitHeaders(response);
     } catch (error) {
       console.error("[EXTERNAL_API_ERROR]", error);
       statusCode = 500;
-      return createApiErrorResponse(
-        error instanceof Error ? error.message : "Internal server error",
-        statusCode
+      return applyRateLimitHeaders(
+        createApiErrorResponse(
+          "Internal server error",
+          statusCode
+        )
       );
     } finally {
       // Log the API request (fire and forget)
-      if (apiKeyId && apiKeyId !== "internal-tool") {
+      if (apiKeyId) {
         const responseTime = Date.now() - startTime;
         logApiRequest({
           apiKeyId,
@@ -248,22 +269,6 @@ export function withExternalApi<T>(
       }
     }
   };
-}
-
-/**
- * Internal helper to get context from header (used by withExternalApi)
- */
-function getInternalApiContextFromHeader(req: NextRequest): ExternalApiContext | null {
-  const contextHeader = req.headers.get("x-internal-api-context");
-  if (!contextHeader) {
-    return null;
-  }
-  
-  try {
-    return JSON.parse(contextHeader) as ExternalApiContext;
-  } catch {
-    return null;
-  }
 }
 
 /**
@@ -335,111 +340,4 @@ export function parseFilterParams(
   return filters;
 }
 
-/**
- * Context for internal tool API calls
- */
-export interface InternalToolContext {
-  organizationId: string;
-  userId?: string;
-  source: string;
-  testMode: boolean;
-}
-
-/**
- * Check if request is from internal AI tool executor
- */
-function isInternalToolRequest(req: NextRequest): boolean {
-  const source = req.headers.get("x-tool-context-source");
-  const orgId = req.headers.get("x-tool-context-org");
-  return !!source && !!orgId;
-}
-
-/**
- * Extract internal tool context from headers
- */
-function extractInternalToolContext(req: NextRequest): InternalToolContext | null {
-  const orgId = req.headers.get("x-tool-context-org");
-  const source = req.headers.get("x-tool-context-source");
-  
-  if (!orgId || !source) {
-    return null;
-  }
-
-  return {
-    organizationId: orgId,
-    userId: req.headers.get("x-tool-context-user") || undefined,
-    source,
-    testMode: req.headers.get("x-tool-context-test-mode") === "true",
-  };
-}
-
-/**
- * Wrapper for API routes that support both external API keys and internal tool calls
- * 
- * This middleware allows routes to be called:
- * 1. Externally via API key authentication
- * 2. Internally via AI tool executor with X-Tool-Context-* headers
- * 
- * @example
- * ```typescript
- * export const GET = withInternalToolApi(
- *   withExternalApi(handler, { requiredScopes: [API_SCOPES.CALENDAR_READ] })
- * );
- * ```
- */
-export function withInternalToolApi(
-  externalHandler: (req: NextRequest) => Promise<NextResponse>
-) {
-  return async (req: NextRequest): Promise<NextResponse> => {
-    // Check if this is an internal tool request
-    if (isInternalToolRequest(req)) {
-      const toolContext = extractInternalToolContext(req);
-      
-      if (!toolContext) {
-        return createApiErrorResponse(
-          "Invalid internal tool context headers",
-          400
-        );
-      }
-
-      // For internal tool requests, create a synthetic external API context
-      // This allows the handler to work with the same interface
-      const syntheticContext: ExternalApiContext = {
-        apiKeyId: "internal-tool",
-        organizationId: toolContext.organizationId,
-        apiKeyName: `AI Tool (${toolContext.source})`,
-        scopes: ["*"], // Internal tools have all scopes
-        createdById: toolContext.userId || "system",
-      };
-
-      // Inject the synthetic context into the request for the handler
-      // We do this by modifying the request object's headers to include the context
-      // Then call the original handler logic directly
-      
-      // Actually, we need to execute the inner handler manually with the context
-      // Let's create a new approach - extract the handler and call it with context
-      
-      // For now, let's bypass the external auth by calling the handler indirectly
-      // This requires a different approach - let's use a request extension pattern
-      
-      // Store context in a header that the handler can check
-      const modifiedHeaders = new Headers(req.headers);
-      modifiedHeaders.set("x-internal-api-context", JSON.stringify(syntheticContext));
-      
-      // Create a new request with modified headers
-      const modifiedReq = new NextRequest(req.url, {
-        method: req.method,
-        headers: modifiedHeaders,
-        body: req.body,
-        // @ts-expect-error - duplex is required for streaming bodies in newer Node versions
-        duplex: "half",
-      });
-
-      return externalHandler(modifiedReq);
-    }
-
-    // For external requests, use the standard API key authentication
-    return externalHandler(req);
-  };
-}
 

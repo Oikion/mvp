@@ -17,6 +17,7 @@
 import { randomBytes } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import { encrypt, decrypt } from "@/lib/encryption";
+import { cacheGet, cacheSet } from "@/lib/redis";
 
 // ─── In-process cache ────────────────────────────────────────────────────────
 // Caches decoded DEK Buffers per orgId for the lifetime of the serverless instance.
@@ -59,11 +60,21 @@ function setCache(orgId: string, dek: Buffer): void {
 export async function getOrgDek(orgId: string): Promise<Buffer> {
   if (!orgId) throw new Error("[key-management] getOrgDek: orgId is required");
 
-  // 1. Check in-process cache
-  const cached = getCached(orgId);
-  if (cached) return cached;
+  // L1: Check in-process cache (survives within isolate lifetime)
+  const l1Cached = getCached(orgId);
+  if (l1Cached) return l1Cached;
 
-  // 2. Look up in DB
+  // L2: Check Redis cache (survives cold starts, stores ENCRYPTED DEK only)
+  const redisKey = `oik:dek:${orgId}`;
+  const redisCached = await cacheGet<string>(redisKey);
+  if (redisCached) {
+    const dekHex = decrypt(redisCached);
+    const dek = Buffer.from(dekHex, "hex");
+    setCache(orgId, dek); // Populate L1
+    return dek;
+  }
+
+  // L3: Look up in DB
   const row = await prismadb.orgEncryptionKey.findUnique({
     where: { organizationId: orgId },
   });
@@ -72,11 +83,12 @@ export async function getOrgDek(orgId: string): Promise<Buffer> {
     // Decrypt the stored DEK using the master key
     const dekHex = decrypt(row.encryptedDek);
     const dek = Buffer.from(dekHex, "hex");
-    setCache(orgId, dek);
+    setCache(orgId, dek); // Populate L1
+    await cacheSet(redisKey, row.encryptedDek, 600); // Populate L2 (10 min TTL, encrypted form only)
     return dek;
   }
 
-  // 3. First time for this org — generate and store a new DEK
+  // First time for this org — generate and store a new DEK
   const dek = randomBytes(32);
   const encryptedDek = encrypt(dek.toString("hex"));
 
@@ -89,6 +101,7 @@ export async function getOrgDek(orgId: string): Promise<Buffer> {
     },
   });
 
-  setCache(orgId, dek);
+  setCache(orgId, dek); // Populate L1
+  await cacheSet(redisKey, encryptedDek, 600); // Populate L2
   return dek;
 }

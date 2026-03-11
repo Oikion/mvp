@@ -61,7 +61,7 @@ export default async function PlatformAdminNetworkPage() {
             <Globe className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Oikion Network</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Polis</h1>
             <p className="text-muted-foreground">Cross-agency matchmaking network overview</p>
           </div>
         </div>

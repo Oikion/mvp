@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { OrgRole } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
+import { cacheGet, cacheSet, cacheIncr } from "@/lib/redis";
 import {
   UserPermissionContext,
   PermissionConfig,
@@ -37,6 +38,16 @@ export async function getUserPermissionContext(): Promise<UserPermissionContext 
       return null;
     }
 
+    // Check Redis cache (avoids 3+ DB queries per protected page load)
+    const cacheKey = `oik:perm:${orgId}:${currentUser.id}`;
+    const [cached, currentVersion] = await Promise.all([
+      cacheGet<UserPermissionContext & { _v: number }>(cacheKey),
+      cacheGet<number>(`oik:perm:ver:${orgId}`),
+    ]);
+    if (cached && cached._v === (currentVersion ?? 0)) {
+      return cached;
+    }
+
     const role = clerkRoleToOrgRole(orgRole);
     const clerkRoleKey = orgRoleToClerkRole(role);
 
@@ -52,7 +63,7 @@ export async function getUserPermissionContext(): Promise<UserPermissionContext 
       customPermissions
     );
 
-    return {
+    const context: UserPermissionContext = {
       userId: currentUser.id,
       organizationId: orgId,
       role,
@@ -64,6 +75,12 @@ export async function getUserPermissionContext(): Promise<UserPermissionContext 
       isMember: role === OrgRole.MEMBER,
       isViewer: role === OrgRole.VIEWER,
     };
+
+    // Cache with version for invalidation (2-minute TTL)
+    const version = currentVersion ?? 0;
+    await cacheSet(cacheKey, { ...context, _v: version }, 120);
+
+    return context;
   } catch (error) {
     console.error("[getUserPermissionContext]", error);
     return null;
@@ -323,6 +340,9 @@ export async function updateRolePermissions(
       permissions: permissions as object,
     },
   });
+
+  // Bump permission version to invalidate all cached contexts for this org
+  await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);
 }
 
 /**
@@ -353,6 +373,8 @@ export async function updateRoleModuleAccess(
       hasAccess,
     },
   });
+
+  await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);
 }
 
 /**
@@ -383,6 +405,8 @@ export async function updateUserModuleAccess(
       hasAccess,
     },
   });
+
+  await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);
 }
 
 /**

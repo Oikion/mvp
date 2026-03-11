@@ -1,19 +1,14 @@
 import {
-  Body,
   Button,
-  Container,
-  Head,
+  Column,
   Heading,
   Hr,
-  Html,
-  Preview,
-  Section,
-  Tailwind,
-  Text,
   Row,
-  Column,
+  Section,
+  Text,
 } from "@react-email/components";
 import * as React from "react";
+import { BaseLayout, EmailBadge, resolveColors } from "../components/BaseLayout";
 
 interface ReferralApplicationEmailProps {
   applicantName: string;
@@ -22,6 +17,7 @@ interface ReferralApplicationEmailProps {
   userId: string;
   approveUrl: string;
   denyUrl: string;
+  userTheme?: string;
 }
 
 export const ReferralApplicationEmail = ({
@@ -31,122 +27,102 @@ export const ReferralApplicationEmail = ({
   userId = "user-123",
   approveUrl = "https://oikion.com/api/referral/approve/token",
   denyUrl = "https://oikion.com/api/referral/deny/token",
+  userTheme,
 }: ReferralApplicationEmailProps) => {
+  const colors = resolveColors(userTheme);
   const previewText = `New Referral Programme Application from ${applicantName}`;
 
   return (
-    <Html>
-      <Head>
-        <meta name="color-scheme" content="light" />
-        <meta name="supported-color-schemes" content="light" />
-      </Head>
-      <Preview>{previewText}</Preview>
-      <Tailwind>
-        <Body className="bg-zinc-50 my-auto mx-auto font-sans">
-          <Container className="bg-white border border-zinc-200 rounded-xl my-10 mx-auto p-0 max-w-[520px] overflow-hidden">
-            {/* Header */}
-            <Section className="bg-zinc-900 px-8 py-10 text-center">
-              <Text className="text-white text-2xl font-bold m-0 tracking-tight">
-                Oikion
-              </Text>
-              <Text className="text-zinc-400 text-sm m-0 mt-1">
-                Real Estate, Reimagined
-              </Text>
-            </Section>
+    <BaseLayout
+      previewText={previewText}
+      footerText="This is an automated message from Oikion Platform."
+      emailTheme={userTheme}
+    >
+      <EmailBadge
+        icon=""
+        text="New Application"
+        colorClass="bg-blue-50 text-blue-700 border-blue-200"
+      />
 
-            {/* Content */}
-            <Section className="px-8 py-10">
-              {/* Badge */}
-              <Section className="mb-6 text-center">
-                <span className="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200">
-                  New Application
-                </span>
-              </Section>
+      <Heading
+        style={{ color: colors.textPrimary }}
+        className="text-2xl font-semibold text-center p-0 m-0 mb-3"
+      >
+        Referral Programme Application
+      </Heading>
 
-              <Heading className="text-zinc-900 text-2xl font-semibold text-center p-0 m-0 mb-3">
-                Referral Programme Application
-              </Heading>
+      <Text style={{ color: colors.textSecondary }} className="text-base text-center m-0 mb-6 leading-relaxed">
+        A new user has applied to join the referral programme.
+      </Text>
 
-              <Text className="text-zinc-500 text-base text-center m-0 mb-6 leading-relaxed">
-                A new user has applied to join the referral programme.
-              </Text>
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
 
-              <Hr className="border-zinc-200 my-6" />
+      {/* Applicant Details */}
+      <Section
+        style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}
+        className="rounded-lg p-5 mb-6"
+      >
+        <Text style={{ color: colors.textPrimary }} className="text-sm font-semibold m-0 mb-4">
+          Applicant Details
+        </Text>
+        <Text style={{ color: colors.textSecondary }} className="text-sm m-0 mb-2">
+          <strong>Name:</strong> {applicantName}
+        </Text>
+        <Text style={{ color: colors.textSecondary }} className="text-sm m-0 mb-2">
+          <strong>Email:</strong> {applicantEmail}
+        </Text>
+        <Text style={{ color: colors.textSecondary }} className="text-sm m-0 mb-2">
+          <strong>User ID:</strong> {userId}
+        </Text>
+      </Section>
 
-              {/* Applicant Details */}
-              <Section className="bg-zinc-50 rounded-lg p-5 mb-6">
-                <Text className="text-zinc-900 text-sm font-semibold m-0 mb-4">
-                  Applicant Details
-                </Text>
-                <Text className="text-zinc-700 text-sm m-0 mb-2">
-                  <strong>Name:</strong> {applicantName}
-                </Text>
-                <Text className="text-zinc-700 text-sm m-0 mb-2">
-                  <strong>Email:</strong> {applicantEmail}
-                </Text>
-                <Text className="text-zinc-700 text-sm m-0 mb-2">
-                  <strong>User ID:</strong> {userId}
-                </Text>
-              </Section>
+      {/* Message */}
+      <Section className="mb-6">
+        <Text style={{ color: colors.textPrimary }} className="text-sm font-semibold m-0 mb-2">
+          Why they want to join:
+        </Text>
+        <Section
+          style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}
+          className="rounded-lg p-4 border-l-4"
+        >
+          <Text style={{ color: colors.textSecondary }} className="text-sm m-0 italic leading-relaxed">
+            &ldquo;{message}&rdquo;
+          </Text>
+        </Section>
+      </Section>
 
-              {/* Message */}
-              <Section className="mb-6">
-                <Text className="text-zinc-900 text-sm font-semibold m-0 mb-2">
-                  Why they want to join:
-                </Text>
-                <Section className="bg-zinc-50 rounded-lg p-4 border-l-4 border-zinc-300">
-                  <Text className="text-zinc-700 text-sm m-0 italic leading-relaxed">
-                    "{message}"
-                  </Text>
-                </Section>
-              </Section>
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
 
-              <Hr className="border-zinc-200 my-6" />
+      {/* Action Buttons */}
+      <Text style={{ color: colors.textSecondary }} className="text-sm text-center m-0 mb-4">
+        Take action on this application:
+      </Text>
 
-              {/* Action Buttons */}
-              <Text className="text-zinc-600 text-sm text-center m-0 mb-4">
-                Take action on this application:
-              </Text>
+      <Section className="text-center">
+        <Row>
+          <Column align="center" className="px-2">
+            <Button
+              className="bg-emerald-600 rounded-lg text-white py-3 px-6 text-sm font-semibold no-underline text-center inline-block"
+              href={approveUrl}
+            >
+              Approve
+            </Button>
+          </Column>
+          <Column align="center" className="px-2">
+            <Button
+              className="bg-red-600 rounded-lg text-white py-3 px-6 text-sm font-semibold no-underline text-center inline-block"
+              href={denyUrl}
+            >
+              Deny
+            </Button>
+          </Column>
+        </Row>
+      </Section>
 
-              <Section className="text-center">
-                <Row>
-                  <Column align="center" className="px-2">
-                    <Button
-                      className="bg-emerald-600 rounded-lg text-white py-3 px-6 text-sm font-semibold no-underline text-center inline-block"
-                      href={approveUrl}
-                    >
-                      Approve
-                    </Button>
-                  </Column>
-                  <Column align="center" className="px-2">
-                    <Button
-                      className="bg-red-600 rounded-lg text-white py-3 px-6 text-sm font-semibold no-underline text-center inline-block"
-                      href={denyUrl}
-                    >
-                      Deny
-                    </Button>
-                  </Column>
-                </Row>
-              </Section>
-
-              <Text className="text-zinc-400 text-xs text-center m-0 mt-4">
-                These links will expire in 7 days.
-              </Text>
-            </Section>
-
-            {/* Footer */}
-            <Section className="bg-zinc-50 border-t border-zinc-200 px-8 py-6">
-              <Text className="text-zinc-400 text-xs text-center m-0 mb-2">
-                This is an automated message from Oikion Platform.
-              </Text>
-              <Text className="text-zinc-400 text-xs text-center m-0">
-                © {new Date().getFullYear()} Oikion. All rights reserved.
-              </Text>
-            </Section>
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+      <Text style={{ color: colors.textMuted }} className="text-xs text-center m-0 mt-4">
+        These links will expire in 7 days.
+      </Text>
+    </BaseLayout>
   );
 };
 

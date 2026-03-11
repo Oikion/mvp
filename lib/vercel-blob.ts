@@ -1,7 +1,7 @@
 import { put, del, head, list } from "@vercel/blob";
 
 /** Supported blob storage folder types */
-export type BlobFolder = "documents" | "avatars" | "templates" | "attachments";
+export type BlobFolder = "documents" | "avatars" | "templates" | "attachments" | "property-images";
 
 function getBlobToken() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -226,7 +226,7 @@ export async function listOrgBlobs(
  */
 export async function getOrgStorageUsage(organizationId: string): Promise<number> {
   try {
-    const folders: BlobFolder[] = ["documents", "avatars", "templates", "attachments"];
+    const folders: BlobFolder[] = ["documents", "avatars", "templates", "attachments", "property-images"];
     let totalSize = 0;
 
     for (const folder of folders) {

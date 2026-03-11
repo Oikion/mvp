@@ -141,9 +141,9 @@ export const POST = withExternalApi(
     // Generate slug if not provided
     const finalSlug = slug || generateSlug(title);
 
-    // Check if slug is unique
-    const existingPost = await prismadb.blogPost.findUnique({
-      where: { slug: finalSlug },
+    // Check if slug is unique within the organization
+    const existingPost = await prismadb.blogPost.findFirst({
+      where: { slug: finalSlug, organizationId: context.organizationId },
     });
 
     if (existingPost) {

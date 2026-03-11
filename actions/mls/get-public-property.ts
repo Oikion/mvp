@@ -3,14 +3,14 @@
 import { prismadb } from "@/lib/prisma";
 
 /**
- * Get a property that is publicly visible (portal_visibility = PUBLIC)
+ * Get a property that is publicly visible (visibility = PUBLIC)
  * This does not require authentication
  */
 export async function getPublicProperty(propertyId: string) {
   const property = await prismadb.properties.findFirst({
     where: {
       friendlyId: propertyId,
-      portal_visibility: "PUBLIC",
+      visibility: "PUBLIC",
       property_status: "ACTIVE",
     },
     include: {
@@ -84,7 +84,7 @@ export async function getPublicProperties(options?: {
   } = options || {};
 
   const where: any = {
-    portal_visibility: "PUBLIC",
+    visibility: "PUBLIC",
     property_status: "ACTIVE",
   };
 

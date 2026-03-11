@@ -89,7 +89,8 @@ import {
   getDataExportStatus,
 } from "@/actions/data-export/request-data-export";
 import {
-  requestDataDeletion,
+  initiateDeletionRequest,
+  verifyDeletionOtp,
   getDataDeletionStatus,
   cancelDataDeletion,
 } from "@/actions/data-deletion/request-data-deletion";
@@ -791,7 +792,7 @@ function DataDeletionSection() {
     status: string;
     reason: string | null;
     reviewNote: string | null;
-    gracePeriodEndsAt: Date;
+    gracePeriodEndsAt: Date | null;
     createdAt: Date;
   } | null>(null);
   const [loadingDeletion, setLoadingDeletion] = useState(true);
@@ -799,6 +800,10 @@ function DataDeletionSection() {
   const [understood, setUnderstood] = useState(false);
   const [isSubmittingDeletion, setIsSubmittingDeletion] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [step, setStep] = useState<"idle" | "otp">("idle");
+  const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
+  const [otpValue, setOtpValue] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const loadDeletionStatus = useCallback(async () => {
     try {
@@ -817,21 +822,22 @@ function DataDeletionSection() {
     loadDeletionStatus();
   }, [loadDeletionStatus]);
 
-  const handleRequestDeletion = async () => {
+  const handleInitiate = async () => {
     setIsSubmittingDeletion(true);
     try {
-      const result = await requestDataDeletion(deletionReason || undefined);
-      if (result.success) {
-        toast.success(t("deletion.submit"), {
-          description: t("deletion.pendingDescription"),
-          isTranslationKey: false,
-        });
-        setDeletionReason("");
-        setUnderstood(false);
-        await loadDeletionStatus();
-      } else {
+      const result = await initiateDeletionRequest(deletionReason || undefined);
+      if (!result.success) {
         toast.error(tCommon("toast.error"), {
           description: result.error,
+          isTranslationKey: false,
+        });
+        return;
+      }
+      if (result.data) {
+        setPendingRequestId(result.data.requestId);
+        setStep("otp");
+        toast.success("Check your email", {
+          description: "Enter the 8-digit code we sent you.",
           isTranslationKey: false,
         });
       }
@@ -839,6 +845,35 @@ function DataDeletionSection() {
       toast.error(tCommon("toast.error"));
     } finally {
       setIsSubmittingDeletion(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!pendingRequestId || otpValue.length !== 8) return;
+    setIsVerifying(true);
+    try {
+      const result = await verifyDeletionOtp(pendingRequestId, otpValue);
+      if (!result.success) {
+        toast.error("Invalid code", {
+          description: result.error,
+          isTranslationKey: false,
+        });
+        return;
+      }
+      toast.success("Deletion request confirmed", {
+        description: "Your data will be deleted in 7 days. You can cancel until then.",
+        isTranslationKey: false,
+      });
+      setStep("idle");
+      setOtpValue("");
+      setPendingRequestId(null);
+      setDeletionReason("");
+      setUnderstood(false);
+      await loadDeletionStatus();
+    } catch {
+      toast.error(tCommon("toast.error"));
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -866,7 +901,7 @@ function DataDeletionSection() {
     }
   };
 
-  const daysRemaining = deletionRequest
+  const daysRemaining = deletionRequest?.gracePeriodEndsAt
     ? Math.max(
         0,
         Math.ceil(
@@ -874,10 +909,20 @@ function DataDeletionSection() {
             (1000 * 60 * 60 * 24)
         )
       )
-    : 0;
+    : null;
 
   const getDeletionStatusBadge = (status: string) => {
     switch (status) {
+      case "PENDING_VERIFICATION":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-blue-500/10 border-blue-500/30 text-blue-700"
+          >
+            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            Awaiting Confirmation
+          </Badge>
+        );
       case "PENDING":
         return (
           <Badge
@@ -943,7 +988,7 @@ function DataDeletionSection() {
             <Loader2 className="h-4 w-4 animate-spin" />
           </div>
         ) : deletionRequest &&
-          ["PENDING", "APPROVED"].includes(deletionRequest.status) ? (
+          ["PENDING_VERIFICATION", "PENDING", "APPROVED"].includes(deletionRequest.status) ? (
           <div className="space-y-4">
             <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
               <div className="flex items-start gap-3">
@@ -953,25 +998,31 @@ function DataDeletionSection() {
                   <p className="text-sm text-muted-foreground">
                     {deletionRequest.status === "PENDING"
                       ? t("deletion.pendingDescription")
-                      : t("deletion.approvedDescription")}
+                      : deletionRequest.status === "APPROVED"
+                      ? t("deletion.approvedDescription")
+                      : "Check your email for the confirmation code."}
                   </p>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">
-                      {t("deletion.gracePeriodEnds")}:{" "}
-                      {new Date(
-                        deletionRequest.gracePeriodEndsAt
-                      ).toLocaleDateString()}
-                    </span>
-                    <span className="text-muted-foreground">
-                      ({daysRemaining} {t("deletion.daysRemaining")})
-                    </span>
-                  </div>
+                  {deletionRequest.gracePeriodEndsAt && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">
+                        {t("deletion.gracePeriodEnds")}:{" "}
+                        {new Date(
+                          deletionRequest.gracePeriodEndsAt
+                        ).toLocaleDateString()}
+                      </span>
+                      {daysRemaining !== null && (
+                        <span className="text-muted-foreground">
+                          ({daysRemaining} {t("deletion.daysRemaining")})
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {deletionRequest.status === "PENDING" && (
+            {["PENDING_VERIFICATION", "PENDING"].includes(deletionRequest.status) && (
               <Button
                 variant="outline"
                 onClick={handleCancelDeletion}
@@ -1004,79 +1055,134 @@ function DataDeletionSection() {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between p-4 rounded-lg border border-destructive/30 bg-destructive/5">
-            <div className="space-y-1">
-              <p className="font-medium">{t("deletion.title")}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("deletion.description")}
-              </p>
-            </div>
+          <div className="space-y-4">
+            {/* === STEP: idle — trigger dialog === */}
+            {step === "idle" && (
+              <div className="flex items-center justify-between p-4 rounded-lg border border-destructive/30 bg-destructive/5">
+                <div className="space-y-1">
+                  <p className="font-medium">{t("deletion.title")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("deletion.description")}
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {t("deletion.requestDeletion")}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {t("deletion.confirmTitle")}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t("deletion.confirmDescription")}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="deletion-reason">
+                          {t("deletion.reasonLabel")}
+                        </Label>
+                        <Textarea
+                          id="deletion-reason"
+                          placeholder={t("deletion.reasonPlaceholder")}
+                          value={deletionReason}
+                          onChange={(e) => setDeletionReason(e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox
+                          id="understand"
+                          checked={understood}
+                          onCheckedChange={(checked) =>
+                            setUnderstood(checked === true)
+                          }
+                        />
+                        <Label
+                          htmlFor="understand"
+                          className="text-sm leading-5 cursor-pointer"
+                        >
+                          {t("deletion.understand")}
+                        </Label>
+                      </div>
+                    </div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>
+                        {tCommon("buttons.cancel")}
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleInitiate}
+                        disabled={!understood || isSubmittingDeletion}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isSubmittingDeletion && (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        )}
+                        Send Confirmation Code
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {t("deletion.requestDeletion")}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    {t("deletion.confirmTitle")}
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t("deletion.confirmDescription")}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="deletion-reason">
-                      {t("deletion.reasonLabel")}
-                    </Label>
-                    <Textarea
-                      id="deletion-reason"
-                      placeholder={t("deletion.reasonPlaceholder")}
-                      value={deletionReason}
-                      onChange={(e) => setDeletionReason(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="flex items-start space-x-2">
-                    <Checkbox
-                      id="understand"
-                      checked={understood}
-                      onCheckedChange={(checked) =>
-                        setUnderstood(checked === true)
-                      }
-                    />
-                    <Label
-                      htmlFor="understand"
-                      className="text-sm leading-5 cursor-pointer"
+            {/* === STEP: OTP entry === */}
+            {step === "otp" && (
+              <div className="space-y-4 p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                  <div className="space-y-2 flex-1">
+                    <p className="font-medium">Enter your confirmation code</p>
+                    <p className="text-sm text-muted-foreground">
+                      We sent an 8-digit code to your email. Enter it below to
+                      confirm your deletion request. The code expires in 15
+                      minutes.
+                    </p>
+                    <div className="flex gap-2 pt-2">
+                      <Input
+                        placeholder="12345678"
+                        value={otpValue}
+                        onChange={(e) =>
+                          setOtpValue(
+                            e.target.value.replace(/\D/g, "").slice(0, 8)
+                          )
+                        }
+                        maxLength={8}
+                        className="font-mono text-lg tracking-widest max-w-[160px]"
+                      />
+                      <Button
+                        onClick={handleVerifyOtp}
+                        disabled={otpValue.length !== 8 || isVerifying}
+                        variant="destructive"
+                      >
+                        {isVerifying ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4 mr-2" />
+                        )}
+                        Confirm Deletion
+                      </Button>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-1"
+                      onClick={() => {
+                        setStep("idle");
+                        setOtpValue("");
+                        setPendingRequestId(null);
+                      }}
                     >
-                      {t("deletion.understand")}
-                    </Label>
+                      Cancel
+                    </Button>
                   </div>
                 </div>
-
-                <AlertDialogFooter>
-                  <AlertDialogCancel>
-                    {tCommon("buttons.cancel")}
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleRequestDeletion}
-                    disabled={!understood || isSubmittingDeletion}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    {isSubmittingDeletion && (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    )}
-                    {t("deletion.submit")}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

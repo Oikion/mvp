@@ -51,6 +51,7 @@ import onboardingEn from "@/locales/en/onboarding.json";
 import platformAdminEn from "@/locales/en/platformAdmin.json";
 import shareEn from "@/locales/en/share.json";
 import mandatesEn from "@/locales/en/mandates.json";
+import networkEn from "@/locales/en/network.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -88,6 +89,7 @@ import onboardingEl from "@/locales/el/onboarding.json";
 import platformAdminEl from "@/locales/el/platformAdmin.json";
 import shareEl from "@/locales/el/share.json";
 import mandatesEl from "@/locales/el/mandates.json";
+import networkEl from "@/locales/el/network.json";
 
 const inter = Inter({ 
   subsets: ["latin"], 
@@ -150,6 +152,8 @@ function getLocales(locale: string) {
     messages.platformAdmin = platformAdminEl;
     messages.share = shareEl;
     messages.mandates = mandatesEl;
+    messages.network = networkEl;
+    messages.networkSettings = networkEl.matchmaking;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -195,6 +199,8 @@ function getLocales(locale: string) {
     messages.platformAdmin = platformAdminEn;
     messages.share = shareEn;
     messages.mandates = mandatesEn;
+    messages.network = networkEn;
+    messages.networkSettings = networkEn.matchmaking;
   }
 
   if (Object.keys(messages).length === 0) {

@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { canPerformAction } from "@/lib/permissions/action-service";
 
 export async function DELETE(req: Request) {
   try {
     const currentUser = await getCurrentUser();
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await req.json();
     const { id } = body;
 
@@ -13,14 +17,15 @@ export async function DELETE(req: Request) {
       return new NextResponse("Missing task id", { status: 400 });
     }
 
-    const currentTask = await prismadb.crm_Accounts_Tasks.findUnique({
+    const currentTask = await prismadb.crm_Accounts_Tasks.findFirst({
       where: {
         id,
+        organizationId,
       },
     });
 
     if (!currentTask) {
-      return NextResponse.json({ Message: "NO currentTask" }, { status: 200 });
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
     // Permission check: Users need task:delete permission with ownership check

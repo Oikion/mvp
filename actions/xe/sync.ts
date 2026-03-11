@@ -90,7 +90,7 @@ export async function syncPropertiesToXe(
       whereClause.id = { in: input.propertyIds };
     } else {
       // Only sync PUBLIC visibility properties if no specific IDs provided
-      whereClause.portal_visibility = "PUBLIC";
+      whereClause.visibility = "PUBLIC";
     }
 
     const properties = await prismadb.properties.findMany({
@@ -244,7 +244,7 @@ export async function syncPropertiesToXe(
           data: {
             xeRefId: item.xeItem["@refId"],
             xePublished: true,
-            portal_visibility: "PUBLIC",
+            visibility: "PUBLIC",
           },
         });
       }

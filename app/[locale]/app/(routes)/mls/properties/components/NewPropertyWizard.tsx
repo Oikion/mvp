@@ -33,6 +33,8 @@ import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { AutosaveIndicator, AutosaveStatus } from "@/components/form/autosave-indicator";
 import { AddressFieldGroup } from "@/components/form/AddressFieldGroup";
 import useDebounce from "@/hooks/useDebounce";
+import { PropertyImageUploader } from "@/components/property-images/PropertyImageUploader";
+import { linkImagesToProperty } from "@/actions/mls/property-images/link-images-to-property";
 
 type Props = {
   users: any[];
@@ -107,7 +109,7 @@ const formSchema = z.object({
   
   // Step 9: Media & Δημοσίευση
   virtual_tour_url: z.string().url().optional().or(z.literal("")),
-  portal_visibility: z.enum(["PRIVATE", "SELECTED", "PUBLIC"]).optional(),
+  visibility: z.enum(["PERSONAL", "SECURE", "PUBLIC"]).optional(),
   assigned_to: z.string().optional(),
 });
 
@@ -124,6 +126,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>("idle");
   const [lastSavedData, setLastSavedData] = useState<Partial<FormValues>>({});
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [uploadSessionId] = useState(() => crypto.randomUUID());
 
   const STEPS = [
     { id: 1, title: t("steps.basics"), description: t("stepDescriptions.basics") },
@@ -226,7 +229,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
       accepts_pets: false,
       min_lease_months: undefined,
       virtual_tour_url: "",
-      portal_visibility: "PUBLIC",
+      visibility: "PUBLIC",
       assigned_to: "",
     },
   });
@@ -290,7 +293,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               accepts_pets: draft.accepts_pets || false,
               min_lease_months: draft.min_lease_months || undefined,
               virtual_tour_url: draft.virtual_tour_url || "",
-              portal_visibility: draft.portal_visibility || "PUBLIC",
+              visibility: draft.visibility || "PUBLIC",
               assigned_to: draft.assigned_to || "",
             });
             setDraftId(initialDraftId);
@@ -366,7 +369,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     6: ["building_permit_no", "land_registry_kaek", "land_registry_office", "building_block_ot", "legalization_status", "monthly_common_charges"],
     7: ["amenities", "orientation", "furnished", "accessibility"],
     8: ["price", "price_type", "available_from", "accepts_pets"],
-    9: ["virtual_tour_url", "portal_visibility", "assigned_to"],
+    9: ["virtual_tour_url", "visibility", "assigned_to"],
   };
 
   const validateStep = async (step: number): Promise<boolean> => {
@@ -405,11 +408,17 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      await axios.post("/api/mls/properties", {
+      const response = await axios.post("/api/mls/properties", {
         ...data,
         draft_status: false,
         id: draftId, // Update existing draft if exists
       });
+
+      // Link uploaded images to the newly created property
+      const newPropertyId = response.data?.newProperty?.id;
+      if (newPropertyId) {
+        await linkImagesToProperty(newPropertyId, uploadSessionId);
+      }
 
       toast.success(t("success.created"), { isTranslationKey: false });
       
@@ -1307,7 +1316,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
             />
             <FormField
               control={form.control}
-              name="portal_visibility"
+              name="visibility"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("fields.portalVisibility")}</FormLabel>
@@ -1318,9 +1327,9 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="PRIVATE">{t("portalVisibility.PRIVATE")}</SelectItem>
-                      <SelectItem value="SELECTED">{t("portalVisibility.SELECTED")}</SelectItem>
-                      <SelectItem value="PUBLIC">{t("portalVisibility.PUBLIC")}</SelectItem>
+                      <SelectItem value="PERSONAL">{t("visibility.PERSONAL")}</SelectItem>
+                      <SelectItem value="SECURE">{t("visibility.SECURE")}</SelectItem>
+                      <SelectItem value="PUBLIC">{t("visibility.PUBLIC")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -1351,9 +1360,10 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                 </FormItem>
               )}
             />
-            <div className="text-sm text-muted-foreground">
-              <p>{t("fields.photos")}: {t("fields.photosNote")}</p>
-            </div>
+            <PropertyImageUploader
+              uploadSessionId={uploadSessionId}
+              disabled={isLoading}
+            />
           </div>
         );
 

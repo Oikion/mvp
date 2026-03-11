@@ -27,6 +27,7 @@ interface PropertyCardProps {
     address_city?: string;
     assigned_to_user?: { name: string } | null;
     linkedDocuments?: Array<{ document_file_url?: string }>;
+    primaryImage?: { url: string } | null;
     updatedAt?: string | Date;
   };
   /** Optional index for priority loading of images */
@@ -44,11 +45,11 @@ export const PropertyCard = memo(function PropertyCard({ data, index = 0 }: Prop
 
   const status = statuses.find((s) => s.value === data.property_status);
   const StatusIcon = status?.icon;
-  const imageUrl = data.linkedDocuments?.[0]?.document_file_url;
+  const imageUrl = data.primaryImage?.url ?? data.linkedDocuments?.[0]?.document_file_url;
 
   // Prefetch property data on hover for instant navigation
   const handleMouseEnter = () => {
-    prefetchProperty(data.id);
+    prefetchProperty(data.friendlyId);
     prefetchPropertyLinked(data.id);
   };
 

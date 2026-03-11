@@ -8,7 +8,7 @@ export type SupportedLanguage = "en" | "el" | "cz" | "de" | "uk";
 /**
  * Supported themes for the application
  */
-export type SupportedTheme = "light" | "dark" | "pearl-sand" | "twilight-lavender" | "system";
+export type SupportedTheme = "estate" | "estate-dark" | "light" | "dark" | "pearl-sand" | "twilight-lavender" | "system";
 
 /**
  * User type with onboarding status

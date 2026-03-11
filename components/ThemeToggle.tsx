@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Moon, Sun, Palette, Home } from "lucide-react";
 import { useTheme } from "next-themes";
+import { updateUserTheme } from "@/actions/user/update-theme";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,11 @@ import {
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
+
+  const handleThemeChange = (value: string) => {
+    setTheme(value);
+    updateUserTheme(value).catch(console.error);
+  };
 
   React.useEffect(() => {
     setMounted(true);
@@ -64,7 +70,7 @@ export function ThemeToggle() {
           return (
             <DropdownMenuItem
               key={themeOption.value}
-              onClick={() => setTheme(themeOption.value)}
+              onClick={() => handleThemeChange(themeOption.value)}
               className="flex items-center gap-2"
             >
               <ThemeIcon className="h-4 w-4" />
@@ -76,7 +82,7 @@ export function ThemeToggle() {
           );
         })}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => handleThemeChange("system")}>
           <Sun className="h-4 w-4 mr-2" />
           <span>System</span>
           {theme === "system" && <span className="ml-auto text-xs">✓</span>}

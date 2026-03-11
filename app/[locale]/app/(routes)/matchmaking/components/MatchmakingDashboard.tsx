@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import {
   Users,
   Building2,
@@ -15,6 +16,7 @@ import {
   ArrowRight,
   BarChart3,
   FileText,
+  Globe,
 } from "lucide-react";
 import type { MatchAnalytics } from "@/lib/matchmaking";
 import type { MandateMatchAnalytics } from "@/actions/matchmaking/get-mandate-matches";
@@ -25,6 +27,10 @@ import { UnmatchedClientsList } from "./UnmatchedClientsList";
 import { HotPropertiesList } from "./HotPropertiesList";
 import { MandateMatchesTab } from "./MandateMatchesTab";
 import { NetworkMatchesSection } from "./NetworkMatchesSection";
+import { PolisSettingsSheet } from "@/components/matchmaking/PolisSettingsSheet";
+import type { OrgNetworkSettings } from "@prisma/client";
+
+type Partner = Awaited<ReturnType<typeof import("@/actions/network/manage-network-settings").getNetworkPartners>>[number];
 
 interface Props {
   locale: string;
@@ -32,11 +38,16 @@ interface Props {
   analytics: MatchAnalytics;
   mandateAnalytics?: MandateMatchAnalytics;
   networkMatches?: CrossOrgMatchSummary;
+  networkSettings?: OrgNetworkSettings | null;
+  networkPartners?: Partner[];
 }
 
-export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, networkMatches }: Props) {
+type Mode = "org" | "polis";
+
+export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, networkMatches, networkSettings, networkPartners }: Props) {
   const t = useTranslations("matchmaking");
   const [activeTab, setActiveTab] = useState("overview");
+  const [mode, setMode] = useState<Mode>("org");
 
   const statsCards = [
     {
@@ -75,6 +86,52 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
 
   return (
     <div className="space-y-6">
+      {/* Mode Toggle + Polis Settings */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="inline-flex rounded-lg border bg-muted p-1 gap-1">
+          <Button
+            variant={mode === "org" ? "default" : "ghost"}
+            size="sm"
+            className="gap-2"
+            onClick={() => setMode("org")}
+          >
+            <Building2 className="h-4 w-4" />
+            {t("mode.orgOnly")}
+          </Button>
+          <Button
+            variant={mode === "polis" ? "default" : "ghost"}
+            size="sm"
+            className="gap-2"
+            onClick={() => setMode("polis")}
+          >
+            <Globe className="h-4 w-4" />
+            {t("mode.polis")}
+          </Button>
+        </div>
+        {mode === "polis" && (
+          <PolisSettingsSheet
+            initialSettings={networkSettings ?? null}
+            initialPartners={networkPartners ?? []}
+          />
+        )}
+      </div>
+
+      {/* Oikion Polis View */}
+      {mode === "polis" && networkMatches && (
+        <NetworkMatchesSection summary={networkMatches} locale={locale} />
+      )}
+      {mode === "polis" && !networkMatches && (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <Globe className="h-12 w-12 mx-auto mb-4 opacity-30" />
+            <p>{t("mode.polisUnavailable")}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Org-Only View */}
+      {mode === "org" && (
+      <>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsCards.map((stat) => (
@@ -245,11 +302,6 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
               </CardContent>
             </Card>
           )}
-          {networkMatches && (
-            <div className="mt-6">
-              <NetworkMatchesSection summary={networkMatches} locale={locale} />
-            </div>
-          )}
         </TabsContent>
 
         {/* Unmatched Clients Tab */}
@@ -288,6 +340,8 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
           </Card>
         </TabsContent>
       </Tabs>
+      </>
+      )}
     </div>
   );
 }

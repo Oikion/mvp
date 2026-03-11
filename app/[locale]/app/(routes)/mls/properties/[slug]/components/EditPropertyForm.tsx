@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { AddressFieldGroup } from "@/components/form/AddressFieldGroup";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
+import { PropertyImageUploader } from "@/components/property-images/PropertyImageUploader";
 
 // Full schema matching NewPropertyWizard
 const formSchema = z.object({
@@ -83,7 +84,7 @@ const formSchema = z.object({
   
   // Step 9: Media
   virtual_tour_url: z.string().url().optional().or(z.literal("")),
-  portal_visibility: z.enum(["PRIVATE", "SELECTED", "PUBLIC"]).optional(),
+  visibility: z.enum(["PERSONAL", "SECURE", "PUBLIC"]).optional(),
   assigned_to: z.string().optional(),
   description: z.string().optional(),
 });
@@ -146,7 +147,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
       virtual_tour_url: initialData?.virtual_tour_url ?? "",
       // Ensure defaults
       country: initialData?.country || "GR",
-      portal_visibility: initialData?.portal_visibility || "PRIVATE",
+      visibility: initialData?.visibility || "PERSONAL",
       address_privacy_level: initialData?.address_privacy_level || "PARTIAL",
       is_exclusive: initialData?.is_exclusive || false,
       elevator: initialData?.elevator || false,
@@ -778,15 +779,15 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField control={form.control} name="portal_visibility" render={({ field }) => (
+            <FormField control={form.control} name="visibility" render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("PropertyForm.fields.portalVisibility")}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || "PRIVATE"}>
+                <Select onValueChange={field.onChange} value={field.value || "PERSONAL"}>
                   <FormControl><SelectTrigger><SelectValue placeholder={t("PropertyForm.fields.portalVisibilityPlaceholder")} /></SelectTrigger></FormControl>
                   <SelectContent>
-                    <SelectItem value="PRIVATE">{t("PropertyForm.portalVisibility.PRIVATE")}</SelectItem>
-                    <SelectItem value="SELECTED">{t("PropertyForm.portalVisibility.SELECTED")}</SelectItem>
-                    <SelectItem value="PUBLIC">{t("PropertyForm.portalVisibility.PUBLIC")}</SelectItem>
+                    <SelectItem value="PERSONAL">{t("PropertyForm.visibility.PERSONAL")}</SelectItem>
+                    <SelectItem value="SECURE">{t("PropertyForm.visibility.SECURE")}</SelectItem>
+                    <SelectItem value="PUBLIC">{t("PropertyForm.visibility.PUBLIC")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -817,8 +818,9 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
                 <FormMessage />
               </FormItem>
             )} />
-            <div className="text-sm text-muted-foreground">
-              <p>{t("PropertyForm.fields.photos")}: Θα προστεθούν από τη σελίδα λεπτομερειών.</p>
+            {/* Property Image Uploader */}
+            <div className="pt-2">
+              <PropertyImageUploader propertyId={initialData.id as string} />
             </div>
           </TabsContent>
 

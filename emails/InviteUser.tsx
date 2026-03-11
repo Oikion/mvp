@@ -1,24 +1,24 @@
 import {
-  Body,
   Button,
-  Container,
-  Head,
   Heading,
   Hr,
-  Html,
   Link,
-  Preview,
   Section,
-  Tailwind,
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import {
+  BaseLayout,
+  EmailBadge,
+  resolveColors,
+} from "./components/BaseLayout";
 
 interface InviteUserEmailProps {
   username: string;
   invitedByUsername: string;
   invitedUserPassword: string;
   userLanguage: string;
+  userTheme?: string;
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
@@ -76,110 +76,87 @@ export const InviteUserEmail = ({
   invitedByUsername,
   invitedUserPassword,
   userLanguage,
+  userTheme,
 }: InviteUserEmailProps) => {
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
+  const colors = resolveColors(userTheme);
 
   return (
-    <Html>
-      <Head>
-        <meta name="color-scheme" content="light" />
-        <meta name="supported-color-schemes" content="light" />
-      </Head>
-      <Preview>{t.preview(invitedByUsername)}</Preview>
-      <Tailwind>
-        <Body className="bg-zinc-50 my-auto mx-auto font-sans">
-          <Container className="bg-white border border-zinc-200 rounded-xl my-10 mx-auto p-0 max-w-[520px] overflow-hidden">
-            {/* Header */}
-            <Section className="bg-zinc-900 px-8 py-10 text-center">
-              <Text className="text-white text-2xl font-bold m-0 tracking-tight">
-                Oikion
-              </Text>
-              <Text className="text-zinc-400 text-sm m-0 mt-1">
-                Real Estate, Reimagined
-              </Text>
-            </Section>
+    <BaseLayout
+      previewText={t.preview(invitedByUsername)}
+      footerText={`${t.footer} ${username}. ${t.footerNote}`}
+      footerNote={t.support}
+      emailTheme={userTheme}
+    >
+      <EmailBadge
+        icon=""
+        text="Team Invitation"
+        colorClass="bg-blue-50 text-blue-700 border-blue-200"
+      />
 
-            {/* Content */}
-            <Section className="px-8 py-10">
-              {/* Badge */}
-              <Section className="mb-6 text-center">
-                <span className="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200">
-                  Team Invitation
-                </span>
-              </Section>
+      <Heading
+        style={{ color: colors.textPrimary }}
+        className="text-2xl font-semibold text-center p-0 m-0 mb-3"
+      >
+        {t.title}
+      </Heading>
 
-              <Heading className="text-zinc-900 text-2xl font-semibold text-center p-0 m-0 mb-3">
-                {t.title}
-              </Heading>
+      <Text style={{ color: colors.textSecondary }} className="text-base text-center m-0 mb-6 leading-relaxed">
+        {t.subtitle}
+      </Text>
 
-              <Text className="text-zinc-500 text-base text-center m-0 mb-6 leading-relaxed">
-                {t.subtitle}
-              </Text>
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
 
-              <Hr className="border-zinc-200 my-6" />
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-4">
+        {t.greeting(username)}
+      </Text>
 
-              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-4">
-                {t.greeting(username)}
-              </Text>
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-6">
+        {t.intro(invitedByUsername)}
+      </Text>
 
-              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-6">
-                {t.intro(invitedByUsername)}
-              </Text>
+      {/* Credentials Box */}
+      <Section
+        style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}` }}
+        className="rounded-lg p-5 mb-6"
+      >
+        <Text style={{ color: colors.textPrimary }} className="text-sm font-semibold m-0 mb-4">
+          {t.credentialsTitle}
+        </Text>
+        <Section
+          style={{ backgroundColor: colors.containerBg, border: `1px solid ${colors.cardBorder}` }}
+          className="rounded-md p-4 mb-3"
+        >
+          <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+            {t.passwordLabel}
+          </Text>
+          <Text style={{ color: colors.textPrimary }} className="text-base font-mono font-semibold m-0">
+            {invitedUserPassword}
+          </Text>
+        </Section>
+        <Text className="text-amber-600 text-xs m-0 flex items-start gap-1">
+          ⚠️ {t.passwordNote}
+        </Text>
+      </Section>
 
-              {/* Credentials Box */}
-              <Section className="bg-zinc-50 border border-zinc-200 rounded-lg p-5 mb-6">
-                <Text className="text-zinc-900 text-sm font-semibold m-0 mb-4">
-                  {t.credentialsTitle}
-                </Text>
-                <Section className="bg-white border border-zinc-200 rounded-md p-4 mb-3">
-                  <Text className="text-zinc-500 text-xs m-0 mb-1">
-                    {t.passwordLabel}
-                  </Text>
-                  <Text className="text-zinc-900 text-base font-mono font-semibold m-0">
-                    {invitedUserPassword}
-                  </Text>
-                </Section>
-                <Text className="text-amber-600 text-xs m-0 flex items-start gap-1">
-                  ⚠️ {t.passwordNote}
-                </Text>
-              </Section>
+      {/* CTA Button */}
+      <Section className="text-center mb-6">
+        <Button
+          style={{ backgroundColor: colors.buttonBg, color: colors.buttonText }}
+          className="rounded-lg py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
+          href={baseUrl}
+        >
+          {t.ctaButton}
+        </Button>
+      </Section>
 
-              {/* CTA Button */}
-              <Section className="text-center mb-6">
-                <Button
-                  className="bg-zinc-900 rounded-lg text-white py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
-                  href={baseUrl}
-                >
-                  {t.ctaButton}
-                </Button>
-              </Section>
-
-              <Text className="text-zinc-500 text-xs text-center m-0">
-                {t.altLink}{" "}
-                <Link href={baseUrl} className="text-zinc-700 underline">
-                  {baseUrl}
-                </Link>
-              </Text>
-            </Section>
-
-            {/* Footer */}
-            <Section className="bg-zinc-50 border-t border-zinc-200 px-8 py-6">
-              <Text className="text-zinc-400 text-xs text-center m-0 mb-2">
-                {t.footer}{" "}
-                <span className="text-zinc-600 font-medium">{username}</span>.{" "}
-                {t.footerNote}
-              </Text>
-              <Text className="text-zinc-400 text-xs text-center m-0 mt-3">
-                {t.support}
-              </Text>
-              <Text className="text-zinc-400 text-xs text-center m-0 mt-3">
-                © {new Date().getFullYear()} Oikion. All rights reserved.
-              </Text>
-            </Section>
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+      <Text style={{ color: colors.textMuted }} className="text-xs text-center m-0">
+        {t.altLink}{" "}
+        <Link href={baseUrl} style={{ color: colors.linkColor }} className="underline">
+          {baseUrl}
+        </Link>
+      </Text>
+    </BaseLayout>
   );
 };
 

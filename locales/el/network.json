@@ -1,5 +1,5 @@
 {
-  "title": "Δίκτυο",
+  "title": "Polis",
   "explore": "Εξερεύνηση",
   "agents": "Πράκτορες",
   "agencies": "Πρακτορεία",
@@ -23,18 +23,18 @@
   "likes": "Λάικ",
   "comments": "Σχόλια",
   "matchmaking": {
-    "settingsTitle": "Oikion Network",
+    "settingsTitle": "Oikion Polis",
     "settingsDescription": "Μοιραστείτε τα ακίνητα και τις εντολές σας με άλλα πρακτορεία για cross-agency matchmaking.",
     "membership": {
-      "label": "Συμμετοχή στο δίκτυο",
+      "label": "Συμμετοχή στο Polis",
       "NONE": "Δεν συμμετέχω",
       "POOL": "Παγκόσμια δεξαμενή",
       "BILATERAL": "Μόνο διμερείς εταίροι",
       "BOTH": "Δεξαμενή + διμερείς εταίροι",
-      "noneDesc": "Τα δεδομένα σας δεν κοινοποιούνται σε άλλα πρακτορεία.",
-      "poolDesc": "Τα κοινόχρηστα δεδομένα σας είναι ορατά σε όλα τα μέλη της δεξαμενής.",
-      "bilateralDesc": "Τα κοινόχρηστα δεδομένα σας είναι ορατά μόνο σε πρακτορεία που έχετε αποδεχτεί ως εταίρους.",
-      "bothDesc": "Τα κοινόχρηστα δεδομένα σας είναι ορατά σε όλα τα μέλη και τους διμερείς εταίρους σας."
+      "NONEDesc": "Τα δεδομένα σας δεν κοινοποιούνται σε άλλα πρακτορεία.",
+      "POOLDesc": "Τα κοινόχρηστα δεδομένα σας είναι ορατά σε όλα τα μέλη της δεξαμενής.",
+      "BILATERALDesc": "Τα κοινόχρηστα δεδομένα σας είναι ορατά μόνο σε πρακτορεία που έχετε αποδεχτεί ως εταίρους.",
+      "BOTHDesc": "Τα κοινόχρηστα δεδομένα σας είναι ορατά σε όλα τα μέλη και τους διμερείς εταίρους σας."
     },
     "sharing": {
       "label": "Τι να κοινοποιήσετε",
@@ -72,24 +72,24 @@
       "inviteError": "Αδυναμία αποστολής πρόσκλησης."
     },
     "dashboard": {
-      "title": "Matches Δικτύου",
-      "description": "Cross-agency matches που βρέθηκαν από το Oikion Network",
-      "notMember": "Εγγραφείτε στο Oikion Network για cross-agency matches.",
-      "joinCta": "Ρυθμίσεις δικτύου",
-      "noResults": "Δεν υπάρχουν matches δικτύου ακόμα.",
-      "noResultsHint": "Τα matches υπολογίζονται κάθε 30 λεπτά. Βεβαιωθείτε ότι κάποια ακίνητα ή εντολές είναι ορατά στο δίκτυο.",
+      "title": "Polis Matches",
+      "description": "Cross-agency matches που βρέθηκαν από το Oikion Polis",
+      "notMember": "Εγγραφείτε στο Oikion Polis για cross-agency matches.",
+      "joinCta": "Ρυθμίσεις Polis",
+      "noResults": "Δεν υπάρχουν Polis matches ακόμα.",
+      "noResultsHint": "Τα matches υπολογίζονται κάθε 30 λεπτά. Βεβαιωθείτε ότι κάποια ακίνητα ή εντολές είναι ορατά στο Polis.",
       "lastComputed": "Τελευταία ενημέρωση",
-      "badge": "Δίκτυο",
+      "badge": "Polis",
       "fromAgency": "Από",
-      "unknownAgency": "Πρακτορείο δικτύου",
+      "unknownAgency": "Πρακτορείο Polis",
       "viewMandate": "Προβολή εντολής",
       "viewProperty": "Προβολή ακινήτου",
       "contactAgent": "Επικοινωνία με πράκτορα"
     },
     "recordToggle": {
-      "label": "Κοινοποίηση στο δίκτυο",
-      "enabledDesc": "Ορατό στους συνεργάτες του δικτύου για matchmaking.",
-      "disabledDesc": "Δεν κοινοποιείται στο δίκτυο."
+      "label": "Κοινοποίηση στο Polis",
+      "enabledDesc": "Ορατό στους συνεργάτες του Polis για matchmaking.",
+      "disabledDesc": "Δεν κοινοποιείται στο Polis."
     }
   }
 }

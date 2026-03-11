@@ -3,7 +3,7 @@
     "categories": {
       "overview": "Επισκόπηση",
       "coreBusiness": "Βασικές Λειτουργίες",
-      "network": "Δίκτυο",
+      "network": "Polis",
       "tools": "Εργαλεία",
       "organization": "Οργανισμός"
     },
@@ -27,6 +27,7 @@
       "socialFeed": "Κοινωνική Ροή",
       "connections": "Συνδέσεις",
       "sharedWithMe": "Μοιράστηκαν μαζί μου",
+      "sharingHub": "Κέντρο Κοινής Χρήσης",
       "deals": "Συνεργασίες",
       "publicProfile": "Δημόσιο Προφίλ"
     },

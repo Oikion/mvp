@@ -87,10 +87,10 @@ export const furnishedStatusSchema = z.enum([
   "FULLY",
 ]);
 
-// Portal visibility - matches Prisma PortalVisibility enum
-export const portalVisibilitySchema = z.enum([
-  "PRIVATE",
-  "SELECTED",
+// Item visibility - matches Prisma ItemVisibility enum
+export const itemVisibilitySchema = z.enum([
+  "PERSONAL",
+  "SECURE",
   "PUBLIC",
 ]);
 
@@ -213,7 +213,7 @@ const propertyFieldsSchema = z.object({
   
   // Status and visibility
   is_exclusive: z.boolean().optional(),
-  portal_visibility: portalVisibilitySchema.optional(),
+  visibility: itemVisibilitySchema.optional(),
   draft_status: z.boolean().optional(),
   
   // Dates
@@ -426,7 +426,7 @@ export const propertyQuerySchema = z.object({
   min_sqm: z.string().regex(/^\d+$/).transform(Number).optional(),
   max_sqm: z.string().regex(/^\d+$/).transform(Number).optional(),
   bedrooms: z.string().regex(/^\d+$/).transform(Number).optional(),
-  portal_visibility: portalVisibilitySchema.optional(),
+  visibility: itemVisibilitySchema.optional(),
 });
 
 // =============================================================================
@@ -435,7 +435,7 @@ export const propertyQuerySchema = z.object({
 
 /**
  * Validates that a property meets minimum requirements for public publishing
- * Used before setting portal_visibility to PUBLIC
+ * Used before setting visibility to PUBLIC
  * 
  * Business Rule MLS-008: Portal publishing readiness check
  */

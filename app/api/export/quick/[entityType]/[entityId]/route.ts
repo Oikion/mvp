@@ -43,7 +43,7 @@ interface PropertyData {
   accepts_pets: boolean | null;
   orientation: string[] | null;
   amenities: string[] | null;
-  portal_visibility: string | null;
+  visibility: string | null;
   assigned_to_user?: { name: string | null; email?: string | null } | null;
   linkedImages?: { id: string; document_file_url: string | null }[];
 }
@@ -795,7 +795,7 @@ export async function GET(
         accepts_pets: property.accepts_pets,
         orientation: property.orientation as string[] | null,
         amenities: property.amenities as string[] | null,
-        portal_visibility: property.portal_visibility,
+        visibility: property.visibility,
         assigned_to_user: property.Users_Properties_assigned_toToUsers,
         linkedImages: property.Documents,
       };

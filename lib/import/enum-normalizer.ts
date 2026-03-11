@@ -293,23 +293,28 @@ export const priceTypeMap: EnumMapping = {
 };
 
 /**
- * Portal Visibility mappings
+ * Item Visibility mappings (replaces Portal Visibility)
+ * Backward compat: old PRIVATE/SELECTED values map to PERSONAL/SECURE
  */
-export const portalVisibilityMap: EnumMapping = {
-  // English variations
-  "private": "PRIVATE",
-  "hidden": "PRIVATE",
-  "internal": "PRIVATE",
-  "selected": "SELECTED",
-  "limited": "SELECTED",
-  "some": "SELECTED",
+export const itemVisibilityMap: EnumMapping = {
+  // New values (pass-through)
+  "personal": "PERSONAL",
+  "secure": "SECURE",
   "public": "PUBLIC",
+  // Old values mapped to new ones (backward compat for imports)
+  "private": "PERSONAL",
+  "selected": "SECURE",
+  // English variations
+  "hidden": "PERSONAL",
+  "internal": "PERSONAL",
+  "limited": "SECURE",
+  "some": "SECURE",
   "visible": "PUBLIC",
   "all": "PUBLIC",
   // Greek translations
-  "ιδιωτικό": "PRIVATE",
-  "κρυφό": "PRIVATE",
-  "επιλεγμένο": "SELECTED",
+  "ιδιωτικό": "PERSONAL",
+  "κρυφό": "PERSONAL",
+  "επιλεγμένο": "SECURE",
   "δημόσιο": "PUBLIC",
   "ορατό": "PUBLIC",
 };
@@ -636,7 +641,7 @@ export const propertyEnumMappings = {
   condition: propertyConditionMap,
   furnished: furnishedStatusMap,
   price_type: priceTypeMap,
-  portal_visibility: portalVisibilityMap,
+  visibility: itemVisibilityMap,
   address_privacy_level: addressPrivacyLevelMap,
   legalization_status: legalizationStatusMap,
 };

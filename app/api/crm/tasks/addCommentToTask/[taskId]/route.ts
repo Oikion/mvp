@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import NewTaskCommentEmail from "@/emails/NewTaskComment";
 import resendHelper from "@/lib/resend";
 import { notifyTaskCommented } from "@/lib/notifications";
@@ -18,7 +18,10 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
     }
 
     const user = await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await req.json();
     const { comment } = body;
     const { taskId } = params;
@@ -31,8 +34,11 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
       return new NextResponse("Missing comment", { status: 400 });
     }
 
-    const task = await prismadb.crm_Accounts_Tasks.findUnique({
-      where: { id: taskId },
+    // Cap comment length to 2000 characters
+    const cappedComment = typeof comment === "string" ? comment.slice(0, 2000) : comment;
+
+    const task = await prismadb.crm_Accounts_Tasks.findFirst({
+      where: { id: taskId, organizationId },
       include: {
         Clients: {
           select: { id: true, client_name: true },
@@ -47,7 +53,7 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
     const newComment = await prismadb.crm_Accounts_Tasks_Comments.create({
       data: {
         id: crypto.randomUUID(),
-        comment: comment,
+        comment: cappedComment,
         crm_account_task: taskId,
         user: user.id,
         organizationId,
@@ -65,7 +71,7 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
         actorName: user.name || user.email || "Someone",
         recipientId: task.user,
         organizationId,
-        commentContent: comment,
+        commentContent: cappedComment,
       });
     }
 

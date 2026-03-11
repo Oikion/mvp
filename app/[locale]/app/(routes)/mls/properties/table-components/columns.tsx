@@ -24,7 +24,7 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
   price?: number | string | null;
   property_type?: string | null;
   property_status?: string | null;
-  portal_visibility?: string | null;
+  visibility?: string | null;
   assigned_to?: string | null;
   assigned_to_user?: { name: string | null } | null;
 }>[] => [
@@ -123,7 +123,7 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
-    accessorKey: "portal_visibility",
+    accessorKey: "visibility",
     header: ({ column }) => {
       const t = useTranslations("mls");
       return <DataTableColumnHeader column={column} title={t("MlsPropertiesTable.visibility")} />
@@ -132,7 +132,7 @@ export const getColumns = (users: { id: string; name: string | null }[] = []): C
       return (
         <VisibilityCell
           propertyId={row.original.id}
-          visibility={row.original.portal_visibility || row.getValue("portal_visibility")}
+          visibility={row.original.visibility || row.getValue("visibility")}
         />
       );
     },

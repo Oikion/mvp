@@ -243,7 +243,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
     lastName: getInitialLastName(),
     username: user?.username || "",
     language: (locale as SupportedLanguage) || "en",
-    theme: "system" as SupportedTheme,
+    theme: "estate" as SupportedTheme,
     organization: {
       name: "",
       slug: "",
@@ -554,6 +554,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         firstName: onboardingData.firstName,
         lastName: onboardingData.lastName,
         language: onboardingData.language,
+        theme: onboardingData.theme,
         notificationSettings,
         privacyPreferences: onboardingData.privacyPreferences,
         referralCode: referralCode || undefined,

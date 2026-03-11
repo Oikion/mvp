@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         organizationId, // Ensure user can only update their org's properties
       },
       data: {
-        portal_visibility: "PUBLIC",
+        visibility: "PUBLIC",
         updatedAt: new Date(),
       },
     });

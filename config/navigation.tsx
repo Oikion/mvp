@@ -73,7 +73,7 @@ export function getNavigationConfig({
   const categories = dict.navigation.ModuleMenu.categories || {
     overview: "Overview",
     coreBusiness: "Core Business",
-    network: "Network",
+    network: "Polis",
     tools: "Tools",
     organization: "Organization",
   }
@@ -164,10 +164,10 @@ export function getNavigationConfig({
       notificationKey: "messages",
     }] : []),
     ...(canAccess("social") ? [{
-      title: dict.navigation.ModuleMenu.social?.sharedWithMe || "Shared With Me",
-      url: "/app/network/shared",
+      title: dict.navigation.ModuleMenu.social?.sharingHub || "Sharing Hub",
+      url: "/app/network/sharing-hub",
       icon: InboxIcon,
-      isActive: isRouteActive(pathname, "/app/network/shared", locale),
+      isActive: isRouteActive(pathname, "/app/network/sharing-hub", locale) || isRouteActive(pathname, "/app/network/shared", locale),
       moduleId: "social" as ModuleId,
       notificationKey: "sharedWithMe",
     }] : []),

@@ -25,6 +25,14 @@ const THEMES: {
   previewColor?: string;
 }[] = [
   {
+    value: "estate",
+    previewColor: "#F2EFE9", // Warm beige — default brand light
+  },
+  {
+    value: "estate-dark",
+    previewColor: "#1A211B", // Dark pine — default brand dark
+  },
+  {
     value: "light",
     previewColor: "#FDFDFD",
   },

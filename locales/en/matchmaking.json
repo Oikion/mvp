@@ -1,6 +1,11 @@
 {
   "title": "Matchmaking",
   "description": "Client-Property matching analytics",
+  "mode": {
+    "orgOnly": "Organization Only",
+    "polis": "Oikion Polis",
+    "polisUnavailable": "Join Oikion Polis to see cross-agency matches. Configure your settings in Settings → Polis."
+  },
   "loading": {
     "title": "Matchmaking",
     "description": "Loading match analytics..."

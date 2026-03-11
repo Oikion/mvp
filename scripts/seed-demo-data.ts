@@ -622,7 +622,7 @@ async function seedProperties(
       updatedAt: createdAt,
       
       // Visibility
-      portal_visibility: "PUBLIC",
+      visibility: "PUBLIC",
       address_privacy_level: "PARTIAL",
     };
 

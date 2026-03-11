@@ -1,18 +1,13 @@
 import {
-  Body,
   Button,
-  Container,
-  Head,
   Heading,
   Hr,
-  Html,
   Link,
-  Preview,
   Section,
-  Tailwind,
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { BaseLayout, EmailBadge, resolveColors } from "../components/BaseLayout";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 
@@ -28,6 +23,7 @@ interface TaskDueSoonEmailProps {
   timeUntilDue: string; // e.g., "2 hours", "1 day"
   accountName?: string;
   userLanguage: string;
+  userTheme?: string;
 }
 
 const priorityConfig: Record<Priority, { bg: string; text: string; border: string; label: Record<string, string> }> = {
@@ -104,7 +100,9 @@ export const TaskDueSoonEmail = ({
   timeUntilDue,
   accountName,
   userLanguage,
+  userTheme,
 }: TaskDueSoonEmailProps) => {
+  const colors = resolveColors(userTheme);
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
   const taskUrl = `${baseUrl}/app/crm/tasks/viewtask/${taskId}`;
   const priorityStyle = priorityConfig[priority] || priorityConfig.normal;
@@ -123,150 +121,121 @@ export const TaskDueSoonEmail = ({
   };
 
   return (
-    <Html>
-      <Head>
-        <meta name="color-scheme" content="light" />
-        <meta name="supported-color-schemes" content="light" />
-      </Head>
-      <Preview>{t.preview(timeUntilDue)}</Preview>
-      <Tailwind>
-        <Body className="bg-zinc-50 my-auto mx-auto font-sans">
-          <Container className="bg-white border border-zinc-200 rounded-xl my-10 mx-auto p-0 max-w-[520px] overflow-hidden">
-            {/* Header */}
-            <Section className="bg-zinc-900 px-8 py-10 text-center">
-              <Text className="text-white text-2xl font-bold m-0 tracking-tight">
-                Oikion
-              </Text>
-              <Text className="text-zinc-400 text-sm m-0 mt-1">
-                Real Estate, Reimagined
-              </Text>
-            </Section>
+    <BaseLayout
+      previewText={t.preview(timeUntilDue)}
+      footerText={`${t.footer} ${t.footerNote}`}
+      emailTheme={userTheme}
+    >
+      <EmailBadge
+        icon="⏰"
+        text={t.badge}
+        colorClass="bg-orange-50 text-orange-700 border-orange-200"
+      />
 
-            {/* Content */}
-            <Section className="px-8 py-10">
-              {/* Badge */}
-              <Section className="mb-6 text-center">
-                <span className="inline-block bg-orange-50 text-orange-700 text-xs font-semibold px-3 py-1 rounded-full border border-orange-200">
-                  ⏰ {t.badge}
-                </span>
-              </Section>
+      <Heading
+        style={{ color: colors.textPrimary }}
+        className="text-2xl font-semibold text-center p-0 m-0 mb-3"
+      >
+        {t.title}
+      </Heading>
 
-              <Heading className="text-zinc-900 text-2xl font-semibold text-center p-0 m-0 mb-3">
-                {t.title}
-              </Heading>
+      <Text style={{ color: colors.textSecondary }} className="text-base text-center m-0 mb-6 leading-relaxed">
+        {t.subtitle(timeUntilDue)}
+      </Text>
 
-              <Text className="text-zinc-500 text-base text-center m-0 mb-6 leading-relaxed">
-                {t.subtitle(timeUntilDue)}
-              </Text>
+      <Hr style={{ borderColor: colors.hrColor }} className="my-6" />
 
-              <Hr className="border-zinc-200 my-6" />
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-4">
+        {t.greeting(recipientName)}
+      </Text>
 
-              {/* Greeting & Intro */}
-              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-4">
-                {t.greeting(recipientName)}
-              </Text>
+      <Text style={{ color: colors.textSecondary }} className="text-sm leading-6 m-0 mb-6">
+        {t.intro(timeUntilDue)}
+      </Text>
 
-              <Text className="text-zinc-700 text-sm leading-6 m-0 mb-6">
-                {t.intro(timeUntilDue)}
-              </Text>
+      {/* Task Details Card — orange is semantic urgency color, kept as Tailwind */}
+      <Section className="bg-orange-50 border border-orange-200 rounded-lg p-5 mb-6">
+        <Text className="text-orange-700 text-xs font-medium m-0 mb-4 uppercase tracking-wide">
+          {t.taskDetails}
+        </Text>
 
-              {/* Task Details Card */}
-              <Section className="bg-orange-50 border border-orange-200 rounded-lg p-5 mb-6">
-                <Text className="text-orange-700 text-xs font-medium m-0 mb-4 uppercase tracking-wide">
-                  {t.taskDetails}
-                </Text>
+        {/* Task Title */}
+        <Section className="mb-4">
+          <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+            {t.titleLabel}
+          </Text>
+          <Text style={{ color: colors.textPrimary }} className="text-base font-semibold m-0">
+            {taskTitle}
+          </Text>
+        </Section>
 
-                {/* Task Title */}
-                <Section className="mb-4">
-                  <Text className="text-zinc-500 text-xs m-0 mb-1">
-                    {t.titleLabel}
-                  </Text>
-                  <Text className="text-zinc-900 text-base font-semibold m-0">
-                    {taskTitle}
-                  </Text>
-                </Section>
+        {/* Task Description */}
+        {taskDescription && (
+          <Section className="mb-4">
+            <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+              {t.descriptionLabel}
+            </Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm m-0 leading-relaxed">
+              {taskDescription.length > 150
+                ? `${taskDescription.substring(0, 150)}...`
+                : taskDescription}
+            </Text>
+          </Section>
+        )}
 
-                {/* Task Description */}
-                {taskDescription && (
-                  <Section className="mb-4">
-                    <Text className="text-zinc-500 text-xs m-0 mb-1">
-                      {t.descriptionLabel}
-                    </Text>
-                    <Text className="text-zinc-700 text-sm m-0 leading-relaxed">
-                      {taskDescription.length > 150 
-                        ? `${taskDescription.substring(0, 150)}...` 
-                        : taskDescription}
-                    </Text>
-                  </Section>
-                )}
+        {/* Account */}
+        {accountName && (
+          <Section className="mb-4">
+            <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+              {t.accountLabel}
+            </Text>
+            <Text style={{ color: colors.textSecondary }} className="text-sm font-medium m-0">
+              {accountName}
+            </Text>
+          </Section>
+        )}
 
-                {/* Account */}
-                {accountName && (
-                  <Section className="mb-4">
-                    <Text className="text-zinc-500 text-xs m-0 mb-1">
-                      {t.accountLabel}
-                    </Text>
-                    <Text className="text-zinc-700 text-sm font-medium m-0">
-                      {accountName}
-                    </Text>
-                  </Section>
-                )}
+        {/* Priority */}
+        <Section className="mb-4">
+          <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+            {t.priorityLabel}
+          </Text>
+          <span className={`inline-block ${priorityStyle.bg} ${priorityStyle.text} ${priorityStyle.border} text-xs font-semibold px-2 py-1 rounded border`}>
+            {priorityLabel}
+          </span>
+        </Section>
 
-                {/* Priority */}
-                <Section className="mb-4">
-                  <Text className="text-zinc-500 text-xs m-0 mb-1">
-                    {t.priorityLabel}
-                  </Text>
-                  <span className={`inline-block ${priorityStyle.bg} ${priorityStyle.text} ${priorityStyle.border} text-xs font-semibold px-2 py-1 rounded border`}>
-                    {priorityLabel}
-                  </span>
-                </Section>
+        {/* Due Date */}
+        <Section>
+          <Text style={{ color: colors.textMuted }} className="text-xs m-0 mb-1">
+            {t.dueDateLabel}
+          </Text>
+          <Text className="text-orange-700 text-sm font-semibold m-0">
+            {formatDueDate(dueDate)}
+          </Text>
+        </Section>
+      </Section>
 
-                {/* Due Date */}
-                <Section>
-                  <Text className="text-zinc-500 text-xs m-0 mb-1">
-                    {t.dueDateLabel}
-                  </Text>
-                  <Text className="text-orange-700 text-sm font-semibold m-0">
-                    {formatDueDate(dueDate)}
-                  </Text>
-                </Section>
-              </Section>
+      {/* CTA Button */}
+      <Section className="text-center mb-6">
+        <Button
+          style={{ backgroundColor: colors.buttonBg, color: colors.buttonText }}
+          className="rounded-lg py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
+          href={taskUrl}
+        >
+          {t.ctaButton}
+        </Button>
+      </Section>
 
-              {/* CTA Button */}
-              <Section className="text-center mb-6">
-                <Button
-                  className="bg-zinc-900 rounded-lg text-white py-3 px-8 text-sm font-semibold no-underline text-center inline-block"
-                  href={taskUrl}
-                >
-                  {t.ctaButton}
-                </Button>
-              </Section>
-
-              {/* Alternative Link */}
-              <Text className="text-zinc-500 text-xs text-center m-0 mb-2">
-                {t.altLink}
-              </Text>
-              <Text className="text-center m-0">
-                <Link href={taskUrl} className="text-blue-600 text-xs underline break-all">
-                  {taskUrl}
-                </Link>
-              </Text>
-            </Section>
-
-            {/* Footer */}
-            <Section className="bg-zinc-50 border-t border-zinc-200 px-8 py-6">
-              <Text className="text-zinc-400 text-xs text-center m-0 mb-2">
-                {t.footer} {t.footerNote}
-              </Text>
-              <Text className="text-zinc-400 text-xs text-center m-0 mt-3">
-                © {new Date().getFullYear()} Oikion. All rights reserved.
-              </Text>
-            </Section>
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+      <Text style={{ color: colors.textMuted }} className="text-xs text-center m-0 mb-2">
+        {t.altLink}
+      </Text>
+      <Text className="text-center m-0">
+        <Link href={taskUrl} style={{ color: colors.linkColor }} className="text-xs underline break-all">
+          {taskUrl}
+        </Link>
+      </Text>
+    </BaseLayout>
   );
 };
 

@@ -43,7 +43,7 @@ async function fetchNetworkMandates(organizationId: string) {
       organizationId,
       status: "ACTIVE",
       draft_status: { not: true },
-      networkVisible: true,
+      visibility: { in: ["SECURE", "PUBLIC"] },
     },
     select: {
       id: true,
@@ -86,7 +86,7 @@ async function fetchNetworkProperties(organizationId: string) {
     where: {
       organizationId,
       property_status: { in: ["ACTIVE", "PENDING"] },
-      networkVisible: true,
+      visibility: { in: ["SECURE", "PUBLIC"] },
     },
     select: {
       id: true,
@@ -247,15 +247,15 @@ function eligiblePropertyOrgs(
   const eligible = new Set<string>();
 
   if (mandateOrgMembership === "POOL" || mandateOrgMembership === "BOTH") {
-    for (const orgId of allPoolOrgs) {
+    Array.from(allPoolOrgs).forEach((orgId) => {
       if (orgId !== mandateOrgId) eligible.add(orgId);
-    }
+    });
   }
 
   if (mandateOrgMembership === "BILATERAL" || mandateOrgMembership === "BOTH") {
-    for (const orgId of bilateralPartners) {
+    Array.from(bilateralPartners).forEach((orgId) => {
       if (orgId !== mandateOrgId) eligible.add(orgId);
-    }
+    });
   }
 
   return eligible;
@@ -335,7 +335,7 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
             const adapted: PropertyForMatching[] = [];
             for (const p of rawProperties) {
               try {
-                const dec = await decryptPropertyForOrg(p, orgId);
+                const dec = await decryptPropertyForOrg(p as any, orgId);
                 adapted.push(adaptPropertyForMatching(dec));
               } catch {
                 // Skip corrupted records
@@ -352,7 +352,7 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
   }
 
   // 3. Compute matches across orgs
-  for (const [mandateOrgId, mandates] of mandatesByOrg) {
+  for (const [mandateOrgId, mandates] of Array.from(mandatesByOrg.entries())) {
     if (mandates.length === 0) continue;
 
     const mandateOrgSettings = settingsByOrg.get(mandateOrgId)!;
@@ -365,7 +365,7 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
       partners,
     );
 
-    for (const propertyOrgId of eligible) {
+    for (const propertyOrgId of Array.from(eligible)) {
       const propertyOrgSettings = settingsByOrg.get(propertyOrgId);
       if (!propertyOrgSettings?.shareProperties) continue;
 

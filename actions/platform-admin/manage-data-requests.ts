@@ -5,6 +5,7 @@ import { requirePlatformAdmin, logAdminAction } from "@/lib/platform-admin";
 import resendHelper from "@/lib/resend";
 import { render } from "@react-email/render";
 import { DeletionRequestDecisionEmail } from "@/emails/data-control/DeletionRequestDecision";
+import { runDataDeletion } from "@/lib/data-deletion/execute-deletion";
 
 // =============================================================================
 // Types
@@ -218,9 +219,11 @@ export async function reviewDataDeletion(
   );
 
   // Send decision email to user
-  sendDecisionEmail(request.requestedById, requestId, action, note, request.gracePeriodEndsAt).catch(
-    (err) => console.error("[DATA_DELETION] Decision email failed:", err)
-  );
+  if (request.gracePeriodEndsAt) {
+    sendDecisionEmail(request.requestedById, requestId, action, note, request.gracePeriodEndsAt).catch(
+      (err) => console.error("[DATA_DELETION] Decision email failed:", err)
+    );
+  }
 
   return { success: true };
 }
@@ -249,98 +252,22 @@ export async function executeDataDeletion(
     };
   }
 
-  if (new Date() < request.gracePeriodEndsAt) {
+  if (!request.gracePeriodEndsAt || new Date() < request.gracePeriodEndsAt) {
     return {
       success: false,
       error: "Grace period has not ended yet",
     };
   }
 
-  // Mark as processing
-  await prismadb.dataDeletionRequest.update({
-    where: { id: requestId },
-    data: { status: "PROCESSING" },
-  });
+  const result = await runDataDeletion(requestId);
 
-  try {
-    const orgId = request.organizationId;
-
-    // Delete org data in order (respecting foreign keys)
-    // Models with onDelete: Cascade on their FK will auto-delete children
-    // when the parent is deleted, so we only need to explicitly delete
-    // models that don't cascade or need to go first.
-    await prismadb.$transaction([
-      // Messages & conversations
-      prismadb.message.deleteMany({ where: { organizationId: orgId } }),
-      // Social (comments & likes cascade via onDelete: Cascade on SocialPost FK)
-      prismadb.socialPost.deleteMany({ where: { organizationId: orgId } }),
-      // Calendar (reminders & invitees cascade via onDelete: Cascade)
-      prismadb.calendarEvent.deleteMany({ where: { organizationId: orgId } }),
-      // Tasks (comments cascade via onDelete: Cascade)
-      prismadb.crm_Accounts_Tasks.deleteMany({
-        where: { organizationId: orgId },
-      }),
-      // Documents
-      prismadb.documents.deleteMany({ where: { organizationId: orgId } }),
-      // Property contacts (no cascade, has relation filter)
-      prismadb.property_Contacts.deleteMany({
-        where: { Properties: { organizationId: orgId } },
-      }),
-      // Properties (comments & showings cascade via onDelete: Cascade)
-      prismadb.properties.deleteMany({ where: { organizationId: orgId } }),
-      // Client contacts
-      prismadb.client_Contacts.deleteMany({
-        where: { organizationId: orgId },
-      }),
-      // Clients (comments cascade via onDelete: Cascade)
-      prismadb.clients.deleteMany({ where: { organizationId: orgId } }),
-      // Mandates
-      prismadb.mandate.deleteMany({ where: { organizationId: orgId } }),
-      // Notifications
-      prismadb.notification.deleteMany({ where: { organizationId: orgId } }),
-      // Feedback
-      prismadb.feedback.deleteMany({ where: { organizationId: orgId } }),
-      // API keys & webhooks
-      prismadb.apiKey.deleteMany({ where: { organizationId: orgId } }),
-      prismadb.webhookEndpoint.deleteMany({
-        where: { organizationId: orgId },
-      }),
-      // Data export requests
-      prismadb.dataExportRequest.deleteMany({
-        where: { organizationId: orgId },
-      }),
-    ]);
-
-    // Mark as completed
-    await prismadb.dataDeletionRequest.update({
-      where: { id: requestId },
-      data: {
-        status: "COMPLETED",
-        executedAt: new Date(),
-      },
-    });
-
+  if (result.success) {
     await logAdminAction(admin.id, "EXECUTE_DATA_DELETION", requestId, {
-      organizationId: orgId,
+      organizationId: request.organizationId,
     });
-
-    console.log("[DATA_DELETION] Deletion executed for org:", orgId);
-
-    return { success: true };
-  } catch (error) {
-    console.error("[DATA_DELETION] Execution failed:", error);
-
-    // Revert to approved so admin can retry
-    await prismadb.dataDeletionRequest.update({
-      where: { id: requestId },
-      data: { status: "APPROVED" },
-    });
-
-    return {
-      success: false,
-      error: "Deletion failed. Please try again or contact engineering.",
-    };
   }
+
+  return result;
 }
 
 // =============================================================================
