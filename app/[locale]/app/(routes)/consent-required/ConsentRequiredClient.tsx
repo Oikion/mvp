@@ -12,12 +12,14 @@ interface ConsentRequiredClientProps {
   mode: DataOwnershipMode;
   orgName: string;
   originalMode: DataOwnershipMode | null;
+  policyVersion: number;
 }
 
 export function ConsentRequiredClient({
   mode,
   orgName,
   originalMode,
+  policyVersion,
 }: ConsentRequiredClientProps) {
   const t = useTranslations("dataOwnership.consentRequired");
   const router = useRouter();
@@ -28,6 +30,8 @@ export function ConsentRequiredClient({
     try {
       const result = await recordConsent();
       if (result.success) {
+        // Set consent cookie so middleware doesn't redirect again
+        document.cookie = `consent_v=${policyVersion}; path=/; max-age=86400`;
         toast.success("Consent recorded");
         router.push("/app");
         router.refresh();
