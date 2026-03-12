@@ -19,7 +19,8 @@ import { useTableWithPageSize } from "@/lib/hooks/use-table-with-page-size";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DataTablePagination } from "./data-table-pagination";
-import { DataTableToolbar } from "./data-table-toolbar";
+import { DataTableToolbar, type FilterChip } from "./data-table-toolbar";
+import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { DataTableBulkActions, type BulkAction } from "./data-table-bulk-actions";
 import { useTableKeyboard } from "@/hooks/use-table-keyboard";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const [showFilters, setShowFilters] = React.useState(false);
 
   const table = useTableWithPageSize({
     data,
@@ -130,13 +132,57 @@ export function DataTable<TData, TValue>({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [bulkActions, table]);
 
+  // Build filter chips from active column filters that match our filters config
+  const filterChips = React.useMemo<FilterChip[]>(() => {
+    if (!filters) return [];
+    const chips: FilterChip[] = [];
+    for (const f of filters) {
+      const col = table.getColumn(f.column);
+      const values = col?.getFilterValue() as string[] | undefined;
+      if (!values?.length) continue;
+      for (const v of values) {
+        const opt = f.options.find((o) => o.value === v);
+        chips.push({
+          label: `${f.title}: ${opt?.label ?? v}`,
+          onRemove: () => {
+            const next = values.filter((x) => x !== v);
+            col?.setFilterValue(next.length ? next : undefined);
+          },
+        });
+      }
+    }
+    return chips;
+  }, [filters, table, columnFilters]);
+
+  const filterCount = filterChips.length;
+
   return (
     <div className="space-y-4">
       <DataTableToolbar
         table={table}
         searchKey={searchKey}
         searchPlaceholder={searchPlaceholder}
-      />
+        filterCount={filterCount}
+        chips={filterChips}
+        onFilterOpen={filters?.length ? () => setShowFilters((p) => !p) : undefined}
+        onReset={() => {
+          filters?.forEach((f) => table.getColumn(f.column)?.setFilterValue(undefined));
+          setShowFilters(false);
+        }}
+      >
+        {showFilters && filters && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {filters.map((f) => (
+              <DataTableFacetedFilter
+                key={f.column}
+                column={table.getColumn(f.column)}
+                title={f.title}
+                options={f.options}
+              />
+            ))}
+          </div>
+        )}
+      </DataTableToolbar>
       <div
         ref={containerRef}
         className={cn(

@@ -119,7 +119,7 @@ export function useMarkAllNotificationsRead() {
         globalMutate(
           (key) => typeof key === "string" && key.startsWith("/api/notifications"),
           (currentData: NotificationsResponse | undefined) => {
-            if (!currentData) return currentData;
+            if (!currentData?.notifications) return currentData;
             return {
               ...currentData,
               notifications: currentData.notifications.map((n) => ({ ...n, read: true })),
@@ -138,7 +138,7 @@ export function useMarkAllNotificationsRead() {
     globalMutate(
       (key) => typeof key === "string" && key.startsWith("/api/notifications"),
       (currentData: NotificationsResponse | undefined) => {
-        if (!currentData) return currentData;
+        if (!currentData?.notifications) return currentData;
         return {
           ...currentData,
           notifications: currentData.notifications.map((n) => ({ ...n, read: true })),
@@ -200,7 +200,7 @@ export function useMarkNotificationRead() {
     globalMutate(
       (key) => typeof key === "string" && key.startsWith("/api/notifications"),
       (currentData: NotificationsResponse | undefined) => {
-        if (!currentData) return currentData;
+        if (!currentData?.notifications) return currentData;
         const updatedNotifications = currentData.notifications.map((n) =>
           n.id === notificationId ? { ...n, read: true } : n
         );

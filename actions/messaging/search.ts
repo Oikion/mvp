@@ -115,7 +115,7 @@ export async function searchMessages(params: {
     });
 
     // Get sender names
-    const senderIds = Array.from(new Set(messages.map(m => m.senderId)));
+    const senderIds = Array.from(new Set(messages.map(m => m.senderId).filter((id): id is string => id != null)));
     const senders = await prismadb.users.findMany({
       where: { id: { in: senderIds } },
       select: { id: true, name: true },
@@ -158,8 +158,8 @@ export async function searchMessages(params: {
       result.messages.push({
         id: msg.id,
         content: msg.content,
-        senderId: msg.senderId,
-        senderName: senderMap.get(msg.senderId) || undefined,
+        senderId: msg.senderId ?? "",
+        senderName: (msg.senderId ? senderMap.get(msg.senderId) : undefined) || undefined,
         createdAt: msg.createdAt,
         highlight: createHighlightSnippet(msg.content, params.query),
         channel: msg.channel || undefined,

@@ -135,11 +135,11 @@ export const GET = withExternalApi(
           commissionRate: Number(referral.referralCode.commissionRate),
         },
         referredUser: {
-          id: referral.referredUser.id,
-          name: referral.referredUser.name,
-          email: referral.referredUser.email,
-          status: referral.referredUser.userStatus,
-          joinedAt: referral.referredUser.created_on?.toISOString() || null,
+          id: referral.referredUser?.id ?? "",
+          name: referral.referredUser?.name ?? null,
+          email: referral.referredUser?.email ?? "",
+          status: referral.referredUser?.userStatus ?? null,
+          joinedAt: referral.referredUser?.created_on?.toISOString() || null,
         },
         payouts: referral.payouts.map((p) => ({
           id: p.id,
@@ -258,9 +258,9 @@ export const PATCH = withExternalApi(
           email: updatedReferral.referralCode.user?.email ?? "",
         },
         referredUser: {
-          id: updatedReferral.referredUser.id,
-          name: updatedReferral.referredUser.name,
-          email: updatedReferral.referredUser.email,
+          id: updatedReferral.referredUser?.id ?? "",
+          name: updatedReferral.referredUser?.name ?? null,
+          email: updatedReferral.referredUser?.email ?? "",
         },
       },
     });

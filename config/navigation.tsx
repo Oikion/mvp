@@ -73,7 +73,7 @@ export function getNavigationConfig({
   const categories = dict.navigation.ModuleMenu.categories || {
     overview: "Overview",
     coreBusiness: "Core Business",
-    network: "Polis",
+    network: "Network",
     tools: "Tools",
     organization: "Organization",
   }

@@ -125,15 +125,16 @@ export function ReferralPromoBox({
               </div>
 
               {/* CTA */}
-              <Link href="/app/referral-portal" className="block">
-                <Button
-                  size="sm"
-                  className="w-full h-auto min-h-8 py-1.5 text-xs gap-1.5 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-medium"
-                >
+              <Button
+                size="sm"
+                className="w-full h-auto min-h-8 py-1.5 text-xs gap-1.5 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-medium"
+                asChild
+              >
+                <Link href="/app/referral-portal" className="block">
                   <span className="text-center leading-tight">{t("promoBox.cta")}</span>
                   <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

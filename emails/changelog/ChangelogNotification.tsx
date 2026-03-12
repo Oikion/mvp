@@ -12,6 +12,7 @@ import {
   EmailCTAButton,
   BADGE_COLORS,
   baseUrl,
+  resolveColors,
 } from "@/emails/components/BaseLayout";
 import { buildUnsubscribeUrl } from "@/lib/unsubscribe-token";
 
@@ -108,7 +109,7 @@ export const ChangelogNotification = ({
       </Section>
 
       {/* CTA */}
-      <EmailCTAButton href={changelogUrl} text="View Full Changelog" />
+      <EmailCTAButton href={changelogUrl} text="View Full Changelog" colors={resolveColors()} />
 
       {/* Admin note */}
       <Text className="text-zinc-500 text-xs text-center m-0 mt-4">

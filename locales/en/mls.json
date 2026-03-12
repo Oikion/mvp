@@ -118,6 +118,11 @@
       "buildingBlockOt": "Building Block (O.T.)",
       "buildingBlockOtPlaceholder": "O.T. number"
     },
+    "visibility": {
+      "PERSONAL": "Personal",
+      "SECURE": "Secure",
+      "PUBLIC": "Public"
+    },
     "floor": {
       "BASEMENT": "Basement",
       "GROUND": "Ground",
@@ -305,7 +310,9 @@
     "scheduleEventDesc": "Schedule an appointment or event for this property",
     "share": "Share Property",
     "nameUpdated": "Name updated successfully",
-    "nameRequired": "Property name is required"
+    "nameRequired": "Property name is required",
+    "typeUpdated": "Type updated successfully",
+    "assignmentUpdated": "Assignment updated successfully"
   },
   "Tabs": {
     "agencyProperties": "Agency Properties",

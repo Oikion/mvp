@@ -115,7 +115,7 @@ export async function addComment(
     if (!parentId) {
       await notifyPostCommented({
         postId,
-        postAuthorId: post.authorId,
+        postAuthorId: post.authorId ?? "",
         postContent: post.content || undefined,
         actorId: currentUser.id,
         actorName: currentUser.name || currentUser.email || "Someone",
@@ -126,7 +126,7 @@ export async function addComment(
       // Notify parent comment author about the reply
       await notifyPostCommented({
         postId,
-        postAuthorId: parentComment.userId,
+        postAuthorId: parentComment.userId ?? "",
         postContent: `Reply to your comment`,
         actorId: currentUser.id,
         actorName: currentUser.name || currentUser.email || "Someone",
@@ -328,9 +328,9 @@ export async function getPostComments(
         content: c.content,
         createdAt: c.createdAt.toISOString(),
         author: {
-          id: c.Users.id,
-          name: c.Users.name || "Unknown",
-          avatar: c.Users.avatar || undefined,
+          id: c.Users?.id ?? "",
+          name: c.Users?.name || "Unknown",
+          avatar: c.Users?.avatar || undefined,
         },
         isOwn: c.userId === currentUser?.id,
         parentId: c.parentId,
@@ -340,9 +340,9 @@ export async function getPostComments(
           content: r.content,
           createdAt: r.createdAt.toISOString(),
           author: {
-            id: r.Users.id,
-            name: r.Users.name || "Unknown",
-            avatar: r.Users.avatar || undefined,
+            id: r.Users?.id ?? "",
+            name: r.Users?.name || "Unknown",
+            avatar: r.Users?.avatar || undefined,
           },
           isOwn: r.userId === currentUser?.id,
           parentId: r.parentId,

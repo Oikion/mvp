@@ -266,7 +266,7 @@ export async function POST(req: Request) {
           userId: currentUser?.id,
           userEmail: currentUser?.email,
           userName: currentUser?.name,
-          organizationId: organizationId,
+          organizationId: organizationId ?? "",
           feedbackType: feedbackType || "general",
           feedback: feedback,
           url: url,

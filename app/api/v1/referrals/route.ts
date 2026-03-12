@@ -153,10 +153,10 @@ export const GET = withExternalApi(
             email: referral.referralCode.user?.email ?? "",
           },
           referredUser: {
-            id: referral.referredUser.id,
-            name: referral.referredUser.name,
-            email: referral.referredUser.email,
-            joinedAt: referral.referredUser.created_on?.toISOString() || null,
+            id: referral.referredUser?.id ?? "",
+            name: referral.referredUser?.name ?? null,
+            email: referral.referredUser?.email ?? "",
+            joinedAt: referral.referredUser?.created_on?.toISOString() || null,
           },
           commissionRate: Number(referral.referralCode.commissionRate),
           payouts: referral.payouts.map((p) => ({

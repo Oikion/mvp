@@ -127,7 +127,11 @@
     "scheduleEvent": "Schedule Event",
     "scheduleEventTitle": "Schedule Event",
     "scheduleEventDesc": "Schedule an event for this client",
-    "share": "Share"
+    "share": "Share",
+    "nameUpdated": "Name updated successfully",
+    "phoneUpdated": "Phone updated successfully",
+    "emailUpdated": "Email updated successfully",
+    "assignmentUpdated": "Assignment updated successfully"
   },
   "ContactsTable": {
     "dateCreated": "Date created",

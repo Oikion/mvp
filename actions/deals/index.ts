@@ -125,7 +125,7 @@ export async function createDeal(input: CreateDealInput) {
     clientName: client.client_name,
     actorId: currentUser.id,
     actorName: currentUser.name || currentUser.email || "Someone",
-    targetUserId: otherAgentId,
+    targetUserId: otherAgentId ?? "",
     organizationId,
   });
 
@@ -151,8 +151,8 @@ export async function updateDeal(dealId: string, input: UpdateDealInput) {
   const guard = await requireDealAction(
     "deal:update",
     dealId,
-    deal.propertyAgentId,
-    deal.clientAgentId
+    deal.propertyAgentId ?? "",
+    deal.clientAgentId ?? ""
   );
   if (guard) throw new Error(guard.error);
 
@@ -234,8 +234,8 @@ export async function acceptDeal(dealId: string) {
   const guard = await requireDealAction(
     "deal:accept",
     dealId,
-    deal.propertyAgentId,
-    deal.clientAgentId
+    deal.propertyAgentId ?? "",
+    deal.clientAgentId ?? ""
   );
   if (guard) throw new Error(guard.error);
 
@@ -258,7 +258,7 @@ export async function acceptDeal(dealId: string) {
     clientName: deal.Clients?.client_name || "Client",
     actorId: currentUser.id,
     actorName: currentUser.name || currentUser.email || "Someone",
-    targetUserId: deal.proposedById,
+    targetUserId: deal.proposedById ?? "",
     organizationId: deal.organizationId || "", // Use deal's organizationId
     status: "ACCEPTED",
   });
@@ -288,8 +288,8 @@ export async function proposeDealTerms(
   const guard = await requireDealAction(
     "deal:propose_terms",
     dealId,
-    deal.propertyAgentId,
-    deal.clientAgentId
+    deal.propertyAgentId ?? "",
+    deal.clientAgentId ?? ""
   );
   if (guard) throw new Error(guard.error);
 
@@ -324,8 +324,8 @@ export async function cancelDeal(dealId: string) {
   const guard = await requireDealAction(
     "deal:cancel",
     dealId,
-    dealForPerm.propertyAgentId,
-    dealForPerm.clientAgentId
+    dealForPerm.propertyAgentId ?? "",
+    dealForPerm.clientAgentId ?? ""
   );
   if (guard) throw new Error(guard.error);
 
@@ -367,7 +367,7 @@ export async function cancelDeal(dealId: string) {
     clientName: deal.Clients?.client_name || "Client",
     actorId: currentUser.id,
     actorName: currentUser.name || currentUser.email || "Someone",
-    targetUserId: otherAgentId,
+    targetUserId: otherAgentId ?? "",
     organizationId: deal.organizationId || "", // Use deal's organizationId
     status: "CANCELLED",
   });
@@ -422,7 +422,7 @@ export async function completeDeal(dealId: string, totalCommission?: number) {
     clientName: deal.Clients?.client_name || "Client",
     actorId: currentUser.id,
     actorName: currentUser.name || currentUser.email || "Someone",
-    targetUserId: otherAgentId,
+    targetUserId: otherAgentId ?? "",
     organizationId: deal.organizationId || "", // Use deal's organizationId
     status: "COMPLETED",
   });
@@ -508,9 +508,15 @@ export async function getMyDeals(status?: DealStatus) {
  */
 export async function getDeal(dealId: string) {
   const currentUser = await getCurrentUser();
+  const organizationId = await getCurrentOrgId();
 
-  const dealRaw = await prismadb.deal.findUnique({
-    where: { id: dealId },
+  // Support lookup by friendlyId (e.g. "deal-000011") or raw id
+  const isFriendlyId = dealId.startsWith("deal-");
+  const dealRaw = await prismadb.deal.findFirst({
+    where: {
+      ...(isFriendlyId ? { friendlyId: dealId } : { id: dealId }),
+      organizationId,
+    },
     include: {
       Properties: {
         select: {

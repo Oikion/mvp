@@ -11,11 +11,11 @@ interface PhoneCellProps {
 }
 
 export const PhoneCell = ({ clientId, value }: PhoneCellProps) => {
-  const tCommon = useTranslations("common");
+  const t = useTranslations("crm");
 
   const handleSave = async (newValue: string) => {
     await updateClient(clientId, { primary_phone: newValue || null });
-    toast.success(tCommon("success"));
+    toast.success(t("CrmAccountsTable.phoneUpdated"));
   };
 
   return (

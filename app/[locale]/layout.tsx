@@ -1,7 +1,4 @@
-import "./globals.css";
-
 import { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 
 import { ReactNode } from "react";
 import { notFound } from "next/navigation";
@@ -12,7 +9,7 @@ import { ThemeProvider } from "@/app/providers/ThemeProvider";
 import { SWRProvider } from "@/app/providers/SWRProvider";
 import { ClerkThemeProvider } from "@/lib/clerk-theme-provider";
 import { ensureEnvValidated } from "@/lib/env";
-import { SkipLink } from "@/components/ui/skip-link";
+import { SetHtmlLang } from "./SetHtmlLang";
 
 // Static imports for all translation files
 import commonEn from "@/locales/en/common.json";
@@ -91,12 +88,6 @@ import shareEl from "@/locales/el/share.json";
 import mandatesEl from "@/locales/el/mandates.json";
 import networkEl from "@/locales/el/network.json";
 
-const inter = Inter({ 
-  subsets: ["latin"], 
-  variable: "--font-sans",
-  display: "swap",
-  fallback: ["system-ui", "arial"],
-});
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const metadataBaseUrl = new URL(appBaseUrl);
 
@@ -284,20 +275,16 @@ export default async function RootLayout(props: Props) {
   const messages = getLocales(locale);
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans min-h-screen`} suppressHydrationWarning>
-        <SkipLink />
-        <ThemeProvider defaultTheme="system" enableSystem disableTransitionOnChange>
-          <ClerkThemeProvider>
-            <SWRProvider>
-              <NextIntlClientProvider locale={locale} messages={messages}>
-                {children}
-              </NextIntlClientProvider>
-            </SWRProvider>
-          </ClerkThemeProvider>
-        </ThemeProvider>
-        <Toaster />
-      </body>
-    </html>
+    <ThemeProvider defaultTheme="system" enableSystem disableTransitionOnChange>
+      <ClerkThemeProvider>
+        <SWRProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <SetHtmlLang locale={locale} />
+            {children}
+          </NextIntlClientProvider>
+        </SWRProvider>
+      </ClerkThemeProvider>
+      <Toaster />
+    </ThemeProvider>
   );
 }

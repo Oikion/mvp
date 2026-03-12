@@ -1,4 +1,16 @@
+import "./[locale]/globals.css";
+
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+
+import { SkipLink } from "@/components/ui/skip-link";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+  fallback: ["system-ui", "arial"],
+});
 
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -6,13 +18,6 @@ export const metadata: Metadata = {
   metadataBase: new URL(appBaseUrl),
 };
 
-/**
- * Root layout for app directory
- * This is a minimal layout for redirect-only pages (app/page.tsx, app/dashboard/page.tsx)
- * The main application layouts are in app/[locale]/layout.tsx
- * 
- * IMPORTANT: Must match the structure of [locale]/layout.tsx to prevent hydration mismatches
- */
 export default function RootLayout({
   children,
 }: {
@@ -20,7 +25,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body className={`${inter.variable} font-sans min-h-screen`} suppressHydrationWarning>
+        <SkipLink />
+        {children}
+      </body>
     </html>
   );
 }

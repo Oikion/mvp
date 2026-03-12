@@ -57,12 +57,12 @@ export function ReferralPortalClient({
               <p className="text-muted-foreground mb-6">
                 {t("applicationStatus.approved.description")}
               </p>
-              <Link href="/app/profile?tab=referrals">
-                <Button>
+              <Button asChild>
+                <Link href="/app/profile?tab=referrals">
                   {t("applicationStatus.approved.cta")}
                   <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>

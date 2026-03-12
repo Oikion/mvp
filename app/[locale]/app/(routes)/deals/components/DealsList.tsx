@@ -188,11 +188,11 @@ export function DealsList({ deals, translations: t }: DealsListProps) {
 
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <Link href={`/app/deals/${deal.friendlyId}`}>
-                  <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/app/deals/${deal.friendlyId}`}>
                     <ExternalLink className="h-4 w-4" />
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             </div>
 

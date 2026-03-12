@@ -121,8 +121,8 @@ export async function getUserReferrals(): Promise<UserReferralsResult> {
   // Process referrals
   const referrals: ReferralData[] = referralCode.referrals.map((ref) => ({
     id: ref.id,
-    referredUserEmail: maskEmail(ref.referredUser.email),
-    referredUserName: ref.referredUser.name,
+    referredUserEmail: ref.referredUser ? maskEmail(ref.referredUser.email) : "",
+    referredUserName: ref.referredUser?.name ?? null,
     status: ref.status,
     totalEarnings: Number(ref.totalEarnings),
     convertedAt: ref.convertedAt,

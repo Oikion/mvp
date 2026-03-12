@@ -1,10 +1,11 @@
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
     await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const body = await req.json();
 
     const {
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
     await prismadb.myAccount.create({
       data: {
         id: crypto.randomUUID(),
+        organizationId,
         company_name,
         is_person,
         email,

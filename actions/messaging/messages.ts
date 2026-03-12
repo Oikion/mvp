@@ -141,7 +141,7 @@ export async function sendMessage(params: {
       message: {
         id: message.id,
         content: params.content, // return original plaintext for immediate display
-        senderId: message.senderId,
+        senderId: message.senderId ?? "",
         createdAt: message.createdAt,
       },
     };
@@ -284,7 +284,7 @@ export async function getMessages(params: {
         id: msg.id,
         content: msg.content, // E2EE ciphertext — client decrypts
         contentType: msg.contentType,
-        senderId: msg.senderId,
+        senderId: msg.senderId ?? "",
         parentId: msg.parentId,
         threadCount: msg.threadCount,
         isEdited: msg.isEdited,

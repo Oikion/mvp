@@ -205,7 +205,7 @@ export async function PUT(
         clientName: deal.Clients?.client_name || "Client",
         actorId: currentUser.id,
         actorName: currentUser.name || currentUser.email || "Someone",
-        targetUserId: otherAgentId,
+        targetUserId: otherAgentId ?? "",
         organizationId,
         status,
       });

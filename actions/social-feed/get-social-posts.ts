@@ -134,13 +134,13 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
     // PERSONAL profiles hide all posts from non-connections
     const filteredPosts = posts.filter((post) => {
       // Own posts always visible
-      if (post.authorId === currentUser.id) return true;
-      
+      if (post.authorId && post.authorId === currentUser.id) return true;
+
       // Posts from connections are always visible
-      if (connectedUserIds.has(post.authorId)) return true;
-      
+      if (post.authorId && connectedUserIds.has(post.authorId)) return true;
+
       // Posts from PUBLIC or SECURE profiles (authenticated user can see)
-      if (visibleUserIds.has(post.authorId)) return true;
+      if (post.authorId && visibleUserIds.has(post.authorId)) return true;
       
       return false;
     });
@@ -206,7 +206,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
       comments: post.SocialPostComment?.length || 0,
       isLiked: post.SocialPostLike?.some((like) => like.userId === currentUser.id) || false,
       isOwn: post.authorId === currentUser.id,
-      isFromConnection: connectedUserIds.has(post.authorId),
+      isFromConnection: post.authorId ? connectedUserIds.has(post.authorId) : false,
     }));
   } catch (error) {
     console.error("Error fetching social posts:", error);

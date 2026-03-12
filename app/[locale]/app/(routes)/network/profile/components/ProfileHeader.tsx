@@ -190,16 +190,15 @@ export function ProfileHeader({
         {/* Action buttons */}
         <div className="flex items-center gap-2 shrink-0">
           {profile?.visibility !== "PERSONAL" && profile && userData.username && (
-            <Link
-              href={`/agent/${userData.username}`}
-              target="_blank"
-              className="inline-flex"
-            >
-              <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" asChild>
+              <Link
+                href={`/agent/${userData.username}`}
+                target="_blank"
+              >
                 <ExternalLink className="h-4 w-4 mr-1.5" />
                 {t?.preview?.viewLiveProfile || "View Live"}
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )}
 
           {profile && (

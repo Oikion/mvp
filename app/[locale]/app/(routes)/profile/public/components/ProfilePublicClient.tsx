@@ -155,16 +155,15 @@ export function ProfilePublicClient({
 
         <div className="flex items-center gap-2">
           {profileUrl && profile?.visibility !== "PERSONAL" && profile && (
-            <Link
-              href={`/agent/${profileUrl}`}
-              target="_blank"
-              className="inline-flex items-center gap-1"
-            >
-              <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" asChild>
+              <Link
+                href={`/agent/${profileUrl}`}
+                target="_blank"
+              >
                 <ExternalLink className="h-4 w-4 mr-1" />
                 {t?.preview?.viewLiveProfile || "View Live"}
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )}
 
           {profile && (

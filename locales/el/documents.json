@@ -145,6 +145,20 @@
     "fields": "Πεδία",
     "requiredFields": "Υποχρεωτικά πεδία",
     "clearAll": "Καθαρισμός Όλων"
+  },
+  "massUpload": {
+    "title": "Μαζική Μεταφόρτωση Εγγράφων",
+    "dragDropMultiple": "Σύρετε αρχεία εδώ ή κάντε κλικ για αναζήτηση",
+    "dropFilesHere": "Αφήστε τα αρχεία εδώ...",
+    "supportedFormats": "PDF, DOCX, XLSX, JPG, PNG (μέγ. 10MB ανά αρχείο)",
+    "filesSelected": "{count, plural, one {# αρχείο επιλεγμένο} other {# αρχεία επιλεγμένα}}",
+    "uploadAll": "Μεταφόρτωση Όλων ({count})",
+    "uploading": "Μεταφόρτωση...",
+    "pleaseWait": "Παρακαλώ περιμένετε...",
+    "allUploaded": "{count, plural, one {# αρχείο μεταφορτώθηκε} other {# αρχεία μεταφορτώθηκαν}} με επιτυχία",
+    "allFailed": "Όλες οι μεταφορτώσεις απέτυχαν",
+    "partialSuccess": "{success} μεταφορτώθηκαν, {failed} απέτυχαν",
+    "allFilesMustHaveNames": "Όλα τα αρχεία πρέπει να έχουν ονόματα"
   }
 }
 

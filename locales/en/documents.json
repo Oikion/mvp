@@ -145,6 +145,20 @@
     "fields": "Fields",
     "requiredFields": "Required fields",
     "clearAll": "Clear All"
+  },
+  "massUpload": {
+    "title": "Mass Upload Documents",
+    "dragDropMultiple": "Drag & drop files here, or click to browse",
+    "dropFilesHere": "Drop files here...",
+    "supportedFormats": "PDF, DOCX, XLSX, JPG, PNG (max 10MB each)",
+    "filesSelected": "{count, plural, one {# file selected} other {# files selected}}",
+    "uploadAll": "Upload All ({count})",
+    "uploading": "Uploading...",
+    "pleaseWait": "Please wait...",
+    "allUploaded": "{count, plural, one {# file uploaded} other {# files uploaded}} successfully",
+    "allFailed": "All uploads failed",
+    "partialSuccess": "{success} uploaded, {failed} failed",
+    "allFilesMustHaveNames": "All files must have names"
   }
 }
 

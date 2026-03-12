@@ -96,7 +96,7 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
     };
   }
 
-  const authorVisibility = (post.Users.AgentProfile?.visibility || "PERSONAL") as "PERSONAL" | "SECURE" | "PUBLIC";
+  const authorVisibility = (post.Users?.AgentProfile?.visibility || "PERSONAL") as "PERSONAL" | "SECURE" | "PUBLIC";
   
   // Check visibility access
   let isAccessible = false;
@@ -119,8 +119,8 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
         where: {
           status: "ACCEPTED",
           OR: [
-            { followerId: currentUser.id, followingId: post.authorId },
-            { followerId: post.authorId, followingId: currentUser.id },
+            { followerId: currentUser.id, followingId: post.authorId ?? "" },
+            { followerId: post.authorId ?? "", followingId: currentUser.id },
           ],
         },
       });
@@ -159,10 +159,10 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
     content: post.content,
     timestamp: post.createdAt.toISOString(),
     author: {
-      id: post.Users.id,
-      name: post.Users.name,
-      avatar: post.Users.avatar,
-      username: post.Users.username,
+      id: post.Users?.id ?? "",
+      name: post.Users?.name ?? null,
+      avatar: post.Users?.avatar ?? null,
+      username: post.Users?.username ?? null,
       visibility: authorVisibility,
     },
     linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
@@ -228,21 +228,21 @@ export async function getPostMetadata(idOrSlug: string) {
     return null;
   }
 
-  const visibility = post.Users.AgentProfile?.visibility || "PERSONAL";
-  
+  const visibility = post.Users?.AgentProfile?.visibility || "PERSONAL";
+
   // Only return metadata for PUBLIC posts
   if (visibility !== "PUBLIC") {
     return {
       isPrivate: true,
-      authorName: post.Users.name,
+      authorName: post.Users?.name ?? null,
     };
   }
 
   return {
     isPrivate: false,
-    authorName: post.Users.name,
-    authorAvatar: post.Users.avatar,
-    authorUsername: post.Users.username,
+    authorName: post.Users?.name ?? null,
+    authorAvatar: post.Users?.avatar ?? null,
+    authorUsername: post.Users?.username ?? null,
     content: post.content?.slice(0, 160) || undefined,
     postType: post.postType,
     linkedEntityTitle: post.linkedEntityTitle,

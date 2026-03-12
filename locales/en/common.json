@@ -1,5 +1,6 @@
 {
   "new": "New",
+  "saved": "Saved",
   "quickAdd": "Quick Add",
   "import": "Import",
   "learnMore": "Learn more",
@@ -205,6 +206,7 @@
     "searchClients": "Search clients...",
     "searchProperties": "Search properties...",
     "searchMandates": "Search mandates...",
+    "searchDocuments": "Search documents...",
     "searchUsers": "Search users...",
     "selectUser": "Select a user",
     "selectClient": "Select a client",
@@ -269,6 +271,7 @@
     "noClientsAvailable": "No clients available. Create clients first.",
     "noPropertiesAvailable": "No properties available. Create properties first.",
     "noMandatesAvailable": "No mandates available. Create mandates first.",
+    "noDocumentsAvailable": "No documents available. Upload documents first.",
     "loadFailed": "Failed to load. Please refresh the page.",
     "noOptionFound": "No option found."
   },
@@ -365,6 +368,7 @@
     "linkClients": "Link Clients to Property",
     "linkProperties": "Link Properties to Client",
     "linkMandates": "Link Mandates",
+    "linkDocuments": "Link Documents",
     "shareWithAgents": "Share with Agents",
     "feedback": "Feedback",
     "sidebar": "Sidebar"

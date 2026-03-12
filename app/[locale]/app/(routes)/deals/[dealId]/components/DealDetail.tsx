@@ -466,11 +466,11 @@ export function DealDetail({ deal }: DealDetailProps) {
                     </p>
                   )}
                 </div>
-                <Link href={`/app/mls/properties/${deal.property.friendlyId}`}>
-                  <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/app/mls/properties/${deal.property.friendlyId}`}>
                     <ExternalLink className="h-4 w-4" />
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -522,12 +522,12 @@ export function DealDetail({ deal }: DealDetailProps) {
                   {deal.client.primary_phone}
                 </a>
               )}
-              <Link href={`/app/crm/accounts/${deal.client.id}`}>
-                <Button variant="outline" className="w-full mt-2" size="sm">
+              <Button variant="outline" className="w-full mt-2" size="sm" asChild>
+                <Link href={`/app/crm/accounts/${deal.client.id}`}>
                   View Client
                   <ExternalLink className="h-3 w-3 ml-2" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </CardContent>
           </Card>
 

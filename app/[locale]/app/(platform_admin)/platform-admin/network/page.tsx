@@ -20,9 +20,7 @@ export default async function PlatformAdminNetworkPage() {
   ]);
 
   // Load agency profiles for display names
-  const orgIds = [
-    ...new Set(networkSettings.map((s) => s.organizationId)),
-  ];
+  const orgIds = Array.from(new Set(networkSettings.map((s) => s.organizationId)));
   const profiles = await prismadb.agencyProfile.findMany({
     where: { organizationId: { in: orgIds } },
     select: { organizationId: true, name: true },

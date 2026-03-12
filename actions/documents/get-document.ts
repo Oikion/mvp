@@ -1,10 +1,12 @@
 import { prismadb } from "@/lib/prisma";
-import { decryptDocumentForOrg, decryptClientForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
+import { decryptDocumentForOrg, decryptClientForOrg, decryptCalendarEventForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
 
 export async function getDocument(documentId: string, organizationId: string) {
+  // Support lookup by friendlyId (e.g. "doc-000011") or raw id
+  const isFriendlyId = documentId.startsWith("doc-");
   const document = await prismadb.documents.findFirst({
     where: {
-      id: documentId,
+      ...(isFriendlyId ? { friendlyId: documentId } : { id: documentId }),
       organizationId,
     },
     include: {
@@ -38,6 +40,18 @@ export async function getDocument(documentId: string, organizationId: string) {
           title: true,
           priority: true,
           dueDateAt: true,
+        },
+      },
+      Mandates: {
+        select: {
+          id: true,
+          friendlyId: true,
+          title: true,
+          transaction_type: true,
+          status: true,
+          urgency: true,
+          budget_min: true,
+          budget_max: true,
         },
       },
       Users_Documents_created_by_userToUsers: {
@@ -85,6 +99,7 @@ export async function getDocument(documentId: string, organizationId: string) {
     linkedProperties: document.Properties,
     linkedCalendarEvents: await Promise.all(document.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, organizationId))),
     linkedTasks: document.crm_Accounts_Tasks_DocumentsToCrmAccountsTasks,
+    linkedMandates: await Promise.all(document.Mandates.map((m) => decryptMandateForOrg(m, organizationId))),
     created_by: document.Users_Documents_created_by_userToUsers,
     assigned_to_user: document.Users_Documents_assigned_userToUsers,
     views: document.DocumentView.map((v) => ({

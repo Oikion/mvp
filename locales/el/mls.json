@@ -118,6 +118,11 @@
       "buildingBlockOt": "Οικοδομικό Τετράγωνο (Ο.Τ.)",
       "buildingBlockOtPlaceholder": "Αριθμός Ο.Τ."
     },
+    "visibility": {
+      "PERSONAL": "Προσωπικό",
+      "SECURE": "Ασφαλές",
+      "PUBLIC": "Δημόσιο"
+    },
     "propertyType": {
       "APARTMENT": "Διαμέρισμα",
       "HOUSE": "Μονοκατοικία",
@@ -311,7 +316,9 @@
     "scheduleEventDesc": "Προγραμματίστε μια συνάντηση ή εκδήλωση για αυτό το ακίνητο",
     "share": "Κοινοποίηση Ακινήτου",
     "nameUpdated": "Το όνομα ενημερώθηκε επιτυχώς",
-    "nameRequired": "Το όνομα ακινήτου είναι υποχρεωτικό"
+    "nameRequired": "Το όνομα ακινήτου είναι υποχρεωτικό",
+    "typeUpdated": "Ο τύπος ενημερώθηκε επιτυχώς",
+    "assignmentUpdated": "Η ανάθεση ενημερώθηκε επιτυχώς"
   },
   "Tabs": {
     "agencyProperties": "Ακίνητα Γραφείου",

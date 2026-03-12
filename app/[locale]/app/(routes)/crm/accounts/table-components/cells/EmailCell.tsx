@@ -13,7 +13,7 @@ interface EmailCellProps {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const EmailCell = ({ clientId, value }: EmailCellProps) => {
-  const tCommon = useTranslations("common");
+  const t = useTranslations("crm");
 
   const validateEmail = (val: string) => {
     if (val && !EMAIL_REGEX.test(val)) return "Invalid email address";
@@ -22,7 +22,7 @@ export const EmailCell = ({ clientId, value }: EmailCellProps) => {
 
   const handleSave = async (newValue: string) => {
     await updateClient(clientId, { primary_email: newValue || null });
-    toast.success(tCommon("success"));
+    toast.success(t("CrmAccountsTable.emailUpdated"));
   };
 
   return (

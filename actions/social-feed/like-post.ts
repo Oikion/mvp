@@ -72,7 +72,7 @@ export async function toggleLikePost(postId: string): Promise<LikeResult> {
       // Send notification to post author (only on like, not unlike)
       await notifyPostLiked({
         postId,
-        postAuthorId: post.authorId,
+        postAuthorId: post.authorId ?? "",
         postContent: post.content || undefined,
         actorId: currentUser.id,
         actorName: currentUser.name || currentUser.email || "Someone",
@@ -164,7 +164,7 @@ export async function getPostLikers(postId: string, limit: number = 10) {
   const totalCount = await prismadb.socialPostLike.count({ where: { postId } });
 
   return {
-    users: likers.map((l) => l.Users),
+    users: likers.map((l) => l.Users ?? null),
     total: totalCount,
     hasMore: totalCount > limit,
   };

@@ -286,6 +286,7 @@
   },
   "linkedEntities": {
     "noClients": "No clients linked yet",
-    "noProperties": "No properties linked yet"
+    "noProperties": "No properties linked yet",
+    "noDocuments": "No documents linked yet"
   }
 }

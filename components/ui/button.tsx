@@ -112,7 +112,7 @@ function buildButtonContent(
     const iconElement = isLoading 
       ? <Loader2 className="loading-spinner h-4 w-4 animate-spin" />
       : leftIcon
-    return asChild ? <span>{iconElement}</span> : iconElement
+    return asChild ? <span className="inline-flex items-center justify-center w-full h-full">{iconElement}</span> : iconElement
   }
 
   const content = (
@@ -123,7 +123,7 @@ function buildButtonContent(
       {rightIcon}
     </>
   )
-  return asChild ? <span>{content}</span> : content
+  return asChild ? <span className="inline-flex items-center gap-2 w-full h-full justify-center">{content}</span> : content
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

@@ -229,7 +229,7 @@ export async function getUserConversations(): Promise<{
         isGroup: conv.isGroup,
         type,
         participants: enrichedParticipants,
-        lastMessage: conv.messages[0] ?? undefined,
+        lastMessage: conv.messages[0] ? { ...conv.messages[0], senderId: conv.messages[0].senderId ?? "" } : undefined,
         unreadCount: unreadMap.get(conv.id) ?? 0,
         isMuted,
       };

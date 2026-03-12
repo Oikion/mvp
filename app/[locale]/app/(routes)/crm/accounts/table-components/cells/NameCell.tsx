@@ -11,11 +11,11 @@ interface NameCellProps {
 }
 
 export const NameCell = ({ clientId, value }: NameCellProps) => {
-  const tCommon = useTranslations("common");
+  const t = useTranslations("crm");
 
   const handleSave = async (newValue: string) => {
     await updateClient(clientId, { client_name: newValue });
-    toast.success(tCommon("success"));
+    toast.success(t("CrmAccountsTable.nameUpdated"));
   };
 
   return (

@@ -19,14 +19,13 @@ export const AssignedUserCell = ({
 }: AssignedUserCellProps) => {
   const router = useRouter();
   const t = useTranslations("mls");
-  const tCommon = useTranslations("common");
 
   const handleSave = async (value: string | null) => {
     await axios.put("/api/mls/properties", {
       id: propertyId,
       assigned_to: value,
     });
-    toast.success(tCommon("saved") || "Saved");
+    toast.success(t("MlsPropertiesTable.assignmentUpdated"));
     router.refresh();
   };
 

@@ -329,7 +329,7 @@ export async function sendMessage(params: {
     message: {
       id: message.id,
       content: message.content,
-      senderId: message.senderId,
+      senderId: message.senderId ?? "",
       channelId: message.channelId || undefined,
       conversationId: message.conversationId || undefined,
       createdAt: message.createdAt.toISOString(),
@@ -481,7 +481,7 @@ export async function editMessage(
     message: {
       id: updated.id,
       content: updated.content,
-      senderId: updated.senderId,
+      senderId: updated.senderId ?? "",
       channelId: updated.channelId || undefined,
       conversationId: updated.conversationId || undefined,
       createdAt: updated.createdAt.toISOString(),
@@ -536,7 +536,7 @@ export async function deleteMessage(
     message: {
       id: deleted.id,
       content: deleted.content,
-      senderId: deleted.senderId,
+      senderId: deleted.senderId ?? "",
       channelId: deleted.channelId || undefined,
       conversationId: deleted.conversationId || undefined,
       createdAt: deleted.createdAt.toISOString(),

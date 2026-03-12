@@ -17,11 +17,10 @@ export const AssignedUserCell = ({
   users,
 }: AssignedUserCellProps) => {
   const t = useTranslations("crm");
-  const tCommon = useTranslations("common");
 
   const handleSave = async (value: string | null) => {
     await updateClient(clientId, { assigned_to: value });
-    toast.success(tCommon("saved"));
+    toast.success(t("CrmAccountsTable.assignmentUpdated"));
   };
 
   const userOptions = users.map((u: any) => ({

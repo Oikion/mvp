@@ -44,6 +44,7 @@ export async function POST(req: Request) {
     const newContact = await prismadb.client_Contacts.create({
       data: {
         id: contactId,
+        organizationId,
         createdBy: userId,
         updatedBy: userId,
         clientsIDs: assigned_client || null,
