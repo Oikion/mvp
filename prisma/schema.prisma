@@ -275,6 +275,7 @@ model Clients {
   company_name                     String?
   doy                              String?
   draft_status                     Boolean?             @default(false)
+  visibility                       ItemVisibility       @default(PERSONAL)
   full_name                        String?
   gdpr_consent                     Boolean?             @default(false)
   id_doc                           String?
@@ -303,6 +304,7 @@ model Clients {
   @@index([friendlyId])
   @@index([organizationId])
   @@index([lead_source])
+  @@index([visibility])
 }
 
 model Deal {
@@ -334,6 +336,7 @@ model Deal {
   Users_Deal_clientAgentIdToUsers   Users?          @relation("Deal_clientAgentIdToUsers", fields: [clientAgentId], references: [id], onDelete: SetNull)
   Clients                           Clients         @relation(fields: [clientId], references: [id])
   Users_Deal_propertyAgentIdToUsers Users?          @relation("Deal_propertyAgentIdToUsers", fields: [propertyAgentId], references: [id], onDelete: SetNull)
+  Users_Deal_proposedByToUsers      Users?          @relation("Deal_proposedByToUsers", fields: [proposedById], references: [id], onDelete: SetNull)
   Properties                        Properties      @relation(fields: [propertyId], references: [id])
   MarketingSpend                    MarketingSpend? @relation(fields: [marketingSpendId], references: [id])
   AgentHours                        AgentHours[]
@@ -343,6 +346,7 @@ model Deal {
   @@index([clientId])
   @@index([friendlyId])
   @@index([organizationId])
+  @@index([proposedById])
   @@index([propertyAgentId])
   @@index([propertyId])
   @@index([status])
@@ -421,6 +425,7 @@ model Documents {
   linkedCalendarEventsIds                        String[]
   linkedPropertiesIds                            String[]
   linkedTasksIds                                 String[]
+  linkedMandatesIds                              String[]
   mentions                                       Json?
   passwordHash                                   String?
   passwordProtected                              Boolean              @default(false)
@@ -437,6 +442,7 @@ model Documents {
   crm_Accounts_Tasks_DocumentsToCrmAccountsTasks crm_Accounts_Tasks[] @relation("DocumentsToCrmAccountsTasks")
   Properties                                     Properties[]
   crm_Accounts_Tasks_DocumentsToTasksExplicit    crm_Accounts_Tasks[] @relation("DocumentsToTasksExplicit")
+  Mandates                                       Mandate[]            @relation("DocumentsToMandates")
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_user])
@@ -514,7 +520,7 @@ model Feedback {
   adminResponse    String?
   respondedAt      DateTime?
   respondedBy      String?           @db.VarChar(255)
-  Users            Users?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Users            Users?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   FeedbackComment  FeedbackComment[]
   attachments      Attachment[]
 
@@ -702,7 +708,7 @@ model Properties {
   objective_zone         String?
   orientation            Json?
   plot_size_sqm          Decimal?
-  portal_visibility      PortalVisibility?
+  visibility             ItemVisibility   @default(PERSONAL)
   postal_code            String?
   price_type             PriceType?
   region                 String?
@@ -735,18 +741,43 @@ model Properties {
   PropertyShowing                     PropertyShowing[]
   XeSyncItems                         XeSyncItem[]
   Mandate_Properties                  Mandate_Properties[]
-  networkVisible                      Boolean                   @default(false)
+  PropertyImage                       PropertyImage[]
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_to])
   @@index([createdAt])
   @@index([friendlyId])
   @@index([organizationId])
-  @@index([portal_visibility])
+  @@index([visibility])
   @@index([property_status])
   @@index([saleDate])
   @@index([xePublished])
-  @@index([networkVisible])
+}
+
+model PropertyImage {
+  id               String      @id @default(uuid())
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  propertyId       String?
+  organizationId   String
+  url              String
+  blobPathname     String
+  position         Int         @default(0)
+  isPrimary        Boolean     @default(false)
+  caption          String?
+  width            Int?
+  height           Int?
+  fileSize         Int
+  originalFileSize Int
+  mimeType         String
+  originalFileName String
+  uploadSessionId  String?
+  Properties       Properties? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([organizationId])
+  @@index([uploadSessionId])
+  @@index([propertyId, position])
 }
 
 model PropertyComment {
@@ -922,6 +953,7 @@ model Users {
   layoutPreference                                   LayoutPreference              @default(DEFAULT)
   dashboardConfig                                    Json?
   pinnedNavUrls                                      String[]                      @default([])
+  userTheme                                          String                        @default("estate")
   AgentConnection_AgentConnection_followerIdToUsers  AgentConnection[]             @relation("AgentConnection_followerIdToUsers")
   AgentConnection_AgentConnection_followingIdToUsers AgentConnection[]             @relation("AgentConnection_followingIdToUsers")
   AgentProfile                                       AgentProfile?
@@ -932,6 +964,7 @@ model Users {
   Clients_Clients_assigned_toToUsers                 Clients[]                     @relation("Clients_assigned_toToUsers")
   Deal_Deal_clientAgentIdToUsers                     Deal[]                        @relation("Deal_clientAgentIdToUsers")
   Deal_Deal_propertyAgentIdToUsers                   Deal[]                        @relation("Deal_propertyAgentIdToUsers")
+  Deal_Deal_proposedByToUsers                        Deal[]                        @relation("Deal_proposedByToUsers")
   DocumentView                                       DocumentView[]
   Documents_Documents_assigned_userToUsers           Documents[]                   @relation("Documents_assigned_userToUsers")
   Documents_Documents_created_by_userToUsers         Documents[]                   @relation("Documents_created_by_userToUsers")
@@ -1408,9 +1441,9 @@ enum PersonType {
   BROKER
 }
 
-enum PortalVisibility {
-  PRIVATE
-  SELECTED
+enum ItemVisibility {
+  PERSONAL
+  SECURE
   PUBLIC
 }
 
@@ -1582,11 +1615,12 @@ model Mandate {
   notes               String?
   communication_notes Json?
   draft_status        Boolean?             @default(false)
-  networkVisible      Boolean              @default(false)
+  visibility          ItemVisibility       @default(PERSONAL)
   assigned_to_user    Users?               @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
   comments            MandateComment[]
   Mandate_Properties  Mandate_Properties[]
   Mandate_Clients     Mandate_Clients[]
+  Documents           Documents[]          @relation("DocumentsToMandates")
 
   @@unique([friendlyId, organizationId])
   @@index([friendlyId])
@@ -1594,7 +1628,7 @@ model Mandate {
   @@index([assigned_to])
   @@index([status])
   @@index([createdAt])
-  @@index([networkVisible])
+  @@index([visibility])
 }
 
 model MandateComment {
@@ -2978,6 +3012,7 @@ model DataExportRequest {
 // ============================================================
 
 enum DataDeletionStatus {
+  PENDING_VERIFICATION
   PENDING
   APPROVED
   PROCESSING
@@ -2987,18 +3022,22 @@ enum DataDeletionStatus {
 }
 
 model DataDeletionRequest {
-  id                String             @id @default(cuid())
-  organizationId    String
-  requestedById     String
-  reason            String?
-  status            DataDeletionStatus @default(PENDING)
-  reviewedById      String?
-  reviewedAt        DateTime?
-  reviewNote        String?
-  gracePeriodEndsAt DateTime
-  executedAt        DateTime?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id                        String              @id @default(cuid())
+  organizationId            String
+  requestedById             String
+  reason                    String?
+  status                    DataDeletionStatus  @default(PENDING_VERIFICATION)
+  reviewedById              String?
+  reviewedAt                DateTime?
+  reviewNote                String?
+  gracePeriodEndsAt         DateTime?
+  executedAt                DateTime?
+  verificationCode          String?
+  verificationCodeExpiresAt DateTime?
+  verifiedAt                DateTime?
+  reminderSentAt            DateTime?
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
 
   @@index([organizationId])
   @@index([requestedById])
