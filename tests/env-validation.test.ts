@@ -36,14 +36,14 @@ describe("validateEnv", () => {
 
 describe("ensureEnvValidated", () => {
   it("skips validation outside production", () => {
-    process.env.NODE_ENV = "development";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "development";
     delete process.env.DATABASE_URL;
 
     expect(() => ensureEnvValidated()).not.toThrow();
   });
 
   it("validates env in production", () => {
-    process.env.NODE_ENV = "production";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "production";
     delete process.env.DATABASE_URL;
 
     expect(() => ensureEnvValidated()).toThrow("Environment validation failed");

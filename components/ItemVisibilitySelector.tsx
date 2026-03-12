@@ -102,6 +102,7 @@ export function ItemVisibilitySelector({
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (disabled) return;
+    e.preventDefault(); // prevent text selection while dragging
     e.currentTarget.setPointerCapture(e.pointerId);
     setIsDragging(true);
     setDragPos(getPosFromEvent(e.clientX));
@@ -127,7 +128,7 @@ export function ItemVisibilitySelector({
     : OPTIONS[committedIdx].trackColor;
 
   return (
-    <div className={cn("space-y-3", disabled && "pointer-events-none opacity-50")}>
+    <div className={cn("space-y-3 select-none", disabled && "pointer-events-none opacity-50")}>
       {/* Track */}
       <div className="relative px-2.5 py-2 select-none">
         {/* Ghost gradient track (full width, faint) */}

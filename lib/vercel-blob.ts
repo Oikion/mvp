@@ -1,5 +1,11 @@
 import { put, del, head, list } from "@vercel/blob";
 
+// Ensure x-content-length header is sent in development
+// (required by Vercel Blob API when uploading Buffers/streams locally)
+if (typeof process !== "undefined" && !process.env.VERCEL_BLOB_USE_X_CONTENT_LENGTH) {
+  process.env.VERCEL_BLOB_USE_X_CONTENT_LENGTH = "1";
+}
+
 /** Supported blob storage folder types */
 export type BlobFolder = "documents" | "avatars" | "templates" | "attachments" | "property-images";
 

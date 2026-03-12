@@ -117,6 +117,10 @@ export async function uploadDocument(
     fileBuffer = Buffer.from(arrayBuf);
   }
 
+  if (fileBuffer.length === 0) {
+    throw new Error("File is empty — the upload contained no data");
+  }
+
   // Apply compression based on file type
   const compressionResult = await compressFile(
     fileBuffer,

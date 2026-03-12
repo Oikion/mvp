@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 
 // Mock prismadb
 const mockUpdateMany = vi.fn().mockResolvedValue({ count: 0 });
@@ -53,7 +53,11 @@ vi.mock("@/lib/personal-workspace-guard", () => ({
 }));
 
 // Import after mocks
-const { handleUserDeparture } = await import("@/lib/user-departure");
+let handleUserDeparture: Awaited<typeof import("@/lib/user-departure")>["handleUserDeparture"];
+
+beforeAll(async () => {
+  ({ handleUserDeparture } = await import("@/lib/user-departure"));
+});
 
 beforeEach(() => {
   vi.clearAllMocks();

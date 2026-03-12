@@ -9,7 +9,7 @@
  * Uses unified entity search for blazingly fast, cached results.
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import {
   Dialog,
@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Building2, User, FileText, Search, Loader2 } from "lucide-react";
+import { Building2, User, FileText, Search, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
   useUnifiedEntitySearch,
@@ -64,9 +64,12 @@ export function LinkEntityDialog({
   description,
 }: LinkEntityDialogProps) {
   const t = useTranslations("common");
+  const tDocs = useTranslations("documents");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const iconMap = { property: Building2, client: User, mandate: FileText, document: FileText };
   const Icon = iconMap[entityType];
@@ -93,6 +96,7 @@ export function LinkEntityDialog({
     groupedResults,
     isLoading,
     isSearching,
+    mutate: mutateSearch,
   } = useUnifiedEntitySearch(searchQuery, {
     types: [searchType],
     limit: 50, // More results for linking
@@ -124,6 +128,46 @@ export function LinkEntityDialog({
       setSelectedIds(new Set());
     }
   }, [open]);
+
+  // Inline document upload handler
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+      formData.append("document_name", nameWithoutExt);
+
+      const response = await fetch("/api/documents", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        let errorMessage = tDocs("uploadModal.failedToUpload");
+        try {
+          const errorData = await response.json();
+          if (errorData.error) errorMessage = errorData.error;
+        } catch { /* use default */ }
+        throw new Error(errorMessage);
+      }
+
+      toast.success(tDocs("uploadModal.documentUploadedSuccess"));
+      // Refresh search results so the new document appears in the list
+      await mutateSearch();
+    } catch (error) {
+      console.error("Inline document upload failed:", error);
+      toast.error(error instanceof Error ? error.message : tDocs("uploadModal.failedToUpload"));
+    } finally {
+      setIsUploading(false);
+    }
+  }, [mutateSearch, tDocs]);
 
   // Combined loading state
   const showLoading = isLoading || isSearching;
@@ -228,6 +272,31 @@ export function LinkEntityDialog({
                     ? t("emptyStates.noDocumentsAvailable")
                     : t("emptyStates.noClientsAvailable")
                   : t("emptyStates.searchNoResults")}
+                {entityType === "document" && (
+                  <>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.png,.jpg,.jpeg,.gif"
+                      onChange={handleFileUpload}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      disabled={isUploading}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {isUploading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Upload className="h-4 w-4 mr-2" />
+                      )}
+                      {isUploading ? tDocs("uploadModal.uploading") : tDocs("uploadModal.uploadDocument")}
+                    </Button>
+                  </>
+                )}
               </div>
             ) : (
               <div className="space-y-2 pr-3">

@@ -124,7 +124,7 @@ describe("encryptClientForOrg idempotency", () => {
     const encrypted = await encryptClientForOrg(data, TEST_ORG_ID);
     // JSON field is serialized to an encrypted string
     expect(typeof encrypted.communication_notes).toBe("string");
-    expect(isEncrypted(encrypted.communication_notes as string)).toBe(true);
+    expect(isEncrypted(encrypted.communication_notes as unknown as string)).toBe(true);
 
     const decrypted = await decryptClientForOrg(encrypted, TEST_ORG_ID);
     expect(decrypted.communication_notes).toEqual(notes);

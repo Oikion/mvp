@@ -84,6 +84,17 @@ export async function compressImage(
   const originalSize = buffer.length;
   const normalizedMimeType = mimeType.toLowerCase();
 
+  // Return original for empty buffers (e.g. consumed File stream)
+  if (originalSize === 0) {
+    return {
+      buffer,
+      mimeType,
+      originalSize: 0,
+      compressedSize: 0,
+      wasCompressed: false,
+    };
+  }
+
   // Return original for non-image files
   if (!isImage(normalizedMimeType)) {
     return {
