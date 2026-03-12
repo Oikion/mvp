@@ -2962,7 +2962,7 @@ async function seedSocialFeed(ctx: OrgContext, propertyIds: string[]): Promise<v
   const departedUser = ctx.allUsers.find((u) => u.clerkUserId === `user_seed_${ctx.prefix}_departed`);
   const departedUserId = departedUser?.id ?? ctx.primaryUserId;
 
-  const slugs = await generateFriendlyIds("SocialPost", 12, ctx.orgId);
+  const slugs = await generateFriendlyIds("SocialPost", 12);
 
   const postDefs = [
     { postType: "property_listed", content: "Just listed a stunning apartment in Kolonaki! 3 bed, 85sqm with balcony and metro access.", linkedPropIdx: 0, authorId: ctx.primaryUserId, monthsAgo: 0.5 },
