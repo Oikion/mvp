@@ -138,7 +138,12 @@
     "notificationSettingsLoaded": "Οι ρυθμίσεις ειδοποιήσεων φορτώθηκαν",
     "notificationSettingsFailed": "Αποτυχία φόρτωσης ρυθμίσεων ειδοποιήσεων",
     "notificationSettingsSaved": "Οι προτιμήσεις ειδοποιήσεων ενημερώθηκαν",
-    "notificationSettingsSaveFailed": "Αποτυχία αποθήκευσης ρυθμίσεων ειδοποιήσεων"
+    "notificationSettingsSaveFailed": "Αποτυχία αποθήκευσης ρυθμίσεων ειδοποιήσεων",
+    "invitationAccepted": "Επιτυχής ένταξη στον οργανισμό",
+    "invitationFailed": "Αποτυχία ένταξης στον οργανισμό. Δοκιμάστε ξανά.",
+    "invitationExpired": "Αυτή η πρόσκληση έχει λήξει",
+    "consentFailed": "Αποτυχία καταγραφής συγκατάθεσης. Δοκιμάστε ξανά.",
+    "policyLoadFailed": "Δεν ήταν δυνατή η φόρτωση της πολιτικής του οργανισμού. Δοκιμάστε ξανά."
   },
   "buttons": {
     "create": "Δημιουργία",

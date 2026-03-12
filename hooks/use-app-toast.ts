@@ -54,7 +54,12 @@ export type ToastKey =
   | "notificationSettingsLoaded"
   | "notificationSettingsFailed"
   | "notificationSettingsSaved"
-  | "notificationSettingsSaveFailed";
+  | "notificationSettingsSaveFailed"
+  | "invitationAccepted"
+  | "invitationFailed"
+  | "invitationExpired"
+  | "consentFailed"
+  | "policyLoadFailed";
 
 export interface ToastOptions {
   /**

@@ -141,7 +141,12 @@
     "notificationSettingsLoaded": "Notification settings loaded",
     "notificationSettingsFailed": "Failed to load notification settings",
     "notificationSettingsSaved": "Your notification preferences have been updated",
-    "notificationSettingsSaveFailed": "Failed to save notification settings"
+    "notificationSettingsSaveFailed": "Failed to save notification settings",
+    "invitationAccepted": "Successfully joined the organization",
+    "invitationFailed": "Failed to join the organization. Please try again.",
+    "invitationExpired": "This invitation has expired",
+    "consentFailed": "Failed to record consent. Please try again.",
+    "policyLoadFailed": "Could not load organization policy. Please try again."
   },
   "buttons": {
     "create": "Create",
