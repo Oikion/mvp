@@ -15,7 +15,10 @@ import { NotificationsWhatStep } from "./NotificationsWhatStep";
 import { NotificationsHowStep } from "./NotificationsHowStep";
 import { PrivacyStep } from "./PrivacyStep";
 import { ReviewStep } from "./ReviewStep";
+import { DataOwnershipStep } from "./DataOwnershipStep";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { setOwnershipMode } from "@/actions/data-ownership/set-ownership-mode";
+import type { DataOwnershipMode } from "@prisma/client";
 import { completeOnboarding, validateOnboardingData } from "@/actions/user/complete-onboarding";
 import { updateOrganizationMetadata } from "@/actions/organization/update-org-metadata";
 import {
@@ -180,8 +183,8 @@ interface OnboardingStepsProps {
   locale: string;
 }
 
-// Steps: 0=Language, 1=Welcome, 2=Theme, 3=UsernameOrg, 4=NotificationsWhat, 5=NotificationsHow, 6=Privacy, 7=Review
-const TOTAL_STEPS = 8;
+// Steps: 0=Language, 1=Welcome, 2=Theme, 3=UsernameOrg, 4=DataOwnership, 5=NotificationsWhat, 6=NotificationsHow, 7=Privacy, 8=Review
+const TOTAL_STEPS = 9;
 
 // Animation variants for step transitions
 const slideVariants = {
@@ -212,6 +215,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
   const [direction, setDirection] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
   const [usernameOrgValid, setUsernameOrgValid] = useState(false);
+  const [dataOwnershipMode, setDataOwnershipMode] = useState<DataOwnershipMode>("AGENCY");
 
   // Track initial username to detect if user needs to set one during onboarding
   // Start with database username, but update to Clerk username once available (source of truth)
@@ -319,6 +323,10 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
 
   const handleUsernameOrgValidation = useCallback((isValid: boolean) => {
     setUsernameOrgValid(isValid);
+  }, []);
+
+  const handleDataOwnershipChange = useCallback((mode: DataOwnershipMode) => {
+    setDataOwnershipMode(mode);
   }, []);
 
   const handleNotificationsChange = useCallback(
@@ -540,6 +548,16 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         }
       }
 
+      // 4b. Set the data ownership mode for the newly created agency org
+      if (agencyOrgId) {
+        try {
+          await setOwnershipMode(dataOwnershipMode, agencyOrgId);
+        } catch {
+          // Non-blocking — org owner can set this later via banner
+          console.error("Failed to set data ownership mode during onboarding");
+        }
+      }
+
       // 5. Save user preferences (include username for DB update)
       const notificationSettings = convertPreferencesToSettings(
         onboardingData.notificationPreferences
@@ -611,13 +629,15 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         return !!onboardingData.theme;
       case 3: // Username & Org
         return usernameOrgValid;
-      case 4: // Notifications what
+      case 4: // Data Ownership
+        return !!dataOwnershipMode;
+      case 5: // Notifications what
         return true; // Optional
-      case 5: // Notifications how
+      case 6: // Notifications how
         return true; // Optional
-      case 6: // Privacy
+      case 7: // Privacy
         return true;
-      case 7: // Review
+      case 8: // Review
         return true;
       default:
         return false;
@@ -683,6 +703,14 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         );
       case 4:
         return (
+          <DataOwnershipStep
+            key="data-ownership"
+            currentMode={dataOwnershipMode}
+            onModeChange={handleDataOwnershipChange}
+          />
+        );
+      case 5:
+        return (
           <NotificationsWhatStep
             key="notifications-what"
             dict={dict.steps.notifications}
@@ -690,7 +718,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
             onDataChange={handleNotificationsChange}
           />
         );
-      case 5:
+      case 6:
         return (
           <NotificationsHowStep
             key="notifications-how"
@@ -699,7 +727,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
             onDataChange={handleNotificationsChange}
           />
         );
-      case 6:
+      case 7:
         return (
           <PrivacyStep
             key="privacy"
@@ -708,7 +736,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
             onDataChange={handlePrivacyChange}
           />
         );
-      case 7:
+      case 8:
         return (
           <ReviewStep
             key="review"
@@ -724,8 +752,8 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
     }
   };
 
-  // Show navigation for steps 2-7 (Theme, UsernameOrg, Notifications, Privacy, Review)
-  const showNavigation = currentStep >= 2 && currentStep <= 7;
+  // Show navigation for steps 2-8 (Theme, UsernameOrg, DataOwnership, Notifications, Privacy, Review)
+  const showNavigation = currentStep >= 2 && currentStep <= 8;
 
   return (
     <div className="flex flex-col gap-6 min-h-[720px]">

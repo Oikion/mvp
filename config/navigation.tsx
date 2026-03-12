@@ -247,6 +247,16 @@ export function getNavigationConfig({
         icon: SettingsIcon,
         isActive: isRouteActive(pathname, "/app/admin", locale) && !isRouteActive(pathname, "/app/platform-admin", locale),
         moduleId: "admin" as ModuleId,
+        items: [
+          {
+            title: dict.navigation.ModuleMenu.settings,
+            url: "/app/admin",
+          },
+          {
+            title: dict.navigation.ModuleMenu.departures || "Departures",
+            url: "/app/settings/departures",
+          },
+        ],
       }] : []),
     ]),
     // Platform Admin - only visible to platform admins

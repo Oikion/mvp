@@ -1,8 +1,12 @@
+import { createClerkClient } from "@clerk/backend";
 import { prismadb } from "@/lib/prisma";
 import { isOrgPersonal } from "@/lib/personal-workspace-guard";
 import { nullifyOrgReferences } from "./nullify-org-references";
-import type { DepartureReason } from "@prisma/client";
+import { shouldMigrateData } from "@/lib/data-ownership";
+import { migrateAgentEntities } from "@/lib/data-ownership/entity-migrator";
+import type { DataOwnershipMode, DepartureReason } from "@prisma/client";
 import type { DepartureResult } from "./types";
+import type { PolicyEra, MigrationResult } from "@/lib/data-ownership/types";
 
 export { DepartureReason } from "@prisma/client";
 export type { DepartureResult } from "./types";
@@ -59,11 +63,55 @@ export async function handleUserDeparture(
     return result;
   }
 
-  // Step 4: Null out org-scoped references
+  // Step 4: Data ownership — AGENT migration (must run BEFORE nullify + key deletion)
+  let migrationResult: MigrationResult | undefined;
+  let policyApplied: DataOwnershipMode = "AGENCY";
+
+  const settings = await prismadb.organizationSettings.findUnique({
+    where: { organizationId: orgId },
+    select: {
+      dataOwnershipMode: true,
+      policyHistory: true,
+      policyVersion: true,
+      dataOwnershipSetAt: true,
+    },
+  });
+
+  if (settings?.dataOwnershipSetAt) {
+    policyApplied = settings.dataOwnershipMode;
+
+    if (shouldMigrateData(reason, settings.dataOwnershipMode)) {
+      try {
+        // Find or create personal workspace
+        const personalOrgId = await findOrCreatePersonalWorkspace(userId);
+
+        migrationResult = await prismadb.$transaction(
+          async (tx) =>
+            migrateAgentEntities(tx, {
+              userId,
+              sourceOrgId: orgId,
+              personalOrgId,
+              currentMode: settings.dataOwnershipMode,
+              policyHistory: settings.policyHistory as PolicyEra[] | null,
+            }),
+          { isolationLevel: "Serializable", timeout: 60_000 }
+        );
+
+        result.migrationResult = migrationResult;
+      } catch (error) {
+        console.error("[UserDeparture] AGENT migration failed:", error);
+        result.errors.push(
+          `AGENT migration failed: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+  }
+
+  // Step 5: Null out org-scoped references (handles remaining entities not migrated)
   const { nulledCount } = await nullifyOrgReferences(userId, orgId);
   result.nulledReferences = nulledCount;
 
-  // Step 5: Delete user-personal data for this org
+  // Step 6: Delete user-personal data for this org
   const [notifs, invitees, encKeys] = await prismadb.$transaction([
     prismadb.notification.deleteMany({
       where: { userId, organizationId: orgId },
@@ -77,11 +125,172 @@ export async function handleUserDeparture(
   ]);
   result.deletedPersonalData = notifs.count + invitees.count + encKeys.count;
 
-  // Step 6: Audit log
+  // Step 7: Create DepartureLog
+  const userName = await getUserNameSnapshot(userId);
+  const departureLogNotes =
+    reason === "ACCOUNT_DELETED" && policyApplied === "AGENT"
+      ? "Account deletion overrode AGENT policy — data stays with org"
+      : null;
+
+  const departureLog = await prismadb.departureLog.create({
+    data: {
+      id: crypto.randomUUID(),
+      organizationId: orgId,
+      userId,
+      userName,
+      reason,
+      policyApplied,
+      migratedEntities: (migrationResult?.migratedEntities ?? {
+        properties: [],
+        clients: [],
+        mandates: [],
+      }) as any,
+      cancelledDeals: (migrationResult?.cancelledDeals ?? []) as any,
+      entityCounts: (migrationResult?.entityCounts ?? {
+        properties: 0,
+        clients: 0,
+        mandates: 0,
+        deals: 0,
+      }) as any,
+      notes: departureLogNotes,
+    },
+  });
+
+  // Step 7b: Send departure email to org owner (fire-and-forget)
+  void sendDepartureEmail(orgId, departureLog.id, userName, policyApplied, migrationResult ?? null);
+
+  // Step 8: Audit log
   console.log(
     `[UserDeparture] userId=${userId} orgId=${orgId} reason=${reason} ` +
+      `policy=${policyApplied} migrated=${!!migrationResult} ` +
       `nulled=${result.nulledReferences} deleted=${result.deletedPersonalData}`
   );
 
   return result;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────
+
+/**
+ * Find the user's personal workspace or create one if missing.
+ */
+async function findOrCreatePersonalWorkspace(userId: string): Promise<string> {
+  const clerk = createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY,
+  });
+
+  // Search through user's org memberships
+  const memberships = await clerk.users.getOrganizationMembershipList({
+    userId,
+  });
+
+  for (const membership of memberships.data) {
+    const org = await clerk.organizations.getOrganization({
+      organizationId: membership.organization.id,
+    });
+    const metadata = org.publicMetadata as Record<string, unknown>;
+    if (metadata?.type === "personal") {
+      return org.id;
+    }
+  }
+
+  // No personal workspace found — create one
+  const user = await clerk.users.getUser(userId);
+  const username = user.username || user.firstName || "User";
+
+  const newOrg = await clerk.organizations.createOrganization({
+    name: `${username}'s Workspace`,
+    slug: `${username.toLowerCase()}-personal-${Date.now()}`,
+    createdBy: userId,
+  });
+
+  await clerk.organizations.updateOrganizationMetadata(newOrg.id, {
+    publicMetadata: { type: "personal" },
+  });
+
+  return newOrg.id;
+}
+
+/**
+ * Snapshot the user's display name for the departure log.
+ */
+async function getUserNameSnapshot(userId: string): Promise<string> {
+  const user = await prismadb.users.findUnique({
+    where: { id: userId },
+    select: { firstName: true, lastName: true, username: true },
+  });
+
+  if (!user) return "Unknown User";
+
+  if (user.firstName || user.lastName) {
+    return [user.firstName, user.lastName].filter(Boolean).join(" ");
+  }
+  return user.username ?? "Unknown User";
+}
+
+/**
+ * Send departure report email to the org owner (fire-and-forget).
+ */
+async function sendDepartureEmail(
+  orgId: string,
+  departureLogId: string,
+  agentName: string,
+  policyApplied: DataOwnershipMode,
+  migrationResult: MigrationResult | null
+) {
+  try {
+    const { Resend } = await import("resend");
+    const { default: AgentDepartureReport } = await import(
+      "@/emails/notifications/AgentDepartureReport"
+    );
+
+    // Find org owner
+    const clerk = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    const members = await clerk.organizations.getOrganizationMembershipList({
+      organizationId: orgId,
+      role: ["org:admin", "org:owner"],
+      limit: 5,
+    });
+
+    const ownerMembership = members.data[0];
+    if (!ownerMembership) return;
+
+    const ownerUser = await prismadb.users.findFirst({
+      where: { clerkUserId: ownerMembership.publicUserData?.userId },
+      select: { email: true, name: true, userLanguage: true },
+    });
+    if (!ownerUser?.email) return;
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const counts = migrationResult?.entityCounts ?? {
+      properties: 0,
+      clients: 0,
+      mandates: 0,
+      deals: 0,
+    };
+
+    await resend.emails.send({
+      from: "Oikion <notifications@oikion.com>",
+      to: ownerUser.email,
+      subject:
+        ownerUser.userLanguage === "el"
+          ? `Αναφορά Αποχώρησης: ${agentName}`
+          : `Departure Report: ${agentName}`,
+      react: AgentDepartureReport({
+        ownerName: ownerUser.name || ownerUser.email.split("@")[0],
+        agentName,
+        departureDate: new Date().toLocaleDateString(
+          ownerUser.userLanguage === "el" ? "el-GR" : "en-US"
+        ),
+        policyApplied,
+        entityCounts: counts,
+        departureLogId,
+        language: ownerUser.userLanguage || "en",
+      }),
+    });
+  } catch (error) {
+    console.error("[UserDeparture] Failed to send departure email:", error);
+  }
 }

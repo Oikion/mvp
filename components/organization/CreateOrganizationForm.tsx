@@ -19,6 +19,18 @@ import { Input } from "@/components/ui/input";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useOrganizationList } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { DataOwnershipSelector } from "@/components/data-ownership/DataOwnershipSelector";
+import { setOwnershipMode } from "@/actions/data-ownership/set-ownership-mode";
+import type { DataOwnershipMode } from "@prisma/client";
+import { useTranslations } from "next-intl";
 
 const formSchema = z.object({
   name: z
@@ -42,7 +54,12 @@ export function CreateOrganizationForm() {
   const locale = params.locale as string || "en";
   const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { createOrganization } = useOrganizationList();
+  const [showOwnershipDialog, setShowOwnershipDialog] = useState(false);
+  const [selectedOwnershipMode, setSelectedOwnershipMode] = useState<DataOwnershipMode>("AGENCY");
+  const [isSavingOwnership, setIsSavingOwnership] = useState(false);
+  const [createdOrgId, setCreatedOrgId] = useState<string | null>(null);
+  const { createOrganization, setActive } = useOrganizationList();
+  const t = useTranslations("dataOwnership.selector");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -74,14 +91,23 @@ export function CreateOrganizationForm() {
 
       toast.success("Success", { description: "Organization created successfully!", isTranslationKey: false });
 
+      setCreatedOrgId(organization.id);
+
+      // Set the new org as active so setOwnershipMode can target it
+      if (setActive) {
+        try {
+          await setActive({ organization: organization.id });
+        } catch {
+          // Continue anyway
+        }
+      }
+
       // Check if user needs to complete onboarding
-      // Fetch user data to check onboarding status
       try {
         const userResponse = await fetch("/api/user");
         if (userResponse.ok) {
           const userData = await userResponse.json();
           if (!userData.onboardingCompleted) {
-            // Redirect to onboarding if not completed
             router.push(`/${locale}/app/onboard`);
             router.refresh();
             return;
@@ -91,9 +117,8 @@ export function CreateOrganizationForm() {
         console.error("Error checking onboarding status:", error);
       }
 
-      // Redirect to dashboard after successful creation
-      router.push(`/${locale}/app`);
-      router.refresh();
+      // Show data ownership selection dialog before redirecting
+      setShowOwnershipDialog(true);
     } catch (error: any) {
       console.error("Error creating organization:", error);
       toast.error("Error", { description: error?.errors, isTranslationKey: false });
@@ -108,6 +133,24 @@ export function CreateOrganizationForm() {
       .toLowerCase()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "");
+  };
+
+  const handleOwnershipConfirm = async () => {
+    setIsSavingOwnership(true);
+    try {
+      await setOwnershipMode(selectedOwnershipMode, createdOrgId ?? undefined);
+    } catch {
+      console.error("Failed to set data ownership mode");
+    }
+    setShowOwnershipDialog(false);
+    router.push(`/${locale}/app`);
+    router.refresh();
+  };
+
+  const handleOwnershipSkip = () => {
+    setShowOwnershipDialog(false);
+    router.push(`/${locale}/app`);
+    router.refresh();
   };
 
   return (
@@ -177,6 +220,34 @@ export function CreateOrganizationForm() {
           </Button>
         </form>
       </Form>
+
+      <Dialog open={showOwnershipDialog} onOpenChange={setShowOwnershipDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t("title")}</DialogTitle>
+            <DialogDescription>{t("description")}</DialogDescription>
+          </DialogHeader>
+          <DataOwnershipSelector
+            defaultValue={selectedOwnershipMode}
+            onChange={setSelectedOwnershipMode}
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={handleOwnershipSkip}>
+              Skip
+            </Button>
+            <Button onClick={handleOwnershipConfirm} disabled={isSavingOwnership}>
+              {isSavingOwnership ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

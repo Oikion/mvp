@@ -35,6 +35,7 @@ import messagesEn from "./locales/en/messages.json";
 import mandatesEn from "./locales/en/mandates.json";
 import networkEn from "./locales/en/network.json";
 import matchmakingEn from "./locales/en/matchmaking.json";
+import dataOwnershipEn from "./locales/en/dataOwnership.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -70,6 +71,7 @@ import messagesEl from "./locales/el/messages.json";
 import mandatesEl from "./locales/el/mandates.json";
 import networkEl from "./locales/el/network.json";
 import matchmakingEl from "./locales/el/matchmaking.json";
+import dataOwnershipEl from "./locales/el/dataOwnership.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -115,6 +117,7 @@ function loadMessages(locale: string) {
     messages.network = networkEl;
     messages.matchmaking = matchmakingEl;
     messages.networkSettings = networkEl.matchmaking;
+    messages.dataOwnership = dataOwnershipEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -162,6 +165,7 @@ function loadMessages(locale: string) {
     messages.network = networkEn;
     messages.matchmaking = matchmakingEn;
     messages.networkSettings = networkEn.matchmaking;
+    messages.dataOwnership = dataOwnershipEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))

@@ -18,6 +18,7 @@ import { getOnboardingStatus } from "@/types/onboarding"
 import { AppProviders } from "@/components/providers/AppProviders"
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper"
 import { LayoutToggle } from "@/components/layout/LayoutToggle"
+import { DataOwnershipBanner } from "@/components/data-ownership/DataOwnershipBanner"
 import { E2EESessionButton } from "@/components/layout/E2EESessionButton"
 // Use cached versions for request deduplication (performance optimization)
 import {
@@ -185,6 +186,17 @@ export default async function AppLayout({
     select: { id: true },
   });
 
+  // Check if org needs data ownership policy selection
+  let needsOwnershipSelection = false;
+  const isAdmin = permissionContext?.role === "OWNER" || permissionContext?.role === "LEAD";
+  if (orgId) {
+    const orgSettings = await prismadb.organizationSettings.findUnique({
+      where: { organizationId: orgId },
+      select: { dataOwnershipSetAt: true },
+    });
+    needsOwnershipSelection = !orgSettings?.dataOwnershipSetAt;
+  }
+
   return (
     <AppProviders initialLayoutPreference={user.layoutPreference}>
       <SkipLink />
@@ -223,6 +235,12 @@ export default async function AppLayout({
               tabIndex={-1}
               className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-y-auto min-h-0 outline-none"
             >
+              {needsOwnershipSelection && (
+                <DataOwnershipBanner
+                  needsSelection={true}
+                  isAdmin={isAdmin}
+                />
+              )}
               <LayoutWrapper>
                 {children}
               </LayoutWrapper>

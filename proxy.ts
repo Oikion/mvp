@@ -442,6 +442,33 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
       const signInUrl = new URL(`/${locale}/app/sign-in`, req.url);
       return NextResponse.redirect(signInUrl);
     }
+
+    // ── DATA OWNERSHIP CONSENT ENFORCEMENT ──
+    // Middleware runs on Edge (no Prisma), so we use a cookie-based check.
+    // The consent-required page does the actual DB check and sets the cookie
+    // if consent already exists (redirect back to app).
+    // Skip for: consent-required, onboarding, invitation, auth pages, settings
+    const isConsentExempt =
+      pathname.includes("/consent-required") ||
+      pathname.includes("/onboard") ||
+      pathname.includes("/invitation") ||
+      pathname.includes("/sign-in") ||
+      pathname.includes("/sign-up") ||
+      pathname.includes("/register") ||
+      pathname.includes("/settings");
+
+    if (!isConsentExempt && authResult.orgId) {
+      const consentCookie = req.cookies.get("consent_v")?.value;
+      if (!consentCookie) {
+        const pathLocale = pathname.split("/")[1];
+        const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
+        const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
+          ? (pathLocale as "en" | "el")
+          : "el";
+        const consentUrl = new URL(`/${locale}/app/consent-required`, req.url);
+        return NextResponse.redirect(consentUrl);
+      }
+    }
   }
 
   // For page routes, run intlMiddleware to get locale headers/cookies
