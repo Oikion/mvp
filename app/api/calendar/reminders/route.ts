@@ -57,7 +57,7 @@ export async function GET(req: Request) {
   } catch (error: any) {
     console.error("[CALENDAR_REMINDERS_GET]", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch reminders" },
+      { error: "Failed to fetch reminders" },
       { status: 500 }
     );
   }
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("[CALENDAR_REMINDERS_POST]", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create reminders" },
+      { error: "Failed to create reminders" },
       { status: 500 }
     );
   }
@@ -167,7 +167,7 @@ export async function PUT(req: Request) {
   } catch (error: any) {
     console.error("[CALENDAR_REMINDERS_SEND_TEST]", error);
     return NextResponse.json(
-      { error: error.message || "Failed to send test reminder" },
+      { error: "Failed to send test reminder" },
       { status: 500 }
     );
   }

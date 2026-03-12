@@ -182,9 +182,15 @@ const nextConfig = {
     const devLocalhost5678Frame = isDev ? " https://localhost:5678 http://localhost:5678" : "";
     const devLocalhost5678Connect = isDev ? " https://localhost:5678 wss://localhost:5678" : "";
 
+    // unsafe-eval is required by Webpack hot-reload (dev only).
+    // Production builds do not use eval — omitting it closes the most exploitable CSP gap.
+    // unsafe-inline in script-src is still required by Clerk's SDK (inline event handlers);
+    // the long-term fix is nonce-based CSP via middleware nonce injection.
+    const devUnsafeEval = isDev ? " 'unsafe-eval'" : "";
+
     const cspDirectives = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://challenges.cloudflare.com",
+      `script-src 'self' 'unsafe-inline'${devUnsafeEval} https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://challenges.cloudflare.com`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.clerk.accounts.dev https://*.accounts.clerk.dev https://clerk.oikion.com https://img.clerk.com https://images.clerk.dev https://lh3.googleusercontent.com https://res.cloudinary.com https://*.public.blob.vercel-storage.com",
       "font-src 'self' data:",

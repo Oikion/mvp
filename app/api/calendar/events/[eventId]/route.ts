@@ -173,17 +173,22 @@ export async function GET(
           },
         },
         Clients: {
-          select: { id: true, client_name: true },
+          select: { id: true, client_name: true, primary_email: true, friendlyId: true },
         },
         Properties: {
-          select: { id: true, property_name: true },
+          select: { id: true, property_name: true, address_street: true, address_city: true, friendlyId: true },
         },
         Documents: {
           select: {
             id: true,
             document_name: true,
             document_file_url: true,
+            document_file_mimeType: true,
+            friendlyId: true,
           },
+        },
+        Mandates: {
+          select: { id: true, title: true, friendlyId: true, status: true },
         },
         CalendarReminder: {
           orderBy: {
@@ -201,11 +206,25 @@ export async function GET(
     }
 
     const decrypted = await decryptCalendarEventForOrg(event, currentOrgId);
-    return NextResponse.json({ event: decrypted });
+
+    // Map Prisma relation names to the keys expected by the EventDetailView UI
+    const { Clients, Properties, Documents, Mandates, Users, crm_Accounts_Tasks, CalendarReminder, ...rest } = decrypted as any;
+    return NextResponse.json({
+      event: {
+        ...rest,
+        assignedUser: Users ?? null,
+        linkedClients: Clients ?? [],
+        linkedProperties: Properties ?? [],
+        linkedDocuments: Documents ?? [],
+        linkedMandates: Mandates ?? [],
+        linkedTasks: crm_Accounts_Tasks ?? [],
+        reminders: CalendarReminder ?? [],
+      },
+    });
   } catch (error: any) {
     console.error("[CALENDAR_EVENTS_GET]", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch event" },
+      { error: "Failed to fetch event" },
       { status: 500 }
     );
   }
@@ -276,6 +295,7 @@ export async function PUT(
       clientIds,
       propertyIds,
       documentIds,
+      mandateIds,
       taskIds,
       reminderMinutes,
     } = body;
@@ -364,6 +384,20 @@ export async function PUT(
       }
     }
 
+    if (mandateIds !== undefined) {
+      if (Array.isArray(mandateIds) && mandateIds.length > 0) {
+        const validMandates = await prismadb.mandate.findMany({
+          where: { id: { in: mandateIds }, organizationId: currentOrgId },
+          select: { id: true },
+        });
+        connectDisconnect.Mandates = {
+          set: validMandates.map((m) => ({ id: m.id })),
+        };
+      } else {
+        connectDisconnect.Mandates = { set: [] };
+      }
+    }
+
     if (taskIds !== undefined) {
       if (Array.isArray(taskIds) && taskIds.length > 0) {
         // Validate task IDs exist
@@ -438,7 +472,7 @@ export async function PUT(
   } catch (error: any) {
     console.error("[CALENDAR_EVENTS_PUT]", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update event" },
+      { error: "Failed to update event" },
       { status: 500 }
     );
   }
@@ -515,7 +549,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error("[CALENDAR_EVENTS_DELETE]", error);
     return NextResponse.json(
-      { error: error.message || "Failed to delete event" },
+      { error: "Failed to delete event" },
       { status: 500 }
     );
   }

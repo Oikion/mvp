@@ -224,7 +224,7 @@ const propertyFieldsSchema = z.object({
   description: z.string().optional(),
   
   // Assignment
-  assigned_to: z.string().uuid().optional().nullable(),
+  assigned_to: z.string().min(1).optional().nullable(),
   
   // Primary email for contact
   primary_email: z.string().email().optional().or(z.literal("")),

@@ -12,6 +12,7 @@ export { ClientSelector } from "./ClientSelector";
 export { PropertySelector } from "./PropertySelector";
 export { DocumentSelector } from "./DocumentSelector";
 export { EventSelector } from "./EventSelector";
+export { MandateSelector } from "./MandateSelector";
 
 // Re-export types from hook
 export type {

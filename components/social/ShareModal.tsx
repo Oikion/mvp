@@ -62,9 +62,16 @@ export function ShareModal({
   // Use mutation hook for sharing
   const { shareWithUser, isSharing } = useShareEntity();
 
-  // Transform connections to get the user objects
+  // Transform connections to get the user objects, deduplicating by user ID
   const connections = useMemo(() => {
-    return rawConnections.map((c) => c.user);
+    const seen = new Set<string>();
+    return rawConnections
+      .map((c) => c.user)
+      .filter((user) => {
+        if (seen.has(user.id)) return false;
+        seen.add(user.id);
+        return true;
+      });
   }, [rawConnections]);
 
   const existingShareIds = useMemo(

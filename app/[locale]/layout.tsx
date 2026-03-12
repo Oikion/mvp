@@ -49,6 +49,7 @@ import platformAdminEn from "@/locales/en/platformAdmin.json";
 import shareEn from "@/locales/en/share.json";
 import mandatesEn from "@/locales/en/mandates.json";
 import networkEn from "@/locales/en/network.json";
+import dataOwnershipEn from "@/locales/en/dataOwnership.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -87,6 +88,7 @@ import platformAdminEl from "@/locales/el/platformAdmin.json";
 import shareEl from "@/locales/el/share.json";
 import mandatesEl from "@/locales/el/mandates.json";
 import networkEl from "@/locales/el/network.json";
+import dataOwnershipEl from "@/locales/el/dataOwnership.json";
 
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const metadataBaseUrl = new URL(appBaseUrl);
@@ -145,6 +147,7 @@ function getLocales(locale: string) {
     messages.mandates = mandatesEl;
     messages.network = networkEl;
     messages.networkSettings = networkEl.matchmaking;
+    messages.dataOwnership = dataOwnershipEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -192,6 +195,7 @@ function getLocales(locale: string) {
     messages.mandates = mandatesEn;
     messages.network = networkEn;
     messages.networkSettings = networkEn.matchmaking;
+    messages.dataOwnership = dataOwnershipEn;
   }
 
   if (Object.keys(messages).length === 0) {

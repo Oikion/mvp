@@ -109,7 +109,7 @@ const clientFieldsSchema = z.object({
   description: z.string().optional(),
   
   // Assignment
-  assigned_to: z.string().uuid().optional().nullable(),
+  assigned_to: z.string().min(1).optional().nullable(),
   member_of: z.string().optional(),
 }).strict(); // Reject unknown fields to prevent mass assignment
 

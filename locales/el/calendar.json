@@ -110,6 +110,7 @@
     "linkClients": "Σύνδεση Πελατών",
     "linkProperties": "Σύνδεση Ιδιοκτησιών",
     "linkDocuments": "Σύνδεση Εγγράφων",
+    "linkMandates": "Σύνδεση Εντολών",
     "invitees": "Πρόσκληση Ατόμων",
     "inviteesDescription": "Προσκαλέστε μέλη του οργανισμού ή επαφές σε αυτό το συμβάν",
     "reminders": "Υπενθυμίσεις",
@@ -172,6 +173,9 @@
     "selectDocuments": "Επιλέξτε έγγραφα...",
     "searchDocuments": "Αναζήτηση εγγράφων...",
     "noDocumentsFound": "Δεν βρέθηκαν έγγραφα",
+    "selectMandates": "Επιλέξτε εντολές...",
+    "searchMandates": "Αναζήτηση εντολών...",
+    "noMandatesFound": "Δεν βρέθηκαν εντολές",
     "loading": "Φόρτωση..."
   },
   "filters": {
@@ -224,6 +228,7 @@
     "linkedClients": "Συνδεδεμένοι Πελάτες",
     "linkedProperties": "Συνδεδεμένες Ιδιοκτησίες",
     "linkedDocuments": "Συνδεδεμένα Έγγραφα",
+    "linkedMandates": "Συνδεδεμένες Εντολές",
     "invitees": "Προσκεκλημένοι",
     "noInvitees": "Δεν έχει προσκληθεί κανείς ακόμη",
     "reminders": "Υπενθυμίσεις",
@@ -258,6 +263,7 @@
     "linkedClients": "Συνδεδεμένοι Πελάτες",
     "linkedProperties": "Συνδεδεμένες Ιδιοκτησίες",
     "linkedDocuments": "Συνδεδεμένα Έγγραφα",
+    "linkedMandates": "Συνδεδεμένες Εντολές",
     "linkedTasks": "Συνδεδεμένες Εργασίες",
     "forClient": "Για πελάτη",
     "reminders": "Υπενθυμίσεις",

@@ -66,7 +66,7 @@ export async function PUT(
   } catch (error: any) {
     console.error("[CALENDAR_REMINDERS_UPDATE]", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update reminder" },
+      { error: "Failed to update reminder" },
       { status: 500 }
     );
   }
@@ -114,7 +114,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error("[CALENDAR_REMINDERS_DELETE]", error);
     return NextResponse.json(
-      { error: error.message || "Failed to cancel reminder" },
+      { error: "Failed to cancel reminder" },
       { status: 500 }
     );
   }

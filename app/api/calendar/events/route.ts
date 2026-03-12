@@ -243,6 +243,7 @@ export async function GET(req: Request) {
     const transformedEvents = decryptedEvents.map((event) => ({
       id: event.calendarEventId,
       eventId: event.id, // Include the database ID for navigation
+      friendlyId: event.friendlyId, // Include the friendly ID for URL routing
       title: event.title || 'Untitled Event',
       description: event.description || undefined,
       startTime: event.startTime.toISOString(),
@@ -268,7 +269,7 @@ export async function GET(req: Request) {
     }
     
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch calendar events' },
+      { error: 'Failed to fetch calendar events' },
       { status: 500 }
     );
   }
@@ -293,6 +294,7 @@ export async function POST(req: Request) {
       clientIds,
       propertyIds,
       documentIds,
+      mandateIds,
       taskIds,
       eventType,
       assignedUserId,
@@ -392,6 +394,23 @@ export async function POST(req: Request) {
       }
     }
 
+    if (mandateIds && Array.isArray(mandateIds) && mandateIds.length > 0) {
+      // Validate mandate IDs exist
+      const validMandates = await prismadb.mandate.findMany({
+        where: {
+          id: { in: mandateIds },
+          organizationId,
+        },
+        select: { id: true },
+      });
+
+      if (validMandates.length > 0) {
+        relations.Mandates = {
+          connect: validMandates.map((mandate) => ({ id: mandate.id })),
+        };
+      }
+    }
+
     if (taskIds && Array.isArray(taskIds) && taskIds.length > 0) {
       // Validate task IDs exist
       const validTasks = await prismadb.crm_Accounts_Tasks.findMany({
@@ -401,7 +420,7 @@ export async function POST(req: Request) {
         },
         select: { id: true },
       });
-      
+
       if (validTasks.length > 0) {
         relations.crm_Accounts_Tasks = {
           connect: validTasks.map((task) => ({ id: task.id })),
@@ -493,7 +512,7 @@ export async function POST(req: Request) {
     }
     
     return NextResponse.json(
-      { error: error.message || 'Failed to create calendar event' },
+      { error: 'Failed to create calendar event' },
       { status: 500 }
     );
   }

@@ -10,6 +10,7 @@ import {
   baseUrl,
   commonTranslations,
   getTranslations,
+  resolveColors,
   type SupportedLanguage,
 } from "../components/BaseLayout";
 
@@ -102,6 +103,7 @@ export default function AgentDepartureReport({
 }: AgentDepartureReportProps) {
   const t = getTranslations(translations, language);
   const common = getTranslations(commonTranslations, language);
+  const colors = resolveColors();
   const reportUrl = `${baseUrl}/app/settings/departures/${departureLogId}`;
 
   return (
@@ -117,6 +119,7 @@ export default function AgentDepartureReport({
         }}
         title={t.title}
         subtitle={t.subtitle(agentName)}
+        colors={colors}
       />
 
       <EmailText>
@@ -144,6 +147,7 @@ export default function AgentDepartureReport({
         href={reportUrl}
         text={t.viewReport}
         altLinkText={t.altLink}
+        colors={colors}
       />
     </BaseLayout>
   );

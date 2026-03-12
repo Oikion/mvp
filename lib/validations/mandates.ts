@@ -131,7 +131,7 @@ const mandateFieldsSchema = z.object({
   communication_notes: z.any().optional(),
 
   // Relationships
-  assigned_to: z.string().uuid().optional().nullable(),
+  assigned_to: z.string().min(1).optional().nullable(),
 
   // Draft flag
   draft_status: z.boolean().optional(),

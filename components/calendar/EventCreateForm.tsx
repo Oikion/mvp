@@ -48,6 +48,7 @@ import { useTranslations } from "next-intl";
 import { ClientSelector } from "./ClientSelector";
 import { PropertySelector } from "./PropertySelector";
 import { DocumentSelector } from "./DocumentSelector";
+import { MandateSelector } from "./MandateSelector";
 import { InviteeSelector, Invitee } from "./InviteeSelector";
 import { useOrgUsers, useCreateEvent } from "@/hooks/swr";
 import { inviteToEvent } from "@/actions/calendar/invite-to-event";
@@ -64,6 +65,7 @@ const createEventFormSchema = (t: (key: string) => string) => z.object({
   clientIds: z.array(z.string()).default([]),
   propertyIds: z.array(z.string()).default([]),
   documentIds: z.array(z.string()).default([]),
+  mandateIds: z.array(z.string()).default([]),
   reminderMinutes: z.array(z.number()).default([]),
   recurrenceRule: z.string().optional(),
   invitees: z.array(z.custom<Invitee>()).default([]),
@@ -406,6 +408,20 @@ function EventCreateFormBody({
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="mandateIds"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("eventCreateForm.linkMandates")}</FormLabel>
+                <FormControl>
+                  <MandateSelector value={field.value} onChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <Separator />
@@ -516,6 +532,7 @@ export function EventCreateForm({
       clientIds: clientId ? [clientId] : [],
       propertyIds: propertyId ? [propertyId] : [],
       documentIds: [],
+      mandateIds: [],
       reminderMinutes: [],
       recurrenceRule: undefined,
       invitees: [],
@@ -547,6 +564,7 @@ export function EventCreateForm({
         clientIds: data.clientIds,
         propertyIds: data.propertyIds,
         documentIds: data.documentIds,
+        mandateIds: data.mandateIds,
         reminderMinutes: data.reminderMinutes,
         recurrenceRule: data.recurrenceRule,
       });
@@ -632,6 +650,7 @@ export function EventCreateSidePanel({
       clientIds: clientId ? [clientId] : [],
       propertyIds: propertyId ? [propertyId] : [],
       documentIds: [],
+      mandateIds: [],
       reminderMinutes: [],
       recurrenceRule: undefined,
       invitees: [],
@@ -663,6 +682,7 @@ export function EventCreateSidePanel({
         clientIds: data.clientIds,
         propertyIds: data.propertyIds,
         documentIds: data.documentIds,
+        mandateIds: data.mandateIds,
         reminderMinutes: data.reminderMinutes,
         recurrenceRule: data.recurrenceRule,
       });

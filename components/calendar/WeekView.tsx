@@ -93,7 +93,8 @@ export function WeekView({
   const [createDrag, setCreateDrag] = useState<CreateDragState | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const createPointerIdRef = useRef<number | null>(null);
-  const createColumnRectRef = useRef<DOMRect | null>(null);
+  // Store a ref to the actual column element so we can re-read its rect during scroll
+  const createColumnElementRef = useRef<HTMLDivElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
 
@@ -194,10 +195,11 @@ export function WeekView({
       if ((e.target as HTMLElement).closest(".event-card")) return;
       e.preventDefault();
 
-      const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-      createColumnRectRef.current = rect;
+      const columnEl = e.currentTarget as HTMLDivElement;
+      createColumnElementRef.current = columnEl;
       createPointerIdRef.current = e.pointerId;
 
+      const rect = columnEl.getBoundingClientRect();
       const rawY = e.clientY - rect.top;
       const y = Math.max(0, Math.min(rect.height, rawY));
       const { hours, minutes } = snapPixelsToTime(y, START_HOUR);
@@ -219,8 +221,10 @@ export function WeekView({
 
     const handlePointerMove = (e: PointerEvent) => {
       if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
-      const rect = createColumnRectRef.current;
-      if (!rect) return;
+      const columnEl = createColumnElementRef.current;
+      if (!columnEl) return;
+      // Re-read rect each move so scroll offsets are accounted for
+      const rect = columnEl.getBoundingClientRect();
 
       const rawY = e.clientY - rect.top;
       const y = Math.max(0, Math.min(rect.height, rawY));
@@ -254,7 +258,7 @@ export function WeekView({
         onCreateEvent(createDrag.startTime, createDrag.endTime);
       }
       createPointerIdRef.current = null;
-      createColumnRectRef.current = null;
+      createColumnElementRef.current = null;
       setCreateDrag(null);
       setIsDragging(false);
     };
@@ -262,7 +266,7 @@ export function WeekView({
     const handlePointerCancel = (e: PointerEvent) => {
       if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
       createPointerIdRef.current = null;
-      createColumnRectRef.current = null;
+      createColumnElementRef.current = null;
       setCreateDrag(null);
       setIsDragging(false);
     };

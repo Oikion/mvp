@@ -37,9 +37,37 @@ export function MatchDistributionChart({ distribution }: Props) {
   const total = distribution.reduce((sum, d) => sum + d.count, 0);
 
   if (total === 0) {
+    const ghostData = [
+      { name: "0-25%",   count: 3,  fill: "#ef4444" },
+      { name: "26-50%",  count: 7,  fill: "#f97316" },
+      { name: "51-70%",  count: 12, fill: "#eab308" },
+      { name: "71-85%",  count: 9,  fill: "#22c55e" },
+      { name: "86-100%", count: 5,  fill: "#10b981" },
+    ];
+
     return (
-      <div className="h-64 flex items-center justify-center text-muted-foreground">
-        {t("errors.failedToLoad")}
+      <div className="relative h-64">
+        {/* Ghost chart */}
+        <div className="absolute inset-0 pointer-events-none opacity-20">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={ghostData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+              <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} allowDecimals={false} />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                {ghostData.map((entry, index) => (
+                  <Cell key={`ghost-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        {/* Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px]">
+          <p className="text-muted-foreground text-sm text-center px-8">
+            {t("mandateMatches.distribution.noData")}
+          </p>
+        </div>
       </div>
     );
   }

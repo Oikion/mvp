@@ -211,16 +211,17 @@ export async function executeImport<T>(
     });
     imported = result.count;
   } catch {
-    // Fallback: individual creates
-    for (const data of prismaData) {
+    // Fallback: individual creates (preserves per-row error details)
+    for (let j = 0; j < prismaData.length; j++) {
       try {
-        await model.create({ data });
+        await model.create({ data: prismaData[j] });
         imported++;
-      } catch {
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
         errors.push({
-          row: 0, // row number lost in fallback
+          row: validItems[j]?.index == null ? 0 : validItems[j].index + 2,
           field: "",
-          error: "Failed to insert record (individual fallback)",
+          error: msg,
         });
       }
     }

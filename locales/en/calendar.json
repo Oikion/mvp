@@ -110,6 +110,7 @@
     "linkClients": "Link Clients",
     "linkProperties": "Link Properties",
     "linkDocuments": "Link Documents",
+    "linkMandates": "Link Mandates",
     "invitees": "Invite People",
     "inviteesDescription": "Invite organization members or connections to this event",
     "reminders": "Reminders",
@@ -172,6 +173,9 @@
     "selectDocuments": "Select documents...",
     "searchDocuments": "Search documents...",
     "noDocumentsFound": "No documents found",
+    "selectMandates": "Select mandates...",
+    "searchMandates": "Search mandates...",
+    "noMandatesFound": "No mandates found",
     "loading": "Loading..."
   },
   "filters": {
@@ -224,6 +228,7 @@
     "linkedClients": "Linked Clients",
     "linkedProperties": "Linked Properties",
     "linkedDocuments": "Linked Documents",
+    "linkedMandates": "Linked Mandates",
     "invitees": "Invitees",
     "noInvitees": "No one invited yet",
     "reminders": "Reminders",
@@ -258,6 +263,7 @@
     "linkedClients": "Linked Clients",
     "linkedProperties": "Linked Properties",
     "linkedDocuments": "Linked Documents",
+    "linkedMandates": "Linked Mandates",
     "linkedTasks": "Linked Tasks",
     "forClient": "For client",
     "reminders": "Reminders",

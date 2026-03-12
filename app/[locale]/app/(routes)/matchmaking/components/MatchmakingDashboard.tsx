@@ -71,8 +71,8 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
       value: analytics.clientsWithMatches,
       icon: Target,
       description: `${analytics.totalClients > 0 ? Math.round((analytics.clientsWithMatches / analytics.totalClients) * 100) : 0}% ${t("dashboard.stats.clientsWithMatchesDesc")}`,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
     },
     {
       title: t("dashboard.stats.averageMatchScore"),

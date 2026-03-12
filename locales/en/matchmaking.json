@@ -73,7 +73,8 @@
     },
     "distribution": {
       "title": "Match Score Distribution",
-      "description": "Distribution of match scores across all mandate-property pairs"
+      "description": "Distribution of match scores across all mandate-property pairs",
+      "noData": "No match data yet — add mandates and properties to see score distribution"
     },
     "unmatched": {
       "title": "Mandates Without Good Matches",

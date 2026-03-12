@@ -253,6 +253,10 @@ export function getNavigationConfig({
             url: "/app/admin",
           },
           {
+            title: dict.navigation.ModuleMenu.dataControl || "Data Control",
+            url: "/app/settings/data-control",
+          },
+          {
             title: dict.navigation.ModuleMenu.departures || "Departures",
             url: "/app/settings/departures",
           },

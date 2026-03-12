@@ -109,10 +109,17 @@ function buildButtonContent(
   asChild: boolean
 ): React.ReactNode {
   if (isIconOnly) {
-    const iconElement = isLoading 
+    const iconElement = isLoading
       ? <Loader2 className="loading-spinner h-4 w-4 animate-spin" />
       : leftIcon
-    return asChild ? <span className="inline-flex items-center justify-center w-full h-full">{iconElement}</span> : iconElement
+    return iconElement
+  }
+
+  // When asChild with no injected icons/loading, return children directly so
+  // Radix Slot can merge button classes onto the child element (e.g. <Link>, <a>)
+  // rather than onto a wrapper span that would break height and layout.
+  if (asChild && !isLoading && !leftIcon && !rightIcon) {
+    return children
   }
 
   const content = (
@@ -123,7 +130,12 @@ function buildButtonContent(
       {rightIcon}
     </>
   )
-  return asChild ? <span className="inline-flex items-center gap-2 w-full h-full justify-center">{content}</span> : content
+  // asChild with injected icons/loading: wrap in span so Slot can merge onto it
+  // (Slot can't merge className onto a React Fragment)
+  if (asChild) {
+    return <span className="inline-flex items-center gap-2 w-full h-full justify-center">{content}</span>
+  }
+  return content
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

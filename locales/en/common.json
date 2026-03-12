@@ -17,6 +17,7 @@
   "info": "Info",
   "clientCreated": "Client created successfully",
   "propertyCreated": "Property created successfully",
+  "mandateCreated": "Mandate created successfully",
   "somethingWentWrong": "Something went wrong",
   "clientCreationFailed": "Failed to create client",
   "propertyCreationFailed": "Failed to create property",

@@ -40,13 +40,6 @@ export default async function AppLayout({
 }) {
   const { userId, orgId } = await getAuth();
   const { locale } = await params;
-  
-  // #region agent log - server side logging
-  const fs = await import('fs');
-  const logPath = '/Users/stapo/Desktop/Oikion/MVP/.cursor/debug.log';
-  const logData = JSON.stringify({location:'routes/layout.tsx:entry',message:'AppLayout loaded',data:{userId:userId||null,orgId:orgId||null,locale},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'}) + '\n';
-  try { fs.appendFileSync(logPath, logData); } catch {}
-  // #endregion
 
   if (!userId) {
     return redirect(`/${locale}/app/sign-in`);
@@ -113,48 +106,31 @@ export default async function AppLayout({
   // Legacy users or users created before "Require username" was enabled in Clerk
   // must set a username during onboarding
   if (!user?.username) {
-    // #region agent log
-    const logNoUsername = JSON.stringify({location:'routes/layout.tsx:noUsername',message:'Redirecting to onboard - no username',data:{userId,hasUser:!!user},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'}) + '\n';
-    try { fs.appendFileSync(logPath, logNoUsername); } catch {}
-    // #endregion
     return redirect(`/${locale}/app/onboard`);
   }
 
   // Check if user has completed onboarding - redirect if not
   const onboardingCompleted = getOnboardingStatus(user);
-  
-  // #region agent log
-  const logOnboardingStatus = JSON.stringify({location:'routes/layout.tsx:onboardingCheck',message:'Checking onboarding status',data:{onboardingCompleted,hasOrgId:!!orgId,username:user.username},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'}) + '\n';
-  try { fs.appendFileSync(logPath, logOnboardingStatus); } catch {}
-  // #endregion
-  
+
   // Only redirect to onboarding if:
   // 1. Onboarding is NOT completed, OR
   // 2. No organization exists AND onboarding is not completed
-  // 
+  //
   // If onboarding IS completed but orgId is missing, DON'T redirect back to onboard
   // This prevents infinite loops when Clerk session hasn't updated with new orgId yet
   if (!onboardingCompleted && !orgId) {
-    // #region agent log
-    const logRedirectNoOrg = JSON.stringify({location:'routes/layout.tsx:redirectNoOrg',message:'Redirecting to onboard - no org and not completed',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'}) + '\n';
-    try { fs.appendFileSync(logPath, logRedirectNoOrg); } catch {}
-    // #endregion
     return redirect(`/${locale}/app/onboard`);
   }
-  
+
   // If user hasn't completed onboarding but somehow has an org, send to onboarding
   if (!onboardingCompleted) {
-    // #region agent log
-    const logRedirectNotCompleted = JSON.stringify({location:'routes/layout.tsx:redirectNotCompleted',message:'Redirecting to onboard - not completed',data:{hasOrgId:!!orgId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'}) + '\n';
-    try { fs.appendFileSync(logPath, logRedirectNotCompleted); } catch {}
-    // #endregion
     return redirect(`/${locale}/app/onboard`);
   }
 
   // At this point: onboardingCompleted = true
   // If orgId is missing, we wait for Clerk session to update (don't redirect to avoid loop)
   // The page may show incomplete data briefly, but this is better than an infinite loop
-  
+
   // Migration: Ensure user has a personal workspace (for existing users)
   // Fire-and-forget: does not block rendering, errors are caught inside the action
   if (onboardingCompleted && userId) {
@@ -162,11 +138,6 @@ export default async function AppLayout({
       ({ ensurePersonalWorkspace }) => ensurePersonalWorkspace()
     );
   }
-  
-  // #region agent log
-  const logProceed = JSON.stringify({location:'routes/layout.tsx:proceed',message:'User passed all checks, proceeding to render dashboard',data:{onboardingCompleted,hasOrgId:!!orgId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'}) + '\n';
-  try { fs.appendFileSync(logPath, logProceed); } catch {}
-  // #endregion
 
   // Use cached versions for request deduplication
   // These may be called again in child pages, but will return cached results

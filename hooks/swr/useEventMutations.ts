@@ -16,6 +16,7 @@ export interface CreateEventData {
   clientIds?: string[];
   propertyIds?: string[];
   documentIds?: string[];
+  mandateIds?: string[];
   reminderMinutes?: number[];
   recurrenceRule?: string;
 }

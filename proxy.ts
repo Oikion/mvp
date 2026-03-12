@@ -459,7 +459,14 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
 
     if (!isConsentExempt && authResult.orgId) {
       const consentCookie = req.cookies.get("consent_v")?.value;
-      if (!consentCookie) {
+      // Cookie format: "<orgId>:<policyVersion>" — orgId prefix ensures consent
+      // is invalidated automatically on org switch (different orgId prefix).
+      // We only check presence + orgId match here; policyVersion staleness is
+      // handled server-side in the consent-required page (which compares against
+      // the DB record and redirects through /api/consent-bypass when up-to-date).
+      const cookieOrgId = consentCookie?.split(":")[0];
+      const consentValid = consentCookie && cookieOrgId === authResult.orgId;
+      if (!consentValid) {
         const pathLocale = pathname.split("/")[1];
         const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
         const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))

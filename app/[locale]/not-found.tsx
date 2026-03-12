@@ -77,7 +77,7 @@ export default function NotFound() {
             className="min-w-[180px] h-12 rounded-xl border-border dark:border-slate-800 hover:bg-muted dark:hover:bg-card transition-all duration-200"
             asChild
           >
-            <Link href={`/${locale}`} className="inline-flex items-center gap-2">
+            <Link href={`/${locale}`} className="inline-flex items-center justify-center gap-2">
               <Home className="w-4 h-4" />
               {t.goToWebsite}
             </Link>
@@ -92,7 +92,7 @@ export default function NotFound() {
             className="min-w-[180px] h-12 rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all duration-200"
             asChild
           >
-            <Link href={`/${locale}/app`} className="inline-flex items-center gap-2">
+            <Link href={`/${locale}/app`} className="inline-flex items-center justify-center gap-2">
               <LayoutDashboard className="w-4 h-4" />
               {t.goToApp}
             </Link>

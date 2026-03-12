@@ -1,15 +1,16 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { getLocale } from "next-intl/server";
 import { prismadb } from "@/lib/prisma";
 import { getOriginalConsentMode } from "@/lib/data-ownership";
 import { ConsentRequiredClient } from "./ConsentRequiredClient";
 
 export default async function ConsentRequiredPage() {
   const { orgId, userId } = await auth();
+  const locale = await getLocale();
 
   if (!orgId || !userId) {
-    redirect("/sign-in");
+    redirect(`/${locale}/app/sign-in`);
   }
 
   const settings = await prismadb.organizationSettings.findUnique({
@@ -21,11 +22,9 @@ export default async function ConsentRequiredPage() {
     },
   });
 
-  // No policy set → set cookie and redirect to app (consent not required)
+  // No policy set → consent not required; route through bypass to set cookie
   if (!settings?.dataOwnershipSetAt) {
-    const cookieStore = await cookies();
-    cookieStore.set("consent_v", "0", { maxAge: 86400, path: "/" });
-    redirect("/app");
+    redirect("/api/consent-bypass?v=0");
   }
 
   const consent = await prismadb.orgMemberConsent.findUnique({
@@ -39,13 +38,8 @@ export default async function ConsentRequiredPage() {
   });
 
   if (consent) {
-    // Consent exists → set cookie and redirect back
-    const cookieStore = await cookies();
-    cookieStore.set("consent_v", String(settings.policyVersion), {
-      maxAge: 86400,
-      path: "/",
-    });
-    redirect("/app");
+    // Consent exists → route through bypass to set cookie so middleware stops redirecting
+    redirect(`/api/consent-bypass?v=${settings.policyVersion}`);
   }
 
   // Get original consent mode for "leave instead" consequence text

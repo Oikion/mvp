@@ -56,7 +56,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[CALENDAR_TASKS_SYNC_POST]', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to sync task to calendar' },
+      { error: 'Failed to sync task to calendar' },
       { status: 500 }
     );
   }
@@ -140,7 +140,7 @@ export async function GET(req: Request) {
   } catch (error: any) {
     console.error('[CALENDAR_TASKS_SYNC_GET]', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch task calendar events' },
+      { error: 'Failed to fetch task calendar events' },
       { status: 500 }
     );
   }

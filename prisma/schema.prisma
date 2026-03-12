@@ -107,6 +107,7 @@ model CalendarEvent {
   Documents          Documents[]          @relation("DocumentsToCalendarEvents")
   Clients            Clients[]            @relation("EventToClients")
   Properties         Properties[]         @relation("EventToProperties")
+  Mandates           Mandate[]            @relation("EventToMandates")
 
   @@unique([friendlyId, organizationId])
   @@index([assignedUserId])
@@ -1627,6 +1628,7 @@ model Mandate {
   Mandate_Properties  Mandate_Properties[]
   Mandate_Clients     Mandate_Clients[]
   Documents           Documents[]          @relation("DocumentsToMandates")
+  CalendarEvent       CalendarEvent[]      @relation("EventToMandates")
 
   @@unique([friendlyId, organizationId])
   @@index([friendlyId])
