@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Table } from "@tanstack/react-table";
-import { Filter, X } from "lucide-react";
+import { Filter, RefreshCw, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,8 @@ export interface DataTableToolbarProps<TData> {
   onFilterOpen?: () => void;
   /** Called when the user clicks Reset or Clear All — should clear all URL params */
   onReset?: () => void;
+  /** Called when the user clicks the Refresh button — re-fetches data */
+  onRefresh?: () => void;
   /** Content rendered to the right of the toolbar (e.g. "New Property" button) */
   rightContent?: React.ReactNode;
   /** Filter drawer — rendered as children so it mounts/unmounts with this component */
@@ -42,11 +44,13 @@ export function DataTableToolbar<TData>({
   filterCount = 0,
   chips = [],
   onFilterOpen,
+  onRefresh,
   onReset,
   rightContent,
   children,
 }: DataTableToolbarProps<TData>) {
   const commonT = useTranslations("common");
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
   const isFiltered = table.getState().columnFilters.length > 0;
   const hasActiveFilters = isFiltered || filterCount > 0;
 
@@ -91,7 +95,29 @@ export function DataTableToolbar<TData>({
             </Button>
           )}
         </div>
-        {rightContent}
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10"
+              onClick={async () => {
+                setIsRefreshing(true);
+                try {
+                  onRefresh();
+                } finally {
+                  // Brief animation delay so the spinner is visible
+                  setTimeout(() => setIsRefreshing(false), 600);
+                }
+              }}
+              aria-label={commonT("refresh")}
+              title={commonT("refresh")}
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            </Button>
+          )}
+          {rightContent}
+        </div>
       </div>
 
       {/* Row 2 (conditional): active filter chips */}

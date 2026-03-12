@@ -17,7 +17,7 @@ export async function getEvent(eventId: string) {
 
   const event = await prismadb.calendarEvent.findFirst({
     where: {
-      id: eventId,
+      friendlyId: eventId,
       organizationId,
     },
     include: {

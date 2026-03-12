@@ -17,7 +17,7 @@ import { Users, UserCheck, UserPlus, Building2, Share2, FileSpreadsheet } from "
 import moment from "moment";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { SharedClientData } from "@/actions/crm/get-shared-clients";
 import { SharedActionModals } from "@/components/entity";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
@@ -47,6 +47,7 @@ export default function ClientsPageView({
   const commonT = useTranslations("common");
   const params = useParams();
   const locale = (params?.locale as string) || "en";
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -150,6 +151,10 @@ export default function ClientsPageView({
       [filterId]: values,
     }));
   }, []);
+
+  const handleRefresh = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   const handleReset = useCallback(() => {
     setSearchQuery("");
@@ -322,6 +327,7 @@ export default function ClientsPageView({
                   users={users}
                   getRowHref={(row: any) => `/app/crm/clients/${row.friendlyId}`}
                   toolbarRight={<ViewToggle view={view} setView={setView} />}
+                  onRefresh={handleRefresh}
                 />
               ) : (
                 <div className="space-y-4">
@@ -333,6 +339,7 @@ export default function ClientsPageView({
                     selectedFilters={selectedFilters}
                     onFilterChange={handleFilterChange}
                     onReset={handleReset}
+                    onRefresh={handleRefresh}
                     rightContent={<ViewToggle view={view} setView={setView} />}
                   />
                   {filteredAgencyClients.length === 0 ? (

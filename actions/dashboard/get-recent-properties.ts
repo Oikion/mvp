@@ -13,6 +13,7 @@ export const getRecentProperties = async (limit: number = 5) => {
     where: { organizationId },
     select: {
       id: true,
+      friendlyId: true,
       property_name: true,
       price: true,
       property_status: true,
@@ -38,6 +39,7 @@ export const getRecentProperties = async (limit: number = 5) => {
   // Note: property_name is not encrypted; only primary_email/communication_notes are encrypted for properties
   return data.map((p) => ({
     id: p.id,
+    friendlyId: p.friendlyId,
     property_name: p.property_name ?? "",
     price: p.price !== null && p.price !== undefined ? Number(p.price) : undefined,
     property_status: p.property_status ?? undefined,

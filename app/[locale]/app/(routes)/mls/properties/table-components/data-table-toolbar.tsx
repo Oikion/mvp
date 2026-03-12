@@ -9,7 +9,7 @@ import { DataTableToolbar, type FilterChip } from "@/components/ui/data-table/da
 import { PropertyFilterDrawer, type PropertyFilters } from "./PropertyFilterDrawer";
 import { useOrgUsers } from "@/hooks/swr";
 
-export function DataTableToolbar_Properties<TData>({ table, rightContent }: Readonly<{ table: Table<TData>; rightContent?: React.ReactNode }>) {
+export function DataTableToolbar_Properties<TData>({ table, rightContent, onRefresh }: Readonly<{ table: Table<TData>; rightContent?: React.ReactNode; onRefresh?: () => void }>) {
   const t = useTranslations("mls");
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -128,6 +128,7 @@ export function DataTableToolbar_Properties<TData>({ table, rightContent }: Read
       chips={chips}
       onFilterOpen={() => setFilterOpen(true)}
       onReset={handleReset}
+      onRefresh={onRefresh}
       rightContent={rightContent}
     >
       <PropertyFilterDrawer

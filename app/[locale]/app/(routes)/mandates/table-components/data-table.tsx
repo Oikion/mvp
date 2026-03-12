@@ -35,6 +35,7 @@ interface DataTableProps<TData, TValue> {
   users: any[];
   getRowHref?: (row: TData) => string;
   toolbarRight?: React.ReactNode;
+  onRefresh?: () => void;
 }
 
 export function MandateDataTable<TData, TValue>({
@@ -43,6 +44,7 @@ export function MandateDataTable<TData, TValue>({
   users,
   getRowHref,
   toolbarRight,
+  onRefresh,
 }: DataTableProps<TData, TValue>) {
   const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
@@ -77,7 +79,7 @@ export function MandateDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} users={users} rightContent={toolbarRight} />
+      <DataTableToolbar table={table} users={users} rightContent={toolbarRight} onRefresh={onRefresh} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

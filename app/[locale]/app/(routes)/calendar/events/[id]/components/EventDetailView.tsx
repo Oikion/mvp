@@ -51,7 +51,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
   const fetchEvent = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/calendar/events/${event.id}`);
+      const response = await fetch(`/api/calendar/events/${event.friendlyId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch event");
       }
@@ -68,7 +68,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/calendar/events/${event.id}`, {
+      const response = await fetch(`/api/calendar/events/${event.friendlyId}`, {
         method: "DELETE",
       });
 
@@ -123,7 +123,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
           {t("eventPage.backToDetails")}
         </Button>
         <EventEditForm
-          eventId={event.id}
+          eventId={event.friendlyId}
           initialData={event}
           onSuccess={() => {
             setShowEditForm(false);

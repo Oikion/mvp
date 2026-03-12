@@ -49,6 +49,7 @@ export function EventActionsMenu({
   onEventUpdated,
   onEventDeleted,
 }: EventActionsMenuProps) {
+  const apiId = eventFriendlyId ?? eventId;
   const t = useTranslations("calendar");
   const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -61,7 +62,7 @@ export function EventActionsMenu({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/calendar/events/${eventId}`, {
+      const response = await fetch(`/api/calendar/events/${apiId}`, {
         method: "DELETE",
       });
 
@@ -128,7 +129,7 @@ export function EventActionsMenu({
 
       const fetchPromise = (async () => {
         try {
-          const response = await fetch(`/api/calendar/events/${eventId}`);
+          const response = await fetch(`/api/calendar/events/${apiId}`);
           
           // Handle rate limiting gracefully
           if (response.status === 429) {
@@ -272,7 +273,7 @@ export function EventActionsMenu({
             </div>
           ) : eventData ? (
             <EventEditForm
-              eventId={eventId}
+              eventId={apiId}
               initialData={eventData}
               onSuccess={handleEditSuccess}
               onCancel={() => setIsEditDialogOpen(false)}

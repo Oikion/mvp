@@ -22,12 +22,14 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   users?: { id: string; name: string }[];
   rightContent?: React.ReactNode;
+  onRefresh?: () => void;
 }
 
 export function DataTableToolbar<TData>({
   table,
   users = [],
   rightContent,
+  onRefresh,
 }: DataTableToolbarProps<TData>) {
   const commonT = useTranslations("common");
   const router = useRouter();
@@ -123,6 +125,7 @@ export function DataTableToolbar<TData>({
       chips={chips}
       onFilterOpen={() => setDrawerOpen(true)}
       onReset={handleReset}
+      onRefresh={onRefresh}
       rightContent={rightContent}
     >
       <ClientFilterDrawer

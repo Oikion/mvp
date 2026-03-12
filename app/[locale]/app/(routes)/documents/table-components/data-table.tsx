@@ -34,6 +34,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   getRowHref?: (row: TData) => string;
   toolbarRight?: React.ReactNode;
+  onRefresh?: () => void;
 }
 
 export function DocumentDataTable<TData, TValue>({
@@ -41,6 +42,7 @@ export function DocumentDataTable<TData, TValue>({
   data,
   getRowHref,
   toolbarRight,
+  onRefresh,
 }: DataTableProps<TData, TValue>) {
   const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
@@ -75,7 +77,7 @@ export function DocumentDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} rightContent={toolbarRight} />
+      <DataTableToolbar table={table} rightContent={toolbarRight} onRefresh={onRefresh} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

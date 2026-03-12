@@ -151,7 +151,7 @@ export async function GET(
 
     const event = await prismadb.calendarEvent.findFirst({
       where: {
-        id: eventId,
+        friendlyId: eventId,
         organizationId: currentOrgId,
       },
       include: {
@@ -252,19 +252,10 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check permissions
-    const canEdit = await canEditEvent(eventId);
-    if (!canEdit) {
-      return NextResponse.json(
-        { error: "Unauthorized to edit this event" },
-        { status: 403 }
-      );
-    }
-
-    // Verify event exists and belongs to org
+    // Resolve friendlyId to the actual event (and get UUID for updates)
     const existingEvent = await prismadb.calendarEvent.findFirst({
       where: {
-        id: eventId,
+        friendlyId: eventId,
         organizationId: currentOrgId,
       },
     });
@@ -273,6 +264,17 @@ export async function PUT(
       return NextResponse.json(
         { error: "Event not found" },
         { status: 404 }
+      );
+    }
+
+    const resolvedId = existingEvent.id;
+
+    // Check permissions using UUID
+    const canEdit = await canEditEvent(resolvedId);
+    if (!canEdit) {
+      return NextResponse.json(
+        { error: "Unauthorized to edit this event" },
+        { status: 403 }
       );
     }
 
@@ -418,9 +420,9 @@ export async function PUT(
       }
     }
 
-    // Update event
+    // Update event using resolved UUID
     const event = await prismadb.calendarEvent.update({
-      where: { id: eventId },
+      where: { id: resolvedId },
       data: {
         ...updateData,
         ...connectDisconnect,
@@ -445,11 +447,11 @@ export async function PUT(
     // Handle reminders
     if (reminderMinutes !== undefined && Array.isArray(reminderMinutes)) {
       // Cancel existing reminders
-      await cancelAllRemindersForEvent(eventId);
+      await cancelAllRemindersForEvent(resolvedId);
       // Create new reminders
       if (reminderMinutes.length > 0) {
         await createRemindersForEvent(
-          eventId,
+          resolvedId,
           reminderMinutes,
           currentOrgId
         );
@@ -495,19 +497,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check permissions
-    const canDelete = await canDeleteEvent(eventId);
-    if (!canDelete) {
-      return NextResponse.json(
-        { error: "Unauthorized to delete this event" },
-        { status: 403 }
-      );
-    }
-
-    // Verify event exists and belongs to org, include relations for notifications
+    // Resolve friendlyId to the actual event
     const event = await prismadb.calendarEvent.findFirst({
       where: {
-        id: eventId,
+        friendlyId: eventId,
         organizationId: currentOrgId,
       },
       include: {
@@ -527,6 +520,17 @@ export async function DELETE(
       );
     }
 
+    const resolvedId = event.id;
+
+    // Check permissions using UUID
+    const canDelete = await canDeleteEvent(resolvedId);
+    if (!canDelete) {
+      return NextResponse.json(
+        { error: "Unauthorized to delete this event" },
+        { status: 403 }
+      );
+    }
+
     // Create cancellation notifications before deleting (async, non-blocking)
     createCancellationNotifications(
       event,
@@ -536,11 +540,11 @@ export async function DELETE(
     ).catch((err) => console.error("[CANCELLATION_NOTIFICATIONS_ERROR]", err));
 
     // Cancel all reminders (they will be cascade deleted, but cancel them first)
-    await cancelAllRemindersForEvent(eventId);
+    await cancelAllRemindersForEvent(resolvedId);
 
     // Delete event (reminders cascade delete)
     await prismadb.calendarEvent.delete({
-      where: { id: eventId },
+      where: { id: resolvedId },
     });
 
     return NextResponse.json({

@@ -1,6 +1,8 @@
 "use client";
 
+import * as React from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -42,6 +44,8 @@ export interface GridToolbarProps {
   onFilterChange?: (filterId: string, values: string[]) => void;
   /** Callback to reset all filters */
   onReset?: () => void;
+  /** Called when the user clicks the Refresh button — re-fetches data */
+  onRefresh?: () => void;
   /** Optional content to render on the right side of the toolbar */
   rightContent?: React.ReactNode;
 }
@@ -58,9 +62,11 @@ export function GridToolbar({
   selectedFilters = {},
   onFilterChange,
   onReset,
+  onRefresh,
   rightContent,
 }: GridToolbarProps) {
   const t = useTranslations("common");
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const hasActiveFilters = Object.values(selectedFilters).some(
     (values) => values.length > 0
@@ -195,7 +201,28 @@ export function GridToolbar({
           </Button>
         )}
       </div>
-      {rightContent}
+      <div className="flex items-center gap-2">
+        {onRefresh && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={async () => {
+              setIsRefreshing(true);
+              try {
+                onRefresh();
+              } finally {
+                setTimeout(() => setIsRefreshing(false), 600);
+              }
+            }}
+            aria-label={t("refresh")}
+            title={t("refresh")}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          </Button>
+        )}
+        {rightContent}
+      </div>
     </div>
   );
 }

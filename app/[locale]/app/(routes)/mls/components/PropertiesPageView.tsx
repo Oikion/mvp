@@ -152,6 +152,10 @@ export default function PropertiesPageView({
     }));
   }, []);
 
+  const handleRefresh = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
   const handleReset = useCallback(() => {
     setSearchQuery("");
     setSelectedFilters({});
@@ -315,6 +319,7 @@ export default function PropertiesPageView({
                   columns={getColumns(users)}
                   getRowHref={(row: any) => `/app/mls/properties/${row.friendlyId}`}
                   toolbarRight={<ViewToggle view={view} setView={setView} />}
+                  onRefresh={handleRefresh}
                 />
               ) : (
                 <div className="space-y-4">
@@ -326,6 +331,7 @@ export default function PropertiesPageView({
                     selectedFilters={selectedFilters}
                     onFilterChange={handleFilterChange}
                     onReset={handleReset}
+                    onRefresh={handleRefresh}
                     rightContent={<ViewToggle view={view} setView={setView} />}
                   />
                   {filteredAgencyProperties.length === 0 ? (

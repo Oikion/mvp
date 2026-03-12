@@ -21,7 +21,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar_Properties as PropertiesToolbar } from "./data-table-toolbar";
 
-export function PropertyDataTable<TData, TValue>({ columns, data, getRowHref, toolbarRight }: { columns: ColumnDef<TData, TValue>[]; data: TData[]; getRowHref?: (row: TData) => string; toolbarRight?: React.ReactNode }) {
+export function PropertyDataTable<TData, TValue>({ columns, data, getRowHref, toolbarRight, onRefresh }: { columns: ColumnDef<TData, TValue>[]; data: TData[]; getRowHref?: (row: TData) => string; toolbarRight?: React.ReactNode; onRefresh?: () => void }) {
   const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -47,7 +47,7 @@ export function PropertyDataTable<TData, TValue>({ columns, data, getRowHref, to
 
   return (
     <div className="space-y-4">
-      <PropertiesToolbar table={table} rightContent={toolbarRight} />
+      <PropertiesToolbar table={table} rightContent={toolbarRight} onRefresh={onRefresh} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

@@ -14,6 +14,7 @@ export const getRecentClients = async (limit: number = 5) => {
     where: { organizationId },
     select: {
       id: true,
+      friendlyId: true,
       client_name: true,
       primary_email: true,
       client_status: true,
@@ -36,6 +37,7 @@ export const getRecentClients = async (limit: number = 5) => {
   );
   return decrypted.map((c) => ({
     id: c.id,
+    friendlyId: c.friendlyId,
     name: c.client_name,
     email: c.primary_email,
     status: c.client_status,

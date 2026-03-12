@@ -91,6 +91,10 @@ export default function DocumentsPageView({
     }));
   }, []);
 
+  const handleRefresh = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
   const handleReset = useCallback(() => {
     setSearchQuery("");
     setSelectedFilters({});
@@ -204,6 +208,7 @@ export default function DocumentsPageView({
               columns={getColumns(t)}
               getRowHref={(row: any) => `/app/documents/${row.friendlyId ?? row.id}`}
               toolbarRight={<ViewToggle view={view} setView={setView} />}
+              onRefresh={handleRefresh}
             />
           ) : (
             <div className="space-y-4">
@@ -215,6 +220,7 @@ export default function DocumentsPageView({
                 selectedFilters={selectedFilters}
                 onFilterChange={handleFilterChange}
                 onReset={handleReset}
+                onRefresh={handleRefresh}
                 rightContent={<ViewToggle view={view} setView={setView} />}
               />
               {filteredDocuments.length === 0 ? (

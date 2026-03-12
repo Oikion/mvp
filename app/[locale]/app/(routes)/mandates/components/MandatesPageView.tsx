@@ -24,7 +24,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import moment from "moment";
 import { SharedActionModals } from "@/components/entity";
 
@@ -47,6 +47,7 @@ export default function MandatesPageView({
   const commonT = useTranslations("common");
   const params = useParams();
   const locale = (params?.locale as string) || "en";
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -178,6 +179,10 @@ export default function MandatesPageView({
       [filterId]: values,
     }));
   }, []);
+
+  const handleRefresh = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   const handleReset = useCallback(() => {
     setSearchQuery("");
@@ -336,6 +341,7 @@ export default function MandatesPageView({
               users={users}
               getRowHref={(row: any) => `/app/mandates/${row.friendlyId ?? row.id}`}
               toolbarRight={<ViewToggle view={view} setView={setView} />}
+              onRefresh={handleRefresh}
             />
           ) : (
             <div className="space-y-4">
@@ -347,6 +353,7 @@ export default function MandatesPageView({
                 selectedFilters={selectedFilters}
                 onFilterChange={handleFilterChange}
                 onReset={handleReset}
+                onRefresh={handleRefresh}
                 rightContent={<ViewToggle view={view} setView={setView} />}
               />
               {filteredMandates.length === 0 ? (

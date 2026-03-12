@@ -9,11 +9,13 @@ import { DataTableToolbar as SharedDataTableToolbar } from "@/components/ui/data
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   rightContent?: React.ReactNode;
+  onRefresh?: () => void;
 }
 
 export function DataTableToolbar<TData>({
   table,
   rightContent,
+  onRefresh,
 }: DataTableToolbarProps<TData>) {
   const t = useTranslations("documents");
 
@@ -22,6 +24,7 @@ export function DataTableToolbar<TData>({
       table={table}
       searchKey="document_name"
       searchPlaceholder={t("DocumentsTable.filterPlaceholder")}
+      onRefresh={onRefresh}
       rightContent={rightContent}
     />
   );

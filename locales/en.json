@@ -192,6 +192,7 @@
     "goNextPage": "Go to next page",
     "goLastPage": "Go to last page",
     "reset": "Reset",
+    "refresh": "Refresh",
     "view": "View",
     "toggleColumns": "Toggle columns",
     "filterPlaceholder": "Filter leads ..."

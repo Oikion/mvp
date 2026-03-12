@@ -406,8 +406,8 @@ export function CalendarPageView() {
         throw new Error("Event not found");
       }
 
-      // Use dynamic import to avoid circular dependencies
-      const response = await fetch(`/api/calendar/events/${eventId}`, {
+      // Use friendlyId for the API call
+      const response = await fetch(`/api/calendar/events/${event.friendlyId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -434,7 +434,7 @@ export function CalendarPageView() {
         throw new Error("Event not found");
       }
 
-      const response = await fetch(`/api/calendar/events/${eventId}`, {
+      const response = await fetch(`/api/calendar/events/${event.friendlyId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
