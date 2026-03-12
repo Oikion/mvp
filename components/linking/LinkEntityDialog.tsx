@@ -43,9 +43,9 @@ interface Entity {
 interface LinkEntityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entityType: "property" | "client" | "mandate";
+  entityType: "property" | "client" | "mandate" | "document";
   sourceId: string;
-  sourceType: "client" | "property" | "mandate";
+  sourceType: "client" | "property" | "mandate" | "document";
   alreadyLinkedIds?: string[];
   onLink: (entityIds: string[]) => Promise<void>;
   title?: string;
@@ -68,18 +68,22 @@ export function LinkEntityDialog({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const iconMap = { property: Building2, client: User, mandate: FileText };
+  const iconMap = { property: Building2, client: User, mandate: FileText, document: FileText };
   const Icon = iconMap[entityType];
-  const defaultTitle = entityType === "property"
-    ? t("dialogs.linkProperties")
-    : entityType === "mandate"
-    ? t("dialogs.linkMandates")
-    : t("dialogs.linkClients");
-  const defaultDescription = entityType === "property"
-    ? t("placeholders.searchProperties")
-    : entityType === "mandate"
-    ? t("placeholders.searchMandates")
-    : t("placeholders.searchClients");
+  const defaultTitleMap: Record<string, string> = {
+    property: t("dialogs.linkProperties"),
+    mandate: t("dialogs.linkMandates"),
+    client: t("dialogs.linkClients"),
+    document: t("dialogs.linkDocuments"),
+  };
+  const defaultTitle = defaultTitleMap[entityType];
+  const defaultDescriptionMap: Record<string, string> = {
+    property: t("placeholders.searchProperties"),
+    mandate: t("placeholders.searchMandates"),
+    client: t("placeholders.searchClients"),
+    document: t("placeholders.searchDocuments"),
+  };
+  const defaultDescription = defaultDescriptionMap[entityType];
 
   // Map entityType to unified search type
   const searchType: UnifiedEntityType = entityType;
@@ -220,6 +224,8 @@ export function LinkEntityDialog({
                     ? t("emptyStates.noPropertiesAvailable")
                     : entityType === "mandate"
                     ? t("emptyStates.noMandatesAvailable")
+                    : entityType === "document"
+                    ? t("emptyStates.noDocumentsAvailable")
                     : t("emptyStates.noClientsAvailable")
                   : t("emptyStates.searchNoResults")}
               </div>

@@ -145,7 +145,10 @@ export type {
 // Mandate Linked Entities
 export { useMandateLinked, getMandateLinkedKey } from "./useMandateLinked";
 
-// Link Mutations (Property-Client linking, Property-Mandate linking)
+// Document Linked Entities
+export { useDocumentLinked, getDocumentLinkedKey } from "./useDocumentLinked";
+
+// Link Mutations (Property-Client linking, Property-Mandate linking, Document linking)
 export {
   useLinkClientsToProperty,
   useUnlinkClientFromProperty,
@@ -155,6 +158,18 @@ export {
   useUnlinkMandateFromProperty,
   useLinkMandatesToClient,
   useUnlinkMandateFromClient,
+  useLinkClientsToDocument,
+  useUnlinkClientFromDocument,
+  useLinkPropertiesToDocument,
+  useUnlinkPropertyFromDocument,
+  useLinkMandatesToDocument,
+  useUnlinkMandateFromDocument,
+  useLinkDocumentsToClient,
+  useUnlinkDocumentFromClient,
+  useLinkDocumentsToProperty,
+  useUnlinkDocumentFromProperty,
+  useLinkDocumentsToMandate,
+  useUnlinkDocumentFromMandate,
 } from "./useLinkMutations";
 
 // ============================================================

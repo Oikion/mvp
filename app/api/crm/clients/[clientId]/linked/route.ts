@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptCalendarEventForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
+import { decryptCalendarEventForOrg, decryptMandateForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/crm/clients/[clientId]/linked
@@ -51,6 +51,7 @@ export async function GET(
         Properties: {
           select: {
             id: true,
+            friendlyId: true,
             property_name: true,
             property_type: true,
             property_status: true,
@@ -97,6 +98,7 @@ export async function GET(
       },
       select: {
         id: true,
+        friendlyId: true,
         title: true,
         description: true,
         startTime: true,
@@ -167,6 +169,27 @@ export async function GET(
         })
     );
 
+    // Fetch linked documents
+    const linkedDocumentsRaw = await prismadb.documents.findMany({
+      where: {
+        organizationId,
+        Clients: { some: { id: clientId } },
+      },
+      select: {
+        id: true,
+        friendlyId: true,
+        document_name: true,
+        document_type: true,
+        document_file_mimeType: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const documents = await Promise.all(
+      linkedDocumentsRaw.map((doc) => decryptDocumentForOrg(doc, organizationId))
+    );
+
     // Get upcoming events (future events)
     const now = new Date();
     const upcomingEvents = linkedEvents.filter(
@@ -204,6 +227,7 @@ export async function GET(
       client: serializePrismaObject(client),
       properties: serializePrismaObject(linkedProperties.map((lp) => lp.property)),
       mandates: serializePrismaObject(mandates),
+      documents: serializePrismaObject(documents),
       events: {
         upcoming: serializePrismaObject(upcomingEvents),
         past: serializePrismaObject(pastEvents),
@@ -212,6 +236,7 @@ export async function GET(
       counts: {
         properties: linkedProperties.length,
         mandates: mandates.length,
+        documents: documents.length,
         events: linkedEvents.length,
         upcomingEvents: upcomingEvents.length,
       },

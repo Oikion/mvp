@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptCalendarEventForOrg, decryptClientForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
+import { decryptCalendarEventForOrg, decryptClientForOrg, decryptMandateForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/mls/properties/[propertyId]/linked
@@ -76,6 +76,7 @@ export async function GET(
         Clients: {
           select: {
             id: true,
+            friendlyId: true,
             client_name: true,
             client_type: true,
             client_status: true,
@@ -124,6 +125,7 @@ export async function GET(
       },
       select: {
         id: true,
+        friendlyId: true,
         title: true,
         description: true,
         startTime: true,
@@ -201,6 +203,27 @@ export async function GET(
         })
     );
 
+    // Fetch linked documents
+    const linkedDocumentsRaw = await prismadb.documents.findMany({
+      where: {
+        organizationId: property.organizationId,
+        Properties: { some: { id: propertyId } },
+      },
+      select: {
+        id: true,
+        friendlyId: true,
+        document_name: true,
+        document_type: true,
+        document_file_mimeType: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const documents = await Promise.all(
+      linkedDocumentsRaw.map((doc) => decryptDocumentForOrg(doc, property.organizationId))
+    );
+
     // Get upcoming events (future events)
     const now = new Date();
     const upcomingEvents = linkedEvents.filter(
@@ -238,6 +261,7 @@ export async function GET(
       property: serializePrismaObject(property),
       clients: serializePrismaObject(linkedClients.map((lc) => lc.client)),
       mandates: serializePrismaObject(mandates),
+      documents: serializePrismaObject(documents),
       events: {
         upcoming: serializePrismaObject(upcomingEvents),
         past: serializePrismaObject(pastEvents),
@@ -246,6 +270,7 @@ export async function GET(
       counts: {
         clients: linkedClients.length,
         mandates: mandates.length,
+        documents: documents.length,
         events: linkedEvents.length,
         upcomingEvents: upcomingEvents.length,
       },

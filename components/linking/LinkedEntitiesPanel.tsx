@@ -77,8 +77,17 @@ interface LinkedMandate {
   budget_max?: number;
 }
 
+interface LinkedDocument {
+  id: string;
+  friendlyId: string;
+  document_name: string;
+  document_type?: string;
+  document_file_mimeType?: string;
+  createdAt?: string;
+}
+
 interface LinkedEntitiesPanelProps {
-  type: "properties" | "clients" | "events" | "mandates";
+  type: "properties" | "clients" | "events" | "mandates" | "documents";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entities: any[];
   isLoading?: boolean;
@@ -276,6 +285,58 @@ function MandateCard({
   );
 }
 
+function DocumentCard({
+  document,
+  onUnlink,
+}: {
+  document: LinkedDocument;
+  onUnlink?: () => void;
+}) {
+  const router = useRouter();
+
+  return (
+    <div
+      className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
+      onClick={() => router.push(`/app/documents/${document.friendlyId}`)}
+    >
+      {onUnlink && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+            onUnlink();
+          }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-md bg-orange-500/10">
+          <FileText className="h-4 w-4 text-orange-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-sm truncate">{document.document_name}</h4>
+          {document.createdAt && (
+            <p className="text-xs text-muted-foreground truncate">
+              {format(new Date(document.createdAt), "MMM d, yyyy")}
+            </p>
+          )}
+          <div className="flex items-center gap-2 mt-1.5">
+            {document.document_type && (
+              <Badge variant="outline" className="text-[10px] h-5">
+                {document.document_type}
+              </Badge>
+            )}
+          </div>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+    </div>
+  );
+}
+
 function EventCard({ event }: { event: LinkedEvent }) {
   const router = useRouter();
   const eventDate = new Date(event.startTime);
@@ -359,6 +420,7 @@ export function LinkedEntitiesPanel({
     clients: User,
     events: Calendar,
     mandates: FileText,
+    documents: FileText,
   };
 
   const titleMap = {
@@ -366,6 +428,7 @@ export function LinkedEntitiesPanel({
     clients: "Linked Clients",
     events: "Calendar Events",
     mandates: "Linked Mandates",
+    documents: "Linked Documents",
   };
 
   const defaultEmptyMap = {
@@ -373,6 +436,7 @@ export function LinkedEntitiesPanel({
     clients: "No linked clients yet",
     events: "No calendar events yet",
     mandates: "No linked mandates yet",
+    documents: "No linked documents yet",
   };
 
   const Icon = iconMap[type];
@@ -447,6 +511,14 @@ export function LinkedEntitiesPanel({
                     key={mandate.id}
                     mandate={mandate}
                     onUnlink={onUnlinkEntity ? () => onUnlinkEntity(mandate.id) : undefined}
+                  />
+                ))}
+              {type === "documents" &&
+                (entities as LinkedDocument[]).map((doc) => (
+                  <DocumentCard
+                    key={doc.id}
+                    document={doc}
+                    onUnlink={onUnlinkEntity ? () => onUnlinkEntity(doc.id) : undefined}
                   />
                 ))}
             </div>

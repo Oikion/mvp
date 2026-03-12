@@ -28,12 +28,12 @@ export function TemplatesSection({ templates }: TemplatesSectionProps) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{t("page.title")}</h2>
-        <Link href={`/${locale}/app/documents/templates`}>
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
+        <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+          <Link href={`/${locale}/app/documents/templates`}>
             {isGreek ? "Προβολή όλων" : "View all"}
             <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

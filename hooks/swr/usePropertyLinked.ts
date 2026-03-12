@@ -2,6 +2,7 @@ import useSWR from "swr";
 
 interface LinkedClient {
   id: string;
+  friendlyId: string;
   client_name: string;
   client_type?: string;
   client_status?: string;
@@ -18,6 +19,7 @@ interface LinkedClient {
 
 interface LinkedEvent {
   id: string;
+  friendlyId: string;
   title: string;
   description?: string | null;
   startTime: string;
@@ -47,6 +49,15 @@ interface LinkedMandate {
   budget_max?: number;
 }
 
+interface LinkedDocument {
+  id: string;
+  friendlyId: string;
+  document_name: string;
+  document_type?: string;
+  document_file_mimeType?: string;
+  createdAt?: string;
+}
+
 interface PropertyLinkedData {
   property?: {
     id: string;
@@ -55,6 +66,7 @@ interface PropertyLinkedData {
   };
   clients: LinkedClient[];
   mandates: LinkedMandate[];
+  documents: LinkedDocument[];
   events: {
     upcoming: LinkedEvent[];
     past: LinkedEvent[];
@@ -63,6 +75,7 @@ interface PropertyLinkedData {
   counts: {
     clients: number;
     mandates: number;
+    documents: number;
     events: number;
     upcomingEvents: number;
   };
@@ -92,8 +105,9 @@ export function usePropertyLinked(
     linkedData: data ?? null,
     clients: data?.clients ?? [],
     mandates: data?.mandates ?? [],
+    documents: data?.documents ?? [],
     events: data?.events ?? { upcoming: [], past: [], total: 0 },
-    counts: data?.counts ?? { clients: 0, mandates: 0, events: 0, upcomingEvents: 0 },
+    counts: data?.counts ?? { clients: 0, mandates: 0, documents: 0, events: 0, upcomingEvents: 0 },
     isLoading,
     isValidating,
     error,

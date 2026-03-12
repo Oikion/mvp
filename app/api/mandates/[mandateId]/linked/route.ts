@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptClientForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
+import { decryptClientForOrg, decryptCalendarEventForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/mandates/[mandateId]/linked
@@ -185,6 +185,27 @@ export async function GET(
       );
     }
 
+    // Fetch linked documents
+    const linkedDocumentsRaw = await prismadb.documents.findMany({
+      where: {
+        organizationId,
+        Mandates: { some: { id: mandateId } },
+      },
+      select: {
+        id: true,
+        friendlyId: true,
+        document_name: true,
+        document_type: true,
+        document_file_mimeType: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const documents = await Promise.all(
+      linkedDocumentsRaw.map((doc) => decryptDocumentForOrg(doc, organizationId))
+    );
+
     const now = new Date();
     const upcomingEvents = linkedEvents.filter(
       (e) => new Date(e.startTime) >= now
@@ -221,6 +242,7 @@ export async function GET(
       mandate: serializePrismaObject(mandate),
       properties: serializePrismaObject(linkedProperties),
       clients: serializePrismaObject(linkedClients),
+      documents: serializePrismaObject(documents),
       events: {
         upcoming: serializePrismaObject(upcomingEvents),
         past: serializePrismaObject(pastEvents),
@@ -229,6 +251,7 @@ export async function GET(
       counts: {
         properties: linkedProperties.length,
         clients: linkedClients.length,
+        documents: documents.length,
         events: linkedEvents.length,
         upcomingEvents: upcomingEvents.length,
       },

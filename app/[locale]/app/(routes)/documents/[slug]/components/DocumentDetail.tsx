@@ -5,11 +5,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Share2, Users, Edit } from "lucide-react";
 import { useRouter, Link } from "@/navigation";
-import { MentionDisplay } from "../../components/MentionDisplay";
 import { ShareSettings } from "../../components/ShareSettings";
 import { ShareModal } from "@/components/social/ShareModal";
 import { DocumentViewer } from "@/components/documents";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
+import { LinkEntityDialog } from "@/components/linking/LinkEntityDialog";
+import { useDocumentLinked } from "@/hooks/swr/useDocumentLinked";
+import {
+  useLinkClientsToDocument,
+  useUnlinkClientFromDocument,
+  useLinkPropertiesToDocument,
+  useUnlinkPropertyFromDocument,
+  useLinkMandatesToDocument,
+  useUnlinkMandateFromDocument,
+} from "@/hooks/swr/useLinkMutations";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -27,7 +37,6 @@ interface DocumentData {
   createdAt?: Date | string | null;
   viewsCount?: number | null;
   lastViewedAt?: Date | string | null;
-  mentions?: unknown;
   created_by?: { name?: string | null; email?: string | null } | null;
   assigned_to_user?: { name?: string | null; email?: string | null } | null;
   views?: Array<{ id: string; viewedAt: Date | string; viewerUser?: { name?: string | null; email?: string | null } | null }> | null;
@@ -41,13 +50,65 @@ interface DocumentDetailProps {
 export function DocumentDetail({ document, activeTab = "details" }: DocumentDetailProps) {
   const router = useRouter();
   const t = useTranslations("documents");
+  const tCommon = useTranslations("common");
   const [linkEnabled, setLinkEnabled] = useState(document.linkEnabled || false);
   const [passwordProtected, setPasswordProtected] = useState(document.passwordProtected || false);
   const [expiresAt, setExpiresAt] = useState<Date | null>(document.expiresAt ? new Date(document.expiresAt) : null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
-  // Check if document is editable (HTML content from editor)
+  // Link dialog states
+  const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
+  const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
+  const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
+
+  // Linked entities data
+  const { clients, properties, mandates, isLoading: isLinkedLoading, mutate: mutateLinked } = useDocumentLinked(document.id);
+
+  // Link mutation hooks
+  const { linkClients } = useLinkClientsToDocument(document.id);
+  const { unlinkClient } = useUnlinkClientFromDocument(document.id);
+  const { linkProperties } = useLinkPropertiesToDocument(document.id);
+  const { unlinkProperty } = useUnlinkPropertyFromDocument(document.id);
+  const { linkMandates } = useLinkMandatesToDocument(document.id);
+  const { unlinkMandate } = useUnlinkMandateFromDocument(document.id);
+
   const isEditable = document.document_file_mimeType === "text/html";
+
+  const handleLinkClients = async (clientIds: string[]) => {
+    await linkClients(clientIds);
+    toast.success(tCommon("toast.createSuccess"));
+    await mutateLinked();
+  };
+
+  const handleUnlinkClient = async (clientId: string) => {
+    await unlinkClient(clientId);
+    toast.success(tCommon("toast.deleteSuccess"));
+    await mutateLinked();
+  };
+
+  const handleLinkProperties = async (propertyIds: string[]) => {
+    await linkProperties(propertyIds);
+    toast.success(tCommon("toast.createSuccess"));
+    await mutateLinked();
+  };
+
+  const handleUnlinkProperty = async (propertyId: string) => {
+    await unlinkProperty(propertyId);
+    toast.success(tCommon("toast.deleteSuccess"));
+    await mutateLinked();
+  };
+
+  const handleLinkMandates = async (mandateIds: string[]) => {
+    await linkMandates(mandateIds);
+    toast.success(tCommon("toast.createSuccess"));
+    await mutateLinked();
+  };
+
+  const handleUnlinkMandate = async (mandateId: string) => {
+    await unlinkMandate(mandateId);
+    toast.success(tCommon("toast.deleteSuccess"));
+    await mutateLinked();
+  };
 
   const handleEnableShare = async () => {
     const response = await fetch(`/api/documents/${document.id}/share`, {
@@ -59,7 +120,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
       return;
     }
 
-    const _data = await response.json();
+    await response.json();
     setLinkEnabled(true);
     toast.success("Sharing enabled");
   };
@@ -72,9 +133,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
   }) => {
     const response = await fetch(`/api/documents/${document.id}/share`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         linkEnabled: updates.linkEnabled ?? linkEnabled,
         passwordProtected: updates.passwordProtected ?? passwordProtected,
@@ -91,7 +150,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
     if (updates.linkEnabled !== undefined) setLinkEnabled(updates.linkEnabled);
     if (updates.passwordProtected !== undefined) setPasswordProtected(updates.passwordProtected);
     if (updates.expiresAt !== undefined) setExpiresAt(updates.expiresAt);
-    
+
     toast.success("Share settings updated");
   };
 
@@ -115,8 +174,8 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         </div>
         <div className="flex gap-2">
           {isEditable && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               leftIcon={<Edit className="h-4 w-4" />}
               asChild
             >
@@ -125,8 +184,8 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
               </Link>
             </Button>
           )}
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             leftIcon={<Download className="h-4 w-4" />}
             onClick={handleDownload}
           >
@@ -143,70 +202,84 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         </TabsList>
 
         <TabsContent value="details" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Document Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {document.description && (
-                <div>
-                  <h3 className="font-semibold mb-2">Description</h3>
-                  <p className="text-muted-foreground">{document.description}</p>
-                </div>
-              )}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Left column: Document info + preview */}
+            <div className="lg:col-span-2 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Document Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {document.description && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Description</h3>
+                      <p className="text-muted-foreground">{document.description}</p>
+                    </div>
+                  )}
 
-              <div>
-                <h3 className="font-semibold mb-2">Linked Entities</h3>
-                <MentionDisplay
-                  mentions={document.mentions as import("../../components/MentionDisplay").MentionData | null | undefined}
-                  onMentionClick={(type, id) => {
-                    if (type === "client") {
-                      router.push(`/app/crm/clients/${id}`);
-                    } else if (type === "property") {
-                      router.push(`/app/mls/properties/${id}`);
-                    }
-                    // Add navigation for events and tasks if needed
-                  }}
-                />
-              </div>
+                  {document.created_by && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Created By</h3>
+                      <p className="text-muted-foreground">
+                        {document.created_by.name || document.created_by.email}
+                      </p>
+                    </div>
+                  )}
 
-              {document.created_by && (
-                <div>
-                  <h3 className="font-semibold mb-2">Created By</h3>
-                  <p className="text-muted-foreground">
-                    {document.created_by.name || document.created_by.email}
-                  </p>
-                </div>
-              )}
+                  {document.assigned_to_user && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Assigned To</h3>
+                      <p className="text-muted-foreground">
+                        {document.assigned_to_user.name || document.assigned_to_user.email}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-              {document.assigned_to_user && (
-                <div>
-                  <h3 className="font-semibold mb-2">Assigned To</h3>
-                  <p className="text-muted-foreground">
-                    {document.assigned_to_user.name || document.assigned_to_user.email}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("documentPreview")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <DocumentViewer
+                    url={document.document_file_url ?? ""}
+                    mimeType={document.document_file_mimeType ?? ""}
+                    fileName={document.document_name ?? undefined}
+                    height="600px"
+                  />
+                </CardContent>
+              </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("documentPreview")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DocumentViewer
-                url={document.document_file_url ?? ""}
-                mimeType={document.document_file_mimeType ?? ""}
-                fileName={document.document_name ?? undefined}
-                height="600px"
+            {/* Right column: Linked entities */}
+            <div className="space-y-4">
+              <LinkedEntitiesPanel
+                type="clients"
+                entities={clients}
+                isLoading={isLinkedLoading}
+                onLinkEntity={() => setLinkClientDialogOpen(true)}
+                onUnlinkEntity={handleUnlinkClient}
               />
-            </CardContent>
-          </Card>
+              <LinkedEntitiesPanel
+                type="properties"
+                entities={properties}
+                isLoading={isLinkedLoading}
+                onLinkEntity={() => setLinkPropertyDialogOpen(true)}
+                onUnlinkEntity={handleUnlinkProperty}
+              />
+              <LinkedEntitiesPanel
+                type="mandates"
+                entities={mandates}
+                isLoading={isLinkedLoading}
+                onLinkEntity={() => setLinkMandateDialogOpen(true)}
+                onUnlinkEntity={handleUnlinkMandate}
+              />
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="share" className="space-y-4">
-          {/* Share with Connections */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -217,8 +290,8 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
                     <CardDescription>Send this document to agents in your network</CardDescription>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   leftIcon={<Share2 className="h-4 w-4" />}
                   onClick={() => setShareModalOpen(true)}
                 >
@@ -228,7 +301,6 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
             </CardHeader>
           </Card>
 
-          {/* Public Link Settings */}
           <Card>
             <CardHeader>
               <CardTitle>Public Link Settings</CardTitle>
@@ -305,6 +377,35 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         </TabsContent>
       </Tabs>
 
+      {/* Link Entity Dialogs */}
+      <LinkEntityDialog
+        open={linkClientDialogOpen}
+        onOpenChange={setLinkClientDialogOpen}
+        entityType="client"
+        sourceId={document.id}
+        sourceType="document"
+        alreadyLinkedIds={clients.map((c) => c.id)}
+        onLink={handleLinkClients}
+      />
+      <LinkEntityDialog
+        open={linkPropertyDialogOpen}
+        onOpenChange={setLinkPropertyDialogOpen}
+        entityType="property"
+        sourceId={document.id}
+        sourceType="document"
+        alreadyLinkedIds={properties.map((p) => p.id)}
+        onLink={handleLinkProperties}
+      />
+      <LinkEntityDialog
+        open={linkMandateDialogOpen}
+        onOpenChange={setLinkMandateDialogOpen}
+        entityType="mandate"
+        sourceId={document.id}
+        sourceType="document"
+        alreadyLinkedIds={mandates.map((m) => m.id)}
+        onLink={handleLinkMandates}
+      />
+
       {/* Share Modal */}
       <ShareModal
         open={shareModalOpen}
@@ -316,4 +417,3 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
     </div>
   );
 }
-

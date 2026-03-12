@@ -3,6 +3,7 @@ import { useSWRConfig } from "swr";
 import { getPropertyLinkedKey } from "./usePropertyLinked";
 import { getClientLinkedKey } from "./useClientLinked";
 import { getMandateLinkedKey } from "./useMandateLinked";
+import { getDocumentLinkedKey } from "./useDocumentLinked";
 
 // ============================================================
 // Types
@@ -548,4 +549,350 @@ export function useUnlinkMandateFromClient(clientId: string) {
     isUnlinking: isMutating,
     error,
   };
+}
+
+// ============================================================
+// Document Fetchers
+// ============================================================
+
+async function linkEntitiesToDocumentFetcher(
+  url: string,
+  { arg }: { arg: { clientIds?: string[]; propertyIds?: string[]; mandateIds?: string[] } }
+): Promise<{ success: boolean }> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(arg),
+  });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to link entities");
+  return res.json();
+}
+
+async function unlinkEntityFromDocumentFetcher(
+  url: string,
+  { arg }: { arg: { clientIds?: string; propertyIds?: string; mandateIds?: string } }
+): Promise<UnlinkResponse> {
+  const params = new URLSearchParams();
+  if (arg.clientIds) params.set("clientIds", arg.clientIds);
+  if (arg.propertyIds) params.set("propertyIds", arg.propertyIds);
+  if (arg.mandateIds) params.set("mandateIds", arg.mandateIds);
+  const res = await fetch(`${url}?${params.toString()}`, { method: "DELETE" });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink entity");
+  return res.json();
+}
+
+// ============================================================
+// Document ↔ Client Hooks
+// ============================================================
+
+export function useLinkClientsToDocument(documentId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/${documentId}/link-entities`,
+    linkEntitiesToDocumentFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getDocumentLinkedKey(documentId));
+      },
+    }
+  );
+
+  const linkClients = async (clientIds: string[]) => {
+    return trigger({ clientIds });
+  };
+
+  return { linkClients, isLinking: isMutating, error };
+}
+
+export function useUnlinkClientFromDocument(documentId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/${documentId}/link-entities`,
+    unlinkEntityFromDocumentFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getDocumentLinkedKey(documentId));
+      },
+    }
+  );
+
+  const unlinkClient = async (clientId: string) => {
+    return trigger({ clientIds: clientId });
+  };
+
+  return { unlinkClient, isUnlinking: isMutating, error };
+}
+
+// ============================================================
+// Document ↔ Property Hooks
+// ============================================================
+
+export function useLinkPropertiesToDocument(documentId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/${documentId}/link-entities`,
+    linkEntitiesToDocumentFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getDocumentLinkedKey(documentId));
+      },
+    }
+  );
+
+  const linkProperties = async (propertyIds: string[]) => {
+    return trigger({ propertyIds });
+  };
+
+  return { linkProperties, isLinking: isMutating, error };
+}
+
+export function useUnlinkPropertyFromDocument(documentId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/${documentId}/link-entities`,
+    unlinkEntityFromDocumentFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getDocumentLinkedKey(documentId));
+      },
+    }
+  );
+
+  const unlinkProperty = async (propertyId: string) => {
+    return trigger({ propertyIds: propertyId });
+  };
+
+  return { unlinkProperty, isUnlinking: isMutating, error };
+}
+
+// ============================================================
+// Document ↔ Mandate Hooks
+// ============================================================
+
+export function useLinkMandatesToDocument(documentId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/${documentId}/link-entities`,
+    linkEntitiesToDocumentFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getDocumentLinkedKey(documentId));
+      },
+    }
+  );
+
+  const linkMandates = async (mandateIds: string[]) => {
+    return trigger({ mandateIds });
+  };
+
+  return { linkMandates, isLinking: isMutating, error };
+}
+
+export function useUnlinkMandateFromDocument(documentId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/${documentId}/link-entities`,
+    unlinkEntityFromDocumentFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getDocumentLinkedKey(documentId));
+      },
+    }
+  );
+
+  const unlinkMandate = async (mandateId: string) => {
+    return trigger({ mandateIds: mandateId });
+  };
+
+  return { unlinkMandate, isUnlinking: isMutating, error };
+}
+
+// ============================================================
+// Reverse: Entity → Document Hooks (for entity detail pages)
+// ============================================================
+
+export function useLinkDocumentsToClient(clientId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/link-to-client/${clientId}`,
+    async (url: string, { arg }: { arg: { clientId: string; documentIds: string[] } }) => {
+      const results = await Promise.all(
+        arg.documentIds.map((docId) =>
+          fetch(`/api/documents/${docId}/link-entities`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clientIds: [arg.clientId] }),
+          })
+        )
+      );
+      const failed = results.filter((r) => !r.ok);
+      if (failed.length > 0) throw new Error("Failed to link some documents");
+      return { success: true };
+    },
+    {
+      onSuccess: () => {
+        globalMutate(getClientLinkedKey(clientId));
+      },
+    }
+  );
+
+  const linkDocuments = async (documentIds: string[]) => {
+    return trigger({ clientId, documentIds });
+  };
+
+  return { linkDocuments, isLinking: isMutating, error };
+}
+
+export function useUnlinkDocumentFromClient(clientId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/unlink-from-client/${clientId}`,
+    async (_url: string, { arg }: { arg: { clientId: string; documentId: string } }) => {
+      const res = await fetch(
+        `/api/documents/${arg.documentId}/link-entities?clientIds=${arg.clientId}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error("Failed to unlink document");
+      return res.json();
+    },
+    {
+      onSuccess: () => {
+        globalMutate(getClientLinkedKey(clientId));
+      },
+    }
+  );
+
+  const unlinkDocument = async (documentId: string) => {
+    return trigger({ clientId, documentId });
+  };
+
+  return { unlinkDocument, isUnlinking: isMutating, error };
+}
+
+export function useLinkDocumentsToProperty(propertyId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/link-to-property/${propertyId}`,
+    async (url: string, { arg }: { arg: { propertyId: string; documentIds: string[] } }) => {
+      const results = await Promise.all(
+        arg.documentIds.map((docId) =>
+          fetch(`/api/documents/${docId}/link-entities`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ propertyIds: [arg.propertyId] }),
+          })
+        )
+      );
+      const failed = results.filter((r) => !r.ok);
+      if (failed.length > 0) throw new Error("Failed to link some documents");
+      return { success: true };
+    },
+    {
+      onSuccess: () => {
+        globalMutate(getPropertyLinkedKey(propertyId));
+      },
+    }
+  );
+
+  const linkDocuments = async (documentIds: string[]) => {
+    return trigger({ propertyId, documentIds });
+  };
+
+  return { linkDocuments, isLinking: isMutating, error };
+}
+
+export function useUnlinkDocumentFromProperty(propertyId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/unlink-from-property/${propertyId}`,
+    async (_url: string, { arg }: { arg: { propertyId: string; documentId: string } }) => {
+      const res = await fetch(
+        `/api/documents/${arg.documentId}/link-entities?propertyIds=${arg.propertyId}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error("Failed to unlink document");
+      return res.json();
+    },
+    {
+      onSuccess: () => {
+        globalMutate(getPropertyLinkedKey(propertyId));
+      },
+    }
+  );
+
+  const unlinkDocument = async (documentId: string) => {
+    return trigger({ propertyId, documentId });
+  };
+
+  return { unlinkDocument, isUnlinking: isMutating, error };
+}
+
+export function useLinkDocumentsToMandate(mandateId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/link-to-mandate/${mandateId}`,
+    async (url: string, { arg }: { arg: { mandateId: string; documentIds: string[] } }) => {
+      const results = await Promise.all(
+        arg.documentIds.map((docId) =>
+          fetch(`/api/documents/${docId}/link-entities`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mandateIds: [arg.mandateId] }),
+          })
+        )
+      );
+      const failed = results.filter((r) => !r.ok);
+      if (failed.length > 0) throw new Error("Failed to link some documents");
+      return { success: true };
+    },
+    {
+      onSuccess: () => {
+        globalMutate(getMandateLinkedKey(mandateId));
+      },
+    }
+  );
+
+  const linkDocuments = async (documentIds: string[]) => {
+    return trigger({ mandateId, documentIds });
+  };
+
+  return { linkDocuments, isLinking: isMutating, error };
+}
+
+export function useUnlinkDocumentFromMandate(mandateId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/documents/unlink-from-mandate/${mandateId}`,
+    async (_url: string, { arg }: { arg: { mandateId: string; documentId: string } }) => {
+      const res = await fetch(
+        `/api/documents/${arg.documentId}/link-entities?mandateIds=${arg.mandateId}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error("Failed to unlink document");
+      return res.json();
+    },
+    {
+      onSuccess: () => {
+        globalMutate(getMandateLinkedKey(mandateId));
+      },
+    }
+  );
+
+  const unlinkDocument = async (documentId: string) => {
+    return trigger({ mandateId, documentId });
+  };
+
+  return { unlinkDocument, isUnlinking: isMutating, error };
 }

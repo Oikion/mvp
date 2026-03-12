@@ -42,16 +42,26 @@ interface LinkedEvent {
   linkedProperties?: { id: string; property_name: string }[];
 }
 
+interface LinkedDocument {
+  id: string;
+  friendlyId: string;
+  document_name: string;
+  document_type?: string;
+  document_file_mimeType?: string;
+  createdAt?: string;
+}
+
 interface MandateLinkedData {
   mandate?: { id: string; title: string };
   properties: LinkedProperty[];
   clients: LinkedClient[];
+  documents: LinkedDocument[];
   events: {
     upcoming: LinkedEvent[];
     past: LinkedEvent[];
     total: number;
   };
-  counts: { properties: number; clients: number; events: number; upcomingEvents: number };
+  counts: { properties: number; clients: number; documents: number; events: number; upcomingEvents: number };
 }
 
 interface UseMandateLinkedOptions {
@@ -71,8 +81,9 @@ export function useMandateLinked(
     linkedData: data ?? null,
     properties: data?.properties ?? [],
     clients: data?.clients ?? [],
+    documents: data?.documents ?? [],
     events: data?.events ?? { upcoming: [], past: [], total: 0 },
-    counts: data?.counts ?? { properties: 0, clients: 0, events: 0, upcomingEvents: 0 },
+    counts: data?.counts ?? { properties: 0, clients: 0, documents: 0, events: 0, upcomingEvents: 0 },
     isLoading,
     isValidating,
     error,

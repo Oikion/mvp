@@ -88,7 +88,7 @@ const DocumentViewModal = ({
       <ModalDocumentView isOpen={isOpen} onClose={onClose}>
         <div className="flex flex-col h-full ">
           This format can not be previewed. Please download the file to view it.
-          <Button>
+          <Button asChild>
             <Link href={document.document_file_url}> Download</Link>
           </Button>
           <div className="pt-6 space-x-2 flex items-center justify-end w-full ">

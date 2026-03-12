@@ -49,6 +49,8 @@ import {
   useUnlinkClientFromProperty,
   useLinkMandatesToProperty,
   useUnlinkMandateFromProperty,
+  useLinkDocumentsToProperty,
+  useUnlinkDocumentFromProperty,
 } from "@/hooks/swr";
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
 import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
@@ -149,6 +151,7 @@ export default function PropertyView({
   const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
+  const [linkDocumentDialogOpen, setLinkDocumentDialogOpen] = useState(false);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [createMandateOpen, setCreateMandateOpen] = useState(false);
@@ -163,6 +166,7 @@ export default function PropertyView({
   const {
     clients,
     mandates: linkedMandates,
+    documents: linkedDocuments,
     events,
     isLoading: isLoadingLinked,
     mutate: mutateLinked,
@@ -172,6 +176,8 @@ export default function PropertyView({
   const { unlinkClient, isUnlinking } = useUnlinkClientFromProperty(data.id);
   const { linkMandates, isLinking: isLinkingMandates } = useLinkMandatesToProperty(data.id);
   const { unlinkMandate, isUnlinking: isUnlinkingMandates } = useUnlinkMandateFromProperty(data.id);
+  const { linkDocuments, isLinking: isLinkingDocuments } = useLinkDocumentsToProperty(data.id);
+  const { unlinkDocument, isUnlinking: isUnlinkingDocuments } = useUnlinkDocumentFromProperty(data.id);
 
   useEffect(() => {
     setEditOpen(defaultEditOpen);
@@ -222,6 +228,27 @@ export default function PropertyView({
     } catch (error) {
       console.error("Failed to unlink mandate:", error);
       toast.error("Failed to unlink mandate");
+    }
+  };
+
+  const handleLinkDocuments = async (documentIds: string[]) => {
+    try {
+      await linkDocuments(documentIds);
+      await mutateLinked();
+    } catch (error) {
+      console.error("Failed to link documents:", error);
+      throw error;
+    }
+  };
+
+  const handleUnlinkDocument = async (documentId: string) => {
+    try {
+      await unlinkDocument(documentId);
+      toast.success("Document unlinked successfully");
+      await mutateLinked();
+    } catch (error) {
+      console.error("Failed to unlink document:", error);
+      toast.error("Failed to unlink document");
     }
   };
 
@@ -546,11 +573,11 @@ export default function PropertyView({
                           <Copy className="h-4 w-4" />
                         )}
                       </Button>
-                      <Link href={`/property/${data.id}`} target="_blank">
-                        <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/property/${data.id}`} target="_blank">
                           <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -588,6 +615,17 @@ export default function PropertyView({
             showAddButton={false}
             onCreateEvent={!isReadOnly ? () => setCreateEventOpen(true) : undefined}
             emptyMessage="No calendar events for this property yet."
+          />
+
+          {/* Linked Documents */}
+          <LinkedEntitiesPanel
+            type="documents"
+            entities={linkedDocuments as unknown as Array<{ id: string; friendlyId: string; document_name: string; document_type?: string; document_file_mimeType?: string; createdAt?: string; }>}
+            isLoading={isLoadingLinked || isLinkingDocuments || isUnlinkingDocuments}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkDocumentDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkDocument}
+            showAddButton={!isReadOnly}
+            emptyMessage="No documents linked to this property yet."
           />
 
           {/* Export History */}
@@ -662,6 +700,21 @@ export default function PropertyView({
           onLink={handleLinkMandates}
           title="Link Mandates to Property"
           description="Select mandates associated with this property."
+        />
+      )}
+
+      {/* Link Document Dialog */}
+      {!isReadOnly && (
+        <LinkEntityDialog
+          open={linkDocumentDialogOpen}
+          onOpenChange={setLinkDocumentDialogOpen}
+          entityType="document"
+          sourceId={data.id}
+          sourceType="property"
+          alreadyLinkedIds={(linkedDocuments ?? []).map((d: any) => d.id)}
+          onLink={handleLinkDocuments}
+          title="Link Documents to Property"
+          description="Select documents to associate with this property."
         />
       )}
 
