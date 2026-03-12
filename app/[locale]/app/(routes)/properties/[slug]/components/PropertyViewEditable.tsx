@@ -611,11 +611,11 @@ export function PropertyViewEditable({
                       <Copy className="h-4 w-4" />
                     )}
                   </Button>
-                  <Link href={`/property/${data.id}`} target="_blank">
-                    <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/property/${data.id}`} target="_blank">
                       <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               </div>
             )}

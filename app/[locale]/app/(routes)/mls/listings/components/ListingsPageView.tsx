@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { DataTable } from "@/components/ui/data-table/data-table";
+import { PropertyDataTable } from "../../properties/table-components/data-table";
 import { getColumns } from "../../properties/table-components/columns";
 import { statuses } from "../../properties/table-data/data";
 import { useTranslations } from "next-intl";
@@ -147,18 +147,9 @@ export default function ListingsPageView({ listings = [] }: ListingsPageViewProp
               </p>
             </div>
           ) : view === "list" ? (
-            <DataTable
+            <PropertyDataTable
               data={listings}
               columns={getColumns(users)}
-              searchKey="property_name"
-              searchPlaceholder={t("MlsPropertiesTable.filterPlaceholder")}
-              filters={[
-                {
-                  column: "property_status",
-                  title: t("MlsPropertiesTable.status"),
-                  options: statusOptions,
-                },
-              ]}
             />
           ) : (
             <div className="space-y-4">

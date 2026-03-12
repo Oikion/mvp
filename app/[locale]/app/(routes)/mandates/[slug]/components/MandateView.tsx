@@ -45,6 +45,8 @@ import {
   useUnlinkPropertyFromMandate,
   useLinkClientsToMandate,
   useUnlinkClientFromMandate,
+  useLinkDocumentsToMandate,
+  useUnlinkDocumentFromMandate,
 } from "@/hooks/swr/useLinkMutations"
 import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel"
 import { LinkEntityDialog } from "@/components/linking/LinkEntityDialog"
@@ -216,6 +218,7 @@ export default function MandateView({
   const {
     properties: linkedProperties,
     clients: linkedClients,
+    documents: linkedDocuments,
     events,
     isLoading: isLoadingLinked,
     mutate: mutateLinked,
@@ -226,9 +229,12 @@ export default function MandateView({
   const { unlinkProperty, isUnlinking: isUnlinkingProperties } = useUnlinkPropertyFromMandate(mandate.id)
   const { linkClients, isLinking: isLinkingClients } = useLinkClientsToMandate(mandate.id)
   const { unlinkClient, isUnlinking: isUnlinkingClients } = useUnlinkClientFromMandate(mandate.id)
+  const { linkDocuments, isLinking: isLinkingDocuments } = useLinkDocumentsToMandate(mandate.id)
+  const { unlinkDocument, isUnlinking: isUnlinkingDocuments } = useUnlinkDocumentFromMandate(mandate.id)
 
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false)
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false)
+  const [linkDocumentDialogOpen, setLinkDocumentDialogOpen] = useState(false)
 
   const [visibility, setVisibility] = useState<ItemVisibility>(mandate.visibility || "PERSONAL")
 
@@ -779,6 +785,16 @@ export default function MandateView({
             onCreateEvent={() => setCreateEventOpen(true)}
             emptyMessage={t("MandateView.noCalendarEvents")}
           />
+
+          {/* Linked Documents */}
+          <LinkedEntitiesPanel
+            type="documents"
+            entities={linkedDocuments as unknown as Array<{ id: string; friendlyId: string; document_name: string; document_type?: string; document_file_mimeType?: string; createdAt?: string }>}
+            isLoading={isLoadingLinked || isLinkingDocuments || isUnlinkingDocuments}
+            onLinkEntity={() => setLinkDocumentDialogOpen(true)}
+            onUnlinkEntity={(documentId) => unlinkDocument(documentId)}
+            emptyMessage={t("linkedEntities.noDocuments") ?? "No documents linked yet"}
+          />
         </div>
       </div>
 
@@ -828,6 +844,19 @@ export default function MandateView({
         sourceType="mandate"
         alreadyLinkedIds={linkedProperties.map((p: any) => p.id)}
         onLink={async (ids: string[]) => { await linkProperties(ids); }}
+      />
+
+      {/* ================================================================== */}
+      {/* Link Document Dialog                                               */}
+      {/* ================================================================== */}
+      <LinkEntityDialog
+        open={linkDocumentDialogOpen}
+        onOpenChange={setLinkDocumentDialogOpen}
+        entityType="document"
+        sourceId={mandate.id}
+        sourceType="mandate"
+        alreadyLinkedIds={(linkedDocuments ?? []).map((d: any) => d.id)}
+        onLink={async (ids: string[]) => { await linkDocuments(ids); }}
       />
     </div>
   )

@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+
 import Container from "../../components/ui/Container";
 import { getNetworkSettings, getNetworkPartners } from "@/actions/network/manage-network-settings";
 import { NetworkSettingsClient } from "./components/NetworkSettingsClient";
@@ -21,7 +21,7 @@ export default async function NetworkSettingsPage({
   ]);
 
   return (
-    <Container>
+    <Container title="Network Settings" description="Manage your network and sharing preferences">
       <NetworkSettingsClient
         initialSettings={settings}
         initialPartners={partners}
