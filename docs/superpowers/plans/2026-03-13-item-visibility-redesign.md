@@ -305,11 +305,60 @@ git commit -m "refactor: rename PERSONAL→PRIVATE in views, actions, and compon
 - Modify: `lib/import/index.ts`
 - Modify: `components/conversion/ConversionTransformStep.tsx`
 
-- [ ] **Step 1: Replace `"PERSONAL"` → `"PRIVATE"` in each file**
+- [ ] **Step 1: Replace `"PERSONAL"` → `"PRIVATE"` in onboarding files**
 
-For import configs, also add `"HIDDEN"` to enum value arrays where `ItemVisibility` options are listed.
+Files: `types/onboarding.ts`, `actions/user/complete-onboarding.ts`, `PrivacyStep.tsx`
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 2: Update `lib/import/enum-normalizer.ts` — fix visibility mappings**
+
+The enum normalizer (line ~295-320) maps user-entered strings to enum values. Current mappings must change:
+
+```typescript
+// BEFORE (wrong after rename):
+// "private" → "PERSONAL"
+// "hidden" → "PERSONAL"
+
+// AFTER (correct):
+// "hidden" → "HIDDEN"     ← new enum value
+// "private" → "PRIVATE"   ← renamed enum value
+// "personal" → "PRIVATE"  ← backward compat for old value
+```
+
+Ensure all other mappings (`"secure"` → `"SECURE"`, `"public"` → `"PUBLIC"`) remain unchanged. Greek aliases (`"κρυφό"`, `"ιδιωτικό"`) should map to `"HIDDEN"` and `"PRIVATE"` respectively.
+
+- [ ] **Step 3: Update `lib/import/property-import-schema.ts` — add HIDDEN to Zod enum**
+
+Line ~79-83: Replace `ItemVisibilityEnum`:
+
+```typescript
+export const ItemVisibilityEnum = z.enum([
+  "HIDDEN",
+  "PRIVATE",
+  "SECURE",
+  "PUBLIC",
+]);
+```
+
+Also update the field description (line ~593):
+```typescript
+description: "Item visibility (HIDDEN, PRIVATE, SECURE, PUBLIC)"
+```
+
+- [ ] **Step 4: Update import config defaults**
+
+- `lib/import/property-import-config.ts:139` — `"PERSONAL"` → `"PRIVATE"`
+- `lib/import/client-import-config.ts:129` — `"PERSONAL"` → `"PRIVATE"`
+- `lib/import/mandate-import-config.ts:150` — `"PERSONAL"` → `"PRIVATE"`
+
+- [ ] **Step 5: Update `components/conversion/ConversionTransformStep.tsx`**
+
+Line ~46: Update the `ENUM_FIELDS` visibility array:
+
+```typescript
+visibility: ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"],
+```
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add types/ actions/user/ app/[locale]/(onboarding)/ lib/import/ components/conversion/
@@ -499,11 +548,47 @@ git add actions/mls/update-property-visibility.ts actions/mandates/update-mandat
 git commit -m "feat: clean up CrossOrgMatch rows on visibility downgrade"
 ```
 
+### Task 13: Add visibility input validation to external API routes
+
+**Files:**
+- Modify: `app/api/v1/mls/properties/route.ts`
+- Modify: `app/api/v1/mls/properties/[propertyId]/route.ts`
+
+**Security context:** These external API routes currently accept `portalVisibility` from the request body with NO validation — any API consumer with `MLS_WRITE` scope can set visibility to an arbitrary string. Now that HIDDEN exists, we must validate input against the enum.
+
+- [ ] **Step 1: Add validation to POST `/api/v1/mls/properties`**
+
+In `app/api/v1/mls/properties/route.ts`, after extracting `portalVisibility` from the request body, validate it:
+
+```typescript
+import { ItemVisibility } from "@prisma/client";
+
+// Validate visibility if provided
+const validVisibilities: ItemVisibility[] = ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"];
+if (portalVisibility && !validVisibilities.includes(portalVisibility)) {
+  return NextResponse.json(
+    { error: "Invalid visibility value. Must be one of: HIDDEN, PRIVATE, SECURE, PUBLIC" },
+    { status: 400 }
+  );
+}
+```
+
+- [ ] **Step 2: Add validation to PUT `/api/v1/mls/properties/[propertyId]`**
+
+Same pattern in `app/api/v1/mls/properties/[propertyId]/route.ts` for the PUT handler.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add app/api/v1/mls/properties/
+git commit -m "fix: validate visibility input in external API property routes"
+```
+
 ---
 
 ## Chunk 4: UI — ItemVisibilitySelector + Translations
 
-### Task 13: Update ItemVisibilitySelector to 4 stops
+### Task 14: Update ItemVisibilitySelector to 4 stops
 
 **Files:**
 - Modify: `components/ItemVisibilitySelector.tsx`
@@ -624,7 +709,7 @@ git add components/ItemVisibilitySelector.tsx
 git commit -m "feat: expand ItemVisibilitySelector to 4 stops (HIDDEN, PRIVATE, SECURE, PUBLIC)"
 ```
 
-### Task 14: Update translations
+### Task 15: Update translations
 
 **Files:**
 - Modify: `locales/en/mls.json`
@@ -677,7 +762,7 @@ git commit -m "feat: add HIDDEN and rename PERSONAL→PRIVATE in translations"
 
 ## Chunk 5: Verification
 
-### Task 15: Build and lint verification
+### Task 16: Build and lint verification
 
 - [ ] **Step 1: Run TypeScript compilation**
 
