@@ -39,7 +39,7 @@ model AgentProfile {
   socialLinks             Json?
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime
-  visibility              ProfileVisibility         @default(PERSONAL)
+  visibility              ProfileVisibility         @default(PRIVATE)
   hideFromAgentSearch     Boolean                   @default(false)
   contactFormEnabled      Boolean                   @default(false)
   contactFormFields       Json? // Custom form field configuration
@@ -276,7 +276,7 @@ model Clients {
   company_name                     String?
   doy                              String?
   draft_status                     Boolean?             @default(false)
-  visibility                       ItemVisibility       @default(PERSONAL)
+  visibility                       ItemVisibility       @default(PRIVATE)
   full_name                        String?
   gdpr_consent                     Boolean?             @default(false)
   id_doc                           String?
@@ -710,7 +710,7 @@ model Properties {
   objective_zone         String?
   orientation            Json?
   plot_size_sqm          Decimal?
-  visibility             ItemVisibility   @default(PERSONAL)
+  visibility             ItemVisibility   @default(PRIVATE)
   postal_code            String?
   price_type             PriceType?
   region                 String?
@@ -1444,7 +1444,8 @@ enum PersonType {
 }
 
 enum ItemVisibility {
-  PERSONAL
+  HIDDEN
+  PRIVATE
   SECURE
   PUBLIC
 }
@@ -1457,7 +1458,7 @@ enum PriceType {
 }
 
 enum ProfileVisibility {
-  PERSONAL
+  PRIVATE
   SECURE
   PUBLIC
 }
@@ -1622,7 +1623,7 @@ model Mandate {
   notes               String?
   communication_notes Json?
   draft_status        Boolean?             @default(false)
-  visibility          ItemVisibility       @default(PERSONAL)
+  visibility          ItemVisibility       @default(PRIVATE)
   assigned_to_user    Users?               @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
   comments            MandateComment[]
   Mandate_Properties  Mandate_Properties[]
@@ -2968,7 +2969,7 @@ model AgencyProfile {
   latitude                Float?
   longitude               Float?
   socialLinks             Json?
-  visibility              ProfileVisibility         @default(PERSONAL)
+  visibility              ProfileVisibility         @default(PRIVATE)
   yearFounded             Int?
   licenseNumber           String?
   contactFormEnabled      Boolean                   @default(false)
