@@ -89,7 +89,8 @@ export const furnishedStatusSchema = z.enum([
 
 // Item visibility - matches Prisma ItemVisibility enum
 export const itemVisibilitySchema = z.enum([
-  "PERSONAL",
+  "HIDDEN",
+  "PRIVATE",
   "SECURE",
   "PUBLIC",
 ]);

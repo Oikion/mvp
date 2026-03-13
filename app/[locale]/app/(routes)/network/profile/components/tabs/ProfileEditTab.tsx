@@ -44,7 +44,7 @@ const formSchema = z.object({
   publicPhone: z.string().optional(),
   publicEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
   yearsExperience: z.coerce.number().min(0).max(70).optional().nullable(),
-  visibility: z.enum(["PERSONAL", "SECURE", "PUBLIC"]).default("PERSONAL"),
+  visibility: z.enum(["PRIVATE", "SECURE", "PUBLIC"]).default("PRIVATE"),
   specializations: z.array(z.string()).optional(),
   serviceAreas: z.array(z.string()).optional(),
   languages: z.array(z.string()).optional(),
@@ -89,8 +89,8 @@ const LANGUAGE_OPTIONS = [
 
 const VISIBILITY_OPTIONS = [
   {
-    value: "PERSONAL",
-    label: "Personal",
+    value: "PRIVATE",
+    label: "Private",
     description: "Hidden from everyone",
     icon: Lock,
     color: "text-destructive",
@@ -168,7 +168,7 @@ export function ProfileEditTab({
       publicPhone: profile?.publicPhone || "",
       publicEmail: profile?.publicEmail || userEmail || "",
       yearsExperience: profile?.yearsExperience || null,
-      visibility: profile?.visibility || "PERSONAL",
+      visibility: profile?.visibility || "PRIVATE",
       specializations: profile?.specializations || [],
       serviceAreas: profile?.serviceAreas || [],
       languages: profile?.languages || [],
@@ -205,7 +205,7 @@ export function ProfileEditTab({
       await axios.post("/api/profile/social", payload);
 
       const visibilityMsg: Record<string, string> = {
-        PERSONAL: "Your profile is hidden.",
+        PRIVATE: "Your profile is hidden.",
         SECURE: "Your profile is visible to registered users only.",
         PUBLIC: "Your profile is now live and visible to everyone!",
       };

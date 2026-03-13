@@ -119,7 +119,8 @@
       "buildingBlockOtPlaceholder": "Αριθμός Ο.Τ."
     },
     "visibility": {
-      "PERSONAL": "Προσωπικό",
+      "HIDDEN": "Κρυφό",
+      "PRIVATE": "Ιδιωτικό",
       "SECURE": "Ασφαλές",
       "PUBLIC": "Δημόσιο"
     },

@@ -84,7 +84,7 @@ const formSchema = z.object({
   
   // Step 9: Media
   virtual_tour_url: z.string().url().optional().or(z.literal("")),
-  visibility: z.enum(["PERSONAL", "SECURE", "PUBLIC"]).optional(),
+  visibility: z.enum(["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"]).optional(),
   assigned_to: z.string().optional(),
   description: z.string().optional(),
 });
@@ -147,7 +147,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
       virtual_tour_url: initialData?.virtual_tour_url ?? "",
       // Ensure defaults
       country: initialData?.country || "GR",
-      visibility: initialData?.visibility || "PERSONAL",
+      visibility: initialData?.visibility || "PRIVATE",
       address_privacy_level: initialData?.address_privacy_level || "PARTIAL",
       is_exclusive: initialData?.is_exclusive || false,
       elevator: initialData?.elevator || false,
@@ -782,10 +782,11 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
             <FormField control={form.control} name="visibility" render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("PropertyForm.fields.portalVisibility")}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || "PERSONAL"}>
+                <Select onValueChange={field.onChange} value={field.value || "PRIVATE"}>
                   <FormControl><SelectTrigger><SelectValue placeholder={t("PropertyForm.fields.portalVisibilityPlaceholder")} /></SelectTrigger></FormControl>
                   <SelectContent>
-                    <SelectItem value="PERSONAL">{t("PropertyForm.visibility.PERSONAL")}</SelectItem>
+                    <SelectItem value="HIDDEN">{t("PropertyForm.visibility.HIDDEN")}</SelectItem>
+                    <SelectItem value="PRIVATE">{t("PropertyForm.visibility.PRIVATE")}</SelectItem>
                     <SelectItem value="SECURE">{t("PropertyForm.visibility.SECURE")}</SelectItem>
                     <SelectItem value="PUBLIC">{t("PropertyForm.visibility.PUBLIC")}</SelectItem>
                   </SelectContent>

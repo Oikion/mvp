@@ -119,7 +119,8 @@
       "buildingBlockOtPlaceholder": "O.T. number"
     },
     "visibility": {
-      "PERSONAL": "Personal",
+      "HIDDEN": "Hidden",
+      "PRIVATE": "Private",
       "SECURE": "Secure",
       "PUBLIC": "Public"
     },
