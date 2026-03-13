@@ -42,13 +42,20 @@ Remains `PRIVATE` (previously `PERSONAL`) for all entities (Property, Client, Ma
 
 ## Affected Entities
 
-All three already have `visibility: ItemVisibility @default(PERSONAL)`:
+### ItemVisibility (items — get HIDDEN + rename)
 
 - **Property** — `prisma/schema.prisma` (line ~713)
 - **Client** — `prisma/schema.prisma` (line ~279)
 - **Mandate** — `prisma/schema.prisma` (line ~1625)
 
-Default changes from `@default(PERSONAL)` to `@default(PRIVATE)`.
+### ProfileVisibility (profiles — rename only, no HIDDEN)
+
+- **AgentProfile** — `prisma/schema.prisma` (line ~42)
+- **AgencyProfile** — `prisma/schema.prisma` (line ~2971)
+
+`ProfileVisibility` is a **separate enum** from `ItemVisibility`. It also has `PERSONAL` which must be renamed to `PRIVATE` for consistency. However, `HIDDEN` is **not** added to `ProfileVisibility` — profiles don't participate in matchmaking/analytics, so the opt-out concept doesn't apply.
+
+All defaults change from `@default(PERSONAL)` to `@default(PRIVATE)` in both enums.
 
 ---
 
@@ -57,14 +64,18 @@ Default changes from `@default(PERSONAL)` to `@default(PRIVATE)`.
 Single migration performing:
 
 1. Add `HIDDEN` value to the `ItemVisibility` PostgreSQL enum
-2. Rename `PERSONAL` → `PRIVATE`:
+2. Rename `PERSONAL` → `PRIVATE` in **both** enums:
    - `UPDATE "Property" SET visibility = 'PRIVATE' WHERE visibility = 'PERSONAL'`
    - `UPDATE "Client" SET visibility = 'PRIVATE' WHERE visibility = 'PERSONAL'`
    - `UPDATE "Mandate" SET visibility = 'PRIVATE' WHERE visibility = 'PERSONAL'`
-   - `UPDATE "AgentProfile" SET visibility = 'PRIVATE' WHERE visibility = 'PERSONAL'` (if applicable)
-   - `ALTER TYPE "ItemVisibility" RENAME VALUE 'PERSONAL' TO 'PRIVATE'` (PostgreSQL 10+)
+   - `ALTER TYPE "ItemVisibility" RENAME VALUE 'PERSONAL' TO 'PRIVATE'`
+   - `UPDATE "AgentProfile" SET visibility = 'PRIVATE' WHERE visibility = 'PERSONAL'`
+   - `UPDATE "AgencyProfile" SET visibility = 'PRIVATE' WHERE visibility = 'PERSONAL'`
+   - `ALTER TYPE "ProfileVisibility" RENAME VALUE 'PERSONAL' TO 'PRIVATE'`
 
-**Note:** `ALTER TYPE ... RENAME VALUE` is supported in PostgreSQL 10+. If using an older version, a full enum rebuild is needed. Prisma Postgres (used in production) supports this.
+**Note:** `ALTER TYPE ... RENAME VALUE` is supported in PostgreSQL 10+. Prisma Postgres (used in production) supports this.
+
+**Important:** `HIDDEN` is only added to `ItemVisibility`, not `ProfileVisibility`. Profiles don't participate in automated matching systems.
 
 ---
 
@@ -80,7 +91,7 @@ Add `visibility: { not: "HIDDEN" }` to both:
 
 ### `actions/matchmaking/get-match-analytics.ts`
 
-Add `visibility: { not: "HIDDEN" }` to client and property queries (deprecated but should be consistent).
+This file is fully stubbed — `getMatchAnalytics()` returns `getEmptyAnalytics()` with no database queries. No changes needed.
 
 ### `actions/network/compute-cross-org-matches.ts`
 
@@ -123,10 +134,12 @@ Specific math changes:
 
 ## Rename Scope (PERSONAL → PRIVATE)
 
-~51 files need updating. Categories:
+~51 files need updating. The list below names key files by category but is **non-exhaustive** — run `grep -r '"PERSONAL"' --include='*.ts' --include='*.tsx'` during implementation to catch all occurrences.
+
+**Caution:** `ConversationScope.PERSONAL` is a separate enum — do NOT rename that value. Replacements must be scoped to `ItemVisibility` / `ProfileVisibility` contexts only.
 
 ### Prisma Schema
-- `prisma/schema.prisma` — enum definition, 3× `@default(PERSONAL)` → `@default(PRIVATE)`
+- `prisma/schema.prisma` — both enum definitions (`ItemVisibility` + `ProfileVisibility`), 5× `@default(PERSONAL)` → `@default(PRIVATE)`
 
 ### Zod Validation Schemas
 - `lib/validations/mls.ts`
@@ -145,6 +158,18 @@ All `z.enum(["PERSONAL", "SECURE", "PUBLIC"])` → `z.enum(["HIDDEN", "PRIVATE",
 - Network component types (`PendingRequestsTab`, `ConnectionsTab`, `FindAgentsTab`, `PendingRequestsList`, `ConnectionsList`)
 
 All `"PERSONAL" | "SECURE" | "PUBLIC"` → `"HIDDEN" | "PRIVATE" | "SECURE" | "PUBLIC"`.
+
+### API Routes
+- `app/api/v1/mls/properties/route.ts` — hardcoded `"PERSONAL"` default (line ~215)
+- `app/api/mls/properties/draft/route.ts`
+- `app/api/profile/social/route.ts`
+- `app/api/connections/search/route.ts`
+- `app/api/messaging/messages/route.ts`
+
+### Onboarding
+- `types/onboarding.ts`
+- `actions/user/complete-onboarding.ts`
+- `app/[locale]/(onboarding)/onboard/components/PrivacyStep.tsx`
 
 ### Comparisons & Defaults
 - `=== "PERSONAL"` → `=== "PRIVATE"`
