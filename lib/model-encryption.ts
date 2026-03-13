@@ -388,3 +388,159 @@ export async function decryptPropertyCommentForOrg<T extends MessageWithContent>
 ): Promise<T> {
   return decryptMessageForOrg(record, orgId);
 }
+
+// ─────────────────────────────────────────────
+// MyAccount (banking/tax PII)
+// ─────────────────────────────────────────────
+
+const MYACCOUNT_ENCRYPTED_STRING_FIELDS = [
+  "VAT_number",
+  "TAX_number",
+  "bank_name",
+  "bank_account",
+  "bank_code",
+  "bank_IBAN",
+  "bank_SWIFT",
+  "email_accountant",
+] as const;
+
+type MyAccountStringField = (typeof MYACCOUNT_ENCRYPTED_STRING_FIELDS)[number];
+type MyAccountWithEncryptedFields = Partial<Record<MyAccountStringField, string | null | undefined>>;
+
+export async function encryptMyAccountForOrg<T extends MyAccountWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & MyAccountWithEncryptedFields;
+  for (const field of MYACCOUNT_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
+
+export async function decryptMyAccountForOrg<T extends MyAccountWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...record } as T & MyAccountWithEncryptedFields;
+  for (const field of MYACCOUNT_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
+
+// ─────────────────────────────────────────────
+// NewsletterSubscriber (email/name PII)
+// ─────────────────────────────────────────────
+
+const NEWSLETTER_ENCRYPTED_STRING_FIELDS = [
+  "email",
+  "firstName",
+  "lastName",
+] as const;
+
+type NewsletterStringField = (typeof NEWSLETTER_ENCRYPTED_STRING_FIELDS)[number];
+type NewsletterWithEncryptedFields = Partial<Record<NewsletterStringField, string | null | undefined>>;
+
+export async function encryptNewsletterSubscriberForOrg<T extends NewsletterWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & NewsletterWithEncryptedFields;
+  for (const field of NEWSLETTER_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
+
+export async function decryptNewsletterSubscriberForOrg<T extends NewsletterWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...record } as T & NewsletterWithEncryptedFields;
+  for (const field of NEWSLETTER_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
+
+// ─────────────────────────────────────────────
+// AgentContactSubmission (public form PII)
+// Note: AgentProfile has no organizationId — the org must be resolved from
+// the agent's Clerk user → org membership before calling these functions.
+// ─────────────────────────────────────────────
+
+const AGENT_CONTACT_ENCRYPTED_STRING_FIELDS = [
+  "senderName",
+  "senderEmail",
+  "notes",
+] as const;
+
+type AgentContactStringField = (typeof AGENT_CONTACT_ENCRYPTED_STRING_FIELDS)[number];
+type AgentContactWithEncryptedFields = Partial<Record<AgentContactStringField, string | null | undefined>> & {
+  formData?: Prisma.JsonValue | null;
+};
+
+export async function encryptAgentContactForOrg<T extends AgentContactWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & AgentContactWithEncryptedFields;
+  for (const field of AGENT_CONTACT_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  if ("formData" in result) {
+    result.formData = encryptJsonWithKey(result.formData, dek);
+  }
+  return result as T;
+}
+
+export async function decryptAgentContactForOrg<T extends AgentContactWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...record } as T & AgentContactWithEncryptedFields;
+  for (const field of AGENT_CONTACT_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  if ("formData" in result) {
+    result.formData = decryptJsonWithKey(result.formData, dek);
+  }
+  return result as T;
+}

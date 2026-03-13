@@ -51,13 +51,13 @@ class InMemoryRateLimiter {
   private cleanup(): void {
     const now = Date.now();
     const keysToDelete: string[] = [];
-    
+
     this.store.forEach((record, key) => {
       if (now > record.resetTime) {
         keysToDelete.push(key);
       }
     });
-    
+
     keysToDelete.forEach(key => this.store.delete(key));
   }
 
@@ -118,8 +118,8 @@ export async function rateLimit(
   identifier: string,
   tier: RateLimitTier = 'default'
 ): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
-  // Skip rate limiting only when explicitly opted in (e.g., local development)
-  if (process.env.DISABLE_RATE_LIMITING === 'true') {
+  // Skip rate limiting only in non-production environments
+  if (process.env.DISABLE_RATE_LIMITING === 'true' && process.env.NODE_ENV !== 'production') {
     const config = RATE_LIMIT_CONFIGS[tier];
     return {
       success: true,
@@ -148,11 +148,15 @@ export async function rateLimit(
 /**
  * Get identifier from request (IP address or user ID)
  * Works with both server and edge runtime
+ *
+ * Priority: x-vercel-forwarded-for (platform-set, unspoofable on Vercel)
+ *           > x-real-ip > x-forwarded-for (client-spoofable) > 'unknown'
  */
 export function getRateLimitIdentifier(req: Request): string {
-  // Use IP address as identifier (headers like x-user-id are client-spoofable)
+  const vercelIp = req.headers.get('x-vercel-forwarded-for');
+  const realIp = req.headers.get('x-real-ip');
   const forwarded = req.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0].trim() : req.headers.get('x-real-ip') || 'unknown';
+  const ip = vercelIp || realIp || (forwarded ? forwarded.split(',')[0].trim() : 'unknown');
   return `ip:${ip}`;
 }
 
@@ -174,45 +178,28 @@ export function getRateLimitTier(pathname: string): RateLimitTier {
   // Strict rate limiting for sensitive operations
   const strictPaths = [
     '/api/auth',
-    '/api/user/password',
-    '/api/user/email',
-    '/api/org/invite',
-    '/api/webhooks',
+    '/api/user/setnewpass',
+    '/api/user/inviteuser',
+    '/api/user/passwordReset',
   ];
-  
-  if (strictPaths.some(path => pathname.startsWith(path))) {
+
+  if (strictPaths.some(p => pathname.startsWith(p))) {
     return 'strict';
   }
 
   // Lenient rate limiting for read-heavy operations
   const lenientPaths = [
-    '/api/global-search',
-    '/api/mls/properties',
-    '/api/crm/clients',
-    '/api/documents',
-    '/api/calendar/events',
-    '/api/notifications',
+    '/api/user/check-username',
   ];
-  
-  // Only GET requests to these paths get lenient limits
-  if (lenientPaths.some(path => pathname.startsWith(path))) {
+
+  if (lenientPaths.some(p => pathname.startsWith(p))) {
     return 'lenient';
   }
 
-  // Burst tier for file operations and real-time features
-  const burstPaths = [
-    '/api/upload',
-    '/api/documents/upload',
-    '/api/profile/upload',
-    '/api/messaging/messages', // Real-time messaging needs burst capacity
-    '/api/messaging/reactions',
-    '/api/messaging/typing',
-  ];
-  
-  if (burstPaths.some(path => pathname.startsWith(path))) {
-    return 'burst';
+  // External API uses its own tier
+  if (pathname.startsWith('/api/v1')) {
+    return 'api';
   }
 
   return 'default';
 }
-

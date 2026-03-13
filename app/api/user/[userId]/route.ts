@@ -2,14 +2,18 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { deleteUserOwnedOrganizations } from "@/lib/clerk-sync";
+import { requireOwner } from "@/lib/permissions/guards";
 
 export async function GET(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
-  
+
   try {
     const currentUser = await getCurrentUser();
-    if (currentUser.id !== params.userId && !currentUser.is_admin) {
-      return new NextResponse("Forbidden", { status: 403 });
+
+    // Self-access is always allowed; cross-user requires Owner role
+    if (currentUser.id !== params.userId) {
+      const denied = await requireOwner();
+      if (denied) return denied;
     }
 
     const user = await prismadb.users.findMany({
@@ -26,13 +30,12 @@ export async function GET(req: Request, props: { params: Promise<{ userId: strin
 
 export async function DELETE(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
-  
+
   try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser.is_admin) {
-      return new NextResponse("Forbidden", { status: 403 });
-    }
-    
+    // Only org owners can delete users
+    const denied = await requireOwner();
+    if (denied) return denied;
+
     // First, get the user to retrieve their clerkUserId
     const userToDelete = await prismadb.users.findUnique({
       where: {
@@ -53,7 +56,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ userId: st
         // This ensures the user can still be deleted
       }
     }
-    
+
     // Now delete the user
     const user = await prismadb.users.delete({
       where: {

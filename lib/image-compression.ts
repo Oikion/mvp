@@ -464,6 +464,15 @@ export async function compressSvg(
         "removeMetadata",
         // Remove editor-specific elements
         "removeEditorsNSData",
+        // Security: strip <script> elements from SVGs
+        "removeScriptElement",
+        // Security: strip on* event handler attributes (onclick, onerror, etc.)
+        {
+          name: "removeAttrs",
+          params: {
+            attrs: "(on.*)",
+          },
+        },
         // Sort attributes for better gzip compression
         "sortAttrs",
       ],

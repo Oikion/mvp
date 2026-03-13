@@ -1,0 +1,17 @@
+{
+  "banner": {
+    "title": "Cookie Preferences",
+    "description": "We use cookies to ensure the platform works correctly. We also use analytics cookies to understand how you use Oikion and improve our service. You can manage your preferences below.",
+    "acceptAll": "Accept All",
+    "rejectAll": "Essential Only",
+    "customize": "Customize",
+    "save": "Save Preferences",
+    "essentialLabel": "Essential Cookies",
+    "essentialDescription": "Required for the platform to function. These cannot be disabled.",
+    "analyticsLabel": "Analytics Cookies",
+    "analyticsDescription": "Help us understand how you use Oikion so we can improve the experience. Data is anonymized.",
+    "learnMore": "Learn more in our",
+    "cookiePolicy": "Cookie Policy",
+    "alwaysOn": "Always on"
+  }
+}

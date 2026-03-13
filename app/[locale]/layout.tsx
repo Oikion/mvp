@@ -10,6 +10,7 @@ import { SWRProvider } from "@/app/providers/SWRProvider";
 import { ClerkThemeProvider } from "@/lib/clerk-theme-provider";
 import { ensureEnvValidated } from "@/lib/env";
 import { SetHtmlLang } from "./SetHtmlLang";
+import { CookieBanner } from "@/components/cookies/CookieBanner";
 
 // Static imports for all translation files
 import commonEn from "@/locales/en/common.json";
@@ -50,6 +51,7 @@ import shareEn from "@/locales/en/share.json";
 import mandatesEn from "@/locales/en/mandates.json";
 import networkEn from "@/locales/en/network.json";
 import dataOwnershipEn from "@/locales/en/dataOwnership.json";
+import cookiesEn from "@/locales/en/cookies.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -89,6 +91,7 @@ import shareEl from "@/locales/el/share.json";
 import mandatesEl from "@/locales/el/mandates.json";
 import networkEl from "@/locales/el/network.json";
 import dataOwnershipEl from "@/locales/el/dataOwnership.json";
+import cookiesEl from "@/locales/el/cookies.json";
 
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const metadataBaseUrl = new URL(appBaseUrl);
@@ -148,6 +151,7 @@ function getLocales(locale: string) {
     messages.network = networkEl;
     messages.networkSettings = networkEl.matchmaking;
     messages.dataOwnership = dataOwnershipEl;
+    messages.cookies = cookiesEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -196,6 +200,7 @@ function getLocales(locale: string) {
     messages.network = networkEn;
     messages.networkSettings = networkEn.matchmaking;
     messages.dataOwnership = dataOwnershipEn;
+    messages.cookies = cookiesEn;
   }
 
   if (Object.keys(messages).length === 0) {
@@ -285,6 +290,7 @@ export default async function RootLayout(props: Props) {
           <NextIntlClientProvider locale={locale} messages={messages}>
             <SetHtmlLang locale={locale} />
             {children}
+            <CookieBanner />
           </NextIntlClientProvider>
         </SWRProvider>
       </ClerkThemeProvider>

@@ -646,7 +646,7 @@ export function NewsletterClient({
               <h4 className="font-semibold text-sm mb-2">Content Preview</h4>
               <div
                 className="border rounded-md p-4 bg-muted/50 max-h-64 overflow-y-auto"
-                dangerouslySetInnerHTML={{ __html: previewCampaign?.content || "" }}
+                dangerouslySetInnerHTML={{ __html: (() => { try { const DOMPurify = require("isomorphic-dompurify"); return DOMPurify.default?.sanitize?.(previewCampaign?.content || "") ?? (previewCampaign?.content || ""); } catch { return previewCampaign?.content || ""; } })() }}
               />
             </div>
           </div>

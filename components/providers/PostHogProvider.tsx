@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import posthog from "posthog-js";
 import { PostHogProvider as PHProvider } from "posthog-js/react";
+import { hasConsent } from "@/lib/cookie-consent";
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 // Browser-side traffic is proxied through /ingest to bypass ad blockers and
@@ -54,19 +55,36 @@ interface PostHogProviderProps {
 /**
  * PostHog analytics provider.
  *
- * Initialises posthog-js in the browser, identifies the Clerk user,
- * and tracks client-side page views.
+ * Initialises posthog-js in the browser ONLY after the user has granted
+ * analytics cookie consent (GDPR). Listens for the `cookie-consent-updated`
+ * CustomEvent emitted by CookieBanner so it can initialise mid-session
+ * without requiring a page reload.
  *
  * Required environment variables:
  *   NEXT_PUBLIC_POSTHOG_KEY   — PostHog project API key
- *   NEXT_PUBLIC_POSTHOG_HOST  — PostHog host (default: https://eu.i.posthog.com)
+ *   NEXT_PUBLIC_POSTHOG_HOST  — PostHog host (default: https://eu.posthog.com)
  *
  * When NEXT_PUBLIC_POSTHOG_KEY is not set, the provider renders children
  * without initialising PostHog (safe no-op in local development).
  */
 export function PostHogProvider({ children }: PostHogProviderProps) {
+  const [analyticsConsented, setAnalyticsConsented] = useState(false);
+
+  // Check consent on mount and listen for changes from CookieBanner
   useEffect(() => {
-    if (!POSTHOG_KEY) return;
+    const checkConsent = () => setAnalyticsConsented(hasConsent("analytics"));
+    checkConsent();
+
+    window.addEventListener("cookie-consent-updated", checkConsent);
+    return () => window.removeEventListener("cookie-consent-updated", checkConsent);
+  }, []);
+
+  // Initialise PostHog only when analytics consent is granted
+  useEffect(() => {
+    if (!POSTHOG_KEY || !analyticsConsented) return;
+
+    // Avoid re-initialising if already initialised
+    if (posthog.__loaded) return;
 
     posthog.init(POSTHOG_KEY, {
       // Route all browser-side traffic through the /ingest reverse proxy so
@@ -87,9 +105,9 @@ export function PostHogProvider({ children }: PostHogProviderProps) {
         recordCrossOriginIframes: false,
       },
     });
-  }, []);
+  }, [analyticsConsented]);
 
-  if (!POSTHOG_KEY) {
+  if (!POSTHOG_KEY || !analyticsConsented) {
     return <>{children}</>;
   }
 

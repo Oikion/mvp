@@ -171,7 +171,8 @@ function generateJsonLd(profile: any, locale: string) {
     }),
   };
 
-  return JSON.stringify(jsonLd);
+  // Escape angle brackets to prevent script tag breakout in JSON-LD
+  return JSON.stringify(jsonLd).replaceAll("<", "\\u003c").replaceAll(">", "\\u003e");
 }
 
 export default async function AgentPage({ params }: AgentPageProps) {

@@ -305,6 +305,37 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
     return response;
   }
 
+  // ============================================
+  // CSRF PROTECTION
+  // Verify Origin header on state-changing requests to internal API routes.
+  // External API routes (/api/v1/*) are exempt — they use Bearer token auth.
+  // ============================================
+  if (
+    pathname.startsWith("/api") &&
+    !isExternalApiRoute(req) &&
+    ["POST", "PUT", "DELETE", "PATCH"].includes(req.method)
+  ) {
+    const origin = req.headers.get("origin");
+    const host = req.headers.get("host");
+    if (origin && host) {
+      try {
+        const originHost = new URL(origin).host;
+        if (originHost !== host) {
+          return NextResponse.json(
+            { error: "Forbidden", message: "Origin mismatch" },
+            { status: 403 }
+          );
+        }
+      } catch {
+        // Malformed origin header — block
+        return NextResponse.json(
+          { error: "Forbidden", message: "Invalid origin" },
+          { status: 403 }
+        );
+      }
+    }
+  }
+
   // For API routes, ensure Clerk middleware runs but don't redirect
   // Let the API route handle authentication errors
   // IMPORTANT: Check API routes BEFORE static file checks
