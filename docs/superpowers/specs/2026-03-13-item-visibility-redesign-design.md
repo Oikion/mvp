@@ -101,6 +101,15 @@ Already filters `visibility: { in: ["SECURE", "PUBLIC"] }` — HIDDEN is natural
 
 Already filters `visibility: { in: ["SECURE", "PUBLIC"] }` — HIDDEN naturally excluded. No change needed.
 
+### Cross-Org Match Cleanup on Visibility Change
+
+When a user changes an item's visibility to `HIDDEN` or `PRIVATE`, any existing `CrossOrgMatch` rows referencing that item must be deleted immediately — otherwise stale matches persist until the next cron recompute (up to 24h).
+
+Add to each visibility update action:
+- `actions/mls/update-property-visibility.ts` — after updating visibility, if new value is `HIDDEN` or `PRIVATE`: `prismadb.crossOrgMatch.deleteMany({ where: { propertyId } })`
+- `actions/mandates/update-mandate-visibility.ts` — same: `prismadb.crossOrgMatch.deleteMany({ where: { mandateId } })`
+- `actions/crm/update-client-visibility.ts` — clients don't participate in cross-org matching, no cleanup needed
+
 ### Dashboard (MatchmakingDashboard.tsx)
 
 No change needed — the dashboard displays whatever the server actions return. Filtering at the query level is sufficient.
