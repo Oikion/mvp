@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { XMLParser } from "fast-xml-parser";
 import { Upload, FileText, X, Download, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,11 +38,155 @@ interface UploadStepProps {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_FILE_TYPES = {
   "text/csv": [".csv"],
-  "application/vnd.ms-excel": [".xls"],
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
   "text/xml": [".xml"],
   "application/xml": [".xml"],
 };
+
+/**
+ * Extract a primitive value from an ExcelJS CellValue.
+ * Cells can contain formula objects, rich text, hyperlinks, etc.
+ */
+function getCellPrimitive(cell: ExcelJS.Cell): unknown {
+  const v = cell.value;
+  if (v === null || v === undefined) return "";
+  if (v instanceof Date) return v;
+  if (typeof v !== "object") return v;
+  // Formula cell: { formula, result }
+  if ("result" in v) return (v as { result: unknown }).result ?? "";
+  // Rich text cell: { richText: [{ text }] }
+  if ("richText" in v) return (v as { richText: { text: string }[] }).richText.map(r => r.text).join("");
+  // Hyperlink cell: { text, hyperlink }
+  if ("text" in v) return (v as { text: string }).text;
+  return String(v);
+}
+
+/**
+ * Parse an XLSX buffer into headers + JSON rows using ExcelJS
+ */
+async function parseXlsxBuffer(
+  buffer: ArrayBuffer
+): Promise<{ headers: string[]; data: Record<string, unknown>[] }> {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet || worksheet.rowCount === 0) {
+    return { headers: [], data: [] };
+  }
+
+  // First row is headers
+  const headerRow = worksheet.getRow(1);
+  const headers: string[] = [];
+  headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+    headers[colNumber - 1] = String(getCellPrimitive(cell) ?? "");
+  });
+
+  // Remaining rows are data
+  const data: Record<string, unknown>[] = [];
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    if (rowNumber === 1) return; // skip header
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      const cell = row.getCell(index + 1);
+      record[header] = getCellPrimitive(cell);
+    });
+    data.push(record);
+  });
+
+  return { headers: headers.filter(Boolean), data };
+}
+
+/**
+ * Parse a CSV text string into headers + JSON rows.
+ * Handles quoted fields with embedded commas, newlines, and escaped quotes.
+ */
+function parseCsvText(text: string): { headers: string[]; data: Record<string, unknown>[] } {
+  // Strip BOM if present
+  const content = text.replace(/^\ufeff/, "");
+  const rows = parseCsvRows(content);
+
+  if (rows.length === 0) return { headers: [], data: [] };
+
+  const headers = rows[0];
+  const data: Record<string, unknown>[] = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.every(cell => cell === "")) continue; // skip blank rows
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      record[header] = row[index] ?? "";
+    });
+    data.push(record);
+  }
+
+  return { headers, data };
+}
+
+/**
+ * RFC 4180-compliant CSV row parser.
+ * Handles quoted fields containing commas, newlines, and doubled quotes.
+ */
+function parseCsvRows(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  let i = 0;
+
+  while (i < text.length) {
+    const ch = text[i];
+
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < text.length && text[i + 1] === '"') {
+          field += '"';
+          i += 2;
+        } else {
+          inQuotes = false;
+          i++;
+        }
+      } else {
+        field += ch;
+        i++;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+        i++;
+      } else if (ch === ",") {
+        row.push(field);
+        field = "";
+        i++;
+      } else if (ch === "\r") {
+        row.push(field);
+        field = "";
+        rows.push(row);
+        row = [];
+        i++;
+        if (i < text.length && text[i] === "\n") i++;
+      } else if (ch === "\n") {
+        row.push(field);
+        field = "";
+        rows.push(row);
+        row = [];
+        i++;
+      } else {
+        field += ch;
+        i++;
+      }
+    }
+  }
+
+  // Last field/row
+  if (field || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  return rows;
+}
 
 export function UploadStep({
   dict,
@@ -63,50 +207,45 @@ export function UploadStep({
         parseTagValue: false,
         trimValues: true,
       });
-      
+
       const parsed = parser.parse(text);
-      
+
       // Find the root element containing the array of items
-      // Expected formats: <properties><property>...</property></properties>
-      // or <clients><client>...</client></clients>
       const rootKey = Object.keys(parsed).find(
         (key) => key !== "?xml" && typeof parsed[key] === "object"
       );
-      
+
       if (!rootKey) {
         return null;
       }
-      
+
       const rootElement = parsed[rootKey];
-      
+
       // Find the child array (e.g., "property" or "client")
       let dataArray: Record<string, unknown>[];
-      
+
       if (Array.isArray(rootElement)) {
-        // Root element is already an array
         dataArray = rootElement;
       } else if (typeof rootElement === "object") {
-        // Look for a child key that contains an array or single object
         const childKey = Object.keys(rootElement).find((key) => {
           const child = rootElement[key];
           return Array.isArray(child) || typeof child === "object";
         });
-        
+
         if (!childKey) {
           return null;
         }
-        
+
         const childData = rootElement[childKey];
-        // Normalize to array (single item becomes array of one)
         dataArray = Array.isArray(childData) ? childData : [childData];
       } else {
         return null;
       }
-      
+
       if (dataArray.length === 0) {
         return null;
       }
-      
+
       // Extract all unique headers from all records
       const headersSet = new Set<string>();
       dataArray.forEach((item) => {
@@ -114,20 +253,20 @@ export function UploadStep({
           Object.keys(item).forEach((key) => headersSet.add(key));
         }
       });
-      
+
       const headers = Array.from(headersSet);
-      
-      // Normalize data - ensure all records have all keys with empty string defaults
+
+      // Normalize data
       const normalizedData = dataArray.map((item) => {
         const normalized: Record<string, unknown> = {};
         headers.forEach((key) => {
-          normalized[key] = item && typeof item === "object" && key in item 
-            ? (item as Record<string, unknown>)[key] 
+          normalized[key] = item && typeof item === "object" && key in item
+            ? (item as Record<string, unknown>)[key]
             : "";
         });
         return normalized;
       });
-      
+
       return { headers, data: normalizedData };
     },
     []
@@ -140,44 +279,43 @@ export function UploadStep({
 
       try {
         const isXml = file.name.toLowerCase().endsWith(".xml");
-        
+
+        const ext = file.name.toLowerCase().split(".").pop();
+
         if (isXml) {
-          // Parse XML file
           const result = await parseXmlFile(file);
-          
+
           if (!result || result.data.length === 0) {
             setError(errorsDict.noData);
             setIsProcessing(false);
             return;
           }
-          
-          onFileUpload(file, result.headers, result.data);
-        } else {
-          // Parse CSV/Excel file
-          const buffer = await file.arrayBuffer();
-          // Use codepage 65001 (UTF-8) for proper Greek/international character support
-          const workbook = XLSX.read(buffer, { 
-            type: "array",
-            codepage: 65001, // UTF-8
-          });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          
-          // Parse to JSON with headers
-          const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
-            defval: "",
-          });
 
-          if (jsonData.length === 0) {
+          onFileUpload(file, result.headers, result.data);
+        } else if (ext === "csv") {
+          // Parse CSV as text
+          const text = await file.text();
+          const result = parseCsvText(text);
+
+          if (result.data.length === 0) {
             setError(errorsDict.noData);
             setIsProcessing(false);
             return;
           }
 
-          // Extract headers from first row keys
-          const headers = Object.keys(jsonData[0]);
+          onFileUpload(file, result.headers, result.data);
+        } else {
+          // Parse XLSX with ExcelJS
+          const buffer = await file.arrayBuffer();
+          const result = await parseXlsxBuffer(buffer);
 
-          onFileUpload(file, headers, jsonData);
+          if (result.data.length === 0) {
+            setError(errorsDict.noData);
+            setIsProcessing(false);
+            return;
+          }
+
+          onFileUpload(file, result.headers, result.data);
         }
       } catch (err) {
         console.error("File parse error:", err);
@@ -216,13 +354,11 @@ export function UploadStep({
   });
 
   const handleRemoveFile = useCallback(() => {
-    // Reset by calling with empty data
     onFileUpload(null as unknown as File, [], []);
     setError(null);
   }, [onFileUpload]);
 
-  const handleDownloadTemplate = useCallback(() => {
-    // Create a template based on entity type
+  const handleDownloadTemplate = useCallback(async () => {
     const templateHeaders =
       entityType === "client"
         ? [
@@ -249,12 +385,22 @@ export function UploadStep({
             "description",
           ];
 
-    const worksheet = XLSX.utils.aoa_to_sheet([templateHeaders]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
-    
-    const fileName = `${entityType}_import_template.xlsx`;
-    XLSX.writeFile(workbook, fileName);
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Template");
+    worksheet.addRow(templateHeaders);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${entityType}_import_template.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }, [entityType]);
 
   return (
@@ -272,7 +418,7 @@ export function UploadStep({
       >
         <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
           <input {...getInputProps()} />
-          
+
           {isProcessing ? (
             <>
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4" />
@@ -348,11 +494,3 @@ export function UploadStep({
     </div>
   );
 }
-
-
-
-
-
-
-
-

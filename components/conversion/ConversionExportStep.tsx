@@ -4,7 +4,8 @@ import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Download, FileSpreadsheet, FileCode2, CheckCircle2, ArrowRight } from "lucide-react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import { sanitizeForExport } from "@/lib/export/security";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,34 +33,45 @@ export function ConversionExportStep({
 }: ConversionExportStepProps) {
   const t = useTranslations("conversion");
   const router = useRouter();
-  
+
   const [format, setFormat] = useState<ExportFormat>("csv");
   const [exportFileName, setExportFileName] = useState(
     `converted_${fileName.replace(/\.[^/.]+$/, "")}`
   );
   const [isExported, setIsExported] = useState(false);
 
-  const generateCsv = useCallback(() => {
-    const worksheet = XLSX.utils.json_to_sheet(convertedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
-    
-    const csvContent = XLSX.utils.sheet_to_csv(worksheet);
-    return new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const generateCsv = useCallback(async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Data");
+
+    if (convertedData.length > 0) {
+      // Add header row
+      const headers = Object.keys(convertedData[0]);
+      worksheet.addRow(headers);
+
+      // Add data rows (sanitize to prevent formula injection)
+      for (const item of convertedData) {
+        worksheet.addRow(headers.map(h => sanitizeForExport(item[h])));
+      }
+    }
+
+    const buffer = await workbook.csv.writeBuffer();
+    return new Blob([buffer], { type: "text/csv;charset=utf-8;" });
   }, [convertedData]);
 
   const generateXml = useCallback(() => {
     const rootElement = entityType === "properties" ? "properties" : "clients";
     const itemElement = entityType === "properties" ? "property" : "client";
-    
+
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<${rootElement}>\n`;
-    
+
     convertedData.forEach((item) => {
       xml += `  <${itemElement}>\n`;
       Object.entries(item).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
-          // Escape XML special characters
-          const escapedValue = String(value)
+          // Sanitize for formula injection, then escape XML special characters
+          const sanitized = sanitizeForExport(value);
+          const escapedValue = sanitized
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -70,16 +82,16 @@ export function ConversionExportStep({
       });
       xml += `  </${itemElement}>\n`;
     });
-    
+
     xml += `</${rootElement}>`;
-    
+
     return new Blob([xml], { type: "application/xml;charset=utf-8;" });
   }, [convertedData, entityType]);
 
-  const handleDownload = useCallback(() => {
-    const blob = format === "csv" ? generateCsv() : generateXml();
+  const handleDownload = useCallback(async () => {
+    const blob = format === "csv" ? await generateCsv() : generateXml();
     const extension = format === "csv" ? ".csv" : ".xml";
-    
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -88,21 +100,20 @@ export function ConversionExportStep({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     setIsExported(true);
   }, [format, generateCsv, generateXml, exportFileName]);
 
   const handleImportNow = useCallback(() => {
     // Navigate to import page with converted data
-    // Store data in sessionStorage for the import wizard to pick up
     sessionStorage.setItem("oikion_converted_data", JSON.stringify(convertedData));
-    
-    const importPath = entityType === "properties" 
-      ? "/app/mls/import" 
+
+    const importPath = entityType === "properties"
+      ? "/app/mls/import"
       : "/app/crm/import";
-    
+
     router.push(importPath);
-    
+
     if (onComplete) {
       onComplete(convertedData);
     }
@@ -205,9 +216,9 @@ export function ConversionExportStep({
           <CardDescription>{t("export.importNowDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            onClick={handleImportNow} 
-            variant="secondary" 
+          <Button
+            onClick={handleImportNow}
+            variant="secondary"
             className="w-full"
             size="lg"
           >
@@ -219,11 +230,3 @@ export function ConversionExportStep({
     </div>
   );
 }
-
-
-
-
-
-
-
-

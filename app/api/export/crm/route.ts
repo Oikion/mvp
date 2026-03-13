@@ -248,7 +248,7 @@ export async function GET(req: NextRequest) {
       filename = descriptiveFilename; // Use descriptive filename
       contentType = pdfResult.contentType;
     } else {
-      const result = generateExportFile("crm", format, exportData, {
+      const result = await generateExportFile("crm", format, exportData, {
         locale,
         columns: CRM_COLUMNS,
       });

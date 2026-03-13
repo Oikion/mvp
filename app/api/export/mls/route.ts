@@ -224,7 +224,7 @@ export async function GET(req: NextRequest) {
       filename = descriptiveFilename; // Use descriptive filename
       contentType = pdfResult.contentType;
     } else {
-      const result = generateExportFile("mls", format, exportData, {
+      const result = await generateExportFile("mls", format, exportData, {
         locale,
         columns,
       });

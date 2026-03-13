@@ -249,7 +249,7 @@ export async function GET(req: NextRequest) {
       filename = descriptiveFilename;
       contentType = pdfResult.contentType;
     } else {
-      const result = generateExportFile("documents", format, filteredData, {
+      const result = await generateExportFile("documents", format, filteredData, {
         locale,
         columns: DOCUMENT_COLUMNS,
       });

@@ -69,7 +69,6 @@ export {
   // Functions
   generateWorkbook,
   generateXLSX,
-  generateXLS,
   generateCSV,
   generateExportFile,
   generateMultiSheetWorkbook,
