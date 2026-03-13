@@ -148,22 +148,30 @@ function PrivacySlider({
             if (e.key === "ArrowRight" || e.key === "ArrowUp") onChange(PRIVACY_FROM_INDEX[Math.min(2, committedIdx + 1)]);
           }}
           onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             e.currentTarget.setPointerCapture(e.pointerId);
             setIsDragging(true);
             setDragPos(getPosFromEvent(e.clientX));
           }}
           onPointerMove={(e) => {
             if (!isDragging) return;
+            e.preventDefault();
             setDragPos(getPosFromEvent(e.clientX));
           }}
           onPointerUp={(e) => {
             if (!isDragging) return;
+            e.currentTarget.releasePointerCapture(e.pointerId);
             const snapped = Math.min(2, Math.max(0, Math.round(getPosFromEvent(e.clientX))));
             setIsDragging(false);
             setDragPos(null);
             onChange(PRIVACY_FROM_INDEX[snapped]);
           }}
-          onPointerCancel={() => { setIsDragging(false); setDragPos(null); }}
+          onPointerCancel={(e) => {
+            try { e.currentTarget.releasePointerCapture(e.pointerId); } catch {}
+            setIsDragging(false);
+            setDragPos(null);
+          }}
         >
           <div
             className="absolute top-1/2 h-4 w-4 rounded-full border-2 shadow-sm pointer-events-none"
