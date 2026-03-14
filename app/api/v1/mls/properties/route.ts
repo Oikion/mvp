@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { ItemVisibility } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
 import {
@@ -175,6 +176,15 @@ export const POST = withExternalApi(
     // Validate required fields
     if (!name) {
       return createApiErrorResponse("Missing required field: name", 400);
+    }
+
+    // Validate visibility if provided
+    const validVisibilities: ItemVisibility[] = ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"];
+    if (portalVisibility && !validVisibilities.includes(portalVisibility)) {
+      return createApiErrorResponse(
+        "Invalid visibility value. Must be one of: HIDDEN, PRIVATE, SECURE, PUBLIC",
+        400
+      );
     }
 
     // Generate friendly ID

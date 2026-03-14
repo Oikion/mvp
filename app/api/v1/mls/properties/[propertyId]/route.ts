@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { ItemVisibility } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
 import {
@@ -204,6 +205,15 @@ export const PUT = withExternalApi(
       isExclusive,
       portalVisibility,
     } = body;
+
+    // Validate visibility if provided
+    const validVisibilities: ItemVisibility[] = ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"];
+    if (portalVisibility !== undefined && !validVisibilities.includes(portalVisibility)) {
+      return createApiErrorResponse(
+        "Invalid visibility value. Must be one of: HIDDEN, PRIVATE, SECURE, PUBLIC",
+        400
+      );
+    }
 
     // Build update data
     const updateData: Record<string, unknown> = {
