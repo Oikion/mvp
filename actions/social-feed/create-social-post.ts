@@ -27,7 +27,7 @@ interface CreateSocialPostInput {
 interface CreateSocialPostResult {
   success: boolean;
   post?: any;
-  visibility?: "PERSONAL" | "SECURE" | "PUBLIC";
+  visibility?: "PRIVATE" | "SECURE" | "PUBLIC";
   message?: string;
 }
 
@@ -36,12 +36,12 @@ interface CreateSocialPostResult {
  */
 export async function getMyProfileVisibility(): Promise<{ 
   hasProfile: boolean; 
-  visibility: "PERSONAL" | "SECURE" | "PUBLIC";
+  visibility: "PRIVATE" | "SECURE" | "PUBLIC";
 }> {
   const currentUser = await getCurrentUserSafe();
-  
+
   if (!currentUser) {
-    return { hasProfile: false, visibility: "PERSONAL" };
+    return { hasProfile: false, visibility: "PRIVATE" };
   }
 
   const profile = await prismadb.agentProfile.findUnique({
@@ -51,7 +51,7 @@ export async function getMyProfileVisibility(): Promise<{
 
   return {
     hasProfile: !!profile,
-    visibility: (profile?.visibility as "PERSONAL" | "SECURE" | "PUBLIC") || "PERSONAL",
+    visibility: (profile?.visibility as "PRIVATE" | "SECURE" | "PUBLIC") || "PRIVATE",
   };
 }
 
@@ -75,7 +75,7 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
     select: { visibility: true },
   });
 
-  const visibility = (profile?.visibility as "PERSONAL" | "SECURE" | "PUBLIC") || "PERSONAL";
+  const visibility = (profile?.visibility as "PRIVATE" | "SECURE" | "PUBLIC") || "PRIVATE";
 
   let linkedEntityTitle: string | undefined = undefined;
   let linkedEntitySubtitle: string | undefined = undefined;
@@ -240,8 +240,8 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
     // Provide context-specific messages based on visibility
     let message: string;
     switch (visibility) {
-      case "PERSONAL":
-        message = "Post created. Only your connections can see it (your profile is Personal).";
+      case "PRIVATE":
+        message = "Post created. Only your connections can see it (your profile is Private).";
         break;
       case "SECURE":
         message = "Post created. Registered users and your connections can see it.";

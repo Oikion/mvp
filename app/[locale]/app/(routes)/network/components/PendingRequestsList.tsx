@@ -15,7 +15,7 @@ interface AgentProfileData {
   slug: string;
   bio: string | null;
   specializations: string[];
-  visibility: "PERSONAL" | "SECURE" | "PUBLIC";
+  visibility: "PRIVATE" | "SECURE" | "PUBLIC";
 }
 
 interface PendingRequestUser {
@@ -89,7 +89,7 @@ function PendingItem({
         <div>
           <div className="flex items-center gap-2">
             <h4 className="font-medium">{user.name}</h4>
-            {agentProfile?.visibility !== "PERSONAL" && agentProfile?.slug && (
+            {agentProfile?.visibility !== "PRIVATE" && agentProfile?.slug && (
               <Link
                 href={`/agent/${agentProfile.slug}`}
                 className="text-muted-foreground hover:text-primary"
