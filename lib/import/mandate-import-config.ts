@@ -147,7 +147,7 @@ export const mandateImportConfig: ImportEntityConfig<MandateImportData> = {
       expires_at: toDateTime(item.expires_at),
 
       // Visibility default (non-nullable field)
-      visibility: "PERSONAL",
+      visibility: "PRIVATE",
 
       // Always insert as non-draft
       draft_status: false,

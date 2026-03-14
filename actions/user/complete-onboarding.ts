@@ -181,7 +181,7 @@ export async function completeOnboarding(
     });
 
     // Create or update agent profile with visibility setting
-    const profileVisibility = params.privacyPreferences?.profileVisibility ?? "PERSONAL";
+    const profileVisibility = params.privacyPreferences?.profileVisibility ?? "PRIVATE";
     await prismadb.agentProfile.upsert({
       where: {
         userId: user.id,

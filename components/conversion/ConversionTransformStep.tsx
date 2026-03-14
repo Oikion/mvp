@@ -43,7 +43,7 @@ const ENUM_FIELDS: Record<string, string[]> = {
   condition: ["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"],
   furnished: ["NO", "PARTIALLY", "FULLY"],
   price_type: ["RENTAL", "SALE", "PER_ACRE", "PER_SQM"],
-  visibility: ["PERSONAL", "SECURE", "PUBLIC"],
+  visibility: ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"],
   address_privacy_level: ["EXACT", "PARTIAL", "HIDDEN"],
   legalization_status: ["LEGALIZED", "IN_PROGRESS", "UNDECLARED"],
   

@@ -136,7 +136,7 @@ export const propertyImportConfig: ImportEntityConfig<PropertyImportData> = {
 
       // Visibility
       is_exclusive: item.is_exclusive || false,
-      visibility: item.visibility || "PERSONAL",
+      visibility: item.visibility || "PRIVATE",
       address_privacy_level: item.address_privacy_level || null,
 
       // Additional
