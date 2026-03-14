@@ -18,9 +18,17 @@ export async function updateMandateVisibility(
     });
     if (!mandate) return { success: false, error: "Mandate not found" };
 
-    await prismadb.mandate.update({
-      where: { id: mandateId },
-      data: { visibility },
+    await prismadb.$transaction(async (tx) => {
+      await tx.mandate.update({
+        where: { id: mandateId },
+        data: { visibility },
+      });
+
+      if (visibility === "HIDDEN" || visibility === "PRIVATE") {
+        await tx.crossOrgMatch.deleteMany({
+          where: { mandateId },
+        });
+      }
     });
 
     return { success: true };
