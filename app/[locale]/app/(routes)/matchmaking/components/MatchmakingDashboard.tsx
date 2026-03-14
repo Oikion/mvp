@@ -49,18 +49,28 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
   const [activeTab, setActiveTab] = useState("overview");
   const [mode, setMode] = useState<Mode>("org");
 
+  // Use mandate analytics as the primary data source (client-property matching is deprecated)
+  const activeMandates = mandateAnalytics?.mandateStats?.activeMandates ?? 0;
+  const totalProperties = mandateAnalytics?.totalProperties ?? analytics.totalProperties;
+  const mandatesWithMatches = mandateAnalytics?.mandateStats?.mandatesWithMatches ?? 0;
+  const avgMatchScore = mandateAnalytics?.mandateStats?.avgMatchScore ?? analytics.averageMatchScore;
+  const overviewDistribution = mandateAnalytics?.matchDistribution ?? analytics.matchDistribution;
+  const overviewTopMatches = mandateAnalytics?.topMatches ?? analytics.topMatches;
+  const overviewUnmatched = mandateAnalytics?.unmatchedClients ?? analytics.unmatchedClients;
+  const overviewHotProperties = mandateAnalytics?.hotProperties ?? analytics.hotProperties;
+
   const statsCards = [
     {
       title: t("dashboard.stats.activeClients"),
-      value: analytics.totalClients,
-      icon: Users,
+      value: activeMandates,
+      icon: FileText,
       description: t("dashboard.stats.activeClientsDesc"),
       color: "text-primary",
       bgColor: "bg-primary/10",
     },
     {
       title: t("dashboard.stats.availableProperties"),
-      value: analytics.totalProperties,
+      value: totalProperties,
       icon: Building2,
       description: t("dashboard.stats.availablePropertiesDesc"),
       color: "text-success",
@@ -68,15 +78,15 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
     },
     {
       title: t("dashboard.stats.clientsWithMatches"),
-      value: analytics.clientsWithMatches,
+      value: mandatesWithMatches,
       icon: Target,
-      description: `${analytics.totalClients > 0 ? Math.round((analytics.clientsWithMatches / analytics.totalClients) * 100) : 0}% ${t("dashboard.stats.clientsWithMatchesDesc")}`,
+      description: `${activeMandates > 0 ? Math.round((mandatesWithMatches / activeMandates) * 100) : 0}% ${t("dashboard.stats.clientsWithMatchesDesc")}`,
       color: "text-purple-500",
       bgColor: "bg-purple-500/10",
     },
     {
       title: t("dashboard.stats.averageMatchScore"),
-      value: `${analytics.averageMatchScore}%`,
+      value: `${avgMatchScore}%`,
       icon: TrendingUp,
       description: t("dashboard.stats.averageMatchScoreDesc"),
       color: "text-warning",
@@ -194,7 +204,7 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <MatchDistributionChart distribution={analytics.matchDistribution} />
+                <MatchDistributionChart distribution={overviewDistribution} />
               </CardContent>
             </Card>
 
@@ -207,8 +217,8 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {analytics.matchDistribution.map((bucket) => {
-                  const total = analytics.matchDistribution.reduce((sum, b) => sum + b.count, 0);
+                {overviewDistribution.map((bucket) => {
+                  const total = overviewDistribution.reduce((sum, b) => sum + b.count, 0);
                   const percentage = total > 0 ? (bucket.count / total) * 100 : 0;
                   
                   return (
@@ -234,7 +244,7 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-2xl font-bold text-success">
-                      {analytics.topMatches.filter(m => m.overallScore >= 70).length}
+                      {overviewTopMatches.filter(m => m.overallScore >= 70).length}
                     </p>
                     <p className="text-sm text-muted-foreground">{t("dashboard.quickStats.excellentMatches")}</p>
                   </div>
@@ -248,7 +258,7 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-2xl font-bold text-warning">
-                      {analytics.unmatchedClients.length}
+                      {overviewUnmatched.length}
                     </p>
                     <p className="text-sm text-muted-foreground">{t("dashboard.quickStats.clientsNeedProperties")}</p>
                   </div>
@@ -262,7 +272,7 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-2xl font-bold text-destructive">
-                      {analytics.hotProperties.length}
+                      {overviewHotProperties.length}
                     </p>
                     <p className="text-sm text-muted-foreground">{t("dashboard.quickStats.highDemandProperties")}</p>
                   </div>
@@ -286,7 +296,7 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TopMatchesGrid matches={analytics.topMatches} locale={locale} />
+              <TopMatchesGrid matches={overviewTopMatches} locale={locale} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -317,7 +327,7 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UnmatchedClientsList clients={analytics.unmatchedClients} locale={locale} />
+              <UnmatchedClientsList clients={overviewUnmatched} locale={locale} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -335,7 +345,7 @@ export function MatchmakingDashboard({ locale, analytics, mandateAnalytics, netw
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <HotPropertiesList properties={analytics.hotProperties} locale={locale} />
+              <HotPropertiesList properties={overviewHotProperties} locale={locale} />
             </CardContent>
           </Card>
         </TabsContent>

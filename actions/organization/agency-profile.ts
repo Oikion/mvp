@@ -32,7 +32,7 @@ const upsertAgencyProfileSchema = z.object({
     .record(z.string().url().or(z.literal("")))
     .optional()
     .nullable(),
-  visibility: z.enum(["PERSONAL", "SECURE", "PUBLIC"]).optional(),
+  visibility: z.enum(["PRIVATE", "SECURE", "PUBLIC"]).optional(),
   yearFounded: z.number().min(1800).max(new Date().getFullYear()).optional().nullable(),
   licenseNumber: z.string().max(100).optional().nullable(),
 });
@@ -110,7 +110,7 @@ export async function upsertAgencyProfile(
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,
       socialLinks: input.socialLinks ? (input.socialLinks as Prisma.InputJsonValue) : Prisma.JsonNull,
-      visibility: (input.visibility ?? "PERSONAL") as "PERSONAL" | "SECURE" | "PUBLIC",
+      visibility: input.visibility ?? "PRIVATE",
       yearFounded: input.yearFounded ?? null,
       licenseNumber: input.licenseNumber || null,
     };

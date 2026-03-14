@@ -34,7 +34,7 @@ export interface OnboardingNotificationPreferences {
 /**
  * Profile visibility options
  */
-export type ProfileVisibility = "PERSONAL" | "SECURE" | "PUBLIC";
+export type ProfileVisibility = "PRIVATE" | "SECURE" | "PUBLIC";
 
 /**
  * Privacy preferences for onboarding
@@ -207,7 +207,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: OnboardingNotificationPreferences
  * Default privacy preferences (most private by default)
  */
 export const DEFAULT_PRIVACY_PREFERENCES: OnboardingPrivacyPreferences = {
-  profileVisibility: "PERSONAL",
+  profileVisibility: "PRIVATE",
   analyticsConsent: true,
 };
 

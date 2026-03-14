@@ -189,7 +189,7 @@ export function ProfileHeader({
 
         {/* Action buttons */}
         <div className="flex items-center gap-2 shrink-0">
-          {profile?.visibility !== "PERSONAL" && profile && userData.username && (
+          {profile?.visibility !== "PRIVATE" && profile && userData.username && (
             <Button variant="outline" size="sm" asChild>
               <Link
                 href={`/agent/${userData.username}`}

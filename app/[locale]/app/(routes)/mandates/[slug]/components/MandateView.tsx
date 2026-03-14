@@ -236,7 +236,7 @@ export default function MandateView({
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false)
   const [linkDocumentDialogOpen, setLinkDocumentDialogOpen] = useState(false)
 
-  const [visibility, setVisibility] = useState<ItemVisibility>(mandate.visibility || "PERSONAL")
+  const [visibility, setVisibility] = useState<ItemVisibility>(mandate.visibility || "PRIVATE")
 
   // Open edit sheet if action=edit was passed via URL
   useEffect(() => {

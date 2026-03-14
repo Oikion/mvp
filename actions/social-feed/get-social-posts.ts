@@ -22,7 +22,7 @@ export interface SocialPost {
     name: string;
     avatar?: string;
     organizationName?: string;
-    visibility?: "PERSONAL" | "SECURE" | "PUBLIC";
+    visibility?: "PRIVATE" | "SECURE" | "PUBLIC";
   };
   linkedEntity?: {
     id: string;
@@ -185,7 +185,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
         name: post.Users?.name || "Unknown",
         avatar: post.Users?.avatar || undefined,
         organizationName: undefined,
-        visibility: (post.Users?.AgentProfile?.visibility as "PERSONAL" | "SECURE" | "PUBLIC") || "PERSONAL",
+        visibility: (post.Users?.AgentProfile?.visibility as "PRIVATE" | "SECURE" | "PUBLIC") || "PRIVATE",
       },
       linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
         id: post.linkedEntityId,

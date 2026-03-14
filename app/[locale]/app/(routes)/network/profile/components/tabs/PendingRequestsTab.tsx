@@ -41,7 +41,7 @@ interface PendingRequest {
       slug: string;
       bio: string | null;
       specializations: string[];
-      visibility: "PERSONAL" | "SECURE" | "PUBLIC";
+      visibility: "PRIVATE" | "SECURE" | "PUBLIC";
     } | null;
   };
 }
@@ -60,7 +60,7 @@ interface SentRequest {
       slug: string;
       bio: string | null;
       specializations: string[];
-      visibility: "PERSONAL" | "SECURE" | "PUBLIC";
+      visibility: "PRIVATE" | "SECURE" | "PUBLIC";
     } | null;
   };
 }
@@ -122,7 +122,7 @@ function ReceivedRequestItem({
         <div>
           <div className="flex items-center gap-2">
             <h4 className="font-medium">{request.user?.name ?? "Deleted User"}</h4>
-            {request.user?.agentProfile?.visibility !== "PERSONAL" &&
+            {request.user?.agentProfile?.visibility !== "PRIVATE" &&
               request.user?.agentProfile?.slug && (
                 <Link
                   href={`/agent/${request.user.agentProfile.slug}`}
@@ -253,7 +253,7 @@ function SentRequestItem({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {connection.user?.agentProfile?.visibility !== "PERSONAL" &&
+            {connection.user?.agentProfile?.visibility !== "PRIVATE" &&
               connection.user?.agentProfile?.slug && (
                 <DropdownMenuItem asChild>
                   <Link href={`/agent/${connection.user.agentProfile.slug}`}>

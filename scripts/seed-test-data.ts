@@ -939,7 +939,7 @@ async function seedClients(ctx: OrgContext): Promise<string[]> {
   clientsRaw.push(makeBase(0, {
     client_type: "BUYER",
     client_status: "ACTIVE",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     lead_source: "REFERRAL",
     secondary_email: `${names[0].first.toLowerCase()}.work@gmail.com`,
     secondary_phone: generatePhone(),
@@ -954,7 +954,7 @@ async function seedClients(ctx: OrgContext): Promise<string[]> {
   clientsRaw.push(makeBase(1, {
     client_type: "BUYER",
     client_status: "ACTIVE",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     lead_source: "WEB",
     secondary_phone: generatePhone(),
     description: "First-time buyer, interested in Kifisia area",
@@ -986,7 +986,7 @@ async function seedClients(ctx: OrgContext): Promise<string[]> {
   clientsRaw.push(makeBase(4, {
     client_type: "RENTER",
     client_status: "LEAD",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     lead_source: "PORTAL",
     description: "Looking for rental in central Athens, max €1200/mo",
   }));
@@ -1019,7 +1019,7 @@ async function seedClients(ctx: OrgContext): Promise<string[]> {
   clientsRaw.push(makeBase(7, {
     client_type: "BUYER",
     client_status: "LOST",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     lead_source: "SOCIAL",
     description: "Was interested in Voula but found another agent",
   }));
@@ -1028,7 +1028,7 @@ async function seedClients(ctx: OrgContext): Promise<string[]> {
   clientsRaw.push(makeBase(8, {
     client_type: "BUYER",
     client_status: "LEAD",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     draft_status: true,
     lead_source: "WEB",
     description: "Draft client — incomplete info",
@@ -1038,7 +1038,7 @@ async function seedClients(ctx: OrgContext): Promise<string[]> {
   clientsRaw.push(makeBase(9, {
     client_type: "SELLER",
     client_status: "ACTIVE",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     assigned_to: departedUserId,
     lead_source: "WALK_IN",
     description: "Assigned to departed agent — testing null-safety",
@@ -1088,7 +1088,7 @@ async function seedClients(ctx: OrgContext): Promise<string[]> {
   clientsRaw.push(makeBase(13, {
     client_type: "SELLER",
     client_status: "ACTIVE",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     afm: "123456789",
     doy: "Α' Αθηνών",
     company_gemi: "123456789000",
@@ -1100,7 +1100,7 @@ async function seedClients(ctx: OrgContext): Promise<string[]> {
   clientsRaw.push(makeBase(14, {
     client_type: "BUYER",
     client_status: "INACTIVE",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     lead_source: "WEB",
     description: "Inactive buyer — used for status filtering tests",
   }));
@@ -1325,7 +1325,7 @@ async function seedProperties(ctx: OrgContext): Promise<string[]> {
     property_name: propName("APARTMENT", "Kolonaki"),
     property_type: "APARTMENT",
     property_status: "SOLD",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     price: 300000,
     listPrice: 300000,
@@ -1348,7 +1348,7 @@ async function seedProperties(ctx: OrgContext): Promise<string[]> {
     property_name: propName("HOUSE", "Kifisia"),
     property_type: "HOUSE",
     property_status: "PENDING",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     price: 520000,
     price_type: "SALE",
@@ -1368,7 +1368,7 @@ async function seedProperties(ctx: OrgContext): Promise<string[]> {
     property_name: propName("APARTMENT", "Nea Smyrni"),
     property_type: "APARTMENT",
     property_status: "OFF_MARKET",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     price: 180000,
     price_type: "SALE",
@@ -1386,7 +1386,7 @@ async function seedProperties(ctx: OrgContext): Promise<string[]> {
     property_name: propName("COMMERCIAL", "Syntagma"),
     property_type: "COMMERCIAL",
     property_status: "WITHDRAWN",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     price: 650000,
     price_type: "SALE",
@@ -1442,7 +1442,7 @@ async function seedProperties(ctx: OrgContext): Promise<string[]> {
     property_name: "Draft Property (Incomplete)",
     property_type: "HOUSE",
     property_status: "ACTIVE",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     draft_status: true,
     price: 300000,
@@ -1458,7 +1458,7 @@ async function seedProperties(ctx: OrgContext): Promise<string[]> {
     property_name: propName("APARTMENT", "Athens"),
     property_type: "APARTMENT",
     property_status: "ACTIVE",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     assigned_to: departedUserId,
     price: 260000,
@@ -1658,7 +1658,7 @@ async function seedMandates(ctx: OrgContext): Promise<string[]> {
     title: "Rental search: central Athens apartment",
     status: "ACTIVE",
     urgency: "LOW",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "RENTAL",
     property_type: "APARTMENT",
     areas_of_interest: ["Koukaki", "Pagkrati", "Nea Smyrni"],
@@ -1677,7 +1677,7 @@ async function seedMandates(ctx: OrgContext): Promise<string[]> {
     title: "Completed: Villa purchase in Kifisia",
     status: "FULFILLED",
     urgency: "MEDIUM",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     property_type: "HOUSE",
     areas_of_interest: ["Kifisia", "Ekali"],
@@ -1697,7 +1697,7 @@ async function seedMandates(ctx: OrgContext): Promise<string[]> {
     title: "Expired: Investment apartment search",
     status: "EXPIRED",
     urgency: "LOW",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     property_type: "APARTMENT",
     areas_of_interest: ["Kallithea", "Nea Smyrni"],
@@ -1714,7 +1714,7 @@ async function seedMandates(ctx: OrgContext): Promise<string[]> {
     title: "Draft: Preliminary property search",
     status: "DRAFT",
     urgency: "MEDIUM",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     property_type: "APARTMENT",
     draft_status: true,
@@ -1729,7 +1729,7 @@ async function seedMandates(ctx: OrgContext): Promise<string[]> {
     title: "Paused: Luxury penthouse search",
     status: "PAUSED",
     urgency: "HIGH",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     property_type: "APARTMENT",
     areas_of_interest: ["Kolonaki", "Psychiko", "Filothei"],
@@ -1747,7 +1747,7 @@ async function seedMandates(ctx: OrgContext): Promise<string[]> {
     title: "Cancelled: Office space search",
     status: "CANCELLED",
     urgency: "LOW",
-    visibility: "PERSONAL",
+    visibility: "PRIVATE",
     transaction_type: "SALE",
     property_type: "COMMERCIAL",
     areas_of_interest: ["Syntagma", "Kolonaki"],
@@ -3567,7 +3567,7 @@ async function seedAgentProfiles(
 
   profiles.push({ ctx: alpha, userId: alpha.primaryUserId, slug: "agent-alpha-1", visibility: "PUBLIC", specializations: ["Residential", "Luxury"], serviceAreas: ["Athens", "Kolonaki"], years: 12 });
   if (alphaSecond) {
-    profiles.push({ ctx: alpha, userId: alphaSecond, slug: "agent-alpha-2", visibility: "PERSONAL", specializations: ["Commercial", "Investment"], serviceAreas: ["Piraeus", "Glyfada"], years: 8 });
+    profiles.push({ ctx: alpha, userId: alphaSecond, slug: "agent-alpha-2", visibility: "PRIVATE", specializations: ["Commercial", "Investment"], serviceAreas: ["Piraeus", "Glyfada"], years: 8 });
   }
   profiles.push({ ctx: beta, userId: beta.primaryUserId, slug: "agent-beta-1", visibility: "PUBLIC", specializations: ["Residential", "Rentals"], serviceAreas: ["Thessaloniki", "Kalamaria"], years: 15 });
   if (betaSecond) {

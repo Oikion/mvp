@@ -109,7 +109,7 @@ const formSchema = z.object({
   
   // Step 9: Media & Δημοσίευση
   virtual_tour_url: z.string().url().optional().or(z.literal("")),
-  visibility: z.enum(["PERSONAL", "SECURE", "PUBLIC"]).optional(),
+  visibility: z.enum(["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"]).optional(),
   assigned_to: z.string().optional(),
 });
 
@@ -1327,7 +1327,8 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="PERSONAL">{t("visibility.PERSONAL")}</SelectItem>
+                      <SelectItem value="HIDDEN">{t("visibility.HIDDEN")}</SelectItem>
+                      <SelectItem value="PRIVATE">{t("visibility.PRIVATE")}</SelectItem>
                       <SelectItem value="SECURE">{t("visibility.SECURE")}</SelectItem>
                       <SelectItem value="PUBLIC">{t("visibility.PUBLIC")}</SelectItem>
                     </SelectContent>

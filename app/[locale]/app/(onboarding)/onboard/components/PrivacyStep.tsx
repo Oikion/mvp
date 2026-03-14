@@ -46,7 +46,7 @@ const VISIBILITY_OPTIONS: Array<{
   bgColor: string;
 }> = [
   {
-    value: "PERSONAL",
+    value: "PRIVATE",
     key: "personal",
     icon: Lock,
     color: "text-muted-foreground",

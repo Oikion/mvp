@@ -33,7 +33,7 @@ import {
   type AttachEntityType,
 } from "./FeedAttachmentDialog";
 
-type ProfileVisibility = "PERSONAL" | "SECURE" | "PUBLIC";
+type ProfileVisibility = "PRIVATE" | "SECURE" | "PUBLIC";
 
 export interface ShareableItem {
   id: string;
@@ -189,13 +189,13 @@ export function FeedPostComposer({
 
   const getVisibilityAlert = (visibility: ProfileVisibility) => {
     switch (visibility) {
-      case "PERSONAL":
+      case "PRIVATE":
         return {
           icon: <Lock className="h-4 w-4 text-destructive" />,
           className: "border-destructive/50 bg-destructive/10",
           message:
             t?.privacy?.personal ||
-            "Your profile is Personal (hidden). Only your connections can see your posts.",
+            "Your profile is Private (hidden). Only your connections can see your posts.",
         };
       case "SECURE":
         return {
@@ -237,14 +237,14 @@ export function FeedPostComposer({
             {t?.visibility?.secure || "Secure"}
           </Badge>
         );
-      case "PERSONAL":
+      case "PRIVATE":
         return (
           <Badge
             variant="outline"
             className="text-xs bg-destructive/10 text-destructive border-destructive/20"
           >
             <Lock className="h-3 w-3 mr-1" />
-            {t?.visibility?.personal || "Personal"}
+            {t?.visibility?.personal || "Private"}
           </Badge>
         );
       default:

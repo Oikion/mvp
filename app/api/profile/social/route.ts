@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     } = body;
 
     // Validate visibility
-    const validVisibilities = ["PERSONAL", "SECURE", "PUBLIC"];
+    const validVisibilities = ["PRIVATE", "SECURE", "PUBLIC"];
     if (visibility && !validVisibilities.includes(visibility)) {
       return new NextResponse("Invalid visibility setting", { status: 400 });
     }
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
       yearsExperience: yearsExperience || null,
       certifications: certifications || [],
       socialLinks: socialLinks || {},
-      visibility: visibility || "PERSONAL",
+      visibility: visibility || "PRIVATE",
       hideFromAgentSearch: hideFromAgentSearch ?? false,
     };
 

@@ -77,7 +77,8 @@ export const PriceTypeEnum = z.enum([
 ]);
 
 export const ItemVisibilityEnum = z.enum([
-  "PERSONAL",
+  "HIDDEN",
+  "PRIVATE",
   "SECURE",
   "PUBLIC",
 ]);
@@ -590,7 +591,7 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
     required: false,
     group: "visibility",
     aliases: ["portal_visibility", "publish_status", "oratotita"],
-    description: "Item visibility (PERSONAL, SECURE, PUBLIC)"
+    description: "Item visibility (HIDDEN, PRIVATE, SECURE, PUBLIC)"
   },
   { 
     key: "address_privacy_level", 
