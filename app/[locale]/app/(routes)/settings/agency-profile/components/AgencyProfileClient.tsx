@@ -152,7 +152,7 @@ export function AgencyProfileClient({
         </div>
 
         <div className="flex items-center gap-2">
-          {profile?.visibility !== "PERSONAL" && (
+          {profile?.visibility !== "PRIVATE" && (
             <Button variant="outline" size="sm" asChild>
               <Link
                 href={`/agency/${clerkOrgSlug}`}

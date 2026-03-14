@@ -122,7 +122,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
                 {locale === "el" ? "Ιδιωτική Δημοσίευση" : "Private Post"}
               </h1>
               <p className="text-muted-foreground dark:text-muted-foreground mb-6 max-w-md">
-                {post.author?.visibility === "PERSONAL"
+                {post.author?.visibility === "PRIVATE"
                   ? locale === "el"
                     ? "Αυτή η δημοσίευση είναι μόνο για τις συνδέσεις του χρήστη."
                     : "This post is only visible to the author's connections."

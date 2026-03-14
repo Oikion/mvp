@@ -155,7 +155,7 @@ export default function PropertyView({
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [createMandateOpen, setCreateMandateOpen] = useState(false);
-  const [visibility, setVisibility] = useState<ItemVisibility>(data.visibility || "PERSONAL");
+  const [visibility, setVisibility] = useState<ItemVisibility>(data.visibility || "PRIVATE");
   const [copied, setCopied] = useState(false);
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
 

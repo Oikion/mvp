@@ -14,7 +14,7 @@ interface VisibilityCellProps {
 }
 
 const visibilities: DropdownOption[] = [
-  { value: "PERSONAL", label: "Personal", variant: "secondary", icon: Lock },
+  { value: "PRIVATE", label: "Private", variant: "secondary", icon: Lock },
   { value: "SECURE", label: "Secure", variant: "info", icon: Users },
   { value: "PUBLIC", label: "Public", variant: "success", icon: Globe },
 ];
@@ -39,7 +39,7 @@ export const VisibilityCell = ({ propertyId, visibility }: VisibilityCellProps) 
 
   return (
     <EditableDropdownCell
-      value={visibility || "PERSONAL"}
+      value={visibility || "PRIVATE"}
       onSave={handleSave}
       options={translatedVisibilities}
       useBadge

@@ -471,7 +471,7 @@ export function PublicPropertyView({ property }: PublicPropertyViewProps) {
                     </a>
                   )}
 
-                  {agentProfile?.visibility !== "PERSONAL" && agentProfile?.slug && (
+                  {agentProfile?.visibility !== "PRIVATE" && agentProfile?.slug && (
                     <Link
                       href={`/agent/${agentProfile.slug}`}
                       className="flex items-center justify-center gap-2 p-3 rounded-lg border border-border hover:bg-muted transition-colors text-foreground"
