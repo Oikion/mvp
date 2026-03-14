@@ -107,6 +107,7 @@ async function fetchActiveMandates(organizationId: string) {
       organizationId,
       status: "ACTIVE",
       draft_status: { not: true },
+      visibility: { not: "HIDDEN" },
     },
     select: {
       id: true,
@@ -151,6 +152,7 @@ async function fetchActiveProperties(organizationId: string) {
       property_status: {
         in: ["ACTIVE", "PENDING"],
       },
+      visibility: { not: "HIDDEN" },
     },
     select: {
       id: true,
