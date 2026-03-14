@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { Lock, Shield, Globe } from "lucide-react";
+import { Lock, Shield, Globe, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ItemVisibility } from "@prisma/client";
 
@@ -14,9 +14,17 @@ const OPTIONS: {
   trackColor: string;
 }[] = [
   {
-    value: "PERSONAL",
+    value: "HIDDEN",
+    icon: EyeOff,
+    label: "Hidden",
+    description: "Hidden from all systems",
+    color: "text-muted-foreground",
+    trackColor: "#9ca3af",
+  },
+  {
+    value: "PRIVATE",
     icon: Lock,
-    label: "Personal",
+    label: "Private",
     description: "Only you and your org",
     color: "text-muted-foreground",
     trackColor: "#6b7280",
@@ -39,8 +47,8 @@ const OPTIONS: {
   },
 ];
 
-const INDEX: Record<ItemVisibility, number> = { PERSONAL: 0, SECURE: 1, PUBLIC: 2 };
-const FROM_INDEX: ItemVisibility[] = ["PERSONAL", "SECURE", "PUBLIC"];
+const INDEX: Record<ItemVisibility, number> = { HIDDEN: 0, PRIVATE: 1, SECURE: 2, PUBLIC: 3 };
+const FROM_INDEX: ItemVisibility[] = ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"];
 
 // Interpolate between two hex/rgb colors by t ∈ [0,1]
 function lerpColor(a: string, b: string, t: number): string {
@@ -61,11 +69,11 @@ function lerpColor(a: string, b: string, t: number): string {
   return `rgb(${r},${g},${bl})`;
 }
 
-// Resolve the thumb color at a continuous position 0–2
+// Resolve the thumb color at a continuous position 0–3
 function thumbColorAt(pos: number): string {
-  if (pos <= 1) return lerpColor("#6b7280", "#3b82f6", pos);
-  // For pos > 1, lerp toward primary — approximate with a fixed end color
-  return lerpColor("#3b82f6", "#22c55e", pos - 1); // will be overridden by CSS var below
+  if (pos <= 1) return lerpColor("#9ca3af", "#6b7280", pos);
+  if (pos <= 2) return lerpColor("#6b7280", "#3b82f6", pos - 1);
+  return lerpColor("#3b82f6", "#22c55e", pos - 2);
 }
 
 interface ItemVisibilitySelectorProps {
@@ -86,10 +94,10 @@ export function ItemVisibilitySelector({
   const trackRef = useRef<HTMLDivElement>(null);
 
   const pos = dragPos !== null ? dragPos : committedIdx;
-  const pct = (pos / 2) * 100;
+  const pct = (pos / 3) * 100;
 
   // Snap index for live label highlighting during drag
-  const liveIdx = Math.min(2, Math.max(0, Math.round(pos)));
+  const liveIdx = Math.min(3, Math.max(0, Math.round(pos)));
   const active = OPTIONS[committedIdx]; // pill always shows committed value
 
   const getPosFromEvent = useCallback((clientX: number): number => {
@@ -97,7 +105,7 @@ export function ItemVisibilitySelector({
     if (!el) return committedIdx;
     const { left, width } = el.getBoundingClientRect();
     const raw = (clientX - left) / width;
-    return Math.min(2, Math.max(0, raw * 2));
+    return Math.min(3, Math.max(0, raw * 3));
   }, [committedIdx]);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -116,7 +124,7 @@ export function ItemVisibilitySelector({
   const onPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     const finalPos = getPosFromEvent(e.clientX);
-    const snapped = Math.min(2, Math.max(0, Math.round(finalPos)));
+    const snapped = Math.min(3, Math.max(0, Math.round(finalPos)));
     setIsDragging(false);
     setDragPos(null);
     onChange(FROM_INDEX[snapped]);
@@ -135,7 +143,7 @@ export function ItemVisibilitySelector({
         <div
           className="absolute inset-x-2.5 top-1/2 h-2 -translate-y-1/2 rounded-full"
           style={{
-            background: "linear-gradient(to right, #6b7280 0%, #3b82f6 50%, hsl(var(--primary)) 100%)",
+            background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
             opacity: 0.2,
           }}
         />
@@ -146,7 +154,7 @@ export function ItemVisibilitySelector({
             width: `${pct}%`,
             // scale fill within the usable track width (between thumb centers)
             maxWidth: "calc(100% - 20px)",
-            background: "linear-gradient(to right, #6b7280 0%, #3b82f6 50%, hsl(var(--primary)) 100%)",
+            background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
             transition: isDragging ? "none" : "width 300ms cubic-bezier(0.34,1.56,0.64,1)",
           }}
         />
@@ -174,7 +182,7 @@ export function ItemVisibilitySelector({
             }}
           />
           {/* Snap tick marks */}
-          {[0, 50, 100].map((p, i) => (
+          {[0, 33.33, 66.67, 100].map((p, i) => (
             <div
               key={i}
               className="absolute top-1/2 h-1.5 w-1.5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"
@@ -227,8 +235,9 @@ export function ItemVisibilitySelector({
         className={cn(
           "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm",
           committedIdx === 0 && "border-border bg-muted/30",
-          committedIdx === 1 && "border-blue-500/30 bg-blue-500/5",
-          committedIdx === 2 && "border-primary/30 bg-primary/5",
+          committedIdx === 1 && "border-border bg-muted/30",
+          committedIdx === 2 && "border-blue-500/30 bg-blue-500/5",
+          committedIdx === 3 && "border-primary/30 bg-primary/5",
         )}
         style={{ transition: "background-color 250ms ease, border-color 250ms ease" }}
       >
