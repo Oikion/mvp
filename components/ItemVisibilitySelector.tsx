@@ -88,7 +88,7 @@ export function ItemVisibilitySelector({
   disabled = false,
 }: ItemVisibilitySelectorProps) {
   const committedIdx = INDEX[value];
-  // dragPos: float 0–2 while dragging; null when idle (uses committedIdx)
+  // dragPos: float 0–3 while dragging; null when idle (uses committedIdx)
   const [dragPos, setDragPos] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
