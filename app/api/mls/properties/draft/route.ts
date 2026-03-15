@@ -4,6 +4,7 @@ import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { encryptPropertyForOrg } from "@/lib/model-encryption";
+import { validateAssignedTo } from "@/lib/validate-assigned-to";
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
@@ -160,7 +161,7 @@ export async function POST(req: Request) {
     if (objective_zone !== undefined) data.objective_zone = nullIfEmpty(objective_zone);
     if (accessibility !== undefined) data.accessibility = nullIfEmpty(accessibility);
     if (description !== undefined) data.description = nullIfEmpty(description);
-    if (assigned_to !== undefined) data.assigned_to = nullIfEmpty(assigned_to);
+    if (assigned_to !== undefined) data.assigned_to = await validateAssignedTo(assigned_to);
 
     // Enum fields - validate before setting
     if (property_type !== undefined && property_type !== null && property_type !== "") {

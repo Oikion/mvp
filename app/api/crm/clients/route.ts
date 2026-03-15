@@ -11,6 +11,7 @@ import { dispatchClientWebhook } from "@/lib/webhooks";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 import { createClientSchema, updateClientSchema } from "@/lib/validations/crm";
 import { encryptClientForOrg } from "@/lib/model-encryption";
+import { validateAssignedTo } from "@/lib/validate-assigned-to";
 
 export async function POST(req: Request) {
   try {
@@ -84,6 +85,9 @@ export async function POST(req: Request) {
     // Generate friendly ID
     const friendlyId = await generateFriendlyId(prismadb, "Clients", organizationId);
 
+    // Validate assigned_to is a real Users.id to prevent FK violations
+    const validatedAssignedTo = await validateAssignedTo(assigned_to);
+
     const newClient = await prismadb.clients.create({
       data: await encryptClientForOrg({
         friendlyId,
@@ -127,7 +131,7 @@ export async function POST(req: Request) {
         shipping_state,
         shipping_country,
         description,
-        assigned_to,
+        assigned_to: validatedAssignedTo,
         member_of,
       }, organizationId),
     });
@@ -252,6 +256,11 @@ export async function PUT(req: Request) {
       }
     }
 
+    // Validate assigned_to is a real Users.id to prevent FK violations
+    const validatedAssignedTo = assigned_to !== undefined
+      ? await validateAssignedTo(assigned_to)
+      : undefined;
+
     const updatedClient = await prismadb.clients.update({
       where: { id },
       data: await encryptClientForOrg({
@@ -293,7 +302,7 @@ export async function PUT(req: Request) {
         shipping_state,
         shipping_country,
         description,
-        assigned_to,
+        assigned_to: validatedAssignedTo,
         member_of,
       }, organizationId),
     });

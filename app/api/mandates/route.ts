@@ -8,6 +8,7 @@ import { generateFriendlyId } from "@/lib/friendly-id";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 import { createMandateSchema, updateMandateSchema, mandateQuerySchema } from "@/lib/validations/mandates";
 import { encryptMandateForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
+import { validateAssignedTo } from "@/lib/validate-assigned-to";
 
 /**
  * GET /api/mandates
@@ -197,6 +198,9 @@ export async function POST(req: Request) {
     // Generate friendly ID
     const mandateId = await generateFriendlyId(prismadb, "Mandates", organizationId);
 
+    // Validate assigned_to is a real Users.id to prevent FK violations
+    const validatedAssignedTo = await validateAssignedTo(validated.assigned_to);
+
     // Encrypt sensitive fields
     const encrypted = await encryptMandateForOrg(
       {
@@ -213,7 +217,7 @@ export async function POST(req: Request) {
         organizationId,
         createdBy: user.id,
         updatedBy: user.id,
-        assigned_to: validated.assigned_to,
+        assigned_to: validatedAssignedTo,
 
         // Encrypted fields
         title: encrypted.title,
@@ -411,7 +415,7 @@ export async function PUT(req: Request) {
     if (validated.urgency !== undefined) updateData.urgency = validated.urgency;
     if (validated.timeline !== undefined) updateData.timeline = validated.timeline;
     if (validated.expires_at !== undefined) updateData.expires_at = validated.expires_at;
-    if (validated.assigned_to !== undefined) updateData.assigned_to = validated.assigned_to;
+    if (validated.assigned_to !== undefined) updateData.assigned_to = await validateAssignedTo(validated.assigned_to);
     if (validated.draft_status !== undefined) updateData.draft_status = validated.draft_status;
 
     const updatedMandate = await prismadb.mandate.update({

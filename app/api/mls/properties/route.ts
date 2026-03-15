@@ -10,6 +10,7 @@ import { dispatchPropertyWebhook } from "@/lib/webhooks";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 
 import { encryptPropertyForOrg } from "@/lib/model-encryption";
+import { validateAssignedTo } from "@/lib/validate-assigned-to";
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
@@ -262,6 +263,11 @@ export async function POST(req: Request) {
     // Build validated data
     const data = buildPropertyData(body, user, organizationId, !!id);
 
+    // Validate assigned_to is a real Users.id to prevent FK violations
+    if (data.assigned_to !== undefined) {
+      data.assigned_to = await validateAssignedTo(data.assigned_to);
+    }
+
     // Encrypt owner-sensitive fields with per-org DEK
     Object.assign(data, await encryptPropertyForOrg(data, organizationId));
 
@@ -396,6 +402,11 @@ export async function PUT(req: Request) {
 
     // Build validated data
     const data = buildPropertyData(body, user, organizationId, true);
+
+    // Validate assigned_to is a real Users.id to prevent FK violations
+    if (data.assigned_to !== undefined) {
+      data.assigned_to = await validateAssignedTo(data.assigned_to);
+    }
 
     // Encrypt owner-sensitive fields with per-org DEK
     Object.assign(data, await encryptPropertyForOrg(data, organizationId));
