@@ -1,46 +1,32 @@
 import { z } from "zod";
+import {
+  PersonType,
+  ClientStatus,
+  ClientType,
+  LeadSource,
+  Language,
+} from "@prisma/client";
 
 /**
  * Zod schemas for CRM input validation
  * Prevents mass assignment attacks and ensures data integrity
+ *
+ * IMPORTANT: All enum schemas use z.nativeEnum() derived from @prisma/client.
+ * This ensures validation stays in sync with the database schema automatically.
+ * After any Prisma schema change, run `prisma generate` — TypeScript will catch drift.
  */
 
-// Client person types
-export const personTypeSchema = z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]);
+// Client person types — derived from Prisma PersonType enum
+export const personTypeSchema = z.nativeEnum(PersonType);
 
-// Client status values
-export const clientStatusSchema = z.enum([
-  "LEAD",
-  "CONTACTED",
-  "QUALIFIED",
-  "PROPOSAL",
-  "NEGOTIATION",
-  "WON",
-  "LOST",
-  "INACTIVE",
-]).optional();
+// Client status values — derived from Prisma ClientStatus enum
+export const clientStatusSchema = z.nativeEnum(ClientStatus).optional();
 
-// Client type values  
-export const clientTypeSchema = z.enum([
-  "BUYER",
-  "SELLER",
-  "LANDLORD",
-  "TENANT",
-  "INVESTOR",
-  "OTHER",
-]).optional();
+// Client type values — derived from Prisma ClientType enum
+export const clientTypeSchema = z.nativeEnum(ClientType).optional();
 
-// Lead source values
-export const leadSourceSchema = z.enum([
-  "WEBSITE",
-  "REFERRAL",
-  "SOCIAL_MEDIA",
-  "ADVERTISING",
-  "COLD_CALL",
-  "WALK_IN",
-  "PORTAL",
-  "OTHER",
-]).optional();
+// Lead source values — derived from Prisma LeadSource enum
+export const leadSourceSchema = z.nativeEnum(LeadSource).optional();
 
 /**
  * Base object schema for client fields (no refinements).
@@ -62,8 +48,8 @@ const clientFieldsSchema = z.object({
   // Personal/Company details
   full_name: z.string().max(255).optional(),
   company_name: z.string().max(255).optional(),
-  channels: z.string().max(255).optional(),
-  language: z.string().max(10).optional(),
+  channels: z.array(z.string()).optional(),
+  language: z.nativeEnum(Language).optional(),
   
   // Greek-specific identifiers
   afm: z.string().regex(/^\d{9}$/, "AFM must be exactly 9 digits").optional().or(z.literal("")), // Tax ID

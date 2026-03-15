@@ -1,125 +1,42 @@
 import { z } from "zod";
+import {
+  PropertyType as PrismaPropertyType,
+  PropertyStatus as PrismaPropertyStatus,
+  TransactionType as PrismaTransactionType,
+  HeatingType,
+  EnergyCertClass,
+  PropertyCondition,
+  FurnishedStatus,
+  ItemVisibility,
+  AddressPrivacyLevel,
+  FrontageType,
+  PriceType,
+} from "@prisma/client";
 
 /**
  * Zod schemas for MLS (Property) input validation
  * Prevents mass assignment attacks and ensures data integrity
- * 
- * IMPORTANT: These enum values must match the Prisma schema exactly.
- * See prisma/schema.prisma for the source of truth.
+ *
+ * IMPORTANT: All enum schemas use z.nativeEnum() derived from @prisma/client.
+ * This ensures validation stays in sync with the database schema automatically.
+ * After any Prisma schema change, run `prisma generate` — TypeScript will catch drift.
  */
 
 // =============================================================================
-// Enum Schemas - Match Prisma exactly
+// Enum Schemas — derived from @prisma/client
 // =============================================================================
 
-// Property type - matches Prisma PropertyType enum
-export const propertyTypeSchema = z.enum([
-  "RESIDENTIAL",
-  "COMMERCIAL",
-  "LAND",
-  "RENTAL",
-  "VACATION",
-  "APARTMENT",
-  "HOUSE",
-  "MAISONETTE",
-  "WAREHOUSE",
-  "PARKING",
-  "PLOT",
-  "FARM",
-  "INDUSTRIAL",
-  "OTHER",
-]);
-
-// Property status - matches Prisma PropertyStatus enum
-export const propertyStatusSchema = z.enum([
-  "ACTIVE",
-  "PENDING",
-  "SOLD",
-  "OFF_MARKET",
-  "WITHDRAWN",
-]);
-
-// Transaction type - matches Prisma TransactionType enum
-export const transactionTypeSchema = z.enum([
-  "SALE",
-  "RENTAL",
-  "SHORT_TERM",
-  "EXCHANGE",
-  "AUCTION",
-]);
-
-// Heating type - matches Prisma HeatingType enum
-export const heatingTypeSchema = z.enum([
-  "AUTONOMOUS",
-  "CENTRAL",
-  "NATURAL_GAS",
-  "HEAT_PUMP",
-  "ELECTRIC",
-  "NONE",
-]);
-
-// Energy certificate class - matches Prisma EnergyCertClass enum
-export const energyCertClassSchema = z.enum([
-  "A_PLUS",
-  "A",
-  "B",
-  "C",
-  "D",
-  "E",
-  "F",
-  "G",
-  "H",
-  "IN_PROGRESS",
-]);
-
-// Property condition - matches Prisma PropertyCondition enum
-export const propertyConditionSchema = z.enum([
-  "EXCELLENT",
-  "VERY_GOOD",
-  "GOOD",
-  "NEEDS_RENOVATION",
-]);
-
-// Furnished status - matches Prisma FurnishedStatus enum
-export const furnishedStatusSchema = z.enum([
-  "NO",
-  "PARTIALLY",
-  "FULLY",
-]);
-
-// Item visibility - matches Prisma ItemVisibility enum
-export const itemVisibilitySchema = z.enum([
-  "HIDDEN",
-  "PRIVATE",
-  "SECURE",
-  "PUBLIC",
-]);
-
-// Address privacy level - matches Prisma AddressPrivacyLevel enum
-export const addressPrivacyLevelSchema = z.enum([
-  "EXACT",
-  "PARTIAL",
-  "HIDDEN",
-]);
-
-// Frontage type - matches Prisma FrontageType enum
-export const frontageTypeSchema = z.enum([
-  "MAIN_ROAD",
-  "SECONDARY_ROAD",
-  "PEDESTRIAN",
-  "CORNER",
-  "SQUARE",
-  "CUL_DE_SAC",
-  "NONE",
-]);
-
-// Price type - matches Prisma PriceType enum
-export const priceTypeSchema = z.enum([
-  "RENTAL",
-  "SALE",
-  "PER_ACRE",
-  "PER_SQM",
-]);
+export const propertyTypeSchema = z.nativeEnum(PrismaPropertyType);
+export const propertyStatusSchema = z.nativeEnum(PrismaPropertyStatus);
+export const transactionTypeSchema = z.nativeEnum(PrismaTransactionType);
+export const heatingTypeSchema = z.nativeEnum(HeatingType);
+export const energyCertClassSchema = z.nativeEnum(EnergyCertClass);
+export const propertyConditionSchema = z.nativeEnum(PropertyCondition);
+export const furnishedStatusSchema = z.nativeEnum(FurnishedStatus);
+export const itemVisibilitySchema = z.nativeEnum(ItemVisibility);
+export const addressPrivacyLevelSchema = z.nativeEnum(AddressPrivacyLevel);
+export const frontageTypeSchema = z.nativeEnum(FrontageType);
+export const priceTypeSchema = z.nativeEnum(PriceType);
 
 // =============================================================================
 // Helper Types
@@ -173,10 +90,10 @@ const propertyFieldsSchema = z.object({
   energy_cert_class: energyCertClassSchema.optional(),
   furnished: furnishedStatusSchema.optional(),
   elevator: z.boolean().optional(),
-  accessibility: z.boolean().optional(),
+  accessibility: z.string().max(255).optional(),
   accepts_pets: z.boolean().optional(),
-  amenities: z.string().optional(),
-  orientation: z.string().max(100).optional(),
+  amenities: z.array(z.string()).optional(),
+  orientation: z.array(z.string()).optional(),
   
   // Address
   address_street: z.string().max(255).optional(),
