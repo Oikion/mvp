@@ -3,11 +3,16 @@
 import { revalidatePath } from "next/cache";
 
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { ReservedNameType } from "@prisma/client";
+import { EncryptionMode, ReservedNameType } from "@prisma/client";
 
 import { isReservedName } from "@/lib/reserved-names";
+import { prismadb } from "@/lib/prisma";
 
-export async function createOrganizationAction(name: string, slug?: string) {
+export async function createOrganizationAction(
+  name: string,
+  slug?: string,
+  encryptionMode: EncryptionMode = EncryptionMode.STANDARD
+) {
   try {
     const { userId } = await auth();
 
@@ -47,6 +52,21 @@ export async function createOrganizationAction(name: string, slug?: string) {
       name,
       slug: resolvedSlug,
       createdBy: userId,
+    });
+
+    // Create OrganizationSettings with chosen encryption mode.
+    // encryptionMode is immutable after creation (enforced by lib/encryption-mode-guard.ts).
+    // Note: if this upsert fails after Clerk org creation, the org exists without settings.
+    // The upsert is idempotent (update: {}), so retrying the action or any subsequent
+    // OrganizationSettings access that uses upsert will create the missing record.
+    await prismadb.organizationSettings.upsert({
+      where: { organizationId: organization.id },
+      create: {
+        organizationId: organization.id,
+        createdBy: userId,
+        encryptionMode,
+      },
+      update: {}, // Never update — if settings exist, keep them as-is
     });
 
     // Revalidate the current path to update the UI

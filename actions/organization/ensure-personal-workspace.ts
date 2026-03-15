@@ -2,7 +2,9 @@
 
 import { createClerkClient } from "@clerk/backend";
 import { auth } from "@clerk/nextjs/server";
+import { EncryptionMode } from "@prisma/client";
 import { getCurrentUser } from "@/lib/get-current-user";
+import { prismadb } from "@/lib/prisma";
 import { updateOrganizationMetadata } from "./update-org-metadata";
 
 export async function ensurePersonalWorkspace() {
@@ -61,6 +63,17 @@ export async function ensurePersonalWorkspace() {
       console.error("Failed to set personal org metadata:", metadataResult.error);
       // Continue anyway - the org exists
     }
+
+    // Personal workspaces always use STANDARD encryption mode.
+    await prismadb.organizationSettings.upsert({
+      where: { organizationId: personalOrg.id },
+      create: {
+        organizationId: personalOrg.id,
+        createdBy: userId,
+        encryptionMode: EncryptionMode.STANDARD,
+      },
+      update: {},
+    });
 
     return { success: true, created: true, organizationId: personalOrg.id };
   } catch (error: unknown) {
