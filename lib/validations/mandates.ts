@@ -1,4 +1,11 @@
 import { z } from "zod";
+import {
+  MandateStatus,
+  MandateUrgency,
+  Timeline,
+  PropertyPurpose,
+  ItemVisibility,
+} from "@prisma/client";
 
 import {
   propertyTypeSchema,
@@ -13,48 +20,20 @@ import {
  * Zod schemas for Mandate input validation
  * Prevents mass assignment attacks and ensures data integrity
  *
- * IMPORTANT: These enum values must match the Prisma schema exactly.
- * See prisma/schema.prisma for the source of truth.
+ * IMPORTANT: All enum schemas use z.nativeEnum() derived from @prisma/client.
+ * This ensures validation stays in sync with the database schema automatically.
+ * After any Prisma schema change, run `prisma generate` — TypeScript will catch drift.
  */
 
 // =============================================================================
-// Enum Schemas - Match Prisma exactly
+// Enum Schemas — derived from @prisma/client
 // =============================================================================
 
-// Mandate status - matches Prisma MandateStatus enum
-export const mandateStatusSchema = z.enum([
-  "DRAFT",
-  "ACTIVE",
-  "PAUSED",
-  "FULFILLED",
-  "EXPIRED",
-  "CANCELLED",
-]);
-
-// Mandate urgency - matches Prisma MandateUrgency enum
-export const mandateUrgencySchema = z.enum([
-  "LOW",
-  "MEDIUM",
-  "HIGH",
-  "CRITICAL",
-]);
-
-// Timeline - matches Prisma Timeline enum
-export const timelineSchema = z.enum([
-  "IMMEDIATE",
-  "ONE_THREE_MONTHS",
-  "THREE_SIX_MONTHS",
-  "SIX_PLUS_MONTHS",
-]);
-
-// Property purpose - matches Prisma PropertyPurpose enum
-export const propertyPurposeSchema = z.enum([
-  "RESIDENTIAL",
-  "COMMERCIAL",
-  "LAND",
-  "PARKING",
-  "OTHER",
-]);
+export const mandateStatusSchema = z.nativeEnum(MandateStatus);
+export const mandateUrgencySchema = z.nativeEnum(MandateUrgency);
+export const timelineSchema = z.nativeEnum(Timeline);
+export const propertyPurposeSchema = z.nativeEnum(PropertyPurpose);
+export const itemVisibilitySchema = z.nativeEnum(ItemVisibility);
 
 // =============================================================================
 // Base Mandate Fields Schema
@@ -132,6 +111,9 @@ const mandateFieldsSchema = z.object({
 
   // Relationships
   assigned_to: z.string().min(1).optional().nullable(),
+
+  // Visibility
+  visibility: itemVisibilitySchema.optional(),
 
   // Draft flag
   draft_status: z.boolean().optional(),
