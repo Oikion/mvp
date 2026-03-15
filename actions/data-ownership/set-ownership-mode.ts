@@ -9,6 +9,7 @@ import {
   actionError,
   type ActionResponse,
 } from "@/lib/action-response";
+import { assertEncryptionModeUnchanged } from "@/lib/encryption-mode-guard";
 import { requireAction } from "@/lib/permissions/action-guards";
 
 /**
@@ -51,6 +52,19 @@ export async function setOwnershipMode(
 
     const now = new Date();
 
+    const settingsData = {
+      dataOwnershipMode: mode,
+      dataOwnershipSetAt: now,
+      dataOwnershipChangedBy: userId,
+      policyVersion: 1,
+      policyHistory: [
+        { mode, from: now.toISOString(), to: null },
+      ],
+    };
+
+    // Guard: reject if someone accidentally adds encryptionMode to settingsData
+    await assertEncryptionModeUnchanged(orgId, settingsData);
+
     await prismadb.$transaction([
       // Upsert organization settings with ownership mode
       prismadb.organizationSettings.upsert({
@@ -58,23 +72,9 @@ export async function setOwnershipMode(
         create: {
           organizationId: orgId,
           createdBy: userId,
-          dataOwnershipMode: mode,
-          dataOwnershipSetAt: now,
-          dataOwnershipChangedBy: userId,
-          policyVersion: 1,
-          policyHistory: [
-            { mode, from: now.toISOString(), to: null },
-          ],
+          ...settingsData,
         },
-        update: {
-          dataOwnershipMode: mode,
-          dataOwnershipSetAt: now,
-          dataOwnershipChangedBy: userId,
-          policyVersion: 1,
-          policyHistory: [
-            { mode, from: now.toISOString(), to: null },
-          ],
-        },
+        update: settingsData,
       }),
       // Auto-create consent record for the admin who sets the policy
       prismadb.orgMemberConsent.create({

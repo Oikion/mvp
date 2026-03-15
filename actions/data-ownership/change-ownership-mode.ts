@@ -9,6 +9,7 @@ import {
   actionError,
   type ActionResponse,
 } from "@/lib/action-response";
+import { assertEncryptionModeUnchanged } from "@/lib/encryption-mode-guard";
 import { getActionPermissionContext } from "@/lib/permissions/action-service";
 import type { PolicyEra } from "@/lib/data-ownership/types";
 
@@ -82,16 +83,21 @@ export async function changeOwnershipMode(
       to: null,
     });
 
+    const updateData = {
+      dataOwnershipMode: newMode,
+      dataOwnershipChangedAt: now,
+      dataOwnershipChangedBy: userId,
+      policyVersion: newVersion,
+      policyHistory: updatedHistory as any,
+    };
+
+    // Guard: reject if someone accidentally adds encryptionMode to updateData
+    await assertEncryptionModeUnchanged(orgId, updateData);
+
     await prismadb.$transaction([
       prismadb.organizationSettings.update({
         where: { organizationId: orgId },
-        data: {
-          dataOwnershipMode: newMode,
-          dataOwnershipChangedAt: now,
-          dataOwnershipChangedBy: userId,
-          policyVersion: newVersion,
-          policyHistory: updatedHistory as any,
-        },
+        data: updateData,
       }),
       // Auto-create owner's consent at the new version
       prismadb.orgMemberConsent.create({
