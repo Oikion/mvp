@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ import {
 } from "@/hooks/swr";
 import { QuickExportButton } from "@/components/export";
 import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 
 // ---------------------------------------------------------------------------
@@ -122,6 +124,7 @@ export default function ClientView({
   locale = "en",
 }: ClientViewProps) {
   const router = useRouter();
+  const t = useTranslations("crm");
   const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
   const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
@@ -129,8 +132,11 @@ export default function ClientView({
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [createMandateOpen, setCreateMandateOpen] = useState(false);
+  const [createPropertyOpen, setCreatePropertyOpen] = useState(false);
+  const [autoLinkNewProperty, setAutoLinkNewProperty] = useState(false);
+  const [autoLinkNewMandate, setAutoLinkNewMandate] = useState(false);
 
-  // Organization users for QuickAddMandate
+  // Organization users for QuickAdd components
   const { users: orgUsers } = useOrgUsers({ enabled: !isReadOnly });
 
   // Linked entities via SWR
@@ -278,7 +284,7 @@ export default function ClientView({
           <div className="flex items-center gap-2">
             <Button onClick={() => setEditOpen(true)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t("ClientView.edit")}
             </Button>
             <EntityQuickActions
               entityType="client"
@@ -299,7 +305,7 @@ export default function ClientView({
               leftIcon={<Share2 className="h-4 w-4" />}
               onClick={() => setShareModalOpen(true)}
             >
-              Share
+              {t("ClientView.share")}
             </Button>
           </div>
         )}
@@ -317,15 +323,15 @@ export default function ClientView({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Mail className="h-4 w-4" />
-                Contact Information
+                {t("ClientView.contactInformation")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
-                <DetailField label="Email" value={data.primary_email} />
-                <DetailField label="Phone" value={data.office_phone} />
-                <DetailField label="Fax" value={data.fax} />
-                <DetailField label="Website" value={data.website} />
+                <DetailField label={t("ClientView.email")} value={data.primary_email} />
+                <DetailField label={t("ClientView.phone")} value={data.office_phone} />
+                <DetailField label={t("ClientView.fax")} value={data.fax} />
+                <DetailField label={t("ClientView.website")} value={data.website} />
               </div>
             </CardContent>
           </Card>
@@ -336,13 +342,13 @@ export default function ClientView({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <MapPin className="h-4 w-4" />
-                  Addresses
+                  {t("ClientView.addresses")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <DetailField label="Billing Address" value={billingAddress || null} />
-                  <DetailField label="Shipping Address" value={shippingAddress || null} />
+                  <DetailField label={t("ClientView.billingAddress")} value={billingAddress || null} />
+                  <DetailField label={t("ClientView.shippingAddress")} value={shippingAddress || null} />
                 </div>
               </CardContent>
             </Card>
@@ -354,16 +360,16 @@ export default function ClientView({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Building2 className="h-4 w-4" />
-                  Business Details
+                  {t("ClientView.businessDetails")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <DetailField label="VAT" value={data.vat} />
-                  <DetailField label="Company ID" value={data.company_id} />
-                  <DetailField label="Industry" value={data.industry} />
-                  <DetailField label="Annual Revenue" value={data.annual_revenue} />
-                  <DetailField label="Member of" value={data.member_of} />
+                  <DetailField label={t("ClientView.vat")} value={data.vat} />
+                  <DetailField label={t("ClientView.companyId")} value={data.company_id} />
+                  <DetailField label={t("ClientView.industry")} value={data.industry} />
+                  <DetailField label={t("ClientView.annualRevenue")} value={data.annual_revenue} />
+                  <DetailField label={t("ClientView.memberOf")} value={data.member_of} />
                 </div>
               </CardContent>
             </Card>
@@ -375,14 +381,14 @@ export default function ClientView({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <FileText className="h-4 w-4" />
-                  Notes
+                  {t("ClientView.notes")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {data.description && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Description
+                      {t("ClientView.description")}
                     </p>
                     <p className="text-sm whitespace-pre-wrap">{data.description}</p>
                   </div>
@@ -391,7 +397,7 @@ export default function ClientView({
                 {data.communication_notes && Object.keys(data.communication_notes).length > 0 && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Communication Notes
+                      {t("ClientView.communicationNotes")}
                     </p>
                     <p className="text-sm whitespace-pre-wrap">
                       {typeof data.communication_notes === "string"
@@ -410,7 +416,7 @@ export default function ClientView({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <MessageSquare className="h-4 w-4" />
-                  Comments
+                  {t("ClientView.comments")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -433,12 +439,12 @@ export default function ClientView({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <User className="h-4 w-4" />
-                Status & Assignment
+                {t("ClientView.statusAndAssignment")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <DetailField
-                label="Status"
+                label={t("ClientView.status")}
                 value={
                   data.client_status ? (
                     <Badge
@@ -451,11 +457,11 @@ export default function ClientView({
                 }
               />
               <DetailField
-                label="Type"
+                label={t("ClientView.type")}
                 value={displayEnum(data.client_type)}
               />
               <DetailField
-                label="Assigned to"
+                label={t("ClientView.assignedTo")}
                 value={data.assigned_to_user?.name ?? (data.assigned_to ? "Deleted User" : undefined)}
               />
 
@@ -465,13 +471,13 @@ export default function ClientView({
                 {data.createdAt && (
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3 w-3" />
-                    Created: {format(new Date(data.createdAt), "dd/MM/yyyy HH:mm")}
+                    {t("ClientView.created")} {format(new Date(data.createdAt), "dd/MM/yyyy HH:mm")}
                   </div>
                 )}
                 {data.updatedAt && (
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3 w-3" />
-                    Updated: {format(new Date(data.updatedAt), "dd/MM/yyyy HH:mm")}
+                    {t("ClientView.updated")} {format(new Date(data.updatedAt), "dd/MM/yyyy HH:mm")}
                   </div>
                 )}
               </div>
@@ -529,7 +535,7 @@ export default function ClientView({
       <Sheet open={editOpen} onOpenChange={setEditOpen}>
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>Edit Client</SheetTitle>
+            <SheetTitle>{t("ClientView.editClient")}</SheetTitle>
           </SheetHeader>
           <div className="mt-6">
             <UpdateAccountForm
@@ -586,6 +592,16 @@ export default function ClientView({
           sourceType="client"
           alreadyLinkedIds={properties.map((p) => p.id)}
           onLink={handleLinkProperties}
+          onCreate={() => {
+            setLinkPropertyDialogOpen(false);
+            setAutoLinkNewProperty(false);
+            setCreatePropertyOpen(true);
+          }}
+          onCreateAndLink={() => {
+            setLinkPropertyDialogOpen(false);
+            setAutoLinkNewProperty(true);
+            setCreatePropertyOpen(true);
+          }}
           title="Link Properties to Client"
           description="Select properties that this client is interested in or owns."
         />
@@ -601,6 +617,16 @@ export default function ClientView({
           sourceType="client"
           alreadyLinkedIds={(linkedMandates ?? []).map((m: any) => m.id)}
           onLink={handleLinkMandates}
+          onCreate={() => {
+            setLinkMandateDialogOpen(false);
+            setAutoLinkNewMandate(false);
+            setCreateMandateOpen(true);
+          }}
+          onCreateAndLink={() => {
+            setLinkMandateDialogOpen(false);
+            setAutoLinkNewMandate(true);
+            setCreateMandateOpen(true);
+          }}
           title="Link Mandates to Client"
           description="Select mandates associated with this client."
         />
@@ -636,10 +662,30 @@ export default function ClientView({
       {!isReadOnly && (
         <QuickAddMandate
           open={createMandateOpen}
-          onOpenChange={setCreateMandateOpen}
+          onOpenChange={(open) => {
+            setCreateMandateOpen(open);
+            if (!open) setAutoLinkNewMandate(false);
+          }}
           organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
-          preLinkedClientId={data.id}
+          preLinkedClientId={autoLinkNewMandate ? data.id : undefined}
           onSuccess={() => mutateLinked()}
+        />
+      )}
+
+      {/* Quick Add Property */}
+      {!isReadOnly && (
+        <QuickAddProperty
+          open={createPropertyOpen}
+          onOpenChange={(open) => {
+            setCreatePropertyOpen(open);
+            if (!open) setAutoLinkNewProperty(false);
+          }}
+          users={orgUsers}
+          onSuccess={async (propertyId) => {
+            if (autoLinkNewProperty && propertyId) {
+              await handleLinkProperties([propertyId]);
+            }
+          }}
         />
       )}
     </div>

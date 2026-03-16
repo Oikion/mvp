@@ -54,10 +54,11 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   users: any[];
+  onSuccess?: (propertyId: string) => void;
   onContinueToFull?: (propertyId: string) => void;
 };
 
-export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }: Props) {
+export function QuickAddProperty({ open, onOpenChange, users, onSuccess, onContinueToFull }: Props) {
   const router = useRouter();
   const { toast } = useAppToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -111,6 +112,9 @@ export function QuickAddProperty({ open, onOpenChange, users, onContinueToFull }
       onOpenChange(false);
       router.refresh();
 
+      if (onSuccess) {
+        onSuccess(propertyId);
+      }
       // If callback provided, call it with the new property ID
       if (onContinueToFull) {
         onContinueToFull(propertyId);

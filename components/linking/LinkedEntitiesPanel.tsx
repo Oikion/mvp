@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -415,6 +416,8 @@ export function LinkedEntitiesPanel({
   maxHeight = "400px",
   showAddButton = true,
 }: LinkedEntitiesPanelProps) {
+  const t = useTranslations("common");
+
   const iconMap = {
     properties: Building2,
     clients: User,
@@ -424,19 +427,19 @@ export function LinkedEntitiesPanel({
   };
 
   const titleMap = {
-    properties: "Linked Properties",
-    clients: "Linked Clients",
-    events: "Calendar Events",
-    mandates: "Linked Mandates",
-    documents: "Linked Documents",
+    properties: t("linkedEntities.linkedProperties"),
+    clients: t("linkedEntities.linkedClients"),
+    events: t("linkedEntities.calendarEvents"),
+    mandates: t("linkedEntities.linkedMandates"),
+    documents: t("linkedEntities.linkedDocuments"),
   };
 
   const defaultEmptyMap = {
-    properties: "No linked properties yet",
-    clients: "No linked clients yet",
-    events: "No calendar events yet",
-    mandates: "No linked mandates yet",
-    documents: "No linked documents yet",
+    properties: t("linkedEntities.noLinkedProperties"),
+    clients: t("linkedEntities.noLinkedClients"),
+    events: t("linkedEntities.noCalendarEvents"),
+    mandates: t("linkedEntities.noLinkedMandates"),
+    documents: t("linkedEntities.noLinkedDocuments"),
   };
 
   const Icon = iconMap[type];
@@ -460,13 +463,13 @@ export function LinkedEntitiesPanel({
             {onCreateEvent && (
               <Button variant="outline" size="sm" onClick={onCreateEvent}>
                 <Plus className="h-3 w-3 mr-1" />
-                Create Event
+                {t("linkedEntities.createEvent")}
               </Button>
             )}
             {showAddButton && onLinkEntity && (
               <Button variant="outline" size="sm" onClick={onLinkEntity}>
                 <Plus className="h-3 w-3 mr-1" />
-                Link
+                {t("linkedEntities.link")}
               </Button>
             )}
           </div>
