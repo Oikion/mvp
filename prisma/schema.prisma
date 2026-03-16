@@ -1870,9 +1870,10 @@ model NewsletterCampaign {
 }
 
 model CommunicationEvent {
-  id              String                 @id @default(cuid())
+  id              String                 @id @default(uuid())
   campaignId      String
   campaign        NewsletterCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  organizationId  String
   externalEventId String                 @unique // Resend event ID — prevents duplicate webhook delivery
   email           String                 // plaintext — masked to `j***@example.com` in UI only
   eventType       CommunicationEventType
@@ -1880,6 +1881,7 @@ model CommunicationEvent {
   metadata        Json?                  // click URL, bounce reason, user agent, etc.
   createdAt       DateTime               @default(now())
 
+  @@index([organizationId])
   @@index([campaignId])
   @@index([campaignId, eventType])
   @@index([occurredAt])
