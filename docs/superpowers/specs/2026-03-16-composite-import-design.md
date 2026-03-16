@@ -107,43 +107,18 @@ lib/import/
   client-import-schema.ts      ← updated: add mandate group fields
 ```
 
-### `executeImport` — additive change to `ImportResult`
+### `executeImport` — no changes
 
+`engine.ts` is left completely untouched. The composite engine does not call `executeImport` — it performs its own validate → ID-gen → encrypt → individual-create loop, matching the engine's existing fallback path. This gives exact per-row success/failure tracking without relying on `createMany({ skipDuplicates: true })`, which cannot distinguish a newly inserted row from a pre-existing one.
+
+### Per-row insert tracking
+
+The composite engine tracks each successful primary insert as:
 ```ts
-export interface ImportResult {
-  imported: number
-  skipped: number
-  failed: number
-  errors: ImportError[]
-  insertedFriendlyIds?: string[]   // ← NEW: friendlyIds of all records attempted for insert
-}
+type InsertedPrimary = { rowIndex: number; friendlyId: string; uuid: string }
 ```
 
-**How `insertedFriendlyIds` is populated:** The `friendlyIds` array is already constructed inside `executeImport` before insertion. After the batch insert (or fallback individual inserts), the engine queries back:
-
-```ts
-const inserted = await model.findMany({
-  where: { friendlyId: { in: friendlyIds }, organizationId: orgId },
-  select: { friendlyId: true }
-})
-result.insertedFriendlyIds = inserted.map(r => r.friendlyId)
-```
-
-This single batch query is the source of truth for which rows were actually persisted (handles `skipDuplicates` correctly). This is backward-compatible — existing callers ignore the field.
-
-### Primary UUID resolution for junction inserts
-
-The junction tables (`Mandate_Properties`, `Mandate_Clients`) reference `Properties.id` and `Clients.id` — UUIDs, not friendlyIds. After primary insert, the composite engine resolves UUIDs with a single batch query:
-
-```ts
-const primaryRecords = await prismadb[primaryModel].findMany({
-  where: { friendlyId: { in: insertedFriendlyIds }, organizationId: orgId },
-  select: { id: true, friendlyId: true }
-})
-const friendlyIdToUuid = new Map(primaryRecords.map(r => [r.friendlyId, r.id]))
-```
-
-This map is then used when building junction rows.
+Each row is attempted individually via `prismadb[primaryModel].create({ data })`. On success the returned record's `id` (UUID) and `friendlyId` are captured. On failure the error is recorded against `rowIndex`. This gives the composite engine a precise map of which rows to proceed with for mandate creation.
 
 ### `CompositeImportConfig<TPrimary>`
 
@@ -188,47 +163,75 @@ Input: rows[], orgId, userId, compositeConfig
    For each row, split into:
      primaryRow  = { fields NOT in compositeConfig.mandateFields }
      mandateRow  = { fields IN compositeConfig.mandateFields }
-   A row is "composite" if mandateRow has ≥1 field with a non-empty string/number value
+   isComposite(row) = mandateRow has ≥1 field passing the emptiness check (see §3)
 
-2. PRIMARY INSERT
-   Call executeImport(primaryConfig, allPrimaryRows, orgId, userId)
-   → receives ImportResult with insertedFriendlyIds[]
+2. VALIDATE
+   Run each primaryRow through primaryConfig.importSchema.safeParse()
+   Collect validItems[] and errors[] (same logic as engine.ts)
 
-   EARLY EXIT: if insertedFriendlyIds is empty (all rows failed or zero valid rows),
-   skip steps 3–4 and return { imported: 0, mandatesCreated: 0, linked: 0, failed, errors }
+   EARLY EXIT: if validItems is empty, return
+   { imported: 0, mandatesCreated: 0, linked: 0, failed: rows.length, errors }
 
-3. UUID RESOLUTION
-   Batch-query primary model for { id, friendlyId } where friendlyId IN insertedFriendlyIds
-   Build: friendlyIdToUuid = Map<friendlyId → UUID>
+3. ID GENERATION
+   Call generateFriendlyIds(prismadb, primaryConfig.entityIdType, validItems.length, orgId)
+   — called on outer prismadb client, never inside a transaction
 
-4. MANDATE CREATION (only for composite rows whose primaryRow was successfully inserted)
-   - Filter composite rows to those whose friendlyId appears in insertedFriendlyIds
-   - Generate friendlyIds for N mandates via generateFriendlyIds(prismadb, "Mandates", N, orgId)
-   - For each composite row:
-       title = compositeConfig.buildMandateTitle(parsedPrimaryItem)
-       mandateData = compositeConfig.buildMandateData(mandateRow, title, mandateFriendlyId, orgId, userId)
-   - mandateData is inserted DIRECTLY — it does NOT pass through mandateImportSchema Zod validation
-     (the schema requires a title column which does not exist in the CSV; title is always synthesized)
-   - Encrypt mandate title + notes fields via mandateImportConfig.encryptWithDek before insert
-   - Batch insert: prismadb.mandate.createMany({ data: mandateRecords, skipDuplicates: true })
-   - Query back inserted mandate UUIDs: prismadb.mandate.findMany({ where: { friendlyId: { in: mandateFriendlyIds }, organizationId: orgId }, select: { id, friendlyId } })
+4. ENCRYPT + BUILD PRIMARY DATA
+   Fetch orgDek via getOrgDek(orgId)
+   For each validItem: encryptedFields = primaryConfig.encryptWithDek(raw, dek)
+   primaryData = primaryConfig.toPrismaData(parsed, encryptedFields, friendlyId, userId, orgId)
 
-5. LINK
+5. PRIMARY INSERT — individual creates
+   For each primaryData record:
+     try: record = await prismadb[primaryPrismaModel].create({ data: primaryData[i] })
+          → capture { rowIndex: i, friendlyId, uuid: record.id }
+     catch: append to errors[]
+   Collect insertedPrimaries: InsertedPrimary[]
+
+   EARLY EXIT: if insertedPrimaries is empty, return
+   { imported: 0, mandatesCreated: 0, linked: 0, failed: rows.length, errors }
+
+6. MANDATE CREATION (composite rows only)
+   Filter insertedPrimaries to those where the original row isComposite
+   compositeInserted = [...] (N rows)
+
+   If N === 0: skip to step 8
+
+   Generate N mandate friendlyIds:
+     mandateFriendlyIds = generateFriendlyIds(prismadb, "Mandates", N, orgId)
+
+   For each composite row i:
+     title = compositeConfig.buildMandateTitle(parsedPrimaryItem)
+     GUARD: if title.trim() === "" → title = "Mandate for [entity]" (never store empty title)
+     mandateData = compositeConfig.buildMandateData(mandateRow, title, mandateFriendlyIds[i], orgId, userId)
+     Encrypt title + notes: mandateImportConfig.encryptWithDek(mandateData, dek)
+     — mandateData is inserted DIRECTLY, bypassing mandateImportSchema (no title column in CSV)
+
+   Individual mandate creates:
+     try: record = await prismadb.mandate.create({ data: mandateData[i] })
+          → capture { compositeIndex: i, mandateUuid: record.id }
+     catch: append to errors[] with row number; no junction row for this pair
+
+7. LINK
    For each successfully inserted (primary, mandate) pair:
      junctionRow = { mandateId: mandateUuid, [junctionForeignKey]: primaryUuid }
-   Note: the junction table id field (@default(uuid())) is auto-populated by Prisma — do NOT supply it
-   Batch insert: prismadb[junctionModel].createMany({ data: junctionRows, skipDuplicates: true })
-   (junctionModel is "mandate_Properties" or "mandate_Clients" — lowercase m matches Prisma client accessor)
+     — do NOT supply the junction id field; it is @default(uuid()) and auto-populated by Prisma
 
-6. RETURN CompositeImportResult
+   Individual junction creates (to surface per-row errors):
+     try: await prismadb[junctionModel].create({ data: junctionRow })
+     catch: append error noting mandate exists but is unlinked
+
+8. RETURN CompositeImportResult
    {
-     imported: number          // primary entities created
-     mandatesCreated: number   // mandates created
-     linked: number            // junction rows inserted
-     failed: number
+     imported: insertedPrimaries.length
+     mandatesCreated: number of successful mandate creates
+     linked: number of successful junction creates
+     failed: rows.length - insertedPrimaries.length
      errors: ImportError[]
    }
 ```
+
+**Note on `bathrooms_min`/`bathrooms_max`:** These Mandate fields are `Int?` in Prisma. `buildMandateData` must apply `Math.floor()` to these values before inserting to avoid a Prisma type error on fractional CSV inputs (e.g., `"1.5"`).
 
 ---
 
@@ -372,7 +375,7 @@ The following are explicitly deferred and tracked separately:
 ### Modified files
 - `prisma/schema.prisma` — remove 3 fields from Properties model
 - `prisma/migrations/YYYYMMDD_remove_price_fields_from_properties/migration.sql` — Stage B DDL
-- `lib/import/engine.ts` — add `insertedFriendlyIds` to `ImportResult`; add post-insert query
+- `lib/import/engine.ts` — **no changes** (composite engine is fully independent)
 - `lib/import/property-import-schema.ts` — remove price/price_type/transaction_type; add mandate group fields
 - `lib/import/property-import-config.ts` — remove those 3 fields from `toPrismaData`
 - `lib/import/client-import-schema.ts` — add mandate group fields
