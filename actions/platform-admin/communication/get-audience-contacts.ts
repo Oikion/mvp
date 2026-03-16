@@ -2,6 +2,7 @@
 
 import resendHelper from "@/lib/resend"
 import { cacheGet, cacheSet } from "@/lib/redis"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 import type { CommunicationContact } from "@/lib/communication/types"
 
 const CACHE_TTL = 120 // 2 minutes
@@ -16,12 +17,18 @@ export async function getAudienceContacts(
   audienceId: string,
   page: number = 1
 ): Promise<GetAudienceContactsResult> {
-  const cacheKey = `comm:audience:${audienceId}:contacts:${page}`
+  await requirePlatformAdmin()
+
+  // Single cache key for the full contact list — slicing is done client-side
+  const cacheKey = `comm:audience:${audienceId}:contacts`
 
   try {
-    // Check cache first
-    const cached = await cacheGet<GetAudienceContactsResult>(cacheKey)
-    if (cached) return cached
+    // Check cache first — cache stores the full contact array
+    const cachedAll = await cacheGet<CommunicationContact[]>(cacheKey)
+    if (cachedAll) {
+      const offset = (page - 1) * PAGE_SIZE
+      return { contacts: cachedAll.slice(offset, offset + PAGE_SIZE), total: cachedAll.length }
+    }
 
     const resend = await resendHelper()
     const { data, error } = await resend.contacts.list({ audienceId })
@@ -40,16 +47,10 @@ export async function getAudienceContacts(
       createdAt: c.created_at,
     }))
 
-    // Cap at PAGE_SIZE per page
+    // Cache the full array; slice for the requested page before returning
+    await cacheSet(cacheKey, allContacts, CACHE_TTL)
     const offset = (page - 1) * PAGE_SIZE
-    const contacts = allContacts.slice(offset, offset + PAGE_SIZE)
-    const result: GetAudienceContactsResult = {
-      contacts,
-      total: allContacts.length,
-    }
-
-    await cacheSet(cacheKey, result, CACHE_TTL)
-    return result
+    return { contacts: allContacts.slice(offset, offset + PAGE_SIZE), total: allContacts.length }
   } catch (error) {
     console.error("[GET_AUDIENCE_CONTACTS]", error)
     return { contacts: [], total: 0 }

@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma"
 import resendHelper from "@/lib/resend"
 import { EMAIL_CONFIG } from "@/lib/resend-segments"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 import { renderCampaignBlocks } from "./render-campaign-blocks"
 import type { EmailBlock } from "@/lib/communication/types"
 
@@ -15,6 +16,8 @@ export async function sendTestEmail(
   campaignId: string,
   testEmail: string
 ): Promise<SendTestEmailResult> {
+  await requirePlatformAdmin()
+
   try {
     // Load campaign
     const campaign = await prismadb.newsletterCampaign.findUnique({

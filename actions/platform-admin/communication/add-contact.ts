@@ -2,6 +2,7 @@
 
 import resendHelper from "@/lib/resend"
 import { cacheDel } from "@/lib/redis"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 
 interface AddContactResult {
   success: boolean
@@ -14,6 +15,8 @@ export async function addContact(
   firstName?: string,
   lastName?: string
 ): Promise<AddContactResult> {
+  await requirePlatformAdmin()
+
   try {
     const resend = await resendHelper()
 
@@ -45,8 +48,8 @@ export async function addContact(
       }
     }
 
-    // Invalidate relevant caches
-    await cacheDel("comm:audiences", `comm:audience:${audienceId}:contacts:1`)
+    // Invalidate relevant caches — use the single (non-paginated) contacts cache key
+    await cacheDel("comm:audiences", `comm:audience:${audienceId}:contacts`)
 
     return { success: true }
   } catch (error) {

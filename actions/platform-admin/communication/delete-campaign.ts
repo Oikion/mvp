@@ -1,6 +1,7 @@
 "use server"
 
 import { prismadb } from "@/lib/prisma"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 
 interface DeleteCampaignResult {
   success: boolean
@@ -8,6 +9,8 @@ interface DeleteCampaignResult {
 }
 
 export async function deleteCampaign(id: string): Promise<DeleteCampaignResult> {
+  await requirePlatformAdmin()
+
   try {
     const existing = await prismadb.newsletterCampaign.findUnique({
       where: { id },

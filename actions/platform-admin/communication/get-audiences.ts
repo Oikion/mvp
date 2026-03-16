@@ -2,12 +2,15 @@
 
 import resendHelper from "@/lib/resend"
 import { cacheGet, cacheSet } from "@/lib/redis"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 import type { CommunicationAudience } from "@/lib/communication/types"
 
 const CACHE_KEY = "comm:audiences"
 const CACHE_TTL = 300 // 5 minutes
 
 export async function getAudiences(): Promise<CommunicationAudience[]> {
+  await requirePlatformAdmin()
+
   try {
     // Check cache first
     const cached = await cacheGet<CommunicationAudience[]>(CACHE_KEY)

@@ -1,6 +1,7 @@
 "use server"
 
 import { prismadb } from "@/lib/prisma"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 import { serializeCampaign, type SerializedCampaign } from "./get-campaigns"
 import type { EmailBlock } from "@/lib/communication/types"
 
@@ -20,6 +21,8 @@ export async function updateCampaign(
   id: string,
   data: UpdateCampaignData
 ): Promise<SerializedCampaign> {
+  await requirePlatformAdmin()
+
   // Verify the campaign exists and is in an editable state
   const existing = await prismadb.newsletterCampaign.findUnique({
     where: { id },

@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma"
 import resendHelper from "@/lib/resend"
 import { EMAIL_CONFIG } from "@/lib/resend-segments"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 import { renderCampaignBlocks } from "./render-campaign-blocks"
 import type { EmailBlock } from "@/lib/communication/types"
 
@@ -24,6 +25,8 @@ function personalizeHtml(
 }
 
 export async function sendCampaign(campaignId: string): Promise<SendCampaignResult> {
+  await requirePlatformAdmin()
+
   try {
     // 1. Load campaign
     const campaign = await prismadb.newsletterCampaign.findUnique({
@@ -112,7 +115,12 @@ export async function sendCampaign(campaignId: string): Promise<SendCampaignResu
 
         if (batchError) {
           console.error("[SEND_CAMPAIGN] Batch error:", batchError)
-          // Continue with next batch rather than aborting entirely
+          // Set campaign to FAILED — per plan: "On any error: set status FAILED"
+          await prismadb.newsletterCampaign.update({
+            where: { id: campaignId },
+            data: { status: "FAILED" },
+          })
+          return { success: false, error: `Batch ${Math.floor(i / BATCH_SIZE) + 1} failed: ${batchError.message}` }
         } else if (batchData) {
           const batchIds = batchData.data.map((r: { id: string }) => r.id).filter(Boolean)
           allBatchIds.push(...batchIds)

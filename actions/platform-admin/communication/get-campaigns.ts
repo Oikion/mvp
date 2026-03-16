@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma"
 import { CampaignStatus } from "@prisma/client"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 
 interface GetCampaignsResult {
   campaigns: SerializedCampaign[]
@@ -43,6 +44,8 @@ export async function getCampaigns(
   page: number = 1,
   pageSize: number = 20
 ): Promise<GetCampaignsResult> {
+  await requirePlatformAdmin()
+
   const skip = (page - 1) * pageSize
 
   const where =

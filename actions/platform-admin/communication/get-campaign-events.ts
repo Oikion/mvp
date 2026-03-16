@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma"
 import { maskEmail } from "@/lib/communication/types"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 import { CommunicationEventType } from "@prisma/client"
 
 interface MaskedCommunicationEvent {
@@ -26,6 +27,8 @@ export async function getCampaignEvents(
   page: number = 1,
   pageSize: number = 50
 ): Promise<GetCampaignEventsResult> {
+  await requirePlatformAdmin()
+
   const skip = (page - 1) * pageSize
 
   const where = {

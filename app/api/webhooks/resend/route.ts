@@ -27,7 +27,11 @@ export async function POST(req: NextRequest) {
   const body = await req.text()
 
   // 2. Verify svix signature
-  const secret = process.env.RESEND_WEBHOOK_SECRET || ""
+  const secret = process.env.RESEND_WEBHOOK_SECRET
+  if (!secret) {
+    console.error("[RESEND_WEBHOOK] RESEND_WEBHOOK_SECRET is not configured")
+    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
+  }
   const wh = new Webhook(secret)
 
   const headers = {
@@ -82,7 +86,11 @@ export async function POST(req: NextRequest) {
       : (toField ?? (data.email as string | undefined) ?? "")
 
   // External event ID — unique per email per event type
-  const emailId = (data.email_id as string | undefined) ?? crypto.randomUUID()
+  const emailId = data.email_id as string | undefined
+  if (!emailId) {
+    console.warn("[RESEND_WEBHOOK] Event missing email_id, discarding")
+    return NextResponse.json({ received: true })
+  }
   const externalEventId = `${emailId}_${eventType}`
 
   // Occurred at timestamp

@@ -3,6 +3,7 @@
 import { render } from "@react-email/render"
 import * as React from "react"
 import CampaignEmail from "@/emails/campaigns/CampaignEmail"
+import { requirePlatformAdmin } from "@/lib/platform-admin"
 import type { EmailBlock } from "@/lib/communication/types"
 
 interface RenderCampaignBlocksResult {
@@ -14,6 +15,8 @@ export async function renderCampaignBlocks(
   blocks: EmailBlock[],
   previewText?: string
 ): Promise<RenderCampaignBlocksResult> {
+  await requirePlatformAdmin()
+
   try {
     const html = await render(
       React.createElement(CampaignEmail, { blocks, previewText })
