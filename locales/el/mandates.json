@@ -254,7 +254,8 @@
     "deleteCommentTitle": "Διαγραφή Σχολίου",
     "deleteCommentDescription": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το σχόλιο; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
     "commentFailed": "Αποτυχία προσθήκης σχολίου",
-    "deleteCommentFailed": "Αποτυχία διαγραφής σχολίου"
+    "deleteCommentFailed": "Αποτυχία διαγραφής σχολίου",
+    "visibility": "Ορατότητα"
   },
   "QuickAdd": {
     "title": "Γρήγορη Προσθήκη Ανάθεσης",

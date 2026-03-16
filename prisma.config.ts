@@ -4,7 +4,7 @@ import { config } from 'dotenv'
 
 // Load environment variables (Next.js loads .env then .env.local)
 config({ path: path.join(__dirname, '.env') })
-config({ path: path.join(__dirname, '.env.local') })
+config({ path: path.join(__dirname, '.env.local'), override: true })
 
 export default defineConfig({
   schema: path.join(__dirname, 'prisma', 'schema.prisma'),

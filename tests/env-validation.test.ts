@@ -32,6 +32,35 @@ describe("validateEnv", () => {
     expect(parsed.CLERK_SECRET_KEY).toBe("sk_test_valid");
     expect(parsed.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY).toBe("pk_test_valid");
   });
+
+  it("accepts valid PLATFORM_ENCRYPTION_KEY (64-char hex)", () => {
+    process.env.DATABASE_URL = "postgres://user:pass@localhost:5432/db?sslmode=require";
+    process.env.CLERK_SECRET_KEY = "sk_test_valid";
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_valid";
+    process.env.PLATFORM_ENCRYPTION_KEY = "a".repeat(64);
+
+    const parsed = validateEnv();
+    expect(parsed.PLATFORM_ENCRYPTION_KEY).toBe("a".repeat(64));
+  });
+
+  it("rejects PLATFORM_ENCRYPTION_KEY with wrong length", () => {
+    process.env.DATABASE_URL = "postgres://user:pass@localhost:5432/db?sslmode=require";
+    process.env.CLERK_SECRET_KEY = "sk_test_valid";
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_valid";
+    process.env.PLATFORM_ENCRYPTION_KEY = "tooshort";
+
+    expect(() => validateEnv()).toThrow("Environment validation failed");
+  });
+
+  it("accepts valid SECRETS_ENCRYPTION_KEY (64-char hex)", () => {
+    process.env.DATABASE_URL = "postgres://user:pass@localhost:5432/db?sslmode=require";
+    process.env.CLERK_SECRET_KEY = "sk_test_valid";
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_valid";
+    process.env.SECRETS_ENCRYPTION_KEY = "b".repeat(64);
+
+    const parsed = validateEnv();
+    expect(parsed.SECRETS_ENCRYPTION_KEY).toBe("b".repeat(64));
+  });
 });
 
 describe("ensureEnvValidated", () => {

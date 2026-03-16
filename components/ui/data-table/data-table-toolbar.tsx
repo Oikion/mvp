@@ -110,8 +110,8 @@ export function DataTableToolbar<TData>({
                   setTimeout(() => setIsRefreshing(false), 600);
                 }
               }}
-              aria-label={commonT("refresh")}
-              title={commonT("refresh")}
+              aria-label={commonT("buttons.refresh")}
+              title={commonT("buttons.refresh")}
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             </Button>

@@ -2,46 +2,42 @@
 
 import { useRef, useState, useCallback } from "react";
 import { Lock, Shield, Globe, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { ItemVisibility } from "@prisma/client";
 
-const OPTIONS: {
+const OPTION_STYLES: {
   value: ItemVisibility;
   icon: React.ElementType;
-  label: string;
-  description: string;
+  tKey: string;
   color: string;
   trackColor: string;
 }[] = [
   {
     value: "HIDDEN",
     icon: EyeOff,
-    label: "Hidden",
-    description: "Hidden from all systems",
+    tKey: "hidden",
     color: "text-muted-foreground",
     trackColor: "#9ca3af",
   },
   {
     value: "PRIVATE",
     icon: Lock,
-    label: "Private",
-    description: "Only you and your org",
+    tKey: "private",
     color: "text-muted-foreground",
     trackColor: "#6b7280",
   },
   {
     value: "SECURE",
     icon: Shield,
-    label: "Secure",
-    description: "App users & network peers",
+    tKey: "secure",
     color: "text-blue-500",
     trackColor: "#3b82f6",
   },
   {
     value: "PUBLIC",
     icon: Globe,
-    label: "Public",
-    description: "Everyone, shown on profile",
+    tKey: "public",
     color: "text-primary",
     trackColor: "hsl(var(--primary))",
   },
@@ -87,6 +83,16 @@ export function ItemVisibilitySelector({
   onChange,
   disabled = false,
 }: ItemVisibilitySelectorProps) {
+  const t = useTranslations("common");
+
+  // Build translated options from static styles
+  const OPTIONS = OPTION_STYLES.map((opt) => ({
+    ...opt,
+    label: t(`visibility.${opt.tKey}.label`),
+    shortDescription: t(`visibility.${opt.tKey}.shortDescription`),
+    description: t(`visibility.${opt.tKey}.description`),
+  }));
+
   const committedIdx = INDEX[value];
   // dragPos: float 0–3 while dragging; null when idle (uses committedIdx)
   const [dragPos, setDragPos] = useState<number | null>(null);
@@ -223,7 +229,7 @@ export function ItemVisibilitySelector({
                 {opt.label}
               </span>
               <span className="text-[10px] text-muted-foreground text-center leading-tight">
-                {opt.description}
+                {opt.shortDescription}
               </span>
             </button>
           );
@@ -233,7 +239,7 @@ export function ItemVisibilitySelector({
       {/* Active description pill — always shows committed value */}
       <div
         className={cn(
-          "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm",
+          "rounded-lg border px-3 py-2.5 text-sm space-y-1",
           committedIdx === 0 && "border-border bg-muted/30",
           committedIdx === 1 && "border-border bg-muted/30",
           committedIdx === 2 && "border-blue-500/30 bg-blue-500/5",
@@ -241,10 +247,15 @@ export function ItemVisibilitySelector({
         )}
         style={{ transition: "background-color 250ms ease, border-color 250ms ease" }}
       >
-        <active.icon className={cn("h-4 w-4 shrink-0", active.color)} />
-        <span className={cn("font-medium", active.color)}>{active.label}</span>
-        <span className="text-muted-foreground">—</span>
-        <span className="text-muted-foreground text-xs">{active.description}</span>
+        <div className="flex items-center gap-2">
+          <active.icon className={cn("h-4 w-4 shrink-0", active.color)} />
+          <span className={cn("font-medium", active.color)}>{active.label}</span>
+          <span className="text-muted-foreground">—</span>
+          <span className="text-muted-foreground text-xs">{active.shortDescription}</span>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed pl-6">
+          {active.description}
+        </p>
       </div>
     </div>
   );
