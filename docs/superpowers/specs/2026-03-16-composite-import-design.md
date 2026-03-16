@@ -22,41 +22,70 @@ This spec covers two tightly coupled changes:
 
 | Field | Type | Reason |
 |---|---|---|
-| `price` | `Decimal?` | Asking price belongs on Mandate (`budget_min`) |
+| `price` | `Decimal?` | Asking price belongs on Mandate (`budget_min`/`budget_max`) |
 | `price_type` | `PriceType?` | Price framing belongs on Mandate |
 | `transaction_type` | `TransactionType?` | Transaction intent belongs on Mandate |
 
-### Data migration strategy
+### Data migration strategy — two-step process
 
-Run as a single Prisma migration with raw SQL before the column drop:
+Because `friendlyId` generation requires calling `generateFriendlyIds()` (a TypeScript function that atomically increments the `IdSequence` table), a pure SQL migration cannot be used for the data step. The migration is split into two stages:
 
-1. Select all properties where `price IS NOT NULL OR transaction_type IS NOT NULL`
-2. For each such property:
-   - Generate a UUID for the new Mandate `id`
-   - Generate a `friendlyId` following the existing pattern
-   - Determine title:
-     - `transaction_type = 'SALE'` → `"Sale mandate for <property_name>"`
-     - `transaction_type = 'RENTAL'` → `"Rental mandate for <property_name>"`
-     - `transaction_type = 'SHORT_TERM'` → `"Short-term mandate for <property_name>"`
-     - `transaction_type = 'EXCHANGE'` → `"Exchange mandate for <property_name>"`
-     - `transaction_type = 'AUCTION'` → `"Auction mandate for <property_name>"`
-     - fallback → `"Mandate for <property_name>"`
-   - INSERT into `Mandate`: `title`, `transaction_type`, `budget_min` (← `price`), `organizationId`, `createdBy`, `updatedBy`, `status = 'ACTIVE'`, `visibility = 'PRIVATE'`
-   - INSERT into `Mandate_Properties`: `mandateId`, `propertyId`
-3. DROP COLUMN `price`, `price_type`, `transaction_type` from `Properties`
+**Stage A — TypeScript data migration script** (`scripts/migrate-property-prices-to-mandates.ts`):
 
-The migration runs inside a single transaction. If any step fails, the entire migration rolls back.
+Runs once before the Prisma schema migration. Uses `prismadb` directly:
 
-### Prisma schema change
+1. Query all properties where `(price IS NOT NULL OR transaction_type IS NOT NULL)` **AND** there is no existing `Mandate_Properties` row for that `propertyId` — this makes the script idempotent on re-run after partial failure:
+   ```ts
+   const existingLinks = await prismadb.mandate_Properties.findMany({ select: { propertyId: true } })
+   const alreadyLinked = new Set(existingLinks.map(l => l.propertyId))
+   const properties = (await prismadb.properties.findMany({
+     where: { OR: [{ price: { not: null } }, { transaction_type: { not: null } }] },
+     select: { id, property_name, price, price_type, transaction_type, organizationId }
+   })).filter(p => !alreadyLinked.has(p.id))
+   ```
+2. Group remaining properties by `organizationId`; for each org call `generateFriendlyIds(prismadb, "Mandates", count, orgId)` **outside** the transaction — `generateFriendlyIds` accepts `PrismaClient`, not `TransactionClient`, so it cannot run inside `$transaction`
+3. For each property, determine mandate title:
+   - `SALE` → `"Sale mandate for <property_name>"`
+   - `RENTAL` → `"Rental mandate for <property_name>"`
+   - `SHORT_TERM` → `"Short-term mandate for <property_name>"`
+   - `EXCHANGE` → `"Exchange mandate for <property_name>"`
+   - `AUCTION` → `"Auction mandate for <property_name>"`
+   - no `transaction_type` → `"Mandate for <property_name>"`
+4. Map `price` → both `budget_min` AND `budget_max` (equal values representing a fixed asking price; the Mandate model has no dedicated `asking_price` field)
+5. INSERT mandates and junction rows inside a single `prismadb.$transaction`:
+   - Mandate records: `{ id: uuid(), friendlyId, title, transaction_type, budget_min, budget_max, organizationId, createdBy: null, updatedBy: null, status: 'ACTIVE', visibility: 'PRIVATE' }`
+     - `createdBy`/`updatedBy` set to `null` (both `String?`; no user context available in a migration script)
+   - Junction rows into `mandate_Properties`: `{ mandateId, propertyId }`
+     - The `id` field on `mandate_Properties` has `@default(uuid())` — do NOT supply it manually; Prisma auto-populates it
+   - If any step fails, the transaction rolls back
 
-Remove from `model Properties`:
+**Stage B — Prisma schema migration** (standard `prisma migrate dev`):
+
+After Stage A completes successfully, run the Prisma migration that removes the three columns:
+
 ```prisma
-price            Decimal?
-price_type       PriceType?
-transaction_type TransactionType?
+// Remove from model Properties:
+price            Decimal?     ← DROP
+price_type       PriceType?   ← DROP
+transaction_type TransactionType?  ← DROP
 ```
 
-No new fields added. No other models are affected.
+Stage B is a pure DDL migration with no data step.
+
+### Application-layer updates required alongside schema migration
+
+Dropping `price`, `price_type`, and `transaction_type` from `Properties` will cause TypeScript compile errors in the following files, which must be updated as part of this work:
+
+- `app/api/mls/properties/route.ts` — POST/PUT handlers write these fields
+- `app/api/v1/mls/properties/route.ts` — external API reads/writes all three
+- `app/api/export/mls/route.ts` — XML export reads price and transaction_type
+- `app/api/export/crm/route.ts` — may reference transaction_type
+- `actions/mls/` — any action that selects or writes these fields
+- `components/` — property cards, filters, listing views that display price or transaction_type
+- `app/[locale]/app/(routes)/mls/properties/components/NewPropertyWizard.tsx` — form fields
+- Any other component or hook that references `property.price`, `property.price_type`, or `property.transaction_type`
+
+**Strategy for these files:** Remove the field references from Prisma selects and form payloads. Display components that showed price should either be removed or read the linked Mandate's `budget_min`/`budget_max` instead (out of scope for this task — see Part 5).
 
 ---
 
@@ -64,23 +93,21 @@ No new fields added. No other models are affected.
 
 ### Architecture
 
-The existing `lib/import/engine.ts` is **not modified**. A new orchestration module is added:
+The existing `lib/import/engine.ts` is **not modified** (one additive change to the `ImportResult` type only). A new orchestration module is added:
 
 ```
 lib/import/
-  engine.ts                    ← unchanged
+  engine.ts                    ← one additive type change only
   composite-engine.ts          ← NEW: orchestration layer
-  property-import-config.ts    ← updated: remove price/price_type/transaction_type; add mandate field definitions
+  property-import-config.ts    ← updated: remove price/price_type/transaction_type from toPrismaData
   property-composite-config.ts ← NEW: composite config for Property+Mandate
-  client-import-config.ts      ← updated: add mandate field definitions
+  client-import-config.ts      ← no change to toPrismaData (mandate fields never reach it)
   client-composite-config.ts   ← NEW: composite config for Client+Mandate
-  property-import-schema.ts    ← updated: remove mandate fields; add mandate section fields
-  client-import-schema.ts      ← updated: add mandate section fields
+  property-import-schema.ts    ← updated: remove mandate fields; add mandate group fields
+  client-import-schema.ts      ← updated: add mandate group fields
 ```
 
-### `executeImport` — small additive change
-
-The existing function signature gains one addition to its return type:
+### `executeImport` — additive change to `ImportResult`
 
 ```ts
 export interface ImportResult {
@@ -88,39 +115,67 @@ export interface ImportResult {
   skipped: number
   failed: number
   errors: ImportError[]
-  insertedIds?: string[]   // ← NEW: friendlyIds of successfully inserted records
+  insertedFriendlyIds?: string[]   // ← NEW: friendlyIds of all records attempted for insert
 }
 ```
 
-This is backward-compatible — existing callers that don't need IDs ignore the field.
+**How `insertedFriendlyIds` is populated:** The `friendlyIds` array is already constructed inside `executeImport` before insertion. After the batch insert (or fallback individual inserts), the engine queries back:
+
+```ts
+const inserted = await model.findMany({
+  where: { friendlyId: { in: friendlyIds }, organizationId: orgId },
+  select: { friendlyId: true }
+})
+result.insertedFriendlyIds = inserted.map(r => r.friendlyId)
+```
+
+This single batch query is the source of truth for which rows were actually persisted (handles `skipDuplicates` correctly). This is backward-compatible — existing callers ignore the field.
+
+### Primary UUID resolution for junction inserts
+
+The junction tables (`Mandate_Properties`, `Mandate_Clients`) reference `Properties.id` and `Clients.id` — UUIDs, not friendlyIds. After primary insert, the composite engine resolves UUIDs with a single batch query:
+
+```ts
+const primaryRecords = await prismadb[primaryModel].findMany({
+  where: { friendlyId: { in: insertedFriendlyIds }, organizationId: orgId },
+  select: { id: true, friendlyId: true }
+})
+const friendlyIdToUuid = new Map(primaryRecords.map(r => [r.friendlyId, r.id]))
+```
+
+This map is then used when building junction rows.
 
 ### `CompositeImportConfig<TPrimary>`
 
 ```ts
 export interface CompositeImportConfig<TPrimary> {
-  // The primary entity config (delegates to existing ImportEntityConfig)
+  // The primary entity config (passed directly to executeImport)
   primaryConfig: ImportEntityConfig<TPrimary>
 
-  // Set of field keys that belong to the mandate, not the primary entity
+  // Set of CSV field keys that belong to the mandate, not the primary entity
   mandateFields: Set<string>
 
-  // Build a Mandate prisma record from one row's mandate-side data
+  // Build a Mandate prisma record directly — bypasses mandateImportSchema validation
+  // (mandate rows have no title column; title is injected via buildMandateTitle)
   buildMandateData: (
     mandateRow: Record<string, unknown>,
-    primaryFriendlyId: string,
+    mandateTitle: string,
+    mandateFriendlyId: string,
     orgId: string,
-    userId: string,
-    mandateFriendlyId: string
+    userId: string
   ) => Record<string, unknown>
 
-  // Auto-generate mandate title from the parsed primary item
+  // Auto-generate the mandate title from the parsed primary item
   buildMandateTitle: (primaryItem: TPrimary) => string
 
-  // Which junction table to use
-  junctionModel: "Mandate_Properties" | "Mandate_Clients"
+  // Which junction table to use (matches Prisma client accessor — lowercase m)
+  junctionModel: "mandate_Properties" | "mandate_Clients"
 
   // FK column name on the junction table pointing to the primary entity
   junctionForeignKey: "propertyId" | "clientId"
+
+  // Prisma model key for UUID resolution query
+  primaryPrismaModel: "properties" | "clients"
 }
 ```
 
@@ -131,27 +186,41 @@ Input: rows[], orgId, userId, compositeConfig
 
 1. PARTITION
    For each row, split into:
-     primaryRow  = all fields NOT in compositeConfig.mandateFields
-     mandateRow  = only fields in compositeConfig.mandateFields
-   Mark row as "composite" if mandateRow has ≥1 non-empty value
+     primaryRow  = { fields NOT in compositeConfig.mandateFields }
+     mandateRow  = { fields IN compositeConfig.mandateFields }
+   A row is "composite" if mandateRow has ≥1 field with a non-empty string/number value
 
 2. PRIMARY INSERT
    Call executeImport(primaryConfig, allPrimaryRows, orgId, userId)
-   → receives ImportResult with insertedIds[]
+   → receives ImportResult with insertedFriendlyIds[]
 
-3. MANDATE CREATION (only for composite rows)
-   - Generate friendlyIds for N mandates (where N = composite row count)
-   - Encrypt mandate fields via mandateImportConfig.encryptWithDek
-   - Build mandate prisma records using buildMandateData for each composite row
-     (title auto-generated via buildMandateTitle(parsedPrimaryItem))
+   EARLY EXIT: if insertedFriendlyIds is empty (all rows failed or zero valid rows),
+   skip steps 3–4 and return { imported: 0, mandatesCreated: 0, linked: 0, failed, errors }
+
+3. UUID RESOLUTION
+   Batch-query primary model for { id, friendlyId } where friendlyId IN insertedFriendlyIds
+   Build: friendlyIdToUuid = Map<friendlyId → UUID>
+
+4. MANDATE CREATION (only for composite rows whose primaryRow was successfully inserted)
+   - Filter composite rows to those whose friendlyId appears in insertedFriendlyIds
+   - Generate friendlyIds for N mandates via generateFriendlyIds(prismadb, "Mandates", N, orgId)
+   - For each composite row:
+       title = compositeConfig.buildMandateTitle(parsedPrimaryItem)
+       mandateData = compositeConfig.buildMandateData(mandateRow, title, mandateFriendlyId, orgId, userId)
+   - mandateData is inserted DIRECTLY — it does NOT pass through mandateImportSchema Zod validation
+     (the schema requires a title column which does not exist in the CSV; title is always synthesized)
+   - Encrypt mandate title + notes fields via mandateImportConfig.encryptWithDek before insert
    - Batch insert: prismadb.mandate.createMany({ data: mandateRecords, skipDuplicates: true })
+   - Query back inserted mandate UUIDs: prismadb.mandate.findMany({ where: { friendlyId: { in: mandateFriendlyIds }, organizationId: orgId }, select: { id, friendlyId } })
 
-4. LINK
-   - For each successfully inserted composite pair (primary + mandate):
-     INSERT into junctionModel: { mandateId, [junctionForeignKey]: primaryId }
-   - Batch insert via prismadb[junctionModel].createMany({ skipDuplicates: true })
+5. LINK
+   For each successfully inserted (primary, mandate) pair:
+     junctionRow = { mandateId: mandateUuid, [junctionForeignKey]: primaryUuid }
+   Note: the junction table id field (@default(uuid())) is auto-populated by Prisma — do NOT supply it
+   Batch insert: prismadb[junctionModel].createMany({ data: junctionRows, skipDuplicates: true })
+   (junctionModel is "mandate_Properties" or "mandate_Clients" — lowercase m matches Prisma client accessor)
 
-5. RETURN CompositeImportResult
+6. RETURN CompositeImportResult
    {
      imported: number          // primary entities created
      mandatesCreated: number   // mandates created
@@ -167,19 +236,32 @@ Input: rows[], orgId, userId, compositeConfig
 
 ### Property import — mandate fields
 
-These columns are **removed** from the property schema and added to a new `"mandate"` group in the property field definitions:
+These columns are **removed** from the property import schema and added as a `"mandate"` group in the property field definitions. They are stripped from the `primaryRow` during partitioning and never reach `property-import-config.ts`'s `toPrismaData`.
 
 | CSV column | Maps to Mandate field | Notes |
 |---|---|---|
-| `price` | `budget_min` | Asking price as mandate minimum |
-| `price_type` | *(inference only)* | Used to infer `transaction_type` if not mapped; not stored directly |
-| `transaction_type` | `transaction_type` | Moved entirely to Mandate |
+| `price` | `budget_min` AND `budget_max` | Both set to same value — fixed asking price |
+| `price_type` | *(inference only — not stored)* | See inference table below |
+| `transaction_type` | `transaction_type` | Fully moved to Mandate |
 
-Auto-generated mandate title: `"<TransactionType label> mandate for <property_name>"`, e.g. `"Sale mandate for Διαμέρισμα Κολωνάκι"`. Falls back to `"Mandate for <property_name>"` if no `transaction_type`.
+**`price_type` → `transaction_type` inference:**
+
+`price_type` is used **only as a fallback** when `transaction_type` is absent or null. If a row has both columns mapped, `transaction_type` takes precedence and `price_type` is ignored entirely.
+
+| `PriceType` value | Inferred `TransactionType` |
+|---|---|
+| `SALE` | `SALE` |
+| `RENTAL` | `RENTAL` |
+| `PER_ACRE` | `null` — no equivalent, ignored |
+| `PER_SQM` | `null` — no equivalent, ignored |
+
+`price_type` is never stored on the Mandate record regardless of outcome.
+
+Auto-generated mandate title uses the resolved `transaction_type` (from direct mapping or inference). Falls back to `"Mandate for <property_name>"` if `transaction_type` is ultimately null.
 
 ### Client import — mandate fields
 
-These columns are **added** to the client import schema as a new `"mandate"` group (they previously existed on Client but were removed in the March 2026 cleanup):
+These columns are **added** to the client import schema as a `"mandate"` group. They do not exist on the client schema and are stripped from `primaryRow` during partitioning.
 
 | CSV column | Maps to Mandate field |
 |---|---|
@@ -198,13 +280,25 @@ These columns are **added** to the client import schema as a new `"mandate"` gro
 | `municipality` | `municipality` |
 | `region` | `region` |
 | `expires_at` | `expires_at` |
-| `mandate_notes` | `notes` |
+| `notes` | `notes` |
+
+The field definition key is `notes` (matching the Mandate model field). The alias `mandate_notes` appears in the field definition's `aliases[]` list for fuzzy auto-matching against CSV columns named "mandate_notes", "client_notes", etc. After mapping and partitioning, the key in `mandateRow` is always `notes` — `buildMandateData` does not need to rename anything.
 
 Auto-generated mandate title: `"Mandate for <client_name>"`.
 
 ### Detection rule
 
 A mandate is created for a given row if and only if **at least one** mandate-group field has a non-empty value after column mapping. Rows with no mandate fields create only the primary entity — no mandate, no junction row.
+
+**Emptiness check** uses strict inequality — NOT JavaScript truthiness — to avoid suppressing valid zero values (e.g., `bedrooms_min: 0`):
+
+```ts
+function isMandateFieldNonEmpty(value: unknown): boolean {
+  return value !== null && value !== undefined && value !== ""
+}
+```
+
+A row is composite if `Object.values(mandateRow).some(isMandateFieldNonEmpty)`.
 
 ---
 
@@ -217,7 +311,7 @@ The existing 5-step wizard (Upload → Mapping → Validation → Review → Com
 ### Mapping step
 
 - Mandate fields appear in a dedicated `"Mandate Info"` group in the field selector dropdown, visually separated from property/client fields
-- A contextual banner renders at the top of the mapping step if any mandate-group column is auto-matched:
+- A contextual banner renders at the top of the mapping step when at least one mandate-group column is mapped (auto or manual):
   > *"Columns mapped to Mandate Info will automatically create and link a Mandate for each row."*
 - No new step is introduced
 
@@ -228,7 +322,7 @@ The existing 5-step wizard (Upload → Mapping → Validation → Review → Com
 
 ### Review step
 
-Two count lines replace the single count, conditional on mandate detection:
+Two count lines, conditional on whether any mandate field is mapped:
 
 ```
 42 Properties will be created
@@ -236,8 +330,6 @@ Two count lines replace the single count, conditional on mandate detection:
 ```
 
 ### Complete step
-
-Result summary:
 
 ```
 42 properties imported
@@ -250,49 +342,54 @@ N rows failed
 No new routes or pages. Changes in-place:
 - `app/[locale]/app/(routes)/mls/properties/import/components/PropertyImportWizard.tsx`
 - `app/[locale]/app/(routes)/crm/clients/import/components/ClientImportWizard.tsx`
-- `app/api/mls/properties/import/route.ts` — switches `executeImport` → `executeCompositeImport`
-- `app/api/crm/clients/import/route.ts` — switches `executeImport` → `executeCompositeImport`
+- `app/api/mls/properties/import/route.ts` — switches to `executeCompositeImport`
+- `app/api/crm/clients/import/route.ts` — switches to `executeCompositeImport`
 
 The Mandate import (`/mandates/import`) is **unchanged**.
+
+---
+
+## Part 5 — Out of Scope (follow-on tasks)
+
+The following are explicitly deferred and tracked separately:
+
+- **Property view/card price display** — components that showed `property.price` need to read the linked Mandate's `budget_min`/`budget_max` instead. This requires updating property detail pages, cards, and filters.
+- **`transaction_type` filtering** — property list filters that used `transaction_type` on Properties must move to filtering via linked Mandates or be removed.
+- **External API (`/api/v1/`)** — the v1 external API currently exposes `price` and `transaction_type` on property responses. This needs a versioned update.
+- **Portal export** — XML/CSV export files that include price or transaction_type need updating.
+- **Standalone Mandate import** — the existing `/mandates/import` flow is unchanged and still works independently.
 
 ---
 
 ## Files Created / Modified
 
 ### New files
+- `scripts/migrate-property-prices-to-mandates.ts` — Stage A data migration script
 - `lib/import/composite-engine.ts`
 - `lib/import/property-composite-config.ts`
 - `lib/import/client-composite-config.ts`
-- `prisma/migrations/YYYYMMDD_remove_price_fields_from_properties/migration.sql`
 
 ### Modified files
-- `prisma/schema.prisma` — remove 3 fields from Properties
-- `lib/import/engine.ts` — add `insertedIds` to `ImportResult`
+- `prisma/schema.prisma` — remove 3 fields from Properties model
+- `prisma/migrations/YYYYMMDD_remove_price_fields_from_properties/migration.sql` — Stage B DDL
+- `lib/import/engine.ts` — add `insertedFriendlyIds` to `ImportResult`; add post-insert query
 - `lib/import/property-import-schema.ts` — remove price/price_type/transaction_type; add mandate group fields
 - `lib/import/property-import-config.ts` — remove those 3 fields from `toPrismaData`
 - `lib/import/client-import-schema.ts` — add mandate group fields
-- `lib/import/client-import-config.ts` — no change to toPrismaData (mandate fields never reach it)
-- `lib/import/index.ts` — export new composite configs and `executeCompositeImport`
+- `lib/import/index.ts` — export composite configs and `executeCompositeImport`
 - `app/api/mls/properties/import/route.ts`
 - `app/api/crm/clients/import/route.ts`
 - `app/[locale]/app/(routes)/mls/properties/import/components/PropertyImportWizard.tsx`
 - `app/[locale]/app/(routes)/crm/clients/import/components/ClientImportWizard.tsx`
 - `components/import/ImportWizardSteps.tsx` — review/complete step count display
+- All files referencing `Properties.price`, `Properties.price_type`, `Properties.transaction_type` (see Part 1 for list)
 
 ---
 
 ## Error Handling
 
-- If the primary insert partially fails (some rows bad), only composite rows that **successfully inserted** proceed to mandate creation
-- If mandate creation fails for a specific row, the primary entity still exists but no mandate/link is created; the error is reported in `errors[]` with the row number
-- If the junction insert fails, the mandate exists but is unlinked; this is reported as an error (the mandate can be manually linked later)
-- The `CompositeImportResult` distinguishes between `failed` (primary failures) and individual step errors
-
----
-
-## Out of Scope
-
-- Migrating `price`/`transaction_type` display in existing property views (separate task)
-- Updating property cards/listings that currently show price (separate task)
-- The standalone Mandate import flow (unchanged)
-- Import of `Mandate_Properties` links in the standalone mandate import (not required)
+- **All primary rows fail validation:** Steps 3–5 are skipped; returns `{ imported: 0, mandatesCreated: 0, linked: 0, failed: N, errors }`
+- **Partial primary failures:** Only rows in `insertedFriendlyIds` proceed to mandate creation; failed primary rows produce no mandate
+- **Mandate creation failure for a row:** Primary entity still exists; error reported in `errors[]` with row number; no junction row created
+- **Junction insert failure:** Mandate exists but is unlinked; error reported; mandate can be manually linked later
+- **`CompositeImportResult`** distinguishes `failed` (primary failures) from mandate/link errors which appear in `errors[]`
