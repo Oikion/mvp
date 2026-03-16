@@ -53,11 +53,13 @@ Runs once before the Prisma schema migration. Uses `prismadb` directly:
    - no `transaction_type` → `"Mandate for <property_name>"`
 4. Map `price` → both `budget_min` AND `budget_max` (equal values representing a fixed asking price; the Mandate model has no dedicated `asking_price` field)
 5. INSERT mandates and junction rows inside a single `prismadb.$transaction`:
-   - Mandate records: `{ id: uuid(), friendlyId, title, transaction_type, budget_min, budget_max, organizationId, createdBy: null, updatedBy: null, status: 'ACTIVE', visibility: 'PRIVATE' }`
+   - Mandate records: `{ id: crypto.randomUUID(), friendlyId, title, transaction_type, budget_min, budget_max, organizationId, createdBy: null, updatedBy: null, status: 'ACTIVE', visibility: 'PRIVATE' }`
+     - Use `crypto.randomUUID()` (Node built-in) — do not add a `uuid` npm import
      - `createdBy`/`updatedBy` set to `null` (both `String?`; no user context available in a migration script)
    - Junction rows into `mandate_Properties`: `{ mandateId, propertyId }`
      - The `id` field on `mandate_Properties` has `@default(uuid())` — do NOT supply it manually; Prisma auto-populates it
    - If any step fails, the transaction rolls back
+   - Transaction atomicity guarantees that mandate and junction rows are always created together. The idempotency guard (checking `mandate_Properties.propertyId`) is therefore sufficient — if a junction row exists, the mandate also exists. There is no partial state between them.
 
 **Stage B — Prisma schema migration** (standard `prisma migrate dev`):
 
@@ -87,17 +89,19 @@ Dropping `price`, `price_type`, and `transaction_type` from `Properties` will ca
 
 **Strategy for these files:** Remove the field references from Prisma selects and form payloads. Display components that showed price should either be removed or read the linked Mandate's `budget_min`/`budget_max` instead (out of scope for this task — see Part 5).
 
+**CRITICAL deployment constraint:** `property-import-config.ts` `toPrismaData` currently writes `price`, `price_type`, and `transaction_type` to the Properties insert payload. These assignments MUST be removed in the same deployment unit as Stage B. If Stage B runs before these assignments are removed, any property import (standalone or composite) will throw a Prisma runtime error trying to write to non-existent columns.
+
 ---
 
 ## Part 2 — Composite Import Engine
 
 ### Architecture
 
-The existing `lib/import/engine.ts` is **not modified** (one additive change to the `ImportResult` type only). A new orchestration module is added:
+The existing `lib/import/engine.ts` is **not modified at all**. A new orchestration module is added:
 
 ```
 lib/import/
-  engine.ts                    ← one additive type change only
+  engine.ts                    ← unchanged
   composite-engine.ts          ← NEW: orchestration layer
   property-import-config.ts    ← updated: remove price/price_type/transaction_type from toPrismaData
   property-composite-config.ts ← NEW: composite config for Property+Mandate
@@ -124,7 +128,7 @@ Each row is attempted individually via `prismadb[primaryModel].create({ data })`
 
 ```ts
 export interface CompositeImportConfig<TPrimary> {
-  // The primary entity config (passed directly to executeImport)
+  // The primary entity config — used for schema validation, ID type, encryption, and toPrismaData
   primaryConfig: ImportEntityConfig<TPrimary>
 
   // Set of CSV field keys that belong to the mandate, not the primary entity
@@ -143,15 +147,18 @@ export interface CompositeImportConfig<TPrimary> {
   // Auto-generate the mandate title from the parsed primary item
   buildMandateTitle: (primaryItem: TPrimary) => string
 
-  // Which junction table to use (matches Prisma client accessor — lowercase m)
+  // Which junction table to use
+  // Must match Prisma client accessor exactly (lowercase m): "mandate_Properties" | "mandate_Clients"
   junctionModel: "mandate_Properties" | "mandate_Clients"
 
   // FK column name on the junction table pointing to the primary entity
   junctionForeignKey: "propertyId" | "clientId"
-
-  // Prisma model key for UUID resolution query
-  primaryPrismaModel: "properties" | "clients"
 }
+```
+
+The primary Prisma model accessor is derived from `primaryConfig.prismaModel` — no separate field needed. `primaryConfig.prismaModel` is `"properties"` for the property composite config and `"clients"` for the client composite config, matching the Prisma client accessors `prismadb.properties` and `prismadb.clients` directly.
+
+```ts
 ```
 
 ### `executeCompositeImport` flow
@@ -172,21 +179,30 @@ Input: rows[], orgId, userId, compositeConfig
    EARLY EXIT: if validItems is empty, return
    { imported: 0, mandatesCreated: 0, linked: 0, failed: rows.length, errors }
 
-3. ID GENERATION
-   Call generateFriendlyIds(prismadb, primaryConfig.entityIdType, validItems.length, orgId)
-   — called on outer prismadb client, never inside a transaction
+3. ID GENERATION (primary entity only — mandate IDs are generated separately in step 6)
+   Mirror the existing engine logic for the primary entity:
+   - Items with a user-provided `id` field → batch-resolve via resolveUserProvidedIds
+     (normalise, check DB for collisions, append -N suffixes against primaryConfig.prismaModel)
+   - Items without a user-provided `id` → generateFriendlyIds(prismadb, primaryConfig.entityIdType, count, orgId)
+   Both calls are on the outer prismadb client, never inside a transaction.
 
 4. ENCRYPT + BUILD PRIMARY DATA
-   Fetch orgDek via getOrgDek(orgId)
+   Fetch orgDek via getOrgDek(orgId) — fetched ONCE and reused for both primary encryption
+   (step 4) and mandate encryption (step 6); do not call getOrgDek twice.
    For each validItem: encryptedFields = primaryConfig.encryptWithDek(raw, dek)
    primaryData = primaryConfig.toPrismaData(parsed, encryptedFields, friendlyId, userId, orgId)
 
 5. PRIMARY INSERT — individual creates
+   primaryModel = primaryConfig.prismaModel  (derived — no separate field needed)
    For each primaryData record:
-     try: record = await prismadb[primaryPrismaModel].create({ data: primaryData[i] })
+     try: record = await prismadb[primaryModel].create({ data: primaryData[i] })
           → capture { rowIndex: i, friendlyId, uuid: record.id }
-     catch: append to errors[]
+     catch (err):
+       if Prisma error code P2002 (unique constraint) → classify as "skipped", do NOT add to errors[]
+       else → append to errors[]
    Collect insertedPrimaries: InsertedPrimary[]
+   Note: unlike executeImport's createMany+skipDuplicates which silently absorbs duplicates,
+   individual creates throw P2002 on constraint violations — handle explicitly.
 
    EARLY EXIT: if insertedPrimaries is empty, return
    { imported: 0, mandatesCreated: 0, linked: 0, failed: rows.length, errors }
@@ -204,7 +220,12 @@ Input: rows[], orgId, userId, compositeConfig
      title = compositeConfig.buildMandateTitle(parsedPrimaryItem)
      GUARD: if title.trim() === "" → title = "Mandate for [entity]" (never store empty title)
      mandateData = compositeConfig.buildMandateData(mandateRow, title, mandateFriendlyIds[i], orgId, userId)
-     Encrypt title + notes: mandateImportConfig.encryptWithDek(mandateData, dek)
+     — buildMandateData MUST set title as plaintext (unencrypted) in the returned object.
+       The encrypt step below reads mandateData.title as a plaintext string and replaces it.
+       If buildMandateData pre-encrypts the title, the encrypt step will double-encrypt it
+       (the isEncrypted() guard would prevent this, but it is cleaner to never pre-encrypt).
+     Encrypt: encryptedMandateFields = mandateImportConfig.encryptWithDek(mandateData, dek)
+     finalMandateData = { ...mandateData, ...encryptedMandateFields }
      — mandateData is inserted DIRECTLY, bypassing mandateImportSchema (no title column in CSV)
 
    Individual mandate creates:
@@ -227,9 +248,12 @@ Input: rows[], orgId, userId, compositeConfig
      mandatesCreated: number of successful mandate creates
      linked: number of successful junction creates
      failed: rows.length - insertedPrimaries.length
+     skipped: number of P2002-classified rows
      errors: ImportError[]
    }
 ```
+
+**`CompositeImportResult` and the API routes:** The existing import routes return `ImportResult`. The composite import API routes (`/api/mls/properties/import/route.ts`, `/api/crm/clients/import/route.ts`) are updated to call `executeCompositeImport` and return `CompositeImportResult`. The wizard `CompleteStep` and `ReviewStep` components read the response shape — they must be updated to handle both `ImportResult` (standalone mandate import) and `CompositeImportResult` (property/client imports). The cleanest approach is to make `CompositeImportResult` a superset of `ImportResult` (all base fields present, plus `mandatesCreated` and `linked` as optional additions). The wizard renders the mandate count line only when `mandatesCreated > 0`.
 
 **Note on `bathrooms_min`/`bathrooms_max`:** These Mandate fields are `Int?` in Prisma. `buildMandateData` must apply `Math.floor()` to these values before inserting to avoid a Prisma type error on fractional CSV inputs (e.g., `"1.5"`).
 
@@ -258,7 +282,9 @@ These columns are **removed** from the property import schema and added as a `"m
 | `PER_ACRE` | `null` — no equivalent, ignored |
 | `PER_SQM` | `null` — no equivalent, ignored |
 
-`price_type` is never stored on the Mandate record regardless of outcome.
+`price_type` is never stored on the Mandate record regardless of outcome. Inside `buildMandateData` (property composite config), `price_type` is read from `mandateRow` solely to infer `transaction_type` when that field is absent, then discarded — it is not included in the returned prisma data object.
+
+**Accepted edge case:** When `price` is set but `transaction_type` is absent AND `price_type` is `PER_ACRE` or `PER_SQM` (which have no `TransactionType` equivalent), the resulting mandate will have `transaction_type: null` with `budget_min/max` set. This is a valid database state — the mandate will be created with no transaction type. This is acceptable behavior for the import flow; agents can manually set the transaction type afterward.
 
 Auto-generated mandate title uses the resolved `transaction_type` (from direct mapping or inference). Falls back to `"Mandate for <property_name>"` if `transaction_type` is ultimately null.
 
@@ -392,7 +418,7 @@ The following are explicitly deferred and tracked separately:
 ## Error Handling
 
 - **All primary rows fail validation:** Steps 3–5 are skipped; returns `{ imported: 0, mandatesCreated: 0, linked: 0, failed: N, errors }`
-- **Partial primary failures:** Only rows in `insertedFriendlyIds` proceed to mandate creation; failed primary rows produce no mandate
+- **Partial primary failures:** Only rows captured in `insertedPrimaries[]` proceed to mandate creation; failed primary rows produce no mandate
 - **Mandate creation failure for a row:** Primary entity still exists; error reported in `errors[]` with row number; no junction row created
 - **Junction insert failure:** Mandate exists but is unlinked; error reported; mandate can be manually linked later
 - **`CompositeImportResult`** distinguishes `failed` (primary failures) from mandate/link errors which appear in `errors[]`
