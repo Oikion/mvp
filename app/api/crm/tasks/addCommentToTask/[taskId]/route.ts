@@ -112,6 +112,12 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
       }
 
       commentContent = typeof comment === "string" ? comment : String(comment);
+      if (!commentContent.includes(":")) {
+        return NextResponse.json(
+          { error: "Invalid encrypted content format" },
+          { status: 400 }
+        );
+      }
       entitySessionId = sid;
       messageIndex = idx;
     } else {

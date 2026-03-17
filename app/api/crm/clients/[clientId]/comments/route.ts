@@ -84,6 +84,7 @@ export async function GET(
         comments: comments.map((c) => ({
           ...c,
           user: c.Users,
+          isEncrypted: c.entitySessionId !== null,
         })),
         encryptionMode: "E2EE",
       });
@@ -95,7 +96,7 @@ export async function GET(
     );
 
     return NextResponse.json({
-      comments: decryptedComments.map((c) => ({ ...c, user: (c as any).Users })),
+      comments: decryptedComments.map((c) => ({ ...c, user: (c as any).Users, isEncrypted: (c as any).entitySessionId !== null })),
       encryptionMode: "STANDARD",
     });
   } catch (error) {
@@ -245,6 +246,12 @@ export async function POST(
       }
 
       commentContent = content.trim(); // Already ciphertext (iv:ciphertext format)
+      if (!commentContent.includes(":")) {
+        return NextResponse.json(
+          { error: "Invalid encrypted content format" },
+          { status: 400 }
+        );
+      }
       entitySessionId = sid;
       messageIndex = idx;
     } else {

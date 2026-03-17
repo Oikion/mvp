@@ -86,7 +86,7 @@ export async function GET(
 
     if (isE2EE) {
       return NextResponse.json({
-        comments: comments.map((c) => ({ ...c, user: c.Users })),
+        comments: comments.map((c) => ({ ...c, user: c.Users, isEncrypted: c.entitySessionId !== null })),
         encryptionMode: "E2EE",
       });
     }
@@ -95,6 +95,7 @@ export async function GET(
       comments: await Promise.all(comments.map(async (c) => ({
         ...await decryptPropertyCommentForOrg(c, propertyOrgId),
         user: c.Users,
+        isEncrypted: c.entitySessionId !== null,
       }))),
       encryptionMode: "STANDARD",
     });
@@ -244,6 +245,12 @@ export async function POST(
       }
 
       commentContent = content.trim();
+      if (!commentContent.includes(":")) {
+        return NextResponse.json(
+          { error: "Invalid encrypted content format" },
+          { status: 400 }
+        );
+      }
       entitySessionId = sid;
       messageIndex = idx;
     } else {
