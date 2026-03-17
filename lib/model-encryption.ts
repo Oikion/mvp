@@ -390,6 +390,54 @@ export async function decryptPropertyCommentForOrg<T extends MessageWithContent>
 }
 
 // ─────────────────────────────────────────────
+// ClientComment (content field)
+// Note: ClientComment has no organizationId — pass the parent client's orgId.
+// Delegates to Message helpers (same {content?: string | null} shape).
+// ─────────────────────────────────────────────
+
+export async function encryptClientCommentForOrg<T extends MessageWithContent>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  return encryptMessageForOrg(data, orgId);
+}
+
+export async function decryptClientCommentForOrg<T extends MessageWithContent>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  return decryptMessageForOrg(record, orgId);
+}
+
+// ─────────────────────────────────────────────
+// TaskComment (comment field — note: field name is "comment", not "content")
+// crm_Accounts_Tasks_Comments uses "comment" as the text field.
+// We wrap it into a content-compatible shape for the Message helpers.
+// ─────────────────────────────────────────────
+
+type TaskCommentWithComment = { comment?: string | null; [key: string]: any };
+
+export async function encryptTaskCommentForOrg<T extends TaskCommentWithComment>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  if (data.comment == null) return data;
+  const wrapped = { content: data.comment } as MessageWithContent;
+  const encrypted = await encryptMessageForOrg(wrapped, orgId);
+  return { ...data, comment: encrypted.content } as T;
+}
+
+export async function decryptTaskCommentForOrg<T extends TaskCommentWithComment>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  if (record.comment == null) return record;
+  const wrapped = { content: record.comment } as MessageWithContent;
+  const decrypted = await decryptMessageForOrg(wrapped, orgId);
+  return { ...record, comment: decrypted.content } as T;
+}
+
+// ─────────────────────────────────────────────
 // MyAccount (banking/tax PII)
 // ─────────────────────────────────────────────
 
