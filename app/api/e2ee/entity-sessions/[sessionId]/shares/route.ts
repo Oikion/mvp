@@ -39,6 +39,18 @@ export async function POST(
       );
     }
 
+    // Verify caller holds a share on this session (only share holders can grant access)
+    const callerShare = await prismadb.entitySessionShare.findFirst({
+      where: { entitySessionId: sessionId, userId: user.id },
+      select: { id: true },
+    });
+    if (!callerShare) {
+      return NextResponse.json(
+        { error: "You do not have access to this session" },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { userId: recipientId, encryptedSession, startingIndex } = body;
 

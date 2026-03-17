@@ -131,13 +131,14 @@ describe("getActiveEntitySession", () => {
     };
     mockFindFirst.mockResolvedValue(session);
 
-    const result = await getActiveEntitySession("CLIENT", "client-1");
+    const result = await getActiveEntitySession("CLIENT", "client-1", "org-1");
 
     expect(result).toEqual(session);
     expect(mockFindFirst).toHaveBeenCalledWith({
       where: {
         entityType: "CLIENT",
         entityId: "client-1",
+        orgId: "org-1",
         isActive: true,
       },
     });
@@ -145,7 +146,7 @@ describe("getActiveEntitySession", () => {
 
   it("returns null when no active session exists", async () => {
     mockFindFirst.mockResolvedValue(null);
-    const result = await getActiveEntitySession("PROPERTY", "prop-1");
+    const result = await getActiveEntitySession("PROPERTY", "prop-1", "org-1");
     expect(result).toBeNull();
   });
 });
@@ -196,16 +197,16 @@ describe("getEntitySessionShareForUser", () => {
 describe("rotateEntitySession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Current active session exists
-    mockFindFirst.mockResolvedValue({
+    // Interactive transaction mock — findFirst now called INSIDE tx
+    const mockTxRotateFindFirst = vi.fn().mockResolvedValue({
       id: "es-1",
       version: 1,
       isActive: true,
     });
-    // Interactive transaction mock
     mockTransaction.mockImplementation(async (fn: any) => {
       return fn({
         entitySession: {
+          findFirst: mockTxRotateFindFirst,
           update: mockUpdate.mockResolvedValue({}),
           create: mockCreate.mockResolvedValue({
             id: "es-2",

@@ -62,6 +62,22 @@ export async function POST(
       );
     }
 
+    // Validate blob sizes
+    if (orkBackup.length > 65536) {
+      return NextResponse.json(
+        { error: "orkBackup too large" },
+        { status: 400 }
+      );
+    }
+    for (const share of shares) {
+      if (share.encryptedSession && share.encryptedSession.length > 65536) {
+        return NextResponse.json(
+          { error: "encryptedSession too large" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Validate share recipients are org members
     if (shares && Array.isArray(shares) && shares.length > 0) {
       if (shares.length > 100) {

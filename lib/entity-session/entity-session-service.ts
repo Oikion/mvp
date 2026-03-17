@@ -89,12 +89,14 @@ export async function createEntitySession(input: CreateEntitySessionInput) {
  */
 export async function getActiveEntitySession(
   entityType: EntityType,
-  entityId: string
+  entityId: string,
+  orgId: string
 ) {
   return prismadb.entitySession.findFirst({
     where: {
       entityType,
       entityId,
+      orgId,
       isActive: true,
     },
   });
@@ -159,20 +161,20 @@ export async function rotateEntitySession(input: RotateEntitySessionInput) {
   const { entityType, entityId, orgId, newMegolmSessionId, shares, orkBackup } =
     input;
 
-  // Find current active session
-  const currentSession = await prismadb.entitySession.findFirst({
-    where: { entityType, entityId, isActive: true },
-  });
-
-  if (!currentSession) {
-    throw new Error(
-      `No active session to rotate for ${entityType}:${entityId}`
-    );
-  }
-
-  const newVersion = currentSession.version + 1;
-
   return prismadb.$transaction(async (tx) => {
+    // Find current active session INSIDE transaction to prevent TOCTOU race
+    const currentSession = await tx.entitySession.findFirst({
+      where: { entityType, entityId, isActive: true },
+    });
+
+    if (!currentSession) {
+      throw new Error(
+        `No active session to rotate for ${entityType}:${entityId}`
+      );
+    }
+
+    const newVersion = currentSession.version + 1;
+
     // Deactivate old session
     await tx.entitySession.update({
       where: { id: currentSession.id },

@@ -5,7 +5,7 @@ import NewTaskCommentEmail from "@/emails/NewTaskComment";
 import resendHelper from "@/lib/resend";
 import { notifyTaskCommented } from "@/lib/notifications";
 import { canPerformAction } from "@/lib/permissions/action-service";
-import { encryptTaskCommentForOrg } from "@/lib/model-encryption";
+import { encryptTaskCommentForOrg, decryptTaskCommentForOrg } from "@/lib/model-encryption";
 import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
 import { EncryptionMode } from "@prisma/client";
 
@@ -163,7 +163,12 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
       });
     }
 
-    return NextResponse.json(newComment, { status: 200 });
+    // Decrypt server-side encryption before returning (Standard mode stores ciphertext)
+    const responseComment = isE2EE
+      ? newComment
+      : await decryptTaskCommentForOrg(newComment, organizationId);
+
+    return NextResponse.json(responseComment, { status: 201 });
   } catch (error) {
     console.error("[TASK_COMMENTS_POST]", error);
     return NextResponse.json({ error: "Failed to add comment" }, { status: 500 });
