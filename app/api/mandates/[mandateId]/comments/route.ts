@@ -5,6 +5,8 @@ import {
   encryptMandateCommentForOrg,
   decryptMandateCommentForOrg,
 } from "@/lib/model-encryption";
+import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
+import { EncryptionMode } from "@prisma/client";
 
 /**
  * GET /api/mandates/[mandateId]/comments
@@ -58,6 +60,16 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
+    const encryptionMode = await getOrgEncryptionMode(organizationId);
+    const isE2EE = encryptionMode === EncryptionMode.E2EE;
+
+    if (isE2EE) {
+      return NextResponse.json({
+        comments: comments.map((c) => ({ ...c, user: c.user })),
+        encryptionMode: "E2EE",
+      });
+    }
+
     return NextResponse.json({
       comments: await Promise.all(
         comments.map(async (c) => ({
@@ -65,6 +77,7 @@ export async function GET(
           user: c.user,
         }))
       ),
+      encryptionMode: "STANDARD",
     });
   } catch (error) {
     console.error("[MANDATE_COMMENTS_GET]", error);
@@ -104,13 +117,6 @@ export async function POST(
       );
     }
 
-    if (content.length > 2000) {
-      return NextResponse.json(
-        { error: "Comment is too long (max 2000 characters)" },
-        { status: 400 }
-      );
-    }
-
     // Verify mandate belongs to this organization
     const mandate = await prismadb.mandate.findFirst({
       where: {
@@ -127,11 +133,37 @@ export async function POST(
       );
     }
 
-    // Encrypt comment content with the org DEK
-    const { content: encryptedContent } = await encryptMandateCommentForOrg(
-      { content: content.trim() },
-      organizationId
-    );
+    const encryptionMode = await getOrgEncryptionMode(organizationId);
+    const isE2EE = encryptionMode === EncryptionMode.E2EE;
+
+    let commentContent: string;
+    let entitySessionId: string | null = null;
+    let messageIndex: number | null = null;
+
+    if (isE2EE) {
+      const { entitySessionId: sid, messageIndex: idx } = body;
+      if (!sid || idx === undefined) {
+        return NextResponse.json(
+          { error: "entitySessionId and messageIndex required for E2EE orgs" },
+          { status: 400 }
+        );
+      }
+      commentContent = content.trim();
+      entitySessionId = sid;
+      messageIndex = idx;
+    } else {
+      if (content.length > 2000) {
+        return NextResponse.json(
+          { error: "Comment is too long (max 2000 characters)" },
+          { status: 400 }
+        );
+      }
+      const { content: encryptedContent } = await encryptMandateCommentForOrg(
+        { content: content.trim() },
+        organizationId
+      );
+      commentContent = encryptedContent ?? content.trim();
+    }
 
     // Create comment
     const comment = await prismadb.mandateComment.create({
@@ -139,7 +171,9 @@ export async function POST(
         id: crypto.randomUUID(),
         mandateId,
         userId: user.id,
-        content: encryptedContent ?? content.trim(),
+        content: commentContent,
+        entitySessionId,
+        messageIndex,
       },
       include: {
         user: {
@@ -153,13 +187,12 @@ export async function POST(
       },
     });
 
-    const decryptedComment = await decryptMandateCommentForOrg(
-      comment,
-      organizationId
-    );
+    const responseComment = isE2EE
+      ? comment
+      : await decryptMandateCommentForOrg(comment, organizationId);
 
     return NextResponse.json(
-      { comment: { ...decryptedComment, user: comment.user } },
+      { comment: { ...responseComment, user: comment.user } },
       { status: 201 }
     );
   } catch (error) {
