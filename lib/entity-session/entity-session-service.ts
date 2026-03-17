@@ -93,12 +93,14 @@ export async function getActiveEntitySession(
 export async function getEntitySessionShareForUser(
   entityType: EntityType,
   entityId: string,
-  userId: string
+  userId: string,
+  orgId: string
 ) {
   const session = await prismadb.entitySession.findFirst({
     where: {
       entityType,
       entityId,
+      orgId,
       isActive: true,
     },
     include: {

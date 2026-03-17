@@ -141,10 +141,26 @@ describe("getEntitySessionShareForUser", () => {
       ],
     });
 
-    const result = await getEntitySessionShareForUser("CLIENT", "client-1", "user-1");
+    const result = await getEntitySessionShareForUser("CLIENT", "client-1", "user-1", "org-1");
 
     expect(result).toBeTruthy();
     expect(result?.encryptedSession).toBe("encrypted-for-user-1");
+    expect(mockFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ orgId: "org-1" }),
+      })
+    );
+  });
+
+  it("returns null when session belongs to a different org", async () => {
+    mockFindFirst.mockResolvedValue(null);
+    const result = await getEntitySessionShareForUser("CLIENT", "client-1", "user-1", "different-org");
+    expect(result).toBeNull();
+    expect(mockFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ orgId: "different-org" }),
+      })
+    );
   });
 });
 

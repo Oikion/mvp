@@ -41,7 +41,8 @@ export async function GET(req: Request) {
     const result = await getEntitySessionShareForUser(
       entityType,
       entityId,
-      user.id
+      user.id,
+      orgId
     );
 
     if (!result) {
