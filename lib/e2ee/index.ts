@@ -46,6 +46,7 @@ import {
   importEntitySession as _importEntitySession,
   clearEntitySessionCaches,
 } from "./entity-comments";
+export type { EncryptEntityCommentResult } from "./entity-comments";
 import type { PreKeyBundle, EncryptedDMPayload, EncryptedGroupPayload } from "./types";
 
 // ─── In-Memory State ──────────────────────────

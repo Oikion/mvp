@@ -14,6 +14,10 @@ import {
 
 type EntityType = "CLIENT" | "PROPERTY" | "MANDATE" | "TASK";
 
+export type EncryptEntityCommentResult =
+  | { ok: true; content: string; entitySessionId: string; messageIndex: number }
+  | { ok: false; needsRotation: true };
+
 interface EncryptedCommentPayload {
   /** Combined "iv:ciphertext" string (both Base64). Server stores this as-is in the content field. */
   content: string;
@@ -67,7 +71,7 @@ export async function encryptEntityComment(
   entityId: string,
   plaintext: string,
   kek: ArrayBuffer,
-): Promise<EncryptedCommentPayload> {
+): Promise<EncryptEntityCommentResult> {
   const key = entityKey(entityType, entityId);
   let session = _entityOutCache.get(key);
 
@@ -82,10 +86,9 @@ export async function encryptEntityComment(
 
   // Check rotation
   if (session?.needsRotation()) {
-    // Clear outbound — will be replaced after rotation API call
     await deleteEntityMegolmOutbound(entityType, entityId);
     _entityOutCache.delete(key);
-    session = undefined;
+    return { ok: false, needsRotation: true };
   }
 
   if (!session) {
@@ -105,6 +108,7 @@ export async function encryptEntityComment(
   // Combine iv:ciphertext into a single string for storage in the DB content field.
   // The server stores this opaque string as-is; only the client can split and decrypt.
   return {
+    ok: true,
     content: `${payload.iv}:${payload.ciphertext}`,
     entitySessionId: payload.sessionId,
     messageIndex: payload.messageIndex,
