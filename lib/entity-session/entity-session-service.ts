@@ -173,6 +173,7 @@ export async function rotateEntitySession(input: RotateEntitySessionInput) {
         megolmSessionId: newMegolmSessionId,
         version: newVersion,
         orgId,
+        lastMessageIndex: null,
       },
     });
 
