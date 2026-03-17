@@ -108,12 +108,13 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
         actorName: user.name || user.email || "Someone",
         recipientId: task.user,
         organizationId,
-        commentContent: commentContent,
+        commentContent: isE2EE ? "[Encrypted message]" : commentContent,
       });
     }
 
     return NextResponse.json(newComment, { status: 200 });
   } catch (error) {
-    return new NextResponse("Initial error", { status: 500 });
+    console.error("[TASK_COMMENTS_POST]", error);
+    return NextResponse.json({ error: "Failed to add comment" }, { status: 500 });
   }
 }
