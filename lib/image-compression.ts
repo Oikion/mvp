@@ -465,7 +465,7 @@ export async function compressSvg(
         // Remove editor-specific elements
         "removeEditorsNSData",
         // Security: strip <script> elements from SVGs
-        "removeScriptElement",
+        "removeScripts",
         // Security: strip on* event handler attributes (onclick, onerror, etc.)
         {
           name: "removeAttrs",

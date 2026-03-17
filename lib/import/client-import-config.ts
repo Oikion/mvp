@@ -17,6 +17,8 @@ import { encryptWithKey, isEncrypted } from "@/lib/encryption";
  */
 const ENCRYPTED_STRING_FIELDS = [
   "client_name",
+  "company_name",
+  "company_id",
   "primary_email",
   "secondary_email",
   "primary_phone",
@@ -96,9 +98,9 @@ export const clientImportConfig: ImportEntityConfig<ClientImportData> = {
       client_status: item.client_status || "LEAD",
       person_type: item.person_type || null,
 
-      // Company details
-      company_name: item.company_name || null,
-      company_id: item.company_id || null,
+      // Company details (encrypted)
+      company_name: e("company_name") || null,
+      company_id: e("company_id") || null,
       vat: e("vat") || null,
       website: item.website || null,
       fax: e("fax") || null,
@@ -115,6 +117,13 @@ export const clientImportConfig: ImportEntityConfig<ClientImportData> = {
       billing_state: e("billing_state") || null,
       billing_postal_code: e("billing_postal_code") || null,
       billing_country: e("billing_country") || null,
+
+      // Shipping address (encrypted)
+      shipping_street: e("shipping_street") || null,
+      shipping_city: e("shipping_city") || null,
+      shipping_state: e("shipping_state") || null,
+      shipping_postal_code: e("shipping_postal_code") || null,
+      shipping_country: e("shipping_country") || null,
 
       // Lead source & consent
       lead_source: item.lead_source || null,

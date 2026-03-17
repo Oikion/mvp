@@ -85,6 +85,13 @@ export const clientImportSchema = z.object({
   billing_postal_code: z.coerce.string().optional().or(z.literal("")),
   billing_country: z.coerce.string().optional().or(z.literal("")),
 
+  // Shipping address
+  shipping_street: z.coerce.string().optional().or(z.literal("")),
+  shipping_city: z.coerce.string().optional().or(z.literal("")),
+  shipping_state: z.coerce.string().optional().or(z.literal("")),
+  shipping_postal_code: z.coerce.string().optional().or(z.literal("")),
+  shipping_country: z.coerce.string().optional().or(z.literal("")),
+
   // Lead source and consent
   lead_source: LeadSourceEnum.optional().nullable(),
   gdpr_consent: z.coerce.boolean().optional().default(false),
@@ -286,12 +293,47 @@ export const clientImportFieldDefinitions: readonly ClientFieldDefinition[] = [
     aliases: ["postal_code", "zip", "zip_code", "postcode", "tk"],
     description: "Postal code"
   },
-  { 
-    key: "billing_country", 
-    required: false, 
-    group: "address", 
+  {
+    key: "billing_country",
+    required: false,
+    group: "address",
     aliases: ["country", "chora"],
     description: "Country"
+  },
+  {
+    key: "shipping_street",
+    required: false,
+    group: "shipping",
+    aliases: ["ship_street", "delivery_street", "shipping_address"],
+    description: "Shipping street address"
+  },
+  {
+    key: "shipping_city",
+    required: false,
+    group: "shipping",
+    aliases: ["ship_city", "delivery_city"],
+    description: "Shipping city"
+  },
+  {
+    key: "shipping_state",
+    required: false,
+    group: "shipping",
+    aliases: ["ship_state", "delivery_state", "ship_region"],
+    description: "Shipping state or region"
+  },
+  {
+    key: "shipping_postal_code",
+    required: false,
+    group: "shipping",
+    aliases: ["ship_postal_code", "ship_zip", "delivery_zip"],
+    description: "Shipping postal code"
+  },
+  {
+    key: "shipping_country",
+    required: false,
+    group: "shipping",
+    aliases: ["ship_country", "delivery_country"],
+    description: "Shipping country"
   },
 
   // Other

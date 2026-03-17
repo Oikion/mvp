@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ImportWizardSteps, type ImportResult } from "@/components/import";
-import { clientImportSchema, clientImportFieldDefinitions } from "@/lib/import";
+import { clientImportSchema, clientImportFieldDefinitions, normalizeClientEnums } from "@/lib/import";
 import { useAppToast } from "@/hooks/use-app-toast";
 
 interface ClientImportWizardProps {
@@ -164,6 +164,7 @@ export function ClientImportWizard({ dict, locale }: ClientImportWizardProps) {
       fieldsDict={dict.ImportFields.client}
       schema={clientImportSchema}
       fieldDefinitions={clientImportFieldDefinitions}
+      normalizeRow={normalizeClientEnums}
       onImport={handleImport}
       onComplete={handleComplete}
       onCancel={handleCancel}

@@ -18,7 +18,6 @@ import {
   createExportAuditLog,
   logExportEvent,
   CRM_COLUMNS,
-  addAssignedUserName,
   generateExportFile,
   generateCRMPDF,
   generateDescriptiveFilename,
@@ -187,17 +186,6 @@ export async function GET(req: NextRequest) {
     // ===========================================
     // Inline export (small datasets)
     // ===========================================
-    
-    // Get organization users for assigning names
-    const users = await prismadb.users.findMany({
-      where: { 
-        // Get users that are assigned to any client in this org
-        OR: [
-          { Clients_Clients_assigned_toToUsers: { some: { organizationId: orgId } } },
-        ],
-      },
-      select: { id: true, name: true },
-    });
     
     // Decrypt encrypted client fields before export
     const decryptedClients = await Promise.all(

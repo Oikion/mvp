@@ -24,11 +24,15 @@
     "aiAgents": "AI Agents",
     "aiPrompts": "AI Prompts",
     "dataRequests": "Data Requests",
-    "network": "Polis"
+    "network": "Polis",
+    "audiences": "Audiences",
+    "campaigns": "Campaigns",
+    "sent": "Sent"
   },
   "sidebar": {
     "management": "Management",
     "content": "Content",
+    "communication": "Communication",
     "system": "System"
   },
   "theme": {

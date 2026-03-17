@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ImportWizardSteps, type ImportResult } from "@/components/import";
-import { mandateImportSchema, mandateImportFieldDefinitions } from "@/lib/import";
+import { mandateImportSchema, mandateImportFieldDefinitions, normalizeMandateEnums } from "@/lib/import";
 import { useAppToast } from "@/hooks/use-app-toast";
 
 interface MandateImportWizardProps {
@@ -164,6 +164,7 @@ export function MandateImportWizard({ dict, locale }: MandateImportWizardProps) 
       fieldsDict={dict.ImportFields.mandate}
       schema={mandateImportSchema}
       fieldDefinitions={mandateImportFieldDefinitions}
+      normalizeRow={normalizeMandateEnums}
       onImport={handleImport}
       onComplete={handleComplete}
       onCancel={handleCancel}

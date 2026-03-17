@@ -143,6 +143,7 @@ interface ImportWizardStepsProps {
   fieldsDict: FieldsDict;
   schema: z.ZodSchema;
   fieldDefinitions: readonly FieldDefinition[];
+  normalizeRow?: (row: Record<string, unknown>) => Record<string, unknown>;
   onImport: (data: Record<string, unknown>[], signal?: AbortSignal) => Promise<ImportResult>;
   onComplete?: () => void;
   onCancel?: () => void;
@@ -175,6 +176,7 @@ export function ImportWizardSteps({
   fieldsDict,
   schema,
   fieldDefinitions,
+  normalizeRow,
   onImport,
   onComplete,
   onCancel,
@@ -264,8 +266,11 @@ export function ImportWizardSteps({
         }
       });
 
+      // Normalize enums before validation (matches server-side engine behavior)
+      const normalizedRow = normalizeRow ? normalizeRow(mappedRow) : mappedRow;
+
       // Validate against schema
-      const result = schema.safeParse(mappedRow);
+      const result = schema.safeParse(normalizedRow);
       if (result.success) {
         valid.push(result.data as Record<string, unknown>);
       } else {
@@ -274,7 +279,7 @@ export function ImportWizardSteps({
             row: rowIndex + 2, // +2 for header row and 0-index
             field: err.path.join("."),
             error: err.message,
-            value: String(mappedRow[err.path[0]] ?? ""),
+            value: String(normalizedRow[err.path[0]] ?? ""),
           });
         });
       }
@@ -283,7 +288,7 @@ export function ImportWizardSteps({
     setValidationErrors(errors);
     setValidData(valid);
     return { errors, valid };
-  }, [parsedData, fieldMapping, schema]);
+  }, [parsedData, fieldMapping, schema, normalizeRow]);
 
   const BATCH_SIZE = 25;
 

@@ -48,3 +48,76 @@ export function maskEmail(email: string): string {
 export function generateBlockId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
+
+// ── Campaign serialization ─────────────────────────────────────────────────
+// Kept here (not in a "use server" file) because Next.js requires all exports
+// from "use server" modules to be async Server Actions.
+
+import { CampaignStatus } from "@prisma/client"
+
+export interface SerializedCampaign {
+  id: string
+  organizationId: string
+  subject: string
+  previewText: string | null
+  content: string
+  fromName: string | null
+  fromEmail: string | null
+  replyTo: string | null
+  status: CampaignStatus
+  recipientCount: number
+  sentCount: number
+  openCount: number
+  clickCount: number
+  bounceCount: number
+  unsubscribeCount: number
+  scheduledAt: string | null
+  sentAt: string | null
+  completedAt: string | null
+  createdAt: string
+  updatedAt: string
+  createdVia: string | null
+  n8nWorkflowId: string | null
+  tags: string[]
+  resendBatchId: string | null
+  blocks: unknown
+  audienceId: string | null
+}
+
+export function serializeCampaign(c: {
+  id: string
+  organizationId: string
+  subject: string
+  previewText: string | null
+  content: string
+  fromName: string | null
+  fromEmail: string | null
+  replyTo: string | null
+  status: CampaignStatus
+  recipientCount: number
+  sentCount: number
+  openCount: number
+  clickCount: number
+  bounceCount: number
+  unsubscribeCount: number
+  scheduledAt: Date | null
+  sentAt: Date | null
+  completedAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+  createdVia: string | null
+  n8nWorkflowId: string | null
+  tags: string[]
+  resendBatchId: string | null
+  blocks: unknown
+  audienceId: string | null
+}): SerializedCampaign {
+  return {
+    ...c,
+    scheduledAt: c.scheduledAt?.toISOString() ?? null,
+    sentAt: c.sentAt?.toISOString() ?? null,
+    completedAt: c.completedAt?.toISOString() ?? null,
+    createdAt: c.createdAt.toISOString(),
+    updatedAt: c.updatedAt.toISOString(),
+  }
+}

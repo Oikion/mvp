@@ -33,7 +33,9 @@ import {
   Home,
   Database,
   Globe,
-  Radio,
+  Users2,
+  Megaphone,
+  SendHorizonal,
 } from "lucide-react";
 
 import {
@@ -160,12 +162,6 @@ export function PlatformAdminSidebar({ adminUser, locale, counts }: PlatformAdmi
       active: pathname.includes("/platform-admin/blog"),
     },
     {
-      href: `/${locale}/app/platform-admin/communication/audiences`,
-      label: t("nav.communication"),
-      icon: Radio,
-      active: pathname.includes("/platform-admin/communication"),
-    },
-    {
       href: `/${locale}/app/platform-admin/social`,
       label: t("nav.social"),
       icon: Share2,
@@ -182,6 +178,28 @@ export function PlatformAdminSidebar({ adminUser, locale, counts }: PlatformAdmi
       label: t("nav.changelog"),
       icon: ScrollText,
       active: pathname.includes("/platform-admin/changelog"),
+    },
+  ];
+
+  // Communication items
+  const communicationNavItems = [
+    {
+      href: `/${locale}/app/platform-admin/communication/audiences`,
+      label: t("nav.audiences"),
+      icon: Users2,
+      active: pathname.includes("/platform-admin/communication/audiences"),
+    },
+    {
+      href: `/${locale}/app/platform-admin/communication/campaigns`,
+      label: t("nav.campaigns"),
+      icon: Megaphone,
+      active: pathname.includes("/platform-admin/communication/campaigns"),
+    },
+    {
+      href: `/${locale}/app/platform-admin/communication/sent`,
+      label: t("nav.sent"),
+      icon: SendHorizonal,
+      active: pathname.includes("/platform-admin/communication/sent"),
     },
   ];
 
@@ -279,6 +297,29 @@ export function PlatformAdminSidebar({ adminUser, locale, counts }: PlatformAdmi
           <SidebarGroupContent>
             <SidebarMenu>
               {contentNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={item.active}
+                    tooltip={item.label}
+                  >
+                    <Link href={item.href}>
+                      <item.icon className="size-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Communication */}
+        <SidebarGroup>
+          <SidebarGroupLabel>{t("sidebar.communication")}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {communicationNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild

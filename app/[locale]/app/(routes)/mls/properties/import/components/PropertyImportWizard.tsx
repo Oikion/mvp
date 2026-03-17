@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ImportWizardSteps, type ImportResult } from "@/components/import";
-import { propertyImportSchema, propertyImportFieldDefinitions } from "@/lib/import";
+import { propertyImportSchema, propertyImportFieldDefinitions, normalizePropertyEnums } from "@/lib/import";
 import { useAppToast } from "@/hooks/use-app-toast";
 
 interface PropertyImportWizardProps {
@@ -164,6 +164,7 @@ export function PropertyImportWizard({ dict, locale }: PropertyImportWizardProps
       fieldsDict={dict.ImportFields.property}
       schema={propertyImportSchema}
       fieldDefinitions={propertyImportFieldDefinitions}
+      normalizeRow={normalizePropertyEnums}
       onImport={handleImport}
       onComplete={handleComplete}
       onCancel={handleCancel}

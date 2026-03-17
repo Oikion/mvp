@@ -25,6 +25,7 @@ import {
   type ExportTemplateType,
 } from "@/lib/export";
 import { requireCanExport } from "@/lib/permissions/guards";
+import { decryptPropertyForOrg } from "@/lib/model-encryption";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -157,8 +158,13 @@ export async function GET(req: NextRequest) {
       return createRowLimitResponse(rowCheck);
     }
     
+    // Decrypt encrypted property fields (primary_email) before export
+    const decryptedProperties = await Promise.all(
+      properties.map((p) => decryptPropertyForOrg(p, orgId))
+    );
+
     // Transform data for export
-    const exportData = properties.map((property: Record<string, unknown>) => ({
+    const exportData = decryptedProperties.map((property: Record<string, unknown>) => ({
       ...property,
       assigned_to_name: (property.Users_Properties_assigned_toToUsers as { name?: string } | null)?.name || "",
       // Ensure numeric fields are numbers

@@ -3,40 +3,14 @@
 import { prismadb } from "@/lib/prisma"
 import { CampaignStatus } from "@prisma/client"
 import { requirePlatformAdmin } from "@/lib/platform-admin"
+import { serializeCampaign } from "@/lib/communication/types"
+export type { SerializedCampaign } from "@/lib/communication/types"
+export { serializeCampaign } from "@/lib/communication/types"
 
 interface GetCampaignsResult {
   campaigns: SerializedCampaign[]
   total: number
   pages: number
-}
-
-export interface SerializedCampaign {
-  id: string
-  organizationId: string
-  subject: string
-  previewText: string | null
-  content: string
-  fromName: string | null
-  fromEmail: string | null
-  replyTo: string | null
-  status: CampaignStatus
-  recipientCount: number
-  sentCount: number
-  openCount: number
-  clickCount: number
-  bounceCount: number
-  unsubscribeCount: number
-  scheduledAt: string | null
-  sentAt: string | null
-  completedAt: string | null
-  createdAt: string
-  updatedAt: string
-  createdVia: string | null
-  n8nWorkflowId: string | null
-  tags: string[]
-  resendBatchId: string | null
-  blocks: unknown
-  audienceId: string | null
 }
 
 export async function getCampaigns(
@@ -69,43 +43,5 @@ export async function getCampaigns(
     campaigns: campaigns.map(serializeCampaign),
     total,
     pages,
-  }
-}
-
-export function serializeCampaign(c: {
-  id: string
-  organizationId: string
-  subject: string
-  previewText: string | null
-  content: string
-  fromName: string | null
-  fromEmail: string | null
-  replyTo: string | null
-  status: CampaignStatus
-  recipientCount: number
-  sentCount: number
-  openCount: number
-  clickCount: number
-  bounceCount: number
-  unsubscribeCount: number
-  scheduledAt: Date | null
-  sentAt: Date | null
-  completedAt: Date | null
-  createdAt: Date
-  updatedAt: Date
-  createdVia: string | null
-  n8nWorkflowId: string | null
-  tags: string[]
-  resendBatchId: string | null
-  blocks: unknown
-  audienceId: string | null
-}): SerializedCampaign {
-  return {
-    ...c,
-    scheduledAt: c.scheduledAt?.toISOString() ?? null,
-    sentAt: c.sentAt?.toISOString() ?? null,
-    completedAt: c.completedAt?.toISOString() ?? null,
-    createdAt: c.createdAt.toISOString(),
-    updatedAt: c.updatedAt.toISOString(),
   }
 }

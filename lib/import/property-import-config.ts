@@ -86,6 +86,8 @@ export const propertyImportConfig: ImportEntityConfig<PropertyImportData> = {
       municipality: item.municipality || null,
       area: item.area || null,
       postal_code: item.postal_code || null,
+      region: item.region || null,
+      regional_unit: item.regional_unit || null,
 
       // Pricing
       price: toNumber(item.price),
@@ -117,6 +119,8 @@ export const propertyImportConfig: ImportEntityConfig<PropertyImportData> = {
       building_permit_no: item.building_permit_no || null,
       building_permit_year: toNumber(item.building_permit_year),
       land_registry_kaek: item.land_registry_kaek || null,
+      land_registry_office: item.land_registry_office || null,
+      building_block_ot: item.building_block_ot || null,
       legalization_status: item.legalization_status || null,
       inside_city_plan: item.inside_city_plan || false,
 
@@ -124,6 +128,8 @@ export const propertyImportConfig: ImportEntityConfig<PropertyImportData> = {
       build_coefficient: toNumber(item.build_coefficient),
       coverage_ratio: toNumber(item.coverage_ratio),
       frontage_m: toNumber(item.frontage_m),
+      frontage_type: item.frontage_type || null,
+      objective_zone: item.objective_zone || null,
 
       // Management
       etaireia_diaxeirisis: item.etaireia_diaxeirisis || null,
