@@ -2,7 +2,7 @@
 
 import { prismadb } from "@/lib/prisma"
 import { requirePlatformAdmin } from "@/lib/platform-admin"
-import { serializeCampaign, type SerializedCampaign } from "./get-campaigns"
+import { serializeCampaign, type SerializedCampaign } from "@/lib/communication/types"
 
 export async function createCampaign(): Promise<SerializedCampaign> {
   await requirePlatformAdmin()

@@ -41,7 +41,7 @@ import {
   FileEdit,
   Mail,
 } from "lucide-react"
-import type { SerializedCampaign } from "@/actions/platform-admin/communication/get-campaigns"
+import type { SerializedCampaign } from "@/lib/communication/types"
 import { createCampaign } from "@/actions/platform-admin/communication/create-campaign"
 import { deleteCampaign } from "@/actions/platform-admin/communication/delete-campaign"
 

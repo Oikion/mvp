@@ -2,7 +2,7 @@
 
 import { prismadb } from "@/lib/prisma"
 import { requirePlatformAdmin } from "@/lib/platform-admin"
-import { serializeCampaign, type SerializedCampaign } from "./get-campaigns"
+import { serializeCampaign, type SerializedCampaign } from "@/lib/communication/types"
 import type { EmailBlock } from "@/lib/communication/types"
 
 interface UpdateCampaignData {

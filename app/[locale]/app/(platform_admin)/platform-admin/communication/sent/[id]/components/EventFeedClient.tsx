@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
-import type { SerializedCampaign } from "@/actions/platform-admin/communication/get-campaigns"
+import type { SerializedCampaign } from "@/lib/communication/types"
 import { CommunicationEventType } from "@prisma/client"
 
 interface MaskedEvent {

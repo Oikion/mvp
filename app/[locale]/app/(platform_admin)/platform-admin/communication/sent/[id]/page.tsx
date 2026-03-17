@@ -2,7 +2,7 @@ import { prismadb } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { getCampaignEvents } from "@/actions/platform-admin/communication/get-campaign-events"
 import { EventFeedClient } from "./components/EventFeedClient"
-import type { SerializedCampaign } from "@/actions/platform-admin/communication/get-campaigns"
+import type { SerializedCampaign } from "@/lib/communication/types"
 
 function serializeCampaignStats(c: {
   id: string

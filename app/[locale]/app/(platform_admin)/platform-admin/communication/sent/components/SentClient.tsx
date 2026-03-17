@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
-import type { SerializedCampaign } from "@/actions/platform-admin/communication/get-campaigns"
+import type { SerializedCampaign } from "@/lib/communication/types"
 
 interface SentClientProps {
   campaigns: SerializedCampaign[]
