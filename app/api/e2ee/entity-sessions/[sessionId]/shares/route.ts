@@ -3,6 +3,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { isE2EEOrg } from "@/lib/entity-session/encryption-mode";
 import { createSessionShare } from "@/lib/entity-session/entity-session-service";
+import { getOrgMembersFromDb } from "@/lib/org-members";
 
 /**
  * POST /api/e2ee/entity-sessions/[sessionId]/shares
@@ -45,6 +46,16 @@ export async function POST(
       return NextResponse.json(
         { error: "userId, encryptedSession, and startingIndex are required" },
         { status: 400 }
+      );
+    }
+
+    // Verify recipientId is a member of the session's org (C1: prevent cross-org share injection)
+    const orgMembers = await getOrgMembersFromDb({ organizationId: session.orgId });
+    const isMember = orgMembers.users.some((u: any) => u.id === recipientId);
+    if (!isMember) {
+      return NextResponse.json(
+        { error: "Recipient is not a member of this organization" },
+        { status: 403 }
       );
     }
 
