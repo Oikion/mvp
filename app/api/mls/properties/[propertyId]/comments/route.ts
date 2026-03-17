@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { encryptPropertyCommentForOrg, decryptPropertyCommentForOrg } from "@/lib/model-encryption";
+import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
+import { EncryptionMode } from "@prisma/client";
 
 /**
  * GET /api/mls/properties/[propertyId]/comments
@@ -79,11 +81,22 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
+    const encryptionMode = await getOrgEncryptionMode(propertyOrgId);
+    const isE2EE = encryptionMode === EncryptionMode.E2EE;
+
+    if (isE2EE) {
+      return NextResponse.json({
+        comments: comments.map((c) => ({ ...c, user: c.Users })),
+        encryptionMode: "E2EE",
+      });
+    }
+
     return NextResponse.json({
       comments: await Promise.all(comments.map(async (c) => ({
         ...await decryptPropertyCommentForOrg(c, propertyOrgId),
         user: c.Users,
       }))),
+      encryptionMode: "STANDARD",
     });
   } catch (error) {
     console.error("[PROPERTY_COMMENTS_GET]", error);
@@ -121,13 +134,6 @@ export async function POST(
     if (!content?.trim()) {
       return NextResponse.json(
         { error: "Comment content is required" },
-        { status: 400 }
-      );
-    }
-
-    if (content.length > 2000) {
-      return NextResponse.json(
-        { error: "Comment is too long (max 2000 characters)" },
         { status: 400 }
       );
     }
@@ -176,11 +182,37 @@ export async function POST(
       );
     }
 
-    // Encrypt comment content with the property's org DEK before persisting
-    const { content: encryptedContent } = await encryptPropertyCommentForOrg(
-      { content: content.trim() },
-      propertyOrgId
-    );
+    const encryptionMode = await getOrgEncryptionMode(propertyOrgId);
+    const isE2EE = encryptionMode === EncryptionMode.E2EE;
+
+    let commentContent: string;
+    let entitySessionId: string | null = null;
+    let messageIndex: number | null = null;
+
+    if (isE2EE) {
+      const { entitySessionId: sid, messageIndex: idx } = body;
+      if (!sid || idx === undefined) {
+        return NextResponse.json(
+          { error: "entitySessionId and messageIndex required for E2EE orgs" },
+          { status: 400 }
+        );
+      }
+      commentContent = content.trim();
+      entitySessionId = sid;
+      messageIndex = idx;
+    } else {
+      if (content.length > 2000) {
+        return NextResponse.json(
+          { error: "Comment is too long (max 2000 characters)" },
+          { status: 400 }
+        );
+      }
+      const { content: encryptedContent } = await encryptPropertyCommentForOrg(
+        { content: content.trim() },
+        propertyOrgId
+      );
+      commentContent = encryptedContent ?? content.trim();
+    }
 
     // Create comment
     const comment = await prismadb.propertyComment.create({
@@ -188,7 +220,9 @@ export async function POST(
         id: crypto.randomUUID(),
         propertyId,
         userId: user.id,
-        content: encryptedContent ?? content.trim(),
+        content: commentContent,
+        entitySessionId,
+        messageIndex,
         updatedAt: new Date(),
       },
       include: {
@@ -203,8 +237,10 @@ export async function POST(
       },
     });
 
-    const decryptedComment = await decryptPropertyCommentForOrg(comment, propertyOrgId);
-    return NextResponse.json({ comment: { ...decryptedComment, user: comment.Users } }, { status: 201 });
+    const responseComment = isE2EE
+      ? comment
+      : await decryptPropertyCommentForOrg(comment, propertyOrgId);
+    return NextResponse.json({ comment: { ...responseComment, user: comment.Users } }, { status: 201 });
   } catch (error) {
     console.error("[PROPERTY_COMMENTS_POST]", error);
     return NextResponse.json(
