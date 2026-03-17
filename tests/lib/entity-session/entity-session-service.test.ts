@@ -11,6 +11,7 @@ const mockShareCreate = vi.fn();
 const mockShareDeleteMany = vi.fn();
 const mockBackupCreate = vi.fn();
 const mockTransaction = vi.fn();
+const mockTxFindFirst = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prismadb: {
@@ -39,6 +40,7 @@ const {
   createSessionShare,
   rotateEntitySession,
   deleteEntitySessionsForEntity,
+  EntitySessionExistsError,
 } = await import("@/lib/entity-session/entity-session-service");
 
 describe("createEntitySession", () => {
@@ -48,6 +50,7 @@ describe("createEntitySession", () => {
     mockTransaction.mockImplementation(async (fn: any) => {
       return fn({
         entitySession: {
+          findFirst: mockTxFindFirst.mockResolvedValue(null),
           create: mockCreate.mockResolvedValue({
             id: "es-1",
             entityType: "CLIENT",
@@ -85,6 +88,32 @@ describe("createEntitySession", () => {
     expect(mockCreate).toHaveBeenCalledOnce(); // Session create
     expect(mockShareCreate).toHaveBeenCalledOnce(); // Creator share
     expect(mockBackupCreate).toHaveBeenCalledOnce(); // ORK backup
+  });
+
+  it("throws EntitySessionExistsError when an active session already exists", async () => {
+    mockTransaction.mockImplementation(async (fn: any) => {
+      return fn({
+        entitySession: {
+          findFirst: mockTxFindFirst.mockResolvedValue({ id: "es-existing" }),
+          create: mockCreate,
+        },
+        entitySessionShare: { create: mockShareCreate },
+        entitySessionBackup: { create: mockBackupCreate },
+      });
+    });
+
+    await expect(
+      createEntitySession({
+        entityType: "CLIENT",
+        entityId: "client-1",
+        orgId: "org-1",
+        megolmSessionId: "megolm-abc",
+        creatorShare: { userId: "user-1", encryptedSession: "enc" },
+        orkBackup: "ork",
+      })
+    ).rejects.toMatchObject({ message: "ALREADY_EXISTS", sessionId: "es-existing" });
+
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 });
 

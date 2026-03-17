@@ -5,6 +5,7 @@ import { isE2EEOrg } from "@/lib/entity-session/encryption-mode";
 import {
   createEntitySession,
   getEntitySessionShareForUser,
+  EntitySessionExistsError,
 } from "@/lib/entity-session/entity-session-service";
 import { getOrgMembersFromDb } from "@/lib/org-members";
 import type { EntityType } from "@/lib/entity-session/types";
@@ -245,34 +246,35 @@ export async function POST(req: Request) {
       }
     }
 
-    // Guard: reject if an active session already exists (prevents race condition duplicates)
-    const existing = await prismadb.entitySession.findFirst({
-      where: { entityType, entityId, isActive: true },
-    });
-    if (existing) {
-      return NextResponse.json(
-        {
-          error: "Active session already exists for this entity",
-          sessionId: existing.id,
+    try {
+      const session = await createEntitySession({
+        entityType,
+        entityId,
+        orgId,
+        megolmSessionId,
+        creatorShare: {
+          userId: user.id,
+          encryptedSession: creatorEncryptedSession,
         },
-        { status: 409 }
-      );
+        orkBackup,
+        additionalShares,
+      });
+      return NextResponse.json({ session }, { status: 201 });
+    } catch (err) {
+      if (err instanceof EntitySessionExistsError) {
+        return NextResponse.json(
+          { error: "Active session already exists for this entity", sessionId: err.sessionId },
+          { status: 409 }
+        );
+      }
+      if ((err as any).code === "P2002") {
+        return NextResponse.json(
+          { error: "Session creation conflict — retry" },
+          { status: 409 }
+        );
+      }
+      throw err;
     }
-
-    const session = await createEntitySession({
-      entityType,
-      entityId,
-      orgId,
-      megolmSessionId,
-      creatorShare: {
-        userId: user.id,
-        encryptedSession: creatorEncryptedSession,
-      },
-      orkBackup,
-      additionalShares,
-    });
-
-    return NextResponse.json({ session }, { status: 201 });
   } catch (error) {
     console.error("[ENTITY_SESSIONS_POST]", error);
     return NextResponse.json(

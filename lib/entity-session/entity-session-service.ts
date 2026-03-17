@@ -7,6 +7,12 @@ import type {
   EntityType,
 } from "./types";
 
+export class EntitySessionExistsError extends Error {
+  constructor(public readonly sessionId: string) {
+    super("ALREADY_EXISTS");
+  }
+}
+
 /**
  * Create a new entity session with creator's share and ORK backup.
  * Called when: first comment on an entity in E2EE org, or entity creation in E2EE org.
@@ -24,6 +30,14 @@ export async function createEntitySession(input: CreateEntitySessionInput) {
 
   // Use interactive transaction to get the session ID for related records
   return prismadb.$transaction(async (tx) => {
+    const existing = await tx.entitySession.findFirst({
+      where: { entityType, entityId, isActive: true },
+      select: { id: true },
+    });
+    if (existing) {
+      throw new EntitySessionExistsError(existing.id);
+    }
+
     const session = await tx.entitySession.create({
       data: {
         entityType,
