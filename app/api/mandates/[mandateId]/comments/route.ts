@@ -150,7 +150,7 @@ export async function POST(
         );
       }
 
-      // Task 1.5 (C2): Validate entitySessionId belongs to this entity
+      // Validate entitySessionId belongs to this entity
       const sessionOwnership = await prismadb.entitySession.findFirst({
         where: {
           id: sid,
@@ -168,7 +168,7 @@ export async function POST(
         );
       }
 
-      // Task 2.2 (C3): Validate messageIndex is non-negative integer + enforce monotonicity
+      // Validate messageIndex monotonicity
       if (!Number.isInteger(idx) || idx < 0) {
         return NextResponse.json(
           { error: "messageIndex must be a non-negative integer" },

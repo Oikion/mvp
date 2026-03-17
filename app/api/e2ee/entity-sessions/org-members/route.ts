@@ -7,7 +7,7 @@ import { EncryptionMode } from "@prisma/client";
 
 export async function GET(_req: Request) {
   try {
-    const user = await getCurrentUser();
+    await getCurrentUser();
     const orgId = await getCurrentOrgId();
 
     const encryptionMode = await getOrgEncryptionMode(orgId);
