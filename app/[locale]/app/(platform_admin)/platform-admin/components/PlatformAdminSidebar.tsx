@@ -33,6 +33,7 @@ import {
   Home,
   Database,
   Globe,
+  Radio,
 } from "lucide-react";
 
 import {
@@ -159,10 +160,10 @@ export function PlatformAdminSidebar({ adminUser, locale, counts }: PlatformAdmi
       active: pathname.includes("/platform-admin/blog"),
     },
     {
-      href: `/${locale}/app/platform-admin/newsletter`,
-      label: t("nav.newsletter"),
-      icon: Mail,
-      active: pathname.includes("/platform-admin/newsletter"),
+      href: `/${locale}/app/platform-admin/communication/audiences`,
+      label: t("nav.communication"),
+      icon: Radio,
+      active: pathname.includes("/platform-admin/communication"),
     },
     {
       href: `/${locale}/app/platform-admin/social`,
