@@ -39,6 +39,13 @@ import {
   getMegolmInbound,
   clearAllSessions,
 } from "./session-store";
+import {
+  encryptEntityComment as _encryptEntityComment,
+  decryptEntityComment as _decryptEntityComment,
+  initEntitySession as _initEntitySession,
+  importEntitySession as _importEntitySession,
+  clearEntitySessionCaches,
+} from "./entity-comments";
 import type { PreKeyBundle, EncryptedDMPayload, EncryptedGroupPayload } from "./types";
 
 // ─── In-Memory State ──────────────────────────
@@ -149,6 +156,7 @@ export function lock(): void {
   _ratchetCache.clear();
   _megolmOutCache.clear();
   _megolmInCache.clear();
+  clearEntitySessionCaches();
 }
 
 // ─── DM Encryption (Double Ratchet) ───────────
@@ -310,6 +318,56 @@ export async function needsGroupRotation(targetId: string): Promise<boolean> {
   } catch {
     return true; // No session = needs creation
   }
+}
+
+// ─── Entity Comment Encryption (Megolm) ──────
+
+/**
+ * Initialize a Megolm session for an entity (first comment or entity creation in E2EE org).
+ * Returns session data to POST to /api/e2ee/entity-sessions.
+ */
+export async function initEntitySession(
+  entityType: "CLIENT" | "PROPERTY" | "MANDATE" | "TASK",
+  entityId: string,
+) {
+  assertUnlocked();
+  return _initEntitySession(entityType, entityId, _kekRaw!);
+}
+
+/**
+ * Import an entity Megolm inbound session from a decrypted session share.
+ */
+export async function importEntitySession(
+  sessionExport: { sessionId: string; targetId: string; ratchetKey: string; messageIndex: number },
+) {
+  assertUnlocked();
+  return _importEntitySession(sessionExport, _kekRaw!);
+}
+
+/**
+ * Encrypt a comment for an entity using its Megolm session.
+ * Session must be initialized first via initEntitySession().
+ */
+export async function encryptEntityComment(
+  entityType: "CLIENT" | "PROPERTY" | "MANDATE" | "TASK",
+  entityId: string,
+  plaintext: string,
+) {
+  assertUnlocked();
+  return _encryptEntityComment(entityType, entityId, plaintext, _kekRaw!);
+}
+
+/**
+ * Decrypt an entity comment using the Megolm session identified by sessionId.
+ * encryptedContent is the combined "iv:ciphertext" string from the DB.
+ */
+export async function decryptEntityComment(
+  sessionId: string,
+  messageIndex: number,
+  encryptedContent: string,
+) {
+  assertUnlocked();
+  return _decryptEntityComment(sessionId, messageIndex, encryptedContent, _kekRaw!);
 }
 
 // ─── Attachments ──────────────────────────────
