@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Plus, Trash2 } from "lucide-react"
 import type { EmailBlock, BadgeColor } from "@/lib/communication/types"
-import { useRef } from "react"
 
 interface BlockEditorPanelProps {
   block: EmailBlock
@@ -75,8 +74,6 @@ export function BlockEditorPanel({
   onChange,
   readOnly,
 }: BlockEditorPanelProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-
   switch (block.type) {
     case "header":
       return (
@@ -113,7 +110,6 @@ export function BlockEditorPanel({
             Text
           </label>
           <Textarea
-            ref={textareaRef}
             value={block.props.content}
             onChange={(e) =>
               onChange({ ...block, props: { content: e.target.value } })

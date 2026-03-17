@@ -67,6 +67,7 @@ export function CampaignEditor({ campaign, audiences }: CampaignEditorProps) {
 
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const subjectSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Auto-save blocks on change
   useEffect(() => {
@@ -79,10 +80,7 @@ export function CampaignEditor({ campaign, audiences }: CampaignEditorProps) {
     autoSaveTimerRef.current = setTimeout(async () => {
       setIsSaving(true)
       try {
-        await updateCampaign(campaign.id, {
-          blocks,
-          content: previewHtml || campaign.content,
-        })
+        await updateCampaign(campaign.id, { blocks })
       } catch (error) {
         console.error("Auto-save failed:", error)
         toast.error("Failed to save changes")
@@ -94,7 +92,7 @@ export function CampaignEditor({ campaign, audiences }: CampaignEditorProps) {
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
     }
-  }, [blocks]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [blocks, campaign.id])
 
   // Render preview on block changes
   useEffect(() => {
@@ -245,7 +243,7 @@ export function CampaignEditor({ campaign, audiences }: CampaignEditorProps) {
     <div className="flex h-[calc(100vh-4rem)] flex-col">
       {/* Read-only banner */}
       {isReadOnly && (
-        <div className="flex items-center gap-2 bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-800">
+        <div className="flex items-center gap-2 bg-warning/10 border-b border-warning/20 px-4 py-2 text-sm text-warning">
           <AlertCircle className="h-4 w-4" />
           This campaign has been sent and cannot be edited.
         </div>
@@ -257,8 +255,12 @@ export function CampaignEditor({ campaign, audiences }: CampaignEditorProps) {
           <Input
             value={subject}
             onChange={(e) => {
-              setSubject(e.target.value)
-              handleSettingsSave({ subject: e.target.value })
+              const value = e.target.value
+              setSubject(value)
+              if (subjectSaveTimerRef.current) clearTimeout(subjectSaveTimerRef.current)
+              subjectSaveTimerRef.current = setTimeout(() => {
+                handleSettingsSave({ subject: value })
+              }, 800)
             }}
             className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 w-[400px] px-0"
             placeholder="Campaign subject..."
@@ -322,7 +324,7 @@ export function CampaignEditor({ campaign, audiences }: CampaignEditorProps) {
                 </DialogDescription>
               </DialogHeader>
               {!campaignSettings.audienceId ? (
-                <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+                <div className="flex items-center gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   Select an audience in Settings first.
                 </div>

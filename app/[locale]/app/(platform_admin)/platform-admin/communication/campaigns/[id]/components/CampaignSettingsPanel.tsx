@@ -98,7 +98,7 @@ export function CampaignSettingsPanel({
           placeholder="noreply@mail.oikion.com"
         />
         {showEmailWarning && (
-          <div className="flex items-center gap-1.5 text-xs text-amber-600">
+          <div className="flex items-center gap-1.5 text-xs text-warning">
             <AlertCircle className="h-3 w-3 shrink-0" />
             Domain is not mail.oikion.com — emails may have delivery issues.
           </div>

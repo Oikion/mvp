@@ -81,7 +81,11 @@ Every static route MUST resolve to a valid `page.tsx` in the app router. Check a
 | `/app/platform-admin/referrals` | `.../platform-admin/referrals/page.tsx` |
 | `/app/platform-admin/feedback` | `.../platform-admin/feedback/page.tsx` |
 | `/app/platform-admin/blog` | `.../platform-admin/blog/page.tsx` |
-| `/app/platform-admin/newsletter` | `.../platform-admin/newsletter/page.tsx` |
+| `/app/platform-admin/communication/audiences` | `.../platform-admin/communication/audiences/page.tsx` |
+| `/app/platform-admin/communication/campaigns` | `.../platform-admin/communication/campaigns/page.tsx` |
+| `/app/platform-admin/communication/campaigns/[id]` | `.../platform-admin/communication/campaigns/[id]/page.tsx` |
+| `/app/platform-admin/communication/sent` | `.../platform-admin/communication/sent/page.tsx` |
+| `/app/platform-admin/communication/sent/[id]` | `.../platform-admin/communication/sent/[id]/page.tsx` |
 | `/app/platform-admin/social` | `.../platform-admin/social/page.tsx` |
 | `/app/platform-admin/automation` | `.../platform-admin/automation/page.tsx` |
 | `/app/platform-admin/changelog` | `.../platform-admin/changelog/page.tsx` |
