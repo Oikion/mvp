@@ -49,6 +49,13 @@ export async function POST(
       );
     }
 
+    if (encryptedSession && encryptedSession.length > 65536) {
+      return NextResponse.json(
+        { error: "encryptedSession too large" },
+        { status: 400 }
+      );
+    }
+
     // Verify recipientId is a member of the session's org (C1: prevent cross-org share injection)
     const orgMembers = await getOrgMembersFromDb({ organizationId: session.orgId });
     const isMember = orgMembers.users.some((u: any) => u.id === recipientId);

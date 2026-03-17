@@ -4,6 +4,7 @@ import { isE2EEOrg } from "@/lib/entity-session/encryption-mode";
 import { rotateEntitySession } from "@/lib/entity-session/entity-session-service";
 import type { EntityType } from "@/lib/entity-session/types";
 import { prismadb } from "@/lib/prisma";
+import { getOrgMembersFromDb } from "@/lib/org-members";
 
 /**
  * POST /api/e2ee/entity-sessions/[sessionId]/rotate
@@ -59,6 +60,26 @@ export async function POST(
         { error: "newMegolmSessionId, shares, and orkBackup are required" },
         { status: 400 }
       );
+    }
+
+    // Validate share recipients are org members
+    if (shares && Array.isArray(shares) && shares.length > 0) {
+      if (shares.length > 100) {
+        return NextResponse.json(
+          { error: "shares must be an array of at most 100 items" },
+          { status: 400 }
+        );
+      }
+      const orgMembers = await getOrgMembersFromDb({ organizationId: currentSession.orgId });
+      const memberIds = new Set(orgMembers.users.map((u: any) => u.id));
+      for (const share of shares) {
+        if (!memberIds.has(share.userId)) {
+          return NextResponse.json(
+            { error: `User ${share.userId} is not a member of this organization` },
+            { status: 403 }
+          );
+        }
+      }
     }
 
     const newSession = await rotateEntitySession({
