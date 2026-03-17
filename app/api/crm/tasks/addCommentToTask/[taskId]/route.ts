@@ -70,13 +70,19 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
       entitySessionId = sid;
       messageIndex = idx;
     } else {
-      // Standard: cap at 2000 chars then encrypt server-side
-      const cappedComment = typeof comment === "string" ? comment.slice(0, 2000) : String(comment);
+      // Standard: validate length then encrypt server-side
+      const rawComment = typeof comment === "string" ? comment : String(comment);
+      if (rawComment.length > 2000) {
+        return NextResponse.json(
+          { error: "Comment is too long (max 2000 characters)" },
+          { status: 400 }
+        );
+      }
       const { comment: encrypted } = await encryptTaskCommentForOrg(
-        { comment: cappedComment },
+        { comment: rawComment },
         organizationId
       );
-      commentContent = encrypted ?? cappedComment;
+      commentContent = encrypted ?? rawComment;
     }
 
     const newComment = await prismadb.crm_Accounts_Tasks_Comments.create({
