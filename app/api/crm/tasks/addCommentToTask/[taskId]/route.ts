@@ -5,11 +5,14 @@ import NewTaskCommentEmail from "@/emails/NewTaskComment";
 import resendHelper from "@/lib/resend";
 import { notifyTaskCommented } from "@/lib/notifications";
 import { canPerformAction } from "@/lib/permissions/action-service";
+import { encryptTaskCommentForOrg } from "@/lib/model-encryption";
+import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
+import { EncryptionMode } from "@prisma/client";
 
 export async function POST(req: Request, props: { params: Promise<{ taskId: string }> }) {
   const params = await props.params;
   const resend = await resendHelper();
-  
+
   try {
     // Permission check: Users need task:add_comment permission
     const commentCheck = await canPerformAction("task:add_comment");
@@ -34,9 +37,6 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
       return new NextResponse("Missing comment", { status: 400 });
     }
 
-    // Cap comment length to 2000 characters
-    const cappedComment = typeof comment === "string" ? comment.slice(0, 2000) : comment;
-
     const task = await prismadb.crm_Accounts_Tasks.findFirst({
       where: { id: taskId, organizationId },
       include: {
@@ -50,10 +50,41 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
       return new NextResponse("Task not found", { status: 404 });
     }
 
+    const encryptionMode = await getOrgEncryptionMode(organizationId);
+    const isE2EE = encryptionMode === EncryptionMode.E2EE;
+
+    let commentContent: string;
+    let entitySessionId: string | null = null;
+    let messageIndex: number | null = null;
+
+    if (isE2EE) {
+      // E2EE: content is ciphertext — don't truncate (client validates plaintext length)
+      const { entitySessionId: sid, messageIndex: idx } = body;
+      if (!sid || idx === undefined) {
+        return NextResponse.json(
+          { error: "entitySessionId and messageIndex required for E2EE orgs" },
+          { status: 400 }
+        );
+      }
+      commentContent = typeof comment === "string" ? comment : String(comment);
+      entitySessionId = sid;
+      messageIndex = idx;
+    } else {
+      // Standard: cap at 2000 chars then encrypt server-side
+      const cappedComment = typeof comment === "string" ? comment.slice(0, 2000) : String(comment);
+      const { comment: encrypted } = await encryptTaskCommentForOrg(
+        { comment: cappedComment },
+        organizationId
+      );
+      commentContent = encrypted ?? cappedComment;
+    }
+
     const newComment = await prismadb.crm_Accounts_Tasks_Comments.create({
       data: {
         id: crypto.randomUUID(),
-        comment: cappedComment,
+        comment: commentContent,
+        entitySessionId,
+        messageIndex,
         crm_account_task: taskId,
         user: user.id,
         organizationId,
@@ -71,7 +102,7 @@ export async function POST(req: Request, props: { params: Promise<{ taskId: stri
         actorName: user.name || user.email || "Someone",
         recipientId: task.user,
         organizationId,
-        commentContent: cappedComment,
+        commentContent: commentContent,
       });
     }
 
