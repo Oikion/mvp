@@ -3015,6 +3015,7 @@ model EntitySession {
   createdAt       DateTime             @default(now())
   rotatedAt       DateTime?
   orgId           String
+  lastMessageIndex Int?
 
   shares          EntitySessionShare[]
   backups         EntitySessionBackup[]
