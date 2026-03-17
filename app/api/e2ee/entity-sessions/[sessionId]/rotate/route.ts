@@ -39,6 +39,18 @@ export async function POST(
       );
     }
 
+    // Verify caller holds a share on the currently active session (I2: stale-share attack prevention)
+    const callerShare = await prismadb.entitySessionShare.findFirst({
+      where: { entitySessionId: currentSession.id, userId: user.id },
+      select: { id: true },
+    });
+    if (!callerShare) {
+      return NextResponse.json(
+        { error: "You do not have access to this session" },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { newMegolmSessionId, shares, orkBackup } = body;
 

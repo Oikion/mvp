@@ -29,7 +29,7 @@ export async function POST(
 
     // Verify the session exists and belongs to the user's org
     const session = await prismadb.entitySession.findFirst({
-      where: { id: sessionId, orgId },
+      where: { id: sessionId, orgId, isActive: true },
     });
 
     if (!session) {
