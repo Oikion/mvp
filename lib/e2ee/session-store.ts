@@ -169,6 +169,54 @@ export async function deleteMegolmInbound(sessionId: string): Promise<void> {
   await db.delete(MEGOLM_INBOUND_STORE, `megolm-in:${sessionId}`);
 }
 
+// ─── Entity Megolm Sessions (entity-as-channel) ─────────
+
+/**
+ * Store a Megolm outbound session for an entity.
+ * Key format: entity:<entityType>:<entityId> (prevents collisions with channel sessions).
+ */
+export async function storeEntityMegolmOutbound(
+  entityType: string,
+  entityId: string,
+  serialized: string,
+  kek: ArrayBuffer
+): Promise<void> {
+  const db = await getDB();
+  const key = `entity:${entityType}:${entityId}`;
+  const entry = await encryptForStorage(`megolm-out:${key}`, serialized, kek);
+  await db.put(MEGOLM_OUTBOUND_STORE, entry);
+}
+
+/**
+ * Retrieve a Megolm outbound session for an entity.
+ */
+export async function getEntityMegolmOutbound(
+  entityType: string,
+  entityId: string,
+  kek: ArrayBuffer
+): Promise<string | null> {
+  const db = await getDB();
+  const key = `entity:${entityType}:${entityId}`;
+  const entry = await db.get(MEGOLM_OUTBOUND_STORE, `megolm-out:${key}`) as EncryptedEntry | undefined;
+  if (!entry) return null;
+  return decryptFromStorage(entry, kek);
+}
+
+/**
+ * Delete a Megolm outbound session for an entity (on rotation).
+ */
+export async function deleteEntityMegolmOutbound(
+  entityType: string,
+  entityId: string
+): Promise<void> {
+  const db = await getDB();
+  const key = `entity:${entityType}:${entityId}`;
+  await db.delete(MEGOLM_OUTBOUND_STORE, `megolm-out:${key}`);
+}
+
+// Note: Entity inbound sessions reuse storeMegolmInbound/getMegolmInbound directly
+// since Megolm sessionIds are globally unique UUIDs — no key prefix needed.
+
 /**
  * Clear ALL E2EE session data from IndexedDB.
  * Used on logout or when user resets E2EE.
