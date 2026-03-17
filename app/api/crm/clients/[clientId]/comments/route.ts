@@ -199,6 +199,51 @@ export async function POST(
           { status: 400 }
         );
       }
+
+      // Task 1.5 (C2): Validate entitySessionId belongs to this entity
+      const sessionOwnership = await prismadb.entitySession.findFirst({
+        where: {
+          id: sid,
+          entityType: "CLIENT",
+          entityId: clientId,
+          orgId: organizationId,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+      if (!sessionOwnership) {
+        return NextResponse.json(
+          { error: "entitySessionId does not match this entity or is not active" },
+          { status: 400 }
+        );
+      }
+
+      // Task 2.2 (C3): Validate messageIndex is non-negative integer + enforce monotonicity
+      if (!Number.isInteger(idx) || idx < 0) {
+        return NextResponse.json(
+          { error: "messageIndex must be a non-negative integer" },
+          { status: 400 }
+        );
+      }
+
+      const updated = await prismadb.entitySession.updateMany({
+        where: {
+          id: sid,
+          OR: [
+            { lastMessageIndex: null },
+            { lastMessageIndex: { lt: idx } },
+          ],
+        },
+        data: { lastMessageIndex: idx },
+      });
+
+      if (updated.count === 0) {
+        return NextResponse.json(
+          { error: "messageIndex is not monotonically increasing" },
+          { status: 400 }
+        );
+      }
+
       commentContent = content.trim(); // Already ciphertext (iv:ciphertext format)
       entitySessionId = sid;
       messageIndex = idx;
