@@ -100,8 +100,13 @@ export class MegolmInbound {
     public readonly sessionId: string,
     public readonly targetId: string,
     private ratchetKey: ArrayBuffer,
-    private currentIndex: number,
+    private _currentIndex: number,
   ) {}
+
+  /** Current ratchet index (read-only). */
+  get currentIndex(): number {
+    return this._currentIndex;
+  }
 
   static fromExport(exported: MegolmSessionExport): MegolmInbound {
     return new MegolmInbound(
@@ -113,12 +118,12 @@ export class MegolmInbound {
   }
 
   async decrypt(messageIndex: number, ciphertextBase64: string, ivBase64: string): Promise<string> {
-    if (messageIndex < this.currentIndex) {
-      throw new Error(`Cannot decrypt past message (index ${messageIndex} < current ${this.currentIndex})`);
+    if (messageIndex < this._currentIndex) {
+      throw new Error(`Cannot decrypt past message (index ${messageIndex} < current ${this._currentIndex})`);
     }
     // Fast-forward ratchet to target index
     let key = new Uint8Array(this.ratchetKey);
-    let idx = this.currentIndex;
+    let idx = this._currentIndex;
     while (idx < messageIndex) {
       key = new Uint8Array(await sha256(key));
       idx++;
@@ -132,9 +137,9 @@ export class MegolmInbound {
     const iv = base64ToBuffer(ivBase64);
     const plaintext = await aesGcmDecrypt(ciphertext, msgKey.slice(0, 32), iv);
     // Advance our state past the decrypted message
-    if (messageIndex >= this.currentIndex) {
+    if (messageIndex >= this._currentIndex) {
       this.ratchetKey = await sha256(key);
-      this.currentIndex = messageIndex + 1;
+      this._currentIndex = messageIndex + 1;
     }
     return new TextDecoder().decode(plaintext);
   }
@@ -144,7 +149,7 @@ export class MegolmInbound {
       sessionId: this.sessionId,
       targetId: this.targetId,
       ratchetKey: bufferToBase64(this.ratchetKey),
-      currentIndex: this.currentIndex,
+      currentIndex: this._currentIndex,
     });
   }
 

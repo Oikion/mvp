@@ -154,7 +154,6 @@ export async function POST(req: Request) {
       entityType,
       entityId,
       megolmSessionId,
-      creatorEncryptedSession,
       creatorShare,
       orkBackup,
       additionalShares,
@@ -164,7 +163,7 @@ export async function POST(req: Request) {
       !entityType ||
       !entityId ||
       !megolmSessionId ||
-      !creatorEncryptedSession ||
+      !creatorShare?.encryptedSession ||
       !orkBackup
     ) {
       return NextResponse.json(
@@ -193,17 +192,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid entityId" }, { status: 400 });
     }
 
-    // NEW-I10: Max-length guards on encrypted blobs
-    if (
-      creatorShare?.encryptedSession &&
-      creatorShare.encryptedSession.length > 65536
-    ) {
-      return NextResponse.json(
-        { error: "encryptedSession too large" },
-        { status: 400 }
-      );
-    }
-    if (creatorEncryptedSession && creatorEncryptedSession.length > 65536) {
+    // Max-length guards on encrypted blobs
+    if (creatorShare.encryptedSession.length > 65536) {
       return NextResponse.json(
         { error: "encryptedSession too large" },
         { status: 400 }
@@ -254,7 +244,7 @@ export async function POST(req: Request) {
         megolmSessionId,
         creatorShare: {
           userId: user.id,
-          encryptedSession: creatorEncryptedSession,
+          encryptedSession: creatorShare.encryptedSession,
         },
         orkBackup,
         additionalShares,

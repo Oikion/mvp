@@ -8,6 +8,7 @@ import {
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
 import { dispatchTaskWebhook } from "@/lib/webhooks";
+import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
 
 /**
  * GET /api/v1/crm/tasks/[taskId]
@@ -212,6 +213,8 @@ export const DELETE = withExternalApi(
     }
 
     // Delete task
+    await deleteEntitySessionsForEntity("TASK", taskId);
+
     await prismadb.crm_Accounts_Tasks.delete({
       where: { id: taskId },
     });

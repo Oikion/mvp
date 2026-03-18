@@ -4,6 +4,7 @@ import { prismaForOrg } from "@/lib/tenant";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 import { deleteFromBlob } from "@/lib/vercel-blob";
+import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
 
 export async function GET(
   _req: Request,
@@ -114,6 +115,8 @@ export async function DELETE(
     } catch (err) {
       console.error("[PROPERTY_DELETE] Failed to fetch images for cleanup:", err);
     }
+
+    await deleteEntitySessionsForEntity("PROPERTY", property.id);
 
     await prismaTenant.properties.delete({
       where: { id: property.id },

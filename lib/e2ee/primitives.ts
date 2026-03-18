@@ -3,7 +3,7 @@
 const ECDH_PARAMS = { name: "ECDH", namedCurve: "P-256" } as const;
 const AES_GCM = "AES-GCM" as const;
 const IV_BYTES = 12;
-const PBKDF2_ITERATIONS = 100_000;
+const PBKDF2_ITERATIONS = 600_000;
 
 // ─── Random ────────────────────────────────
 

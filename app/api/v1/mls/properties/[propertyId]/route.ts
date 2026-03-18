@@ -9,6 +9,7 @@ import {
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
 import { dispatchPropertyWebhook } from "@/lib/webhooks";
+import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
 
 /**
  * GET /api/v1/mls/properties/[propertyId]
@@ -310,6 +311,8 @@ export const DELETE = withExternalApi(
     }
 
     // Delete property
+    await deleteEntitySessionsForEntity("PROPERTY", existingProperty.id);
+
     await prismadb.properties.delete({
       where: { id: existingProperty.id },
     });

@@ -16,7 +16,8 @@ type EntityType = "CLIENT" | "PROPERTY" | "MANDATE" | "TASK";
 
 export type EncryptEntityCommentResult =
   | { ok: true; content: string; entitySessionId: string; messageIndex: number }
-  | { ok: false; needsRotation: true };
+  | { ok: false; needsRotation: true }
+  | { ok: false; needsInit: true };
 
 interface EncryptedCommentPayload {
   /** Combined "iv:ciphertext" string (both Base64). Server stores this as-is in the content field. */
@@ -93,11 +94,7 @@ export async function encryptEntityComment(
 
   if (!session) {
     // No session — caller must create one via the entity-sessions API first.
-    // This is a programming error; the UI flow should ensure sessions exist.
-    throw new Error(
-      `No Megolm outbound session for ${entityType}:${entityId}. ` +
-      `Call initEntitySession() first.`
-    );
+    return { ok: false, needsInit: true };
   }
 
   const payload = await session.encrypt(plaintext);
@@ -155,10 +152,13 @@ export async function decryptEntityComment(
     _entityInCache.set(sessionId, session);
   }
 
+  const indexBefore = session.currentIndex;
   const plaintext = await session.decrypt(messageIndex, ciphertext, iv);
 
-  // Persist updated state
-  await storeMegolmInbound(sessionId, session.serialize(), kek);
+  // Only persist if the ratchet actually advanced (avoids redundant IndexedDB writes on re-render)
+  if (session.currentIndex > indexBefore) {
+    await storeMegolmInbound(sessionId, session.serialize(), kek);
+  }
 
   return plaintext;
 }
