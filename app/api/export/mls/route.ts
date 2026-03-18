@@ -139,6 +139,7 @@ export async function GET(req: NextRequest) {
         municipality: true,
         year_built: true,
         description: true,
+        primary_email: true,
         assigned_to: true,
         floor: true,
         elevator: true,
