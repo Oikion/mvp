@@ -27,6 +27,7 @@ interface ReviewStepProps {
   fieldMapping: Record<string, string>;
   errorCount: number;
   entityType: "client" | "property" | "mandate";
+  entityCounts?: { clients: number; properties: number; mandates: number };
 }
 
 export function ReviewStep({
@@ -36,15 +37,27 @@ export function ReviewStep({
   fieldMapping,
   errorCount,
   entityType,
+  entityCounts,
 }: ReviewStepProps) {
   const previewData = data.slice(0, 10);
-  const entityLabel = entityType === "client" ? "clients" : "properties";
+  let entityLabel: string;
+  if (entityType === "client") {
+    entityLabel = "clients";
+  } else if (entityType === "mandate") {
+    entityLabel = "mandates";
+  } else {
+    entityLabel = "properties";
+  }
 
   // Get the columns to display (first few important fields)
-  const displayColumns =
-    entityType === "client"
-      ? ["client_name", "primary_email", "primary_phone", "client_type", "client_status"]
-      : ["property_name", "property_type", "price", "address_city", "property_status"];
+  let displayColumns: string[];
+  if (entityType === "client") {
+    displayColumns = ["client_name", "primary_email", "primary_phone", "client_type", "client_status"];
+  } else if (entityType === "mandate") {
+    displayColumns = ["budget_min", "budget_max", "mandate_transaction_type", "mandate_municipality", "urgency"];
+  } else {
+    displayColumns = ["property_name", "property_type", "price", "address_city", "property_status"];
+  }
 
   // Filter to only include columns that exist in the data
   const availableColumns = displayColumns.filter((col) =>
@@ -82,6 +95,36 @@ export function ReviewStep({
           </div>
         </CardContent>
       </Card>
+
+      {/* Per-entity summary cards (unified import) */}
+      {entityCounts && (
+        <div className="grid grid-cols-3 gap-4">
+          {entityCounts.clients > 0 && (
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <p className="text-2xl font-bold text-primary">{entityCounts.clients}</p>
+                <p className="text-sm text-muted-foreground">Clients</p>
+              </CardContent>
+            </Card>
+          )}
+          {entityCounts.properties > 0 && (
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <p className="text-2xl font-bold text-primary">{entityCounts.properties}</p>
+                <p className="text-sm text-muted-foreground">Properties</p>
+              </CardContent>
+            </Card>
+          )}
+          {entityCounts.mandates > 0 && (
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <p className="text-2xl font-bold text-primary">{entityCounts.mandates}</p>
+                <p className="text-sm text-muted-foreground">Mandates</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Skip Warning */}
       {errorCount > 0 && (
@@ -153,7 +196,7 @@ export function ReviewStep({
             <div className="text-center">
               <p className="text-3xl font-bold text-success">{data.length}</p>
               <p className="text-sm text-muted-foreground">
-                {entityType === "client" ? "Clients" : "Properties"} to import
+                {entityLabel.charAt(0).toUpperCase() + entityLabel.slice(1)} to import
               </p>
             </div>
           </CardContent>
