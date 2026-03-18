@@ -135,6 +135,11 @@ export interface ImportResult {
   skipped: number;
   failed: number;
   errors?: ValidationError[];
+  // Unified import fields (present when using unified engine)
+  clients?: { created: number; reused: number; failed: number };
+  properties?: { created: number; failed: number };
+  mandates?: { created: number; failed: number };
+  links?: { clientProperty: number; mandateClient: number; mandateProperty: number };
 }
 
 interface ImportWizardStepsProps {
@@ -148,6 +153,8 @@ interface ImportWizardStepsProps {
   onComplete?: () => void;
   onCancel?: () => void;
   viewUrl?: string;
+  unifiedMode?: boolean;
+  mandateFieldKeys?: Set<string>;
 }
 
 // Animation variants for step transitions (matching onboarding)
@@ -181,6 +188,8 @@ export function ImportWizardSteps({
   onComplete,
   onCancel,
   viewUrl,
+  unifiedMode,
+  mandateFieldKeys,
 }: ImportWizardStepsProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -298,6 +307,32 @@ export function ImportWizardSteps({
     setIsImporting(true);
     setImportProgress(0);
 
+    // UNIFIED MODE: single request (no batching) — client dedup map must span all rows
+    if (unifiedMode) {
+      try {
+        setImportProgress(50);
+        const result = await onImport(validData, controller.signal);
+        if (controller.signal.aborted) return;
+        setImportResult(result);
+        setImportProgress(100);
+        handleNext();
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Import failed:", error);
+        setImportResult({
+          imported: 0, skipped: 0,
+          failed: validData.length,
+          errors: [{ row: 0, field: "", error: dict.errors.serverError }],
+        });
+        handleNext();
+      } finally {
+        setIsImporting(false);
+        setImportProgress(0);
+        abortControllerRef.current = null;
+      }
+      return;
+    }
+
     const aggregated: ImportResult = {
       imported: 0,
       skipped: 0,
@@ -322,6 +357,30 @@ export function ImportWizardSteps({
         aggregated.failed += result.failed;
         if (result.errors) {
           aggregated.errors!.push(...result.errors);
+        }
+
+        // Aggregate unified import fields across batches
+        if (result.clients) {
+          if (!aggregated.clients) aggregated.clients = { created: 0, reused: 0, failed: 0 };
+          aggregated.clients.created += result.clients.created;
+          aggregated.clients.reused += result.clients.reused;
+          aggregated.clients.failed += result.clients.failed;
+        }
+        if (result.properties) {
+          if (!aggregated.properties) aggregated.properties = { created: 0, failed: 0 };
+          aggregated.properties.created += result.properties.created;
+          aggregated.properties.failed += result.properties.failed;
+        }
+        if (result.mandates) {
+          if (!aggregated.mandates) aggregated.mandates = { created: 0, failed: 0 };
+          aggregated.mandates.created += result.mandates.created;
+          aggregated.mandates.failed += result.mandates.failed;
+        }
+        if (result.links) {
+          if (!aggregated.links) aggregated.links = { clientProperty: 0, mandateClient: 0, mandateProperty: 0 };
+          aggregated.links.clientProperty += result.links.clientProperty;
+          aggregated.links.mandateClient += result.links.mandateClient;
+          aggregated.links.mandateProperty += result.links.mandateProperty;
         }
 
         setImportProgress(Math.round(((i + 1) / totalBatches) * 100));
@@ -354,6 +413,15 @@ export function ImportWizardSteps({
       case 0: // Upload
         return file !== null && parsedData.length > 0;
       case 1: // Mapping
+        if (unifiedMode) {
+          const mappedFields = Object.values(fieldMapping);
+          const hasClientTrigger = mappedFields.includes("client_name")
+            || mappedFields.includes("primary_phone") || mappedFields.includes("primary_email");
+          const hasPropertyTrigger = mappedFields.includes("property_name");
+          const hasMandateTrigger = mandateFieldKeys
+            ? mappedFields.some((f) => mandateFieldKeys.has(f)) : false;
+          return hasClientTrigger || hasPropertyTrigger || hasMandateTrigger;
+        }
         // Check if all required fields are mapped
         const requiredFields = fieldDefinitions.filter((f) => f.required);
         const mappedFields = Object.values(fieldMapping);
