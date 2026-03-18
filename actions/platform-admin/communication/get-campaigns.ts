@@ -3,9 +3,7 @@
 import { prismadb } from "@/lib/prisma"
 import { CampaignStatus } from "@prisma/client"
 import { requirePlatformAdmin } from "@/lib/platform-admin"
-import { serializeCampaign } from "@/lib/communication/types"
-export type { SerializedCampaign } from "@/lib/communication/types"
-export { serializeCampaign } from "@/lib/communication/types"
+import { type SerializedCampaign, serializeCampaign } from "@/lib/communication/types"
 
 interface GetCampaignsResult {
   campaigns: SerializedCampaign[]
