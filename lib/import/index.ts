@@ -99,3 +99,9 @@ export {
   generateMandateTitle,
   generateClientName,
 } from "./name-generator";
+
+// Unified import engine
+export {
+  executeUnifiedImport,
+  type UnifiedImportResult,
+} from "./unified-engine";
