@@ -19,6 +19,7 @@ import { AppProviders } from "@/components/providers/AppProviders"
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper"
 import { LayoutToggle } from "@/components/layout/LayoutToggle"
 import { DataOwnershipBanner } from "@/components/data-ownership/DataOwnershipBanner"
+import { E2EEAnnouncementBanner } from "@/components/encryption/E2EEAnnouncementBanner"
 import { E2EESessionButton } from "@/components/layout/E2EESessionButton"
 // Use cached versions for request deduplication (performance optimization)
 import {
@@ -157,15 +158,17 @@ export default async function AppLayout({
     select: { id: true },
   });
 
-  // Check if org needs data ownership policy selection
+  // Check if org needs data ownership policy selection + E2EE status
   let needsOwnershipSelection = false;
+  let showE2EEBanner = false;
   const isAdmin = permissionContext?.role === "OWNER" || permissionContext?.role === "LEAD";
   if (orgId) {
     const orgSettings = await prismadb.organizationSettings.findUnique({
       where: { organizationId: orgId },
-      select: { dataOwnershipSetAt: true },
+      select: { dataOwnershipSetAt: true, encryptionMode: true },
     });
     needsOwnershipSelection = !orgSettings?.dataOwnershipSetAt;
+    showE2EEBanner = orgSettings?.encryptionMode !== "E2EE";
   }
 
   return (
@@ -211,6 +214,9 @@ export default async function AppLayout({
                   needsSelection={true}
                   isAdmin={isAdmin}
                 />
+              )}
+              {showE2EEBanner && (
+                <E2EEAnnouncementBanner isAdmin={isAdmin} />
               )}
               <LayoutWrapper>
                 {children}
