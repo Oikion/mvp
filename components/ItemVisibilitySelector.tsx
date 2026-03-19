@@ -145,26 +145,7 @@ export function ItemVisibilitySelector({
     <div className={cn("space-y-3 select-none", disabled && "pointer-events-none opacity-50")}>
       {/* Track */}
       <div className="relative px-2.5 py-2 select-none">
-        {/* Ghost gradient track (full width, faint) */}
-        <div
-          className="absolute inset-x-2.5 top-1/2 h-2 -translate-y-1/2 rounded-full"
-          style={{
-            background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
-            opacity: 0.2,
-          }}
-        />
-        {/* Filled progress track */}
-        <div
-          className="absolute left-2.5 top-1/2 h-2 -translate-y-1/2 rounded-full pointer-events-none"
-          style={{
-            width: `${pct}%`,
-            // scale fill within the usable track width (between thumb centers)
-            maxWidth: "calc(100% - 20px)",
-            background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
-            transition: isDragging ? "none" : "width 300ms cubic-bezier(0.34,1.56,0.64,1)",
-          }}
-        />
-        {/* Invisible wide hit-area div for pointer events */}
+        {/* Hit-area div is the single positioning root for all track elements */}
         <div
           ref={trackRef}
           className="relative h-8 cursor-grab active:cursor-grabbing"
@@ -174,6 +155,23 @@ export function ItemVisibilitySelector({
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
+          {/* Ghost gradient track (full width, faint) */}
+          <div
+            className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full pointer-events-none"
+            style={{
+              background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
+              opacity: 0.2,
+            }}
+          />
+          {/* Filled progress track — same coordinate space as thumb */}
+          <div
+            className="absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full pointer-events-none"
+            style={{
+              width: `${pct}%`,
+              background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
+              transition: isDragging ? "none" : "width 300ms cubic-bezier(0.34,1.56,0.64,1)",
+            }}
+          />
           {/* Thumb */}
           <div
             className="absolute top-1/2 h-5 w-5 rounded-full border-2 shadow-md pointer-events-none"
@@ -227,9 +225,6 @@ export function ItemVisibilitySelector({
               />
               <span className={cn("text-xs font-medium", isActive ? opt.color : "text-muted-foreground")}>
                 {opt.label}
-              </span>
-              <span className="text-[10px] text-muted-foreground text-center leading-tight">
-                {opt.shortDescription}
               </span>
             </button>
           );
