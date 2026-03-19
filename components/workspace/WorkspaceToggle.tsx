@@ -102,13 +102,15 @@ export function WorkspaceToggle() {
           <User className="h-3.5 w-3.5" />
         </Label>
       </div>
-      <Link
-        href={`/${locale}/app/admin`}
-        className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent"
-      >
-        <Settings className="h-3.5 w-3.5" />
-        {t("workspaceSettings")}
-      </Link>
+      {!isPersonalWorkspace && (
+        <Link
+          href={`/${locale}/app/admin`}
+          className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent"
+        >
+          <Settings className="h-3.5 w-3.5" />
+          {t("workspaceSettings")}
+        </Link>
+      )}
     </div>
   );
 }

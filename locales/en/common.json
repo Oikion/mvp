@@ -532,7 +532,9 @@
     "switchError": "Failed to switch workspace. Please try again.",
     "personalNotFound": "Personal workspace not found. Please contact support.",
     "agencyNotFound": "No agency organization found. Please create one first.",
-    "workspaceSettings": "Workspace Settings"
+    "workspaceSettings": "Workspace Settings",
+    "settingsNotAvailable": "Organisation Settings Unavailable",
+    "settingsNotAvailableDescription": "You cannot edit your personal workspace's organisation settings. Switch to your agency workspace to access these settings."
   },
   "organizationInvites": {
     "title": "Organization Invitations",
