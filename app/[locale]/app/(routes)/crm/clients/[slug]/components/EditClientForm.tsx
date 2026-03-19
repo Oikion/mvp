@@ -88,7 +88,7 @@ export function EditClientForm({ initialData }: { initialData: EditClientInitial
       id: initialData.id,
       client_name: initialData.client_name,
       person_type: initialData.person_type as "INDIVIDUAL" | "COMPANY" | "INVESTOR" | "BROKER",
-      primary_email: initialData.primary_email,
+      primary_email: initialData.primary_email ?? undefined,
       client_type: initialData.client_type || undefined,
       client_status: initialData.client_status || undefined,
       description: initialData.description || "",
