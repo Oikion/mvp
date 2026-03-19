@@ -1,0 +1,22 @@
+File: unified-clean-client-only.csv
+Scenario: Client-only import (no property or mandate fields)
+
+Expected Results:
+- Clients created: 5
+- Clients reused: 0
+- Properties created: 0
+- Mandates created: 0
+- Links - Client↔Property: 0
+- Links - Mandate↔Client: 0
+- Links - Mandate↔Property: 0
+- Errors: 0
+- Skipped: 0
+
+Notes:
+- Client detection via client_name (all rows have it)
+- No property_name column -- no property detection
+- No mandate fields -- no mandate detection
+- Mix of INDIVIDUAL (3) and COMPANY (2) person types
+- Client types covered: BUYER, SELLER, INVESTOR, RENTER, REFERRAL_PARTNER
+- Lead sources covered: REFERRAL, WEB, PORTAL, SOCIAL, WALK_IN
+- Two company clients have company_name, afm, doy fields populated

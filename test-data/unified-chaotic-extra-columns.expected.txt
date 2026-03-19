@@ -1,0 +1,26 @@
+File: unified-chaotic-extra-columns.csv
+Scenario: Spreadsheet with extra/unknown columns
+
+Expected Results:
+- Clients created: 5
+- Clients reused: 0
+- Properties created: 5
+- Mandates created: 0
+- Links - Client↔Property: 5
+- Links - Mandate↔Client: 0
+- Links - Mandate↔Property: 0
+- Errors: 0
+- Skipped: 0
+
+Notes:
+- Extra columns that should be silently ignored:
+  - notes_internal: not a recognized field key or alias
+  - agent_commission: not a recognized field key or alias
+  - listing_date: not a recognized field key or alias
+  - photo_url: not a recognized field key or alias
+  - custom_ref: not a recognized field key or alias
+  - floor_plan_url: not a recognized field key or alias
+- Recognized columns map normally: property_name, property_type, price, size_net_sqm, bedrooms, area, client_name, primary_phone
+- The import engine should not throw errors for unknown columns
+- All 5 rows should create property + client pairs successfully
+- Some extra columns have empty values (e.g., row 4 photo_url, row 2 floor_plan_url) -- should not cause issues

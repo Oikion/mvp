@@ -1,0 +1,20 @@
+File: unified-clean-property-only.csv
+Scenario: Property-only import (no client or mandate fields)
+
+Expected Results:
+- Clients created: 0
+- Clients reused: 0
+- Properties created: 5
+- Mandates created: 0
+- Links - Client↔Property: 0
+- Links - Mandate↔Client: 0
+- Links - Mandate↔Property: 0
+- Errors: 0
+- Skipped: 0
+
+Notes:
+- No client_name, primary_phone, or primary_email columns present -- no client detection
+- No mandate fields (budget_min, budget_max, mandate_transaction_type, etc.) -- no mandate detection
+- Covers property types: APARTMENT, HOUSE, LAND, COMMERCIAL, MAISONETTE
+- Energy cert classes: C, B, (empty), D, A
+- Boolean elevator field: true/false

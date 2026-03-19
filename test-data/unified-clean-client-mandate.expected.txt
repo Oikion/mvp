@@ -1,0 +1,21 @@
+File: unified-clean-client-mandate.csv
+Scenario: Client + Mandate (no property -- buyer brief)
+
+Expected Results:
+- Clients created: 3
+- Clients reused: 0
+- Properties created: 0
+- Mandates created: 3
+- Links - Client↔Property: 0
+- Links - Mandate↔Client: 3
+- Links - Mandate↔Property: 0
+- Errors: 0
+- Skipped: 0
+
+Notes:
+- No property_name column -- no property detection
+- Client detection via client_name + primary_phone + primary_email
+- Mandate detection via budget_min, budget_max, mandate_transaction_type, urgency, etc.
+- areas_of_interest is a comma-separated array field, should be split into arrays
+- Mandate titles auto-generated: "Buy Apartment Γλυφάδα", "Buy Apartment Παγκράτι", "Rent House Κηφισιά"
+- Row 3 is a rental mandate (budget = monthly rent range), not a purchase

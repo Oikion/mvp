@@ -1,0 +1,6 @@
+property_name,property_type,transaction_type,price,size_net_sqm,bedrooms,bathrooms,area,address_city,client_name,primary_phone,primary_email,client_type
+Διαμέρισμα Χαλάνδρι Α,APARTMENT,SALE,220000,80,2,1,Χαλάνδρι,Αθήνα,Γιώργος Παπαδόπουλος,6944999999,giorgos@example.com,SELLER
+Διαμέρισμα Χαλάνδρι Β,APARTMENT,RENTAL,850,55,1,1,Χαλάνδρι,Αθήνα,Γιώργος Παπαδόπουλος,6944999999,giorgos@example.com,SELLER
+Μονοκατοικία Χαλάνδρι,HOUSE,SALE,480000,200,4,2,Χαλάνδρι,Αθήνα,Γιώργος Παπαδόπουλος,6944999999,giorgos@example.com,SELLER
+Στούντιο Εξάρχεια,APARTMENT,RENTAL,500,35,0,1,Εξάρχεια,Αθήνα,Αθηνά Νικολάου,6955111111,athina@example.com,SELLER
+Γκαρσονιέρα Πειραιάς,APARTMENT,SALE,95000,40,1,1,Πειραιάς,Πειραιάς,Στέφανος Ιωάννου,6955222222,stefanos@example.com,SELLER

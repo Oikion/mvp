@@ -1,0 +1,20 @@
+File: unified-chaotic-phone-only-client.csv
+Scenario: Client created from phone number only (no client_name column)
+
+Expected Results:
+- Clients created: 3
+- Clients reused: 0
+- Properties created: 3
+- Mandates created: 0
+- Links - Client↔Property: 3
+- Links - Mandate↔Client: 0
+- Links - Mandate↔Property: 0
+- Errors: 0
+- Skipped: 0
+
+Notes:
+- No client_name column present -- client detection triggers via primary_phone alone
+- Engine should auto-generate client names: "Contact (6966...111)", "Contact (6966...222)", "Contact (6966...333)"
+- The exact auto-name format depends on engine implementation (may vary)
+- primary_phone is a CLIENT_TRIGGER_KEY per unified-field-definitions.ts
+- All 3 rows create both a property (via property_name) and a client (via primary_phone)

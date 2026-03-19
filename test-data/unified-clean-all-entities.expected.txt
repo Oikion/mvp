@@ -1,0 +1,21 @@
+File: unified-clean-all-entities.csv
+Scenario: Clean data with all 3 entities per row
+
+Expected Results:
+- Clients created: 5
+- Clients reused: 0
+- Properties created: 5
+- Mandates created: 5
+- Links - Client↔Property: 5
+- Links - Mandate↔Client: 5
+- Links - Mandate↔Property: 5
+- Errors: 0
+- Skipped: 0
+
+Notes:
+- All enum values should normalize correctly (already in canonical form)
+- Mandate titles auto-generated as "Buy Apartment Γλυφάδα", "Buy House Κολωνάκι", etc.
+- Client detection via client_name + primary_phone + primary_email
+- Property detection via property_name
+- Mandate detection via budget_min, budget_max, mandate_transaction_type, urgency, timeline, size_min_sqm, size_max_sqm
+- Each row creates all 3 entities and all 3 link types

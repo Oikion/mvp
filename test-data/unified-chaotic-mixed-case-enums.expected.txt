@@ -1,0 +1,33 @@
+File: unified-chaotic-mixed-case-enums.csv
+Scenario: Enum values in various cases and formats
+
+Expected Results:
+- Clients created: 5
+- Clients reused: 0
+- Properties created: 5
+- Mandates created: 5
+- Links - Client↔Property: 5
+- Links - Mandate↔Client: 5
+- Links - Mandate↔Property: 5
+- Errors: 0
+- Skipped: 0
+
+Enum Normalization Expected:
+- property_type: "apartment"->APARTMENT, "HOUSE"->HOUSE, "Land"->LAND, "maisonette"->MAISONETTE, "COMMERCIAL"->COMMERCIAL
+- property_status: "active"->ACTIVE, "PENDING"->PENDING, "Active"->ACTIVE, "active"->ACTIVE, "OFF_MARKET"->OFF_MARKET
+- transaction_type: "sale"->SALE, "RENTAL"->RENTAL, "sale"->SALE, "short_term"->SHORT_TERM, "SALE"->SALE
+- heating_type: "autonomous"->AUTONOMOUS, "CENTRAL"->CENTRAL, "heat_pump"->HEAT_PUMP, "electric"->ELECTRIC
+- condition: "good"->GOOD, "EXCELLENT"->EXCELLENT, "needs_renovation"->NEEDS_RENOVATION, "Very_Good"->VERY_GOOD, "GOOD"->GOOD
+- furnished: "no"->NO, "FULLY"->FULLY, "partially"->PARTIALLY, "NO"->NO
+- energy_cert_class: "c"->C, "A"->A, "IN_PROGRESS"->IN_PROGRESS, "b"->B, "d"->D
+- visibility: "private"->PRIVATE, "PUBLIC"->PUBLIC, "secure"->SECURE, "PRIVATE"->PRIVATE
+- client_type: "buyer"->BUYER, "SELLER"->SELLER, "Renter"->RENTER, "investor"->INVESTOR, "referral_partner"->REFERRAL_PARTNER
+- client_status: "lead"->LEAD, "ACTIVE"->ACTIVE, "Inactive"->INACTIVE, "converted"->CONVERTED, "active"->ACTIVE
+- person_type: "individual"->INDIVIDUAL, "COMPANY"->COMPANY, "investor"->INVESTOR, "broker"->BROKER
+- lead_source: "web"->WEB, "PORTAL"->PORTAL, "Referral"->REFERRAL, "social"->SOCIAL, "walk_in"->WALK_IN
+- urgency: "low"->LOW, "HIGH"->HIGH, "critical"->CRITICAL, "medium"->MEDIUM
+- mandate_transaction_type: "sale"->SALE, "RENTAL"->RENTAL, "short_term"->SHORT_TERM, "SALE"->SALE
+
+Notes:
+- Tests that normalizeEnumValue handles lowercase, UPPERCASE, Mixed_Case, and snake_case
+- All 5 rows should parse without validation errors after normalization

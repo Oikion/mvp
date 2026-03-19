@@ -1,0 +1,6 @@
+property_name,property_type,transaction_type,price,size_net_sqm,bedrooms,bathrooms,floor,area,address_city,heating_type,condition,year_built,energy_cert_class,elevator
+Διαμέρισμα Παγκράτι 2αρι,APARTMENT,SALE,185000,65,1,1,2,Παγκράτι,Αθήνα,AUTONOMOUS,GOOD,2001,C,true
+Μονοκατοικία Εκάλη,HOUSE,SALE,750000,280,5,3,0,Εκάλη,Αθήνα,NATURAL_GAS,EXCELLENT,2015,B,false
+Οικόπεδο Λαύριο,LAND,SALE,120000,0,0,0,,Λαύριο,Αττική,,,,,false
+Κατάστημα Ερμού,COMMERCIAL,RENTAL,3500,85,0,1,0,Σύνταγμα,Αθήνα,CENTRAL,VERY_GOOD,1990,D,true
+Μεζονέτα Βάρη,MAISONETTE,SALE,420000,175,3,2,0,Βάρη,Αθήνα,HEAT_PUMP,EXCELLENT,2023,A,false
