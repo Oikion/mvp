@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import ExcelJS from "exceljs";
 import { XMLParser } from "fast-xml-parser";
@@ -8,6 +8,9 @@ import { Upload, FileText, X, Download, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { propertyImportFieldDefinitions } from "@/lib/import/property-import-schema";
+import { clientImportFieldDefinitions } from "@/lib/import/client-import-schema";
+import { mandateImportFieldDefinitions } from "@/lib/import/mandate-import-schema";
 
 interface UploadStepProps {
   dict: {
@@ -33,6 +36,7 @@ interface UploadStepProps {
   ) => void;
   currentFile: File | null;
   entityType: "client" | "property" | "mandate";
+  unifiedMode?: boolean;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -188,12 +192,27 @@ function parseCsvRows(text: string): string[][] {
   return rows;
 }
 
+/** Curated ~25 columns for the unified template (most common from each entity). */
+const UNIFIED_TEMPLATE_HEADERS = [
+  // Client
+  "client_name", "primary_phone", "primary_email", "client_type",
+  // Property
+  "property_name", "property_type", "transaction_type", "price",
+  "address_street", "address_city", "municipality", "bedrooms", "bathrooms",
+  "size_net_sqm",
+  // Mandate
+  "budget_min", "budget_max", "mandate_transaction_type",
+  "mandate_municipality", "size_min_sqm", "size_max_sqm",
+  "bedrooms_min", "bedrooms_max", "urgency", "timeline",
+];
+
 export function UploadStep({
   dict,
   errorsDict,
   onFileUpload,
   currentFile,
   entityType,
+  unifiedMode,
 }: UploadStepProps) {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -358,33 +377,26 @@ export function UploadStep({
     setError(null);
   }, [onFileUpload]);
 
-  const handleDownloadTemplate = useCallback(async () => {
-    const templateHeaders =
-      entityType === "client"
-        ? [
-            "client_name",
-            "primary_email",
-            "primary_phone",
-            "client_type",
-            "client_status",
-            "billing_street",
-            "billing_city",
-            "billing_country",
-            "description",
-          ]
-        : [
-            "property_name",
-            "property_type",
-            "property_status",
-            "transaction_type",
-            "address_street",
-            "address_city",
-            "price",
-            "bedrooms",
-            "bathrooms",
-            "description",
-          ];
+  const templateHeaders = useMemo(() => {
+    if (unifiedMode) {
+      return UNIFIED_TEMPLATE_HEADERS;
+    }
+    switch (entityType) {
+      case "client":
+        return clientImportFieldDefinitions.map((f) => f.key);
+      case "mandate":
+        return mandateImportFieldDefinitions.map((f) => f.key);
+      case "property":
+      default:
+        return propertyImportFieldDefinitions.map((f) => f.key);
+    }
+  }, [entityType, unifiedMode]);
 
+  const templateFilename = unifiedMode
+    ? "unified_import_template.xlsx"
+    : `${entityType}_import_template.xlsx`;
+
+  const handleDownloadTemplate = useCallback(async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Template");
     worksheet.addRow(templateHeaders);
@@ -396,12 +408,12 @@ export function UploadStep({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${entityType}_import_template.xlsx`;
+    link.download = templateFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  }, [entityType]);
+  }, [templateHeaders, templateFilename]);
 
   return (
     <div className="space-y-6">

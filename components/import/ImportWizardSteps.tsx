@@ -447,6 +447,7 @@ export function ImportWizardSteps({
             onFileUpload={handleFileUpload}
             currentFile={file}
             entityType={entityType}
+            unifiedMode={unifiedMode}
           />
         );
       case 1:
