@@ -127,20 +127,22 @@ export function CompleteStep({
       )}
 
       {/* Per-entity breakdown (unified import) */}
-      {result?.clients && (
+      {result && (result.clients || result.properties || result.mandates) && (
         <div className="space-y-3">
-          <Card className="border-primary/50">
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Clients</span>
-                <div className="flex gap-3 text-sm">
-                  <span className="text-success">{result.clients.created} created</span>
-                  {result.clients.reused > 0 && <span className="text-muted-foreground">{result.clients.reused} reused</span>}
-                  {result.clients.failed > 0 && <span className="text-destructive">{result.clients.failed} failed</span>}
+          {result.clients && (
+            <Card className="border-primary/50">
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Clients</span>
+                  <div className="flex gap-3 text-sm">
+                    <span className="text-success">{result.clients.created} created</span>
+                    {result.clients.reused > 0 && <span className="text-muted-foreground">{result.clients.reused} reused</span>}
+                    {result.clients.failed > 0 && <span className="text-destructive">{result.clients.failed} failed</span>}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
           {result.properties && (
             <Card className="border-primary/50">
               <CardContent className="pt-4 pb-4">

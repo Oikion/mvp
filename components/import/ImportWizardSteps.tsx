@@ -473,7 +473,20 @@ export function ImportWizardSteps({
             onValidate={validateData}
           />
         );
-      case 3:
+      case 3: {
+        // Compute entity counts for unified mode preview
+        const entityCounts = unifiedMode ? (() => {
+          let clients = 0, properties = 0, mandates = 0;
+          for (const row of validData) {
+            if (row.client_name || row.primary_phone || row.primary_email) clients++;
+            if (row.property_name) properties++;
+            if (mandateFieldKeys && Object.entries(row).some(
+              ([k, v]) => mandateFieldKeys.has(k) && v !== null && v !== undefined && v !== ""
+            )) mandates++;
+          }
+          return { clients, properties, mandates };
+        })() : undefined;
+
         return (
           <ReviewStep
             dict={dict.review}
@@ -482,8 +495,10 @@ export function ImportWizardSteps({
             fieldMapping={fieldMapping}
             errorCount={validationErrors.length > 0 ? parsedData.length - validData.length : 0}
             entityType={entityType}
+            entityCounts={entityCounts}
           />
         );
+      }
       case 4:
         return (
           <CompleteStep

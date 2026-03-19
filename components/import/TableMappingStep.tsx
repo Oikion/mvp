@@ -91,9 +91,9 @@ interface TableMappingStepProps {
 
 // Entity-level grouping labels (unified import mode)
 const ENTITY_LABELS: Record<string, string> = {
-  client: "📋 Client",
-  property: "🏠 Property",
-  mandate: "📝 Mandate",
+  client: "Client",
+  property: "Property",
+  mandate: "Mandate",
 };
 
 // Confidence-based styling

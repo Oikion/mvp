@@ -145,7 +145,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: UnifiedImportWi
         }
 
         return {
-          imported: (result.clients?.created ?? 0) + (result.clients?.reused ?? 0)
+          imported: (result.clients?.created ?? 0)
             + (result.properties?.created ?? 0) + (result.mandates?.created ?? 0),
           skipped: result.skipped ?? 0,
           failed: (result.clients?.failed ?? 0) + (result.properties?.failed ?? 0) + (result.mandates?.failed ?? 0),

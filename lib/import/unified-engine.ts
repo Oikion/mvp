@@ -197,8 +197,11 @@ export async function executeUnifiedImport(
           clientName = String(clientRow.client_name ?? "");
           result.clients.reused++;
         } else {
+          // Strip entity prefixes (e.g. client_description → description)
+          const clientRowStripped = stripEntityPrefix(clientRow);
+
           // Normalize enums
-          const normalized = normalizeClientEnums(clientRow);
+          const normalized = normalizeClientEnums(clientRowStripped);
 
           // Validate
           const parsed = clientImportSchema.safeParse(normalized);
@@ -213,8 +216,8 @@ export async function executeUnifiedImport(
             }
             result.clients.failed++;
           } else {
-            // Encrypt
-            const encrypted = clientImportConfig.encryptWithDek(normalized, dek);
+            // Encrypt (use stripped keys so field names match encryption config)
+            const encrypted = clientImportConfig.encryptWithDek(clientRowStripped, dek);
 
             // Generate ID and build Prisma data
             const friendlyId = await clientPool.next();
