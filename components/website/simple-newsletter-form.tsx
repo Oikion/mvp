@@ -35,6 +35,7 @@ export const SimpleNewsletterForm = ({ formId }: { formId: string }) => {
           email,
           privacyAccepted,
           preAlphaInterest,
+          locale,
         }),
       })
 

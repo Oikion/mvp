@@ -181,6 +181,7 @@ export function getRateLimitTier(pathname: string): RateLimitTier {
     '/api/user/setnewpass',
     '/api/user/inviteuser',
     '/api/user/passwordReset',
+    '/api/newsletter',
   ];
 
   if (strictPaths.some(p => pathname.startsWith(p))) {
