@@ -62,8 +62,9 @@ interface CreateOrgWizardData {
   // Step 2: Data Policy
   dataOwnershipMode: "AGENCY" | "AGENT" | null;
 
-  // Step 3: Encryption
-  encryptionMode: "STANDARD" | "ENHANCED" | null;
+  // Step 3: Encryption (matches Prisma EncryptionMode enum: STANDARD | E2EE)
+  encryptionMode: "STANDARD" | "E2EE" | null;
+  // UI displays "Enhanced" as the label for E2EE mode
   // PIN handled separately via existing E2EE PIN setup flow
 
   // Step 4: Teammates
@@ -86,7 +87,7 @@ interface CreateOrgWizardData {
 |------|------|----------|------------|
 | 1 | Organization Info | Yes | Name 2-50 chars, slug available, not reserved |
 | 2 | Data Policy | Yes | Ownership mode selected |
-| 3 | Encryption Policy | Yes | Mode selected; if Enhanced + no existing PIN, PIN must be created |
+| 3 | Encryption Policy | Yes | Mode selected; if E2EE + no existing PIN, PIN must be created |
 | 4 | Add Teammates | No (skippable) | Email format validation on manual entries, no duplicates |
 | 5 | Establish Partnerships | No (skippable) | None — selection only |
 | 6 | Review | Yes | All required fields present |
@@ -151,8 +152,22 @@ Two sections:
 - Groups connections by their agency org
 - Displays agency cards: agency name, member count, connection's name shown as "Your contact: [name]"
 - Multi-select with checkboxes
+- If a connection belongs to multiple agency orgs, show all of them (each as a separate selectable card)
 - Each selected agency will receive an `OrgNetworkPartner` request (PENDING status) from the new org
 - Empty state: "No agency connections yet. You can establish partnerships later from Settings → Network."
+
+#### Data Fetching Strategy for Steps 4-5
+
+The `AgentConnection` model only has user IDs — no org information. Determining which org type each connection belongs to requires Clerk API calls. To avoid N+1 client-side calls:
+
+**Server action `getConnectionsWithOrgInfo()`:**
+1. Fetch all ACCEPTED connections for the current user from DB
+2. Batch-fetch connected user details from Clerk backend API (`clerkClient.users.getUserList({ userId: [...ids] })`)
+3. For each connected user, fetch their org memberships (`clerkClient.organizations.getOrganizationMembershipList`)
+4. Classify each connection: personal-only users (teammates) vs agency-affiliated users (partnerships)
+5. Return pre-classified data with org metadata (name, slug, member count, publicMetadata)
+
+This server action runs once when the wizard mounts (or lazily when step 4 is first reached). The result is cached in wizard state and shared between steps 4 and 5. Loading state shown while fetching.
 
 #### Step 6 — Review (`ReviewStep.tsx`)
 
@@ -164,19 +179,32 @@ Card-based summary layout:
 - **Partnerships**: Count + list of agency names (or "None — you can establish later")
 - **"Create Organization" button** with loading state and spinner
 
-### Creation Flow (Server Action)
+### Creation Flow (Client + Server Split)
 
-A single server action `createOrganizationWithSetup()` executes on Review step submission:
+The creation flow is split between client-side Clerk SDK calls and a server action, following the same pattern as the existing `OnboardingSteps.tsx`:
 
-1. **Create Clerk organization** — `createOrganization({ name, slug })` via `useOrganizationList`
-2. **Set as active** — `setActive({ organization: orgId })`
+**Phase 1 — Client-side (Clerk SDK, in `CreateOrganizationWizard.tsx`):**
+1. **Create Clerk organization** — `createOrganization({ name, slug })` via `useOrganizationList` hook
+2. **Set as active** — `setActive({ organization: orgId })` to switch session context
+
+**Phase 2 — Server action `finalizeOrganizationSetup(orgId, wizardData)`:**
 3. **Create OrganizationSettings** — upsert with `encryptionMode`, `dataOwnershipMode`, `dataOwnershipSetAt`, `policyHistory`, `policyVersion`
-4. **Update Clerk metadata** — set `publicMetadata.type = "agency"`
+4. **Update Clerk metadata** — set `publicMetadata.type = "agency"` via Clerk backend API
 5. **Send teammate invitations** — Clerk org invitations for each teammate (email + role)
-6. **Create partnership requests** — `OrgNetworkPartner` records with PENDING status for each selected agency
-7. **Associate E2EE** — if Enhanced mode, ensure org DEK is created and associated
+6. **Create partnership requests** — `OrgNetworkPartner` records with PENDING status for each selected agency (requires new org ID from Phase 1)
+7. **Associate E2EE** — if E2EE mode, ensure org DEK is created and associated
 
-Steps 5-6 are best-effort — partial failures don't block org creation.
+Steps 5-6 are best-effort — partial failures don't block org creation. The server action returns a result object indicating which sub-steps succeeded/failed for UI feedback.
+
+### State Persistence
+
+Wizard state is persisted to `sessionStorage` (session-scoped, not cross-tab) under a fixed key. On mount, the wizard checks for existing state and restores it if found. State is cleared on successful org creation. This prevents data loss from accidental refresh, which is especially important for steps 4-5 where connection selections involve fetched external data.
+
+A `beforeunload` event listener is registered when the wizard has any non-default values, warning the user before navigating away.
+
+### Post-Creation Redirect
+
+After successful org creation, the user is redirected to `/${locale}/app` (the main dashboard). Since `setActive({ organization: newOrgId })` has already switched the Clerk session context, the dashboard will render in the context of the newly created org.
 
 ### Error Handling
 
@@ -305,7 +333,10 @@ Steps 5-6 are best-effort — partial failures don't block org creation.
 | `.../create-organization/components/AddTeammatesStep.tsx` | Step 4 |
 | `.../create-organization/components/EstablishPartnershipsStep.tsx` | Step 5 |
 | `.../create-organization/components/ReviewStep.tsx` | Step 6 |
-| `actions/organization/create-organization-with-setup.ts` | Combined creation server action |
+| `actions/organization/finalize-organization-setup.ts` | Server action for post-Clerk-creation setup (settings, invites, partnerships) |
+| `actions/organization/get-connections-with-org-info.ts` | Server action to batch-fetch connections with org classification |
+| `locales/en/createOrganization.json` | English translations for wizard |
+| `locales/el/createOrganization.json` | Greek translations for wizard |
 | Merged `NotificationsStep.tsx` in onboarding | Replaces NotificationsWhat + NotificationsHow |
 | Renamed `UsernameStep.tsx` in onboarding | Replaces UsernameOrgStep |
 
@@ -313,12 +344,16 @@ Steps 5-6 are best-effort — partial failures don't block org creation.
 
 | File | Change |
 |------|--------|
-| `components/workspace/AgencyOrganizationSwitcher.tsx` | Already fixed: route to `/app/create-organization` |
-| `proxy.ts` | Already fixed: removed create-organization from intercept |
-| `app/[locale]/app/(onboarding)/onboard/components/OnboardingSteps.tsx` | Remove org steps, merge notifications, update step count |
+| `components/workspace/AgencyOrganizationSwitcher.tsx` | Fix route: `/${locale}/create-organization` → `/${locale}/app/create-organization` |
+| `proxy.ts` | Remove `/:locale/app/create-organization(.*)` from `isClerkOrgRoute` matcher |
+| `app/[locale]/app/(onboarding)/onboard/components/OnboardingSteps.tsx` | Remove org steps, merge notifications, update step count. Also clean up debug `fetch('http://127.0.0.1:7242/ingest/...')` logging calls. |
 | `types/onboarding.ts` | Remove `organization` from `OnboardingData` |
 | `actions/onboarding/complete-onboarding.ts` (or equivalent) | Remove agency org creation, keep personal workspace |
 | `app/[locale]/app/(onboarding)/onboard/components/ReviewStep.tsx` | Remove org/data-ownership from summary |
+| `app/[locale]/app/(routes)/create-organization/layout.tsx` | Remove `orgId` redirect guard (users may have existing orgs) |
+| `app/[locale]/app/(routes)/create-organization/page.tsx` | Remove client-side `orgId` redirect |
+| Clerk dashboard redirect URLs | Update post-signup redirects to point to `/app/onboard` instead of `/create-organization` |
+| `docs/setup/clerk-setup.md`, `docs/setup/clerk-account-portal-setup.md`, `docs/architecture/authentication.md` | Update references to post-signup redirect paths |
 
 ## Files to Delete
 
@@ -335,14 +370,16 @@ Steps 5-6 are best-effort — partial failures don't block org creation.
 
 ## Translations
 
-New translation keys needed in `locales/{en,el}/`:
+New translation file: `locales/{en,el}/createOrganization.json` (dedicated file per project convention).
 
-- `createOrganization.wizard.*` — wizard titles, step descriptions, button labels
-- `createOrganization.orgInfo.*` — name/slug labels, placeholders, availability messages
-- `createOrganization.encryption.*` — Standard/Enhanced descriptions, PIN messaging
-- `createOrganization.teammates.*` — section headers, empty states, role labels
-- `createOrganization.partnerships.*` — section headers, empty states, agency card labels
-- `createOrganization.review.*` — summary section headers, create button, success/error messages
+Key namespaces within the file:
+
+- `wizard.*` — wizard titles, step descriptions, button labels
+- `orgInfo.*` — name/slug labels, placeholders, availability messages
+- `encryption.*` — Standard/Enhanced descriptions, PIN messaging
+- `teammates.*` — section headers, empty states, role labels
+- `partnerships.*` — section headers, empty states, agency card labels
+- `review.*` — summary section headers, create button, success/error messages
 
 Existing namespaces reused:
 - `dataOwnership.selector` — AGENCY/AGENT cards (unchanged)
