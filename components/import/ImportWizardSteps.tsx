@@ -476,16 +476,26 @@ export function ImportWizardSteps({
         );
       case 3: {
         // Compute entity counts for unified mode preview
+        // Client count uses dedup logic matching the server-side engine:
+        // phone > email > name as dedup key — same client across rows counts once
         const entityCounts = unifiedMode ? (() => {
-          let clients = 0, properties = 0, mandates = 0;
+          const clientDedupKeys = new Set<string>();
+          let properties = 0, mandates = 0;
           for (const row of validData) {
-            if (row.client_name || row.primary_phone || row.primary_email) clients++;
+            const hasClient = !!(row.client_name || row.primary_phone || row.primary_email);
+            if (hasClient) {
+              const phone = String(row.primary_phone ?? "").trim().replace(/\D/g, "");
+              const email = String(row.primary_email ?? "").trim().toLowerCase();
+              const name = String(row.client_name ?? "").trim().toLowerCase();
+              const key = phone ? `phone:${phone}` : email ? `email:${email}` : `name:${name}`;
+              clientDedupKeys.add(key);
+            }
             if (row.property_name) properties++;
             if (mandateFieldKeys && Object.entries(row).some(
               ([k, v]) => mandateFieldKeys.has(k) && v !== null && v !== undefined && v !== ""
             )) mandates++;
           }
-          return { clients, properties, mandates };
+          return { clients: clientDedupKeys.size, properties, mandates };
         })() : undefined;
 
         return (
