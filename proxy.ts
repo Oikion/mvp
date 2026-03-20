@@ -42,7 +42,6 @@ const isClerkOrgRoute = createRouteMatcher([
   "/:locale/app/register/tasks/choose-organization(.*)",
   "/:locale/app/sign-up/tasks/choose-organization(.*)",
   "/:locale/app/sign-in/tasks/choose-organization(.*)",
-  "/:locale/app/create-organization(.*)",
 ]);
 
 // Define routes excluded from rate limiting (webhooks, health checks, etc.)

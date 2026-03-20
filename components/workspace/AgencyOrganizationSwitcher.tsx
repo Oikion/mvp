@@ -85,7 +85,7 @@ export function AgencyOrganizationSwitcher() {
   };
 
   const handleCreateOrg = () => {
-    router.push(`/${locale}/create-organization`);
+    router.push(`/${locale}/app/create-organization`);
   };
 
   const handleManageOrg = () => {
