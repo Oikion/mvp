@@ -92,19 +92,37 @@ export async function getConnectionsWithOrgInfo(): Promise<
     return actionSuccess({ teammates: [], agencies: [] });
   }
 
-  // 6. Batch-fetch from Clerk: user details + org memberships
+  // 6. Batch-fetch Clerk user details in a single API call
   const clerk = clerkClient() as any;
+
+  const clerkUserIds = Array.from(internalToClerkId.values());
+  let batchResult: any;
+  try {
+    batchResult = await clerk.users.getUserList({ userId: clerkUserIds, limit: 100 });
+  } catch (err) {
+    console.error("[GET_CONNECTIONS_WITH_ORG_INFO] Clerk batch user fetch failed", {
+      err: String(err),
+    });
+    return actionError("Failed to fetch connection details", "EXTERNAL_SERVICE_ERROR");
+  }
+  const clerkUserMap = new Map<string, any>(
+    (batchResult?.data ?? []).map((u: any) => [u.id, u])
+  );
+
+  // Build reverse map: clerkUserId → internalId
+  const clerkToInternalId = new Map<string, string>(
+    Array.from(internalToClerkId.entries()).map(([internalId, clerkId]) => [clerkId, internalId])
+  );
 
   const teammates: ConnectionTeammate[] = [];
   const agencies: ConnectionAgency[] = [];
 
   await Promise.all(
-    Array.from(internalToClerkId.entries()).map(async ([internalId, otherClerkUserId]) => {
-      try {
-        // Fetch Clerk user details
-        const clerkUser = await clerk.users.getUser(otherClerkUserId);
-        if (!clerkUser) return;
+    Array.from(clerkUserMap.entries()).map(async ([otherClerkUserId, clerkUser]) => {
+      const internalId = clerkToInternalId.get(otherClerkUserId);
+      if (!internalId) return;
 
+      try {
         const name =
           [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ").trim() ||
           clerkUser.username ||
@@ -123,9 +141,15 @@ export async function getConnectionsWithOrgInfo(): Promise<
         const agencyMemberships = memberships.filter(
           (m) => (m.organization?.publicMetadata as any)?.type === "agency"
         );
+        const personalMemberships = memberships.filter(
+          (m) => (m.organization?.publicMetadata as any)?.type === "personal"
+        );
 
         if (agencyMemberships.length === 0) {
-          // All orgs are personal workspaces (or no orgs) → teammate
+          // Only add as teammate if they have a personal workspace (i.e. active user).
+          // Skip users with NO org memberships at all — they have left all orgs.
+          if (personalMemberships.length === 0) return;
+
           teammates.push({
             userId: internalId,
             clerkUserId: otherClerkUserId,

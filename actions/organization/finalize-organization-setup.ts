@@ -16,19 +16,23 @@ import { getOrgDek } from "@/lib/key-management";
 // Input schema
 // =============================================================================
 
-const wizardDataSchema = z.object({
-  encryptionMode: z.enum(["STANDARD", "E2EE"]),
-  dataOwnershipMode: z.enum(["AGENCY", "AGENT"]),
-  teammates: z
-    .array(
-      z.object({
-        email: z.string().email(),
-        role: z.enum(["ADMIN", "AGENT", "VIEWER"]),
-      })
-    )
-    .max(50),
-  partnerOrgIds: z.array(z.string().min(1)).max(20),
-});
+const wizardDataSchema = z
+  .object({
+    encryptionMode: z.enum(["STANDARD", "E2EE"]),
+    dataOwnershipMode: z.enum(["AGENCY", "AGENT"]),
+    teammates: z
+      .array(
+        z
+          .object({
+            email: z.string().email(),
+            role: z.enum(["ADMIN", "AGENT", "VIEWER"]),
+          })
+          .strict()
+      )
+      .max(50),
+    partnerOrgIds: z.array(z.string().min(1)).max(20),
+  })
+  .strict();
 
 // =============================================================================
 // Action
@@ -86,6 +90,12 @@ export async function finalizeOrganizationSetup(
     return actionError("Not org owner", "FORBIDDEN");
   }
 
+  // Ensure setup has not already been completed by another admin (org was just created)
+  const adminMembers = memberships.data.filter((m: any) => m.role === "org:admin");
+  if (adminMembers.length > 1) {
+    return actionError("Organization setup already completed by another admin", "CONFLICT");
+  }
+
   // 6. Check per-user agency quota (max 5)
   let userOrgs: any;
   try {
@@ -124,13 +134,9 @@ export async function finalizeOrganizationSetup(
         ],
       },
       update: {
-        // Never overwrite encryptionMode (immutable).
-        // Only update ownership settings if not yet set.
-        dataOwnershipMode: validated.dataOwnershipMode,
-        dataOwnershipSetAt: new Date(),
-        policyHistory: [
-          { mode: validated.dataOwnershipMode, from: now, to: null },
-        ],
+        // Intentionally empty — if settings already exist on a retry, preserve them as-is.
+        // policyHistory intentionally omitted — do not overwrite on retry.
+        // encryptionMode is immutable and must not be overwritten.
       },
     });
   } catch (err) {
@@ -188,22 +194,35 @@ export async function finalizeOrganizationSetup(
   // 10. Create partnership records (best-effort, skip self + duplicates)
   const partnerIdsToProcess = validated.partnerOrgIds.filter((id) => id !== orgId);
 
+  let partnershipCount = 0;
+
   if (partnerIdsToProcess.length > 0) {
     const partnerResults = await Promise.allSettled(
       partnerIdsToProcess.map(async (partnerOrgId) => {
-        // Bidirectional duplicate check
-        const existing = await prismadb.orgNetworkPartner.findFirst({
-          where: {
-            OR: [
-              { initiatorOrgId: orgId, partnerOrgId },
-              { initiatorOrgId: partnerOrgId, partnerOrgId: orgId },
-            ],
-          },
-        });
-        if (!existing) {
+        // Verify target org exists and is an agency
+        try {
+          const targetOrg = await clerk.organizations.getOrganization({ organizationId: partnerOrgId });
+          if ((targetOrg?.publicMetadata as any)?.type !== "agency") {
+            warnings.push(`Skipped partnership with ${partnerOrgId}: not an agency`);
+            return;
+          }
+        } catch {
+          warnings.push(`Skipped partnership with ${partnerOrgId}: org not found`);
+          return;
+        }
+
+        // Create partnership record; handle unique constraint race gracefully
+        try {
           await prismadb.orgNetworkPartner.create({
             data: { initiatorOrgId: orgId, partnerOrgId, status: "PENDING" },
           });
+          partnershipCount++;
+        } catch (err: any) {
+          if (err?.code === "P2002") {
+            // Already exists (duplicate or race condition) — skip silently
+          } else {
+            throw err;
+          }
         }
       })
     );
