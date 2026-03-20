@@ -1,7 +1,7 @@
 "use client";
 
-import { z } from "zod";
 import axios from "axios";
+import { propertyEditFormSchema, type PropertyEditFormValues } from "@/lib/validations/mls";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -20,76 +20,7 @@ import { AddressFieldGroup } from "@/components/form/AddressFieldGroup";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 import { PropertyImageUploader } from "@/components/property-images/PropertyImageUploader";
 
-// Full schema matching NewPropertyWizard
-const formSchema = z.object({
-  id: z.string().min(1),
-  property_name: z.string().min(1, "Property name is required").max(255),
-  // Step 1: Basics
-  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]),
-  property_type_other: z.string().optional(),
-  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]).optional(),
-  property_status: z.enum(["AVAILABLE", "RESERVED", "NEGOTIATION", "RENTED", "SOLD"]).optional(),
-  is_exclusive: z.boolean().optional(),
-  
-  // Step 2: Location
-  country: z.string().optional().default("GR"),
-  municipality: z.string().optional(),
-  area: z.string().optional(),
-  postal_code: z.string().optional(),
-  address_privacy_level: z.enum(["EXACT", "PARTIAL", "HIDDEN"]).optional(),
-  address_street: z.string().optional(),
-  
-  // Step 3: Surfaces
-  size_net_sqm: z.coerce.number().optional(),
-  size_gross_sqm: z.coerce.number().optional(),
-  floor: z.string().optional(),
-  floors_total: z.coerce.number().optional(),
-  plot_size_sqm: z.coerce.number().optional(),
-  inside_city_plan: z.boolean().optional(),
-  build_coefficient: z.coerce.number().optional(),
-  frontage_m: z.coerce.number().optional(),
-  
-  // Step 4: Characteristics
-  bedrooms: z.coerce.number().int().min(0).optional(),
-  bathrooms: z.coerce.number().min(0).optional(),
-  heating_type: z.enum(["AUTONOMOUS", "CENTRAL", "NATURAL_GAS", "HEAT_PUMP", "ELECTRIC", "NONE"]).optional(),
-  energy_cert_class: z.enum(["A_PLUS", "A", "B", "C", "D", "E", "F", "G", "H", "IN_PROGRESS"]).optional(),
-  
-  // Step 5: Condition
-  year_built: z.coerce.number().int().optional(),
-  renovated_year: z.coerce.number().int().optional(),
-  condition: z.enum(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]).optional(),
-  elevator: z.boolean().optional(),
-  
-  // Step 6: Legal
-  building_permit_no: z.string().optional().or(z.literal("")),
-  building_permit_year: z.coerce.number().optional(),
-  land_registry_kaek: z.string().optional().or(z.literal("")),
-  legalization_status: z.enum(["LEGALIZED", "IN_PROGRESS", "UNDECLARED"]).optional(),
-  etaireia_diaxeirisis: z.string().optional().or(z.literal("")),
-  monthly_common_charges: z.coerce.number().optional(),
-  
-  // Step 7: Amenities
-  amenities: z.array(z.string()).optional().default([]),
-  orientation: z.array(z.string()).optional().default([]),
-  furnished: z.enum(["NO", "PARTIALLY", "FULLY"]).optional(),
-  accessibility: z.string().optional().or(z.literal("")),
-  
-  // Step 8: Pricing
-  price: z.coerce.number().min(0).optional(),
-  price_type: z.enum(["RENTAL", "SALE", "PER_ACRE", "PER_SQM"]).optional(),
-  available_from: z.string().optional(),
-  accepts_pets: z.boolean().optional(),
-  min_lease_months: z.coerce.number().optional(),
-  
-  // Step 9: Media
-  virtual_tour_url: z.string().url().optional().or(z.literal("")),
-  visibility: z.enum(["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"]).optional(),
-  assigned_to: z.string().optional(),
-  description: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = PropertyEditFormValues;
 
 export function EditPropertyForm({ initialData }: { initialData: Record<string, unknown> }) {
   const router = useRouter();
@@ -162,8 +93,11 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
   }, [initialData]);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: mappedData,
+    resolver: zodResolver(propertyEditFormSchema),
+    defaultValues: {
+      ...mappedData,
+      assigned_to: (initialData?.assigned_to as string | null | undefined) ?? undefined,
+    },
   });
 
   const propertyType = form.watch("property_type");

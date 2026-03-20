@@ -1,9 +1,9 @@
 "use client";
 
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { clientEditFormSchema, type ClientEditFormValues } from "@/lib/validations/crm";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -50,19 +50,6 @@ const personTypeOptions = [
   { value: "BROKER", label: "Broker" },
 ];
 
-const editClientSchema = z.object({
-  id: z.string().min(1),
-  client_name: z.string().min(1, "Client name is required").max(255),
-  person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]),
-  primary_email: z.string().email().optional().nullable(),
-  client_type: z.string().optional().nullable(),
-  client_status: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  office_phone: z.string().optional().nullable(),
-  website: z.string().optional().nullable(),
-});
-
-type EditClientFormValues = z.infer<typeof editClientSchema>;
 
 interface EditClientInitialData {
   id: string;
@@ -80,10 +67,8 @@ export function EditClientForm({ initialData }: { initialData: EditClientInitial
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const formSchema = editClientSchema;
-
-  const form = useForm<EditClientFormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<ClientEditFormValues>({
+    resolver: zodResolver(clientEditFormSchema),
     defaultValues: {
       id: initialData.id,
       client_name: initialData.client_name,
@@ -97,7 +82,7 @@ export function EditClientForm({ initialData }: { initialData: EditClientInitial
     },
   });
 
-  const onSubmit = async (data: EditClientFormValues) => {
+  const onSubmit = async (data: ClientEditFormValues) => {
     setIsLoading(true);
     try {
       await axios.put("/api/crm/clients", data);

@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import axios from "axios";
+import { clientFormSchema, type ClientFormValues } from "@/lib/validations/crm";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -45,32 +46,8 @@ type Props = {
 };
 
 // Schema shape without validation messages (those are added inside the component)
-const baseSchema = z.object({
-  // Step 1
-  client_name: z.string().optional(), // required — enforced via superRefine with translated message
-  person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]).optional(), // required — enforced via superRefine
-  full_name: z.string().optional(),
-  company_name: z.string().optional(),
-  primary_phone: z.string().optional(),
-  primary_email: z.string().email().optional().or(z.literal("")),
-  // Step 2
-  secondary_phone: z.string().optional().or(z.literal("")),
-  secondary_email: z.string().email().optional().or(z.literal("")),
-  channels: z.array(z.string()).optional().default([]),
-  language: z.enum(["el", "en", "cz", "de", "uk"]).optional(),
-  // Step 3
-  afm: z.string().optional().or(z.literal("")),
-  doy: z.string().optional().or(z.literal("")),
-  id_doc: z.string().optional().or(z.literal("")),
-  company_gemi: z.string().optional().or(z.literal("")),
-  // Step 4
-  gdpr_consent: z.boolean().optional().default(false),
-  allow_marketing: z.boolean().optional().default(false),
-  lead_source: z.enum(["REFERRAL", "WEB", "PORTAL", "WALK_IN", "SOCIAL"]).optional(),
-  assigned_to: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof baseSchema>;
+const baseSchema = clientFormSchema;
+type FormValues = ClientFormValues;
 
 export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Props>) {
   const router = useRouter();

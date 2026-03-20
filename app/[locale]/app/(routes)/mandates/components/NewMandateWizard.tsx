@@ -1,6 +1,5 @@
 "use client";
 
-import { z } from "zod";
 import axios from "axios";
 import { useState, useEffect, useCallback, useMemo, useRef, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -53,7 +52,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createMandateSchema } from "@/lib/validations/mandates";
+import { mandateFormSchema, type MandateFormValues } from "@/lib/validations/mandates";
 
 // =============================================================================
 // Types
@@ -66,97 +65,9 @@ type Props = {
   onSuccess?: () => void;
 };
 
-// Base schema for the wizard form — mirrors createMandateSchema fields but all
-// optional during wizard flow (draft_status: true bypasses .refine() rules).
-const baseSchema = z.object({
-  // Step 1: Basics
-  title: z.string().min(1, "Title is required"),
-  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]),
-  property_type: z
-    .enum([
-      "APARTMENT",
-      "HOUSE",
-      "MAISONETTE",
-      "WAREHOUSE",
-      "PARKING",
-      "PLOT",
-      "FARM",
-      "INDUSTRIAL",
-      "COMMERCIAL",
-      "OTHER",
-    ])
-    .optional(),
-  property_purpose: z
-    .enum(["RESIDENTIAL", "COMMERCIAL", "LAND", "PARKING", "OTHER"])
-    .optional(),
-  status: z
-    .enum(["DRAFT", "ACTIVE", "PAUSED", "FULFILLED", "EXPIRED", "CANCELLED"])
-    .optional(),
-  urgency: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
+const baseSchema = mandateFormSchema;
 
-  // Step 2: Location & Size
-  areas_of_interest: z.array(z.string()).optional().default([]),
-  municipality: z.string().max(100).optional(),
-  region: z.string().max(100).optional(),
-  size_min_sqm: z.coerce.number().min(0).optional(),
-  size_max_sqm: z.coerce.number().min(0).optional(),
-  plot_size_min_sqm: z.coerce.number().min(0).optional(),
-  plot_size_max_sqm: z.coerce.number().min(0).optional(),
-
-  // Step 3: Requirements
-  bedrooms_min: z.coerce.number().int().min(0).optional(),
-  bedrooms_max: z.coerce.number().int().min(0).optional(),
-  bathrooms_min: z.coerce.number().int().min(0).optional(),
-  bathrooms_max: z.coerce.number().int().min(0).optional(),
-  floor_min: z.coerce.number().int().optional(),
-  floor_max: z.coerce.number().int().optional(),
-  ground_floor_only: z.boolean().optional().default(false),
-  budget_min: z.coerce.number().min(0).optional(),
-  budget_max: z.coerce.number().min(0).optional(),
-  timeline: z
-    .enum([
-      "IMMEDIATE",
-      "ONE_THREE_MONTHS",
-      "THREE_SIX_MONTHS",
-      "SIX_PLUS_MONTHS",
-    ])
-    .optional(),
-  year_built_min: z.coerce.number().int().min(1800).optional(),
-  year_built_max: z.coerce.number().int().optional(),
-
-  // Step 4: Features & Preferences
-  condition: z.array(z.string()).optional().default([]),
-  heating_type: z.array(z.string()).optional().default([]),
-  energy_cert_min: z
-    .enum([
-      "A_PLUS",
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H",
-      "IN_PROGRESS",
-    ])
-    .optional(),
-  furnished: z.enum(["NO", "PARTIALLY", "FULLY"]).optional(),
-  elevator: z.boolean().optional().default(false),
-  parking: z.boolean().optional().default(false),
-  pets_allowed: z.boolean().optional().default(false),
-  amenities: z.array(z.string()).optional().default([]),
-  inside_city_plan: z.boolean().optional().default(false),
-  legalization_ok: z.boolean().optional().default(false),
-
-  // Step 5: Assignment & Notes
-  assigned_to: z.string().optional(),
-  clientId: z.string().optional(),
-  notes: z.string().max(5000).optional(),
-  expires_at: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof baseSchema>;
+type FormValues = MandateFormValues;
 
 // Property types that warrant plot size fields
 const LAND_RELATED_TYPES = ["PLOT", "FARM", "HOUSE", "INDUSTRIAL"];
