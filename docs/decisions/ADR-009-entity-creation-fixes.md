@@ -1,3 +1,10 @@
+# ADR-009: Entity Creation Fixes
+
+**Status:** Implemented
+**Date:** 2026-03-15
+
+---
+
 # Entity Creation Fixes — Draft Spam, FK Violations, Mandate Bugs
 
 **Date:** 2026-03-15

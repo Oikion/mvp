@@ -1,3 +1,10 @@
+# ADR-002: Cascade Safety & Deletion Unification
+
+**Status:** Implemented
+**Date:** 2026-03-10
+
+---
+
 # Phase A: Cascade Safety & Deletion Unification
 
 **Date**: 2026-03-10

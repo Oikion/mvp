@@ -1,3 +1,10 @@
+# ADR-008: Zod-Prisma Validation Sync
+
+**Status:** Accepted
+**Date:** 2026-03-15
+
+---
+
 # Zod-Prisma Validation Sync
 
 **Date:** 2026-03-15

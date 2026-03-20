@@ -1,3 +1,10 @@
+# ADR-005: Composite Import System
+
+**Status:** Superseded by ADR-006
+**Date:** 2026-03-16
+
+---
+
 # Composite Import System Design
 
 **Date:** 2026-03-16

@@ -1,3 +1,10 @@
+# ADR-006: Unified Import Engine
+
+**Status:** Implemented
+**Date:** 2026-03-18
+
+---
+
 # Unified Import Engine — Technical Implementation Spec
 
 **Date:** 2026-03-18

@@ -1,3 +1,10 @@
+# ADR-003: Data Ownership & Agent Departure
+
+**Status:** Accepted
+**Date:** 2026-03-10
+
+---
+
 # Phase B: Data Ownership Toggle & Agent Departure Migration
 
 **Date**: 2026-03-10

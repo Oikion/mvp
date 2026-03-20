@@ -1,3 +1,10 @@
+# ADR-007: Comprehensive Test Seed Strategy
+
+**Status:** Accepted
+**Date:** 2026-03-11
+
+---
+
 # Comprehensive Test Seed — Design Spec
 
 **Date**: 2026-03-11

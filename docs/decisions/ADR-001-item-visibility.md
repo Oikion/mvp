@@ -1,3 +1,10 @@
+# ADR-001: Item Visibility Redesign
+
+**Status:** Implemented
+**Date:** 2026-03-13
+
+---
+
 # Item Visibility Redesign — HIDDEN + PERSONAL→PRIVATE Rename
 
 **Date:** 2026-03-13

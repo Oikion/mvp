@@ -1,3 +1,10 @@
+# ADR-004: Unified Encryption Architecture
+
+**Status:** Implemented
+**Date:** 2026-03-15
+
+---
+
 # Unified Encryption Architecture — Design Specification
 
 **Date:** 2026-03-15

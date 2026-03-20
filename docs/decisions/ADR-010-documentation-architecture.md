@@ -1,3 +1,10 @@
+# ADR-010: Unified Documentation Architecture
+
+**Status:** Accepted
+**Date:** 2026-03-19
+
+---
+
 # Unified Documentation Architecture & Cursor-to-Claude Migration
 
 **Status:** Accepted
