@@ -5,7 +5,11 @@
     "back": "Back",
     "next": "Next",
     "skip": "Skip for now",
-    "stepOf": "Step {current} of {total}"
+    "stepOf": "Step {current} of {total}",
+    "orphanTitle": "Incomplete Setup Detected",
+    "orphanDescription": "We found an organization that was created but not fully configured. Would you like to continue setting it up, or ignore it and start fresh?",
+    "orphanIgnore": "Ignore",
+    "orphanResume": "Continue Setup"
   },
   "orgInfo": {
     "title": "Organization Info",
