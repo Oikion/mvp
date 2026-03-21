@@ -38,8 +38,8 @@
       }
     },
     "usernameOrg": {
-      "title": "Set Up Your Workspace",
-      "description": "Confirm your details and create your organization.",
+      "title": "Set Up Your Profile",
+      "description": "Confirm your name and choose a username for your account.",
       "firstNameLabel": "First Name",
       "firstNamePlaceholder": "e.g., John",
       "lastNameLabel": "Last Name",
@@ -58,15 +58,7 @@
       "usernameNote": "Username set during registration. Change it in profile settings.",
       "usernameSetup": "Create Your Username",
       "usernameSetupDescription": "Choose a unique username for your profile",
-      "usernameRequired": "Please set a username to continue",
-      "orgTitle": "Your Agency Organization",
-      "orgDescription": "Create your real estate agency workspace. A personal workspace will be automatically created for you.",
-      "orgNameLabel": "Organization Name",
-      "orgNamePlaceholder": "e.g., Sunshine Realty",
-      "orgSlugLabel": "URL Slug",
-      "orgSlugPlaceholder": "sunshine-realty",
-      "orgSlugHint": "Only lowercase letters, numbers, and hyphens",
-      "orgSlugReserved": "This slug is reserved"
+      "usernameRequired": "Please set a username to continue"
     },
     "notifications": {
       "title": "Stay in the Loop",

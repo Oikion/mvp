@@ -2,16 +2,12 @@
 
 import { motion } from "motion/react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   User,
-  Building2,
   Palette,
   Bell,
   Check,
   Sparkles,
-  ArrowRight,
-  Loader2,
 } from "lucide-react";
 import type {
   OnboardingData,
@@ -102,14 +98,6 @@ export function ReviewStep({
         { label: dict.fields.name, value: fullName },
         { label: dict.fields.email, value: data.email },
         { label: dict.fields.username, value: `@${data.username}` },
-      ],
-    },
-    {
-      id: "organization",
-      icon: Building2,
-      color: "bg-success/20 text-emerald-100",
-      items: [
-        { label: dict.fields.orgName, value: data.organization.name },
       ],
     },
     {

@@ -10,15 +10,11 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { LanguageSelectionStep } from "./LanguageSelectionStep";
 import { WelcomeStep } from "./WelcomeStep";
 import { ThemeStep } from "./ThemeStep";
-import { UsernameOrgStep } from "./UsernameOrgStep";
-import { NotificationsWhatStep } from "./NotificationsWhatStep";
-import { NotificationsHowStep } from "./NotificationsHowStep";
+import { UsernameStep } from "./UsernameStep";
+import { NotificationsStep } from "./NotificationsStep";
 import { PrivacyStep } from "./PrivacyStep";
 import { ReviewStep } from "./ReviewStep";
-import { DataOwnershipStep } from "./DataOwnershipStep";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { setOwnershipMode } from "@/actions/data-ownership/set-ownership-mode";
-import type { DataOwnershipMode } from "@prisma/client";
 import { completeOnboarding, validateOnboardingData } from "@/actions/user/complete-onboarding";
 import { updateOrganizationMetadata } from "@/actions/organization/update-org-metadata";
 import {
@@ -29,7 +25,6 @@ import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   DEFAULT_PRIVACY_PREFERENCES,
   convertPreferencesToSettings,
-  generateOrgSlug,
 } from "@/types/onboarding";
 import type {
   OnboardingData,
@@ -37,7 +32,7 @@ import type {
   OnboardingPrivacyPreferences,
   SupportedLanguage,
   SupportedTheme,
-  UsernameOrgStepData,
+  UsernameStepData,
 } from "@/types/onboarding";
 
 // Dictionary type definitions for type safety
@@ -62,7 +57,7 @@ interface LanguageThemeStepDict {
   themeDescriptions: Record<string, string>;
 }
 
-interface UsernameOrgStepDict {
+interface UsernameStepDict {
   title: string;
   description: string;
   firstNameLabel: string;
@@ -84,14 +79,6 @@ interface UsernameOrgStepDict {
   usernameSetup?: string;
   usernameSetupDescription?: string;
   usernameRequired?: string;
-  orgTitle: string;
-  orgDescription: string;
-  orgNameLabel: string;
-  orgNamePlaceholder: string;
-  orgSlugLabel: string;
-  orgSlugPlaceholder: string;
-  orgSlugHint: string;
-  orgSlugReserved: string;
 }
 
 interface NotificationOptionDict {
@@ -163,7 +150,7 @@ interface OnboardingStepsProps {
       language: LanguageStepDict;
       welcome: WelcomeStepDict;
       languageTheme: LanguageThemeStepDict;
-      usernameOrg: UsernameOrgStepDict;
+      usernameOrg: UsernameStepDict;
       notifications: NotificationsStepDict;
       privacy: PrivacyStepDict;
       review: ReviewStepDict;
@@ -183,8 +170,8 @@ interface OnboardingStepsProps {
   locale: string;
 }
 
-// Steps: 0=Language, 1=Welcome, 2=Theme, 3=UsernameOrg, 4=DataOwnership, 5=NotificationsWhat, 6=NotificationsHow, 7=Privacy, 8=Review
-const TOTAL_STEPS = 9;
+// Steps: 0=Language, 1=Welcome, 2=Theme, 3=Username, 4=Notifications, 5=Privacy, 6=Review
+const TOTAL_STEPS = 7;
 
 // Animation variants for step transitions
 const slideVariants = {
@@ -210,15 +197,13 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
   const { createOrganization, setActive, userMemberships } = useOrganizationList({
     userMemberships: { infinite: true },
   });
-  
+
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
-  const [usernameOrgValid, setUsernameOrgValid] = useState(false);
-  const [dataOwnershipMode, setDataOwnershipMode] = useState<DataOwnershipMode>("AGENCY");
+  const [usernameValid, setUsernameValid] = useState(false);
 
   // Track initial username to detect if user needs to set one during onboarding
-  // Start with database username, but update to Clerk username once available (source of truth)
   const [initialUsername, setInitialUsername] = useState(user?.username || "");
 
   // Get firstName/lastName from user, falling back to splitting name
@@ -229,7 +214,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
     if (user?.name) return user.name.split(" ")[0] || "";
     return "";
   };
-  
+
   const getInitialLastName = (): string => {
     if (user && "lastName" in user && typeof user.lastName === "string" && user.lastName) {
       return user.lastName;
@@ -248,16 +233,11 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
     username: user?.username || "",
     language: (locale as SupportedLanguage) || "en",
     theme: "estate" as SupportedTheme,
-    organization: {
-      name: "",
-      slug: "",
-    },
     notificationPreferences: { ...DEFAULT_NOTIFICATION_PREFERENCES },
     privacyPreferences: { ...DEFAULT_PRIVACY_PREFERENCES },
   });
 
   // Pre-populate form data from Clerk user when available (for Google SSO users)
-  // This ensures the form shows their Google-provided names that they can then edit
   useEffect(() => {
     if (clerkUser) {
       setOnboardingData((prev) => ({
@@ -267,9 +247,8 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         lastName: prev.lastName || clerkUser.lastName || "",
         username: prev.username || clerkUser.username || "",
       }));
-      
+
       // Update initial username with Clerk's value (source of truth)
-      // This handles the case where Clerk has a username but our webhook hasn't synced it to DB yet
       if (clerkUser.username && !initialUsername) {
         setInitialUsername(clerkUser.username);
       }
@@ -277,7 +256,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
   }, [clerkUser, initialUsername]);
 
   // Calculate progress (excluding language selection step from progress display)
-  const progressSteps = TOTAL_STEPS - 1; // 5 steps after language
+  const progressSteps = TOTAL_STEPS - 1;
   const displayStep = currentStep > 0 ? currentStep - 1 : 0;
   const progress = currentStep <= 1 ? 0 : ((displayStep) / (progressSteps - 1)) * 100;
 
@@ -289,7 +268,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
   };
 
   const handleBack = () => {
-    if (currentStep > 1) { // Can't go back to language selection
+    if (currentStep > 1) {
       setDirection(-1);
       setCurrentStep(currentStep - 1);
     }
@@ -298,7 +277,6 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
   // Handle language selection - this step works differently
   const handleLanguageSelect = useCallback((language: SupportedLanguage) => {
     setOnboardingData((prev) => ({ ...prev, language }));
-    // Move to welcome step
     setDirection(1);
     setCurrentStep(1);
   }, []);
@@ -308,25 +286,17 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
     setOnboardingData((prev) => ({ ...prev, theme }));
   }, []);
 
-  const handleUsernameOrgChange = useCallback((data: UsernameOrgStepData) => {
+  const handleUsernameChange = useCallback((data: UsernameStepData) => {
     setOnboardingData((prev) => ({
       ...prev,
       firstName: data.firstName,
       lastName: data.lastName,
       username: data.username,
-      organization: {
-        name: data.orgName,
-        slug: data.orgSlug,
-      },
     }));
   }, []);
 
-  const handleUsernameOrgValidation = useCallback((isValid: boolean) => {
-    setUsernameOrgValid(isValid);
-  }, []);
-
-  const handleDataOwnershipChange = useCallback((mode: DataOwnershipMode) => {
-    setDataOwnershipMode(mode);
+  const handleUsernameValidation = useCallback((isValid: boolean) => {
+    setUsernameValid(isValid);
   }, []);
 
   const handleNotificationsChange = useCallback(
@@ -351,22 +321,15 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
 
   const handleComplete = async () => {
     setIsCompleting(true);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/6745c257-993b-4bd4-bf13-5c5734e70e2e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingSteps.tsx:handleComplete:start',message:'Onboarding completion started',data:{currentStep,locale,hasClerkUser:!!clerkUser,usernameOrgValid},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
     try {
       // Check if Clerk hooks are available
       if (!createOrganization || !setActive) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/6745c257-993b-4bd4-bf13-5c5734e70e2e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingSteps.tsx:handleComplete:noClerkHooks',message:'Clerk hooks not available',data:{hasCreateOrg:!!createOrganization,hasSetActive:!!setActive},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
         toast.error(dict.errors.orgCreationFailed, { description: dict.errors.generic, isTranslationKey: false });
         setIsCompleting(false);
         return;
       }
 
-      // 1. FIRST: Validate user data BEFORE creating organization
-      // This prevents orphaned orgs when validation fails
+      // 1. Validate user data BEFORE creating anything
       const validation = await validateOnboardingData({
         username: onboardingData.username,
         firstName: onboardingData.firstName,
@@ -380,14 +343,11 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         return;
       }
 
-      // 2. Update Clerk with user profile data (firstName, lastName, username if needed)
-      // Use Clerk's client SDK directly - this is more reliable than going through our API
-      // since the DB user might not exist yet (race condition with webhook)
+      // 2. Update Clerk with user profile data
       const usernameNeedsSetup = !initialUsername;
-      
+
       if (clerkUser) {
         try {
-          // Build update payload for Clerk
           const clerkUpdateData: {
             firstName?: string;
             lastName?: string;
@@ -396,20 +356,17 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
             firstName: onboardingData.firstName.trim(),
             lastName: onboardingData.lastName.trim(),
           };
-          
-          // Only include username if it needs to be set (user didn't have one from registration)
+
           if (usernameNeedsSetup && onboardingData.username) {
             clerkUpdateData.username = onboardingData.username.toLowerCase();
           }
-          
-          // Update directly via Clerk's client SDK
+
           await clerkUser.update(clerkUpdateData);
         } catch (clerkError) {
-          // Check for username taken error
           const error = clerkError as { errors?: Array<{ message?: string; code?: string }> };
           const firstError = error?.errors?.[0];
-          
-          if (firstError?.code === "form_identifier_exists" || 
+
+          if (firstError?.code === "form_identifier_exists" ||
               firstError?.message?.toLowerCase().includes("taken")) {
             toast.error(dict.errors.completionFailed, { description: dict.errors.usernameTaken, isTranslationKey: false });
           } else {
@@ -420,30 +377,22 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         }
       }
 
-      // 3. Create both Personal Workspace and Agency Organization
+      // 3. Ensure personal workspace exists
       const existingOrgs = userMemberships?.data ?? [];
-      
-      // Check if user already has organizations
+
       const hasPersonalOrg = existingOrgs.some(
         (membership) =>
           (membership.organization.publicMetadata as Record<string, unknown>)
             ?.type === "personal"
       );
-      const hasAgencyOrg = existingOrgs.some(
-        (membership) =>
-          (membership.organization.publicMetadata as Record<string, unknown>)
-            ?.type === "agency"
-      );
 
       let personalOrgId: string | null = null;
-      let agencyOrgId: string | null = null;
 
-      // Create Personal Workspace if it doesn't exist
       if (!hasPersonalOrg) {
         try {
           const personalOrgName = `${onboardingData.username || clerkUser?.username || "User"}'s Workspace`;
           const personalOrgSlug = `${onboardingData.username || clerkUser?.username || "user"}-personal`;
-          
+
           const personalOrg = await createOrganization({
             name: personalOrgName,
             slug: personalOrgSlug,
@@ -451,7 +400,6 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
 
           if (personalOrg?.id) {
             personalOrgId = personalOrg.id;
-            // Set metadata to mark as personal workspace
             const metadataResult = await updateOrganizationMetadata(personalOrgId, {
               type: "personal",
             });
@@ -461,10 +409,9 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
           }
         } catch (personalOrgError: unknown) {
           console.error("Error creating personal workspace:", personalOrgError);
-          // Continue - we'll try to create it later if needed
+          // Continue — personal workspace can be created later
         }
       } else {
-        // Find existing personal org
         const personalOrg = existingOrgs.find(
           (membership) =>
             (membership.organization.publicMetadata as Record<string, unknown>)
@@ -473,100 +420,22 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         personalOrgId = personalOrg?.organization.id ?? null;
       }
 
-      // Create Agency Organization if it doesn't exist
-      if (!hasAgencyOrg) {
-        const orgSlug = onboardingData.organization.slug || generateOrgSlug(onboardingData.organization.name);
-        
+      // 4. Set personal workspace as active so auth() has an orgId
+      if (personalOrgId && setActive) {
         try {
-          const nameCheckResponse = await fetch(
-            `/api/organization/check-name?name=${encodeURIComponent(onboardingData.organization.name)}`
-          );
-          if (nameCheckResponse.ok) {
-            const nameCheck = await nameCheckResponse.json();
-            if (!nameCheck.available) {
-              const errorMessage =
-                nameCheck.error === "RESERVED"
-                  ? dict.errors.orgNameReserved
-                  : dict.errors.generic;
-              toast.error(dict.errors.orgCreationFailed, {
-                description: errorMessage,
-                isTranslationKey: false,
-              });
-              setIsCompleting(false);
-              return;
-            }
-          }
-
-          const agencyOrg = await createOrganization({
-            name: onboardingData.organization.name,
-            slug: orgSlug,
-          });
-
-          if (agencyOrg?.id) {
-            agencyOrgId = agencyOrg.id;
-            // Set metadata to mark as agency organization
-            const metadataResult = await updateOrganizationMetadata(agencyOrgId, {
-              type: "agency",
-            });
-            if (metadataResult.error) {
-              console.error("Failed to set agency org metadata:", metadataResult.error);
-            }
-          }
-        } catch (orgError: unknown) {
-          // Check for slug conflict or other Clerk errors
-          let errorMessage = dict.errors.generic;
-          if (orgError instanceof Error) {
-            const errorMsg = orgError.message.toLowerCase();
-            if (errorMsg.includes("slug") || errorMsg.includes("already exists") || errorMsg.includes("taken")) {
-              errorMessage = dict.errors.orgSlugTaken;
-            } else {
-              errorMessage = orgError.message;
-            }
-          }
-          
-          toast.error(dict.errors.orgCreationFailed, { description: errorMessage, isTranslationKey: false });
-          setIsCompleting(false);
-          return;
-        }
-      } else {
-        // Find existing agency org
-        const agencyOrg = existingOrgs.find(
-          (membership) =>
-            (membership.organization.publicMetadata as Record<string, unknown>)
-              ?.type === "agency"
-        );
-        agencyOrgId = agencyOrg?.organization.id ?? null;
-      }
-
-      // 4. Set the Agency organization as active (default workspace)
-      // This is required for auth() to return the orgId
-      if (agencyOrgId && setActive) {
-        try {
-          await setActive({ organization: agencyOrgId });
+          await setActive({ organization: personalOrgId });
         } catch {
-          // Continue anyway - the org exists, user can select it manually
+          // Continue — user can select it manually
         }
       }
 
-      // 4b. Set the data ownership mode for the newly created agency org
-      if (agencyOrgId) {
-        try {
-          await setOwnershipMode(dataOwnershipMode, agencyOrgId);
-        } catch {
-          // Non-blocking — org owner can set this later via banner
-          console.error("Failed to set data ownership mode during onboarding");
-        }
-      }
-
-      // 5. Save user preferences (include username for DB update)
+      // 5. Save user preferences
       const notificationSettings = convertPreferencesToSettings(
         onboardingData.notificationPreferences
       );
 
-      // Get referral code from localStorage if present
       const referralCode = getStoredReferralCode();
 
-      // Pass all data including username to completeOnboarding
       const result = await completeOnboarding({
         username: usernameNeedsSetup ? onboardingData.username : undefined,
         firstName: onboardingData.firstName,
@@ -578,16 +447,11 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         referralCode: referralCode || undefined,
       });
 
-      // Clear the referral code from localStorage after processing
       if (referralCode) {
         clearStoredReferralCode();
       }
 
       if (!result.success) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/6745c257-993b-4bd4-bf13-5c5734e70e2e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingSteps.tsx:handleComplete:resultFailed',message:'completeOnboarding returned failure',data:{error:result.error},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
-        // This shouldn't happen since we validated first, but handle it anyway
         const description =
           result.error === "USERNAME_RESERVED"
             ? dict.errors.usernameReserved
@@ -597,23 +461,13 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         return;
       }
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6745c257-993b-4bd4-bf13-5c5734e70e2e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingSteps.tsx:handleComplete:success',message:'Onboarding completed successfully, redirecting',data:{redirectTo:`/${locale}/app`,personalOrgId,agencyOrgId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
-
-      // 6. Redirect to dashboard
+      // 6. Redirect to dashboard (personal workspace)
       toast.success(dict.steps.complete.title, { description: dict.steps.complete.redirecting, isTranslationKey: false });
 
-      // Small delay for toast to show, then hard redirect to ensure fresh session
-      // Using globalThis.location.href instead of router.push to force a full page reload
-      // This ensures Clerk's session is fully updated with the new orgId
       setTimeout(() => {
         globalThis.location.href = `/${locale}/app`;
       }, 500);
-    } catch (err) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6745c257-993b-4bd4-bf13-5c5734e70e2e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingSteps.tsx:handleComplete:catch',message:'Unexpected error in onboarding completion',data:{error:String(err)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
+    } catch {
       toast.error(dict.errors.completionFailed, { description: dict.errors.generic, isTranslationKey: false });
       setIsCompleting(false);
     }
@@ -627,17 +481,13 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         return true;
       case 2: // Theme
         return !!onboardingData.theme;
-      case 3: // Username & Org
-        return usernameOrgValid;
-      case 4: // Data Ownership
-        return !!dataOwnershipMode;
-      case 5: // Notifications what
+      case 3: // Username
+        return usernameValid;
+      case 4: // Notifications
         return true; // Optional
-      case 6: // Notifications how
-        return true; // Optional
-      case 7: // Privacy
+      case 5: // Privacy
         return true;
-      case 8: // Review
+      case 6: // Review
         return true;
       default:
         return false;
@@ -667,8 +517,8 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         return (
           <WelcomeStep
             key="welcome"
-            userName={onboardingData.firstName || onboardingData.lastName 
-              ? `${onboardingData.firstName} ${onboardingData.lastName}`.trim() 
+            userName={onboardingData.firstName || onboardingData.lastName
+              ? `${onboardingData.firstName} ${onboardingData.lastName}`.trim()
               : ""}
             dict={dict.steps.welcome}
             onContinue={handleNext}
@@ -685,49 +535,30 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         );
       case 3:
         return (
-          <UsernameOrgStep
-            key="username-org"
+          <UsernameStep
+            key="username"
             dict={dict.steps.usernameOrg}
             data={{
               firstName: onboardingData.firstName,
               lastName: onboardingData.lastName,
               username: onboardingData.username,
-              orgName: onboardingData.organization.name,
-              orgSlug: onboardingData.organization.slug,
             }}
-            onDataChange={handleUsernameOrgChange}
-            onValidationChange={handleUsernameOrgValidation}
-            userHasName={false}  // Always show name fields so users can edit/confirm their names
+            onDataChange={handleUsernameChange}
+            onValidationChange={handleUsernameValidation}
+            userHasName={false}
             initialUsername={initialUsername}
           />
         );
       case 4:
         return (
-          <DataOwnershipStep
-            key="data-ownership"
-            currentMode={dataOwnershipMode}
-            onModeChange={handleDataOwnershipChange}
+          <NotificationsStep
+            key="notifications"
+            dict={dict.steps.notifications}
+            data={onboardingData.notificationPreferences}
+            onDataChange={handleNotificationsChange}
           />
         );
       case 5:
-        return (
-          <NotificationsWhatStep
-            key="notifications-what"
-            dict={dict.steps.notifications}
-            data={onboardingData.notificationPreferences}
-            onDataChange={handleNotificationsChange}
-          />
-        );
-      case 6:
-        return (
-          <NotificationsHowStep
-            key="notifications-how"
-            dict={dict.steps.notifications}
-            data={onboardingData.notificationPreferences}
-            onDataChange={handleNotificationsChange}
-          />
-        );
-      case 7:
         return (
           <PrivacyStep
             key="privacy"
@@ -736,7 +567,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
             onDataChange={handlePrivacyChange}
           />
         );
-      case 8:
+      case 6:
         return (
           <ReviewStep
             key="review"
@@ -752,8 +583,8 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
     }
   };
 
-  // Show navigation for steps 2-8 (Theme, UsernameOrg, DataOwnership, Notifications, Privacy, Review)
-  const showNavigation = currentStep >= 2 && currentStep <= 8;
+  // Show navigation for steps 2-6
+  const showNavigation = currentStep >= 2 && currentStep <= 6;
 
   return (
     <div className="flex flex-col gap-6 min-h-[720px]">

@@ -65,14 +65,6 @@ export interface OnboardingNotificationSettings {
 }
 
 /**
- * Organization data for onboarding
- */
-export interface OnboardingOrgData {
-  name: string;
-  slug: string;
-}
-
-/**
  * Complete onboarding data structure
  */
 export interface OnboardingData {
@@ -85,8 +77,6 @@ export interface OnboardingData {
   // User preferences
   language: SupportedLanguage;
   theme: SupportedTheme;
-  // Organization
-  organization: OnboardingOrgData;
   // Notifications
   notificationPreferences: OnboardingNotificationPreferences;
   // Privacy
@@ -100,18 +90,6 @@ export interface UsernameStepData {
   username: string;
   firstName: string;
   lastName: string;
-}
-
-/**
- * Username and Organization step data
- */
-export interface UsernameOrgStepData {
-  firstName: string;
-  lastName: string;
-  /** Username - editable if not set from Clerk, read-only if already set */
-  username: string;
-  orgName: string;
-  orgSlug: string;
 }
 
 /**

@@ -3,6 +3,8 @@
 import { motion } from "motion/react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import type { OnboardingNotificationPreferences } from "@/types/onboarding";
 import {
@@ -11,14 +13,18 @@ import {
   Handshake,
   Users,
   FileText,
+  Mail,
+  Bell,
 } from "lucide-react";
 
-interface NotificationsWhatStepProps {
+interface NotificationsStepProps {
   dict: {
     title: string;
     description: string;
     question: string;
     options: Record<string, { title: string; description: string }>;
+    deliveryTitle: string;
+    deliveryOptions: Record<string, { title: string; description: string }>;
   };
   data: OnboardingNotificationPreferences;
   onDataChange: (data: OnboardingNotificationPreferences) => void;
@@ -57,11 +63,26 @@ const NOTIFICATION_OPTIONS = [
   },
 ];
 
-export function NotificationsWhatStep({
+const DELIVERY_OPTIONS = [
+  {
+    id: "email",
+    key: "preferEmail" as const,
+    icon: Mail,
+    color: "bg-rose-500/10 text-rose-600",
+  },
+  {
+    id: "inApp",
+    key: "preferInApp" as const,
+    icon: Bell,
+    color: "bg-indigo-500/10 text-indigo-600",
+  },
+];
+
+export function NotificationsStep({
   dict,
   data,
   onDataChange,
-}: NotificationsWhatStepProps) {
+}: NotificationsStepProps) {
   const handleToggle = (key: keyof OnboardingNotificationPreferences) => {
     onDataChange({ ...data, [key]: !data[key] });
   };
@@ -78,6 +99,7 @@ export function NotificationsWhatStep({
         <p className="text-muted-foreground">{dict.description}</p>
       </motion.div>
 
+      {/* What to notify about */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -135,7 +157,62 @@ export function NotificationsWhatStep({
           })}
         </div>
       </motion.div>
+
+      <Separator />
+
+      {/* How to receive notifications */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.45 }}
+        className="space-y-4"
+      >
+        <p className="text-lg font-semibold">{dict.deliveryTitle}</p>
+
+        <div className="grid grid-cols-2 gap-3 px-1">
+          {DELIVERY_OPTIONS.map((option, index) => {
+            const Icon = option.icon;
+            const isEnabled = data[option.key];
+            const optionDict = dict.deliveryOptions[option.id];
+
+            return (
+              <motion.div
+                key={option.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+              >
+                <Card
+                  className={cn(
+                    "p-4 cursor-pointer transition-all",
+                    isEnabled
+                      ? "ring-2 ring-primary bg-primary/5"
+                      : "hover:bg-muted/50"
+                  )}
+                  onClick={() => handleToggle(option.key)}
+                >
+                  <div className="flex flex-col items-center text-center gap-3">
+                    <div className={cn("p-3 rounded-xl", option.color)}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{optionDict.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {optionDict.description}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={isEnabled}
+                      onCheckedChange={() => handleToggle(option.key)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
     </div>
   );
 }
-
