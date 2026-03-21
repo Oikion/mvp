@@ -76,15 +76,21 @@ if (!userId || !organizationId) throw new Error("Unauthenticated");
 ### Sign up
 1. User visits `/register` → Clerk Account Portal
 2. After sign-up → `/{locale}/app/onboard`
-3. User completes onboarding (creates org, sets preferences)
-4. After onboarding → `/{locale}/app`
+3. User completes onboarding (profile setup, preferences, creates personal workspace)
+4. After onboarding → `/{locale}/app` (personal workspace dashboard)
 
 ### Sign in
 1. User visits `/sign-in` → Clerk Account Portal
 2. After sign-in → `/{locale}`
 3. Layout checks for organization:
-   - No org → `/{locale}/create-organization`
-   - Org exists → dashboard
+   - No org → redirect to `/{locale}/app` (or personal workspace creation if needed)
+   - Org exists → dashboard of active organization
+
+### Create Organization
+1. After onboarding, user can create agencies from the workspace switcher
+2. Click "Create Organization" → `/{locale}/app/create-organization`
+3. Complete 6-step wizard: org info → data policy → encryption → teammates → partnerships → review
+4. On creation → dashboard of new agency org
 
 ## Troubleshooting
 
