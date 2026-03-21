@@ -6,20 +6,10 @@ import { useOrganizationList } from "@clerk/nextjs";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, SkipForward, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ArrowRight, SkipForward } from "lucide-react";
 
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 import { finalizeOrganizationSetup } from "@/actions/organization/finalize-organization-setup";
 import {
@@ -98,9 +88,7 @@ export function CreateOrganizationWizard() {
   const params = useParams();
   const locale = (params.locale as string) ?? "el";
 
-  const { createOrganization, setActive, userMemberships } = useOrganizationList({
-    userMemberships: { infinite: true },
-  });
+  const { createOrganization, setActive } = useOrganizationList();
 
   // --- Wizard state ---
   const [currentStep, setCurrentStep] = useState(0);
@@ -114,10 +102,11 @@ export function CreateOrganizationWizard() {
   const [isLoadingConnections, setIsLoadingConnections] = useState(false);
   const connectionsFetchedRef = useRef(false);
 
-  // --- Orphan detection ---
-  // orphanOrgId is stored for potential future use (e.g., passing to a resume/cleanup server action)
-  const [_orphanOrgId, setOrphanOrgId] = useState<string | null>(null);
-  const [showOrphanDialog, setShowOrphanDialog] = useState(false);
+  // --- Cancel handler ---
+  const handleCancel = useCallback(() => {
+    sessionStorage.removeItem(STORAGE_KEY);
+    router.push(`/${locale}/app`);
+  }, [locale, router]);
 
   // =============================================================================
   // sessionStorage restore on mount
@@ -179,38 +168,6 @@ export function CreateOrganizationWizard() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [wizardData]);
-
-  // =============================================================================
-  // Orphan detection on mount
-  // =============================================================================
-
-  useEffect(() => {
-    if (!userMemberships?.data) return;
-
-    // Look for a Clerk org that has type === "agency" but no OrganizationSettings in DB.
-    // We detect the orphan candidate here; the server action will verify on creation.
-    // Simple heuristic: if sessionStorage has no data but user already has an agency org,
-    // flag it. A full DB check is intentionally deferred to avoid a server round-trip on
-    // every wizard mount.
-    const agencyOrgs = userMemberships.data.filter(
-      (m) =>
-        (m.organization.publicMetadata as Record<string, unknown>)?.type === "agency"
-    );
-
-    if (agencyOrgs.length > 0) {
-      // There is an existing agency org — could be an orphan if Phase 2 never ran.
-      // Surface a dialog so the user can decide to resume or ignore.
-      const candidate = agencyOrgs[0];
-      const storedData = sessionStorage.getItem(STORAGE_KEY);
-
-      if (!storedData && agencyOrgs.length > 0) {
-        // Only surface if there's no in-progress wizard data — avoids false positives
-        // on users who already have an org and are creating a second one.
-        setOrphanOrgId(candidate.organization.id);
-        setShowOrphanDialog(true);
-      }
-    }
-  }, [userMemberships?.data]);
 
   // =============================================================================
   // Connection data prefetch
@@ -407,22 +364,6 @@ export function CreateOrganizationWizard() {
   ]);
 
   // =============================================================================
-  // Orphan dialog handlers
-  // =============================================================================
-
-  const handleOrphanResume = useCallback(() => {
-    // If the user had a previous wizard session stored, it was already restored on mount.
-    // Simply close the dialog and let them continue.
-    setShowOrphanDialog(false);
-    setOrphanOrgId(null);
-  }, []);
-
-  const handleOrphanIgnore = useCallback(() => {
-    setShowOrphanDialog(false);
-    setOrphanOrgId(null);
-  }, []);
-
-  // =============================================================================
   // Step rendering
   // =============================================================================
 
@@ -509,44 +450,29 @@ export function CreateOrganizationWizard() {
   // =============================================================================
 
   return (
-    <>
-      {/* Orphan org detection dialog */}
-      <AlertDialog open={showOrphanDialog} onOpenChange={setShowOrphanDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-warning" aria-hidden="true" />
-              {t("wizard.orphanTitle")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("wizard.orphanDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleOrphanIgnore}>
-              {t("wizard.orphanIgnore")}
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleOrphanResume}>
-              {t("wizard.orphanResume")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <div className="flex flex-col gap-6 min-h-[720px]">
-        {/* Progress bar */}
+    <div className="flex flex-col gap-6 min-h-[720px]">
+        {/* Progress bar + Cancel */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-2"
         >
-          <div className="flex justify-between text-sm text-muted-foreground">
+          <div className="flex justify-between items-center text-sm text-muted-foreground">
             <span>
               {t("wizard.stepOf", {
                 current: currentStep + 1,
                 total: TOTAL_STEPS,
               })}
             </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="gap-1.5 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+              {t("wizard.cancel")}
+            </Button>
           </div>
           <Progress value={progress} className="h-2" />
         </motion.div>
@@ -579,16 +505,20 @@ export function CreateOrganizationWizard() {
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-between items-center gap-2 pt-4 border-t"
           >
-            {/* Back */}
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              disabled={currentStep === 0}
-              className="gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-              {t("wizard.back")}
-            </Button>
+            {/* Back — hidden on step 0 */}
+            {currentStep > 0 ? (
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                disabled={isCreating}
+                className="gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                {t("wizard.back")}
+              </Button>
+            ) : (
+              <div />
+            )}
 
             <div className="flex items-center gap-2">
               {/* Skip (optional steps 3 & 4) */}
@@ -616,6 +546,5 @@ export function CreateOrganizationWizard() {
           </motion.div>
         )}
       </div>
-    </>
   );
 }

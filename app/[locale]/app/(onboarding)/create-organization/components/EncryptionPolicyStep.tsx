@@ -16,11 +16,14 @@ interface EncryptionPolicyStepProps {
   onValidationChange: (isValid: boolean) => void;
 }
 
-function getPinStrength(pin: string): { label: string; color: string } {
-  if (pin.length < 4) return { label: "Too short", color: "text-destructive" };
-  if (pin.length < 6) return { label: "Weak", color: "text-warning" };
-  if (pin.length < 8) return { label: "Good", color: "text-primary" };
-  return { label: "Strong", color: "text-green-600" };
+function getPinStrength(
+  pin: string,
+  t: (key: string) => string
+): { label: string; color: string } {
+  if (pin.length < 4) return { label: t("encryption.pinStrength.tooShort"), color: "text-destructive" };
+  if (pin.length < 6) return { label: t("encryption.pinStrength.weak"), color: "text-warning" };
+  if (pin.length < 8) return { label: t("encryption.pinStrength.good"), color: "text-primary" };
+  return { label: t("encryption.pinStrength.strong"), color: "text-green-600" };
 }
 
 export function EncryptionPolicyStep({
@@ -42,7 +45,7 @@ export function EncryptionPolicyStep({
   const [setupError, setSetupError] = useState<string | null>(null);
   const [setupSuccess, setSetupSuccess] = useState(false);
 
-  const pinStrength = getPinStrength(pin);
+  const pinStrength = getPinStrength(pin, t);
   const pinsMatch = pin.length >= 4 && pin === confirmPin;
   const canSubmit = pinsMatch && !isSubmitting;
 
@@ -117,8 +120,8 @@ export function EncryptionPolicyStep({
       setPinExists(true);
       setPin("");
       setConfirmPin("");
-    } catch (err) {
-      setSetupError(err instanceof Error ? err.message : "Setup failed");
+    } catch {
+      setSetupError(t("encryption.pinError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -192,12 +195,14 @@ export function EncryptionPolicyStep({
             {isCheckingPin ? (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                <span className="text-sm">Checking encryption status...</span>
+                <span className="text-sm">{t("encryption.checkingStatus")}</span>
               </div>
             ) : pinExists || setupSuccess ? (
               <div className="flex items-center gap-2 text-green-600">
                 <Check className="h-4 w-4" aria-hidden="true" />
-                <span className="text-sm font-medium">{t("encryption.pinExists")}</span>
+                <span className="text-sm font-medium">
+                  {setupSuccess ? t("encryption.pinCreated") : t("encryption.pinExists")}
+                </span>
               </div>
             ) : (
               <>
@@ -214,13 +219,13 @@ export function EncryptionPolicyStep({
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" aria-hidden="true" />
                   <AlertDescription>
-                    If you forget this PIN, your encrypted data cannot be recovered. Store it securely.
+                    {t("encryption.pinWarning")}
                   </AlertDescription>
                 </Alert>
 
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <Label htmlFor="enc-pin">PIN (4–8 digits)</Label>
+                    <Label htmlFor="enc-pin">{t("encryption.pinLabel")}</Label>
                     <Input
                       id="enc-pin"
                       type="password"
@@ -229,17 +234,17 @@ export function EncryptionPolicyStep({
                       maxLength={8}
                       value={pin}
                       onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                      placeholder="Enter PIN"
+                      placeholder={t("encryption.pinPlaceholder")}
                     />
                     {pin.length > 0 && (
                       <p className={cn("text-xs", pinStrength.color)}>
-                        Strength: {pinStrength.label}
+                        {pinStrength.label}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-1">
-                    <Label htmlFor="enc-confirm-pin">Confirm PIN</Label>
+                    <Label htmlFor="enc-confirm-pin">{t("encryption.confirmPinLabel")}</Label>
                     <Input
                       id="enc-confirm-pin"
                       type="password"
@@ -248,14 +253,14 @@ export function EncryptionPolicyStep({
                       maxLength={8}
                       value={confirmPin}
                       onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
-                      placeholder="Confirm PIN"
+                      placeholder={t("encryption.confirmPinPlaceholder")}
                     />
                     {confirmPin.length > 0 && !pinsMatch && (
-                      <p className="text-xs text-destructive">PINs do not match</p>
+                      <p className="text-xs text-destructive">{t("encryption.pinNoMatch")}</p>
                     )}
                     {pinsMatch && (
                       <p className="text-xs text-green-600 flex items-center gap-1">
-                        <Check className="h-3 w-3" aria-hidden="true" /> PINs match
+                        <Check className="h-3 w-3" aria-hidden="true" /> {t("encryption.pinMatch")}
                       </p>
                     )}
                   </div>
@@ -273,10 +278,10 @@ export function EncryptionPolicyStep({
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
-                      Setting up...
+                      {t("encryption.settingUp")}
                     </>
                   ) : (
-                    "Enable E2EE"
+                    t("encryption.enableE2ee")
                   )}
                 </Button>
               </>
