@@ -37,6 +37,7 @@ import networkEn from "./locales/en/network.json";
 import matchmakingEn from "./locales/en/matchmaking.json";
 import dataOwnershipEn from "./locales/en/dataOwnership.json";
 import createOrganizationEn from "./locales/en/createOrganization.json";
+import encryptionEn from "./locales/en/encryption.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -74,6 +75,7 @@ import networkEl from "./locales/el/network.json";
 import matchmakingEl from "./locales/el/matchmaking.json";
 import dataOwnershipEl from "./locales/el/dataOwnership.json";
 import createOrganizationEl from "./locales/el/createOrganization.json";
+import encryptionEl from "./locales/el/encryption.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -121,6 +123,7 @@ function loadMessages(locale: string) {
     messages.networkSettings = networkEl.matchmaking;
     messages.dataOwnership = dataOwnershipEl;
     messages.createOrganization = createOrganizationEl;
+    messages.encryption = encryptionEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -170,6 +173,7 @@ function loadMessages(locale: string) {
     messages.networkSettings = networkEn.matchmaking;
     messages.dataOwnership = dataOwnershipEn;
     messages.createOrganization = createOrganizationEn;
+    messages.encryption = encryptionEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))

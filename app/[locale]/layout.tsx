@@ -51,6 +51,8 @@ import shareEn from "@/locales/en/share.json";
 import mandatesEn from "@/locales/en/mandates.json";
 import networkEn from "@/locales/en/network.json";
 import dataOwnershipEn from "@/locales/en/dataOwnership.json";
+import encryptionEn from "@/locales/en/encryption.json";
+import createOrganizationEn from "@/locales/en/createOrganization.json";
 import cookiesEn from "@/locales/en/cookies.json";
 
 import commonEl from "@/locales/el/common.json";
@@ -91,6 +93,8 @@ import shareEl from "@/locales/el/share.json";
 import mandatesEl from "@/locales/el/mandates.json";
 import networkEl from "@/locales/el/network.json";
 import dataOwnershipEl from "@/locales/el/dataOwnership.json";
+import encryptionEl from "@/locales/el/encryption.json";
+import createOrganizationEl from "@/locales/el/createOrganization.json";
 import cookiesEl from "@/locales/el/cookies.json";
 
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -151,6 +155,8 @@ function getLocales(locale: string) {
     messages.network = networkEl;
     messages.networkSettings = networkEl.matchmaking;
     messages.dataOwnership = dataOwnershipEl;
+    messages.encryption = encryptionEl;
+    messages.createOrganization = createOrganizationEl;
     messages.cookies = cookiesEl;
   } else {
     // Default to English
@@ -200,6 +206,8 @@ function getLocales(locale: string) {
     messages.network = networkEn;
     messages.networkSettings = networkEn.matchmaking;
     messages.dataOwnership = dataOwnershipEn;
+    messages.encryption = encryptionEn;
+    messages.createOrganization = createOrganizationEn;
     messages.cookies = cookiesEn;
   }
 
