@@ -40,9 +40,10 @@ export async function ensurePersonalWorkspace() {
       return { success: true, created: false };
     }
 
-    // Create personal workspace
+    // Create personal workspace (suffix with short timestamp to avoid slug collisions on retry)
     const personalOrgName = `${user.username}'s Workspace`;
-    const personalOrgSlug = `${user.username}-personal`;
+    const slugBase = `${user.username}-personal`;
+    const personalOrgSlug = `${slugBase}-${Date.now().toString(36)}`;
 
     const personalOrg = await clerk.organizations.createOrganization({
       name: personalOrgName,
