@@ -111,7 +111,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
       property_type: undefined,
       property_type_other: "",
       transaction_type: undefined,
-      property_status: "AVAILABLE",
+      property_status: "ACTIVE",
       is_exclusive: false,
       country: "GR",
       municipality: "",

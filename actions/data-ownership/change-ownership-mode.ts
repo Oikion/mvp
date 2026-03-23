@@ -12,6 +12,7 @@ import {
 import { assertEncryptionModeUnchanged } from "@/lib/encryption-mode-guard";
 import { getActionPermissionContext } from "@/lib/permissions/action-service";
 import type { PolicyEra } from "@/lib/data-ownership/types";
+import { isOrgPersonal } from "@/lib/personal-workspace-guard";
 
 /**
  * Change the data ownership mode for the current organization.
@@ -38,6 +39,14 @@ export async function changeOwnershipMode(
   const { orgId, userId } = await auth();
   if (!orgId || !userId) {
     return actionError("Not authenticated");
+  }
+
+  // Personal workspaces are always AGENT — cannot be changed
+  if (await isOrgPersonal(orgId)) {
+    return actionError(
+      "Personal workspaces always use AGENT data ownership and cannot be changed",
+      "FORBIDDEN"
+    );
   }
 
   try {

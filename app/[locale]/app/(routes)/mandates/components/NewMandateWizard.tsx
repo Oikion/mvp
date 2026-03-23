@@ -863,6 +863,7 @@ export function NewMandateWizard({
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value ?? ""}
                         placeholder={t(
                           "MandateForm.fields.municipalityPlaceholder"
                         )}
@@ -883,6 +884,7 @@ export function NewMandateWizard({
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value ?? ""}
                         placeholder={t(
                           "MandateForm.fields.regionPlaceholder"
                         )}
@@ -1844,6 +1846,7 @@ export function NewMandateWizard({
                   <FormControl>
                     <Textarea
                       {...field}
+                      value={field.value ?? ""}
                       placeholder={t(
                         "MandateForm.fields.notesPlaceholder"
                       )}
@@ -1865,7 +1868,7 @@ export function NewMandateWizard({
                     {t("MandateForm.fields.expiresAt")}
                   </FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

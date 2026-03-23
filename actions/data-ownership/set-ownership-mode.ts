@@ -11,6 +11,7 @@ import {
 } from "@/lib/action-response";
 import { assertEncryptionModeUnchanged } from "@/lib/encryption-mode-guard";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { isOrgPersonal } from "@/lib/personal-workspace-guard";
 
 /**
  * Set the initial data ownership mode for the current organization.
@@ -34,6 +35,14 @@ export async function setOwnershipMode(
   const orgId = targetOrgId || sessionOrgId;
   if (!orgId || !userId) {
     return actionError("Not authenticated");
+  }
+
+  // Personal workspaces are always AGENT — cannot be changed
+  if (await isOrgPersonal(orgId)) {
+    return actionError(
+      "Personal workspaces always use AGENT data ownership and cannot be changed",
+      "FORBIDDEN"
+    );
   }
 
   try {

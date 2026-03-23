@@ -21,13 +21,13 @@ export function DataOwnershipBanner({
   if (!needsSelection) return null;
 
   return (
-    <Alert variant="default" className="border-amber-500/80 bg-amber-50 dark:bg-amber-500/5 dark:border-amber-400/60">
-      <AlertTriangle className="h-4 w-4 text-amber-600" />
-      <AlertTitle className="text-amber-800 dark:text-amber-200">
+    <Alert variant="default" className="border-warning/60 bg-warning/10">
+      <AlertTriangle className="h-4 w-4 text-warning" />
+      <AlertTitle className="text-warning">
         {t("title")}
       </AlertTitle>
       <AlertDescription className="flex items-center justify-between gap-4">
-        <span className="text-sm text-amber-700 dark:text-amber-300">
+        <span className="text-sm text-warning/80">
           {t("description")}
         </span>
         {isAdmin ? (

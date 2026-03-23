@@ -26,13 +26,13 @@ export function E2EEAnnouncementBanner({ isAdmin }: E2EEAnnouncementBannerProps)
   if (dismissed) return null;
 
   return (
-    <Alert variant="default" className="border-blue-500/80 bg-blue-50 dark:bg-blue-500/5 dark:border-blue-400/60">
-      <Shield className="h-4 w-4 text-blue-600" />
-      <AlertTitle className="text-blue-800 dark:text-blue-200">
+    <Alert variant="default" className="border-info/60 bg-info/10">
+      <Shield className="h-4 w-4 text-info" />
+      <AlertTitle className="text-info">
         {t("title")}
       </AlertTitle>
       <AlertDescription className="flex items-center justify-between gap-4">
-        <span className="text-sm text-blue-700 dark:text-blue-300">
+        <span className="text-sm text-info/80">
           {isAdmin ? t("descriptionAdmin") : t("descriptionMember")}
         </span>
         <div className="flex items-center gap-2 shrink-0">

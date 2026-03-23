@@ -31,6 +31,7 @@ import {
   getCachedIsPlatformAdmin,
 } from "@/lib/cached"
 import { getUserPermissionContext } from "@/lib/permissions/service"
+import { isOrgPersonal } from "@/lib/personal-workspace-guard"
 
 export default async function AppLayout({
   children,
@@ -163,12 +164,16 @@ export default async function AppLayout({
   let showE2EEBanner = false;
   const isAdmin = permissionContext?.role === "OWNER" || permissionContext?.role === "LEAD";
   if (orgId) {
-    const orgSettings = await prismadb.organizationSettings.findUnique({
-      where: { organizationId: orgId },
-      select: { dataOwnershipSetAt: true, encryptionMode: true },
-    });
-    needsOwnershipSelection = !orgSettings?.dataOwnershipSetAt;
-    showE2EEBanner = orgSettings?.encryptionMode !== "E2EE";
+    const [orgSettings, isPersonal] = await Promise.all([
+      prismadb.organizationSettings.findUnique({
+        where: { organizationId: orgId },
+        select: { dataOwnershipSetAt: true, encryptionMode: true },
+      }),
+      isOrgPersonal(orgId),
+    ]);
+    // Personal workspaces: auto-set AGENT ownership, no E2EE — suppress both banners
+    needsOwnershipSelection = !isPersonal && !orgSettings?.dataOwnershipSetAt;
+    showE2EEBanner = !isPersonal && orgSettings?.encryptionMode !== "E2EE";
   }
 
   return (

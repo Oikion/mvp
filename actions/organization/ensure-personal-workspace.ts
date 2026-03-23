@@ -2,7 +2,7 @@
 
 import { createClerkClient } from "@clerk/backend";
 import { auth } from "@clerk/nextjs/server";
-import { EncryptionMode } from "@prisma/client";
+import { DataOwnershipMode, EncryptionMode } from "@prisma/client";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { updateOrganizationMetadata } from "./update-org-metadata";
@@ -64,13 +64,21 @@ export async function ensurePersonalWorkspace() {
       // Continue anyway - the org exists
     }
 
-    // Personal workspaces always use STANDARD encryption mode.
+    // Personal workspaces: always STANDARD encryption, always AGENT data ownership.
+    const now = new Date();
     await prismadb.organizationSettings.upsert({
       where: { organizationId: personalOrg.id },
       create: {
         organizationId: personalOrg.id,
         createdBy: userId,
         encryptionMode: EncryptionMode.STANDARD,
+        dataOwnershipMode: DataOwnershipMode.AGENT,
+        dataOwnershipSetAt: now,
+        dataOwnershipChangedBy: userId,
+        policyVersion: 1,
+        policyHistory: [
+          { mode: DataOwnershipMode.AGENT, from: now.toISOString(), to: null },
+        ],
       },
       update: {},
     });
