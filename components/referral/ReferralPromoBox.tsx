@@ -90,7 +90,7 @@ export function ReferralPromoBox({
           {/* Dismiss button — 48px touch target */}
           <button
             onClick={handleDismissClick}
-            className="absolute top-0 right-0 z-10 flex items-center justify-center w-12 h-12 hover:bg-primary/10 rounded-bl-xl transition-colors"
+            className="absolute top-0 right-0 z-20 flex items-center justify-center w-12 h-12 hover:bg-primary/10 rounded-bl-xl transition-colors"
             aria-label={t("promoBox.dismiss.title")}
           >
             <X className="h-4 w-4 text-muted-foreground" />
