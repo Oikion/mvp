@@ -50,6 +50,7 @@
   },
   "promoBox": {
     "title": "Πρόγραμμα Συστάσεων",
+    "headline": "Κερδίστε <commission>5%</commission> προμήθεια σε κάθε αγορά Πλάνου από σύσταση <duration>για ένα χρόνο</duration>!",
     "description": "Κερδίστε προμήθειες συστήνοντας νέους χρήστες στο Oikion",
     "commission": "5%",
     "commissionLabel": "προμήθεια από συστάσεις",

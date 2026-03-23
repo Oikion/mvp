@@ -50,6 +50,7 @@
   },
   "promoBox": {
     "title": "Referral Programme",
+    "headline": "Get <commission>5%</commission> commission on all referred Plan purchases <duration>for a year</duration>!",
     "description": "Earn commissions by referring new users to Oikion",
     "commission": "5%",
     "commissionLabel": "commission on referrals",

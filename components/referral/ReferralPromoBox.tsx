@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { X, Gift, ArrowRight } from "lucide-react";
+import { X, ArrowRight } from "lucide-react";
 import { Link } from "@/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,6 @@ export function ReferralPromoBox({
   const [showDismissDialog, setShowDismissDialog] = useState(false);
   const [isSessionDismissed, setIsSessionDismissed] = useState(false);
 
-  // Check session storage on mount
   useEffect(() => {
     const sessionDismissed = sessionStorage.getItem("referralBoxDismissed");
     if (sessionDismissed === "true") {
@@ -40,13 +39,10 @@ export function ReferralPromoBox({
     }
   }, []);
 
-  // Don't show if user already has a referral code (approved referrer)
-  // or if permanently dismissed or session dismissed
   if (hasReferralCode || isDismissed || isSessionDismissed) {
     return null;
   }
 
-  // Don't show if application is pending or approved
   if (applicationStatus === "PENDING" || applicationStatus === "APPROVED") {
     return null;
   }
@@ -89,53 +85,44 @@ export function ReferralPromoBox({
             "p-3 backdrop-blur-sm"
           )}
         >
-          {/* Gradient overlay for extra depth */}
           <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent pointer-events-none" />
-          
-          {/* Dismiss button */}
+
+          {/* Dismiss button — 48px touch target */}
           <button
             onClick={handleDismissClick}
-            className="absolute top-2 right-2 z-10 p-1 rounded-full hover:bg-primary/10 transition-colors"
-            aria-label="Dismiss"
+            className="absolute top-0 right-0 z-10 flex items-center justify-center w-12 h-12 hover:bg-primary/10 rounded-bl-xl transition-colors"
+            aria-label={t("promoBox.dismiss.title")}
           >
-            <X className="h-3.5 w-3.5 text-muted-foreground" />
+            <X className="h-4 w-4 text-muted-foreground" />
           </button>
 
           {/* Content */}
-          <div className="relative z-10 flex items-start gap-2.5">
-            <div className="flex-shrink-0 p-2 rounded-lg bg-gradient-to-br from-primary/20 to-violet-500/20">
-              <Gift className="h-4 w-4 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0 pr-3">
-              <h4 className="text-sm font-semibold text-foreground leading-tight mb-0.5">
-                {t("promoBox.title")}
-              </h4>
-              <p className="text-[11px] text-muted-foreground mb-2 leading-snug line-clamp-2">
-                {t("promoBox.description")}
-              </p>
+          <div className="relative z-10 pr-8">
+            <p className="text-sm text-foreground leading-snug mb-3">
+              {t.rich("promoBox.headline", {
+                commission: (chunks) => (
+                  <span className="font-bold text-base bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
+                    {chunks}
+                  </span>
+                ),
+                duration: (chunks) => (
+                  <span className="font-bold text-foreground">
+                    {chunks}
+                  </span>
+                ),
+              })}
+            </p>
 
-              {/* Commission highlight */}
-              <div className="flex items-baseline gap-1 mb-2.5 flex-wrap">
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
-                  {t("promoBox.commission")}
-                </span>
-                <span className="text-[10px] text-muted-foreground leading-tight">
-                  {t("promoBox.commissionLabel")}
-                </span>
-              </div>
-
-              {/* CTA */}
-              <Button
-                size="sm"
-                className="w-full h-auto min-h-8 py-1.5 text-xs gap-1.5 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-medium"
-                asChild
-              >
-                <Link href="/app/referral-portal" className="block">
-                  <span className="text-center leading-tight">{t("promoBox.cta")}</span>
-                  <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" />
-                </Link>
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              className="w-full h-auto min-h-8 py-1.5 text-xs gap-1.5 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-medium"
+              asChild
+            >
+              <Link href="/app/referral-portal" className="block">
+                <span className="text-center leading-tight">{t("promoBox.cta")}</span>
+                <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -149,7 +136,7 @@ export function ReferralPromoBox({
               {t("promoBox.dismiss.description")}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col gap-2 sm:flex-col">
+          <DialogFooter className="flex flex-col items-center gap-2 sm:flex-col sm:items-center sm:space-x-0">
             <Button
               variant="outline"
               onClick={handleNeverShowAgain}
