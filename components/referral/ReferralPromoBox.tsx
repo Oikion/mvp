@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { X, ArrowRight } from "lucide-react";
+import { X, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "@/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,49 +78,65 @@ export function ReferralPromoBox({
       <div className="mx-2 mb-2">
         <div
           className={cn(
-            "relative overflow-hidden rounded-xl",
-            "bg-gradient-to-br from-violet-600/20 via-primary/15 to-fuchsia-500/10",
-            "dark:from-violet-500/25 dark:via-primary/20 dark:to-fuchsia-400/15",
-            "border border-primary/20 dark:border-primary/30",
-            "p-3 backdrop-blur-sm"
+            "group relative overflow-hidden rounded-xl",
+            "bg-gradient-to-br from-violet-950/80 via-primary/10 to-fuchsia-950/60",
+            "dark:from-violet-950/90 dark:via-primary/15 dark:to-fuchsia-950/70",
+            "border border-violet-500/20 dark:border-violet-400/15",
+            "p-4 backdrop-blur-sm",
           )}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent pointer-events-none" />
+          {/* Animated shimmer accent */}
+          <div className="absolute -top-12 -right-12 w-24 h-24 rounded-full bg-violet-500/10 blur-2xl group-hover:bg-violet-500/20 transition-all duration-700" />
+          <div className="absolute -bottom-8 -left-8 w-20 h-20 rounded-full bg-fuchsia-500/8 blur-2xl" />
 
           {/* Dismiss button — 48px touch target */}
           <button
             onClick={handleDismissClick}
-            className="absolute top-0 right-0 z-20 flex items-center justify-center w-12 h-12 hover:bg-primary/10 rounded-bl-xl transition-colors"
+            className="absolute top-0 right-0 z-20 flex items-center justify-center w-12 h-12 hover:bg-white/5 rounded-bl-xl transition-colors"
             aria-label={t("promoBox.dismiss.title")}
           >
-            <X className="h-4 w-4 text-muted-foreground" />
+            <X className="h-3.5 w-3.5 text-muted-foreground/60" />
           </button>
 
           {/* Content */}
-          <div className="relative z-10 pr-8">
-            <p className="text-sm text-foreground leading-snug mb-3">
+          <div className="relative z-10">
+            {/* Sparkle badge */}
+            <div className="flex items-center gap-1.5 mb-3">
+              <Sparkles className="h-3 w-3 text-violet-400" />
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-violet-400/90">
+                {t("promoBox.title")}
+              </span>
+            </div>
+
+            {/* Commission highlight */}
+            <div className="mb-2">
+              <span className="text-3xl font-black bg-gradient-to-r from-violet-400 via-primary to-fuchsia-400 bg-clip-text text-transparent leading-none">
+                5%
+              </span>
+            </div>
+
+            {/* Description */}
+            <p className="text-xs text-muted-foreground leading-relaxed mb-3 pr-6">
               {t.rich("promoBox.headline", {
                 commission: (chunks) => (
-                  <span className="font-bold text-base bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
-                    {chunks}
-                  </span>
+                  <span className="font-semibold text-foreground">{chunks}</span>
                 ),
                 duration: (chunks) => (
-                  <span className="font-bold text-foreground">
-                    {chunks}
-                  </span>
+                  <span className="font-semibold text-violet-300">{chunks}</span>
                 ),
               })}
             </p>
 
+            {/* CTA */}
             <Button
               size="sm"
-              className="w-full h-auto min-h-8 py-1.5 text-xs gap-1.5 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-medium"
+              variant="ghost"
+              className="w-full h-8 text-xs gap-1.5 border border-violet-500/30 hover:border-violet-400/50 hover:bg-violet-500/10 text-violet-300 hover:text-violet-200 font-medium transition-all"
               asChild
             >
-              <Link href="/app/referral-portal" className="block">
-                <span className="text-center leading-tight">{t("promoBox.cta")}</span>
-                <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" />
+              <Link href="/app/referral-portal">
+                {t("promoBox.learnMore")}
+                <ArrowRight className="h-3 w-3" />
               </Link>
             </Button>
           </div>
