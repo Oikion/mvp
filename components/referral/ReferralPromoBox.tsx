@@ -101,25 +101,18 @@ export function ReferralPromoBox({
           {/* Content */}
           <div className="relative z-10">
             {/* Sparkle badge */}
-            <div className="flex items-center gap-1.5 mb-3">
-              <Sparkles className="h-3 w-3 text-violet-400" />
+            <div className="flex items-center gap-1.5 mb-3 pr-8">
+              <Sparkles className="h-3 w-3 text-violet-400 shrink-0" />
               <span className="text-[10px] font-semibold uppercase tracking-widest text-violet-400/90">
                 {t("promoBox.title")}
               </span>
             </div>
 
-            {/* Commission highlight */}
-            <div className="mb-2">
-              <span className="text-3xl font-black bg-gradient-to-r from-violet-400 via-primary to-fuchsia-400 bg-clip-text text-transparent leading-none">
-                5%
-              </span>
-            </div>
-
             {/* Description */}
-            <p className="text-xs text-muted-foreground leading-relaxed mb-3 pr-6">
+            <p className="text-sm text-muted-foreground leading-relaxed mb-3 pr-4">
               {t.rich("promoBox.headline", {
                 commission: (chunks) => (
-                  <span className="font-semibold text-foreground">{chunks}</span>
+                  <span className="font-bold bg-gradient-to-r from-violet-400 via-primary to-fuchsia-400 bg-clip-text text-transparent">{chunks}</span>
                 ),
                 duration: (chunks) => (
                   <span className="font-semibold text-violet-300">{chunks}</span>
