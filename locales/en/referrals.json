@@ -66,6 +66,8 @@
   "portal": {
     "title": "Referral Programme",
     "subtitle": "Join our referral programme and start earning",
+    "commissionBadge": "commission on referrals",
+    "stepLabel": "Step {number}",
     "howItWorks": {
       "title": "How It Works",
       "step1": {
