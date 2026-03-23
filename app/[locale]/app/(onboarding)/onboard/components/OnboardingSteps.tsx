@@ -12,7 +12,7 @@ import { WelcomeStep } from "./WelcomeStep";
 import { ThemeStep } from "./ThemeStep";
 import { UsernameStep } from "./UsernameStep";
 import { NotificationsStep } from "./NotificationsStep";
-import { PrivacyStep } from "./PrivacyStep";
+import { SecurityPrivacyStep } from "./SecurityPrivacyStep";
 import { ReviewStep } from "./ReviewStep";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { completeOnboarding, validateOnboardingData } from "@/actions/user/complete-onboarding";
@@ -116,9 +116,27 @@ interface CompleteStepDict {
   redirecting: string;
 }
 
-interface PrivacyStepDict {
+interface SecurityPrivacyStepDict {
   title: string;
   description: string;
+  security: {
+    title: string;
+    description: string;
+    pinLabel: string;
+    pinPlaceholder: string;
+    confirmLabel: string;
+    confirmPlaceholder: string;
+    strengthWeak: string;
+    strengthGood: string;
+    strengthStrong: string;
+    mismatch: string;
+    setupButton: string;
+    skipButton: string;
+    setupSuccess: string;
+    setupError: string;
+    alreadySetUp: string;
+    info: string;
+  };
   profileVisibility: {
     title: string;
     description: string;
@@ -152,7 +170,7 @@ interface OnboardingStepsProps {
       languageTheme: LanguageThemeStepDict;
       usernameOrg: UsernameStepDict;
       notifications: NotificationsStepDict;
-      privacy: PrivacyStepDict;
+      privacy: SecurityPrivacyStepDict;
       review: ReviewStepDict;
       complete: CompleteStepDict;
     };
@@ -170,7 +188,7 @@ interface OnboardingStepsProps {
   locale: string;
 }
 
-// Steps: 0=Language, 1=Welcome, 2=Theme, 3=Username, 4=Notifications, 5=Privacy, 6=Review
+// Steps: 0=Language, 1=Welcome, 2=Theme, 3=Username, 4=Notifications, 5=Security&Privacy, 6=Review
 const TOTAL_STEPS = 7;
 
 // Animation variants for step transitions
@@ -560,8 +578,8 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
         );
       case 5:
         return (
-          <PrivacyStep
-            key="privacy"
+          <SecurityPrivacyStep
+            key="security-privacy"
             dict={dict.steps.privacy}
             data={onboardingData.privacyPreferences}
             onDataChange={handlePrivacyChange}

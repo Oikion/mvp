@@ -57,9 +57,10 @@ export function EncryptionPolicyStep({
     setIsCheckingPin(true);
 
     fetch("/api/e2ee/identity")
-      .then((res) => {
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
         if (!cancelled) {
-          const exists = res.ok;
+          const exists = data?.isSetUp === true;
           setPinExists(exists);
           setPinReady(exists);
           setIsCheckingPin(false);
