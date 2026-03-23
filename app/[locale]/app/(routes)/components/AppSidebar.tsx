@@ -134,7 +134,7 @@ export function AppSidebar({
           <SidebarMenuItem>
             <div className="w-full space-y-2">
               <WorkspaceToggle />
-              {!isPersonalWorkspace && <AgencyOrganizationSwitcher />}
+              <AgencyOrganizationSwitcher />
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
