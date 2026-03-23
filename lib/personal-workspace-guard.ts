@@ -65,15 +65,21 @@ export async function restorePersonalWorkspaceIfNeeded(
     return { restored: false };
   }
 
-  console.log(`Personal workspace ${deletedOrgId} was deleted for user ${userId}. Attempting to restore...`);
+  console.log(`Personal workspace ${deletedOrgId} was deleted for user ${userId}. Checking if restore is needed...`);
 
   try {
     const clerk = createClerkClient({
       secretKey: process.env.CLERK_SECRET_KEY,
     });
 
-    // Get user info to recreate the workspace
-    const user = await clerk.users.getUser(userId);
+    // Check if user still exists — don't restore if account was intentionally deleted
+    let user;
+    try {
+      user = await clerk.users.getUser(userId);
+    } catch {
+      console.log(`User ${userId} no longer exists in Clerk — skipping personal workspace restore`);
+      return { restored: false };
+    }
     const username = user.username || user.firstName || "User";
 
     // Create a new personal workspace

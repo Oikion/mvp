@@ -391,7 +391,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
       if (!hasPersonalOrg) {
         try {
           const personalOrgName = `${onboardingData.username || clerkUser?.username || "User"}'s Workspace`;
-          const personalOrgSlug = `${onboardingData.username || clerkUser?.username || "user"}-personal`;
+          const personalOrgSlug = `${onboardingData.username || clerkUser?.username || "user"}-personal-${Date.now().toString(36)}`;
 
           const personalOrg = await createOrganization({
             name: personalOrgName,

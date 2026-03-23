@@ -8,6 +8,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { createClerkClient } from "@clerk/backend";
 import { isOrgOwner } from "@/lib/org-admin";
 import { handleUserDeparture } from "@/lib/user-departure";
+import { isOrgPersonal } from "@/lib/personal-workspace-guard";
 
 /**
  * Delete the current user's account and all associated data
@@ -73,6 +74,18 @@ export async function deleteAccount(
         membership.organization.id,
         "ACCOUNT_DELETED"
       );
+    }
+
+    // Delete personal workspace org from Clerk (must happen before Clerk user deletion)
+    for (const membership of orgMemberships) {
+      if (await isOrgPersonal(membership.organization.id)) {
+        try {
+          await clerk.organizations.deleteOrganization(membership.organization.id);
+          console.log("[DELETE_ACCOUNT] Deleted personal workspace:", membership.organization.id);
+        } catch (err) {
+          console.error("[DELETE_ACCOUNT] Failed to delete personal workspace:", err);
+        }
+      }
     }
 
     // Delete the Users row
