@@ -1,9 +1,11 @@
 import { getUser } from "@/actions/get-user";
 import { prismadb } from "@/lib/prisma";
+import { getTranslations } from "next-intl/server";
 import Container from "../components/ui/Container";
 import { ReferralPortalClient } from "./components/ReferralPortalClient";
 
 export default async function ReferralPortalPage() {
+  const t = await getTranslations("referrals.portal");
   const user = await getUser();
 
   if (!user) {
@@ -18,8 +20,8 @@ export default async function ReferralPortalPage() {
 
   return (
     <Container
-      title="Referral Programme"
-      description="Join our referral programme and start earning commissions"
+      title={t("title")}
+      description={t("subtitle")}
     >
       <ReferralPortalClient
         userName={user.name || ""}
