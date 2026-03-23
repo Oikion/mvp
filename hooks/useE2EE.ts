@@ -75,10 +75,11 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
     async function check() {
       try {
         const res = await fetch("/api/e2ee/identity");
+        const data = res.ok ? await res.json() : null;
         if (!cancelled) {
           setState((s) => ({
             ...s,
-            isSetUp: res.ok,
+            isSetUp: data?.isSetUp === true,
             isLoading: false,
           }));
         }
