@@ -572,12 +572,71 @@
         "expires_at": "Expiration Date"
       }
     }
+  },
+  "history": {
+    "page": {
+      "title": "Import Management",
+      "description": "View import history, manage imported data, and start new imports",
+      "startImport": "Start Import",
+      "emptyState": "No imports yet. Start by importing your data from a CSV or Excel file.",
+      "emptyStateAction": "Import data"
+    },
+    "table": {
+      "date": "Date",
+      "source": "Source File",
+      "type": "Type",
+      "created": "Created",
+      "reused": "Reused",
+      "failed": "Failed",
+      "skipped": "Skipped",
+      "status": "Status",
+      "actions": "Actions",
+      "viewDetails": "View details",
+      "deleteBatch": "Delete batch",
+      "rows": "rows"
+    },
+    "status": {
+      "COMPLETED": "Completed",
+      "PARTIALLY_FAILED": "Partial",
+      "FAILED": "Failed",
+      "BATCH_DELETED": "Deleted"
+    },
+    "type": {
+      "CLIENTS": "Clients",
+      "PROPERTIES": "Properties",
+      "MANDATES": "Mandates",
+      "UNIFIED": "Mixed"
+    },
+    "detail": {
+      "title": "Import Details",
+      "summary": "Summary",
+      "errors": "Errors",
+      "noErrors": "No errors reported for this import.",
+      "errorRow": "Row",
+      "errorField": "Field",
+      "errorMessage": "Error",
+      "errorValue": "Submitted Value",
+      "clients": "Clients",
+      "properties": "Properties",
+      "mandates": "Mandates",
+      "created": "Created",
+      "reused": "Reused",
+      "failed": "Failed",
+      "skipped": "Skipped",
+      "total": "Total Rows",
+      "importedAt": "Imported at",
+      "sourceFile": "Source file"
+    },
+    "batchDelete": {
+      "title": "Delete Imported Batch",
+      "description": "This will permanently delete all entities created by this import. This action cannot be undone.",
+      "confirm": "Delete all imported entities",
+      "cancel": "Cancel",
+      "success": "Batch deleted successfully",
+      "error": "Failed to delete batch"
+    }
   }
 }
-
-
-
-
 
 
 

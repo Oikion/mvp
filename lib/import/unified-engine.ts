@@ -37,6 +37,7 @@ export interface UnifiedImportResult {
   links: { clientProperty: number; mandateClient: number; mandateProperty: number };
   skipped: number;
   errors: ImportError[];
+  entityIds: { clients: string[]; properties: string[]; mandates: string[] };
 }
 
 // ---------------------------------------------------------------------------
@@ -135,7 +136,13 @@ export async function executeUnifiedImport(
     links: { clientProperty: 0, mandateClient: 0, mandateProperty: 0 },
     skipped: 0,
     errors,
+    entityIds: { clients: [], properties: [], mandates: [] },
   };
+
+  // Track entity IDs created during import
+  const createdClientIds: string[] = [];
+  const createdPropertyIds: string[] = [];
+  const createdMandateIds: string[] = [];
 
   if (rows.length === 0) return result;
 
@@ -236,6 +243,7 @@ export async function executeUnifiedImport(
             clientUuid = record.id;
             clientName = String(clientRow.client_name ?? "");
             clientMap.set(key, { uuid: record.id, friendlyId });
+            createdClientIds.push(record.id);
             result.clients.created++;
           }
         }
@@ -279,6 +287,7 @@ export async function executeUnifiedImport(
 
           propertyUuid = record.id;
           propertyName = String(propertyRow.property_name ?? "");
+          createdPropertyIds.push(record.id);
           result.properties.created++;
         }
       } catch (err) {
@@ -337,6 +346,7 @@ export async function executeUnifiedImport(
           });
 
           mandateUuid = record.id;
+          createdMandateIds.push(record.id);
           result.mandates.created++;
         }
       } catch (err) {
@@ -399,5 +409,10 @@ export async function executeUnifiedImport(
   }
 
   result.errors = errors;
+  result.entityIds = {
+    clients: createdClientIds,
+    properties: createdPropertyIds,
+    mandates: createdMandateIds,
+  };
   return result;
 }

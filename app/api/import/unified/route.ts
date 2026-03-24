@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { executeUnifiedImport } from "@/lib/import/unified-engine";
+import { recordImport } from "@/lib/import/history";
 
 export async function POST(req: Request) {
   try {
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
     const organizationId = await getCurrentOrgId();
 
     const body = await req.json();
-    const { rows } = body;
+    const { rows, sourceFilename } = body;
 
     if (!Array.isArray(rows) || rows.length === 0) {
       return NextResponse.json(
@@ -19,6 +20,28 @@ export async function POST(req: Request) {
     }
 
     const result = await executeUnifiedImport(rows, organizationId, user.id);
+
+    // Record import history
+    const allEntityIds = [
+      ...result.entityIds.clients,
+      ...result.entityIds.properties,
+      ...result.entityIds.mandates,
+    ];
+
+    try {
+      await recordImport({
+        orgId: organizationId,
+        userId: user.id,
+        importType: "UNIFIED",
+        sourceFilename: sourceFilename || "import.csv",
+        rowCount: rows.length,
+        result,
+        entityIds: allEntityIds,
+      });
+    } catch (historyError) {
+      // Log but don't fail the import — history is non-critical
+      console.error("[UNIFIED_IMPORT_POST] Failed to record import history:", historyError);
+    }
 
     await invalidateCache([
       "clients:list",

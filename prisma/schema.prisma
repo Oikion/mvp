@@ -2865,6 +2865,7 @@ enum BackgroundJobType {
   NEWSLETTER_SEND
   PORTAL_PUBLISH_XE
   BULK_EXPORT
+  BULK_IMPORT
 }
 
 enum BackgroundJobStatus {
@@ -2879,6 +2880,46 @@ enum JobPriority {
   LOW
   NORMAL
   HIGH
+}
+
+// ============================================
+// IMPORT HISTORY
+// ============================================
+
+model ImportHistory {
+  id             String           @id @default(uuid())
+  organizationId String
+  userId         String
+  importType     ImportEntityType
+  sourceFilename String
+  rowCount       Int              @default(0)
+  createdCount   Int              @default(0)
+  reusedCount    Int              @default(0)
+  failedCount    Int              @default(0)
+  skippedCount   Int              @default(0)
+  errorDetails   Json?
+  resultDetails  Json?
+  entityIds      String[]
+  status         ImportStatus     @default(COMPLETED)
+  createdAt      DateTime         @default(now())
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum ImportEntityType {
+  CLIENTS
+  PROPERTIES
+  MANDATES
+  UNIFIED
+}
+
+enum ImportStatus {
+  COMPLETED
+  PARTIALLY_FAILED
+  FAILED
+  BATCH_DELETED
 }
 
 // ============================================
