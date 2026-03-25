@@ -267,11 +267,18 @@ export async function unwrapPrivateKeyWithKEK(
 
 // ─── Buffer Utilities ──────────────────────
 
+// L-5: Replaced char-by-char string concatenation with chunked String.fromCharCode.apply().
+// The previous loop created n intermediate string objects, generating GC pressure on large
+// buffers (e.g., file attachments). The chunked approach stays within the call stack limit
+// (65536 args) while avoiding O(n²) string growth.
+const CHUNK_SIZE = 65536;
+
 export function bufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  for (let offset = 0; offset < bytes.length; offset += CHUNK_SIZE) {
+    const chunk = bytes.subarray(offset, offset + CHUNK_SIZE);
+    binary += String.fromCharCode.apply(null, chunk as unknown as number[]);
   }
   return btoa(binary);
 }

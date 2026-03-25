@@ -1,3 +1,9 @@
+/**
+ * @deprecated System II (Client-Side Passphrase E2EE) — SCHEDULED FOR RETIREMENT
+ * This provider is part of the legacy passphrase-based encryption system (lib/crypto/).
+ * New E2EE features should use the System III E2EE provider (hooks/useE2EE.ts → lib/e2ee/).
+ * See docs/security/application-security.md finding L-3.
+ */
 "use client";
 
 import {

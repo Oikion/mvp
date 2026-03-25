@@ -64,6 +64,9 @@ import type { PreKeyBundle, EncryptedDMPayload, EncryptedGroupPayload } from "./
 // ─── In-Memory State ──────────────────────────
 // These are intentionally NOT persisted — cleared on page reload for security
 
+// TODO(NM-1): Replace with CryptoKey (extractable: false) to prevent XSS extraction.
+// Requires refactoring session-store.ts and entity-comments.ts to accept CryptoKey.
+// See docs/security/application-security.md finding NM-1 for full scope.
 let _kekRaw: ArrayBuffer | null = null;
 let _identityKeyPair: CryptoKeyPair | null = null;
 let _signingKeyPair: CryptoKeyPair | null = null;
@@ -461,7 +464,11 @@ export async function needsGroupRotation(targetId: string): Promise<boolean> {
 
 /**
  * Initialize a Megolm session for an entity (first comment or entity creation in E2EE org).
- * Returns session data to POST to /api/e2ee/entity-sessions.
+ * Returns raw session data — use initEntitySessionWithShares() for production code.
+ *
+ * @deprecated Prefer initEntitySessionWithShares() which ECIES-encrypts the session export
+ * for each participant before returning. This function returns the plaintext session export,
+ * requiring the caller to handle ECIES encryption manually (error-prone, see NM-4).
  */
 export async function initEntitySession(
   entityType: "CLIENT" | "PROPERTY" | "MANDATE" | "TASK",
@@ -469,6 +476,29 @@ export async function initEntitySession(
 ) {
   assertUnlocked();
   return _initEntitySession(entityType, entityId, _kekRaw!);
+}
+
+/**
+ * NM-4: Initialize a Megolm session for an entity AND produce ECIES-encrypted shares
+ * for each participant. This enforces encryption at the API boundary — callers cannot
+ * accidentally send the plaintext session export to the server.
+ *
+ * Mirrors the pattern used by createGroupSession().
+ */
+export async function initEntitySessionWithShares(
+  entityType: "CLIENT" | "PROPERTY" | "MANDATE" | "TASK",
+  entityId: string,
+  participants: Array<{ userId: string; publicKey: string }>,
+) {
+  assertUnlocked();
+  const { sessionId, sessionExport } = await _initEntitySession(entityType, entityId, _kekRaw!);
+
+  const exportJson = JSON.stringify(sessionExport);
+  const shares = await Promise.all(
+    participants.map((p) => eciesEncryptSessionExport(exportJson, p.userId, p.publicKey))
+  );
+
+  return { sessionId, shares };
 }
 
 /**

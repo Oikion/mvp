@@ -10,7 +10,11 @@ import {
   base64ToBuffer,
 } from "./primitives";
 
-const DEFAULT_MAX_MESSAGES = 100;
+// L-4: Raised from 100 to 1000 to reduce session rotation frequency.
+// At 100 messages, active channels rotated every few hours — each rotation requires
+// re-distributing the session to all members. 1000 is a reasonable balance between
+// forward secrecy window and operational overhead for a business chat tool.
+const DEFAULT_MAX_MESSAGES = 1000;
 const MAX_SKIP_MEGOLM = 100; // Max skipped keys cached to bound memory usage
 
 interface MegolmSessionExport {

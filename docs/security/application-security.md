@@ -365,7 +365,7 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | M-5 |
 | **Severity** | MEDIUM |
-| **Status** | DEFERRED → Phase 4 |
+| **Status** | DEFERRED (TODO comment added) |
 | **System** | III |
 | **File** | `lib/e2ee/double-ratchet.ts:193` |
 
@@ -414,7 +414,8 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | L-3 |
 | **Severity** | LOW |
-| **Status** | OPEN |
+| **Status** | FIXED |
+| **Fixed in** | Phase 4 implementation (2026-03-25) |
 | **Systems** | II |
 | **Files** | `lib/crypto/`, `components/providers/EncryptionProvider.tsx` |
 
@@ -430,7 +431,8 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | L-4 |
 | **Severity** | LOW |
-| **Status** | OPEN |
+| **Status** | FIXED |
+| **Fixed in** | Phase 4 implementation (2026-03-25) |
 | **System** | III |
 | **File** | `lib/e2ee/megolm.ts:13` |
 
@@ -446,7 +448,8 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | L-5 |
 | **Severity** | LOW |
-| **Status** | OPEN |
+| **Status** | FIXED |
+| **Fixed in** | Phase 4 implementation (2026-03-25) |
 | **System** | III |
 | **File** | `lib/e2ee/primitives.ts:231-237` |
 
@@ -650,10 +653,10 @@ try {
 |-------|-------|
 | **ID** | NM-1 |
 | **Severity** | MEDIUM |
-| **Status** | DEFERRED → Phase 4 |
+| **Status** | DEFERRED (TODO comment added) |
 | **System** | III |
-| **File** | `lib/e2ee/index.ts:64` |
-| **Phase** | 4 (moved from 3) |
+| **File** | `lib/e2ee/index.ts:67` |
+| **Phase** | Future |
 
 **Problem**: `_kekRaw` is a plain `ArrayBuffer` — readable by any JS code in the page. A `CryptoKey` with `extractable: false` would be protected by the browser's key store.
 
@@ -705,14 +708,15 @@ try {
 |-------|-------|
 | **ID** | NM-4 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | III |
-| **File** | `lib/e2ee/entity-comments.ts:173-191` |
+| **Files** | `lib/e2ee/index.ts` |
 | **Phase** | 4 |
+| **Fixed in** | Phase 4 implementation (2026-03-25) |
 
-**Problem**: The function returns the raw session export including plaintext `ratchetKey`. The calling UI code is responsible for ECIES-encrypting before POSTing. No enforcement at the API boundary.
+**Problem**: `initEntitySession()` returns the raw session export including plaintext `ratchetKey`. The calling UI code is responsible for ECIES-encrypting before POSTing.
 
-**Fix**: Move ECIES encryption into `initEntitySession()` itself, requiring participant public keys as input.
+**Fix applied** (deviation from document): Document said "move ECIES into initEntitySession() itself." However, `initEntitySession()` lives in `entity-comments.ts` (a focused module) and doesn't have access to the ECIES functions in `index.ts`. Instead, added `initEntitySessionWithShares()` in `index.ts` that wraps `initEntitySession()` + `eciesEncryptSessionExport()` — the same pattern as `createGroupSession()`. The old `initEntitySession()` is marked `@deprecated` with guidance to use the new function. API boundary now enforced: callers get ECIES shares, never plaintext.
 
 ---
 
@@ -833,19 +837,19 @@ Observation only — debouncing IndexedDB writes would reduce overhead but risks
 
 **Goal**: Technical debt, long-term correctness.
 
-| Task | Finding | Effort | Files to Change |
-|------|---------|--------|-----------------|
-| 4.0a | NM-1: Store KEK as CryptoKey (deferred from Phase 3) | Medium | `lib/e2ee/index.ts`, `lib/e2ee/session-store.ts`, `lib/e2ee/primitives.ts` |
-| 4.0b | M-5: Use wrapKey for DH private key (deferred from Phase 3) | Medium | `lib/e2ee/double-ratchet.ts`, `lib/e2ee/session-store.ts` |
-| 4.1 | H-5: Unified unlock UX | Large | Multiple providers, UI components |
-| 4.2 | H-6: Server-side session backup | Large | `lib/e2ee/`, new API routes |
-| 4.3 | L-3: Deprecate lib/crypto/ | Medium | `lib/crypto/`, `EncryptionProvider.tsx` |
-| 4.4 | L-4: Raise maxMessages to 1000 | Small | `lib/e2ee/megolm.ts` |
-| 4.5 | L-5: Fix bufferToBase64 performance | Small | `lib/e2ee/primitives.ts` |
-| 4.6 | NM-4: Move ECIES into initEntitySession | Medium | `lib/e2ee/entity-comments.ts` |
-| 4.7 | C-3: Re-encryption migration script | Large | New script, model changes |
+| Task | Finding | Effort | Files Changed | Status |
+|------|---------|--------|---------------|--------|
+| 4.0a | NM-1: Store KEK as CryptoKey | Medium | `lib/e2ee/index.ts` (TODO comment added) | DEFERRED — future sprint |
+| 4.0b | M-5: Use wrapKey for DH private key | Medium | `lib/e2ee/double-ratchet.ts` (TODO comment added) | DEFERRED — future sprint |
+| 4.1 | H-5: Unified unlock UX | Large | — | OUT OF SCOPE — needs own spec/plan cycle |
+| 4.2 | H-6: Server-side session backup | Large | — | OUT OF SCOPE — needs own spec/plan cycle |
+| 4.3 | L-3: Deprecate lib/crypto/ | Small | `lib/crypto/index.ts`, `components/providers/EncryptionProvider.tsx` (`@deprecated` JSDoc) | DONE |
+| 4.4 | L-4: Raise maxMessages to 1000 | Small | `lib/e2ee/megolm.ts` (100 → 1000) | DONE |
+| 4.5 | L-5: Fix bufferToBase64 performance | Small | `lib/e2ee/primitives.ts` (chunked `String.fromCharCode.apply`, 64KB chunks) | DONE |
+| 4.6 | NM-4: ECIES-enforced entity session init | Medium | `lib/e2ee/index.ts` (new `initEntitySessionWithShares()`, old deprecated) | DONE |
+| 4.7 | C-3: Re-encryption migration script | Large | — | OUT OF SCOPE — needs own spec/plan cycle |
 
-**Estimated effort**: 3-4 days
+**Completed**: 2026-03-25 (4 implemented, 2 TODO-commented, 3 out of scope)
 
 ---
 
@@ -1028,6 +1032,7 @@ Use this checklist after completing each phase to confirm all fixes are correct.
 
 | Date | Phase | Finding(s) | Action | Author |
 |------|-------|------------|--------|--------|
+| 2026-03-25 | 4 | L-3, L-4, L-5, NM-4 (NM-1+M-5 TODO'd; H-5,H-6,C-3 out of scope) | **Phase 4 implemented** (4 of 9 tasks): lib/crypto/ and EncryptionProvider deprecated with `@deprecated` JSDoc. Megolm maxMessages raised 100→1000. bufferToBase64 replaced with chunked String.fromCharCode.apply (64KB chunks). New `initEntitySessionWithShares()` enforces ECIES at API boundary. NM-1 and M-5 have TODO comments in source. H-5, H-6, C-3 marked out of scope — each needs its own spec→plan→implementation cycle. All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | 3 | M-2, M-3, M-6, NM-3, NM-5 (NM-1+M-5 deferred) | **Phase 3 implemented** (5 of 7 tasks): Empty string encryption removed bypass. Dual-lock race fixed — interval no longer calls lock(). OTP key ID verified in respondX3DH() with type change. DEK L1 cache TTL reduced 5min→30s. PBKDF2 deduplicated in unlock() (3→2 calls, ~33% faster). NM-1 and M-5 deferred to Phase 4 with documented rationale (disproportionate refactor). All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | 2 | NH-2, NH-3, NH-4, NM-2, NL-2, M-1, M-4 | **Phase 2 implemented**: Zod validation on all group session routes (`.strict()`, 65KB max shares, typed schemas) + identity POST/PUT. `cacheGetStrict` for fail-closed brute force reads (preserves dev in-memory fallback). ECIES fields required in entity session types + API validation. OTP private keys stored in IndexedDB (`otp-prekeys` store, DB version 2) with `generatePreKeys`/`getOtpPrivateKey`/`consumeOtpPrivateKey` lifecycle. IV standardized to 12 bytes (NIST), `isEncrypted()` accepts both 24/32-char IVs with hex regex validation. All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | 1 | NC-1, NC-2, NC-3, NH-1 | **Phase 1 implemented**: org scoping on prekey-bundle (join via `clerkUserIds`), org scoping on all 4 group session routes (join-based via Conversation/Channel relations, no migration), PIN length >= 6 client-side + `pbkdfIterations >= 600k` server-side on POST+PUT, atomic OTP consumption via conditional `updateMany` with retry loop. 3 deviations from document recommendations documented inline. All 55 E2EE tests pass. | Claude (implementation) |

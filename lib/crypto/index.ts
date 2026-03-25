@@ -1,18 +1,14 @@
 /**
- * E2EE Crypto Library
- * 
- * Provides end-to-end encryption capabilities for tenant data.
- * 
- * Key Hierarchy:
- * - Organization Master Key (OMK): Per-organization, encrypts all org data
- * - Key Encryption Key (KEK): Per-user, derived from passphrase, wraps OMK
- * - Wrapped Key: OMK encrypted with user's KEK, stored in DB
- * 
- * Usage:
- * 1. Admin sets up encryption: generateOMK() + deriveKEK() + wrapKey()
- * 2. Admin grants access: unwrapKey() + deriveKEK() + wrapKey() for new user
- * 3. User unlocks: deriveKEK() + unwrapKey() to get OMK
- * 4. Encrypt/decrypt: encryptField() / decryptField() with OMK
+ * @deprecated System II (Client-Side Passphrase E2EE) — SCHEDULED FOR RETIREMENT
+ *
+ * This module is superseded by System III (lib/e2ee/) which implements the Signal Protocol
+ * with proper forward secrecy. Do NOT build new features on top of this module.
+ *
+ * Retirement plan: see docs/superpowers/specs/2026-03-15-unified-encryption-architecture-design.md
+ * Tracking: see docs/security/application-security.md finding L-3
+ *
+ * Original description:
+ * E2EE Crypto Library — per-org OMK (Organization Master Key) wrapped by per-user KEK.
  */
 
 // Constants
