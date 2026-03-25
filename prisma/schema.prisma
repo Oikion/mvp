@@ -3104,6 +3104,28 @@ model EntitySessionBackup {
   entitySession    EntitySession @relation(fields: [entitySessionId], references: [id], onDelete: Cascade)
 }
 
+/// Per-user, per-org, per-session backup of E2EE session state.
+/// Covers Double Ratchet, Megolm outbound, and Megolm inbound sessions.
+/// The encryptedState is ECIES-encrypted client-side, then DEK-wrapped server-side
+/// (dual-layer encryption). One backup per sessionKey per user per org.
+model E2eeSessionBackup {
+  id              String   @id @default(uuid())
+  userId          String
+  organizationId  String
+  sessionType     String                          // "ratchet" | "megolm-out" | "megolm-in"
+  sessionKey      String
+  encryptedState  String   @db.Text
+  ephemeralPubKey String
+  iv              String
+  dekVersion      Int
+  version         Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, organizationId, sessionType, sessionKey])
+  @@index([userId, organizationId])
+}
+
 // ============================================
 // E2EE ORG RECOVERY — Admin recovery codes
 // ============================================
