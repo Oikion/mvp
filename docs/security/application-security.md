@@ -159,20 +159,25 @@ Session export sharing: ECIES (ephemeral ECDH → HKDF → AES-256-GCM per recip
 |-------|-------|
 | **ID** | C-3 |
 | **Severity** | CRITICAL |
-| **Status** | PARTIALLY FIXED |
+| **Status** | FIXED (migration script ready, pending execution) |
 | **System** | I |
-| **File** | `lib/encryption.ts:125-153` |
+| **Files** | `lib/encryption.ts:125-153`, `scripts/migrate-to-org-dek.ts` |
+| **Fixed in** | C-3 implementation (2026-03-25) |
 
 **What was wrong**: When AES-GCM auth tag verification failed (wrong DEK), the code silently retried with the global master key. This made key rotation ineffective for existing data.
 
-**Current state**: The fallback now logs `console.warn("[encryption] DEK decryption failed, falling back to master key")` and can be disabled via `DISABLE_MASTER_KEY_FALLBACK=true` env var.
+**Fix applied** (deviation from document):
+- Document recommended "adding a `dekVersion` column to tag records." This was not needed because the existing `decryptClientForOrg`/`encryptClientForOrg` pipeline already handles detection: `decryptWithKey(value, dek)` tries the org DEK first, falls back to master key if auth tag fails, then `encryptWithKey(plaintext, dek)` re-encrypts with the DEK. No version column required.
+- Extended `scripts/migrate-to-org-dek.ts` with **6 missing models**: Mandates, Client Comments, Mandate Comments, Task Comments, MyAccount, NewsletterSubscriber. Total: 13 model types covered.
+- Added `--verify` mode that checks representative fields against org DEK using `canDecryptWithDek()` (raw AES-GCM without fallback). Reports per-org counts of still-master-key-encrypted records.
+- Added `canDecryptWithDek()` helper that tests decryption without the master key fallback.
 
-**Remaining work**:
-1. Create a background re-encryption migration script that re-encrypts all pre-DEK-migration data under the current org DEK
-2. After migration completes for all orgs, enable `DISABLE_MASTER_KEY_FALLBACK=true` in production
-3. Remove the fallback code path entirely
-
-**Dependencies**: Requires tracking which records are pre-migration (no version field exists on encrypted data). Consider adding a `dekVersion` column or using the `OrgEncryptionKey.keyVersion` to tag records.
+**Migration workflow**:
+1. `npx tsx scripts/migrate-to-org-dek.ts --dry-run` — preview what will change
+2. `npx tsx scripts/migrate-to-org-dek.ts` — execute re-encryption
+3. `npx tsx scripts/migrate-to-org-dek.ts --verify` — confirm all records are DEK-encrypted
+4. Set `DISABLE_MASTER_KEY_FALLBACK=true` in production env vars
+5. (Future) Remove the fallback code path in `decryptWithKey()` entirely
 
 ---
 
@@ -1032,6 +1037,7 @@ Use this checklist after completing each phase to confirm all fixes are correct.
 
 | Date | Phase | Finding(s) | Action | Author |
 |------|-------|------------|--------|--------|
+| 2026-03-25 | C-3 | C-3 | **C-3 migration script completed**: Extended `migrate-to-org-dek.ts` with 6 missing models (Mandates, Client/Mandate/Task Comments, MyAccount, NewsletterSubscriber — total 13 models). Added `--verify` mode with `canDecryptWithDek()` helper. No schema change needed — existing decrypt/encrypt pipeline handles detection. Migration workflow documented: dry-run → execute → verify → enable flag. | Claude (implementation) |
 | 2026-03-25 | 4 | L-3, L-4, L-5, NM-4 (NM-1+M-5 TODO'd; H-5,H-6,C-3 out of scope) | **Phase 4 implemented** (4 of 9 tasks): lib/crypto/ and EncryptionProvider deprecated with `@deprecated` JSDoc. Megolm maxMessages raised 100→1000. bufferToBase64 replaced with chunked String.fromCharCode.apply (64KB chunks). New `initEntitySessionWithShares()` enforces ECIES at API boundary. NM-1 and M-5 have TODO comments in source. H-5, H-6, C-3 marked out of scope — each needs its own spec→plan→implementation cycle. All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | 3 | M-2, M-3, M-6, NM-3, NM-5 (NM-1+M-5 deferred) | **Phase 3 implemented** (5 of 7 tasks): Empty string encryption removed bypass. Dual-lock race fixed — interval no longer calls lock(). OTP key ID verified in respondX3DH() with type change. DEK L1 cache TTL reduced 5min→30s. PBKDF2 deduplicated in unlock() (3→2 calls, ~33% faster). NM-1 and M-5 deferred to Phase 4 with documented rationale (disproportionate refactor). All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | 2 | NH-2, NH-3, NH-4, NM-2, NL-2, M-1, M-4 | **Phase 2 implemented**: Zod validation on all group session routes (`.strict()`, 65KB max shares, typed schemas) + identity POST/PUT. `cacheGetStrict` for fail-closed brute force reads (preserves dev in-memory fallback). ECIES fields required in entity session types + API validation. OTP private keys stored in IndexedDB (`otp-prekeys` store, DB version 2) with `generatePreKeys`/`getOtpPrivateKey`/`consumeOtpPrivateKey` lifecycle. IV standardized to 12 bytes (NIST), `isEncrypted()` accepts both 24/32-char IVs with hex regex validation. All 55 E2EE tests pass. | Claude (implementation) |
