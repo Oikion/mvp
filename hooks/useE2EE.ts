@@ -22,6 +22,8 @@ interface E2EEState {
   isUnlocked: boolean;
   /** Loading during setup/unlock operations */
   isLoading: boolean;
+  /** True while session backups are being restored after unlock */
+  isSyncing: boolean;
   /** Last error message */
   error: string | null;
 }
@@ -67,6 +69,7 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
     isSetUp: false,
     isUnlocked: false,
     isLoading: true,
+    isSyncing: false,
     error: null,
   });
 
@@ -181,7 +184,7 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const unlock = useCallback(async (pin: string) => {
-    setState((s) => ({ ...s, isLoading: true, error: null }));
+    setState((s) => ({ ...s, isLoading: true, isSyncing: true, error: null }));
     try {
       // Fetch identity + pepper in parallel; pepper endpoint enforces PIN rate limit
       const [identityRes, pepperRes] = await Promise.all([
@@ -234,11 +237,12 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ outcome: "success" }),
       }).catch(() => undefined);
 
-      setState((s) => ({ ...s, isUnlocked: true, isLoading: false }));
+      setState((s) => ({ ...s, isUnlocked: true, isLoading: false, isSyncing: false }));
     } catch (err) {
       setState((s) => ({
         ...s,
         isLoading: false,
+        isSyncing: false,
         error: err instanceof Error ? err.message : "Unlock failed",
       }));
       throw err;
@@ -289,8 +293,31 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
 
   const clearAll = useCallback(async () => {
     await e2ee.clearAll();
-    setState({ isSetUp: false, isUnlocked: false, isLoading: false, error: null });
+    setState({ isSetUp: false, isUnlocked: false, isLoading: false, isSyncing: false, error: null });
   }, []);
+
+  // Flush pending session backups when the user navigates away or hides the tab
+  useEffect(() => {
+    if (!state.isUnlocked) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        e2ee.flushBackupsOnUnload();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      e2ee.flushBackupsOnUnload();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [state.isUnlocked]);
 
   const value: E2EEContextValue = {
     ...state,
