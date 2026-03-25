@@ -140,8 +140,14 @@ export function decryptWithKey(encrypted: string, key: Buffer): string {
     decipher.setAuthTag(authTag);
     const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
     return decrypted.toString("utf8");
-  } catch {
-    // Auth tag mismatch — data was encrypted with master key (pre-migration). Fall back.
+  } catch (err) {
+    // Auth tag mismatch — data was likely encrypted with the master key (pre-DEK migration).
+    if (process.env.DISABLE_MASTER_KEY_FALLBACK === "true") {
+      throw err;
+    }
+    console.warn("[encryption] DEK decryption failed, falling back to master key", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return decrypt(encrypted);
   }
 }

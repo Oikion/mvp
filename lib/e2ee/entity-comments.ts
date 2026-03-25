@@ -131,7 +131,7 @@ export async function decryptEntityComment(
 ): Promise<string> {
   // Split the combined iv:ciphertext format
   const colonIndex = encryptedContent.indexOf(":");
-  if (colonIndex === -1) {
+  if (colonIndex <= 0) {
     throw new Error("Invalid encrypted content format — expected iv:ciphertext");
   }
   const iv = encryptedContent.slice(0, colonIndex);

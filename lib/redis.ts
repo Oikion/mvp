@@ -166,6 +166,8 @@ export async function cacheIncr(
     return newCount;
   } catch (error) {
     console.error("[REDIS_CACHE_INCR]", key, error);
-    return 0; // Fail-open: return 0 so callers don't block
+    // Re-throw so security-critical callers (e.g. brute-force counters) fail closed.
+    // Non-critical callers should wrap cacheIncr in their own try/catch if they prefer fail-open.
+    throw error;
   }
 }

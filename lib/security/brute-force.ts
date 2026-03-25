@@ -7,9 +7,12 @@ import { cacheIncr, cacheDel, cacheGet } from "@/lib/redis";
  * Fail-closed: if Redis is unavailable, requests are blocked.
  */
 
-const LIMITS: Record<string, { maxAttempts: number; windowSeconds: number }> = {
+type BruteForceType = "otp" | "login" | "pin";
+
+const LIMITS: Record<BruteForceType, { maxAttempts: number; windowSeconds: number }> = {
   otp: { maxAttempts: 5, windowSeconds: 900 },    // 5 attempts per 15 minutes
   login: { maxAttempts: 10, windowSeconds: 900 },  // 10 attempts per 15 minutes
+  pin: { maxAttempts: 5, windowSeconds: 900 },     // 5 PIN attempts per 15 minutes
 };
 
 function getKey(type: string, identifier: string): string {
@@ -27,7 +30,7 @@ export interface BruteForceResult {
  * Call recordFailedAttempt() separately on failure.
  */
 export async function checkAttempt(
-  type: "otp" | "login",
+  type: BruteForceType,
   identifier: string
 ): Promise<BruteForceResult> {
   const config = LIMITS[type];
@@ -65,7 +68,7 @@ export async function checkAttempt(
  * Record a failed attempt. Increments the counter and sets TTL.
  */
 export async function recordFailedAttempt(
-  type: "otp" | "login",
+  type: BruteForceType,
   identifier: string
 ): Promise<void> {
   const config = LIMITS[type];
@@ -76,7 +79,7 @@ export async function recordFailedAttempt(
  * Clear all attempts for an identifier (e.g., on successful auth).
  */
 export async function clearAttempts(
-  type: "otp" | "login",
+  type: BruteForceType,
   identifier: string
 ): Promise<void> {
   await cacheDel(getKey(type, identifier));

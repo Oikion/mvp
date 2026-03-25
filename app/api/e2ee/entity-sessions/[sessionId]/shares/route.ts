@@ -52,7 +52,7 @@ export async function POST(
     }
 
     const body = await req.json();
-    const { userId: recipientId, encryptedSession, startingIndex } = body;
+    const { userId: recipientId, encryptedSession, ephemeralPublicKey, iv, startingIndex } = body;
 
     if (!recipientId || !encryptedSession || startingIndex === undefined) {
       return NextResponse.json(
@@ -82,6 +82,8 @@ export async function POST(
       entitySessionId: sessionId,
       userId: recipientId,
       encryptedSession,
+      ephemeralPublicKey,
+      iv,
       startingIndex,
     });
 

@@ -2488,18 +2488,22 @@ enum PreKeyType {
 }
 
 model UserIdentityKey {
-  id                    String       @id @default(uuid())
-  userId                String       @unique
-  publicKey             String
-  wrappedPrivateKey     String
-  salt                  String
-  pbkdfIterations       Int          @default(100000)
-  keyVersion            Int          @default(1)
-  pendingSessionReshare Boolean      @default(false) // True during PIN reset, cleared when all entity sessions re-shared
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-  user                  Users        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  preKeys               UserPreKey[]
+  id                       String       @id @default(uuid())
+  userId                   String       @unique
+  publicKey                String
+  wrappedPrivateKey        String
+  salt                     String
+  pbkdfIterations          Int          @default(100000)
+  keyVersion               Int          @default(1)
+  pendingSessionReshare    Boolean      @default(false) // True during PIN reset, cleared when all entity sessions re-shared
+  // Ed25519 signing key — nullable for backward compatibility with pre-C2 users
+  signingPublicKey         String?
+  wrappedSigningPrivateKey String?
+  signingSalt              String?
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+  user                     Users        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preKeys                  UserPreKey[]
 }
 
 model UserE2eePepper {
@@ -2547,13 +2551,15 @@ model GroupSession {
 }
 
 model GroupSessionShare {
-  id               String       @id @default(uuid())
-  groupSessionId   String
-  userId           String
-  encryptedSession String
-  startingIndex    Int          @default(0)
-  createdAt        DateTime     @default(now())
-  session          GroupSession @relation(fields: [groupSessionId], references: [id], onDelete: Cascade)
+  id                     String       @id @default(uuid())
+  groupSessionId         String
+  userId                 String
+  encryptedSession       String
+  ephemeralPublicKey     String?      // ECIES: ephemeral ECDH public key used to encrypt this share
+  iv                     String?      // ECIES: AES-GCM IV for this share
+  startingIndex          Int          @default(0)
+  createdAt              DateTime     @default(now())
+  session                GroupSession @relation(fields: [groupSessionId], references: [id], onDelete: Cascade)
 
   @@unique([groupSessionId, userId])
 }
@@ -3073,7 +3079,9 @@ model EntitySessionShare {
   id               String        @id @default(uuid())
   entitySessionId  String
   userId           String
-  encryptedSession String        @db.Text // Megolm export encrypted for user's identity public key
+  encryptedSession String        @db.Text // ECIES-encrypted Megolm export (AES-256-GCM ciphertext, base64)
+  ephemeralPublicKey String?     // ECIES: ephemeral ECDH public key (base64)
+  iv               String?       // ECIES: AES-GCM IV (base64)
   startingIndex    Int           @default(0)
   createdAt        DateTime      @default(now())
 

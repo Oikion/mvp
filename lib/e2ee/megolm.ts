@@ -11,6 +11,7 @@ import {
 } from "./primitives";
 
 const DEFAULT_MAX_MESSAGES = 100;
+const MAX_SKIP_MEGOLM = 100; // Max skipped keys cached to bound memory usage
 
 interface MegolmSessionExport {
   sessionId: string;
@@ -96,12 +97,21 @@ export class MegolmOutbound {
 }
 
 export class MegolmInbound {
+  private readonly skippedKeys = new Map<number, ArrayBuffer>();
+
   private constructor(
     public readonly sessionId: string,
     public readonly targetId: string,
     private ratchetKey: ArrayBuffer,
     private _currentIndex: number,
-  ) {}
+    skippedEntries?: Array<[number, string]>,
+  ) {
+    if (skippedEntries) {
+      for (const [idx, keyB64] of skippedEntries) {
+        this.skippedKeys.set(idx, base64ToBuffer(keyB64));
+      }
+    }
+  }
 
   /** Current ratchet index (read-only). */
   get currentIndex(): number {
@@ -118,29 +128,46 @@ export class MegolmInbound {
   }
 
   async decrypt(messageIndex: number, ciphertextBase64: string, ivBase64: string): Promise<string> {
+    let msgKey: ArrayBuffer;
+
     if (messageIndex < this._currentIndex) {
-      throw new Error(`Cannot decrypt past message (index ${messageIndex} < current ${this._currentIndex})`);
-    }
-    // Fast-forward ratchet to target index
-    let key = new Uint8Array(this.ratchetKey);
-    let idx = this._currentIndex;
-    while (idx < messageIndex) {
-      key = new Uint8Array(await sha256(key));
-      idx++;
-    }
-    // Derive message key at target index
-    const msgKey = await hmacSign(
-      key.buffer,
-      new Uint8Array(new Uint32Array([messageIndex]).buffer)
-    );
-    const ciphertext = base64ToBuffer(ciphertextBase64);
-    const iv = base64ToBuffer(ivBase64);
-    const plaintext = await aesGcmDecrypt(ciphertext, msgKey.slice(0, 32), iv);
-    // Advance our state past the decrypted message
-    if (messageIndex >= this._currentIndex) {
+      // Check if we cached this key while fast-forwarding past it
+      const cached = this.skippedKeys.get(messageIndex);
+      if (!cached) {
+        throw new Error(`Cannot decrypt past message (index ${messageIndex} < current ${this._currentIndex})`);
+      }
+      this.skippedKeys.delete(messageIndex);
+      msgKey = cached;
+    } else {
+      // Fast-forward ratchet, caching intermediate keys for future out-of-order messages
+      if (messageIndex - this._currentIndex > MAX_SKIP_MEGOLM) {
+        throw new Error(`Too many skipped messages (${messageIndex - this._currentIndex} > ${MAX_SKIP_MEGOLM})`);
+      }
+      let key = new Uint8Array(this.ratchetKey);
+      let idx = this._currentIndex;
+      while (idx < messageIndex) {
+        // Cache this key in case a message at this index arrives later
+        const skippedMsgKey = await hmacSign(
+          key.buffer,
+          new Uint8Array(new Uint32Array([idx]).buffer)
+        );
+        this.skippedKeys.set(idx, skippedMsgKey.slice(0, 32));
+        key = new Uint8Array(await sha256(key));
+        idx++;
+      }
+      // Derive message key at the target index
+      msgKey = (await hmacSign(
+        key.buffer,
+        new Uint8Array(new Uint32Array([messageIndex]).buffer)
+      )).slice(0, 32);
+      // Advance ratchet state past the decrypted message
       this.ratchetKey = await sha256(key);
       this._currentIndex = messageIndex + 1;
     }
+
+    const ciphertext = base64ToBuffer(ciphertextBase64);
+    const iv = base64ToBuffer(ivBase64);
+    const plaintext = await aesGcmDecrypt(ciphertext, msgKey, iv);
     return new TextDecoder().decode(plaintext);
   }
 
@@ -150,6 +177,9 @@ export class MegolmInbound {
       targetId: this.targetId,
       ratchetKey: bufferToBase64(this.ratchetKey),
       currentIndex: this._currentIndex,
+      skippedKeys: Array.from(this.skippedKeys.entries()).map(
+        ([idx, key]) => [idx, bufferToBase64(key)]
+      ),
     });
   }
 
@@ -160,6 +190,7 @@ export class MegolmInbound {
       parsed.targetId,
       base64ToBuffer(parsed.ratchetKey),
       parsed.currentIndex,
+      parsed.skippedKeys ?? [],
     );
   }
 }

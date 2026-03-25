@@ -10,7 +10,8 @@ import {
 } from "react";
 import { createElement } from "react";
 import * as e2ee from "@/lib/e2ee";
-import type { PreKeyBundle, EncryptedDMPayload, EncryptedGroupPayload } from "@/lib/e2ee/types";
+import { PBKDF2_ITERATIONS } from "@/lib/e2ee/primitives";
+import type { EncryptedDMPayload, EncryptedGroupPayload } from "@/lib/e2ee/types";
 
 // ─── Types ────────────────────────────────────
 
@@ -69,10 +70,25 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
     error: null,
   });
 
-  // Check if user has E2EE set up on mount
+  // Check Ed25519 browser support and E2EE setup status on mount
   useEffect(() => {
     let cancelled = false;
     async function check() {
+      // Ed25519 (WebCrypto) requires Chrome 113+, Firefox 122+, Safari 17+.
+      // Detect early so setup/unlock don't fail mid-flow with a cryptic DOMException.
+      try {
+        await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]);
+      } catch {
+        if (!cancelled) {
+          setState((s) => ({
+            ...s,
+            isLoading: false,
+            error: "Your browser does not support the required cryptography (Ed25519). Please update your browser.",
+          }));
+        }
+        return;
+      }
+
       try {
         const res = await fetch("/api/e2ee/identity");
         const data = res.ok ? await res.json() : null;
@@ -143,7 +159,10 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
           publicKey: result.publicKey,
           wrappedPrivateKey: result.wrappedPrivateKey,
           salt: result.salt,
-          pbkdfIterations: 100_000,
+          pbkdfIterations: PBKDF2_ITERATIONS,
+          signingPublicKey: result.signingPublicKey,
+          wrappedSigningPrivateKey: result.wrappedSigningPrivateKey,
+          signingSalt: result.signingSalt,
           signedPreKey: result.signedPreKey,
           oneTimePreKeys: result.oneTimePreKeys.map((k) => k.publicKey),
         }),
@@ -164,25 +183,56 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
   const unlock = useCallback(async (pin: string) => {
     setState((s) => ({ ...s, isLoading: true, error: null }));
     try {
-      // Fetch identity + pepper in parallel
+      // Fetch identity + pepper in parallel; pepper endpoint enforces PIN rate limit
       const [identityRes, pepperRes] = await Promise.all([
         fetch("/api/e2ee/identity"),
         fetch("/api/e2ee/pepper"),
       ]);
       if (!identityRes.ok) throw new Error("Failed to fetch identity");
+      if (pepperRes.status === 429) {
+        const body = await pepperRes.json().catch(() => ({}));
+        throw new Error(body.error ?? "Too many PIN attempts. Try again later.");
+      }
       if (!pepperRes.ok) throw new Error("Failed to fetch pepper");
 
       const identity = await identityRes.json();
       const { pepper } = await pepperRes.json();
 
-      await e2ee.unlock(
-        identity.userId,
-        pin,
-        pepper,
-        identity.wrappedPrivateKey,
-        identity.salt,
-        identity.publicKey,
-      );
+      const signingKey =
+        identity.wrappedSigningPrivateKey && identity.signingSalt && identity.signingPublicKey
+          ? {
+              wrappedSigningPrivateKey: identity.wrappedSigningPrivateKey,
+              signingSalt: identity.signingSalt,
+              signingPublicKey: identity.signingPublicKey,
+            }
+          : undefined;
+
+      try {
+        await e2ee.unlock(
+          identity.userId,
+          pin,
+          pepper,
+          identity.wrappedPrivateKey,
+          identity.salt,
+          identity.publicKey,
+          signingKey,
+        );
+      } catch (unlockErr) {
+        // Record failed PIN attempt server-side (best-effort)
+        fetch("/api/e2ee/unlock-attempt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ outcome: "failure" }),
+        }).catch(() => undefined);
+        throw unlockErr;
+      }
+
+      // Clear the rate-limit counter on success
+      fetch("/api/e2ee/unlock-attempt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ outcome: "success" }),
+      }).catch(() => undefined);
 
       setState((s) => ({ ...s, isUnlocked: true, isLoading: false }));
     } catch (err) {

@@ -7,10 +7,12 @@ export interface CreateEntitySessionInput {
   entityId: string;
   orgId: string;
   megolmSessionId: string;
-  /** Megolm session export encrypted for creator's identity public key */
+  /** ECIES-encrypted Megolm session export for creator's identity public key */
   creatorShare: {
     userId: string;
     encryptedSession: string;
+    ephemeralPublicKey?: string;
+    iv?: string;
   };
   /** Megolm session export encrypted with ORK (for admin recovery) */
   orkBackup: string;
@@ -18,6 +20,8 @@ export interface CreateEntitySessionInput {
   additionalShares?: Array<{
     userId: string;
     encryptedSession: string;
+    ephemeralPublicKey?: string;
+    iv?: string;
     startingIndex: number;
   }>;
 }
@@ -27,6 +31,8 @@ export interface CreateSessionShareInput {
   entitySessionId: string;
   userId: string;
   encryptedSession: string;
+  ephemeralPublicKey?: string;
+  iv?: string;
   startingIndex: number;
 }
 
@@ -41,6 +47,8 @@ export interface RotateEntitySessionInput {
   shares: Array<{
     userId: string;
     encryptedSession: string;
+    ephemeralPublicKey?: string;
+    iv?: string;
   }>;
   /** New ORK backup */
   orkBackup: string;

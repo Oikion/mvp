@@ -119,7 +119,9 @@ export async function GET(req: Request) {
       },
       share: {
         id: result.share.id,
-        encryptedSession: result.share.encryptedSession,
+        encryptedSessionExport: result.share.encryptedSession,
+        ephemeralPublicKey: result.share.ephemeralPublicKey,
+        iv: result.share.iv,
         startingIndex: result.share.startingIndex,
       },
     });
@@ -245,6 +247,8 @@ export async function POST(req: Request) {
         creatorShare: {
           userId: user.id,
           encryptedSession: creatorShare.encryptedSession,
+          ephemeralPublicKey: creatorShare.ephemeralPublicKey,
+          iv: creatorShare.iv,
         },
         orkBackup,
         additionalShares,

@@ -341,8 +341,14 @@ export async function updateRolePermissions(
     },
   });
 
-  // Bump permission version to invalidate all cached contexts for this org
-  await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);
+  // Bump permission version to invalidate all cached contexts for this org.
+  // Cache invalidation is best-effort — the DB write already succeeded above.
+  // If Redis fails, cached permissions may be stale for up to 2 minutes (cache TTL).
+  try {
+    await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);
+  } catch (err) {
+    console.warn("[PERMISSIONS] Cache version bump failed — permissions may be stale for up to 2 min", err);
+  }
 }
 
 /**
@@ -374,7 +380,11 @@ export async function updateRoleModuleAccess(
     },
   });
 
-  await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);
+  try {
+    await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);
+  } catch (err) {
+    console.warn("[PERMISSIONS] Cache version bump failed — permissions may be stale for up to 2 min", err);
+  }
 }
 
 /**
@@ -406,7 +416,11 @@ export async function updateUserModuleAccess(
     },
   });
 
-  await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);
+  try {
+    await cacheIncr(`oik:perm:ver:${organizationId}`, 3600);
+  } catch (err) {
+    console.warn("[PERMISSIONS] Cache version bump failed — permissions may be stale for up to 2 min", err);
+  }
 }
 
 /**

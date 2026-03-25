@@ -3,7 +3,7 @@
 const ECDH_PARAMS = { name: "ECDH", namedCurve: "P-256" } as const;
 const AES_GCM = "AES-GCM" as const;
 const IV_BYTES = 12;
-const PBKDF2_ITERATIONS = 600_000;
+export const PBKDF2_ITERATIONS = 600_000;
 
 // ─── Random ────────────────────────────────
 
@@ -83,6 +83,72 @@ export async function hmacSign(
 
 export async function sha256(data: BufferSource): Promise<ArrayBuffer> {
   return crypto.subtle.digest("SHA-256", data);
+}
+
+// ─── Ed25519 Signing Keys ──────────────────
+
+const ED25519_PARAMS = { name: "Ed25519" } as const;
+
+export async function generateEd25519KeyPair(): Promise<CryptoKeyPair> {
+  return crypto.subtle.generateKey(ED25519_PARAMS, true, ["sign", "verify"]);
+}
+
+export async function signWithEd25519(
+  privateKey: CryptoKey,
+  data: BufferSource
+): Promise<ArrayBuffer> {
+  return crypto.subtle.sign("Ed25519", privateKey, data);
+}
+
+export async function verifyWithEd25519(
+  publicKey: CryptoKey,
+  signature: BufferSource,
+  data: BufferSource
+): Promise<boolean> {
+  return crypto.subtle.verify("Ed25519", publicKey, signature, data);
+}
+
+export async function exportEd25519PublicKey(key: CryptoKey): Promise<string> {
+  const raw = await crypto.subtle.exportKey("spki", key);
+  return bufferToBase64(raw);
+}
+
+export async function importEd25519PublicKey(base64: string): Promise<CryptoKey> {
+  const raw = base64ToBuffer(base64);
+  return crypto.subtle.importKey("spki", raw, ED25519_PARAMS, true, ["verify"]);
+}
+
+export async function wrapEd25519PrivateKey(
+  privateKey: CryptoKey,
+  pin: string,
+  pepper: ArrayBuffer
+): Promise<{ wrappedKey: string; salt: string }> {
+  const salt = generateRandomBytes(16);
+  const kek = await deriveKEKFromPIN(pin, salt, pepper);
+  const iv = generateRandomBytes(IV_BYTES);
+  const wrapped = await crypto.subtle.wrapKey("pkcs8", privateKey, kek, { name: AES_GCM, iv });
+  const combined = concatBuffers(iv, wrapped);
+  return { wrappedKey: bufferToBase64(combined), salt: bufferToBase64(salt) };
+}
+
+export async function unwrapEd25519PrivateKey(
+  wrappedKeyBase64: string,
+  pin: string,
+  pepper: ArrayBuffer,
+  saltBase64: string
+): Promise<CryptoKey> {
+  const combined = base64ToBuffer(wrappedKeyBase64);
+  const iv = combined.slice(0, IV_BYTES);
+  const wrappedKey = combined.slice(IV_BYTES);
+  const salt = base64ToBuffer(saltBase64);
+  const kek = await deriveKEKFromPIN(pin, salt, pepper);
+  return crypto.subtle.unwrapKey(
+    "pkcs8", wrappedKey, kek,
+    { name: AES_GCM, iv },
+    ED25519_PARAMS,
+    true,
+    ["sign"]
+  );
 }
 
 // ─── Key Export / Import ───────────────────

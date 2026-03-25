@@ -9,7 +9,9 @@ import {
   concatBuffers,
   bufferToBase64,
   base64ToBuffer,
-  hmacSign,
+  signWithEd25519,
+  verifyWithEd25519,
+  importEd25519PublicKey,
 } from "./primitives";
 import type { PreKeyBundle } from "./types";
 
@@ -41,15 +43,13 @@ export interface X3DHResult {
 // ─── Pre-Key Generation ────────────────────
 
 export async function generateSignedPreKey(
-  identityPrivateKey: CryptoKey
+  signingPrivateKey: CryptoKey
 ): Promise<SignedPreKeyResult> {
   const keyPair = await generateECDHKeyPair();
   const pubKeyBase64 = await exportPublicKey(keyPair.publicKey);
-  // Sign the public key bytes with identity key using HMAC
-  // (ECDH keys can't sign directly; we use HMAC with derived key as a MAC)
+  // Sign the SPKI-encoded public key bytes with the Ed25519 identity signing key
   const pubKeyBytes = base64ToBuffer(pubKeyBase64);
-  const idRaw = await crypto.subtle.exportKey("pkcs8", identityPrivateKey);
-  const signature = await hmacSign(idRaw, pubKeyBytes);
+  const signature = await signWithEd25519(signingPrivateKey, pubKeyBytes);
   return {
     publicKey: pubKeyBase64,
     signature: bufferToBase64(signature),
@@ -78,6 +78,19 @@ export async function initiateX3DH(
   aliceIdentity: CryptoKeyPair,
   bobBundle: PreKeyBundle
 ): Promise<X3DHResult> {
+  // Verify the signed pre-key signature before using it (C-1)
+  if (bobBundle.signingPublicKey) {
+    const signingKey = await importEd25519PublicKey(bobBundle.signingPublicKey);
+    const spkiBytes = base64ToBuffer(bobBundle.signedPreKey);
+    const signatureBytes = base64ToBuffer(bobBundle.signature);
+    const valid = await verifyWithEd25519(signingKey, signatureBytes, spkiBytes);
+    if (!valid) {
+      throw new Error("Invalid signed pre-key signature — possible MITM attack");
+    }
+  } else {
+    console.warn("[X3DH] signingPublicKey absent — skipping SPK verification (legacy user)");
+  }
+
   const bobIK = await importPublicKey(bobBundle.identityKey);
   const bobSPK = await importPublicKey(bobBundle.signedPreKey);
   const ephemeral = await generateECDHKeyPair();
@@ -116,6 +129,18 @@ export async function initiateX3DH(
 
 // ─── X3DH Responder (Bob) ──────────────────
 
+/**
+ * Derive the shared secret from an inbound X3DH initial message.
+ *
+ * Trust model: Alice's identity key in `initialMessage.identityKey` is NOT
+ * independently verified here. Trust is established at the transport layer:
+ * the server delivers the initial message only to the conversation participant,
+ * and Alice's identity public key is stored server-side under her Clerk-authenticated
+ * user ID (uploaded during E2EE setup). A server-level compromise could substitute
+ * a different identity key — this is acceptable in the current threat model, which
+ * does not require MITM resistance against a fully compromised server.
+ * Out-of-band key fingerprint comparison (safety numbers) would address this if needed.
+ */
 export async function respondX3DH(
   bobIdentity: CryptoKeyPair,
   bobSignedPreKey: { keyPair: CryptoKeyPair; signature: string },

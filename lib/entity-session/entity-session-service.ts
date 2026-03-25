@@ -53,6 +53,8 @@ export async function createEntitySession(input: CreateEntitySessionInput) {
         entitySessionId: session.id,
         userId: creatorShare.userId,
         encryptedSession: creatorShare.encryptedSession,
+        ephemeralPublicKey: creatorShare.ephemeralPublicKey,
+        iv: creatorShare.iv,
         startingIndex: 0,
       },
     });
@@ -73,6 +75,8 @@ export async function createEntitySession(input: CreateEntitySessionInput) {
             entitySessionId: session.id,
             userId: share.userId,
             encryptedSession: share.encryptedSession,
+            ephemeralPublicKey: share.ephemeralPublicKey,
+            iv: share.iv,
             startingIndex: share.startingIndex,
           },
         });
@@ -148,6 +152,8 @@ export async function createSessionShare(input: CreateSessionShareInput) {
       entitySessionId: input.entitySessionId,
       userId: input.userId,
       encryptedSession: input.encryptedSession,
+      ephemeralPublicKey: input.ephemeralPublicKey,
+      iv: input.iv,
       startingIndex: input.startingIndex,
     },
   });
@@ -200,6 +206,8 @@ export async function rotateEntitySession(input: RotateEntitySessionInput) {
           entitySessionId: newSession.id,
           userId: share.userId,
           encryptedSession: share.encryptedSession,
+          ephemeralPublicKey: share.ephemeralPublicKey,
+          iv: share.iv,
           startingIndex: 0, // New session starts at 0
         },
       });
