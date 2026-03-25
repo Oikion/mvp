@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { Shield } from "lucide-react";
 import { ScreenshotProtectionSettings } from "@/components/security/ScreenshotProtectionSettings";
 import { E2EEPinSetup } from "./components/E2EEPinSetup";
+import { SessionBackupStatus } from "./components/SessionBackupStatus";
 
 export const metadata: Metadata = {
   title: "Security Settings | Oikion",
@@ -30,6 +31,7 @@ export default function SecuritySettingsPage() {
 
       <div className="grid gap-6">
         <E2EEPinSetup />
+        <SessionBackupStatus />
         <ScreenshotProtectionSettings />
       </div>
     </div>
