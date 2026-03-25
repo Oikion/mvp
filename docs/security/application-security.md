@@ -405,11 +405,11 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | L-2 |
 | **Severity** | LOW |
-| **Status** | NEEDS VERIFICATION |
+| **Status** | VERIFIED — EXISTS |
 | **System** | III |
-| **File** | `components/layout/E2EESessionButton.tsx` |
+| **File** | `components/e2ee/PinSetupDialog.tsx` |
 
-**Action**: Locate or create. May have been created since the original review.
+**Verified**: The component exists at `components/e2ee/PinSetupDialog.tsx` and is imported by `E2EESessionButton.tsx` and the settings security page. No action needed.
 
 ---
 
@@ -749,10 +749,11 @@ try {
 |-------|-------|
 | **ID** | NL-1 |
 | **Severity** | LOW |
-| **Status** | OPEN |
+| **Status** | WON'T FIX |
 | **System** | III |
 | **File** | `hooks/useE2EE.ts:79-80` |
-| **Phase** | 4 |
+
+**Rationale**: WebCrypto has no `algorithm.supported()` API — the only way to detect Ed25519 support is to attempt an operation. `generateKey` with `extractable: false` is already the lightest option (browser doesn't need to make the key exportable). The key pair is GC'd immediately. No lighter alternative exists.
 
 ---
 
@@ -780,7 +781,7 @@ try {
 |-------|-------|
 | **ID** | NL-3 |
 | **Severity** | LOW |
-| **Status** | OPEN |
+| **Status** | WON'T FIX (observation) |
 | **System** | III |
 | **File** | `lib/e2ee/session-store.ts` |
 | **Phase** | 4 |
