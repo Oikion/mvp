@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
+import { getOrgMembersFromDb } from "@/lib/org-members";
 
 /**
  * POST /api/e2ee/group-sessions — Create group session with shares
+ *
+ * Security (NC-2): Verifies the conversation/channel belongs to the caller's org
+ * and all share recipients are org members.
  */
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId, orgId } = await auth();
+    if (!userId || !orgId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -20,6 +24,37 @@ export async function POST(req: Request) {
     }
     if (!shares?.length) {
       return NextResponse.json({ error: "Must provide at least one share" }, { status: 400 });
+    }
+
+    // NC-2: Verify the conversation/channel belongs to the caller's org
+    if (conversationId) {
+      const conv = await prismadb.conversation.findUnique({
+        where: { id: conversationId },
+        select: { organizationId: true },
+      });
+      if (!conv || conv.organizationId !== orgId) {
+        return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+      }
+    } else if (channelId) {
+      const chan = await prismadb.channel.findUnique({
+        where: { id: channelId },
+        select: { organizationId: true },
+      });
+      if (!chan || chan.organizationId !== orgId) {
+        return NextResponse.json({ error: "Channel not found" }, { status: 404 });
+      }
+    }
+
+    // NC-2: Verify all share recipient userIds are members of this org
+    const orgMembers = await getOrgMembersFromDb({ organizationId: orgId });
+    const memberClerkIds = new Set(orgMembers.clerkUserIds);
+    for (const share of shares) {
+      if (!share.userId || !memberClerkIds.has(share.userId)) {
+        return NextResponse.json(
+          { error: `User ${share.userId} is not a member of this organization` },
+          { status: 403 }
+        );
+      }
     }
 
     // Find the next session index
@@ -51,10 +86,12 @@ export async function POST(req: Request) {
 
       // Create shares
       await tx.groupSessionShare.createMany({
-        data: shares.map((s: { userId: string; encryptedSession: string; startingIndex: number }) => ({
+        data: shares.map((s: { userId: string; ephemeralPublicKey: string; encryptedSessionExport: string; iv: string; startingIndex: number }) => ({
           groupSessionId: newSession.id,
           userId: s.userId,
-          encryptedSession: s.encryptedSession,
+          encryptedSession: s.encryptedSessionExport,
+          ephemeralPublicKey: s.ephemeralPublicKey,
+          iv: s.iv,
           startingIndex: s.startingIndex,
         })),
       });

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 /**
  * POST /api/e2ee/identity — First-time E2EE setup
@@ -15,10 +15,24 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { publicKey, wrappedPrivateKey, salt, pbkdfIterations, signedPreKey, oneTimePreKeys } = body;
+    const {
+      publicKey, wrappedPrivateKey, salt, pbkdfIterations, signedPreKey, oneTimePreKeys,
+      signingPublicKey, wrappedSigningPrivateKey, signingSalt,
+    } = body;
 
     if (!publicKey || !wrappedPrivateKey || !salt) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // NC-3: Enforce minimum PBKDF2 iterations to prevent weak key derivation.
+    // The PIN itself never reaches the server — only the derivation parameters do.
+    // A malicious client could POST pbkdfIterations=1 to create a trivially weak identity.
+    const MIN_PBKDF2_ITERATIONS = 600_000;
+    if (typeof pbkdfIterations === "number" && pbkdfIterations < MIN_PBKDF2_ITERATIONS) {
+      return NextResponse.json(
+        { error: `pbkdfIterations must be at least ${MIN_PBKDF2_ITERATIONS}` },
+        { status: 400 }
+      );
     }
 
     // Check if already set up
@@ -40,7 +54,10 @@ export async function POST(req: Request) {
           publicKey,
           wrappedPrivateKey,
           salt,
-          pbkdfIterations: pbkdfIterations ?? 100000,
+          pbkdfIterations: pbkdfIterations ?? MIN_PBKDF2_ITERATIONS,
+          signingPublicKey: signingPublicKey ?? null,
+          wrappedSigningPrivateKey: wrappedSigningPrivateKey ?? null,
+          signingSalt: signingSalt ?? null,
         },
       });
 
@@ -95,11 +112,15 @@ export async function GET() {
       where: { userId },
       select: {
         id: true,
+        userId: true,
         publicKey: true,
         wrappedPrivateKey: true,
         salt: true,
         pbkdfIterations: true,
         keyVersion: true,
+        signingPublicKey: true,
+        wrappedSigningPrivateKey: true,
+        signingSalt: true,
       },
     });
 
@@ -131,12 +152,21 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // NC-3: Same PBKDF2 floor on re-wrap to prevent weakening during PIN change
+    const MIN_PBKDF2_ITERATIONS = 600_000;
+    if (typeof pbkdfIterations === "number" && pbkdfIterations < MIN_PBKDF2_ITERATIONS) {
+      return NextResponse.json(
+        { error: `pbkdfIterations must be at least ${MIN_PBKDF2_ITERATIONS}` },
+        { status: 400 }
+      );
+    }
+
     const updated = await prismadb.userIdentityKey.update({
       where: { userId },
       data: {
         wrappedPrivateKey,
         salt,
-        pbkdfIterations: pbkdfIterations ?? 100000,
+        pbkdfIterations: pbkdfIterations ?? MIN_PBKDF2_ITERATIONS,
         keyVersion: { increment: 1 },
       },
     });

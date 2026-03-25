@@ -11,13 +11,23 @@
 import {
   generateECDHKeyPair,
   exportPublicKey,
+  importPublicKey as importECDHPublicKey,
   exportPrivateKey,
-  importPrivateKey,
   wrapPrivateKey,
   unwrapPrivateKey,
+  generateEd25519KeyPair,
+  exportEd25519PublicKey,
+  importEd25519PublicKey,
+  wrapEd25519PrivateKey,
+  unwrapEd25519PrivateKey,
+  deriveSharedSecret,
+  hkdfDerive,
+  aesGcmEncrypt,
+  aesGcmDecrypt,
   base64ToBuffer,
   bufferToBase64,
 } from "./primitives";
+import type { GroupSessionShare } from "./types";
 import {
   initiateX3DH,
   respondX3DH,
@@ -30,7 +40,6 @@ import { MegolmOutbound, MegolmInbound } from "./megolm";
 import { encryptAttachment, decryptAttachment } from "./attachment";
 import {
   storeIdentityKey,
-  getIdentityKey,
   storeRatchetSession,
   getRatchetSession,
   storeMegolmOutbound,
@@ -54,6 +63,7 @@ import type { PreKeyBundle, EncryptedDMPayload, EncryptedGroupPayload } from "./
 
 let _kekRaw: ArrayBuffer | null = null;
 let _identityKeyPair: CryptoKeyPair | null = null;
+let _signingKeyPair: CryptoKeyPair | null = null;
 let _userId: string | null = null;
 
 // Cache of active DoubleRatchet sessions (conversationId → instance)
@@ -79,6 +89,9 @@ export interface SetupResult {
   publicKey: string;
   wrappedPrivateKey: string;
   salt: string;
+  signingPublicKey: string;
+  wrappedSigningPrivateKey: string;
+  signingSalt: string;
   signedPreKey: { publicKey: string; signature: string };
   oneTimePreKeys: Array<{ id: string; publicKey: string }>;
 }
@@ -88,23 +101,42 @@ export interface SetupResult {
  * Called during first-time E2EE setup.
  * Returns data to POST to /api/e2ee/identity.
  */
+export const MIN_PIN_LENGTH = 6;
+
 export async function setupIdentity(
   pin: string,
   pepperBase64: string,
 ): Promise<SetupResult> {
+  // NC-3: Enforce minimum PIN length to resist offline brute-force.
+  // A 6-digit PIN at 600k PBKDF2 iterations ≈ 28 hours on GPU (vs 17 min for 4-digit).
+  if (pin.length < MIN_PIN_LENGTH) {
+    throw new Error(`PIN must be at least ${MIN_PIN_LENGTH} characters`);
+  }
+
   const pepper = base64ToBuffer(pepperBase64);
+
+  // ECDH identity key pair (for X3DH key agreement)
   const keyPair = await generateECDHKeyPair();
   const { wrappedKey, salt } = await wrapPrivateKey(keyPair.privateKey, pin, pepper);
   const publicKey = await exportPublicKey(keyPair.publicKey);
 
-  // Generate pre-keys signed with identity key
-  const signedPK = await generateSignedPreKey(keyPair.privateKey);
+  // Ed25519 signing key pair (for signing pre-keys — separate from ECDH identity key)
+  const signingPair = await generateEd25519KeyPair();
+  const { wrappedKey: wrappedSigningPrivateKey, salt: signingSalt } =
+    await wrapEd25519PrivateKey(signingPair.privateKey, pin, pepper);
+  const signingPublicKey = await exportEd25519PublicKey(signingPair.publicKey);
+
+  // Generate pre-keys signed with the Ed25519 signing key
+  const signedPK = await generateSignedPreKey(signingPair.privateKey);
   const otpKeys = await generateOneTimePreKeys(10);
 
   return {
     publicKey,
     wrappedPrivateKey: wrappedKey,
     salt,
+    signingPublicKey,
+    wrappedSigningPrivateKey,
+    signingSalt,
     signedPreKey: {
       publicKey: signedPK.publicKey,
       signature: signedPK.signature,
@@ -119,6 +151,12 @@ export async function setupIdentity(
  * Unlock E2EE: fetch pepper from server, derive KEK, unwrap identity key.
  * After this, encrypt/decrypt operations become available.
  */
+export interface UnlockSigningKey {
+  wrappedSigningPrivateKey: string;
+  signingSalt: string;
+  signingPublicKey: string;
+}
+
 export async function unlock(
   userId: string,
   pin: string,
@@ -126,23 +164,39 @@ export async function unlock(
   wrappedPrivateKeyBase64: string,
   saltBase64: string,
   publicKeyBase64: string,
+  signingKey?: UnlockSigningKey,
 ): Promise<void> {
   const pepper = base64ToBuffer(pepperBase64);
 
-  // Derive KEK and unwrap private key
+  // Derive KEK and unwrap ECDH identity private key
   const privateKey = await unwrapPrivateKey(wrappedPrivateKeyBase64, pin, pepper, saltBase64);
 
-  // Import public key to form a CryptoKeyPair
-  const { importPublicKey } = await import("./primitives");
+  // Import ECDH public key to form a CryptoKeyPair
+  const { importPublicKey, deriveKEKFromPIN } = await import("./primitives");
   const publicKey = await importPublicKey(publicKeyBase64);
 
   _identityKeyPair = { publicKey, privateKey };
   _kekRaw = await crypto.subtle.exportKey("raw",
-    await (await import("./primitives")).deriveKEKFromPIN(pin, base64ToBuffer(saltBase64), pepper)
+    await deriveKEKFromPIN(pin, base64ToBuffer(saltBase64), pepper)
   );
   _userId = userId;
 
-  // Cache identity key in IndexedDB (encrypted with KEK)
+  // Unwrap Ed25519 signing key if present (absent for legacy users — backward compatible)
+  if (signingKey) {
+    try {
+      const signingPrivKey = await unwrapEd25519PrivateKey(
+        signingKey.wrappedSigningPrivateKey, pin, pepper, signingKey.signingSalt
+      );
+      const signingPubKey = await importEd25519PublicKey(signingKey.signingPublicKey);
+      _signingKeyPair = { privateKey: signingPrivKey, publicKey: signingPubKey };
+    } catch (err) {
+      console.warn("[E2EE] Failed to unwrap signing key — continuing without it", err);
+    }
+  } else {
+    console.warn("[E2EE] No signing key in identity record — legacy user, pre-key verification disabled");
+  }
+
+  // Cache ECDH identity key in IndexedDB (encrypted with KEK)
   const serialized = await exportPrivateKey(privateKey);
   await storeIdentityKey(userId, serialized, _kekRaw);
 }
@@ -153,6 +207,7 @@ export async function unlock(
 export function lock(): void {
   _kekRaw = null;
   _identityKeyPair = null;
+  _signingKeyPair = null;
   _userId = null;
   _ratchetCache.clear();
   _megolmOutCache.clear();
@@ -245,33 +300,106 @@ export async function decryptDM(
   return plaintext;
 }
 
-// ─── Group/Channel Encryption (Megolm) ────────
+// ─── ECIES Session Export Helpers ─────────────
+
+const ECIES_INFO = new TextEncoder().encode("megolm-session-export-v1");
 
 /**
- * Create a new Megolm outbound session for a group/channel.
- * Returns session export to distribute to participants.
+ * ECIES-encrypt a Megolm session export for a single recipient's identity public key.
+ * Uses ephemeral ECDH → HKDF → AES-256-GCM so only the recipient can decrypt.
  */
-export async function createGroupSession(
-  targetId: string,
-  maxMessages?: number,
-): Promise<{ sessionId: string; sessionExport: ReturnType<MegolmOutbound["exportSession"]> }> {
-  assertUnlocked();
-  const session = await MegolmOutbound.create(targetId, maxMessages);
-  _megolmOutCache.set(targetId, session);
-  await storeMegolmOutbound(targetId, session.serialize(), _kekRaw!);
+async function eciesEncryptSessionExport(
+  sessionExportJson: string,
+  userId: string,
+  recipientPublicKeyBase64: string,
+): Promise<GroupSessionShare> {
+  const recipientPubKey = await importECDHPublicKey(recipientPublicKeyBase64);
+  const ephemeral = await generateECDHKeyPair();
+
+  const sharedBits = await deriveSharedSecret(ephemeral.privateKey, recipientPubKey);
+  const ephemeralPubBytes = base64ToBuffer(await exportPublicKey(ephemeral.publicKey));
+  const encKey = await hkdfDerive(sharedBits, ephemeralPubBytes, ECIES_INFO, 32);
+
+  const plaintext = new TextEncoder().encode(sessionExportJson);
+  const { ciphertext, iv } = await aesGcmEncrypt(plaintext, encKey);
+
   return {
-    sessionId: session.sessionId,
-    sessionExport: session.exportSession(),
+    userId,
+    ephemeralPublicKey: await exportPublicKey(ephemeral.publicKey),
+    encryptedSessionExport: bufferToBase64(ciphertext),
+    iv: bufferToBase64(iv),
+    startingIndex: 0,
   };
 }
 
 /**
- * Import a Megolm inbound session from an encrypted share.
+ * ECIES-decrypt a Megolm session export share using our identity private key.
+ */
+export async function decryptSessionExportFromShare(
+  share: GroupSessionShare,
+): Promise<{ sessionId: string; targetId: string; ratchetKey: string; messageIndex: number }> {
+  assertUnlocked();
+  const ephemeralPubKey = await importECDHPublicKey(share.ephemeralPublicKey);
+  const sharedBits = await deriveSharedSecret(_identityKeyPair!.privateKey, ephemeralPubKey);
+  const ephemeralPubBytes = base64ToBuffer(share.ephemeralPublicKey);
+  const encKey = await hkdfDerive(sharedBits, ephemeralPubBytes, ECIES_INFO, 32);
+
+  const plaintext = await aesGcmDecrypt(
+    base64ToBuffer(share.encryptedSessionExport),
+    encKey,
+    base64ToBuffer(share.iv),
+  );
+
+  const parsed = JSON.parse(new TextDecoder().decode(plaintext));
+
+  // Validate required fields — a corrupted or tampered payload must not silently
+  // propagate into the Megolm inbound cache. Note: messageIndex 0 is valid (new session).
+  if (
+    typeof parsed.sessionId !== "string" || !parsed.sessionId ||
+    typeof parsed.targetId !== "string" || !parsed.targetId ||
+    typeof parsed.ratchetKey !== "string" || !parsed.ratchetKey ||
+    typeof parsed.messageIndex !== "number"
+  ) {
+    throw new Error(
+      "Decrypted session export is malformed — required fields missing or wrong type"
+    );
+  }
+
+  return parsed;
+}
+
+// ─── Group/Channel Encryption (Megolm) ────────
+
+/**
+ * Create a new Megolm outbound session for a group/channel.
+ * Encrypts the session export for each participant with ECIES.
+ */
+export async function createGroupSession(
+  targetId: string,
+  participants: Array<{ userId: string; publicKey: string }>,
+  maxMessages?: number,
+): Promise<{ sessionId: string; shares: GroupSessionShare[] }> {
+  assertUnlocked();
+  const session = await MegolmOutbound.create(targetId, maxMessages);
+  _megolmOutCache.set(targetId, session);
+  await storeMegolmOutbound(targetId, session.serialize(), _kekRaw!);
+
+  const exportJson = JSON.stringify(session.exportSession());
+  const shares = await Promise.all(
+    participants.map((p) => eciesEncryptSessionExport(exportJson, p.userId, p.publicKey))
+  );
+
+  return { sessionId: session.sessionId, shares };
+}
+
+/**
+ * Import a Megolm inbound session from an ECIES-encrypted share.
  */
 export async function importGroupSession(
-  sessionExport: { sessionId: string; targetId: string; ratchetKey: string; messageIndex: number },
+  share: GroupSessionShare,
 ): Promise<void> {
   assertUnlocked();
+  const sessionExport = await decryptSessionExportFromShare(share);
   const session = MegolmInbound.fromExport(sessionExport);
   _megolmInCache.set(sessionExport.sessionId, session);
   await storeMegolmInbound(sessionExport.sessionId, session.serialize(), _kekRaw!);
