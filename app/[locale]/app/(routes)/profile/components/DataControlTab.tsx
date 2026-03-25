@@ -7,7 +7,6 @@ import { useClerk } from "@clerk/nextjs";
 import {
   Database,
   Lock,
-  Unlock,
   Download,
   Trash2,
   UserX,
@@ -28,9 +27,6 @@ import {
   XCircle,
   CheckCircle,
   Loader2,
-  RefreshCw,
-  Copy,
-  Check,
 } from "lucide-react";
 import {
   Card,
@@ -73,17 +69,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useEncryption, EncryptionProvider } from "@/components/providers/EncryptionProvider";
 import { useAppToast } from "@/hooks/use-app-toast";
-import {
-  validatePassphrase,
-  generateSalt,
-  deriveKEK,
-  saltToBase64,
-  generateOMK,
-  wrapKey,
-} from "@/lib/crypto";
-import { setupOrganizationEncryption } from "@/actions/encryption";
 import {
   requestDataExport,
   getDataExportStatus,
@@ -96,7 +82,7 @@ import {
 } from "@/actions/data-deletion/request-data-deletion";
 import { disableAccount } from "@/actions/user/disable-account";
 import { deleteAccount } from "@/actions/user/delete-account";
-import { useHasPermission } from "@/lib/permissions/hooks";
+import { Link } from "@/navigation";
 import { Loading } from "@/components/ui/loading";
 
 // =============================================================================
@@ -165,436 +151,6 @@ function YourDataSection() {
   );
 }
 
-// =============================================================================
-// Helper Components
-// =============================================================================
-
-function EncryptionStatusBadge({
-  isEnabled,
-  isUnlocked,
-  hasAccess,
-}: {
-  isEnabled: boolean;
-  isUnlocked: boolean;
-  hasAccess: boolean;
-}) {
-  if (!isEnabled) {
-    return <Badge variant="secondary">Not Configured</Badge>;
-  }
-  if (isUnlocked) {
-    return (
-      <Badge variant="default" className="bg-green-600">
-        <Unlock className="h-3 w-3 mr-1" />
-        Unlocked
-      </Badge>
-    );
-  }
-  if (hasAccess) {
-    return (
-      <Badge variant="outline">
-        <Lock className="h-3 w-3 mr-1" />
-        Locked
-      </Badge>
-    );
-  }
-  return <Badge variant="destructive">No Access</Badge>;
-}
-
-// =============================================================================
-// Encryption Setup Section
-// =============================================================================
-
-function EncryptionSetupSection() {
-  const {
-    isEnabled,
-    hasAccess,
-    isUnlocked,
-    isLoading,
-    unlock,
-    lock,
-    remainingTime,
-    refreshStatus,
-    resetIdleTimer,
-  } = useEncryption();
-
-  // Reset idle timer on user activity (only when encryption is active)
-  useEffect(() => {
-    if (!isUnlocked) return;
-    const handleActivity = () => resetIdleTimer();
-    globalThis.addEventListener("mousemove", handleActivity);
-    globalThis.addEventListener("keydown", handleActivity);
-    globalThis.addEventListener("click", handleActivity);
-    return () => {
-      globalThis.removeEventListener("mousemove", handleActivity);
-      globalThis.removeEventListener("keydown", handleActivity);
-      globalThis.removeEventListener("click", handleActivity);
-    };
-  }, [isUnlocked, resetIdleTimer]);
-  const isAdmin = useHasPermission("canManageRoles");
-  const { toast } = useAppToast();
-  const success = (msg: string) =>
-    toast.success(msg, { isTranslationKey: false });
-  const showError = (msg: string) =>
-    toast.error(msg, { isTranslationKey: false });
-
-  const [passphrase, setPassphrase] = useState("");
-  const [confirmPassphrase, setConfirmPassphrase] = useState("");
-  const [passphraseError, setPassphraseError] = useState<string | null>(null);
-  const [confirmError, setConfirmError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSetupDialog, setShowSetupDialog] = useState(false);
-
-  const passphraseStrength = useCallback((p: string) => {
-    if (!p) return null;
-    const checks = [p.length >= 12, /[A-Z]/.test(p), /[a-z]/.test(p), /[0-9]/.test(p), /[^A-Za-z0-9]/.test(p)];
-    const score = checks.filter(Boolean).length;
-    if (score <= 2) return { label: "Weak", color: "bg-destructive", width: "w-1/4" };
-    if (score === 3) return { label: "Fair", color: "bg-amber-500", width: "w-2/4" };
-    if (score === 4) return { label: "Good", color: "bg-yellow-400", width: "w-3/4" };
-    return { label: "Strong", color: "bg-green-500", width: "w-full" };
-  }, []);
-
-  const handlePassphraseChange = (value: string) => {
-    setPassphrase(value);
-    if (value) {
-      const v = validatePassphrase(value);
-      setPassphraseError(v.isValid ? null : (v.error ?? null));
-    } else {
-      setPassphraseError(null);
-    }
-    if (confirmPassphrase) {
-      setConfirmError(value !== confirmPassphrase ? "Passphrases do not match" : null);
-    }
-  };
-
-  const handleConfirmChange = (value: string) => {
-    setConfirmPassphrase(value);
-    setConfirmError(value && value !== passphrase ? "Passphrases do not match" : null);
-  };
-
-  const generatePassphrase = useCallback(async () => {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-    const array = crypto.getRandomValues(new Uint8Array(20));
-    // Guarantee at least one of each required class
-    const pick = (set: string) => set[crypto.getRandomValues(new Uint8Array(1))[0] % set.length];
-    const base = Array.from(array).map((b) => chars[b % chars.length]).join("");
-    const seeded = pick("ABCDEFGHIJKLMNOPQRSTUVWXYZ") + pick("abcdefghijklmnopqrstuvwxyz") + pick("0123456789") + base.slice(3);
-    const shuffled = seeded.split("").sort(() => (crypto.getRandomValues(new Uint8Array(1))[0] > 127 ? 1 : -1)).join("");
-    handlePassphraseChange(shuffled);
-    setConfirmPassphrase(shuffled);
-    setConfirmError(null);
-    await navigator.clipboard.writeText(shuffled);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, []);
-
-  const handleUnlock = async () => {
-    if (!passphrase) return;
-    setIsSubmitting(true);
-    try {
-      const unlocked = await unlock(passphrase);
-      if (unlocked) {
-        success("Encryption unlocked");
-        setPassphrase("");
-      } else {
-        showError("Invalid passphrase");
-      }
-    } catch {
-      showError("Failed to unlock encryption");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSetup = async () => {
-    const validation = validatePassphrase(passphrase);
-    if (!validation.isValid) {
-      setPassphraseError(validation.error ?? "Invalid passphrase");
-      return;
-    }
-    if (passphrase !== confirmPassphrase) {
-      setConfirmError("Passphrases do not match");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const omk = await generateOMK();
-      const salt = generateSalt();
-      const kek = await deriveKEK(passphrase, salt);
-      const wrappedKey = await wrapKey(omk, kek);
-
-      const result = await setupOrganizationEncryption({
-        wrappedKey,
-        salt: saltToBase64(salt),
-      });
-
-      if (result.success) {
-        success("Encryption enabled successfully");
-        setShowSetupDialog(false);
-        setPassphrase("");
-        setConfirmPassphrase("");
-        await refreshStatus();
-      } else {
-        showError(result.error || "Failed to enable encryption");
-      }
-    } catch (err) {
-      console.error("Setup error:", err);
-      showError("Failed to enable encryption");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            Data Encryption
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Loading variant="dots" size="md" />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Database className="h-5 w-5" />
-          Data Encryption
-        </CardTitle>
-        <CardDescription>
-          End-to-end encryption protects your data so only authorized team
-          members can access it
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Status:</span>
-          <EncryptionStatusBadge
-            isEnabled={isEnabled}
-            isUnlocked={isUnlocked}
-            hasAccess={hasAccess}
-          />
-        </div>
-
-        {isUnlocked && remainingTime !== null && remainingTime <= 60 && (
-          <Alert variant="destructive">
-            <Clock className="h-4 w-4" />
-            <AlertTitle>Auto-lock Warning</AlertTitle>
-            <AlertDescription>
-              Your session will lock in {remainingTime} seconds due to
-              inactivity.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <Separator />
-
-        {!isEnabled && isAdmin && (
-          <Dialog open={showSetupDialog} onOpenChange={(open) => {
-            setShowSetupDialog(open);
-            if (!open) {
-              setPassphrase("");
-              setConfirmPassphrase("");
-              setPassphraseError(null);
-              setConfirmError(null);
-              setCopied(false);
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Lock className="h-4 w-4 mr-2" />
-                Enable Encryption
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Enable End-to-End Encryption</DialogTitle>
-                <DialogDescription>
-                  Create a secure passphrase to protect your
-                  organization&apos;s data. This passphrase will be required to
-                  access encrypted data.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Important</AlertTitle>
-                  <AlertDescription>
-                    Store this passphrase securely. If lost, encrypted data
-                    cannot be recovered.
-                  </AlertDescription>
-                </Alert>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="setup-passphrase">Passphrase</Label>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 gap-1.5 text-xs text-muted-foreground"
-                      onClick={generatePassphrase}
-                    >
-                      {copied ? (
-                        <><Check className="h-3 w-3 text-green-500" />Copied!</>
-                      ) : (
-                        <><RefreshCw className="h-3 w-3" />Generate & copy</>
-                      )}
-                    </Button>
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="setup-passphrase"
-                      type="password"
-                      placeholder="Enter a strong passphrase (12+ characters)"
-                      value={passphrase}
-                      onChange={(e) => handlePassphraseChange(e.target.value)}
-                      className={passphraseError ? "border-destructive focus-visible:ring-destructive" : ""}
-                    />
-                    {passphrase && (
-                      <button
-                        type="button"
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(passphrase);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 2000);
-                        }}
-                      >
-                        {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                      </button>
-                    )}
-                  </div>
-                  {passphrase && (() => {
-                    const s = passphraseStrength(passphrase);
-                    return s ? (
-                      <div className="space-y-1">
-                        <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-                          <div className={`h-full rounded-full transition-all ${s.color} ${s.width}`} />
-                        </div>
-                        <p className="text-xs text-muted-foreground">Strength: {s.label}</p>
-                      </div>
-                    ) : null;
-                  })()}
-                  {passphraseError && (
-                    <p className="text-xs text-destructive">{passphraseError}</p>
-                  )}
-                  {!passphraseError && !passphrase && (
-                    <p className="text-xs text-muted-foreground">
-                      Must contain uppercase, lowercase, and numbers (12+ chars)
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-passphrase">
-                    Confirm Passphrase
-                  </Label>
-                  <Input
-                    id="confirm-passphrase"
-                    type="password"
-                    placeholder="Confirm your passphrase"
-                    value={confirmPassphrase}
-                    onChange={(e) => handleConfirmChange(e.target.value)}
-                    className={confirmError ? "border-destructive focus-visible:ring-destructive" : ""}
-                  />
-                  {confirmError && (
-                    <p className="text-xs text-destructive">{confirmError}</p>
-                  )}
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowSetupDialog(false);
-                    setPassphrase("");
-                    setConfirmPassphrase("");
-                    setPassphraseError(null);
-                    setConfirmError(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSetup} disabled={isSubmitting || !!passphraseError || !!confirmError || !passphrase || !confirmPassphrase}>
-                  {isSubmitting ? (
-                    <Loading variant="spinner" size="sm" />
-                  ) : (
-                    "Enable Encryption"
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {isEnabled && hasAccess && !isUnlocked && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="unlock-passphrase">Passphrase</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="unlock-passphrase"
-                  type="password"
-                  placeholder="Enter your passphrase"
-                  value={passphrase}
-                  onChange={(e) => setPassphrase(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
-                />
-                <Button
-                  onClick={handleUnlock}
-                  disabled={isSubmitting || !passphrase}
-                >
-                  {isSubmitting ? (
-                    <Loading variant="spinner" size="sm" />
-                  ) : (
-                    <Unlock className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isUnlocked && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              {remainingTime !== null && (
-                <span>
-                  Auto-lock in {Math.floor(remainingTime / 60)}:
-                  {String(remainingTime % 60).padStart(2, "0")}
-                </span>
-              )}
-            </div>
-            <Button variant="outline" onClick={lock}>
-              <Lock className="h-4 w-4 mr-2" />
-              Lock Now
-            </Button>
-          </div>
-        )}
-
-        {isEnabled && !hasAccess && (
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Access Required</AlertTitle>
-            <AlertDescription>
-              You don&apos;t have encryption access. Contact your organization
-              admin to be granted access.
-            </AlertDescription>
-          </Alert>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
 
 // =============================================================================
 // Data Export Section
@@ -1399,13 +955,31 @@ function AccountActionsSection() {
 // =============================================================================
 
 export function DataControlTab() {
+  const t = useTranslations("profile.dataControl");
+
   return (
     <div className="space-y-6">
       <YourDataSection />
       <Separator />
-      <EncryptionProvider>
-        <EncryptionSetupSection />
-      </EncryptionProvider>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            {t("encryption_info_title")}
+          </CardTitle>
+          <CardDescription>
+            {t("encryption_info_description")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {t("encryption_info_link_text")}{" "}
+            <Link href="/app/settings/security" className="text-primary underline">
+              {t("encryption_info_link_label")}
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
       <Separator />
       <DataExportSection />
       <Separator />

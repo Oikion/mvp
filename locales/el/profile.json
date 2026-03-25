@@ -259,6 +259,10 @@
       "requestedAt": "Αιτήθηκε",
       "expiresAt": "Λήγει"
     },
+    "encryption_info_title": "Κρυπτογράφηση End-to-End",
+    "encryption_info_description": "Τα δεδομένα σας προστατεύονται με κρυπτογράφηση end-to-end βασισμένη σε PIN.",
+    "encryption_info_link_text": "Διαχειριστείτε το PIN κρυπτογράφησης και τα αντίγραφα ασφαλείας συνεδριών στις",
+    "encryption_info_link_label": "Ρυθμίσεις Ασφαλείας",
     "deletion": {
       "title": "Αίτημα Διαγραφής Δεδομένων",
       "description": "Αίτημα μόνιμης διαγραφής όλων των δεδομένων του οργανισμού σας",
