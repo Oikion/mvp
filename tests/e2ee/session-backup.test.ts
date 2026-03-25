@@ -51,6 +51,7 @@ import {
   eciesEncrypt,
   eciesDecrypt,
   type BackupManagerCallbacks,
+  type SessionType,
 } from "@/lib/e2ee/session-backup";
 import {
   storeRatchetSession,
@@ -586,6 +587,343 @@ describe("SessionBackupManager", () => {
       expect(typeof decrypted).toBe("string");
       // With mocked primitives, the round-trip should preserve content
       expect(decrypted).toBe(plaintext);
+    });
+  });
+
+  // ─── Integration Round-Trip Tests ─────────────
+
+  describe("Integration round-trip", () => {
+    const mockKek = new ArrayBuffer(32);
+
+    function makeBackupEntry(
+      sessionKey: string,
+      sessionType: SessionType,
+      data: string,
+      version: number
+    ) {
+      return {
+        sessionKey,
+        sessionType,
+        eciesBlob: Buffer.from(new TextEncoder().encode(data)).toString("base64"),
+        ephemeralPubKey: "eph-key",
+        iv: Buffer.from(new ArrayBuffer(12)).toString("base64"),
+        version,
+      };
+    }
+
+    it("imports server version when server is newer (version conflict — server newer)", async () => {
+      // Local version 3, server version 5 → should import
+      (getBackupVersion as ReturnType<typeof vi.fn>).mockResolvedValue(3);
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          backups: [makeBackupEntry("ratchet:conv_conflict", "ratchet", '{"v":5}', 5)],
+        }),
+      });
+
+      const onConflictDetected = vi.fn();
+      const manager = createManager({ onConflictDetected });
+      const result = await manager.restoreAll(mockKek);
+
+      expect(result.restored).toBe(1);
+      expect(result.skipped).toBe(0);
+      expect(storeRatchetSession).toHaveBeenCalledWith("conv_conflict", '{"v":5}', mockKek);
+      expect(setBackupVersion).toHaveBeenCalledWith("ratchet:conv_conflict", 5);
+      // Conflict callback fires because localVersion > 0 and < server version
+      expect(onConflictDetected).toHaveBeenCalledTimes(1);
+
+      manager.destroy();
+    });
+
+    it("skips when local version is newer (version conflict — local newer)", async () => {
+      // Local version 5, server version 3 → should skip
+      (getBackupVersion as ReturnType<typeof vi.fn>).mockResolvedValue(5);
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          backups: [makeBackupEntry("ratchet:conv_local_wins", "ratchet", '{"v":3}', 3)],
+        }),
+      });
+
+      const manager = createManager();
+      const result = await manager.restoreAll(mockKek);
+
+      expect(result.restored).toBe(0);
+      expect(result.skipped).toBe(1);
+      expect(storeRatchetSession).not.toHaveBeenCalled();
+      expect(setBackupVersion).not.toHaveBeenCalled();
+
+      manager.destroy();
+    });
+
+    it("fresh device (empty IndexedDB) — restores all sessions from server", async () => {
+      // Local version 0 for all keys → everything gets imported
+      (getBackupVersion as ReturnType<typeof vi.fn>).mockResolvedValue(0);
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          backups: [
+            makeBackupEntry("ratchet:fresh_1", "ratchet", '{"r":1}', 1),
+            makeBackupEntry("ratchet:fresh_2", "ratchet", '{"r":2}', 2),
+            makeBackupEntry("megolm-out:fresh_3", "megolm-out", '{"m":1}', 1),
+          ],
+        }),
+      });
+
+      const manager = createManager();
+      const result = await manager.restoreAll(mockKek);
+
+      expect(result.restored).toBe(3);
+      expect(result.skipped).toBe(0);
+      expect(result.errors).toBe(0);
+      expect(storeRatchetSession).toHaveBeenCalledTimes(2);
+      expect(storeMegolmOutbound).toHaveBeenCalledTimes(1);
+
+      manager.destroy();
+    });
+
+    it("multiple session types in one restore — ratchet + megolm-out + megolm-in all restored", async () => {
+      (getBackupVersion as ReturnType<typeof vi.fn>).mockResolvedValue(0);
+
+      const ratchetData = '{"type":"ratchet","chain":42}';
+      const megolmOutData = '{"type":"megolm-out","idx":7}';
+      const megolmInData = '{"type":"megolm-in","idx":3}';
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          backups: [
+            makeBackupEntry("ratchet:multi_r", "ratchet", ratchetData, 4),
+            makeBackupEntry("megolm-out:multi_o", "megolm-out", megolmOutData, 2),
+            makeBackupEntry("megolm-in:multi_i", "megolm-in", megolmInData, 1),
+          ],
+        }),
+      });
+
+      const manager = createManager();
+      const result = await manager.restoreAll(mockKek);
+
+      expect(result.restored).toBe(3);
+      expect(result.skipped).toBe(0);
+      expect(result.errors).toBe(0);
+
+      expect(storeRatchetSession).toHaveBeenCalledWith("multi_r", ratchetData, mockKek);
+      expect(storeMegolmOutbound).toHaveBeenCalledWith("multi_o", megolmOutData, mockKek);
+      expect(storeMegolmInbound).toHaveBeenCalledWith("multi_i", megolmInData, mockKek);
+
+      // Versions all updated
+      expect(setBackupVersion).toHaveBeenCalledWith("ratchet:multi_r", 4);
+      expect(setBackupVersion).toHaveBeenCalledWith("megolm-out:multi_o", 2);
+      expect(setBackupVersion).toHaveBeenCalledWith("megolm-in:multi_i", 1);
+
+      manager.destroy();
+    });
+  });
+
+  // ─── API Validation Tests ──────────────────────
+
+  describe("API validation", () => {
+    const mockKek = new ArrayBuffer(32);
+
+    it("POST batch — fetch is called with correct request structure", async () => {
+      const manager = createManager();
+
+      manager.markDirty("ratchet", "ratchet:api_1", '{"state":"a"}');
+      manager.markDirty("megolm-out", "megolm-out:api_2", '{"state":"b"}');
+      manager.markDirty("megolm-in", "megolm-in:api_3", '{"state":"c"}');
+
+      await manager.flush();
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      const [url, options] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+
+      expect(url).toBe("/api/e2ee/session-backups");
+      expect(options.method).toBe("POST");
+      expect(options.headers).toEqual({ "Content-Type": "application/json" });
+
+      const body = JSON.parse(options.body);
+      expect(body).toHaveProperty("backups");
+      expect(body.backups).toHaveLength(3);
+
+      // Each backup item must have the required fields
+      for (const item of body.backups) {
+        expect(item).toHaveProperty("sessionKey");
+        expect(item).toHaveProperty("sessionType");
+        expect(item).toHaveProperty("eciesBlob");
+        expect(item).toHaveProperty("ephemeralPubKey");
+        expect(item).toHaveProperty("iv");
+        expect(["ratchet", "megolm-out", "megolm-in"]).toContain(item.sessionType);
+      }
+
+      manager.destroy();
+    });
+
+    it("POST batch — sessionKey in request matches what was marked dirty", async () => {
+      const manager = createManager();
+
+      manager.markDirty("ratchet", "ratchet:preserve_key_1", '{"data":1}');
+      manager.markDirty("megolm-out", "megolm-out:preserve_key_2", '{"data":2}');
+
+      await manager.flush();
+
+      const body = JSON.parse((fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body);
+      const sessionKeys = body.backups.map((b: { sessionKey: string }) => b.sessionKey);
+
+      expect(sessionKeys).toContain("ratchet:preserve_key_1");
+      expect(sessionKeys).toContain("megolm-out:preserve_key_2");
+
+      manager.destroy();
+    });
+
+    it("GET response properly feeds restoreAll — correct store functions called", async () => {
+      (getBackupVersion as ReturnType<typeof vi.fn>).mockResolvedValue(0);
+
+      const ratchetState = '{"ratchet":"restored"}';
+      const megolmState = '{"megolm":"restored"}';
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          backups: [
+            {
+              sessionKey: "ratchet:api_get_1",
+              sessionType: "ratchet",
+              eciesBlob: Buffer.from(new TextEncoder().encode(ratchetState)).toString("base64"),
+              ephemeralPubKey: "eph",
+              iv: Buffer.from(new ArrayBuffer(12)).toString("base64"),
+              version: 2,
+            },
+            {
+              sessionKey: "megolm-in:api_get_2",
+              sessionType: "megolm-in",
+              eciesBlob: Buffer.from(new TextEncoder().encode(megolmState)).toString("base64"),
+              ephemeralPubKey: "eph2",
+              iv: Buffer.from(new ArrayBuffer(12)).toString("base64"),
+              version: 1,
+            },
+          ],
+        }),
+      });
+
+      const manager = createManager();
+      const result = await manager.restoreAll(mockKek);
+
+      expect(result.restored).toBe(2);
+      expect(storeRatchetSession).toHaveBeenCalledWith("api_get_1", ratchetState, mockKek);
+      expect(storeMegolmInbound).toHaveBeenCalledWith("api_get_2", megolmState, mockKek);
+
+      manager.destroy();
+    });
+
+    it("restoreAll handles empty backups array", async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ backups: [] }),
+      });
+
+      const manager = createManager();
+      const result = await manager.restoreAll(mockKek);
+
+      expect(result).toEqual({ restored: 0, skipped: 0, errors: 0 });
+      expect(storeRatchetSession).not.toHaveBeenCalled();
+      expect(storeMegolmOutbound).not.toHaveBeenCalled();
+      expect(storeMegolmInbound).not.toHaveBeenCalled();
+
+      manager.destroy();
+    });
+
+    it("restoreAll handles fetch error gracefully — returns errors count > 0", async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      });
+
+      const manager = createManager();
+      const result = await manager.restoreAll(mockKek);
+
+      expect(result.errors).toBeGreaterThan(0);
+      expect(result.restored).toBe(0);
+      expect(result.skipped).toBe(0);
+
+      manager.destroy();
+    });
+
+    it("restoreAll handles network exception gracefully", async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new Error("Failed to fetch")
+      );
+
+      const manager = createManager();
+      const result = await manager.restoreAll(mockKek);
+
+      expect(result.errors).toBeGreaterThan(0);
+      expect(result.restored).toBe(0);
+
+      manager.destroy();
+    });
+  });
+
+  // ─── Cross-Org Isolation ─────────────────────────
+
+  describe("cross-org isolation", () => {
+    it("two managers with different key providers operate independently", async () => {
+      const pubKeyA = { type: "public", org: "A" } as unknown as CryptoKey;
+      const privKeyA = { type: "private", org: "A" } as unknown as CryptoKey;
+      const pubKeyB = { type: "public", org: "B" } as unknown as CryptoKey;
+      const privKeyB = { type: "private", org: "B" } as unknown as CryptoKey;
+
+      const managerA = new SessionBackupManager(
+        vi.fn().mockResolvedValue(pubKeyA),
+        vi.fn().mockResolvedValue(privKeyA)
+      );
+      const managerB = new SessionBackupManager(
+        vi.fn().mockResolvedValue(pubKeyB),
+        vi.fn().mockResolvedValue(privKeyB)
+      );
+
+      // Mark dirty on manager A
+      managerA.markDirty("ratchet", "ratchet:orgA_conv", '{"org":"A"}');
+      // Mark dirty on manager B
+      managerB.markDirty("ratchet", "ratchet:orgB_conv", '{"org":"B"}');
+
+      // Each has independent dirty counts
+      expect(managerA.dirtyCount).toBe(1);
+      expect(managerB.dirtyCount).toBe(1);
+
+      // Flush A only
+      await managerA.flush();
+
+      // A's dirty is cleared, B's remains
+      expect(managerA.dirtyCount).toBe(0);
+      expect(managerB.dirtyCount).toBe(1);
+
+      // Verify fetch was called once (for A) with A's session key
+      const body = JSON.parse((fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body);
+      expect(body.backups[0].sessionKey).toBe("ratchet:orgA_conv");
+
+      // Destroy B doesn't affect A's state
+      managerB.destroy();
+      expect(managerA.consecutiveFailures).toBe(0);
+
+      managerA.destroy();
+    });
+
+    it("destroying one manager does not affect another", () => {
+      const managerA = createManager();
+      const managerB = createManager();
+
+      managerA.markDirty("ratchet", "ratchet:a1", "dataA");
+      managerB.markDirty("ratchet", "ratchet:b1", "dataB");
+
+      managerA.destroy();
+
+      expect(managerA.dirtyCount).toBe(0);
+      expect(managerB.dirtyCount).toBe(1);
+
+      managerB.destroy();
     });
   });
 });
