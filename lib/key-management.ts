@@ -17,7 +17,7 @@
  *   await rotateOrgDek(orgId);  // Creates new version, deactivates old
  */
 
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { prismadb } from "@/lib/prisma";
 import { encrypt, decrypt } from "@/lib/encryption";
 import { cacheGet, cacheSet, cacheDel } from "@/lib/redis";
@@ -31,7 +31,10 @@ interface CacheEntry {
   expiresAt: number;
 }
 
-const DEK_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+// NM-3: Reduced from 5 minutes to 30 seconds so that after an emergency DEK rotation,
+// other serverless instances pick up the new key within 30s (instead of 5 min).
+// Trade-off: ~10x more L2 Redis reads, but each is <1ms for a single small value.
+const DEK_CACHE_TTL_MS = 30 * 1000; // 30 seconds
 const dekCache = new Map<string, CacheEntry>();
 
 function getCached(orgId: string): Buffer | null {

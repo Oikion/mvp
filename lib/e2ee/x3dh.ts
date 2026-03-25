@@ -144,7 +144,7 @@ export async function initiateX3DH(
 export async function respondX3DH(
   bobIdentity: CryptoKeyPair,
   bobSignedPreKey: { keyPair: CryptoKeyPair; signature: string },
-  bobOneTimePreKey: CryptoKeyPair | undefined,
+  bobOneTimePreKey: { keyPair: CryptoKeyPair; id: string } | undefined,
   initialMessage: X3DHInitialMessage
 ): Promise<{ sharedSecret: ArrayBuffer }> {
   const aliceIK = await importPublicKey(initialMessage.identityKey);
@@ -161,7 +161,15 @@ export async function respondX3DH(
 
   // DH4 — optional
   if (bobOneTimePreKey && initialMessage.oneTimePreKeyId) {
-    const dh4 = await deriveSharedSecret(bobOneTimePreKey.privateKey, aliceEK);
+    // M-6: Verify the OTP key Bob selected matches the one Alice specified.
+    // Without this check, Bob could use the wrong OTP key, producing a different
+    // shared secret from Alice's — the session would silently fail on first message.
+    if (bobOneTimePreKey.id !== initialMessage.oneTimePreKeyId) {
+      throw new Error(
+        `OTP key ID mismatch: Bob used ${bobOneTimePreKey.id} but Alice specified ${initialMessage.oneTimePreKeyId}`
+      );
+    }
+    const dh4 = await deriveSharedSecret(bobOneTimePreKey.keyPair.privateKey, aliceEK);
     dhConcat = concatBuffers(dhConcat, dh4);
   }
 

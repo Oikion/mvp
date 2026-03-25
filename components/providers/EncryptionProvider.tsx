@@ -119,15 +119,13 @@ export function EncryptionProvider({ children }: EncryptionProviderProps) {
     clearTimers();
     lastActivityRef.current = Date.now();
 
-    // Set up countdown interval
+    // M-3: Countdown interval ONLY updates the display — it does NOT call lock().
+    // The setTimeout below is the sole trigger for locking. Previously both could
+    // fire lock() in the same tick, causing two React state updates.
     countdownIntervalRef.current = setInterval(() => {
       const elapsed = Date.now() - lastActivityRef.current;
       const remaining = Math.max(0, IDLE_TIMEOUT_MS - elapsed);
       setRemainingTime(Math.ceil(remaining / 1000));
-
-      if (remaining <= 0) {
-        lock();
-      }
     }, 1000);
 
     // Set up auto-lock timeout

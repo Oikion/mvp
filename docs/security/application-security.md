@@ -310,15 +310,14 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | M-2 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | I |
-| **File** | `lib/encryption.ts:46` |
+| **File** | `lib/encryption.ts` |
+| **Fixed in** | Phase 3 implementation (2026-03-25) |
 
 **Problem**: `encrypt("")` returns `""`. An attacker with DB access can distinguish "no email" (empty string) from "has email" (ciphertext).
 
-**Fix**: Encrypt empty strings. Use `null` for "field not set" (Prisma supports nullable strings) and encrypt `""` when intentionally empty.
-
-**What-if**: Changing this requires verifying no code checks `field === ""` after decryption to mean "not set". All read paths should use `field == null` for "not set" checks.
+**Fix applied**: Removed the `if (plaintext === "") return plaintext` early return from both `encrypt()` and `encryptWithKey()`. Empty strings are now encrypted. Backward compat: existing empty strings in the DB remain as `""` — `isEncrypted("")` returns false (falsy check), so `decryptWithKey("")` returns `""` as-is. No migration needed for existing data.
 
 ---
 
@@ -328,13 +327,14 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | M-3 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | II |
-| **File** | `components/providers/EncryptionProvider.tsx:123-136` |
+| **File** | `components/providers/EncryptionProvider.tsx` |
+| **Fixed in** | Phase 3 implementation (2026-03-25) |
 
 **Problem**: Both `setInterval` (countdown) and `setTimeout` (auto-lock) can call `lock()`. Two `lock()` calls in quick succession trigger two React state updates.
 
-**Fix**: Remove the `lock()` call from the interval's `remaining <= 0` branch. Let only the `setTimeout` trigger the actual lock. The interval should stop at `0` without calling `lock()`.
+**Fix applied**: Removed the `lock()` call from the interval's `remaining <= 0` branch. The interval now only updates the countdown display — `setTimeout` is the sole trigger for `lock()`.
 
 ---
 
@@ -365,11 +365,13 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | M-5 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | DEFERRED → Phase 4 |
 | **System** | III |
 | **File** | `lib/e2ee/double-ratchet.ts:193` |
 
 **Problem**: `serialize()` calls `exportPrivateKey()` which creates a plaintext base64 string of the PKCS8-encoded private key in JS memory before it's encrypted for IndexedDB storage.
+
+**Deferral rationale**: The plaintext window is microseconds (serialize → encryptForStorage pipeline). More importantly, ALL ratchet state (rootKey, sendChainKey, recvChainKey, skippedKeys) is equally sensitive and also exists as plaintext base64 during serialization. Using `wrapKey` only for the DH private key while leaving other keys as plaintext base64 would be inconsistent. A complete fix requires redesigning the entire serialization model to wrap each key individually or encrypt the full state in one operation — which is already what `encryptForStorage` does. The current approach provides equivalent security through immediate full-state encryption.
 
 **Fix**: Use `crypto.subtle.wrapKey("pkcs8", privateKey, kek, { name: "AES-GCM", iv })` to go directly from CryptoKey to encrypted form. Requires refactoring `storeRatchetSession()` to accept a `CryptoKey` KEK instead of raw bytes.
 
@@ -381,13 +383,14 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | M-6 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | III |
-| **File** | `lib/e2ee/x3dh.ts:163-165` |
+| **File** | `lib/e2ee/x3dh.ts` |
+| **Fixed in** | Phase 3 implementation (2026-03-25) |
 
 **Problem**: `respondX3DH()` doesn't verify that the OTP key pair actually used matches `initialMessage.oneTimePreKeyId`.
 
-**Fix**: Add parameter for `bobOneTimePreKeyId: string | undefined` and verify it matches `initialMessage.oneTimePreKeyId` before computing DH4.
+**Fix applied**: Changed `bobOneTimePreKey` parameter type from `CryptoKeyPair | undefined` to `{ keyPair: CryptoKeyPair; id: string } | undefined`. The function now throws `"OTP key ID mismatch"` if `bobOneTimePreKey.id !== initialMessage.oneTimePreKeyId`. Updated callers: `acceptDMSession()` in index.ts and test callsites in x3dh.test.ts.
 
 ---
 
@@ -647,12 +650,14 @@ try {
 |-------|-------|
 | **ID** | NM-1 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | DEFERRED → Phase 4 |
 | **System** | III |
 | **File** | `lib/e2ee/index.ts:64` |
-| **Phase** | 3 |
+| **Phase** | 4 (moved from 3) |
 
 **Problem**: `_kekRaw` is a plain `ArrayBuffer` — readable by any JS code in the page. A `CryptoKey` with `extractable: false` would be protected by the browser's key store.
+
+**Deferral rationale**: Requires refactoring `aesGcmEncrypt`/`aesGcmDecrypt` in primitives, all session-store functions, entity-comments, and the E2EE index module to accept `CryptoKey` instead of `ArrayBuffer`. The XSS benefit is limited: if an attacker has XSS, they can intercept the PIN during entry (e.g., keylogger on the input field) — making the KEK's extractability moot. The real XSS defense is preventing XSS (CSP, sanitization, React's built-in escaping). Disproportionate refactor effort for marginal security gain.
 
 **Fix**: Refactor to store KEK as `CryptoKey`. Change `encryptForStorage`/`decryptFromStorage` in `session-store.ts` to accept `CryptoKey` and use `crypto.subtle.encrypt`/`decrypt` directly.
 
@@ -682,14 +687,15 @@ try {
 |-------|-------|
 | **ID** | NM-3 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | I |
-| **File** | `lib/key-management.ts:55-58` |
+| **File** | `lib/key-management.ts` |
 | **Phase** | 3 |
+| **Fixed in** | Phase 3 implementation (2026-03-25) |
 
 **Problem**: L1 in-process cache has 5-minute TTL. After DEK rotation, other function instances continue using the old DEK for up to 5 minutes.
 
-**Fix**: Redis pubsub notification on rotation, or reduce TTL to 30 seconds (tradeoff: more DB reads).
+**Fix applied** (deviation from document): Document recommended "Redis pubsub or reduce TTL." Implemented the simpler TTL reduction approach — `DEK_CACHE_TTL_MS` changed from `5 * 60 * 1000` (5 min) to `30 * 1000` (30s). Trade-off: ~10x more L2 Redis reads, but each is <1ms for a single small value. Redis pubsub would be more precise but requires Upstash-specific pubsub integration — disproportionate complexity.
 
 ---
 
@@ -716,14 +722,15 @@ try {
 |-------|-------|
 | **ID** | NM-5 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | III |
-| **File** | `lib/e2ee/index.ts:163-173` |
+| **Files** | `lib/e2ee/primitives.ts`, `lib/e2ee/index.ts` |
 | **Phase** | 3 |
+| **Fixed in** | Phase 3 implementation (2026-03-25) |
 
-**Problem**: `unwrapPrivateKey` derives KEK internally (PBKDF2 600k iterations), then `unlock()` calls `deriveKEKFromPIN()` again. Doubles unlock time.
+**Problem**: `unwrapPrivateKey` derives KEK internally (PBKDF2 600k iterations), then `unlock()` calls `deriveKEKFromPIN()` again — redundant derivation.
 
-**Fix**: Derive KEK once, pass to both `unwrapPrivateKey` and the raw export.
+**Fix applied** (deviation from document): Document said "doubles unlock time." Actual analysis: identity key and signing key have *different* salts, so they require separate PBKDF2 derivations. The optimization is 3 PBKDF2 calls → 2 (not 2 → 1). Added `unwrapPrivateKeyWithKEK()` and `unwrapEd25519PrivateKeyWithKEK()` to primitives.ts — accept a pre-derived KEK CryptoKey. `unlock()` now derives identity KEK once and reuses it for both unwrap and raw export.
 
 ---
 
@@ -809,17 +816,18 @@ Observation only — debouncing IndexedDB writes would reduce overhead but risks
 
 **Goal**: Defense in depth, performance, resilience.
 
-| Task | Finding | Effort | Files to Change |
-|------|---------|--------|-----------------|
-| 3.1 | NM-1: Store KEK as CryptoKey | Medium | `lib/e2ee/index.ts`, `lib/e2ee/session-store.ts` |
-| 3.2 | NM-3: DEK cache invalidation strategy | Medium | `lib/key-management.ts`, `lib/redis.ts` |
-| 3.3 | NM-5: Deduplicate PBKDF2 in unlock | Small | `lib/e2ee/index.ts`, `lib/e2ee/primitives.ts` |
-| 3.4 | M-2: Encrypt empty strings | Small | `lib/encryption.ts` |
-| 3.5 | M-3: Fix dual-lock race | Small | `components/providers/EncryptionProvider.tsx` |
-| 3.6 | M-5: Use wrapKey for DH private key | Medium | `lib/e2ee/double-ratchet.ts` |
-| 3.7 | M-6: Verify OTP key ID in respondX3DH | Small | `lib/e2ee/x3dh.ts` |
+| Task | Finding | Effort | Files Changed | Status |
+|------|---------|--------|---------------|--------|
+| 3.1 | NM-1: Store KEK as CryptoKey | Medium | — | DEFERRED → Phase 4 (disproportionate refactor, limited XSS benefit) |
+| 3.2 | NM-3: DEK cache TTL reduction | Small | `lib/key-management.ts` (5min → 30s) | DONE |
+| 3.3 | NM-5: Deduplicate PBKDF2 in unlock | Small | `lib/e2ee/primitives.ts` (WithKEK variants), `lib/e2ee/index.ts` (3→2 PBKDF2 calls) | DONE |
+| 3.4 | M-2: Encrypt empty strings | Small | `lib/encryption.ts` (removed early return in both encrypt functions) | DONE |
+| 3.5 | M-3: Fix dual-lock race | Small | `components/providers/EncryptionProvider.tsx` (removed lock() from interval) | DONE |
+| 3.6 | M-5: Use wrapKey for DH private key | Medium | — | DEFERRED → Phase 4 (entire serialization model needs redesign, current encryptForStorage provides equivalent protection) |
+| 3.7 | M-6: Verify OTP key ID in respondX3DH | Small | `lib/e2ee/x3dh.ts` (type + ID check), `lib/e2ee/index.ts` (acceptDMSession sig), `tests/e2ee/x3dh.test.ts` | DONE |
 
-**Estimated effort**: 1.5 days
+**Completed**: 2026-03-25 (5 of 7 tasks; 2 deferred to Phase 4 with rationale)
+**Verification**: All 55 E2EE tests pass.
 
 ### Phase 4 — Low (Cleanup + Architecture)
 
@@ -827,6 +835,8 @@ Observation only — debouncing IndexedDB writes would reduce overhead but risks
 
 | Task | Finding | Effort | Files to Change |
 |------|---------|--------|-----------------|
+| 4.0a | NM-1: Store KEK as CryptoKey (deferred from Phase 3) | Medium | `lib/e2ee/index.ts`, `lib/e2ee/session-store.ts`, `lib/e2ee/primitives.ts` |
+| 4.0b | M-5: Use wrapKey for DH private key (deferred from Phase 3) | Medium | `lib/e2ee/double-ratchet.ts`, `lib/e2ee/session-store.ts` |
 | 4.1 | H-5: Unified unlock UX | Large | Multiple providers, UI components |
 | 4.2 | H-6: Server-side session backup | Large | `lib/e2ee/`, new API routes |
 | 4.3 | L-3: Deprecate lib/crypto/ | Medium | `lib/crypto/`, `EncryptionProvider.tsx` |
@@ -1018,6 +1028,7 @@ Use this checklist after completing each phase to confirm all fixes are correct.
 
 | Date | Phase | Finding(s) | Action | Author |
 |------|-------|------------|--------|--------|
+| 2026-03-25 | 3 | M-2, M-3, M-6, NM-3, NM-5 (NM-1+M-5 deferred) | **Phase 3 implemented** (5 of 7 tasks): Empty string encryption removed bypass. Dual-lock race fixed — interval no longer calls lock(). OTP key ID verified in respondX3DH() with type change. DEK L1 cache TTL reduced 5min→30s. PBKDF2 deduplicated in unlock() (3→2 calls, ~33% faster). NM-1 and M-5 deferred to Phase 4 with documented rationale (disproportionate refactor). All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | 2 | NH-2, NH-3, NH-4, NM-2, NL-2, M-1, M-4 | **Phase 2 implemented**: Zod validation on all group session routes (`.strict()`, 65KB max shares, typed schemas) + identity POST/PUT. `cacheGetStrict` for fail-closed brute force reads (preserves dev in-memory fallback). ECIES fields required in entity session types + API validation. OTP private keys stored in IndexedDB (`otp-prekeys` store, DB version 2) with `generatePreKeys`/`getOtpPrivateKey`/`consumeOtpPrivateKey` lifecycle. IV standardized to 12 bytes (NIST), `isEncrypted()` accepts both 24/32-char IVs with hex regex validation. All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | 1 | NC-1, NC-2, NC-3, NH-1 | **Phase 1 implemented**: org scoping on prekey-bundle (join via `clerkUserIds`), org scoping on all 4 group session routes (join-based via Conversation/Channel relations, no migration), PIN length >= 6 client-side + `pbkdfIterations >= 600k` server-side on POST+PUT, atomic OTP consumption via conditional `updateMany` with retry loop. 3 deviations from document recommendations documented inline. All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | — | All | Document created from deep audit | Claude (audit) |

@@ -14,12 +14,12 @@ import {
   importPublicKey as importECDHPublicKey,
   exportPrivateKey,
   wrapPrivateKey,
-  unwrapPrivateKey,
+  unwrapPrivateKeyWithKEK,
   generateEd25519KeyPair,
   exportEd25519PublicKey,
   importEd25519PublicKey,
   wrapEd25519PrivateKey,
-  unwrapEd25519PrivateKey,
+  unwrapEd25519PrivateKeyWithKEK,
   deriveSharedSecret,
   hkdfDerive,
   aesGcmEncrypt,
@@ -170,25 +170,30 @@ export async function unlock(
   signingKey?: UnlockSigningKey,
 ): Promise<void> {
   const pepper = base64ToBuffer(pepperBase64);
+  const salt = base64ToBuffer(saltBase64);
 
-  // Derive KEK and unwrap ECDH identity private key
-  const privateKey = await unwrapPrivateKey(wrappedPrivateKeyBase64, pin, pepper, saltBase64);
+  // NM-5: Derive KEK ONCE (PBKDF2 600k iterations) and reuse for all unwrap operations.
+  // Previously, unwrapPrivateKey() derived KEK internally, then unlock() called
+  // deriveKEKFromPIN() again — doubling the unlock time.
+  const { importPublicKey, deriveKEKFromPIN } = await import("./primitives");
+  const kek = await deriveKEKFromPIN(pin, salt, pepper);
+
+  // Unwrap ECDH identity private key with pre-derived KEK
+  const privateKey = await unwrapPrivateKeyWithKEK(wrappedPrivateKeyBase64, kek);
 
   // Import ECDH public key to form a CryptoKeyPair
-  const { importPublicKey, deriveKEKFromPIN } = await import("./primitives");
   const publicKey = await importPublicKey(publicKeyBase64);
 
   _identityKeyPair = { publicKey, privateKey };
-  _kekRaw = await crypto.subtle.exportKey("raw",
-    await deriveKEKFromPIN(pin, base64ToBuffer(saltBase64), pepper)
-  );
+  _kekRaw = await crypto.subtle.exportKey("raw", kek);
   _userId = userId;
 
-  // Unwrap Ed25519 signing key if present (absent for legacy users — backward compatible)
+  // Unwrap Ed25519 signing key with the SAME KEK (no additional PBKDF2)
   if (signingKey) {
     try {
-      const signingPrivKey = await unwrapEd25519PrivateKey(
-        signingKey.wrappedSigningPrivateKey, pin, pepper, signingKey.signingSalt
+      const signingKek = await deriveKEKFromPIN(pin, base64ToBuffer(signingKey.signingSalt), pepper);
+      const signingPrivKey = await unwrapEd25519PrivateKeyWithKEK(
+        signingKey.wrappedSigningPrivateKey, signingKek
       );
       const signingPubKey = await importEd25519PublicKey(signingKey.signingPublicKey);
       _signingKeyPair = { privateKey: signingPrivKey, publicKey: signingPubKey };
@@ -255,13 +260,13 @@ export async function acceptDMSession(
   initialMessage: X3DHInitialMessage,
   signedPreKeyPair: CryptoKeyPair,
   signedPreKeySignature: string,
-  oneTimePreKeyPair?: CryptoKeyPair,
+  oneTimePreKey?: { keyPair: CryptoKeyPair; id: string },
 ): Promise<void> {
   assertUnlocked();
   const { sharedSecret } = await respondX3DH(
     _identityKeyPair!,
     { keyPair: signedPreKeyPair, signature: signedPreKeySignature },
-    oneTimePreKeyPair,
+    oneTimePreKey,
     initialMessage,
   );
 

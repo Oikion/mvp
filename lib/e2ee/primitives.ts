@@ -151,6 +151,25 @@ export async function unwrapEd25519PrivateKey(
   );
 }
 
+/**
+ * NM-5: Unwrap an Ed25519 private key using a pre-derived KEK.
+ */
+export async function unwrapEd25519PrivateKeyWithKEK(
+  wrappedKeyBase64: string,
+  kek: CryptoKey
+): Promise<CryptoKey> {
+  const combined = base64ToBuffer(wrappedKeyBase64);
+  const iv = combined.slice(0, IV_BYTES);
+  const wrappedKey = combined.slice(IV_BYTES);
+  return crypto.subtle.unwrapKey(
+    "pkcs8", wrappedKey, kek,
+    { name: AES_GCM, iv },
+    ED25519_PARAMS,
+    true,
+    ["sign"]
+  );
+}
+
 // ─── Key Export / Import ───────────────────
 
 export async function exportPublicKey(key: CryptoKey): Promise<string> {
@@ -217,6 +236,26 @@ export async function unwrapPrivateKey(
   const wrappedKey = combined.slice(IV_BYTES);
   const salt = base64ToBuffer(saltBase64);
   const kek = await deriveKEKFromPIN(pin, salt, pepper);
+  return crypto.subtle.unwrapKey(
+    "pkcs8", wrappedKey, kek,
+    { name: AES_GCM, iv },
+    ECDH_PARAMS,
+    true,
+    ["deriveBits"]
+  );
+}
+
+/**
+ * NM-5: Unwrap an ECDH private key using a pre-derived KEK (avoids redundant PBKDF2).
+ * Used by unlock() which derives KEK once and reuses it for multiple unwrap operations.
+ */
+export async function unwrapPrivateKeyWithKEK(
+  wrappedKeyBase64: string,
+  kek: CryptoKey
+): Promise<CryptoKey> {
+  const combined = base64ToBuffer(wrappedKeyBase64);
+  const iv = combined.slice(0, IV_BYTES);
+  const wrappedKey = combined.slice(IV_BYTES);
   return crypto.subtle.unwrapKey(
     "pkcs8", wrappedKey, kek,
     { name: AES_GCM, iv },

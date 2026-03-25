@@ -61,7 +61,7 @@ describe("X3DH handshake", () => {
     const bobResult = await respondX3DH(
       bobIdentity,
       { keyPair: bobSPK.keyPair, signature: bobSPK.signature },
-      bobOTPs[0].keyPair,
+      { keyPair: bobOTPs[0].keyPair, id: bobOTPs[0].id },
       aliceResult.initialMessage
     );
 

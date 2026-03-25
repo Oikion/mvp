@@ -15,7 +15,7 @@
  *   isEncrypted("a1b2...") // → true
  */
 
-import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm";
 // M-1: Standardized to 12 bytes per NIST SP 800-38D recommendation for AES-GCM.
@@ -43,11 +43,11 @@ function getKey(): Buffer {
 
 /**
  * Encrypt a plaintext string using AES-256-GCM.
- * Returns empty string as-is.
+ * M-2: Empty strings are now encrypted (previously returned as-is, leaking metadata).
+ * Use null for "field not set" — encrypted "" means "intentionally empty."
  * Output format: "<iv_hex>:<authTag_hex>:<ciphertext_hex>"
  */
 export function encrypt(plaintext: string): string {
-  if (plaintext === "") return plaintext;
 
   const key = getKey();
   const iv = randomBytes(IV_BYTES);
@@ -114,11 +114,10 @@ export function isEncrypted(value: string | null | undefined): boolean {
 
 /**
  * Encrypt a plaintext string using an explicit AES-256-GCM key buffer (org DEK).
- * Returns empty string as-is.
+ * M-2: Empty strings are now encrypted (see encrypt() comment).
  * Output format: "<iv_hex>:<authTag_hex>:<ciphertext_hex>"
  */
 export function encryptWithKey(plaintext: string, key: Buffer): string {
-  if (plaintext === "") return plaintext;
 
   const iv = randomBytes(IV_BYTES);
   const cipher = createCipheriv(ALGORITHM, key, iv);
