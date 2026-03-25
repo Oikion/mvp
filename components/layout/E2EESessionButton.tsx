@@ -16,8 +16,9 @@ export function E2EESessionButton() {
   const { isSetUp, isUnlocked, isLoading, isSyncing, unlock, setup } = useE2EE();
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Don't show while loading initial state
-  if (isLoading) return null;
+  // Don't show while loading initial state, but keep mounted if dialog is open
+  // (setup/unlock set isLoading too — unmounting would kill the dialog mid-operation)
+  if (isLoading && !dialogOpen) return null;
 
   const handleUnlock = async (pin: string) => {
     await unlock(pin);

@@ -6,9 +6,10 @@
  */
 
 import { prismadb } from "@/lib/prisma";
-import { 
-  publishToChannel, 
-  getChannelName, 
+import { encryptMessageForOrg } from "@/lib/model-encryption";
+import {
+  publishToChannel,
+  getChannelName,
   getConversationChannelName,
   getUserChannelName,
   type AblyMessageEvent,
@@ -280,13 +281,20 @@ export async function sendMessage(params: {
   }>;
   mentions?: string[];
 }) {
+  // Encrypt message content before DB write so Prisma Accelerate and the
+  // database only ever see ciphertext. Decryption happens at read time.
+  const { content: encryptedContent } = await encryptMessageForOrg(
+    { content: params.content },
+    params.organizationId
+  );
+
   const message = await prismadb.message.create({
     data: {
       organizationId: params.organizationId,
       senderId: params.senderId,
       channelId: params.channelId,
       conversationId: params.conversationId,
-      content: params.content,
+      content: encryptedContent ?? params.content,
       contentType: params.contentType || "TEXT",
       parentId: params.parentId,
       attachments: params.attachments
@@ -323,23 +331,18 @@ export async function sendMessage(params: {
     });
   }
 
-  // Publish to Ably for real-time updates
+  // SECURITY: Ably is an external service — never send message content
+  // through its servers. Subscribers fetch the full (decrypted) message
+  // via the authenticated API using the message ID.
   const ablyEvent: AblyMessageEvent = {
     type: "new",
     message: {
       id: message.id,
-      content: message.content,
+      content: "",
       senderId: message.senderId ?? "",
       channelId: message.channelId || undefined,
       conversationId: message.conversationId || undefined,
       createdAt: message.createdAt.toISOString(),
-      attachments: message.attachments.map(a => ({
-        id: a.id,
-        fileName: a.fileName,
-        fileSize: a.fileSize,
-        fileType: a.fileType,
-        url: a.url,
-      })),
     },
   };
 
@@ -466,21 +469,26 @@ export async function editMessage(
     throw new Error("Cannot edit this message");
   }
 
+  const { content: encryptedEditContent } = await encryptMessageForOrg(
+    { content },
+    organizationId
+  );
+
   const updated = await prismadb.message.update({
     where: { id: messageId },
     data: {
-      content,
+      content: encryptedEditContent ?? content,
       isEdited: true,
       editedAt: new Date(),
     },
   });
 
-  // Publish edit to Ably
+  // SECURITY: Don't send content through Ably — subscribers refetch via API.
   const ablyEvent: AblyMessageEvent = {
     type: "edit",
     message: {
       id: updated.id,
-      content: updated.content,
+      content: "",
       senderId: updated.senderId ?? "",
       channelId: updated.channelId || undefined,
       conversationId: updated.conversationId || undefined,

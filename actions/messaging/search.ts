@@ -1,6 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
+import { decryptMessageForOrg } from "@/lib/model-encryption";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 
 interface MessageSearchResult {
@@ -114,8 +115,16 @@ export async function searchMessages(params: {
       take: params.limit || 50,
     });
 
+    // Decrypt message content before building results.
+    // Messages encrypted with server-side DEK won't match the search query
+    // (search runs on ciphertext), but legacy unencrypted messages will.
+    // Decrypt all results so highlights and content display correctly.
+    const decryptedMessages = await Promise.all(
+      messages.map((msg) => decryptMessageForOrg(msg, organizationId))
+    );
+
     // Get sender names
-    const senderIds = Array.from(new Set(messages.map(m => m.senderId).filter((id): id is string => id != null)));
+    const senderIds = Array.from(new Set(decryptedMessages.map(m => m.senderId).filter((id): id is string => id != null)));
     const senders = await prismadb.users.findMany({
       where: { id: { in: senderIds } },
       select: { id: true, name: true },
@@ -125,7 +134,7 @@ export async function searchMessages(params: {
     // Group results by channel/conversation
     const resultMap = new Map<string, SearchResult>();
 
-    for (const msg of messages) {
+    for (const msg of decryptedMessages) {
       const key = msg.channelId || msg.conversationId || "";
       
       if (!resultMap.has(key)) {

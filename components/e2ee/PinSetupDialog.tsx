@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 interface PinSetupDialogProps {
   open: boolean;
@@ -22,19 +23,19 @@ interface PinSetupDialogProps {
 }
 
 function getPinStrength(pin: string): { label: string; color: string } | null {
-  if (pin.length < 4) return null;
-  if (pin.length < 6) return { label: "Weak", color: "text-warning" };
-  if (pin.length < 8) return { label: "Good", color: "text-primary" };
+  if (pin.length < 6) return null;
+  if (pin.length < 7) return { label: "Good", color: "text-primary" };
   return { label: "Strong", color: "text-success" };
 }
 
 export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogProps) {
+  const { success } = useAppToast();
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const pinValid = pin.length >= 4 && pin.length <= 8;
+  const pinValid = pin.length >= 6 && pin.length <= 8;
   const pinsMatch = pin === confirmPin;
   const canSubmit = pinValid && pinsMatch && !isSubmitting;
   const strength = getPinStrength(pin);
@@ -45,6 +46,7 @@ export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogPr
     setIsSubmitting(true);
     try {
       await onSetup(pin);
+      success("Encryption PIN created — E2EE is now active");
       setPin("");
       setConfirmPin("");
       onOpenChange(false);
@@ -73,7 +75,7 @@ export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogPr
             Create Encryption PIN
           </DialogTitle>
           <DialogDescription>
-            Set a 4-8 digit PIN to enable end-to-end encryption. Your PIN protects your private keys — only you can decrypt your data.
+            Set a 6-8 digit PIN to enable end-to-end encryption. Your PIN protects your private keys — only you can decrypt your data.
           </DialogDescription>
         </DialogHeader>
 
@@ -87,7 +89,7 @@ export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogPr
               maxLength={8}
               value={pin}
               onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-              placeholder="4-8 digit PIN"
+              placeholder="6-8 digit PIN"
               className="mt-1"
               autoFocus
               disabled={isSubmitting}

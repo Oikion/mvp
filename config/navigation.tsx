@@ -216,6 +216,13 @@ export function getNavigationConfig({
       isActive: isRouteActive(pathname, "/app/reports", locale),
       moduleId: "reports" as ModuleId,
     }] : []),
+    // Import - import history and data management
+    {
+      title: dict.navigation.ModuleMenu.import || "Import",
+      url: "/app/import",
+      icon: Upload,
+      isActive: isRouteActive(pathname, "/app/import", locale),
+    },
     // Matchmaking - client-property matching analytics
     ...(canAccess("mls") && canAccess("crm") ? [{
       title: dict.navigation.ModuleMenu.matchmaking || "Matchmaking",
@@ -227,13 +234,6 @@ export function getNavigationConfig({
       iconClassName: "text-rose-400 dark:text-rose-400/70",
       labelClassName: "text-rose-400 dark:text-rose-400/70 font-semibold",
     }] : []),
-    // Import - import history and data management
-    {
-      title: dict.navigation.ModuleMenu.import || "Import",
-      url: "/app/import",
-      icon: Upload,
-      isActive: isRouteActive(pathname, "/app/import", locale),
-    },
   ]
 
   // Organization - Employees, Admin, Platform Admin (if applicable)

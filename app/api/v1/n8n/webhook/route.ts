@@ -221,7 +221,9 @@ async function handleContentCreated(
   organizationId: string,
   data: Record<string, unknown>
 ) {
-  console.log(`[N8N_WEBHOOK] Content created`, { organizationId, data });
+  // SECURITY: Do not log the full `data` payload — it may contain entity
+  // names or PII from n8n workflows. Log only the event type and org.
+  console.log(`[N8N_WEBHOOK] Content created`, { organizationId, type: data.type, id: data.id });
 
   // Content is already created via API endpoints
   // This event can be used for notifications or logging
@@ -234,7 +236,7 @@ async function handleContentPublished(
   organizationId: string,
   data: Record<string, unknown>
 ) {
-  console.log(`[N8N_WEBHOOK] Content published`, { organizationId, data });
+  console.log(`[N8N_WEBHOOK] Content published`, { organizationId, type: data.type, id: data.id });
 
   // Update content status if needed
   const { type, id } = data;

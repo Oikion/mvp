@@ -5,7 +5,7 @@
  * and handling webhook communications.
  */
 
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 
 /**
  * n8n configuration
@@ -24,8 +24,12 @@ export function verifyN8nWebhookSignature(
   signature: string
 ): boolean {
   if (!N8N_CONFIG.webhookSecret) {
-    // If no secret configured, skip verification (dev mode)
-    console.warn("[N8N] Webhook secret not configured, skipping signature verification");
+    if (process.env.NODE_ENV === "production") {
+      console.error("[N8N] Webhook secret not configured in production — rejecting request");
+      return false;
+    }
+    // Allow unverified webhooks only in development
+    console.warn("[N8N] Webhook secret not configured, skipping verification (dev only)");
     return true;
   }
 

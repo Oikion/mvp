@@ -46,21 +46,25 @@ export async function uploadToBlob(
   options?: {
     contentType?: string;
     addRandomSuffix?: boolean;
-    access?: "public" | "private";
     organizationId?: string;
     folder?: BlobFolder;
   }
 ) {
   try {
-    const access = options?.access || "public";
-    
+    // TODO: @vercel/blob v2 only supports access: "public". When private
+    // blob support is added, use options.access to control per-upload
+    // visibility. Until then, all blobs are public — use addRandomSuffix
+    // and long org-scoped paths to limit URL guessability.
+    // Sensitive documents should ideally use a different storage backend
+    // (e.g., DO Spaces with presigned URLs) until private blobs ship.
+
     // Use org-scoped path if organizationId is provided
     const blobPath = options?.organizationId
       ? getOrgBlobPath(options.organizationId, fileName, options.folder || "documents")
       : fileName;
 
     const blob = await put(blobPath, file, {
-      access: access as "public",
+      access: "public",
       addRandomSuffix: options?.addRandomSuffix ?? true,
       token: getBlobToken(),
       contentType: options?.contentType,
@@ -94,7 +98,6 @@ export async function uploadDocumentToBlob(
     ...options,
     organizationId,
     folder: "documents",
-    access: "public",
     addRandomSuffix: options?.addRandomSuffix ?? true,
   });
 }
@@ -149,7 +152,6 @@ export async function uploadAttachmentToBlob(
     ...options,
     organizationId,
     folder: "attachments",
-    access: "public",
     addRandomSuffix: options?.addRandomSuffix ?? true,
   });
 }

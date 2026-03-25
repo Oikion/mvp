@@ -3,7 +3,6 @@ import {
   ACCESS_COOKIE_MAX_AGE,
   ACCESS_COOKIE_NAME,
   computeAccessToken,
-  verifyAccessCookie,
 } from "@/lib/app-access";
 import { timingSafeEqual } from "crypto";
 
@@ -13,12 +12,7 @@ export async function POST(req: NextRequest) {
 
   // Gate disabled — grant access immediately
   if (!code || !secret) {
-    return NextResponse.json({ success: true });
-  }
-
-  // Already verified — no need to re-check
-  const existingCookie = req.cookies.get(ACCESS_COOKIE_NAME)?.value;
-  if (verifyAccessCookie(existingCookie)) {
+    console.warn("[APP_ACCESS] Gate disabled — APP_ACCESS_CODE:", !!code, "APP_ACCESS_COOKIE_SECRET:", !!secret);
     return NextResponse.json({ success: true });
   }
 
@@ -34,15 +28,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Code is required" }, { status: 400 });
   }
 
-  // Constant-time comparison to prevent timing attacks
+  // Always validate the submitted code — never bypass via existing cookie.
+  // The proxy handles cookie-based access; this endpoint must verify the code.
+  // Constant-time comparison to prevent timing attacks.
   let matches = false;
   try {
-    const a = Buffer.from(code, "utf8");
-    const b = Buffer.from(submitted.padEnd(code.length, "\0"), "utf8");
-    // Only safe-compare if lengths match; length check itself leaks nothing sensitive
-    if (submitted.length === code.length) {
-      matches = timingSafeEqual(a, b);
-    }
+    // Pad both to equal length to prevent timingSafeEqual from throwing,
+    // while the length check prevents padded values from matching.
+    const maxLen = Math.max(code.length, submitted.length);
+    const a = Buffer.from(code.padEnd(maxLen, "\0"), "utf8");
+    const b = Buffer.from(submitted.padEnd(maxLen, "\0"), "utf8");
+    matches = code.length === submitted.length && timingSafeEqual(a, b);
   } catch {
     matches = false;
   }

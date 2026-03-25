@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { checkAttempt, recordFailedAttempt } from "@/lib/security/brute-force";
 
 /**
@@ -15,10 +15,7 @@ import { checkAttempt, recordFailedAttempt } from "@/lib/security/brute-force";
  */
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = await getCurrentUser();
 
     const body = await req.json();
     const { outcome } = body;
@@ -29,10 +26,10 @@ export async function POST(req: Request) {
 
     // Only count failures — success is ignored; the TTL window expires naturally.
     if (outcome === "failure") {
-      await recordFailedAttempt("pin", userId);
+      await recordFailedAttempt("pin", user.id);
     }
 
-    const result = await checkAttempt("pin", userId);
+    const result = await checkAttempt("pin", user.id);
     return NextResponse.json({
       locked: !result.allowed,
       attemptsRemaining: result.remaining,

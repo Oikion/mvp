@@ -281,9 +281,9 @@ async function verifyMigration() {
     if (msg.content === backup.decryptedContent) {
       verified++;
     } else {
-      console.error(`  FAIL: message ${messageId} content mismatch`);
-      console.error(`    Expected: ${backup.decryptedContent.slice(0, 50)}...`);
-      console.error(`    Got:      ${msg.content.slice(0, 50)}...`);
+      // SECURITY: Do not log decrypted content — it may be captured by
+      // log aggregation services. Log only the message ID and length delta.
+      console.error(`  FAIL: message ${messageId} content mismatch (expected ${backup.decryptedContent.length} chars, got ${msg.content.length} chars)`);
       failed++;
     }
   }
