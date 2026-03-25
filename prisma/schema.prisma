@@ -998,7 +998,6 @@ model Users {
   ReferralCode                                       ReferralCode?
   ReferredByReferral                                 Referral?                     @relation("ReferredUser")
   MessagesSent                                       Message[]                     @relation("MessagesSent")
-  OrganizationEncryptionKey                          OrganizationEncryptionKey[]
   Mandate                                            Mandate[]                     @relation("MandateAssignedTo")
   MandateComment                                     MandateComment[]              @relation("MandateComments")
   identityKey                                        UserIdentityKey?
@@ -3260,41 +3259,6 @@ model AgencyContactSubmission {
   @@index([profileId])
 }
 
-// ============================================================
-// E2EE Org Encryption (per-user wrapped key system)
-// ============================================================
-
-model OrganizationEncryptionStatus {
-  id             String                      @id @default(cuid())
-  organizationId String                      @unique
-  isEnabled      Boolean                     @default(false)
-  keyVersion     Int                         @default(1)
-  enabledAt      DateTime?
-  enabledById    String?
-  createdAt      DateTime                    @default(now())
-  updatedAt      DateTime                    @updatedAt
-  keys           OrganizationEncryptionKey[]
-
-  @@index([organizationId])
-}
-
-model OrganizationEncryptionKey {
-  id             String                       @id @default(cuid())
-  organizationId String
-  userId         String
-  wrappedKey     String                       @db.Text
-  salt           String
-  keyVersion     Int
-  grantedById    String
-  grantedAt      DateTime                     @default(now())
-  revokedAt      DateTime?
-  User           Users                        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status         OrganizationEncryptionStatus @relation(fields: [organizationId], references: [organizationId])
-
-  @@index([organizationId])
-  @@index([userId])
-  @@index([organizationId, userId, keyVersion])
-}
 
 // ============================================================
 // Data Export (GDPR right-to-data-portability)
