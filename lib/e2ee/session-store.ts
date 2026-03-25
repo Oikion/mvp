@@ -5,8 +5,9 @@ import { aesGcmEncrypt, aesGcmDecrypt, generateRandomBytes, bufferToBase64, base
 
 const DB_NAME = "oikion-e2ee";
 // NL-2: Bumped from 1 → 2 to add OTP pre-key store.
-// The upgrade handler creates the new store for existing users transparently.
-const DB_VERSION = 2;
+// H-6:  Bumped from 2 → 3 to add backup-versions store.
+// The upgrade handler creates new stores for existing users transparently.
+const DB_VERSION = 3;
 
 // Store names
 const IDENTITY_STORE = "identity";
@@ -14,6 +15,7 @@ const RATCHET_STORE = "ratchet-sessions";
 const MEGOLM_OUTBOUND_STORE = "megolm-outbound";
 const MEGOLM_INBOUND_STORE = "megolm-inbound";
 const OTP_PREKEY_STORE = "otp-prekeys";
+const BACKUP_VERSIONS_STORE = "backup-versions";
 
 interface EncryptedEntry {
   id: string;
@@ -43,6 +45,10 @@ function getDB(): Promise<IDBPDatabase> {
         // NL-2: Version 2 — OTP pre-key private key storage
         if (!db.objectStoreNames.contains(OTP_PREKEY_STORE)) {
           db.createObjectStore(OTP_PREKEY_STORE, { keyPath: "id" });
+        }
+        // H-6: Version 3 — backup version tracking for session sync
+        if (!db.objectStoreNames.contains(BACKUP_VERSIONS_STORE)) {
+          db.createObjectStore(BACKUP_VERSIONS_STORE, { keyPath: "id" });
         }
       },
     });
@@ -258,6 +264,34 @@ export async function deleteOtpPreKey(keyId: string): Promise<void> {
   await db.delete(OTP_PREKEY_STORE, `otp:${keyId}`);
 }
 
+// ─── Backup Version Tracking (H-6) ──────────────
+
+/**
+ * Get the last-backed-up version for a session key.
+ * Returns 0 if no backup has been recorded yet.
+ */
+export async function getBackupVersion(sessionKey: string): Promise<number> {
+  const db = await getDB();
+  const entry = await db.get(BACKUP_VERSIONS_STORE, sessionKey);
+  return entry?.version ?? 0;
+}
+
+/**
+ * Record the server-side version after a successful backup upload.
+ */
+export async function setBackupVersion(sessionKey: string, version: number): Promise<void> {
+  const db = await getDB();
+  await db.put(BACKUP_VERSIONS_STORE, { id: sessionKey, version });
+}
+
+/**
+ * Remove version tracking for a session (e.g., on session delete).
+ */
+export async function deleteBackupVersion(sessionKey: string): Promise<void> {
+  const db = await getDB();
+  await db.delete(BACKUP_VERSIONS_STORE, sessionKey);
+}
+
 /**
  * Clear ALL E2EE session data from IndexedDB.
  * Used on logout or when user resets E2EE.
@@ -265,7 +299,7 @@ export async function deleteOtpPreKey(keyId: string): Promise<void> {
 export async function clearAllSessions(): Promise<void> {
   const db = await getDB();
   const tx = db.transaction(
-    [IDENTITY_STORE, RATCHET_STORE, MEGOLM_OUTBOUND_STORE, MEGOLM_INBOUND_STORE, OTP_PREKEY_STORE],
+    [IDENTITY_STORE, RATCHET_STORE, MEGOLM_OUTBOUND_STORE, MEGOLM_INBOUND_STORE, OTP_PREKEY_STORE, BACKUP_VERSIONS_STORE],
     "readwrite"
   );
   await Promise.all([
@@ -274,6 +308,7 @@ export async function clearAllSessions(): Promise<void> {
     tx.objectStore(MEGOLM_OUTBOUND_STORE).clear(),
     tx.objectStore(MEGOLM_INBOUND_STORE).clear(),
     tx.objectStore(OTP_PREKEY_STORE).clear(),
+    tx.objectStore(BACKUP_VERSIONS_STORE).clear(),
     tx.done,
   ]);
 }

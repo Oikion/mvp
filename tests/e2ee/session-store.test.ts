@@ -13,6 +13,9 @@ import {
   storeMegolmInbound,
   getMegolmInbound,
   deleteMegolmInbound,
+  getBackupVersion,
+  setBackupVersion,
+  deleteBackupVersion,
   clearAllSessions,
   closeDB,
 } from "@/lib/e2ee/session-store";
@@ -124,6 +127,43 @@ describe("E2EE Session Store", () => {
       expect(await getRatchetSession("c1", kek)).toBeNull();
       expect(await getMegolmOutbound("t1", kek)).toBeNull();
       expect(await getMegolmInbound("s1", kek)).toBeNull();
+    });
+  });
+
+  describe("Backup version tracking", () => {
+    it("stores and retrieves a backup version (round-trip)", async () => {
+      await setBackupVersion("ratchet:conv_abc", 7);
+      const version = await getBackupVersion("ratchet:conv_abc");
+      expect(version).toBe(7);
+    });
+
+    it("returns 0 for a key with no recorded backup", async () => {
+      const version = await getBackupVersion("ratchet:nonexistent");
+      expect(version).toBe(0);
+    });
+
+    it("overwrites an existing version with a newer one", async () => {
+      await setBackupVersion("megolm-out:channel_001", 3);
+      await setBackupVersion("megolm-out:channel_001", 5);
+      const version = await getBackupVersion("megolm-out:channel_001");
+      expect(version).toBe(5);
+    });
+
+    it("deleteBackupVersion removes the entry (returns 0 after)", async () => {
+      await setBackupVersion("identity:user_123", 2);
+      await deleteBackupVersion("identity:user_123");
+      const version = await getBackupVersion("identity:user_123");
+      expect(version).toBe(0);
+    });
+
+    it("clearAllSessions also clears backup versions", async () => {
+      await setBackupVersion("ratchet:conv_xyz", 10);
+      await setBackupVersion("megolm-out:channel_999", 4);
+
+      await clearAllSessions();
+
+      expect(await getBackupVersion("ratchet:conv_xyz")).toBe(0);
+      expect(await getBackupVersion("megolm-out:channel_999")).toBe(0);
     });
   });
 });
