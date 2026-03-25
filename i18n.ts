@@ -38,6 +38,7 @@ import matchmakingEn from "./locales/en/matchmaking.json";
 import dataOwnershipEn from "./locales/en/dataOwnership.json";
 import createOrganizationEn from "./locales/en/createOrganization.json";
 import encryptionEn from "./locales/en/encryption.json";
+import importDataEn from "./locales/en/import.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -76,6 +77,7 @@ import matchmakingEl from "./locales/el/matchmaking.json";
 import dataOwnershipEl from "./locales/el/dataOwnership.json";
 import createOrganizationEl from "./locales/el/createOrganization.json";
 import encryptionEl from "./locales/el/encryption.json";
+import importDataEl from "./locales/el/import.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -124,6 +126,7 @@ function loadMessages(locale: string) {
     messages.dataOwnership = dataOwnershipEl;
     messages.createOrganization = createOrganizationEl;
     messages.encryption = encryptionEl;
+    messages.import = importDataEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -174,6 +177,7 @@ function loadMessages(locale: string) {
     messages.dataOwnership = dataOwnershipEn;
     messages.createOrganization = createOrganizationEn;
     messages.encryption = encryptionEn;
+    messages.import = importDataEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -184,8 +188,9 @@ function loadMessages(locale: string) {
   return messages;
 }
 
-export default getRequestConfig(async ({ locale }) => {
+export default getRequestConfig(async ({ requestLocale }) => {
   const fallbackLocale = "en";
+  const locale = await requestLocale;
   const resolvedLocale = typeof locale === "string" && locale ? locale : fallbackLocale;
 
   const messages = loadMessages(resolvedLocale);

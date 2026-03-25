@@ -20,9 +20,8 @@ function getPinStrength(
   pin: string,
   t: (key: string) => string
 ): { label: string; color: string } {
-  if (pin.length < 4) return { label: t("encryption.pinStrength.tooShort"), color: "text-destructive" };
-  if (pin.length < 6) return { label: t("encryption.pinStrength.weak"), color: "text-warning" };
-  if (pin.length < 8) return { label: t("encryption.pinStrength.good"), color: "text-primary" };
+  if (pin.length < 6) return { label: t("encryption.pinStrength.tooShort"), color: "text-destructive" };
+  if (pin.length < 7) return { label: t("encryption.pinStrength.good"), color: "text-primary" };
   return { label: t("encryption.pinStrength.strong"), color: "text-green-600" };
 }
 
@@ -46,7 +45,7 @@ export function EncryptionPolicyStep({
   const [setupSuccess, setSetupSuccess] = useState(false);
 
   const pinStrength = getPinStrength(pin, t);
-  const pinsMatch = pin.length >= 4 && pin === confirmPin;
+  const pinsMatch = pin.length >= 6 && pin === confirmPin;
   const canSubmit = pinsMatch && !isSubmitting;
 
   // Check if user already has E2EE identity
@@ -109,7 +108,7 @@ export function EncryptionPolicyStep({
           publicKey: result.publicKey,
           wrappedPrivateKey: result.wrappedPrivateKey,
           salt: result.salt,
-          pbkdfIterations: 100_000,
+          pbkdfIterations: 600_000,
           signedPreKey: result.signedPreKey,
           oneTimePreKeys: result.oneTimePreKeys.map((k) => k.publicKey),
         }),

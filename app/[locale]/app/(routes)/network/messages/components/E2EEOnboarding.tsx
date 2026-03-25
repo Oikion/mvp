@@ -9,9 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useE2EE } from "@/hooks/useE2EE";
 
 function getPinStrength(pin: string): { label: string; color: string } {
-  if (pin.length < 4) return { label: "Too short", color: "text-destructive" };
-  if (pin.length < 6) return { label: "Weak", color: "text-warning" };
-  if (pin.length < 8) return { label: "Good", color: "text-primary" };
+  if (pin.length < 6) return { label: "Too short", color: "text-destructive" };
+  if (pin.length < 7) return { label: "Good", color: "text-primary" };
   return { label: "Strong", color: "text-green-600" };
 }
 
@@ -28,7 +27,7 @@ export function E2EEOnboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const pinStrength = getPinStrength(pin);
-  const pinsMatch = pin.length >= 4 && pin === confirmPin;
+  const pinsMatch = pin.length >= 6 && pin === confirmPin;
   const canSubmit = pinsMatch && !isSubmitting;
 
   const handleSetup = async () => {

@@ -113,10 +113,10 @@ export function SecurityPrivacyStep({ dict, data, onDataChange, onPinStatusChang
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const pinValid = pin.length >= 4 && pin.length <= 8;
+  const pinValid = pin.length >= 6 && pin.length <= 8;
   const pinsMatch = pin === confirmPin;
   const canSubmit = pinValid && pinsMatch && !isSubmitting;
-  const strength = pin.length >= 4 ? getPinStrength(pin) : null;
+  const strength = pin.length >= 6 ? getPinStrength(pin) : null;
 
   const handleSetup = async () => {
     if (!canSubmit) return;

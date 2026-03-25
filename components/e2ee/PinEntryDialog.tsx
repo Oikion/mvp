@@ -27,7 +27,7 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleSubmit = async () => {
-    if (pin.length < 4) return;
+    if (pin.length < 6) return;
     setError(null);
     setIsSubmitting(true);
     try {
@@ -45,7 +45,7 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && pin.length >= 4) {
+    if (e.key === "Enter" && pin.length >= 6) {
       e.preventDefault();
       handleSubmit();
     }
@@ -97,7 +97,7 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={pin.length < 4 || isSubmitting || isSyncing}
+            disabled={pin.length < 6 || isSubmitting || isSyncing}
           >
             {isSubmitting && <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Unlocking...</>}
             {isSyncing && <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Syncing sessions...</>}

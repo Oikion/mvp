@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/get-current-user";
 import crypto from "node:crypto";
 import { z } from "zod";
 
@@ -37,10 +37,8 @@ const IdentityRotateSchema = z.object({
  */
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = await getCurrentUser();
+    const userId = user.id;
 
     const body = await req.json();
     const parsed = IdentitySetupSchema.safeParse(body);
@@ -64,10 +62,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "E2EE already set up" }, { status: 409 });
     }
 
-    // Generate server-side pepper
-    const pepper = crypto.randomBytes(32).toString("hex");
-
-    // Create identity key, pepper, and pre-keys in a transaction
+    // Create identity key, pepper (if not already created by GET /api/e2ee/pepper),
+    // and pre-keys in a transaction
     const result = await prismadb.$transaction(async (tx) => {
       const identityKey = await tx.userIdentityKey.create({
         data: {
@@ -82,8 +78,12 @@ export async function POST(req: Request) {
         },
       });
 
-      await tx.userE2eePepper.create({
-        data: { userId, pepper },
+      // Pepper may already exist (created by GET /api/e2ee/pepper during setup).
+      // Upsert ensures idempotency — no error if it already exists.
+      await tx.userE2eePepper.upsert({
+        where: { userId },
+        update: {},
+        create: { userId, pepper: crypto.randomBytes(32).toString("hex") },
       });
 
       // Store signed pre-key
@@ -124,10 +124,8 @@ export async function POST(req: Request) {
  */
 export async function GET() {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = await getCurrentUser();
+    const userId = user.id;
 
     const identityKey = await prismadb.userIdentityKey.findUnique({
       where: { userId },
@@ -161,10 +159,8 @@ export async function GET() {
  */
 export async function PUT(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = await getCurrentUser();
+    const userId = user.id;
 
     const body = await req.json();
     const parsed = IdentityRotateSchema.safeParse(body);

@@ -97,6 +97,8 @@ export function DynamicBreadcrumb() {
       emails: t("ModuleMenu.emails"),
       tasks: t("ModuleMenu.tasks"),
       invoices: t("ModuleMenu.invoices"),
+      import: t("ModuleMenu.import"),
+      matchmaking: t("ModuleMenu.matchmaking"),
     };
 
     // Check if segment is in route map

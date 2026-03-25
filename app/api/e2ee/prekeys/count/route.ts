@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 /**
  * GET /api/e2ee/prekeys/count — Check remaining one-time pre-keys
@@ -8,10 +8,8 @@ import { prismadb } from "@/lib/prisma";
  */
 export async function GET() {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = await getCurrentUser();
+    const userId = user.id;
 
     const count = await prismadb.userPreKey.count({
       where: {
