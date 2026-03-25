@@ -488,7 +488,7 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | NC-2 |
 | **Severity** | CRITICAL |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | III (API) |
 | **Files** | `app/api/e2ee/group-sessions/route.ts`, `app/api/e2ee/group-sessions/[id]/share/route.ts`, `app/api/e2ee/group-sessions/[id]/rotate/route.ts`, `app/api/e2ee/group-sessions/[id]/add-members/route.ts` |
 | **Phase** | 1 |
