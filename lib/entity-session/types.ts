@@ -11,8 +11,10 @@ export interface CreateEntitySessionInput {
   creatorShare: {
     userId: string;
     encryptedSession: string;
-    ephemeralPublicKey?: string;
-    iv?: string;
+    // NH-4: ECIES fields are required for new sessions.
+    // Prisma schema keeps them nullable (String?) for backward compat with pre-ECIES rows.
+    ephemeralPublicKey: string;
+    iv: string;
   };
   /** Megolm session export encrypted with ORK (for admin recovery) */
   orkBackup: string;
@@ -20,8 +22,8 @@ export interface CreateEntitySessionInput {
   additionalShares?: Array<{
     userId: string;
     encryptedSession: string;
-    ephemeralPublicKey?: string;
-    iv?: string;
+    ephemeralPublicKey: string;
+    iv: string;
     startingIndex: number;
   }>;
 }
@@ -31,8 +33,9 @@ export interface CreateSessionShareInput {
   entitySessionId: string;
   userId: string;
   encryptedSession: string;
-  ephemeralPublicKey?: string;
-  iv?: string;
+  // NH-4: Required for new shares
+  ephemeralPublicKey: string;
+  iv: string;
   startingIndex: number;
 }
 
@@ -47,8 +50,8 @@ export interface RotateEntitySessionInput {
   shares: Array<{
     userId: string;
     encryptedSession: string;
-    ephemeralPublicKey?: string;
-    iv?: string;
+    ephemeralPublicKey: string;
+    iv: string;
   }>;
   /** New ORK backup */
   orkBackup: string;

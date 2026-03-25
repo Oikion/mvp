@@ -293,15 +293,14 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | M-1 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **Systems** | I vs III |
-| **Files** | `lib/encryption.ts:21` (16 bytes), `lib/e2ee/primitives.ts:5` (12 bytes) |
+| **Files** | `lib/encryption.ts:21` |
+| **Fixed in** | Phase 2 implementation (2026-03-25) |
 
-**Problem**: Server-side uses 128-bit IVs; client-side uses 96-bit (NIST recommended). Not currently broken but creates format detection issues if cross-system detection is ever needed.
+**Problem**: Server-side uses 128-bit IVs; client-side uses 96-bit (NIST recommended).
 
-**Fix**: Change `lib/encryption.ts` `IV_BYTES` from 16 to 12. This is a **breaking change** for existing ciphertext — `isEncrypted()` checks `parts[0].length === 32` (16-byte IV = 32 hex chars). After change, new ciphertext has 24-char IV. Requires updating `isEncrypted()` to accept both, and eventually re-encrypting old data.
-
-**What-if I change it**: All existing ciphertext in the DB has 32-char IVs. New ciphertext would have 24-char IVs. `isEncrypted()` must be updated to `(parts[0].length === 32 || parts[0].length === 24)`. `decryptWithKey()` and `decrypt()` already read the IV from the split — length is implicit. So the change is safe as long as `isEncrypted()` is updated simultaneously.
+**Fix applied**: Changed `IV_BYTES` from 16 to 12 in `lib/encryption.ts`. Updated `isEncrypted()` simultaneously (see M-4) to accept both 24-char (12-byte, new) and 32-char (16-byte, legacy) IV hex strings. `decrypt()` and `decryptWithKey()` read IV from the split — length is implicit, so existing ciphertext decrypts correctly without migration.
 
 ---
 
@@ -345,7 +344,8 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | M-4 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | FIXED |
+| **Fixed in** | Phase 2 implementation (2026-03-25) |
 | **System** | I |
 | **File** | `lib/encryption.ts:90-95` |
 
@@ -554,10 +554,11 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | NH-2 |
 | **Severity** | HIGH |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | III (API) |
-| **File** | `app/api/e2ee/group-sessions/route.ts:15-22` |
+| **Files** | `app/api/e2ee/group-sessions/route.ts`, `[id]/rotate/route.ts`, `[id]/add-members/route.ts` |
 | **Phase** | 2 |
+| **Fixed in** | Phase 2 implementation (2026-03-25) |
 
 **Problem**: No Zod validation on request body. Shares array is unvalidated. Violates project convention (`app/api/CLAUDE.md`).
 
@@ -590,10 +591,11 @@ Apply same pattern to rotate and add-members routes.
 |-------|-------|
 | **ID** | NH-3 |
 | **Severity** | HIGH |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | Security Infrastructure |
-| **Files** | `lib/redis.ts:86-89`, `lib/security/brute-force.ts:40-46` |
+| **Files** | `lib/redis.ts`, `lib/security/brute-force.ts` |
 | **Phase** | 2 |
+| **Fixed in** | Phase 2 implementation (2026-03-25) |
 
 **Problem**: `cacheGet` catches all errors and returns `null`. `checkAttempt` treats `null` as "no attempts recorded" → allows the request. If Redis has a transient error, brute force protection is silently disabled.
 
@@ -627,10 +629,11 @@ try {
 |-------|-------|
 | **ID** | NH-4 |
 | **Severity** | HIGH |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | III (API + Service) |
-| **Files** | `lib/entity-session/types.ts:13-15`, `lib/entity-session/entity-session-service.ts:51-60` |
+| **Files** | `lib/entity-session/types.ts`, `app/api/e2ee/entity-sessions/route.ts` |
 | **Phase** | 2 |
+| **Fixed in** | Phase 2 implementation (2026-03-25) |
 
 **Problem**: `ephemeralPublicKey` and `iv` are optional in the `CreateEntitySessionInput` type. A client submitting a share without these fields creates an undecryptable session.
 
@@ -661,10 +664,11 @@ try {
 |-------|-------|
 | **ID** | NM-2 |
 | **Severity** | MEDIUM |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **System** | III (API) |
-| **File** | `app/api/e2ee/identity/route.ts:18-21` |
+| **File** | `app/api/e2ee/identity/route.ts` |
 | **Phase** | 2 |
+| **Fixed in** | Phase 2 implementation (2026-03-25) |
 
 **Problem**: Nine fields destructured without Zod. `pbkdfIterations` can be set to 1 by a malicious client.
 
@@ -742,7 +746,8 @@ try {
 |-------|-------|
 | **ID** | NL-2 |
 | **Severity** | LOW |
-| **Status** | OPEN |
+| **Status** | FIXED |
+| **Fixed in** | Phase 2 implementation (2026-03-25) |
 | **System** | III |
 | **File** | `lib/e2ee/index.ts:513-519` |
 | **Phase** | 2 |
@@ -788,18 +793,17 @@ Observation only — debouncing IndexedDB writes would reduce overhead but risks
 
 **Goal**: Input validation, brute force integrity, protocol correctness.
 
-| Task | Finding | Effort | Files to Change |
-|------|---------|--------|-----------------|
-| 2.1 | NH-2: Zod validation on group session routes | Small | All 4 group session route files |
-| 2.2 | NH-3: Fix cacheGet fail-open for brute force | Small | `lib/redis.ts`, `lib/security/brute-force.ts` |
-| 2.3 | NH-4: Require ECIES fields in entity session shares | Small | `lib/entity-session/types.ts`, entity-sessions route |
-| 2.4 | NM-2: Zod on identity POST with pbkdfIterations min | Small | `app/api/e2ee/identity/route.ts` |
-| 2.5 | NL-2: Store OTP private keys in IndexedDB | Medium | `lib/e2ee/index.ts`, `lib/e2ee/session-store.ts` |
-| 2.6 | M-1: Standardize IV to 12 bytes | Small | `lib/encryption.ts` |
-| 2.7 | M-4: Add hex validation to `isEncrypted()` | Small | `lib/encryption.ts` |
+| Task | Finding | Effort | Files Changed | Status |
+|------|---------|--------|---------------|--------|
+| 2.1 | NH-2: Zod validation on group session routes | Small | `group-sessions/route.ts`, `[id]/rotate/route.ts`, `[id]/add-members/route.ts` (`.strict()` schemas with 65KB max) | DONE |
+| 2.2 | NH-3: Fix cacheGet fail-open for brute force | Small | `lib/redis.ts` (new `cacheGetStrict`), `lib/security/brute-force.ts` (uses it) | DONE |
+| 2.3 | NH-4: Require ECIES fields in entity session shares | Small | `lib/entity-session/types.ts` (made required), `entity-sessions/route.ts` (validation) | DONE |
+| 2.4 | NM-2: Zod on identity POST + PUT | Small | `app/api/e2ee/identity/route.ts` (`IdentitySetupSchema`, `IdentityRotateSchema`) | DONE |
+| 2.5 | NL-2: Store OTP private keys in IndexedDB | Medium | `lib/e2ee/session-store.ts` (new `otp-prekeys` store, DB v2), `lib/e2ee/index.ts` (store/retrieve/consume) | DONE |
+| 2.6+2.7 | M-1+M-4: IV standardization + hex validation | Small | `lib/encryption.ts` (`IV_BYTES=12`, `isEncrypted()` accepts 24/32 + hex regex) | DONE |
 
-**Estimated effort**: 1 day
-**Verification**: Run all tests + lint
+**Completed**: 2026-03-25
+**Verification**: All 55 E2EE tests pass (8 test files). `encryption.test.ts` has pre-existing vi.mock issue (unrelated). Deviations: NH-3 `cacheGetStrict` preserves in-memory fallback for dev (document recommended throwing).
 
 ### Phase 3 — Medium (Hardening Sprint)
 
@@ -1014,6 +1018,7 @@ Use this checklist after completing each phase to confirm all fixes are correct.
 
 | Date | Phase | Finding(s) | Action | Author |
 |------|-------|------------|--------|--------|
+| 2026-03-25 | 2 | NH-2, NH-3, NH-4, NM-2, NL-2, M-1, M-4 | **Phase 2 implemented**: Zod validation on all group session routes (`.strict()`, 65KB max shares, typed schemas) + identity POST/PUT. `cacheGetStrict` for fail-closed brute force reads (preserves dev in-memory fallback). ECIES fields required in entity session types + API validation. OTP private keys stored in IndexedDB (`otp-prekeys` store, DB version 2) with `generatePreKeys`/`getOtpPrivateKey`/`consumeOtpPrivateKey` lifecycle. IV standardized to 12 bytes (NIST), `isEncrypted()` accepts both 24/32-char IVs with hex regex validation. All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | 1 | NC-1, NC-2, NC-3, NH-1 | **Phase 1 implemented**: org scoping on prekey-bundle (join via `clerkUserIds`), org scoping on all 4 group session routes (join-based via Conversation/Channel relations, no migration), PIN length >= 6 client-side + `pbkdfIterations >= 600k` server-side on POST+PUT, atomic OTP consumption via conditional `updateMany` with retry loop. 3 deviations from document recommendations documented inline. All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | — | All | Document created from deep audit | Claude (audit) |
 | 2026-03-24 | — | C-1, C-2, H-1–H-4, L-1, L-6 | Fixes implemented in `feature/e2ee-security-corrections` | Claude (previous session) |

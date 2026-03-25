@@ -2,6 +2,20 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { getOrgMembersFromDb } from "@/lib/org-members";
+import { z } from "zod";
+
+// NH-2: Reuse the same share schema as the create route
+const GroupSessionShareSchema = z.object({
+  userId: z.string().min(1),
+  ephemeralPublicKey: z.string().min(1),
+  encryptedSessionExport: z.string().min(1).max(65536),
+  iv: z.string().min(1),
+  startingIndex: z.number().int().min(0),
+}).strict();
+
+const RotateBodySchema = z.object({
+  shares: z.array(GroupSessionShareSchema).min(1).max(100),
+}).strict();
 
 /**
  * POST /api/e2ee/group-sessions/[id]/rotate — Rotate session
@@ -22,11 +36,15 @@ export async function POST(
 
     const { id: oldSessionId } = await params;
     const body = await req.json();
-    const { shares } = body;
-
-    if (!shares?.length) {
-      return NextResponse.json({ error: "Must provide shares" }, { status: 400 });
+    const parsed = RotateBodySchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+
+    const { shares } = parsed.data;
 
     // NC-2: Fetch old session with org context
     const oldSession = await prismadb.groupSession.findUnique({
@@ -74,9 +92,9 @@ export async function POST(
         },
       });
 
-      // Create shares
+      // Create shares (types guaranteed by Zod schema)
       await tx.groupSessionShare.createMany({
-        data: shares.map((s: { userId: string; ephemeralPublicKey: string; encryptedSessionExport: string; iv: string; startingIndex: number }) => ({
+        data: shares.map((s) => ({
           groupSessionId: session.id,
           userId: s.userId,
           encryptedSession: s.encryptedSessionExport,

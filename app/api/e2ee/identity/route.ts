@@ -2,6 +2,34 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import crypto from "node:crypto";
+import { z } from "zod";
+
+// NM-2: Zod schemas for identity endpoints — replaces manual field checks.
+// NC-3: pbkdfIterations floor (600k) prevents malicious clients from weakening derivation.
+const MIN_PBKDF2_ITERATIONS = 600_000;
+
+const SignedPreKeySchema = z.object({
+  publicKey: z.string().min(1),
+  signature: z.string().min(1),
+}).strict();
+
+const IdentitySetupSchema = z.object({
+  publicKey: z.string().min(1),
+  wrappedPrivateKey: z.string().min(1),
+  salt: z.string().min(1),
+  pbkdfIterations: z.number().int().min(MIN_PBKDF2_ITERATIONS).default(MIN_PBKDF2_ITERATIONS),
+  signedPreKey: SignedPreKeySchema.optional(),
+  oneTimePreKeys: z.array(z.string().min(1)).optional(),
+  signingPublicKey: z.string().min(1).optional(),
+  wrappedSigningPrivateKey: z.string().min(1).optional(),
+  signingSalt: z.string().min(1).optional(),
+}).strict();
+
+const IdentityRotateSchema = z.object({
+  wrappedPrivateKey: z.string().min(1),
+  salt: z.string().min(1),
+  pbkdfIterations: z.number().int().min(MIN_PBKDF2_ITERATIONS).default(MIN_PBKDF2_ITERATIONS),
+}).strict();
 
 /**
  * POST /api/e2ee/identity — First-time E2EE setup
@@ -15,25 +43,18 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const {
-      publicKey, wrappedPrivateKey, salt, pbkdfIterations, signedPreKey, oneTimePreKeys,
-      signingPublicKey, wrappedSigningPrivateKey, signingSalt,
-    } = body;
-
-    if (!publicKey || !wrappedPrivateKey || !salt) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    // NC-3: Enforce minimum PBKDF2 iterations to prevent weak key derivation.
-    // The PIN itself never reaches the server — only the derivation parameters do.
-    // A malicious client could POST pbkdfIterations=1 to create a trivially weak identity.
-    const MIN_PBKDF2_ITERATIONS = 600_000;
-    if (typeof pbkdfIterations === "number" && pbkdfIterations < MIN_PBKDF2_ITERATIONS) {
+    const parsed = IdentitySetupSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: `pbkdfIterations must be at least ${MIN_PBKDF2_ITERATIONS}` },
+        { error: "Invalid request body", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    const {
+      publicKey, wrappedPrivateKey, salt, pbkdfIterations, signedPreKey, oneTimePreKeys,
+      signingPublicKey, wrappedSigningPrivateKey, signingSalt,
+    } = parsed.data;
 
     // Check if already set up
     const existing = await prismadb.userIdentityKey.findUnique({
@@ -146,27 +167,22 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { wrappedPrivateKey, salt, pbkdfIterations } = body;
-
-    if (!wrappedPrivateKey || !salt) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    // NC-3: Same PBKDF2 floor on re-wrap to prevent weakening during PIN change
-    const MIN_PBKDF2_ITERATIONS = 600_000;
-    if (typeof pbkdfIterations === "number" && pbkdfIterations < MIN_PBKDF2_ITERATIONS) {
+    const parsed = IdentityRotateSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: `pbkdfIterations must be at least ${MIN_PBKDF2_ITERATIONS}` },
+        { error: "Invalid request body", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    const { wrappedPrivateKey, salt, pbkdfIterations } = parsed.data;
 
     const updated = await prismadb.userIdentityKey.update({
       where: { userId },
       data: {
         wrappedPrivateKey,
         salt,
-        pbkdfIterations: pbkdfIterations ?? MIN_PBKDF2_ITERATIONS,
+        pbkdfIterations,
         keyVersion: { increment: 1 },
       },
     });

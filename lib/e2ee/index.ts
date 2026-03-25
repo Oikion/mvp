@@ -46,6 +46,9 @@ import {
   getMegolmOutbound,
   storeMegolmInbound,
   getMegolmInbound,
+  storeOtpPreKey,
+  getOtpPreKey,
+  deleteOtpPreKey,
   clearAllSessions,
 } from "./session-store";
 import {
@@ -516,14 +519,44 @@ export async function clearAll(): Promise<void> {
 // ─── Pre-Key Replenishment ────────────────────
 
 /**
- * Generate and return new one-time pre-keys for upload.
+ * Generate new one-time pre-keys for upload.
+ * NL-2: Private keys are now stored in IndexedDB (KEK-encrypted) so they can be
+ * retrieved later for X3DH DH4 computation. Previously, private keys were discarded,
+ * making OTP keys generated through replenishment unusable for DH4.
  */
 export async function generatePreKeys(
   count: number,
 ): Promise<Array<{ id: string; publicKey: string }>> {
   assertUnlocked();
   const keys = await generateOneTimePreKeys(count);
+
+  // Store each private key in IndexedDB before discarding the CryptoKey objects
+  for (const key of keys) {
+    const serialized = await exportPrivateKey(key.keyPair.privateKey);
+    await storeOtpPreKey(key.id, serialized, _kekRaw!);
+  }
+
   return keys.map((k) => ({ id: k.id, publicKey: k.publicKey }));
+}
+
+/**
+ * NL-2: Retrieve an OTP pre-key private key from IndexedDB and import it as a CryptoKey.
+ * Used by acceptDMSession() for the DH4 step when the initiator specified a oneTimePreKeyId.
+ * Returns null if the key isn't found (generated pre-NL-2, or already consumed).
+ */
+export async function getOtpPrivateKey(keyId: string): Promise<CryptoKey | null> {
+  assertUnlocked();
+  const serialized = await getOtpPreKey(keyId, _kekRaw!);
+  if (!serialized) return null;
+  const { importPrivateKey } = await import("./primitives");
+  return importPrivateKey(serialized);
+}
+
+/**
+ * NL-2: Delete an OTP pre-key after consumption (one-time use guarantee).
+ */
+export async function consumeOtpPrivateKey(keyId: string): Promise<void> {
+  await deleteOtpPreKey(keyId);
 }
 
 // ─── Internal Helpers ─────────────────────────

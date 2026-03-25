@@ -174,6 +174,15 @@ export async function POST(req: Request) {
       );
     }
 
+    // NH-4: Require ECIES fields on creator share — without ephemeralPublicKey and iv,
+    // recipients cannot ECIES-decrypt the session export, creating an undecryptable session.
+    if (!creatorShare.ephemeralPublicKey || !creatorShare.iv) {
+      return NextResponse.json(
+        { error: "creatorShare must include ephemeralPublicKey and iv (ECIES fields)" },
+        { status: 400 }
+      );
+    }
+
     if (!VALID_ENTITY_TYPES.has(entityType)) {
       return NextResponse.json(
         { error: "Invalid entity type" },

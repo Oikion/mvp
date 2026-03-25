@@ -2,6 +2,24 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { getOrgMembersFromDb } from "@/lib/org-members";
+import { z } from "zod";
+
+// NH-2: Zod schemas for group session endpoints — per app/api/CLAUDE.md conventions
+const GroupSessionShareSchema = z.object({
+  userId: z.string().min(1),
+  ephemeralPublicKey: z.string().min(1),
+  encryptedSessionExport: z.string().min(1).max(65536),
+  iv: z.string().min(1),
+  startingIndex: z.number().int().min(0),
+}).strict();
+
+const CreateGroupSessionSchema = z.object({
+  conversationId: z.string().min(1).optional(),
+  channelId: z.string().min(1).optional(),
+  shares: z.array(GroupSessionShareSchema).min(1).max(100),
+}).strict().refine((d) => d.conversationId || d.channelId, {
+  message: "Must provide conversationId or channelId",
+});
 
 /**
  * POST /api/e2ee/group-sessions — Create group session with shares
@@ -17,14 +35,15 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { conversationId, channelId, shares } = body;
+    const parsed = CreateGroupSessionSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
 
-    if (!conversationId && !channelId) {
-      return NextResponse.json({ error: "Must provide conversationId or channelId" }, { status: 400 });
-    }
-    if (!shares?.length) {
-      return NextResponse.json({ error: "Must provide at least one share" }, { status: 400 });
-    }
+    const { conversationId, channelId, shares } = parsed.data;
 
     // NC-2: Verify the conversation/channel belongs to the caller's org
     if (conversationId) {
@@ -84,9 +103,9 @@ export async function POST(req: Request) {
         },
       });
 
-      // Create shares
+      // Create shares (types guaranteed by Zod schema)
       await tx.groupSessionShare.createMany({
-        data: shares.map((s: { userId: string; ephemeralPublicKey: string; encryptedSessionExport: string; iv: string; startingIndex: number }) => ({
+        data: shares.map((s) => ({
           groupSessionId: newSession.id,
           userId: s.userId,
           encryptedSession: s.encryptedSessionExport,

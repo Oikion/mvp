@@ -4,13 +4,16 @@ import { openDB, type IDBPDatabase } from "idb";
 import { aesGcmEncrypt, aesGcmDecrypt, generateRandomBytes, bufferToBase64, base64ToBuffer } from "./primitives";
 
 const DB_NAME = "oikion-e2ee";
-const DB_VERSION = 1;
+// NL-2: Bumped from 1 → 2 to add OTP pre-key store.
+// The upgrade handler creates the new store for existing users transparently.
+const DB_VERSION = 2;
 
 // Store names
 const IDENTITY_STORE = "identity";
 const RATCHET_STORE = "ratchet-sessions";
 const MEGOLM_OUTBOUND_STORE = "megolm-outbound";
 const MEGOLM_INBOUND_STORE = "megolm-inbound";
+const OTP_PREKEY_STORE = "otp-prekeys";
 
 interface EncryptedEntry {
   id: string;
@@ -24,6 +27,7 @@ function getDB(): Promise<IDBPDatabase> {
   if (!dbPromise) {
     dbPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db) {
+        // Version 1 stores
         if (!db.objectStoreNames.contains(IDENTITY_STORE)) {
           db.createObjectStore(IDENTITY_STORE, { keyPath: "id" });
         }
@@ -35,6 +39,10 @@ function getDB(): Promise<IDBPDatabase> {
         }
         if (!db.objectStoreNames.contains(MEGOLM_INBOUND_STORE)) {
           db.createObjectStore(MEGOLM_INBOUND_STORE, { keyPath: "id" });
+        }
+        // NL-2: Version 2 — OTP pre-key private key storage
+        if (!db.objectStoreNames.contains(OTP_PREKEY_STORE)) {
+          db.createObjectStore(OTP_PREKEY_STORE, { keyPath: "id" });
         }
       },
     });
@@ -217,6 +225,39 @@ export async function deleteEntityMegolmOutbound(
 // Note: Entity inbound sessions reuse storeMegolmInbound/getMegolmInbound directly
 // since Megolm sessionIds are globally unique UUIDs — no key prefix needed.
 
+// ─── OTP Pre-Key Private Keys (NL-2) ────────────
+
+/**
+ * Store an OTP pre-key private key (serialized + KEK-encrypted).
+ * Called during pre-key generation so the private key can be retrieved later
+ * for X3DH DH4 computation when a session is initiated with this OTP key.
+ */
+export async function storeOtpPreKey(keyId: string, serializedPrivateKey: string, kek: ArrayBuffer): Promise<void> {
+  const db = await getDB();
+  const entry = await encryptForStorage(`otp:${keyId}`, serializedPrivateKey, kek);
+  await db.put(OTP_PREKEY_STORE, entry);
+}
+
+/**
+ * Retrieve an OTP pre-key private key by its ID.
+ * Returns null if not found (key was generated before NL-2, or already consumed and deleted).
+ */
+export async function getOtpPreKey(keyId: string, kek: ArrayBuffer): Promise<string | null> {
+  const db = await getDB();
+  const entry = await db.get(OTP_PREKEY_STORE, `otp:${keyId}`) as EncryptedEntry | undefined;
+  if (!entry) return null;
+  return decryptFromStorage(entry, kek);
+}
+
+/**
+ * Delete an OTP pre-key after it has been consumed in an X3DH handshake.
+ * One-time keys should only be used once.
+ */
+export async function deleteOtpPreKey(keyId: string): Promise<void> {
+  const db = await getDB();
+  await db.delete(OTP_PREKEY_STORE, `otp:${keyId}`);
+}
+
 /**
  * Clear ALL E2EE session data from IndexedDB.
  * Used on logout or when user resets E2EE.
@@ -224,7 +265,7 @@ export async function deleteEntityMegolmOutbound(
 export async function clearAllSessions(): Promise<void> {
   const db = await getDB();
   const tx = db.transaction(
-    [IDENTITY_STORE, RATCHET_STORE, MEGOLM_OUTBOUND_STORE, MEGOLM_INBOUND_STORE],
+    [IDENTITY_STORE, RATCHET_STORE, MEGOLM_OUTBOUND_STORE, MEGOLM_INBOUND_STORE, OTP_PREKEY_STORE],
     "readwrite"
   );
   await Promise.all([
@@ -232,6 +273,7 @@ export async function clearAllSessions(): Promise<void> {
     tx.objectStore(RATCHET_STORE).clear(),
     tx.objectStore(MEGOLM_OUTBOUND_STORE).clear(),
     tx.objectStore(MEGOLM_INBOUND_STORE).clear(),
+    tx.objectStore(OTP_PREKEY_STORE).clear(),
     tx.done,
   ]);
 }

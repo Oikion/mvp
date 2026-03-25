@@ -5,7 +5,7 @@
  * Requires SECRETS_ENCRYPTION_KEY env var (64 hex chars = 32 bytes).
  *
  * Format: "<iv_hex>:<authTag_hex>:<ciphertext_hex>"
- * - iv: 16 bytes → 32 hex chars
+ * - iv: 12 bytes → 24 hex chars (NIST recommended; legacy data may have 16 bytes → 32 hex)
  * - authTag: 16 bytes → 32 hex chars
  * - ciphertext: variable length hex
  *
@@ -18,7 +18,11 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
 const ALGORITHM = "aes-256-gcm";
-const IV_BYTES = 16;
+// M-1: Standardized to 12 bytes per NIST SP 800-38D recommendation for AES-GCM.
+// 96-bit IVs are used directly as the counter block (no GHASH pre-processing).
+// Old ciphertext with 16-byte IVs (32 hex chars) remains decryptable — isEncrypted()
+// accepts both 24-char (12-byte) and 32-char (16-byte) IV hex strings.
+const IV_BYTES = 12;
 const AUTH_TAG_BYTES = 16;
 
 function getKey(): Buffer {
@@ -83,15 +87,26 @@ export function decrypt(encrypted: string): string {
   return decrypted.toString("utf8");
 }
 
+// M-4: Hex character validation regex (compiled once, reused per call)
+const HEX_RE = /^[0-9a-f]+$/;
+
 /**
  * Returns true if the value looks like an encrypted string produced by encrypt().
- * Checks: 3 colon-separated parts, iv = 32 hex chars, authTag = 32 hex chars.
+ * Checks: 3 colon-separated parts, iv = valid hex of 24 or 32 chars, authTag = 32 hex chars.
+ *
+ * M-1: Accepts both 12-byte (24 hex) and 16-byte (32 hex) IVs for backward compatibility.
+ * M-4: Validates hex characters on iv and authTag to prevent false-positives on plaintext
+ *       that coincidentally matches the length heuristic.
  */
 export function isEncrypted(value: string | null | undefined): boolean {
   if (!value) return false;
   const parts = value.split(":");
   if (parts.length !== 3) return false;
-  return parts[0].length === 32 && parts[1].length === 32;
+  const ivLen = parts[0].length;
+  // 24 hex = 12-byte IV (new), 32 hex = 16-byte IV (legacy)
+  if (ivLen !== 24 && ivLen !== 32) return false;
+  if (parts[1].length !== 32) return false;
+  return HEX_RE.test(parts[0]) && HEX_RE.test(parts[1]);
 }
 
 // ─── Per-org DEK variants ───────────────────────────────────────────────────

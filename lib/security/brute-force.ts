@@ -1,4 +1,4 @@
-import { cacheIncr, cacheDel, cacheGet } from "@/lib/redis";
+import { cacheIncr, cacheDel, cacheGetStrict } from "@/lib/redis";
 
 /**
  * Brute Force Protection
@@ -36,11 +36,13 @@ export async function checkAttempt(
   const config = LIMITS[type];
   const key = getKey(type, identifier);
 
+  // NH-3: Use cacheGetStrict so Redis errors propagate (fail-closed).
+  // cacheGet swallows errors and returns null → would silently disable brute force protection.
   let current: number | null;
   try {
-    current = await cacheGet<number>(key);
+    current = await cacheGetStrict<number>(key);
   } catch {
-    // Fail-closed: if Redis is down, block the request to prevent brute force
+    // Fail-closed: if Redis is configured but erroring, block the request
     console.error(`[BRUTE_FORCE] Redis error for key ${key}, failing closed`);
     return { allowed: false, remaining: 0, retryAfter: 60 };
   }
