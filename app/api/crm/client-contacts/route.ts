@@ -103,9 +103,10 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const user = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
     const body = await req.json();
     const userId = user.id;
-    
+
     if (!body) {
       return new NextResponse("No form data", { status: 400 });
     }
@@ -130,6 +131,15 @@ export async function PUT(req: Request) {
       relationship_to_client,
       type,
     } = body;
+
+    // IDOR prevention: verify contact belongs to user's org
+    const existing = await prismadb.client_Contacts.findFirst({
+      where: { id, organizationId },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+    }
 
     const newContact = await prismadb.client_Contacts.update({
       where: { id },

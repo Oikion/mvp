@@ -19,6 +19,7 @@ import { AppProviders } from "@/components/providers/AppProviders"
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper"
 import { LayoutToggle } from "@/components/layout/LayoutToggle"
 import { DataOwnershipBanner } from "@/components/data-ownership/DataOwnershipBanner"
+import { E2EEAnnouncementBanner } from "@/components/encryption/E2EEAnnouncementBanner"
 import { E2EESessionButton } from "@/components/layout/E2EESessionButton"
 // Use cached versions for request deduplication (performance optimization)
 import {
@@ -30,6 +31,7 @@ import {
   getCachedIsPlatformAdmin,
 } from "@/lib/cached"
 import { getUserPermissionContext } from "@/lib/permissions/service"
+import { isOrgPersonal } from "@/lib/personal-workspace-guard"
 
 export default async function AppLayout({
   children,
@@ -157,15 +159,21 @@ export default async function AppLayout({
     select: { id: true },
   });
 
-  // Check if org needs data ownership policy selection
+  // Check if org needs data ownership policy selection + E2EE status
   let needsOwnershipSelection = false;
+  let showE2EEBanner = false;
   const isAdmin = permissionContext?.role === "OWNER" || permissionContext?.role === "LEAD";
   if (orgId) {
-    const orgSettings = await prismadb.organizationSettings.findUnique({
-      where: { organizationId: orgId },
-      select: { dataOwnershipSetAt: true },
-    });
-    needsOwnershipSelection = !orgSettings?.dataOwnershipSetAt;
+    const [orgSettings, isPersonal] = await Promise.all([
+      prismadb.organizationSettings.findUnique({
+        where: { organizationId: orgId },
+        select: { dataOwnershipSetAt: true, encryptionMode: true },
+      }),
+      isOrgPersonal(orgId),
+    ]);
+    // Personal workspaces: auto-set AGENT ownership, no E2EE — suppress both banners
+    needsOwnershipSelection = !isPersonal && !orgSettings?.dataOwnershipSetAt;
+    showE2EEBanner = !isPersonal && orgSettings?.encryptionMode !== "E2EE";
   }
 
   return (
@@ -211,6 +219,9 @@ export default async function AppLayout({
                   needsSelection={true}
                   isAdmin={isAdmin}
                 />
+              )}
+              {showE2EEBanner && (
+                <E2EEAnnouncementBanner isAdmin={isAdmin} />
               )}
               <LayoutWrapper>
                 {children}

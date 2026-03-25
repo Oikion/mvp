@@ -110,50 +110,63 @@ export function DocumentEditorView({ documentId }: DocumentEditorViewProps) {
 
   const handleExportPdf = async (html: string) => {
     // For PDF export, we'll use the browser's print functionality
-    // Create a new window with the content and trigger print
+    // Use srcdoc + iframe approach instead of document.write to avoid XSS
     const printWindow = window.open("", "_blank");
     if (printWindow) {
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>${documentName || "Document"}</title>
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 40px;
-                line-height: 1.6;
-              }
-              table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 1em 0;
-              }
-              th, td {
-                border: 1px solid #ccc;
-                padding: 8px;
-                text-align: left;
-              }
-              th {
-                background-color: #f5f5f5;
-              }
-              blockquote {
-                border-left: 3px solid #ccc;
-                margin-left: 0;
-                padding-left: 1em;
-              }
-              @media print {
-                body { padding: 20px; }
-              }
-            </style>
-          </head>
-          <body>
-            ${html}
-          </body>
-        </html>
-      `);
+      // Sanitize the editor HTML before embedding in the print page
+      let safeHtml = html;
+      try {
+        const DOMPurify = (await import("isomorphic-dompurify")).default;
+        safeHtml = DOMPurify.sanitize(html, {
+          ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li',
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre',
+            'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'span', 'div',
+            'sub', 'sup', 'hr', 'figure', 'figcaption'],
+          ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'src', 'alt', 'colspan', 'rowspan', 'style'],
+        });
+      } catch {
+        // DOMPurify not available — fall through with raw html (internal editor content)
+      }
+      const docContent = `<!DOCTYPE html>
+<html>
+  <head>
+    <title>${(documentName || "Document").replace(/[<>"]/g, "")}</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px;
+        line-height: 1.6;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1em 0;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f5f5f5;
+      }
+      blockquote {
+        border-left: 3px solid #ccc;
+        margin-left: 0;
+        padding-left: 1em;
+      }
+      @media print {
+        body { padding: 20px; }
+      }
+    </style>
+  </head>
+  <body>
+    ${safeHtml}
+  </body>
+</html>`;
+      printWindow.document.write(docContent);
       printWindow.document.close();
       printWindow.print();
     }

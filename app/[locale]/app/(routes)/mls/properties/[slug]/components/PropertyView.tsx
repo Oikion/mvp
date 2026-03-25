@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ import {
 } from "@/hooks/swr";
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
 import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 import { PropertyImageGallery } from "@/components/property-images/PropertyImageGallery";
 import { ItemVisibilitySelector } from "@/components/ItemVisibilitySelector";
@@ -148,6 +150,7 @@ export default function PropertyView({
   locale = "en",
 }: PropertyViewProps) {
   const router = useRouter();
+  const t = useTranslations("mls");
   const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
@@ -155,7 +158,10 @@ export default function PropertyView({
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [createMandateOpen, setCreateMandateOpen] = useState(false);
-  const [visibility, setVisibility] = useState<ItemVisibility>(data.visibility || "PERSONAL");
+  const [createClientOpen, setCreateClientOpen] = useState(false);
+  const [autoLinkNewClient, setAutoLinkNewClient] = useState(false);
+  const [autoLinkNewMandate, setAutoLinkNewMandate] = useState(false);
+  const [visibility, setVisibility] = useState<ItemVisibility>(data.visibility || "PRIVATE");
   const [copied, setCopied] = useState(false);
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
 
@@ -319,7 +325,7 @@ export default function PropertyView({
           <div className="flex items-center gap-2">
             <Button onClick={() => setEditOpen(true)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t("PropertyView.edit")}
             </Button>
             <EntityQuickActions
               entityType="property"
@@ -341,7 +347,7 @@ export default function PropertyView({
               leftIcon={<Share2 className="h-4 w-4" />}
               onClick={() => setShareModalOpen(true)}
             >
-              Share
+              {t("PropertyView.share")}
             </Button>
           </div>
         )}
@@ -364,18 +370,18 @@ export default function PropertyView({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <DollarSign className="h-4 w-4" />
-                Property Details
+                {t("PropertyView.propertyDetails")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
-                <DetailField label="Type" value={displayEnum(data.property_type)} />
-                <DetailField label="Status" value={displayEnum(data.property_status)} />
+                <DetailField label={t("PropertyView.type")} value={displayEnum(data.property_type)} />
+                <DetailField label={t("PropertyView.status")} value={displayEnum(data.property_status)} />
                 <DetailField
-                  label="Price"
+                  label={t("PropertyView.price")}
                   value={data.price != null ? formatCurrency(data.price) : null}
                 />
-                <DetailField label="Year Built" value={data.year_built} />
+                <DetailField label={t("PropertyView.yearBuilt")} value={data.year_built} />
               </div>
             </CardContent>
           </Card>
@@ -385,21 +391,21 @@ export default function PropertyView({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Home className="h-4 w-4" />
-                Size & Rooms
+                {t("PropertyView.sizeAndRooms")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <DetailField
-                  label="Net Area"
+                  label={t("PropertyView.netArea")}
                   value={data.size_net_sqm != null ? `${data.size_net_sqm} m\u00B2` : null}
                 />
                 <DetailField
-                  label="Lot Size"
+                  label={t("PropertyView.lotSize")}
                   value={data.lot_size != null ? `${data.lot_size} m\u00B2` : null}
                 />
-                <DetailField label="Bedrooms" value={data.bedrooms} />
-                <DetailField label="Bathrooms" value={data.bathrooms} />
+                <DetailField label={t("PropertyView.bedrooms")} value={data.bedrooms} />
+                <DetailField label={t("PropertyView.bathrooms")} value={data.bathrooms} />
               </div>
             </CardContent>
           </Card>
@@ -410,15 +416,15 @@ export default function PropertyView({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <MapPin className="h-4 w-4" />
-                  Location
+                  {t("PropertyView.location")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <DetailField label="Street" value={data.address_street} />
-                  <DetailField label="City" value={data.address_city} />
-                  <DetailField label="State / Region" value={data.address_state} />
-                  <DetailField label="ZIP Code" value={data.address_zip} />
+                  <DetailField label={t("PropertyView.street")} value={data.address_street} />
+                  <DetailField label={t("PropertyView.city")} value={data.address_city} />
+                  <DetailField label={t("PropertyView.stateRegion")} value={data.address_state} />
+                  <DetailField label={t("PropertyView.zipCode")} value={data.address_zip} />
                 </div>
               </CardContent>
             </Card>
@@ -430,14 +436,14 @@ export default function PropertyView({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <FileText className="h-4 w-4" />
-                  Notes
+                  {t("PropertyView.notes")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {data.description && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Description
+                      {t("PropertyView.description")}
                     </p>
                     <p className="text-sm whitespace-pre-wrap">{data.description}</p>
                   </div>
@@ -445,7 +451,7 @@ export default function PropertyView({
                 {!!(data.property_preferences && typeof data.property_preferences === "object" && Object.keys(data.property_preferences as Record<string, unknown>).length > 0) && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Preferences
+                      {t("PropertyView.preferences")}
                     </p>
                     <p className="text-sm whitespace-pre-wrap">
                       {JSON.stringify(data.property_preferences, null, 2)}
@@ -455,7 +461,7 @@ export default function PropertyView({
                 {!!(data.communication_notes && typeof data.communication_notes === "object" && Object.keys(data.communication_notes as Record<string, unknown>).length > 0) && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Communication Notes
+                      {t("PropertyView.communicationNotes")}
                     </p>
                     <p className="text-sm whitespace-pre-wrap">
                       {typeof data.communication_notes === "string"
@@ -477,7 +483,7 @@ export default function PropertyView({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <MessageSquare className="h-4 w-4" />
-                  Comments
+                  {t("PropertyView.comments")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -500,12 +506,12 @@ export default function PropertyView({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <User className="h-4 w-4" />
-                Status & Assignment
+                {t("PropertyView.statusAndAssignment")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <DetailField
-                label="Status"
+                label={t("PropertyView.status")}
                 value={
                   data.property_status ? (
                     <Badge
@@ -518,11 +524,11 @@ export default function PropertyView({
                 }
               />
               <DetailField
-                label="Type"
+                label={t("PropertyView.type")}
                 value={displayEnum(data.property_type)}
               />
               <DetailField
-                label="Assigned to"
+                label={t("PropertyView.assignedTo")}
                 value={data.assigned_to_user?.name}
               />
 
@@ -532,13 +538,13 @@ export default function PropertyView({
                 {data.createdAt && (
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3 w-3" />
-                    Created: {format(new Date(data.createdAt), "dd/MM/yyyy HH:mm")}
+                    {t("PropertyView.created")} {format(new Date(data.createdAt), "dd/MM/yyyy HH:mm")}
                   </div>
                 )}
                 {data.updatedAt && (
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3 w-3" />
-                    Updated: {format(new Date(data.updatedAt), "dd/MM/yyyy HH:mm")}
+                    {t("PropertyView.updated")} {format(new Date(data.updatedAt), "dd/MM/yyyy HH:mm")}
                   </div>
                 )}
               </div>
@@ -551,7 +557,7 @@ export default function PropertyView({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Globe className="h-4 w-4" />
-                  Visibility
+                  {t("PropertyView.visibility")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -561,7 +567,7 @@ export default function PropertyView({
                 />
                 {visibility === "PUBLIC" && (
                   <div className="p-3 bg-muted rounded-lg space-y-2">
-                    <p className="text-sm font-medium">Public URL</p>
+                    <p className="text-sm font-medium">{t("PropertyView.publicUrl")}</p>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 text-sm bg-background px-3 py-2 rounded border truncate">
                         {publicUrl}
@@ -655,7 +661,7 @@ export default function PropertyView({
       <Sheet open={editOpen} onOpenChange={setEditOpen}>
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>Edit Property</SheetTitle>
+            <SheetTitle>{t("PropertyView.editProperty")}</SheetTitle>
           </SheetHeader>
           <div className="mt-6">
             <EditPropertyForm initialData={data} />
@@ -683,6 +689,16 @@ export default function PropertyView({
           sourceType="property"
           alreadyLinkedIds={clients.map((c) => c.id)}
           onLink={handleLinkClients}
+          onCreate={() => {
+            setLinkClientDialogOpen(false);
+            setAutoLinkNewClient(false);
+            setCreateClientOpen(true);
+          }}
+          onCreateAndLink={() => {
+            setLinkClientDialogOpen(false);
+            setAutoLinkNewClient(true);
+            setCreateClientOpen(true);
+          }}
           title="Link Clients to Property"
           description="Select clients who are interested in or viewing this property."
         />
@@ -698,6 +714,16 @@ export default function PropertyView({
           sourceType="property"
           alreadyLinkedIds={(linkedMandates ?? []).map((m: any) => m.id)}
           onLink={handleLinkMandates}
+          onCreate={() => {
+            setLinkMandateDialogOpen(false);
+            setAutoLinkNewMandate(false);
+            setCreateMandateOpen(true);
+          }}
+          onCreateAndLink={() => {
+            setLinkMandateDialogOpen(false);
+            setAutoLinkNewMandate(true);
+            setCreateMandateOpen(true);
+          }}
           title="Link Mandates to Property"
           description="Select mandates associated with this property."
         />
@@ -733,10 +759,30 @@ export default function PropertyView({
       {!isReadOnly && (
         <QuickAddMandate
           open={createMandateOpen}
-          onOpenChange={setCreateMandateOpen}
+          onOpenChange={(open) => {
+            setCreateMandateOpen(open);
+            if (!open) setAutoLinkNewMandate(false);
+          }}
           organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
-          preLinkedPropertyId={data.id}
+          preLinkedPropertyId={autoLinkNewMandate ? data.id : undefined}
           onSuccess={() => mutateLinked()}
+        />
+      )}
+
+      {/* Quick Add Client */}
+      {!isReadOnly && (
+        <QuickAddClient
+          open={createClientOpen}
+          onOpenChange={(open) => {
+            setCreateClientOpen(open);
+            if (!open) setAutoLinkNewClient(false);
+          }}
+          organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
+          onSuccess={async (clientId) => {
+            if (autoLinkNewClient && clientId) {
+              await handleLinkClients([clientId]);
+            }
+          }}
         />
       )}
     </div>

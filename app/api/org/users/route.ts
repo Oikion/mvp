@@ -50,22 +50,30 @@ export async function GET() {
         .map((u) => [u.clerkUserId as string, u])
     );
 
-    const sanitized: SanitizedUser[] = memberships.map((member) => {
-      const dbUser = member.publicUserData?.userId
-        ? userByClerkId.get(member.publicUserData.userId)
-        : undefined;
+    // Only include members who have a matching Prisma Users row.
+    // Members without a DB record (e.g. invited but not yet onboarded) would
+    // produce a Clerk membership ID instead of a valid Users.id, causing FK
+    // violations when used as assigned_to on entities.
+    const sanitized: SanitizedUser[] = memberships
+      .map((member): SanitizedUser | null => {
+        const dbUser = member.publicUserData?.userId
+          ? userByClerkId.get(member.publicUserData.userId)
+          : undefined;
 
-      return {
-        id: dbUser?.id ?? member.id,
-        name: dbUser?.name ?? member.publicUserData?.firstName ?? null,
-        email: dbUser?.email ?? member.publicUserData?.identifier ?? null,
-        avatar:
-          dbUser?.avatar ?? (member.publicUserData as any)?.imageUrl ?? null,
-        userLanguage: dbUser?.userLanguage ?? null,
-        userStatus: dbUser?.userStatus ?? null,
-        role: member.role ?? null,
-      };
-    });
+        if (!dbUser) return null;
+
+        return {
+          id: dbUser.id,
+          name: dbUser.name ?? member.publicUserData?.firstName ?? null,
+          email: dbUser.email ?? member.publicUserData?.identifier ?? null,
+          avatar:
+            dbUser.avatar ?? (member.publicUserData as any)?.imageUrl ?? null,
+          userLanguage: dbUser.userLanguage ?? null,
+          userStatus: dbUser.userStatus ?? null,
+          role: member.role ?? null,
+        };
+      })
+      .filter((u): u is SanitizedUser => u !== null);
 
     return NextResponse.json({
       users: sanitized,

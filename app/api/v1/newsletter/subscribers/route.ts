@@ -9,6 +9,10 @@ import {
   parseFilterParams,
   ExternalApiContext,
 } from "@/lib/external-api-middleware";
+import {
+  encryptNewsletterSubscriberForOrg,
+  decryptNewsletterSubscriberForOrg,
+} from "@/lib/model-encryption";
 
 /**
  * GET /api/v1/newsletter/subscribers
@@ -65,9 +69,14 @@ export const GET = withExternalApi(
       where: { organizationId: context.organizationId, status: "ACTIVE" },
     });
 
+    // Decrypt PII fields before returning
+    const decryptedItems = await Promise.all(
+      items.map((sub) => decryptNewsletterSubscriberForOrg(sub, context.organizationId))
+    );
+
     return createApiSuccessResponse(
       {
-        subscribers: items.map((sub) => ({
+        subscribers: decryptedItems.map((sub) => ({
           id: sub.id,
           email: sub.email,
           firstName: sub.firstName,
@@ -129,24 +138,32 @@ export const POST = withExternalApi(
     if (existingSubscriber) {
       // If they're unsubscribed, resubscribe them
       if (existingSubscriber.status === "UNSUBSCRIBED") {
+        const resubData = await encryptNewsletterSubscriberForOrg(
+          {
+            firstName: firstName || existingSubscriber.firstName,
+            lastName: lastName || existingSubscriber.lastName,
+          },
+          context.organizationId
+        );
+
         const subscriber = await prismadb.newsletterSubscriber.update({
           where: { id: existingSubscriber.id },
           data: {
             status: "ACTIVE",
             unsubscribedAt: null,
-            firstName: firstName || existingSubscriber.firstName,
-            lastName: lastName || existingSubscriber.lastName,
+            ...resubData,
             tags: tags ? Array.from(new Set([...existingSubscriber.tags, ...tags])) : existingSubscriber.tags,
             metadata: metadata || existingSubscriber.metadata,
           },
         });
 
+        const decryptedSub = await decryptNewsletterSubscriberForOrg(subscriber, context.organizationId);
         return createApiSuccessResponse(
           {
             subscriber: {
-              id: subscriber.id,
-              email: subscriber.email,
-              status: subscriber.status,
+              id: decryptedSub.id,
+              email: decryptedSub.email,
+              status: decryptedSub.status,
               resubscribed: true,
             },
           },
@@ -157,13 +174,21 @@ export const POST = withExternalApi(
       return createApiErrorResponse("Subscriber already exists", 409);
     }
 
+    // Encrypt PII fields before storing
+    const encryptedData = await encryptNewsletterSubscriberForOrg(
+      {
+        email: email.toLowerCase(),
+        firstName: firstName || null,
+        lastName: lastName || null,
+      },
+      context.organizationId
+    );
+
     // Create new subscriber
     const subscriber = await prismadb.newsletterSubscriber.create({
       data: {
         organizationId: context.organizationId,
-        email: email.toLowerCase(),
-        firstName: firstName || null,
-        lastName: lastName || null,
+        ...encryptedData,
         status: "ACTIVE",
         source: source || "api",
         tags: tags || [],
@@ -171,15 +196,16 @@ export const POST = withExternalApi(
       },
     });
 
+    const decryptedNew = await decryptNewsletterSubscriberForOrg(subscriber, context.organizationId);
     return createApiSuccessResponse(
       {
         subscriber: {
-          id: subscriber.id,
-          email: subscriber.email,
-          firstName: subscriber.firstName,
-          lastName: subscriber.lastName,
-          status: subscriber.status,
-          subscribedAt: subscriber.subscribedAt.toISOString(),
+          id: decryptedNew.id,
+          email: decryptedNew.email,
+          firstName: decryptedNew.firstName,
+          lastName: decryptedNew.lastName,
+          status: decryptedNew.status,
+          subscribedAt: decryptedNew.subscribedAt.toISOString(),
         },
       },
       201

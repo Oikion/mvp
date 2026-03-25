@@ -29,7 +29,7 @@ import { AttachmentList } from "@/components/attachments";
 import { FeedPostEngagement } from "./FeedPostEngagement";
 import { FeedCommentThread } from "./FeedCommentThread";
 
-type ProfileVisibility = "PERSONAL" | "SECURE" | "PUBLIC";
+type ProfileVisibility = "PRIVATE" | "SECURE" | "PUBLIC";
 
 interface PostAttachment {
   id: string;

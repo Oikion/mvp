@@ -3,11 +3,11 @@
 import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useDropzone } from "react-dropzone";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { XMLParser } from "fast-xml-parser";
-import { 
-  Upload, 
-  FileSpreadsheet, 
+import {
+  Upload,
+  FileSpreadsheet,
   FileCode2,
   CheckCircle2,
   Table
@@ -36,11 +36,145 @@ interface ConversionUploadStepProps {
 
 const ACCEPTED_FILE_TYPES = {
   "text/csv": [".csv"],
-  "application/vnd.ms-excel": [".xls"],
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
   "text/xml": [".xml"],
   "application/xml": [".xml"],
 };
+
+/**
+ * Extract a primitive value from an ExcelJS CellValue.
+ */
+function getCellPrimitive(cell: ExcelJS.Cell): unknown {
+  const v = cell.value;
+  if (v === null || v === undefined) return "";
+  if (v instanceof Date) return v;
+  if (typeof v !== "object") return v;
+  if ("result" in v) return (v as { result: unknown }).result ?? "";
+  if ("richText" in v) return (v as { richText: { text: string }[] }).richText.map(r => r.text).join("");
+  if ("text" in v) return (v as { text: string }).text;
+  return String(v);
+}
+
+/**
+ * Parse an XLSX buffer into headers + JSON rows using ExcelJS
+ */
+async function parseXlsxBuffer(
+  buffer: ArrayBuffer
+): Promise<{ headers: string[]; data: Record<string, unknown>[] }> {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet || worksheet.rowCount === 0) {
+    return { headers: [], data: [] };
+  }
+
+  const headerRow = worksheet.getRow(1);
+  const headers: string[] = [];
+  headerRow.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+    headers[colNumber - 1] = String(getCellPrimitive(cell) ?? "");
+  });
+
+  const data: Record<string, unknown>[] = [];
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    if (rowNumber === 1) return;
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      const cell = row.getCell(index + 1);
+      record[header] = getCellPrimitive(cell);
+    });
+    data.push(record);
+  });
+
+  return { headers: headers.filter(Boolean), data };
+}
+
+/**
+ * Parse a CSV text string into headers + JSON rows.
+ */
+function parseCsvText(text: string): { headers: string[]; data: Record<string, unknown>[] } {
+  const content = text.replace(/^\ufeff/, "");
+  const rows = parseCsvRows(content);
+
+  if (rows.length === 0) return { headers: [], data: [] };
+
+  const headers = rows[0];
+  const data: Record<string, unknown>[] = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.every(cell => cell === "")) continue;
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      record[header] = row[index] ?? "";
+    });
+    data.push(record);
+  }
+
+  return { headers, data };
+}
+
+/**
+ * RFC 4180-compliant CSV row parser.
+ */
+function parseCsvRows(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  let i = 0;
+
+  while (i < text.length) {
+    const ch = text[i];
+
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < text.length && text[i + 1] === '"') {
+          field += '"';
+          i += 2;
+        } else {
+          inQuotes = false;
+          i++;
+        }
+      } else {
+        field += ch;
+        i++;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+        i++;
+      } else if (ch === ",") {
+        row.push(field);
+        field = "";
+        i++;
+      } else if (ch === "\r") {
+        row.push(field);
+        field = "";
+        rows.push(row);
+        row = [];
+        i++;
+        if (i < text.length && text[i] === "\n") i++;
+      } else if (ch === "\n") {
+        row.push(field);
+        field = "";
+        rows.push(row);
+        row = [];
+        i++;
+      } else {
+        field += ch;
+        i++;
+      }
+    }
+  }
+
+  if (field || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  return rows;
+}
 
 export function ConversionUploadStep({
   entityType,
@@ -66,7 +200,7 @@ export function ConversionUploadStep({
       // Find the root array (e.g., <properties><property>...</property></properties>)
       let dataArray: Record<string, unknown>[] = [];
       const rootKeys = Object.keys(parsed);
-      
+
       for (const rootKey of rootKeys) {
         const rootValue = parsed[rootKey];
         if (rootValue && typeof rootValue === "object") {
@@ -120,6 +254,8 @@ export function ConversionUploadStep({
       try {
         const isXml = file.name.toLowerCase().endsWith(".xml");
 
+        const ext = file.name.toLowerCase().split(".").pop();
+
         if (isXml) {
           const result = await parseXmlFile(file);
           if (!result || result.data.length === 0) {
@@ -127,26 +263,28 @@ export function ConversionUploadStep({
             return;
           }
           onFileUpload(file.name, result.headers, result.data);
-        } else {
-          // CSV/Excel parsing with xlsx
-          const buffer = await file.arrayBuffer();
-          // Use codepage 65001 (UTF-8) for proper Greek/international character support
-          const workbook = XLSX.read(buffer, { 
-            type: "array",
-            codepage: 65001, // UTF-8
-          });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet, {
-            defval: "",
-          });
+        } else if (ext === "csv") {
+          // Parse CSV as text
+          const text = await file.text();
+          const result = parseCsvText(text);
 
-          if (jsonData.length === 0) {
+          if (result.data.length === 0) {
             setError(t("errors.emptyFile"));
             return;
           }
 
-          const extractedHeaders = Object.keys(jsonData[0]);
-          onFileUpload(file.name, extractedHeaders, jsonData);
+          onFileUpload(file.name, result.headers, result.data);
+        } else {
+          // Parse XLSX with ExcelJS
+          const buffer = await file.arrayBuffer();
+          const result = await parseXlsxBuffer(buffer);
+
+          if (result.data.length === 0) {
+            setError(t("errors.emptyFile"));
+            return;
+          }
+
+          onFileUpload(file.name, result.headers, result.data);
         }
       } catch (err) {
         setError(t("errors.parseError", { error: String(err) }));
@@ -174,6 +312,7 @@ export function ConversionUploadStep({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: ACCEPTED_FILE_TYPES,
+    maxSize: 10 * 1024 * 1024, // 10MB
     multiple: false,
   });
 
@@ -202,7 +341,7 @@ export function ConversionUploadStep({
             `}
           >
             <input {...getInputProps()} />
-            
+
             {isUploaded ? (
               <div className="space-y-2">
                 <CheckCircle2 className="h-12 w-12 mx-auto text-success" />
@@ -290,11 +429,3 @@ export function ConversionUploadStep({
     </div>
   );
 }
-
-
-
-
-
-
-
-

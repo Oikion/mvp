@@ -1,0 +1,21 @@
+File: unified-chaotic-duplicate-clients.csv
+Scenario: Same client across multiple rows (dedup stress test)
+
+Expected Results:
+- Clients created: 1
+- Clients reused: 9
+- Properties created: 10
+- Mandates created: 0
+- Links - Client↔Property: 10
+- Links - Mandate↔Client: 0
+- Links - Mandate↔Property: 0
+- Errors: 0
+- Skipped: 0
+
+Notes:
+- All 10 rows share the same client: "Αντώνης Μεγαλοοικονόμος" with phone 6944123456
+- Dedup key is primary_phone -- client created on row 1, reused for rows 2-10
+- 10 unique properties created (different property_name values)
+- All 10 properties linked to the single client
+- This is a realistic scenario: a developer/investor with a large portfolio
+- No mandate fields present -- 0 mandates

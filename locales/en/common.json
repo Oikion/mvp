@@ -174,6 +174,7 @@
     "add": "Add",
     "remove": "Remove",
     "link": "Link",
+    "createAndLink": "Create & Link",
     "unlink": "Unlink",
     "invite": "Invite",
     "accept": "Accept",
@@ -531,7 +532,9 @@
     "switchError": "Failed to switch workspace. Please try again.",
     "personalNotFound": "Personal workspace not found. Please contact support.",
     "agencyNotFound": "No agency organization found. Please create one first.",
-    "workspaceSettings": "Workspace Settings"
+    "workspaceSettings": "Workspace Settings",
+    "settingsNotAvailable": "Organisation Settings Unavailable",
+    "settingsNotAvailableDescription": "You cannot edit your personal workspace's organisation settings. Switch to your agency workspace to access these settings."
   },
   "organizationInvites": {
     "title": "Organization Invitations",
@@ -629,6 +632,42 @@
     "successDescription": "Your request has been submitted. A platform administrator will review it shortly and you'll be notified when access is granted.",
     "requestSubmitted": "Access request submitted successfully",
     "requestFailed": "Failed to submit access request"
+  },
+  "linkedEntities": {
+    "linkedProperties": "Properties",
+    "linkedClients": "Clients",
+    "calendarEvents": "Calendar Events",
+    "linkedMandates": "Mandates",
+    "linkedDocuments": "Documents",
+    "noLinkedProperties": "No properties linked yet.",
+    "noLinkedClients": "No clients linked yet.",
+    "noCalendarEvents": "No calendar events yet.",
+    "noLinkedMandates": "No mandates linked yet.",
+    "noLinkedDocuments": "No documents linked yet.",
+    "link": "Link",
+    "createEvent": "Create Event"
+  },
+  "visibility": {
+    "hidden": {
+      "label": "Hidden",
+      "shortDescription": "Excluded from all automated systems",
+      "description": "This record is hidden from matchmaking, analytics, and cross-org matching. It will still appear in your agency's internal lists for manual browsing."
+    },
+    "private": {
+      "label": "Private",
+      "shortDescription": "Visible only within your agency",
+      "description": "Only members of your agency can see this record. It participates in intra-agency matchmaking but is not shared with external agents or the public."
+    },
+    "secure": {
+      "label": "Secure",
+      "shortDescription": "Shared within the Oikion network",
+      "description": "This record is shared with other agents on the Oikion platform through bilateral sharing and Polis cross-org matching. It is not visible to the general public."
+    },
+    "public": {
+      "label": "Public",
+      "shortDescription": "Visible to everyone",
+      "description": "This record is fully public. It participates in all matching systems and can be showcased on your public agent profile for anyone to see."
+    }
   },
   "integrations": {
     "title": "Integrations",

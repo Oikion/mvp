@@ -1,0 +1,6 @@
+property_name,property_type,price,size_net_sqm,bedrooms,area,client_name,primary_phone,primary_email,client_type
+Διαμέρισμα Νέα Σμύρνη,APARTMENT,195000,75,2,Νέα Σμύρνη,Ανδρέας Λαμπρόπουλος,6922111111,andreas@example.com,BUYER
+Μονοκατοικία Ψυχικό,HOUSE,680000,220,4,Ψυχικό,Κατερίνα Βογιατζή,6922222222,katerina@example.com,SELLER
+Studio Κυψέλη,APARTMENT,85000,32,0,Κυψέλη,Μιχάλης Τσακίρης,6922333333,michalis@example.com,INVESTOR
+,,,,,Αγία Παρασκευή,Δέσποινα Μάρκου,6922444444,despoina@example.com,BUYER
+,,,,,,,,,,

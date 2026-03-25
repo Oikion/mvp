@@ -9,6 +9,8 @@ const envSchema = z.object({
   ABLY_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
+  SECRETS_ENCRYPTION_KEY: z.string().length(64).optional(),
+  PLATFORM_ENCRYPTION_KEY: z.string().length(64).optional(),
 });
 
 /**

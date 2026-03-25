@@ -190,6 +190,11 @@ export class DoubleRatchet {
       sendChainKey: this.sendChainKey ? bufferToBase64(this.sendChainKey) : null,
       recvChainKey: this.recvChainKey ? bufferToBase64(this.recvChainKey) : null,
       sendDHPublic: await exportPublicKey(this.sendDHKeyPair.publicKey),
+      // TODO(M-5): Use crypto.subtle.wrapKey() to avoid plaintext private key in JS memory.
+      // Currently the entire serialized state (including this key) is immediately encrypted
+      // by encryptForStorage() — the plaintext window is microseconds. A full fix requires
+      // redesigning the serialization model to wrap all sensitive keys individually.
+      // See docs/security/application-security.md finding M-5.
       sendDHPrivate: await exportPrivateKey(this.sendDHKeyPair.privateKey),
       recvDHPublic: this.recvDHPublicKey ? await exportPublicKey(this.recvDHPublicKey) : null,
       sendMsgNum: this.sendMsgNum,

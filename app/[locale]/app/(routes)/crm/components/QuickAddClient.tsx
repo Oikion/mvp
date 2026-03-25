@@ -61,7 +61,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   organizationUsers: { id: string; name: string }[];
   locale?: string;
-  onSuccess?: () => void;
+  onSuccess?: (clientId?: string) => void;
   onContinueToFull?: () => void;
 };
 
@@ -96,7 +96,7 @@ export function QuickAddClient({
   const onSubmit = async (data: QuickAddClientFormValues) => {
     setIsLoading(true);
     try {
-      await axios.post("/api/crm/clients", {
+      const response = await axios.post("/api/crm/clients", {
         client_name: data.client_name?.trim() || undefined,
         person_type: data.person_type || undefined,
         primary_email: data.primary_email?.trim() || undefined,
@@ -105,6 +105,8 @@ export function QuickAddClient({
         draft_status: false,
       });
 
+      const newClientId = response.data?.newClient?.id;
+
       toast.success("createSuccess", { description: tCommon("clientCreated") });
 
       form.reset();
@@ -112,7 +114,7 @@ export function QuickAddClient({
       router.refresh();
 
       if (onSuccess) {
-        onSuccess();
+        onSuccess(newClientId);
       }
       if (onContinueToFull) {
         onContinueToFull();

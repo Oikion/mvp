@@ -4,6 +4,7 @@ import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { encryptMandateForOrg } from "@/lib/model-encryption";
+import { validateAssignedTo } from "@/lib/validate-assigned-to";
 
 // Valid enum values for mandate draft fields
 const VALID_TRANSACTION_TYPES = new Set(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE", "AUCTION"]);
@@ -104,7 +105,7 @@ export async function POST(req: Request) {
     if (municipality !== undefined) data.municipality = nullIfEmpty(municipality);
     if (region !== undefined) data.region = nullIfEmpty(region);
     if (notes !== undefined) data.notes = nullIfEmpty(notes);
-    if (assigned_to !== undefined) data.assigned_to = nullIfEmpty(assigned_to);
+    if (assigned_to !== undefined) data.assigned_to = await validateAssignedTo(assigned_to);
 
     // Enum fields - validate before setting
     if (transaction_type !== undefined && transaction_type !== null && transaction_type !== "") {
@@ -265,7 +266,7 @@ export async function POST(req: Request) {
       ].filter(Boolean)
     );
 
-    return NextResponse.json({ id: mandate.id }, { status: 200 });
+    return NextResponse.json({ id: mandate.id, friendlyId: mandate.friendlyId }, { status: 200 });
   } catch (error: any) {
     console.error("[MANDATE_DRAFT_POST]", error);
 

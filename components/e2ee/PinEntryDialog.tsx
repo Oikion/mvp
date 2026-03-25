@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const handleSubmit = async () => {
     if (pin.length < 4) return;
@@ -31,11 +32,14 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
     setIsSubmitting(true);
     try {
       await onSubmit(pin);
+      // Show brief syncing feedback before closing
+      setIsSubmitting(false);
+      setIsSyncing(true);
+      await new Promise((r) => setTimeout(r, 800));
       setPin("");
       onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Wrong PIN or unlock failed");
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -48,7 +52,7 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!isSubmitting) { onOpenChange(v); setPin(""); setError(null); } }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!isSubmitting && !isSyncing) { onOpenChange(v); setPin(""); setError(null); } }}>
       <DialogContent className="sm:max-w-[360px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -75,7 +79,7 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
               placeholder="Enter your PIN"
               className="mt-1"
               autoFocus
-              disabled={isSubmitting}
+              disabled={isSubmitting || isSyncing}
             />
           </div>
           {error && (
@@ -87,22 +91,17 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
           <Button
             variant="ghost"
             onClick={() => { onOpenChange(false); setPin(""); setError(null); }}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isSyncing}
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={pin.length < 4 || isSubmitting}
+            disabled={pin.length < 4 || isSubmitting || isSyncing}
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Unlocking...
-              </>
-            ) : (
-              "Unlock"
-            )}
+            {isSubmitting && <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Unlocking...</>}
+            {isSyncing && <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Syncing sessions...</>}
+            {!isSubmitting && !isSyncing && "Unlock"}
           </Button>
         </DialogFooter>
       </DialogContent>

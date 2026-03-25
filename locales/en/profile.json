@@ -259,6 +259,10 @@
       "requestedAt": "Requested",
       "expiresAt": "Expires"
     },
+    "encryption_info_title": "End-to-End Encryption",
+    "encryption_info_description": "Your data is protected by PIN-based end-to-end encryption.",
+    "encryption_info_link_text": "Manage your encryption PIN and session backups in",
+    "encryption_info_link_label": "Security Settings",
     "deletion": {
       "title": "Request Data Deletion",
       "description": "Request permanent deletion of all your organization's data",

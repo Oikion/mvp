@@ -1,0 +1,9 @@
+{
+  "banner": {
+    "title": "End-to-End Encryption Now Available",
+    "descriptionAdmin": "Protect your organization's comments with end-to-end encryption. Only authorized team members can read encrypted content — not even Oikion servers can access it.",
+    "descriptionMember": "End-to-end encryption is now available for your organization. Ask your admin to learn more about enabling enhanced privacy for comments.",
+    "learnMore": "Learn more",
+    "dismiss": "Dismiss"
+  }
+}

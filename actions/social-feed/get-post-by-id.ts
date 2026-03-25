@@ -14,7 +14,7 @@ export interface PostWithAuthor {
     name: string | null;
     avatar: string | null;
     username: string | null;
-    visibility: "PERSONAL" | "SECURE" | "PUBLIC";
+    visibility: "PRIVATE" | "SECURE" | "PUBLIC";
   };
   linkedEntity?: {
     id: string;
@@ -96,7 +96,7 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
     };
   }
 
-  const authorVisibility = (post.Users?.AgentProfile?.visibility || "PERSONAL") as "PERSONAL" | "SECURE" | "PUBLIC";
+  const authorVisibility = (post.Users?.AgentProfile?.visibility || "PRIVATE") as "PRIVATE" | "SECURE" | "PUBLIC";
   
   // Check visibility access
   let isAccessible = false;
@@ -228,7 +228,7 @@ export async function getPostMetadata(idOrSlug: string) {
     return null;
   }
 
-  const visibility = post.Users?.AgentProfile?.visibility || "PERSONAL";
+  const visibility = post.Users?.AgentProfile?.visibility || "PRIVATE";
 
   // Only return metadata for PUBLIC posts
   if (visibility !== "PUBLIC") {

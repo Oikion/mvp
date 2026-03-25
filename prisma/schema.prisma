@@ -39,7 +39,7 @@ model AgentProfile {
   socialLinks             Json?
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime
-  visibility              ProfileVisibility         @default(PERSONAL)
+  visibility              ProfileVisibility         @default(PRIVATE)
   hideFromAgentSearch     Boolean                   @default(false)
   contactFormEnabled      Boolean                   @default(false)
   contactFormFields       Json? // Custom form field configuration
@@ -138,14 +138,16 @@ model CalendarReminder {
 }
 
 model ClientComment {
-  id        String   @id
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  clientId  String
-  userId    String?
-  content   String
-  Clients   Clients  @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  Users     Users?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id              String   @id
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  clientId        String
+  userId          String?
+  content         String
+  entitySessionId String?  // Megolm session ID (null for Standard org comments)
+  messageIndex    Int?     // Megolm ratchet index (null for Standard org comments)
+  Clients         Clients  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  Users           Users?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([clientId])
   @@index([createdAt])
@@ -276,7 +278,7 @@ model Clients {
   company_name                     String?
   doy                              String?
   draft_status                     Boolean?             @default(false)
-  visibility                       ItemVisibility       @default(PERSONAL)
+  visibility                       ItemVisibility       @default(PRIVATE)
   full_name                        String?
   gdpr_consent                     Boolean?             @default(false)
   id_doc                           String?
@@ -710,7 +712,7 @@ model Properties {
   objective_zone         String?
   orientation            Json?
   plot_size_sqm          Decimal?
-  visibility             ItemVisibility   @default(PERSONAL)
+  visibility             ItemVisibility   @default(PRIVATE)
   postal_code            String?
   price_type             PriceType?
   region                 String?
@@ -783,14 +785,16 @@ model PropertyImage {
 }
 
 model PropertyComment {
-  id         String     @id
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime
-  propertyId String
-  userId     String?
-  content    String
-  Properties Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  Users      Users?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id              String     @id
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime
+  propertyId      String
+  userId          String?
+  content         String
+  entitySessionId String?    // Megolm session ID (null for Standard org comments)
+  messageIndex    Int?       // Megolm ratchet index (null for Standard org comments)
+  Properties      Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  Users           Users?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([propertyId])
@@ -994,7 +998,6 @@ model Users {
   ReferralCode                                       ReferralCode?
   ReferredByReferral                                 Referral?                     @relation("ReferredUser")
   MessagesSent                                       Message[]                     @relation("MessagesSent")
-  OrganizationEncryptionKey                          OrganizationEncryptionKey[]
   Mandate                                            Mandate[]                     @relation("MandateAssignedTo")
   MandateComment                                     MandateComment[]              @relation("MandateComments")
   identityKey                                        UserIdentityKey?
@@ -1043,6 +1046,8 @@ model crm_Accounts_Tasks {
 model crm_Accounts_Tasks_Comments {
   id                 String             @id
   comment            String
+  entitySessionId    String?            // Megolm session ID (null for Standard org comments)
+  messageIndex       Int?               // Megolm ratchet index (null for Standard org comments)
   createdAt          DateTime           @default(now())
   crm_account_task   String
   user               String?
@@ -1444,7 +1449,8 @@ enum PersonType {
 }
 
 enum ItemVisibility {
-  PERSONAL
+  HIDDEN
+  PRIVATE
   SECURE
   PUBLIC
 }
@@ -1457,7 +1463,7 @@ enum PriceType {
 }
 
 enum ProfileVisibility {
-  PERSONAL
+  PRIVATE
   SECURE
   PUBLIC
 }
@@ -1554,6 +1560,11 @@ enum DataOwnershipMode {
   AGENT
 }
 
+enum EncryptionMode {
+  STANDARD // Layer 1 (server-side) encryption only
+  E2EE     // Full end-to-end encryption for comments, messages, files
+}
+
 enum MandateStatus {
   DRAFT
   ACTIVE
@@ -1622,7 +1633,7 @@ model Mandate {
   notes               String?
   communication_notes Json?
   draft_status        Boolean?             @default(false)
-  visibility          ItemVisibility       @default(PERSONAL)
+  visibility          ItemVisibility       @default(PRIVATE)
   assigned_to_user    Users?               @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
   comments            MandateComment[]
   Mandate_Properties  Mandate_Properties[]
@@ -1640,14 +1651,16 @@ model Mandate {
 }
 
 model MandateComment {
-  id        String   @id
-  mandateId String
-  userId    String?
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  mandate   Mandate  @relation(fields: [mandateId], references: [id], onDelete: Cascade)
-  user      Users?   @relation("MandateComments", fields: [userId], references: [id], onDelete: SetNull)
+  id              String   @id
+  mandateId       String
+  userId          String?
+  content         String
+  entitySessionId String?  // Megolm session ID (null for Standard org comments)
+  messageIndex    Int?     // Megolm ratchet index (null for Standard org comments)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  mandate         Mandate  @relation(fields: [mandateId], references: [id], onDelete: Cascade)
+  user            Users?   @relation("MandateComments", fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([mandateId])
   @@index([userId])
@@ -1845,10 +1858,42 @@ model NewsletterCampaign {
   n8nWorkflowId    String?
   tags             String[] // For filtering/grouping campaigns
   resendBatchId    String? // Resend batch ID for tracking
+  blocks           Json?   // EmailBlock[] — block editor state; null on old rows → init as []
+  audienceId       String? // Resend audience ID used when sent
+
+  communicationEvents CommunicationEvent[]
 
   @@index([organizationId])
   @@index([status])
   @@index([sentAt])
+}
+
+model CommunicationEvent {
+  id              String                 @id @default(uuid())
+  campaignId      String
+  campaign        NewsletterCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  organizationId  String
+  externalEventId String                 @unique // Resend event ID — prevents duplicate webhook delivery
+  email           String                 // plaintext — masked to `j***@example.com` in UI only
+  eventType       CommunicationEventType
+  occurredAt      DateTime
+  metadata        Json?                  // click URL, bounce reason, user agent, etc.
+  createdAt       DateTime               @default(now())
+
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([campaignId, eventType])
+  @@index([occurredAt])
+}
+
+enum CommunicationEventType {
+  SENT
+  DELIVERED
+  BOUNCED
+  COMPLAINED
+  OPENED
+  CLICKED
+  UNSUBSCRIBED
 }
 
 model SocialPostLog {
@@ -2442,17 +2487,22 @@ enum PreKeyType {
 }
 
 model UserIdentityKey {
-  id                String       @id @default(uuid())
-  userId            String       @unique
-  publicKey         String
-  wrappedPrivateKey String
-  salt              String
-  pbkdfIterations   Int          @default(100000)
-  keyVersion        Int          @default(1)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  user              Users        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  preKeys           UserPreKey[]
+  id                       String       @id @default(uuid())
+  userId                   String       @unique
+  publicKey                String
+  wrappedPrivateKey        String
+  salt                     String
+  pbkdfIterations          Int          @default(100000)
+  keyVersion               Int          @default(1)
+  pendingSessionReshare    Boolean      @default(false) // True during PIN reset, cleared when all entity sessions re-shared
+  // Ed25519 signing key — nullable for backward compatibility with pre-C2 users
+  signingPublicKey         String?
+  wrappedSigningPrivateKey String?
+  signingSalt              String?
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+  user                     Users        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preKeys                  UserPreKey[]
 }
 
 model UserE2eePepper {
@@ -2500,13 +2550,15 @@ model GroupSession {
 }
 
 model GroupSessionShare {
-  id               String       @id @default(uuid())
-  groupSessionId   String
-  userId           String
-  encryptedSession String
-  startingIndex    Int          @default(0)
-  createdAt        DateTime     @default(now())
-  session          GroupSession @relation(fields: [groupSessionId], references: [id], onDelete: Cascade)
+  id                     String       @id @default(uuid())
+  groupSessionId         String
+  userId                 String
+  encryptedSession       String
+  ephemeralPublicKey     String?      // ECIES: ephemeral ECDH public key used to encrypt this share
+  iv                     String?      // ECIES: AES-GCM IV for this share
+  startingIndex          Int          @default(0)
+  createdAt              DateTime     @default(now())
+  session                GroupSession @relation(fields: [groupSessionId], references: [id], onDelete: Cascade)
 
   @@unique([groupSessionId, userId])
 }
@@ -2818,6 +2870,7 @@ enum BackgroundJobType {
   NEWSLETTER_SEND
   PORTAL_PUBLISH_XE
   BULK_EXPORT
+  BULK_IMPORT
 }
 
 enum BackgroundJobStatus {
@@ -2832,6 +2885,46 @@ enum JobPriority {
   LOW
   NORMAL
   HIGH
+}
+
+// ============================================
+// IMPORT HISTORY
+// ============================================
+
+model ImportHistory {
+  id             String           @id @default(uuid())
+  organizationId String
+  userId         String
+  importType     ImportEntityType
+  sourceFilename String
+  rowCount       Int              @default(0)
+  createdCount   Int              @default(0)
+  reusedCount    Int              @default(0)
+  failedCount    Int              @default(0)
+  skippedCount   Int              @default(0)
+  errorDetails   Json?
+  resultDetails  Json?
+  entityIds      String[]
+  status         ImportStatus     @default(COMPLETED)
+  createdAt      DateTime         @default(now())
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum ImportEntityType {
+  CLIENTS
+  PROPERTIES
+  MANDATES
+  UNIFIED
+}
+
+enum ImportStatus {
+  COMPLETED
+  PARTIALLY_FAILED
+  FAILED
+  BATCH_DELETED
 }
 
 // ============================================
@@ -2860,6 +2953,10 @@ model OrganizationSettings {
   customBrandingEnabled Boolean @default(false)
   customDomainEnabled   Boolean @default(false)
   customDomain          String?
+
+  // Encryption Mode — set at org creation, IMMUTABLE after that.
+  // Application-layer guard in lib/encryption-mode-guard.ts rejects any update.
+  encryptionMode EncryptionMode @default(STANDARD)
 
   // Audit
   createdAt DateTime @default(now())
@@ -2933,11 +3030,182 @@ model DepartureLog {
 /// Per-organization Data Encryption Key (DEK), stored encrypted by the master app key.
 /// Part of the DEK + KEK envelope encryption pattern for per-org cryptographic isolation.
 model OrgEncryptionKey {
-  id             String   @id @default(cuid())
-  organizationId String   @unique
-  encryptedDek   String   @db.Text // 32-byte random key, AES-256-GCM encrypted with SECRETS_ENCRYPTION_KEY
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id             String    @id @default(cuid())
+  organizationId String
+  encryptedDek   String    @db.Text // 32-byte random key, AES-256-GCM encrypted with SECRETS_ENCRYPTION_KEY
+  keyVersion     Int       @default(1)
+  isActive       Boolean   @default(true)
+  rotatedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([organizationId, keyVersion])
+  @@index([organizationId, isActive])
+}
+
+// ============================================
+// E2EE ENTITY SESSIONS — Entity-as-Channel Megolm
+// ============================================
+
+/// Each entity (Client/Property/Mandate/Task) in an E2EE org has its own
+/// Megolm session, conceptually identical to Matrix/Element encrypted rooms.
+/// Cleanup: when an entity is deleted, the delete route must also delete
+/// all EntitySession rows matching (entityType, entityId).
+model EntitySession {
+  id              String               @id @default(uuid())
+  entityType      String               // "CLIENT" | "PROPERTY" | "MANDATE" | "TASK"
+  entityId        String
+  megolmSessionId String               @unique // Megolm session identifier (distinct from row id)
+  version         Int                  @default(1)
+  isActive        Boolean              @default(true) // false after rotation
+  createdAt       DateTime             @default(now())
+  rotatedAt       DateTime?
+  orgId           String
+  lastMessageIndex Int?
+
+  shares          EntitySessionShare[]
+  backups         EntitySessionBackup[]
+
+  @@unique([entityType, entityId, version])
+  @@index([entityType, entityId, isActive])
+  @@index([orgId])
+}
+
+/// Per-user copy of an entity's Megolm session, encrypted with the user's
+/// identity public key. startingIndex records the Megolm message index at
+/// the time the share was created — the user can decrypt from this index onward.
+model EntitySessionShare {
+  id               String        @id @default(uuid())
+  entitySessionId  String
+  userId           String
+  encryptedSession String        @db.Text // ECIES-encrypted Megolm export (AES-256-GCM ciphertext, base64)
+  ephemeralPublicKey String?     // ECIES: ephemeral ECDH public key (base64)
+  iv               String?       // ECIES: AES-GCM IV (base64)
+  startingIndex    Int           @default(0)
+  createdAt        DateTime      @default(now())
+
+  entitySession    EntitySession @relation(fields: [entitySessionId], references: [id], onDelete: Cascade)
+
+  @@unique([entitySessionId, userId])
+  @@index([userId])
+}
+
+/// ORK-encrypted backup of an entity's Megolm session.
+/// Backups for ALL session versions are kept (not just active).
+/// During admin recovery or data export, the admin traverses all versions
+/// (ordered by EntitySession.version ASC) to decrypt the full comment history.
+model EntitySessionBackup {
+  id               String        @id @default(uuid())
+  entitySessionId  String        @unique
+  encryptedSession String        @db.Text // Megolm export encrypted with ORK
+  createdAt        DateTime      @default(now())
+
+  entitySession    EntitySession @relation(fields: [entitySessionId], references: [id], onDelete: Cascade)
+}
+
+/// Per-user, per-org, per-session backup of E2EE session state.
+/// Covers Double Ratchet, Megolm outbound, and Megolm inbound sessions.
+/// The encryptedState is ECIES-encrypted client-side, then DEK-wrapped server-side
+/// (dual-layer encryption). One backup per sessionKey per user per org.
+model E2eeSessionBackup {
+  id              String   @id @default(uuid())
+  userId          String
+  organizationId  String
+  sessionType     String                          // "ratchet" | "megolm-out" | "megolm-in"
+  sessionKey      String
+  encryptedState  String   @db.Text
+  ephemeralPubKey String
+  iv              String
+  dekVersion      Int
+  version         Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, organizationId, sessionType, sessionKey])
+  @@index([userId, organizationId])
+}
+
+// ============================================
+// E2EE ORG RECOVERY — Admin recovery codes
+// ============================================
+
+/// Per-E2EE-org recovery key. The ORK is a random 32-byte key that encrypts
+/// backup copies of ALL entity session keys. It is wrapped by the admin's
+/// PIN-derived KEK. On admin transfer, the outgoing admin re-wraps with the
+/// new admin's KEK.
+model OrgRecoveryKey {
+  id              String         @id @default(uuid())
+  orgId           String         @unique
+  wrappedOrk      String         @db.Text // ORK encrypted with admin's PIN-derived KEK
+  wrappedByUserId String                  // Admin userId who holds the KEK-wrapped copy
+  salt            String                  // Salt used for admin's KEK derivation of ORK wrap
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  codes           RecoveryCode[]
+}
+
+/// Single-use recovery codes for E2EE orgs. 8 codes generated at setup,
+/// each wrapping the ORK with PBKDF2(code, salt). On use, code is consumed
+/// and cannot be reused. When < 3 remain, admin sees regeneration prompt.
+model RecoveryCode {
+  id            String          @id @default(uuid())
+  recoveryKeyId String
+  codeHash      String          // bcrypt hash of the plaintext code
+  wrappedOrk    String          @db.Text // ORK encrypted with PBKDF2(code, salt)
+  salt          String
+  used          Boolean         @default(false)
+  usedAt        DateTime?
+  createdAt     DateTime        @default(now())
+
+  recoveryKey   OrgRecoveryKey  @relation(fields: [recoveryKeyId], references: [id], onDelete: Cascade)
+
+  @@index([recoveryKeyId])
+}
+
+// ============================================
+// PII ACCESS AUDIT LOG — Append-only
+// ============================================
+
+/// Every server-side PII decryption event is logged here.
+/// Append-only: application layer enforces no UPDATE or DELETE.
+/// Tracks: reads, exports, webhook sends, external API responses.
+model PiiAccessLog {
+  id             String   @id @default(uuid())
+  timestamp      DateTime @default(now())
+  userId         String
+  organizationId String
+  entityType     String   // "CLIENT" | "PROPERTY" | "MANDATE" | "TASK" | etc.
+  entityId       String
+  action         String   // "DECRYPT" | "EXPORT" | "WEBHOOK_SEND" | "API_RESPONSE"
+  fields         String[] // List of field names decrypted, e.g. ["client_name", "primary_email"]
+  source         String   // Route or action path, e.g. "GET /api/crm/clients/[id]"
+  ipAddress      String?
+
+  @@index([organizationId, timestamp])
+  @@index([userId, timestamp])
+  @@index([entityType, entityId])
+}
+
+// ============================================
+// PLATFORM-WIDE ENCRYPTION KEY
+// ============================================
+
+/// Platform-level DEK for encrypting data that is not org-scoped:
+/// FeedbackComment content and AgentContactSubmission fields.
+/// Same structure as OrgEncryptionKey but without orgId.
+/// Encrypted by PLATFORM_ENCRYPTION_KEY env var (master KEK).
+model PlatformEncryptionKey {
+  id           String    @id @default(cuid())
+  encryptedDek String    @db.Text // 32-byte random key, AES-256-GCM encrypted with PLATFORM_ENCRYPTION_KEY
+  keyVersion   Int       @default(1)
+  isActive     Boolean   @default(true)
+  rotatedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([keyVersion])
+  @@index([isActive])
 }
 
 // ============================================================
@@ -2962,7 +3230,7 @@ model AgencyProfile {
   latitude                Float?
   longitude               Float?
   socialLinks             Json?
-  visibility              ProfileVisibility         @default(PERSONAL)
+  visibility              ProfileVisibility         @default(PRIVATE)
   yearFounded             Int?
   licenseNumber           String?
   contactFormEnabled      Boolean                   @default(false)
@@ -2991,41 +3259,6 @@ model AgencyContactSubmission {
   @@index([profileId])
 }
 
-// ============================================================
-// E2EE Org Encryption (per-user wrapped key system)
-// ============================================================
-
-model OrganizationEncryptionStatus {
-  id             String                      @id @default(cuid())
-  organizationId String                      @unique
-  isEnabled      Boolean                     @default(false)
-  keyVersion     Int                         @default(1)
-  enabledAt      DateTime?
-  enabledById    String?
-  createdAt      DateTime                    @default(now())
-  updatedAt      DateTime                    @updatedAt
-  keys           OrganizationEncryptionKey[]
-
-  @@index([organizationId])
-}
-
-model OrganizationEncryptionKey {
-  id             String                       @id @default(cuid())
-  organizationId String
-  userId         String
-  wrappedKey     String                       @db.Text
-  salt           String
-  keyVersion     Int
-  grantedById    String
-  grantedAt      DateTime                     @default(now())
-  revokedAt      DateTime?
-  User           Users                        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status         OrganizationEncryptionStatus @relation(fields: [organizationId], references: [organizationId])
-
-  @@index([organizationId])
-  @@index([userId])
-  @@index([organizationId, userId, keyVersion])
-}
 
 // ============================================================
 // Data Export (GDPR right-to-data-portability)

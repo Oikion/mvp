@@ -39,7 +39,7 @@ export interface MockProperty {
     name: string;
     email: string;
   };
-  visibility: "PRIVATE" | "NETWORK" | "PUBLIC";
+  visibility: "HIDDEN" | "PRIVATE" | "SECURE" | "PUBLIC";
   createdAt: string;
   updatedAt: string;
 }
@@ -47,7 +47,7 @@ export interface MockProperty {
 const PROPERTY_TYPES = ["APARTMENT", "HOUSE", "VILLA", "LAND", "COMMERCIAL", "OFFICE"] as const;
 const TRANSACTION_TYPES = ["SALE", "RENT"] as const;
 const PROPERTY_STATUSES = ["ACTIVE", "PENDING", "SOLD", "RENTED", "DRAFT"] as const;
-const VISIBILITY_OPTIONS = ["PRIVATE", "NETWORK", "PUBLIC"] as const;
+const VISIBILITY_OPTIONS = ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"] as const;
 const ENERGY_CLASSES = ["A+", "A", "B+", "B", "C", "D", "E", "F", "G"] as const;
 
 const GREEK_CITIES = [

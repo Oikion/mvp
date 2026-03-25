@@ -2,7 +2,9 @@
 
 import { createClerkClient } from "@clerk/backend";
 import { auth } from "@clerk/nextjs/server";
+import { DataOwnershipMode, EncryptionMode } from "@prisma/client";
 import { getCurrentUser } from "@/lib/get-current-user";
+import { prismadb } from "@/lib/prisma";
 import { updateOrganizationMetadata } from "./update-org-metadata";
 
 export async function ensurePersonalWorkspace() {
@@ -38,9 +40,10 @@ export async function ensurePersonalWorkspace() {
       return { success: true, created: false };
     }
 
-    // Create personal workspace
+    // Create personal workspace (suffix with short timestamp to avoid slug collisions on retry)
     const personalOrgName = `${user.username}'s Workspace`;
-    const personalOrgSlug = `${user.username}-personal`;
+    const slugBase = `${user.username}-personal`;
+    const personalOrgSlug = `${slugBase}-${Date.now().toString(36)}`;
 
     const personalOrg = await clerk.organizations.createOrganization({
       name: personalOrgName,
@@ -61,6 +64,25 @@ export async function ensurePersonalWorkspace() {
       console.error("Failed to set personal org metadata:", metadataResult.error);
       // Continue anyway - the org exists
     }
+
+    // Personal workspaces: always STANDARD encryption, always AGENT data ownership.
+    const now = new Date();
+    await prismadb.organizationSettings.upsert({
+      where: { organizationId: personalOrg.id },
+      create: {
+        organizationId: personalOrg.id,
+        createdBy: userId,
+        encryptionMode: EncryptionMode.STANDARD,
+        dataOwnershipMode: DataOwnershipMode.AGENT,
+        dataOwnershipSetAt: now,
+        dataOwnershipChangedBy: userId,
+        policyVersion: 1,
+        policyHistory: [
+          { mode: DataOwnershipMode.AGENT, from: now.toISOString(), to: null },
+        ],
+      },
+      update: {},
+    });
 
     return { success: true, created: true, organizationId: personalOrg.id };
   } catch (error: unknown) {

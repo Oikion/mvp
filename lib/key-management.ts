@@ -12,12 +12,15 @@
  *   const dek = await getOrgDek(orgId);   // Buffer(32)
  *   const ct = encryptWithKey(plaintext, dek);
  *   const pt = decryptWithKey(ciphertext, dek);
+ *
+ * Key rotation:
+ *   await rotateOrgDek(orgId);  // Creates new version, deactivates old
  */
 
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { prismadb } from "@/lib/prisma";
 import { encrypt, decrypt } from "@/lib/encryption";
-import { cacheGet, cacheSet } from "@/lib/redis";
+import { cacheGet, cacheSet, cacheDel } from "@/lib/redis";
 
 // ─── In-process cache ────────────────────────────────────────────────────────
 // Caches decoded DEK Buffers per orgId for the lifetime of the serverless instance.
@@ -28,7 +31,10 @@ interface CacheEntry {
   expiresAt: number;
 }
 
-const DEK_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+// NM-3: Reduced from 5 minutes to 30 seconds so that after an emergency DEK rotation,
+// other serverless instances pick up the new key within 30s (instead of 5 min).
+// Trade-off: ~10x more L2 Redis reads, but each is <1ms for a single small value.
+const DEK_CACHE_TTL_MS = 30 * 1000; // 30 seconds
 const dekCache = new Map<string, CacheEntry>();
 
 function getCached(orgId: string): Buffer | null {
@@ -43,6 +49,15 @@ function getCached(orgId: string): Buffer | null {
 
 function setCache(orgId: string, dek: Buffer): void {
   dekCache.set(orgId, { dek, expiresAt: Date.now() + DEK_CACHE_TTL_MS });
+}
+
+/**
+ * Clear in-process and Redis caches for a given org.
+ * Called after key rotation to force re-fetch of the new active key.
+ */
+async function clearCache(orgId: string): Promise<void> {
+  dekCache.delete(orgId);
+  await cacheDel(`oik:dek:${orgId}`);
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
@@ -74,9 +89,10 @@ export async function getOrgDek(orgId: string): Promise<Buffer> {
     return dek;
   }
 
-  // L3: Look up in DB
-  const row = await prismadb.orgEncryptionKey.findUnique({
-    where: { organizationId: orgId },
+  // L3: Look up in DB — find the active key (highest version)
+  const row = await prismadb.orgEncryptionKey.findFirst({
+    where: { organizationId: orgId, isActive: true },
+    orderBy: { keyVersion: "desc" },
   });
 
   if (row) {
@@ -97,6 +113,8 @@ export async function getOrgDek(orgId: string): Promise<Buffer> {
       id: crypto.randomUUID(),
       organizationId: orgId,
       encryptedDek,
+      keyVersion: 1,
+      isActive: true,
       updatedAt: new Date(),
     },
   });
@@ -104,4 +122,83 @@ export async function getOrgDek(orgId: string): Promise<Buffer> {
   setCache(orgId, dek); // Populate L1
   await cacheSet(redisKey, encryptedDek, 600); // Populate L2
   return dek;
+}
+
+/**
+ * Rotate the DEK for an organization.
+ *
+ * Creates a new key version and deactivates the old one.
+ * After rotation, encrypted data should be re-encrypted with the new key
+ * in a background migration (not handled here).
+ *
+ * Returns the new key version number.
+ */
+export async function rotateOrgDek(orgId: string): Promise<number> {
+  if (!orgId) throw new Error("[key-management] rotateOrgDek: orgId is required");
+
+  // Get the current active key version
+  const currentKey = await prismadb.orgEncryptionKey.findFirst({
+    where: { organizationId: orgId, isActive: true },
+    orderBy: { keyVersion: "desc" },
+  });
+
+  const newVersion = currentKey ? currentKey.keyVersion + 1 : 1;
+
+  // Generate new DEK
+  const dek = randomBytes(32);
+  const encryptedDek = encrypt(dek.toString("hex"));
+
+  // Transactional: deactivate old key + create new key
+  await prismadb.$transaction([
+    // Deactivate all current active keys for this org
+    prismadb.orgEncryptionKey.updateMany({
+      where: { organizationId: orgId, isActive: true },
+      data: { isActive: false, rotatedAt: new Date() },
+    }),
+    // Create new active key
+    prismadb.orgEncryptionKey.create({
+      data: {
+        id: crypto.randomUUID(),
+        organizationId: orgId,
+        encryptedDek,
+        keyVersion: newVersion,
+        isActive: true,
+        updatedAt: new Date(),
+      },
+    }),
+  ]);
+
+  // Clear caches so next getOrgDek() picks up the new key
+  await clearCache(orgId);
+
+  return newVersion;
+}
+
+/**
+ * Get a specific key version for an org (used during re-encryption migrations).
+ */
+export async function getOrgDekByVersion(orgId: string, version: number): Promise<Buffer> {
+  const row = await prismadb.orgEncryptionKey.findFirst({
+    where: { organizationId: orgId, keyVersion: version },
+  });
+
+  if (!row) {
+    throw new Error(`[key-management] No key found for org ${orgId} version ${version}`);
+  }
+
+  const dekHex = decrypt(row.encryptedDek);
+  return Buffer.from(dekHex, "hex");
+}
+
+/**
+ * Get the current active key version for an org.
+ */
+export async function getOrgKeyVersion(orgId: string): Promise<number> {
+  const row = await prismadb.orgEncryptionKey.findFirst({
+    where: { organizationId: orgId, isActive: true },
+    orderBy: { keyVersion: "desc" },
+    select: { keyVersion: true },
+  });
+
+  return row?.keyVersion ?? 0;
 }

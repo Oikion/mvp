@@ -1,0 +1,20 @@
+File: unified-clean-property-client.csv
+Scenario: Property + Client (no mandate) with dedup test
+
+Expected Results:
+- Clients created: 3
+- Clients reused: 2
+- Properties created: 5
+- Mandates created: 0
+- Links - Client↔Property: 5
+- Links - Mandate↔Client: 0
+- Links - Mandate↔Property: 0
+- Errors: 0
+- Skipped: 0
+
+Notes:
+- Rows 1-3 share the same client: "Γιώργος Παπαδόπουλος" with phone 6944999999
+- Dedup key is primary_phone -- rows 1-3 should create 1 client, reuse for rows 2 and 3
+- Row 4 "Αθηνά Νικολάου" and Row 5 "Στέφανος Ιωάννου" are unique clients
+- Total: 3 unique clients created, 2 reuses, 5 properties, 5 Client↔Property links
+- No mandate fields present -- no mandate detection

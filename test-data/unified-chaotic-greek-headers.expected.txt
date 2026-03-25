@@ -1,0 +1,40 @@
+File: unified-chaotic-greek-headers.csv
+Scenario: All Greek column headers -- fuzzy matching test
+
+Expected Results:
+- Clients created: 5
+- Clients reused: 0
+- Properties created: 5
+- Mandates created: 5
+- Links - Client↔Property: 5
+- Links - Mandate↔Client: 5
+- Links - Mandate↔Property: 5
+- Errors: 0
+- Skipped: 0
+
+Header Mapping (fuzzy matcher should resolve):
+- Ακίνητο -> property_name (via alias "name"/"title" or fuzzy)
+- Τύπος -> property_type (via alias "type")
+- Τιμή -> price (via alias "timi")
+- Τ.Μ. -> size_net_sqm (via alias "tetragonika"/"sqm" or fuzzy)
+- Δωμάτια -> bedrooms (via alias "rooms"/"ypnodomatia" or fuzzy)
+- Μπάνια -> bathrooms (via alias "mpania" or fuzzy)
+- Όροφος -> floor (via alias "orofos" or fuzzy)
+- Περιοχή -> area (via alias "perioxi")
+- Πόλη -> address_city (via alias "city"/"poli")
+- Θέρμανση -> heating_type (via alias "thermansi")
+- Κατάσταση -> condition (via alias "katastasi")
+- Ιδιοκτήτης -> client_name (fuzzy match, Greek for "owner")
+- Τηλέφωνο -> primary_phone (via alias "tilefono")
+- Email -> primary_email
+- Προϋπολογισμός Από -> budget_min (fuzzy)
+- Προϋπολογισμός Έως -> budget_max (fuzzy)
+- Είδος Συναλλαγής -> mandate_transaction_type (fuzzy)
+- Επείγον -> urgency (via alias "epeigousa" or fuzzy)
+
+Notes:
+- Enum values are also in Greek and must be normalized: διαμέρισμα->APARTMENT, μονοκατοικία->HOUSE, etc.
+- Heating values: αυτόνομη->AUTONOMOUS, κεντρική->CENTRAL, φυσικό αέριο->NATURAL_GAS, αντλία θερμότητας->HEAT_PUMP
+- Condition values: καλή->GOOD, άριστη->EXCELLENT, πολύ καλή->VERY_GOOD
+- Urgency values: χαμηλή->LOW, υψηλή->HIGH, μέτρια->MEDIUM, κρίσιμη->CRITICAL
+- Transaction type: πώληση->SALE

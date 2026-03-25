@@ -9,6 +9,7 @@ import {
 } from "@/lib/external-api-middleware";
 import { dispatchClientWebhook } from "@/lib/webhooks";
 import { decryptClientForOrg } from "@/lib/model-encryption";
+import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
 
 /**
  * GET /api/v1/crm/clients/[clientId]
@@ -274,6 +275,8 @@ export const DELETE = withExternalApi(
     }
 
     // Delete client
+    await deleteEntitySessionsForEntity("CLIENT", existingClient.id);
+
     await prismadb.clients.delete({
       where: { id: existingClient.id },
     });

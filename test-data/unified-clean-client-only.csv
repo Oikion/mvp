@@ -1,0 +1,6 @@
+client_name,primary_phone,primary_email,client_type,person_type,client_status,company_name,afm,doy,billing_street,billing_city,billing_postal_code,lead_source,gdpr_consent
+Γιάννης Μαυρίδης,6977111111,giannis@example.com,BUYER,INDIVIDUAL,ACTIVE,,,,,Αθήνα,,REFERRAL,true
+Αναστασία Λεωνίδου,6977222222,anastasia@example.com,SELLER,INDIVIDUAL,LEAD,,123456789,Α' Αθηνών,Ακαδημίας 45,Αθήνα,10672,WEB,true
+Ελληνικά Κτήματα ΑΕ,2101234567,info@ellinikaKtimata.gr,INVESTOR,COMPANY,ACTIVE,Ελληνικά Κτήματα ΑΕ,987654321,ΦΑΕ Αθηνών,Λ. Κηφισίας 100,Μαρούσι,15125,PORTAL,true
+Πέτρος Αλεξίου,6977333333,petros@example.com,RENTER,INDIVIDUAL,LEAD,,,,Θεσσαλονίκης 12,Θεσσαλονίκη,54624,SOCIAL,false
+Σταύρος & Συνεργάτες ΟΕ,2109876543,stavros@partners.gr,REFERRAL_PARTNER,COMPANY,ACTIVE,Σταύρος & Συνεργάτες ΟΕ,111222333,Δ' Αθηνών,Πανεπιστημίου 22,Αθήνα,10564,WALK_IN,true

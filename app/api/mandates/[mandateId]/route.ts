@@ -4,6 +4,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { canPerformAction } from "@/lib/permissions";
 import { decryptMandateForOrg } from "@/lib/model-encryption";
+import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
 
 /**
  * GET /api/mandates/[mandateId]
@@ -131,6 +132,8 @@ export async function DELETE(
     }
 
     // Delete mandate (MandateComment cascade handled by Prisma onDelete: Cascade)
+    await deleteEntitySessionsForEntity("MANDATE", existingMandate.id);
+
     await prismadb.mandate.delete({
       where: { id: existingMandate.id },
     });

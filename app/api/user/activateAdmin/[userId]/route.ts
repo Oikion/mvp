@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { requireOwner } from "@/lib/permissions/guards";
 
 export async function POST(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
-  
+
   try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser.is_admin) {
-      return new NextResponse("Forbidden", { status: 403 });
-    }
-    
+    // Only org owners can promote to admin (replaces global is_admin check)
+    const denied = await requireOwner();
+    if (denied) return denied;
+
     const user = await prismadb.users.update({
       where: {
         id: params.userId,

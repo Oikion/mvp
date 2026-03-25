@@ -1,7 +1,35 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import crypto from "crypto";
+import crypto from "node:crypto";
+import { z } from "zod";
+
+// NM-2: Zod schemas for identity endpoints — replaces manual field checks.
+// NC-3: pbkdfIterations floor (600k) prevents malicious clients from weakening derivation.
+const MIN_PBKDF2_ITERATIONS = 600_000;
+
+const SignedPreKeySchema = z.object({
+  publicKey: z.string().min(1),
+  signature: z.string().min(1),
+}).strict();
+
+const IdentitySetupSchema = z.object({
+  publicKey: z.string().min(1),
+  wrappedPrivateKey: z.string().min(1),
+  salt: z.string().min(1),
+  pbkdfIterations: z.number().int().min(MIN_PBKDF2_ITERATIONS).default(MIN_PBKDF2_ITERATIONS),
+  signedPreKey: SignedPreKeySchema.optional(),
+  oneTimePreKeys: z.array(z.string().min(1)).optional(),
+  signingPublicKey: z.string().min(1).optional(),
+  wrappedSigningPrivateKey: z.string().min(1).optional(),
+  signingSalt: z.string().min(1).optional(),
+}).strict();
+
+const IdentityRotateSchema = z.object({
+  wrappedPrivateKey: z.string().min(1),
+  salt: z.string().min(1),
+  pbkdfIterations: z.number().int().min(MIN_PBKDF2_ITERATIONS).default(MIN_PBKDF2_ITERATIONS),
+}).strict();
 
 /**
  * POST /api/e2ee/identity — First-time E2EE setup
@@ -15,11 +43,18 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { publicKey, wrappedPrivateKey, salt, pbkdfIterations, signedPreKey, oneTimePreKeys } = body;
-
-    if (!publicKey || !wrappedPrivateKey || !salt) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const parsed = IdentitySetupSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+
+    const {
+      publicKey, wrappedPrivateKey, salt, pbkdfIterations, signedPreKey, oneTimePreKeys,
+      signingPublicKey, wrappedSigningPrivateKey, signingSalt,
+    } = parsed.data;
 
     // Check if already set up
     const existing = await prismadb.userIdentityKey.findUnique({
@@ -40,7 +75,10 @@ export async function POST(req: Request) {
           publicKey,
           wrappedPrivateKey,
           salt,
-          pbkdfIterations: pbkdfIterations ?? 100000,
+          pbkdfIterations: pbkdfIterations ?? MIN_PBKDF2_ITERATIONS,
+          signingPublicKey: signingPublicKey ?? null,
+          wrappedSigningPrivateKey: wrappedSigningPrivateKey ?? null,
+          signingSalt: signingSalt ?? null,
         },
       });
 
@@ -95,11 +133,15 @@ export async function GET() {
       where: { userId },
       select: {
         id: true,
+        userId: true,
         publicKey: true,
         wrappedPrivateKey: true,
         salt: true,
         pbkdfIterations: true,
         keyVersion: true,
+        signingPublicKey: true,
+        wrappedSigningPrivateKey: true,
+        signingSalt: true,
       },
     });
 
@@ -125,18 +167,22 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { wrappedPrivateKey, salt, pbkdfIterations } = body;
-
-    if (!wrappedPrivateKey || !salt) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const parsed = IdentityRotateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+
+    const { wrappedPrivateKey, salt, pbkdfIterations } = parsed.data;
 
     const updated = await prismadb.userIdentityKey.update({
       where: { userId },
       data: {
         wrappedPrivateKey,
         salt,
-        pbkdfIterations: pbkdfIterations ?? 100000,
+        pbkdfIterations,
         keyVersion: { increment: 1 },
       },
     });

@@ -31,7 +31,7 @@ interface AgentProfileData {
   slug: string;
   bio: string | null;
   specializations: string[];
-  visibility: "PERSONAL" | "SECURE" | "PUBLIC";
+  visibility: "PRIVATE" | "SECURE" | "PUBLIC";
 }
 
 interface ConnectionUser {
@@ -151,7 +151,7 @@ function ConnectionListItem({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {agentProfile?.visibility !== "PERSONAL" && agentProfile?.slug && (
+            {agentProfile?.visibility !== "PRIVATE" && agentProfile?.slug && (
               <DropdownMenuItem asChild>
                 <Link href={`/agent/${agentProfile.slug}`}>
                   <ExternalLink className="h-4 w-4 mr-2" />

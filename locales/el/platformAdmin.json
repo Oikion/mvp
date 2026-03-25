@@ -16,6 +16,7 @@
     "logbook": "Ημερολόγιο Διαχειριστών",
     "blog": "Blog",
     "newsletter": "Newsletter",
+    "communication": "Επικοινωνία",
     "social": "Κοινωνικά",
     "automation": "Αυτοματισμοί",
     "settings": "Ρυθμίσεις",
@@ -23,11 +24,15 @@
     "aiAgents": "AI Agents",
     "aiPrompts": "AI Prompts",
     "dataRequests": "Αιτήματα Δεδομένων",
-    "network": "Polis"
+    "network": "Polis",
+    "audiences": "Κοινό",
+    "campaigns": "Καμπάνιες",
+    "sent": "Απεσταλμένα"
   },
   "sidebar": {
     "management": "Διαχείριση",
     "content": "Περιεχόμενο",
+    "communication": "Επικοινωνία",
     "system": "Σύστημα"
   },
   "theme": {

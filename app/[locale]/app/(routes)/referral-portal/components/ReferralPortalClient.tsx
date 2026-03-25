@@ -131,7 +131,7 @@ export function ReferralPortalClient({
         {/* Commission highlight */}
         <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-6 py-3">
           <span className="text-lg font-bold text-primary">5%</span>
-          <span className="text-lg text-muted-foreground">commission on referrals</span>
+          <span className="text-lg text-muted-foreground">{t("commissionBadge")}</span>
         </div>
       </div>
 
@@ -148,7 +148,7 @@ export function ReferralPortalClient({
                 <UserPlus className="h-6 w-6 text-primary" />
               </div>
               <Badge variant="outline" className="mb-2">
-                Step 1
+                {t("stepLabel", { number: 1 })}
               </Badge>
               <h3 className="font-semibold mb-1">{t("howItWorks.step1.title")}</h3>
               <p className="text-sm text-muted-foreground">
@@ -162,7 +162,7 @@ export function ReferralPortalClient({
                 <Link2 className="h-6 w-6 text-primary" />
               </div>
               <Badge variant="outline" className="mb-2">
-                Step 2
+                {t("stepLabel", { number: 2 })}
               </Badge>
               <h3 className="font-semibold mb-1">{t("howItWorks.step2.title")}</h3>
               <p className="text-sm text-muted-foreground">
@@ -176,7 +176,7 @@ export function ReferralPortalClient({
                 <DollarSign className="h-6 w-6 text-primary" />
               </div>
               <Badge variant="outline" className="mb-2">
-                Step 3
+                {t("stepLabel", { number: 3 })}
               </Badge>
               <h3 className="font-semibold mb-1">{t("howItWorks.step3.title")}</h3>
               <p className="text-sm text-muted-foreground">

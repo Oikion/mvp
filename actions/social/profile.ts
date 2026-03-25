@@ -5,7 +5,7 @@ import { getCurrentUser, getCurrentUserSafe } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
 
 // Profile visibility levels
-export type ProfileVisibility = "PERSONAL" | "SECURE" | "PUBLIC";
+export type ProfileVisibility = "PRIVATE" | "SECURE" | "PUBLIC";
 
 export interface AgentProfileInput {
   bio?: string;
@@ -83,7 +83,7 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
   const profileRaw = await prismadb.agentProfile.findFirst({
     where: {
       userId: user.id,
-      // PERSONAL profiles are never visible
+      // PRIVATE profiles are never visible
       // SECURE profiles require authentication
       // PUBLIC profiles are always visible
       visibility: isAuthenticated 
@@ -261,7 +261,7 @@ export async function upsertAgentProfile(input: AgentProfileInput) {
     yearsExperience: input.yearsExperience,
     certifications: input.certifications || [],
     socialLinks: input.socialLinks || {},
-    visibility: input.visibility ?? "PERSONAL",
+    visibility: input.visibility ?? "PRIVATE",
   };
 
   if (existingProfile) {

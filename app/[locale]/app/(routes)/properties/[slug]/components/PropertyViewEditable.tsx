@@ -195,7 +195,7 @@ export function PropertyViewEditable({
   // UI states
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [visibility, setVisibility] = useState(data.visibility || "PERSONAL");
+  const [visibility, setVisibility] = useState(data.visibility || "PRIVATE");
   const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
   const [copied, setCopied] = useState(false);
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
@@ -569,10 +569,10 @@ export function PropertyViewEditable({
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={visibility === "PERSONAL" ? "default" : "outline"}
+                variant={visibility === "PRIVATE" ? "default" : "outline"}
                 size="sm"
                 leftIcon={<Lock className="h-4 w-4" />}
-                onClick={() => handleVisibilityChange("PERSONAL")}
+                onClick={() => handleVisibilityChange("PRIVATE")}
                 disabled={isUpdatingVisibility}
               >
                 Personal

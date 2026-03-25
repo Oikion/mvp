@@ -385,6 +385,15 @@ module.exports = {
   				}
   			]
   		},
+  		transitionDuration: {
+  			instant: 'var(--duration-instant)',
+  			fast: 'var(--duration-fast)',
+  			normal: 'var(--duration-normal)',
+  			slow: 'var(--duration-slow)',
+  			slower: 'var(--duration-slower)',
+  			slowest: 'var(--duration-slowest)',
+  			extended: 'var(--duration-extended)',
+  		},
   		borderRadius: {
   			sm: 'calc(var(--radius) - 2px)',
   			md: 'calc(var(--radius) - 2px)',

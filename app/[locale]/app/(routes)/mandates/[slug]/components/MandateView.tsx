@@ -54,6 +54,9 @@ import EditMandateForm from "./EditMandateForm"
 import MandateComments from "./MandateComments"
 import { EventCreateForm } from "@/components/calendar/EventCreateForm"
 import { EntityQuickActions } from "@/components/entity-actions/EntityQuickActions"
+import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient"
+import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty"
+import { useOrgUsers } from "@/hooks/swr/useOrgUsers"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -235,8 +238,14 @@ export default function MandateView({
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false)
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false)
   const [linkDocumentDialogOpen, setLinkDocumentDialogOpen] = useState(false)
+  const [createClientOpen, setCreateClientOpen] = useState(false)
+  const [createPropertyOpen, setCreatePropertyOpen] = useState(false)
+  const [autoLinkNewClient, setAutoLinkNewClient] = useState(false)
+  const [autoLinkNewProperty, setAutoLinkNewProperty] = useState(false)
 
-  const [visibility, setVisibility] = useState<ItemVisibility>(mandate.visibility || "PERSONAL")
+  const { users: orgUsers } = useOrgUsers()
+
+  const [visibility, setVisibility] = useState<ItemVisibility>(mandate.visibility || "PRIVATE")
 
   // Open edit sheet if action=edit was passed via URL
   useEffect(() => {
@@ -737,7 +746,7 @@ export default function MandateView({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Globe className="h-4 w-4" />
-                Visibility
+                {t("MandateView.visibility")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -831,6 +840,16 @@ export default function MandateView({
         sourceType="mandate"
         alreadyLinkedIds={linkedClients.map((c: any) => c.id)}
         onLink={async (ids: string[]) => { await linkClients(ids); }}
+        onCreate={() => {
+          setLinkClientDialogOpen(false)
+          setAutoLinkNewClient(false)
+          setCreateClientOpen(true)
+        }}
+        onCreateAndLink={() => {
+          setLinkClientDialogOpen(false)
+          setAutoLinkNewClient(true)
+          setCreateClientOpen(true)
+        }}
       />
 
       {/* ================================================================== */}
@@ -844,6 +863,16 @@ export default function MandateView({
         sourceType="mandate"
         alreadyLinkedIds={linkedProperties.map((p: any) => p.id)}
         onLink={async (ids: string[]) => { await linkProperties(ids); }}
+        onCreate={() => {
+          setLinkPropertyDialogOpen(false)
+          setAutoLinkNewProperty(false)
+          setCreatePropertyOpen(true)
+        }}
+        onCreateAndLink={() => {
+          setLinkPropertyDialogOpen(false)
+          setAutoLinkNewProperty(true)
+          setCreatePropertyOpen(true)
+        }}
       />
 
       {/* ================================================================== */}
@@ -857,6 +886,38 @@ export default function MandateView({
         sourceType="mandate"
         alreadyLinkedIds={(linkedDocuments ?? []).map((d: any) => d.id)}
         onLink={async (ids: string[]) => { await linkDocuments(ids); }}
+      />
+
+      {/* Quick Add Client */}
+      <QuickAddClient
+        open={createClientOpen}
+        onOpenChange={(open) => {
+          setCreateClientOpen(open)
+          if (!open) setAutoLinkNewClient(false)
+        }}
+        organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
+        onSuccess={async (clientId) => {
+          if (autoLinkNewClient && clientId) {
+            await linkClients([clientId])
+            await mutateLinked()
+          }
+        }}
+      />
+
+      {/* Quick Add Property */}
+      <QuickAddProperty
+        open={createPropertyOpen}
+        onOpenChange={(open) => {
+          setCreatePropertyOpen(open)
+          if (!open) setAutoLinkNewProperty(false)
+        }}
+        users={orgUsers}
+        onSuccess={async (propertyId) => {
+          if (autoLinkNewProperty && propertyId) {
+            await linkProperties([propertyId])
+            await mutateLinked()
+          }
+        }}
       />
     </div>
   )

@@ -125,6 +125,14 @@ const nextConfig = {
   },
   // Reduce watch overhead in dev (especially large folders in repo root)
   webpack: (config, { dev }) => {
+    // canvas is an optional native dependency of jsdom (pulled in by isomorphic-dompurify).
+    // We only use DOMPurify on the client side where the browser's native DOM is available,
+    // so canvas is never needed. Stub it out to prevent webpack resolution errors.
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      canvas: false,
+    };
+
     if (dev) {
       const ignored = [
         ...(Array.isArray(config.watchOptions?.ignored)

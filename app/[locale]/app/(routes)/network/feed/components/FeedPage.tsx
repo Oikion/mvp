@@ -23,7 +23,7 @@ import { FeedFilters } from "./FeedFilters";
 import { FeedPostCard, type SocialPost } from "./FeedPostCard";
 import { FeedDiscoverySidebar } from "./FeedDiscoverySidebar";
 
-type ProfileVisibility = "PERSONAL" | "SECURE" | "PUBLIC";
+type ProfileVisibility = "PRIVATE" | "SECURE" | "PUBLIC";
 
 interface FeedPageProps {
   posts: SocialPost[];

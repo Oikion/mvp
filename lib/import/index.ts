@@ -84,6 +84,24 @@ export {
   mandateEnumMappings,
 } from "./enum-normalizer";
 
+// Unified import system
+export {
+  UNIFIED_FIELD_DEFINITIONS,
+  MANDATE_FIELD_KEYS,
+  CLIENT_TRIGGER_KEYS,
+  PROPERTY_TRIGGER_KEYS,
+  PREFIX_STRIP_MAP,
+  stripEntityPrefix,
+  type UnifiedFieldDefinition,
+} from "./unified-field-definitions";
 
+export {
+  generateMandateTitle,
+  generateClientName,
+} from "./name-generator";
 
-
+// Unified import engine
+export {
+  executeUnifiedImport,
+  type UnifiedImportResult,
+} from "./unified-engine";

@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { requireAtLeastLead } from "@/lib/permissions/guards";
 import sendEmail from "@/lib/sendmail";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
 
 export async function POST(req: Request, props: { params: Promise<{ userId: string }> }) {
   const params = await props.params;
-  
+
   try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser.is_admin) {
-      return new NextResponse("Forbidden", { status: 403 });
-    }
-    
+    // Leads and above can activate users (replaces global is_admin check)
+    const denied = await requireAtLeastLead();
+    if (denied) return denied;
+
     const user = await prismadb.users.update({
       where: {
         id: params.userId,

@@ -8,6 +8,24 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 // Maximum attachments per entity
 const MAX_ATTACHMENTS_PER_ENTITY = 5;
 
+// Allowed MIME types for upload validation
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg", "image/png", "image/webp", "image/gif",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/csv", "text/plain",
+]);
+
+// Dangerous file extensions (regardless of MIME type)
+const DANGEROUS_EXTENSIONS = [
+  ".exe", ".bat", ".cmd", ".com", ".msi", ".scr", ".pif",
+  ".js", ".vbs", ".wsf", ".ps1", ".sh", ".html", ".htm",
+  ".hta", ".svg", ".swf",
+];
+
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
@@ -51,6 +69,23 @@ export async function POST(req: Request) {
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { error: "File size exceeds 10MB limit" },
+        { status: 400 }
+      );
+    }
+
+    // Validate MIME type
+    if (!ALLOWED_MIME_TYPES.has(file.type)) {
+      return NextResponse.json(
+        { error: `File type ${file.type} is not allowed` },
+        { status: 400 }
+      );
+    }
+
+    // Check for dangerous file extensions
+    const fileName = file.name.toLowerCase();
+    if (DANGEROUS_EXTENSIONS.some(ext => fileName.endsWith(ext))) {
+      return NextResponse.json(
+        { error: "This file type is not allowed for security reasons" },
         { status: 400 }
       );
     }

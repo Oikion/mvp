@@ -7,15 +7,18 @@ import { hash } from "bcryptjs";
 import InviteUserEmail from "@/emails/InviteUser";
 import resendHelper from "@/lib/resend";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
+import { requireCanInvite } from "@/lib/permissions/guards";
 
 export async function POST(req: Request) {
   const resend = await resendHelper();
-  
+
   try {
     const user = await getCurrentUser();
-    if (!user.is_admin) {
-      return new NextResponse("Forbidden", { status: 403 });
-    }
+
+    // Check org-scoped invite permission (replaces global is_admin check)
+    const denied = await requireCanInvite();
+    if (denied) return denied;
+
     const body = await req.json();
     const { name, email, language } = body;
 
@@ -62,7 +65,7 @@ export async function POST(req: Request) {
     } else {
       // Generate username from email if not provided
       const generatedUsername = email.split("@")[0] || `user_${Date.now()}`;
-      
+
       const newUser = await prismadb.users.create({
         data: {
           id: randomUUID(),

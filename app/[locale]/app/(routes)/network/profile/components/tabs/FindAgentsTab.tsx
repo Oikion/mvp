@@ -33,7 +33,7 @@ interface Agent {
     bio: string | null;
     specializations: string[];
     serviceAreas: string[];
-    visibility: "PERSONAL" | "SECURE" | "PUBLIC";
+    visibility: "PRIVATE" | "SECURE" | "PUBLIC";
   } | null;
   _count: {
     properties: number;
@@ -205,7 +205,7 @@ export function FindAgentsTab({ translations: t }: FindAgentsTabProps) {
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium">{agent.name || "Unknown"}</h4>
-                        {agent.agentProfile?.visibility !== "PERSONAL" &&
+                        {agent.agentProfile?.visibility !== "PRIVATE" &&
                           agent.agentProfile?.slug && (
                             <Link
                               href={`/agent/${agent.agentProfile.slug}`}

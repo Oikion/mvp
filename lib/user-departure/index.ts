@@ -43,8 +43,8 @@ export async function handleUserDeparture(
     return result;
   }
 
-  // Step 2: Pre-flight — block personal workspace departures
-  if (await isOrgPersonal(orgId)) {
+  // Step 2: Pre-flight — block personal workspace departures (unless deleting account)
+  if (await isOrgPersonal(orgId) && reason !== "ACCOUNT_DELETED") {
     result.errors.push("Cannot depart from a personal workspace");
     return result;
   }

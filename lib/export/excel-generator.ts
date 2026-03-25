@@ -1,17 +1,18 @@
 /**
  * Excel/CSV Generator
- * 
- * Generates XLS, XLSX, and CSV files using the SheetJS (xlsx) library.
+ *
+ * Generates XLSX and CSV files using the ExcelJS library.
  * Includes security sanitization and proper formatting.
  */
 
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import {
   type ColumnDefinition,
   type FormatterOptions,
   formatRows,
   getColumnHeaders,
   getColumnWidths,
+  getColumnsForModule,
 } from "./data-formatter";
 import {
   type ExportFormat,
@@ -45,7 +46,6 @@ export interface GeneratedFile {
 
 /**
  * Convert column width in characters to Excel column width units
- * Excel uses a different unit than character count
  */
 function charWidthToExcel(chars: number): number {
   return Math.round(chars * 1.2);
@@ -55,33 +55,14 @@ function charWidthToExcel(chars: number): number {
  * Apply column widths to worksheet
  */
 function applyColumnWidths(
-  worksheet: XLSX.WorkSheet,
+  worksheet: ExcelJS.Worksheet,
   columns: ColumnDefinition[]
 ): void {
   const widths = getColumnWidths(columns);
-  worksheet["!cols"] = widths.map(w => ({ wch: charWidthToExcel(w) }));
-}
-
-/**
- * Create header row style (bold)
- * Note: xlsx community edition has limited styling support
- */
-function createHeaderRow(
-  headers: string[],
-  startRow: number = 0
-): Record<string, XLSX.CellObject> {
-  const cells: Record<string, XLSX.CellObject> = {};
-  
-  headers.forEach((header, index) => {
-    const cellRef = XLSX.utils.encode_cell({ r: startRow, c: index });
-    cells[cellRef] = {
-      t: "s",
-      v: header,
-      // Font styling would require xlsx-style or similar library
-    };
+  widths.forEach((w, i) => {
+    const col = worksheet.getColumn(i + 1); // ExcelJS columns are 1-indexed
+    col.width = charWidthToExcel(w);
   });
-  
-  return cells;
 }
 
 // ============================================
@@ -94,7 +75,7 @@ function createHeaderRow(
 export function generateWorkbook(
   data: Record<string, unknown>[],
   options: ExcelGeneratorOptions
-): XLSX.WorkBook {
+): ExcelJS.Workbook {
   const {
     sheetName = "Export",
     columns,
@@ -104,87 +85,66 @@ export function generateWorkbook(
     title,
     subtitle,
   } = options;
-  
+
   // Format the data using column definitions
   const formatterOptions: FormatterOptions = {
     locale,
     sanitize: true,
   };
-  
+
   const formattedData = formatRows(data, columns, formatterOptions);
-  
+
   // Get headers in the correct locale
   const headers = getColumnHeaders(columns, locale);
-  
-  // Prepare data for sheet
-  let startRow = 0;
-  const sheetData: unknown[][] = [];
-  
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(sheetName);
+
   // Add title if provided
   if (title) {
-    sheetData.push([title]);
-    startRow++;
+    worksheet.addRow([title]);
   }
-  
+
   // Add subtitle if provided
   if (subtitle) {
-    sheetData.push([subtitle]);
-    startRow++;
+    worksheet.addRow([subtitle]);
   }
-  
+
   // Add empty row after title/subtitle
   if (title || subtitle) {
-    sheetData.push([]);
-    startRow++;
+    worksheet.addRow([]);
   }
-  
-  // Add headers
+
+  // Add headers with bold styling
   if (includeHeaders) {
-    sheetData.push(headers);
-    startRow++;
+    const headerRow = worksheet.addRow(headers);
+    headerRow.font = { bold: true };
   }
-  
+
   // Add data rows
   for (const row of formattedData) {
     const rowData = columns.map(col => row[col.key] ?? "");
-    sheetData.push(rowData);
+    worksheet.addRow(rowData);
   }
-  
-  // Create worksheet
-  const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
-  
+
   // Apply column widths
   if (autoWidth) {
     applyColumnWidths(worksheet, columns);
   }
-  
-  // Create workbook
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-  
+
   return workbook;
 }
 
 /**
  * Generate XLSX file from data
  */
-export function generateXLSX(
+export async function generateXLSX(
   data: Record<string, unknown>[],
   options: ExcelGeneratorOptions
-): Buffer {
+): Promise<Buffer> {
   const workbook = generateWorkbook(data, options);
-  return Buffer.from(XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }));
-}
-
-/**
- * Generate XLS file from data (legacy format)
- */
-export function generateXLS(
-  data: Record<string, unknown>[],
-  options: ExcelGeneratorOptions
-): Buffer {
-  const workbook = generateWorkbook(data, options);
-  return Buffer.from(XLSX.write(workbook, { type: "buffer", bookType: "xls" }));
+  const arrayBuffer = await workbook.xlsx.writeBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
 /**
@@ -199,34 +159,34 @@ export function generateCSV(
     locale = "en",
     includeHeaders = true,
   } = options;
-  
+
   // Format the data
   const formatterOptions: FormatterOptions = {
     locale,
     sanitize: true,
   };
-  
+
   const formattedData = formatRows(data, columns, formatterOptions);
-  
+
   // Get headers
   const headers = getColumnHeaders(columns, locale);
-  
+
   // Build CSV content
   const rows: string[] = [];
-  
+
   if (includeHeaders) {
     rows.push(headers.map(h => escapeCSVValue(h)).join(","));
   }
-  
+
   for (const row of formattedData) {
     const rowData = columns.map(col => escapeCSVValue(row[col.key] ?? ""));
     rows.push(rowData.join(","));
   }
-  
+
   // Add BOM for Excel UTF-8 compatibility
   const bom = "\ufeff";
   const csvContent = bom + rows.join("\r\n");
-  
+
   return Buffer.from(csvContent, "utf-8");
 }
 
@@ -289,13 +249,13 @@ function escapeCSVValue(value: string): string {
   if (typeof value !== "string") {
     value = String(value ?? "");
   }
-  
+
   // If the value contains comma, newline, or quote, wrap in quotes
   if (value.includes(",") || value.includes("\n") || value.includes("\r") || value.includes('"')) {
     // Escape existing quotes by doubling them
     return `"${value.replace(/"/g, '""')}"`;
   }
-  
+
   return value;
 }
 
@@ -306,33 +266,29 @@ function escapeCSVValue(value: string): string {
 /**
  * Generate export file in the specified format
  */
-export function generateExportFile(
+export async function generateExportFile(
   module: ExportModule,
   format: ExportFormat,
   data: Record<string, unknown>[],
   options: Omit<ExcelGeneratorOptions, "columns"> & { columns?: ColumnDefinition[] }
-): GeneratedFile {
-  // Get default columns for module if not provided
-  const { getColumnsForModule } = require("./data-formatter");
+): Promise<GeneratedFile> {
   const columns = options.columns || getColumnsForModule(module);
-  
+
   const fullOptions: ExcelGeneratorOptions = {
     ...options,
     columns,
     sheetName: options.sheetName || getSheetNameForModule(module, options.locale || "en"),
   };
-  
+
   let buffer: Buffer;
   let contentType: string;
-  
+
   switch (format) {
     case "xlsx":
-      buffer = generateXLSX(data, fullOptions);
-      contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      break;
     case "xls":
-      buffer = generateXLS(data, fullOptions);
-      contentType = "application/vnd.ms-excel";
+      // ExcelJS produces OOXML (xlsx) format for both
+      buffer = await generateXLSX(data, fullOptions);
+      contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
       break;
     case "csv":
       buffer = generateCSV(data, fullOptions);
@@ -345,9 +301,9 @@ export function generateExportFile(
     default:
       throw new Error(`Unsupported format: ${format}`);
   }
-  
+
   const filename = generateExportFilename(module, format);
-  
+
   return {
     buffer,
     filename,
@@ -367,7 +323,7 @@ function getSheetNameForModule(module: ExportModule, locale: "en" | "el"): strin
     reports: { en: "Reports", el: "Αναφορές" },
     documents: { en: "Documents", el: "Έγγραφα" },
   };
-  
+
   return names[module][locale];
 }
 
@@ -387,54 +343,46 @@ export interface SheetData {
 export function generateMultiSheetWorkbook(
   sheets: SheetData[],
   options: Omit<ExcelGeneratorOptions, "sheetName" | "columns">
-): XLSX.WorkBook {
-  const workbook = XLSX.utils.book_new();
-  
+): ExcelJS.Workbook {
+  const workbook = new ExcelJS.Workbook();
+
   for (const sheet of sheets) {
-    const sheetOptions: ExcelGeneratorOptions = {
-      ...options,
-      sheetName: sheet.name,
-      columns: sheet.columns,
-    };
-    
     const formatterOptions: FormatterOptions = {
       locale: options.locale,
       sanitize: true,
     };
-    
+
     const formattedData = formatRows(sheet.data, sheet.columns, formatterOptions);
     const headers = getColumnHeaders(sheet.columns, options.locale);
-    
-    const sheetData: unknown[][] = [];
-    
+
+    const worksheet = workbook.addWorksheet(sheet.name);
+
     if (options.includeHeaders !== false) {
-      sheetData.push(headers);
+      const headerRow = worksheet.addRow(headers);
+      headerRow.font = { bold: true };
     }
-    
+
     for (const row of formattedData) {
       const rowData = sheet.columns.map(col => row[col.key] ?? "");
-      sheetData.push(rowData);
+      worksheet.addRow(rowData);
     }
-    
-    const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
-    
+
     if (options.autoWidth !== false) {
       applyColumnWidths(worksheet, sheet.columns);
     }
-    
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name);
   }
-  
+
   return workbook;
 }
 
 /**
  * Generate multi-sheet XLSX file
  */
-export function generateMultiSheetXLSX(
+export async function generateMultiSheetXLSX(
   sheets: SheetData[],
   options: Omit<ExcelGeneratorOptions, "sheetName" | "columns">
-): Buffer {
+): Promise<Buffer> {
   const workbook = generateMultiSheetWorkbook(sheets, options);
-  return Buffer.from(XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }));
+  const arrayBuffer = await workbook.xlsx.writeBuffer();
+  return Buffer.from(arrayBuffer);
 }

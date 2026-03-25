@@ -578,7 +578,7 @@ export interface SocialPost {
     name: string;
     avatar?: string;
     organizationName?: string;
-    visibility?: "PERSONAL" | "SECURE" | "PUBLIC";
+    visibility?: "PRIVATE" | "SECURE" | "PUBLIC";
   };
   linkedEntity?: {
     id: string;

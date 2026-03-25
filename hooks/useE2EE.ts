@@ -10,7 +10,8 @@ import {
 } from "react";
 import { createElement } from "react";
 import * as e2ee from "@/lib/e2ee";
-import type { PreKeyBundle, EncryptedDMPayload, EncryptedGroupPayload } from "@/lib/e2ee/types";
+import { PBKDF2_ITERATIONS } from "@/lib/e2ee/primitives";
+import type { EncryptedDMPayload, EncryptedGroupPayload } from "@/lib/e2ee/types";
 
 // ─── Types ────────────────────────────────────
 
@@ -21,6 +22,8 @@ interface E2EEState {
   isUnlocked: boolean;
   /** Loading during setup/unlock operations */
   isLoading: boolean;
+  /** True while session backups are being restored after unlock */
+  isSyncing: boolean;
   /** Last error message */
   error: string | null;
 }
@@ -66,19 +69,36 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
     isSetUp: false,
     isUnlocked: false,
     isLoading: true,
+    isSyncing: false,
     error: null,
   });
 
-  // Check if user has E2EE set up on mount
+  // Check Ed25519 browser support and E2EE setup status on mount
   useEffect(() => {
     let cancelled = false;
     async function check() {
+      // Ed25519 (WebCrypto) requires Chrome 113+, Firefox 122+, Safari 17+.
+      // Detect early so setup/unlock don't fail mid-flow with a cryptic DOMException.
       try {
-        const res = await fetch("/api/e2ee/identity");
+        await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]);
+      } catch {
         if (!cancelled) {
           setState((s) => ({
             ...s,
-            isSetUp: res.ok,
+            isLoading: false,
+            error: "Your browser does not support the required cryptography (Ed25519). Please update your browser.",
+          }));
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/e2ee/identity");
+        const data = res.ok ? await res.json() : null;
+        if (!cancelled) {
+          setState((s) => ({
+            ...s,
+            isSetUp: data?.isSetUp === true,
             isLoading: false,
           }));
         }
@@ -142,7 +162,10 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
           publicKey: result.publicKey,
           wrappedPrivateKey: result.wrappedPrivateKey,
           salt: result.salt,
-          pbkdfIterations: 100_000,
+          pbkdfIterations: PBKDF2_ITERATIONS,
+          signingPublicKey: result.signingPublicKey,
+          wrappedSigningPrivateKey: result.wrappedSigningPrivateKey,
+          signingSalt: result.signingSalt,
           signedPreKey: result.signedPreKey,
           oneTimePreKeys: result.oneTimePreKeys.map((k) => k.publicKey),
         }),
@@ -161,33 +184,65 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const unlock = useCallback(async (pin: string) => {
-    setState((s) => ({ ...s, isLoading: true, error: null }));
+    setState((s) => ({ ...s, isLoading: true, isSyncing: true, error: null }));
     try {
-      // Fetch identity + pepper in parallel
+      // Fetch identity + pepper in parallel; pepper endpoint enforces PIN rate limit
       const [identityRes, pepperRes] = await Promise.all([
         fetch("/api/e2ee/identity"),
         fetch("/api/e2ee/pepper"),
       ]);
       if (!identityRes.ok) throw new Error("Failed to fetch identity");
+      if (pepperRes.status === 429) {
+        const body = await pepperRes.json().catch(() => ({}));
+        throw new Error(body.error ?? "Too many PIN attempts. Try again later.");
+      }
       if (!pepperRes.ok) throw new Error("Failed to fetch pepper");
 
       const identity = await identityRes.json();
       const { pepper } = await pepperRes.json();
 
-      await e2ee.unlock(
-        identity.userId,
-        pin,
-        pepper,
-        identity.wrappedPrivateKey,
-        identity.salt,
-        identity.publicKey,
-      );
+      const signingKey =
+        identity.wrappedSigningPrivateKey && identity.signingSalt && identity.signingPublicKey
+          ? {
+              wrappedSigningPrivateKey: identity.wrappedSigningPrivateKey,
+              signingSalt: identity.signingSalt,
+              signingPublicKey: identity.signingPublicKey,
+            }
+          : undefined;
 
-      setState((s) => ({ ...s, isUnlocked: true, isLoading: false }));
+      try {
+        await e2ee.unlock(
+          identity.userId,
+          pin,
+          pepper,
+          identity.wrappedPrivateKey,
+          identity.salt,
+          identity.publicKey,
+          signingKey,
+        );
+      } catch (unlockErr) {
+        // Record failed PIN attempt server-side (best-effort)
+        fetch("/api/e2ee/unlock-attempt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ outcome: "failure" }),
+        }).catch(() => undefined);
+        throw unlockErr;
+      }
+
+      // Clear the rate-limit counter on success
+      fetch("/api/e2ee/unlock-attempt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ outcome: "success" }),
+      }).catch(() => undefined);
+
+      setState((s) => ({ ...s, isUnlocked: true, isLoading: false, isSyncing: false }));
     } catch (err) {
       setState((s) => ({
         ...s,
         isLoading: false,
+        isSyncing: false,
         error: err instanceof Error ? err.message : "Unlock failed",
       }));
       throw err;
@@ -238,8 +293,31 @@ export function E2EEProvider({ children }: { children: ReactNode }) {
 
   const clearAll = useCallback(async () => {
     await e2ee.clearAll();
-    setState({ isSetUp: false, isUnlocked: false, isLoading: false, error: null });
+    setState({ isSetUp: false, isUnlocked: false, isLoading: false, isSyncing: false, error: null });
   }, []);
+
+  // Flush pending session backups when the user navigates away or hides the tab
+  useEffect(() => {
+    if (!state.isUnlocked) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        e2ee.flushBackupsOnUnload();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      e2ee.flushBackupsOnUnload();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [state.isUnlocked]);
 
   const value: E2EEContextValue = {
     ...state,

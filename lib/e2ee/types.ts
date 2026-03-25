@@ -15,10 +15,11 @@ export interface ExportedIdentityKey {
 }
 
 export interface PreKeyBundle {
-  identityKey: string;     // Base64 public key
-  signedPreKey: string;    // Base64 public key
-  signature: string;       // Base64 Ed25519 signature
-  oneTimePreKey?: string;  // Base64 public key (may be exhausted)
+  identityKey: string;      // Base64 ECDH P-256 SPKI public key
+  signedPreKey: string;     // Base64 ECDH P-256 SPKI public key
+  signature: string;        // Base64 Ed25519 signature over signedPreKey bytes
+  signingPublicKey?: string; // Base64 Ed25519 SPKI public key (null for legacy users)
+  oneTimePreKey?: string;   // Base64 public key (may be exhausted)
   oneTimePreKeyId?: string;
 }
 
@@ -112,12 +113,16 @@ export interface SetupE2EERequest {
   oneTimePreKeys: string[];
 }
 
+export interface GroupSessionShare {
+  userId: string;
+  ephemeralPublicKey: string;   // Base64 ECDH P-256 SPKI — ephemeral key for ECIES
+  encryptedSessionExport: string; // Base64 AES-256-GCM ciphertext of session export
+  iv: string;                   // Base64 AES-256-GCM IV
+  startingIndex: number;
+}
+
 export interface GroupSessionCreateRequest {
   conversationId?: string;
   channelId?: string;
-  shares: Array<{
-    userId: string;
-    encryptedSession: string;
-    startingIndex: number;
-  }>;
+  shares: GroupSessionShare[];
 }

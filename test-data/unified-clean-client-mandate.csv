@@ -1,0 +1,4 @@
+client_name,primary_phone,primary_email,client_type,budget_min,budget_max,mandate_transaction_type,mandate_property_type,urgency,timeline,size_min_sqm,size_max_sqm,bedrooms_min,bedrooms_max,areas_of_interest
+Αλέξανδρος Δημητρίου,6988111111,alex@example.com,BUYER,200000,350000,SALE,APARTMENT,HIGH,IMMEDIATE,70,120,2,3,"Γλυφάδα,Βούλα,Βουλιαγμένη"
+Σοφία Καραγιάννη,6988222222,sofia@example.com,BUYER,150000,250000,SALE,APARTMENT,MEDIUM,ONE_THREE_MONTHS,50,90,1,2,"Παγκράτι,Κουκάκι,Πετράλωνα"
+Θεόδωρος Μπαλής,6988333333,theodoros@example.com,RENTER,800,1500,RENTAL,HOUSE,LOW,THREE_SIX_MONTHS,100,200,3,4,"Κηφισιά,Μαρούσι,Χαλάνδρι"

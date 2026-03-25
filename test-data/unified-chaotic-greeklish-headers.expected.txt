@@ -1,0 +1,36 @@
+File: unified-chaotic-greeklish-headers.csv
+Scenario: Greeklish (transliterated Greek) column headers
+
+Expected Results:
+- Clients created: 5
+- Clients reused: 0
+- Properties created: 5
+- Mandates created: 0
+- Links - Client↔Property: 5
+- Links - Mandate↔Client: 0
+- Links - Mandate↔Property: 0
+- Errors: 0
+- Skipped: 0
+
+Header Mapping (fuzzy matcher should resolve via aliases):
+- onoma -> client_name (alias: "onoma" in clientImportFieldDefinitions)
+- tilefono -> primary_phone (alias: "tilefono")
+- email -> primary_email (alias: "email")
+- perioxi -> area (alias: "perioxi")
+- timi -> price (alias: "timi")
+- tetragonika -> size_gross_sqm (alias: "tetragonika")
+- ypnodomatia -> bedrooms (alias: "ypnodomatia")
+- orofos -> floor (alias: "orofos")
+- thermansi -> heating_type (alias: "thermansi")
+- katastasi -> condition (alias: "katastasi")
+
+Notes:
+- "onoma" maps to client_name, which triggers client creation
+- "onoma" column value (e.g., "Διαμέρισμα Πετράλωνα") will be used as client_name
+  -- In practice, the data has property names in the "onoma" column. The fuzzy matcher
+     could map "onoma" to either client_name or property_name depending on scoring.
+  -- If mapped to client_name: 5 clients created, 0 properties (no property_name match)
+  -- If mapped to property_name: 5 properties created, client detection via tilefono/email
+- "tilefono" and "email" columns ensure client detection regardless of "onoma" mapping
+- Greeklish aliases are defined in the field definition files for most Greek terms
+- tetragonika maps to size_gross_sqm (not size_net_sqm)

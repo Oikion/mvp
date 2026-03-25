@@ -3,6 +3,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { validateAssignedTo } from "@/lib/validate-assigned-to";
 
 // Helper function to convert string to number or null
 function toNumber(value: any): number | null {
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
     if (shipping_state !== undefined) data.shipping_state = nullIfEmpty(shipping_state);
     if (shipping_country !== undefined) data.shipping_country = nullIfEmpty(shipping_country);
     if (description !== undefined) data.description = nullIfEmpty(description);
-    if (assigned_to !== undefined) data.assigned_to = nullIfEmpty(assigned_to);
+    if (assigned_to !== undefined) data.assigned_to = await validateAssignedTo(assigned_to);
     if (member_of !== undefined) data.member_of = nullIfEmpty(member_of);
 
     // Enum fields - only set if not empty

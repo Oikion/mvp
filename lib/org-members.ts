@@ -20,8 +20,14 @@ interface FetchOrgMembershipsResult {
   clerkUserIds: string[];
 }
 
+// Short-lived in-process cache for org membership lookups (60s TTL).
+// Prevents redundant Clerk API calls during share/rotate flows that
+// validate multiple recipients in quick succession.
+const _membershipCache = new Map<string, { data: FetchOrgMembershipsResult; expiresAt: number }>();
+const MEMBERSHIP_CACHE_TTL_MS = 60_000;
+
 async function fetchOrgMemberships(
-  targetOrgId?: string, 
+  targetOrgId?: string,
   options?: { throwOnMissingOrg?: boolean }
 ): Promise<FetchOrgMembershipsResult> {
   let organizationId: string | null = null;
@@ -40,12 +46,17 @@ async function fetchOrgMemberships(
     if (options?.throwOnMissingOrg) {
       throw new Error("Organization context is required for org membership lookup");
     }
-    // Return empty result when org is not available (e.g., session not synced yet)
     return {
       organizationId: "",
       memberships: [],
       clerkUserIds: [],
     };
+  }
+
+  // Check cache
+  const cached = _membershipCache.get(organizationId);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data;
   }
 
   const secretKey = process.env.CLERK_SECRET_KEY;
@@ -66,11 +77,18 @@ async function fetchOrgMemberships(
     .map((member) => member.publicUserData?.userId)
     .filter((id): id is string => Boolean(id));
 
-  return {
+  const result: FetchOrgMembershipsResult = {
     organizationId,
     memberships,
     clerkUserIds,
   };
+
+  _membershipCache.set(organizationId, {
+    data: result,
+    expiresAt: Date.now() + MEMBERSHIP_CACHE_TTL_MS,
+  });
+
+  return result;
 }
 
 type PrismaSelect = Record<string, boolean> | undefined;

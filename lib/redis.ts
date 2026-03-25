@@ -66,6 +66,29 @@ if (typeof setInterval !== "undefined" && !isRedisAvailable) {
 // ─── Cache Helpers ───────────────────────────────────────────────────────────
 
 /**
+ * Get a cached value by key — strict mode (throws on Redis errors).
+ * NH-3: For security-critical paths (brute force protection) where fail-open is dangerous.
+ * When Redis is configured but errors, the error propagates so the caller can fail closed.
+ * When Redis is not configured (dev), falls back to in-memory store (acceptable for dev).
+ */
+export async function cacheGetStrict<T>(key: string): Promise<T | null> {
+  const client = getRedisInstance();
+  if (client) {
+    // Redis is configured — errors propagate (fail-closed for security callers)
+    const value = await client.get<T>(key);
+    return value ?? null;
+  }
+
+  // Redis not configured — use in-memory fallback (development only)
+  const entry = memoryStore.get(key);
+  if (!entry || Date.now() > entry.expiresAt) {
+    if (entry) memoryStore.delete(key);
+    return null;
+  }
+  return JSON.parse(entry.value) as T;
+}
+
+/**
  * Get a cached value by key. Returns null on miss or error.
  */
 export async function cacheGet<T>(key: string): Promise<T | null> {
@@ -166,6 +189,8 @@ export async function cacheIncr(
     return newCount;
   } catch (error) {
     console.error("[REDIS_CACHE_INCR]", key, error);
-    return 0; // Fail-open: return 0 so callers don't block
+    // Re-throw so security-critical callers (e.g. brute-force counters) fail closed.
+    // Non-critical callers should wrap cacheIncr in their own try/catch if they prefer fail-open.
+    throw error;
   }
 }

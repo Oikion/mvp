@@ -500,11 +500,143 @@
           "FULLY": "Πλήρως"
         }
       }
+    },
+    "unified": {
+      "groups": {
+        "basic": "Ακίνητο — Βασικά",
+        "classification": "Ακίνητο — Κατηγοριοποίηση",
+        "address": "Ακίνητο — Διεύθυνση",
+        "pricing": "Ακίνητο — Τιμολόγηση",
+        "details": "Ακίνητο — Χαρακτηριστικά",
+        "measurements": "Ακίνητο — Μετρήσεις",
+        "building": "Ακίνητο — Κτίριο",
+        "legal": "Ακίνητο — Νομικά",
+        "land": "Ακίνητο — Οικόπεδο",
+        "management": "Ακίνητο — Διαχείριση",
+        "rental": "Ακίνητο — Ενοικίαση",
+        "visibility": "Ακίνητο — Ορατότητα",
+        "other": "Ακίνητο — Άλλα",
+        "contact": "Πελάτης — Επικοινωνία",
+        "company": "Πελάτης — Εταιρεία",
+        "greece": "Πελάτης — Ελληνικά ΙΔ",
+        "shipping": "Πελάτης — Διεύθυνση Αποστολής",
+        "budget": "Εντολή — Προϋπολογισμός",
+        "size": "Εντολή — Μέγεθος",
+        "rooms": "Εντολή — Δωμάτια",
+        "features": "Εντολή — Χαρακτηριστικά",
+        "location": "Εντολή — Τοποθεσία"
+      },
+      "fields": {
+        "property_name": "Όνομα Ακινήτου",
+        "property_type": "Τύπος Ακινήτου",
+        "property_status": "Κατάσταση Ακινήτου",
+        "transaction_type": "Τύπος Συναλλαγής",
+        "price": "Τιμή",
+        "price_type": "Τύπος Τιμής",
+        "address_street": "Οδός",
+        "address_city": "Πόλη",
+        "address_state": "Περιφέρεια",
+        "address_zip": "Τ.Κ.",
+        "municipality": "Δήμος",
+        "area": "Περιοχή",
+        "postal_code": "Ταχ. Κώδικας",
+        "region": "Περιφέρεια",
+        "regional_unit": "Περιφερειακή Ενότητα",
+        "bedrooms": "Υπνοδωμάτια",
+        "bathrooms": "Μπάνια",
+        "size_net_sqm": "Καθαρά τ.μ.",
+        "size_gross_sqm": "Μικτά τ.μ.",
+        "plot_size_sqm": "Οικόπεδο τ.μ.",
+        "description": "Περιγραφή",
+        "primary_email": "Email Ακινήτου",
+        "client_name": "Όνομα Πελάτη",
+        "client_description": "Σημειώσεις Πελάτη",
+        "primary_phone": "Τηλέφωνο",
+        "client_type": "Τύπος Πελάτη",
+        "client_status": "Κατάσταση Πελάτη",
+        "company_name": "Επωνυμία Εταιρείας",
+        "budget_min": "Ελάχιστο Budget",
+        "budget_max": "Μέγιστο Budget",
+        "mandate_transaction_type": "Τύπος Συναλλαγής Εντολής",
+        "mandate_property_type": "Επιθυμητός Τύπος Ακινήτου",
+        "mandate_municipality": "Δήμος (Εντολή)",
+        "mandate_region": "Περιφέρεια (Εντολή)",
+        "mandate_notes": "Σημειώσεις Εντολής",
+        "urgency": "Επείγον",
+        "timeline": "Χρονοδιάγραμμα",
+        "size_min_sqm": "Ελάχ. Μέγεθος (τ.μ.)",
+        "size_max_sqm": "Μέγ. Μέγεθος (τ.μ.)",
+        "bedrooms_min": "Ελάχ. Υπνοδωμάτια",
+        "bedrooms_max": "Μέγ. Υπνοδωμάτια",
+        "areas_of_interest": "Περιοχές Ενδιαφέροντος",
+        "expires_at": "Ημερομηνία Λήξης"
+      }
+    }
+  },
+  "history": {
+    "page": {
+      "title": "Διαχείριση Εισαγωγών",
+      "description": "Δείτε το ιστορικό εισαγωγών, διαχειριστείτε δεδομένα και ξεκινήστε νέες εισαγωγές",
+      "startImport": "Νέα Εισαγωγή",
+      "emptyState": "Δεν υπάρχουν εισαγωγές ακόμα. Ξεκινήστε εισάγοντας δεδομένα από αρχείο CSV ή Excel.",
+      "emptyStateAction": "Εισαγωγή δεδομένων"
+    },
+    "table": {
+      "date": "Ημερομηνία",
+      "source": "Αρχείο",
+      "type": "Τύπος",
+      "created": "Δημιουργήθηκαν",
+      "reused": "Επαναχρ.",
+      "failed": "Απέτυχαν",
+      "skipped": "Παραλείφθηκαν",
+      "status": "Κατάσταση",
+      "actions": "Ενέργειες",
+      "viewDetails": "Λεπτομέρειες",
+      "deleteBatch": "Διαγραφή παρτίδας",
+      "rows": "γραμμές"
+    },
+    "status": {
+      "COMPLETED": "Ολοκληρώθηκε",
+      "PARTIALLY_FAILED": "Μερική",
+      "FAILED": "Απέτυχε",
+      "BATCH_DELETED": "Διαγράφηκε"
+    },
+    "type": {
+      "CLIENTS": "Πελάτες",
+      "PROPERTIES": "Ακίνητα",
+      "MANDATES": "Εντολές",
+      "UNIFIED": "Μικτή"
+    },
+    "detail": {
+      "title": "Λεπτομέρειες Εισαγωγής",
+      "summary": "Σύνοψη",
+      "errors": "Σφάλματα",
+      "noErrors": "Δεν αναφέρθηκαν σφάλματα για αυτή την εισαγωγή.",
+      "errorRow": "Γραμμή",
+      "errorField": "Πεδίο",
+      "errorMessage": "Σφάλμα",
+      "errorValue": "Τιμή",
+      "clients": "Πελάτες",
+      "properties": "Ακίνητα",
+      "mandates": "Εντολές",
+      "created": "Δημιουργήθηκαν",
+      "reused": "Επαναχρησιμοποιήθηκαν",
+      "failed": "Απέτυχαν",
+      "skipped": "Παραλείφθηκαν",
+      "total": "Σύνολο Γραμμών",
+      "importedAt": "Εισήχθη στις",
+      "sourceFile": "Αρχείο προέλευσης"
+    },
+    "batchDelete": {
+      "title": "Διαγραφή Παρτίδας Εισαγωγής",
+      "description": "Αυτό θα διαγράψει μόνιμα όλες τις οντότητες που δημιουργήθηκαν από αυτή την εισαγωγή. Η ενέργεια δεν μπορεί να αναιρεθεί.",
+      "confirm": "Διαγραφή όλων",
+      "cancel": "Ακύρωση",
+      "success": "Η παρτίδα διαγράφηκε επιτυχώς",
+      "error": "Αποτυχία διαγραφής παρτίδας"
     }
   }
 }
-
-
 
 
 

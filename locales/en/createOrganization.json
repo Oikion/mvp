@@ -1,0 +1,102 @@
+{
+  "wizard": {
+    "title": "Create Agency",
+    "description": "Set up your agency with policies, team members, and partnerships",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip for now",
+    "cancel": "Back to Dashboard",
+    "stepOf": "Step {current} of {total}"
+  },
+  "orgInfo": {
+    "title": "Organization Info",
+    "description": "Choose a name and URL for your agency",
+    "nameLabel": "Organization Name",
+    "namePlaceholder": "My Real Estate Agency",
+    "slugLabel": "Organization URL",
+    "slugPlaceholder": "my-agency",
+    "slugHint": "This will be your organization's unique identifier",
+    "available": "Available",
+    "taken": "Already taken",
+    "reserved": "This name is reserved",
+    "checking": "Checking availability...",
+    "suggestion": "Try: {slug}"
+  },
+  "dataPolicy": {
+    "title": "Data Ownership Policy",
+    "description": "Choose how data is handled when team members leave your agency"
+  },
+  "encryption": {
+    "title": "Encryption Policy",
+    "description": "Choose the level of data protection for your agency",
+    "standardTitle": "Standard Encryption",
+    "standardDescription": "All sensitive data is encrypted at rest with your organization's dedicated key. Automatic and transparent — no action needed from your team.",
+    "enhancedTitle": "Enhanced Encryption (E2EE)",
+    "enhancedDescription": "Standard encryption plus an additional client-side encryption layer. Even server administrators cannot read protected fields.",
+    "pinRequired": "Enhanced encryption requires a PIN. This PIN is personal and works across all your organizations.",
+    "pinExists": "Your existing PIN will be used for this organization's encryption.",
+    "pinCreateTitle": "Create Your Encryption PIN",
+    "checkingStatus": "Checking encryption status...",
+    "pinWarning": "If you forget this PIN, your encrypted data cannot be recovered. Store it securely.",
+    "pinLabel": "PIN (4–8 digits)",
+    "pinPlaceholder": "Enter PIN",
+    "confirmPinLabel": "Confirm PIN",
+    "confirmPinPlaceholder": "Confirm PIN",
+    "pinStrength": {
+      "tooShort": "Too short",
+      "weak": "Weak",
+      "good": "Good",
+      "strong": "Strong"
+    },
+    "pinMatch": "PINs match",
+    "pinNoMatch": "PINs do not match",
+    "enableE2ee": "Enable E2EE",
+    "settingUp": "Setting up...",
+    "pinCreated": "PIN created successfully",
+    "pinError": "Failed to set up PIN"
+  },
+  "teammates": {
+    "title": "Add Teammates",
+    "description": "Invite people to join your agency",
+    "connectionsTitle": "Your Connections",
+    "connectionsDescription": "Invite people from your personal network",
+    "manualTitle": "Invite by Email",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "colleague@example.com",
+    "roleLabel": "Role",
+    "addAnother": "Add another",
+    "remove": "Remove",
+    "roles": {
+      "ADMIN": "Admin",
+      "AGENT": "Agent",
+      "VIEWER": "Viewer"
+    },
+    "emptyConnections": "No personal connections to invite. You can invite teammates by email below.",
+    "duplicateEmail": "This email has already been added"
+  },
+  "partnerships": {
+    "title": "Establish Partnerships",
+    "description": "Connect your new agency with agencies in your network",
+    "yourContact": "Your contact: {name}",
+    "members": "{count} members",
+    "emptyState": "No agency connections yet. You can establish partnerships later from Settings → Network.",
+    "selected": "{count} selected"
+  },
+  "review": {
+    "title": "Review & Create",
+    "description": "Review your agency setup before creating",
+    "orgSection": "Organization",
+    "dataPolicySection": "Data Policy",
+    "encryptionSection": "Encryption",
+    "teammatesSection": "Teammates",
+    "partnershipsSection": "Partnerships",
+    "noneYet": "None — you can add later",
+    "invitations": "{count} invitation(s)",
+    "partnerRequests": "{count} partnership request(s)",
+    "createButton": "Create Organization",
+    "creating": "Creating your agency...",
+    "success": "Organization created successfully!",
+    "partialSuccess": "{sent} of {total} invitations sent. You can resend from Settings.",
+    "error": "Failed to create organization. Please try again."
+  }
+}

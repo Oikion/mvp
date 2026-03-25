@@ -135,6 +135,11 @@ export interface ImportResult {
   skipped: number;
   failed: number;
   errors?: ValidationError[];
+  // Unified import fields (present when using unified engine)
+  clients?: { created: number; reused: number; failed: number };
+  properties?: { created: number; failed: number };
+  mandates?: { created: number; failed: number };
+  links?: { clientProperty: number; mandateClient: number; mandateProperty: number };
 }
 
 interface ImportWizardStepsProps {
@@ -143,10 +148,13 @@ interface ImportWizardStepsProps {
   fieldsDict: FieldsDict;
   schema: z.ZodSchema;
   fieldDefinitions: readonly FieldDefinition[];
+  normalizeRow?: (row: Record<string, unknown>) => Record<string, unknown>;
   onImport: (data: Record<string, unknown>[], signal?: AbortSignal) => Promise<ImportResult>;
   onComplete?: () => void;
   onCancel?: () => void;
   viewUrl?: string;
+  unifiedMode?: boolean;
+  mandateFieldKeys?: Set<string>;
 }
 
 // Animation variants for step transitions (matching onboarding)
@@ -175,10 +183,13 @@ export function ImportWizardSteps({
   fieldsDict,
   schema,
   fieldDefinitions,
+  normalizeRow,
   onImport,
   onComplete,
   onCancel,
   viewUrl,
+  unifiedMode,
+  mandateFieldKeys,
 }: ImportWizardStepsProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -264,8 +275,11 @@ export function ImportWizardSteps({
         }
       });
 
+      // Normalize enums before validation (matches server-side engine behavior)
+      const normalizedRow = normalizeRow ? normalizeRow(mappedRow) : mappedRow;
+
       // Validate against schema
-      const result = schema.safeParse(mappedRow);
+      const result = schema.safeParse(normalizedRow);
       if (result.success) {
         valid.push(result.data as Record<string, unknown>);
       } else {
@@ -274,7 +288,7 @@ export function ImportWizardSteps({
             row: rowIndex + 2, // +2 for header row and 0-index
             field: err.path.join("."),
             error: err.message,
-            value: String(mappedRow[err.path[0]] ?? ""),
+            value: String(normalizedRow[err.path[0]] ?? ""),
           });
         });
       }
@@ -283,7 +297,7 @@ export function ImportWizardSteps({
     setValidationErrors(errors);
     setValidData(valid);
     return { errors, valid };
-  }, [parsedData, fieldMapping, schema]);
+  }, [parsedData, fieldMapping, schema, normalizeRow]);
 
   const BATCH_SIZE = 25;
 
@@ -292,6 +306,32 @@ export function ImportWizardSteps({
     abortControllerRef.current = controller;
     setIsImporting(true);
     setImportProgress(0);
+
+    // UNIFIED MODE: single request (no batching) — client dedup map must span all rows
+    if (unifiedMode) {
+      try {
+        setImportProgress(50);
+        const result = await onImport(validData, controller.signal);
+        if (controller.signal.aborted) return;
+        setImportResult(result);
+        setImportProgress(100);
+        handleNext();
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Import failed:", error);
+        setImportResult({
+          imported: 0, skipped: 0,
+          failed: validData.length,
+          errors: [{ row: 0, field: "", error: dict.errors.serverError }],
+        });
+        handleNext();
+      } finally {
+        setIsImporting(false);
+        setImportProgress(0);
+        abortControllerRef.current = null;
+      }
+      return;
+    }
 
     const aggregated: ImportResult = {
       imported: 0,
@@ -317,6 +357,30 @@ export function ImportWizardSteps({
         aggregated.failed += result.failed;
         if (result.errors) {
           aggregated.errors!.push(...result.errors);
+        }
+
+        // Aggregate unified import fields across batches
+        if (result.clients) {
+          if (!aggregated.clients) aggregated.clients = { created: 0, reused: 0, failed: 0 };
+          aggregated.clients.created += result.clients.created;
+          aggregated.clients.reused += result.clients.reused;
+          aggregated.clients.failed += result.clients.failed;
+        }
+        if (result.properties) {
+          if (!aggregated.properties) aggregated.properties = { created: 0, failed: 0 };
+          aggregated.properties.created += result.properties.created;
+          aggregated.properties.failed += result.properties.failed;
+        }
+        if (result.mandates) {
+          if (!aggregated.mandates) aggregated.mandates = { created: 0, failed: 0 };
+          aggregated.mandates.created += result.mandates.created;
+          aggregated.mandates.failed += result.mandates.failed;
+        }
+        if (result.links) {
+          if (!aggregated.links) aggregated.links = { clientProperty: 0, mandateClient: 0, mandateProperty: 0 };
+          aggregated.links.clientProperty += result.links.clientProperty;
+          aggregated.links.mandateClient += result.links.mandateClient;
+          aggregated.links.mandateProperty += result.links.mandateProperty;
         }
 
         setImportProgress(Math.round(((i + 1) / totalBatches) * 100));
@@ -349,6 +413,15 @@ export function ImportWizardSteps({
       case 0: // Upload
         return file !== null && parsedData.length > 0;
       case 1: // Mapping
+        if (unifiedMode) {
+          const mappedFields = Object.values(fieldMapping);
+          const hasClientTrigger = mappedFields.includes("client_name")
+            || mappedFields.includes("primary_phone") || mappedFields.includes("primary_email");
+          const hasPropertyTrigger = mappedFields.includes("property_name");
+          const hasMandateTrigger = mandateFieldKeys
+            ? mappedFields.some((f) => mandateFieldKeys.has(f)) : false;
+          return hasClientTrigger || hasPropertyTrigger || hasMandateTrigger;
+        }
         // Check if all required fields are mapped
         const requiredFields = fieldDefinitions.filter((f) => f.required);
         const mappedFields = Object.values(fieldMapping);
@@ -374,6 +447,7 @@ export function ImportWizardSteps({
             onFileUpload={handleFileUpload}
             currentFile={file}
             entityType={entityType}
+            unifiedMode={unifiedMode}
           />
         );
       case 1:
@@ -400,7 +474,30 @@ export function ImportWizardSteps({
             onValidate={validateData}
           />
         );
-      case 3:
+      case 3: {
+        // Compute entity counts for unified mode preview
+        // Client count uses dedup logic matching the server-side engine:
+        // phone > email > name as dedup key — same client across rows counts once
+        const entityCounts = unifiedMode ? (() => {
+          const clientDedupKeys = new Set<string>();
+          let properties = 0, mandates = 0;
+          for (const row of validData) {
+            const hasClient = !!(row.client_name || row.primary_phone || row.primary_email);
+            if (hasClient) {
+              const phone = String(row.primary_phone ?? "").trim().replace(/\D/g, "");
+              const email = String(row.primary_email ?? "").trim().toLowerCase();
+              const name = String(row.client_name ?? "").trim().toLowerCase();
+              const key = phone ? `phone:${phone}` : email ? `email:${email}` : `name:${name}`;
+              clientDedupKeys.add(key);
+            }
+            if (row.property_name) properties++;
+            if (mandateFieldKeys && Object.entries(row).some(
+              ([k, v]) => mandateFieldKeys.has(k) && v !== null && v !== undefined && v !== ""
+            )) mandates++;
+          }
+          return { clients: clientDedupKeys.size, properties, mandates };
+        })() : undefined;
+
         return (
           <ReviewStep
             dict={dict.review}
@@ -409,8 +506,10 @@ export function ImportWizardSteps({
             fieldMapping={fieldMapping}
             errorCount={validationErrors.length > 0 ? parsedData.length - validData.length : 0}
             entityType={entityType}
+            entityCounts={entityCounts}
           />
         );
+      }
       case 4:
         return (
           <CompleteStep

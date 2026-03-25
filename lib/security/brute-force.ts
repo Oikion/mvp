@@ -1,4 +1,4 @@
-import { cacheIncr, cacheDel, cacheGet } from "@/lib/redis";
+import { cacheIncr, cacheDel, cacheGetStrict } from "@/lib/redis";
 
 /**
  * Brute Force Protection
@@ -7,9 +7,12 @@ import { cacheIncr, cacheDel, cacheGet } from "@/lib/redis";
  * Fail-closed: if Redis is unavailable, requests are blocked.
  */
 
-const LIMITS: Record<string, { maxAttempts: number; windowSeconds: number }> = {
+type BruteForceType = "otp" | "login" | "pin";
+
+const LIMITS: Record<BruteForceType, { maxAttempts: number; windowSeconds: number }> = {
   otp: { maxAttempts: 5, windowSeconds: 900 },    // 5 attempts per 15 minutes
   login: { maxAttempts: 10, windowSeconds: 900 },  // 10 attempts per 15 minutes
+  pin: { maxAttempts: 5, windowSeconds: 900 },     // 5 PIN attempts per 15 minutes
 };
 
 function getKey(type: string, identifier: string): string {
@@ -27,17 +30,19 @@ export interface BruteForceResult {
  * Call recordFailedAttempt() separately on failure.
  */
 export async function checkAttempt(
-  type: "otp" | "login",
+  type: BruteForceType,
   identifier: string
 ): Promise<BruteForceResult> {
   const config = LIMITS[type];
   const key = getKey(type, identifier);
 
+  // NH-3: Use cacheGetStrict so Redis errors propagate (fail-closed).
+  // cacheGet swallows errors and returns null → would silently disable brute force protection.
   let current: number | null;
   try {
-    current = await cacheGet<number>(key);
+    current = await cacheGetStrict<number>(key);
   } catch {
-    // Fail-closed: if Redis is down, block the request to prevent brute force
+    // Fail-closed: if Redis is configured but erroring, block the request
     console.error(`[BRUTE_FORCE] Redis error for key ${key}, failing closed`);
     return { allowed: false, remaining: 0, retryAfter: 60 };
   }
@@ -65,7 +70,7 @@ export async function checkAttempt(
  * Record a failed attempt. Increments the counter and sets TTL.
  */
 export async function recordFailedAttempt(
-  type: "otp" | "login",
+  type: BruteForceType,
   identifier: string
 ): Promise<void> {
   const config = LIMITS[type];
@@ -76,7 +81,7 @@ export async function recordFailedAttempt(
  * Clear all attempts for an identifier (e.g., on successful auth).
  */
 export async function clearAttempts(
-  type: "otp" | "login",
+  type: BruteForceType,
   identifier: string
 ): Promise<void> {
   await cacheDel(getKey(type, identifier));

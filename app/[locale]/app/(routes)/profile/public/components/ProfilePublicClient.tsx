@@ -154,7 +154,7 @@ export function ProfilePublicClient({
         </div>
 
         <div className="flex items-center gap-2">
-          {profileUrl && profile?.visibility !== "PERSONAL" && profile && (
+          {profileUrl && profile?.visibility !== "PRIVATE" && profile && (
             <Button variant="outline" size="sm" asChild>
               <Link
                 href={`/agent/${profileUrl}`}

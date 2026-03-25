@@ -19,7 +19,7 @@ import { SocialFeedIcon } from "@/components/ui/SocialFeedIcon"
 import { UsersIcon } from "@/components/ui/UsersIcon"
 import { ShieldIcon } from "@/components/ui/ShieldIcon"
 import { MessageCircleIcon } from "@/components/ui/MessageCircleIcon"
-import { Target } from "lucide-react"
+import { Target, Upload } from "lucide-react"
 import { type ModuleId } from "@/lib/permissions/types"
 import { isRouteActive } from "@/lib/navigation/route-utils"
 
@@ -227,6 +227,13 @@ export function getNavigationConfig({
       iconClassName: "text-rose-400 dark:text-rose-400/70",
       labelClassName: "text-rose-400 dark:text-rose-400/70 font-semibold",
     }] : []),
+    // Import - import history and data management
+    {
+      title: dict.navigation.ModuleMenu.import || "Import",
+      url: "/app/import",
+      icon: Upload,
+      isActive: isRouteActive(pathname, "/app/import", locale),
+    },
   ]
 
   // Organization - Employees, Admin, Platform Admin (if applicable)

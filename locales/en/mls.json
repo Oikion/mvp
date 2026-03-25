@@ -119,7 +119,10 @@
       "buildingBlockOtPlaceholder": "O.T. number"
     },
     "visibility": {
-      "PERSONAL": "Personal",
+      "HIDDEN": "Hidden",
+      "HIDDEN_DESC": "Hidden from all automated systems",
+      "PRIVATE": "Private",
+      "PRIVATE_DESC": "Only you and your agency",
       "SECURE": "Secure",
       "PUBLIC": "Public"
     },
@@ -516,6 +519,37 @@
       "step3": "Publish Properties",
       "step3Description": "Select properties from your MLS listings and publish to xe.gr."
     }
+  },
+  "PropertyView": {
+    "propertyDetails": "Property Details",
+    "sizeAndRooms": "Size & Rooms",
+    "location": "Location",
+    "notes": "Notes",
+    "comments": "Comments",
+    "statusAndAssignment": "Status & Assignment",
+    "visibility": "Visibility",
+    "publicUrl": "Public URL",
+    "edit": "Edit",
+    "share": "Share",
+    "editProperty": "Edit Property",
+    "created": "Created:",
+    "updated": "Updated:",
+    "type": "Type",
+    "status": "Status",
+    "price": "Price",
+    "yearBuilt": "Year Built",
+    "netArea": "Net Area",
+    "lotSize": "Lot Size",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "street": "Street",
+    "city": "City",
+    "stateRegion": "State / Region",
+    "zipCode": "ZIP Code",
+    "description": "Description",
+    "preferences": "Preferences",
+    "communicationNotes": "Communication Notes",
+    "assignedTo": "Assigned to"
   },
   "propertyImages": {
     "title": "Property Photos",

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useInvitationAcceptance } from "@/hooks/useInvitationAcceptance";
 import { DataPolicyConsentModal } from "@/components/data-ownership/DataPolicyConsentModal";
+import { useWorkspaceContext } from "@/hooks/use-workspace-context";
 
 export function AgencyOrganizationSwitcher() {
   const router = useRouter();
@@ -42,6 +43,7 @@ export function AgencyOrganizationSwitcher() {
     });
   const [isSwitching, setIsSwitching] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { isPersonalWorkspace } = useWorkspaceContext();
 
   const {
     initiateAcceptance,
@@ -63,12 +65,19 @@ export function AgencyOrganizationSwitcher() {
 
   const pendingInvitations = userInvitations?.data || [];
 
-  const agencyOrgs =
-    userMemberships?.data?.filter(
-      (membership) =>
-        (membership.organization.publicMetadata as Record<string, unknown>)
-          ?.type !== "personal"
-    ) ?? [];
+  const allOrgs = userMemberships?.data ?? [];
+
+  const agencyOrgs = allOrgs.filter(
+    (membership) =>
+      (membership.organization.publicMetadata as Record<string, unknown>)
+        ?.type !== "personal"
+  );
+
+  const personalOrg = allOrgs.find(
+    (membership) =>
+      (membership.organization.publicMetadata as Record<string, unknown>)
+        ?.type === "personal"
+  );
 
   const handleOrgSwitch = async (orgId: string) => {
     if (isSwitching || !setActive || orgId === currentOrg?.id) return;
@@ -85,7 +94,7 @@ export function AgencyOrganizationSwitcher() {
   };
 
   const handleCreateOrg = () => {
-    router.push(`/${locale}/create-organization`);
+    router.push(`/${locale}/app/create-organization`);
   };
 
   const handleManageOrg = () => {
@@ -216,9 +225,43 @@ export function AgencyOrganizationSwitcher() {
             </>
           )}
 
-          {/* Existing Organizations */}
+          {/* Personal Workspace */}
+          {personalOrg && (
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                Personal
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => handleOrgSwitch(personalOrg.organization.id)}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <Avatar className="h-6 w-6 shrink-0">
+                  <AvatarImage
+                    src={personalOrg.organization.imageUrl}
+                    alt={personalOrg.organization.name}
+                  />
+                  <AvatarFallback className="text-xs">
+                    {getInitials(personalOrg.organization.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate text-sm">
+                  {personalOrg.organization.name}
+                </span>
+                {currentOrg?.id === personalOrg.organization.id && (
+                  <Check className="h-4 w-4 shrink-0 text-primary ml-auto" />
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          )}
+
+          {personalOrg && agencyOrgs.length > 0 && <DropdownMenuSeparator />}
+
+          {/* Agency Organizations */}
           {agencyOrgs.length > 0 && (
             <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                Agencies
+              </DropdownMenuLabel>
               {agencyOrgs.map((membership) => (
                 <DropdownMenuItem
                   key={membership.organization.id}
@@ -252,13 +295,15 @@ export function AgencyOrganizationSwitcher() {
 
           {agencyOrgs.length > 0 && <DropdownMenuSeparator />}
 
-          <DropdownMenuItem
-            onClick={handleManageOrg}
-            className="flex items-center gap-2 cursor-pointer text-muted-foreground"
-          >
-            <Settings className="h-4 w-4" />
-            <span className="text-sm">Manage Organization</span>
-          </DropdownMenuItem>
+          {!isPersonalWorkspace && (
+            <DropdownMenuItem
+              onClick={handleManageOrg}
+              className="flex items-center gap-2 cursor-pointer text-muted-foreground"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="text-sm">Manage Organization</span>
+            </DropdownMenuItem>
+          )}
 
           <DropdownMenuItem
             onClick={handleCreateOrg}

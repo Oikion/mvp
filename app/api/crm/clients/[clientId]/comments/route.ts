@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptMessageForOrg } from "@/lib/model-encryption";
+import {
+  encryptClientCommentForOrg,
+  decryptClientCommentForOrg,
+} from "@/lib/model-encryption";
+import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
+import { EncryptionMode } from "@prisma/client";
 
 /**
  * GET /api/crm/clients/[clientId]/comments
@@ -70,13 +75,29 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    // Decrypt comment content
+    const encryptionMode = await getOrgEncryptionMode(organizationId);
+    const isE2EE = encryptionMode === EncryptionMode.E2EE;
+
+    if (isE2EE) {
+      // E2EE: return ciphertext + session metadata — client decrypts
+      return NextResponse.json({
+        comments: comments.map((c) => ({
+          ...c,
+          user: c.Users,
+          isEncrypted: c.entitySessionId !== null,
+        })),
+        encryptionMode: "E2EE",
+      });
+    }
+
+    // Standard: server-side decryption
     const decryptedComments = await Promise.all(
-      comments.map((c) => decryptMessageForOrg(c, organizationId))
+      comments.map((c) => decryptClientCommentForOrg(c, organizationId))
     );
 
     return NextResponse.json({
-      comments: decryptedComments.map(c => ({ ...c, user: c.Users }))
+      comments: decryptedComments.map((c) => ({ ...c, user: (c as any).Users, isEncrypted: (c as any).entitySessionId !== null })),
+      encryptionMode: "STANDARD",
     });
   } catch (error) {
     console.error("[CLIENT_COMMENTS_GET]", error);
@@ -114,13 +135,6 @@ export async function POST(
     if (!content?.trim()) {
       return NextResponse.json(
         { error: "Comment content is required" },
-        { status: 400 }
-      );
-    }
-
-    if (content.length > 2000) {
-      return NextResponse.json(
-        { error: "Comment is too long (max 2000 characters)" },
         { status: 400 }
       );
     }
@@ -167,13 +181,103 @@ export async function POST(
       );
     }
 
+    // Determine encryption mode for this org
+    const encryptionMode = await getOrgEncryptionMode(organizationId);
+    const isE2EE = encryptionMode === EncryptionMode.E2EE;
+
+    let commentContent: string;
+    let entitySessionId: string | null = null;
+    let messageIndex: number | null = null;
+
+    if (isE2EE) {
+      // E2EE: client sends pre-encrypted content (iv:ciphertext) + session metadata.
+      // Skip server-side length validation — ciphertext is larger than plaintext.
+      // Plaintext length is validated client-side before encryption.
+      const { entitySessionId: sid, messageIndex: idx } = body;
+      if (!sid || idx === undefined) {
+        return NextResponse.json(
+          { error: "entitySessionId and messageIndex required for E2EE orgs" },
+          { status: 400 }
+        );
+      }
+
+      // Validate entitySessionId belongs to this entity
+      const sessionOwnership = await prismadb.entitySession.findFirst({
+        where: {
+          id: sid,
+          entityType: "CLIENT",
+          entityId: clientId,
+          orgId: organizationId,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+      if (!sessionOwnership) {
+        return NextResponse.json(
+          { error: "entitySessionId does not match this entity or is not active" },
+          { status: 400 }
+        );
+      }
+
+      // Validate messageIndex monotonicity
+      if (!Number.isInteger(idx) || idx < 0) {
+        return NextResponse.json(
+          { error: "messageIndex must be a non-negative integer" },
+          { status: 400 }
+        );
+      }
+
+      const updated = await prismadb.entitySession.updateMany({
+        where: {
+          id: sid,
+          OR: [
+            { lastMessageIndex: null },
+            { lastMessageIndex: { lt: idx } },
+          ],
+        },
+        data: { lastMessageIndex: idx },
+      });
+
+      if (updated.count === 0) {
+        return NextResponse.json(
+          { error: "messageIndex is not monotonically increasing" },
+          { status: 400 }
+        );
+      }
+
+      commentContent = content.trim(); // Already ciphertext (iv:ciphertext format)
+      if (!commentContent.includes(":")) {
+        return NextResponse.json(
+          { error: "Invalid encrypted content format" },
+          { status: 400 }
+        );
+      }
+      entitySessionId = sid;
+      messageIndex = idx;
+    } else {
+      // Standard: validate length then server-side Layer 1 encryption
+      if (content.length > 2000) {
+        return NextResponse.json(
+          { error: "Comment is too long (max 2000 characters)" },
+          { status: 400 }
+        );
+      }
+      const { content: encrypted } = await encryptClientCommentForOrg(
+        { content: content.trim() },
+        organizationId
+      );
+      commentContent = encrypted ?? content.trim();
+    }
+
     // Create comment
     const comment = await prismadb.clientComment.create({
       data: {
         id: crypto.randomUUID(),
         clientId,
         userId: user.id,
-        content: content.trim(),
+        content: commentContent,
+        entitySessionId,
+        messageIndex,
         updatedAt: new Date(),
       },
       include: {
@@ -188,7 +292,15 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({ comment: { ...comment, user: comment.Users } }, { status: 201 });
+    // For Standard orgs, decrypt before returning to client
+    const responseComment = isE2EE
+      ? comment
+      : await decryptClientCommentForOrg(comment, organizationId);
+
+    return NextResponse.json(
+      { comment: { ...responseComment, user: comment.Users } },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("[CLIENT_COMMENTS_POST]", error);
     return NextResponse.json(

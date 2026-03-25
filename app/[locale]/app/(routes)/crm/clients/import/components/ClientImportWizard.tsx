@@ -1,10 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { ImportWizardSteps, type ImportResult } from "@/components/import";
-import { clientImportSchema, clientImportFieldDefinitions } from "@/lib/import";
-import { useAppToast } from "@/hooks/use-app-toast";
+import { UnifiedImportWizard } from "@/components/import/UnifiedImportWizard";
 
 interface ClientImportWizardProps {
   dict: {
@@ -104,76 +100,16 @@ interface ClientImportWizardProps {
 }
 
 export function ClientImportWizard({ dict, locale }: ClientImportWizardProps) {
-  const router = useRouter();
-  const { toast } = useAppToast();
-
-  const handleImport = useCallback(
-    async (data: Record<string, unknown>[], signal?: AbortSignal): Promise<ImportResult> => {
-      try {
-        const response = await fetch("/api/crm/clients/import", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ clients: data }),
-          signal,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "Import failed");
-        }
-
-        const result = await response.json();
-        
-        if (result.imported > 0) {
-          toast.success("Import successful", { description: `Successfully imported ${result.imported} client(s)`, isTranslationKey: false });
-        }
-
-        return {
-          imported: result.imported || 0,
-          skipped: result.skipped || 0,
-          failed: result.failed || 0,
-          errors: result.errors || [],
-        };
-      } catch (error) {
-        console.error("Import error:", error);
-        toast.error("Import failed", { description: error instanceof Error ? error.message : String(error), isTranslationKey: false });
-        return {
-          imported: 0,
-          skipped: 0,
-          failed: data.length,
-          errors: [{ row: 0, field: "", error: dict.ImportWizard.errors.serverError }],
-        };
-      }
-    },
-    [toast, dict.ImportWizard.errors.serverError]
-  );
-
-  const handleComplete = useCallback(() => {
-    router.push(`/${locale}/app/crm`);
-    router.refresh();
-  }, [router, locale]);
-
-  const handleCancel = useCallback(() => {
-    router.push(`/${locale}/app/crm`);
-  }, [router, locale]);
+  const unifiedDict = {
+    ImportWizard: dict.ImportWizard,
+    ImportFields: dict.ImportFields.client ?? dict.ImportFields,
+  };
 
   return (
-    <ImportWizardSteps
-      entityType="client"
-      dict={dict.ImportWizard}
-      fieldsDict={dict.ImportFields.client}
-      schema={clientImportSchema}
-      fieldDefinitions={clientImportFieldDefinitions}
-      onImport={handleImport}
-      onComplete={handleComplete}
-      onCancel={handleCancel}
-      viewUrl={`/${locale}/app/crm`}
+    <UnifiedImportWizard
+      dict={unifiedDict}
+      locale={locale}
+      returnUrl={`/${locale}/app/crm`}
     />
   );
 }
-
-
-
-
-
-

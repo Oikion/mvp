@@ -1,0 +1,6 @@
+property_name,property_type,price,size_net_sqm,bedrooms,area,client_name,primary_phone,notes_internal,agent_commission,listing_date,photo_url,custom_ref,floor_plan_url
+Διαμέρισμα Αμπελόκηποι,APARTMENT,200000,78,2,Αμπελόκηποι,Γεωργία Σταματίου,6977888111,Κλειδιά στο γραφείο,3.5%,2026-01-15,https://photos.example.com/1.jpg,REF-001,https://plans.example.com/1.pdf
+Μονοκατοικία Κηφισιά,HOUSE,550000,210,4,Κηφισιά,Θεοδόσης Κοσμάς,6977888222,Σκύλος στην αυλή - προσοχή,2%,2026-02-01,https://photos.example.com/2.jpg,REF-002,
+Οικόπεδο Σαρωνίδα,LAND,180000,0,0,Σαρωνίδα,Βασιλική Πετράκη,6977888333,Χρειάζεται τοπογραφικό,5%,2026-02-20,https://photos.example.com/3.jpg,REF-003,
+Γραφείο Σύνταγμα,COMMERCIAL,2000,45,0,Σύνταγμα,Σπύρος Αλεξανδρής,6977888444,Ενοικίαση μόνο - μην πείτε τιμή πώλησης,4%,2026-03-01,,REF-004,https://plans.example.com/4.pdf
+Μεζονέτα Βουλιαγμένη,MAISONETTE,620000,190,3,Βουλιαγμένη,Ελευθερία Δημητρακοπούλου,6977888555,VIP πελάτης,2.5%,2026-03-10,https://photos.example.com/5.jpg,REF-005,https://plans.example.com/5.pdf

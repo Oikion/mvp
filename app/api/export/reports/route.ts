@@ -190,7 +190,7 @@ export async function GET(req: NextRequest) {
         })),
       ];
       
-      const result = generateExportFile("reports", format, exportData, {
+      const result = await generateExportFile("reports", format, exportData, {
         locale,
         columns: REPORTS_COLUMNS,
         sheetName: locale === "el" ? "Αναφορές" : "Reports",

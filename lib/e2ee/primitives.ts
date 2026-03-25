@@ -3,7 +3,7 @@
 const ECDH_PARAMS = { name: "ECDH", namedCurve: "P-256" } as const;
 const AES_GCM = "AES-GCM" as const;
 const IV_BYTES = 12;
-const PBKDF2_ITERATIONS = 100_000;
+export const PBKDF2_ITERATIONS = 600_000;
 
 // ─── Random ────────────────────────────────
 
@@ -85,6 +85,91 @@ export async function sha256(data: BufferSource): Promise<ArrayBuffer> {
   return crypto.subtle.digest("SHA-256", data);
 }
 
+// ─── Ed25519 Signing Keys ──────────────────
+
+const ED25519_PARAMS = { name: "Ed25519" } as const;
+
+export async function generateEd25519KeyPair(): Promise<CryptoKeyPair> {
+  return crypto.subtle.generateKey(ED25519_PARAMS, true, ["sign", "verify"]);
+}
+
+export async function signWithEd25519(
+  privateKey: CryptoKey,
+  data: BufferSource
+): Promise<ArrayBuffer> {
+  return crypto.subtle.sign("Ed25519", privateKey, data);
+}
+
+export async function verifyWithEd25519(
+  publicKey: CryptoKey,
+  signature: BufferSource,
+  data: BufferSource
+): Promise<boolean> {
+  return crypto.subtle.verify("Ed25519", publicKey, signature, data);
+}
+
+export async function exportEd25519PublicKey(key: CryptoKey): Promise<string> {
+  const raw = await crypto.subtle.exportKey("spki", key);
+  return bufferToBase64(raw);
+}
+
+export async function importEd25519PublicKey(base64: string): Promise<CryptoKey> {
+  const raw = base64ToBuffer(base64);
+  return crypto.subtle.importKey("spki", raw, ED25519_PARAMS, true, ["verify"]);
+}
+
+export async function wrapEd25519PrivateKey(
+  privateKey: CryptoKey,
+  pin: string,
+  pepper: ArrayBuffer
+): Promise<{ wrappedKey: string; salt: string }> {
+  const salt = generateRandomBytes(16);
+  const kek = await deriveKEKFromPIN(pin, salt, pepper);
+  const iv = generateRandomBytes(IV_BYTES);
+  const wrapped = await crypto.subtle.wrapKey("pkcs8", privateKey, kek, { name: AES_GCM, iv });
+  const combined = concatBuffers(iv, wrapped);
+  return { wrappedKey: bufferToBase64(combined), salt: bufferToBase64(salt) };
+}
+
+export async function unwrapEd25519PrivateKey(
+  wrappedKeyBase64: string,
+  pin: string,
+  pepper: ArrayBuffer,
+  saltBase64: string
+): Promise<CryptoKey> {
+  const combined = base64ToBuffer(wrappedKeyBase64);
+  const iv = combined.slice(0, IV_BYTES);
+  const wrappedKey = combined.slice(IV_BYTES);
+  const salt = base64ToBuffer(saltBase64);
+  const kek = await deriveKEKFromPIN(pin, salt, pepper);
+  return crypto.subtle.unwrapKey(
+    "pkcs8", wrappedKey, kek,
+    { name: AES_GCM, iv },
+    ED25519_PARAMS,
+    true,
+    ["sign"]
+  );
+}
+
+/**
+ * NM-5: Unwrap an Ed25519 private key using a pre-derived KEK.
+ */
+export async function unwrapEd25519PrivateKeyWithKEK(
+  wrappedKeyBase64: string,
+  kek: CryptoKey
+): Promise<CryptoKey> {
+  const combined = base64ToBuffer(wrappedKeyBase64);
+  const iv = combined.slice(0, IV_BYTES);
+  const wrappedKey = combined.slice(IV_BYTES);
+  return crypto.subtle.unwrapKey(
+    "pkcs8", wrappedKey, kek,
+    { name: AES_GCM, iv },
+    ED25519_PARAMS,
+    true,
+    ["sign"]
+  );
+}
+
 // ─── Key Export / Import ───────────────────
 
 export async function exportPublicKey(key: CryptoKey): Promise<string> {
@@ -160,13 +245,40 @@ export async function unwrapPrivateKey(
   );
 }
 
+/**
+ * NM-5: Unwrap an ECDH private key using a pre-derived KEK (avoids redundant PBKDF2).
+ * Used by unlock() which derives KEK once and reuses it for multiple unwrap operations.
+ */
+export async function unwrapPrivateKeyWithKEK(
+  wrappedKeyBase64: string,
+  kek: CryptoKey
+): Promise<CryptoKey> {
+  const combined = base64ToBuffer(wrappedKeyBase64);
+  const iv = combined.slice(0, IV_BYTES);
+  const wrappedKey = combined.slice(IV_BYTES);
+  return crypto.subtle.unwrapKey(
+    "pkcs8", wrappedKey, kek,
+    { name: AES_GCM, iv },
+    ECDH_PARAMS,
+    true,
+    ["deriveBits"]
+  );
+}
+
 // ─── Buffer Utilities ──────────────────────
+
+// L-5: Replaced char-by-char string concatenation with chunked String.fromCharCode.apply().
+// The previous loop created n intermediate string objects, generating GC pressure on large
+// buffers (e.g., file attachments). The chunked approach stays within the call stack limit
+// (65536 args) while avoiding O(n²) string growth.
+const CHUNK_SIZE = 65536;
 
 export function bufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  for (let offset = 0; offset < bytes.length; offset += CHUNK_SIZE) {
+    const chunk = bytes.subarray(offset, offset + CHUNK_SIZE);
+    binary += String.fromCharCode.apply(null, chunk as unknown as number[]);
   }
   return btoa(binary);
 }

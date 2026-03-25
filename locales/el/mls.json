@@ -119,7 +119,10 @@
       "buildingBlockOtPlaceholder": "Αριθμός Ο.Τ."
     },
     "visibility": {
-      "PERSONAL": "Προσωπικό",
+      "HIDDEN": "Κρυφό",
+      "HIDDEN_DESC": "Κρυφό από όλα τα αυτοματοποιημένα συστήματα",
+      "PRIVATE": "Ιδιωτικό",
+      "PRIVATE_DESC": "Μόνο εσύ και η εταιρεία σου",
       "SECURE": "Ασφαλές",
       "PUBLIC": "Δημόσιο"
     },
@@ -522,6 +525,37 @@
       "step3": "Δημοσιεύστε Ακίνητα",
       "step3Description": "Επιλέξτε ακίνητα από τη λίστα MLS και δημοσιεύστε τα στο xe.gr."
     }
+  },
+  "PropertyView": {
+    "propertyDetails": "Λεπτομέρειες Ακινήτου",
+    "sizeAndRooms": "Μέγεθος & Δωμάτια",
+    "location": "Τοποθεσία",
+    "notes": "Σημειώσεις",
+    "comments": "Σχόλια",
+    "statusAndAssignment": "Κατάσταση & Ανάθεση",
+    "visibility": "Ορατότητα",
+    "publicUrl": "Δημόσιο URL",
+    "edit": "Επεξεργασία",
+    "share": "Κοινοποίηση",
+    "editProperty": "Επεξεργασία Ακινήτου",
+    "created": "Δημιουργήθηκε:",
+    "updated": "Ενημερώθηκε:",
+    "type": "Τύπος",
+    "status": "Κατάσταση",
+    "price": "Τιμή",
+    "yearBuilt": "Έτος Κατασκευής",
+    "netArea": "Καθαρό Εμβαδόν",
+    "lotSize": "Εμβαδόν Οικοπέδου",
+    "bedrooms": "Υπνοδωμάτια",
+    "bathrooms": "Μπάνια",
+    "street": "Οδός",
+    "city": "Πόλη",
+    "stateRegion": "Νομός / Περιφέρεια",
+    "zipCode": "ΤΚ",
+    "description": "Περιγραφή",
+    "preferences": "Προτιμήσεις",
+    "communicationNotes": "Σημειώσεις Επικοινωνίας",
+    "assignedTo": "Ανατέθηκε σε"
   },
   "propertyImages": {
     "title": "Φωτογραφίες Ακινήτου",

@@ -1,46 +1,50 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { Lock, Shield, Globe } from "lucide-react";
+import { Lock, Shield, Globe, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { ItemVisibility } from "@prisma/client";
 
-const OPTIONS: {
+const OPTION_STYLES: {
   value: ItemVisibility;
   icon: React.ElementType;
-  label: string;
-  description: string;
+  tKey: string;
   color: string;
   trackColor: string;
 }[] = [
   {
-    value: "PERSONAL",
+    value: "HIDDEN",
+    icon: EyeOff,
+    tKey: "hidden",
+    color: "text-muted-foreground",
+    trackColor: "#9ca3af",
+  },
+  {
+    value: "PRIVATE",
     icon: Lock,
-    label: "Personal",
-    description: "Only you and your org",
+    tKey: "private",
     color: "text-muted-foreground",
     trackColor: "#6b7280",
   },
   {
     value: "SECURE",
     icon: Shield,
-    label: "Secure",
-    description: "App users & network peers",
+    tKey: "secure",
     color: "text-blue-500",
     trackColor: "#3b82f6",
   },
   {
     value: "PUBLIC",
     icon: Globe,
-    label: "Public",
-    description: "Everyone, shown on profile",
+    tKey: "public",
     color: "text-primary",
     trackColor: "hsl(var(--primary))",
   },
 ];
 
-const INDEX: Record<ItemVisibility, number> = { PERSONAL: 0, SECURE: 1, PUBLIC: 2 };
-const FROM_INDEX: ItemVisibility[] = ["PERSONAL", "SECURE", "PUBLIC"];
+const INDEX: Record<ItemVisibility, number> = { HIDDEN: 0, PRIVATE: 1, SECURE: 2, PUBLIC: 3 };
+const FROM_INDEX: ItemVisibility[] = ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"];
 
 // Interpolate between two hex/rgb colors by t ∈ [0,1]
 function lerpColor(a: string, b: string, t: number): string {
@@ -61,11 +65,11 @@ function lerpColor(a: string, b: string, t: number): string {
   return `rgb(${r},${g},${bl})`;
 }
 
-// Resolve the thumb color at a continuous position 0–2
+// Resolve the thumb color at a continuous position 0–3
 function thumbColorAt(pos: number): string {
-  if (pos <= 1) return lerpColor("#6b7280", "#3b82f6", pos);
-  // For pos > 1, lerp toward primary — approximate with a fixed end color
-  return lerpColor("#3b82f6", "#22c55e", pos - 1); // will be overridden by CSS var below
+  if (pos <= 1) return lerpColor("#9ca3af", "#6b7280", pos);
+  if (pos <= 2) return lerpColor("#6b7280", "#3b82f6", pos - 1);
+  return lerpColor("#3b82f6", "#22c55e", pos - 2);
 }
 
 interface ItemVisibilitySelectorProps {
@@ -79,17 +83,27 @@ export function ItemVisibilitySelector({
   onChange,
   disabled = false,
 }: ItemVisibilitySelectorProps) {
+  const t = useTranslations("common");
+
+  // Build translated options from static styles
+  const OPTIONS = OPTION_STYLES.map((opt) => ({
+    ...opt,
+    label: t(`visibility.${opt.tKey}.label`),
+    shortDescription: t(`visibility.${opt.tKey}.shortDescription`),
+    description: t(`visibility.${opt.tKey}.description`),
+  }));
+
   const committedIdx = INDEX[value];
-  // dragPos: float 0–2 while dragging; null when idle (uses committedIdx)
+  // dragPos: float 0–3 while dragging; null when idle (uses committedIdx)
   const [dragPos, setDragPos] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
 
   const pos = dragPos !== null ? dragPos : committedIdx;
-  const pct = (pos / 2) * 100;
+  const pct = (pos / 3) * 100;
 
   // Snap index for live label highlighting during drag
-  const liveIdx = Math.min(2, Math.max(0, Math.round(pos)));
+  const liveIdx = Math.min(3, Math.max(0, Math.round(pos)));
   const active = OPTIONS[committedIdx]; // pill always shows committed value
 
   const getPosFromEvent = useCallback((clientX: number): number => {
@@ -97,7 +111,7 @@ export function ItemVisibilitySelector({
     if (!el) return committedIdx;
     const { left, width } = el.getBoundingClientRect();
     const raw = (clientX - left) / width;
-    return Math.min(2, Math.max(0, raw * 2));
+    return Math.min(3, Math.max(0, raw * 3));
   }, [committedIdx]);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -116,7 +130,7 @@ export function ItemVisibilitySelector({
   const onPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     const finalPos = getPosFromEvent(e.clientX);
-    const snapped = Math.min(2, Math.max(0, Math.round(finalPos)));
+    const snapped = Math.min(3, Math.max(0, Math.round(finalPos)));
     setIsDragging(false);
     setDragPos(null);
     onChange(FROM_INDEX[snapped]);
@@ -131,26 +145,7 @@ export function ItemVisibilitySelector({
     <div className={cn("space-y-3 select-none", disabled && "pointer-events-none opacity-50")}>
       {/* Track */}
       <div className="relative px-2.5 py-2 select-none">
-        {/* Ghost gradient track (full width, faint) */}
-        <div
-          className="absolute inset-x-2.5 top-1/2 h-2 -translate-y-1/2 rounded-full"
-          style={{
-            background: "linear-gradient(to right, #6b7280 0%, #3b82f6 50%, hsl(var(--primary)) 100%)",
-            opacity: 0.2,
-          }}
-        />
-        {/* Filled progress track */}
-        <div
-          className="absolute left-2.5 top-1/2 h-2 -translate-y-1/2 rounded-full pointer-events-none"
-          style={{
-            width: `${pct}%`,
-            // scale fill within the usable track width (between thumb centers)
-            maxWidth: "calc(100% - 20px)",
-            background: "linear-gradient(to right, #6b7280 0%, #3b82f6 50%, hsl(var(--primary)) 100%)",
-            transition: isDragging ? "none" : "width 300ms cubic-bezier(0.34,1.56,0.64,1)",
-          }}
-        />
-        {/* Invisible wide hit-area div for pointer events */}
+        {/* Hit-area div is the single positioning root for all track elements */}
         <div
           ref={trackRef}
           className="relative h-8 cursor-grab active:cursor-grabbing"
@@ -160,6 +155,23 @@ export function ItemVisibilitySelector({
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
+          {/* Ghost gradient track (full width, faint) */}
+          <div
+            className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full pointer-events-none"
+            style={{
+              background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
+              opacity: 0.2,
+            }}
+          />
+          {/* Filled progress track — same coordinate space as thumb */}
+          <div
+            className="absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full pointer-events-none"
+            style={{
+              width: `${pct}%`,
+              background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
+              transition: isDragging ? "none" : "width 300ms cubic-bezier(0.34,1.56,0.64,1)",
+            }}
+          />
           {/* Thumb */}
           <div
             className="absolute top-1/2 h-5 w-5 rounded-full border-2 shadow-md pointer-events-none"
@@ -174,7 +186,7 @@ export function ItemVisibilitySelector({
             }}
           />
           {/* Snap tick marks */}
-          {[0, 50, 100].map((p, i) => (
+          {[0, 33.33, 66.67, 100].map((p, i) => (
             <div
               key={i}
               className="absolute top-1/2 h-1.5 w-1.5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"
@@ -214,9 +226,6 @@ export function ItemVisibilitySelector({
               <span className={cn("text-xs font-medium", isActive ? opt.color : "text-muted-foreground")}>
                 {opt.label}
               </span>
-              <span className="text-[10px] text-muted-foreground text-center leading-tight">
-                {opt.description}
-              </span>
             </button>
           );
         })}
@@ -225,17 +234,23 @@ export function ItemVisibilitySelector({
       {/* Active description pill — always shows committed value */}
       <div
         className={cn(
-          "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm",
+          "rounded-lg border px-3 py-2.5 text-sm space-y-1",
           committedIdx === 0 && "border-border bg-muted/30",
-          committedIdx === 1 && "border-blue-500/30 bg-blue-500/5",
-          committedIdx === 2 && "border-primary/30 bg-primary/5",
+          committedIdx === 1 && "border-border bg-muted/30",
+          committedIdx === 2 && "border-blue-500/30 bg-blue-500/5",
+          committedIdx === 3 && "border-primary/30 bg-primary/5",
         )}
         style={{ transition: "background-color 250ms ease, border-color 250ms ease" }}
       >
-        <active.icon className={cn("h-4 w-4 shrink-0", active.color)} />
-        <span className={cn("font-medium", active.color)}>{active.label}</span>
-        <span className="text-muted-foreground">—</span>
-        <span className="text-muted-foreground text-xs">{active.description}</span>
+        <div className="flex items-center gap-2">
+          <active.icon className={cn("h-4 w-4 shrink-0", active.color)} />
+          <span className={cn("font-medium", active.color)}>{active.label}</span>
+          <span className="text-muted-foreground">—</span>
+          <span className="text-muted-foreground text-xs">{active.shortDescription}</span>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed pl-6">
+          {active.description}
+        </p>
       </div>
     </div>
   );

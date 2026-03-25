@@ -7,6 +7,7 @@ import { generateFriendlyId } from "@/lib/friendly-id";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { isReservedName } from "@/lib/reserved-names";
+import { requireOwner, requireAtLeastLead } from "@/lib/permissions/guards";
 
 export async function POST(req: Request) {
   try {
@@ -23,10 +24,9 @@ export async function POST(req: Request) {
 
     const userCount = await prismadb.users.count();
     if (userCount > 0) {
-      const requester = await getCurrentUser();
-      if (!requester.is_admin) {
-        return new NextResponse("Forbidden", { status: 403 });
-      }
+      // Only org owners can create users (replaces global is_admin check)
+      const denied = await requireOwner();
+      if (denied) return denied;
     }
 
     const checkexisting = await prismadb.users.findFirst({
@@ -50,12 +50,12 @@ export async function POST(req: Request) {
     if (reserved) {
       return new NextResponse("Username is reserved", { status: 409 });
     }
-    
+
     if (userCount === 0) {
       //There is no user in the system, so create user with admin rights and set userStatus to ACTIVE
       // Generate friendly ID
       const userId = await generateFriendlyId(prismadb, "Users");
-      
+
       const user = await prismadb.users.create({
         data: {
           id: userId,
@@ -71,14 +71,14 @@ export async function POST(req: Request) {
           password: await hash(password, 12),
         },
       });
-      
+
       // First user doesn't need admin notification
       return NextResponse.json(user);
     } else {
       //There is at least one user in the system, so create user with no admin rights and set userStatus to ACTIVE
       // Generate friendly ID
       const userId = await generateFriendlyId(prismadb, "Users");
-      
+
       const user = await prismadb.users.create({
         data: {
           id: userId,
@@ -102,12 +102,12 @@ export async function POST(req: Request) {
     }
   } catch (error: unknown) {
     console.error("[USER_POST]", error);
-    
+
     // Handle authentication errors
     if (error instanceof Error && (error.message === "User not authenticated" || error.message === "User not found in database")) {
       return new NextResponse("Unauthenticated", { status: 401 });
     }
-    
+
     // Handle Prisma connection errors
     if (error && typeof error === "object" && "code" in error) {
       if (error.code === "P2024") {
@@ -117,18 +117,20 @@ export async function POST(req: Request) {
         return new NextResponse("User with this email already exists", { status: 409 });
       }
     }
-    
+
     return new NextResponse("Failed to create user", { status: 500 });
   }
 }
 
 export async function GET() {
   try {
-    const user = await getCurrentUser();
-    const organizationId = await getCurrentOrgIdSafe();
+    // Require at least Lead role to list org users (replaces global is_admin check)
+    const denied = await requireAtLeastLead();
+    if (denied) return denied;
 
-    if (!user?.is_admin || !organizationId) {
-      return new NextResponse("Forbidden", { status: 403 });
+    const organizationId = await getCurrentOrgIdSafe();
+    if (!organizationId) {
+      return new NextResponse("No organization context", { status: 403 });
     }
 
     // Users model has no organizationId — get org members from Clerk
@@ -158,17 +160,17 @@ export async function GET() {
     return NextResponse.json(users);
   } catch (error: unknown) {
     console.error("[USER_GET]", error);
-    
+
     // Handle authentication errors properly
     if (error instanceof Error && (error.message === "User not authenticated" || error.message === "User not found in database")) {
       return new NextResponse("Unauthenticated", { status: 401 });
     }
-    
+
     // Handle Prisma connection errors
     if (error && typeof error === "object" && "code" in error && error.code === "P2024") {
       return new NextResponse("Database connection error. Please try again.", { status: 503 });
     }
-    
+
     return new NextResponse("Failed to fetch users", { status: 500 });
   }
 }

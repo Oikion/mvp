@@ -4,6 +4,7 @@ import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { encryptPropertyForOrg } from "@/lib/model-encryption";
+import { validateAssignedTo } from "@/lib/validate-assigned-to";
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
@@ -22,7 +23,7 @@ const VALID_ADDRESS_PRIVACY_LEVELS = new Set(["EXACT", "PARTIAL", "HIDDEN"]);
 const VALID_LEGALIZATION_STATUSES = new Set(["LEGALIZED", "IN_PROGRESS", "UNDECLARED"]);
 const VALID_FURNISHED_STATUSES = new Set(["NO", "PARTIALLY", "FULLY"]);
 const VALID_PRICE_TYPES = new Set(["RENTAL", "SALE", "PER_ACRE", "PER_SQM"]);
-const VALID_PORTAL_VISIBILITIES = new Set(["PERSONAL", "SECURE", "PUBLIC"]);
+const VALID_PORTAL_VISIBILITIES = new Set(["PRIVATE", "SECURE", "PUBLIC"]);
 const VALID_FRONTAGE_TYPES = new Set(["MAIN_ROAD", "SECONDARY_ROAD", "PEDESTRIAN", "CORNER", "SQUARE", "CUL_DE_SAC", "NONE"]);
 
 // Map form property_status values to Prisma enum values
@@ -160,7 +161,7 @@ export async function POST(req: Request) {
     if (objective_zone !== undefined) data.objective_zone = nullIfEmpty(objective_zone);
     if (accessibility !== undefined) data.accessibility = nullIfEmpty(accessibility);
     if (description !== undefined) data.description = nullIfEmpty(description);
-    if (assigned_to !== undefined) data.assigned_to = nullIfEmpty(assigned_to);
+    if (assigned_to !== undefined) data.assigned_to = await validateAssignedTo(assigned_to);
 
     // Enum fields - validate before setting
     if (property_type !== undefined && property_type !== null && property_type !== "") {

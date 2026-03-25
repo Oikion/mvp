@@ -1,0 +1,26 @@
+File: unified-chaotic-missing-required.csv
+Scenario: Some rows missing required fields, one empty row
+
+Expected Results:
+- Clients created: 4
+- Clients reused: 0
+- Properties created: 3
+- Mandates created: 0
+- Links - Client↔Property: 3
+- Links - Mandate↔Client: 0
+- Links - Mandate↔Property: 0
+- Errors: 0
+- Skipped: 1
+
+Row-by-Row:
+- Row 1: Valid property + valid client -> 1 property, 1 client, 1 link
+- Row 2: Valid property + valid client -> 1 property, 1 client, 1 link
+- Row 3: Valid property + valid client -> 1 property, 1 client, 1 link
+- Row 4: MISSING property_name (empty) but has client_name+phone+email -> 0 properties, 1 client, 0 links
+- Row 5: Completely empty row -> skipped entirely
+
+Notes:
+- Row 4 still creates a client because client_name "Δέσποινα Μάρκου" is present
+- Row 4 has area "Αγία Παρασκευή" but no property_name, so no property is created
+- Row 5 has no data in any column -- engine should skip it
+- No mandate fields in any row -- 0 mandates

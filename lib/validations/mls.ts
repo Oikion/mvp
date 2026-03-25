@@ -1,124 +1,42 @@
 import { z } from "zod";
+import {
+  PropertyType as PrismaPropertyType,
+  PropertyStatus as PrismaPropertyStatus,
+  TransactionType as PrismaTransactionType,
+  HeatingType,
+  EnergyCertClass,
+  PropertyCondition,
+  FurnishedStatus,
+  ItemVisibility,
+  AddressPrivacyLevel,
+  FrontageType,
+  PriceType,
+} from "@prisma/client";
 
 /**
  * Zod schemas for MLS (Property) input validation
  * Prevents mass assignment attacks and ensures data integrity
- * 
- * IMPORTANT: These enum values must match the Prisma schema exactly.
- * See prisma/schema.prisma for the source of truth.
+ *
+ * IMPORTANT: All enum schemas use z.nativeEnum() derived from @prisma/client.
+ * This ensures validation stays in sync with the database schema automatically.
+ * After any Prisma schema change, run `prisma generate` — TypeScript will catch drift.
  */
 
 // =============================================================================
-// Enum Schemas - Match Prisma exactly
+// Enum Schemas — derived from @prisma/client
 // =============================================================================
 
-// Property type - matches Prisma PropertyType enum
-export const propertyTypeSchema = z.enum([
-  "RESIDENTIAL",
-  "COMMERCIAL",
-  "LAND",
-  "RENTAL",
-  "VACATION",
-  "APARTMENT",
-  "HOUSE",
-  "MAISONETTE",
-  "WAREHOUSE",
-  "PARKING",
-  "PLOT",
-  "FARM",
-  "INDUSTRIAL",
-  "OTHER",
-]);
-
-// Property status - matches Prisma PropertyStatus enum
-export const propertyStatusSchema = z.enum([
-  "ACTIVE",
-  "PENDING",
-  "SOLD",
-  "OFF_MARKET",
-  "WITHDRAWN",
-]);
-
-// Transaction type - matches Prisma TransactionType enum
-export const transactionTypeSchema = z.enum([
-  "SALE",
-  "RENTAL",
-  "SHORT_TERM",
-  "EXCHANGE",
-  "AUCTION",
-]);
-
-// Heating type - matches Prisma HeatingType enum
-export const heatingTypeSchema = z.enum([
-  "AUTONOMOUS",
-  "CENTRAL",
-  "NATURAL_GAS",
-  "HEAT_PUMP",
-  "ELECTRIC",
-  "NONE",
-]);
-
-// Energy certificate class - matches Prisma EnergyCertClass enum
-export const energyCertClassSchema = z.enum([
-  "A_PLUS",
-  "A",
-  "B",
-  "C",
-  "D",
-  "E",
-  "F",
-  "G",
-  "H",
-  "IN_PROGRESS",
-]);
-
-// Property condition - matches Prisma PropertyCondition enum
-export const propertyConditionSchema = z.enum([
-  "EXCELLENT",
-  "VERY_GOOD",
-  "GOOD",
-  "NEEDS_RENOVATION",
-]);
-
-// Furnished status - matches Prisma FurnishedStatus enum
-export const furnishedStatusSchema = z.enum([
-  "NO",
-  "PARTIALLY",
-  "FULLY",
-]);
-
-// Item visibility - matches Prisma ItemVisibility enum
-export const itemVisibilitySchema = z.enum([
-  "PERSONAL",
-  "SECURE",
-  "PUBLIC",
-]);
-
-// Address privacy level - matches Prisma AddressPrivacyLevel enum
-export const addressPrivacyLevelSchema = z.enum([
-  "EXACT",
-  "PARTIAL",
-  "HIDDEN",
-]);
-
-// Frontage type - matches Prisma FrontageType enum
-export const frontageTypeSchema = z.enum([
-  "MAIN_ROAD",
-  "SECONDARY_ROAD",
-  "PEDESTRIAN",
-  "CORNER",
-  "SQUARE",
-  "CUL_DE_SAC",
-  "NONE",
-]);
-
-// Price type - matches Prisma PriceType enum
-export const priceTypeSchema = z.enum([
-  "RENTAL",
-  "SALE",
-  "PER_ACRE",
-  "PER_SQM",
-]);
+export const propertyTypeSchema = z.nativeEnum(PrismaPropertyType);
+export const propertyStatusSchema = z.nativeEnum(PrismaPropertyStatus);
+export const transactionTypeSchema = z.nativeEnum(PrismaTransactionType);
+export const heatingTypeSchema = z.nativeEnum(HeatingType);
+export const energyCertClassSchema = z.nativeEnum(EnergyCertClass);
+export const propertyConditionSchema = z.nativeEnum(PropertyCondition);
+export const furnishedStatusSchema = z.nativeEnum(FurnishedStatus);
+export const itemVisibilitySchema = z.nativeEnum(ItemVisibility);
+export const addressPrivacyLevelSchema = z.nativeEnum(AddressPrivacyLevel);
+export const frontageTypeSchema = z.nativeEnum(FrontageType);
+export const priceTypeSchema = z.nativeEnum(PriceType);
 
 // =============================================================================
 // Helper Types
@@ -172,10 +90,10 @@ const propertyFieldsSchema = z.object({
   energy_cert_class: energyCertClassSchema.optional(),
   furnished: furnishedStatusSchema.optional(),
   elevator: z.boolean().optional(),
-  accessibility: z.boolean().optional(),
+  accessibility: z.string().max(255).optional(),
   accepts_pets: z.boolean().optional(),
-  amenities: z.string().optional(),
-  orientation: z.string().max(100).optional(),
+  amenities: z.array(z.string()).optional(),
+  orientation: z.array(z.string()).optional(),
   
   // Address
   address_street: z.string().max(255).optional(),
@@ -492,6 +410,79 @@ export function validatePublishingReadiness(data: z.infer<typeof propertyFieldsS
     warnings,
   };
 }
+
+// =============================================================================
+// Form Schemas — shared between creation wizards and edit forms
+// =============================================================================
+
+/**
+ * Single source of truth for property form field constraints.
+ * Both NewPropertyWizard and EditPropertyForm import from here so they
+ * can never drift apart. assigned_to uses .nullable() because the DB
+ * stores null when no agent was set at creation time.
+ */
+export const propertyFormSchema = z.object({
+  property_name: z.string().min(1, "Property name is required"),
+  property_type: propertyTypeSchema.optional(),
+  property_type_other: z.string().optional(),
+  transaction_type: transactionTypeSchema.optional(),
+  property_status: propertyStatusSchema.optional(),
+  is_exclusive: z.boolean().optional().default(false),
+  country: z.string().optional().default("GR"),
+  municipality: z.string().optional(),
+  area: z.string().optional(),
+  postal_code: z.string().optional(),
+  address_privacy_level: addressPrivacyLevelSchema.optional(),
+  address_street: z.string().optional(),
+  region: z.string().max(100).optional(),
+  regional_unit: z.string().max(100).optional(),
+  objective_zone: z.string().max(20).optional(),
+  size_net_sqm: z.coerce.number().optional(),
+  size_gross_sqm: z.coerce.number().optional(),
+  floor: z.string().optional(),
+  floors_total: z.coerce.number().optional(),
+  plot_size_sqm: z.coerce.number().optional(),
+  inside_city_plan: z.boolean().optional(),
+  build_coefficient: z.coerce.number().optional(),
+  frontage_m: z.coerce.number().optional(),
+  frontage_type: frontageTypeSchema.optional(),
+  bedrooms: z.coerce.number().optional(),
+  bathrooms: z.coerce.number().optional(),
+  heating_type: heatingTypeSchema.optional(),
+  energy_cert_class: energyCertClassSchema.optional(),
+  year_built: z.coerce.number().optional(),
+  renovated_year: z.coerce.number().optional(),
+  condition: propertyConditionSchema.optional(),
+  elevator: z.boolean().optional(),
+  building_permit_no: z.string().optional().or(z.literal("")),
+  building_permit_year: z.coerce.number().optional(),
+  land_registry_kaek: z.string().optional().or(z.literal("")),
+  land_registry_office: z.string().max(200).optional(),
+  building_block_ot: z.string().max(50).optional(),
+  legalization_status: z.enum(["LEGALIZED", "IN_PROGRESS", "UNDECLARED"]).optional(),
+  etaireia_diaxeirisis: z.string().optional().or(z.literal("")),
+  monthly_common_charges: z.coerce.number().optional(),
+  amenities: z.array(z.string()).optional().default([]),
+  orientation: z.array(z.string()).optional().default([]),
+  furnished: furnishedStatusSchema.optional(),
+  accessibility: z.string().optional().or(z.literal("")),
+  price: z.coerce.number().optional(),
+  price_type: priceTypeSchema.optional(),
+  available_from: z.string().optional(),
+  accepts_pets: z.boolean().optional(),
+  min_lease_months: z.coerce.number().optional(),
+  virtual_tour_url: z.string().url().optional().or(z.literal("")),
+  visibility: itemVisibilitySchema.optional(),
+  assigned_to: z.string().optional().nullable(),
+  description: z.string().optional(),
+});
+
+export const propertyEditFormSchema = propertyFormSchema.extend({
+  id: z.string().min(1, "Property ID is required"),
+});
+
+export type PropertyFormValues = z.infer<typeof propertyFormSchema>;
+export type PropertyEditFormValues = z.infer<typeof propertyEditFormSchema>;
 
 // =============================================================================
 // Type Exports

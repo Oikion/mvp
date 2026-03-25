@@ -3,7 +3,7 @@
 import { useState, useMemo, KeyboardEvent } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { mandateEditFormSchema, type MandateEditFormValues } from "@/lib/validations/mandates"
 import { useTranslations } from "next-intl"
 import { useAppToast } from "@/hooks/use-app-toast"
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers"
@@ -91,116 +91,7 @@ interface EditMandateFormProps {
   onSave: () => void
 }
 
-// ---------------------------------------------------------------------------
-// Form schema (mirrors updateMandateSchema but all fields optional except id)
-// ---------------------------------------------------------------------------
-
-const editFormSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200),
-  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE"]),
-  property_type: z
-    .enum([
-      "RESIDENTIAL",
-      "COMMERCIAL",
-      "LAND",
-      "RENTAL",
-      "VACATION",
-      "APARTMENT",
-      "HOUSE",
-      "MAISONETTE",
-      "WAREHOUSE",
-      "PARKING",
-      "PLOT",
-      "FARM",
-      "INDUSTRIAL",
-      "OTHER",
-    ])
-    .optional()
-    .nullable(),
-  property_purpose: z
-    .enum(["RESIDENTIAL", "COMMERCIAL", "LAND", "PARKING", "OTHER"])
-    .optional()
-    .nullable(),
-  status: z.enum([
-    "DRAFT",
-    "ACTIVE",
-    "PAUSED",
-    "FULFILLED",
-    "EXPIRED",
-    "CANCELLED",
-  ]).optional().nullable(),
-  urgency: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional().nullable(),
-
-  // Location
-  areas_of_interest: z.array(z.string()).optional().default([]),
-  municipality: z.string().max(100).optional().nullable(),
-  region: z.string().max(100).optional().nullable(),
-
-  // Size
-  size_min_sqm: z.coerce.number().min(0).optional().nullable(),
-  size_max_sqm: z.coerce.number().min(0).optional().nullable(),
-  plot_size_min_sqm: z.coerce.number().min(0).optional().nullable(),
-  plot_size_max_sqm: z.coerce.number().min(0).optional().nullable(),
-
-  // Rooms
-  bedrooms_min: z.coerce.number().int().min(0).optional().nullable(),
-  bedrooms_max: z.coerce.number().int().min(0).optional().nullable(),
-  bathrooms_min: z.coerce.number().int().min(0).optional().nullable(),
-  bathrooms_max: z.coerce.number().int().min(0).optional().nullable(),
-  floor_min: z.coerce.number().int().optional().nullable(),
-  floor_max: z.coerce.number().int().optional().nullable(),
-  ground_floor_only: z.boolean().optional().default(false),
-
-  // Budget
-  budget_min: z.coerce.number().min(0).optional().nullable(),
-  budget_max: z.coerce.number().min(0).optional().nullable(),
-  timeline: z
-    .enum([
-      "IMMEDIATE",
-      "ONE_THREE_MONTHS",
-      "THREE_SIX_MONTHS",
-      "SIX_PLUS_MONTHS",
-    ])
-    .optional()
-    .nullable(),
-  year_built_min: z.coerce.number().int().min(1800).optional().nullable(),
-  year_built_max: z.coerce.number().int().optional().nullable(),
-
-  // Features
-  condition: z.array(z.string()).optional().default([]),
-  heating_type: z.array(z.string()).optional().default([]),
-  energy_cert_min: z
-    .enum([
-      "A_PLUS",
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H",
-      "IN_PROGRESS",
-    ])
-    .optional()
-    .nullable(),
-  furnished: z.enum(["NO", "PARTIALLY", "FULLY"]).optional().nullable(),
-  elevator: z.boolean().optional().default(false),
-  parking: z.boolean().optional().default(false),
-  pets_allowed: z.boolean().optional().default(false),
-  amenities: z.array(z.string()).optional().default([]),
-
-  // Legal
-  inside_city_plan: z.boolean().optional().default(false),
-  legalization_ok: z.boolean().optional().default(false),
-
-  // Assignment
-  assigned_to: z.string().optional().nullable(),
-  expires_at: z.string().optional().nullable(),
-  notes: z.string().max(5000).optional().nullable(),
-})
-
-type EditFormValues = z.infer<typeof editFormSchema>
+type EditFormValues = MandateEditFormValues
 
 // ---------------------------------------------------------------------------
 // Component
@@ -258,8 +149,9 @@ export default function EditMandateForm({
   // ---------------------------------------------------------------------------
 
   const form = useForm<EditFormValues>({
-    resolver: zodResolver(editFormSchema),
+    resolver: zodResolver(mandateEditFormSchema),
     defaultValues: {
+      id: mandate.id,
       title: mandate.title ?? "",
       transaction_type:
         (mandate.transaction_type as EditFormValues["transaction_type"]) ??
@@ -373,7 +265,7 @@ export default function EditMandateForm({
     setIsSubmitting(true)
     try {
       // Clean up empty string / null values for optional numeric fields
-      const cleanedData: Record<string, unknown> = { id: mandate.id }
+      const cleanedData: Record<string, unknown> = {}
 
       for (const [key, value] of Object.entries(data)) {
         if (value === "" || value === undefined) {

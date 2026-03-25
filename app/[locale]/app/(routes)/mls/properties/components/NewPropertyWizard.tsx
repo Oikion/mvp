@@ -1,8 +1,8 @@
 "use client";
 
-import { z } from "zod";
 import axios from "axios";
-import { useState, useEffect, useCallback } from "react";
+import { propertyFormSchema, type PropertyFormValues } from "@/lib/validations/mls";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -30,9 +30,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
-import { AutosaveIndicator, AutosaveStatus } from "@/components/form/autosave-indicator";
 import { AddressFieldGroup } from "@/components/form/AddressFieldGroup";
-import useDebounce from "@/hooks/useDebounce";
 import { PropertyImageUploader } from "@/components/property-images/PropertyImageUploader";
 import { linkImagesToProperty } from "@/actions/mls/property-images/link-images-to-property";
 
@@ -42,78 +40,8 @@ type Props = {
   initialDraftId?: string;
 };
 
-const formSchema = z.object({
-  // Step 1
-  property_name: z.string().min(1, "Property name is required"),
-  property_type: z.enum(["APARTMENT", "HOUSE", "MAISONETTE", "COMMERCIAL", "WAREHOUSE", "PARKING", "PLOT", "FARM", "INDUSTRIAL", "OTHER"]),
-  property_type_other: z.string().optional(),
-  transaction_type: z.enum(["SALE", "RENTAL", "SHORT_TERM", "EXCHANGE", "AUCTION"]).optional(),
-  property_status: z.enum(["AVAILABLE", "RESERVED", "NEGOTIATION", "RENTED", "SOLD"]).optional(),
-  is_exclusive: z.boolean().optional().default(false),
-  
-  // Step 2: Τοποθεσία
-  country: z.string().optional().default("GR"),
-  municipality: z.string().optional(),
-  area: z.string().optional(),
-  postal_code: z.string().optional(),
-  address_privacy_level: z.enum(["EXACT", "PARTIAL", "HIDDEN"]).optional(),
-  region: z.string().max(100).optional(),
-  regional_unit: z.string().max(100).optional(),
-  objective_zone: z.string().max(20).optional(),
-  
-  // Step 3: Επιφάνειες (conditional)
-  size_net_sqm: z.coerce.number().optional(),
-  size_gross_sqm: z.coerce.number().optional(),
-  floor: z.string().optional(),
-  floors_total: z.coerce.number().optional(),
-  plot_size_sqm: z.coerce.number().optional(),
-  inside_city_plan: z.boolean().optional(),
-  build_coefficient: z.coerce.number().optional(),
-  frontage_m: z.coerce.number().optional(),
-  frontage_type: z.enum(["MAIN_ROAD", "SECONDARY_ROAD", "PEDESTRIAN", "CORNER", "SQUARE", "CUL_DE_SAC", "NONE"]).optional(),
-  
-  // Step 4: Χαρακτηριστικά
-  bedrooms: z.coerce.number().optional(),
-  bathrooms: z.coerce.number().optional(),
-  heating_type: z.enum(["AUTONOMOUS", "CENTRAL", "NATURAL_GAS", "HEAT_PUMP", "ELECTRIC", "NONE"]).optional(),
-  energy_cert_class: z.enum(["A_PLUS", "A", "B", "C", "D", "E", "F", "G", "H", "IN_PROGRESS"]).optional(),
-  
-  // Step 5: Κατάσταση & Έτος
-  year_built: z.coerce.number().optional(),
-  renovated_year: z.coerce.number().optional(),
-  condition: z.enum(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]).optional(),
-  elevator: z.boolean().optional(),
-  
-  // Step 6: Νομιμότητα
-  building_permit_no: z.string().optional().or(z.literal("")),
-  building_permit_year: z.coerce.number().optional(),
-  land_registry_kaek: z.string().optional().or(z.literal("")),
-  land_registry_office: z.string().max(200).optional(),
-  building_block_ot: z.string().max(50).optional(),
-  legalization_status: z.enum(["LEGALIZED", "IN_PROGRESS", "UNDECLARED"]).optional(),
-  etaireia_diaxeirisis: z.string().optional().or(z.literal("")),
-  monthly_common_charges: z.coerce.number().optional(),
-  
-  // Step 7: Παροχές
-  amenities: z.array(z.string()).optional().default([]),
-  orientation: z.array(z.string()).optional().default([]),
-  furnished: z.enum(["NO", "PARTIALLY", "FULLY"]).optional(),
-  accessibility: z.string().optional().or(z.literal("")),
-  
-  // Step 8: Τιμή & Διαθεσιμότητα
-  price: z.coerce.number().optional(),
-  price_type: z.enum(["RENTAL", "SALE", "PER_ACRE", "PER_SQM"]).optional(),
-  available_from: z.string().optional(),
-  accepts_pets: z.boolean().optional(),
-  min_lease_months: z.coerce.number().optional(),
-  
-  // Step 9: Media & Δημοσίευση
-  virtual_tour_url: z.string().url().optional().or(z.literal("")),
-  visibility: z.enum(["PERSONAL", "SECURE", "PUBLIC"]).optional(),
-  assigned_to: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+const formSchema = propertyFormSchema;
+type FormValues = PropertyFormValues;
 
 
 export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
@@ -123,9 +51,8 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [draftId, setDraftId] = useState<string | undefined>(initialDraftId);
-  const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>("idle");
-  const [lastSavedData, setLastSavedData] = useState<Partial<FormValues>>({});
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const hasSubmittedRef = useRef(false);
+  const draftIdRef = useRef<string | undefined>(initialDraftId);
   const [uploadSessionId] = useState(() => crypto.randomUUID());
 
   const STEPS = [
@@ -184,7 +111,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
       property_type: undefined,
       property_type_other: "",
       transaction_type: undefined,
-      property_status: "AVAILABLE",
+      property_status: "ACTIVE",
       is_exclusive: false,
       country: "GR",
       municipality: "",
@@ -297,8 +224,7 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
               assigned_to: draft.assigned_to || "",
             });
             setDraftId(initialDraftId);
-            setLastSavedData(form.getValues());
-            setHasUserInteracted(true);
+            draftIdRef.current = initialDraftId;
           }
         } catch (error) {
           console.error("Failed to load draft:", error);
@@ -308,57 +234,28 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
     loadDraft();
   }, [initialDraftId, draftId, form]);
 
-  const formValues = form.watch();
-  const debouncedValues = useDebounce(JSON.stringify(formValues), 500);
-
-  // Autosave on blur/change
-  const saveDraft = useCallback(async (data: Partial<FormValues>) => {
-    if (Object.keys(data).length === 0) return;
-    
-    setAutosaveStatus("saving");
-    try {
-      const response = await axios.post("/api/mls/properties/draft", {
-        id: draftId,
-        ...data,
-        property_name: (data as any).property_name || data.property_type || "Draft Property",
-      });
-      
-      if (response.data?.property?.id && !draftId) {
-        setDraftId(response.data.property.id);
-      }
-      
-      setAutosaveStatus("saved");
-      setTimeout(() => setAutosaveStatus("idle"), 2000);
-    } catch (error: any) {
-      console.error("Failed to save draft:", error);
-      // Only show error toast for actual failures, not validation issues
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.details || error?.message;
-      if (error?.response?.status === 500) {
-        console.error("Draft save error details:", errorMessage);
-      }
-      setAutosaveStatus("failed");
-      setTimeout(() => setAutosaveStatus("idle"), 3000);
-    }
-  }, [draftId]);
-
+  // Save draft on exit (component unmount or window close) — prevents draft spam
   useEffect(() => {
-    if (debouncedValues && currentStep > 0 && hasUserInteracted) {
-      const currentData = form.getValues();
-      const changedData: Partial<FormValues> = {};
-      
-      Object.keys(currentData).forEach((key) => {
-        const typedKey = key as keyof FormValues;
-        if (JSON.stringify(currentData[typedKey]) !== JSON.stringify(lastSavedData[typedKey])) {
-          (changedData as any)[typedKey] = currentData[typedKey];
-        }
+    const saveDraftOnExit = () => {
+      if (hasSubmittedRef.current) return;
+      const values = form.getValues();
+      const hasData = values.property_name || values.property_type || values.municipality || values.price;
+      if (!hasData) return;
+      const payload = JSON.stringify({
+        id: draftIdRef.current,
+        ...values,
+        property_name: values.property_name || values.property_type || "Draft Property",
+        draft_status: true,
       });
-      
-      if (Object.keys(changedData).length > 0) {
-        saveDraft(changedData);
-        setLastSavedData(currentData);
-      }
-    }
-  }, [debouncedValues, currentStep, form, saveDraft, lastSavedData, hasUserInteracted]);
+      navigator.sendBeacon("/api/mls/properties/draft", new Blob([payload], { type: "application/json" }));
+    };
+
+    window.addEventListener("beforeunload", saveDraftOnExit);
+    return () => {
+      window.removeEventListener("beforeunload", saveDraftOnExit);
+      saveDraftOnExit();
+    };
+  }, [form]);
 
   const STEP_FIELDS: Record<number, (keyof FormValues)[]> = {
     1: ["property_name", "property_type", "property_type_other", "transaction_type", "property_status", "is_exclusive"],
@@ -383,24 +280,12 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   const handleNext = async () => {
     const isValid = await validateStep(currentStep);
     if (isValid && currentStep < STEPS.length) {
-      // Save current form state before moving to next step
-      const currentData = form.getValues();
-      if (Object.keys(currentData).length > 0) {
-        await saveDraft(currentData);
-        setLastSavedData(currentData);
-      }
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      // Save current form state before moving to previous step
-      const currentData = form.getValues();
-      if (Object.keys(currentData).length > 0) {
-        saveDraft(currentData);
-        setLastSavedData(currentData);
-      }
       setCurrentStep(currentStep - 1);
     }
   };
@@ -420,8 +305,9 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
         await linkImagesToProperty(newPropertyId, uploadSessionId);
       }
 
+      hasSubmittedRef.current = true;
       toast.success(t("success.created"), { isTranslationKey: false });
-      
+
       form.reset();
       router.refresh();
       onFinish();
@@ -1327,7 +1213,8 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="PERSONAL">{t("visibility.PERSONAL")}</SelectItem>
+                      <SelectItem value="HIDDEN">{t("visibility.HIDDEN")}</SelectItem>
+                      <SelectItem value="PRIVATE">{t("visibility.PRIVATE")}</SelectItem>
                       <SelectItem value="SECURE">{t("visibility.SECURE")}</SelectItem>
                       <SelectItem value="PUBLIC">{t("visibility.PUBLIC")}</SelectItem>
                     </SelectContent>
@@ -1373,13 +1260,6 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
   };
 
   const handleStepClick = async (stepId: number) => {
-    // Save current form state before navigating
-    const currentData = form.getValues();
-    if (Object.keys(currentData).length > 0) {
-      saveDraft(currentData);
-      setLastSavedData(currentData);
-    }
-
     // Allow moving back without validation
     if (stepId < currentStep) {
       setCurrentStep(stepId);
@@ -1402,8 +1282,6 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
       <form 
         onSubmit={form.handleSubmit(onSubmit, onSubmitError)} 
         className="h-full px-10"
-        onFocus={() => setHasUserInteracted(true)}
-        onChange={() => setHasUserInteracted(true)}
       >
         <div className="w-full max-w-[800px] text-sm pb-10">
           {/* Progress Bar */}
@@ -1448,10 +1326,6 @@ export function NewPropertyWizard({ users, onFinish, initialDraftId }: Props) {
             </CardContent>
           </Card>
 
-          {/* Autosave Indicator */}
-          <div className="flex justify-end pt-2">
-            <AutosaveIndicator status={autosaveStatus} />
-          </div>
         </div>
       </form>
     </Form>

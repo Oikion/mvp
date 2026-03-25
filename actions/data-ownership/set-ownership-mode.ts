@@ -9,7 +9,9 @@ import {
   actionError,
   type ActionResponse,
 } from "@/lib/action-response";
+import { assertEncryptionModeUnchanged } from "@/lib/encryption-mode-guard";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { isOrgPersonal } from "@/lib/personal-workspace-guard";
 
 /**
  * Set the initial data ownership mode for the current organization.
@@ -35,6 +37,14 @@ export async function setOwnershipMode(
     return actionError("Not authenticated");
   }
 
+  // Personal workspaces are always AGENT — cannot be changed
+  if (await isOrgPersonal(orgId)) {
+    return actionError(
+      "Personal workspaces always use AGENT data ownership and cannot be changed",
+      "FORBIDDEN"
+    );
+  }
+
   try {
     // Check if mode is already set
     const existing = await prismadb.organizationSettings.findUnique({
@@ -51,6 +61,19 @@ export async function setOwnershipMode(
 
     const now = new Date();
 
+    const settingsData = {
+      dataOwnershipMode: mode,
+      dataOwnershipSetAt: now,
+      dataOwnershipChangedBy: userId,
+      policyVersion: 1,
+      policyHistory: [
+        { mode, from: now.toISOString(), to: null },
+      ],
+    };
+
+    // Guard: reject if someone accidentally adds encryptionMode to settingsData
+    await assertEncryptionModeUnchanged(orgId, settingsData);
+
     await prismadb.$transaction([
       // Upsert organization settings with ownership mode
       prismadb.organizationSettings.upsert({
@@ -58,23 +81,9 @@ export async function setOwnershipMode(
         create: {
           organizationId: orgId,
           createdBy: userId,
-          dataOwnershipMode: mode,
-          dataOwnershipSetAt: now,
-          dataOwnershipChangedBy: userId,
-          policyVersion: 1,
-          policyHistory: [
-            { mode, from: now.toISOString(), to: null },
-          ],
+          ...settingsData,
         },
-        update: {
-          dataOwnershipMode: mode,
-          dataOwnershipSetAt: now,
-          dataOwnershipChangedBy: userId,
-          policyVersion: 1,
-          policyHistory: [
-            { mode, from: now.toISOString(), to: null },
-          ],
-        },
+        update: settingsData,
       }),
       // Auto-create consent record for the admin who sets the policy
       prismadb.orgMemberConsent.create({

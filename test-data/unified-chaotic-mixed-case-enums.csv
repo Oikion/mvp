@@ -1,0 +1,6 @@
+property_name,property_type,property_status,transaction_type,price,size_net_sqm,bedrooms,area,heating_type,condition,furnished,energy_cert_class,visibility,client_name,primary_phone,client_type,client_status,person_type,lead_source,urgency,budget_min,budget_max,mandate_transaction_type
+Flat in Pangrati,apartment,active,sale,175000,60,1,Παγκράτι,autonomous,good,no,c,private,Anna Georgiou,6911111111,buyer,lead,individual,web,low,150000,200000,sale
+Detached House Ekali,HOUSE,PENDING,RENTAL,2200,250,5,Εκάλη,CENTRAL,EXCELLENT,FULLY,A,PUBLIC,Kostas Papadimitriou,6911222222,SELLER,ACTIVE,COMPANY,PORTAL,HIGH,1800,2500,RENTAL
+Land Plot Lavrio,Land,Active,sale,95000,0,0,Λαύριο,,needs_renovation,,IN_PROGRESS,secure,Maria Theodorou,6911333333,Renter,Inactive,individual,Referral,critical,80000,120000,sale
+Maisonette Vari,maisonette,active,short_term,1500,140,3,Βάρη,heat_pump,Very_Good,partially,b,PRIVATE,Nikos Andreou,6911444444,investor,converted,investor,social,medium,1200,1800,short_term
+Office Space Syntagma,COMMERCIAL,OFF_MARKET,SALE,320000,90,0,Σύνταγμα,electric,GOOD,NO,d,PUBLIC,Sophia Katsarou,6911555555,referral_partner,active,broker,walk_in,HIGH,280000,360000,SALE

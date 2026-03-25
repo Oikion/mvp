@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Building2, User, FileText, Search, Loader2, Upload } from "lucide-react";
+import { Building2, User, FileText, Search, Loader2, Upload, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   useUnifiedEntitySearch,
@@ -48,6 +48,8 @@ interface LinkEntityDialogProps {
   sourceType: "client" | "property" | "mandate" | "document";
   alreadyLinkedIds?: string[];
   onLink: (entityIds: string[]) => Promise<void>;
+  onCreate?: () => void;
+  onCreateAndLink?: () => void;
   title?: string;
   description?: string;
 }
@@ -60,6 +62,8 @@ export function LinkEntityDialog({
   sourceType,
   alreadyLinkedIds = [],
   onLink,
+  onCreate,
+  onCreateAndLink,
   title,
   description,
 }: LinkEntityDialogProps) {
@@ -296,6 +300,22 @@ export function LinkEntityDialog({
                       {isUploading ? tDocs("uploadModal.uploading") : tDocs("uploadModal.uploadDocument")}
                     </Button>
                   </>
+                )}
+                {entityType !== "document" && transformedEntities.length === 0 && (onCreate || onCreateAndLink) && (
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    {onCreate && (
+                      <Button variant="outline" size="sm" onClick={onCreate}>
+                        <Plus className="h-4 w-4 mr-1.5" />
+                        {t("buttons.create")}
+                      </Button>
+                    )}
+                    {onCreateAndLink && (
+                      <Button size="sm" onClick={onCreateAndLink}>
+                        <Plus className="h-4 w-4 mr-1.5" />
+                        {t("buttons.createAndLink")}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
             ) : (

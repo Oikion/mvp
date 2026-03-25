@@ -259,7 +259,7 @@ export async function GET(req: NextRequest) {
       filename = descriptiveFilename;
       contentType = pdfResult.contentType;
     } else {
-      const result = generateExportFile("mandates", format, exportData, {
+      const result = await generateExportFile("mandates", format, exportData, {
         locale,
         columns: MANDATE_COLUMNS,
       });

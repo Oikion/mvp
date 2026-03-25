@@ -1,4 +1,11 @@
 import { z } from "zod";
+import {
+  MandateStatus,
+  MandateUrgency,
+  Timeline,
+  PropertyPurpose,
+  ItemVisibility,
+} from "@prisma/client";
 
 import {
   propertyTypeSchema,
@@ -13,48 +20,20 @@ import {
  * Zod schemas for Mandate input validation
  * Prevents mass assignment attacks and ensures data integrity
  *
- * IMPORTANT: These enum values must match the Prisma schema exactly.
- * See prisma/schema.prisma for the source of truth.
+ * IMPORTANT: All enum schemas use z.nativeEnum() derived from @prisma/client.
+ * This ensures validation stays in sync with the database schema automatically.
+ * After any Prisma schema change, run `prisma generate` — TypeScript will catch drift.
  */
 
 // =============================================================================
-// Enum Schemas - Match Prisma exactly
+// Enum Schemas — derived from @prisma/client
 // =============================================================================
 
-// Mandate status - matches Prisma MandateStatus enum
-export const mandateStatusSchema = z.enum([
-  "DRAFT",
-  "ACTIVE",
-  "PAUSED",
-  "FULFILLED",
-  "EXPIRED",
-  "CANCELLED",
-]);
-
-// Mandate urgency - matches Prisma MandateUrgency enum
-export const mandateUrgencySchema = z.enum([
-  "LOW",
-  "MEDIUM",
-  "HIGH",
-  "CRITICAL",
-]);
-
-// Timeline - matches Prisma Timeline enum
-export const timelineSchema = z.enum([
-  "IMMEDIATE",
-  "ONE_THREE_MONTHS",
-  "THREE_SIX_MONTHS",
-  "SIX_PLUS_MONTHS",
-]);
-
-// Property purpose - matches Prisma PropertyPurpose enum
-export const propertyPurposeSchema = z.enum([
-  "RESIDENTIAL",
-  "COMMERCIAL",
-  "LAND",
-  "PARKING",
-  "OTHER",
-]);
+export const mandateStatusSchema = z.nativeEnum(MandateStatus);
+export const mandateUrgencySchema = z.nativeEnum(MandateUrgency);
+export const timelineSchema = z.nativeEnum(Timeline);
+export const propertyPurposeSchema = z.nativeEnum(PropertyPurpose);
+export const itemVisibilitySchema = z.nativeEnum(ItemVisibility);
 
 // =============================================================================
 // Base Mandate Fields Schema
@@ -132,6 +111,9 @@ const mandateFieldsSchema = z.object({
 
   // Relationships
   assigned_to: z.string().min(1).optional().nullable(),
+
+  // Visibility
+  visibility: itemVisibilitySchema.optional(),
 
   // Draft flag
   draft_status: z.boolean().optional(),
@@ -334,3 +316,62 @@ export const mandateQuerySchema = z.object({
 export type CreateMandateInput = z.infer<typeof createMandateSchema>;
 export type UpdateMandateInput = z.infer<typeof updateMandateSchema>;
 export type MandateQueryParams = z.infer<typeof mandateQuerySchema>;
+
+// =============================================================================
+// Form Schemas — shared between creation wizards and edit forms
+// =============================================================================
+
+/**
+ * Single source of truth for mandate form field constraints.
+ * Both NewMandateWizard and EditMandateForm import from here.
+ * assigned_to uses .nullable() because the DB stores null when no agent was set.
+ * property_type uses .nullable() because it is optional in the DB.
+ */
+export const mandateFormSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200),
+  transaction_type: transactionTypeSchema,
+  property_type: propertyTypeSchema.optional().nullable(),
+  property_purpose: propertyPurposeSchema.optional().nullable(),
+  status: mandateStatusSchema.optional().nullable(),
+  urgency: mandateUrgencySchema.optional().nullable(),
+  areas_of_interest: z.array(z.string()).optional().default([]),
+  municipality: z.string().max(100).optional().nullable(),
+  region: z.string().max(100).optional().nullable(),
+  size_min_sqm: z.coerce.number().min(0).optional().nullable(),
+  size_max_sqm: z.coerce.number().min(0).optional().nullable(),
+  plot_size_min_sqm: z.coerce.number().min(0).optional().nullable(),
+  plot_size_max_sqm: z.coerce.number().min(0).optional().nullable(),
+  bedrooms_min: z.coerce.number().int().min(0).optional().nullable(),
+  bedrooms_max: z.coerce.number().int().min(0).optional().nullable(),
+  bathrooms_min: z.coerce.number().int().min(0).optional().nullable(),
+  bathrooms_max: z.coerce.number().int().min(0).optional().nullable(),
+  floor_min: z.coerce.number().int().optional().nullable(),
+  floor_max: z.coerce.number().int().optional().nullable(),
+  ground_floor_only: z.boolean().optional().default(false),
+  budget_min: z.coerce.number().min(0).optional().nullable(),
+  budget_max: z.coerce.number().min(0).optional().nullable(),
+  timeline: timelineSchema.optional().nullable(),
+  year_built_min: z.coerce.number().int().min(1800).optional().nullable(),
+  year_built_max: z.coerce.number().int().optional().nullable(),
+  condition: z.array(z.string()).optional().default([]),
+  heating_type: z.array(z.string()).optional().default([]),
+  energy_cert_min: energyCertClassSchema.optional().nullable(),
+  furnished: furnishedStatusSchema.optional().nullable(),
+  elevator: z.boolean().optional().default(false),
+  parking: z.boolean().optional().default(false),
+  pets_allowed: z.boolean().optional().default(false),
+  amenities: z.array(z.string()).optional().default([]),
+  inside_city_plan: z.boolean().optional().default(false),
+  legalization_ok: z.boolean().optional().default(false),
+  assigned_to: z.string().optional().nullable(),
+  clientId: z.string().optional(),
+  notes: z.string().max(5000).optional().nullable(),
+  expires_at: z.string().optional().nullable(),
+});
+
+export const mandateEditFormSchema = mandateFormSchema.extend({
+  id: z.string().min(1, "Mandate ID is required"),
+});
+
+export type MandateFormValues = z.infer<typeof mandateFormSchema>;
+export type MandateEditFormValues = z.infer<typeof mandateEditFormSchema>;

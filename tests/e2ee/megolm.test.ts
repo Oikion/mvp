@@ -86,4 +86,60 @@ describe("Megolm", () => {
     const e2 = await restored.encrypt("After");
     expect(e2.messageIndex).toBe(1);
   });
+
+  it("decrypts out-of-order messages using skipped-key cache", async () => {
+    const outbound = await MegolmOutbound.create("conv-1");
+    const sessionExport = outbound.exportSession();
+    const inbound = MegolmInbound.fromExport(sessionExport);
+
+    const e0 = await outbound.encrypt("Msg 0");
+    const e1 = await outbound.encrypt("Msg 1");
+
+    // Decrypt index 1 first — this fast-forwards past index 0, caching its key
+    expect(await inbound.decrypt(e1.messageIndex, e1.ciphertext, e1.iv)).toBe("Msg 1");
+
+    // Now decrypt index 0 — should be found in skippedKeys
+    expect(await inbound.decrypt(e0.messageIndex, e0.ciphertext, e0.iv)).toBe("Msg 0");
+  });
+
+  it("throws when decrypting a past message that was not cached", async () => {
+    const outbound = await MegolmOutbound.create("conv-1");
+    const sessionExport = outbound.exportSession();
+    const inbound = MegolmInbound.fromExport(sessionExport);
+
+    await outbound.encrypt("Msg 0");
+    const e1 = await outbound.encrypt("Msg 1");
+    const e2 = await outbound.encrypt("Msg 2");
+
+    // Decrypt index 2 — fast-forwards, caching keys for 0 and 1
+    await inbound.decrypt(e2.messageIndex, e2.ciphertext, e2.iv);
+
+    // Decrypt index 1 using cached key
+    await inbound.decrypt(e1.messageIndex, e1.ciphertext, e1.iv);
+
+    // Attempt to decrypt index 1 again — key was deleted on first use
+    await expect(
+      inbound.decrypt(e1.messageIndex, e1.ciphertext, e1.iv)
+    ).rejects.toThrow("Cannot decrypt past message");
+  });
+
+  it("serializes and deserializes inbound session with skipped keys", async () => {
+    const outbound = await MegolmOutbound.create("conv-1");
+    const sessionExport = outbound.exportSession();
+    const inbound = MegolmInbound.fromExport(sessionExport);
+
+    const e0 = await outbound.encrypt("Msg 0");
+    const e1 = await outbound.encrypt("Msg 1");
+
+    // Fast-forward past index 0, storing its key in skippedKeys
+    await inbound.decrypt(e1.messageIndex, e1.ciphertext, e1.iv);
+    expect(inbound.currentIndex).toBe(2);
+
+    // Serialize and restore — skipped keys must survive the round-trip
+    const restored = MegolmInbound.deserialize(inbound.serialize());
+    expect(restored.currentIndex).toBe(2);
+
+    // Skipped key for index 0 should still be available
+    expect(await restored.decrypt(e0.messageIndex, e0.ciphertext, e0.iv)).toBe("Msg 0");
+  });
 });

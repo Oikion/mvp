@@ -40,7 +40,7 @@ export default function NotFound() {
   const t = translations[locale] || translations.en;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
@@ -51,21 +51,21 @@ export default function NotFound() {
       <div className="relative z-10 text-center max-w-lg mx-auto">
         {/* 404 Number with gradient */}
         <div className="relative mb-8">
-          <h1 className="text-[10rem] sm:text-[14rem] font-black leading-none tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500 dark:from-slate-100 dark:via-slate-300 dark:to-slate-500 bg-clip-text text-transparent select-none">
+          <h1 className="text-[10rem] sm:text-[14rem] font-black leading-none tracking-tighter bg-gradient-to-br from-foreground via-foreground/70 to-foreground/40 bg-clip-text text-transparent select-none">
             {t.code}
           </h1>
-          <div className="absolute inset-0 text-[10rem] sm:text-[14rem] font-black leading-none tracking-tighter text-foreground/5 dark:text-white/5 blur-xl select-none -z-10">
+          <div className="absolute inset-0 text-[10rem] sm:text-[14rem] font-black leading-none tracking-tighter text-foreground/5 blur-xl select-none -z-10">
             404
           </div>
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground dark:text-foreground mb-4 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
           {t.title}
         </h2>
 
         {/* Description */}
-        <p className="text-muted-foreground dark:text-muted-foreground text-lg mb-10 max-w-md mx-auto leading-relaxed">
+        <p className="text-muted-foreground text-lg mb-10 max-w-md mx-auto leading-relaxed">
           {t.description}
         </p>
 
@@ -74,7 +74,7 @@ export default function NotFound() {
           <Button
             variant="outline"
             size="lg"
-            className="min-w-[180px] h-12 rounded-xl border-border dark:border-slate-800 hover:bg-muted dark:hover:bg-card transition-all duration-200"
+            className="min-w-[180px] h-12 rounded-xl border-border hover:bg-muted transition-all duration-200"
             asChild
           >
             <Link href={`/${locale}`} className="inline-flex items-center justify-center gap-2">
@@ -83,7 +83,7 @@ export default function NotFound() {
             </Link>
           </Button>
 
-          <span className="text-muted-foreground dark:text-muted-foreground text-sm hidden sm:block">
+          <span className="text-muted-foreground text-sm hidden sm:block">
             {t.or}
           </span>
 
@@ -101,9 +101,9 @@ export default function NotFound() {
 
         {/* Decorative element */}
         <div className="mt-16 flex items-center justify-center gap-2">
-          <div className="w-12 h-px bg-gradient-to-r from-transparent to-slate-300 dark:to-slate-700" />
-          <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
-          <div className="w-12 h-px bg-gradient-to-l from-transparent to-slate-300 dark:to-slate-700" />
+          <div className="w-12 h-px bg-gradient-to-r from-transparent to-border" />
+          <div className="w-2 h-2 rounded-full bg-border" />
+          <div className="w-12 h-px bg-gradient-to-l from-transparent to-border" />
         </div>
       </div>
     </div>

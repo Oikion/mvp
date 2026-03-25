@@ -50,7 +50,7 @@ const formSchema = z.object({
   region: z.string().optional(),
   postalCode: z.string().optional(),
   country: z.string().default("GR"),
-  visibility: z.enum(["PERSONAL", "SECURE", "PUBLIC"]).default("PERSONAL"),
+  visibility: z.enum(["PRIVATE", "SECURE", "PUBLIC"]).default("PRIVATE"),
   facebook: z.string().url("Invalid URL").optional().or(z.literal("")),
   instagram: z.string().url("Invalid URL").optional().or(z.literal("")),
   linkedin: z.string().url("Invalid URL").optional().or(z.literal("")),
@@ -70,8 +70,8 @@ interface AgencyProfileEditorProps {
 
 const VISIBILITY_OPTIONS = [
   {
-    value: "PERSONAL",
-    label: "Personal",
+    value: "PRIVATE",
+    label: "Private",
     description: "Hidden from everyone",
     icon: Lock,
     color: "text-destructive",
@@ -150,7 +150,7 @@ export function AgencyProfileEditor({
       region: profile?.region || "",
       postalCode: profile?.postalCode || "",
       country: profile?.country || "GR",
-      visibility: profile?.visibility || "PERSONAL",
+      visibility: profile?.visibility || "PRIVATE",
       facebook: socialLinks.facebook || "",
       instagram: socialLinks.instagram || "",
       linkedin: socialLinks.linkedin || "",
@@ -190,7 +190,7 @@ export function AgencyProfileEditor({
 
     if (result.success) {
       const visibilityMsg: Record<string, string> = {
-        PERSONAL: "Your agency profile is hidden.",
+        PRIVATE: "Your agency profile is hidden.",
         SECURE: "Your agency profile is visible to registered users only.",
         PUBLIC: "Your agency profile is now live and visible to everyone!",
       };

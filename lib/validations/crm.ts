@@ -1,46 +1,32 @@
 import { z } from "zod";
+import {
+  PersonType,
+  ClientStatus,
+  ClientType,
+  LeadSource,
+  Language,
+} from "@prisma/client";
 
 /**
  * Zod schemas for CRM input validation
  * Prevents mass assignment attacks and ensures data integrity
+ *
+ * IMPORTANT: All enum schemas use z.nativeEnum() derived from @prisma/client.
+ * This ensures validation stays in sync with the database schema automatically.
+ * After any Prisma schema change, run `prisma generate` — TypeScript will catch drift.
  */
 
-// Client person types
-export const personTypeSchema = z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]);
+// Client person types — derived from Prisma PersonType enum
+export const personTypeSchema = z.nativeEnum(PersonType);
 
-// Client status values
-export const clientStatusSchema = z.enum([
-  "LEAD",
-  "CONTACTED",
-  "QUALIFIED",
-  "PROPOSAL",
-  "NEGOTIATION",
-  "WON",
-  "LOST",
-  "INACTIVE",
-]).optional();
+// Client status values — derived from Prisma ClientStatus enum
+export const clientStatusSchema = z.nativeEnum(ClientStatus).optional();
 
-// Client type values  
-export const clientTypeSchema = z.enum([
-  "BUYER",
-  "SELLER",
-  "LANDLORD",
-  "TENANT",
-  "INVESTOR",
-  "OTHER",
-]).optional();
+// Client type values — derived from Prisma ClientType enum
+export const clientTypeSchema = z.nativeEnum(ClientType).optional();
 
-// Lead source values
-export const leadSourceSchema = z.enum([
-  "WEBSITE",
-  "REFERRAL",
-  "SOCIAL_MEDIA",
-  "ADVERTISING",
-  "COLD_CALL",
-  "WALK_IN",
-  "PORTAL",
-  "OTHER",
-]).optional();
+// Lead source values — derived from Prisma LeadSource enum
+export const leadSourceSchema = z.nativeEnum(LeadSource).optional();
 
 /**
  * Base object schema for client fields (no refinements).
@@ -62,8 +48,8 @@ const clientFieldsSchema = z.object({
   // Personal/Company details
   full_name: z.string().max(255).optional(),
   company_name: z.string().max(255).optional(),
-  channels: z.string().max(255).optional(),
-  language: z.string().max(10).optional(),
+  channels: z.array(z.string()).optional(),
+  language: z.nativeEnum(Language).optional(),
   
   // Greek-specific identifiers
   afm: z.string().regex(/^\d{9}$/, "AFM must be exactly 9 digits").optional().or(z.literal("")), // Tax ID
@@ -140,4 +126,48 @@ export const clientQuerySchema = z.object({
 
 export type CreateClientInput = z.infer<typeof createClientSchema>;
 export type UpdateClientInput = z.infer<typeof updateClientSchema>;
+
+// =============================================================================
+// Form Schemas — shared between creation wizards and edit forms
+// =============================================================================
+
+/**
+ * Single source of truth for client form field constraints.
+ * Both NewClientWizard and EditClientForm import from here.
+ * assigned_to uses .nullable() because the DB stores null when no agent was set.
+ */
+export const clientFormSchema = z.object({
+  client_name: z.string().optional(),
+  person_type: personTypeSchema.optional(),
+  full_name: z.string().optional(),
+  company_name: z.string().optional(),
+  primary_phone: z.string().optional(),
+  primary_email: z.string().email().optional().or(z.literal("")),
+  secondary_phone: z.string().optional().or(z.literal("")),
+  secondary_email: z.string().email().optional().or(z.literal("")),
+  channels: z.array(z.string()).optional().default([]),
+  language: z.nativeEnum(Language).optional(),
+  afm: z.string().optional().or(z.literal("")),
+  doy: z.string().optional().or(z.literal("")),
+  id_doc: z.string().optional().or(z.literal("")),
+  company_gemi: z.string().optional().or(z.literal("")),
+  gdpr_consent: z.boolean().optional().default(false),
+  allow_marketing: z.boolean().optional().default(false),
+  lead_source: leadSourceSchema,
+  assigned_to: z.string().optional().nullable(),
+  client_type: clientTypeSchema,
+  client_status: clientStatusSchema,
+  description: z.string().optional().nullable(),
+  office_phone: z.string().max(50).optional().nullable(),
+  website: z.string().url().optional().or(z.literal("")).nullable(),
+});
+
+export const clientEditFormSchema = clientFormSchema.extend({
+  id: z.string().min(1, "Client ID is required"),
+  client_name: z.string().min(1, "Client name is required").max(255),
+  person_type: personTypeSchema,
+});
+
+export type ClientFormValues = z.infer<typeof clientFormSchema>;
+export type ClientEditFormValues = z.infer<typeof clientEditFormSchema>;
 export type ClientQueryParams = z.infer<typeof clientQuerySchema>;

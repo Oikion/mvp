@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import axios from "axios";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { clientFormSchema, type ClientFormValues } from "@/lib/validations/crm";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useForm } from "react-hook-form";
@@ -30,8 +31,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { ConditionalFormSection } from "@/components/form/conditional-section";
-import { AutosaveIndicator, AutosaveStatus } from "@/components/form/autosave-indicator";
-import useDebounce from "@/hooks/useDebounce";
 
 // Greek DOY (Tax Office) options - common ones
 const DOY_OPTIONS = [
@@ -47,32 +46,8 @@ type Props = {
 };
 
 // Schema shape without validation messages (those are added inside the component)
-const baseSchema = z.object({
-  // Step 1
-  client_name: z.string().optional(), // required — enforced via superRefine with translated message
-  person_type: z.enum(["INDIVIDUAL", "COMPANY", "INVESTOR", "BROKER"]).optional(), // required — enforced via superRefine
-  full_name: z.string().optional(),
-  company_name: z.string().optional(),
-  primary_phone: z.string().optional(),
-  primary_email: z.string().email().optional().or(z.literal("")),
-  // Step 2
-  secondary_phone: z.string().optional().or(z.literal("")),
-  secondary_email: z.string().email().optional().or(z.literal("")),
-  channels: z.array(z.string()).optional().default([]),
-  language: z.enum(["el", "en", "cz", "de", "uk"]).optional(),
-  // Step 3
-  afm: z.string().optional().or(z.literal("")),
-  doy: z.string().optional().or(z.literal("")),
-  id_doc: z.string().optional().or(z.literal("")),
-  company_gemi: z.string().optional().or(z.literal("")),
-  // Step 4
-  gdpr_consent: z.boolean().optional().default(false),
-  allow_marketing: z.boolean().optional().default(false),
-  lead_source: z.enum(["REFERRAL", "WEB", "PORTAL", "WALK_IN", "SOCIAL"]).optional(),
-  assigned_to: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof baseSchema>;
+const baseSchema = clientFormSchema;
+type FormValues = ClientFormValues;
 
 export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Props>) {
   const router = useRouter();
@@ -83,8 +58,8 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [draftId, setDraftId] = useState<string | undefined>(initialDraftId);
-  const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>("idle");
-  const [lastSavedData, setLastSavedData] = useState<Partial<FormValues>>({});
+  const hasSubmittedRef = useRef(false);
+  const draftIdRef = useRef<string | undefined>(initialDraftId);
 
   // Build schema with translated validation messages
   const formSchema = useMemo(() => baseSchema
@@ -179,7 +154,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
               assigned_to: draft.assigned_to || "",
             });
             setDraftId(initialDraftId);
-            setLastSavedData(form.getValues());
+            draftIdRef.current = initialDraftId;
           }
         } catch (error) {
           console.error("Failed to load draft:", error);
@@ -198,42 +173,27 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
     form.setValue("client_name", derived ?? "", { shouldValidate: false, shouldDirty: false });
   }, [watchedPersonType, watchedFullName, watchedCompanyName, form]);
 
-  const formValues = form.watch();
-  const debouncedValues = useDebounce(JSON.stringify(formValues), 500);
-
-  const saveDraft = useCallback(async (data: Partial<FormValues>) => {
-    if (Object.keys(data).length === 0) return;
-    setAutosaveStatus("saving");
-    try {
-      const response = await axios.post("/api/crm/clients/draft", { id: draftId, ...data });
-      if (response.data?.client?.id && !draftId) {
-        setDraftId(response.data.client.id);
-      }
-      setAutosaveStatus("saved");
-      setTimeout(() => setAutosaveStatus("idle"), 2000);
-    } catch (error) {
-      console.error("Failed to save draft:", error);
-      setAutosaveStatus("failed");
-      setTimeout(() => setAutosaveStatus("idle"), 3000);
-    }
-  }, [draftId]);
-
+  // Save draft on exit (component unmount or window close) — prevents draft spam
   useEffect(() => {
-    if (debouncedValues && currentStep > 0) {
-      const currentData = form.getValues();
-      const changedData: Partial<FormValues> = {};
-      Object.keys(currentData).forEach((key) => {
-        const typedKey = key as keyof FormValues;
-        if (JSON.stringify(currentData[typedKey]) !== JSON.stringify(lastSavedData[typedKey])) {
-          (changedData as any)[typedKey] = currentData[typedKey];
-        }
+    const saveDraftOnExit = () => {
+      if (hasSubmittedRef.current) return;
+      const values = form.getValues();
+      const hasData = values.client_name || values.full_name || values.company_name || values.primary_phone || values.primary_email;
+      if (!hasData) return;
+      const payload = JSON.stringify({
+        id: draftIdRef.current,
+        ...values,
+        draft_status: true,
       });
-      if (Object.keys(changedData).length > 0) {
-        saveDraft(changedData);
-        setLastSavedData(currentData);
-      }
-    }
-  }, [debouncedValues, currentStep, form, saveDraft, lastSavedData]);
+      navigator.sendBeacon("/api/crm/clients/draft", new Blob([payload], { type: "application/json" }));
+    };
+
+    window.addEventListener("beforeunload", saveDraftOnExit);
+    return () => {
+      window.removeEventListener("beforeunload", saveDraftOnExit);
+      saveDraftOnExit();
+    };
+  }, [form]);
 
   const validateStep = async (step: number): Promise<boolean> => {
     let fieldsToValidate: (keyof FormValues)[] = [];
@@ -249,21 +209,11 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
   const handleNext = async () => {
     const isValid = await validateStep(currentStep);
     if (isValid && currentStep < STEPS.length) {
-      const currentData = form.getValues();
-      if (Object.keys(currentData).length > 0) {
-        await saveDraft(currentData);
-        setLastSavedData(currentData);
-      }
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handleStepClick = async (stepId: number) => {
-    const currentData = form.getValues();
-    if (Object.keys(currentData).length > 0) {
-      saveDraft(currentData);
-      setLastSavedData(currentData);
-    }
     if (stepId < currentStep) {
       setCurrentStep(stepId);
       return;
@@ -274,11 +224,6 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      const currentData = form.getValues();
-      if (Object.keys(currentData).length > 0) {
-        saveDraft(currentData);
-        setLastSavedData(currentData);
-      }
       setCurrentStep(currentStep - 1);
     }
   };
@@ -299,6 +244,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
         await axios.post("/api/crm/clients", submitData);
       }
 
+      hasSubmittedRef.current = true;
       toast.success("createSuccess", { description: t("CrmForm.wizard.success") });
       router.refresh();
       onFinish();
@@ -534,9 +480,6 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
       <form onSubmit={form.handleSubmit(onSubmit)} className="h-full px-10">
         <div className="w-full max-w-[800px] text-sm pb-10">
           <div className="pb-3">
-            <div className="flex justify-end mb-2">
-              <AutosaveIndicator status={autosaveStatus} />
-            </div>
             <ProgressBar
               steps={STEPS}
               currentStep={currentStep}

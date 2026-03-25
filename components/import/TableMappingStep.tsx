@@ -27,6 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Check,
   AlertCircle,
@@ -88,6 +89,13 @@ interface TableMappingStepProps {
   onMappingChange: (csvColumn: string, targetField: string) => void;
 }
 
+// Entity-level grouping labels (unified import mode)
+const ENTITY_LABELS: Record<string, string> = {
+  client: "Client",
+  property: "Property",
+  mandate: "Mandate",
+};
+
 // Confidence-based styling
 const confidenceBadge: Record<
   MatchConfidence,
@@ -136,15 +144,34 @@ function FieldCombobox({
     fromColumn: string;
   } | null>(null);
 
-  // Group fields by their group property
+  // Detect unified mode: field definitions carry an `entity` property
+  const isUnifiedMode = useMemo(
+    () => fieldDefinitions.length > 0 && !!(fieldDefinitions[0] as any).entity,
+    [fieldDefinitions]
+  );
+
+  // Group fields: in unified mode, nest group → fields under each entity;
+  // in legacy mode, group → fields directly.
   const groupedFields = useMemo(() => {
+    if (isUnifiedMode) {
+      // entity → group → fields
+      const byEntity: Record<string, Record<string, FieldDefinitionWithAliases[]>> = {};
+      for (const field of fieldDefinitions) {
+        const entity: string = (field as any).entity ?? "other";
+        if (!byEntity[entity]) byEntity[entity] = {};
+        if (!byEntity[entity][field.group]) byEntity[entity][field.group] = [];
+        byEntity[entity][field.group].push(field);
+      }
+      return byEntity;
+    }
+    // Legacy: group → fields (wrap in a null-entity namespace for uniform handling)
     const groups: Record<string, FieldDefinitionWithAliases[]> = {};
     for (const field of fieldDefinitions) {
       if (!groups[field.group]) groups[field.group] = [];
       groups[field.group].push(field);
     }
     return groups;
-  }, [fieldDefinitions]);
+  }, [fieldDefinitions, isUnifiedMode]);
 
   // Reverse mapping: fieldKey → csvColumn that owns it
   const reverseMapping = useMemo(() => {
@@ -177,6 +204,48 @@ function FieldCombobox({
       setOpen(false);
     },
     [mappedFields, currentValue, reverseMapping, onSelect]
+  );
+
+  // Icon helper — avoids nested ternaries in JSX (fixes typescript:S3358)
+  const renderFieldIcon = useCallback(
+    (isSelected: boolean, isUsed: boolean) => {
+      if (isSelected) return <Check className="mr-2 h-3.5 w-3.5 text-primary" />;
+      if (isUsed) return <Link2 className="mr-2 h-3.5 w-3.5 text-muted-foreground" />;
+      return <span className="mr-2 h-3.5 w-3.5" />;
+    },
+    []
+  );
+
+  // Shared CommandItem renderer — extracted to avoid >4-level nesting (typescript:S2004)
+  const renderFieldItem = useCallback(
+    (field: FieldDefinitionWithAliases, extraKeywords: string[] = []) => {
+      const isSelected = currentValue === field.key;
+      const isUsed = mappedFields.has(field.key) && !isSelected;
+      const label = fieldsDict.fields[field.key] || field.key;
+      return (
+        <CommandItem
+          key={field.key}
+          value={field.key}
+          keywords={[label, field.key, ...extraKeywords, ...(field.aliases || [])]}
+          onSelect={() => handleFieldSelect(field.key)}
+          className={cn(isUsed && "opacity-50")}
+        >
+          {renderFieldIcon(isSelected, isUsed)}
+          <span className="flex-1">{label}</span>
+          {extraKeywords[0] && (
+            <span className="ml-1 text-[10px] text-muted-foreground/70">
+              {extraKeywords[0]}
+            </span>
+          )}
+          {field.required && (
+            <Badge variant="secondary" className="ml-1 text-[10px] px-1 py-0">
+              *
+            </Badge>
+          )}
+        </CommandItem>
+      );
+    },
+    [currentValue, mappedFields, fieldsDict, handleFieldSelect, renderFieldIcon]
   );
 
   return (
@@ -259,46 +328,35 @@ function FieldCombobox({
                 </>
               )}
 
-              {/* All fields grouped */}
-              {Object.entries(groupedFields).map(([groupKey, fields]) => (
-                <CommandGroup
-                  key={groupKey}
-                  heading={fieldsDict.groups[groupKey] || groupKey}
-                >
-                  {fields.map((field) => {
-                    const isSelected = currentValue === field.key;
-                    const isUsed = mappedFields.has(field.key) && !isSelected;
-                    const label = fieldsDict.fields[field.key] || field.key;
-
-                    return (
-                      <CommandItem
-                        key={field.key}
-                        value={field.key}
-                        keywords={[label, field.key, ...(field.aliases || [])]}
-                        onSelect={() => handleFieldSelect(field.key)}
-                        className={cn(isUsed && "opacity-50")}
-                      >
-                        {isSelected ? (
-                          <Check className="mr-2 h-3.5 w-3.5 text-primary" />
-                        ) : isUsed ? (
-                          <Link2 className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                        ) : (
-                          <span className="mr-2 h-3.5 w-3.5" />
+              {/* All fields grouped — entity-aware in unified mode */}
+              {isUnifiedMode
+                ? Object.entries(
+                    groupedFields as Record<
+                      string,
+                      Record<string, FieldDefinitionWithAliases[]>
+                    >
+                  ).map(([entityKey, groupsForEntity], entityIdx) => (
+                    <div key={entityKey}>
+                      {entityIdx > 0 && <CommandSeparator />}
+                      <CommandGroup heading={ENTITY_LABELS[entityKey] ?? entityKey}>
+                        {Object.entries(groupsForEntity).map(([groupKey, fields]) =>
+                          fields.map((field) =>
+                            renderFieldItem(field, [fieldsDict.groups[groupKey] || groupKey])
+                          )
                         )}
-                        <span className="flex-1">{label}</span>
-                        {field.required && (
-                          <Badge
-                            variant="secondary"
-                            className="ml-1 text-[10px] px-1 py-0"
-                          >
-                            *
-                          </Badge>
-                        )}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              ))}
+                      </CommandGroup>
+                    </div>
+                  ))
+                : Object.entries(
+                    groupedFields as Record<string, FieldDefinitionWithAliases[]>
+                  ).map(([groupKey, fields]) => (
+                    <CommandGroup
+                      key={groupKey}
+                      heading={fieldsDict.groups[groupKey] || groupKey}
+                    >
+                      {fields.map((field) => renderFieldItem(field))}
+                    </CommandGroup>
+                  ))}
             </CommandList>
           </Command>
         </PopoverContent>
@@ -408,6 +466,14 @@ export function TableMappingStep({
     [onMappingChange]
   );
 
+  // Show mandate banner when at least one mandate-entity field is mapped
+  const hasMandateMapped = useMemo(() => {
+    return Object.values(fieldMapping).some((target) => {
+      const def = fieldDefinitions.find((f) => f.key === target);
+      return (def as any)?.entity === "mandate";
+    });
+  }, [fieldMapping, fieldDefinitions]);
+
   return (
     <div className="flex flex-col gap-4">
       {/* Statistics Bar */}
@@ -448,6 +514,15 @@ export function TableMappingStep({
             </p>
           </div>
         </div>
+      )}
+
+      {/* Mandate fields banner */}
+      {hasMandateMapped && (
+        <Alert className="mb-4 border-primary/30 bg-primary/5">
+          <AlertDescription className="text-sm">
+            Columns mapped to <strong>Mandate</strong> fields will automatically create and link a Mandate for each row.
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Mapping Table */}

@@ -18,9 +18,19 @@ export async function updatePropertyVisibility(
     });
     if (!property) return { success: false, error: "Property not found" };
 
-    await prismadb.properties.update({
-      where: { id: propertyId },
-      data: { visibility },
+    // Use transaction for atomicity: visibility update + match cleanup
+    await prismadb.$transaction(async (tx) => {
+      await tx.properties.update({
+        where: { id: propertyId },
+        data: { visibility },
+      });
+
+      // Clean up cross-org matches when visibility is downgraded
+      if (visibility === "HIDDEN" || visibility === "PRIVATE") {
+        await tx.crossOrgMatch.deleteMany({
+          where: { propertyId },
+        });
+      }
     });
 
     return { success: true };

@@ -293,27 +293,29 @@ export const priceTypeMap: EnumMapping = {
 };
 
 /**
- * Item Visibility mappings (replaces Portal Visibility)
- * Backward compat: old PRIVATE/SELECTED values map to PERSONAL/SECURE
+ * Item Visibility mappings
+ * Enum values: HIDDEN, PRIVATE, SECURE, PUBLIC
+ * Backward compat: old "personal" value maps to PRIVATE
  */
 export const itemVisibilityMap: EnumMapping = {
   // New values (pass-through)
-  "personal": "PERSONAL",
+  "hidden": "HIDDEN",
+  "private": "PRIVATE",
   "secure": "SECURE",
   "public": "PUBLIC",
-  // Old values mapped to new ones (backward compat for imports)
-  "private": "PERSONAL",
+  // Backward compat: old PERSONAL value maps to PRIVATE
+  "personal": "PRIVATE",
+  // Old SELECTED value maps to SECURE
   "selected": "SECURE",
   // English variations
-  "hidden": "PERSONAL",
-  "internal": "PERSONAL",
+  "internal": "PRIVATE",
   "limited": "SECURE",
   "some": "SECURE",
   "visible": "PUBLIC",
   "all": "PUBLIC",
   // Greek translations
-  "ιδιωτικό": "PERSONAL",
-  "κρυφό": "PERSONAL",
+  "κρυφό": "HIDDEN",
+  "ιδιωτικό": "PRIVATE",
   "επιλεγμένο": "SECURE",
   "δημόσιο": "PUBLIC",
   "ορατό": "PUBLIC",

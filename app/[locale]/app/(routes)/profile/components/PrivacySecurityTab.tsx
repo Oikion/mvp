@@ -50,7 +50,7 @@ interface VisibilityOptionConfig {
 
 const VISIBILITY_OPTION_CONFIGS: VisibilityOptionConfig[] = [
   {
-    value: "PERSONAL",
+    value: "PRIVATE",
     translationKey: "personal",
     icon: Lock,
     color: "text-muted-foreground",
@@ -83,7 +83,7 @@ export function PrivacySecurityTab({
   const tVisibility = useTranslations("profile.visibility");
   const tCommon = useTranslations("common");
   const [visibility, setVisibility] = useState<string>(
-    agentProfile?.visibility || "PERSONAL"
+    agentProfile?.visibility || "PRIVATE"
   );
   const [hideFromSearch, setHideFromSearch] = useState<boolean>(
     agentProfile?.hideFromAgentSearch || false
@@ -96,7 +96,7 @@ export function PrivacySecurityTab({
 
   // Track changes
   useEffect(() => {
-    const visibilityChanged = visibility !== (agentProfile?.visibility || "PERSONAL");
+    const visibilityChanged = visibility !== (agentProfile?.visibility || "PRIVATE");
     const hideChanged = hideFromSearch !== (agentProfile?.hideFromAgentSearch || false);
     setHasChanges(visibilityChanged || hideChanged);
   }, [visibility, hideFromSearch, agentProfile]);

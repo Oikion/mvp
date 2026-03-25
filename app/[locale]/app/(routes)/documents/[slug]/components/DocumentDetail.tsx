@@ -23,6 +23,10 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
+import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
+import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 
 interface DocumentData {
   id: string;
@@ -60,6 +64,14 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
   const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
+  const [createClientOpen, setCreateClientOpen] = useState(false);
+  const [createPropertyOpen, setCreatePropertyOpen] = useState(false);
+  const [createMandateOpen, setCreateMandateOpen] = useState(false);
+  const [autoLinkNewClient, setAutoLinkNewClient] = useState(false);
+  const [autoLinkNewProperty, setAutoLinkNewProperty] = useState(false);
+  const [autoLinkNewMandate, setAutoLinkNewMandate] = useState(false);
+
+  const { users: orgUsers } = useOrgUsers();
 
   // Linked entities data
   const { clients, properties, mandates, isLoading: isLinkedLoading, mutate: mutateLinked } = useDocumentLinked(document.id);
@@ -386,6 +398,16 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         sourceType="document"
         alreadyLinkedIds={clients.map((c) => c.id)}
         onLink={handleLinkClients}
+        onCreate={() => {
+          setLinkClientDialogOpen(false);
+          setAutoLinkNewClient(false);
+          setCreateClientOpen(true);
+        }}
+        onCreateAndLink={() => {
+          setLinkClientDialogOpen(false);
+          setAutoLinkNewClient(true);
+          setCreateClientOpen(true);
+        }}
       />
       <LinkEntityDialog
         open={linkPropertyDialogOpen}
@@ -395,6 +417,16 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         sourceType="document"
         alreadyLinkedIds={properties.map((p) => p.id)}
         onLink={handleLinkProperties}
+        onCreate={() => {
+          setLinkPropertyDialogOpen(false);
+          setAutoLinkNewProperty(false);
+          setCreatePropertyOpen(true);
+        }}
+        onCreateAndLink={() => {
+          setLinkPropertyDialogOpen(false);
+          setAutoLinkNewProperty(true);
+          setCreatePropertyOpen(true);
+        }}
       />
       <LinkEntityDialog
         open={linkMandateDialogOpen}
@@ -404,6 +436,61 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         sourceType="document"
         alreadyLinkedIds={mandates.map((m) => m.id)}
         onLink={handleLinkMandates}
+        onCreate={() => {
+          setLinkMandateDialogOpen(false);
+          setAutoLinkNewMandate(false);
+          setCreateMandateOpen(true);
+        }}
+        onCreateAndLink={() => {
+          setLinkMandateDialogOpen(false);
+          setAutoLinkNewMandate(true);
+          setCreateMandateOpen(true);
+        }}
+      />
+
+      {/* Quick Add Client */}
+      <QuickAddClient
+        open={createClientOpen}
+        onOpenChange={(open) => {
+          setCreateClientOpen(open);
+          if (!open) setAutoLinkNewClient(false);
+        }}
+        organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
+        onSuccess={async (clientId) => {
+          if (autoLinkNewClient && clientId) {
+            await handleLinkClients([clientId]);
+          }
+        }}
+      />
+
+      {/* Quick Add Property */}
+      <QuickAddProperty
+        open={createPropertyOpen}
+        onOpenChange={(open) => {
+          setCreatePropertyOpen(open);
+          if (!open) setAutoLinkNewProperty(false);
+        }}
+        users={orgUsers}
+        onSuccess={async (propertyId) => {
+          if (autoLinkNewProperty && propertyId) {
+            await handleLinkProperties([propertyId]);
+          }
+        }}
+      />
+
+      {/* Quick Add Mandate */}
+      <QuickAddMandate
+        open={createMandateOpen}
+        onOpenChange={(open) => {
+          setCreateMandateOpen(open);
+          if (!open) setAutoLinkNewMandate(false);
+        }}
+        organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
+        onSuccess={async () => {
+          if (autoLinkNewMandate) {
+            await mutateLinked();
+          }
+        }}
       />
 
       {/* Share Modal */}

@@ -4,13 +4,18 @@ import { openDB, type IDBPDatabase } from "idb";
 import { aesGcmEncrypt, aesGcmDecrypt, generateRandomBytes, bufferToBase64, base64ToBuffer } from "./primitives";
 
 const DB_NAME = "oikion-e2ee";
-const DB_VERSION = 1;
+// NL-2: Bumped from 1 → 2 to add OTP pre-key store.
+// H-6:  Bumped from 2 → 3 to add backup-versions store.
+// The upgrade handler creates new stores for existing users transparently.
+const DB_VERSION = 3;
 
 // Store names
 const IDENTITY_STORE = "identity";
 const RATCHET_STORE = "ratchet-sessions";
 const MEGOLM_OUTBOUND_STORE = "megolm-outbound";
 const MEGOLM_INBOUND_STORE = "megolm-inbound";
+const OTP_PREKEY_STORE = "otp-prekeys";
+const BACKUP_VERSIONS_STORE = "backup-versions";
 
 interface EncryptedEntry {
   id: string;
@@ -24,6 +29,7 @@ function getDB(): Promise<IDBPDatabase> {
   if (!dbPromise) {
     dbPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db) {
+        // Version 1 stores
         if (!db.objectStoreNames.contains(IDENTITY_STORE)) {
           db.createObjectStore(IDENTITY_STORE, { keyPath: "id" });
         }
@@ -35,6 +41,14 @@ function getDB(): Promise<IDBPDatabase> {
         }
         if (!db.objectStoreNames.contains(MEGOLM_INBOUND_STORE)) {
           db.createObjectStore(MEGOLM_INBOUND_STORE, { keyPath: "id" });
+        }
+        // NL-2: Version 2 — OTP pre-key private key storage
+        if (!db.objectStoreNames.contains(OTP_PREKEY_STORE)) {
+          db.createObjectStore(OTP_PREKEY_STORE, { keyPath: "id" });
+        }
+        // H-6: Version 3 — backup version tracking for session sync
+        if (!db.objectStoreNames.contains(BACKUP_VERSIONS_STORE)) {
+          db.createObjectStore(BACKUP_VERSIONS_STORE, { keyPath: "id" });
         }
       },
     });
@@ -169,6 +183,115 @@ export async function deleteMegolmInbound(sessionId: string): Promise<void> {
   await db.delete(MEGOLM_INBOUND_STORE, `megolm-in:${sessionId}`);
 }
 
+// ─── Entity Megolm Sessions (entity-as-channel) ─────────
+
+/**
+ * Store a Megolm outbound session for an entity.
+ * Key format: entity:<entityType>:<entityId> (prevents collisions with channel sessions).
+ */
+export async function storeEntityMegolmOutbound(
+  entityType: string,
+  entityId: string,
+  serialized: string,
+  kek: ArrayBuffer
+): Promise<void> {
+  const db = await getDB();
+  const key = `entity:${entityType}:${entityId}`;
+  const entry = await encryptForStorage(`megolm-out:${key}`, serialized, kek);
+  await db.put(MEGOLM_OUTBOUND_STORE, entry);
+}
+
+/**
+ * Retrieve a Megolm outbound session for an entity.
+ */
+export async function getEntityMegolmOutbound(
+  entityType: string,
+  entityId: string,
+  kek: ArrayBuffer
+): Promise<string | null> {
+  const db = await getDB();
+  const key = `entity:${entityType}:${entityId}`;
+  const entry = await db.get(MEGOLM_OUTBOUND_STORE, `megolm-out:${key}`) as EncryptedEntry | undefined;
+  if (!entry) return null;
+  return decryptFromStorage(entry, kek);
+}
+
+/**
+ * Delete a Megolm outbound session for an entity (on rotation).
+ */
+export async function deleteEntityMegolmOutbound(
+  entityType: string,
+  entityId: string
+): Promise<void> {
+  const db = await getDB();
+  const key = `entity:${entityType}:${entityId}`;
+  await db.delete(MEGOLM_OUTBOUND_STORE, `megolm-out:${key}`);
+}
+
+// Note: Entity inbound sessions reuse storeMegolmInbound/getMegolmInbound directly
+// since Megolm sessionIds are globally unique UUIDs — no key prefix needed.
+
+// ─── OTP Pre-Key Private Keys (NL-2) ────────────
+
+/**
+ * Store an OTP pre-key private key (serialized + KEK-encrypted).
+ * Called during pre-key generation so the private key can be retrieved later
+ * for X3DH DH4 computation when a session is initiated with this OTP key.
+ */
+export async function storeOtpPreKey(keyId: string, serializedPrivateKey: string, kek: ArrayBuffer): Promise<void> {
+  const db = await getDB();
+  const entry = await encryptForStorage(`otp:${keyId}`, serializedPrivateKey, kek);
+  await db.put(OTP_PREKEY_STORE, entry);
+}
+
+/**
+ * Retrieve an OTP pre-key private key by its ID.
+ * Returns null if not found (key was generated before NL-2, or already consumed and deleted).
+ */
+export async function getOtpPreKey(keyId: string, kek: ArrayBuffer): Promise<string | null> {
+  const db = await getDB();
+  const entry = await db.get(OTP_PREKEY_STORE, `otp:${keyId}`) as EncryptedEntry | undefined;
+  if (!entry) return null;
+  return decryptFromStorage(entry, kek);
+}
+
+/**
+ * Delete an OTP pre-key after it has been consumed in an X3DH handshake.
+ * One-time keys should only be used once.
+ */
+export async function deleteOtpPreKey(keyId: string): Promise<void> {
+  const db = await getDB();
+  await db.delete(OTP_PREKEY_STORE, `otp:${keyId}`);
+}
+
+// ─── Backup Version Tracking (H-6) ──────────────
+
+/**
+ * Get the last-backed-up version for a session key.
+ * Returns 0 if no backup has been recorded yet.
+ */
+export async function getBackupVersion(sessionKey: string): Promise<number> {
+  const db = await getDB();
+  const entry = await db.get(BACKUP_VERSIONS_STORE, sessionKey);
+  return entry?.version ?? 0;
+}
+
+/**
+ * Record the server-side version after a successful backup upload.
+ */
+export async function setBackupVersion(sessionKey: string, version: number): Promise<void> {
+  const db = await getDB();
+  await db.put(BACKUP_VERSIONS_STORE, { id: sessionKey, version });
+}
+
+/**
+ * Remove version tracking for a session (e.g., on session delete).
+ */
+export async function deleteBackupVersion(sessionKey: string): Promise<void> {
+  const db = await getDB();
+  await db.delete(BACKUP_VERSIONS_STORE, sessionKey);
+}
+
 /**
  * Clear ALL E2EE session data from IndexedDB.
  * Used on logout or when user resets E2EE.
@@ -176,7 +299,7 @@ export async function deleteMegolmInbound(sessionId: string): Promise<void> {
 export async function clearAllSessions(): Promise<void> {
   const db = await getDB();
   const tx = db.transaction(
-    [IDENTITY_STORE, RATCHET_STORE, MEGOLM_OUTBOUND_STORE, MEGOLM_INBOUND_STORE],
+    [IDENTITY_STORE, RATCHET_STORE, MEGOLM_OUTBOUND_STORE, MEGOLM_INBOUND_STORE, OTP_PREKEY_STORE, BACKUP_VERSIONS_STORE],
     "readwrite"
   );
   await Promise.all([
@@ -184,6 +307,8 @@ export async function clearAllSessions(): Promise<void> {
     tx.objectStore(RATCHET_STORE).clear(),
     tx.objectStore(MEGOLM_OUTBOUND_STORE).clear(),
     tx.objectStore(MEGOLM_INBOUND_STORE).clear(),
+    tx.objectStore(OTP_PREKEY_STORE).clear(),
+    tx.objectStore(BACKUP_VERSIONS_STORE).clear(),
     tx.done,
   ]);
 }

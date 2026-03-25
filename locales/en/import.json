@@ -500,13 +500,143 @@
           "FULLY": "Fully"
         }
       }
+    },
+    "unified": {
+      "groups": {
+        "basic": "Property — Basic",
+        "classification": "Property — Classification",
+        "address": "Property — Address",
+        "pricing": "Property — Pricing",
+        "details": "Property — Details",
+        "measurements": "Property — Measurements",
+        "building": "Property — Building",
+        "legal": "Property — Legal",
+        "land": "Property — Land",
+        "management": "Property — Management",
+        "rental": "Property — Rental",
+        "visibility": "Property — Visibility",
+        "other": "Property — Other",
+        "contact": "Client — Contact",
+        "company": "Client — Company",
+        "greece": "Client — Greece IDs",
+        "shipping": "Client — Shipping Address",
+        "budget": "Mandate — Budget",
+        "size": "Mandate — Size",
+        "rooms": "Mandate — Rooms",
+        "features": "Mandate — Features",
+        "location": "Mandate — Location"
+      },
+      "fields": {
+        "property_name": "Property Name",
+        "property_type": "Property Type",
+        "property_status": "Property Status",
+        "transaction_type": "Transaction Type",
+        "price": "Price",
+        "price_type": "Price Type",
+        "address_street": "Street",
+        "address_city": "City",
+        "address_state": "State/Region",
+        "address_zip": "ZIP Code",
+        "municipality": "Municipality",
+        "area": "Area/Neighborhood",
+        "postal_code": "Postal Code",
+        "region": "Region",
+        "regional_unit": "Regional Unit",
+        "bedrooms": "Bedrooms",
+        "bathrooms": "Bathrooms",
+        "size_net_sqm": "Net Size (sqm)",
+        "size_gross_sqm": "Gross Size (sqm)",
+        "plot_size_sqm": "Plot Size (sqm)",
+        "description": "Description",
+        "primary_email": "Property Email",
+        "client_name": "Client Name",
+        "client_description": "Client Notes",
+        "primary_phone": "Phone",
+        "client_type": "Client Type",
+        "client_status": "Client Status",
+        "company_name": "Company Name",
+        "budget_min": "Min Budget",
+        "budget_max": "Max Budget",
+        "mandate_transaction_type": "Mandate Transaction Type",
+        "mandate_property_type": "Desired Property Type",
+        "mandate_municipality": "Target Municipality",
+        "mandate_region": "Target Region",
+        "mandate_notes": "Mandate Notes",
+        "urgency": "Urgency",
+        "timeline": "Timeline",
+        "size_min_sqm": "Min Size (sqm)",
+        "size_max_sqm": "Max Size (sqm)",
+        "bedrooms_min": "Min Bedrooms",
+        "bedrooms_max": "Max Bedrooms",
+        "areas_of_interest": "Areas of Interest",
+        "expires_at": "Expiration Date"
+      }
+    }
+  },
+  "history": {
+    "page": {
+      "title": "Import Management",
+      "description": "View import history, manage imported data, and start new imports",
+      "startImport": "Start Import",
+      "emptyState": "No imports yet. Start by importing your data from a CSV or Excel file.",
+      "emptyStateAction": "Import data"
+    },
+    "table": {
+      "date": "Date",
+      "source": "Source File",
+      "type": "Type",
+      "created": "Created",
+      "reused": "Reused",
+      "failed": "Failed",
+      "skipped": "Skipped",
+      "status": "Status",
+      "actions": "Actions",
+      "viewDetails": "View details",
+      "deleteBatch": "Delete batch",
+      "rows": "rows"
+    },
+    "status": {
+      "COMPLETED": "Completed",
+      "PARTIALLY_FAILED": "Partial",
+      "FAILED": "Failed",
+      "BATCH_DELETED": "Deleted"
+    },
+    "type": {
+      "CLIENTS": "Clients",
+      "PROPERTIES": "Properties",
+      "MANDATES": "Mandates",
+      "UNIFIED": "Mixed"
+    },
+    "detail": {
+      "title": "Import Details",
+      "summary": "Summary",
+      "errors": "Errors",
+      "noErrors": "No errors reported for this import.",
+      "errorRow": "Row",
+      "errorField": "Field",
+      "errorMessage": "Error",
+      "errorValue": "Submitted Value",
+      "clients": "Clients",
+      "properties": "Properties",
+      "mandates": "Mandates",
+      "created": "Created",
+      "reused": "Reused",
+      "failed": "Failed",
+      "skipped": "Skipped",
+      "total": "Total Rows",
+      "importedAt": "Imported at",
+      "sourceFile": "Source file"
+    },
+    "batchDelete": {
+      "title": "Delete Imported Batch",
+      "description": "This will permanently delete all entities created by this import. This action cannot be undone.",
+      "confirm": "Delete all imported entities",
+      "cancel": "Cancel",
+      "success": "Batch deleted successfully",
+      "error": "Failed to delete batch"
     }
   }
 }
-
-
-
-
 
 
 

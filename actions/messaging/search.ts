@@ -182,12 +182,16 @@ export async function searchMessages(params: {
  * Create a highlighted snippet around the search term
  */
 function createHighlightSnippet(content: string, query: string, contextLength: number = 50): string {
+  // Escape HTML entities FIRST to prevent XSS, then wrap matches with <mark>
+  const escape = (s: string) => s.replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
   const lowerContent = content.toLowerCase();
   const lowerQuery = query.toLowerCase();
   const index = lowerContent.indexOf(lowerQuery);
 
   if (index === -1) {
-    return content.substring(0, contextLength * 2) + (content.length > contextLength * 2 ? "..." : "");
+    return escape(content.substring(0, contextLength * 2)) + (content.length > contextLength * 2 ? "..." : "");
   }
 
   const start = Math.max(0, index - contextLength);
@@ -195,9 +199,9 @@ function createHighlightSnippet(content: string, query: string, contextLength: n
 
   let snippet = "";
   if (start > 0) snippet += "...";
-  snippet += content.substring(start, index);
-  snippet += `<mark>${content.substring(index, index + query.length)}</mark>`;
-  snippet += content.substring(index + query.length, end);
+  snippet += escape(content.substring(start, index));
+  snippet += `<mark>${escape(content.substring(index, index + query.length))}</mark>`;
+  snippet += escape(content.substring(index + query.length, end));
   if (end < content.length) snippet += "...";
 
   return snippet;

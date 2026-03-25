@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, XCircle, AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import type { ImportResult } from "./ImportWizardSteps";
@@ -32,7 +33,14 @@ export function CompleteStep({
   onImportMore,
   onDone,
 }: CompleteStepProps) {
-  const entityLabel = entityType === "client" ? "clients" : "properties";
+  let entityLabel: string;
+  if (entityType === "client") {
+    entityLabel = "clients";
+  } else if (entityType === "mandate") {
+    entityLabel = "mandates";
+  } else {
+    entityLabel = "properties";
+  }
   const hasImported = result && result.imported > 0;
   const hasFailed = result && result.failed > 0;
 
@@ -116,6 +124,74 @@ export function CompleteStep({
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* Per-entity breakdown (unified import) */}
+      {result && (result.clients || result.properties || result.mandates) && (
+        <div className="space-y-3">
+          {result.clients && (
+            <Card className="border-primary/50">
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Clients</span>
+                  <div className="flex gap-3 text-sm">
+                    <span className="text-success">{result.clients.created} created</span>
+                    {result.clients.reused > 0 && <span className="text-muted-foreground">{result.clients.reused} reused</span>}
+                    {result.clients.failed > 0 && <span className="text-destructive">{result.clients.failed} failed</span>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {result.properties && (
+            <Card className="border-primary/50">
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Properties</span>
+                  <div className="flex gap-3 text-sm">
+                    <span className="text-success">{result.properties.created} created</span>
+                    {result.properties.failed > 0 && <span className="text-destructive">{result.properties.failed} failed</span>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {result.mandates && (
+            <Card className="border-primary/50">
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Mandates</span>
+                  <div className="flex gap-3 text-sm">
+                    <span className="text-success">{result.mandates.created} created</span>
+                    {result.mandates.failed > 0 && <span className="text-destructive">{result.mandates.failed} failed</span>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {result.links && (
+            <Card>
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Links established</span>
+                  <span className="text-sm text-muted-foreground">
+                    {result.links.clientProperty + result.links.mandateClient + result.links.mandateProperty} total
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Skipped rows notice */}
+      {result && result.skipped > 0 && (
+        <Alert className="border-warning/30 bg-warning/10">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-warning">
+            {result.skipped} row(s) already existed and were skipped.
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Action Buttons */}
