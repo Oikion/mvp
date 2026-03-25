@@ -60,6 +60,7 @@ import {
 } from "./entity-comments";
 export type { EncryptEntityCommentResult } from "./entity-comments";
 import type { PreKeyBundle, EncryptedDMPayload, EncryptedGroupPayload } from "./types";
+import { SessionBackupManager, type RestoreResult, type BackupManagerCallbacks } from "./session-backup";
 
 // ─── In-Memory State ──────────────────────────
 // These are intentionally NOT persisted — cleared on page reload for security
@@ -71,6 +72,7 @@ let _kekRaw: ArrayBuffer | null = null;
 let _identityKeyPair: CryptoKeyPair | null = null;
 let _signingKeyPair: CryptoKeyPair | null = null;
 let _userId: string | null = null;
+let _backupManager: SessionBackupManager | null = null;
 
 // Cache of active DoubleRatchet sessions (conversationId → instance)
 const _ratchetCache = new Map<string, DoubleRatchet>();
@@ -210,12 +212,26 @@ export async function unlock(
   // Cache ECDH identity key in IndexedDB (encrypted with KEK)
   const serialized = await exportPrivateKey(privateKey);
   await storeIdentityKey(userId, serialized, _kekRaw);
+
+  // Initialize backup manager for session sync
+  _backupManager = new SessionBackupManager(
+    async () => _identityKeyPair!.publicKey,
+    async () => _identityKeyPair!.privateKey,
+  );
+
+  // Restore sessions from server backup
+  const restoreResult = await _backupManager.restoreAll(_kekRaw!);
+  if (restoreResult.restored > 0) {
+    console.info(`[E2EE] Restored ${restoreResult.restored} sessions from backup`);
+  }
 }
 
 /**
  * Lock E2EE: clear all in-memory crypto state.
  */
 export function lock(): void {
+  _backupManager?.destroy();
+  _backupManager = null;
   _kekRaw = null;
   _identityKeyPair = null;
   _signingKeyPair = null;
@@ -251,6 +267,7 @@ export async function initiateDMSession(
   _ratchetCache.set(conversationId, ratchet);
   const serialized = await ratchet.serialize();
   await storeRatchetSession(conversationId, serialized, _kekRaw!);
+  _backupManager?.markDirty("ratchet", `ratchet:${conversationId}`, serialized);
 
   return { initialMessage };
 }
@@ -277,6 +294,7 @@ export async function acceptDMSession(
   _ratchetCache.set(conversationId, ratchet);
   const serialized = await ratchet.serialize();
   await storeRatchetSession(conversationId, serialized, _kekRaw!);
+  _backupManager?.markDirty("ratchet", `ratchet:${conversationId}`, serialized);
 }
 
 /**
@@ -292,6 +310,7 @@ export async function encryptDM(
   // Persist updated session state
   const serialized = await ratchet.serialize();
   await storeRatchetSession(conversationId, serialized, _kekRaw!);
+  _backupManager?.markDirty("ratchet", `ratchet:${conversationId}`, serialized);
   return payload;
 }
 
@@ -308,6 +327,7 @@ export async function decryptDM(
   // Persist updated session state (ratchet advances)
   const serialized = await ratchet.serialize();
   await storeRatchetSession(conversationId, serialized, _kekRaw!);
+  _backupManager?.markDirty("ratchet", `ratchet:${conversationId}`, serialized);
   return plaintext;
 }
 
@@ -394,6 +414,7 @@ export async function createGroupSession(
   const session = await MegolmOutbound.create(targetId, maxMessages);
   _megolmOutCache.set(targetId, session);
   await storeMegolmOutbound(targetId, session.serialize(), _kekRaw!);
+  _backupManager?.markDirty("megolm-out", `megolm-out:${targetId}`, session.serialize());
 
   const exportJson = JSON.stringify(session.exportSession());
   const shares = await Promise.all(
@@ -414,6 +435,7 @@ export async function importGroupSession(
   const session = MegolmInbound.fromExport(sessionExport);
   _megolmInCache.set(sessionExport.sessionId, session);
   await storeMegolmInbound(sessionExport.sessionId, session.serialize(), _kekRaw!);
+  _backupManager?.markDirty("megolm-in", `megolm-in:${sessionExport.sessionId}`, session.serialize());
 }
 
 /**
@@ -428,6 +450,7 @@ export async function encryptGroup(
   const payload = await session.encrypt(plaintext);
   // Persist updated state
   await storeMegolmOutbound(targetId, session.serialize(), _kekRaw!);
+  _backupManager?.markDirty("megolm-out", `megolm-out:${targetId}`, session.serialize());
   return payload;
 }
 
@@ -445,6 +468,7 @@ export async function decryptGroup(
   const plaintext = await session.decrypt(messageIndex, ciphertext, iv);
   // Persist updated state
   await storeMegolmInbound(sessionId, session.serialize(), _kekRaw!);
+  _backupManager?.markDirty("megolm-in", `megolm-in:${sessionId}`, session.serialize());
   return plaintext;
 }
 
@@ -475,7 +499,8 @@ export async function initEntitySession(
   entityId: string,
 ) {
   assertUnlocked();
-  return _initEntitySession(entityType, entityId, _kekRaw!);
+  return _initEntitySession(entityType, entityId, _kekRaw!,
+    (type, key, state) => _backupManager?.markDirty(type as any, key, state));
 }
 
 /**
@@ -491,7 +516,8 @@ export async function initEntitySessionWithShares(
   participants: Array<{ userId: string; publicKey: string }>,
 ) {
   assertUnlocked();
-  const { sessionId, sessionExport } = await _initEntitySession(entityType, entityId, _kekRaw!);
+  const { sessionId, sessionExport } = await _initEntitySession(entityType, entityId, _kekRaw!,
+    (type, key, state) => _backupManager?.markDirty(type as any, key, state));
 
   const exportJson = JSON.stringify(sessionExport);
   const shares = await Promise.all(
@@ -508,7 +534,8 @@ export async function importEntitySession(
   sessionExport: { sessionId: string; targetId: string; ratchetKey: string; messageIndex: number },
 ) {
   assertUnlocked();
-  return _importEntitySession(sessionExport, _kekRaw!);
+  return _importEntitySession(sessionExport, _kekRaw!,
+    (type, key, state) => _backupManager?.markDirty(type as any, key, state));
 }
 
 /**
@@ -521,7 +548,8 @@ export async function encryptEntityComment(
   plaintext: string,
 ) {
   assertUnlocked();
-  return _encryptEntityComment(entityType, entityId, plaintext, _kekRaw!);
+  return _encryptEntityComment(entityType, entityId, plaintext, _kekRaw!,
+    (type, key, state) => _backupManager?.markDirty(type as any, key, state));
 }
 
 /**
@@ -534,7 +562,26 @@ export async function decryptEntityComment(
   encryptedContent: string,
 ) {
   assertUnlocked();
-  return _decryptEntityComment(sessionId, messageIndex, encryptedContent, _kekRaw!);
+  return _decryptEntityComment(sessionId, messageIndex, encryptedContent, _kekRaw!,
+    (type, key, state) => _backupManager?.markDirty(type as any, key, state));
+}
+
+// ─── Session Backup Helpers ───────────────────
+
+/**
+ * Flush any pending session backups synchronously (best-effort via sendBeacon).
+ * Call from the useE2EE hook's beforeunload/visibilitychange handler.
+ */
+export function flushBackupsOnUnload(): void {
+  _backupManager?.flushOnUnload();
+}
+
+/**
+ * Get the backup manager instance for status inspection.
+ * Returns null if E2EE is locked.
+ */
+export function getBackupManager(): SessionBackupManager | null {
+  return _backupManager;
 }
 
 // ─── Attachments ──────────────────────────────

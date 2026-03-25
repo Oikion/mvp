@@ -72,6 +72,7 @@ export async function encryptEntityComment(
   entityId: string,
   plaintext: string,
   kek: ArrayBuffer,
+  onDirty?: (sessionType: string, sessionKey: string, serializedState: string) => void,
 ): Promise<EncryptEntityCommentResult> {
   const key = entityKey(entityType, entityId);
   let session = _entityOutCache.get(key);
@@ -101,6 +102,7 @@ export async function encryptEntityComment(
 
   // Persist updated session state (ratchet advanced)
   await storeEntityMegolmOutbound(entityType, entityId, session.serialize(), kek);
+  onDirty?.("megolm-out", `megolm-out:entity:${entityType}:${entityId}`, session.serialize());
 
   // Combine iv:ciphertext into a single string for storage in the DB content field.
   // The server stores this opaque string as-is; only the client can split and decrypt.
@@ -128,6 +130,7 @@ export async function decryptEntityComment(
   messageIndex: number,
   encryptedContent: string,
   kek: ArrayBuffer,
+  onDirty?: (sessionType: string, sessionKey: string, serializedState: string) => void,
 ): Promise<string> {
   // Split the combined iv:ciphertext format
   const colonIndex = encryptedContent.indexOf(":");
@@ -158,6 +161,7 @@ export async function decryptEntityComment(
   // Only persist if the ratchet actually advanced (avoids redundant IndexedDB writes on re-render)
   if (session.currentIndex > indexBefore) {
     await storeMegolmInbound(sessionId, session.serialize(), kek);
+    onDirty?.("megolm-in", `megolm-in:${sessionId}`, session.serialize());
   }
 
   return plaintext;
@@ -174,6 +178,7 @@ export async function initEntitySession(
   entityType: EntityType,
   entityId: string,
   kek: ArrayBuffer,
+  onDirty?: (sessionType: string, sessionKey: string, serializedState: string) => void,
 ): Promise<{
   sessionId: string;
   sessionExport: { sessionId: string; targetId: string; ratchetKey: string; messageIndex: number };
@@ -183,6 +188,7 @@ export async function initEntitySession(
 
   _entityOutCache.set(key, session);
   await storeEntityMegolmOutbound(entityType, entityId, session.serialize(), kek);
+  onDirty?.("megolm-out", `megolm-out:entity:${entityType}:${entityId}`, session.serialize());
 
   return {
     sessionId: session.sessionId,
@@ -198,10 +204,12 @@ export async function initEntitySession(
 export async function importEntitySession(
   sessionExport: { sessionId: string; targetId: string; ratchetKey: string; messageIndex: number },
   kek: ArrayBuffer,
+  onDirty?: (sessionType: string, sessionKey: string, serializedState: string) => void,
 ): Promise<void> {
   const session = MegolmInbound.fromExport(sessionExport);
   _entityInCache.set(sessionExport.sessionId, session);
   await storeMegolmInbound(sessionExport.sessionId, session.serialize(), kek);
+  onDirty?.("megolm-in", `megolm-in:${sessionExport.sessionId}`, session.serialize());
 }
 
 /**
