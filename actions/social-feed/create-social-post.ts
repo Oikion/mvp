@@ -203,29 +203,18 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
         },
       });
 
+      // SECURITY: Ably is an external service — never send decrypted PII
+      // (client names, entity titles, post content) through its servers.
+      // Subscribers fetch the full post via API using the post ID.
       const postData = {
         id: post.id,
         slug: post.slug,
         type: type,
-        content: content || "",
         timestamp: post.createdAt.toISOString(),
-        author: {
-          id: currentUser.id,
-          name: currentUser.name || currentUser.email || "Unknown",
-          avatar: currentUser.avatar || undefined,
-          visibility,
-        },
-        linkedEntity: linkedEntityId ? {
-          id: linkedEntityId,
-          type: type as "property" | "client",
-          title: linkedEntityTitle || "",
-          subtitle: linkedEntitySubtitle,
-          metadata: linkedEntityMetadata,
-        } : undefined,
-        attachments,
-        likes: 0,
-        comments: 0,
-        isOwn: true,
+        authorId: currentUser.id,
+        linkedEntityId: linkedEntityId || undefined,
+        linkedEntityType: linkedEntityId ? type : undefined,
+        hasAttachments: attachments.length > 0,
       };
 
       await publishToChannel(

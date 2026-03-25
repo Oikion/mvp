@@ -36,12 +36,18 @@ function PostHogInitialiser() {
     }
   }, [userId, orgId]);
 
-  // Track page views on navigation
+  // Track page views on navigation.
+  // Redact entity IDs from URLs so PostHog never stores which specific
+  // client/property/mandate/deal/event a user viewed.
   useEffect(() => {
     if (!POSTHOG_KEY) return;
 
+    const redactedPath = pathname.replaceAll(
+      /\/(clients|properties|mandates|deals|events|documents|users)\/[^/]+/g,
+      "/$1/[id]"
+    );
     const query = searchParams.toString();
-    const url = query ? `${pathname}?${query}` : pathname;
+    const url = query ? `${redactedPath}?${query}` : redactedPath;
     posthog.capture("$pageview", { $current_url: url });
   }, [pathname, searchParams]);
 
@@ -94,16 +100,23 @@ export function PostHogProvider({ children }: PostHogProviderProps) {
       ui_host: POSTHOG_UI_HOST,
       // Capture page views manually (we fire them on navigation above).
       capture_pageview: false,
+      // SECURITY: Disable autocapture — it records text content of every
+      // clicked element. In a CRM displaying decrypted PII (client names,
+      // phones, tax IDs), this sends sensitive data to PostHog on every click.
+      autocapture: false,
       // Respect browser Do Not Track setting.
       respect_dnt: true,
-      // Disable session recording in development.
-      disable_session_recording: process.env.NODE_ENV !== "production",
+      // SECURITY: Session recording is permanently disabled for this CRM.
+      // CRM screens display decrypted PII (client names, phones, tax IDs)
+      // that would be captured in the replay, bypassing field-level encryption.
+      // disable_session_recording prevents recording from starting.
+      // advanced_disable_session_recording prevents the recorder JS bundle
+      // from even being fetched, and blocks remote re-enablement from the
+      // PostHog dashboard ("Remote config" feature).
+      disable_session_recording: true,
+      advanced_disable_session_recording: true,
       // Cross-subdomain persistence (useful for oikion.gr + app.oikion.gr).
       persistence: "localStorage+cookie",
-      // Ensure the session recorder lazy chunk is also fetched through the proxy.
-      session_recording: {
-        recordCrossOriginIframes: false,
-      },
     });
   }, [analyticsConsented]);
 

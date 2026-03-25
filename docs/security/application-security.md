@@ -28,8 +28,8 @@ This document is the single source of truth for all security findings, their sta
 
 | System | Name | Scope | Key Files | Status |
 |--------|------|-------|-----------|--------|
-| I | Server-Side Field Encryption (Per-Org DEK) | CRM/MLS PII fields at rest | `lib/encryption.ts`, `lib/key-management.ts`, `lib/model-encryption.ts` | Active (production) |
-| II | Client-Side Passphrase E2EE (OMK) | CRM/MLS field display in browser | `lib/crypto/`, `components/providers/EncryptionProvider.tsx` | Active — scheduled for retirement |
+| I | Server-Side Field Encryption (Per-Org DEK) | CRM/MLS PII fields at rest + message content | `lib/encryption.ts`, `lib/key-management.ts`, `lib/model-encryption.ts` | Active (production) |
+| II | Client-Side Passphrase E2EE (OMK) | ~~CRM/MLS field display in browser~~ | ~~`lib/crypto/`~~, ~~`EncryptionProvider.tsx`~~ | **RETIRED** (2026-03-25, H-5) — all files deleted |
 | III | Advanced Messaging E2EE (Signal Protocol) | DMs, group channels, entity comments | `lib/e2ee/` (7 source files, ~1,400 LOC) | Active (messaging subsystem) |
 
 ### System I — Server-Side Field Encryption
@@ -808,6 +808,198 @@ Observation only — debouncing IndexedDB writes would reduce overhead but risks
 
 ---
 
+### Third-Party SDK Data Breach Surface (2026-03-25)
+
+A comprehensive audit of all third-party SDKs identified data breach vectors where decrypted PII escaped the encryption boundary through side channels (analytics, real-time messaging, notification storage, logs). All code-fixable gaps have been remediated.
+
+#### SDK-1 — PostHog Session Recording Captured All Decrypted PII
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-1 |
+| **Severity** | CRITICAL |
+| **Status** | FIXED |
+| **SDK** | PostHog (`posthog-js`) |
+| **File** | `components/providers/PostHogProvider.tsx` |
+
+**Problem**: Session recording was enabled in production (`disable_session_recording: false`). PostHog recorded everything rendered on screen — when a user viewed a client detail page, decrypted names, phone numbers, emails, and tax IDs were captured and transmitted to PostHog's servers, effectively bypassing field-level encryption.
+
+**Fix**: `disable_session_recording: true` + `advanced_disable_session_recording: true` (prevents remote re-enablement from PostHog dashboard).
+
+---
+
+#### SDK-2 — PostHog Autocapture Sent Clicked Element Text
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-2 |
+| **Severity** | CRITICAL |
+| **Status** | FIXED |
+| **SDK** | PostHog (`posthog-js`) |
+| **File** | `components/providers/PostHogProvider.tsx` |
+
+**Problem**: PostHog `autocapture` defaults to `true`, recording text content of every clicked element. In a CRM displaying decrypted client names, phones, and tax IDs, every click sent PII to PostHog.
+
+**Fix**: `autocapture: false` in `posthog.init()` options.
+
+---
+
+#### SDK-3 — Ably Received Decrypted Client Names in Social Post Events
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-3 |
+| **Severity** | HIGH |
+| **Status** | FIXED |
+| **SDK** | Ably (`ably`) |
+| **Files** | `actions/social-feed/create-social-post.ts`, `hooks/useAbly.ts`, `app/[locale]/app/(routes)/network/feed/components/FeedPage.tsx` |
+
+**Problem**: `create-social-post.ts` decrypted `client_name` and published it through Ably's servers in the social feed event payload. Author names, post content, entity titles, and attachment URLs were also included.
+
+**Fix**: Ably payload stripped to IDs only (`{ id, slug, type, timestamp, authorId, linkedEntityId }`). Client-side handler (`useAblyFeed`) uses new `onPostNotification` callback that triggers `router.refresh()` to refetch from the authenticated API.
+
+---
+
+#### SDK-4 — Message Content Stored Plaintext in DB and Sent via Ably
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-4 |
+| **Severity** | HIGH |
+| **Status** | FIXED |
+| **SDK** | Prisma Accelerate + Ably |
+| **Files** | `lib/messaging.ts`, `app/api/messaging/messages/route.ts`, `actions/messaging/search.ts` |
+
+**Problem**: Message content was stored as plaintext in the `Message` table (visible to Prisma Accelerate proxy) and published with full content to Ably's servers on every message send/edit.
+
+**Fix (write paths)**: `encryptMessageForOrg()` called before DB write in all 3 write paths (POST route, PATCH route, `lib/messaging.ts`). Ably events stripped to `{ id, senderId, channelId, createdAt }`.
+
+**Fix (read paths)**: `decryptMessageForOrg()` called in GET route handler and search action before returning data to clients.
+
+**Trade-off**: Server-side encrypted messages cannot be searched via SQL `contains` — the DB sees ciphertext. The search action documents this limitation.
+
+---
+
+#### SDK-5 — Plaintext Message Preview in Notification Table
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-5 |
+| **Severity** | HIGH |
+| **Status** | FIXED |
+| **SDK** | Internal (Notification table) |
+| **File** | `app/api/messaging/messages/route.ts` |
+
+**Problem**: `notifyNewMessage()` received `content.substring(0, 200)` — plaintext message text — and stored it as the `message` field in the `Notification` table. This created a second, unencrypted copy of message content.
+
+**Fix**: Replaced plaintext previews with generic strings: `"New message"` for channel/conversation notifications, `"You were mentioned in a message"` for mentions.
+
+---
+
+#### SDK-6 — PostHog Pageview URLs Leaked Entity IDs
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-6 |
+| **Severity** | MEDIUM |
+| **Status** | FIXED |
+| **SDK** | PostHog (`posthog-js`) |
+| **File** | `components/providers/PostHogProvider.tsx` |
+
+**Problem**: Full page URLs were sent as `$current_url` in pageview events, including entity IDs like `/app/crm/clients/abc123`.
+
+**Fix**: URL redaction via regex: `/clients/abc123` → `/clients/[id]` for all entity types (clients, properties, mandates, deals, events, documents, users).
+
+---
+
+#### SDK-7 — Vercel Blob Forced Public Access
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-7 |
+| **Severity** | MEDIUM |
+| **Status** | PARTIALLY FIXED (SDK limitation) |
+| **SDK** | Vercel Blob (`@vercel/blob` v2) |
+| **File** | `lib/vercel-blob.ts` |
+
+**Problem**: `access: access as "public"` TypeScript cast defeated the caller's intent to set private access.
+
+**Fix**: Removed the broken cast. However, `@vercel/blob` v2 only supports `access: "public"` at the API level. Documents and attachments remain publicly accessible via URL (mitigated by `addRandomSuffix` and org-scoped paths). A TODO documents the need to switch sensitive file storage to DO Spaces with presigned URLs until Vercel ships private blob support.
+
+---
+
+#### SDK-8 — n8n Webhook Unauthenticated in Production
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-8 |
+| **Severity** | MEDIUM |
+| **Status** | FIXED |
+| **SDK** | n8n |
+| **File** | `lib/n8n.ts` |
+
+**Problem**: `verifyN8nWebhookSignature()` returned `true` when `N8N_WEBHOOK_SECRET` was unset, silently accepting unauthenticated requests in any environment.
+
+**Fix**: Production now returns `false` (fail-closed). Development still allows unsigned requests.
+
+---
+
+#### SDK-9 — n8n Webhook Payload Logged in Full
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-9 |
+| **Severity** | LOW |
+| **Status** | FIXED |
+| **SDK** | Vercel logs (via n8n) |
+| **File** | `app/api/v1/n8n/webhook/route.ts` |
+
+**Problem**: `console.log` included the full `data` payload from n8n webhooks, which could contain entity names or PII.
+
+**Fix**: Redacted to `{ type, id }` only.
+
+---
+
+#### SDK-10 — Migration Script Logged Decrypted Message Content
+
+| Field | Value |
+|-------|-------|
+| **ID** | SDK-10 |
+| **Severity** | LOW |
+| **Status** | FIXED |
+| **Files** | `scripts/migrate-messages-to-e2ee.ts` |
+
+**Problem**: On verification failure, the script logged the first 50 characters of decrypted message content.
+
+**Fix**: Redacted to length comparison only.
+
+---
+
+#### Remaining Configuration Audits (Not Code-Fixable)
+
+| Item | Action Required |
+|------|----------------|
+| Clerk data region | Verify Clerk instance is configured to EU region in dashboard (GDPR) |
+| Ably data region | Verify Ably account uses EU data plane |
+| Ably historical messages | Purge pre-fix messages containing PII from Ably's message history |
+| Vercel Blob private access | Switch sensitive document storage to DO Spaces w/ presigned URLs until `@vercel/blob` supports private blobs |
+| Resend email templates | If messaging notification email templates are added, use generic text — never `messagePreview` |
+
+---
+
+#### Clean Areas (Confirmed Not Gaps)
+
+| Area | Why |
+|------|-----|
+| PostHog server-side (`posthog-node`) | `trackEvent()` has zero call sites |
+| Clerk webhook handler | Logs only internal IDs |
+| External API routes (`/api/v1/*`) | Properly decrypt before returning |
+| Upstash Redis | Only encrypted DEKs (KEK-wrapped) and counters |
+| Data export (`lib/data-export/processor.ts`) | Already calls `decryptMessageForOrg()` |
+| No error tracking SDK installed | No Sentry/Bugsnag/LogRocket |
+
+---
+
 ## 3. Implementation Phases
 
 ### Phase 1 — Critical (Before Any Deployment)
@@ -937,10 +1129,18 @@ These are non-negotiable rules that every security conversation and implementati
 13. **Master key fallback is transitional** — it must eventually be removed after re-encryption migration completes.
 14. **The server must never see plaintext E2EE private keys** — System III identity keys, signing keys, and session keys are wrapped client-side.
 
+### Third-Party SDK Boundaries
+
+15. **Never send decrypted PII through Ably** — treat Ably as an event bus (IDs and event types only). Subscribers fetch full data from authenticated API endpoints.
+16. **PostHog must never capture screen content or element text** — `disable_session_recording: true`, `advanced_disable_session_recording: true`, `autocapture: false` are mandatory. Never remove these settings.
+17. **Redact entity IDs from analytics URLs** — PostHog pageview URLs must replace entity IDs with `[id]` placeholders.
+18. **Never store plaintext message previews in notification records** — use generic strings like "New message".
+19. **Never log full request/response payloads from external webhooks** — log only event type and entity ID.
+
 ### Error Handling
 
-15. **Cryptographic errors must not be silently swallowed** — a failed AES-GCM auth tag check means wrong key or tampered data, never "try another key silently".
-16. **Error messages must not expose cryptographic details** — return generic messages to clients, log specifics server-side.
+20. **Cryptographic errors must not be silently swallowed** — a failed AES-GCM auth tag check means wrong key or tampered data, never "try another key silently".
+21. **Error messages must not expose cryptographic details** — return generic messages to clients, log specifics server-side.
 
 ---
 
@@ -955,16 +1155,11 @@ These are non-negotiable rules that every security conversation and implementati
 | `lib/model-encryption.ts` | Typed encrypt/decrypt per model | No — delegates to `encryption.ts` |
 | `lib/platform-key-management.ts` | Platform-wide DEK | Low risk — same pattern as org DEK |
 
-### System II — Client-Side Passphrase E2EE
+### System II — Client-Side Passphrase E2EE (RETIRED 2026-03-25)
 
-| File | Purpose | Security-Critical |
-|------|---------|-------------------|
-| `lib/crypto/constants.ts` | Algorithm constants | No |
-| `lib/crypto/key-derivation.ts` | PBKDF2 passphrase → KEK | No |
-| `lib/crypto/key-wrapping.ts` | OMK wrapping/unwrapping | No |
-| `lib/crypto/encryption.ts` | Field/JSON encrypt via OMK | No |
-| `lib/crypto/field-handlers.ts` | Model-specific field ops | No |
-| `components/providers/EncryptionProvider.tsx` | React context, idle auto-lock | Yes — dual-lock race (M-3) |
+All System II files have been deleted. See H-5 for details.
+
+~~`lib/crypto/`~~, ~~`actions/encryption/`~~, ~~`EncryptionProvider`~~ — all removed.
 
 ### System III — Advanced Messaging E2EE
 
@@ -1056,6 +1251,7 @@ Use this checklist after completing each phase to confirm all fixes are correct.
 
 | Date | Phase | Finding(s) | Action | Author |
 |------|-------|------------|--------|--------|
+| 2026-03-25 | — | SDK-1 through SDK-10 | **Third-party SDK data breach surface audit and remediation**: PostHog session recording disabled + `advanced_disable_session_recording` to block remote re-enable. PostHog autocapture disabled. Pageview URLs redacted. Ably social feed and messaging payloads stripped to IDs only (no PII). Message content encrypted via `encryptMessageForOrg()` on all 3 write paths; `decryptMessageForOrg()` on all read paths. Notification `messagePreview` replaced with generic strings. n8n webhook secret enforced in production. n8n + migration script log payloads redacted. Vercel Blob `as "public"` cast removed (SDK limitation documented). 11 files changed. | Claude (audit + implementation) |
 | 2026-03-25 | 4 | H-5 | **H-5 System II retired**: Deleted 15 files (`lib/crypto/`, `actions/encryption/`, `EncryptionProvider`, `use-encrypted-search`, `IdleTimeoutWarning`). Dropped `OrganizationEncryptionStatus` and `OrganizationEncryptionKey` Prisma models. Replaced passphrase UI with E2EE info cards. Single PIN-based unlock flow remains. | Claude (implementation) |
 | 2026-03-25 | 4 | H-6 | **H-6 session backup implemented**: Server-mediated session sync with dual-layer encryption (ECIES + DEK wrap). `E2eeSessionBackup` Prisma model with per-user, per-org scoping. `SessionBackupManager` client class with 5s debounced batch upload. POST/GET/DELETE API routes with Zod validation. Automatic restore on PIN unlock via `restoreAll()`. UI: syncing state in E2EESessionButton, PinEntryDialog progress, Settings page status. Spec: `docs/superpowers/specs/2026-03-25-e2ee-session-backup-design.md`. Plan: `docs/superpowers/plans/2026-03-25-e2ee-session-backup.md`. | Claude (implementation) |
 | 2026-03-25 | C-3 | C-3 | **C-3 migration script completed**: Extended `migrate-to-org-dek.ts` with 6 missing models (Mandates, Client/Mandate/Task Comments, MyAccount, NewsletterSubscriber — total 13 models). Added `--verify` mode with `canDecryptWithDek()` helper. No schema change needed — existing decrypt/encrypt pipeline handles detection. Migration workflow documented: dry-run → execute → verify → enable flag. | Claude (implementation) |

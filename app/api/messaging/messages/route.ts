@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
+import { encryptMessageForOrg, decryptMessageForOrg } from "@/lib/model-encryption";
 import { notifyNewMessage, notifyMention } from "@/actions/messaging/notifications";
 import { publishToChannel, getChannelName, getConversationChannelName } from "@/lib/ably";
 
@@ -146,6 +147,13 @@ export async function POST(req: Request) {
       );
     }
 
+    // Encrypt message content before DB write so Prisma Accelerate and the
+    // database only ever see ciphertext.
+    const { content: encryptedContent } = await encryptMessageForOrg(
+      { content },
+      organizationId
+    );
+
     // Create message
     const messageId = await generateFriendlyId(prismadb, "Message", organizationId);
     const message = await prismadb.message.create({
@@ -155,7 +163,7 @@ export async function POST(req: Request) {
         channelId,
         conversationId,
         senderId: sender.id,
-        content,
+        content: encryptedContent ?? content,
         contentType: "TEXT",
         parentId,
         attachments: attachments?.length
@@ -203,17 +211,14 @@ export async function POST(req: Request) {
         ? getChannelName(organizationId, channelId)
         : getConversationChannelName(organizationId, conversationId!);
       
+      // SECURITY: Don't send message content or attachments through Ably.
+      // Subscribers refetch via API using the message ID.
       const published = await publishToChannel(ablyChannelName, "message:new", {
         id: message.id,
-        content: message.content,
-        contentType: message.contentType,
         senderId: message.senderId,
-        senderName: sender.name,
         channelId: message.channelId,
         conversationId: message.conversationId,
         parentId: message.parentId,
-        attachments: message.attachments,
-        mentions: message.mentions,
         createdAt: message.createdAt,
       });
       
@@ -251,7 +256,9 @@ export async function POST(req: Request) {
             senderName: sender.name || "Unknown",
             channelId,
             channelName: channel.name,
-            messagePreview: content.substring(0, 200), // Truncate preview
+            // SECURITY: Do not store plaintext message content in the
+            // Notification table — it would bypass message encryption.
+            messagePreview: "New message",
           })
         );
         
@@ -279,7 +286,7 @@ export async function POST(req: Request) {
           senderUserId: sender.id,
           senderName: sender.name || "Unknown",
           conversationId,
-          messagePreview: content.substring(0, 200), // Truncate preview
+          messagePreview: "New message",
         })
       );
       
@@ -297,15 +304,16 @@ export async function POST(req: Request) {
         senderName: sender.name || "Unknown",
         channelId,
         conversationId,
-        messagePreview: content,
+        messagePreview: "You were mentioned in a message",
       });
     }
 
+    // Return plaintext content — the sender already knows it.
     return NextResponse.json({
       success: true,
       message: {
         id: message.id,
-        content: message.content,
+        content,
         contentType: message.contentType,
         senderId: message.senderId,
         channelId: message.channelId,
@@ -542,11 +550,17 @@ export async function GET(req: Request) {
       messages.pop();
     }
 
-    const formattedMessages = messages.reverse().map((msg) => {
+    // Decrypt message content before returning to the client.
+    // DEK is cached in Redis so this doesn't create N key-fetches.
+    const decryptedMessages = await Promise.all(
+      messages.map((msg) => decryptMessageForOrg(msg, organizationId))
+    );
+
+    const formattedMessages = decryptedMessages.reverse().map((msg) => {
       // Get the profile slug if the agent has a public profile
       const agentProfile = msg.sender?.AgentProfile;
-      const profileSlug = agentProfile?.visibility === "PUBLIC" 
-        ? (agentProfile.slug || msg.sender?.username) 
+      const profileSlug = agentProfile?.visibility === "PUBLIC"
+        ? (agentProfile.slug || msg.sender?.username)
         : null;
 
       return {
@@ -568,30 +582,31 @@ export async function GET(req: Request) {
       };
     });
 
-    // Format parent message if fetching thread
+    // Format parent message if fetching thread (decrypt first)
     let formattedParent = undefined;
     if (parentMessage) {
-      const parentAgentProfile = parentMessage.sender?.AgentProfile;
+      const decryptedParent = await decryptMessageForOrg(parentMessage, organizationId);
+      const parentAgentProfile = decryptedParent.sender?.AgentProfile;
       const parentProfileSlug = parentAgentProfile?.visibility === "PUBLIC"
-        ? (parentAgentProfile.slug || parentMessage.sender?.username)
+        ? (parentAgentProfile.slug || decryptedParent.sender?.username)
         : null;
 
       formattedParent = {
-        id: parentMessage.id,
-        content: parentMessage.content,
-        contentType: parentMessage.contentType,
-        senderId: parentMessage.senderId,
-        senderName: parentMessage.sender?.name || null,
-        senderAvatar: parentMessage.sender?.avatar || null,
-        senderEmail: parentMessage.sender?.email || null,
+        id: decryptedParent.id,
+        content: decryptedParent.content,
+        contentType: decryptedParent.contentType,
+        senderId: decryptedParent.senderId,
+        senderName: decryptedParent.sender?.name || null,
+        senderAvatar: decryptedParent.sender?.avatar || null,
+        senderEmail: decryptedParent.sender?.email || null,
         senderProfileSlug: parentProfileSlug,
-        parentId: parentMessage.parentId,
-        threadCount: parentMessage.threadCount,
-        isEdited: parentMessage.isEdited,
-        createdAt: parentMessage.createdAt,
-        attachments: parentMessage.attachments,
-        reactions: parentMessage.reactions,
-        mentions: parentMessage.mentions,
+        parentId: decryptedParent.parentId,
+        threadCount: decryptedParent.threadCount,
+        isEdited: decryptedParent.isEdited,
+        createdAt: decryptedParent.createdAt,
+        attachments: decryptedParent.attachments,
+        reactions: decryptedParent.reactions,
+        mentions: decryptedParent.mentions,
       };
     }
 
@@ -681,25 +696,30 @@ export async function PATCH(req: Request) {
       );
     }
 
+    // Encrypt edited content before DB write
+    const { content: encryptedEditContent } = await encryptMessageForOrg(
+      { content },
+      organizationId
+    );
+
     // Update message
     const updated = await prismadb.message.update({
       where: { id: messageId },
       data: {
-        content,
+        content: encryptedEditContent ?? content,
         isEdited: true,
         editedAt: new Date(),
       },
     });
 
-    // Emit Ably event
+    // Emit Ably event — content stripped, subscribers refetch via API
     try {
       const ablyChannelName = message.channelId
         ? getChannelName(organizationId, message.channelId)
         : getConversationChannelName(organizationId, message.conversationId!);
-      
+
       const published = await publishToChannel(ablyChannelName, "message:edited", {
         id: updated.id,
-        content: updated.content,
         isEdited: true,
         editedAt: updated.editedAt,
       });
@@ -711,11 +731,12 @@ export async function PATCH(req: Request) {
       console.error("[MESSAGING] Failed to publish edit to Ably:", error);
     }
 
+    // Return plaintext — the editor already knows the content.
     return NextResponse.json({
       success: true,
       message: {
         id: updated.id,
-        content: updated.content,
+        content,
         isEdited: updated.isEdited,
         editedAt: updated.editedAt,
       },

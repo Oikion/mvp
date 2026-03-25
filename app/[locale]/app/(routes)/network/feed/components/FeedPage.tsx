@@ -12,10 +12,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { deleteSocialPost } from "@/actions/social-feed/delete-social-post";
 import { getMyProfileVisibility } from "@/actions/social-feed/create-social-post";
 import { useMessagingCredentials } from "@/hooks/swr/useMessaging";
-import {
-  useAblyFeed,
-  type SocialPost as AblyPost,
-} from "@/hooks/useAbly";
+import { useAblyFeed } from "@/hooks/useAbly";
 import type { DiscoverAgentItem } from "@/actions/network/discover-agents";
 import type { DiscoverAgencyItem } from "@/actions/network/discover-agencies";
 import { FeedPostComposer, type ShareableItem } from "./FeedPostComposer";
@@ -77,19 +74,15 @@ export function FeedPage({
   const { isSubscribed } = useAblyFeed({
     organizationId: credentials?.organizationId,
     credentials,
-    onPostCreated: useCallback(
-      (post: AblyPost) => {
-        // Don't add our own posts (they're already added via server refresh)
-        if (post.author.id === currentUser?.id) return;
-
-        setLocalPosts((prev) => {
-          // Check if post already exists
-          if (prev.some((p) => p.id === post.id)) return prev;
-          // Add new post at the beginning
-          return [post as SocialPost, ...prev];
-        });
+    // SECURITY: Ably events no longer carry full post data (PII stripped).
+    // On new-post notification, refetch the feed from the server.
+    onPostNotification: useCallback(
+      (data: { id: string; authorId?: string; type: string }) => {
+        // Don't refetch for our own posts — they're already added via server refresh
+        if (data.authorId === currentUser?.id) return;
+        router.refresh();
       },
-      [currentUser?.id]
+      [currentUser?.id, router]
     ),
     onPostDeleted: useCallback((postId: string) => {
       setLocalPosts((prev) => prev.filter((p) => p.id !== postId));

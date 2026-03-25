@@ -602,6 +602,19 @@ export interface SocialPost {
   isFromConnection?: boolean;
 }
 
+/** Slim payload from server — no PII, no content. */
+interface SocialPostSlimEvent {
+  type: "created" | "deleted";
+  post: {
+    id: string;
+    slug?: string;
+    type: string;
+    timestamp?: string;
+    authorId?: string;
+  };
+}
+
+/** @deprecated Full payload — only used for client-side optimistic publishes */
 interface SocialPostEvent {
   type: "created" | "deleted";
   post: SocialPost;
@@ -638,8 +651,12 @@ interface SocialCommentEvent {
 export function useAblyFeed(params: {
   organizationId?: string;
   credentials?: MessagingCredentials;
+  /** @deprecated Use onPostNotification instead — Ably no longer carries full post data */
   onPostCreated?: (post: SocialPost) => void;
   onPostDeleted?: (postId: string) => void;
+  /** Called when a new post is created — receives only the post ID and authorId.
+   *  Consumer should refetch the feed from the API. */
+  onPostNotification?: (data: { id: string; authorId?: string; type: string }) => void;
   onPostLiked?: (data: { postId: string; userId: string; newLikeCount: number; isLiked: boolean }) => void;
   onCommentAdded?: (data: { postId: string; comment: SocialCommentEvent["comment"]; newCommentCount: number }) => void;
   onCommentDeleted?: (data: { postId: string; commentId: string; newCommentCount: number }) => void;
@@ -658,11 +675,20 @@ export function useAblyFeed(params: {
     if (!channel || !isSubscribed) return;
 
     const handlePost = (message: { data: unknown }) => {
-      const data = message.data as SocialPostEvent;
-      
+      const data = message.data as SocialPostSlimEvent;
+
       switch (data.type) {
         case "created":
-          params.onPostCreated?.(data.post);
+          // New slim payload — notify consumer to refetch from API
+          params.onPostNotification?.({
+            id: data.post.id,
+            authorId: data.post.authorId,
+            type: data.post.type,
+          });
+          // Legacy full-payload fallback (client-side optimistic publishes)
+          if ("author" in data.post) {
+            params.onPostCreated?.(data.post as unknown as SocialPost);
+          }
           break;
         case "deleted":
           params.onPostDeleted?.(data.post.id);
