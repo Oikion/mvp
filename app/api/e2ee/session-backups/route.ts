@@ -2,8 +2,9 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prismadb } from "@/lib/prisma";
-import { encryptWithKey, decryptWithKey } from "@/lib/encryption";
-import { getOrgDek, getOrgDekByVersion, getOrgKeyVersion } from "@/lib/key-management";
+import { decryptWithKey } from "@/lib/encryption";
+import { getOrgDekByVersion } from "@/lib/key-management";
+import { processBackupBatch } from "@/lib/e2ee/session-backup-server";
 
 // ---------------------------------------------------------------------------
 // Zod schemas
@@ -45,48 +46,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const dek = await getOrgDek(orgId);
-    const dekVersion = await getOrgKeyVersion(orgId);
-
-    const results: Array<{ sessionKey: string; version: number }> = [];
-
-    for (const item of parsed.data.backups) {
-      // Wrap the ECIES blob with the org DEK (server-side layer)
-      const encryptedState = encryptWithKey(item.eciesBlob, dek);
-
-      // Upsert: increment version on conflict
-      const record = await prismadb.e2eeSessionBackup.upsert({
-        where: {
-          userId_organizationId_sessionType_sessionKey: {
-            userId,
-            organizationId: orgId,
-            sessionType: item.sessionType,
-            sessionKey: item.sessionKey,
-          },
-        },
-        create: {
-          userId,
-          organizationId: orgId,
-          sessionType: item.sessionType,
-          sessionKey: item.sessionKey,
-          encryptedState,
-          ephemeralPubKey: item.ephemeralPubKey,
-          iv: item.iv,
-          dekVersion,
-          version: 1,
-        },
-        update: {
-          encryptedState,
-          ephemeralPubKey: item.ephemeralPubKey,
-          iv: item.iv,
-          dekVersion,
-          version: { increment: 1 },
-        },
-      });
-
-      results.push({ sessionKey: record.sessionKey, version: record.version });
-    }
-
+    const results = await processBackupBatch(userId, orgId, parsed.data.backups);
     return NextResponse.json({ results });
   } catch (error) {
     console.error("[E2EE_SESSION_BACKUPS]", error);
