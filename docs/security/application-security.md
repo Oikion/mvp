@@ -280,7 +280,7 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | H-6 |
 | **Severity** | HIGH |
-| **Status** | OPEN |
+| **Status** | FIXED (2026-03-25) |
 | **System** | III |
 | **File** | `lib/e2ee/session-store.ts` |
 
@@ -289,6 +289,16 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 **Recommended approach**: After each ratchet step, POST the serialized session (encrypted to the user's own public key) as a server-side backup. On IndexedDB miss, fetch and decrypt the backup.
 
 **Entity sessions have partial coverage**: `EntitySessionBackup` model exists for ORK-encrypted entity session backups. Group sessions and DM sessions have no backup mechanism.
+
+**Status**: FIXED (2026-03-25)
+**Implementation**: Server-mediated session sync with dual-layer encryption (ECIES + DEK wrap).
+- Prisma model: `E2eeSessionBackup` with per-user, per-org scoping
+- Client: `SessionBackupManager` with 5s debounced batch upload, ECIES encryption
+- Server: POST/GET/DELETE API routes with Zod validation, DEK wrap/unwrap
+- Restore: Automatic on PIN unlock via `restoreAll()`
+- UI: Syncing state in E2EESessionButton, PinEntryDialog progress, Settings page status
+- Spec: `docs/superpowers/specs/2026-03-25-e2ee-session-backup-design.md`
+- Plan: `docs/superpowers/plans/2026-03-25-e2ee-session-backup.md`
 
 ---
 
@@ -848,7 +858,7 @@ Observation only — debouncing IndexedDB writes would reduce overhead but risks
 | 4.0a | NM-1: Store KEK as CryptoKey | Medium | `lib/e2ee/index.ts` (TODO comment added) | DEFERRED — future sprint |
 | 4.0b | M-5: Use wrapKey for DH private key | Medium | `lib/e2ee/double-ratchet.ts` (TODO comment added) | DEFERRED — future sprint |
 | 4.1 | H-5: Unified unlock UX | Large | — | OUT OF SCOPE — needs own spec/plan cycle |
-| 4.2 | H-6: Server-side session backup | Large | — | OUT OF SCOPE — needs own spec/plan cycle |
+| 4.2 | H-6: Server-side session backup | Large | `lib/e2ee/session-backup.ts`, `app/api/e2ee/session-backups/route.ts`, `prisma/schema.prisma` | DONE (2026-03-25) |
 | 4.3 | L-3: Deprecate lib/crypto/ | Small | `lib/crypto/index.ts`, `components/providers/EncryptionProvider.tsx` (`@deprecated` JSDoc) | DONE |
 | 4.4 | L-4: Raise maxMessages to 1000 | Small | `lib/e2ee/megolm.ts` (100 → 1000) | DONE |
 | 4.5 | L-5: Fix bufferToBase64 performance | Small | `lib/e2ee/primitives.ts` (chunked `String.fromCharCode.apply`, 64KB chunks) | DONE |
@@ -1038,6 +1048,7 @@ Use this checklist after completing each phase to confirm all fixes are correct.
 
 | Date | Phase | Finding(s) | Action | Author |
 |------|-------|------------|--------|--------|
+| 2026-03-25 | 4 | H-6 | **H-6 session backup implemented**: Server-mediated session sync with dual-layer encryption (ECIES + DEK wrap). `E2eeSessionBackup` Prisma model with per-user, per-org scoping. `SessionBackupManager` client class with 5s debounced batch upload. POST/GET/DELETE API routes with Zod validation. Automatic restore on PIN unlock via `restoreAll()`. UI: syncing state in E2EESessionButton, PinEntryDialog progress, Settings page status. Spec: `docs/superpowers/specs/2026-03-25-e2ee-session-backup-design.md`. Plan: `docs/superpowers/plans/2026-03-25-e2ee-session-backup.md`. | Claude (implementation) |
 | 2026-03-25 | C-3 | C-3 | **C-3 migration script completed**: Extended `migrate-to-org-dek.ts` with 6 missing models (Mandates, Client/Mandate/Task Comments, MyAccount, NewsletterSubscriber — total 13 models). Added `--verify` mode with `canDecryptWithDek()` helper. No schema change needed — existing decrypt/encrypt pipeline handles detection. Migration workflow documented: dry-run → execute → verify → enable flag. | Claude (implementation) |
 | 2026-03-25 | 4 | L-3, L-4, L-5, NM-4 (NM-1+M-5 TODO'd; H-5,H-6,C-3 out of scope) | **Phase 4 implemented** (4 of 9 tasks): lib/crypto/ and EncryptionProvider deprecated with `@deprecated` JSDoc. Megolm maxMessages raised 100→1000. bufferToBase64 replaced with chunked String.fromCharCode.apply (64KB chunks). New `initEntitySessionWithShares()` enforces ECIES at API boundary. NM-1 and M-5 have TODO comments in source. H-5, H-6, C-3 marked out of scope — each needs its own spec→plan→implementation cycle. All 55 E2EE tests pass. | Claude (implementation) |
 | 2026-03-25 | 3 | M-2, M-3, M-6, NM-3, NM-5 (NM-1+M-5 deferred) | **Phase 3 implemented** (5 of 7 tasks): Empty string encryption removed bypass. Dual-lock race fixed — interval no longer calls lock(). OTP key ID verified in respondX3DH() with type change. DEK L1 cache TTL reduced 5min→30s. PBKDF2 deduplicated in unlock() (3→2 calls, ~33% faster). NM-1 and M-5 deferred to Phase 4 with documented rationale (disproportionate refactor). All 55 E2EE tests pass. | Claude (implementation) |
