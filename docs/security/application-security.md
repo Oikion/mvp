@@ -262,7 +262,7 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 |-------|-------|
 | **ID** | H-5 |
 | **Severity** | HIGH |
-| **Status** | OPEN |
+| **Status** | FIXED (2026-03-25) |
 | **Systems** | II + III |
 | **Files** | `components/providers/EncryptionProvider.tsx`, `hooks/useE2EE.ts` |
 
@@ -271,6 +271,14 @@ Decryption via `decryptSessionExportFromShare()` uses the recipient's identity p
 **Recommended approach**: Either unify the two systems (unified encryption spec exists at `docs/superpowers/specs/2026-03-15-unified-encryption-architecture-design.md`) or add explicit dual-state UI showing both lock states.
 
 **Impact of unification**: Would require migrating `e2ee:v1:` prefixed ciphertext to the unified format, choosing a single credential (PIN vs passphrase), and reconciling the two idle-lock strategies.
+
+**Status**: FIXED (2026-03-25)
+**Implementation**: Complete removal of System II (passphrase-based encryption).
+- Deleted: `lib/crypto/` (6 files), `actions/encryption/` (6 files), `EncryptionProvider`, `use-encrypted-search`, `IdleTimeoutWarning`
+- Dropped: `OrganizationEncryptionStatus` and `OrganizationEncryptionKey` Prisma models
+- Replaced: Passphrase UI in DataControlTab and OrgDataControlContent with E2EE info cards pointing to Security Settings
+- Result: Single unlock flow (PIN-based, System III) — no more dual-state confusion
+- Spec: `docs/superpowers/specs/2026-03-25-system-ii-retirement-design.md`
 
 ---
 
@@ -857,7 +865,7 @@ Observation only — debouncing IndexedDB writes would reduce overhead but risks
 |------|---------|--------|---------------|--------|
 | 4.0a | NM-1: Store KEK as CryptoKey | Medium | `lib/e2ee/index.ts` (TODO comment added) | DEFERRED — future sprint |
 | 4.0b | M-5: Use wrapKey for DH private key | Medium | `lib/e2ee/double-ratchet.ts` (TODO comment added) | DEFERRED — future sprint |
-| 4.1 | H-5: Unified unlock UX | Large | — | OUT OF SCOPE — needs own spec/plan cycle |
+| 4.1 | H-5: Unified unlock UX | Large | `lib/crypto/` (deleted), `actions/encryption/` (deleted), `DataControlTab.tsx`, `OrgDataControlContent.tsx`, `prisma/schema.prisma` | DONE (2026-03-25) |
 | 4.2 | H-6: Server-side session backup | Large | `lib/e2ee/session-backup.ts`, `app/api/e2ee/session-backups/route.ts`, `prisma/schema.prisma` | DONE (2026-03-25) |
 | 4.3 | L-3: Deprecate lib/crypto/ | Small | `lib/crypto/index.ts`, `components/providers/EncryptionProvider.tsx` (`@deprecated` JSDoc) | DONE |
 | 4.4 | L-4: Raise maxMessages to 1000 | Small | `lib/e2ee/megolm.ts` (100 → 1000) | DONE |
@@ -1048,6 +1056,7 @@ Use this checklist after completing each phase to confirm all fixes are correct.
 
 | Date | Phase | Finding(s) | Action | Author |
 |------|-------|------------|--------|--------|
+| 2026-03-25 | 4 | H-5 | **H-5 System II retired**: Deleted 15 files (`lib/crypto/`, `actions/encryption/`, `EncryptionProvider`, `use-encrypted-search`, `IdleTimeoutWarning`). Dropped `OrganizationEncryptionStatus` and `OrganizationEncryptionKey` Prisma models. Replaced passphrase UI with E2EE info cards. Single PIN-based unlock flow remains. | Claude (implementation) |
 | 2026-03-25 | 4 | H-6 | **H-6 session backup implemented**: Server-mediated session sync with dual-layer encryption (ECIES + DEK wrap). `E2eeSessionBackup` Prisma model with per-user, per-org scoping. `SessionBackupManager` client class with 5s debounced batch upload. POST/GET/DELETE API routes with Zod validation. Automatic restore on PIN unlock via `restoreAll()`. UI: syncing state in E2EESessionButton, PinEntryDialog progress, Settings page status. Spec: `docs/superpowers/specs/2026-03-25-e2ee-session-backup-design.md`. Plan: `docs/superpowers/plans/2026-03-25-e2ee-session-backup.md`. | Claude (implementation) |
 | 2026-03-25 | C-3 | C-3 | **C-3 migration script completed**: Extended `migrate-to-org-dek.ts` with 6 missing models (Mandates, Client/Mandate/Task Comments, MyAccount, NewsletterSubscriber — total 13 models). Added `--verify` mode with `canDecryptWithDek()` helper. No schema change needed — existing decrypt/encrypt pipeline handles detection. Migration workflow documented: dry-run → execute → verify → enable flag. | Claude (implementation) |
 | 2026-03-25 | 4 | L-3, L-4, L-5, NM-4 (NM-1+M-5 TODO'd; H-5,H-6,C-3 out of scope) | **Phase 4 implemented** (4 of 9 tasks): lib/crypto/ and EncryptionProvider deprecated with `@deprecated` JSDoc. Megolm maxMessages raised 100→1000. bufferToBase64 replaced with chunked String.fromCharCode.apply (64KB chunks). New `initEntitySessionWithShares()` enforces ECIES at API boundary. NM-1 and M-5 have TODO comments in source. H-5, H-6, C-3 marked out of scope — each needs its own spec→plan→implementation cycle. All 55 E2EE tests pass. | Claude (implementation) |
