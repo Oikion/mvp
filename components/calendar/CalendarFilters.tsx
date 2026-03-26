@@ -85,9 +85,9 @@ export function CalendarFilters({
   }));
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+    <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
       {/* Search Input */}
-      <div className="relative flex-1 min-w-[200px] max-w-[300px]">
+      <div className="relative flex-1 min-w-[140px] max-w-[260px]">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder={t("accessibility.eventList")}
@@ -103,7 +103,7 @@ export function CalendarFilters({
         value={filters.eventType || "all"}
         onValueChange={(value) => handleFilterChange("eventType", value)}
       >
-        <SelectTrigger className="w-[160px]" aria-label={t("filters.eventType")}>
+        <SelectTrigger className="w-[130px] lg:w-[160px]" aria-label={t("filters.eventType")}>
           <SelectValue placeholder={t("filters.allTypes")} />
         </SelectTrigger>
         <SelectContent>
@@ -122,7 +122,7 @@ export function CalendarFilters({
           value={filters.assignedUserId || "all"}
           onValueChange={(value) => handleFilterChange("assignedUserId", value)}
         >
-          <SelectTrigger className="w-[160px]" aria-label={t("filters.assignedTo")}>
+          <SelectTrigger className="w-[130px] lg:w-[160px]" aria-label={t("filters.assignedTo")}>
             <SelectValue placeholder={t("filters.anyone")} />
           </SelectTrigger>
           <SelectContent>
@@ -151,7 +151,7 @@ export function CalendarFilters({
           }
         }}
       >
-        <SelectTrigger className="w-[140px]" aria-label={t("filters.dateRange")}>
+        <SelectTrigger className="w-[120px] lg:w-[140px]" aria-label={t("filters.dateRange")}>
           <SelectValue placeholder={t("filters.dateRange")} />
         </SelectTrigger>
         <SelectContent>
@@ -205,7 +205,7 @@ export function CalendarFilters({
         value={filters.invitationStatus || "all"}
         onValueChange={(value) => handleFilterChange("invitationStatus", value as CalendarFiltersState["invitationStatus"])}
       >
-        <SelectTrigger className="w-[140px]" aria-label={t("filters.invitationStatus")}>
+        <SelectTrigger className="w-[120px] lg:w-[140px]" aria-label={t("filters.invitationStatus")}>
           <SelectValue placeholder={t("filters.all")} />
         </SelectTrigger>
         <SelectContent>

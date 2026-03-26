@@ -17,6 +17,8 @@ export interface MandateSelectorProps {
   disabled?: boolean;
   emptyMessage?: string;
   className?: string;
+  createNewLabel?: string;
+  onCreateNew?: () => void;
 }
 
 export function MandateSelector({
@@ -27,6 +29,8 @@ export function MandateSelector({
   disabled = false,
   emptyMessage = "No mandates found.",
   className,
+  createNewLabel,
+  onCreateNew,
 }: MandateSelectorProps) {
   return (
     <UnifiedEntitySelector
@@ -41,6 +45,8 @@ export function MandateSelector({
       className={className}
       showSubtitles
       maxSelections={10}
+      createNewLabel={createNewLabel}
+      onCreateNew={onCreateNew}
     />
   );
 }

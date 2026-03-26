@@ -52,6 +52,9 @@ import { MandateSelector } from "./MandateSelector";
 import { InviteeSelector, Invitee } from "./InviteeSelector";
 import { useOrgUsers, useCreateEvent } from "@/hooks/swr";
 import { inviteToEvent } from "@/actions/calendar/invite-to-event";
+import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
+import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
+import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
 
 const createEventFormSchema = (t: (key: string) => string) => z.object({
   title: z.string().min(1, t("eventCreateForm.titleRequired")),
@@ -117,6 +120,16 @@ function EventCreateFormBody({
 }) {
   const selectedReminders = form.watch("reminderMinutes");
 
+  // QuickAdd overlay state
+  const [quickAddClient, setQuickAddClient] = React.useState(false);
+  const [quickAddProperty, setQuickAddProperty] = React.useState(false);
+  const [quickAddMandate, setQuickAddMandate] = React.useState(false);
+
+  const orgUsers = React.useMemo(
+    () => users.map((u) => ({ id: u.id, name: u.name || u.email })),
+    [users]
+  );
+
   // Auto-update endTime when startTime changes to preserve event duration
   const prevStartTimeRef = React.useRef<Date>(form.getValues("startTime"));
   React.useEffect(() => {
@@ -147,7 +160,7 @@ function EventCreateFormBody({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-6 px-0.5">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-6 px-1.5">
         {/* Basic Info Section */}
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
@@ -374,7 +387,12 @@ function EventCreateFormBody({
               <FormItem>
                 <FormLabel>{t("eventCreateForm.linkClients")}</FormLabel>
                 <FormControl>
-                  <ClientSelector value={field.value} onChange={field.onChange} />
+                  <ClientSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    createNewLabel={t("selectors.createClient")}
+                    onCreateNew={() => setQuickAddClient(true)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -388,7 +406,12 @@ function EventCreateFormBody({
               <FormItem>
                 <FormLabel>{t("eventCreateForm.linkProperties")}</FormLabel>
                 <FormControl>
-                  <PropertySelector value={field.value} onChange={field.onChange} />
+                  <PropertySelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    createNewLabel={t("selectors.createProperty")}
+                    onCreateNew={() => setQuickAddProperty(true)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -416,13 +439,47 @@ function EventCreateFormBody({
               <FormItem>
                 <FormLabel>{t("eventCreateForm.linkMandates")}</FormLabel>
                 <FormControl>
-                  <MandateSelector value={field.value} onChange={field.onChange} />
+                  <MandateSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    createNewLabel={t("selectors.createMandate")}
+                    onCreateNew={() => setQuickAddMandate(true)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        {/* QuickAdd overlays — render as sibling Sheets so they stack above the parent */}
+        <QuickAddClient
+          open={quickAddClient}
+          onOpenChange={setQuickAddClient}
+          organizationUsers={orgUsers}
+          onSuccess={(clientId) => {
+            if (clientId) {
+              const current = form.getValues("clientIds");
+              form.setValue("clientIds", [...current, clientId]);
+            }
+          }}
+        />
+        <QuickAddProperty
+          open={quickAddProperty}
+          onOpenChange={setQuickAddProperty}
+          users={orgUsers}
+          onSuccess={(propertyId) => {
+            if (propertyId) {
+              const current = form.getValues("propertyIds");
+              form.setValue("propertyIds", [...current, propertyId]);
+            }
+          }}
+        />
+        <QuickAddMandate
+          open={quickAddMandate}
+          onOpenChange={setQuickAddMandate}
+          organizationUsers={orgUsers}
+        />
 
         <Separator />
 

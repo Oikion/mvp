@@ -55,6 +55,16 @@ export interface ClientSelectorProps {
    * Optional client status filter
    */
   statusFilter?: string;
+
+  /**
+   * Label for a "Create new" button at the bottom of the dropdown
+   */
+  createNewLabel?: string;
+
+  /**
+   * Callback when "Create new" is clicked
+   */
+  onCreateNew?: () => void;
 }
 
 export function ClientSelector({
@@ -66,6 +76,8 @@ export function ClientSelector({
   emptyMessage = "No clients found.",
   className,
   statusFilter,
+  createNewLabel,
+  onCreateNew,
 }: ClientSelectorProps) {
   return (
     <UnifiedEntitySelector
@@ -81,6 +93,8 @@ export function ClientSelector({
       filters={statusFilter ? { clientStatus: statusFilter } : undefined}
       showSubtitles
       maxSelections={10}
+      createNewLabel={createNewLabel}
+      onCreateNew={onCreateNew}
     />
   );
 }

@@ -55,6 +55,16 @@ export interface PropertySelectorProps {
    * Optional property status filter
    */
   statusFilter?: string;
+
+  /**
+   * Label for a "Create new" button at the bottom of the dropdown
+   */
+  createNewLabel?: string;
+
+  /**
+   * Callback when "Create new" is clicked
+   */
+  onCreateNew?: () => void;
 }
 
 export function PropertySelector({
@@ -66,6 +76,8 @@ export function PropertySelector({
   emptyMessage = "No properties found.",
   className,
   statusFilter,
+  createNewLabel,
+  onCreateNew,
 }: PropertySelectorProps) {
   return (
     <UnifiedEntitySelector
@@ -81,6 +93,8 @@ export function PropertySelector({
       filters={statusFilter ? { propertyStatus: statusFilter } : undefined}
       showSubtitles
       maxSelections={10}
+      createNewLabel={createNewLabel}
+      onCreateNew={onCreateNew}
     />
   );
 }

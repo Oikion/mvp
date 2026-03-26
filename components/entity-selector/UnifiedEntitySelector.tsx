@@ -29,6 +29,7 @@ import {
   ScrollText,
   Loader2,
   ChevronDown,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -151,6 +152,17 @@ export interface UnifiedEntitySelectorProps {
    * Callback when an entity is selected
    */
   onSelect?: (entity: EntitySearchResult) => void;
+
+  /**
+   * Label for a "Create new" button at the bottom of the dropdown.
+   * When set, a button is rendered; clicking it calls onCreateNew.
+   */
+  createNewLabel?: string;
+
+  /**
+   * Callback when "Create new" is clicked
+   */
+  onCreateNew?: () => void;
 }
 
 // ============================================
@@ -215,6 +227,8 @@ export function UnifiedEntitySelector({
   showIcons = true,
   showSubtitles = true,
   onSelect,
+  createNewLabel,
+  onCreateNew,
 }: UnifiedEntitySelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -620,6 +634,23 @@ export function UnifiedEntitySelector({
               </>
             )}
           </CommandList>
+
+          {/* Create new entity button */}
+          {onCreateNew && createNewLabel && (
+            <div className="border-t p-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  onCreateNew();
+                }}
+                className="w-full flex items-center gap-2 px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-sm transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                {createNewLabel}
+              </button>
+            </div>
+          )}
         </Command>
 
         {/* Footer with selection info (multi mode) */}

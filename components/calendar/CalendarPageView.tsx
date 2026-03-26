@@ -40,6 +40,7 @@ import { ExportButton } from "@/components/export";
 interface CalendarEvent {
   id: number;
   eventId?: string;
+  friendlyId: string;
   title: string;
   description?: string;
   startTime: string;
@@ -234,35 +235,37 @@ export function CalendarPageView() {
 
   // Calculate date range for fetching events (dynamic based on view mode)
   const dateRange = useMemo(() => {
-    const now = new Date();
-    let start = new Date();
-    let end = new Date();
+    // Anchor the fetch window to the selected date so events are always
+    // fetched for whichever date the user is currently viewing.
+    const anchor = selectedDate;
+    const start = new Date(anchor);
+    const end = new Date(anchor);
 
     switch (viewMode) {
       case "day":
-        start.setMonth(now.getMonth() - 1);
-        end.setMonth(now.getMonth() + 1);
+        start.setMonth(start.getMonth() - 1);
+        end.setMonth(end.getMonth() + 1);
         break;
       case "week":
-        start.setMonth(now.getMonth() - 1);
-        end.setMonth(now.getMonth() + 2);
+        start.setMonth(start.getMonth() - 1);
+        end.setMonth(end.getMonth() + 2);
         break;
       case "month":
-        start.setMonth(now.getMonth() - 2);
-        end.setMonth(now.getMonth() + 3);
+        start.setMonth(start.getMonth() - 2);
+        end.setMonth(end.getMonth() + 3);
         break;
       case "semester":
-        start.setMonth(now.getMonth() - 6);
-        end.setMonth(now.getMonth() + 6);
+        start.setMonth(start.getMonth() - 6);
+        end.setMonth(end.getMonth() + 6);
         break;
       case "year":
-        start.setFullYear(now.getFullYear() - 1);
-        end.setFullYear(now.getFullYear() + 1);
+        start.setFullYear(start.getFullYear() - 1);
+        end.setFullYear(end.getFullYear() + 1);
         break;
     }
 
     return { start, end };
-  }, [viewMode]);
+  }, [viewMode, selectedDate]);
 
   // Fetch events and users
   const { events, tasks, isLoading, mutate } = useCalendarEvents({
@@ -606,23 +609,23 @@ export function CalendarPageView() {
 
       {/* Calendar Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <TabsList className="inline-grid grid-cols-3">
-            <TabsTrigger value="myEvents">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <TabsList className="inline-grid grid-cols-3 shrink-0">
+            <TabsTrigger value="myEvents" className="gap-1.5 px-2.5 text-sm">
               <CalendarIcon className="h-4 w-4 shrink-0" />
-              {t("tabs.myEvents")}
+              <span className="hidden sm:inline">{t("tabs.myEvents")}</span>
             </TabsTrigger>
-            <TabsTrigger value="invited">
+            <TabsTrigger value="invited" className="gap-1.5 px-2.5 text-sm">
               <Users className="h-4 w-4 shrink-0" />
-              {t("tabs.invitedEvents")}
+              <span className="hidden sm:inline">{t("tabs.invitedEvents")}</span>
             </TabsTrigger>
-            <TabsTrigger value="all">
+            <TabsTrigger value="all" className="gap-1.5 px-2.5 text-sm">
               <CalendarDays className="h-4 w-4 shrink-0" />
-              {t("tabs.allEvents")}
+              <span className="hidden sm:inline">{t("tabs.allEvents")}</span>
             </TabsTrigger>
           </TabsList>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <ViewSelector value={viewMode} onChange={setViewMode} />
             <ExportButton
               module="calendar"

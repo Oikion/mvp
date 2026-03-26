@@ -13,12 +13,16 @@ interface MandateSelectorProps {
   value: string[];
   onChange: (value: string[]) => void;
   disabled?: boolean;
+  createNewLabel?: string;
+  onCreateNew?: () => void;
 }
 
 export function MandateSelector({
   value,
   onChange,
   disabled = false,
+  createNewLabel,
+  onCreateNew,
 }: MandateSelectorProps) {
   const t = useTranslations("calendar");
 
@@ -30,6 +34,8 @@ export function MandateSelector({
       searchPlaceholder={t("selectors.searchMandates")}
       emptyMessage={t("selectors.noMandatesFound")}
       disabled={disabled}
+      createNewLabel={createNewLabel}
+      onCreateNew={onCreateNew}
     />
   );
 }

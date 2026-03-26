@@ -176,7 +176,10 @@
     "selectMandates": "Επιλέξτε εντολές...",
     "searchMandates": "Αναζήτηση εντολών...",
     "noMandatesFound": "Δεν βρέθηκαν εντολές",
-    "loading": "Φόρτωση..."
+    "loading": "Φόρτωση...",
+    "createClient": "Δημιουργία πελάτη",
+    "createProperty": "Δημιουργία ιδιοκτησίας",
+    "createMandate": "Δημιουργία εντολής"
   },
   "filters": {
     "title": "Φίλτρα",

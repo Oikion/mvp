@@ -2,7 +2,7 @@
 
 /**
  * PropertySelector for Calendar Forms
- * 
+ *
  * Uses the unified UnifiedEntitySelector with optimized search and caching.
  * Multi-field search: name, address, municipality, price, ID
  */
@@ -14,12 +14,16 @@ interface PropertySelectorProps {
   value: string[];
   onChange: (value: string[]) => void;
   disabled?: boolean;
+  createNewLabel?: string;
+  onCreateNew?: () => void;
 }
 
 export function PropertySelector({
   value,
   onChange,
   disabled = false,
+  createNewLabel,
+  onCreateNew,
 }: PropertySelectorProps) {
   const t = useTranslations("calendar");
 
@@ -31,6 +35,8 @@ export function PropertySelector({
       searchPlaceholder={t("selectors.searchProperties")}
       emptyMessage={t("selectors.noPropertiesFound")}
       disabled={disabled}
+      createNewLabel={createNewLabel}
+      onCreateNew={onCreateNew}
     />
   );
 }

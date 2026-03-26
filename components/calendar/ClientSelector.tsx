@@ -2,7 +2,7 @@
 
 /**
  * ClientSelector for Calendar Forms
- * 
+ *
  * Uses the unified UnifiedEntitySelector with optimized search and caching.
  * Multi-field search: name, email, phone, ID
  */
@@ -14,12 +14,16 @@ interface ClientSelectorProps {
   value: string[];
   onChange: (value: string[]) => void;
   disabled?: boolean;
+  createNewLabel?: string;
+  onCreateNew?: () => void;
 }
 
 export function ClientSelector({
   value,
   onChange,
   disabled = false,
+  createNewLabel,
+  onCreateNew,
 }: ClientSelectorProps) {
   const t = useTranslations("calendar");
 
@@ -31,6 +35,8 @@ export function ClientSelector({
       searchPlaceholder={t("selectors.searchClients")}
       emptyMessage={t("selectors.noClientsFound")}
       disabled={disabled}
+      createNewLabel={createNewLabel}
+      onCreateNew={onCreateNew}
     />
   );
 }

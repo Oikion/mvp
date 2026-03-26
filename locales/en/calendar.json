@@ -176,7 +176,10 @@
     "selectMandates": "Select mandates...",
     "searchMandates": "Search mandates...",
     "noMandatesFound": "No mandates found",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "createClient": "Create client",
+    "createProperty": "Create property",
+    "createMandate": "Create mandate"
   },
   "filters": {
     "title": "Filters",

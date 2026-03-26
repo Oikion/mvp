@@ -55,7 +55,7 @@ export function ViewSelector({ value, onChange, className }: ViewSelectorProps) 
           size="sm"
           onClick={() => onChange(view.value)}
           className={cn(
-            "h-8 px-3 gap-1.5 text-sm font-medium transition-all",
+            "h-8 px-2 lg:px-3 gap-1 lg:gap-1.5 text-xs lg:text-sm font-medium transition-all",
             value === view.value
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground hover:bg-transparent"
