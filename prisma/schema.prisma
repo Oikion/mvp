@@ -199,7 +199,7 @@ model Client_Contacts {
 }
 
 model Client_Properties {
-  id         String     @id
+  id         String     @id @default(uuid())
   createdAt  DateTime   @default(now())
   clientId   String
   propertyId String
@@ -2907,10 +2907,13 @@ model ImportHistory {
   entityIds      String[]
   status         ImportStatus     @default(COMPLETED)
   createdAt      DateTime         @default(now())
+  fileHash       String?
+  importPhase    ImportPhase      @default(COMPLETE)
 
   @@index([organizationId])
   @@index([userId])
   @@index([createdAt])
+  @@index([organizationId, fileHash])
 }
 
 enum ImportEntityType {
@@ -2925,6 +2928,14 @@ enum ImportStatus {
   PARTIALLY_FAILED
   FAILED
   BATCH_DELETED
+  PARTIALLY_DELETED
+}
+
+enum ImportPhase {
+  VALIDATING
+  IMPORTING
+  COMPLETE
+  ABANDONED
 }
 
 // ============================================
