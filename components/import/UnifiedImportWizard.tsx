@@ -222,7 +222,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
     <ImportWizardSteps
       entityType="property"
       dict={dict.ImportWizard}
-      fieldsDict={dict.ImportFields}
+      fieldsDict={dict.ImportFields?.unified ?? dict.ImportFields}
       fieldDefinitions={UNIFIED_FIELD_DEFINITIONS}
       onImport={handleImport}
       onComplete={handleComplete}
