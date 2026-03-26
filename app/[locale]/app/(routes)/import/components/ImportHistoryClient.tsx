@@ -3,7 +3,7 @@
 import { useTranslations, useFormatter } from "next-intl";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, MoreHorizontal, Eye, Trash2 } from "lucide-react";
+import { Upload, MoreHorizontal, Eye, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,6 +30,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/navigation";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -49,11 +52,30 @@ interface ImportHistoryClientProps {
   }>;
 }
 
+interface ImpactData {
+  entities: {
+    clients: number;
+    properties: number;
+    mandates: number;
+  };
+  cascade: {
+    clientPropertyLinks: number;
+    mandatePropertyLinks: number;
+    mandateClientLinks: number;
+    deals: number;
+  };
+}
+
+type EntityType = "clients" | "properties" | "mandates";
+
+const ALL_ENTITY_TYPES: EntityType[] = ["clients", "properties", "mandates"];
+
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   COMPLETED: "default",
   PARTIALLY_FAILED: "outline",
   FAILED: "destructive",
   BATCH_DELETED: "secondary",
+  PARTIALLY_DELETED: "outline",
 };
 
 const TYPE_CLASSES: Record<string, string> = {
@@ -63,22 +85,228 @@ const TYPE_CLASSES: Record<string, string> = {
   UNIFIED: "bg-primary/10 text-primary",
 };
 
+function StatusBadge({ status }: Readonly<{ status: string }>) {
+  const t = useTranslations("import.history");
+
+  if (status === "PARTIALLY_DELETED") {
+    return (
+      <Badge variant="outline" className="text-warning border-warning">
+        Partially Deleted
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant={STATUS_VARIANT[status] ?? "default"}>
+      {t(`status.${status}` as Parameters<typeof t>[0])}
+    </Badge>
+  );
+}
+
+function ImpactReport({ data }: Readonly<{ data: ImpactData }>) {
+  const hasEntities =
+    data.entities.clients > 0 ||
+    data.entities.properties > 0 ||
+    data.entities.mandates > 0;
+
+  const hasCascade =
+    data.cascade.clientPropertyLinks > 0 ||
+    data.cascade.mandatePropertyLinks > 0 ||
+    data.cascade.mandateClientLinks > 0 ||
+    data.cascade.deals > 0;
+
+  return (
+    <div className="space-y-3 text-sm">
+      {hasEntities ? (
+        <div className="space-y-1">
+          {data.entities.clients > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-destructive">{data.entities.clients}</span>
+              <span className="text-muted-foreground">Clients</span>
+            </div>
+          )}
+          {data.entities.properties > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-destructive">{data.entities.properties}</span>
+              <span className="text-muted-foreground">Properties</span>
+            </div>
+          )}
+          {data.entities.mandates > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-destructive">{data.entities.mandates}</span>
+              <span className="text-muted-foreground">Mandates</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-muted-foreground italic">No entities will be deleted.</p>
+      )}
+
+      {hasCascade && (
+        <div className="border-t pt-3 space-y-1">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+            This will also remove:
+          </p>
+          {data.cascade.clientPropertyLinks > 0 && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="text-xs">{"\u2192"}</span>
+              <span>{data.cascade.clientPropertyLinks} client-property links</span>
+            </div>
+          )}
+          {data.cascade.mandatePropertyLinks > 0 && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="text-xs">{"\u2192"}</span>
+              <span>{data.cascade.mandatePropertyLinks} mandate-property links</span>
+            </div>
+          )}
+          {data.cascade.mandateClientLinks > 0 && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="text-xs">{"\u2192"}</span>
+              <span>{data.cascade.mandateClientLinks} mandate-client links</span>
+            </div>
+          )}
+          {data.cascade.deals > 0 && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="text-xs">{"\u2192"}</span>
+              <span>{data.cascade.deals} deals linked to these entities</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ImpactSkeleton() {
+  return (
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-3/4" />
+      <Skeleton className="h-4 w-1/2" />
+      <Skeleton className="h-4 w-2/3" />
+      <div className="pt-2 space-y-2">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-4/5" />
+      </div>
+    </div>
+  );
+}
+
+function ImpactSection({
+  impactLoading,
+  impactError,
+  impactData,
+}: Readonly<{
+  impactLoading: boolean;
+  impactError: boolean;
+  impactData: ImpactData | null;
+}>) {
+  if (impactLoading) return <ImpactSkeleton />;
+  if (impactError) {
+    return (
+      <p className="text-sm text-destructive">
+        Failed to load impact data. You can still proceed with deletion.
+      </p>
+    );
+  }
+  if (!impactData) return null;
+  return (
+    <>
+      <ImpactReport data={impactData} />
+      <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+        <AlertTriangle
+          className="h-4 w-4 text-destructive mt-0.5 shrink-0"
+          aria-hidden="true"
+        />
+        <p className="text-sm text-destructive font-medium">This action cannot be undone.</p>
+      </div>
+    </>
+  );
+}
+
 export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientProps>) {
   const t = useTranslations("import.history");
   const format = useFormatter();
   const router = useRouter();
   const { toast } = useAppToast();
 
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  // Dialog open state
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; filename: string } | null>(null);
+
+  // Impact scan state
+  const [impactLoading, setImpactLoading] = useState(false);
+  const [impactData, setImpactData] = useState<ImpactData | null>(null);
+  const [impactError, setImpactError] = useState(false);
+
+  // Selective delete state
+  const [selectedEntities, setSelectedEntities] = useState<Set<EntityType>>(
+    new Set(ALL_ENTITY_TYPES)
+  );
+
+  // Execution state
   const [isDeleting, setIsDeleting] = useState(false);
 
-  async function handleDelete() {
-    if (!deleteId) return;
+  async function fetchImpact(id: string, entities: "all" | EntityType[]) {
+    setImpactLoading(true);
+    setImpactError(false);
+    setImpactData(null);
+    try {
+      const response = await fetch(`/api/import/history/${id}/impact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entities }),
+      });
+      if (!response.ok) throw new Error("Impact scan failed");
+      const data: ImpactData = await response.json();
+      setImpactData(data);
+    } catch {
+      setImpactError(true);
+    } finally {
+      setImpactLoading(false);
+    }
+  }
+
+  function openDeleteDialog(id: string, filename: string) {
+    setDeleteTarget({ id, filename });
+    setSelectedEntities(new Set(ALL_ENTITY_TYPES));
+    setImpactData(null);
+    setImpactError(false);
+    fetchImpact(id, "all");
+  }
+
+  function closeDeleteDialog() {
+    if (isDeleting) return;
+    setDeleteTarget(null);
+    setImpactData(null);
+    setImpactError(false);
+  }
+
+  function handleEntityToggle(entity: EntityType, checked: boolean) {
+    const next = new Set(selectedEntities);
+    if (checked) {
+      next.add(entity);
+    } else {
+      next.delete(entity);
+    }
+    setSelectedEntities(next);
+
+    if (!deleteTarget) return;
+    const entityList = ALL_ENTITY_TYPES.filter((e) => next.has(e));
+    if (entityList.length > 0) {
+      fetchImpact(deleteTarget.id, entityList);
+    } else {
+      setImpactData(null);
+    }
+  }
+
+  async function handleDelete(entities: "all" | EntityType[]) {
+    if (!deleteTarget) return;
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/import/history/${deleteId}`, {
+      const response = await fetch(`/api/import/history/${deleteTarget.id}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entities }),
       });
 
       if (!response.ok) {
@@ -91,7 +319,7 @@ export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientPro
       toast.error(t("batchDelete.error"), { isTranslationKey: false });
     } finally {
       setIsDeleting(false);
-      setDeleteId(null);
+      setDeleteTarget(null);
     }
   }
 
@@ -100,7 +328,7 @@ export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientPro
       <div>
         <div className="flex items-center justify-end mb-6">
           <Button asChild>
-            <Link href="/app/crm/import">
+            <Link href="/app/import/add">
               <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
               {t("page.startImport")}
             </Link>
@@ -110,18 +338,20 @@ export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientPro
           title={t("page.emptyState")}
           action={{
             label: t("page.emptyStateAction"),
-            onClick: () => router.push("/app/crm/import"),
+            onClick: () => router.push("/app/import/add"),
           }}
         />
       </div>
     );
   }
 
+  const selectiveEntityList = ALL_ENTITY_TYPES.filter((e) => selectedEntities.has(e));
+
   return (
     <div>
       <div className="flex items-center justify-end mb-6">
         <Button asChild>
-          <Link href="/app/crm/import">
+          <Link href="/app/import/add">
             <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
             {t("page.startImport")}
           </Link>
@@ -164,7 +394,7 @@ export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientPro
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <span className="text-green-600 dark:text-green-400 font-medium">
+                  <span className="text-success font-medium">
                     {imp.createdCount}
                   </span>
                 </TableCell>
@@ -178,9 +408,7 @@ export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientPro
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={STATUS_VARIANT[imp.status] ?? "default"}>
-                    {t(`status.${imp.status}` as Parameters<typeof t>[0])}
-                  </Badge>
+                  <StatusBadge status={imp.status} />
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -203,7 +431,7 @@ export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientPro
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
-                        onClick={() => setDeleteId(imp.id)}
+                        onClick={() => openDeleteDialog(imp.id, imp.sourceFilename)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
                         {t("table.deleteBatch")}
@@ -217,26 +445,105 @@ export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientPro
         </Table>
       </div>
 
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && closeDeleteDialog()}>
+        <AlertDialogContent className="max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("batchDelete.title")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("batchDelete.description")}
-            </AlertDialogDescription>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" aria-hidden="true" />
+              {t("batchDelete.title")}
+            </AlertDialogTitle>
+            {deleteTarget && (
+              <AlertDialogDescription>
+                {"You are about to delete entities from import \u201c"}
+                <span className="font-medium text-foreground">{deleteTarget.filename}</span>
+                {"\u201d."}
+              </AlertDialogDescription>
+            )}
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>
-              {t("batchDelete.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {t("batchDelete.confirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
+
+          <Tabs defaultValue="full" className="mt-2">
+            <TabsList className="w-full">
+              <TabsTrigger value="full" className="flex-1">
+                Full Delete
+              </TabsTrigger>
+              <TabsTrigger value="selective" className="flex-1">
+                Selective Delete
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Full Delete Tab */}
+            <TabsContent value="full" className="mt-4 space-y-4">
+              <ImpactSection
+                impactLoading={impactLoading}
+                impactError={impactError}
+                impactData={impactData}
+              />
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>
+                  {t("batchDelete.cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDelete("all")}
+                  disabled={isDeleting || impactLoading}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isDeleting ? "Deleting\u2026" : t("batchDelete.confirm")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </TabsContent>
+
+            {/* Selective Delete Tab */}
+            <TabsContent value="selective" className="mt-4 space-y-4">
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Choose which entity types to delete:
+                </p>
+                <div className="space-y-2">
+                  {ALL_ENTITY_TYPES.map((entity) => (
+                    <label
+                      key={entity}
+                      className="flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                    >
+                      <Checkbox
+                        id={`entity-${entity}`}
+                        checked={selectedEntities.has(entity)}
+                        onCheckedChange={(checked) =>
+                          handleEntityToggle(entity, checked === true)
+                        }
+                        disabled={isDeleting}
+                      />
+                      <span className="text-sm font-medium capitalize">{entity}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {selectiveEntityList.length > 0 ? (
+                <ImpactSection
+                  impactLoading={impactLoading}
+                  impactError={impactError}
+                  impactData={impactData}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground italic">
+                  Select at least one entity type to delete.
+                </p>
+              )}
+
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>
+                  {t("batchDelete.cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDelete(selectiveEntityList)}
+                  disabled={isDeleting || impactLoading || selectiveEntityList.length === 0}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isDeleting ? "Deleting\u2026" : t("batchDelete.confirm")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </TabsContent>
+          </Tabs>
         </AlertDialogContent>
       </AlertDialog>
     </div>
