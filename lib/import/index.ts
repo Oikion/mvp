@@ -64,14 +64,6 @@ export {
   type MandateImportFieldKey,
 } from "./mandate-import-schema";
 
-// Import engine
-export {
-  executeImport,
-  type ImportEntityConfig,
-  type ImportResult as EngineImportResult,
-  type ImportError,
-} from "./engine";
-
 // Entity configs
 export { clientImportConfig } from "./client-import-config";
 export { propertyImportConfig } from "./property-import-config";
@@ -108,3 +100,18 @@ export {
   type BatchImportResult,
   type UnifiedImportResult,
 } from "./unified-engine";
+
+// Validation engine
+export {
+  validateImportData,
+  type ValidatedRow,
+  type ValidationError,
+  type EntitySummary,
+  type ValidationResult,
+} from "./validation-engine";
+
+// Transliteration helpers
+export {
+  transliterateGreekToLatin,
+  containsGreek,
+} from "./transliteration";
