@@ -67,7 +67,7 @@ export async function finalizeOrganizationSetup(
   }
   const validated = validation.data;
 
-  const clerk = clerkClient() as any;
+  const clerk = (await clerkClient()) as any;
 
   // 5. Verify caller is org owner via Clerk backend
   let memberships: any;

@@ -22,6 +22,9 @@
       "properties": "All Properties",
       "listings": "Listings"
     },
+    "mandates": {
+      "title": "Mandates"
+    },
     "social": {
       "title": "Social",
       "socialFeed": "Social Feed",

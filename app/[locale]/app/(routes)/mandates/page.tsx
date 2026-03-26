@@ -36,8 +36,8 @@ const MandatesPage = async ({
 
   return (
     <Container
-      title={dict.navigation?.ModuleMenu?.mandates?.title ?? "Mandates"}
-      description={dict.mandates?.MandatesPage?.description ?? "Manage buyer and renter briefs"}
+      title={dict.navigation.ModuleMenu.mandates.title}
+      description={dict.mandates.MandatesPage.description}
     >
       <Suspense fallback={<SuspenseLoading />}>
         <MandatesPageView mandates={mandates} users={users} />

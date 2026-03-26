@@ -22,6 +22,9 @@
       "properties": "Όλα τα Ακίνητα",
       "listings": "Δημοσιευμένα"
     },
+    "mandates": {
+      "title": "Εντολές"
+    },
     "social": {
       "title": "Κοινωνικά",
       "socialFeed": "Κοινωνική Ροή",

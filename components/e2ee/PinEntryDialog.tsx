@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, Lock, RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 interface PinEntryDialogProps {
   open: boolean;
@@ -21,6 +23,8 @@ interface PinEntryDialogProps {
 }
 
 export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogProps) {
+  const t = useTranslations("common.e2ee");
+  const { toast } = useAppToast();
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,10 +40,11 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
       setIsSubmitting(false);
       setIsSyncing(true);
       await new Promise((r) => setTimeout(r, 800));
+      toast.success(t("unlockSuccess"), { isTranslationKey: false });
       setPin("");
       onOpenChange(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Wrong PIN or unlock failed");
+    } catch {
+      setError(t("unlockError"));
       setIsSubmitting(false);
     }
   };
@@ -57,16 +62,16 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lock className="h-5 w-5" />
-            Unlock E2EE
+            {t("unlockTitle")}
           </DialogTitle>
           <DialogDescription>
-            Enter your PIN to decrypt messages end-to-end.
+            {t("unlockDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
           <div>
-            <Label htmlFor="pin-entry">PIN</Label>
+            <Label htmlFor="pin-entry">{t("pinLabel")}</Label>
             <Input
               id="pin-entry"
               type="password"
@@ -76,7 +81,7 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
               value={pin}
               onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
               onKeyDown={handleKeyDown}
-              placeholder="Enter your PIN"
+              placeholder={t("pinPlaceholder")}
               className="mt-1"
               autoFocus
               disabled={isSubmitting || isSyncing}
@@ -93,15 +98,15 @@ export function PinEntryDialog({ open, onOpenChange, onSubmit }: PinEntryDialogP
             onClick={() => { onOpenChange(false); setPin(""); setError(null); }}
             disabled={isSubmitting || isSyncing}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={pin.length < 6 || isSubmitting || isSyncing}
           >
-            {isSubmitting && <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Unlocking...</>}
-            {isSyncing && <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Syncing sessions...</>}
-            {!isSubmitting && !isSyncing && "Unlock"}
+            {isSubmitting && <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("unlocking")}</>}
+            {isSyncing && <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />{t("syncing")}</>}
+            {!isSubmitting && !isSyncing && t("unlock")}
           </Button>
         </DialogFooter>
       </DialogContent>

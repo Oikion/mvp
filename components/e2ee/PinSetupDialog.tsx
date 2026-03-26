@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, KeyRound, ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,14 +23,9 @@ interface PinSetupDialogProps {
   onSetup: (pin: string) => Promise<void>;
 }
 
-function getPinStrength(pin: string): { label: string; color: string } | null {
-  if (pin.length < 6) return null;
-  if (pin.length < 7) return { label: "Good", color: "text-primary" };
-  return { label: "Strong", color: "text-success" };
-}
-
 export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogProps) {
-  const { success } = useAppToast();
+  const t = useTranslations("common.e2ee");
+  const { toast } = useAppToast();
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +34,14 @@ export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogPr
   const pinValid = pin.length >= 6 && pin.length <= 8;
   const pinsMatch = pin === confirmPin;
   const canSubmit = pinValid && pinsMatch && !isSubmitting;
-  const strength = getPinStrength(pin);
+
+  function getPinStrength(): { label: string; color: string } | null {
+    if (pin.length < 6) return null;
+    if (pin.length < 7) return { label: t("strengthGood"), color: "text-primary" };
+    return { label: t("strengthStrong"), color: "text-success" };
+  }
+
+  const strength = getPinStrength();
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -46,12 +49,12 @@ export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogPr
     setIsSubmitting(true);
     try {
       await onSetup(pin);
-      success("Encryption PIN created — E2EE is now active");
+      toast.success(t("setupSuccess"), { isTranslationKey: false });
       setPin("");
       setConfirmPin("");
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create encryption keys");
+      setError(err instanceof Error ? err.message : t("setupError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -72,24 +75,24 @@ export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogPr
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" />
-            Create Encryption PIN
+            {t("setupTitle")}
           </DialogTitle>
           <DialogDescription>
-            Set a 6-8 digit PIN to enable end-to-end encryption. Your PIN protects your private keys — only you can decrypt your data.
+            {t("setupDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
           <div>
-            <Label htmlFor="pin-setup">PIN</Label>
+            <Label htmlFor="pin-setup">{t("pinLabel")}</Label>
             <Input
               id="pin-setup"
               type="password"
               inputMode="numeric"
               maxLength={8}
               value={pin}
-              onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-              placeholder="6-8 digit PIN"
+              onChange={(e) => setPin(e.target.value.replaceAll(/\D/g, ""))}
+              placeholder={t("setupPinPlaceholder")}
               className="mt-1"
               autoFocus
               disabled={isSubmitting}
@@ -100,20 +103,20 @@ export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogPr
           </div>
 
           <div>
-            <Label htmlFor="pin-confirm">Confirm PIN</Label>
+            <Label htmlFor="pin-confirm">{t("confirmPinLabel")}</Label>
             <Input
               id="pin-confirm"
               type="password"
               inputMode="numeric"
               maxLength={8}
               value={confirmPin}
-              onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
-              placeholder="Re-enter PIN"
+              onChange={(e) => setConfirmPin(e.target.value.replaceAll(/\D/g, ""))}
+              placeholder={t("confirmPinPlaceholder")}
               className="mt-1"
               disabled={isSubmitting}
             />
             {confirmPin.length > 0 && !pinsMatch && (
-              <p className="text-xs text-destructive mt-1">PINs do not match</p>
+              <p className="text-xs text-destructive mt-1">{t("pinMismatch")}</p>
             )}
           </div>
 
@@ -122,24 +125,24 @@ export function PinSetupDialog({ open, onOpenChange, onSetup }: PinSetupDialogPr
           )}
 
           <p className="text-xs text-muted-foreground">
-            Your PIN never leaves your device. If you forget it, you can reset it from Settings.
+            {t("pinInfo")}
           </p>
         </div>
 
         <DialogFooter>
           <Button variant="ghost" onClick={handleClose} disabled={isSubmitting}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={!canSubmit}>
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Creating...
+                {t("creating")}
               </>
             ) : (
               <>
                 <KeyRound className="h-4 w-4 mr-1" />
-                Create PIN
+                {t("createPin")}
               </>
             )}
           </Button>

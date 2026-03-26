@@ -103,11 +103,11 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
         : await setOwnershipMode(selectedMode);
 
       if (result.success) {
-        toast.success(isSetUp ? "Data ownership policy updated" : "Data ownership policy set");
+        toast.success(isSetUp ? t("settings.policyUpdated") : t("settings.policySet"));
         setConfirmOpen(false);
         router.refresh();
       } else {
-        toast.error(result.error ?? "Failed to update policy");
+        toast.error(result.error ?? t("settings.policyUpdateFailed"));
       }
     });
   }
@@ -120,7 +120,7 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
         <div>
           <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Configure how data is owned and handled when agents leave your organization.
+            {t("settings.subtitle")}
           </p>
         </div>
       </div>
@@ -138,9 +138,9 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-start gap-3">
               <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
               <div className="space-y-1">
-                <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Policy not configured</p>
+                <p className="text-sm font-medium text-amber-600 dark:text-amber-400">{t("settings.policyNotConfigured")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Your organization hasn&apos;t set a data ownership policy. This determines what happens to data when agents leave.
+                  {t("settings.policyNotConfiguredDescription")}
                 </p>
               </div>
             </div>
@@ -165,7 +165,7 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
                 )}
                 <div className="flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5" />
-                  <span>{consentedAtCurrent} member{consentedAtCurrent !== 1 ? "s" : ""} consented to current version</span>
+                  <span>{t("settings.consented", { count: consentedAtCurrent })}</span>
                 </div>
               </div>
             </>
@@ -183,12 +183,12 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
               {isSetUp ? (
                 <><RefreshCw className="h-3.5 w-3.5" />{t("settings.changePolicy")}</>
               ) : (
-                <>Set Policy</>
+                <>{t("settings.setPolicy")}</>
               )}
             </Button>
           )}
           {!isOwner && (
-            <p className="text-xs text-muted-foreground italic">Only the organization owner can change this policy.</p>
+            <p className="text-xs text-muted-foreground italic">{t("settings.ownerOnly")}</p>
           )}
         </CardContent>
       </Card>
@@ -199,10 +199,10 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <History className="h-4 w-4" />
-              Policy History
+              {t("settings.policyHistory")}
             </CardTitle>
             <CardDescription>
-              Data follows the policy that was active when it was created.
+              {t("settings.policyHistoryDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -231,11 +231,11 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
                         <span className={cn("text-sm font-medium", isLatest ? meta.color : "text-foreground")}>
                           {t(`settings.mode_${era.mode}` as any)}
                         </span>
-                        {isLatest && <Badge variant="outline" className="text-[10px] h-4 px-1.5">Current</Badge>}
+                        {isLatest && <Badge variant="outline" className="text-[10px] h-4 px-1.5">{t("settings.current")}</Badge>}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {new Date(era.from).toLocaleDateString()}
-                        {era.to ? ` → ${new Date(era.to).toLocaleDateString()}` : " → now"}
+                        {era.to ? ` → ${new Date(era.to).toLocaleDateString()}` : ` → ${t("settings.now")}`}
                       </p>
                     </div>
                   </div>
@@ -257,7 +257,7 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
               <History className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">{t("departures.title")}</p>
-                <p className="text-xs text-muted-foreground">View departure records and data migration history</p>
+                <p className="text-xs text-muted-foreground">{t("settings.departureDescription")}</p>
               </div>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -269,11 +269,11 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
       <Dialog open={changeDialogOpen} onOpenChange={setChangeDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{isSetUp ? t("settings.changePolicy") : "Set Data Ownership Policy"}</DialogTitle>
+            <DialogTitle>{isSetUp ? t("settings.changePolicy") : t("settings.setPolicyTitle")}</DialogTitle>
             <DialogDescription>
               {isSetUp
                 ? t("settings.changePolicyWarning")
-                : "Choose how data is owned within your organization."}
+                : t("settings.setPolicyDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -303,9 +303,9 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setChangeDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setChangeDialogOpen(false)}>{t("settings.cancel")}</Button>
             <Button onClick={handleProceed} disabled={!selectedMode}>
-              {isSetUp && selectedMode !== currentMode ? "Continue" : "Confirm"}
+              {isSetUp && selectedMode !== currentMode ? t("settings.continue") : t("settings.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -317,26 +317,27 @@ export function DataControlClient({ settings, isOwner, consentedAtCurrent }: Pro
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Confirm Policy Change
+              {t("settings.confirmChangeTitle")}
             </DialogTitle>
             <DialogDescription asChild>
               <div className="space-y-2">
                 <p>
-                  You are changing the data ownership policy to{" "}
-                  <strong>{selectedMode && t(`settings.mode_${selectedMode}` as any)}</strong>.
+                  {t("settings.confirmChangeDescription", {
+                    mode: selectedMode ? t(`settings.mode_${selectedMode}` as any) : "",
+                  })}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  All members will need to re-consent. Existing data follows the policy active when it was created.
+                  {t("settings.confirmChangeNote")}
                 </p>
               </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={isPending}>
-              Cancel
+              {t("settings.cancel")}
             </Button>
             <Button onClick={handleConfirm} disabled={isPending}>
-              {isPending ? "Applying…" : "Confirm Change"}
+              {isPending ? t("settings.applying") : t("settings.confirmChange")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -355,7 +356,7 @@ function PolicyModeCard({ mode, active }: { mode: DataOwnershipMode; active?: bo
       <div>
         <div className="flex items-center gap-2">
           <p className={cn("font-medium text-sm", meta.color)}>{t(`settings.mode_${mode}` as any)}</p>
-          <Badge variant={meta.badgeVariant} className="text-[10px] h-4 px-1.5">Active</Badge>
+          <Badge variant={meta.badgeVariant} className="text-[10px] h-4 px-1.5">{t("settings.active")}</Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">{t(`settings.description_${mode}` as any)}</p>
       </div>

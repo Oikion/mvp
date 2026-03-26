@@ -605,7 +605,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
   const showNavigation = currentStep >= 2 && currentStep <= 6;
 
   return (
-    <div className="flex flex-col gap-6 min-h-[720px]">
+    <div className="flex flex-col gap-6">
       {/* Progress Bar - shown after language and welcome steps */}
       {currentStep >= 2 && (
         <motion.div
@@ -625,7 +625,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
       )}
 
       {/* Step Content with Animation */}
-      <div className="relative h-[620px] overflow-hidden">
+      <div className="relative min-h-[400px] overflow-x-hidden">
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentStep}
@@ -638,7 +638,7 @@ export function OnboardingSteps({ user, dict, locale }: OnboardingStepsProps) {
               x: { type: "spring", stiffness: 300, damping: 30 },
               opacity: { duration: 0.2 },
             }}
-            className="w-full h-full px-1 sm:px-2"
+            className="w-full px-1 sm:px-2"
           >
             {renderStep()}
           </motion.div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Lock, LockOpen, RefreshCw, ShieldAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -15,6 +16,7 @@ import { PinSetupDialog } from "@/components/e2ee/PinSetupDialog";
 export function E2EESessionButton() {
   const { isSetUp, isUnlocked, isLoading, isSyncing, unlock, setup } = useE2EE();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const t = useTranslations("common.e2ee");
 
   // Don't show while loading initial state, but keep mounted if dialog is open
   // (setup/unlock set isLoading too — unmounting would kill the dialog mid-operation)
@@ -41,13 +43,13 @@ export function E2EESessionButton() {
 
   let tooltipText: string;
   if (!isSetUp) {
-    tooltipText = "Set up encryption PIN";
+    tooltipText = t("tooltipSetup");
   } else if (isSyncing) {
-    tooltipText = "Syncing encrypted sessions...";
+    tooltipText = t("tooltipSyncing");
   } else if (isUnlocked) {
-    tooltipText = "E2EE active — click to re-enter PIN";
+    tooltipText = t("tooltipActive");
   } else {
-    tooltipText = "Unlock E2EE";
+    tooltipText = t("tooltipLocked");
   }
 
   return (

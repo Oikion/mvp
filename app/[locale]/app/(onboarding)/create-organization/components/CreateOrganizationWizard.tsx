@@ -450,7 +450,7 @@ export function CreateOrganizationWizard() {
   // =============================================================================
 
   return (
-    <div className="flex flex-col gap-6 min-h-[720px]">
+    <div className="flex flex-col gap-6">
         {/* Progress bar + Cancel */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -478,7 +478,7 @@ export function CreateOrganizationWizard() {
         </motion.div>
 
         {/* Step content with direction-aware slide animation */}
-        <div className="relative h-[620px] overflow-hidden">
+        <div className="relative min-h-[400px] overflow-x-hidden">
           <AnimatePresence initial={false} custom={direction} mode="wait">
             <motion.div
               key={currentStep}
@@ -491,7 +491,7 @@ export function CreateOrganizationWizard() {
                 x: { type: "spring", stiffness: 300, damping: 30 },
                 opacity: { duration: 0.2 },
               }}
-              className="w-full h-full px-1 sm:px-2"
+              className="w-full px-1 sm:px-2"
             >
               {renderStep()}
             </motion.div>
