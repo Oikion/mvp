@@ -625,7 +625,22 @@
       "skipped": "Skipped",
       "total": "Total Rows",
       "importedAt": "Imported at",
-      "sourceFile": "Source file"
+      "sourceFile": "Source file",
+      "back": "Back to Import History",
+      "entityBreakdown": "Entity Breakdown",
+      "viewInModule": "View in module",
+      "entityDeleted": "Deleted",
+      "allDeleted": "All entities were deleted",
+      "noEntities": "No entities of this type",
+      "linkCounts": "Relationship Links Created",
+      "clientPropertyLinks": "client-property links",
+      "mandatePropertyLinks": "mandate-property links",
+      "mandateClientLinks": "mandate-client links",
+      "partiallyDeletedTitle": "Some entities have been deleted",
+      "partiallyDeletedDescription": "Part of this import batch was selectively deleted. The remaining entities are still active in their respective modules.",
+      "batchDeletedTitle": "This import batch has been deleted",
+      "batchDeletedDescription": "All entities from this import have been permanently removed.",
+      "statusPartiallyDeleted": "Partially Deleted"
     },
     "batchDelete": {
       "title": "Delete Imported Batch",
