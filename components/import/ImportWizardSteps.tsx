@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ArrowLeft, ArrowRight, Upload, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Upload, CheckCircle2, Loader2 } from "lucide-react";
 import { z } from "zod";
 
 import { UploadStep } from "./UploadStep";
 import { TableMappingStep } from "./TableMappingStep";
 import { ValidationStep } from "./ValidationStep";
+import type { ServerValidationResult } from "./ValidationStep";
 import { ReviewStep } from "./ReviewStep";
 import { CompleteStep } from "./CompleteStep";
 import {
@@ -25,6 +26,8 @@ import {
   type FieldDefinitionWithAliases,
 } from "@/lib/import/fuzzy-matcher";
 
+// ─── Exported types ─────────────────────────────────────────────────────────
+
 export interface ImportWizardDict {
   title: string;
   progress: string;
@@ -33,6 +36,7 @@ export interface ImportWizardDict {
     mapping: { title: string; description: string };
     validation: { title: string; description: string };
     review: { title: string; description: string };
+    importing?: { title: string; description: string };
     complete: { title: string; description: string };
   };
   upload: {
@@ -140,24 +144,39 @@ export interface ImportResult {
   properties?: { created: number; failed: number };
   mandates?: { created: number; failed: number };
   links?: { clientProperty: number; mandateClient: number; mandateProperty: number };
+  // Batch result passthrough for new CompleteStep
+  _batchResult?: unknown;
 }
+
+// ─── Props ───────────────────────────────────────────────────────────────────
 
 interface ImportWizardStepsProps {
   entityType: "client" | "property" | "mandate";
   dict: ImportWizardDict;
   fieldsDict: FieldsDict;
-  schema: z.ZodSchema;
+  schema?: z.ZodSchema;
   fieldDefinitions: readonly FieldDefinition[];
   normalizeRow?: (row: Record<string, unknown>) => Record<string, unknown>;
-  onImport: (data: Record<string, unknown>[], signal?: AbortSignal) => Promise<ImportResult>;
+  onImport: (
+    data: Record<string, unknown>[],
+    signalOrOptions?: AbortSignal | {
+      assignedTo?: string | null;
+      importHistoryId?: string;
+      sourceFilename?: string;
+    },
+    signal?: AbortSignal,
+  ) => Promise<ImportResult>;
   onComplete?: () => void;
   onCancel?: () => void;
   viewUrl?: string;
+  returnUrl?: string;
   unifiedMode?: boolean;
   mandateFieldKeys?: Set<string>;
+  locale?: string;
 }
 
-// Animation variants for step transitions (matching onboarding)
+// ─── Animation variants ──────────────────────────────────────────────────────
+
 const slideVariants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 300 : -300,
@@ -175,7 +194,7 @@ const slideVariants = {
   }),
 };
 
-const TOTAL_STEPS = 5;
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export function ImportWizardSteps({
   entityType,
@@ -188,28 +207,51 @@ export function ImportWizardSteps({
   onComplete,
   onCancel,
   viewUrl,
+  returnUrl,
   unifiedMode,
   mandateFieldKeys,
-}: ImportWizardStepsProps) {
+}: Readonly<ImportWizardStepsProps>) {
+  // Unified mode uses 6 steps: Upload(0), Mapping(1), Validation(2), Review(3), Importing(4), Complete(5)
+  // Legacy mode uses 5 steps: Upload(0), Mapping(1), Validation(2), Review(3), Complete(4)
+  const TOTAL_STEPS = unifiedMode ? 6 : 5;
+
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importProgress, setImportProgress] = useState(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Data state
+  // ── Step 0: Upload ──
   const [file, setFile] = useState<File | null>(null);
+  const fileHashRef = useRef("");
   const [parsedData, setParsedData] = useState<Record<string, unknown>[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+
+  // ── Step 1: Mapping ──
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const [matchResults, setMatchResults] = useState<Map<string, MatchResult>>(new Map());
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
-  const [validData, setValidData] = useState<Record<string, unknown>[]>([]);
-  const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  // Validation step state — skipped row indices (rowIndex = spreadsheet row #)
+  const [columnEntities, setColumnEntities] = useState<Record<string, "client" | "property" | "mandate" | "unassigned">>({});
+  const [groupingKeys, setGroupingKeys] = useState<Record<string, boolean>>({});
+
+  // ── Step 2: Validation ──
+  const [validationResult, setValidationResult] = useState<ServerValidationResult | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
   const [skippedRows, setSkippedRows] = useState<Set<number>>(new Set());
 
-  // Convert field definitions to the format expected by fuzzy matcher
+  // ── Step 3: Review ──
+  const [entityApprovals, setEntityApprovals] = useState<Record<string, boolean>>({});
+  const [assignedTo, setAssignedTo] = useState<string | null>(null);
+
+  // ── Step 4: Importing (unified) / Import trigger (legacy) ──
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
+
+  // ── Step 5 (unified) / Step 4 (legacy): Complete ──
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+
+  // ── Legacy-only: client-side validation state ──
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [validData, setValidData] = useState<Record<string, unknown>[]>([]);
+
+  // Convert field definitions for fuzzy matcher
   const fieldDefinitionsWithAliases = useMemo(() => {
     return fieldDefinitions.map((f) => ({
       ...f,
@@ -217,14 +259,16 @@ export function ImportWizardSteps({
     })) as FieldDefinitionWithAliases[];
   }, [fieldDefinitions]);
 
-  const progress = ((currentStep) / (TOTAL_STEPS - 1)) * 100;
+  const progress = (currentStep / (TOTAL_STEPS - 1)) * 100;
+
+  // ── Navigation ────────────────────────────────────────────────────────────
 
   const handleNext = useCallback(() => {
     if (currentStep < TOTAL_STEPS - 1) {
       setDirection(1);
       setCurrentStep((prev) => prev + 1);
     }
-  }, [currentStep]);
+  }, [currentStep, TOTAL_STEPS]);
 
   const handleBack = useCallback(() => {
     if (currentStep > 0) {
@@ -239,23 +283,30 @@ export function ImportWizardSteps({
     }
   }, [currentStep]);
 
-  const handleFileUpload = useCallback((
-    uploadedFile: File,
-    headers: string[],
-    data: Record<string, unknown>[]
-  ) => {
-    setFile(uploadedFile);
-    setCsvHeaders(headers);
-    setParsedData(data);
-    
-    // Use fuzzy matcher for intelligent auto-mapping
-    const results = autoMatchColumns(headers, fieldDefinitionsWithAliases);
-    setMatchResults(results);
-    
-    // Convert match results to field mapping
-    const autoMapping = matchResultsToMapping(results);
-    setFieldMapping(autoMapping);
-  }, [fieldDefinitionsWithAliases]);
+  // ── File upload handler ──────────────────────────────────────────────────
+
+  const handleFileUpload = useCallback(
+    (uploadedFile: File, headers: string[], data: Record<string, unknown>[]) => {
+      setFile(uploadedFile);
+      setCsvHeaders(headers);
+      setParsedData(data);
+
+      // Use fuzzy matcher for intelligent auto-mapping
+      const results = autoMatchColumns(headers, fieldDefinitionsWithAliases);
+      setMatchResults(results);
+
+      // Convert match results to field mapping
+      const autoMapping = matchResultsToMapping(results);
+      setFieldMapping(autoMapping);
+    },
+    [fieldDefinitionsWithAliases],
+  );
+
+  const handleFileHash = useCallback((hash: string) => {
+    fileHashRef.current = hash;
+  }, []);
+
+  // ── Mapping change handler ────────────────────────────────────────────────
 
   const handleMappingChange = useCallback((csvColumn: string, targetField: string) => {
     setFieldMapping((prev) => ({
@@ -264,12 +315,75 @@ export function ImportWizardSteps({
     }));
   }, []);
 
-  const validateData = useCallback(() => {
+  // ── Build mapped rows from parsedData + fieldMapping ──────────────────────
+
+  const buildMappedRows = useCallback(() => {
+    return parsedData.map((row) => {
+      const mappedRow: Record<string, unknown> = {};
+      Object.entries(fieldMapping).forEach(([csvCol, targetField]) => {
+        if (targetField && row[csvCol] !== undefined && row[csvCol] !== "") {
+          mappedRow[targetField] = row[csvCol];
+        }
+      });
+      return mappedRow;
+    });
+  }, [parsedData, fieldMapping]);
+
+  // ── Server-side validation (unified mode) ─────────────────────────────────
+
+  const runServerValidation = useCallback(
+    async (rows: Record<string, unknown>[]) => {
+      setIsValidating(true);
+      try {
+        const response = await fetch("/api/import/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rows }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Validation failed");
+        }
+
+        const result = await response.json();
+        setValidationResult(result);
+      } catch (error) {
+        console.error("[IMPORT_VALIDATE]", error);
+        // Set an empty result on error so the user sees something
+        setValidationResult({
+          validRows: [],
+          errorRows: [
+            {
+              rowIndex: 0,
+              entity: "client",
+              field: "",
+              error: error instanceof Error ? error.message : "Validation failed",
+              rawValue: "",
+            },
+          ],
+          entitySummary: {
+            clients: { detected: false, total: 0, unique: 0, deduplicated: 0 },
+            properties: { detected: false, total: 0, unique: 0, deduplicated: 0 },
+            mandates: { detected: false, total: 0, unique: 0, deduplicated: 0 },
+          },
+        });
+      } finally {
+        setIsValidating(false);
+      }
+    },
+    [],
+  );
+
+  // ── Client-side validation (legacy mode) ──────────────────────────────────
+
+  const validateDataClientSide = useCallback(() => {
+    if (!schema) return { errors: [] as ValidationError[], valid: [] as Record<string, unknown>[] };
+
     const errors: ValidationError[] = [];
     const valid: Record<string, unknown>[] = [];
 
     parsedData.forEach((row, rowIndex) => {
-      // Transform row based on mapping
       const mappedRow: Record<string, unknown> = {};
       Object.entries(fieldMapping).forEach(([csvCol, targetField]) => {
         if (targetField && row[csvCol] !== undefined && row[csvCol] !== "") {
@@ -277,20 +391,20 @@ export function ImportWizardSteps({
         }
       });
 
-      // Normalize enums before validation (matches server-side engine behavior)
       const normalizedRow = normalizeRow ? normalizeRow(mappedRow) : mappedRow;
 
-      // Validate against schema
       const result = schema.safeParse(normalizedRow);
       if (result.success) {
         valid.push(result.data as Record<string, unknown>);
       } else {
         result.error.errors.forEach((err) => {
           errors.push({
-            row: rowIndex + 2, // +2 for header row and 0-index
+            row: rowIndex + 2,
             field: err.path.join("."),
             error: err.message,
-            value: String(normalizedRow[err.path[0]] ?? ""),
+            value: normalizedRow[err.path[0]] === null || normalizedRow[err.path[0]] === undefined
+              ? ""
+              : String(normalizedRow[err.path[0]]),
           });
         });
       }
@@ -301,10 +415,9 @@ export function ImportWizardSteps({
     return { errors, valid };
   }, [parsedData, fieldMapping, schema, normalizeRow]);
 
-  // Shim: build ServerValidationResult shape from client-side validation data.
-  // Task 18 will replace this with a real server-side validation call.
-  const serverValidationResult = useMemo<import("./ValidationStep").ServerValidationResult | null>(() => {
-    if (parsedData.length === 0) return null;
+  // Legacy shim: build ServerValidationResult shape from client-side validation
+  const legacyServerValidationResult = useMemo<ServerValidationResult | null>(() => {
+    if (!schema || parsedData.length === 0) return null;
     return {
       validRows: validData,
       errorRows: validationErrors.map((ve) => ({
@@ -315,46 +428,133 @@ export function ImportWizardSteps({
         rawValue: ve.value ?? "",
       })),
       entitySummary: {
-        clients: { detected: entityType === "client", total: parsedData.length, unique: validData.length, deduplicated: 0 },
-        properties: { detected: entityType === "property", total: parsedData.length, unique: validData.length, deduplicated: 0 },
-        mandates: { detected: entityType === "mandate", total: parsedData.length, unique: validData.length, deduplicated: 0 },
+        clients: {
+          detected: entityType === "client",
+          total: parsedData.length,
+          unique: validData.length,
+          deduplicated: 0,
+        },
+        properties: {
+          detected: entityType === "property",
+          total: parsedData.length,
+          unique: validData.length,
+          deduplicated: 0,
+        },
+        mandates: {
+          detected: entityType === "mandate",
+          total: parsedData.length,
+          unique: validData.length,
+          deduplicated: 0,
+        },
       },
     };
-  }, [parsedData.length, validData, validationErrors, entityType]);
+  }, [parsedData.length, validData, validationErrors, entityType, schema]);
 
-  const BATCH_SIZE = 25;
+  // ── Re-validation handler (unified mode) ──────────────────────────────────
 
-  const handleImport = useCallback(async () => {
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    setIsImporting(true);
-    setImportProgress(0);
+  const handleRevalidate = useCallback(
+    (updatedRows: Record<string, unknown>[]) => {
+      if (unifiedMode) {
+        void runServerValidation(updatedRows);
+      }
+    },
+    [unifiedMode, runServerValidation],
+  );
 
-    // UNIFIED MODE: single request (no batching) — client dedup map must span all rows
+  // ── Step transition: Mapping → Validation ─────────────────────────────────
+
+  const handleMappingToValidation = useCallback(async () => {
     if (unifiedMode) {
+      const mappedRows = buildMappedRows();
+      await runServerValidation(mappedRows);
+      setDirection(1);
+      setCurrentStep(2);
+    } else {
+      // Legacy: run client-side validation then advance
+      validateDataClientSide();
+      setDirection(1);
+      setCurrentStep(2);
+    }
+  }, [unifiedMode, buildMappedRows, runServerValidation, validateDataClientSide]);
+
+  // ── Step transition: Review → Importing (unified) ─────────────────────────
+
+  const handleStartImport = useCallback(async () => {
+    if (unifiedMode) {
+      // Advance to the "Importing" step (step 4)
+      setDirection(1);
+      setCurrentStep(4);
+      setIsImporting(true);
+      setImportProgress(0);
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       try {
-        setImportProgress(50);
-        const result = await onImport(validData, controller.signal);
+        // Get the valid rows from server validation
+        const rowsToImport = validationResult?.validRows ?? [];
+
+        // Filter out skipped rows
+        const filteredRows = rowsToImport.filter(
+          (_, idx) => !skippedRows.has(idx),
+        );
+
+        setImportProgress(30);
+
+        const result = await onImport(
+          filteredRows,
+          {
+            assignedTo: assignedTo ?? undefined,
+            sourceFilename: file?.name,
+          },
+          controller.signal,
+        );
+
         if (controller.signal.aborted) return;
+
         setImportResult(result);
         setImportProgress(100);
-        handleNext();
+
+        // Advance to Complete step
+        setDirection(1);
+        setCurrentStep(5);
       } catch (error) {
         if (controller.signal.aborted) return;
-        console.error("Import failed:", error);
+        console.error("[IMPORT]", error);
         setImportResult({
-          imported: 0, skipped: 0,
-          failed: validData.length,
+          imported: 0,
+          skipped: 0,
+          failed: (validationResult?.validRows ?? []).length,
           errors: [{ row: 0, field: "", error: dict.errors.serverError }],
         });
-        handleNext();
+        // Go back to Review step on failure
+        setDirection(-1);
+        setCurrentStep(3);
       } finally {
         setIsImporting(false);
         setImportProgress(0);
         abortControllerRef.current = null;
       }
-      return;
     }
+  }, [
+    unifiedMode,
+    validationResult,
+    skippedRows,
+    onImport,
+    assignedTo,
+    file,
+    dict.errors.serverError,
+  ]);
+
+  // ── Legacy import handler (batched, step 3 → 4) ──────────────────────────
+
+  const BATCH_SIZE = 25;
+
+  const handleLegacyImport = useCallback(async () => {
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setIsImporting(true);
+    setImportProgress(0);
 
     const aggregated: ImportResult = {
       imported: 0,
@@ -364,7 +564,6 @@ export function ImportWizardSteps({
     };
 
     try {
-      // Split validData into batches for real progress tracking
       const totalBatches = Math.ceil(validData.length / BATCH_SIZE);
 
       for (let i = 0; i < totalBatches; i++) {
@@ -382,30 +581,6 @@ export function ImportWizardSteps({
           aggregated.errors!.push(...result.errors);
         }
 
-        // Aggregate unified import fields across batches
-        if (result.clients) {
-          if (!aggregated.clients) aggregated.clients = { created: 0, reused: 0, failed: 0 };
-          aggregated.clients.created += result.clients.created;
-          aggregated.clients.reused += result.clients.reused;
-          aggregated.clients.failed += result.clients.failed;
-        }
-        if (result.properties) {
-          if (!aggregated.properties) aggregated.properties = { created: 0, failed: 0 };
-          aggregated.properties.created += result.properties.created;
-          aggregated.properties.failed += result.properties.failed;
-        }
-        if (result.mandates) {
-          if (!aggregated.mandates) aggregated.mandates = { created: 0, failed: 0 };
-          aggregated.mandates.created += result.mandates.created;
-          aggregated.mandates.failed += result.mandates.failed;
-        }
-        if (result.links) {
-          if (!aggregated.links) aggregated.links = { clientProperty: 0, mandateClient: 0, mandateProperty: 0 };
-          aggregated.links.clientProperty += result.links.clientProperty;
-          aggregated.links.mandateClient += result.links.mandateClient;
-          aggregated.links.mandateProperty += result.links.mandateProperty;
-        }
-
         setImportProgress(Math.round(((i + 1) / totalBatches) * 100));
       }
 
@@ -413,11 +588,13 @@ export function ImportWizardSteps({
       handleNext();
     } catch (error) {
       if (controller.signal.aborted) return;
-      console.error("Import failed:", error);
+      console.error("[IMPORT]", error);
       setImportResult({
         imported: aggregated.imported,
         skipped: aggregated.skipped,
-        failed: aggregated.failed + (validData.length - aggregated.imported - aggregated.skipped - aggregated.failed),
+        failed:
+          aggregated.failed +
+          (validData.length - aggregated.imported - aggregated.skipped - aggregated.failed),
         errors: [
           ...(aggregated.errors || []),
           { row: 0, field: "", error: dict.errors.serverError },
@@ -431,26 +608,63 @@ export function ImportWizardSteps({
     }
   }, [validData, onImport, dict.errors.serverError, handleNext]);
 
-  const canProceed = () => {
+  // ── Import resumption check (unified mode only) ───────────────────────────
+
+  useEffect(() => {
+    if (!unifiedMode) return;
+    if (globalThis.window === undefined) return;
+
+    const inProgress = sessionStorage.getItem("importInProgress");
+    if (inProgress) {
+      // Previous import was in progress but the page was reloaded.
+      // Clear the marker — the unified endpoint handles its own history recording.
+      sessionStorage.removeItem("importInProgress");
+    }
+  }, [unifiedMode]);
+
+  // ── canProceed() ──────────────────────────────────────────────────────────
+
+  const canProceed = useCallback(() => {
+    if (unifiedMode) {
+      switch (currentStep) {
+        case 0: // Upload
+          return file !== null && parsedData.length > 0;
+        case 1: { // Mapping
+          const mappedFields = Object.values(fieldMapping);
+          const hasClientTrigger =
+            mappedFields.includes("client_name") ||
+            mappedFields.includes("primary_phone") ||
+            mappedFields.includes("primary_email");
+          const hasPropertyTrigger = mappedFields.includes("property_name");
+          const hasMandateTrigger = mandateFieldKeys
+            ? mappedFields.some((f) => mandateFieldKeys.has(f))
+            : false;
+          return hasClientTrigger || hasPropertyTrigger || hasMandateTrigger;
+        }
+        case 2: // Validation
+          return !isValidating;
+        case 3: // Review
+          return (validationResult?.validRows ?? []).length > 0;
+        case 4: // Importing (auto-transition, no user action needed)
+          return false;
+        case 5: // Complete
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    // Legacy mode
     switch (currentStep) {
       case 0: // Upload
         return file !== null && parsedData.length > 0;
-      case 1: // Mapping
-        if (unifiedMode) {
-          const mappedFields = Object.values(fieldMapping);
-          const hasClientTrigger = mappedFields.includes("client_name")
-            || mappedFields.includes("primary_phone") || mappedFields.includes("primary_email");
-          const hasPropertyTrigger = mappedFields.includes("property_name");
-          const hasMandateTrigger = mandateFieldKeys
-            ? mappedFields.some((f) => mandateFieldKeys.has(f)) : false;
-          return hasClientTrigger || hasPropertyTrigger || hasMandateTrigger;
-        }
-        // Check if all required fields are mapped
+      case 1: { // Mapping
         const requiredFields = fieldDefinitions.filter((f) => f.required);
         const mappedFields = Object.values(fieldMapping);
         return requiredFields.every((rf) => mappedFields.includes(rf.key));
+      }
       case 2: // Validation
-        return true; // Can proceed even with errors
+        return true;
       case 3: // Review
         return validData.length > 0;
       case 4: // Complete
@@ -458,9 +672,220 @@ export function ImportWizardSteps({
       default:
         return false;
     }
-  };
+  }, [
+    unifiedMode,
+    currentStep,
+    file,
+    parsedData.length,
+    fieldMapping,
+    mandateFieldKeys,
+    isValidating,
+    validationResult,
+    fieldDefinitions,
+    validData.length,
+  ]);
+
+  // ── Reset wizard ──────────────────────────────────────────────────────────
+
+  const handleReset = useCallback(() => {
+    setCurrentStep(0);
+    setFile(null);
+    fileHashRef.current = "";
+    setParsedData([]);
+    setCsvHeaders([]);
+    setFieldMapping({});
+    setMatchResults(new Map());
+    setColumnEntities({});
+    setGroupingKeys({});
+    setValidationResult(null);
+    setIsValidating(false);
+    setSkippedRows(new Set());
+    setEntityApprovals({});
+    setAssignedTo(null);
+    setIsImporting(false);
+    setImportProgress(0);
+    setImportResult(null);
+    setValidationErrors([]);
+    setValidData([]);
+  }, []);
+
+  // ── Row edit handler (unified review step) ────────────────────────────────
+
+  const handleRowEdit = useCallback(
+    (_rowIndex: number, _field: string, _value: unknown) => {
+      // Row editing in the review step updates the validation result's validRows
+      // This is handled by the ReviewStep component internally
+    },
+    [],
+  );
+
+  // ── Step rendering ────────────────────────────────────────────────────────
 
   const renderStep = () => {
+    if (unifiedMode) {
+      return renderUnifiedStep();
+    }
+    return renderLegacyStep();
+  };
+
+  const renderUnifiedStep = () => {
+    switch (currentStep) {
+      case 0: // Upload
+        return (
+          <UploadStep
+            dict={dict.upload}
+            errorsDict={dict.errors}
+            onFileUpload={handleFileUpload}
+            onFileHash={handleFileHash}
+            currentFile={file}
+            entityType={entityType}
+            unifiedMode={true}
+          />
+        );
+      case 1: // Mapping
+        return (
+          <TableMappingStep
+            dict={dict.mapping}
+            fieldsDict={fieldsDict}
+            csvHeaders={csvHeaders}
+            fieldMapping={fieldMapping}
+            matchResults={matchResults}
+            fieldDefinitions={fieldDefinitionsWithAliases}
+            sampleData={parsedData.slice(0, 3)}
+            onMappingChange={handleMappingChange}
+            columnEntities={columnEntities}
+            onColumnEntitiesChange={setColumnEntities}
+            groupingKeys={groupingKeys}
+            onGroupingKeysChange={setGroupingKeys}
+          />
+        );
+      case 2: // Validation
+        return (
+          <ValidationStep
+            dict={dict.validation}
+            validationResult={validationResult}
+            isValidating={isValidating}
+            skippedRows={skippedRows}
+            onSkippedRowsChange={setSkippedRows}
+            onRevalidate={handleRevalidate}
+          />
+        );
+      case 3: // Review (unified — uses new props interface)
+        return (
+          <ReviewStep
+            validatedRows={(validationResult?.validRows ?? []).map(
+              (row: Record<string, unknown>, idx: number) => ({
+                rowIndex: idx,
+                clientRow: row,
+                propertyRow: row,
+                mandateRow: row,
+                hasClient: !!row.client_name || !!row.primary_phone || !!row.primary_email,
+                hasProperty: !!row.property_name,
+                hasMandate: mandateFieldKeys
+                  ? Object.entries(row).some(
+                      ([k, v]) => mandateFieldKeys.has(k) && v !== null && v !== undefined && v !== "",
+                    )
+                  : false,
+              }),
+            )}
+            skippedRows={skippedRows}
+            entityApprovals={entityApprovals}
+            onEntityApprovalsChange={setEntityApprovals}
+            assignedTo={assignedTo}
+            onAssignedToChange={setAssignedTo}
+            onRowEdit={handleRowEdit}
+            dict={dict.review}
+          />
+        );
+      case 4: // Importing (loading state)
+        return (
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" aria-hidden="true" />
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold">
+                {dict.steps.importing?.title ?? "Importing..."}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {dict.steps.importing?.description ?? "Processing your data. Please wait..."}
+              </p>
+              {importProgress > 0 && (
+                <Progress value={importProgress} className="h-2 w-64 mx-auto mt-4" />
+              )}
+            </div>
+          </div>
+        );
+      case 5: // Complete
+        return (
+          <CompleteStep
+            dict={dict.complete}
+            result={importResult}
+            entityType={entityType}
+            viewUrl={viewUrl}
+            returnUrl={returnUrl}
+            onImportMore={handleReset}
+            onDone={onComplete}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  const computeLegacyEntityCounts = () => {
+    const clientDedupKeys = new Set<string>();
+    let properties = 0;
+    let mandates = 0;
+    for (const row of validData) {
+      const hasClient = !!(row.client_name || row.primary_phone || row.primary_email);
+      if (hasClient) {
+        const phoneVal = row.primary_phone;
+        const emailVal = row.primary_email;
+        const nameVal = row.client_name;
+        const phoneStr = phoneVal === null || phoneVal === undefined ? "" : String(phoneVal);
+        const emailStr = emailVal === null || emailVal === undefined ? "" : String(emailVal);
+        const nameStr = nameVal === null || nameVal === undefined ? "" : String(nameVal);
+        const phone = phoneStr.trim().replaceAll(/\D/g, "");
+        const email = emailStr.trim().toLowerCase();
+        const name = nameStr.trim().toLowerCase();
+        let key: string;
+        if (phone) {
+          key = `phone:${phone}`;
+        } else if (email) {
+          key = `email:${email}`;
+        } else {
+          key = `name:${name}`;
+        }
+        clientDedupKeys.add(key);
+      }
+      if (row.property_name) properties++;
+      if (
+        mandateFieldKeys &&
+        Object.entries(row).some(
+          ([k, v]) => mandateFieldKeys.has(k) && v !== null && v !== undefined && v !== "",
+        )
+      ) {
+        mandates++;
+      }
+    }
+    return { clients: clientDedupKeys.size, properties, mandates };
+  };
+
+  const renderLegacyReview = () => {
+    const entityCounts = computeLegacyEntityCounts();
+    return (
+      <ReviewStep
+        dict={dict.review}
+        fieldsDict={fieldsDict}
+        data={validData}
+        fieldMapping={fieldMapping}
+        errorCount={validationErrors.length > 0 ? parsedData.length - validData.length : 0}
+        entityType={entityType}
+        entityCounts={entityCounts}
+      />
+    );
+  };
+
+  const renderLegacyStep = () => {
     switch (currentStep) {
       case 0:
         return (
@@ -470,7 +895,6 @@ export function ImportWizardSteps({
             onFileUpload={handleFileUpload}
             currentFile={file}
             entityType={entityType}
-            unifiedMode={unifiedMode}
           />
         );
       case 1:
@@ -490,49 +914,15 @@ export function ImportWizardSteps({
         return (
           <ValidationStep
             dict={dict.validation}
-            validationResult={serverValidationResult}
+            validationResult={legacyServerValidationResult}
             isValidating={false}
             skippedRows={skippedRows}
             onSkippedRowsChange={setSkippedRows}
-            onRevalidate={() => validateData()}
+            onRevalidate={() => validateDataClientSide()}
           />
         );
-      case 3: {
-        // Compute entity counts for unified mode preview
-        // Client count uses dedup logic matching the server-side engine:
-        // phone > email > name as dedup key — same client across rows counts once
-        const entityCounts = unifiedMode ? (() => {
-          const clientDedupKeys = new Set<string>();
-          let properties = 0, mandates = 0;
-          for (const row of validData) {
-            const hasClient = !!(row.client_name || row.primary_phone || row.primary_email);
-            if (hasClient) {
-              const phone = String(row.primary_phone ?? "").trim().replace(/\D/g, "");
-              const email = String(row.primary_email ?? "").trim().toLowerCase();
-              const name = String(row.client_name ?? "").trim().toLowerCase();
-              const key = phone ? `phone:${phone}` : email ? `email:${email}` : `name:${name}`;
-              clientDedupKeys.add(key);
-            }
-            if (row.property_name) properties++;
-            if (mandateFieldKeys && Object.entries(row).some(
-              ([k, v]) => mandateFieldKeys.has(k) && v !== null && v !== undefined && v !== ""
-            )) mandates++;
-          }
-          return { clients: clientDedupKeys.size, properties, mandates };
-        })() : undefined;
-
-        return (
-          <ReviewStep
-            dict={dict.review}
-            fieldsDict={fieldsDict}
-            data={validData}
-            fieldMapping={fieldMapping}
-            errorCount={validationErrors.length > 0 ? parsedData.length - validData.length : 0}
-            entityType={entityType}
-            entityCounts={entityCounts}
-          />
-        );
-      }
+      case 3:
+        return renderLegacyReview();
       case 4:
         return (
           <CompleteStep
@@ -540,17 +930,7 @@ export function ImportWizardSteps({
             result={importResult}
             entityType={entityType}
             viewUrl={viewUrl}
-            onImportMore={() => {
-              setCurrentStep(0);
-              setFile(null);
-              setParsedData([]);
-              setCsvHeaders([]);
-              setFieldMapping({});
-              setMatchResults(new Map());
-              setValidationErrors([]);
-              setValidData([]);
-              setImportResult(null);
-            }}
+            onImportMore={handleReset}
             onDone={onComplete}
           />
         );
@@ -559,13 +939,137 @@ export function ImportWizardSteps({
     }
   };
 
-  const stepTitles = [
-    dict.steps.upload.title,
-    dict.steps.mapping.title,
-    dict.steps.validation.title,
-    dict.steps.review.title,
-    dict.steps.complete.title,
-  ];
+  // ── Step titles ───────────────────────────────────────────────────────────
+
+  const stepTitles = unifiedMode
+    ? [
+        dict.steps.upload.title,
+        dict.steps.mapping.title,
+        dict.steps.validation.title,
+        dict.steps.review.title,
+        dict.steps.importing?.title ?? "Import",
+        dict.steps.complete.title,
+      ]
+    : [
+        dict.steps.upload.title,
+        dict.steps.mapping.title,
+        dict.steps.validation.title,
+        dict.steps.review.title,
+        dict.steps.complete.title,
+      ];
+
+  // ── "Next" click dispatcher ───────────────────────────────────────────────
+
+  const handleNextClick = useCallback(() => {
+    if (unifiedMode) {
+      switch (currentStep) {
+        case 1:
+          // Mapping → Validation: run server-side validation
+          void handleMappingToValidation();
+          return;
+        case 3:
+          // Review → Importing: start the import
+          void handleStartImport();
+          return;
+        default:
+          handleNext();
+          return;
+      }
+    }
+
+    // Legacy mode
+    if (currentStep === 2) {
+      // Re-run client-side validation before advancing from Validation → Review
+      validateDataClientSide();
+      handleNext();
+    } else {
+      handleNext();
+    }
+  }, [
+    unifiedMode,
+    currentStep,
+    handleMappingToValidation,
+    handleStartImport,
+    handleNext,
+    validateDataClientSide,
+  ]);
+
+  // ── Determine if the current step is the import-triggering step ───────────
+
+  const isImportStep = currentStep === 3;
+  const isCompleteStep = unifiedMode ? currentStep === 5 : currentStep === 4;
+  const isImportingStep = unifiedMode && currentStep === 4;
+
+  // ── Navigation button renderer ──────────────────────────────────────────
+
+  const renderNextButton = () => {
+    if (isImportStep && unifiedMode) {
+      // Unified: "Import" button on Review step triggers handleStartImport
+      return (
+        <Button
+          onClick={handleNextClick}
+          disabled={!canProceed()}
+          className="gap-2"
+        >
+          {dict.buttons.import}
+          <ArrowRight className="w-4 h-4" />
+        </Button>
+      );
+    }
+
+    if (isImportStep && !unifiedMode) {
+      // Legacy: "Import" button with progress overlay
+      return (
+        <TooltipProvider>
+          <Tooltip open={isImporting ? undefined : false}>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={handleLegacyImport}
+                disabled={!canProceed() || isImporting}
+                className="gap-2 relative overflow-hidden"
+              >
+                {isImporting && (
+                  <span
+                    className="absolute inset-0 bg-primary-foreground/20 transition-[width] duration-300 ease-out pointer-events-none"
+                    style={{ width: `${importProgress}%` }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-2">
+                  {isImporting ? `${importProgress}%` : dict.buttons.import}
+                  {!isImporting && <ArrowRight className="w-4 h-4" />}
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{importProgress}% imported</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    // Default: "Next" button
+    const showSpinner = isValidating && currentStep === 1;
+    return (
+      <Button
+        onClick={handleNextClick}
+        disabled={!canProceed() || showSpinner}
+        className="gap-2"
+      >
+        {showSpinner ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            {dict.buttons.next}
+          </>
+        ) : (
+          <>
+            {dict.buttons.next}
+            <ArrowRight className="w-4 h-4" />
+          </>
+        )}
+      </Button>
+    );
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -588,12 +1092,12 @@ export function ImportWizardSteps({
 
       {/* Step Indicator */}
       <div className="flex items-center justify-between mb-4 relative">
-        {/* Connecting line spanning from center of first step to center of last */}
+        {/* Connecting line */}
         <div className="absolute top-4 left-[calc(10%-4px)] right-[calc(10%-4px)] h-0.5 pointer-events-none z-0">
           <div className="flex w-full h-full">
-            {stepTitles.slice(0, -1).map((_, index) => (
+            {stepTitles.slice(0, -1).map((title, index) => (
               <div
-                key={`line-${index}`}
+                key={`line-${title}`}
                 className={`h-0.5 flex-1 ${
                   currentStep > index ? "bg-primary" : "bg-muted"
                 }`}
@@ -603,30 +1107,36 @@ export function ImportWizardSteps({
         </div>
 
         <div className="flex items-start justify-between w-full relative z-10">
-          {stepTitles.map((title, index) => (
-            <div key={index} className="flex flex-col items-center flex-1">
+          {stepTitles.map((title, index) => {
+            let stepCircleClass = "bg-muted text-muted-foreground";
+            if (currentStep === index) {
+              stepCircleClass = "bg-primary text-primary-foreground";
+            } else if (currentStep > index) {
+              stepCircleClass = "bg-muted text-primary";
+            }
+
+            let stepIcon: React.ReactNode;
+            if (currentStep > index) {
+              stepIcon = <CheckCircle2 className="w-4 h-4" />;
+            } else if (index === 0) {
+              stepIcon = <Upload className="w-4 h-4" />;
+            } else {
+              stepIcon = index + 1;
+            }
+
+            return (
+            <div key={`step-${title}`} className="flex flex-col items-center flex-1">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm relative z-10 ring-4 ring-background ${
-                  currentStep === index
-                    ? "bg-primary text-primary-foreground"
-                    : currentStep > index
-                    ? "bg-muted text-primary"
-                    : "bg-muted text-muted-foreground"
-                }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm relative z-10 ring-4 ring-background ${stepCircleClass}`}
               >
-                {currentStep > index ? (
-                  <CheckCircle2 className="w-4 h-4" />
-                ) : index === 0 ? (
-                  <Upload className="w-4 h-4" />
-                ) : (
-                  index + 1
-                )}
+                {stepIcon}
               </div>
               <div className="text-xs mt-2 text-center max-w-[80px] text-muted-foreground">
                 {title}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -652,7 +1162,7 @@ export function ImportWizardSteps({
       </div>
 
       {/* Navigation Buttons */}
-      {currentStep < TOTAL_STEPS - 1 && (
+      {!isCompleteStep && !isImportingStep && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -675,63 +1185,10 @@ export function ImportWizardSteps({
               <ArrowLeft className="w-4 h-4" />
               {dict.buttons.back}
             </Button>
-            {currentStep === 3 ? (
-              <TooltipProvider>
-                <Tooltip open={isImporting ? undefined : false}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={handleImport}
-                      disabled={!canProceed() || isImporting}
-                      className="gap-2 relative overflow-hidden"
-                    >
-                      {/* Progress fill overlay */}
-                      {isImporting && (
-                        <span
-                          className="absolute inset-0 bg-primary-foreground/20 transition-[width] duration-300 ease-out pointer-events-none"
-                          style={{ width: `${importProgress}%` }}
-                        />
-                      )}
-                      <span className="relative z-10 flex items-center gap-2">
-                        {isImporting
-                          ? `${importProgress}%`
-                          : dict.buttons.import}
-                        {!isImporting && <ArrowRight className="w-4 h-4" />}
-                      </span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p>{importProgress}% imported</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            ) : currentStep === 2 ? (
-              <Button
-                onClick={() => {
-                  // Re-run validation to ensure state is current before navigating
-                  // State updates are batched with the step change in React 18
-                  validateData();
-                  handleNext();
-                }}
-                disabled={!canProceed()}
-                className="gap-2"
-              >
-                {dict.buttons.next}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="gap-2"
-              >
-                {dict.buttons.next}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            )}
+            {renderNextButton()}
           </div>
         </motion.div>
       )}
     </div>
   );
 }
-

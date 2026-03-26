@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { z } from "zod";
 import { ImportWizardSteps, type ImportResult } from "@/components/import";
 import { UNIFIED_FIELD_DEFINITIONS, MANDATE_FIELD_KEYS } from "@/lib/import";
 import { useAppToast } from "@/hooks/use-app-toast";
+import type { BatchImportResult } from "@/lib/import/unified-engine";
 
 interface UnifiedImportWizardProps {
   dict: {
@@ -17,6 +17,7 @@ interface UnifiedImportWizardProps {
         mapping: { title: string; description: string };
         validation: { title: string; description: string };
         review: { title: string; description: string };
+        importing?: { title: string; description: string };
         complete: { title: string; description: string };
       };
       upload: {
@@ -102,32 +103,35 @@ interface UnifiedImportWizardProps {
   returnUrl: string;
 }
 
-export function UnifiedImportWizard({ dict, locale, returnUrl }: UnifiedImportWizardProps) {
+export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<UnifiedImportWizardProps>) {
   const router = useRouter();
   const { toast } = useAppToast();
 
-  // Passthrough schema — validates row is usable without stripping any fields.
-  // Real per-entity Zod validation happens server-side after partitioning.
-  const schema = useMemo(() => z.record(z.unknown()).refine(
-    (row) => {
-      const hasClient = !!(row.client_name || row.primary_phone || row.primary_email);
-      const hasProperty = !!row.property_name;
-      const hasMandate = Object.entries(row).some(
-        ([key, val]) => MANDATE_FIELD_KEYS.has(key) && val !== null && val !== undefined && val !== ""
-      );
-      return hasClient || hasProperty || hasMandate;
-    },
-    { message: "Row must contain data for at least one entity (client, property, or mandate)" }
-  ), []);
-
   const handleImport = useCallback(
-    async (data: Record<string, unknown>[], signal?: AbortSignal): Promise<ImportResult> => {
+    async (
+      data: Record<string, unknown>[],
+      signalOrOptions?: AbortSignal | { assignedTo?: string | null; importHistoryId?: string; sourceFilename?: string },
+      signal?: AbortSignal,
+    ): Promise<ImportResult> => {
+      // Disambiguate the overloaded second argument
+      const options = signalOrOptions instanceof AbortSignal ? undefined : signalOrOptions;
+      const resolvedSignal = signalOrOptions instanceof AbortSignal ? signalOrOptions : signal;
       try {
+        // Store import-in-progress marker in sessionStorage
+        if (globalThis.window !== undefined) {
+          sessionStorage.setItem("importInProgress", "true");
+        }
+
         const response = await fetch("/api/import/unified", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rows: data }),
-          signal,
+          body: JSON.stringify({
+            rows: data,
+            assignedTo: options?.assignedTo ?? null,
+            importHistoryId: options?.importHistoryId ?? undefined,
+            sourceFilename: options?.sourceFilename ?? "import.csv",
+          }),
+          signal: resolvedSignal,
         });
 
         if (!response.ok) {
@@ -135,28 +139,61 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: UnifiedImportWi
           throw new Error(errorData.error || "Import failed");
         }
 
-        const result = await response.json();
+        const result: BatchImportResult = await response.json();
 
-        if ((result.clients?.created ?? 0) + (result.properties?.created ?? 0) + (result.mandates?.created ?? 0) > 0) {
+        // Clear the in-progress marker
+        if (globalThis.window !== undefined) {
+          sessionStorage.removeItem("importInProgress");
+        }
+
+        const totalCreated =
+          result.clients.length + result.properties.length + result.mandates.length;
+
+        if (totalCreated > 0) {
           toast.success("Import successful", {
-            description: `Created ${result.clients?.created ?? 0} client(s), ${result.properties?.created ?? 0} property(ies), ${result.mandates?.created ?? 0} mandate(s)`,
+            description: `Created ${result.clients.length} client(s), ${result.properties.length} property(ies), ${result.mandates.length} mandate(s)`,
             isTranslationKey: false,
           });
         }
 
         return {
-          imported: (result.clients?.created ?? 0)
-            + (result.properties?.created ?? 0) + (result.mandates?.created ?? 0),
-          skipped: result.skipped ?? 0,
-          failed: (result.clients?.failed ?? 0) + (result.properties?.failed ?? 0) + (result.mandates?.failed ?? 0),
-          errors: result.errors ?? [],
-          clients: result.clients,
-          properties: result.properties,
-          mandates: result.mandates,
-          links: result.links,
+          imported: totalCreated,
+          skipped: result.skippedCount,
+          failed: result.errors.length,
+          errors: result.errors.map((e) => ({
+            row: e.rowIndex,
+            field: e.entity,
+            error: e.error,
+          })),
+          // Summary counts for legacy display
+          clients: {
+            created: result.clients.length,
+            reused: 0,
+            failed: result.errors.filter((e) => e.entity === "client").length,
+          },
+          properties: {
+            created: result.properties.length,
+            failed: result.errors.filter((e) => e.entity === "property").length,
+          },
+          mandates: {
+            created: result.mandates.length,
+            failed: result.errors.filter((e) => e.entity === "mandate").length,
+          },
+          links: {
+            clientProperty: result.linkCounts.clientProperty,
+            mandateClient: result.linkCounts.mandateClient,
+            mandateProperty: result.linkCounts.mandateProperty,
+          },
+          // Attach the raw batch result for the new CompleteStep
+          _batchResult: result,
         };
       } catch (error) {
-        console.error("Import error:", error);
+        // Clear the in-progress marker on error too
+        if (globalThis.window !== undefined) {
+          sessionStorage.removeItem("importInProgress");
+        }
+
+        console.error("[UNIFIED_IMPORT]", error);
         toast.error("Import failed", {
           description: error instanceof Error ? error.message : String(error),
           isTranslationKey: false,
@@ -169,7 +206,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: UnifiedImportWi
         };
       }
     },
-    [toast, dict.ImportWizard.errors.serverError]
+    [toast, dict.ImportWizard.errors.serverError],
   );
 
   const handleComplete = useCallback(() => {
@@ -186,14 +223,15 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: UnifiedImportWi
       entityType="property"
       dict={dict.ImportWizard}
       fieldsDict={dict.ImportFields}
-      schema={schema}
       fieldDefinitions={UNIFIED_FIELD_DEFINITIONS}
       onImport={handleImport}
       onComplete={handleComplete}
       onCancel={handleCancel}
       viewUrl={returnUrl}
+      returnUrl={returnUrl}
       unifiedMode={true}
       mandateFieldKeys={MANDATE_FIELD_KEYS}
+      locale={locale}
     />
   );
 }
