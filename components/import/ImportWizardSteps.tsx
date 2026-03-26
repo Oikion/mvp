@@ -206,6 +206,8 @@ export function ImportWizardSteps({
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [validData, setValidData] = useState<Record<string, unknown>[]>([]);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  // Validation step state — skipped row indices (rowIndex = spreadsheet row #)
+  const [skippedRows, setSkippedRows] = useState<Set<number>>(new Set());
 
   // Convert field definitions to the format expected by fuzzy matcher
   const fieldDefinitionsWithAliases = useMemo(() => {
@@ -298,6 +300,27 @@ export function ImportWizardSteps({
     setValidData(valid);
     return { errors, valid };
   }, [parsedData, fieldMapping, schema, normalizeRow]);
+
+  // Shim: build ServerValidationResult shape from client-side validation data.
+  // Task 18 will replace this with a real server-side validation call.
+  const serverValidationResult = useMemo<import("./ValidationStep").ServerValidationResult | null>(() => {
+    if (parsedData.length === 0) return null;
+    return {
+      validRows: validData,
+      errorRows: validationErrors.map((ve) => ({
+        rowIndex: ve.row,
+        entity: entityType,
+        field: ve.field,
+        error: ve.error,
+        rawValue: ve.value ?? "",
+      })),
+      entitySummary: {
+        clients: { detected: entityType === "client", total: parsedData.length, unique: validData.length, deduplicated: 0 },
+        properties: { detected: entityType === "property", total: parsedData.length, unique: validData.length, deduplicated: 0 },
+        mandates: { detected: entityType === "mandate", total: parsedData.length, unique: validData.length, deduplicated: 0 },
+      },
+    };
+  }, [parsedData.length, validData, validationErrors, entityType]);
 
   const BATCH_SIZE = 25;
 
@@ -467,11 +490,11 @@ export function ImportWizardSteps({
         return (
           <ValidationStep
             dict={dict.validation}
-            fieldsDict={fieldsDict}
-            errors={validationErrors}
-            validCount={validData.length}
-            totalCount={parsedData.length}
-            onValidate={validateData}
+            validationResult={serverValidationResult}
+            isValidating={false}
+            skippedRows={skippedRows}
+            onSkippedRowsChange={setSkippedRows}
+            onRevalidate={() => validateData()}
           />
         );
       case 3: {
