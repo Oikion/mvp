@@ -7,6 +7,7 @@ import {
   EnergyCertClassEnum,
   PropertyConditionEnum,
   FurnishedStatusEnum,
+  ItemVisibilityEnum,
 } from "./property-import-schema";
 
 export const PropertyPurposeEnum = z.enum([
@@ -101,6 +102,9 @@ export const mandateImportSchema = z.object({
 
   // DateTime
   expires_at: z.coerce.string().optional().or(z.literal("")),
+
+  // Visibility
+  visibility: ItemVisibilityEnum.optional().nullable(),
 });
 
 export type MandateImportData = z.infer<typeof mandateImportSchema>;
@@ -401,6 +405,15 @@ export const mandateImportFieldDefinitions: readonly MandateFieldDefinition[] = 
     group: "other",
     aliases: ["expiry", "expiration", "lixi", "imerominia_lixis"],
     description: "Expiration date",
+  },
+
+  // Visibility
+  {
+    key: "visibility",
+    required: false,
+    group: "visibility",
+    aliases: ["mandate_oratotita", "mandate_publish_status", "oratotita"],
+    description: "Mandate visibility (HIDDEN, PRIVATE, SECURE, PUBLIC)",
   },
 ] as const;
 

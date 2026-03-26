@@ -45,6 +45,8 @@ export const PREFIX_STRIP_MAP: Record<string, string> = {
   mandate_region: "region",
   mandate_notes: "notes",
   client_description: "description",
+  client_visibility: "visibility",
+  mandate_visibility: "visibility",
 };
 
 /**
@@ -78,6 +80,7 @@ const MANDATE_KEY_RENAMES: Record<string, string> = {
   municipality: "mandate_municipality",
   region: "mandate_region",
   notes: "mandate_notes",
+  visibility: "mandate_visibility",
 };
 
 /** Mandate keys that are omitted entirely from the unified array. */
@@ -95,6 +98,7 @@ const PROPERTY_OMIT_KEYS = new Set<string>(["id"]);
 /** Client key renames for disambiguation. */
 const CLIENT_KEY_RENAMES: Record<string, string> = {
   description: "client_description",
+  visibility: "client_visibility",
 };
 
 // ---------------------------------------------------------------------------

@@ -32,6 +32,13 @@ export const LeadSourceEnum = z.enum([
   "SOCIAL",
 ]);
 
+export const ItemVisibilityEnum = z.enum([
+  "HIDDEN",
+  "PRIVATE",
+  "SECURE",
+  "PUBLIC",
+]);
+
 /**
  * Client CSV Import Schema
  * Matches the fields from NewAccountForm.tsx and the Prisma Clients model
@@ -100,6 +107,9 @@ export const clientImportSchema = z.object({
   // Additional
   description: z.coerce.string().optional().or(z.literal("")),
   member_of: z.coerce.string().optional().or(z.literal("")),
+
+  // Visibility
+  visibility: ItemVisibilityEnum.optional().nullable(),
 });
 
 export type ClientImportData = z.infer<typeof clientImportSchema>;
@@ -365,12 +375,21 @@ export const clientImportFieldDefinitions: readonly ClientFieldDefinition[] = [
     aliases: ["notes", "comments", "remarks", "perigrafi", "simeioseis"],
     description: "Additional notes or description"
   },
-  { 
-    key: "member_of", 
-    required: false, 
-    group: "other", 
+  {
+    key: "member_of",
+    required: false,
+    group: "other",
     aliases: ["group", "segment", "melos"],
     description: "Group or segment membership"
+  },
+
+  // Visibility
+  {
+    key: "visibility",
+    required: false,
+    group: "visibility",
+    aliases: ["client_oratotita", "client_publish_status", "oratotita"],
+    description: "Client visibility (HIDDEN, PRIVATE, SECURE, PUBLIC)",
   },
 ] as const;
 

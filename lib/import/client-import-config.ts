@@ -139,8 +139,8 @@ export const clientImportConfig: ImportEntityConfig<ClientImportData> = {
       description: e("description") || null,
       member_of: item.member_of || null,
 
-      // Visibility default (non-nullable field)
-      visibility: "PRIVATE",
+      // Visibility (falls back to PRIVATE if not provided)
+      visibility: item.visibility || "PRIVATE",
 
       // Always insert as a non-draft
       draft_status: false,
