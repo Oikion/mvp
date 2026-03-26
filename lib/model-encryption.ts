@@ -110,7 +110,7 @@ function decryptFieldWithKey(value: string | null | undefined, dek: Buffer): str
   return decryptWithKey(value, dek);
 }
 
-function encryptJsonWithKey(
+export function encryptJsonWithKey(
   value: Prisma.JsonValue | null | undefined,
   dek: Buffer
 ): Prisma.JsonValue | null | undefined {

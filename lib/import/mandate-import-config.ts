@@ -13,6 +13,7 @@ import {
 } from "./mandate-import-schema";
 import { normalizeMandateEnums } from "./enum-normalizer";
 import { encryptWithKey, isEncrypted } from "@/lib/encryption";
+import { encryptJsonWithKey } from "@/lib/model-encryption";
 
 /**
  * The 2 string fields that must be encrypted, matching
@@ -63,6 +64,10 @@ export const mandateImportConfig: ImportEntityConfig<MandateImportData> = {
       if (typeof value === "string" && value !== "" && !isEncrypted(value)) {
         encrypted[field] = encryptWithKey(value, dek);
       }
+    }
+
+    if (data.communication_notes != null) {
+      encrypted.communication_notes = encryptJsonWithKey(data.communication_notes, dek);
     }
 
     return encrypted;

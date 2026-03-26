@@ -5,6 +5,7 @@ import {
 } from "./property-import-schema";
 import { normalizePropertyEnums } from "./enum-normalizer";
 import { encryptWithKey, isEncrypted } from "@/lib/encryption";
+import { encryptJsonWithKey } from "@/lib/model-encryption";
 
 // ---------------------------------------------------------------------------
 // Local helpers (not exported)
@@ -40,7 +41,7 @@ export const propertyImportConfig: ImportEntityConfig<PropertyImportData> = {
   ): Record<string, unknown> {
     const encrypted: Record<string, unknown> = {};
 
-    // Properties have LIMITED encryption — only primary_email
+    // Properties have LIMITED encryption — only primary_email and communication_notes
     const email = data.primary_email;
     if (
       typeof email === "string" &&
@@ -48,6 +49,10 @@ export const propertyImportConfig: ImportEntityConfig<PropertyImportData> = {
       !isEncrypted(email)
     ) {
       encrypted.primary_email = encryptWithKey(email, dek);
+    }
+
+    if (data.communication_notes != null) {
+      encrypted.communication_notes = encryptJsonWithKey(data.communication_notes, dek);
     }
 
     return encrypted;

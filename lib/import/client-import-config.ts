@@ -10,6 +10,7 @@ import type { ImportEntityConfig } from "./engine";
 import { clientImportSchema, type ClientImportData } from "./client-import-schema";
 import { normalizeClientEnums } from "./enum-normalizer";
 import { encryptWithKey, isEncrypted } from "@/lib/encryption";
+import { encryptJsonWithKey } from "@/lib/model-encryption";
 
 /**
  * The 23 string fields that must be encrypted, matching
@@ -63,6 +64,10 @@ export const clientImportConfig: ImportEntityConfig<ClientImportData> = {
       if (typeof value === "string" && value !== "" && !isEncrypted(value)) {
         encrypted[field] = encryptWithKey(value, dek);
       }
+    }
+
+    if (data.communication_notes != null) {
+      encrypted.communication_notes = encryptJsonWithKey(data.communication_notes, dek);
     }
 
     return encrypted;
