@@ -108,7 +108,8 @@ export async function POST(req: NextRequest) {
       importType,
       sourceFilename,
       rowCount: rowCount ?? 0,
-      result: result ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      result: (result ?? {}) as any,
       entityIds: entityIds ?? [],
     });
 

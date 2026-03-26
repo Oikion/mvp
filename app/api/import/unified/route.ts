@@ -4,7 +4,6 @@ import { invalidateCache } from "@/lib/cache-invalidate";
 import { executeBatchImport } from "@/lib/import/unified-engine";
 import { validateImportData } from "@/lib/import/validation-engine";
 import { recordImport } from "@/lib/import/history";
-import { prismadb } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -32,72 +31,23 @@ export async function POST(req: Request) {
 
     // Record or update import history
     try {
-      if (importHistoryId) {
-        // Update existing ImportHistory record (set phase to COMPLETE, store results)
-        await prismadb.importHistory.update({
-          where: { id: importHistoryId },
-          data: {
-            status: "COMPLETED",
-            createdCount:
-              batchResult.clients.length +
-              batchResult.properties.length +
-              batchResult.mandates.length,
-            failedCount: batchResult.errors.length,
-            skippedCount: batchResult.skippedCount,
-            entityIds: [
-              ...batchResult.clients.map((c) => c.uuid),
-              ...batchResult.properties.map((p) => p.uuid),
-              ...batchResult.mandates.map((m) => m.uuid),
-            ],
-            resultDetails: JSON.parse(JSON.stringify(batchResult)),
-          },
-        });
-      } else {
-        // Create a new ImportHistory record via recordImport()
-        const allEntityIds = [
-          ...batchResult.clients.map((c) => c.uuid),
-          ...batchResult.properties.map((p) => p.uuid),
-          ...batchResult.mandates.map((m) => m.uuid),
-        ];
+      const allEntityIds = [
+        ...batchResult.clients.map((c) => c.uuid),
+        ...batchResult.properties.map((p) => p.uuid),
+        ...batchResult.mandates.map((m) => m.uuid),
+      ];
 
-        await recordImport({
-          orgId: organizationId,
-          userId: user.id,
-          importType: "UNIFIED",
-          sourceFilename: sourceFilename || "import.csv",
-          rowCount: rows.length,
-          result: {
-            clients: {
-              created: batchResult.clients.length,
-              reused: Math.max(
-                0,
-                validation.entitySummary.clients.total -
-                  validation.entitySummary.clients.unique,
-              ),
-              failed: batchResult.errors.filter((e) => e.entity === "client")
-                .length,
-            },
-            properties: {
-              created: batchResult.properties.length,
-              failed: batchResult.errors.filter(
-                (e) => e.entity === "property",
-              ).length,
-            },
-            mandates: {
-              created: batchResult.mandates.length,
-              failed: batchResult.errors.filter((e) => e.entity === "mandate")
-                .length,
-            },
-            skipped: batchResult.skippedCount,
-            errors: batchResult.errors.map((e) => ({
-              row: e.rowIndex + 2,
-              field: e.entity,
-              error: e.error,
-            })),
-          },
-          entityIds: allEntityIds,
-        });
-      }
+      await recordImport({
+        orgId: organizationId,
+        userId: user.id,
+        importType: "UNIFIED",
+        sourceFilename: sourceFilename || "import.csv",
+        rowCount: rows.length,
+        result: batchResult,
+        entityIds: allEntityIds,
+        // If a preflight record exists, update it instead of creating a new one
+        ...(importHistoryId ? { importHistoryId } : {}),
+      });
     } catch (historyError) {
       // Log but don't fail the import — history is non-critical
       console.error(
