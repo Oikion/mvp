@@ -221,64 +221,64 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
   },
 
   // Required
-  { 
-    key: "property_name", 
-    required: true, 
-    group: "basic", 
-    aliases: ["name", "title", "listing_name", "listing_title", "property_title", "headline"],
+  {
+    key: "property_name",
+    required: true,
+    group: "basic",
+    aliases: ["name", "title", "listing_name", "listing_title", "property_title", "headline", "Τίτλος", "Όνομα Ακινήτου", "Τίτλος Αγγελίας"],
     description: "Name or title of the property listing"
   },
 
   // Classification
-  { 
-    key: "property_type", 
-    required: false, 
-    group: "classification", 
-    aliases: ["type", "prop_type", "listing_type", "category", "property_category"],
+  {
+    key: "property_type",
+    required: false,
+    group: "classification",
+    aliases: ["type", "prop_type", "listing_type", "category", "property_category", "Τύπος Ακινήτου", "Κατηγορία"],
     description: "Type of property (e.g., APARTMENT, HOUSE, LAND)"
   },
-  { 
-    key: "property_status", 
-    required: false, 
-    group: "classification", 
-    aliases: ["status", "listing_status", "prop_status", "state"],
+  {
+    key: "property_status",
+    required: false,
+    group: "classification",
+    aliases: ["status", "listing_status", "prop_status", "state", "Κατάσταση", "Κατάσταση Ακινήτου"],
     description: "Current status (e.g., ACTIVE, PENDING, SOLD)"
   },
-  { 
-    key: "transaction_type", 
-    required: false, 
-    group: "classification", 
-    aliases: ["transaction", "deal_type", "listing_type", "sale_rent", "offer_type"],
+  {
+    key: "transaction_type",
+    required: false,
+    group: "classification",
+    aliases: ["transaction", "deal_type", "listing_type", "sale_rent", "offer_type", "Τύπος Συναλλαγής", "Πώληση/Ενοικίαση"],
     description: "Transaction type (SALE, RENTAL, SHORT_TERM, EXCHANGE, AUCTION)"
   },
 
   // Address
-  { 
-    key: "address_street", 
-    required: false, 
-    group: "address", 
-    aliases: ["street", "street_address", "address", "address_line", "address_1", "road"],
+  {
+    key: "address_street",
+    required: false,
+    group: "address",
+    aliases: ["street", "street_address", "address", "address_line", "address_1", "road", "Οδός", "Διεύθυνση"],
     description: "Street address"
   },
-  { 
-    key: "address_city", 
-    required: false, 
-    group: "address", 
-    aliases: ["city", "town", "locality"],
+  {
+    key: "address_city",
+    required: false,
+    group: "address",
+    aliases: ["city", "town", "locality", "Πόλη"],
     description: "City or town"
   },
-  { 
-    key: "address_state", 
-    required: false, 
-    group: "address", 
-    aliases: ["state", "region", "prefecture", "nomos", "province"],
+  {
+    key: "address_state",
+    required: false,
+    group: "address",
+    aliases: ["state", "region", "prefecture", "nomos", "province", "Νομός"],
     description: "State, region, or prefecture"
   },
-  { 
-    key: "address_zip", 
-    required: false, 
-    group: "address", 
-    aliases: ["zip", "zip_code", "zipcode", "postcode", "postal"],
+  {
+    key: "address_zip",
+    required: false,
+    group: "address",
+    aliases: ["zip", "zip_code", "zipcode", "postcode", "postal", "Τ.Κ."],
     description: "ZIP or postal code"
   },
   { 
@@ -288,11 +288,11 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
     aliases: ["dimos", "municipality_name", "local_authority"],
     description: "Municipality (Dimos)"
   },
-  { 
-    key: "area", 
-    required: false, 
-    group: "address", 
-    aliases: ["neighborhood", "district", "perioxi", "location", "suburb"],
+  {
+    key: "area",
+    required: false,
+    group: "address",
+    aliases: ["neighborhood", "district", "perioxi", "location", "suburb", "Περιοχή"],
     description: "Area or neighborhood"
   },
   {
@@ -318,11 +318,11 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
   },
 
   // Pricing
-  { 
-    key: "price", 
-    required: false, 
-    group: "pricing", 
-    aliases: ["asking_price", "list_price", "amount", "cost", "timi", "price_eur", "euro"],
+  {
+    key: "price",
+    required: false,
+    group: "pricing",
+    aliases: ["asking_price", "list_price", "amount", "cost", "timi", "price_eur", "euro", "Τιμή", "Ζητούμενη Τιμή", "Αξία"],
     description: "Listing price in EUR"
   },
   { 
@@ -334,18 +334,18 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
   },
 
   // Property details
-  { 
-    key: "bedrooms", 
-    required: false, 
-    group: "details", 
-    aliases: ["beds", "bed", "num_bedrooms", "bedroom_count", "rooms", "ypnodomatia"],
+  {
+    key: "bedrooms",
+    required: false,
+    group: "details",
+    aliases: ["beds", "bed", "num_bedrooms", "bedroom_count", "rooms", "ypnodomatia", "Υπνοδωμάτια", "Δωμάτια"],
     description: "Number of bedrooms"
   },
-  { 
-    key: "bathrooms", 
-    required: false, 
-    group: "details", 
-    aliases: ["baths", "bath", "num_bathrooms", "bathroom_count", "wc", "mpania"],
+  {
+    key: "bathrooms",
+    required: false,
+    group: "details",
+    aliases: ["baths", "bath", "num_bathrooms", "bathroom_count", "wc", "mpania", "Μπάνια", "Λουτρά"],
     description: "Number of bathrooms"
   },
   { 
@@ -362,18 +362,18 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
     aliases: ["lot", "land_size", "plot", "land_area"],
     description: "Lot or land size"
   },
-  { 
-    key: "year_built", 
-    required: false, 
-    group: "details", 
-    aliases: ["built", "construction_year", "year_constructed", "built_year", "etos_kataskevis"],
+  {
+    key: "year_built",
+    required: false,
+    group: "details",
+    aliases: ["built", "construction_year", "year_constructed", "built_year", "etos_kataskevis", "Έτος Κατασκευής", "Χρονολογία"],
     description: "Year the property was built"
   },
-  { 
-    key: "floor", 
-    required: false, 
-    group: "details", 
-    aliases: ["level", "storey", "orofos", "floor_number"],
+  {
+    key: "floor",
+    required: false,
+    group: "details",
+    aliases: ["level", "storey", "orofos", "floor_number", "Όροφος", "Επίπεδο"],
     description: "Floor level"
   },
   { 
@@ -385,18 +385,18 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
   },
 
   // Greece-specific measurements
-  { 
-    key: "size_net_sqm", 
-    required: false, 
-    group: "measurements", 
-    aliases: ["net_sqm", "net_size", "net_area", "emvadon_katharo", "katharo_emvadon", "sqm_net"],
+  {
+    key: "size_net_sqm",
+    required: false,
+    group: "measurements",
+    aliases: ["net_sqm", "net_size", "net_area", "emvadon_katharo", "katharo_emvadon", "sqm_net", "Εμβαδόν", "Τ.Μ.", "Τετραγωνικά", "Καθαρό Εμβαδόν"],
     description: "Net size in square meters"
   },
-  { 
-    key: "size_gross_sqm", 
-    required: false, 
-    group: "measurements", 
-    aliases: ["gross_sqm", "gross_size", "gross_area", "emvadon_mikto", "mikto_emvadon", "sqm_gross", "sqm", "tetragonika"],
+  {
+    key: "size_gross_sqm",
+    required: false,
+    group: "measurements",
+    aliases: ["gross_sqm", "gross_size", "gross_area", "emvadon_mikto", "mikto_emvadon", "sqm_gross", "sqm", "tetragonika", "Μικτό Εμβαδόν", "Μικτά Τ.Μ."],
     description: "Gross size in square meters"
   },
   { 
@@ -408,18 +408,18 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
   },
 
   // Building details
-  { 
-    key: "heating_type", 
-    required: false, 
-    group: "building", 
-    aliases: ["heating", "heat_type", "thermansi", "heating_system"],
+  {
+    key: "heating_type",
+    required: false,
+    group: "building",
+    aliases: ["heating", "heat_type", "thermansi", "heating_system", "Θέρμανση", "Τύπος Θέρμανσης"],
     description: "Heating type (AUTONOMOUS, CENTRAL, etc.)"
   },
-  { 
-    key: "energy_cert_class", 
-    required: false, 
-    group: "building", 
-    aliases: ["energy_class", "energy_certificate", "pea", "energy_rating", "energeiaki_klasi"],
+  {
+    key: "energy_cert_class",
+    required: false,
+    group: "building",
+    aliases: ["energy_class", "energy_certificate", "pea", "energy_rating", "energeiaki_klasi", "Ενεργειακή Κλάση", "ΠΕΑ"],
     description: "Energy certificate class (A+, A, B, etc.)"
   },
   { 
@@ -602,11 +602,11 @@ export const propertyImportFieldDefinitions: readonly PropertyFieldDefinition[] 
   },
 
   // Other
-  { 
-    key: "description", 
-    required: false, 
-    group: "other", 
-    aliases: ["desc", "details", "notes", "perigrafi", "property_description"],
+  {
+    key: "description",
+    required: false,
+    group: "other",
+    aliases: ["desc", "details", "notes", "perigrafi", "property_description", "Περιγραφή", "Περιγραφή Ακινήτου"],
     description: "Property description"
   },
   { 

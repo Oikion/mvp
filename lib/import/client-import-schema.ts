@@ -140,57 +140,57 @@ export const clientImportFieldDefinitions: readonly ClientFieldDefinition[] = [
   },
 
   // Required
-  { 
-    key: "client_name", 
-    required: true, 
-    group: "basic", 
-    aliases: ["name", "full_name", "customer_name", "contact_name", "account_name", "onoma", "onomateponimo"],
+  {
+    key: "client_name",
+    required: true,
+    group: "basic",
+    aliases: ["name", "full_name", "customer_name", "contact_name", "account_name", "onoma", "onomateponimo", "Όνομα", "Επώνυμο", "Ονοματεπώνυμο", "Πελάτης"],
     description: "Full name of the client"
   },
 
   // Contact
-  { 
-    key: "primary_email", 
-    required: false, 
-    group: "contact", 
-    aliases: ["email", "main_email", "email_address", "contact_email"],
+  {
+    key: "primary_email",
+    required: false,
+    group: "contact",
+    aliases: ["email", "main_email", "email_address", "contact_email", "Ηλ. Ταχυδρομείο", "Ηλ. Διεύθυνση"],
     description: "Primary email address"
   },
-  { 
-    key: "primary_phone", 
-    required: false, 
-    group: "contact", 
-    aliases: ["phone", "mobile", "cell", "tilefono", "kinito", "phone_number", "mobile_phone"],
+  {
+    key: "primary_phone",
+    required: false,
+    group: "contact",
+    aliases: ["phone", "mobile", "cell", "tilefono", "kinito", "phone_number", "mobile_phone", "Τηλέφωνο", "Κινητό", "Τηλ."],
     description: "Primary phone number"
   },
-  { 
-    key: "office_phone", 
-    required: false, 
-    group: "contact", 
-    aliases: ["work_phone", "business_phone", "tilefono_grafeiou"],
+  {
+    key: "office_phone",
+    required: false,
+    group: "contact",
+    aliases: ["work_phone", "business_phone", "tilefono_grafeiou", "Τηλ. Γραφείου"],
     description: "Office phone number"
   },
-  { 
-    key: "secondary_phone", 
-    required: false, 
-    group: "contact", 
-    aliases: ["alt_phone", "other_phone", "phone_2", "alternative_phone"],
+  {
+    key: "secondary_phone",
+    required: false,
+    group: "contact",
+    aliases: ["alt_phone", "other_phone", "phone_2", "alternative_phone", "Δεύτερο Τηλέφωνο", "Σταθερό"],
     description: "Secondary phone number"
   },
-  { 
-    key: "secondary_email", 
-    required: false, 
-    group: "contact", 
-    aliases: ["alt_email", "other_email", "email_2", "alternative_email"],
+  {
+    key: "secondary_email",
+    required: false,
+    group: "contact",
+    aliases: ["alt_email", "other_email", "email_2", "alternative_email", "Δεύτερο Email"],
     description: "Secondary email address"
   },
 
   // Classification
-  { 
-    key: "client_type", 
-    required: false, 
-    group: "classification", 
-    aliases: ["type", "customer_type", "contact_type", "typos_pelati"],
+  {
+    key: "client_type",
+    required: false,
+    group: "classification",
+    aliases: ["type", "customer_type", "contact_type", "typos_pelati", "Τύπος Πελάτη", "Κατηγορία"],
     description: "Client type (BUYER, SELLER, RENTER, INVESTOR)"
   },
   { 
@@ -208,25 +208,25 @@ export const clientImportFieldDefinitions: readonly ClientFieldDefinition[] = [
     description: "Person type (INDIVIDUAL, COMPANY, etc.)"
   },
   // Company
-  { 
-    key: "company_name", 
-    required: false, 
-    group: "company", 
-    aliases: ["business_name", "organization", "company", "eponymia", "etaireia"],
+  {
+    key: "company_name",
+    required: false,
+    group: "company",
+    aliases: ["business_name", "organization", "company", "eponymia", "etaireia", "Εταιρεία", "Επωνυμία"],
     description: "Company or business name"
   },
-  { 
-    key: "company_id", 
-    required: false, 
-    group: "company", 
+  {
+    key: "company_id",
+    required: false,
+    group: "company",
     aliases: ["business_id", "organization_id", "corp_id"],
     description: "Company registration ID"
   },
-  { 
-    key: "vat", 
-    required: false, 
-    group: "company", 
-    aliases: ["vat_number", "vat_id", "tax_id", "fpa"],
+  {
+    key: "vat",
+    required: false,
+    group: "company",
+    aliases: ["vat_number", "vat_id", "tax_id", "fpa", "ΦΠΑ"],
     description: "VAT number"
   },
   { 
@@ -245,25 +245,25 @@ export const clientImportFieldDefinitions: readonly ClientFieldDefinition[] = [
   },
 
   // Greece-specific
-  { 
-    key: "afm", 
-    required: false, 
-    group: "greece", 
-    aliases: ["tax_id", "tin", "arithmos_forologikou_mitroou", "afm_number"],
+  {
+    key: "afm",
+    required: false,
+    group: "greece",
+    aliases: ["tax_id", "tin", "arithmos_forologikou_mitroou", "afm_number", "ΑΦΜ", "Αριθμός Φορολογικού Μητρώου"],
     description: "AFM (Greek Tax ID - 9 digits)"
   },
-  { 
-    key: "doy", 
-    required: false, 
-    group: "greece", 
-    aliases: ["tax_office", "eforia", "dimosia_oikonomiki_ypiresia"],
+  {
+    key: "doy",
+    required: false,
+    group: "greece",
+    aliases: ["tax_office", "eforia", "dimosia_oikonomiki_ypiresia", "ΔΟΥ", "Εφορία"],
     description: "DOY (Greek Tax Office)"
   },
-  { 
-    key: "id_doc", 
-    required: false, 
-    group: "greece", 
-    aliases: ["id_number", "passport", "tautotita", "diasvatirio", "identity"],
+  {
+    key: "id_doc",
+    required: false,
+    group: "greece",
+    aliases: ["id_number", "passport", "tautotita", "diasvatirio", "identity", "Ταυτότητα", "Αρ. Ταυτότητας"],
     description: "ID card or passport number"
   },
   { 
@@ -275,39 +275,39 @@ export const clientImportFieldDefinitions: readonly ClientFieldDefinition[] = [
   },
 
   // Address
-  { 
-    key: "billing_street", 
-    required: false, 
-    group: "address", 
-    aliases: ["street", "address", "street_address", "address_line", "odos", "dieuthinsi"],
+  {
+    key: "billing_street",
+    required: false,
+    group: "address",
+    aliases: ["street", "address", "street_address", "address_line", "odos", "dieuthinsi", "Οδός", "Περιοχή"],
     description: "Street address"
   },
-  { 
-    key: "billing_city", 
-    required: false, 
-    group: "address", 
-    aliases: ["city", "town", "poli"],
+  {
+    key: "billing_city",
+    required: false,
+    group: "address",
+    aliases: ["city", "town", "poli", "Πόλη"],
     description: "City"
   },
-  { 
-    key: "billing_state", 
-    required: false, 
-    group: "address", 
-    aliases: ["state", "region", "prefecture", "nomos", "perifereia"],
+  {
+    key: "billing_state",
+    required: false,
+    group: "address",
+    aliases: ["state", "region", "prefecture", "nomos", "perifereia", "Νομός"],
     description: "State or region"
   },
-  { 
-    key: "billing_postal_code", 
-    required: false, 
-    group: "address", 
-    aliases: ["postal_code", "zip", "zip_code", "postcode", "tk"],
+  {
+    key: "billing_postal_code",
+    required: false,
+    group: "address",
+    aliases: ["postal_code", "zip", "zip_code", "postcode", "tk", "Τ.Κ.", "Ταχ. Κώδικας"],
     description: "Postal code"
   },
   {
     key: "billing_country",
     required: false,
     group: "address",
-    aliases: ["country", "chora"],
+    aliases: ["country", "chora", "Χώρα"],
     description: "Country"
   },
   {
@@ -368,11 +368,11 @@ export const clientImportFieldDefinitions: readonly ClientFieldDefinition[] = [
     aliases: ["marketing_consent", "newsletter", "epitrepetai_marketing"],
     description: "Allow marketing communications (true/false)"
   },
-  { 
-    key: "description", 
-    required: false, 
-    group: "other", 
-    aliases: ["notes", "comments", "remarks", "perigrafi", "simeioseis"],
+  {
+    key: "description",
+    required: false,
+    group: "other",
+    aliases: ["notes", "comments", "remarks", "perigrafi", "simeioseis", "Περιγραφή", "Σημειώσεις"],
     description: "Additional notes or description"
   },
   {

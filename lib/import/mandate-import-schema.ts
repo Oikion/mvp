@@ -144,14 +144,14 @@ export const mandateImportFieldDefinitions: readonly MandateFieldDefinition[] = 
     key: "transaction_type",
     required: false,
     group: "basic",
-    aliases: ["transaction", "deal_type", "typos_synallagis"],
+    aliases: ["transaction", "deal_type", "typos_synallagis", "Τύπος Συναλλαγής", "Πώληση/Ενοικίαση", "Είδος"],
     description: "Transaction type (SALE, RENTAL, etc.)",
   },
   {
     key: "property_type",
     required: false,
     group: "basic",
-    aliases: ["type", "prop_type", "typos_akinitiou"],
+    aliases: ["type", "prop_type", "typos_akinitiou", "Τύπος Ακινήτου"],
     description: "Property type",
   },
   {
@@ -165,7 +165,7 @@ export const mandateImportFieldDefinitions: readonly MandateFieldDefinition[] = 
     key: "status",
     required: false,
     group: "basic",
-    aliases: ["mandate_status", "katastasi"],
+    aliases: ["mandate_status", "katastasi", "Κατάσταση", "Κατάσταση Εντολής"],
     description: "Status (DRAFT, ACTIVE, etc.)",
   },
   {
@@ -188,14 +188,14 @@ export const mandateImportFieldDefinitions: readonly MandateFieldDefinition[] = 
     key: "budget_min",
     required: false,
     group: "budget",
-    aliases: ["min_budget", "elachisto_budget", "minimum_budget", "budget_from"],
+    aliases: ["min_budget", "elachisto_budget", "minimum_budget", "budget_from", "Ελάχιστο Μπάτζετ", "Ελάχιστο", "Κατώτατη Τιμή"],
     description: "Minimum budget (EUR)",
   },
   {
     key: "budget_max",
     required: false,
     group: "budget",
-    aliases: ["max_budget", "megisto_budget", "maximum_budget", "budget_to"],
+    aliases: ["max_budget", "megisto_budget", "maximum_budget", "budget_to", "Μέγιστο Μπάτζετ", "Μέγιστο", "Ανώτατη Τιμή"],
     description: "Maximum budget (EUR)",
   },
 
@@ -380,7 +380,7 @@ export const mandateImportFieldDefinitions: readonly MandateFieldDefinition[] = 
     key: "areas_of_interest",
     required: false,
     group: "location",
-    aliases: ["areas", "perioxes", "locations", "neighborhoods"],
+    aliases: ["areas", "perioxes", "locations", "neighborhoods", "Περιοχές Ενδιαφέροντος", "Περιοχές"],
     description: "Areas of interest (comma-separated)",
   },
 
@@ -396,7 +396,7 @@ export const mandateImportFieldDefinitions: readonly MandateFieldDefinition[] = 
     key: "notes",
     required: false,
     group: "other",
-    aliases: ["simeioseis", "comments", "description", "perigrafi"],
+    aliases: ["simeioseis", "comments", "description", "perigrafi", "Σημειώσεις", "Σχόλια"],
     description: "Notes",
   },
   {
