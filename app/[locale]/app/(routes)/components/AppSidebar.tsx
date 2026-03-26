@@ -28,6 +28,7 @@ import { getNavigationConfig } from "@/config/navigation"
 import { normalizePath } from "@/lib/navigation/route-utils"
 import { useWorkspaceContext } from "@/hooks/use-workspace-context"
 import { type ModuleId } from "@/lib/permissions/types"
+import { type ActionPermission } from "@/lib/permissions/action-permissions"
 import { useNotificationCounts } from "@/hooks/swr"
 
 interface AppSidebarProps {
@@ -43,6 +44,7 @@ interface AppSidebarProps {
   hasReferralCode?: boolean
   referralApplicationStatus?: "PENDING" | "APPROVED" | "DENIED" | null
   accessibleModules?: ModuleId[]
+  accessibleActions?: ActionPermission[]
   pinnedNavUrls?: string[]
 }
 
@@ -55,6 +57,7 @@ export function AppSidebar({
   hasReferralCode = false,
   referralApplicationStatus = null,
   accessibleModules,
+  accessibleActions,
   pinnedNavUrls,
 }: AppSidebarProps) {
   const pathname = usePathname()
@@ -108,8 +111,9 @@ export function AppSidebar({
         isPlatformAdmin,
         isPersonalWorkspace,
         accessibleModules,
+        accessibleActions,
       }),
-    [pathname, locale, modules, dict, isPlatformAdmin, isPersonalWorkspace, accessibleModules]
+    [pathname, locale, modules, dict, isPlatformAdmin, isPersonalWorkspace, accessibleModules, accessibleActions]
   )
 
   return (

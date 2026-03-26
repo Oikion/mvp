@@ -31,6 +31,7 @@ import {
   getCachedIsPlatformAdmin,
 } from "@/lib/cached"
 import { getUserPermissionContext } from "@/lib/permissions/service"
+import { getAccessibleActionsForUser } from "@/lib/permissions/action-service"
 import { isOrgPersonal } from "@/lib/personal-workspace-guard"
 
 export default async function AppLayout({
@@ -152,6 +153,9 @@ export default async function AppLayout({
   // Get user's permission context for module access filtering
   const permissionContext = await getUserPermissionContext();
 
+  // Get accessible actions for nav gating (e.g. import:view_history gates the Import nav item)
+  const accessibleActions = await getAccessibleActionsForUser();
+
   // Check if user has a referral code (is an approved referrer)
   const { prismadb } = await import("@/lib/prisma");
   const referralCode = await prismadb.referralCode.findUnique({
@@ -194,6 +198,7 @@ export default async function AppLayout({
             hasReferralCode={!!referralCode}
             referralApplicationStatus={user.referralApplicationStatus as "PENDING" | "APPROVED" | "DENIED" | null}
             accessibleModules={permissionContext?.moduleAccess}
+            accessibleActions={accessibleActions ?? undefined}
             pinnedNavUrls={user.pinnedNavUrls ?? []}
           />
           <SidebarInset className="flex flex-col h-screen overflow-hidden bg-surface-2">

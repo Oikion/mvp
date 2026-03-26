@@ -165,6 +165,13 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "referral:admin_approve": "none",
   "referral:admin_deny": "none",
   "referral:admin_manage": "none",
+
+  // Import - No access
+  "import:create": "none",
+  "import:view_history": "none",
+  "import:delete_own": "none",
+  "import:delete_any": "none",
+  "import:hard_delete": "none",
 };
 
 /**
@@ -310,6 +317,13 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "referral:admin_approve": "none",
   "referral:admin_deny": "none",
   "referral:admin_manage": "none",
+
+  // Import - Can create, view history, delete own
+  "import:create": "all",
+  "import:view_history": "all",
+  "import:delete_own": "own",
+  "import:delete_any": "none",
+  "import:hard_delete": "none",
 };
 
 /**
@@ -455,6 +469,13 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "referral:admin_approve": "none",
   "referral:admin_deny": "none",
   "referral:admin_manage": "none",
+
+  // Import - Can create, view history, delete own and any
+  "import:create": "all",
+  "import:view_history": "all",
+  "import:delete_own": "all",
+  "import:delete_any": "all",
+  "import:hard_delete": "none",
 };
 
 /**
@@ -600,6 +621,13 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "referral:admin_approve": "all",
   "referral:admin_deny": "all",
   "referral:admin_manage": "all",
+
+  // Import - Full access
+  "import:create": "all",
+  "import:view_history": "all",
+  "import:delete_own": "all",
+  "import:delete_any": "all",
+  "import:hard_delete": "all",
 };
 
 /**

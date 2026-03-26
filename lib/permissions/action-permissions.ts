@@ -209,6 +209,17 @@ export type ReferralAction =
   | "referral:admin_manage";
 
 // =============================================================================
+// IMPORT MODULE
+// =============================================================================
+
+export type ImportAction =
+  | "import:create"
+  | "import:view_history"
+  | "import:delete_own"
+  | "import:delete_any"
+  | "import:hard_delete";
+
+// =============================================================================
 // UNION TYPE - ALL ACTION PERMISSIONS
 // =============================================================================
 
@@ -228,7 +239,8 @@ export type ActionPermission =
   | XePortalAction
   | N8nAction
   | NotificationAction
-  | ReferralAction;
+  | ReferralAction
+  | ImportAction;
 
 // =============================================================================
 // ACTION CATEGORIES BY MODULE
@@ -373,6 +385,13 @@ export const ACTION_MODULES = {
     "referral:admin_approve",
     "referral:admin_deny",
     "referral:admin_manage",
+  ] as const,
+  import: [
+    "import:create",
+    "import:view_history",
+    "import:delete_own",
+    "import:delete_any",
+    "import:hard_delete",
   ] as const,
 } as const;
 
@@ -553,6 +572,13 @@ export const ACTION_DESCRIPTIONS: Record<ActionPermission, string> = {
   "referral:admin_approve": "Approve referral applications",
   "referral:admin_deny": "Deny referral applications",
   "referral:admin_manage": "Manage referral program settings",
+
+  // Import actions
+  "import:create": "Start a new data import",
+  "import:view_history": "View import history and past imports",
+  "import:delete_own": "Delete own import jobs",
+  "import:delete_any": "Delete any import job in the organization",
+  "import:hard_delete": "Permanently delete import records and rollback data",
 };
 
 /**

@@ -21,6 +21,7 @@ import { ShieldIcon } from "@/components/ui/ShieldIcon"
 import { MessageCircleIcon } from "@/components/ui/MessageCircleIcon"
 import { Target, Upload } from "lucide-react"
 import { type ModuleId } from "@/lib/permissions/types"
+import { type ActionPermission } from "@/lib/permissions/action-permissions"
 import { isRouteActive } from "@/lib/navigation/route-utils"
 
 export interface NavItem {
@@ -58,6 +59,7 @@ interface NavigationConfigProps {
   isPlatformAdmin?: boolean
   isPersonalWorkspace?: boolean
   accessibleModules?: ModuleId[] // Modules the user can access
+  accessibleActions?: ActionPermission[] // Actions the user can perform
 }
 
 export function getNavigationConfig({
@@ -69,6 +71,7 @@ export function getNavigationConfig({
   isPlatformAdmin = false,
   isPersonalWorkspace = false,
   accessibleModules,
+  accessibleActions,
 }: NavigationConfigProps) {
   const categories = dict.navigation.ModuleMenu.categories || {
     overview: "Overview",
@@ -83,6 +86,13 @@ export function getNavigationConfig({
     // If no accessibleModules provided, allow all (for non-viewers)
     if (!accessibleModules) return true
     return accessibleModules.includes(moduleId)
+  }
+
+  // Helper to check if user can perform an action
+  const canAction = (action: ActionPermission): boolean => {
+    // If no accessibleActions provided, allow all (for non-viewers)
+    if (!accessibleActions) return true
+    return accessibleActions.includes(action)
   }
 
   // Overview - Dashboard & Upcoming
@@ -217,12 +227,12 @@ export function getNavigationConfig({
       moduleId: "reports" as ModuleId,
     }] : []),
     // Import - import history and data management
-    {
+    ...(canAction("import:view_history") ? [{
       title: dict.navigation.ModuleMenu.import || "Import",
       url: "/app/import",
       icon: Upload,
       isActive: isRouteActive(pathname, "/app/import", locale),
-    },
+    }] : []),
     // Matchmaking - client-property matching analytics
     ...(canAccess("mls") && canAccess("crm") ? [{
       title: dict.navigation.ModuleMenu.matchmaking || "Matchmaking",
