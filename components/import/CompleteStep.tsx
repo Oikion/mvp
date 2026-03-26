@@ -3,9 +3,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, XCircle, AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
-import Link from "next/link";
+import { CheckCircle2, XCircle, AlertTriangle, ExternalLink, RefreshCw, Tag } from "lucide-react";
+import { Link } from "@/navigation";
 import type { ImportResult } from "./ImportWizardSteps";
+import type { BatchImportResult } from "@/lib/import/unified-engine";
 
 interface CompleteStepProps {
   dict: {
@@ -18,9 +19,10 @@ interface CompleteStepProps {
     importMore: string;
     done: string;
   };
-  result: ImportResult | null;
+  result: ImportResult | BatchImportResult | null;
   entityType: "client" | "property" | "mandate";
   viewUrl?: string;
+  returnUrl?: string;
   onImportMore: () => void;
   onDone?: () => void;
 }
@@ -30,9 +32,13 @@ export function CompleteStep({
   result,
   entityType,
   viewUrl,
+  returnUrl,
   onImportMore,
   onDone,
 }: CompleteStepProps) {
+  // Type guard: detect if using new BatchImportResult format
+  const isBatchResult = result && "clients" in result && Array.isArray(result.clients);
+  const batchResult = isBatchResult ? (result as BatchImportResult) : null;
   let entityLabel: string;
   if (entityType === "client") {
     entityLabel = "clients";
@@ -126,8 +132,134 @@ export function CompleteStep({
         </div>
       )}
 
-      {/* Per-entity breakdown (unified import) */}
-      {result && (result.clients || result.properties || result.mandates) && (
+      {/* Per-entity breakdown — new BatchImportResult format with typed entities */}
+      {batchResult && (
+        <div className="space-y-3">
+          {/* Clients */}
+          {batchResult.clients.length > 0 && (
+            <Card className="border-blue-500/50 bg-blue-50/30 dark:bg-blue-950/20">
+              <CardContent className="pt-4 pb-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900">
+                        <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <span className="text-sm font-medium">Clients</span>
+                    </div>
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
+                      {batchResult.clients.length} imported
+                    </span>
+                  </div>
+                  {batchResult.clients.length > 0 && (
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      {batchResult.clients.slice(0, 5).map((client) => (
+                        <div key={client.uuid} className="flex items-center gap-2">
+                          <span className="text-blue-600 dark:text-blue-400 font-mono">{client.friendlyId}</span>
+                        </div>
+                      ))}
+                      {batchResult.clients.length > 5 && (
+                        <div className="text-muted-foreground italic">
+                          +{batchResult.clients.length - 5} more
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Properties */}
+          {batchResult.properties.length > 0 && (
+            <Card className="border-green-500/50 bg-green-50/30 dark:bg-green-950/20">
+              <CardContent className="pt-4 pb-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-full bg-green-100 dark:bg-green-900">
+                        <Tag className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      </div>
+                      <span className="text-sm font-medium">Properties</span>
+                    </div>
+                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded">
+                      {batchResult.properties.length} imported
+                    </span>
+                  </div>
+                  {batchResult.properties.length > 0 && (
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      {batchResult.properties.slice(0, 5).map((prop) => (
+                        <div key={prop.uuid} className="flex items-center gap-2">
+                          <span className="text-green-600 dark:text-green-400 font-mono">{prop.friendlyId}</span>
+                        </div>
+                      ))}
+                      {batchResult.properties.length > 5 && (
+                        <div className="text-muted-foreground italic">
+                          +{batchResult.properties.length - 5} more
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Mandates */}
+          {batchResult.mandates.length > 0 && (
+            <Card className="border-violet-500/50 bg-violet-50/30 dark:bg-violet-950/20">
+              <CardContent className="pt-4 pb-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-full bg-violet-100 dark:bg-violet-900">
+                        <Tag className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                      </div>
+                      <span className="text-sm font-medium">Mandates</span>
+                    </div>
+                    <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 px-2 py-1 rounded">
+                      {batchResult.mandates.length} imported
+                    </span>
+                  </div>
+                  {batchResult.mandates.length > 0 && (
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      {batchResult.mandates.slice(0, 5).map((mandate) => (
+                        <div key={mandate.uuid} className="flex items-center gap-2">
+                          <span className="text-violet-600 dark:text-violet-400 font-mono">{mandate.friendlyId}</span>
+                        </div>
+                      ))}
+                      {batchResult.mandates.length > 5 && (
+                        <div className="text-muted-foreground italic">
+                          +{batchResult.mandates.length - 5} more
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Links established */}
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Links established</span>
+                <div className="text-right">
+                  <div className="text-sm text-muted-foreground">
+                    <div>Client→Property: {batchResult.linkCounts.clientProperty}</div>
+                    <div>Mandate→Property: {batchResult.linkCounts.mandateProperty}</div>
+                    <div>Mandate→Client: {batchResult.linkCounts.mandateClient}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Per-entity breakdown — legacy ImportResult format */}
+      {result && !batchResult && (result.clients || result.properties || result.mandates) && (
         <div className="space-y-3">
           {result.clients && (
             <Card className="border-primary/50">
@@ -208,7 +340,14 @@ export function CompleteStep({
           <RefreshCw className="h-4 w-4 mr-2" />
           {dict.importMore}
         </Button>
-        {onDone && (
+        {returnUrl && hasImported && (
+          <Button asChild variant="ghost">
+            <Link href={returnUrl}>
+              {dict.done}
+            </Link>
+          </Button>
+        )}
+        {!returnUrl && onDone && (
           <Button variant="ghost" onClick={onDone}>
             {dict.done}
           </Button>

@@ -1,0 +1,19 @@
+{
+  "plugins": {
+    "clerk": {
+      "enabled": true
+    },
+    "vercel": {
+      "enabled": true
+    },
+    "figma": {
+      "enabled": true
+    },
+    "sentry": {
+      "enabled": true
+    },
+    "posthog": {
+      "enabled": true
+    }
+  }
+}
