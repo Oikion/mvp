@@ -26,8 +26,8 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthResult> {
   const timestamp = new Date().toISOString();
 
   try {
-    // Run a simple query to check connectivity
-    await prismadb.$queryRaw`SELECT 1`;
+    // Run a simple query to check connectivity (Accelerate-compatible)
+    await prismadb.idSequence.findFirst({ select: { id: true } });
     
     const latency = Date.now() - startTime;
     

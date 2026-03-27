@@ -3,7 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
-import { ChannelType, ChannelMemberRole, Prisma } from "@prisma/client";
+import { ChannelType, ChannelMemberRole } from "@prisma/client";
 import { requireAction } from "@/lib/permissions";
 import { isCurrentOrgPersonal } from "@/lib/personal-workspace-guard";
 
@@ -157,24 +157,22 @@ export async function getOrganizationChannels(): Promise<{
       },
     });
 
-    // Batch unread counts in a single query instead of N+1
+    // Batch unread counts using Prisma groupBy (Accelerate-compatible)
     const channelIds = channels.map((c) => c.id);
     const unreadCounts =
       channelIds.length > 0
-        ? await prismadb.$queryRaw<Array<{ channelId: string; count: bigint }>>`
-            SELECT m."channelId", COUNT(*)::bigint as count
-            FROM "Message" m
-            WHERE m."channelId" IN (${Prisma.join(channelIds)})
-              AND m."isDeleted" = false
-              AND m."senderId" != ${user.id}
-              AND NOT EXISTS (
-                SELECT 1 FROM "MessageRead" mr
-                WHERE mr."messageId" = m."id" AND mr."userId" = ${user.id}
-              )
-            GROUP BY m."channelId"
-          `
+        ? await prismadb.message.groupBy({
+            by: ["channelId"],
+            where: {
+              channelId: { in: channelIds },
+              isDeleted: false,
+              senderId: { not: user.id },
+              readReceipts: { none: { userId: user.id } },
+            },
+            _count: { _all: true },
+          })
         : [];
-    const unreadMap = new Map(unreadCounts.map((r) => [r.channelId, Number(r.count)]));
+    const unreadMap = new Map(unreadCounts.map((r) => [r.channelId!, r._count._all]));
 
     const channelsWithUnread = channels.map((channel) => ({
       id: channel.id,

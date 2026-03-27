@@ -1,6 +1,5 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
@@ -173,24 +172,22 @@ export async function getUserConversations(): Promise<{
     });
     const userMap = new Map(users.map((u) => [u.id, u]));
 
-    // Batch unread counts in a single query instead of N+1
+    // Batch unread counts using Prisma groupBy (Accelerate-compatible)
     const conversationIds = conversations.map((c) => c.id);
     const unreadCounts =
       conversationIds.length > 0
-        ? await prismadb.$queryRaw<Array<{ conversationId: string; count: bigint }>>`
-            SELECT m."conversationId", COUNT(*)::bigint as count
-            FROM "Message" m
-            WHERE m."conversationId" IN (${Prisma.join(conversationIds)})
-              AND m."isDeleted" = false
-              AND m."senderId" != ${currentUser.id}
-              AND NOT EXISTS (
-                SELECT 1 FROM "MessageRead" mr
-                WHERE mr."messageId" = m."id" AND mr."userId" = ${currentUser.id}
-              )
-            GROUP BY m."conversationId"
-          `
+        ? await prismadb.message.groupBy({
+            by: ["conversationId"],
+            where: {
+              conversationId: { in: conversationIds },
+              isDeleted: false,
+              senderId: { not: currentUser.id },
+              readReceipts: { none: { userId: currentUser.id } },
+            },
+            _count: { _all: true },
+          })
         : [];
-    const unreadMap = new Map(unreadCounts.map((r) => [r.conversationId, Number(r.count)]));
+    const unreadMap = new Map(unreadCounts.map((r) => [r.conversationId!, r._count._all]));
 
     const conversationsWithUnread = await Promise.all(conversations.map(async (conv) => {
       const type: "dm" | "group" = conv.isGroup ? "group" : "dm";

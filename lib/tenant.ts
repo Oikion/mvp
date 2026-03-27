@@ -159,16 +159,28 @@ export function prismaForOrg(orgId: string) {
   }) as typeof prismadb;
 }
 
+/**
+ * @deprecated Incompatible with Prisma Accelerate (no persistent sessions).
+ * Use `prismaForOrg(orgId)` instead for tenant-scoped queries.
+ */
 export async function withTenantContext<T>(orgId: string, fn: () => Promise<T>) {
   if (!orgId) {
     throw new Error("Missing organizationId for tenant context");
   }
 
-  await prismadb.$executeRaw`SELECT set_config('app.current_tenant', ${orgId}, false);`;
+  // Skip set_config when using Accelerate (connectionless — no session state)
+  const isAccelerate = (process.env.DATABASE_URL ?? "").startsWith("prisma://") ||
+    (process.env.DATABASE_URL ?? "").startsWith("prisma+postgres://");
+
+  if (!isAccelerate) {
+    await prismadb.$executeRaw`SELECT set_config('app.current_tenant', ${orgId}, false);`;
+  }
   try {
     return await fn();
   } finally {
-    await prismadb.$executeRaw`SELECT set_config('app.current_tenant', '', false);`;
+    if (!isAccelerate) {
+      await prismadb.$executeRaw`SELECT set_config('app.current_tenant', '', false);`;
+    }
   }
 }
 
