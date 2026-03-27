@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -654,9 +654,25 @@ export function TableMappingStep({
   );
 
   // ------ Column entity assignments (internal state if not controlled) ------
-  const [internalColumnEntities, setInternalColumnEntities] = useState<Record<string, EntityType>>(() =>
-    initializeColumnEntities(csvHeaders, fieldMapping, matchResults, fieldDefinitions)
-  );
+  const [internalColumnEntities, setInternalColumnEntities] = useState<Record<string, EntityType>>({});
+
+  // Re-compute entity assignments whenever fieldMapping or matchResults change
+  // (auto-matcher populates these after file upload, so the initial useState is always empty)
+  const prevMappingRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    // Only re-initialize when fieldMapping actually changes (not on every render)
+    const mappingStr = JSON.stringify(fieldMapping);
+    if (mappingStr !== JSON.stringify(prevMappingRef.current)) {
+      prevMappingRef.current = fieldMapping;
+      const computed = initializeColumnEntities(csvHeaders, fieldMapping, matchResults, fieldDefinitions);
+      if (!externalColumnEntities) {
+        setInternalColumnEntities(computed);
+      } else if (onColumnEntitiesChange) {
+        onColumnEntitiesChange(computed);
+      }
+    }
+  }, [csvHeaders, fieldMapping, matchResults, fieldDefinitions, externalColumnEntities, onColumnEntitiesChange]);
+
   const columnEntities = externalColumnEntities ?? internalColumnEntities;
   const setColumnEntities = useCallback(
     (entities: Record<string, EntityType>) => {
