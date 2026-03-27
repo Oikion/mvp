@@ -22,7 +22,6 @@ interface ImportWizardModalProps {
   fieldDefinitions: readonly FieldDefinition[];
   onImport: (data: Record<string, unknown>[]) => Promise<ImportResult>;
   onComplete?: () => void;
-  viewUrl?: string;
 }
 
 export function ImportWizardModal({
@@ -37,7 +36,6 @@ export function ImportWizardModal({
   fieldDefinitions,
   onImport,
   onComplete,
-  viewUrl,
 }: ImportWizardModalProps) {
   const handleCancel = () => {
     onOpenChange(false);
@@ -64,7 +62,6 @@ export function ImportWizardModal({
           onImport={onImport}
           onComplete={handleComplete}
           onCancel={handleCancel}
-          viewUrl={viewUrl}
         />
       </DialogContent>
     </Dialog>

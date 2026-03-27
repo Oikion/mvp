@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, XCircle, AlertTriangle, ExternalLink, RefreshCw, Tag } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, RefreshCw, Tag } from "lucide-react";
 import { Link } from "@/navigation";
 import type { ImportResult } from "./ImportWizardSteps";
 import type { BatchImportResult } from "@/lib/import/unified-engine";
@@ -15,13 +15,11 @@ interface CompleteStepProps {
     imported: string;
     skipped: string;
     failed: string;
-    viewImported: string;
     importMore: string;
     done: string;
   };
   result: ImportResult | BatchImportResult | null;
   entityType: "client" | "property" | "mandate";
-  viewUrl?: string;
   returnUrl?: string;
   onImportMore: () => void;
   onDone?: () => void;
@@ -31,7 +29,6 @@ export function CompleteStep({
   dict,
   result,
   entityType,
-  viewUrl,
   returnUrl,
   onImportMore,
   onDone,
@@ -146,16 +143,10 @@ export function CompleteStep({
                         <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       </div>
                       <span className="text-sm font-medium">Clients</span>
-                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
-                        {batchResult.clients.length} created
-                      </span>
                     </div>
-                    <Button asChild variant="outline" size="sm" className="h-7 text-xs">
-                      <Link href="/app/crm/clients" className="inline-flex items-center gap-1.5">
-                        <ExternalLink className="h-3 w-3" />
-                        View Clients
-                      </Link>
-                    </Button>
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
+                      {batchResult.clients.length} created
+                    </span>
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
                     {batchResult.clients.slice(0, 5).map((client) => (
@@ -185,16 +176,10 @@ export function CompleteStep({
                         <Tag className="h-4 w-4 text-green-600 dark:text-green-400" />
                       </div>
                       <span className="text-sm font-medium">Properties</span>
-                      <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded">
-                        {batchResult.properties.length} created
-                      </span>
                     </div>
-                    <Button asChild variant="outline" size="sm" className="h-7 text-xs">
-                      <Link href="/app/mls/properties" className="inline-flex items-center gap-1.5">
-                        <ExternalLink className="h-3 w-3" />
-                        View Properties
-                      </Link>
-                    </Button>
+                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded">
+                      {batchResult.properties.length} created
+                    </span>
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
                     {batchResult.properties.slice(0, 5).map((prop) => (
@@ -224,16 +209,10 @@ export function CompleteStep({
                         <Tag className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                       </div>
                       <span className="text-sm font-medium">Mandates</span>
-                      <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded">
-                        {batchResult.mandates.length} created
-                      </span>
                     </div>
-                    <Button asChild variant="outline" size="sm" className="h-7 text-xs">
-                      <Link href="/app/mandates" className="inline-flex items-center gap-1.5">
-                        <ExternalLink className="h-3 w-3" />
-                        View Mandates
-                      </Link>
-                    </Button>
+                    <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded">
+                      {batchResult.mandates.length} created
+                    </span>
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
                     {batchResult.mandates.slice(0, 5).map((mandate) => (
@@ -336,18 +315,6 @@ export function CompleteStep({
             {result.skipped} row(s) already existed and were skipped.
           </AlertDescription>
         </Alert>
-      )}
-
-      {/* Legacy single-entity view button */}
-      {!batchResult && viewUrl && hasImported && (
-        <div className="flex justify-center pt-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href={viewUrl} className="inline-flex items-center gap-2">
-              <ExternalLink className="h-3.5 w-3.5" />
-              {dict.viewImported.replace("{entity}", entityLabel)}
-            </Link>
-          </Button>
-        </div>
       )}
 
       {/* Action Buttons */}

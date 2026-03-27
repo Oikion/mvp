@@ -68,7 +68,6 @@ interface UnifiedImportWizardProps {
         imported: string;
         skipped: string;
         failed: string;
-        viewImported: string;
         importMore: string;
         done: string;
       };
@@ -227,7 +226,6 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
       onImport={handleImport}
       onComplete={handleComplete}
       onCancel={handleCancel}
-      viewUrl={returnUrl}
       returnUrl={returnUrl}
       unifiedMode={true}
       mandateFieldKeys={MANDATE_FIELD_KEYS}

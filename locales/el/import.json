@@ -85,7 +85,6 @@
       "imported": "Εισήχθησαν",
       "skipped": "Παραλείφθηκαν",
       "failed": "Απέτυχαν",
-      "viewImported": "Προβολή {entity}",
       "importMore": "Εισαγωγή περισσότερων",
       "done": "Τέλος"
     },

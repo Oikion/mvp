@@ -87,7 +87,6 @@ export interface ImportWizardDict {
     imported: string;
     skipped: string;
     failed: string;
-    viewImported: string;
     importMore: string;
     done: string;
   };
@@ -168,7 +167,6 @@ interface ImportWizardStepsProps {
   ) => Promise<ImportResult>;
   onComplete?: () => void;
   onCancel?: () => void;
-  viewUrl?: string;
   returnUrl?: string;
   unifiedMode?: boolean;
   mandateFieldKeys?: Set<string>;
@@ -206,7 +204,6 @@ export function ImportWizardSteps({
   onImport,
   onComplete,
   onCancel,
-  viewUrl,
   returnUrl,
   unifiedMode,
   mandateFieldKeys,
@@ -832,7 +829,6 @@ export function ImportWizardSteps({
             dict={dict.complete}
             result={importResult}
             entityType={entityType}
-            viewUrl={viewUrl}
             returnUrl={returnUrl}
             onImportMore={handleReset}
             onDone={onComplete}
@@ -941,7 +937,6 @@ export function ImportWizardSteps({
             dict={dict.complete}
             result={importResult}
             entityType={entityType}
-            viewUrl={viewUrl}
             onImportMore={handleReset}
             onDone={onComplete}
           />

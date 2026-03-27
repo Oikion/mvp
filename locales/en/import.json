@@ -85,7 +85,6 @@
       "imported": "Imported",
       "skipped": "Skipped",
       "failed": "Failed",
-      "viewImported": "View imported {entity}",
       "importMore": "Import more",
       "done": "Done"
     },

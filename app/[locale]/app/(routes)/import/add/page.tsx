@@ -85,7 +85,6 @@ export default async function ImportAddPage({ params }: PageProps) {
         imported: string;
         skipped: string;
         failed: string;
-        viewImported: string;
         importMore: string;
         done: string;
       };
@@ -122,7 +121,7 @@ export default async function ImportAddPage({ params }: PageProps) {
       <UnifiedImportWizard
         dict={importDict}
         locale={locale}
-        returnUrl={`/${locale}/app/import`}
+        returnUrl="/app/import"
       />
     </div>
   );
