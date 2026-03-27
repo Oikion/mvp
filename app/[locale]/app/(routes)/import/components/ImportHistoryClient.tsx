@@ -382,7 +382,7 @@ export function ImportHistoryClient({ imports }: Readonly<ImportHistoryClientPro
                 className="cursor-pointer transition-colors hover:bg-accent/50"
                 onClick={() => router.push(`/app/import/${imp.id}`)}
               >
-                <TableCell className="whitespace-nowrap">
+                <TableCell className="whitespace-nowrap" suppressHydrationWarning>
                   {format.dateTime(new Date(imp.createdAt), {
                     dateStyle: "medium",
                     timeStyle: "short",

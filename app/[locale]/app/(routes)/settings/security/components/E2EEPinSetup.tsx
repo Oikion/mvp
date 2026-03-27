@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, AlertTriangle, Check, Loader2 } from "lucide-react";
+import { Lock, LockOpen, AlertTriangle, Check, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,14 +16,16 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useE2EE } from "@/hooks/useE2EE";
+import { PinEntryDialog } from "@/components/e2ee/PinEntryDialog";
 
-function getPinStrength(pin: string): { label: string; color: string } {
-  if (pin.length < 6) return { label: "Too short", color: "text-destructive" };
-  if (pin.length < 7) return { label: "Good", color: "text-primary" };
-  return { label: "Strong", color: "text-green-600" };
+function getPinStrength(pin: string, t: (key: string) => string): { label: string; color: string } {
+  if (pin.length < 6) return { label: t("security.e2eeSettings.strengthTooShort"), color: "text-destructive" };
+  if (pin.length < 7) return { label: t("security.e2eeSettings.strengthGood"), color: "text-primary" };
+  return { label: t("security.e2eeSettings.strengthStrong"), color: "text-green-600" };
 }
 
 export function E2EEPinSetup() {
+  const t = useTranslations("common");
   const { isSetUp, isUnlocked, isLoading, setup, unlock, lock, error: e2eeError } = useE2EE();
 
   const [pin, setPin] = useState("");
@@ -31,8 +34,9 @@ export function E2EEPinSetup() {
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
 
-  const pinStrength = getPinStrength(pin);
+  const pinStrength = getPinStrength(pin, t);
   const pinsMatch = pin.length >= 6 && pin === confirmPin;
   const canSubmit = pinsMatch && !isSubmitting;
 
@@ -42,14 +46,13 @@ export function E2EEPinSetup() {
     setIsSubmitting(true);
     try {
       await setup(pin);
-      // Auto-unlock after setup
       await unlock(pin);
       setSuccess(true);
       setPin("");
       setConfirmPin("");
       setShowSetup(false);
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : "Setup failed");
+      setLocalError(err instanceof Error ? err.message : t("security.e2eeSettings.setupFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -62,14 +65,14 @@ export function E2EEPinSetup() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Lock className="h-5 w-5 text-primary" />
-            <CardTitle>End-to-End Encryption</CardTitle>
+            <Lock className="h-5 w-5 text-primary" aria-hidden="true" />
+            <CardTitle>{t("security.e2eeSettings.title")}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Checking E2EE status...</span>
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <span>{t("security.e2eeSettings.checkingStatus")}</span>
           </div>
         </CardContent>
       </Card>
@@ -80,69 +83,75 @@ export function E2EEPinSetup() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Lock className="h-5 w-5 text-primary" />
-          <CardTitle>End-to-End Encryption</CardTitle>
+          <Lock className="h-5 w-5 text-primary" aria-hidden="true" />
+          <CardTitle>{t("security.e2eeSettings.title")}</CardTitle>
           {isSetUp && (
             <Badge variant={isUnlocked ? "default" : "secondary"}>
-              {isUnlocked ? "Active" : "Set up"}
+              {isUnlocked ? t("security.e2eeSettings.badgeActive") : t("security.e2eeSettings.badgeSetUp")}
             </Badge>
           )}
         </div>
         <CardDescription>
-          Protect your messages with a PIN-based encryption key.
-          Messages are encrypted on your device before being sent.
+          {t("security.e2eeSettings.description")}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
         {isSetUp ? (
-          // Already set up — show status and lock/unlock
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2">
-                <Lock className="h-4 w-4 text-green-600" />
+                {isUnlocked ? (
+                  <LockOpen className="h-4 w-4 text-success" aria-hidden="true" />
+                ) : (
+                  <Check className="h-4 w-4 text-green-600" aria-hidden="true" />
+                )}
                 <span className="text-sm font-medium">
-                  E2EE is {isUnlocked ? "active" : "locked"}
+                  {isUnlocked ? t("security.e2eeSettings.statusActive") : t("security.e2eeSettings.statusSetUp")}
                 </span>
               </div>
-              {isUnlocked && (
+              {isUnlocked ? (
                 <Button variant="outline" size="sm" onClick={lock}>
-                  Lock now
+                  {t("security.e2eeSettings.lockNow")}
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => setUnlockDialogOpen(true)}>
+                  <LockOpen className="h-4 w-4 mr-2" aria-hidden="true" />
+                  {t("security.e2eeSettings.unlockButton")}
                 </Button>
               )}
             </div>
             {isUnlocked && (
               <p className="text-xs text-muted-foreground">
-                Your messages are encrypted end-to-end. Only you and the recipient can read them.
+                {t("security.e2eeSettings.unlockedInfo")}
               </p>
             )}
-            {!isUnlocked && (
-              <p className="text-xs text-muted-foreground">
-                Enter your PIN in the header lock icon to unlock E2EE messaging.
-              </p>
-            )}
+            <PinEntryDialog
+              open={unlockDialogOpen}
+              onOpenChange={setUnlockDialogOpen}
+              onSubmit={unlock}
+            />
           </div>
         ) : (
-          // Not set up — show setup form
           <div className="space-y-4">
             {!showSetup ? (
               <Button onClick={() => setShowSetup(true)}>
-                <Lock className="h-4 w-4 mr-2" />
-                Set up E2EE PIN
+                <Lock className="h-4 w-4 mr-2" aria-hidden="true" />
+                {t("security.e2eeSettings.setupButton")}
               </Button>
             ) : (
               <>
                 <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTriangle className="h-4 w-4" aria-hidden="true" />
                   <AlertDescription>
-                    <strong>Important:</strong> If you forget this PIN, your encrypted message
-                    history cannot be recovered. Store it securely.
+                    <strong>{t("security.e2eeSettings.setupWarningImportant")}</strong>{" "}
+                    {t("security.e2eeSettings.setupWarning")}
                   </AlertDescription>
                 </Alert>
 
                 <div className="space-y-3">
                   <div>
-                    <Label htmlFor="e2ee-pin">PIN (4-8 digits)</Label>
+                    <Label htmlFor="e2ee-pin">{t("security.e2eeSettings.pinLabel")}</Label>
                     <Input
                       id="e2ee-pin"
                       type="password"
@@ -151,18 +160,18 @@ export function E2EEPinSetup() {
                       maxLength={8}
                       value={pin}
                       onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                      placeholder="Enter PIN"
+                      placeholder={t("security.e2eeSettings.pinPlaceholder")}
                       className="mt-1"
                     />
                     {pin.length > 0 && (
                       <p className={`text-xs mt-1 ${pinStrength.color}`}>
-                        Strength: {pinStrength.label}
+                        {t("security.e2eeSettings.strengthLabel", { strength: pinStrength.label })}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <Label htmlFor="e2ee-confirm-pin">Confirm PIN</Label>
+                    <Label htmlFor="e2ee-confirm-pin">{t("security.e2eeSettings.confirmPinLabel")}</Label>
                     <Input
                       id="e2ee-confirm-pin"
                       type="password"
@@ -171,15 +180,15 @@ export function E2EEPinSetup() {
                       maxLength={8}
                       value={confirmPin}
                       onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
-                      placeholder="Confirm PIN"
+                      placeholder={t("security.e2eeSettings.confirmPinPlaceholder")}
                       className="mt-1"
                     />
                     {confirmPin.length > 0 && !pinsMatch && (
-                      <p className="text-xs mt-1 text-destructive">PINs do not match</p>
+                      <p className="text-xs mt-1 text-destructive">{t("security.e2eeSettings.pinsMismatch")}</p>
                     )}
                     {pinsMatch && (
                       <p className="text-xs mt-1 text-green-600 flex items-center gap-1">
-                        <Check className="h-3 w-3" /> PINs match
+                        <Check className="h-3 w-3" aria-hidden="true" /> {t("security.e2eeSettings.pinsMatch")}
                       </p>
                     )}
                   </div>
@@ -193,15 +202,15 @@ export function E2EEPinSetup() {
                   <Button onClick={handleSetup} disabled={!canSubmit}>
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Setting up...
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                        {t("security.e2eeSettings.settingUp")}
                       </>
                     ) : (
-                      "Enable E2EE"
+                      t("security.e2eeSettings.enableE2EE")
                     )}
                   </Button>
                   <Button variant="ghost" onClick={() => { setShowSetup(false); setPin(""); setConfirmPin(""); }}>
-                    Cancel
+                    {t("security.e2eeSettings.cancel")}
                   </Button>
                 </div>
               </>
@@ -209,9 +218,9 @@ export function E2EEPinSetup() {
 
             {success && (
               <Alert>
-                <Check className="h-4 w-4" />
+                <Check className="h-4 w-4" aria-hidden="true" />
                 <AlertDescription>
-                  E2EE has been enabled successfully. Your messages are now encrypted end-to-end.
+                  {t("security.e2eeSettings.setupSuccessMessage")}
                 </AlertDescription>
               </Alert>
             )}

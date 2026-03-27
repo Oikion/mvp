@@ -35,17 +35,15 @@ export function ScreenshotProtectionSettings() {
           <CardTitle>{t("security.screenshotProtection.title")}</CardTitle>
         </div>
         <CardDescription>
-          Manage screenshot and screen recording protection for sensitive data
+          {t("security.screenshotProtection.description")}
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         <Alert>
           <Info className="h-4 w-4" aria-hidden="true" />
           <AlertDescription>
-            Screenshot protection helps prevent unauthorized capture of sensitive information
-            displayed in the application. This includes client data, property details, and
-            confidential documents.
+            {t("security.screenshotProtection.alertInfo")}
           </AlertDescription>
         </Alert>
 
@@ -55,30 +53,21 @@ export function ScreenshotProtectionSettings() {
         />
 
         <div className="space-y-3 text-sm text-muted-foreground">
-          <p className="font-medium text-foreground">What is protected:</p>
+          <p className="font-medium text-foreground">{t("security.screenshotProtection.whatIsProtected")}</p>
           <ul className="space-y-2 list-disc list-inside">
-            <li>Keyboard shortcuts (Print Screen, Cmd+Shift+3/4/5, Win+Shift+S)</li>
-            <li>Right-click context menu</li>
-            <li>Canvas and WebGL capture APIs</li>
-            <li>Print functionality for protected pages</li>
-            <li>Drag and drop of sensitive content</li>
+            <li>{t("security.screenshotProtection.protectedKeyboard")}</li>
+            <li>{t("security.screenshotProtection.protectedContextMenu")}</li>
+            <li>{t("security.screenshotProtection.protectedCanvas")}</li>
+            <li>{t("security.screenshotProtection.protectedPrint")}</li>
+            <li>{t("security.screenshotProtection.protectedDragDrop")}</li>
           </ul>
 
-          <p className="font-medium text-foreground mt-4">Important notes:</p>
+          <p className="font-medium text-foreground mt-4">{t("security.screenshotProtection.importantNotes")}</p>
           <ul className="space-y-2 list-disc list-inside">
-            <li>
-              Protection is automatically enabled in sensitive areas (CRM, Documents, Reports)
-            </li>
-            <li>
-              You can toggle protection in non-sensitive areas when enabled by your organization
-            </li>
-            <li>
-              Physical cameras and OS-level screenshot tools cannot be blocked by browser-based
-              protection
-            </li>
-            <li>
-              All access to sensitive data is logged for security auditing
-            </li>
+            <li>{t("security.screenshotProtection.noteAutoEnabled")}</li>
+            <li>{t("security.screenshotProtection.noteToggle")}</li>
+            <li>{t("security.screenshotProtection.notePhysical")}</li>
+            <li>{t("security.screenshotProtection.noteAudit")}</li>
           </ul>
         </div>
       </CardContent>

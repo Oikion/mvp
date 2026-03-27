@@ -103,9 +103,9 @@
       "description": "Protect your data and control your privacy settings",
       "security": {
         "title": "Encryption PIN",
-        "description": "Set a 4-8 digit PIN to enable end-to-end encryption. Your PIN protects your private keys — only you can decrypt your data.",
+        "description": "Set a 6-8 digit PIN to enable end-to-end encryption. Your PIN protects your private keys — only you can decrypt your data.",
         "pinLabel": "Create PIN",
-        "pinPlaceholder": "4-8 digit PIN",
+        "pinPlaceholder": "6-8 digit PIN",
         "confirmLabel": "Confirm PIN",
         "confirmPlaceholder": "Re-enter PIN",
         "strengthWeak": "Weak — consider a longer PIN",

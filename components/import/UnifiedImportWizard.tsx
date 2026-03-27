@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ImportWizardSteps, type ImportResult } from "@/components/import";
 import { UNIFIED_FIELD_DEFINITIONS, MANDATE_FIELD_KEYS } from "@/lib/import/unified-field-definitions";
@@ -93,9 +93,10 @@ interface UnifiedImportWizardProps {
       };
     };
     ImportFields: {
-      groups: Record<string, string>;
-      fields: Record<string, string>;
-      enums?: Record<string, Record<string, string>>;
+      client?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
+      property?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
+      mandate?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
+      unified?: { groups: Record<string, string>; fields: Record<string, string> };
     };
   };
   locale: string;
@@ -105,6 +106,21 @@ interface UnifiedImportWizardProps {
 export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<UnifiedImportWizardProps>) {
   const router = useRouter();
   const { toast } = useAppToast();
+
+  // Build a flat fieldsDict from the nested per-entity ImportFields structure.
+  // The TableMappingStep expects { groups, fields, enums } at the top level.
+  const fieldsDict = useMemo(() => {
+    const importFields = dict.ImportFields;
+    const groups = importFields.unified?.groups ?? {};
+    const fields = importFields.unified?.fields ?? {};
+    // Merge enums from all entity types into a single flat map
+    const enums: Record<string, Record<string, string>> = {
+      ...importFields.client?.enums,
+      ...importFields.property?.enums,
+      ...importFields.mandate?.enums,
+    };
+    return { groups, fields, enums };
+  }, [dict.ImportFields]);
 
   const handleImport = useCallback(
     async (
@@ -221,7 +237,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
     <ImportWizardSteps
       entityType="property"
       dict={dict.ImportWizard}
-      fieldsDict={dict.ImportFields}
+      fieldsDict={fieldsDict}
       fieldDefinitions={UNIFIED_FIELD_DEFINITIONS}
       onImport={handleImport}
       onComplete={handleComplete}

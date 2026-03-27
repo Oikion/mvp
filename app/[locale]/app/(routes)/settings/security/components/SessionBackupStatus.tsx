@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RefreshCw, Trash2, Cloud, CloudOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,6 +27,7 @@ import * as e2ee from "@/lib/e2ee";
 import { useAppToast } from "@/hooks/use-app-toast";
 
 export function SessionBackupStatus() {
+  const t = useTranslations("common");
   const { isUnlocked } = useE2EE();
   const { toast } = useAppToast();
   const [isForceSyncing, setIsForceSyncing] = useState(false);
@@ -40,9 +42,9 @@ export function SessionBackupStatus() {
     setIsForceSyncing(true);
     try {
       await manager.flush();
-      toast.success("Session backup synced");
+      toast.success(t("security.sessionBackup.syncSuccess"));
     } catch {
-      toast.error("Failed to sync session backups");
+      toast.error(t("security.sessionBackup.syncError"));
     } finally {
       setIsForceSyncing(false);
     }
@@ -53,9 +55,9 @@ export function SessionBackupStatus() {
     setIsClearing(true);
     try {
       await manager.clearAll();
-      toast.success("All session backups cleared");
+      toast.success(t("security.sessionBackup.clearSuccess"));
     } catch {
-      toast.error("Failed to clear backups");
+      toast.error(t("security.sessionBackup.clearError"));
     } finally {
       setIsClearing(false);
     }
@@ -73,23 +75,23 @@ export function SessionBackupStatus() {
           ) : (
             <Cloud className="h-5 w-5 text-success" aria-hidden="true" />
           )}
-          Session Backup
+          {t("security.sessionBackup.title")}
         </CardTitle>
         <CardDescription>
-          Encrypted session backups enable multi-device access and session recovery.
+          {t("security.sessionBackup.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Status</span>
+          <span className="text-muted-foreground">{t("security.sessionBackup.statusLabel")}</span>
           <span className={isDirty ? "text-warning" : "text-success"}>
-            {isDirty ? "Pending changes" : "Synced"}
+            {isDirty ? t("security.sessionBackup.statusPending") : t("security.sessionBackup.statusSynced")}
           </span>
         </div>
 
         {lastSynced && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Last synced</span>
+            <span className="text-muted-foreground">{t("security.sessionBackup.lastSynced")}</span>
             <span>{lastSynced.toLocaleTimeString()}</span>
           </div>
         )}
@@ -105,29 +107,27 @@ export function SessionBackupStatus() {
               className={`h-4 w-4 mr-2${isForceSyncing ? " animate-spin" : ""}`}
               aria-hidden="true"
             />
-            Sync Now
+            {t("security.sessionBackup.syncNow")}
           </Button>
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline" size="sm" disabled={isClearing}>
                 <Trash2 className="h-4 w-4 mr-2" aria-hidden="true" />
-                Clear All Backups
+                {t("security.sessionBackup.clearAll")}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Clear all session backups?</AlertDialogTitle>
+                <AlertDialogTitle>{t("security.sessionBackup.clearDialogTitle")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will delete all encrypted session backups from the server.
-                  You will not be able to restore sessions on other devices until
-                  new backups are created. This action cannot be undone.
+                  {t("security.sessionBackup.clearDialogDescription")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("security.sessionBackup.clearCancel")}</AlertDialogCancel>
                 <AlertDialogAction onClick={handleClearBackups}>
-                  Clear Backups
+                  {t("security.sessionBackup.clearConfirm")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

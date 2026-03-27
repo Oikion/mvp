@@ -76,7 +76,7 @@ export function E2EEOnboarding() {
 
         <div className="space-y-3 text-left">
           <div>
-            <Label htmlFor="onboard-pin">PIN (4-8 digits)</Label>
+            <Label htmlFor="onboard-pin">PIN (6-8 digits)</Label>
             <Input
               id="onboard-pin"
               type="password"
