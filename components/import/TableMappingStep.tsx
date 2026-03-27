@@ -595,6 +595,10 @@ function initializeColumnEntities(
       const matchResult = matchResults.get(header);
       if (matchResult?.ambiguous) {
         entities[header] = "unassigned";
+      } else if (matchResult?.fieldKey || matchResult?.targetField) {
+        // Has a non-ambiguous match — derive entity from the matched field
+        const matchedField = matchResult.fieldKey || matchResult.targetField;
+        entities[header] = getEntityForField(matchedField!, fieldDefinitions);
       } else {
         entities[header] = "unassigned";
       }
