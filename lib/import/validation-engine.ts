@@ -212,7 +212,8 @@ export function validateImportData(
       // Normalize enums
       const normalized = normalizeClientEnums(clientRowStripped);
 
-      // Validate with Zod
+      // Validate with Zod — use parsed.data which has preprocessed types
+      // (e.g. zBoolean converts "true" → true, zOptionalNumber converts "" → undefined)
       const parsed = clientImportSchema.safeParse(normalized);
       if (!parsed.success) {
         for (const issue of parsed.error.issues) {
@@ -225,9 +226,11 @@ export function validateImportData(
           });
         }
         rowHasErrors = true;
+        validated.clientRow = normalized;
+      } else {
+        // Use Zod-transformed data (booleans, numbers, dates properly typed)
+        validated.clientRow = parsed.data as Record<string, unknown>;
       }
-
-      validated.clientRow = normalized;
 
       // Client dedup key (use the raw row with original keys for phone/email/name)
       const dedupKey = clientDedupKey(rawClientRow);
@@ -248,7 +251,7 @@ export function validateImportData(
       // Normalize enums
       const normalized = normalizePropertyEnums(propertyRow);
 
-      // Validate with Zod
+      // Validate with Zod — use parsed.data for proper types
       const parsed = propertyImportSchema.safeParse(normalized);
       if (!parsed.success) {
         for (const issue of parsed.error.issues) {
@@ -261,9 +264,10 @@ export function validateImportData(
           });
         }
         rowHasErrors = true;
+        validated.propertyRow = normalized;
+      } else {
+        validated.propertyRow = parsed.data as Record<string, unknown>;
       }
-
-      validated.propertyRow = normalized;
 
       // Property dedup key
       const dedupKey = propertyDedupKey(propertyRow);
@@ -292,7 +296,7 @@ export function validateImportData(
       const title = generateMandateTitle(normalized, clientName, propertyName);
       normalized.title = title;
 
-      // Validate with Zod
+      // Validate with Zod — use parsed.data for proper types
       const parsed = mandateImportSchema.safeParse(normalized);
       if (!parsed.success) {
         for (const issue of parsed.error.issues) {
@@ -305,9 +309,10 @@ export function validateImportData(
           });
         }
         rowHasErrors = true;
+        validated.mandateRow = normalized;
+      } else {
+        validated.mandateRow = parsed.data as Record<string, unknown>;
       }
-
-      validated.mandateRow = normalized;
     }
 
     // Rows with at least one valid entity go into validRows.
