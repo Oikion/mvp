@@ -101,9 +101,11 @@ export async function generateFriendlyId(
       prefix,
       organizationId: orgId,
       lastValue: 1,
+      updatedAt: new Date(),
     },
     update: {
       lastValue: { increment: 1 },
+      updatedAt: new Date(),
     },
   });
 
@@ -144,9 +146,11 @@ export async function generateFriendlyIds(
       prefix,
       organizationId: orgId,
       lastValue: count,
+      updatedAt: new Date(),
     },
     update: {
       lastValue: { increment: count },
+      updatedAt: new Date(),
     },
   });
 
@@ -216,9 +220,11 @@ export async function initializeSequence(
       prefix,
       organizationId: orgId,
       lastValue: startValue,
+      updatedAt: new Date(),
     },
     update: {
       lastValue: startValue,
+      updatedAt: new Date(),
     },
   });
 }
