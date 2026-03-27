@@ -22,13 +22,16 @@ import { DataPolicyStep } from "./DataPolicyStep";
 import { EncryptionPolicyStep } from "./EncryptionPolicyStep";
 import { AddTeammatesStep } from "./AddTeammatesStep";
 import { EstablishPartnershipsStep } from "./EstablishPartnershipsStep";
+import { ImportDataStep } from "./ImportDataStep";
+import { PolisSetupStep } from "./PolisSetupStep";
+import type { PolisSetupData } from "./PolisSetupStep";
 import { ReviewStep } from "./ReviewStep";
 
 // =============================================================================
 // Constants & Types
 // =============================================================================
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 8;
 const STORAGE_KEY = "oikion-create-org-wizard";
 
 interface TeammateEntry {
@@ -46,6 +49,8 @@ interface CreateOrgWizardData {
   encryptionMode: "STANDARD" | "E2EE" | null;
   teammates: TeammateEntry[];
   partnerOrgIds: string[];
+  wantsImport: boolean;
+  polisSetup: PolisSetupData;
 }
 
 const DEFAULT_WIZARD_DATA: CreateOrgWizardData = {
@@ -55,6 +60,8 @@ const DEFAULT_WIZARD_DATA: CreateOrgWizardData = {
   encryptionMode: null,
   teammates: [],
   partnerOrgIds: [],
+  wantsImport: false,
+  polisSetup: { networkMembership: "NONE", networkPrivacy: "ANONYMIZED" },
 };
 
 // Animation variants matching OnboardingSteps pattern
@@ -76,7 +83,8 @@ const slideVariants = {
 };
 
 // Step labels (0-based)
-// 0: OrgInfo, 1: DataPolicy, 2: EncryptionPolicy, 3: AddTeammates, 4: EstablishPartnerships, 5: Review
+// 0: OrgInfo, 1: DataPolicy, 2: EncryptionPolicy, 3: AddTeammates,
+// 4: EstablishPartnerships, 5: ImportData, 6: PolisSetup, 7: Review
 
 // =============================================================================
 // Component
@@ -116,8 +124,8 @@ export function CreateOrganizationWizard() {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as CreateOrgWizardData;
-        setWizardData(parsed);
+        const parsed = JSON.parse(stored) as Partial<CreateOrgWizardData>;
+        setWizardData({ ...DEFAULT_WIZARD_DATA, ...parsed });
       }
     } catch {
       // Ignore parse errors — start fresh
@@ -240,20 +248,22 @@ export function CreateOrganizationWizard() {
     setStepValid(isValid);
   }, []);
 
-  // Steps 0-2 require validation to proceed; steps 3-4 have Skip; step 5 is Review
+  // Steps 0-2 require validation; steps 3-6 have Skip; step 7 is Review
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 0: return stepValid; // OrgInfo — name + slug availability
       case 1: return stepValid; // DataPolicy — mode selected
       case 2: return stepValid; // EncryptionPolicy — mode selected (+ PIN if E2EE)
-      case 3: return stepValid; // AddTeammates — no invalid emails (always valid unless bad email)
+      case 3: return stepValid; // AddTeammates — no invalid emails
       case 4: return true;      // Partnerships — always can proceed
-      case 5: return true;      // Review — button inside step
+      case 5: return true;      // ImportData — always valid (yes/no choice)
+      case 6: return true;      // PolisSetup — always valid (has defaults)
+      case 7: return true;      // Review — button inside step
       default: return false;
     }
   };
 
-  const showSkip = currentStep === 3 || currentStep === 4;
+  const showSkip = currentStep >= 3 && currentStep <= 6;
   const isLastStep = currentStep === TOTAL_STEPS - 1;
 
   // =============================================================================
@@ -295,6 +305,20 @@ export function CreateOrganizationWizard() {
     []
   );
 
+  const handleImportDataChange = useCallback(
+    (data: { wantsImport: boolean }) => {
+      setWizardData((prev) => ({ ...prev, wantsImport: data.wantsImport }));
+    },
+    []
+  );
+
+  const handlePolisSetupChange = useCallback(
+    (data: PolisSetupData) => {
+      setWizardData((prev) => ({ ...prev, polisSetup: data }));
+    },
+    []
+  );
+
   // =============================================================================
   // partnerNames map for ReviewStep
   // =============================================================================
@@ -322,7 +346,7 @@ export function CreateOrganizationWizard() {
       });
       await setActive({ organization: org.id });
 
-      // Phase 2: Server action — upsert settings, invite teammates, create partnerships
+      // Phase 2: Server action — upsert settings, invite teammates, create partnerships, Polis config
       const result = await finalizeOrganizationSetup(org.id, {
         encryptionMode: wizardData.encryptionMode!,
         dataOwnershipMode: wizardData.dataOwnershipMode!,
@@ -330,6 +354,8 @@ export function CreateOrganizationWizard() {
           .filter((t) => t.email.trim().length > 0)
           .map((t) => ({ email: t.email, role: t.role })),
         partnerOrgIds: wizardData.partnerOrgIds,
+        networkMembership: wizardData.polisSetup.networkMembership,
+        networkPrivacy: wizardData.polisSetup.networkPrivacy,
       });
 
       if (!result.success) {
@@ -337,6 +363,12 @@ export function CreateOrganizationWizard() {
         setIsCreating(false);
         return;
       }
+
+      // Set the consent cookie so the proxy won't redirect to consent-required
+      // when navigating to /app. The finalize action sets policyVersion: 1.
+      document.cookie = `consent_v=${org.id}:1; path=/; max-age=86400; samesite=lax${
+        window.location.protocol === "https:" ? "; secure" : ""
+      }`;
 
       // Clear persisted wizard state
       sessionStorage.removeItem(STORAGE_KEY);
@@ -347,8 +379,12 @@ export function CreateOrganizationWizard() {
       }
       toast.success(t("review.success"));
 
-      // Redirect to the app dashboard
-      router.push(`/${locale}/app`);
+      // Redirect to import wizard if user opted in, otherwise to dashboard
+      if (wizardData.wantsImport) {
+        router.push(`/${locale}/app/import/add`);
+      } else {
+        router.push(`/${locale}/app`);
+      }
     } catch (error) {
       console.error("[CREATE_ORGANIZATION]", error);
       toast.error(t("review.error"));
@@ -419,6 +455,24 @@ export function CreateOrganizationWizard() {
         );
       case 5:
         return (
+          <ImportDataStep
+            key="import-data"
+            data={{ wantsImport: wizardData.wantsImport }}
+            onDataChange={handleImportDataChange}
+            onValidationChange={handleValidationChange}
+          />
+        );
+      case 6:
+        return (
+          <PolisSetupStep
+            key="polis-setup"
+            data={wizardData.polisSetup}
+            onDataChange={handlePolisSetupChange}
+            onValidationChange={handleValidationChange}
+          />
+        );
+      case 7:
+        return (
           <ReviewStep
             key="review"
             data={{
@@ -428,6 +482,8 @@ export function CreateOrganizationWizard() {
               encryptionMode: wizardData.encryptionMode,
               teammates: wizardData.teammates.filter((t) => t.email.trim().length > 0),
               partnerOrgIds: wizardData.partnerOrgIds,
+              wantsImport: wizardData.wantsImport,
+              polisSetup: wizardData.polisSetup,
             }}
             partnerNames={partnerNames}
             isCreating={isCreating}

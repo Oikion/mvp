@@ -82,6 +82,64 @@
     "emptyState": "No agency connections yet. You can establish partnerships later from Settings → Network.",
     "selected": "{count} selected"
   },
+  "importData": {
+    "title": "Import Your Data",
+    "description": "Bring your existing properties, clients, and mandates into Oikion",
+    "entities": {
+      "properties": "Properties",
+      "clients": "Clients",
+      "mandates": "Mandates"
+    },
+    "features": {
+      "csvExcel": "Import from CSV or Excel spreadsheets",
+      "autoMapping": "Automatic column mapping with smart detection",
+      "validation": "Data validation with error preview before import"
+    },
+    "yesImport": "Yes, import data",
+    "yesImportHint": "Go to the import wizard after creating your agency",
+    "noImport": "Start fresh",
+    "noImportHint": "You can always import data later from the dashboard"
+  },
+  "polis": {
+    "title": "Oikion Polis — Matchmaking Network",
+    "description": "Choose how your agency participates in cross-agency property-client matching",
+    "membershipTitle": "Network Membership",
+    "membershipDescription": "How would you like to match with other agencies?",
+    "membership": {
+      "NONE": {
+        "label": "None",
+        "description": "No cross-agency matching. You can enable this later."
+      },
+      "POOL": {
+        "label": "Pool",
+        "description": "Anonymous pool matching — your listings are matched against all participating agencies."
+      },
+      "BILATERAL": {
+        "label": "Bilateral",
+        "description": "Match only with trusted partner agencies you explicitly connect with."
+      },
+      "BOTH": {
+        "label": "Pool + Bilateral",
+        "description": "Participate in both the anonymous pool and bilateral partner matching."
+      }
+    },
+    "privacyTitle": "Privacy Level",
+    "privacyDescription": "How much information is shared when matches are found?",
+    "privacy": {
+      "ANONYMIZED": {
+        "label": "Anonymized",
+        "description": "Only property/client specs are shared — no agency or agent details."
+      },
+      "AGENCY_IDENTIFIED": {
+        "label": "Agency Identified",
+        "description": "Specs plus your agency name are visible to matching agencies."
+      },
+      "FULL": {
+        "label": "Full Details",
+        "description": "Specs, agency name, and agent contact info are shared with matches."
+      }
+    }
+  },
   "review": {
     "title": "Review & Create",
     "description": "Review your agency setup before creating",
@@ -90,6 +148,11 @@
     "encryptionSection": "Encryption",
     "teammatesSection": "Teammates",
     "partnershipsSection": "Partnerships",
+    "importSection": "Data Import",
+    "polisSection": "Oikion Polis",
+    "importYes": "Import after creation",
+    "importNo": "Start fresh",
+    "polisPrivacy": "Privacy",
     "noneYet": "None — you can add later",
     "invitations": "{count} invitation(s)",
     "partnerRequests": "{count} partnership request(s)",

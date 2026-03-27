@@ -10,6 +10,8 @@ import {
   Users,
   Handshake,
   Loader2,
+  Upload,
+  Globe,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,11 @@ interface ReviewStepProps {
     encryptionMode: "STANDARD" | "E2EE" | null;
     teammates: Array<{ email: string; name?: string; role: string }>;
     partnerOrgIds: string[];
+    wantsImport: boolean;
+    polisSetup: {
+      networkMembership: "NONE" | "POOL" | "BILATERAL" | "BOTH";
+      networkPrivacy: "ANONYMIZED" | "AGENCY_IDENTIFIED" | "FULL";
+    };
   };
   partnerNames: Map<string, string>;
   isCreating: boolean;
@@ -173,6 +180,45 @@ export function ReviewStep({
                   </p>
                 ))}
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Import Data card */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Upload className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              {t("review.importSection")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <Badge variant={data.wantsImport ? "default" : "secondary"}>
+              {data.wantsImport
+                ? t("review.importYes")
+                : t("review.importNo")}
+            </Badge>
+          </CardContent>
+        </Card>
+
+        {/* Polis / Matchmaking card */}
+        <Card>
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              {t("review.polisSection")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">
+                {t(`polis.membership.${data.polisSetup.networkMembership}.label`)}
+              </Badge>
+            </div>
+            {data.polisSetup.networkMembership !== "NONE" && (
+              <p className="text-xs text-muted-foreground">
+                {t("review.polisPrivacy")}: {t(`polis.privacy.${data.polisSetup.networkPrivacy}.label`)}
+              </p>
             )}
           </CardContent>
         </Card>

@@ -31,6 +31,8 @@ const wizardDataSchema = z
       )
       .max(50),
     partnerOrgIds: z.array(z.string().min(1)).max(20),
+    networkMembership: z.enum(["NONE", "POOL", "BILATERAL", "BOTH"]).optional(),
+    networkPrivacy: z.enum(["ANONYMIZED", "AGENCY_IDENTIFIED", "FULL"]).optional(),
   })
   .strict();
 
@@ -255,6 +257,34 @@ export async function finalizeOrganizationSetup(
         err: String(err),
       });
       warnings.push("Failed to initialize encryption key — contact support if issues persist");
+    }
+  }
+
+  // 12. Save Polis network settings (if provided and not NONE-only defaults)
+  if (validated.networkMembership && validated.networkMembership !== "NONE") {
+    try {
+      await prismadb.orgNetworkSettings.upsert({
+        where: { organizationId: orgId },
+        create: {
+          organizationId: orgId,
+          membership: validated.networkMembership,
+          propertyPrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
+          mandatePrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
+          shareProperties: true,
+          shareMandates: true,
+        },
+        update: {
+          membership: validated.networkMembership,
+          propertyPrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
+          mandatePrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
+        },
+      });
+    } catch (err) {
+      console.error("[FINALIZE_ORG_SETUP] Failed to save network settings", {
+        orgId,
+        err: String(err),
+      });
+      warnings.push("Failed to save matchmaking network settings — you can configure them later from Settings");
     }
   }
 
