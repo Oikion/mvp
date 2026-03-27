@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import Container from "../../components/ui/Container";
 import { getNetworkSettings, getNetworkPartners } from "@/actions/network/manage-network-settings";
@@ -15,13 +16,14 @@ export default async function NetworkSettingsPage({
 
   if (!orgId) redirect("/app");
 
-  const [settings, partners] = await Promise.all([
+  const [settings, partners, t] = await Promise.all([
     getNetworkSettings(),
     getNetworkPartners(),
+    getTranslations("networkSettings"),
   ]);
 
   return (
-    <Container title="Network Settings" description="Manage your network and sharing preferences">
+    <Container title={t("pageTitle")} description={t("pageDescription")}>
       <NetworkSettingsClient
         initialSettings={settings}
         initialPartners={partners}

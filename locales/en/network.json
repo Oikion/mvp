@@ -23,25 +23,37 @@
   "likes": "Likes",
   "comments": "Comments",
   "matchmaking": {
+    "pageTitle": "Network Settings",
+    "pageDescription": "Manage your network and sharing preferences",
     "settingsTitle": "Oikion Polis",
     "settingsDescription": "Share your listings and mandates with other agencies for cross-agency matchmaking.",
     "membership": {
       "label": "Polis participation",
+      "description": "Choose how you want to connect with other agencies on the Oikion Polis network.",
       "NONE": "Not participating",
-      "POOL": "Global pool",
-      "BILATERAL": "Bilateral partners only",
-      "BOTH": "Pool + bilateral partners",
       "NONEDesc": "Your data is not shared with any other agency.",
+      "NONEDetail": "You will not receive cross-agency matches. You can enable this at any time.",
+      "POOL": "Global pool",
       "POOLDesc": "Your shared data is visible to all pool members.",
+      "POOLDetail": "Automatic matchmaking with all participating agencies. Ideal for maximizing opportunities.",
+      "BILATERAL": "Bilateral partners only",
       "BILATERALDesc": "Your shared data is only visible to agencies you have accepted as partners.",
-      "BOTHDesc": "Your shared data is visible to all pool members and your bilateral partners."
+      "BILATERALDetail": "Full control — you share data only with agencies you approve.",
+      "BOTH": "Pool + bilateral partners",
+      "BOTHDesc": "Your shared data is visible to all pool members and your bilateral partners.",
+      "BOTHDetail": "Maximum visibility — combines the pool with exclusive bilateral relationships."
     },
+    "save": "Save settings",
+    "saved": "Saved",
     "sharing": {
       "label": "What to share",
+      "description": "Control which data you share with your network partners.",
       "properties": "Share my active properties",
-      "mandates": "Share my active mandates",
       "propertiesDesc": "Other agencies can match their mandates against your Polis-visible properties.",
-      "mandatesDesc": "Other agencies can match their properties against your Polis-visible mandates."
+      "propertiesDetail": "Only properties with SECURE or PUBLIC visibility are shared. HIDDEN and PRIVATE properties are never exposed.",
+      "mandates": "Share my active mandates",
+      "mandatesDesc": "Other agencies can match their properties against your Polis-visible mandates.",
+      "mandatesDetail": "Only mandates with SECURE or PUBLIC visibility are shared. HIDDEN and PRIVATE mandates are never exposed."
     },
     "privacy": {
       "propertiesLabel": "Property visibility level",
@@ -56,6 +68,12 @@
     "partners": {
       "title": "Bilateral Partners",
       "description": "Invite specific agencies to exchange data with — regardless of pool membership.",
+      "discover": "Discover",
+      "current": "Current",
+      "searchPlaceholder": "Search agencies…",
+      "noAgenciesFound": "No agencies found",
+      "searchToDiscover": "Search to discover agencies",
+      "invited": "Invited",
       "invite": "Invite agency",
       "invitePlaceholder": "Agency slug (e.g. acme-real-estate)",
       "pending": "Pending",
