@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zBoolean } from "./zod-helpers";
 
 // Enum values matching Prisma schema
 export const ClientTypeEnum = z.enum([
@@ -101,8 +102,8 @@ export const clientImportSchema = z.object({
 
   // Lead source and consent
   lead_source: LeadSourceEnum.optional().nullable(),
-  gdpr_consent: z.coerce.boolean().optional().default(false),
-  allow_marketing: z.coerce.boolean().optional().default(false),
+  gdpr_consent: zBoolean,
+  allow_marketing: zBoolean,
 
   // Additional
   description: z.coerce.string().optional().or(z.literal("")),

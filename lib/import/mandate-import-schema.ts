@@ -9,6 +9,14 @@ import {
   FurnishedStatusEnum,
   ItemVisibilityEnum,
 } from "./property-import-schema";
+import {
+  zBoolean,
+  zBooleanNullable,
+  zOptionalPositiveNumber,
+  zOptionalInt,
+  zOptionalAnyInt,
+  zOptionalDateString,
+} from "./zod-helpers";
 
 export const PropertyPurposeEnum = z.enum([
   "RESIDENTIAL",
@@ -67,29 +75,29 @@ export const mandateImportSchema = z.object({
   condition: z.array(PropertyConditionEnum).optional().nullable(),
   heating_type: z.array(HeatingTypeEnum).optional().nullable(),
 
-  // Range numerics (all optional, nullable, coerced)
-  budget_min: z.coerce.number().positive().optional().nullable(),
-  budget_max: z.coerce.number().positive().optional().nullable(),
-  size_min_sqm: z.coerce.number().positive().optional().nullable(),
-  size_max_sqm: z.coerce.number().positive().optional().nullable(),
-  plot_size_min_sqm: z.coerce.number().positive().optional().nullable(),
-  plot_size_max_sqm: z.coerce.number().positive().optional().nullable(),
-  bedrooms_min: z.coerce.number().int().min(0).optional().nullable(),
-  bedrooms_max: z.coerce.number().int().min(0).optional().nullable(),
-  bathrooms_min: z.coerce.number().min(0).optional().nullable(),
-  bathrooms_max: z.coerce.number().min(0).optional().nullable(),
-  floor_min: z.coerce.number().int().optional().nullable(),
-  floor_max: z.coerce.number().int().optional().nullable(),
-  year_built_min: z.coerce.number().int().optional().nullable(),
-  year_built_max: z.coerce.number().int().optional().nullable(),
+  // Range numerics (all optional, nullable, with European format support)
+  budget_min: zOptionalPositiveNumber,
+  budget_max: zOptionalPositiveNumber,
+  size_min_sqm: zOptionalPositiveNumber,
+  size_max_sqm: zOptionalPositiveNumber,
+  plot_size_min_sqm: zOptionalPositiveNumber,
+  plot_size_max_sqm: zOptionalPositiveNumber,
+  bedrooms_min: zOptionalInt,
+  bedrooms_max: zOptionalInt,
+  bathrooms_min: zOptionalInt, // Prisma: Int? — must be integer
+  bathrooms_max: zOptionalInt, // Prisma: Int? — must be integer
+  floor_min: zOptionalAnyInt,
+  floor_max: zOptionalAnyInt,
+  year_built_min: zOptionalAnyInt,
+  year_built_max: zOptionalAnyInt,
 
-  // Booleans
-  ground_floor_only: z.coerce.boolean().optional().default(false),
-  elevator: z.coerce.boolean().optional().nullable(),
-  parking: z.coerce.boolean().optional().nullable(),
-  pets_allowed: z.coerce.boolean().optional().nullable(),
-  inside_city_plan: z.coerce.boolean().optional().nullable(),
-  legalization_ok: z.coerce.boolean().optional().default(false),
+  // Booleans (proper coercion for "no"/"ΟΧΙ"/"false" etc.)
+  ground_floor_only: zBoolean,
+  elevator: zBooleanNullable,
+  parking: zBooleanNullable,
+  pets_allowed: zBooleanNullable,
+  inside_city_plan: zBooleanNullable,
+  legalization_ok: zBoolean,
 
   // JSON arrays (arrive pre-split)
   areas_of_interest: z.array(z.string()).optional().nullable(),
@@ -100,8 +108,8 @@ export const mandateImportSchema = z.object({
   region: z.coerce.string().optional().or(z.literal("")),
   notes: z.coerce.string().optional().or(z.literal("")),
 
-  // DateTime
-  expires_at: z.coerce.string().optional().or(z.literal("")),
+  // DateTime (handles DD/MM/YYYY, YYYY-MM-DD, etc.)
+  expires_at: zOptionalDateString,
 
   // Visibility
   visibility: ItemVisibilityEnum.optional().nullable(),

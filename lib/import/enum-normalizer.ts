@@ -605,6 +605,46 @@ export const mandateUrgencyMap: EnumMapping = {
 };
 
 /**
+ * Frontage Type mappings
+ */
+export const frontageTypeMap: EnumMapping = {
+  // English variations
+  "main road": "MAIN_ROAD",
+  "main_road": "MAIN_ROAD",
+  "mainroad": "MAIN_ROAD",
+  "main": "MAIN_ROAD",
+  "primary": "MAIN_ROAD",
+  "secondary road": "SECONDARY_ROAD",
+  "secondary_road": "SECONDARY_ROAD",
+  "secondary": "SECONDARY_ROAD",
+  "side road": "SECONDARY_ROAD",
+  "pedestrian": "PEDESTRIAN",
+  "pedestrian street": "PEDESTRIAN",
+  "walkway": "PEDESTRIAN",
+  "corner": "CORNER",
+  "corner plot": "CORNER",
+  "square": "SQUARE",
+  "plaza": "SQUARE",
+  "cul de sac": "CUL_DE_SAC",
+  "cul_de_sac": "CUL_DE_SAC",
+  "cul-de-sac": "CUL_DE_SAC",
+  "dead end": "CUL_DE_SAC",
+  "none": "NONE",
+  "no frontage": "NONE",
+  // Greek translations
+  "κύριος δρόμος": "MAIN_ROAD",
+  "κεντρικός δρόμος": "MAIN_ROAD",
+  "δευτερεύων δρόμος": "SECONDARY_ROAD",
+  "πάροδος": "SECONDARY_ROAD",
+  "πεζόδρομος": "PEDESTRIAN",
+  "γωνιακό": "CORNER",
+  "γωνία": "CORNER",
+  "πλατεία": "SQUARE",
+  "αδιέξοδο": "CUL_DE_SAC",
+  "χωρίς πρόσοψη": "NONE",
+};
+
+/**
  * Normalize an enum value using the provided mapping
  * Returns the normalized value or the original if no match found
  */
@@ -646,6 +686,7 @@ export const propertyEnumMappings = {
   visibility: itemVisibilityMap,
   address_privacy_level: addressPrivacyLevelMap,
   legalization_status: legalizationStatusMap,
+  frontage_type: frontageTypeMap,
 };
 
 /**
@@ -656,6 +697,7 @@ export const clientEnumMappings = {
   client_status: clientStatusMap,
   person_type: personTypeMap,
   lead_source: leadSourceMap,
+  visibility: itemVisibilityMap,
 };
 
 /**
@@ -703,6 +745,7 @@ export const mandateEnumMappings = {
   property_purpose: propertyPurposeMap,
   energy_cert_min: energyCertClassMap,
   furnished: furnishedStatusMap,
+  visibility: itemVisibilityMap,
 };
 
 const mandateArrayEnumFields: Record<string, EnumMapping> = {

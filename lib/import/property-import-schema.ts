@@ -1,4 +1,12 @@
 import { z } from "zod";
+import {
+  zBoolean,
+  zOptionalNumber,
+  zOptionalPositiveNumber,
+  zOptionalInt,
+  zOptionalAnyInt,
+  zOptionalDateString,
+} from "./zod-helpers";
 
 // Enum values matching Prisma schema
 export const PropertyTypeEnum = z.enum([
@@ -132,59 +140,59 @@ export const propertyImportSchema = z.object({
   region: z.coerce.string().optional().or(z.literal("")),
   regional_unit: z.coerce.string().optional().or(z.literal("")),
 
-  // Pricing
-  price: z.coerce.number().int().positive().optional().nullable(),
+  // Pricing (Prisma: Decimal? — allow decimals, not int)
+  price: zOptionalPositiveNumber,
   price_type: PriceTypeEnum.optional().nullable(),
 
   // Property details
-  bedrooms: z.coerce.number().int().min(0).optional().nullable(),
-  bathrooms: z.coerce.number().min(0).optional().nullable(),
-  square_feet: z.coerce.number().int().min(0).optional().nullable(),
-  lot_size: z.coerce.number().min(0).optional().nullable(),
-  year_built: z.coerce.number().int().optional().nullable(),
+  bedrooms: zOptionalInt,
+  bathrooms: zOptionalNumber,
+  square_feet: zOptionalNumber, // Prisma: Decimal? — allow decimals
+  lot_size: zOptionalNumber,
+  year_built: zOptionalAnyInt,
   floor: z.coerce.string().optional().or(z.literal("")),
-  floors_total: z.coerce.number().int().min(0).optional().nullable(),
+  floors_total: zOptionalInt,
 
   // Greece-specific measurements
-  size_net_sqm: z.coerce.number().positive().optional().nullable(),
-  size_gross_sqm: z.coerce.number().positive().optional().nullable(),
-  plot_size_sqm: z.coerce.number().positive().optional().nullable(),
+  size_net_sqm: zOptionalPositiveNumber,
+  size_gross_sqm: zOptionalPositiveNumber,
+  plot_size_sqm: zOptionalPositiveNumber,
 
   // Building details
   heating_type: HeatingTypeEnum.optional().nullable(),
   energy_cert_class: EnergyCertClassEnum.optional().nullable(),
   condition: PropertyConditionEnum.optional().nullable(),
-  renovated_year: z.coerce.number().int().optional().nullable(),
-  elevator: z.coerce.boolean().optional().default(false),
+  renovated_year: zOptionalAnyInt,
+  elevator: zBoolean,
   furnished: FurnishedStatusEnum.optional().nullable(),
 
   // Legal/Registration (coerce to string to handle numeric values from CSV)
   building_permit_no: z.coerce.string().optional().or(z.literal("")),
-  building_permit_year: z.coerce.number().int().optional().nullable(),
+  building_permit_year: zOptionalAnyInt,
   land_registry_kaek: z.coerce.string().optional().or(z.literal("")),
   land_registry_office: z.coerce.string().optional().or(z.literal("")),
   building_block_ot: z.coerce.string().optional().or(z.literal("")),
   legalization_status: LegalizationStatusEnum.optional().nullable(),
-  inside_city_plan: z.coerce.boolean().optional().default(false),
+  inside_city_plan: zBoolean,
 
   // Land-specific
-  build_coefficient: z.coerce.number().positive().optional().nullable(),
-  coverage_ratio: z.coerce.number().positive().optional().nullable(),
-  frontage_m: z.coerce.number().positive().optional().nullable(),
+  build_coefficient: zOptionalPositiveNumber,
+  coverage_ratio: zOptionalPositiveNumber,
+  frontage_m: zOptionalPositiveNumber,
   frontage_type: FrontageTypeEnum.optional().nullable(),
   objective_zone: z.coerce.string().optional().or(z.literal("")),
 
   // Management
   etaireia_diaxeirisis: z.coerce.string().optional().or(z.literal("")),
-  monthly_common_charges: z.coerce.number().positive().optional().nullable(),
+  monthly_common_charges: zOptionalPositiveNumber,
 
   // Rental-specific
-  available_from: z.coerce.string().optional().or(z.literal("")), // Will be parsed to Date
-  accepts_pets: z.coerce.boolean().optional().default(false),
-  min_lease_months: z.coerce.number().int().min(0).optional().nullable(),
+  available_from: zOptionalDateString, // Handles DD/MM/YYYY, YYYY-MM-DD, etc.
+  accepts_pets: zBoolean,
+  min_lease_months: zOptionalInt,
 
   // Visibility
-  is_exclusive: z.coerce.boolean().optional().default(false),
+  is_exclusive: zBoolean,
   visibility: ItemVisibilityEnum.optional().nullable(),
   address_privacy_level: AddressPrivacyLevelEnum.optional().nullable(),
 

@@ -6,6 +6,7 @@ import {
 import { normalizePropertyEnums } from "./enum-normalizer";
 import { encryptWithKey, isEncrypted } from "@/lib/encryption";
 import { encryptJsonWithKey } from "@/lib/model-encryption";
+import { coerceDate } from "./zod-helpers";
 
 // ---------------------------------------------------------------------------
 // Local helpers (not exported)
@@ -21,7 +22,10 @@ function toNumber(value: unknown): number | null {
 function toDateTime(value: unknown): Date | null {
   if (value === null || value === undefined || value === "") return null;
   if (value instanceof Date) return value;
-  const date = new Date(String(value));
+  // Use coerceDate to handle DD/MM/YYYY and other European formats
+  const isoStr = coerceDate(value);
+  if (!isoStr) return null;
+  const date = new Date(isoStr);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
