@@ -39,9 +39,11 @@ import {
   X,
   Eye,
   UserCircle,
+  Link2,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -531,6 +533,7 @@ function ReviewStepNew({
   onRowEdit,
 }: ReviewStepProps) {
   const [expandedEntity, setExpandedEntity] = useState<EntityType | null>(null);
+  const { users: orgMembers } = useOrgUsers();
 
   // ── Derive entity data from validatedRows ──────────────────────────────────
 
@@ -558,6 +561,11 @@ function ReviewStepNew({
     // Track raw counts for dedup display
     let clientRawCount = 0;
     let propertyRawCount = 0;
+
+    // Track link counts for the summary visualization
+    let clientPropertyLinks = 0;
+    let mandatePropertyLinks = 0;
+    let mandateClientLinks = 0;
 
     for (const row of validatedRows) {
       if (skippedRows.has(row.rowIndex)) continue;
@@ -621,6 +629,11 @@ function ReviewStepNew({
           );
         }
       }
+
+      // Count cross-entity links
+      if (row.hasClient && row.hasProperty) clientPropertyLinks++;
+      if (row.hasMandate && row.hasProperty) mandatePropertyLinks++;
+      if (row.hasMandate && row.hasClient) mandateClientLinks++;
     }
 
     // Build skip-cascade warnings for properties whose client was skipped
@@ -699,6 +712,11 @@ function ReviewStepNew({
         propertyRawCount > properties.length
           ? propertyRawCount - properties.length
           : 0,
+      linkCounts: {
+        clientProperty: clientPropertyLinks,
+        mandateProperty: mandatePropertyLinks,
+        mandateClient: mandateClientLinks,
+      },
     };
   }, [validatedRows, skippedRows]);
 
@@ -772,11 +790,104 @@ function ReviewStepNew({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">No assignment</SelectItem>
+                {orgMembers.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    <span className="flex items-center gap-1.5">
+                      {member.avatar ? (
+                        <img src={member.avatar} alt="" className="h-4 w-4 rounded-full" />
+                      ) : (
+                        <UserCircle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      {member.name || member.email}
+                    </span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
+
+      {/* Import Summary — what will be created and linked */}
+      {detectedEntities.length > 0 && (
+        <Card>
+          <CardContent className="py-5">
+            <div className="flex items-center justify-center gap-3">
+              {/* Clients box */}
+              {entityData.clients.length > 0 && (
+                <>
+                  <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-blue-500/10 border border-blue-500/20 min-w-[100px]">
+                    <Users className="h-5 w-5 text-blue-500" />
+                    <span className="text-lg font-bold">{entityData.clients.length}</span>
+                    <span className="text-xs text-muted-foreground">Clients</span>
+                    {entityData.clientDedupCount > 0 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        ({entityData.clientDedupCount} deduped)
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Link connector to Properties */}
+                  {entityData.properties.length > 0 && entityData.linkCounts.clientProperty > 0 && (
+                    <div className="flex flex-col items-center gap-0.5">
+                      <div className="h-px w-8 bg-border" />
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                        <Link2 className="h-3 w-3" />
+                        {entityData.linkCounts.clientProperty}
+                      </span>
+                      <div className="h-px w-8 bg-border" />
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Properties box */}
+              {entityData.properties.length > 0 && (
+                <>
+                  <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/20 min-w-[100px]">
+                    <Building2 className="h-5 w-5 text-green-500" />
+                    <span className="text-lg font-bold">{entityData.properties.length}</span>
+                    <span className="text-xs text-muted-foreground">Properties</span>
+                    {entityData.propertyDedupCount > 0 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        ({entityData.propertyDedupCount} deduped)
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Link connector to Mandates */}
+                  {entityData.mandates.length > 0 && entityData.linkCounts.mandateProperty > 0 && (
+                    <div className="flex flex-col items-center gap-0.5">
+                      <div className="h-px w-8 bg-border" />
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                        <Link2 className="h-3 w-3" />
+                        {entityData.linkCounts.mandateProperty}
+                      </span>
+                      <div className="h-px w-8 bg-border" />
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Mandates box */}
+              {entityData.mandates.length > 0 && (
+                <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-violet-500/10 border border-violet-500/20 min-w-[100px]">
+                  <FileText className="h-5 w-5 text-violet-500" />
+                  <span className="text-lg font-bold">{entityData.mandates.length}</span>
+                  <span className="text-xs text-muted-foreground">Mandates</span>
+                </div>
+              )}
+            </div>
+
+            {/* Total links summary text */}
+            {(entityData.linkCounts.clientProperty > 0 || entityData.linkCounts.mandateProperty > 0 || entityData.linkCounts.mandateClient > 0) && (
+              <p className="text-xs text-center text-muted-foreground mt-3">
+                {entityData.linkCounts.clientProperty + entityData.linkCounts.mandateProperty + entityData.linkCounts.mandateClient} links will be established between entities
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Vertical Stepper */}
       <div className="space-y-1">
