@@ -6,7 +6,7 @@
  * Defines validation, encryption, and transformation for database insertion.
  */
 
-import type { ImportEntityConfig } from "./engine";
+import type { ImportEntityConfig } from "./types";
 import {
   mandateImportSchema,
   type MandateImportData,

@@ -110,11 +110,8 @@ export function PostHogProvider({ children }: PostHogProviderProps) {
       // CRM screens display decrypted PII (client names, phones, tax IDs)
       // that would be captured in the replay, bypassing field-level encryption.
       // disable_session_recording prevents recording from starting.
-      // advanced_disable_session_recording prevents the recorder JS bundle
-      // from even being fetched, and blocks remote re-enablement from the
-      // PostHog dashboard ("Remote config" feature).
+      // Prevent session recording JS bundle from being fetched.
       disable_session_recording: true,
-      advanced_disable_session_recording: true,
       // Cross-subdomain persistence (useful for oikion.gr + app.oikion.gr).
       persistence: "localStorage+cookie",
     });

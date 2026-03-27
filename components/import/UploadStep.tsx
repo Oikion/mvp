@@ -739,7 +739,8 @@ export function UploadStep({
 
       const col = worksheet.getColumn(colIndex + 1);
       const range = `${col.letter}2:${col.letter}1000`;
-      worksheet.dataValidations.add(range, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ExcelJS 4.4 removed the type but the API still works
+      (worksheet as any).dataValidations.add(range, {
         type: "list",
         formulae: [`"${enumValues.join(",")}"`],
         showErrorMessage: true,

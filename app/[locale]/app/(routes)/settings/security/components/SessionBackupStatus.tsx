@@ -27,7 +27,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 
 export function SessionBackupStatus() {
   const { isUnlocked } = useE2EE();
-  const { success, error: toastError } = useAppToast();
+  const { toast } = useAppToast();
   const [isForceSyncing, setIsForceSyncing] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
@@ -40,9 +40,9 @@ export function SessionBackupStatus() {
     setIsForceSyncing(true);
     try {
       await manager.flush();
-      success("Session backup synced");
+      toast.success("Session backup synced");
     } catch {
-      toastError("Failed to sync session backups");
+      toast.error("Failed to sync session backups");
     } finally {
       setIsForceSyncing(false);
     }
@@ -53,9 +53,9 @@ export function SessionBackupStatus() {
     setIsClearing(true);
     try {
       await manager.clearAll();
-      success("All session backups cleared");
+      toast.success("All session backups cleared");
     } catch {
-      toastError("Failed to clear backups");
+      toast.error("Failed to clear backups");
     } finally {
       setIsClearing(false);
     }

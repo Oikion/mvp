@@ -4,16 +4,16 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 const mockUpdateMany = vi.fn().mockResolvedValue({ count: 0 });
 const mockDeleteMany = vi.fn().mockResolvedValue({ count: 0 });
 const mockFindUnique = vi.fn();
-const mockFindMany = vi.fn();
 const mockTransaction = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prismadb: {
-    users: { findUnique: (...args: unknown[]) => mockFindUnique(...args) },
-    organizationEncryptionKey: {
-      findMany: (...args: unknown[]) => mockFindMany(...args),
-      deleteMany: (...args: unknown[]) => mockDeleteMany(...args),
+    users: {
+      findUnique: (...args: unknown[]) => mockFindUnique(...args),
+      findFirst: vi.fn().mockResolvedValue(null),
     },
+    organizationSettings: { findUnique: vi.fn().mockResolvedValue(null) },
+    departureLog: { create: vi.fn().mockResolvedValue({ id: "dep-1" }) },
     notification: { deleteMany: (...args: unknown[]) => mockDeleteMany(...args) },
     eventInvitee: { deleteMany: (...args: unknown[]) => mockDeleteMany(...args) },
     // All org-data models use updateMany
@@ -63,7 +63,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockFindUnique.mockResolvedValue({ id: "user-1", clerkUserId: "clerk-1" });
   mockIsOrgPersonal.mockResolvedValue(false);
-  mockFindMany.mockResolvedValue([]);
+
   // Default: transaction returns array of updateMany results
   mockTransaction.mockImplementation(async (ops: unknown[]) => {
     if (Array.isArray(ops)) {
@@ -103,34 +103,6 @@ describe("handleUserDeparture", () => {
     expect(mockUpdateMany).not.toHaveBeenCalled();
   });
 
-  it("blocks departure if user holds only encryption key", async () => {
-    mockFindMany.mockResolvedValue([{ userId: "user-1" }]);
-
-    const result = await handleUserDeparture(
-      "user-1",
-      "org-1",
-      "LEFT_ORG"
-    );
-
-    expect(result.errors[0]).toContain("only encryption key");
-    expect(mockUpdateMany).not.toHaveBeenCalled();
-  });
-
-  it("allows departure if other users hold encryption keys", async () => {
-    mockFindMany.mockResolvedValue([
-      { userId: "user-1" },
-      { userId: "user-2" },
-    ]);
-
-    const result = await handleUserDeparture(
-      "user-1",
-      "org-1",
-      "LEFT_ORG"
-    );
-
-    expect(result.errors).toHaveLength(0);
-  });
-
   it("calls nullifyOrgReferences and deletes personal data on success", async () => {
     // nullifyOrgReferences runs via $transaction — first call
     mockTransaction
@@ -139,10 +111,9 @@ describe("handleUserDeparture", () => {
         Array(30).fill({ count: 1 })
       )
       .mockResolvedValueOnce([
-        // Personal data deletion: notifications, invitees, enc keys
+        // Personal data deletion: notifications, invitees
         { count: 5 },
         { count: 2 },
-        { count: 1 },
       ]);
 
     const result = await handleUserDeparture(
@@ -153,7 +124,7 @@ describe("handleUserDeparture", () => {
 
     expect(result.errors).toHaveLength(0);
     expect(result.nulledReferences).toBe(30);
-    expect(result.deletedPersonalData).toBe(8);
+    expect(result.deletedPersonalData).toBe(7);
     expect(result.reason).toBe("ACCOUNT_DELETED");
     expect(result.orgId).toBe("org-1");
   });

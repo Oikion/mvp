@@ -418,7 +418,15 @@ export function ImportWizardSteps({
   const legacyServerValidationResult = useMemo<ServerValidationResult | null>(() => {
     if (!schema || parsedData.length === 0) return null;
     return {
-      validRows: validData,
+      validRows: validData.map((row, idx) => ({
+        rowIndex: idx,
+        clientRow: entityType === "client" ? row : null,
+        propertyRow: entityType === "property" ? row : null,
+        mandateRow: entityType === "mandate" ? row : null,
+        hasClient: entityType === "client",
+        hasProperty: entityType === "property",
+        hasMandate: entityType === "mandate",
+      })),
       errorRows: validationErrors.map((ve) => ({
         rowIndex: ve.row,
         entity: entityType,

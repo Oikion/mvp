@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Lock, LockOpen, RefreshCw, ShieldAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ export function E2EESessionButton() {
     await setup(pin);
   };
 
-  let statusIcon: JSX.Element;
+  let statusIcon: ReactNode;
   if (!isSetUp) {
     statusIcon = <ShieldAlert className="h-4 w-4 text-warning" />;
   } else if (isSyncing) {

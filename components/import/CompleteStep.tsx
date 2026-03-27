@@ -36,6 +36,7 @@ export function CompleteStep({
   // Type guard: detect if using new BatchImportResult format
   const isBatchResult = result && "clients" in result && Array.isArray(result.clients);
   const batchResult = isBatchResult ? (result as BatchImportResult) : null;
+  const legacyResult = !isBatchResult ? (result as ImportResult | null) : null;
   let entityLabel: string;
   if (entityType === "client") {
     entityLabel = "clients";
@@ -44,8 +45,18 @@ export function CompleteStep({
   } else {
     entityLabel = "properties";
   }
-  const hasImported = result && result.imported > 0;
-  const hasFailed = result && result.failed > 0;
+  // Normalize counts from either result type
+  const imported = batchResult
+    ? batchResult.clients.length + batchResult.properties.length + batchResult.mandates.length
+    : (result as ImportResult | null)?.imported ?? 0;
+  const skipped = batchResult
+    ? batchResult.skippedCount
+    : (result as ImportResult | null)?.skipped ?? 0;
+  const failed = batchResult
+    ? batchResult.errors.length
+    : (result as ImportResult | null)?.failed ?? 0;
+  const hasImported = imported > 0;
+  const hasFailed = failed > 0;
 
   return (
     <div className="space-y-6">
@@ -81,7 +92,7 @@ export function CompleteStep({
       {/* Result Stats */}
       {result && (
         <div className="grid grid-cols-3 gap-4">
-          <Card className={result.imported > 0 ? "border-success/50" : ""}>
+          <Card className={imported > 0 ? "border-success/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full bg-success/15">
@@ -89,7 +100,7 @@ export function CompleteStep({
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-success">
-                    {result.imported}
+                    {imported}
                   </p>
                   <p className="text-xs text-muted-foreground">{dict.imported}</p>
                 </div>
@@ -97,7 +108,7 @@ export function CompleteStep({
             </CardContent>
           </Card>
 
-          <Card className={result.skipped > 0 ? "border-warning/50" : ""}>
+          <Card className={skipped > 0 ? "border-warning/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full bg-warning/15">
@@ -105,7 +116,7 @@ export function CompleteStep({
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-warning">
-                    {result.skipped}
+                    {skipped}
                   </p>
                   <p className="text-xs text-muted-foreground">{dict.skipped}</p>
                 </div>
@@ -113,14 +124,14 @@ export function CompleteStep({
             </CardContent>
           </Card>
 
-          <Card className={result.failed > 0 ? "border-destructive/50" : ""}>
+          <Card className={failed > 0 ? "border-destructive/50" : ""}>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full bg-destructive/15">
                   <XCircle className="h-5 w-5 text-destructive" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-destructive">{result.failed}</p>
+                  <p className="text-2xl font-bold text-destructive">{failed}</p>
                   <p className="text-xs text-muted-foreground">{dict.failed}</p>
                 </div>
               </div>
@@ -250,55 +261,55 @@ export function CompleteStep({
       )}
 
       {/* Per-entity breakdown — legacy ImportResult format */}
-      {result && !batchResult && (result.clients || result.properties || result.mandates) && (
+      {legacyResult && (legacyResult.clients || legacyResult.properties || legacyResult.mandates) && (
         <div className="space-y-3">
-          {result.clients && (
+          {legacyResult.clients && (
             <Card className="border-primary/50">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Clients</span>
                   <div className="flex gap-3 text-sm">
-                    <span className="text-success">{result.clients.created} created</span>
-                    {result.clients.reused > 0 && <span className="text-muted-foreground">{result.clients.reused} reused</span>}
-                    {result.clients.failed > 0 && <span className="text-destructive">{result.clients.failed} failed</span>}
+                    <span className="text-success">{legacyResult.clients.created} created</span>
+                    {legacyResult.clients.reused > 0 && <span className="text-muted-foreground">{legacyResult.clients.reused} reused</span>}
+                    {legacyResult.clients.failed > 0 && <span className="text-destructive">{legacyResult.clients.failed} failed</span>}
                   </div>
                 </div>
               </CardContent>
             </Card>
           )}
-          {result.properties && (
+          {legacyResult.properties && (
             <Card className="border-primary/50">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Properties</span>
                   <div className="flex gap-3 text-sm">
-                    <span className="text-success">{result.properties.created} created</span>
-                    {result.properties.failed > 0 && <span className="text-destructive">{result.properties.failed} failed</span>}
+                    <span className="text-success">{legacyResult.properties.created} created</span>
+                    {legacyResult.properties.failed > 0 && <span className="text-destructive">{legacyResult.properties.failed} failed</span>}
                   </div>
                 </div>
               </CardContent>
             </Card>
           )}
-          {result.mandates && (
+          {legacyResult.mandates && (
             <Card className="border-primary/50">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Mandates</span>
                   <div className="flex gap-3 text-sm">
-                    <span className="text-success">{result.mandates.created} created</span>
-                    {result.mandates.failed > 0 && <span className="text-destructive">{result.mandates.failed} failed</span>}
+                    <span className="text-success">{legacyResult.mandates.created} created</span>
+                    {legacyResult.mandates.failed > 0 && <span className="text-destructive">{legacyResult.mandates.failed} failed</span>}
                   </div>
                 </div>
               </CardContent>
             </Card>
           )}
-          {result.links && (
+          {legacyResult.links && (
             <Card>
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Links established</span>
                   <span className="text-sm text-muted-foreground">
-                    {result.links.clientProperty + result.links.mandateClient + result.links.mandateProperty} total
+                    {legacyResult.links.clientProperty + legacyResult.links.mandateClient + legacyResult.links.mandateProperty} total
                   </span>
                 </div>
               </CardContent>
@@ -308,11 +319,11 @@ export function CompleteStep({
       )}
 
       {/* Skipped rows notice */}
-      {result && result.skipped > 0 && (
+      {result && skipped > 0 && (
         <Alert className="border-warning/30 bg-warning/10">
           <AlertTriangle className="h-4 w-4 text-warning" />
           <AlertDescription className="text-warning">
-            {result.skipped} row(s) already existed and were skipped.
+            {skipped} row(s) already existed and were skipped.
           </AlertDescription>
         </Alert>
       )}

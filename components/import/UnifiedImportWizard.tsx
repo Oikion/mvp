@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ImportWizardSteps, type ImportResult } from "@/components/import";
-import { UNIFIED_FIELD_DEFINITIONS, MANDATE_FIELD_KEYS } from "@/lib/import";
+import { UNIFIED_FIELD_DEFINITIONS, MANDATE_FIELD_KEYS } from "@/lib/import/unified-field-definitions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import type { BatchImportResult } from "@/lib/import/unified-engine";
 
@@ -221,7 +221,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
     <ImportWizardSteps
       entityType="property"
       dict={dict.ImportWizard}
-      fieldsDict={dict.ImportFields?.unified ?? dict.ImportFields}
+      fieldsDict={dict.ImportFields}
       fieldDefinitions={UNIFIED_FIELD_DEFINITIONS}
       onImport={handleImport}
       onComplete={handleComplete}

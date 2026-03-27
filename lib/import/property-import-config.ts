@@ -1,4 +1,4 @@
-import type { ImportEntityConfig } from "./engine";
+import type { ImportEntityConfig } from "./types";
 import {
   propertyImportSchema,
   type PropertyImportData,

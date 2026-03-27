@@ -150,16 +150,8 @@ export async function deleteOrganization(
     // Order matters due to foreign key constraints
     await prismadb.$transaction(async (tx) => {
       // =============================================================================
-      // Step 1: Delete E2EE and export data
+      // Step 1: Delete export data
       // =============================================================================
-      await tx.organizationEncryptionKey.deleteMany({
-        where: { organizationId },
-      });
-
-      await tx.organizationEncryptionStatus.deleteMany({
-        where: { organizationId },
-      });
-
       await tx.dataExportRequest.deleteMany({
         where: { organizationId },
       });

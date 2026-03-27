@@ -49,21 +49,7 @@ export async function handleUserDeparture(
     return result;
   }
 
-  // Step 3: Pre-flight — check encryption key safety
-  const orgEncKeys = await prismadb.organizationEncryptionKey.findMany({
-    where: { organizationId: orgId },
-    select: { userId: true },
-  });
-  const otherKeyHolders = orgEncKeys.filter((k) => k.userId !== userId);
-  if (orgEncKeys.length > 0 && otherKeyHolders.length === 0) {
-    result.errors.push(
-      "Cannot depart: this user holds the only encryption key for the org. " +
-        "Another user must be granted access first."
-    );
-    return result;
-  }
-
-  // Step 4: Data ownership — AGENT migration (must run BEFORE nullify + key deletion)
+  // Step 3: Data ownership — AGENT migration (must run BEFORE nullify)
   let migrationResult: MigrationResult | undefined;
   let policyApplied: DataOwnershipMode = "AGENCY";
 
@@ -112,18 +98,15 @@ export async function handleUserDeparture(
   result.nulledReferences = nulledCount;
 
   // Step 6: Delete user-personal data for this org
-  const [notifs, invitees, encKeys] = await prismadb.$transaction([
+  const [notifs, invitees] = await prismadb.$transaction([
     prismadb.notification.deleteMany({
       where: { userId, organizationId: orgId },
     }),
     prismadb.eventInvitee.deleteMany({
       where: { userId, CalendarEvent: { organizationId: orgId } },
     }),
-    prismadb.organizationEncryptionKey.deleteMany({
-      where: { userId, organizationId: orgId },
-    }),
   ]);
-  result.deletedPersonalData = notifs.count + invitees.count + encKeys.count;
+  result.deletedPersonalData = notifs.count + invitees.count;
 
   // Step 7: Create DepartureLog
   const userName = await getUserNameSnapshot(userId);

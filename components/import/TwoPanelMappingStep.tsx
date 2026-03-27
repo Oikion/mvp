@@ -546,6 +546,7 @@ export function TwoPanelMappingStep({
                         {matchedColumns.map((header) => {
                           const result = matchResults.get(header) || {
                             sourceColumn: header,
+                            fieldKey: fieldMapping[header],
                             targetField: fieldMapping[header],
                             confidence: "none" as MatchConfidence,
                             score: 0,
@@ -580,6 +581,7 @@ export function TwoPanelMappingStep({
                         {unmatchedColumns.map((header) => {
                           const result = matchResults.get(header) || {
                             sourceColumn: header,
+                            fieldKey: null,
                             targetField: null,
                             confidence: "none" as MatchConfidence,
                             score: 0,

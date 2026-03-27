@@ -175,7 +175,6 @@ export async function uploadDocument(
       addRandomSuffix: folder === "avatars" ? false : addRandomSuffix,
       organizationId: blobPath ? undefined : organizationId, // Don't double-scope if we built path manually
       folder: blobPath ? undefined : blobFolder,
-      access: "public",
     }
   );
 

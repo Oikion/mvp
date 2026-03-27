@@ -12,7 +12,7 @@
 import { prismadb } from "@/lib/prisma";
 import { generateFriendlyIds, type EntityType } from "@/lib/friendly-id";
 import { getOrgDek } from "@/lib/key-management";
-import { type ImportError } from "./engine";
+import { type ImportError } from "./types";
 import {
   UNIFIED_FIELD_DEFINITIONS,
   stripEntityPrefix,

@@ -126,7 +126,6 @@ export async function uploadAvatarToBlob(
     contentType: options?.contentType,
     organizationId,
     folder: "avatars",
-    access: "public",
     addRandomSuffix: false, // Use predictable names for avatars
   });
 }
