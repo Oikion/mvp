@@ -1,17 +1,6 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
-import { useDroppable } from "@dnd-kit/core";
-import { useDraggable } from "@dnd-kit/core";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +34,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Check,
   AlertCircle,
@@ -54,9 +49,7 @@ import {
   X,
   Sparkles,
   Link2,
-  GripVertical,
   KeyRound,
-  Plus,
   Users,
   Building2,
   FileText,
@@ -190,85 +183,22 @@ const DEFAULT_GROUPING_KEY_FIELDS: Record<string, string[]> = {
 };
 
 // ---------------------------------------------------------------------------
-// DroppableEntityTab — wraps each tab's content area as a drop target
+// Entity dot colors for inline selectors
 // ---------------------------------------------------------------------------
 
-function DroppableEntityTab({
-  id,
-  children,
-  entityType,
-}: {
-  id: string;
-  children: React.ReactNode;
-  entityType: EntityType;
-}) {
-  const { setNodeRef, isOver } = useDroppable({ id });
-  const colors = ENTITY_COLORS[entityType] ?? ENTITY_COLORS.unassigned;
+const ENTITY_DOT_COLORS: Record<string, string> = {
+  client: "bg-blue-500",
+  property: "bg-emerald-500",
+  mandate: "bg-violet-500",
+  unassigned: "bg-muted-foreground",
+};
 
-  return (
-    <div
-      ref={setNodeRef}
-      className={cn(
-        "min-h-[60px] transition-colors rounded-lg",
-        isOver && colors.bg
-      )}
-    >
-      {children}
-      {/* Drop zone placeholder at bottom */}
-      <div
-        className={cn(
-          "border-2 border-dashed rounded-lg p-4 text-center text-sm text-muted-foreground transition-colors mt-2",
-          isOver
-            ? `${colors.border} ${colors.bg}`
-            : "border-muted"
-        )}
-      >
-        Drag columns here to assign to {ENTITY_LABELS[entityType] ?? entityType}
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// DraggableColumnRow — wraps each column row to make it draggable
-// ---------------------------------------------------------------------------
-
-function DraggableColumnRow({
-  id,
-  children,
-}: {
-  id: string;
-  children: React.ReactNode;
-}) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id });
-  const style = transform
-    ? { transform: `translate(${transform.x}px, ${transform.y}px)` }
-    : undefined;
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "transition-shadow",
-        isDragging && "opacity-50 shadow-lg z-50 relative"
-      )}
-      {...attributes}
-    >
-      <div className="flex items-center gap-0">
-        <div
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 shrink-0"
-          aria-label="Drag to move column"
-        >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="flex-1 min-w-0">{children}</div>
-      </div>
-    </div>
-  );
-}
+const ENTITY_BORDER_LEFT: Record<string, string> = {
+  client: "border-l-blue-500",
+  property: "border-l-emerald-500",
+  mandate: "border-l-violet-500",
+  unassigned: "",
+};
 
 // ---------------------------------------------------------------------------
 // FieldCombobox — per-row field selection dropdown (preserved from original)
@@ -696,140 +626,6 @@ function initializeGroupingKeys(
 }
 
 // ---------------------------------------------------------------------------
-// ColumnRow — renders one CSV column row inside a tab
-// ---------------------------------------------------------------------------
-
-function ColumnRow({
-  header,
-  fieldMapping,
-  matchResults,
-  fieldDefinitions,
-  fieldsDict,
-  mappedFields,
-  sampleData,
-  dict,
-  entityFilter,
-  groupingKeys,
-  onMappingChange,
-  onGroupingKeyToggle,
-}: {
-  header: string;
-  fieldMapping: Record<string, string>;
-  matchResults: Map<string, MatchResult>;
-  fieldDefinitions: readonly FieldDefinitionWithAliases[];
-  fieldsDict: FieldsDict;
-  mappedFields: Set<string>;
-  sampleData: Record<string, unknown>[];
-  dict: TableMappingStepProps["dict"];
-  entityFilter?: EntityType;
-  groupingKeys?: Record<string, boolean>;
-  onMappingChange: (csvColumn: string, targetField: string) => void;
-  onGroupingKeyToggle?: (csvColumn: string, active: boolean) => void;
-}) {
-  const currentMapping = fieldMapping[header] || "";
-  const matchResult = matchResults.get(header);
-  const sampleValue = sampleData[0]?.[header];
-  const sampleStr =
-    sampleValue !== undefined && sampleValue !== null
-      ? String(sampleValue)
-      : "";
-  const isMapped = !!currentMapping;
-
-  const handleSelect = useCallback(
-    (fieldKey: string) => {
-      onMappingChange(header, fieldKey);
-    },
-    [header, onMappingChange]
-  );
-
-  const handleReassign = useCallback(
-    (fromCol: string, fieldKey: string) => {
-      onMappingChange(fromCol, "");
-      onMappingChange(header, fieldKey);
-    },
-    [header, onMappingChange]
-  );
-
-  return (
-    <div
-      className={cn(
-        "grid grid-cols-[2fr_2fr_3fr_36px_36px] gap-3 px-4 py-2.5 items-center transition-colors",
-        isMapped ? "bg-success/5" : "bg-warning/5"
-      )}
-    >
-      {/* Column Name + Confidence */}
-      <div className="flex items-center gap-2 min-w-0">
-        <span className={cn("text-sm font-medium truncate", !isMapped && "text-warning")}>
-          {header}
-        </span>
-        {isMapped && matchResult && matchResult.confidence !== "none" && (
-          <Badge
-            variant="outline"
-            className={cn(
-              "text-[10px] shrink-0",
-              confidenceBadge[matchResult.confidence].className
-            )}
-          >
-            {matchResult.score}%
-          </Badge>
-        )}
-      </div>
-
-      {/* Sample Value */}
-      <span className="text-xs text-muted-foreground truncate">
-        {sampleStr || "\u2014"}
-      </span>
-
-      {/* Field Dropdown */}
-      <FieldCombobox
-        csvColumn={header}
-        currentValue={currentMapping}
-        matchResult={matchResult}
-        fieldDefinitions={fieldDefinitions}
-        fieldsDict={fieldsDict}
-        fieldMapping={fieldMapping}
-        mappedFields={mappedFields}
-        onSelect={handleSelect}
-        onReassign={handleReassign}
-        selectFieldLabel={dict.selectField}
-        reassignDialogDict={dict.reassignDialog}
-        entityFilter={entityFilter}
-      />
-
-      {/* Grouping key toggle */}
-      <div className="flex justify-center">
-        {isMapped && onGroupingKeyToggle ? (
-          <GroupingKeyToggle
-            csvColumn={header}
-            isActive={!!groupingKeys?.[header]}
-            onToggle={onGroupingKeyToggle}
-          />
-        ) : (
-          <span className="h-7 w-7" />
-        )}
-      </div>
-
-      {/* Clear / warning icon */}
-      <div className="flex justify-center">
-        {isMapped ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => handleSelect("")}
-            aria-label="Clear mapping"
-          >
-            <X className="h-3.5 w-3.5" />
-          </Button>
-        ) : (
-          <AlertTriangle className="h-3.5 w-3.5 text-warning shrink-0" />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Main Component
 // ---------------------------------------------------------------------------
 
@@ -926,117 +722,56 @@ export function TableMappingStep({
     });
   }, [fieldMapping, fieldDefinitions]);
 
-  // ------ Tab state ------
-  const entityTabs = useMemo((): EntityType[] => {
-    if (!isUnifiedMode) return [];
-    const entities = new Set<EntityType>();
-    for (const header of csvHeaders) {
-      entities.add(columnEntities[header] ?? "unassigned");
+  // Per-entity required fields (unified mode)
+  const missingRequiredByEntity = useMemo(() => {
+    const result: Record<string, FieldDefinitionWithAliases[]> = {};
+    for (const entity of ["client", "property", "mandate"]) {
+      const entityRequired = fieldDefinitions.filter(
+        (f) => f.required && (f as any).entity === entity
+      );
+      const missing = entityRequired.filter((rf) => !mappedFields.has(rf.key));
+      if (missing.length > 0) {
+        result[entity] = missing;
+      }
     }
-    // Always show unassigned if there are any
-    return (["client", "property", "mandate", "unassigned"] as EntityType[]).filter(
-      (e) => entities.has(e)
-    );
-  }, [csvHeaders, columnEntities, isUnifiedMode]);
+    return result;
+  }, [fieldDefinitions, mappedFields]);
 
-  // Hidden entities that can be activated
-  const hiddenEntities = useMemo((): EntityType[] => {
-    if (!isUnifiedMode) return [];
-    const allEntities: EntityType[] = ["client", "property", "mandate"];
-    return allEntities.filter((e) => !entityTabs.includes(e));
-  }, [entityTabs, isUnifiedMode]);
-
-  const [activeTab, setActiveTab] = useState<string>(() => entityTabs[0] ?? "client");
-
-  // Columns grouped by entity tab
-  const columnsByEntity = useMemo(() => {
-    const groups: Record<string, string[]> = {
-      client: [],
-      property: [],
-      mandate: [],
-      unassigned: [],
+  // ------ Entity counts for summary bar ------
+  const entityCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      client: 0,
+      property: 0,
+      mandate: 0,
+      unassigned: 0,
     };
     for (const header of csvHeaders) {
       const entity = columnEntities[header] ?? "unassigned";
-      if (!groups[entity]) groups[entity] = [];
-      groups[entity].push(header);
+      counts[entity] = (counts[entity] ?? 0) + 1;
     }
-    return groups;
+    return counts;
   }, [csvHeaders, columnEntities]);
 
-  // Unassigned count for badge
-  const unassignedCount = columnsByEntity.unassigned?.length ?? 0;
+  // ------ Entity change handler (per-row dropdown) ------
+  const handleEntityChange = useCallback(
+    (header: string, newEntity: string) => {
+      const currentEntity = columnEntities[header] ?? "unassigned";
+      if (currentEntity === newEntity) return;
 
-  // ------ Drag-and-drop state ------
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 8px minimum drag distance to avoid accidental drags
-      },
-    })
-  );
-
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveDragId(String(event.active.id));
-  }, []);
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      setActiveDragId(null);
-      const { active, over } = event;
-
-      if (!over) return;
-
-      const draggedColumn = String(active.id);
-      const targetEntity = String(over.id) as EntityType;
-      const sourceEntity = columnEntities[draggedColumn] ?? "unassigned";
-
-      // Only act if moving to a different entity
-      if (sourceEntity === targetEntity) return;
-
-      // Move column to target entity
-      const newEntities = { ...columnEntities, [draggedColumn]: targetEntity };
+      const newEntities = { ...columnEntities, [header]: newEntity as EntityType };
       setColumnEntities(newEntities);
 
-      // Clear field mapping when moving to a different entity
-      if (fieldMapping[draggedColumn]) {
-        onMappingChange(draggedColumn, "");
+      // Clear field mapping when entity changes (fields differ per entity)
+      if (fieldMapping[header]) {
+        onMappingChange(header, "");
       }
 
-      // Clear grouping key when moving
-      if (groupingKeys[draggedColumn]) {
-        setGroupingKeys({ ...groupingKeys, [draggedColumn]: false });
+      // Clear grouping key
+      if (groupingKeys[header]) {
+        setGroupingKeys({ ...groupingKeys, [header]: false });
       }
-
-      // Auto-switch to the target tab
-      setActiveTab(targetEntity);
     },
     [columnEntities, fieldMapping, groupingKeys, onMappingChange, setColumnEntities, setGroupingKeys]
-  );
-
-  const draggedColumnName = activeDragId ?? "";
-
-  // Handle adding a hidden entity tab
-  const handleAddEntity = useCallback(
-    (entity: EntityType) => {
-      // Assign a dummy so the tab appears — user will drag columns into it
-      // Just switch to the tab; columns can be dragged in
-      setActiveTab(entity);
-      // If no columns are in this entity yet, we need to force the tab to appear
-      // by adding a temporary marker — we do this by setting state
-      // Actually, just switching won't work if the tab doesn't exist.
-      // We need at least one column there. Let's move the first unassigned column if any.
-      const firstUnassigned = csvHeaders.find((h) => (columnEntities[h] ?? "unassigned") === "unassigned");
-      if (firstUnassigned) {
-        setColumnEntities({ ...columnEntities, [firstUnassigned]: entity });
-        if (fieldMapping[firstUnassigned]) {
-          onMappingChange(firstUnassigned, "");
-        }
-      }
-    },
-    [csvHeaders, columnEntities, fieldMapping, onMappingChange, setColumnEntities]
   );
 
   // ------ Legacy (non-unified) rendering ------
@@ -1179,22 +914,7 @@ export function TableMappingStep({
     );
   }
 
-  // ------ Unified mode: tabbed layout with drag-and-drop ------
-
-  // Per-entity required fields
-  const missingRequiredByEntity = useMemo(() => {
-    const result: Record<string, FieldDefinitionWithAliases[]> = {};
-    for (const entity of ["client", "property", "mandate"]) {
-      const entityRequired = fieldDefinitions.filter(
-        (f) => f.required && (f as any).entity === entity
-      );
-      const missing = entityRequired.filter((rf) => !mappedFields.has(rf.key));
-      if (missing.length > 0) {
-        result[entity] = missing;
-      }
-    }
-    return result;
-  }, [fieldDefinitions, mappedFields]);
+  // ------ Unified mode: flat table with per-row entity selector ------
 
   return (
     <div className="flex flex-col gap-4">
@@ -1247,154 +967,207 @@ export function TableMappingStep({
         </Alert>
       )}
 
-      {/* Tabbed entity-grouped mapping with DnD */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="flex items-center gap-2">
-            <TabsList>
-              {entityTabs.map((entity) => {
-                const Icon = ENTITY_ICONS[entity] ?? HelpCircle;
-                const colors = ENTITY_COLORS[entity] ?? ENTITY_COLORS.unassigned;
-                const count = columnsByEntity[entity]?.length ?? 0;
-                return (
-                  <TabsTrigger
-                    key={entity}
-                    value={entity}
-                    className={cn("gap-1.5", colors.tab)}
-                  >
-                    <Icon className="h-4 w-4" aria-hidden="true" />
-                    <span>{ENTITY_LABELS[entity]}</span>
-                    {entity === "unassigned" && unassignedCount > 0 && (
-                      <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
-                        {unassignedCount}
-                      </Badge>
-                    )}
-                    {entity !== "unassigned" && (
-                      <span className="text-xs opacity-70">({count})</span>
-                    )}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+      {/* Flat mapping table with per-row entity selector */}
+      <div className="border rounded-lg overflow-hidden">
+        {/* Table Header */}
+        <div className="grid grid-cols-[2fr_2fr_auto_3fr_36px_36px] gap-3 px-4 py-2.5 bg-muted/50 border-b text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <span>{dict.csvColumn}</span>
+          <span>{dict.sampleData}</span>
+          <span>Entity</span>
+          <span>{dict.targetField}</span>
+          <span className="text-center" aria-label="Grouping key">
+            <KeyRound className="h-3 w-3 mx-auto" aria-hidden="true" />
+          </span>
+          <span />
+        </div>
 
-            {/* + Add Entity button */}
-            {hiddenEntities.length > 0 && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-1 h-8">
-                    <Plus className="h-3.5 w-3.5" />
-                    Add Entity
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[160px] p-1" align="start">
-                  {hiddenEntities.map((entity) => {
-                    const Icon = ENTITY_ICONS[entity] ?? HelpCircle;
-                    return (
-                      <Button
-                        key={entity}
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={() => handleAddEntity(entity)}
-                      >
-                        <Icon className="h-4 w-4" aria-hidden="true" />
-                        {ENTITY_LABELS[entity]}
-                      </Button>
-                    );
-                  })}
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-
-          {/* Tab contents */}
-          {entityTabs.map((entity) => {
-            const columns = columnsByEntity[entity] ?? [];
-            const entityMissing = missingRequiredByEntity[entity];
+        {/* Column rows */}
+        <div className="divide-y">
+          {csvHeaders.map((header) => {
+            const currentMapping = fieldMapping[header] || "";
+            const matchResult = matchResults.get(header);
+            const sampleValue = sampleData[0]?.[header];
+            const sampleStr =
+              sampleValue !== undefined && sampleValue !== null
+                ? String(sampleValue)
+                : "";
+            const isMapped = !!currentMapping;
+            const entityForRow = columnEntities[header] ?? "unassigned";
+            const isAmbiguous = !!matchResult?.ambiguous;
+            const borderColor = ENTITY_BORDER_LEFT[entityForRow] ?? "";
 
             return (
-              <TabsContent key={entity} value={entity}>
-                <DroppableEntityTab id={entity} entityType={entity}>
-                  {/* Per-entity required fields warning */}
-                  {entityMissing && entityMissing.length > 0 && (
-                    <div className="flex items-start gap-3 p-3 rounded-lg border border-warning/30 bg-warning/10 mb-2">
-                      <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
-                      <div>
-                        <p className="font-medium text-xs">
-                          Missing required: {entityMissing
-                            .map((f) => fieldsDict.fields[f.key] || f.key)
-                            .join(", ")}
-                        </p>
-                      </div>
-                    </div>
+              <div
+                key={header}
+                className={cn(
+                  "grid grid-cols-[2fr_2fr_auto_3fr_36px_36px] gap-3 px-4 py-2.5 items-center transition-colors border-l-2",
+                  isMapped ? "bg-success/5" : "bg-warning/5",
+                  borderColor || "border-l-transparent"
+                )}
+              >
+                {/* Column Name + Confidence */}
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={cn("text-sm font-medium truncate", !isMapped && "text-warning")}>
+                    {header}
+                  </span>
+                  {isMapped && matchResult && matchResult.confidence !== "none" && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] shrink-0",
+                        confidenceBadge[matchResult.confidence].className
+                      )}
+                    >
+                      {matchResult.score}%
+                    </Badge>
                   )}
+                </div>
 
-                  {columns.length > 0 ? (
-                    <div className="border rounded-lg overflow-hidden">
-                      {/* Table Header */}
-                      <div className="grid grid-cols-[2fr_2fr_3fr_36px_36px] gap-3 px-4 py-2.5 bg-muted/50 border-b text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        <span>{dict.csvColumn}</span>
-                        <span>{dict.sampleData}</span>
-                        <span>{dict.targetField}</span>
-                        <span className="text-center" aria-label="Grouping key">
-                          <KeyRound className="h-3 w-3 mx-auto" aria-hidden="true" />
+                {/* Sample Value */}
+                <span className="text-xs text-muted-foreground truncate">
+                  {sampleStr || "\u2014"}
+                </span>
+
+                {/* Entity Selector */}
+                <div className="flex items-center gap-1.5">
+                  {isAmbiguous && (
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertTriangle className="h-3.5 w-3.5 text-warning shrink-0" aria-label="Ambiguous column" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[200px]">
+                          <p className="text-xs">
+                            This column matched fields in multiple entities. Please select the correct entity.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                  <Select value={entityForRow} onValueChange={(val) => handleEntityChange(header, val)}>
+                    <SelectTrigger className="h-8 w-[130px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="client">
+                        <span className="flex items-center gap-1.5">
+                          <span className={cn("h-2 w-2 rounded-full", ENTITY_DOT_COLORS.client)} />
+                          {ENTITY_LABELS.client}
                         </span>
-                        <span />
-                      </div>
+                      </SelectItem>
+                      <SelectItem value="property">
+                        <span className="flex items-center gap-1.5">
+                          <span className={cn("h-2 w-2 rounded-full", ENTITY_DOT_COLORS.property)} />
+                          {ENTITY_LABELS.property}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="mandate">
+                        <span className="flex items-center gap-1.5">
+                          <span className={cn("h-2 w-2 rounded-full", ENTITY_DOT_COLORS.mandate)} />
+                          {ENTITY_LABELS.mandate}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="unassigned">
+                        <span className="flex items-center gap-1.5">
+                          <span className={cn("h-2 w-2 rounded-full", ENTITY_DOT_COLORS.unassigned)} />
+                          {ENTITY_LABELS.unassigned}
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                      {/* Column rows */}
-                      <div className="divide-y">
-                        {columns.map((header) => (
-                          <DraggableColumnRow key={header} id={header}>
-                            <ColumnRow
-                              header={header}
-                              fieldMapping={fieldMapping}
-                              matchResults={matchResults}
-                              fieldDefinitions={fieldDefinitions}
-                              fieldsDict={fieldsDict}
-                              mappedFields={mappedFields}
-                              sampleData={sampleData}
-                              dict={dict}
-                              entityFilter={entity}
-                              groupingKeys={groupingKeys}
-                              onMappingChange={onMappingChange}
-                              onGroupingKeyToggle={handleGroupingKeyToggle}
-                            />
-                          </DraggableColumnRow>
-                        ))}
-                      </div>
-                    </div>
+                {/* Field Dropdown — filtered by selected entity */}
+                <FieldCombobox
+                  csvColumn={header}
+                  currentValue={currentMapping}
+                  matchResult={matchResult}
+                  fieldDefinitions={fieldDefinitions}
+                  fieldsDict={fieldsDict}
+                  fieldMapping={fieldMapping}
+                  mappedFields={mappedFields}
+                  onSelect={(fieldKey) => onMappingChange(header, fieldKey)}
+                  onReassign={(fromCol, fieldKey) => {
+                    onMappingChange(fromCol, "");
+                    onMappingChange(header, fieldKey);
+                  }}
+                  selectFieldLabel={dict.selectField}
+                  reassignDialogDict={dict.reassignDialog}
+                  entityFilter={entityForRow}
+                />
+
+                {/* Grouping key toggle */}
+                <div className="flex justify-center">
+                  {isMapped ? (
+                    <GroupingKeyToggle
+                      csvColumn={header}
+                      isActive={!!groupingKeys[header]}
+                      onToggle={handleGroupingKeyToggle}
+                    />
                   ) : (
-                    <div className="text-center py-8 text-sm text-muted-foreground">
-                      No columns assigned to {ENTITY_LABELS[entity]}. Drag columns here from other tabs.
-                    </div>
+                    <span className="h-7 w-7" />
                   )}
-                </DroppableEntityTab>
-              </TabsContent>
+                </div>
+
+                {/* Clear / warning icon */}
+                <div className="flex justify-center">
+                  {isMapped ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onMappingChange(header, "")}
+                      aria-label="Clear mapping"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  ) : (
+                    <AlertTriangle className="h-3.5 w-3.5 text-warning shrink-0" />
+                  )}
+                </div>
+              </div>
             );
           })}
-        </Tabs>
+        </div>
+      </div>
 
-        {/* Drag Overlay — compact chip shown while dragging */}
-        <DragOverlay>
-          {activeDragId ? (
-            <div className="flex items-center gap-2 px-3 py-2 bg-background border rounded-lg shadow-xl text-sm font-medium">
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
-              <span className="truncate max-w-[200px]">{draggedColumnName}</span>
-              {fieldMapping[draggedColumnName] && (
-                <Badge variant="outline" className="text-[10px] shrink-0">
-                  {fieldsDict.fields[fieldMapping[draggedColumnName]] || fieldMapping[draggedColumnName]}
-                </Badge>
-              )}
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      {/* Entity Summary Bar */}
+      <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg text-sm flex-wrap">
+        {(["client", "property", "mandate"] as const).map((entity) => {
+          const Icon = ENTITY_ICONS[entity];
+          const count = entityCounts[entity] ?? 0;
+          if (count === 0) return null;
+          return (
+            <span key={entity} className={cn("flex items-center gap-1.5", ENTITY_COLORS[entity].text)}>
+              <Icon className="h-4 w-4" aria-hidden="true" />
+              {ENTITY_LABELS[entity]} ({count})
+            </span>
+          );
+        })}
+        {(entityCounts.unassigned ?? 0) > 0 && (
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+            {ENTITY_LABELS.unassigned} ({entityCounts.unassigned})
+          </span>
+        )}
+      </div>
+
+      {/* Per-entity missing required fields */}
+      {Object.entries(missingRequiredByEntity).map(([entity, missing]) => (
+        <div
+          key={entity}
+          className="flex items-start gap-3 p-3 rounded-lg border border-warning/30 bg-warning/10"
+        >
+          <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+          <div>
+            <p className="font-medium text-xs">
+              {ENTITY_LABELS[entity]} — missing required: {missing
+                .map((f) => fieldsDict.fields[f.key] || f.key)
+                .join(", ")}
+            </p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
