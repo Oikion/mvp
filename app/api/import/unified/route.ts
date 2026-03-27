@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { executeBatchImport } from "@/lib/import/unified-engine";
-import { validateImportData } from "@/lib/import/validation-engine";
+import type { ValidatedRow } from "@/lib/import/validation-engine";
 import { recordImport } from "@/lib/import/history";
 
 export async function POST(req: Request) {
@@ -20,10 +20,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // Re-validate rows (server-side validation is mandatory)
-    const validation = validateImportData(rows);
+    // Rows arrive as ValidatedRow[] — already validated by /api/import/validate.
+    // Do NOT re-run validateImportData() here — the rows have already been
+    // partitioned into clientRow/propertyRow/mandateRow sub-objects, and
+    // partitionRow() would fail to find any field keys in that shape.
+    const validatedRows = rows as ValidatedRow[];
+
+    // Filter to only rows that have at least one entity
+    const rowsWithEntities = validatedRows.filter(
+      (r) => r.hasClient || r.hasProperty || r.hasMandate
+    );
+
+    if (rowsWithEntities.length === 0) {
+      return NextResponse.json(
+        { error: "No valid rows to import after validation" },
+        { status: 400 },
+      );
+    }
+
     const batchResult = await executeBatchImport(
-      validation.validRows,
+      rowsWithEntities,
       organizationId,
       user.id,
       assignedTo ?? null,
@@ -67,6 +83,10 @@ export async function POST(req: Request) {
     return NextResponse.json(batchResult, { status: 200 });
   } catch (error) {
     console.error("[UNIFIED_IMPORT_POST]", error);
-    return NextResponse.json({ error: "Import failed" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Import failed";
+    return NextResponse.json(
+      { error: "Import failed", detail: message },
+      { status: 500 },
+    );
   }
 }

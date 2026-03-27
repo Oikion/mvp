@@ -494,9 +494,9 @@ export function ImportWizardSteps({
         // Get the valid rows from server validation
         const rowsToImport = validationResult?.validRows ?? [];
 
-        // Filter out skipped rows
+        // Filter out skipped rows (by original rowIndex, not array position)
         const filteredRows = rowsToImport.filter(
-          (_, idx) => !skippedRows.has(idx),
+          (row) => !skippedRows.has((row as any).rowIndex ?? 0),
         );
 
         setImportProgress(30);

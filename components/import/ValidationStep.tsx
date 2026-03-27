@@ -40,7 +40,17 @@ export interface ServerValidationErrorRow {
 }
 
 export interface ServerValidationResult {
-  validRows: Array<Record<string, unknown>>;
+  validRows: Array<{
+    rowIndex: number;
+    clientRow: Record<string, unknown> | null;
+    propertyRow: Record<string, unknown> | null;
+    mandateRow: Record<string, unknown> | null;
+    hasClient: boolean;
+    hasProperty: boolean;
+    hasMandate: boolean;
+    clientDedupKey?: string;
+    propertyDedupKey?: string;
+  }>;
   errorRows: ServerValidationErrorRow[];
   entitySummary: {
     clients: { detected: boolean; total: number; unique: number; deduplicated: number };
