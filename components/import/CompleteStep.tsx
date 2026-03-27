@@ -326,21 +326,55 @@ export function CompleteStep({
         </Alert>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-        {viewUrl && hasImported && (
-          <Button asChild>
-            <Link href={viewUrl} className="inline-flex items-center gap-2 whitespace-nowrap">
+      {/* Per-Entity View Buttons */}
+      {batchResult && hasImported && (
+        <div className="flex flex-wrap gap-3 justify-center pt-2">
+          {batchResult.clients.length > 0 && (
+            <Button asChild variant="outline" size="sm">
+              <Link href="/app/crm/clients" className="inline-flex items-center gap-2">
+                <ExternalLink className="h-3.5 w-3.5" />
+                View Clients ({batchResult.clients.length})
+              </Link>
+            </Button>
+          )}
+          {batchResult.properties.length > 0 && (
+            <Button asChild variant="outline" size="sm">
+              <Link href="/app/mls/properties" className="inline-flex items-center gap-2">
+                <ExternalLink className="h-3.5 w-3.5" />
+                View Properties ({batchResult.properties.length})
+              </Link>
+            </Button>
+          )}
+          {batchResult.mandates.length > 0 && (
+            <Button asChild variant="outline" size="sm">
+              <Link href="/app/mandates" className="inline-flex items-center gap-2">
+                <ExternalLink className="h-3.5 w-3.5" />
+                View Mandates ({batchResult.mandates.length})
+              </Link>
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Legacy single-entity view button */}
+      {!batchResult && viewUrl && hasImported && (
+        <div className="flex justify-center pt-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href={viewUrl} className="inline-flex items-center gap-2">
+              <ExternalLink className="h-3.5 w-3.5" />
               {dict.viewImported.replace("{entity}", entityLabel)}
-              <ExternalLink className="h-4 w-4 shrink-0" />
             </Link>
           </Button>
-        )}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
         <Button variant="outline" onClick={onImportMore}>
           <RefreshCw className="h-4 w-4 mr-2" />
           {dict.importMore}
         </Button>
-        {returnUrl && hasImported && (
+        {returnUrl && (
           <Button asChild variant="ghost">
             <Link href={returnUrl}>
               {dict.done}
