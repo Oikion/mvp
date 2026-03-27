@@ -235,6 +235,8 @@ export function ImportWizardSteps({
   const [validationResult, setValidationResult] = useState<ServerValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [skippedRows, setSkippedRows] = useState<Set<number>>(new Set());
+  // Original flat mapped rows — needed for re-validation with edits applied
+  const [originalMappedRows, setOriginalMappedRows] = useState<Record<string, unknown>[]>([]);
 
   // ── Step 3: Review ──
   const [entityApprovals, setEntityApprovals] = useState<Record<string, boolean>>({});
@@ -453,12 +455,21 @@ export function ImportWizardSteps({
   // ── Re-validation handler (unified mode) ──────────────────────────────────
 
   const handleRevalidate = useCallback(
-    (updatedRows: Record<string, unknown>[]) => {
+    (editsByRow: Record<number, Record<string, string>>) => {
       if (unifiedMode) {
+        // Apply edits to the ORIGINAL flat mapped rows (not the ValidatedRow objects)
+        const updatedRows = originalMappedRows.map((row, idx) => {
+          const edits = editsByRow[idx];
+          if (edits) {
+            return { ...row, ...edits };
+          }
+          return row;
+        });
+        setOriginalMappedRows(updatedRows); // Update stored rows with edits
         void runServerValidation(updatedRows);
       }
     },
-    [unifiedMode, runServerValidation],
+    [unifiedMode, originalMappedRows, runServerValidation],
   );
 
   // ── Step transition: Mapping → Validation ─────────────────────────────────
@@ -466,6 +477,7 @@ export function ImportWizardSteps({
   const handleMappingToValidation = useCallback(async () => {
     if (unifiedMode) {
       const mappedRows = buildMappedRows();
+      setOriginalMappedRows(mappedRows); // Store for re-validation
       await runServerValidation(mappedRows);
       setDirection(1);
       setCurrentStep(2);

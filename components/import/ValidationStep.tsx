@@ -64,7 +64,7 @@ interface ValidationStepProps {
   isValidating: boolean;
   skippedRows: Set<number>;
   onSkippedRowsChange: (rows: Set<number>) => void;
-  onRevalidate: (updatedRows: Record<string, unknown>[]) => void;
+  onRevalidate: (editsByRow: Record<number, Record<string, string>>) => void;
   dict: Record<string, string>;
 }
 
@@ -252,34 +252,14 @@ export function ValidationStep({
   );
 
   const handleRevalidate = useCallback(() => {
-    if (!validationResult) return;
+    if (!validationResult || Object.keys(rowEdits).length === 0) return;
 
-    // Merge edits back into validRows for re-submission
-    const updatedRows = validationResult.validRows.map((row) => ({ ...row }));
-
-    // Apply edits to error rows and include them too
-    const errorRowsByIndex = new Map<number, ServerValidationErrorRow[]>();
-    for (const errRow of validationResult.errorRows) {
-      const list = errorRowsByIndex.get(errRow.rowIndex) ?? [];
-      list.push(errRow);
-      errorRowsByIndex.set(errRow.rowIndex, list);
-    }
-
-    // Build updated rows from error rows with edits applied
-    errorRowsByIndex.forEach((errRows, rowIndex) => {
-      if (skippedRows.has(rowIndex)) return;
-      const base: Record<string, unknown> = {};
-      for (const er of errRows) {
-        base[er.field] = er.rawValue;
-      }
-      const edits = rowEdits[rowIndex] ?? {};
-      const merged = { ...base, ...edits };
-      updatedRows.push(merged);
-    });
-
-    onRevalidate(updatedRows);
+    // Pass only the edits — the parent (ImportWizardSteps) applies them to the
+    // original flat mapped rows and re-sends the complete dataset to the server.
+    onRevalidate(rowEdits);
+    setRowEdits({});
     setHasEdits(false);
-  }, [validationResult, rowEdits, skippedRows, onRevalidate]);
+  }, [validationResult, rowEdits, onRevalidate]);
 
   // ── Loading state ────────────────────────────────────────────────────────────
   if (isValidating) {
