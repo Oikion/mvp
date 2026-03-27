@@ -310,9 +310,34 @@ export function validateImportData(
       validated.mandateRow = normalized;
     }
 
-    // All rows go into validRows (even ones with errors, for UI display).
-    // The caller can filter by checking errorRows for the row index.
-    if (!rowHasErrors) {
+    // Rows with at least one valid entity go into validRows.
+    // Entity-specific errors null out only the failing entity's sub-row —
+    // the row can still be imported for its other entities.
+    // e.g. a row where client passes but property fails: hasClient=true,
+    // propertyRow=null (cleared below), hasProperty becomes false for import.
+    if (rowHasErrors) {
+      // Null out entity sub-rows that had validation errors
+      const entityErrors = new Set(
+        errorRows
+          .filter((e) => e.rowIndex === rowIndex)
+          .map((e) => e.entity)
+      );
+      if (entityErrors.has("client")) {
+        validated.clientRow = null;
+        validated.hasClient = false;
+      }
+      if (entityErrors.has("property")) {
+        validated.propertyRow = null;
+        validated.hasProperty = false;
+      }
+      if (entityErrors.has("mandate")) {
+        validated.mandateRow = null;
+        validated.hasMandate = false;
+      }
+    }
+
+    // Include in validRows if at least one entity survived validation
+    if (validated.hasClient || validated.hasProperty || validated.hasMandate) {
       validRows.push(validated);
     }
   }

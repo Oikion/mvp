@@ -26,20 +26,8 @@ export async function POST(req: Request) {
     // partitionRow() would fail to find any field keys in that shape.
     const validatedRows = rows as ValidatedRow[];
 
-    // Filter to only rows that have at least one entity
-    const rowsWithEntities = validatedRows.filter(
-      (r) => r.hasClient || r.hasProperty || r.hasMandate
-    );
-
-    if (rowsWithEntities.length === 0) {
-      return NextResponse.json(
-        { error: "No valid rows to import after validation" },
-        { status: 400 },
-      );
-    }
-
     const batchResult = await executeBatchImport(
-      rowsWithEntities,
+      validatedRows,
       organizationId,
       user.id,
       assignedTo ?? null,
