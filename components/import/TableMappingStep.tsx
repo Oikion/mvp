@@ -970,7 +970,7 @@ export function TableMappingStep({
       {/* Flat mapping table with per-row entity selector */}
       <div className="border rounded-lg overflow-hidden">
         {/* Table Header */}
-        <div className="grid grid-cols-[2fr_2fr_auto_3fr_36px_36px] gap-3 px-4 py-2.5 bg-muted/50 border-b text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <div className="grid grid-cols-[minmax(100px,2fr)_minmax(80px,2fr)_150px_minmax(120px,3fr)_36px_36px] gap-3 px-4 py-2.5 bg-muted/50 border-b text-xs font-medium text-muted-foreground uppercase tracking-wide">
           <span>{dict.csvColumn}</span>
           <span>{dict.sampleData}</span>
           <span>Entity</span>
@@ -1000,7 +1000,7 @@ export function TableMappingStep({
               <div
                 key={header}
                 className={cn(
-                  "grid grid-cols-[2fr_2fr_auto_3fr_36px_36px] gap-3 px-4 py-2.5 items-center transition-colors border-l-2",
+                  "grid grid-cols-[minmax(100px,2fr)_minmax(80px,2fr)_150px_minmax(120px,3fr)_36px_36px] gap-3 px-4 py-2.5 items-center transition-colors border-l-2",
                   isMapped ? "bg-success/5" : "bg-warning/5",
                   borderColor || "border-l-transparent"
                 )}
