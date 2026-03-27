@@ -90,19 +90,24 @@ export async function generateFriendlyId(
   const orgId = resolveOrgId(entityType, organizationId);
   const compositeId = `${prefix}:${orgId}`;
 
-  // Use raw SQL for atomic upsert + increment to prevent race conditions
-  // ON CONFLICT targets the compound unique (prefix, organizationId)
-  const result = await (prisma as PrismaClient).$queryRaw<Array<{ lastValue: number }>>`
-    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
-    VALUES (${compositeId}, ${prefix}, ${orgId}, 1, NOW())
-    ON CONFLICT (prefix, "organizationId")
-    DO UPDATE SET
-      "lastValue" = "IdSequence"."lastValue" + 1,
-      "updatedAt" = NOW()
-    RETURNING "lastValue"
-  `;
+  // Use Prisma's standard upsert (Accelerate-compatible) instead of raw SQL.
+  // The update atomically increments lastValue to prevent race conditions.
+  const record = await (prisma as any).idSequence.upsert({
+    where: {
+      prefix_organizationId: { prefix, organizationId: orgId },
+    },
+    create: {
+      id: compositeId,
+      prefix,
+      organizationId: orgId,
+      lastValue: 1,
+    },
+    update: {
+      lastValue: { increment: 1 },
+    },
+  });
 
-  const lastValue = result[0]?.lastValue ?? 1;
+  const lastValue = record.lastValue ?? 1;
 
   // Format: prefix-NNNNNN (6 digits, zero-padded)
   return `${prefix}-${String(lastValue).padStart(6, "0")}`;
@@ -128,18 +133,24 @@ export async function generateFriendlyIds(
   const orgId = resolveOrgId(entityType, organizationId);
   const compositeId = `${prefix}:${orgId}`;
 
-  // Atomically increment by count and get the new value
-  const result = await prisma.$queryRaw<Array<{ lastValue: number }>>`
-    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
-    VALUES (${compositeId}, ${prefix}, ${orgId}, ${count}, NOW())
-    ON CONFLICT (prefix, "organizationId")
-    DO UPDATE SET
-      "lastValue" = "IdSequence"."lastValue" + ${count},
-      "updatedAt" = NOW()
-    RETURNING "lastValue"
-  `;
+  // Use Prisma's standard upsert (Accelerate-compatible) instead of raw SQL.
+  // Atomically increment by count to reserve a range of IDs.
+  const record = await (prisma as any).idSequence.upsert({
+    where: {
+      prefix_organizationId: { prefix, organizationId: orgId },
+    },
+    create: {
+      id: compositeId,
+      prefix,
+      organizationId: orgId,
+      lastValue: count,
+    },
+    update: {
+      lastValue: { increment: count },
+    },
+  });
 
-  const endValue = result[0]?.lastValue ?? count;
+  const endValue = record.lastValue ?? count;
   const startValue = endValue - count + 1;
 
   // Generate array of IDs
@@ -167,13 +178,14 @@ export async function getCurrentSequenceValue(
   const prefix = ENTITY_PREFIXES[entityType];
   const orgId = resolveOrgId(entityType, organizationId);
 
-  const result = await prisma.$queryRaw<Array<{ lastValue: number }>>`
-    SELECT "lastValue" FROM "IdSequence"
-    WHERE prefix = ${prefix} AND "organizationId" = ${orgId}
-    LIMIT 1
-  `;
+  const record = await (prisma as any).idSequence.findUnique({
+    where: {
+      prefix_organizationId: { prefix, organizationId: orgId },
+    },
+    select: { lastValue: true },
+  });
 
-  return result[0]?.lastValue ?? 0;
+  return record?.lastValue ?? 0;
 }
 
 /**
@@ -195,12 +207,18 @@ export async function initializeSequence(
   const orgId = resolveOrgId(entityType, organizationId);
   const compositeId = `${prefix}:${orgId}`;
 
-  await prisma.$queryRaw`
-    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
-    VALUES (${compositeId}, ${prefix}, ${orgId}, ${startValue}, NOW())
-    ON CONFLICT (prefix, "organizationId")
-    DO UPDATE SET
-      "lastValue" = ${startValue},
-      "updatedAt" = NOW()
-  `;
+  await (prisma as any).idSequence.upsert({
+    where: {
+      prefix_organizationId: { prefix, organizationId: orgId },
+    },
+    create: {
+      id: compositeId,
+      prefix,
+      organizationId: orgId,
+      lastValue: startValue,
+    },
+    update: {
+      lastValue: startValue,
+    },
+  });
 }
