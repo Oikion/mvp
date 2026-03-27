@@ -216,7 +216,7 @@ export function OrganizationsDataTable({
               ) : (
                 <Network className="mr-2 h-4 w-4 text-muted-foreground" />
               )}
-              {row.original.networkEnabled ? "Disable Polis" : "Enable Polis"}
+              {row.original.networkEnabled ? "Disable Network" : "Enable Network"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => openActionDialog(row.original, "warnAll")}>

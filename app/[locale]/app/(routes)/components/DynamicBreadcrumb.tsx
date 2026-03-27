@@ -121,6 +121,10 @@ export function DynamicBreadcrumb() {
         // Event ID
         return t("ModuleMenu.calendar");
       }
+      if (prevSegment === "import" && /^[a-f0-9-]+$/i.test(segment)) {
+        // Import ID — resolved to friendly name by useBreadcrumbEntityName
+        return t("ModuleMenu.import");
+      }
     }
 
     // Default: capitalize first letter

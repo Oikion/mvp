@@ -477,10 +477,11 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
     // Middleware runs on Edge (no Prisma), so we use a cookie-based check.
     // The consent-required page does the actual DB check and sets the cookie
     // if consent already exists (redirect back to app).
-    // Skip for: consent-required, onboarding, invitation, auth pages, settings
+    // Skip for: consent-required, onboarding (incl. org creation), invitation, auth pages, settings
     const isConsentExempt =
       pathname.includes("/consent-required") ||
       pathname.includes("/onboard") ||
+      pathname.includes("/create-organization") ||
       pathname.includes("/invitation") ||
       pathname.includes("/sign-in") ||
       pathname.includes("/sign-up") ||

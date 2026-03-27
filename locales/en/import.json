@@ -681,7 +681,8 @@
       "COMPLETED": "Completed",
       "PARTIALLY_FAILED": "Partial",
       "FAILED": "Failed",
-      "BATCH_DELETED": "Deleted"
+      "BATCH_DELETED": "Deleted",
+      "PARTIALLY_DELETED": "Partially Deleted"
     },
     "type": {
       "CLIENTS": "Clients",
@@ -726,11 +727,26 @@
     },
     "batchDelete": {
       "title": "Delete Imported Batch",
-      "description": "This will permanently delete all entities created by this import. This action cannot be undone.",
+      "description": "You are about to delete entities from import \u201c{filename}\u201d.",
       "confirm": "Delete all imported entities",
       "cancel": "Cancel",
+      "deleting": "Deleting\u2026",
       "success": "Batch deleted successfully",
-      "error": "Failed to delete batch"
+      "error": "Failed to delete batch",
+      "fullTab": "Full Delete",
+      "selectiveTab": "Selective Delete",
+      "chooseEntities": "Choose which entity types to delete:",
+      "selectAtLeast": "Select at least one entity type to delete.",
+      "cannotUndo": "This action cannot be undone.",
+      "impactError": "Failed to load impact data. You can still proceed with deletion.",
+      "noEntities": "No entities will be deleted.",
+      "alsoRemove": "This will also remove:",
+      "clientPropertyLinks": "{count} client-property links",
+      "mandatePropertyLinks": "{count} mandate-property links",
+      "mandateClientLinks": "{count} mandate-client links",
+      "dealsLinked": "{count} deals linked to these entities",
+      "showLess": "Show less",
+      "showMore": "+{count} more"
     }
   }
 }

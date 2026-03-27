@@ -5,7 +5,7 @@ import useSWR from "swr";
 /**
  * Entity types that support name fetching
  */
-export type EntityType = "property" | "client" | "event" | "document" | "task";
+export type EntityType = "property" | "client" | "event" | "document" | "task" | "import";
 
 /**
  * Entity name response from API
@@ -31,6 +31,7 @@ async function fetchEntityName(
       event: `/api/calendar/events/${entityId}/name`,
       document: `/api/documents/${entityId}/name`,
       task: `/api/crm/tasks/${entityId}/name`,
+      import: `/api/import/history/${entityId}/name`,
     };
 
     const endpoint = endpoints[entityType];
@@ -107,6 +108,7 @@ export function detectEntityType(parentSegment: string): EntityType | null {
     events: "event",
     documents: "document",
     tasks: "task",
+    import: "import",
   };
 
   return segmentToType[parentSegment.toLowerCase()] ?? null;
