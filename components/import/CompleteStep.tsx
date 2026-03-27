@@ -146,25 +146,29 @@ export function CompleteStep({
                         <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       </div>
                       <span className="text-sm font-medium">Clients</span>
+                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
+                        {batchResult.clients.length} created
+                      </span>
                     </div>
-                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
-                      {batchResult.clients.length} imported
-                    </span>
+                    <Button asChild variant="outline" size="sm" className="h-7 text-xs">
+                      <Link href="/app/crm/clients" className="inline-flex items-center gap-1.5">
+                        <ExternalLink className="h-3 w-3" />
+                        View Clients
+                      </Link>
+                    </Button>
                   </div>
-                  {batchResult.clients.length > 0 && (
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      {batchResult.clients.slice(0, 5).map((client) => (
-                        <div key={client.uuid} className="flex items-center gap-2">
-                          <span className="text-blue-600 dark:text-blue-400 font-mono">{client.friendlyId}</span>
-                        </div>
-                      ))}
-                      {batchResult.clients.length > 5 && (
-                        <div className="text-muted-foreground italic">
-                          +{batchResult.clients.length - 5} more
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    {batchResult.clients.slice(0, 5).map((client) => (
+                      <div key={client.uuid} className="flex items-center gap-2">
+                        <span className="text-blue-600 dark:text-blue-400 font-mono">{client.friendlyId}</span>
+                      </div>
+                    ))}
+                    {batchResult.clients.length > 5 && (
+                      <div className="text-muted-foreground italic">
+                        +{batchResult.clients.length - 5} more
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -181,25 +185,29 @@ export function CompleteStep({
                         <Tag className="h-4 w-4 text-green-600 dark:text-green-400" />
                       </div>
                       <span className="text-sm font-medium">Properties</span>
+                      <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded">
+                        {batchResult.properties.length} created
+                      </span>
                     </div>
-                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded">
-                      {batchResult.properties.length} imported
-                    </span>
+                    <Button asChild variant="outline" size="sm" className="h-7 text-xs">
+                      <Link href="/app/mls/properties" className="inline-flex items-center gap-1.5">
+                        <ExternalLink className="h-3 w-3" />
+                        View Properties
+                      </Link>
+                    </Button>
                   </div>
-                  {batchResult.properties.length > 0 && (
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      {batchResult.properties.slice(0, 5).map((prop) => (
-                        <div key={prop.uuid} className="flex items-center gap-2">
-                          <span className="text-green-600 dark:text-green-400 font-mono">{prop.friendlyId}</span>
-                        </div>
-                      ))}
-                      {batchResult.properties.length > 5 && (
-                        <div className="text-muted-foreground italic">
-                          +{batchResult.properties.length - 5} more
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    {batchResult.properties.slice(0, 5).map((prop) => (
+                      <div key={prop.uuid} className="flex items-center gap-2">
+                        <span className="text-green-600 dark:text-green-400 font-mono">{prop.friendlyId}</span>
+                      </div>
+                    ))}
+                    {batchResult.properties.length > 5 && (
+                      <div className="text-muted-foreground italic">
+                        +{batchResult.properties.length - 5} more
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -216,25 +224,29 @@ export function CompleteStep({
                         <Tag className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                       </div>
                       <span className="text-sm font-medium">Mandates</span>
+                      <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded">
+                        {batchResult.mandates.length} created
+                      </span>
                     </div>
-                    <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 px-2 py-1 rounded">
-                      {batchResult.mandates.length} imported
-                    </span>
+                    <Button asChild variant="outline" size="sm" className="h-7 text-xs">
+                      <Link href="/app/mandates" className="inline-flex items-center gap-1.5">
+                        <ExternalLink className="h-3 w-3" />
+                        View Mandates
+                      </Link>
+                    </Button>
                   </div>
-                  {batchResult.mandates.length > 0 && (
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      {batchResult.mandates.slice(0, 5).map((mandate) => (
-                        <div key={mandate.uuid} className="flex items-center gap-2">
-                          <span className="text-violet-600 dark:text-violet-400 font-mono">{mandate.friendlyId}</span>
-                        </div>
-                      ))}
-                      {batchResult.mandates.length > 5 && (
-                        <div className="text-muted-foreground italic">
-                          +{batchResult.mandates.length - 5} more
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    {batchResult.mandates.slice(0, 5).map((mandate) => (
+                      <div key={mandate.uuid} className="flex items-center gap-2">
+                        <span className="text-violet-600 dark:text-violet-400 font-mono">{mandate.friendlyId}</span>
+                      </div>
+                    ))}
+                    {batchResult.mandates.length > 5 && (
+                      <div className="text-muted-foreground italic">
+                        +{batchResult.mandates.length - 5} more
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -324,36 +336,6 @@ export function CompleteStep({
             {result.skipped} row(s) already existed and were skipped.
           </AlertDescription>
         </Alert>
-      )}
-
-      {/* Per-Entity View Buttons */}
-      {batchResult && hasImported && (
-        <div className="flex flex-wrap gap-3 justify-center pt-2">
-          {batchResult.clients.length > 0 && (
-            <Button asChild variant="outline" size="sm">
-              <Link href="/app/crm/clients" className="inline-flex items-center gap-2">
-                <ExternalLink className="h-3.5 w-3.5" />
-                View Clients ({batchResult.clients.length})
-              </Link>
-            </Button>
-          )}
-          {batchResult.properties.length > 0 && (
-            <Button asChild variant="outline" size="sm">
-              <Link href="/app/mls/properties" className="inline-flex items-center gap-2">
-                <ExternalLink className="h-3.5 w-3.5" />
-                View Properties ({batchResult.properties.length})
-              </Link>
-            </Button>
-          )}
-          {batchResult.mandates.length > 0 && (
-            <Button asChild variant="outline" size="sm">
-              <Link href="/app/mandates" className="inline-flex items-center gap-2">
-                <ExternalLink className="h-3.5 w-3.5" />
-                View Mandates ({batchResult.mandates.length})
-              </Link>
-            </Button>
-          )}
-        </div>
       )}
 
       {/* Legacy single-entity view button */}
