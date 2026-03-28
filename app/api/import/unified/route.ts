@@ -70,8 +70,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json(batchResult, { status: 200 });
   } catch (error) {
-    console.error("[UNIFIED_IMPORT_POST]", error);
-    const message = error instanceof Error ? error.message : "Import failed";
+    const name = error instanceof Error ? error.constructor.name : "Unknown";
+    const message = error instanceof Error ? error.message : String(error);
+    const code = (error as any)?.code ?? "N/A";
+    const meta = (error as any)?.meta ? JSON.stringify((error as any).meta) : "N/A";
+    console.error("[UNIFIED_IMPORT_POST]", { name, code, message, meta });
     return NextResponse.json(
       { error: "Import failed", detail: message },
       { status: 500 },
