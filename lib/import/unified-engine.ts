@@ -542,7 +542,7 @@ export async function executeBatchImport(
         });
       }
     },
-    { timeout: 30000 },
+    { timeout: 15000 },
   );
 
   // 5. Assemble typed result
