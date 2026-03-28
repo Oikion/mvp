@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
+import { prismadbDirect } from "@/lib/prisma";
 
 /**
  * Entity type to prefix mapping for friendly IDs
@@ -82,7 +83,7 @@ export function getEntityTypeFromId(id: string): EntityType | null {
  * @returns Promise<string> - The generated friendly ID (e.g., "prp-000001")
  */
 export async function generateFriendlyId(
-  prisma: PrismaClient | Prisma.TransactionClient,
+  _prisma: PrismaClient | Prisma.TransactionClient,
   entityType: EntityType,
   organizationId?: string
 ): Promise<string> {
@@ -90,26 +91,19 @@ export async function generateFriendlyId(
   const orgId = resolveOrgId(entityType, organizationId);
   const compositeId = `${prefix}:${orgId}`;
 
-  // Use Prisma's standard upsert (Accelerate-compatible) instead of raw SQL.
-  // The update atomically increments lastValue to prevent race conditions.
-  const record = await (prisma as any).idSequence.upsert({
-    where: {
-      prefix_organizationId: { prefix, organizationId: orgId },
-    },
-    create: {
-      id: compositeId,
-      prefix,
-      organizationId: orgId,
-      lastValue: 1,
-      updatedAt: new Date(),
-    },
-    update: {
-      lastValue: { increment: 1 },
-      updatedAt: new Date(),
-    },
-  });
+  // Use raw SQL via the direct (non-Accelerate) client for atomic
+  // upsert + increment. Accelerate doesn't reliably support this pattern.
+  const result = await prismadbDirect.$queryRaw<Array<{ lastValue: number }>>`
+    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
+    VALUES (${compositeId}, ${prefix}, ${orgId}, 1, NOW())
+    ON CONFLICT (prefix, "organizationId")
+    DO UPDATE SET
+      "lastValue" = "IdSequence"."lastValue" + 1,
+      "updatedAt" = NOW()
+    RETURNING "lastValue"
+  `;
 
-  const lastValue = record.lastValue ?? 1;
+  const lastValue = result[0]?.lastValue ?? 1;
 
   // Format: prefix-NNNNNN (6 digits, zero-padded)
   return `${prefix}-${String(lastValue).padStart(6, "0")}`;
@@ -126,7 +120,7 @@ export async function generateFriendlyId(
  * @returns Promise<string[]> - Array of generated friendly IDs
  */
 export async function generateFriendlyIds(
-  prisma: PrismaClient,
+  _prisma: PrismaClient,
   entityType: EntityType,
   count: number,
   organizationId?: string
@@ -135,26 +129,19 @@ export async function generateFriendlyIds(
   const orgId = resolveOrgId(entityType, organizationId);
   const compositeId = `${prefix}:${orgId}`;
 
-  // Use Prisma's standard upsert (Accelerate-compatible) instead of raw SQL.
-  // Atomically increment by count to reserve a range of IDs.
-  const record = await (prisma as any).idSequence.upsert({
-    where: {
-      prefix_organizationId: { prefix, organizationId: orgId },
-    },
-    create: {
-      id: compositeId,
-      prefix,
-      organizationId: orgId,
-      lastValue: count,
-      updatedAt: new Date(),
-    },
-    update: {
-      lastValue: { increment: count },
-      updatedAt: new Date(),
-    },
-  });
+  // Use raw SQL via the direct (non-Accelerate) client for atomic
+  // upsert + increment. Accelerate doesn't reliably support this pattern.
+  const result = await prismadbDirect.$queryRaw<Array<{ lastValue: number }>>`
+    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
+    VALUES (${compositeId}, ${prefix}, ${orgId}, ${count}, NOW())
+    ON CONFLICT (prefix, "organizationId")
+    DO UPDATE SET
+      "lastValue" = "IdSequence"."lastValue" + ${count},
+      "updatedAt" = NOW()
+    RETURNING "lastValue"
+  `;
 
-  const endValue = record.lastValue ?? count;
+  const endValue = result[0]?.lastValue ?? count;
   const startValue = endValue - count + 1;
 
   // Generate array of IDs
@@ -175,21 +162,20 @@ export async function generateFriendlyIds(
  * @returns Promise<number> - Current sequence value (0 if not initialized)
  */
 export async function getCurrentSequenceValue(
-  prisma: PrismaClient,
+  _prisma: PrismaClient,
   entityType: EntityType,
   organizationId?: string
 ): Promise<number> {
   const prefix = ENTITY_PREFIXES[entityType];
   const orgId = resolveOrgId(entityType, organizationId);
 
-  const record = await (prisma as any).idSequence.findUnique({
-    where: {
-      prefix_organizationId: { prefix, organizationId: orgId },
-    },
-    select: { lastValue: true },
-  });
+  const result = await prismadbDirect.$queryRaw<Array<{ lastValue: number }>>`
+    SELECT "lastValue" FROM "IdSequence"
+    WHERE prefix = ${prefix} AND "organizationId" = ${orgId}
+    LIMIT 1
+  `;
 
-  return record?.lastValue ?? 0;
+  return result[0]?.lastValue ?? 0;
 }
 
 /**
@@ -202,7 +188,7 @@ export async function getCurrentSequenceValue(
  * @param organizationId - The organization ID (required for org-scoped entities)
  */
 export async function initializeSequence(
-  prisma: PrismaClient,
+  _prisma: PrismaClient,
   entityType: EntityType,
   startValue: number = 0,
   organizationId?: string
@@ -211,20 +197,12 @@ export async function initializeSequence(
   const orgId = resolveOrgId(entityType, organizationId);
   const compositeId = `${prefix}:${orgId}`;
 
-  await (prisma as any).idSequence.upsert({
-    where: {
-      prefix_organizationId: { prefix, organizationId: orgId },
-    },
-    create: {
-      id: compositeId,
-      prefix,
-      organizationId: orgId,
-      lastValue: startValue,
-      updatedAt: new Date(),
-    },
-    update: {
-      lastValue: startValue,
-      updatedAt: new Date(),
-    },
-  });
+  await prismadbDirect.$queryRaw`
+    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
+    VALUES (${compositeId}, ${prefix}, ${orgId}, ${startValue}, NOW())
+    ON CONFLICT (prefix, "organizationId")
+    DO UPDATE SET
+      "lastValue" = ${startValue},
+      "updatedAt" = NOW()
+  `;
 }
