@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import { prismadbDirect } from "@/lib/prisma";
+import { prismadb as defaultPrisma } from "@/lib/prisma";
 
 /**
  * Entity type to prefix mapping for friendly IDs
@@ -87,33 +87,15 @@ export async function generateFriendlyId(
   entityType: EntityType,
   organizationId?: string
 ): Promise<string> {
-  const prefix = ENTITY_PREFIXES[entityType];
-  const orgId = resolveOrgId(entityType, organizationId);
-  const compositeId = `${prefix}:${orgId}`;
-
-  // Use raw SQL via the direct (non-Accelerate) client for atomic
-  // upsert + increment. Accelerate doesn't reliably support this pattern.
-  const result = await prismadbDirect.$queryRaw<Array<{ lastValue: number }>>`
-    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
-    VALUES (${compositeId}, ${prefix}, ${orgId}, 1, NOW())
-    ON CONFLICT (prefix, "organizationId")
-    DO UPDATE SET
-      "lastValue" = "IdSequence"."lastValue" + 1,
-      "updatedAt" = NOW()
-    RETURNING "lastValue"
-  `;
-
-  const lastValue = result[0]?.lastValue ?? 1;
-
-  // Format: prefix-NNNNNN (6 digits, zero-padded)
-  return `${prefix}-${String(lastValue).padStart(6, "0")}`;
+  const ids = await generateFriendlyIds(defaultPrisma, entityType, 1, organizationId);
+  return ids[0];
 }
 
 /**
  * Generates multiple friendly IDs in a single transaction, scoped to an organization.
- * Useful for bulk imports.
+ * Uses a two-step find+upsert via the primary key (`id`) for full Accelerate compatibility.
  *
- * @param prisma - Prisma client instance
+ * @param _prisma - Prisma client instance (ignored — uses module-level singleton)
  * @param entityType - The type of entity
  * @param count - Number of IDs to generate
  * @param organizationId - The organization ID (required for org-scoped entities, ignored for Users)
@@ -129,34 +111,43 @@ export async function generateFriendlyIds(
   const orgId = resolveOrgId(entityType, organizationId);
   const compositeId = `${prefix}:${orgId}`;
 
-  // Use raw SQL via the direct (non-Accelerate) client for atomic
-  // upsert + increment. Accelerate doesn't reliably support this pattern.
-  const result = await prismadbDirect.$queryRaw<Array<{ lastValue: number }>>`
-    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
-    VALUES (${compositeId}, ${prefix}, ${orgId}, ${count}, NOW())
-    ON CONFLICT (prefix, "organizationId")
-    DO UPDATE SET
-      "lastValue" = "IdSequence"."lastValue" + ${count},
-      "updatedAt" = NOW()
-    RETURNING "lastValue"
-  `;
+  // Two-step approach: read current value, then upsert with computed new value.
+  // Uses primary key `id` (not compound unique) for maximum Accelerate compatibility.
+  const existing = await defaultPrisma.idSequence.findUnique({
+    where: { id: compositeId },
+    select: { lastValue: true },
+  });
 
-  const endValue = result[0]?.lastValue ?? count;
-  const startValue = endValue - count + 1;
+  const currentValue = existing?.lastValue ?? 0;
+  const newValue = currentValue + count;
 
-  // Generate array of IDs
+  await defaultPrisma.idSequence.upsert({
+    where: { id: compositeId },
+    create: {
+      id: compositeId,
+      prefix,
+      organizationId: orgId,
+      lastValue: newValue,
+      updatedAt: new Date(),
+    },
+    update: {
+      lastValue: newValue,
+      updatedAt: new Date(),
+    },
+  });
+
+  const startValue = currentValue + 1;
   const ids: string[] = [];
-  for (let i = startValue; i <= endValue; i++) {
+  for (let i = startValue; i <= newValue; i++) {
     ids.push(`${prefix}-${String(i).padStart(6, "0")}`);
   }
-
   return ids;
 }
 
 /**
  * Gets the current sequence value for an entity type without incrementing
  *
- * @param prisma - Prisma client instance
+ * @param _prisma - Prisma client instance (ignored — uses module-level singleton)
  * @param entityType - The type of entity
  * @param organizationId - The organization ID (required for org-scoped entities)
  * @returns Promise<number> - Current sequence value (0 if not initialized)
@@ -168,21 +159,20 @@ export async function getCurrentSequenceValue(
 ): Promise<number> {
   const prefix = ENTITY_PREFIXES[entityType];
   const orgId = resolveOrgId(entityType, organizationId);
+  const compositeId = `${prefix}:${orgId}`;
 
-  const result = await prismadbDirect.$queryRaw<Array<{ lastValue: number }>>`
-    SELECT "lastValue" FROM "IdSequence"
-    WHERE prefix = ${prefix} AND "organizationId" = ${orgId}
-    LIMIT 1
-  `;
-
-  return result[0]?.lastValue ?? 0;
+  const record = await defaultPrisma.idSequence.findUnique({
+    where: { id: compositeId },
+    select: { lastValue: true },
+  });
+  return record?.lastValue ?? 0;
 }
 
 /**
  * Initializes or resets the sequence for an entity type
  * WARNING: Only use for migrations or testing
  *
- * @param prisma - Prisma client instance
+ * @param _prisma - Prisma client instance (ignored — uses module-level singleton)
  * @param entityType - The type of entity
  * @param startValue - The value to set (default: 0)
  * @param organizationId - The organization ID (required for org-scoped entities)
@@ -197,12 +187,18 @@ export async function initializeSequence(
   const orgId = resolveOrgId(entityType, organizationId);
   const compositeId = `${prefix}:${orgId}`;
 
-  await prismadbDirect.$queryRaw`
-    INSERT INTO "IdSequence" (id, prefix, "organizationId", "lastValue", "updatedAt")
-    VALUES (${compositeId}, ${prefix}, ${orgId}, ${startValue}, NOW())
-    ON CONFLICT (prefix, "organizationId")
-    DO UPDATE SET
-      "lastValue" = ${startValue},
-      "updatedAt" = NOW()
-  `;
+  await defaultPrisma.idSequence.upsert({
+    where: { id: compositeId },
+    create: {
+      id: compositeId,
+      prefix,
+      organizationId: orgId,
+      lastValue: startValue,
+      updatedAt: new Date(),
+    },
+    update: {
+      lastValue: startValue,
+      updatedAt: new Date(),
+    },
+  });
 }

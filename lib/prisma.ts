@@ -9,8 +9,6 @@ type ExtendedPrismaClient = PrismaClient;
 declare global {
   // eslint-disable-next-line no-var, no-unused-vars
   var cachedPrisma: ExtendedPrismaClient | undefined;
-  // eslint-disable-next-line no-var, no-unused-vars
-  var cachedPrismaDirect: PrismaClient | undefined;
 }
 
 function createPrismaClient(): ExtendedPrismaClient {
@@ -35,28 +33,13 @@ function createPrismaClient(): ExtendedPrismaClient {
   return basePrisma;
 }
 
-/**
- * Creates a direct (non-Accelerate) Prisma client for operations that
- * require raw SQL ($queryRaw) or features Accelerate doesn't support.
- * Uses DIRECT_DATABASE_URL when available, falls back to DATABASE_URL.
- */
-function createDirectPrismaClient(): PrismaClient {
-  const directUrl = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL || "";
-  return new PrismaClient({
-    datasourceUrl: directUrl,
-    log: ["error"],
-  });
-}
-
 // FIXED: Always use singleton pattern to prevent connection exhaustion in serverless
 // Use existing cached instance if available, otherwise create a new one
 const prismadb = globalThis.cachedPrisma ?? createPrismaClient();
-const prismadbDirect = globalThis.cachedPrismaDirect ?? createDirectPrismaClient();
 
-// Cache the instances globally to reuse across requests
+// Cache the instance globally to reuse across requests
 // - In development: Preserves across hot reloads (module re-evaluation)
 // - In production serverless: globalThis persists across warm invocations
 globalThis.cachedPrisma = prismadb;
-globalThis.cachedPrismaDirect = prismadbDirect;
 
-export { prismadb, prismadbDirect };
+export { prismadb };
