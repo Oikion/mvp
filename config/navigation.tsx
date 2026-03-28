@@ -240,7 +240,7 @@ export function getNavigationConfig({
       icon: Target,
       isActive: isRouteActive(pathname, "/app/matchmaking", locale),
       badge: "1.0",
-      badgeClassName: "bg-rose-400/15 text-rose-400 dark:text-rose-400/70 border-0 shadow-sm hover:bg-rose-400/25",
+      badgeClassName: "ml-0 bg-rose-400/15 text-rose-400 dark:text-rose-400/70 border-0 shadow-sm hover:bg-rose-400/25",
       iconClassName: "text-rose-400 dark:text-rose-400/70",
       labelClassName: "text-rose-400 dark:text-rose-400/70 font-semibold",
     }] : []),

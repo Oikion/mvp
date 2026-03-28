@@ -790,21 +790,7 @@ export function ImportWizardSteps({
       case 3: // Review (unified — uses new props interface)
         return (
           <ReviewStep
-            validatedRows={(validationResult?.validRows ?? []).map(
-              (row: Record<string, unknown>, idx: number) => ({
-                rowIndex: idx,
-                clientRow: row,
-                propertyRow: row,
-                mandateRow: row,
-                hasClient: !!row.client_name || !!row.primary_phone || !!row.primary_email,
-                hasProperty: !!row.property_name,
-                hasMandate: mandateFieldKeys
-                  ? Object.entries(row).some(
-                      ([k, v]) => mandateFieldKeys.has(k) && v !== null && v !== undefined && v !== "",
-                    )
-                  : false,
-              }),
-            )}
+            validatedRows={validationResult?.validRows ?? []}
             skippedRows={skippedRows}
             entityApprovals={entityApprovals}
             onEntityApprovalsChange={setEntityApprovals}

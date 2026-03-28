@@ -2,7 +2,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Sparkles, Eye } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Sparkles, Eye, Pencil, Upload, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { MiniAreaChart } from "@/components/ui/mini-area-chart";
@@ -30,6 +36,10 @@ interface StatsCardProps {
   addHref?: string;
   /** Label for add new button */
   addLabel?: string;
+  /** Link to import items (when provided, "Add" becomes a dropdown with Manual + Import options) */
+  importHref?: string;
+  /** Label for import option in dropdown */
+  importLabel?: string;
   /** Custom className */
   className?: string;
   /** Custom actions to render in the action area (overrides default buttons when provided) */
@@ -57,6 +67,8 @@ export function StatsCard({
   viewLabel,
   addHref,
   addLabel,
+  importHref,
+  importLabel,
   className,
   customActions,
   chartData,
@@ -188,7 +200,7 @@ export function StatsCard({
                       </Link>
                     </Button>
                   )}
-                  {addHref && (
+                  {addHref && !importHref && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -200,6 +212,35 @@ export function StatsCard({
                         {addLabel || "Add New"}
                       </Link>
                     </Button>
+                  )}
+                  {addHref && importHref && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          <Plus className="h-3 w-3" />
+                          {addLabel || "Add"}
+                          <ChevronDown className="h-3 w-3 ml-0.5 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem asChild>
+                          <Link href={addHref} className="flex items-center gap-2">
+                            <Pencil className="h-3.5 w-3.5" />
+                            Manual
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={importHref} className="flex items-center gap-2">
+                            <Upload className="h-3.5 w-3.5" />
+                            {importLabel || "Import"}
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </div>
               )}

@@ -128,6 +128,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
             viewLabel={dict.dashboard.viewClients}
             addHref={`/${locale}/app/crm?action=create`}
             addLabel={dict.dashboard.addClient}
+            importHref={`/${locale}/app/import/add?type=clients`}
           />
         );
 
@@ -147,6 +148,7 @@ function DashboardContentInner({ data, dict }: Readonly<{ data: DashboardData; d
             viewLabel={dict.dashboard.viewProperties}
             addHref={`/${locale}/app/mls?action=create`}
             addLabel={dict.dashboard.addProperty}
+            importHref={`/${locale}/app/import/add?type=properties`}
           />
         );
 
