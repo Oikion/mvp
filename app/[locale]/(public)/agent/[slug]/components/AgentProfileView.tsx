@@ -110,26 +110,25 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
   const profilePath = `/${locale}/agent/${user.username}`;
   const properties = user.properties?.filter((p): p is NonNullable<typeof p> => p !== null) || [];
 
-  // Compute presence display for the static public profile
-  const getPresenceDisplay = () => {
-    if (!profile.presence) return null;
+  // Compute presence border color + tooltip for the static public profile
+  const getPresenceBorder = () => {
+    if (!profile.presence) return { label: "Offline", borderClass: "border-muted-foreground/30" };
     const { status, lastSeenAt } = profile.presence;
-    if (status === "ONLINE") return { label: "Online", color: "bg-success" };
-    if (status === "AWAY") return { label: locale === "el" ? "Μακριά" : "Away", color: "bg-warning" };
-    if (status === "BUSY") return { label: locale === "el" ? "Απασχολημένος" : "Busy", color: "bg-destructive" };
-    // OFFLINE — show "Active X ago" if recent
+    if (status === "ONLINE") return { label: "Online", borderClass: "border-success" };
+    if (status === "AWAY") return { label: locale === "el" ? "Μακριά" : "Away", borderClass: "border-warning" };
+    if (status === "BUSY") return { label: locale === "el" ? "Απασχολημένος" : "Busy", borderClass: "border-destructive" };
+    // OFFLINE — check recency
     if (lastSeenAt) {
-      const seenDate = new Date(lastSeenAt);
-      const minutesAgo = Math.floor((Date.now() - seenDate.getTime()) / 60000);
-      if (minutesAgo < 5) return { label: locale === "el" ? "Πρόσφατα ενεργός" : "Just now", color: "bg-success" };
-      if (minutesAgo < 60) return { label: locale === "el" ? `Ενεργός ${minutesAgo}λ πριν` : `Active ${minutesAgo}m ago`, color: "bg-muted-foreground" };
+      const minutesAgo = Math.floor((Date.now() - new Date(lastSeenAt).getTime()) / 60000);
+      if (minutesAgo < 5) return { label: locale === "el" ? "Πρόσφατα ενεργός" : "Just now", borderClass: "border-success" };
+      if (minutesAgo < 60) return { label: locale === "el" ? `Ενεργός ${minutesAgo}λ πριν` : `Active ${minutesAgo}m ago`, borderClass: "border-muted-foreground/30" };
       const hoursAgo = Math.floor(minutesAgo / 60);
-      if (hoursAgo < 24) return { label: locale === "el" ? `Ενεργός ${hoursAgo}ω πριν` : `Active ${hoursAgo}h ago`, color: "bg-muted-foreground" };
+      if (hoursAgo < 24) return { label: locale === "el" ? `Ενεργός ${hoursAgo}ω πριν` : `Active ${hoursAgo}h ago`, borderClass: "border-muted-foreground/30" };
     }
-    return { label: "Offline", color: "bg-muted-foreground" };
+    return { label: "Offline", borderClass: "border-muted-foreground/30" };
   };
 
-  const presenceDisplay = getPresenceDisplay();
+  const presence = getPresenceBorder();
 
   return (
     <div className="min-h-screen bg-muted/30 text-foreground flex flex-col">
@@ -168,28 +167,24 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
             <Card className="overflow-hidden mb-8">
               <CardContent className="pt-8 pb-8 md:pt-10 md:pb-10">
                 <div className="flex flex-col items-center text-center">
-                  <motion.div variants={itemVariants} className="relative inline-block">
-                    <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-primary/20 shadow-lg">
-                      <AvatarImage src={user.avatar || ""} alt={user.name || "Agent"} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-3xl md:text-4xl font-bold">
-                        {user.name?.charAt(0) || "A"}
-                      </AvatarFallback>
-                    </Avatar>
-                    {presenceDisplay && (
-                      <TooltipProvider delayDuration={200}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span
-                              className={`absolute bottom-2 right-2 md:bottom-2.5 md:right-2.5 h-5 w-5 md:h-6 md:w-6 rounded-full border-[3px] border-card ${presenceDisplay.color} cursor-default`}
-                              aria-label={presenceDisplay.label}
-                            />
-                          </TooltipTrigger>
-                          <TooltipContent side="right" className="text-xs">
-                            {presenceDisplay.label}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
+                  <motion.div variants={itemVariants}>
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-default">
+                            <Avatar className={`h-28 w-28 md:h-36 md:w-36 border-[3px] shadow-lg transition-colors ${presence.borderClass}`}>
+                              <AvatarImage src={user.avatar || ""} alt={user.name || "Agent"} />
+                              <AvatarFallback className="bg-primary text-primary-foreground text-3xl md:text-4xl font-bold">
+                                {user.name?.charAt(0) || "A"}
+                              </AvatarFallback>
+                            </Avatar>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {presence.label}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </motion.div>
 
                   <motion.h1

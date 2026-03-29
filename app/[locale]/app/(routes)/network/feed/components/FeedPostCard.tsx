@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,6 +89,7 @@ export function FeedPostCard({
   const [likeCount, setLikeCount] = useState(post.likes);
   const [commentCount, setCommentCount] = useState(post.comments);
   const [showComments, setShowComments] = useState(false);
+  const { getUserStatus } = usePresence();
 
   const getActionText = (type: string) => {
     switch (type) {
@@ -186,7 +188,7 @@ export function FeedPostCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
+            <Avatar className={`h-10 w-10 border-2 transition-colors ${post.author?.id ? toPresenceBorder(getUserStatus(post.author.id)) : "border-muted-foreground/30"}`}>
               <AvatarImage src={post.author?.avatar} />
               <AvatarFallback>
                 {post.author?.name?.charAt(0)?.toUpperCase() || "U"}

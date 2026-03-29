@@ -48,20 +48,10 @@ import {
 import { MessageComposer } from "./MessageComposer";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { usePresence, toAvatarStatus } from "@/hooks/use-presence";
+import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 
 // Common emojis for quick reactions
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "🎉", "🤔", "👀", "🙏", "💯", "👎", "😢"];
-
-// Map presence status to dot color class
-function presenceDotColor(status: "online" | "away" | "busy" | "offline"): string {
-  switch (status) {
-    case "online": return "bg-green-500";
-    case "away": return "bg-yellow-500";
-    case "busy": return "bg-red-500";
-    default: return "bg-gray-400";
-  }
-}
 
 interface ThreadPanelProps {
   open: boolean;
@@ -131,9 +121,12 @@ function ThreadMessage({
     >
       {/* Avatar */}
       {message.senderProfileSlug ? (
-        <div className="relative flex-shrink-0">
+        <div className="flex-shrink-0">
           <Link href={`/${locale}/agent/${message.senderProfileSlug}`}>
-            <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
+            <Avatar className={cn(
+              "h-8 w-8 cursor-pointer hover:opacity-80 border-2 transition-all",
+              !isCurrentUser && toPresenceBorder(getUserStatus(message.senderId))
+            )}>
               {message.senderAvatar && (
                 <AvatarImage src={message.senderAvatar} alt={message.senderName || "User"} />
               )}
@@ -142,18 +135,13 @@ function ThreadMessage({
               </AvatarFallback>
             </Avatar>
           </Link>
-          {!isCurrentUser && (
-            <span
-              className={cn(
-                "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background",
-                presenceDotColor(toAvatarStatus(getUserStatus(message.senderId)))
-              )}
-            />
-          )}
         </div>
       ) : (
-        <div className="relative flex-shrink-0">
-          <Avatar className="h-8 w-8">
+        <div className="flex-shrink-0">
+          <Avatar className={cn(
+            "h-8 w-8 border-2 transition-colors",
+            !isCurrentUser && toPresenceBorder(getUserStatus(message.senderId))
+          )}>
             {message.senderAvatar && (
               <AvatarImage src={message.senderAvatar} alt={message.senderName || "User"} />
             )}
@@ -161,14 +149,6 @@ function ThreadMessage({
               {getInitials(message.senderName, message.senderEmail)}
             </AvatarFallback>
           </Avatar>
-          {!isCurrentUser && (
-            <span
-              className={cn(
-                "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background",
-                presenceDotColor(toAvatarStatus(getUserStatus(message.senderId)))
-              )}
-            />
-          )}
         </div>
       )}
 

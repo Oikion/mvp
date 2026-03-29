@@ -53,22 +53,12 @@ import { cn } from "@/lib/utils";
 import { useAblyConnection, useAblyMessages } from "@/hooks/useAbly";
 import { useAddReaction, useDeleteMessage, useEditMessage, useMessages } from "@/hooks/swr/useMessaging";
 import { useE2EE } from "@/hooks/useE2EE";
-import { usePresence, toAvatarStatus } from "@/hooks/use-presence";
+import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 
 import type { Message, MessagingCredentials } from "@/hooks/swr/useMessaging";
 
 // Common emojis for quick reactions
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "🎉", "🤔", "👀", "🙏", "💯", "👎", "😢"];
-
-// Map presence status to dot color class
-function presenceDotColor(status: "online" | "away" | "busy" | "offline"): string {
-  switch (status) {
-    case "online": return "bg-green-500";
-    case "away": return "bg-yellow-500";
-    case "busy": return "bg-red-500";
-    default: return "bg-gray-400";
-  }
-}
 
 interface MessageThreadProps {
   channelId?: string;
@@ -403,9 +393,12 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
 
                         {/* Avatar - with profile link */}
                         {showAvatar && canShowProfileLink && (
-                          <div className="relative flex-shrink-0">
+                          <div className="flex-shrink-0">
                             <Link href={`/${locale}/agent/${message.senderProfileSlug}`}>
-                              <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
+                              <Avatar className={cn(
+                                "h-8 w-8 cursor-pointer hover:opacity-80 border-2 transition-all",
+                                !isCurrentUser && toPresenceBorder(getUserStatus(message.senderId))
+                              )}>
                                 {senderAvatar && (
                                   <AvatarImage src={senderAvatar} alt={senderDisplayName} />
                                 )}
@@ -414,21 +407,16 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                                 </AvatarFallback>
                               </Avatar>
                             </Link>
-                            {!isCurrentUser && (
-                              <span
-                                className={cn(
-                                  "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background",
-                                  presenceDotColor(toAvatarStatus(getUserStatus(message.senderId)))
-                                )}
-                              />
-                            )}
                           </div>
                         )}
 
                         {/* Avatar - without profile link */}
                         {showAvatar && !canShowProfileLink && (
-                          <div className="relative flex-shrink-0">
-                            <Avatar className="h-8 w-8">
+                          <div className="flex-shrink-0">
+                            <Avatar className={cn(
+                              "h-8 w-8 border-2 transition-colors",
+                              !isCurrentUser && toPresenceBorder(getUserStatus(message.senderId))
+                            )}>
                               {senderAvatar && (
                                 <AvatarImage src={senderAvatar} alt={senderDisplayName} />
                               )}
@@ -436,14 +424,6 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                                 {getInitials(senderDisplayName, message.senderEmail)}
                               </AvatarFallback>
                             </Avatar>
-                            {!isCurrentUser && (
-                              <span
-                                className={cn(
-                                  "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background",
-                                  presenceDotColor(toAvatarStatus(getUserStatus(message.senderId)))
-                                )}
-                              />
-                            )}
                           </div>
                         )}
 

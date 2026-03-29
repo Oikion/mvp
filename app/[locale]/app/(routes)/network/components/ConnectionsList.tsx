@@ -26,7 +26,7 @@ import {
 import Link from "next/link";
 import { useRemoveConnection } from "@/hooks/swr";
 import { startDirectMessage } from "@/actions/messaging/direct-messages";
-import { usePresence, toAvatarStatus } from "@/hooks/use-presence";
+import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 
 interface AgentProfileData {
   slug: string;
@@ -110,22 +110,12 @@ function ConnectionListItem({
   return (
     <div className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
       <div className="flex items-center gap-4">
-        <div className="relative">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={user.avatar || ""} alt={user.name || ""} />
-            <AvatarFallback className="bg-primary/10">
-              {user.name?.charAt(0) || <User className="h-5 w-5" />}
-            </AvatarFallback>
-          </Avatar>
-          <span
-            className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background ${
-              toAvatarStatus(getUserStatus(user.id)) === "online" ? "bg-success" :
-              toAvatarStatus(getUserStatus(user.id)) === "away" ? "bg-warning" :
-              toAvatarStatus(getUserStatus(user.id)) === "busy" ? "bg-destructive" : "bg-muted-foreground"
-            }`}
-            aria-hidden="true"
-          />
-        </div>
+        <Avatar className={`h-12 w-12 border-2 transition-colors ${toPresenceBorder(getUserStatus(user.id))}`}>
+          <AvatarImage src={user.avatar || ""} alt={user.name || ""} />
+          <AvatarFallback className="bg-primary/10">
+            {user.name?.charAt(0) || <User className="h-5 w-5" />}
+          </AvatarFallback>
+        </Avatar>
         <div>
           <h4 className="font-medium">{user.name}</h4>
           <p className="text-sm text-muted-foreground">{user.email}</p>

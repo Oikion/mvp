@@ -6,13 +6,9 @@ import { PresenceContext } from "@/components/providers/PresenceProvider";
  *
  * @example
  * ```tsx
- * const { getUserStatus, isUserOnline } = usePresence();
- *
- * <UserAvatar
- *   name={user.name}
- *   imageUrl={user.avatar}
- *   status={getUserStatus(user.id).toLowerCase() as "online" | "away" | "busy" | "offline"}
- * />
+ * const { getUserStatus } = usePresence();
+ * const borderClass = toPresenceBorder(getUserStatus(user.id));
+ * <Avatar className={`border-2 ${borderClass}`}>...</Avatar>
  * ```
  */
 export function usePresence() {
@@ -31,5 +27,21 @@ export function toAvatarStatus(
     case "AWAY": return "away";
     case "BUSY": return "busy";
     default: return "offline";
+  }
+}
+
+/**
+ * Maps presence status to a Tailwind border color class.
+ * The project convention is to show presence via avatar border color:
+ * green = online, orange = away, gray = offline.
+ */
+export function toPresenceBorder(
+  status: "ONLINE" | "AWAY" | "BUSY" | "OFFLINE" | string
+): string {
+  switch (status) {
+    case "ONLINE": return "border-success";
+    case "AWAY": return "border-warning";
+    case "BUSY": return "border-destructive";
+    default: return "border-muted-foreground/30";
   }
 }
