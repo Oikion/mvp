@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
 import {
   Building2,
@@ -167,7 +168,7 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
             <Card className="overflow-hidden mb-8">
               <CardContent className="pt-8 pb-8 md:pt-10 md:pb-10">
                 <div className="flex flex-col items-center text-center">
-                  <motion.div variants={itemVariants} className="relative">
+                  <motion.div variants={itemVariants} className="relative inline-block">
                     <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-primary/20 shadow-lg">
                       <AvatarImage src={user.avatar || ""} alt={user.name || "Agent"} />
                       <AvatarFallback className="bg-primary text-primary-foreground text-3xl md:text-4xl font-bold">
@@ -175,23 +176,21 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
                       </AvatarFallback>
                     </Avatar>
                     {presenceDisplay && (
-                      <span
-                        className={`absolute bottom-1 right-1 h-4 w-4 md:h-5 md:w-5 rounded-full border-[3px] border-card ${presenceDisplay.color}`}
-                        title={presenceDisplay.label}
-                        aria-label={presenceDisplay.label}
-                      />
+                      <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span
+                              className={`absolute bottom-2 right-2 md:bottom-2.5 md:right-2.5 h-5 w-5 md:h-6 md:w-6 rounded-full border-[3px] border-card ${presenceDisplay.color} cursor-default`}
+                              aria-label={presenceDisplay.label}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="text-xs">
+                            {presenceDisplay.label}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </motion.div>
-
-                  {/* Presence text */}
-                  {presenceDisplay && (
-                    <motion.div variants={itemVariants} className="mt-2">
-                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className={`h-2 w-2 rounded-full ${presenceDisplay.color}`} aria-hidden="true" />
-                        {presenceDisplay.label}
-                      </span>
-                    </motion.div>
-                  )}
 
                   <motion.h1
                     variants={itemVariants}
