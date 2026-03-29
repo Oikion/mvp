@@ -324,9 +324,11 @@ export async function searchAgentProfiles(query: string, limit: number = 20) {
   const profiles = await prismadb.agentProfile.findMany({
     where: {
       // Only show PUBLIC profiles to everyone, SECURE to authenticated users
-      visibility: isAuthenticated 
-        ? { in: ["PUBLIC", "SECURE"] } 
+      visibility: isAuthenticated
+        ? { in: ["PUBLIC", "SECURE"] }
         : "PUBLIC",
+      // Respect the agent's opt-out from search/discovery
+      hideFromAgentSearch: false,
       // Only show profiles for users that have a username (required for public URL)
       Users: {
         username: { not: null },

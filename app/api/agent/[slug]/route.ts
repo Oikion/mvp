@@ -18,15 +18,31 @@ export async function GET(
     const currentUser = await getCurrentUserSafe();
     const isAuthenticated = !!currentUser;
 
+    // Look up user by username first (slug param = username),
+    // matching the server action pattern in getAgentProfileBySlug()
+    const user = await prismadb.users.findFirst({
+      where: {
+        username: {
+          equals: slug,
+          mode: "insensitive",
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return new NextResponse("Profile not found", { status: 404 });
+    }
+
     // Build visibility filter based on authentication status
     // - PUBLIC profiles are visible to everyone
     // - SECURE profiles are only visible to authenticated users
-    // - PERSONAL profiles are never visible via this endpoint
+    // - PRIVATE profiles are never visible via this endpoint
     const profileRaw = await prismadb.agentProfile.findFirst({
       where: {
-        slug,
-        visibility: isAuthenticated 
-          ? { in: ["PUBLIC", "SECURE"] } 
+        userId: user.id,
+        visibility: isAuthenticated
+          ? { in: ["PUBLIC", "SECURE"] }
           : "PUBLIC",
       },
       include: {

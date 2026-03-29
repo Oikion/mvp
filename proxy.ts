@@ -20,6 +20,7 @@ const isPublicRoute = createRouteMatcher([
   "/:locale",
   "/:locale/legal(.*)",
   "/:locale/agent(.*)",
+  "/:locale/agency(.*)",
   "/:locale/property(.*)",
   // App auth routes (public) - includes SSO callbacks
   "/:locale/app/sign-in(.*)",

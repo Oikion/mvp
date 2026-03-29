@@ -1,11 +1,11 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import type { ContactFormField } from "@/lib/contact-form-types";
+import { AgentProfileView } from "./AgentProfileView";
 
-// Profile type matching AgentProfileViewProps
 type ProfileType = {
   user?: {
+    id?: string;
     name?: string | null;
     avatar?: string | null;
     username?: string | null;
@@ -42,23 +42,11 @@ type ProfileType = {
   contactFormFields?: ContactFormField[] | any;
 };
 
-// Dynamically import AgentProfileView with SSR disabled to prevent window access during build
-// The loading component will show while the client-side component loads
-const AgentProfileView = dynamic(
-  () => import("./AgentProfileView").then((mod) => ({ default: mod.AgentProfileView })),
-  { 
-    ssr: false,
-  }
-);
-
 interface AgentProfileViewClientProps {
   profile: ProfileType;
   locale?: string;
 }
 
 export function AgentProfileViewClient({ profile, locale = "en" }: AgentProfileViewClientProps) {
-  // The dynamic import with ssr: false handles client-only rendering
-  // No need for window check - it causes hydration mismatch
   return <AgentProfileView profile={profile} locale={locale} />;
 }
-

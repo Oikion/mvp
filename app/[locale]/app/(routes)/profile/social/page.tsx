@@ -70,9 +70,7 @@ export default async function SocialProfilePage() {
               <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Your profile URL:</span>
                 <code className="text-sm bg-white px-2 py-1 rounded border">
-                  {typeof window !== "undefined"
-                    ? `${window.location.origin}/agent/${profile.slug}`
-                    : `/agent/${profile.slug}`}
+                  {`${process.env.NEXT_PUBLIC_APP_URL || ""}/agent/${profile.slug}`}
                 </code>
               </div>
             </CardContent>

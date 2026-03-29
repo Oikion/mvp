@@ -34,6 +34,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     });
 
+    // Fetch all public agency profiles
+    const publicAgencies = await prismadb.agencyProfile.findMany({
+      where: {
+        visibility: 'PUBLIC',
+      },
+      select: {
+        slug: true,
+        updatedAt: true,
+      },
+    });
+
     // Fetch all public properties
     const publicProperties = await prismadb.properties.findMany({
       where: {
@@ -67,6 +78,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
       }));
 
+    // Generate agency profile URLs
+    const agencyUrls: MetadataRoute.Sitemap = publicAgencies.map((agency) => ({
+      url: `${baseUrl}/en/agency/${agency.slug}`,
+      lastModified: agency.updatedAt,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
+
+    // Generate Greek locale agency profile URLs
+    const agencyUrlsGreek: MetadataRoute.Sitemap = publicAgencies.map((agency) => ({
+      url: `${baseUrl}/el/agency/${agency.slug}`,
+      lastModified: agency.updatedAt,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
+
     // Generate property URLs
     const propertyUrls: MetadataRoute.Sitemap = publicProperties.map((property) => ({
       url: `${baseUrl}/en/property/${property.friendlyId}`,
@@ -87,6 +114,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...staticPages,
       ...agentUrls,
       ...agentUrlsGreek,
+      ...agencyUrls,
+      ...agencyUrlsGreek,
       ...propertyUrls,
       ...propertyUrlsGreek,
     ];
