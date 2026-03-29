@@ -445,14 +445,17 @@ export function ProfilePreviewTab({ profile, dict }: ProfilePreviewTabProps) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease: [0.21, 0.47, 0.32, 0.98], delay: 0.1 }}
+                  className="border rounded-2xl p-5 bg-background border-border shadow-sm"
                 >
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2.5 text-foreground">
-                      <div className="p-1.5 rounded-xl bg-primary/10 border border-primary/20">
-                        <Home className="h-5 w-5 text-primary" />
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/30">
+                        <Home className="w-5 h-5 text-primary dark:text-primary" />
                       </div>
-                      {t?.preview?.properties || "Properties"}
-                    </h2>
+                      <h3 className="text-base font-bold text-foreground">
+                        {t?.preview?.properties || "Properties"}
+                      </h3>
+                    </div>
                     {user.properties && user.properties.length > 0 && (
                       <Badge className="bg-primary/10 text-primary border border-primary/20">
                         {user.properties.length} {t?.preview?.propertiesCount || "properties"}
@@ -548,7 +551,7 @@ export function ProfilePreviewTab({ profile, dict }: ProfilePreviewTabProps) {
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4 }}
-                      className="border-2 border-dashed rounded-2xl bg-background border-border"
+                      className="border border-dashed rounded-xl bg-muted/30 border-border"
                     >
                       <div className="py-12 text-center">
                         <div className="rounded-full w-16 h-16 bg-muted flex items-center justify-center mx-auto mb-4">

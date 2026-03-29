@@ -77,6 +77,10 @@ interface AgentProfileViewProps {
     bio?: string | null;
     contactFormEnabled?: boolean;
     contactFormFields?: ContactFormField[];
+    presence?: {
+      status: string;
+      lastSeenAt: Date | string | null;
+    } | null;
   };
   locale?: string;
 }
@@ -104,6 +108,27 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
 
   const profilePath = `/${locale}/agent/${user.username}`;
   const properties = user.properties?.filter((p): p is NonNullable<typeof p> => p !== null) || [];
+
+  // Compute presence display for the static public profile
+  const getPresenceDisplay = () => {
+    if (!profile.presence) return null;
+    const { status, lastSeenAt } = profile.presence;
+    if (status === "ONLINE") return { label: "Online", color: "bg-success" };
+    if (status === "AWAY") return { label: locale === "el" ? "Μακριά" : "Away", color: "bg-warning" };
+    if (status === "BUSY") return { label: locale === "el" ? "Απασχολημένος" : "Busy", color: "bg-destructive" };
+    // OFFLINE — show "Active X ago" if recent
+    if (lastSeenAt) {
+      const seenDate = new Date(lastSeenAt);
+      const minutesAgo = Math.floor((Date.now() - seenDate.getTime()) / 60000);
+      if (minutesAgo < 5) return { label: locale === "el" ? "Πρόσφατα ενεργός" : "Just now", color: "bg-success" };
+      if (minutesAgo < 60) return { label: locale === "el" ? `Ενεργός ${minutesAgo}λ πριν` : `Active ${minutesAgo}m ago`, color: "bg-muted-foreground" };
+      const hoursAgo = Math.floor(minutesAgo / 60);
+      if (hoursAgo < 24) return { label: locale === "el" ? `Ενεργός ${hoursAgo}ω πριν` : `Active ${hoursAgo}h ago`, color: "bg-muted-foreground" };
+    }
+    return { label: "Offline", color: "bg-muted-foreground" };
+  };
+
+  const presenceDisplay = getPresenceDisplay();
 
   return (
     <div className="min-h-screen bg-muted/30 text-foreground flex flex-col">
@@ -142,14 +167,31 @@ export function AgentProfileView({ profile, locale = "en" }: AgentProfileViewPro
             <Card className="overflow-hidden mb-8">
               <CardContent className="pt-8 pb-8 md:pt-10 md:pb-10">
                 <div className="flex flex-col items-center text-center">
-                  <motion.div variants={itemVariants}>
+                  <motion.div variants={itemVariants} className="relative">
                     <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-primary/20 shadow-lg">
                       <AvatarImage src={user.avatar || ""} alt={user.name || "Agent"} />
                       <AvatarFallback className="bg-primary text-primary-foreground text-3xl md:text-4xl font-bold">
                         {user.name?.charAt(0) || "A"}
                       </AvatarFallback>
                     </Avatar>
+                    {presenceDisplay && (
+                      <span
+                        className={`absolute bottom-1 right-1 h-4 w-4 md:h-5 md:w-5 rounded-full border-[3px] border-card ${presenceDisplay.color}`}
+                        title={presenceDisplay.label}
+                        aria-label={presenceDisplay.label}
+                      />
+                    )}
                   </motion.div>
+
+                  {/* Presence text */}
+                  {presenceDisplay && (
+                    <motion.div variants={itemVariants} className="mt-2">
+                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className={`h-2 w-2 rounded-full ${presenceDisplay.color}`} aria-hidden="true" />
+                        {presenceDisplay.label}
+                      </span>
+                    </motion.div>
+                  )}
 
                   <motion.h1
                     variants={itemVariants}

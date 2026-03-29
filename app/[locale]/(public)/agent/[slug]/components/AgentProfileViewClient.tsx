@@ -40,6 +40,10 @@ type ProfileType = {
   contactFormEnabled?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   contactFormFields?: ContactFormField[] | any;
+  presence?: {
+    status: string;
+    lastSeenAt: Date | string | null;
+  } | null;
 };
 
 interface AgentProfileViewClientProps {

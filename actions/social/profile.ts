@@ -148,6 +148,12 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
     return null;
   }
 
+  // Fetch presence status (separate table, no Prisma relation)
+  const presence = await prismadb.userPresence.findUnique({
+    where: { userId: user.id },
+    select: { status: true, lastSeenAt: true },
+  });
+
   // Map to expected field names for backward compatibility
   const profile = {
     ...profileRaw,
@@ -182,6 +188,11 @@ export async function getAgentProfileBySlug(username: string, isAuthenticated: b
         ...profile.user._count,
         properties: profile.showcaseProperties.length,
       },
+    } : null,
+    // Presence data for public profile display
+    presence: presence ? {
+      status: presence.status as string,
+      lastSeenAt: presence.lastSeenAt,
     } : null,
   };
 
