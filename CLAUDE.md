@@ -79,6 +79,7 @@ The middleware file is `proxy.ts` (NOT `middleware.ts`). Handles Clerk auth, pla
 - **Error messages must not expose internals** — return generic messages to clients, log details server-side with context tags: `console.error("[FEATURE_CONTEXT]", error)`.
 - Never use `$executeRawUnsafe()` or `$queryRawUnsafe()` — SQL injection risk.
 - `auth()` is async in Clerk v6 — always `await auth()`.
+- **CSP `'unsafe-inline'` in `script-src`** — required by Clerk SDK inline event handlers. This weakens XSS protection. Long-term fix: nonce-based CSP via middleware nonce injection (see `next.config.js:195`). Do not add additional inline scripts without evaluating this constraint.
 
 ## Permissions
 

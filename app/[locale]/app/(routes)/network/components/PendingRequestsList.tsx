@@ -7,9 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { User, Check, X, Loader2, Clock, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { Link as NavLink } from "@/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { el, enUS } from "date-fns/locale";
 import { useRespondToConnection } from "@/hooks/swr";
+import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 
 interface AgentProfileData {
   slug: string;
@@ -23,6 +25,7 @@ interface PendingRequestUser {
   name: string | null;
   email: string;
   avatar: string | null;
+  username?: string | null;
   AgentProfile?: AgentProfileData | null;
 }
 
@@ -49,6 +52,7 @@ function PendingItem({
   const router = useRouter();
   const { toast } = useAppToast();
   const { acceptConnection, rejectConnection, isResponding } = useRespondToConnection(request.id);
+  const { getUserStatus } = usePresence();
 
   const user = request.user;
   if (!user) return null;
@@ -80,7 +84,7 @@ function PendingItem({
   return (
     <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
       <div className="flex items-center gap-4">
-        <Avatar className="h-12 w-12">
+        <Avatar className={`h-12 w-12 border-2 transition-colors ${toPresenceBorder(getUserStatus(user.id))}`}>
           <AvatarImage src={user.avatar || ""} alt={user.name || ""} />
           <AvatarFallback className="bg-warning/15 text-warning">
             {user.name?.charAt(0) || <User className="h-5 w-5" />}
@@ -88,7 +92,18 @@ function PendingItem({
         </Avatar>
         <div>
           <div className="flex items-center gap-2">
-            <h4 className="font-medium">{user.name}</h4>
+            <h4 className="font-medium">
+              {user.username ? (
+                <NavLink
+                  href={`/app/network/agents/${user.username}`}
+                  className="hover:text-primary hover:underline"
+                >
+                  {user.name}
+                </NavLink>
+              ) : (
+                user.name
+              )}
+            </h4>
             {agentProfile?.visibility !== "PRIVATE" && agentProfile?.slug && (
               <Link
                 href={`/agent/${agentProfile.slug}`}

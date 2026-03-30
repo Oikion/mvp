@@ -24,8 +24,10 @@ import {
   MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { Link as NavLink } from "@/navigation";
 import { useRemoveConnection } from "@/hooks/swr";
 import { startDirectMessage } from "@/actions/messaging/direct-messages";
+import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 
 interface AgentProfileData {
   slug: string;
@@ -39,6 +41,7 @@ interface ConnectionUser {
   name: string | null;
   email: string;
   avatar: string | null;
+  username?: string | null;
   AgentProfile?: AgentProfileData | null;
 }
 
@@ -71,6 +74,7 @@ function ConnectionListItem({
   const { toast } = useAppToast();
   const { removeConnection, isRemoving } = useRemoveConnection(connection.id);
   const [isStartingMessage, setIsStartingMessage] = useState(false);
+  const { getUserStatus } = usePresence();
 
   const user = connection.user;
   if (!user) return null;
@@ -108,14 +112,25 @@ function ConnectionListItem({
   return (
     <div className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
       <div className="flex items-center gap-4">
-        <Avatar className="h-12 w-12">
+        <Avatar className={`h-12 w-12 border-2 transition-colors ${toPresenceBorder(getUserStatus(user.id))}`}>
           <AvatarImage src={user.avatar || ""} alt={user.name || ""} />
           <AvatarFallback className="bg-primary/10">
             {user.name?.charAt(0) || <User className="h-5 w-5" />}
           </AvatarFallback>
         </Avatar>
         <div>
-          <h4 className="font-medium">{user.name}</h4>
+          <h4 className="font-medium">
+            {user.username ? (
+              <NavLink
+                href={`/app/network/agents/${user.username}`}
+                className="hover:text-primary hover:underline"
+              >
+                {user.name}
+              </NavLink>
+            ) : (
+              user.name
+            )}
+          </h4>
           <p className="text-sm text-muted-foreground">{user.email}</p>
           {agentProfile?.specializations && agentProfile.specializations.length > 0 && (
             <div className="flex gap-1 mt-1">

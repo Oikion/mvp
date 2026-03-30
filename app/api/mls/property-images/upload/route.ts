@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     return NextResponse.json(result);
   } catch (error: unknown) {
     console.error("[PROPERTY_IMAGE_UPLOAD]", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal error";
+    const errorMessage = error instanceof Error ? error.message : "";
 
     // Map known validation errors to 400
     const isValidationError =
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       errorMessage === "Unauthorized";
 
     return NextResponse.json(
-      { error: errorMessage },
+      { error: isValidationError ? errorMessage : "Upload failed" },
       { status: isValidationError ? 400 : 500 }
     );
   }

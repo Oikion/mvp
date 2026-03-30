@@ -20,7 +20,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error("Error removing showcase property:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to remove property from showcase" },
+      { error: "Failed to remove property from showcase" },
       { status: 500 }
     );
   }

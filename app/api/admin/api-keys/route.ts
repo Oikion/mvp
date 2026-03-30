@@ -113,7 +113,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("[API_KEYS_GET]", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch API keys" },
+      { error: "Failed to fetch API keys" },
       { status: 500 }
     );
   }
@@ -227,7 +227,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("[API_KEYS_POST]", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create API key" },
+      { error: "Failed to create API key" },
       { status: 500 }
     );
   }

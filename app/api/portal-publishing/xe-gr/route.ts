@@ -51,8 +51,7 @@ export async function POST(req: NextRequest) {
       { status: result.status }
     );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Internal error";
     console.error("[XE_GR_PUBLISH]", error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

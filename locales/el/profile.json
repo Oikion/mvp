@@ -286,5 +286,125 @@
       "rejectedDescription": "Ο διαχειριστής παρείχε την ακόλουθη σημείωση:",
       "completed": "Τα δεδομένα σας έχουν διαγραφεί"
     }
+  },
+  "agentProfile": {
+    "signIn": "Σύνδεση",
+    "assign": "Αίτημα Ακινήτου",
+    "collaborate": "Συνεργασία",
+    "connected": "Συνδεδεμένοι",
+    "requestSent": "Αίτημα Εστάλη",
+    "requestSentTitle": "Αίτημα Εστάλη",
+    "requestSentDesc": "Το αίτημα συνεργασίας σας εστάλη με επιτυχία.",
+    "requestError": "Αποτυχία αποστολής αιτήματος. Παρακαλώ δοκιμάστε ξανά.",
+    "privacy": "Απόρρητο",
+    "terms": "Όροι",
+    "learnMore": "Μάθετε περισσότερα",
+    "contact": "Επικοινωνία",
+    "noContactInfo": "Δεν έχουν προστεθεί στοιχεία επικοινωνίας",
+    "location": "Τοποθεσία",
+    "license": "Άδεια",
+    "aboutAgency": "Σχετικά με εμάς",
+    "founded": "Ίδρυση",
+    "inquiryError": "Αποτυχία υποβολής αιτήματος. Παρακαλώ δοκιμάστε ξανά.",
+    "inquirySuccess": "Το Αίτημα Εστάλη Επιτυχώς",
+    "inquirySuccessDesc": "Το αίτημά σας στάλθηκε στον/στην {agentName}. Θα επικοινωνήσουν μαζί σας σύντομα.",
+    "inquiryForm": {
+      "title": "Αίτημα Ακινήτου",
+      "description": "Στείλτε αίτημα ακινήτου στον/στην {agentName}",
+      "close": "Κλείσιμο",
+      "contactInfo": "Στοιχεία Επικοινωνίας",
+      "name": "Ονοματεπώνυμο",
+      "namePlaceholder": "Το ονοματεπώνυμό σας",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "phone": "Τηλέφωνο",
+      "phonePlaceholder": "+30 210 1234567",
+      "propertyDetails": "Στοιχεία Ακινήτου",
+      "propertyType": "Τύπος Ακινήτου",
+      "propertyTypePlaceholder": "Επιλέξτε τύπο",
+      "apartment": "Διαμέρισμα",
+      "house": "Σπίτι",
+      "commercial": "Εμπορικό",
+      "land": "Οικόπεδο",
+      "other": "Άλλο",
+      "location": "Προτιμώμενη Τοποθεσία",
+      "locationPlaceholder": "π.χ., Αθήνα, Θεσσαλονίκη",
+      "budget": "Προϋπολογισμός",
+      "budgetPlaceholder": "π.χ., €100.000 - €200.000",
+      "bedrooms": "Υπνοδωμάτια",
+      "bedroomsPlaceholder": "π.χ., 2-3",
+      "timeline": "Χρονοδιάγραμμα",
+      "timelinePlaceholder": "Επιλέξτε χρονοδιάγραμμα",
+      "immediate": "Άμεσα",
+      "oneToThreeMonths": "1-3 μήνες",
+      "threeToSixMonths": "3-6 μήνες",
+      "sixPlusMonths": "6+ μήνες",
+      "message": "Μήνυμα",
+      "messagePlaceholder": "Πείτε μας τις απαιτήσεις σας...",
+      "privacyPrefix": "Συμφωνώ με την",
+      "privacyLinkText": "Πολιτική Απορρήτου",
+      "privacySuffix": "και συναινώ στην επεξεργασία των δεδομένων μου.",
+      "cancel": "Ακύρωση",
+      "sending": "Αποστολή...",
+      "submit": "Αποστολή Αιτήματος"
+    }
+  },
+  "publicProfile": {
+    "nav": {
+      "signIn": "Σύνδεση",
+      "dashboard": "Πίνακας Ελέγχου"
+    },
+    "breadcrumb": {
+      "home": "Αρχική",
+      "agents": "Πράκτορες",
+      "agencies": "Γραφεία"
+    },
+    "hero": {
+      "yearsExperience": "{count} χρόνια εμπειρίας",
+      "properties": "Ακίνητα",
+      "followers": "Ακόλουθοι",
+      "founded": "Ίδρυση"
+    },
+    "sections": {
+      "contact": "Επικοινωνία",
+      "serviceAreas": "Περιοχές Εξυπηρέτησης",
+      "languages": "Γλώσσες",
+      "certifications": "Πιστοποιήσεις",
+      "aboutMe": "Σχετικά με εμένα",
+      "aboutAgency": "Σχετικά με εμάς",
+      "properties": "Ακίνητα",
+      "location": "Τοποθεσία",
+      "license": "Άδεια",
+      "noContactInfo": "Δεν έχουν προστεθεί στοιχεία επικοινωνίας",
+      "noProperties": "Δεν υπάρχουν διαθέσιμα ακίνητα αυτή τη στιγμή.",
+      "noPropertiesOwner": "Δεν έχετε προσθέσει ακίνητα στη βιτρίνα σας ακόμα.",
+      "addProperties": "Προσθήκη Ακινήτων",
+      "viewMyProperties": "Τα Ακίνητά μου",
+      "viewAllProperties": "Δείτε όλα τα ακίνητα"
+    },
+    "share": {
+      "share": "Κοινοποίηση",
+      "copied": "Ο σύνδεσμος αντιγράφηκε",
+      "copyFailed": "Αποτυχία αντιγραφής συνδέσμου"
+    },
+    "footer": {
+      "privacy": "Απόρρητο",
+      "terms": "Όροι",
+      "learnMore": "Μάθετε περισσότερα"
+    }
+  },
+  "inAppProfile": {
+    "follow": "Ακολούθηση",
+    "followPending": "Εκκρεμεί",
+    "followSent": "Το αίτημα ακολούθησης εστάλη",
+    "respondToRequest": "Απάντηση στο Αίτημα",
+    "connected": "Συνδεδεμένοι",
+    "removeConnection": "Αφαίρεση Σύνδεσης",
+    "connectionRemoved": "Η σύνδεση αφαιρέθηκε",
+    "message": "Μήνυμα",
+    "share": "Κοινοποίηση",
+    "viewPublicProfile": "Δημόσιο Προφίλ",
+    "report": "Αναφορά",
+    "mutualConnections": "{count, plural, one {# κοινή σύνδεση} other {# κοινές συνδέσεις}}"
   }
 }

@@ -14,6 +14,7 @@ export interface Comment {
     id: string;
     name: string;
     avatar?: string;
+    username?: string | null;
   };
   isOwn: boolean;
   parentId?: string | null;
@@ -105,6 +106,7 @@ export async function addComment(
             id: true,
             name: true,
             avatar: true,
+            username: true,
           },
         },
       },
@@ -180,6 +182,7 @@ export async function addComment(
           id: comment.Users?.id || "",
           name: comment.Users?.name || "Unknown",
           avatar: comment.Users?.avatar || undefined,
+          username: comment.Users?.username || undefined,
         },
         isOwn: true,
         parentId: comment.parentId,
@@ -297,6 +300,7 @@ export async function getPostComments(
               id: true,
               name: true,
               avatar: true,
+              username: true,
             },
           },
           other_SocialPostComment: {
@@ -307,6 +311,7 @@ export async function getPostComments(
                   id: true,
                   name: true,
                   avatar: true,
+                  username: true,
                 },
               },
             },
@@ -331,6 +336,7 @@ export async function getPostComments(
           id: c.Users?.id ?? "",
           name: c.Users?.name || "Unknown",
           avatar: c.Users?.avatar || undefined,
+          username: c.Users?.username || undefined,
         },
         isOwn: c.userId === currentUser?.id,
         parentId: c.parentId,
@@ -343,6 +349,7 @@ export async function getPostComments(
             id: r.Users?.id ?? "",
             name: r.Users?.name || "Unknown",
             avatar: r.Users?.avatar || undefined,
+            username: r.Users?.username || undefined,
           },
           isOwn: r.userId === currentUser?.id,
           parentId: r.parentId,

@@ -1,13 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import {
-  Heart,
-  MessageCircle,
-  Share2,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Heart, MessageCircle, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { toggleLikePost } from "@/actions/social-feed/like-post";
@@ -75,49 +69,49 @@ export function FeedPostEngagement({
   };
 
   return (
-    <div className="flex items-center gap-1 border-t pt-3">
+    <div className="flex items-center gap-0.5 border-t pt-3">
       <Button
         variant="ghost"
-        size="sm"
+        size="icon"
         onClick={handleLike}
         disabled={isLiking}
-        className={`flex-1 gap-1.5 ${
+        className={`h-8 w-8 ${
           isLiked
             ? "text-destructive hover:text-destructive"
             : "text-muted-foreground hover:text-foreground"
         }`}
+        aria-label={t?.post?.like || "Like"}
       >
         <Heart
           className={`h-4 w-4 transition-all ${isLiked ? "fill-current scale-110" : ""}`}
+          aria-hidden="true"
         />
-        {likeCount > 0 && <span className="text-xs">{likeCount}</span>}
-        <span className="text-xs">{t?.post?.like || "Like"}</span>
       </Button>
+      {likeCount > 0 && (
+        <span className="text-xs text-muted-foreground tabular-nums -ml-0.5 mr-1">{likeCount}</span>
+      )}
 
       <Button
         variant="ghost"
-        size="sm"
+        size="icon"
         onClick={onToggleComments}
-        className="flex-1 gap-1.5 text-muted-foreground hover:text-foreground"
+        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+        aria-label={t?.post?.comment || "Comment"}
       >
-        <MessageCircle className="h-4 w-4" />
-        {commentCount > 0 && <span className="text-xs">{commentCount}</span>}
-        <span className="text-xs">{t?.post?.comment || "Comment"}</span>
-        {showComments ? (
-          <ChevronUp className="h-3 w-3" />
-        ) : (
-          <ChevronDown className="h-3 w-3" />
-        )}
+        <MessageCircle className="h-4 w-4" aria-hidden="true" />
       </Button>
+      {commentCount > 0 && (
+        <span className="text-xs text-muted-foreground tabular-nums -ml-0.5 mr-1">{commentCount}</span>
+      )}
 
       <Button
         variant="ghost"
-        size="sm"
-        className="flex-1 gap-1.5 text-muted-foreground hover:text-foreground"
+        size="icon"
+        className="h-8 w-8 text-muted-foreground hover:text-foreground"
         onClick={handleShare}
+        aria-label={t?.post?.share || "Share"}
       >
-        <Share2 className="h-4 w-4" />
-        <span className="text-xs">{t?.post?.share || "Share"}</span>
+        <Share2 className="h-4 w-4" aria-hidden="true" />
       </Button>
     </div>
   );

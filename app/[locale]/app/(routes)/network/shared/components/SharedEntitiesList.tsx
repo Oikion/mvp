@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Link as NavLink } from "@/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { el, enUS } from "date-fns/locale";
 import { useParams } from "next/navigation";
@@ -35,6 +36,7 @@ interface SharedEntity {
     name: string | null;
     email: string;
     avatar: string | null;
+    username?: string | null;
   } | null;
   entity: any;
 }
@@ -257,7 +259,17 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
               </AvatarFallback>
             </Avatar>
             <span className="text-muted-foreground">
-              {t.card.sharedBy} <span className="font-medium text-foreground">{sharedBy?.name ?? "Deleted User"}</span>
+              {t.card.sharedBy}{" "}
+              {sharedBy?.username ? (
+                <NavLink
+                  href={`/app/network/agents/${sharedBy.username}`}
+                  className="font-medium text-foreground hover:text-primary hover:underline"
+                >
+                  {sharedBy?.name ?? "Deleted User"}
+                </NavLink>
+              ) : (
+                <span className="font-medium text-foreground">{sharedBy?.name ?? "Deleted User"}</span>
+              )}
             </span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">

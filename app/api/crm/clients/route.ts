@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Fix Prisma enum type casting for body fields
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
@@ -147,7 +145,7 @@ export async function POST(req: Request) {
         creatorId: user.id,
         creatorName: user.name || user.email || "Someone",
         organizationId,
-        assignedToId: assigned_to,
+        assignedToId: assigned_to ?? undefined,
       });
 
       // Dispatch webhook for external integrations
@@ -156,8 +154,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ newClient }, { status: 200 });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Failed to create client";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    console.error("[CLIENTS_POST]", error);
+    return NextResponse.json({ error: "Failed to create client" }, { status: 500 });
   }
 }
 
@@ -346,7 +344,7 @@ export async function PUT(req: Request) {
     }
     
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to update client" },
+      { error: "Failed to update client" },
       { status: 500 }
     );
   }
@@ -459,9 +457,8 @@ export async function GET(req: Request) {
     }, { status: 200 });
   } catch (error) {
     console.error("[CLIENTS_GET]", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to fetch clients", details: errorMessage },
+      { error: "Failed to fetch clients" },
       { status: 500 }
     );
   }

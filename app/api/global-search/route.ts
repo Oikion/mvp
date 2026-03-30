@@ -469,9 +469,8 @@ export async function POST(req: Request) {
     return NextResponse.json(response);
   } catch (error) {
     console.error("[GLOBAL_SEARCH_POST]", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Search failed", details: errorMessage },
+      { error: "Search failed" },
       { status: 500 }
     );
   }

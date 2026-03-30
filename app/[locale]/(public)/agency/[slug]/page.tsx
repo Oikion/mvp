@@ -82,6 +82,21 @@ function buildJsonLd(profile: NonNullable<Awaited<ReturnType<typeof getPublicAge
   };
 }
 
+function buildBreadcrumbJsonLd(
+  profile: NonNullable<Awaited<ReturnType<typeof getPublicAgencyProfile>>>,
+  locale: string
+) {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: locale === "el" ? "Αρχική" : "Home", item: `${baseUrl}/${locale}` },
+      { "@type": "ListItem", position: 2, name: locale === "el" ? "Γραφεία" : "Agencies", item: `${baseUrl}/${locale}` },
+      { "@type": "ListItem", position: 3, name: profile.name, item: `${baseUrl}/${locale}/agency/${profile.slug}` },
+    ],
+  }).replaceAll("<", "\\u003c").replaceAll(">", "\\u003e");
+}
+
 export default async function AgencyPage({ params }: AgencyPageProps) {
   const { slug, locale } = await params;
   const { userId } = await auth();
@@ -93,15 +108,16 @@ export default async function AgencyPage({ params }: AgencyPageProps) {
     notFound();
   }
 
-  const jsonLdString = JSON.stringify(buildJsonLd(profile));
+  const jsonLdString = JSON.stringify(buildJsonLd(profile))
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e");
+
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(profile, locale);
 
   return (
     <>
-      <Script
-        id="json-ld-agency"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdString }}
-      />
+      <Script id="json-ld-agency" type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString }} />
+      <Script id="json-ld-breadcrumb-agency" type="application/ld+json" dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }} />
       <AgencyProfileView profile={profile} locale={locale} />
     </>
   );

@@ -377,8 +377,6 @@ export function handlePrismaError(
     }
   }
   
-  // Generic internal error
-  return apiInternalError(
-    error instanceof Error ? error.message : "An unexpected error occurred"
-  );
+  // Generic internal error — never expose error.message to clients
+  return apiInternalError("An unexpected error occurred", error);
 }

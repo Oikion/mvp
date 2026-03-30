@@ -12,7 +12,7 @@ export async function GET() {
   } catch (error: any) {
     console.error("Error fetching showcase properties:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch showcase properties" },
+      { error: "Failed to fetch showcase properties" },
       { status: 500 }
     );
   }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("Error adding showcase property:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to add property to showcase" },
+      { error: "Failed to add property to showcase" },
       { status: 500 }
     );
   }
@@ -58,7 +58,7 @@ export async function PUT(request: Request) {
   } catch (error: any) {
     console.error("Error reordering showcase properties:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to reorder properties" },
+      { error: "Failed to reorder properties" },
       { status: 500 }
     );
   }

@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Fix Prisma enum type casting for body fields
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
@@ -153,10 +151,8 @@ export async function GET(req: Request) {
     );
   } catch (error) {
     console.error("[MANDATES_GET]", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to fetch mandates", details: errorMessage },
+      { error: "Failed to fetch mandates" },
       { status: 500 }
     );
   }
@@ -292,9 +288,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ mandate: newMandate }, { status: 200 });
   } catch (error: unknown) {
     console.error("[MANDATES_POST]", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to create mandate";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create mandate" }, { status: 500 });
   }
 }
 
@@ -462,10 +456,7 @@ export async function PUT(req: Request) {
     }
 
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to update mandate",
-      },
+      { error: "Failed to update mandate" },
       { status: 500 }
     );
   }

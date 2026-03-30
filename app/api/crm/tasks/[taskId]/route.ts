@@ -84,10 +84,10 @@ export async function GET(
     }
 
     return NextResponse.json(task);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[GET_TASK]', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch task' },
+      { error: 'Failed to fetch task' },
       { status: 500 }
     );
   }
@@ -187,10 +187,10 @@ export async function PUT(
       assigned_user: updatedTask.Users,
       crm_accounts: updatedTask.Clients,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[UPDATE_TASK]', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update task' },
+      { error: 'Failed to update task' },
       { status: 500 }
     );
   }

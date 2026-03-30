@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { getAgentProfileBySlug } from "@/actions/social/profile";
 import { notFound } from "next/navigation";
 import { AgentProfileViewClient } from "./components/AgentProfileViewClient";
@@ -65,8 +66,8 @@ export async function generateMetadata({
   params,
 }: AgentPageProps): Promise<Metadata> {
   const { slug, locale } = await params;
-  // slug is now the username
-  const profile = await getAgentProfileBySlug(slug);
+  // Metadata should only reflect PUBLIC profiles (crawlers are unauthenticated)
+  const profile = await getAgentProfileBySlug(slug, false);
 
   if (!profile) {
     return {
@@ -144,6 +145,37 @@ export async function generateMetadata({
   };
 }
 
+// Generate BreadcrumbList JSON-LD for SEO rich snippets
+function generateBreadcrumbJsonLd(profile: any, locale: string) {
+  const username = profile.user?.username || profile.slug;
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: locale === "el" ? "Αρχική" : "Home",
+        item: `${baseUrl}/${locale}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: locale === "el" ? "Πράκτορες" : "Agents",
+        item: `${baseUrl}/${locale}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: profile.user?.name || username,
+        item: `${baseUrl}/${locale}/agent/${username}`,
+      },
+    ],
+  };
+
+  return JSON.stringify(breadcrumb).replaceAll("<", "\\u003c").replaceAll(">", "\\u003e");
+}
+
 // Generate JSON-LD structured data for real estate agent
 function generateJsonLd(profile: any, locale: string) {
   const username = profile.user?.username || profile.slug;
@@ -177,8 +209,9 @@ function generateJsonLd(profile: any, locale: string) {
 
 export default async function AgentPage({ params }: AgentPageProps) {
   const { slug, locale } = await params;
-  // slug is now the username
-  const profile = await getAgentProfileBySlug(slug);
+  const { userId } = await auth();
+  const isAuthenticated = !!userId;
+  const profile = await getAgentProfileBySlug(slug, isAuthenticated);
 
   if (!profile) {
     notFound();
@@ -191,7 +224,21 @@ export default async function AgentPage({ params }: AgentPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: generateJsonLd(profile, locale) }}
       />
-      <AgentProfileViewClient profile={JSON.parse(JSON.stringify(profile))} locale={locale} />
+      <Script
+        id="json-ld-breadcrumb-agent"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: generateBreadcrumbJsonLd(profile, locale),
+        }}
+      />
+      <AgentProfileViewClient profile={JSON.parse(JSON.stringify({
+        ...profile,
+        // Strip internal user.id for unauthenticated visitors — only username is needed for display
+        user: profile.user ? {
+          ...profile.user,
+          id: isAuthenticated ? profile.user.id : undefined,
+        } : profile.user,
+      }))} locale={locale} />
     </>
   );
 }

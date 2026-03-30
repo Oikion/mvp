@@ -1,8 +1,7 @@
-// @ts-nocheck
-// TODO: Fix type errors
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { generateFriendlyId } from "@/lib/friendly-id";
 import { prismadb } from "@/lib/prisma";
 import { DealStatus } from "@prisma/client";
 import { notifyDealProposed } from "@/lib/notifications";
@@ -92,7 +91,18 @@ export async function POST(req: Request) {
   try {
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
-    const body = await req.json();
+    const body = await req.json() as {
+      propertyId?: string;
+      clientId?: string;
+      propertyAgentId?: string;
+      clientAgentId?: string;
+      propertyAgentSplit?: number;
+      clientAgentSplit?: number;
+      totalCommission?: number;
+      commissionCurrency?: string;
+      title?: string;
+      notes?: string;
+    };
 
     const {
       propertyId,
@@ -146,19 +156,23 @@ export async function POST(req: Request) {
       return new NextResponse("Property or client not found", { status: 404 });
     }
 
+    const friendlyId = await generateFriendlyId(prismadb, "Deal", organizationId);
+
     const deal = await prismadb.deal.create({
       data: {
         id: randomUUID(),
+        friendlyId,
+        organizationId,
         propertyId,
         clientId,
         propertyAgentId: resolvedPropertyAgentId,
         clientAgentId: resolvedClientAgentId,
         propertyAgentSplit,
         clientAgentSplit,
-        totalCommission: totalCommission || null,
+        totalCommission: totalCommission ?? null,
         commissionCurrency,
         proposedById: currentUser.id,
-        title: title || `Deal: ${property.property_name}`,
+        title: title ?? `Deal: ${property.property_name}`,
         notes,
         status: "PROPOSED",
         updatedAt: new Date(),

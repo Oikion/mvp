@@ -267,44 +267,29 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({ id: mandate.id, friendlyId: mandate.friendlyId }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[MANDATE_DRAFT_POST]", error);
-
-    // Extract more detailed error information
-    let errorMessage = "Failed to save draft";
-    let errorDetails: any = null;
-
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      errorDetails = {
-        message: error.message,
-        name: error.name,
-        stack: error.stack,
-      };
-    }
+    console.error("[MANDATE_DRAFT_POST] dataKeys:", Object.keys(data || {}));
 
     // Check if it's a Prisma validation error
-    if (error?.code === "P2002") {
-      errorMessage = "A mandate with this information already exists";
-    } else if (error?.code === "P2003") {
-      errorMessage = "Invalid reference to related record";
-    } else if (error?.meta?.target) {
-      errorMessage = `Validation error on field: ${error.meta.target.join(", ")}`;
+    if (error && typeof error === "object" && "code" in error) {
+      const prismaError = error as { code: string; meta?: { target?: string[] } };
+      if (prismaError.code === "P2002") {
+        return NextResponse.json(
+          { error: "A mandate with this information already exists" },
+          { status: 409 }
+        );
+      }
+      if (prismaError.code === "P2003") {
+        return NextResponse.json(
+          { error: "Invalid reference to related record" },
+          { status: 400 }
+        );
+      }
     }
 
-    console.error("[MANDATE_DRAFT_POST] Full error:", {
-      error,
-      errorMessage,
-      errorDetails,
-      dataKeys: Object.keys(data || {}),
-    });
-
     return NextResponse.json(
-      {
-        error: errorMessage,
-        details: errorDetails || errorMessage,
-        code: error?.code,
-      },
+      { error: "Failed to save draft" },
       { status: 500 }
     );
   }

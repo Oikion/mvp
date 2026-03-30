@@ -53,6 +53,7 @@ import { cn } from "@/lib/utils";
 import { useAblyConnection, useAblyMessages } from "@/hooks/useAbly";
 import { useAddReaction, useDeleteMessage, useEditMessage, useMessages } from "@/hooks/swr/useMessaging";
 import { useE2EE } from "@/hooks/useE2EE";
+import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 
 import type { Message, MessagingCredentials } from "@/hooks/swr/useMessaging";
 
@@ -138,6 +139,7 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
   const [openReactionPicker, setOpenReactionPicker] = useState<string | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
+  const { getUserStatus } = usePresence();
 
   // Fetch messages using SWR
   const { messages: rawMessages, isLoading, error, hasMore, mutate } = useMessages({
@@ -391,8 +393,30 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
 
                         {/* Avatar - with profile link */}
                         {showAvatar && canShowProfileLink && (
-                          <Link href={`/${locale}/agent/${message.senderProfileSlug}`}>
-                            <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                          <div className="flex-shrink-0">
+                            <Link href={`/${locale}/agent/${message.senderProfileSlug}`}>
+                              <Avatar className={cn(
+                                "h-8 w-8 cursor-pointer hover:opacity-80 border-2 transition-all",
+                                !isCurrentUser && toPresenceBorder(getUserStatus(message.senderId))
+                              )}>
+                                {senderAvatar && (
+                                  <AvatarImage src={senderAvatar} alt={senderDisplayName} />
+                                )}
+                                <AvatarFallback className="text-xs">
+                                  {getInitials(senderDisplayName, message.senderEmail)}
+                                </AvatarFallback>
+                              </Avatar>
+                            </Link>
+                          </div>
+                        )}
+
+                        {/* Avatar - without profile link */}
+                        {showAvatar && !canShowProfileLink && (
+                          <div className="flex-shrink-0">
+                            <Avatar className={cn(
+                              "h-8 w-8 border-2 transition-colors",
+                              !isCurrentUser && toPresenceBorder(getUserStatus(message.senderId))
+                            )}>
                               {senderAvatar && (
                                 <AvatarImage src={senderAvatar} alt={senderDisplayName} />
                               )}
@@ -400,19 +424,7 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                                 {getInitials(senderDisplayName, message.senderEmail)}
                               </AvatarFallback>
                             </Avatar>
-                          </Link>
-                        )}
-
-                        {/* Avatar - without profile link */}
-                        {showAvatar && !canShowProfileLink && (
-                          <Avatar className="h-8 w-8 flex-shrink-0">
-                            {senderAvatar && (
-                              <AvatarImage src={senderAvatar} alt={senderDisplayName} />
-                            )}
-                            <AvatarFallback className="text-xs">
-                              {getInitials(senderDisplayName, message.senderEmail)}
-                            </AvatarFallback>
-                          </Avatar>
+                          </div>
                         )}
 
                     {/* Message content */}

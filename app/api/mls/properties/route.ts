@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Fix type errors
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
@@ -331,9 +329,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ newProperty: property }, { status: 200 });
   } catch (error) {
     console.error("[NEW_PROPERTY_POST]", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to create property", details: errorMessage },
+      { error: "Failed to create property" },
       { status: 500 }
     );
   }
@@ -441,9 +438,8 @@ export async function PUT(req: Request) {
     return NextResponse.json({ updatedProperty }, { status: 200 });
   } catch (error) {
     console.error("[UPDATE_PROPERTY_PUT]", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to update property", details: errorMessage },
+      { error: "Failed to update property" },
       { status: 500 }
     );
   }
@@ -567,9 +563,8 @@ export async function GET(req: Request) {
     }, { status: 200 });
   } catch (error) {
     console.error("[PROPERTIES_GET]", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to fetch properties", details: errorMessage },
+      { error: "Failed to fetch properties" },
       { status: 500 }
     );
   }

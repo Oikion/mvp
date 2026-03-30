@@ -280,7 +280,8 @@ async function sendTestEmail(
     });
 
     if (result.error) {
-      return createApiErrorResponse(result.error.message, 500);
+      console.error("[NEWSLETTER_SEND] Resend error", result.error);
+      return createApiErrorResponse("Failed to send email", 500);
     }
 
     return createApiSuccessResponse({
@@ -290,10 +291,7 @@ async function sendTestEmail(
     });
   } catch (error) {
     console.error("[TEST_EMAIL_ERROR]", error);
-    return createApiErrorResponse(
-      error instanceof Error ? error.message : "Failed to send test email",
-      500
-    );
+    return createApiErrorResponse("Failed to send test email", 500);
   }
 }
 

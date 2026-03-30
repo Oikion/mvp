@@ -29,12 +29,16 @@ export function NetworkAgentCard({ agent }: NetworkAgentCardProps) {
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <Link
-              href={`/agent/${agent.slug}`}
-              className="font-medium text-primary hover:underline"
-            >
-              {displayName}
-            </Link>
+            {agent.username ? (
+              <Link
+                href={`/app/network/agents/${agent.username}`}
+                className="font-medium text-primary hover:underline"
+              >
+                {displayName}
+              </Link>
+            ) : (
+              <span className="font-medium">{displayName}</span>
+            )}
             {agent.serviceAreas.length > 0 && (
               <p className="mt-0.5 truncate text-xs text-muted-foreground">
                 {agent.serviceAreas.slice(0, 3).join(", ")}
@@ -47,7 +51,7 @@ export function NetworkAgentCard({ agent }: NetworkAgentCardProps) {
             )}
             <div className="mt-2 flex items-center gap-2">
               <Button variant="outline" size="sm" asChild>
-                <Link href={`/agent/${agent.slug}`} target="_blank">{t("viewProfile")}</Link>
+                <Link href={`/app/network/agents/${agent.username || agent.slug}`}>{t("viewProfile")}</Link>
               </Button>
               {agent.userId && (
                 <ConnectionButton

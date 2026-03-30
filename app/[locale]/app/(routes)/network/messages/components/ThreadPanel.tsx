@@ -48,6 +48,7 @@ import {
 import { MessageComposer } from "./MessageComposer";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 
 // Common emojis for quick reactions
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "🎉", "🤔", "👀", "🙏", "💯", "👎", "😢"];
@@ -99,6 +100,7 @@ function ThreadMessage({
 }) {
   const [openReactionPicker, setOpenReactionPicker] = useState(false);
   const [isAddingReaction, setIsAddingReaction] = useState(false);
+  const { getUserStatus } = usePresence();
 
   const handleReaction = async (emoji: string) => {
     setIsAddingReaction(true);
@@ -119,8 +121,27 @@ function ThreadMessage({
     >
       {/* Avatar */}
       {message.senderProfileSlug ? (
-        <Link href={`/${locale}/agent/${message.senderProfileSlug}`}>
-          <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+        <div className="flex-shrink-0">
+          <Link href={`/${locale}/agent/${message.senderProfileSlug}`}>
+            <Avatar className={cn(
+              "h-8 w-8 cursor-pointer hover:opacity-80 border-2 transition-all",
+              !isCurrentUser && toPresenceBorder(getUserStatus(message.senderId))
+            )}>
+              {message.senderAvatar && (
+                <AvatarImage src={message.senderAvatar} alt={message.senderName || "User"} />
+              )}
+              <AvatarFallback className="text-xs">
+                {getInitials(message.senderName, message.senderEmail)}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+        </div>
+      ) : (
+        <div className="flex-shrink-0">
+          <Avatar className={cn(
+            "h-8 w-8 border-2 transition-colors",
+            !isCurrentUser && toPresenceBorder(getUserStatus(message.senderId))
+          )}>
             {message.senderAvatar && (
               <AvatarImage src={message.senderAvatar} alt={message.senderName || "User"} />
             )}
@@ -128,16 +149,7 @@ function ThreadMessage({
               {getInitials(message.senderName, message.senderEmail)}
             </AvatarFallback>
           </Avatar>
-        </Link>
-      ) : (
-        <Avatar className="h-8 w-8 flex-shrink-0">
-          {message.senderAvatar && (
-            <AvatarImage src={message.senderAvatar} alt={message.senderName || "User"} />
-          )}
-          <AvatarFallback className="text-xs">
-            {getInitials(message.senderName, message.senderEmail)}
-          </AvatarFallback>
-        </Avatar>
+        </div>
       )}
 
       {/* Message content */}

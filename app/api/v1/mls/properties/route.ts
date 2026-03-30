@@ -1,5 +1,15 @@
 import { NextRequest } from "next/server";
-import { ItemVisibility } from "@prisma/client";
+import { z } from "zod";
+import {
+  ItemVisibility,
+  PropertyType,
+  PropertyStatus,
+  TransactionType,
+  PropertyCondition,
+  HeatingType,
+  EnergyCertClass,
+  PriceType,
+} from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
 import {
@@ -12,6 +22,40 @@ import {
 } from "@/lib/external-api-middleware";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchPropertyWebhook } from "@/lib/webhooks";
+
+/**
+ * Zod schema for external API property creation.
+ * Uses camelCase field names matching the public API contract.
+ * All enums validated via z.nativeEnum() — invalid values return 400 instead of 500.
+ */
+const createPropertyApiSchema = z.object({
+  name: z.string().min(1, "name is required").max(255),
+  type: z.nativeEnum(PropertyType).optional().nullable(),
+  status: z.nativeEnum(PropertyStatus).optional(),
+  transactionType: z.nativeEnum(TransactionType).optional().nullable(),
+  price: z.number().min(0).optional().nullable(),
+  priceType: z.nativeEnum(PriceType).optional().nullable(),
+  addressStreet: z.string().max(255).optional().nullable(),
+  addressCity: z.string().max(100).optional().nullable(),
+  addressState: z.string().max(100).optional().nullable(),
+  addressZip: z.string().max(20).optional().nullable(),
+  bedrooms: z.number().int().min(0).optional().nullable(),
+  bathrooms: z.number().min(0).optional().nullable(),
+  sizeNetSqm: z.number().min(0).optional().nullable(),
+  sizeGrossSqm: z.number().min(0).optional().nullable(),
+  floor: z.string().max(50).optional().nullable(),
+  floorsTotal: z.number().int().min(0).optional().nullable(),
+  yearBuilt: z.number().int().min(1800).max(new Date().getFullYear() + 5).optional().nullable(),
+  condition: z.nativeEnum(PropertyCondition).optional().nullable(),
+  heatingType: z.nativeEnum(HeatingType).optional().nullable(),
+  energyCertClass: z.nativeEnum(EnergyCertClass).optional().nullable(),
+  elevator: z.boolean().optional().nullable(),
+  amenities: z.array(z.string()).optional().nullable(),
+  description: z.string().optional().nullable(),
+  assignedTo: z.string().min(1).optional().nullable(),
+  isExclusive: z.boolean().optional(),
+  portalVisibility: z.nativeEnum(ItemVisibility).optional(),
+}).strict();
 
 /**
  * GET /api/v1/mls/properties
@@ -144,48 +188,17 @@ export const POST = withExternalApi(
   async (req: NextRequest, context: ExternalApiContext) => {
     const body = await req.json();
 
-    const {
-      name,
-      type,
-      status,
-      transactionType,
-      price,
-      priceType,
-      addressStreet,
-      addressCity,
-      addressState,
-      addressZip,
-      bedrooms,
-      bathrooms,
-      sizeNetSqm,
-      sizeGrossSqm,
-      floor,
-      floorsTotal,
-      yearBuilt,
-      condition,
-      heatingType,
-      energyCertClass,
-      elevator,
-      amenities,
-      description,
-      assignedTo,
-      isExclusive,
-      portalVisibility,
-    } = body;
-
-    // Validate required fields
-    if (!name) {
-      return createApiErrorResponse("Missing required field: name", 400);
+    // Validate input with Zod — rejects unknown fields and validates all enums
+    const parsed = createPropertyApiSchema.safeParse(body);
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const details = Object.entries(fieldErrors)
+        .map(([k, v]) => `${k}: ${(v ?? []).join(", ")}`)
+        .join("; ");
+      return createApiErrorResponse(`Validation failed: ${details}`, 400);
     }
 
-    // Validate visibility if provided
-    const validVisibilities: ItemVisibility[] = ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"];
-    if (portalVisibility && !validVisibilities.includes(portalVisibility)) {
-      return createApiErrorResponse(
-        "Invalid visibility value. Must be one of: HIDDEN, PRIVATE, SECURE, PUBLIC",
-        400
-      );
-    }
+    const v = parsed.data;
 
     // Generate friendly ID
     const friendlyId = await generateFriendlyId(prismadb, "Properties", context.organizationId);
@@ -197,32 +210,32 @@ export const POST = withExternalApi(
         organizationId: context.organizationId,
         createdBy: context.createdById,
         updatedBy: context.createdById,
-        property_name: name,
-        property_type: type || null,
-        property_status: status || "ACTIVE",
-        transaction_type: transactionType || null,
-        price: price || null,
-        price_type: priceType || null,
-        address_street: addressStreet || null,
-        address_city: addressCity || null,
-        address_state: addressState || null,
-        address_zip: addressZip || null,
-        bedrooms: bedrooms || null,
-        bathrooms: bathrooms || null,
-        size_net_sqm: sizeNetSqm || null,
-        size_gross_sqm: sizeGrossSqm || null,
-        floor: floor || null,
-        floors_total: floorsTotal || null,
-        year_built: yearBuilt || null,
-        condition: condition || null,
-        heating_type: heatingType || null,
-        energy_cert_class: energyCertClass || null,
-        elevator: elevator || null,
-        amenities: amenities || null,
-        description: description || null,
-        assigned_to: assignedTo || null,
-        is_exclusive: isExclusive || false,
-        visibility: portalVisibility || "PRIVATE",
+        property_name: v.name,
+        property_type: v.type || null,
+        property_status: v.status || "ACTIVE",
+        transaction_type: v.transactionType || null,
+        price: v.price || null,
+        price_type: v.priceType || null,
+        address_street: v.addressStreet || null,
+        address_city: v.addressCity || null,
+        address_state: v.addressState || null,
+        address_zip: v.addressZip || null,
+        bedrooms: v.bedrooms || null,
+        bathrooms: v.bathrooms || null,
+        size_net_sqm: v.sizeNetSqm || null,
+        size_gross_sqm: v.sizeGrossSqm || null,
+        floor: v.floor || null,
+        floors_total: v.floorsTotal || null,
+        year_built: v.yearBuilt || null,
+        condition: v.condition || null,
+        heating_type: v.heatingType || null,
+        energy_cert_class: v.energyCertClass || null,
+        elevator: v.elevator || null,
+        amenities: v.amenities || undefined,
+        description: v.description || null,
+        assigned_to: v.assignedTo || null,
+        is_exclusive: v.isExclusive || false,
+        visibility: v.portalVisibility || "PRIVATE",
         draft_status: false,
       },
       select: {
