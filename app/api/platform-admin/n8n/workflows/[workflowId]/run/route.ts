@@ -22,8 +22,7 @@ export async function POST(
     const result = await runN8nWorkflow(baseUrl, workflowId);
     return NextResponse.json({ success: true, workflowId, result });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to run n8n workflow";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to run n8n workflow" }, { status: 500 });
   }
 }
 

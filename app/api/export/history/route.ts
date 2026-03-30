@@ -129,7 +129,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("[EXPORT_HISTORY_GET]", error);
     return NextResponse.json(
-      { error: "Failed to fetch export history", message: error instanceof Error ? error.message : "Unknown error" },
+      { error: "Failed to fetch export history" },
       { status: 500 }
     );
   }
@@ -225,7 +225,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[EXPORT_HISTORY_POST]", error);
     return NextResponse.json(
-      { error: "Failed to record export", message: error instanceof Error ? error.message : "Unknown error" },
+      { error: "Failed to record export" },
       { status: 500 }
     );
   }

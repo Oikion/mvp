@@ -231,7 +231,14 @@ export default async function AgentPage({ params }: AgentPageProps) {
           __html: generateBreadcrumbJsonLd(profile, locale),
         }}
       />
-      <AgentProfileViewClient profile={JSON.parse(JSON.stringify(profile))} locale={locale} />
+      <AgentProfileViewClient profile={JSON.parse(JSON.stringify({
+        ...profile,
+        // Strip internal user.id for unauthenticated visitors — only username is needed for display
+        user: profile.user ? {
+          ...profile.user,
+          id: isAuthenticated ? profile.user.id : undefined,
+        } : profile.user,
+      }))} locale={locale} />
     </>
   );
 }

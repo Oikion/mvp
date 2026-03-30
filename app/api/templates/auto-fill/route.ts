@@ -89,8 +89,7 @@ export async function POST(req: Request) {
     });
   } catch (error: unknown) {
     console.error("[TEMPLATE_AUTOFILL]", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal error";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
 

@@ -371,10 +371,7 @@ export async function GET(req: NextRequest) {
     console.error("[PORTAL_EXPORT_ERROR]", error);
     
     return NextResponse.json(
-      { 
-        error: "Export failed", 
-        message: error instanceof Error ? error.message : "An unexpected error occurred" 
-      },
+      { error: "Export failed" },
       { status: 500 }
     );
   }
@@ -470,7 +467,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[PORTAL_INFO_ERROR]", error);
     return NextResponse.json(
-      { error: "Request failed", message: error instanceof Error ? error.message : "Unknown error" },
+      { error: "Request failed" },
       { status: 500 }
     );
   }

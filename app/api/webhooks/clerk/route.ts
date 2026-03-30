@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Fix type errors
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
@@ -66,7 +64,7 @@ export async function POST(req: Request) {
       
       // Sync user to messaging service (non-blocking)
       if (user && user.id) {
-        syncUserToMessaging(user.id).catch((err) => {
+        syncUserToMessaging().catch((err) => {
           console.error("[WEBHOOK] Failed to sync user to messaging:", err);
         });
       }

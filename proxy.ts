@@ -512,10 +512,22 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
 
   // For page routes, run intlMiddleware to get locale headers/cookies
   const intlResponse = intlMiddleware(req);
-  
+
   // If intlMiddleware returns a redirect (e.g., locale normalization), return it
   if (intlResponse && (intlResponse.status === 307 || intlResponse.status === 308)) {
     return intlResponse;
+  }
+
+  // Rate limit public profile pages to prevent scraper abuse (each hit is a cold DB query)
+  const isPublicProfilePage = /^\/(en|el)\/(agent|agency|property)\//.test(pathname);
+  if (isPublicProfilePage) {
+    const identifier = getRateLimitIdentifier(req);
+    const rlResult = await rateLimit(identifier, 'lenient');
+    if (!rlResult.success) {
+      return new NextResponse("Too Many Requests", { status: 429, headers: {
+        'Retry-After': Math.ceil((rlResult.reset - Date.now()) / 1000).toString(),
+      }});
+    }
   }
 
   // CRITICAL: Return NextResponse.next() to preserve Clerk's auth headers

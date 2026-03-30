@@ -217,10 +217,7 @@ export async function GET(req: NextRequest) {
     console.error("[REPORTS_EXPORT_ERROR]", error);
     
     return NextResponse.json(
-      { 
-        error: "Export failed", 
-        message: error instanceof Error ? error.message : "An unexpected error occurred" 
-      },
+      { error: "Export failed" },
       { status: 500 }
     );
   }

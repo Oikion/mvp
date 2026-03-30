@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     const meta = (error as any)?.meta ? JSON.stringify((error as any).meta) : "N/A";
     console.error("[UNIFIED_IMPORT_POST]", { name, code, message, meta });
     return NextResponse.json(
-      { error: "Import failed", detail: message },
+      { error: "Import failed" },
       { status: 500 },
     );
   }

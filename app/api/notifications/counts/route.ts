@@ -15,7 +15,7 @@ export async function GET() {
     console.error("[NOTIFICATION_COUNTS_GET]", error);
 
     // Handle authentication errors properly
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage = error instanceof Error ? error.message : "";
     if (errorMessage === "User not authenticated" || errorMessage === "User not found in database") {
       return NextResponse.json(
         { error: "Unauthenticated" },
@@ -24,7 +24,7 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { error: errorMessage || "Failed to fetch notification counts" },
+      { error: "Failed to fetch notification counts" },
       { status: 500 }
     );
   }

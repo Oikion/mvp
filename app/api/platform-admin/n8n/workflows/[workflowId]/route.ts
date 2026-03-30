@@ -25,8 +25,7 @@ export async function PATCH(
     await setN8nWorkflowActive(baseUrl, workflowId, active);
     return NextResponse.json({ success: true, workflowId, active });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to update n8n workflow";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update n8n workflow" }, { status: 500 });
   }
 }
 

@@ -418,8 +418,8 @@ importers:
         specifier: ^3.4.1
         version: 3.4.1(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react-is@18.3.1)(react@19.2.0)(redux@5.0.1)
       resend:
-        specifier: 4.0.1-alpha.0
-        version: 4.0.1-alpha.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: ^6.9.4
+        version: 6.9.4(@react-email/render@1.4.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0))
       sharp:
         specifier: ^0.33.5
         version: 0.33.5
@@ -2660,13 +2660,6 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
-
-  '@react-email/render@1.0.1':
-    resolution: {integrity: sha512-W3gTrcmLOVYnG80QuUp22ReIT/xfLsVJ+n7ghSlG2BITB8evNABn1AO2rGQoXuK84zKtDAlxCdm3hRyIpZdGSA==}
-    engines: {node: '>=18.0.0'}
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-      react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
 
   '@react-email/render@1.0.2':
     resolution: {integrity: sha512-q82eBd39TepzA/xjlm8szqJlrQk/gh7mgtxXMGlJ4dcdx89go1m9YBDpZY98SFy+2r2KAOd5A1mxvUbsPwoATg==}
@@ -6608,6 +6601,9 @@ packages:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
     engines: {node: '>= 0.4'}
 
+  postal-mime@2.7.3:
+    resolution: {integrity: sha512-MjhXadAJaWgYzevi46+3kLak8y6gbg0ku14O1gO/LNOuay8dO+1PtcSGvAdgDR0DoIsSaiIA8y/Ddw6MnrO0Tw==}
+
   postcss-import@15.1.0:
     resolution: {integrity: sha512-hpr+J05B2FVYUAXHeK1YyI267J/dDDhMU6B6civm8hSY1jYJnBXxzKDKDswzJmtLHryrjhnDjqqp/49t8FALew==}
     engines: {node: '>=14.0.0'}
@@ -7089,9 +7085,14 @@ packages:
   reselect@5.1.1:
     resolution: {integrity: sha512-K/BG6eIky/SBpzfHZv/dd+9JBFiS4SWV7FIujVyJRux6e45+73RaUHXLmIR1f7WOMaQ0U1km6qwklRQxpJJY0w==}
 
-  resend@4.0.1-alpha.0:
-    resolution: {integrity: sha512-qtyGk72ZJ3b3ifmz34l/z/X9EpKuqgjTc76/wihMR8I71IdhDIpIPsx/CgKlkA9oLesc8mryW+zulGr8RtEkJQ==}
-    engines: {node: '>=18'}
+  resend@6.9.4:
+    resolution: {integrity: sha512-/M3dsJzu5OgozqVsA4Psd/1L7EdePgOIIxClas453GOQYFG3VHc2ZyCHZFlvqsc9aZCCd2BJRRqZgWC8D9c7/g==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@react-email/render': '*'
+    peerDependenciesMeta:
+      '@react-email/render':
+        optional: true
 
   resize-observer-polyfill@1.5.1:
     resolution: {integrity: sha512-LwZrotdHOo12nQuZlHEmtuXdqGoOD0OhaxopaNFxWzInpEgaLWoVuAMbTzixuosCx2nEG58ngzW3vxdWoxIgdg==}
@@ -7464,6 +7465,9 @@ packages:
 
   svix@1.81.0:
     resolution: {integrity: sha512-Q4DiYb1ydhRYqez65vZES8AkGY2oxn26qP7mLVbMf8Orrveb54TZLkaVG5zr7eJT4T3zYRThkKf6aOnvzgwhYw==}
+
+  svix@1.86.0:
+    resolution: {integrity: sha512-/HTvXwjLJe1l/MsLXAO1ddCYxElJk4eNR4DzOjDOEmGrPN/3BtBE8perGwMAaJ2sT5T172VkBYzmHcjUfM1JRQ==}
 
   swr@2.3.4:
     resolution: {integrity: sha512-bYd2lrhc+VarcpkgWclcUi92wYCpOgMws9Sd1hG1ntAu0NEy+14CbotuFjshBU2kt9rYj9TSmDcybpxpeTU1fg==}
@@ -10567,14 +10571,6 @@ snapshots:
   '@react-email/preview@0.0.11(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/render@1.0.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
-    dependencies:
-      html-to-text: 9.0.5
-      js-beautify: 1.15.4
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      react-promise-suspense: 0.3.4
 
   '@react-email/render@1.0.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
@@ -15226,6 +15222,8 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
+  postal-mime@2.7.3: {}
+
   postcss-import@15.1.0(postcss@8.5.6):
     dependencies:
       postcss: 8.5.6
@@ -15850,12 +15848,12 @@ snapshots:
 
   reselect@5.1.1: {}
 
-  resend@4.0.1-alpha.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  resend@6.9.4(@react-email/render@1.4.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)):
     dependencies:
-      '@react-email/render': 1.0.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-    transitivePeerDependencies:
-      - react
-      - react-dom
+      postal-mime: 2.7.3
+      svix: 1.86.0
+    optionalDependencies:
+      '@react-email/render': 1.4.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
 
   resize-observer-polyfill@1.5.1: {}
 
@@ -16356,6 +16354,11 @@ snapshots:
     dependencies:
       '@stablelib/base64': 1.0.1
       fast-sha256: 1.3.0
+      uuid: 10.0.0
+
+  svix@1.86.0:
+    dependencies:
+      standardwebhooks: 1.0.0
       uuid: 10.0.0
 
   swr@2.3.4(react@19.2.0):

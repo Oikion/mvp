@@ -84,8 +84,7 @@ export async function POST(req: Request) {
     });
   } catch (error: unknown) {
     console.error("[TEMPLATE_GENERATE]", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal error";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
 
@@ -129,7 +128,6 @@ export async function GET(req: Request) {
     });
   } catch (error: unknown) {
     console.error("[TEMPLATE_GET]", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal error";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

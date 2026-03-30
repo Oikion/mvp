@@ -1,5 +1,15 @@
 import { NextRequest } from "next/server";
-import { ItemVisibility } from "@prisma/client";
+import { z } from "zod";
+import {
+  ItemVisibility,
+  PropertyType,
+  PropertyStatus,
+  TransactionType,
+  PropertyCondition,
+  HeatingType,
+  EnergyCertClass,
+  PriceType,
+} from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
 import {
@@ -10,6 +20,39 @@ import {
 } from "@/lib/external-api-middleware";
 import { dispatchPropertyWebhook } from "@/lib/webhooks";
 import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
+
+/**
+ * Zod schema for external API property update.
+ * All fields optional (partial update). Validates enums and rejects unknown fields.
+ */
+const updatePropertyApiSchema = z.object({
+  name: z.string().min(1).max(255).optional(),
+  type: z.nativeEnum(PropertyType).optional().nullable(),
+  status: z.nativeEnum(PropertyStatus).optional(),
+  transactionType: z.nativeEnum(TransactionType).optional().nullable(),
+  price: z.number().min(0).optional().nullable(),
+  priceType: z.nativeEnum(PriceType).optional().nullable(),
+  addressStreet: z.string().max(255).optional().nullable(),
+  addressCity: z.string().max(100).optional().nullable(),
+  addressState: z.string().max(100).optional().nullable(),
+  addressZip: z.string().max(20).optional().nullable(),
+  bedrooms: z.number().int().min(0).optional().nullable(),
+  bathrooms: z.number().min(0).optional().nullable(),
+  sizeNetSqm: z.number().min(0).optional().nullable(),
+  sizeGrossSqm: z.number().min(0).optional().nullable(),
+  floor: z.string().max(50).optional().nullable(),
+  floorsTotal: z.number().int().min(0).optional().nullable(),
+  yearBuilt: z.number().int().min(1800).max(new Date().getFullYear() + 5).optional().nullable(),
+  condition: z.nativeEnum(PropertyCondition).optional().nullable(),
+  heatingType: z.nativeEnum(HeatingType).optional().nullable(),
+  energyCertClass: z.nativeEnum(EnergyCertClass).optional().nullable(),
+  elevator: z.boolean().optional().nullable(),
+  amenities: z.array(z.string()).optional().nullable(),
+  description: z.string().optional().nullable(),
+  assignedTo: z.string().min(1).optional().nullable(),
+  isExclusive: z.boolean().optional(),
+  portalVisibility: z.nativeEnum(ItemVisibility).optional(),
+}).strict();
 
 /**
  * GET /api/v1/mls/properties/[propertyId]
@@ -178,76 +221,51 @@ export const PUT = withExternalApi(
     }
 
     const body = await req.json();
-    const {
-      name,
-      type,
-      status,
-      transactionType,
-      price,
-      priceType,
-      addressStreet,
-      addressCity,
-      addressState,
-      addressZip,
-      bedrooms,
-      bathrooms,
-      sizeNetSqm,
-      sizeGrossSqm,
-      floor,
-      floorsTotal,
-      yearBuilt,
-      condition,
-      heatingType,
-      energyCertClass,
-      elevator,
-      amenities,
-      description,
-      assignedTo,
-      isExclusive,
-      portalVisibility,
-    } = body;
 
-    // Validate visibility if provided
-    const validVisibilities: ItemVisibility[] = ["HIDDEN", "PRIVATE", "SECURE", "PUBLIC"];
-    if (portalVisibility !== undefined && !validVisibilities.includes(portalVisibility)) {
-      return createApiErrorResponse(
-        "Invalid visibility value. Must be one of: HIDDEN, PRIVATE, SECURE, PUBLIC",
-        400
-      );
+    // Validate input with Zod — rejects unknown fields and validates all enums
+    const parsed = updatePropertyApiSchema.safeParse(body);
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const details = Object.entries(fieldErrors)
+        .map(([k, v]) => `${k}: ${(v ?? []).join(", ")}`)
+        .join("; ");
+      return createApiErrorResponse(`Validation failed: ${details}`, 400);
     }
 
-    // Build update data
+    const v = parsed.data;
+
+    // Build update data — only include fields that were provided
     const updateData: Record<string, unknown> = {
       updatedBy: context.createdById,
       updatedAt: new Date(),
     };
 
-    if (name !== undefined) updateData.property_name = name;
-    if (type !== undefined) updateData.property_type = type;
-    if (status !== undefined) updateData.property_status = status;
-    if (transactionType !== undefined) updateData.transaction_type = transactionType;
-    if (price !== undefined) updateData.price = price;
-    if (priceType !== undefined) updateData.price_type = priceType;
-    if (addressStreet !== undefined) updateData.address_street = addressStreet;
-    if (addressCity !== undefined) updateData.address_city = addressCity;
-    if (addressState !== undefined) updateData.address_state = addressState;
-    if (addressZip !== undefined) updateData.address_zip = addressZip;
-    if (bedrooms !== undefined) updateData.bedrooms = bedrooms;
-    if (bathrooms !== undefined) updateData.bathrooms = bathrooms;
-    if (sizeNetSqm !== undefined) updateData.size_net_sqm = sizeNetSqm;
-    if (sizeGrossSqm !== undefined) updateData.size_gross_sqm = sizeGrossSqm;
-    if (floor !== undefined) updateData.floor = floor;
-    if (floorsTotal !== undefined) updateData.floors_total = floorsTotal;
-    if (yearBuilt !== undefined) updateData.year_built = yearBuilt;
-    if (condition !== undefined) updateData.condition = condition;
-    if (heatingType !== undefined) updateData.heating_type = heatingType;
-    if (energyCertClass !== undefined) updateData.energy_cert_class = energyCertClass;
-    if (elevator !== undefined) updateData.elevator = elevator;
-    if (amenities !== undefined) updateData.amenities = amenities;
-    if (description !== undefined) updateData.description = description;
-    if (assignedTo !== undefined) updateData.assigned_to = assignedTo;
-    if (isExclusive !== undefined) updateData.is_exclusive = isExclusive;
-    if (portalVisibility !== undefined) updateData.visibility = portalVisibility;
+    if (v.name !== undefined) updateData.property_name = v.name;
+    if (v.type !== undefined) updateData.property_type = v.type;
+    if (v.status !== undefined) updateData.property_status = v.status;
+    if (v.transactionType !== undefined) updateData.transaction_type = v.transactionType;
+    if (v.price !== undefined) updateData.price = v.price;
+    if (v.priceType !== undefined) updateData.price_type = v.priceType;
+    if (v.addressStreet !== undefined) updateData.address_street = v.addressStreet;
+    if (v.addressCity !== undefined) updateData.address_city = v.addressCity;
+    if (v.addressState !== undefined) updateData.address_state = v.addressState;
+    if (v.addressZip !== undefined) updateData.address_zip = v.addressZip;
+    if (v.bedrooms !== undefined) updateData.bedrooms = v.bedrooms;
+    if (v.bathrooms !== undefined) updateData.bathrooms = v.bathrooms;
+    if (v.sizeNetSqm !== undefined) updateData.size_net_sqm = v.sizeNetSqm;
+    if (v.sizeGrossSqm !== undefined) updateData.size_gross_sqm = v.sizeGrossSqm;
+    if (v.floor !== undefined) updateData.floor = v.floor;
+    if (v.floorsTotal !== undefined) updateData.floors_total = v.floorsTotal;
+    if (v.yearBuilt !== undefined) updateData.year_built = v.yearBuilt;
+    if (v.condition !== undefined) updateData.condition = v.condition;
+    if (v.heatingType !== undefined) updateData.heating_type = v.heatingType;
+    if (v.energyCertClass !== undefined) updateData.energy_cert_class = v.energyCertClass;
+    if (v.elevator !== undefined) updateData.elevator = v.elevator;
+    if (v.amenities !== undefined) updateData.amenities = v.amenities;
+    if (v.description !== undefined) updateData.description = v.description;
+    if (v.assignedTo !== undefined) updateData.assigned_to = v.assignedTo;
+    if (v.isExclusive !== undefined) updateData.is_exclusive = v.isExclusive;
+    if (v.portalVisibility !== undefined) updateData.visibility = v.portalVisibility;
 
     const property = await prismadb.properties.update({
       where: { id: existingProperty.id },

@@ -77,6 +77,15 @@ const config = [
     },
   },
 
+  // Enforce structured logging — flag console.log in production code paths
+  // console.error and console.warn are allowed (used for server-side error logging)
+  {
+    files: ["app/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}", "actions/**/*.{ts,tsx}"],
+    rules: {
+      "no-console": ["warn", { allow: ["error", "warn"] }],
+    },
+  },
+
   // Disable hardcoded colors rule for email templates and exports
   {
     files: ["emails/**/*.tsx", "lib/export/**/*.tsx"],

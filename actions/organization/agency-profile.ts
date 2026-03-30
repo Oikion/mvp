@@ -186,6 +186,27 @@ export async function getPublicAgencyProfile(
         ? { in: ["PUBLIC", "SECURE"] as const }
         : "PUBLIC",
     },
+    // Explicit projection — never return organizationId, lat/lng, or timestamps to public visitors
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+      description: true,
+      phone: true,
+      email: true,
+      website: true,
+      address: true,
+      city: true,
+      region: true,
+      postalCode: true,
+      country: true,
+      socialLinks: true,
+      yearFounded: true,
+      licenseNumber: true,
+      contactFormEnabled: true,
+      contactFormFields: true,
+    },
   });
 
   return profile;

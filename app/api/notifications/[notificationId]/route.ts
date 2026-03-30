@@ -26,7 +26,7 @@ export async function PUT(
     }
     
     return NextResponse.json(
-      { error: error.message || "Failed to mark notification as read" },
+      { error: "Failed to mark notification as read" },
       { status: 500 }
     );
   }

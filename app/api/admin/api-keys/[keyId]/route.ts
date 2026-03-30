@@ -87,7 +87,7 @@ export async function GET(req: Request, { params }: RouteParams) {
   } catch (error) {
     console.error("[API_KEY_GET]", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch API key" },
+      { error: "Failed to fetch API key" },
       { status: 500 }
     );
   }
@@ -149,7 +149,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   } catch (error) {
     console.error("[API_KEY_PATCH]", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to update API key" },
+      { error: "Failed to update API key" },
       { status: 500 }
     );
   }
@@ -193,7 +193,7 @@ export async function DELETE(req: Request, { params }: RouteParams) {
   } catch (error) {
     console.error("[API_KEY_DELETE]", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to revoke API key" },
+      { error: "Failed to revoke API key" },
       { status: 500 }
     );
   }

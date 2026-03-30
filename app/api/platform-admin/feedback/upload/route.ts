@@ -103,9 +103,8 @@ export async function POST(req: Request) {
     });
   } catch (error: unknown) {
     console.error("[FEEDBACK_ATTACHMENT_UPLOAD]", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal error";
     return NextResponse.json(
-      { error: errorMessage },
+      { error: "Internal error" },
       { status: 500 }
     );
   }

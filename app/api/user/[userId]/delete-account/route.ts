@@ -175,7 +175,7 @@ export async function DELETE(
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to delete account", message: error instanceof Error ? error.message : "Unknown error" },
+      { error: "Failed to delete account" },
       { status: 500 }
     );
   }
