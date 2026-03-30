@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { User, Check, X, Loader2, Clock, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { Link as NavLink } from "@/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { el, enUS } from "date-fns/locale";
 import { useRespondToConnection } from "@/hooks/swr";
@@ -24,6 +25,7 @@ interface PendingRequestUser {
   name: string | null;
   email: string;
   avatar: string | null;
+  username?: string | null;
   AgentProfile?: AgentProfileData | null;
 }
 
@@ -90,7 +92,18 @@ function PendingItem({
         </Avatar>
         <div>
           <div className="flex items-center gap-2">
-            <h4 className="font-medium">{user.name}</h4>
+            <h4 className="font-medium">
+              {user.username ? (
+                <NavLink
+                  href={`/app/network/agents/${user.username}`}
+                  className="hover:text-primary hover:underline"
+                >
+                  {user.name}
+                </NavLink>
+              ) : (
+                user.name
+              )}
+            </h4>
             {agentProfile?.visibility !== "PRIVATE" && agentProfile?.slug && (
               <Link
                 href={`/agent/${agentProfile.slug}`}

@@ -190,6 +190,7 @@ export async function getSharedWithMe(entityType?: SharedEntityType) {
           name: true,
           email: true,
           avatar: true,
+          username: true,
         },
       },
     },

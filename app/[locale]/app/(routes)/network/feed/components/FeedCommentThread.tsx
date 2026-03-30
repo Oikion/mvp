@@ -17,6 +17,7 @@ import {
   Collapsible,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
+import { Link } from "@/navigation";
 import { useAppToast } from "@/hooks/use-app-toast";
 import {
   addComment,
@@ -263,9 +264,18 @@ export function FeedCommentThread({
                   <div className="flex-1">
                     <div className="bg-muted/50 rounded-lg px-3 py-2">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">
-                          {comment.author?.name ?? "Deleted User"}
-                        </span>
+                        {comment.author?.username ? (
+                          <Link
+                            href={`/app/network/agents/${comment.author.username}`}
+                            className="font-medium text-sm hover:text-primary hover:underline"
+                          >
+                            {comment.author?.name ?? "Deleted User"}
+                          </Link>
+                        ) : (
+                          <span className="font-medium text-sm">
+                            {comment.author?.name ?? "Deleted User"}
+                          </span>
+                        )}
                         <div className="flex items-center gap-1">
                           <span className="text-xs text-muted-foreground">
                             {formatDistanceToNow(new Date(comment.createdAt), {
@@ -386,9 +396,18 @@ export function FeedCommentThread({
                         </Avatar>
                         <div className="flex-1 bg-muted/30 rounded-lg px-3 py-2">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-medium text-sm">
-                              {reply.author?.name ?? "Deleted User"}
-                            </span>
+                            {reply.author?.username ? (
+                              <Link
+                                href={`/app/network/agents/${reply.author.username}`}
+                                className="font-medium text-sm hover:text-primary hover:underline"
+                              >
+                                {reply.author?.name ?? "Deleted User"}
+                              </Link>
+                            ) : (
+                              <span className="font-medium text-sm">
+                                {reply.author?.name ?? "Deleted User"}
+                              </span>
+                            )}
                             <div className="flex items-center gap-1">
                               <span className="text-xs text-muted-foreground">
                                 {formatDistanceToNow(

@@ -392,5 +392,19 @@
       "terms": "Terms",
       "learnMore": "Learn more"
     }
+  },
+  "inAppProfile": {
+    "follow": "Follow",
+    "followPending": "Pending",
+    "followSent": "Follow request sent",
+    "respondToRequest": "Respond to Request",
+    "connected": "Connected",
+    "removeConnection": "Remove Connection",
+    "connectionRemoved": "Connection removed",
+    "message": "Message",
+    "share": "Share",
+    "viewPublicProfile": "View Public Profile",
+    "report": "Report",
+    "mutualConnections": "{count, plural, one {# mutual connection} other {# mutual connections}}"
   }
 }

@@ -392,5 +392,19 @@
       "terms": "Όροι",
       "learnMore": "Μάθετε περισσότερα"
     }
+  },
+  "inAppProfile": {
+    "follow": "Ακολούθηση",
+    "followPending": "Εκκρεμεί",
+    "followSent": "Το αίτημα ακολούθησης εστάλη",
+    "respondToRequest": "Απάντηση στο Αίτημα",
+    "connected": "Συνδεδεμένοι",
+    "removeConnection": "Αφαίρεση Σύνδεσης",
+    "connectionRemoved": "Η σύνδεση αφαιρέθηκε",
+    "message": "Μήνυμα",
+    "share": "Κοινοποίηση",
+    "viewPublicProfile": "Δημόσιο Προφίλ",
+    "report": "Αναφορά",
+    "mutualConnections": "{count, plural, one {# κοινή σύνδεση} other {# κοινές συνδέσεις}}"
   }
 }

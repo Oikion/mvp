@@ -199,6 +199,7 @@ export async function getMyConnections(status?: "PENDING" | "ACCEPTED") {
           name: true,
           email: true,
           avatar: true,
+          username: true,
           AgentProfile: {
             select: {
               slug: true,
@@ -215,6 +216,7 @@ export async function getMyConnections(status?: "PENDING" | "ACCEPTED") {
           name: true,
           email: true,
           avatar: true,
+          username: true,
           AgentProfile: {
             select: {
               slug: true,
@@ -258,6 +260,7 @@ export async function getPendingRequests() {
           name: true,
           email: true,
           avatar: true,
+          username: true,
           AgentProfile: {
             select: {
               slug: true,
@@ -297,6 +300,7 @@ export async function getSentRequests() {
           name: true,
           email: true,
           avatar: true,
+          username: true,
           AgentProfile: {
             select: {
               slug: true,

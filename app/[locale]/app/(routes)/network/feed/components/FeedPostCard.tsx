@@ -50,6 +50,7 @@ export interface SocialPost {
     id: string;
     name: string;
     avatar?: string;
+    username?: string | null;
     organizationName?: string;
     visibility?: ProfileVisibility;
   } | null;
@@ -196,12 +197,18 @@ export function FeedPostCard({
             </Avatar>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <Link
-                  href={`/app/network/profile`}
-                  className="font-semibold text-sm text-foreground hover:text-primary hover:underline"
-                >
-                  {post.author?.name ?? "Deleted User"}
-                </Link>
+                {post.author?.username ? (
+                  <Link
+                    href={`/app/network/agents/${post.author.username}`}
+                    className="font-semibold text-sm text-foreground hover:text-primary hover:underline"
+                  >
+                    {post.author?.name ?? "Deleted User"}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-sm text-foreground">
+                    {post.author?.name ?? "Deleted User"}
+                  </span>
+                )}
                 {getVisibilityBadge()}
               </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">

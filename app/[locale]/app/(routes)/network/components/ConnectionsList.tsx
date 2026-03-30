@@ -24,6 +24,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { Link as NavLink } from "@/navigation";
 import { useRemoveConnection } from "@/hooks/swr";
 import { startDirectMessage } from "@/actions/messaging/direct-messages";
 import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
@@ -40,6 +41,7 @@ interface ConnectionUser {
   name: string | null;
   email: string;
   avatar: string | null;
+  username?: string | null;
   AgentProfile?: AgentProfileData | null;
 }
 
@@ -117,7 +119,18 @@ function ConnectionListItem({
           </AvatarFallback>
         </Avatar>
         <div>
-          <h4 className="font-medium">{user.name}</h4>
+          <h4 className="font-medium">
+            {user.username ? (
+              <NavLink
+                href={`/app/network/agents/${user.username}`}
+                className="hover:text-primary hover:underline"
+              >
+                {user.name}
+              </NavLink>
+            ) : (
+              user.name
+            )}
+          </h4>
           <p className="text-sm text-muted-foreground">{user.email}</p>
           {agentProfile?.specializations && agentProfile.specializations.length > 0 && (
             <div className="flex gap-1 mt-1">

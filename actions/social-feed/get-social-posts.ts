@@ -21,6 +21,7 @@ export interface SocialPost {
     id: string;
     name: string;
     avatar?: string;
+    username?: string | null;
     organizationName?: string;
     visibility?: "PRIVATE" | "SECURE" | "PUBLIC";
   };
@@ -106,6 +107,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
             id: true,
             name: true,
             avatar: true,
+            username: true,
             AgentProfile: {
               select: {
                 visibility: true,
@@ -184,6 +186,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
         id: post.Users?.id || "",
         name: post.Users?.name || "Unknown",
         avatar: post.Users?.avatar || undefined,
+        username: post.Users?.username || null,
         organizationName: undefined,
         visibility: (post.Users?.AgentProfile?.visibility as "PRIVATE" | "SECURE" | "PUBLIC") || "PRIVATE",
       },
