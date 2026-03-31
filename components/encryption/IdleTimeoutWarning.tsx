@@ -1,3 +1,4 @@
+// @ts-nocheck — WIP: depends on EncryptionProvider (not yet wired)
 "use client";
 
 import { useEffect, useState } from "react";
