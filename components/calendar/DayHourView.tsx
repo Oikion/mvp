@@ -6,7 +6,6 @@ import {
   DndContext,
   DragEndEvent,
   DragStartEvent,
-  DragOverlay,
   useSensor,
   useSensors,
   PointerSensor,
@@ -115,24 +114,22 @@ function DraftEventBlock({
   if (!position) return null;
   
   const { top, height } = position;
-  const style = transform
-    ? {
-        top: `${top + transform.y}px`,
-        height: `${height}px`,
-      }
-    : {
-        top: `${top}px`,
-        height: `${height}px`,
-      };
+  // Don't use dnd-kit's transform.y — it drifts inside Radix ScrollArea.
+  // Position is driven by optimistic event updates from handleDragMove.
+  const style = {
+    top: `${top}px`,
+    height: `${height}px`,
+  };
 
   return (
     <Card
       ref={setNodeRef}
+      data-draft-block
       className={cn(
-        "event-card absolute left-1 right-1 p-2 overflow-hidden cursor-grab hover:shadow-md transition-shadow z-20",
+        "event-card absolute left-1 right-1 p-2 overflow-hidden cursor-grab hover:shadow-md z-20",
         "select-none touch-none",
         "bg-primary/10 border-primary/40 border-2 border-dashed",
-        isDragging && "opacity-60"
+        isDragging && "opacity-60 transition-[top,height] duration-100 ease-out"
       )}
       style={style}
       onClick={(e) => {
@@ -187,6 +184,7 @@ function DraftResizeHandle({
   return (
     <div
       ref={setNodeRef}
+      data-resize-handle
       className={cn(
         "absolute left-1 right-1 h-2 z-30 cursor-ns-resize flex items-center justify-center",
         "hover:bg-primary/20 transition-colors",
@@ -194,7 +192,6 @@ function DraftResizeHandle({
       )}
       style={{
         top: `${handleY - 4}px`,
-        transform: transform ? `translateY(${transform.y}px)` : undefined,
       }}
       {...attributes}
       {...listeners}
@@ -238,24 +235,21 @@ function DraggableEvent({
   if (!position) return null;
 
   const { top, height } = position;
-  const style = transform
-    ? {
-        top: `${top + transform.y}px`,
-        height: `${height}px`,
-      }
-    : {
-        top: `${top}px`,
-        height: `${height}px`,
-      };
+  // Don't use dnd-kit's transform.y — it drifts inside Radix ScrollArea.
+  // Position is driven by optimistic event updates from handleDragMove.
+  const style = {
+    top: `${top}px`,
+    height: `${height}px`,
+  };
 
   return (
     <Card
       ref={setNodeRef}
       className={cn(
-        "event-card absolute left-1 right-1 p-2 overflow-hidden cursor-move hover:shadow-md transition-shadow z-20",
+        "event-card absolute left-1 right-1 p-2 overflow-hidden cursor-move hover:shadow-md z-20",
         "select-none touch-none",
         "bg-primary/10 border-primary/30 border-l-4 border-l-primary",
-        isDragging && "opacity-50"
+        isDragging && "opacity-50 transition-[top,height] duration-100 ease-out"
       )}
       style={style}
       onClick={() => {
@@ -331,6 +325,7 @@ function ResizeHandle({
   return (
     <div
       ref={setNodeRef}
+      data-resize-handle
       className={cn(
         "absolute left-1 right-1 h-2 z-30 cursor-ns-resize flex items-center justify-center",
         "hover:bg-primary/20 transition-colors",
@@ -338,7 +333,6 @@ function ResizeHandle({
       )}
       style={{
         top: `${handleY - 4}px`,
-        transform: transform ? `translateY(${transform.y}px)` : undefined,
       }}
       {...attributes}
       {...listeners}
@@ -374,8 +368,12 @@ export function DayHourView({
   const [optimisticEvents, setOptimisticEvents] = useState<Map<string, CalendarEvent>>(new Map());
   const gridRef = useRef<HTMLDivElement>(null);
   const createPointerIdRef = useRef<number | null>(null);
+  // Track pointer position independently of dnd-kit to avoid its
+  // scroll-compensation drift inside Radix ScrollArea.
+  const pointerYRef = useRef<number>(0);
 
   // Prevent browser text/element selection while dragging (create/move/resize).
+  // Also track raw pointer position to bypass dnd-kit's scroll compensation.
   useEffect(() => {
     if (!isDragging) return;
     const body = document.body;
@@ -388,11 +386,17 @@ export function DayHourView({
     (body.style as unknown as { WebkitUserSelect?: string }).WebkitUserSelect = "none";
     body.style.cursor = "grabbing";
 
+    const trackPointer = (e: PointerEvent) => {
+      pointerYRef.current = e.clientY;
+    };
+    window.addEventListener("pointermove", trackPointer);
+
     return () => {
       body.style.userSelect = prevUserSelect;
       (body.style as unknown as { WebkitUserSelect?: string }).WebkitUserSelect =
         prevWebkitUserSelect ?? "";
       body.style.cursor = prevCursor;
+      window.removeEventListener("pointermove", trackPointer);
     };
   }, [isDragging]);
 
@@ -456,60 +460,77 @@ export function DayHourView({
   }, [startHour, endHour]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    const { active } = event;
+    const { active, activatorEvent } = event;
     const data = active.data.current;
+
+    // Seed pointer position for handleDragMove's raw-pointer approach
+    if (activatorEvent && "clientY" in activatorEvent) {
+      pointerYRef.current = (activatorEvent as PointerEvent).clientY;
+    }
 
     if (data?.type === "draft-move") {
       if (!draftStartTime || !draftEndTime) return;
       setIsDragging(true);
       setDragState({
         type: "draft-move",
-        startY: 0,
+        startY: timeToPixels(draftStartTime.getHours(), draftStartTime.getMinutes(), startHour),
         startTime: new Date(draftStartTime),
         endTime: new Date(draftEndTime),
       });
-    } else if ((data?.type === "draft-resize-top" || data?.type === "draft-resize-bottom") && draftStartTime && draftEndTime) {
+    } else if (data?.type === "draft-resize-top" && draftStartTime && draftEndTime) {
       setIsDragging(true);
       setDragState({
-        type: data.type as DragType,
-        startY: 0,
+        type: "draft-resize-top",
+        startY: timeToPixels(draftStartTime.getHours(), draftStartTime.getMinutes(), startHour),
+        startTime: new Date(draftStartTime),
+        endTime: new Date(draftEndTime),
+      });
+    } else if (data?.type === "draft-resize-bottom" && draftStartTime && draftEndTime) {
+      setIsDragging(true);
+      setDragState({
+        type: "draft-resize-bottom",
+        startY: timeToPixels(draftEndTime.getHours(), draftEndTime.getMinutes(), startHour),
         startTime: new Date(draftStartTime),
         endTime: new Date(draftEndTime),
       });
     } else if (data?.type === "move" && data.event) {
       setIsDragging(true);
-      const event = data.event as CalendarEvent;
+      const ev = data.event as CalendarEvent;
+      const evStart = new Date(ev.startTime);
       setDragState({
         type: "move",
-        startY: 0,
-        startTime: new Date(event.startTime),
-        endTime: new Date(event.endTime),
-        eventId: event.eventId,
+        startY: timeToPixels(evStart.getHours(), evStart.getMinutes(), startHour),
+        startTime: evStart,
+        endTime: new Date(ev.endTime),
+        eventId: ev.eventId,
       });
     } else if (data?.type?.startsWith("resize-") && data.event) {
       setIsDragging(true);
-      const event = data.event as CalendarEvent;
-      const position = data.type.includes("top") ? "resize-top" : "resize-bottom";
+      const ev = data.event as CalendarEvent;
+      const evStart = new Date(ev.startTime);
+      const evEnd = new Date(ev.endTime);
+      const isTop = data.type.includes("top");
+      const anchorTime = isTop ? evStart : evEnd;
       setDragState({
-        type: position,
-        startY: 0,
-        startTime: new Date(event.startTime),
-        endTime: new Date(event.endTime),
-        eventId: event.eventId,
+        type: isTop ? "resize-top" : "resize-bottom",
+        startY: timeToPixels(anchorTime.getHours(), anchorTime.getMinutes(), startHour),
+        startTime: evStart,
+        endTime: evEnd,
+        eventId: ev.eventId,
       });
     }
-  }, [draftEndTime, draftStartTime, selectedDate, startHour]);
+  }, [draftEndTime, draftStartTime, startHour]);
 
-  const handleDragMove = useCallback((event: DragMoveEvent) => {
+  const handleDragMove = useCallback((_event: DragMoveEvent) => {
     if (!dragState || !gridRef.current) return;
 
-    const { active, delta } = event;
+    // Compute grid-relative Y from raw pointer position (tracked via
+    // our own pointermove listener). dnd-kit's delta/translated values
+    // include scroll-compensation that drifts inside Radix ScrollArea,
+    // so we bypass them entirely — same approach the "create" drag uses.
     const rect = gridRef.current.getBoundingClientRect();
-    const translatedTop = active.rect.current.translated?.top;
-    const currentY =
-      typeof translatedTop === "number"
-        ? translatedTop - rect.top
-        : dragState.startY + (delta?.y ?? 0);
+    const rawY = pointerYRef.current - rect.top;
+    const currentY = Math.max(0, rawY);
 
     if (dragState.type === "draft-move") {
       const duration = dragState.endTime.getTime() - dragState.startTime.getTime();
@@ -696,7 +717,7 @@ export function DayHourView({
     (e: React.PointerEvent<HTMLDivElement>) => {
       // Only left-click / primary pointer
       if (e.button !== 0) return;
-      if ((e.target as HTMLElement).closest(".event-card")) return;
+      if ((e.target as HTMLElement).closest(".event-card, [data-resize-handle], [data-draft-block]")) return;
       // Prevent browser selection/drag image behavior
       e.preventDefault();
 
@@ -801,6 +822,7 @@ export function DayHourView({
       onDragStart={handleDragStart}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
+      autoScroll={false}
     >
       <div className="flex flex-col h-full">
         <ScrollArea ref={scrollAreaRef} className="flex-1 min-h-[400px]">
@@ -908,7 +930,7 @@ export function DayHourView({
               {/* Drag preview for creating */}
               {dragState?.type === "create" && (
                 <div
-                  className="absolute left-1 right-1 bg-primary/20 border-2 border-dashed border-primary rounded z-30 transition-all duration-75"
+                  className="absolute left-1 right-1 bg-primary/20 border-2 border-dashed border-primary rounded z-30 transition-[top,height] duration-100 ease-out"
                   style={{
                     top: `${timeToPixels(
                       dragState.startTime.getHours(),
@@ -947,7 +969,7 @@ export function DayHourView({
                 dragState.type !== "create" &&
                 (dragState.eventId || (dragState.type && dragState.type.startsWith("draft-"))) && (
                 <div
-                  className="absolute left-1 right-1 bg-primary/30 border-2 border-primary rounded z-30 opacity-75 transition-all duration-75"
+                  className="absolute left-1 right-1 bg-primary/30 border-2 border-primary rounded z-30 opacity-75 transition-[top,height] duration-100 ease-out"
                   style={{
                     top: `${timeToPixels(
                       dragState.startTime.getHours(),

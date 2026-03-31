@@ -23,10 +23,10 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 type InquiryType = 'invest' | 'partner' | 'try' | 'ask'
 
 const INQUIRY_OPTIONS: { id: InquiryType; icon: typeof TrendingUp }[] = [
-  { id: 'invest', icon: TrendingUp },
-  { id: 'partner', icon: Handshake },
   { id: 'try', icon: Sparkles },
   { id: 'ask', icon: MessageCircle },
+  { id: 'partner', icon: Handshake },
+  { id: 'invest', icon: TrendingUp },
 ]
 
 const TOTAL_STEPS = 4

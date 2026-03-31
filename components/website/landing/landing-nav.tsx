@@ -96,7 +96,7 @@ export function LandingNav() {
         className={`fixed top-0 left-0 right-0 z-50 h-[60px] flex items-center justify-between px-5 md:px-[52px] transition-[background,border-color,color] duration-400 ${
           scrolled
             ? onLight
-              ? 'bg-[#F2EFE9]/95 backdrop-blur-xl border-b border-[#E8E2D9]'
+              ? 'bg-[#F2EFE9]/70 backdrop-blur-xl saturate-[1.2] border-b border-[#E8E2D9]/50'
               : 'bg-[#262F27]/97 backdrop-blur-xl border-b border-white/[0.06]'
             : 'bg-transparent border-b border-transparent'
         }`}
@@ -109,7 +109,7 @@ export function LandingNav() {
           className={`relative z-10 transition-colors duration-300 ${onLight ? 'text-[#262F27]' : 'text-white'}`}
           aria-label="Oikion"
         >
-          <Logo size="lg" />
+          <Logo size="default" />
         </a>
 
         {/* Desktop nav links — center positioned */}

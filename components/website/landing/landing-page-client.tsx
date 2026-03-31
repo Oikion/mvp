@@ -45,7 +45,7 @@ export function LandingPageClient() {
           <CustomCursor />
           <LandingNav />
 
-          <main>
+          <main className="landing-page">
             <HeroSection />
             <ProblemSection />
             <SolutionSection />

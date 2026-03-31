@@ -1,5 +1,6 @@
 @import "react-grid-layout/css/styles.css";
 @import "react-resizable/css/styles.css";
+@import "fumadocs-ui/style.css";
 
 @tailwind base;
 @tailwind components;
@@ -1251,6 +1252,18 @@
 .react-resizable-handle::after {
   border-right: 2px solid hsl(var(--muted-foreground) / 0.5);
   border-bottom: 2px solid hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Selection — primary brand (#7B8C7C) at 40% opacity */
+::selection {
+  background: rgba(123, 140, 124, 0.4);
+  color: inherit;
+}
+
+/* Landing page dark sections: selected text must be dark green for contrast */
+.landing-page ::selection {
+  background: rgba(123, 140, 124, 0.4);
+  color: #1a2e1c;
 }
 
 @keyframes bounce-subtle {
