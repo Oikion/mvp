@@ -138,7 +138,7 @@ export function ContactSection() {
           </p>
           <h2
             id="contact-title"
-            style={{ fontSize: 'clamp(28px, 3vw, 44px)', fontWeight: 300, lineHeight: 1.15, letterSpacing: '-0.01em', textWrap: 'balance' as unknown as string }}
+            style={{ fontSize: 'clamp(28px, 3vw, 44px)', fontWeight: 300, lineHeight: 1.15, letterSpacing: '-0.01em', textWrap: 'balance' as const }}
             className="text-[#262F27] mb-4"
           >
             {t('contact.title')}
