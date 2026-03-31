@@ -22,7 +22,7 @@
     "dev:clean": "pnpm clean:next && pnpm dev",
     "dev:legacy": "node server.js",
     "prebuild": "node scripts/sync-version.js",
-    "build": "prisma generate --no-engine && prisma migrate deploy && next build --webpack",
+    "build": "prisma generate --no-engine && ([ \"$VERCEL_ENV\" = 'preview' ] || prisma migrate deploy) && next build --webpack",
     "prestart": "node scripts/sync-version.js",
     "start": "next start",
     "lint": "eslint .",
