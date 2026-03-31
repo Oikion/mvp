@@ -92,7 +92,10 @@ const nextConfig = {
   // TypeScript optimization - skip type checking during dev (faster startup)
   // Type checking is still done via lint command and CI
   typescript: {
-    ignoreBuildErrors: false, // Keep false for production builds
+    // Production (main) runs full TS checking; preview/staging skips it
+    // because Vercel's 2-core build machine times out on full TS check.
+    // TS errors are caught locally and in CI lint step.
+    ignoreBuildErrors: process.env.VERCEL_ENV === 'preview',
   },
   images: {
     remotePatterns: [
