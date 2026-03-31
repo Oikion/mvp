@@ -242,12 +242,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     icons: {
       icon: [
         {
-          url: "/assets/favicons/favicon-dark.svg",
+          url: "/assets/logos/favicon-dark.svg",
           type: "image/svg+xml",
           media: "(prefers-color-scheme: light)",
         },
         {
-          url: "/assets/favicons/favicon-white.svg",
+          url: "/assets/logos/favicon-white.svg",
           type: "image/svg+xml",
           media: "(prefers-color-scheme: dark)",
         },

@@ -208,7 +208,7 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
         router.push(`/app/deals/${notification.entityId}`);
         break;
       case "CONNECTION":
-        router.push("/app/network/profile?tab=requests");
+        router.push("/app/network/profile?tab=connections");
         break;
       case "USER":
         if (notification.metadata?.slug) {

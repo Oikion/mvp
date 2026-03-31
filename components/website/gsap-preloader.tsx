@@ -58,12 +58,13 @@ export const GSAPPreloader = ({ onComplete }: GSAPPreloaderProps) => {
     })
     
     loadTimeline
+      // Fill phase: progress bar grows left-to-right, logo reveals
       .to(progressBar, { scaleX: 1 })
       .to(logo, { clipPath: "inset(0% 0% 0% 0%)" }, "<")
-      .to(container, { autoAlpha: 0, duration: 0.5 })
-      .to(progressBar, { scaleX: 0, transformOrigin: "left center", duration: 0.5 }, "<")
-      .add("hideContent", "<")
-      .to(bg, { yPercent: -101, duration: 1 }, "hideContent")
+      // Exit phase: progress bar collapses left-to-right, then everything fades out
+      .to(progressBar, { scaleX: 0, transformOrigin: "right center", duration: 0.4, ease: "power2.in" })
+      .to(container, { autoAlpha: 0, duration: 0.4 }, "<0.1")
+      .to(bg, { autoAlpha: 0, duration: 0.5 })
 
   }, { scope: containerRef })
 

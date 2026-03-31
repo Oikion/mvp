@@ -3456,3 +3456,24 @@ model CrossOrgMatch {
   @@index([propertyOrgId])
   @@index([expiresAt])
 }
+
+/// Website contact form submissions (platform-level, not tenant-scoped)
+model WebsiteContactSubmission {
+  id          String                       @id @default(cuid())
+  inquiryType String                       // invest, partner, try, ask
+  name        String
+  email       String
+  orgName     String?
+  message     String?
+  locale      String                       @default("el")
+  status      SubmissionStatus             @default(NEW)
+  notes       String?                      // Admin internal notes
+  emailSentAt DateTime?                    // When confirmation email was sent
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([inquiryType])
+  @@map("website_contact_submissions")
+}

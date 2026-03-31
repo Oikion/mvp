@@ -1,13 +1,20 @@
 import "./[locale]/globals.css";
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 
 import { SkipLink } from "@/components/ui/skip-link";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+  fallback: ["system-ui", "arial"],
+});
+
+const manrope = Manrope({
+  subsets: ["latin", "greek"],
+  variable: "--font-manrope",
   display: "swap",
   fallback: ["system-ui", "arial"],
 });
@@ -25,7 +32,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans min-h-screen`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${manrope.variable} font-sans min-h-screen`} suppressHydrationWarning>
         <SkipLink />
         {children}
       </body>

@@ -27,7 +27,8 @@
     "network": "Polis",
     "audiences": "Κοινό",
     "campaigns": "Καμπάνιες",
-    "sent": "Απεσταλμένα"
+    "sent": "Απεσταλμένα",
+    "submissions": "Υποβολές Φόρμας"
   },
   "sidebar": {
     "management": "Διαχείριση",

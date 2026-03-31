@@ -27,7 +27,8 @@
     "network": "Polis",
     "audiences": "Audiences",
     "campaigns": "Campaigns",
-    "sent": "Sent"
+    "sent": "Sent",
+    "submissions": "Form Submissions"
   },
   "sidebar": {
     "management": "Management",

@@ -39,6 +39,7 @@ import dataOwnershipEn from "./locales/en/dataOwnership.json";
 import createOrganizationEn from "./locales/en/createOrganization.json";
 import encryptionEn from "./locales/en/encryption.json";
 import importDataEn from "./locales/en/import.json";
+import landingEn from "./locales/en/landing.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -78,6 +79,7 @@ import dataOwnershipEl from "./locales/el/dataOwnership.json";
 import createOrganizationEl from "./locales/el/createOrganization.json";
 import encryptionEl from "./locales/el/encryption.json";
 import importDataEl from "./locales/el/import.json";
+import landingEl from "./locales/el/landing.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -127,6 +129,7 @@ function loadMessages(locale: string) {
     messages.createOrganization = createOrganizationEl;
     messages.encryption = encryptionEl;
     messages.import = importDataEl;
+    messages.landing = landingEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -178,6 +181,7 @@ function loadMessages(locale: string) {
     messages.createOrganization = createOrganizationEn;
     messages.encryption = encryptionEn;
     messages.import = importDataEn;
+    messages.landing = landingEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))

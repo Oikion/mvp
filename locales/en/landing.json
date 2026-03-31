@@ -1,40 +1,221 @@
 {
-  "title": "Oikion - The Operating System for Real Estate Agencies",
-  "description": "MLS, CRM, and Socials in one web app for Greek real estate agencies",
-  "header": {
-    "login": "Login"
+  "nav": {
+    "ariaLabel": "Main navigation",
+    "problem": "The Problem",
+    "solution": "The Solution",
+    "how-it-works": "How It Works",
+    "team": "The Team",
+    "contact": "Contact",
+    "cta": "Get Early Access",
+    "languageLabel": "Select language",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "dashboard": "Dashboard"
   },
   "hero": {
-    "title": "The Operating System for Real Estate Agencies",
-    "subtitle": "MLS, CRM, and Socials in one unified platform. Manage properties, clients, and your team efficiently.",
-    "cta": "Go to App"
+    "ariaLabel": "Introduction",
+    "eyebrow": "Open Beta · For Greek Real Estate Agents",
+    "headlines": {
+      "v1": {
+        "text": "In Greece, <accent>4 out of 10</accent> property deals fall apart because the two sides never connected.",
+        "source": "Source: Bank of Greece, Housing Market Report 2024"
+      },
+      "v2": {
+        "text": "Greek agents lose <accent>11 hours a week</accent> on admin that should not exist.",
+        "source": "Source: CEPI European Real Estate Agent Survey 2023"
+      },
+      "v3": {
+        "text": "Over <accent>60%</accent> of Greek brokers say finding the other side of a deal is their biggest challenge.",
+        "source": "Source: Hellenic Property Federation, Annual Market Survey 2024"
+      },
+      "v4": {
+        "text": "The average Greek property sits on the market <accent>30% longer</accent> than the EU average. The buyers exist. The connection does not.",
+        "source": "Source: Eurostat, Housing Price & Duration Index Q3 2024"
+      }
+    },
+    "subtext": "Oikion is where agents find the other side of their deals. Your clients, your listings, and a network of professionals across the country, all in one place.",
+    "ctaPrimary": "Get Early Access",
+    "ctaSecondary": "See How It Works",
+    "networkAlt": "Network visualization showing agents connecting through matchmaking",
+    "builtFor": "Built for",
+    "audience1": "Independent brokers",
+    "audience2": "Real estate agencies",
+    "audience3": "All of Greece"
   },
-  "features": {
-    "title": "Everything You Need",
-    "subtitle": "One platform for all your real estate agency needs",
-    "mls": {
-      "title": "Property Management (MLS)",
-      "description": "List and manage your properties with ease. Filters, search, and quick editing."
+  "problem": {
+    "label": "The Problem",
+    "title": "Greek real estate still runs on spreadsheets, phone calls, and luck.",
+    "body": "Agents spend more time chasing information than closing deals. The tools are scattered. The network is invisible. And good opportunities slip away every single day.",
+    "cards": {
+      "fragmentation": {
+        "tag": "Fragmentation",
+        "title": "Four tools to close one deal.",
+        "body": "Spreadsheets for mandates. WhatsApp for communication. Spitogatos and XE for search. Nothing talks to anything else, and every new deal means starting from zero."
+      },
+      "network": {
+        "tag": "Invisible Network",
+        "title": "The right agent exists. You just have no way to find them.",
+        "body": "Every deal has two sides. Right now, the only way to find the other side is through personal contacts, cold calls, and pure chance. Deals fall apart simply because two people never crossed paths."
+      },
+      "information": {
+        "tag": "Information Gap",
+        "title": "You are making big decisions with incomplete information.",
+        "body": "What sold in the neighbourhood last month? What does demand actually look like right now? Which buyer fits which property? The data exists. It is just buried across ten different places."
+      }
+    }
+  },
+  "solution": {
+    "label": "The Solution",
+    "title": "One place to run your business. One network to close your deals.",
+    "subtitle": "Oikion gives you your clients, your listings, and access to a nationwide agent network with built-in matchmaking. You focus on the work. We make sure the right people find each other.",
+    "features": {
+      "network": {
+        "title": "Agent Network",
+        "body": "Connect with verified agents across Greece. Build real professional relationships, share listings on your terms, and find the collaboration partner you have been looking for."
+      },
+      "matchmaking": {
+        "title": "Smart Matchmaking",
+        "body": "You add a seller mandate. Another agent across the country has the buyer. Our system finds the match and notifies you both. No cold calls. No guesswork."
+      },
+      "alerts": {
+        "title": "Market Alerts",
+        "body": "New listing matches your buyer? An agent in your network has a client who fits your property? You will know about it the moment it happens."
+      },
+      "privacy": {
+        "title": "Your Data Stays Yours",
+        "body": "Nothing is shared without your say. Bilateral sharing means both sides agree first. You decide who sees what, and you can change your mind at any time."
+      }
     },
-    "crm": {
-      "title": "Client Management (CRM)",
-      "description": "Track your clients, interactions, and tasks in one place."
+    "mockup": {
+      "agentCards": "Network Agents",
+      "matched": "Matched",
+      "online": "Online",
+      "matchFound": "New Match Found",
+      "sellerSide": "Seller Side",
+      "buyerSide": "Buyer Side",
+      "matchScore": "Match Score"
+    }
+  },
+  "howItWorks": {
+    "label": "How It Works",
+    "title": "Up and running in minutes. Not weeks.",
+    "subtitle": "Four steps. That is genuinely all it takes to start finding matches.",
+    "cta": "Create an Account",
+    "stepsLabel": "Steps to get started",
+    "steps": {
+      "profile": {
+        "title": "Set up your agency.",
+        "body": "Add your team, your areas of focus, and where you operate. The whole thing takes about five minutes."
+      },
+      "listings": {
+        "title": "Bring in your listings.",
+        "body": "Import your properties and buyer mandates, or create them from scratch. Every entry you add starts working with the matchmaking engine right away."
+      },
+      "match": {
+        "title": "Matches come to you.",
+        "body": "Our system checks your mandates against the entire network, around the clock. When there is a fit, both agents get notified instantly."
+      },
+      "close": {
+        "title": "Close it together.",
+        "body": "Connect with the matched agent directly. Share documents, align on terms, and close the deal, all inside the platform."
+      }
+    }
+  },
+  "team": {
+    "label": "The Team",
+    "title": "Three people. One mission.",
+    "subtitle": "We are not a corporation. We are three people who got tired of watching Greek agents work with broken tools, and decided to build something better.",
+    "members": {
+      "member1": {
+        "initial": "S",
+        "name": "Stavros",
+        "role": "CEO & Product",
+        "skills": ["Product Strategy", "UX Design", "Full-Stack Development"],
+        "philosophy": "The best software is the kind you do not notice. It just works, and you get on with your day."
+      },
+      "member2": {
+        "initial": "A",
+        "name": "Alex",
+        "role": "Marketing & Growth",
+        "skills": ["Go-to-Market", "Brand Strategy", "Market Research"],
+        "philosophy": "If the product is good, you do not need to oversell it. Just show people what it does."
+      },
+      "member3": {
+        "initial": "N",
+        "name": "Nikos",
+        "role": "Operations & Real Estate",
+        "skills": ["Real Estate Operations", "Industry Expertise", "Agent Relations"],
+        "philosophy": "I have sat on the other side of this screen. Every feature we build comes from a real problem I have lived through."
+      }
     },
-    "analytics": {
-      "title": "Reports & Analytics",
-      "description": "Monitor your agency's performance with detailed reports and charts."
+    "quote": "We are not building software. We are building the tools that make good agents great.",
+    "quoteAttribution": "The Oikion Team"
+  },
+  "contact": {
+    "label": "Let's Talk",
+    "title": "What brings you here?",
+    "subtitle": "Whether you are looking to invest, explore a partnership, or simply want to try the platform, we would genuinely love to hear from you.",
+    "wizard": {
+      "step1Title": "I am looking to...",
+      "intents": {
+        "invest": "Invest in Oikion",
+        "partner": "Explore a partnership",
+        "try": "Try the platform",
+        "ask": "Ask a question"
+      },
+      "step2Title": "Tell us about yourself.",
+      "step3Title": "Anything else you want us to know?",
+      "step3Hint": {
+        "invest": "What excites you about the Greek proptech space? What stage of investment are you exploring?",
+        "partner": "What kind of collaboration do you have in mind? How do you see us working together?",
+        "try": "Tell us about your agency. How many agents? What areas do you cover?",
+        "ask": "No wrong questions. We are happy to help."
+      },
+      "messagePlaceholder": "Write as much or as little as you want...",
+      "step4Title": "Ready to send?",
+      "step4Body": "We read every message personally. Expect a reply within 48 hours.",
+      "back": "Back",
+      "next": "Continue",
+      "privacyLabel": "I agree to the <privacy>Privacy Policy</privacy> and <terms>Terms of Service</terms>.",
+      "submitError": "Something went wrong. Please try again."
+    },
+    "fields": {
+      "name": "Full Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "orgName": "Organisation",
+      "orgPlaceholder": "Your fund, company, or agency name",
+      "message": "Message"
+    },
+    "submit": "Send Message",
+    "submitting": "Sending...",
+    "success": {
+      "title": "Got it.",
+      "body": "We will get back to you within 48 hours. Thank you for reaching out."
     }
   },
   "footer": {
+    "tagline": "Run your business. Find the other side of your deals.",
+    "mission": "Built for Greek agents, by people who know the market.",
+    "navTitle": "Navigate",
+    "navAriaLabel": "Footer navigation",
+    "legalTitle": "Legal",
+    "legalAriaLabel": "Legal links",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy",
+    "accessibility": "Accessibility",
     "rights": "All rights reserved.",
-    "contact": "Contact"
+    "madeIn": "Made in Greece."
+  },
+  "seo": {
+    "title": "Oikion · The platform for Greek real estate agents",
+    "description": "One platform for your clients, your listings, and the agent network you never had. Smart matchmaking connects the two sides of every deal.",
+    "ogTitle": "Oikion · Find the other side of your deals",
+    "ogDescription": "The platform for Greek real estate professionals. CRM, MLS, and intelligent agent matchmaking in one place."
   }
 }
-
-
-
-
-
-
-
-

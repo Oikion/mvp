@@ -36,6 +36,7 @@ import {
   Users2,
   Megaphone,
   SendHorizonal,
+  Inbox,
 } from "lucide-react";
 
 import {
@@ -200,6 +201,12 @@ export function PlatformAdminSidebar({ adminUser, locale, counts }: PlatformAdmi
       label: t("nav.sent"),
       icon: SendHorizonal,
       active: pathname.includes("/platform-admin/communication/sent"),
+    },
+    {
+      href: `/${locale}/app/platform-admin/communication/submissions`,
+      label: t("nav.submissions"),
+      icon: Inbox,
+      active: pathname.includes("/platform-admin/communication/submissions"),
     },
   ];
 

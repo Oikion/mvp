@@ -218,7 +218,7 @@ export default function PropertiesPageView({
           chartData={monthlyChartData.sharedChartData}
           chartColor="hsl(var(--muted-foreground))"
           chartPlaceholder
-          actionHref={`/${locale}/app/network/profile?tab=find`}
+          actionHref={`/${locale}/app/network/profile?tab=connections`}
           actionLabel={t("Stats.findAgents")}
           emptyMessage={t("Stats.connectToReceive")}
         />

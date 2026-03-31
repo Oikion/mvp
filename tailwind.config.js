@@ -23,6 +23,12 @@ module.exports = {
   				'Inter',
   				'system-ui',
   				'sans-serif'
+  			],
+  			manrope: [
+  				'var(--font-manrope)',
+  				'Manrope',
+  				'system-ui',
+  				'sans-serif'
   			]
   		},
   		colors: {

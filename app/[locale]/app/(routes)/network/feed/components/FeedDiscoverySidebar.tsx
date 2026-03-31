@@ -50,7 +50,7 @@ export function FeedDiscoverySidebar({
               ))}
             </div>
             <Link
-              href="/app/network/profile?tab=find"
+              href="/app/network/profile?tab=connections"
               className="mt-2 flex w-full items-center justify-center gap-1 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
             >
               {sidebarT?.seeAllAgents || "See all"}
@@ -83,7 +83,7 @@ export function FeedDiscoverySidebar({
               ))}
             </div>
             <Link
-              href="/app/network/profile?tab=find"
+              href="/app/network/profile?tab=connections"
               className="mt-2 flex w-full items-center justify-center gap-1 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
             >
               {sidebarT?.seeAllAgencies || "See all"}

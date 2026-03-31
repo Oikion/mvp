@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Home, Users, Clock, Search, Globe, Pencil } from "lucide-react";
+import { User, Home, Users, Globe, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { ProfileHeader } from "./ProfileHeader";
@@ -11,8 +11,6 @@ import { ProfileEditTab } from "./tabs/ProfileEditTab";
 import { ProfilePreviewTab } from "./tabs/ProfilePreviewTab";
 import { ShowcaseTab } from "./tabs/ShowcaseTab";
 import { ConnectionsTab } from "./tabs/ConnectionsTab";
-import { PendingRequestsTab } from "./tabs/PendingRequestsTab";
-import { FindAgentsTab } from "./tabs/FindAgentsTab";
 
 interface ProfilePageProps {
   userData: any;
@@ -97,7 +95,7 @@ export function ProfilePage({
       {/* Only show tabs if user has a username */}
       {hasUsername && (
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="inline-grid grid-cols-5">
+          <TabsList className="inline-grid grid-cols-3">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">{t?.tabs?.profile || "Profile"}</span>
@@ -109,24 +107,11 @@ export function ProfilePage({
             <TabsTrigger value="connections">
               <Users className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">{tConn?.tabs?.connections || "Connections"}</span>
-              {connections.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
-                  {connections.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="requests">
-              <Clock className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">{tConn?.tabs?.pending || "Requests"}</span>
               {pendingCount > 0 && (
                 <span className="ml-1 px-1.5 py-0.5 rounded-full bg-warning text-white text-xs">
                   {pendingCount}
                 </span>
               )}
-            </TabsTrigger>
-            <TabsTrigger value="find">
-              <Search className="h-4 w-4 shrink-0" />
-              <span className="hidden sm:inline">{tConn?.tabs?.findAgents || "Find Agents"}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -173,28 +158,15 @@ export function ProfilePage({
             />
           </TabsContent>
 
-          {/* Connections Tab */}
+          {/* Connections Tab (includes connections list, pending requests, and find agents) */}
           <TabsContent value="connections">
             <ConnectionsTab
               connections={connections}
-              translations={tConn}
-              locale={locale}
-            />
-          </TabsContent>
-
-          {/* Requests Tab (Pending + Sent) */}
-          <TabsContent value="requests">
-            <PendingRequestsTab
               pendingReceived={pendingReceived}
               pendingSent={pendingSent}
               translations={tConn}
               locale={locale}
             />
-          </TabsContent>
-
-          {/* Find Agents Tab */}
-          <TabsContent value="find">
-            <FindAgentsTab translations={tConn} />
           </TabsContent>
         </Tabs>
       )}
