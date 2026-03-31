@@ -36,7 +36,7 @@ export function LandingFooter() {
             </h3>
             <nav aria-label={t('footer.navAriaLabel')}>
               <ul className="space-y-2.5 list-none">
-                {['problem', 'solution', 'how-it-works', 'team', 'contact'].map(id => (
+                {['problem', 'solution', 'how-it-works', 'contact'].map(id => (
                   <li key={id}>
                     <a
                       href={`#${id}`}

@@ -50,7 +50,7 @@ export function LandingPageClient() {
             <ProblemSection />
             <SolutionSection />
             <HowItWorksSection />
-            <TeamSection />
+            {/* <TeamSection /> — hidden until implemented */}
             <ContactSection />
           </main>
 
