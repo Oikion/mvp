@@ -1,0 +1,24 @@
+{
+  "title": "Documentation",
+  "internalTitle": "Internal Guides",
+  "metaSuffix": "Oikion Docs",
+  "internalMetaSuffix": "Oikion Internal Docs",
+  "search": {
+    "placeholder": "Search docs..."
+  },
+  "feedback": {
+    "question": "Was this page helpful?",
+    "yes": "Yes",
+    "no": "No",
+    "helpful": "Helpful",
+    "notHelpful": "Not helpful",
+    "commentPlaceholder": "Any additional feedback? (optional)",
+    "send": "Send Feedback",
+    "skip": "Skip",
+    "thanks": "Thank you for your feedback!"
+  },
+  "nav": {
+    "publicDocs": "Docs",
+    "privateDocs": "Help & Guides"
+  }
+}

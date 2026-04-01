@@ -1,0 +1,24 @@
+{
+  "title": "Τεκμηρίωση",
+  "internalTitle": "Εσωτερικοί Οδηγοί",
+  "metaSuffix": "Τεκμηρίωση Oikion",
+  "internalMetaSuffix": "Εσωτερική Τεκμηρίωση Oikion",
+  "search": {
+    "placeholder": "Αναζήτηση..."
+  },
+  "feedback": {
+    "question": "Σας βοήθησε αυτή η σελίδα;",
+    "yes": "Ναι",
+    "no": "Όχι",
+    "helpful": "Χρήσιμο",
+    "notHelpful": "Δεν βοήθησε",
+    "commentPlaceholder": "Πρόσθετα σχόλια; (προαιρετικά)",
+    "send": "Αποστολή",
+    "skip": "Παράλειψη",
+    "thanks": "Ευχαριστούμε για τα σχόλιά σας!"
+  },
+  "nav": {
+    "publicDocs": "Τεκμηρίωση",
+    "privateDocs": "Βοήθεια & Οδηγοί"
+  }
+}

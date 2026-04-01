@@ -19,7 +19,7 @@ import { SocialFeedIcon } from "@/components/ui/SocialFeedIcon"
 import { UsersIcon } from "@/components/ui/UsersIcon"
 import { ShieldIcon } from "@/components/ui/ShieldIcon"
 import { MessageCircleIcon } from "@/components/ui/MessageCircleIcon"
-import { Target, Upload } from "lucide-react"
+import { Target, Upload, BookOpen } from "lucide-react"
 import { type ModuleId } from "@/lib/permissions/types"
 import { type ActionPermission } from "@/lib/permissions/action-permissions"
 import { isRouteActive } from "@/lib/navigation/route-utils"
@@ -300,6 +300,11 @@ export function getNavigationConfig({
   ].filter(group => group.items.length > 0)
 
   const navSecondaryItems: NavSecondaryItem[] = [
+    {
+      title: dict.docs?.nav?.privateDocs || "Help & Guides",
+      url: `/${locale}/app/docs`,
+      icon: BookOpen,
+    },
     {
       title: dict.navigation.ModuleMenu.feedback,
       icon: FeedbackIcon,

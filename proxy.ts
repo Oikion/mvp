@@ -10,6 +10,7 @@ const intlMiddleware = createMiddleware({
   locales: availableLocales.map((l) => l.code),
   defaultLocale: "el", // Greek as default
   localePrefix: "always",
+  localeDetection: false, // Always use defaultLocale — don't negotiate from Accept-Language header
 });
 
 // Define public routes that don't require authentication
@@ -19,6 +20,7 @@ const isPublicRoute = createRouteMatcher([
   // Website routes (public)
   "/:locale",
   "/:locale/legal(.*)",
+  "/:locale/docs(.*)",
   "/:locale/agent(.*)",
   "/:locale/agency(.*)",
   "/:locale/property(.*)",

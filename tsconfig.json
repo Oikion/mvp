@@ -32,6 +32,9 @@
       ],
       "@/ui/*": [
         "./components/ui/*"
+      ],
+      "collections/*": [
+        "./.source/*"
       ]
     }
   },
@@ -40,7 +43,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".source/**/*.ts"
   ],
   "exclude": [
     "node_modules",

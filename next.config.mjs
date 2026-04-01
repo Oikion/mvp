@@ -1,17 +1,17 @@
-const withNextIntl = require("next-intl/plugin")(
-  // This is the default (also the `src` folder is supported out of the box)
-  "./i18n.ts"
-);
+import createNextIntlPlugin from "next-intl/plugin";
+import { createMDX } from "fumadocs-mdx/next";
+
+const withNextIntl = createNextIntlPlugin("./i18n.ts");
+const withMDX = createMDX();
 
 const isDev = process.env.NODE_ENV === "development";
-const useTurbopack = process.env.NEXT_TURBOPACK === "1";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // App structure:
   // - Website at /:locale/ (landing, legal, public pages)
   // - Application at /:locale/app/ (dashboard, CRM, MLS, auth, etc.)
-  outputFileTracingRoot: __dirname,
+  outputFileTracingRoot: import.meta.dirname,
 
   // Force-include files that are missed by output file tracing.
   // Fixes production runtime crash:
@@ -25,30 +25,30 @@ const nextConfig = {
       "./node_modules/css-tree/data/*.json",
     ],
   },
-  
+
   // Server external packages - packages that should be resolved from node_modules
   // rather than bundled. This is needed for packages with native dependencies
   // or that have different node/browser builds.
   serverExternalPackages: [
     "ably",
-    // Playwright is optional for market intelligence scraping - 
+    // Playwright is optional for market intelligence scraping -
     // keep external to prevent build failures when not installed
     "playwright",
     "playwright-core",
     // SVGO uses dynamic requires; keep it external to avoid webpack warnings
     "svgo",
   ],
-  
+
   // Transpile packages configuration
   // This helps resolve module resolution issues with certain packages
   transpilePackages: [],
-  
+
   // Performance optimizations for dev mode
   experimental: {
     // Enable Turbopack FS cache in dev for faster restarts
     // Cache significantly improves startup time after the first run
     turbopackFileSystemCacheForDev: true,
-    
+
     // Optimize package imports - reduces bundle size and compilation time
     // This tree-shakes unused exports from large packages, significantly reducing compilation overhead
     //
@@ -88,7 +88,7 @@ const nextConfig = {
       "recharts",
     ],
   },
-  
+
   // TypeScript optimization - skip type checking during dev (faster startup)
   // Type checking is still done via lint command and CI
   typescript: {
@@ -248,4 +248,5 @@ const nextConfig = {
   },
 };
 
-module.exports = withNextIntl(nextConfig);
+// Plugin chain: MDX wraps Next-Intl wraps base config
+export default withMDX(withNextIntl(nextConfig));

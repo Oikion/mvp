@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { prismadb } from '@/lib/prisma';
+import { publicSource } from '@/lib/docs-source';
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://oikion.com';
 
@@ -110,8 +111,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
+    // Generate documentation page URLs from Fumadocs source
+    const docsPages = publicSource.getPages();
+    const docsUrls: MetadataRoute.Sitemap = docsPages.flatMap((page) => [
+      {
+        url: `${baseUrl}/en/docs/${page.slugs.join("/")}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      },
+      {
+        url: `${baseUrl}/el/docs/${page.slugs.join("/")}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      },
+    ]);
+
     return [
       ...staticPages,
+      ...docsUrls,
       ...agentUrls,
       ...agentUrlsGreek,
       ...agencyUrls,

@@ -3477,3 +3477,25 @@ model WebsiteContactSubmission {
   @@index([inquiryType])
   @@map("website_contact_submissions")
 }
+
+// ─────────────────────────────────────────────
+// Documentation Feedback
+// ─────────────────────────────────────────────
+
+/// Thumbs up/down feedback on documentation pages.
+/// Not org-scoped — docs feedback is global (public docs are anonymous,
+/// private docs capture the Clerk userId).
+model DocFeedback {
+  id        String   @id @default(cuid())
+  pageSlug  String   // e.g. "getting-started" or "agency-guides/team-management"
+  docScope  String   @default("public") // "public" or "private"
+  locale    String   @default("en")
+  rating    String   // "up" or "down"
+  comment   String?
+  userId    String?  // null for anonymous (public docs)
+  createdAt DateTime @default(now())
+
+  @@index([pageSlug, locale])
+  @@index([docScope])
+  @@map("doc_feedback")
+}

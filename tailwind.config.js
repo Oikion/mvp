@@ -1,12 +1,38 @@
+const { createPreset } = require("fumadocs-ui/tailwind-plugin");
+
+// Bridge Fumadocs --fd-* variables to Oikion theme tokens.
+// Both light and dark use var(--*) references so the active [data-theme] provides values.
+const oikionThemeBridge = {
+  background: "var(--background)",
+  foreground: "var(--foreground)",
+  muted: "var(--muted)",
+  "muted-foreground": "var(--muted-foreground)",
+  popover: "var(--popover)",
+  "popover-foreground": "var(--popover-foreground)",
+  card: "var(--card)",
+  "card-foreground": "var(--card-foreground)",
+  border: "var(--border)",
+  primary: "var(--primary)",
+  "primary-foreground": "var(--primary-foreground)",
+  secondary: "var(--secondary)",
+  "secondary-foreground": "var(--secondary-foreground)",
+  accent: "var(--accent)",
+  "accent-foreground": "var(--accent-foreground)",
+  ring: "var(--ring)",
+};
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
+  presets: [createPreset({ preset: { light: oikionThemeBridge, dark: oikionThemeBridge } })],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
+    "./content/**/*.mdx",
     "./node_modules/@tremor/**/*.{js,ts,jsx,tsx}", // Tremor module
+    "./node_modules/fumadocs-ui/dist/**/*.js",
   ],
   theme: {
   	container: {

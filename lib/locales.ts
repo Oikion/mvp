@@ -3,8 +3,8 @@
  * This should match the JSON files in the /locales directory
  */
 export const availableLocales = [
-  { code: "en", name: "English", clerkLocale: "en-US" },
   { code: "el", name: "Greek", clerkLocale: "el-GR" },
+  { code: "en", name: "English", clerkLocale: "en-US" },
 ] as const;
 
 export type LocaleCode = typeof availableLocales[number]["code"];
