@@ -186,15 +186,19 @@ export function HowItWorksSection() {
           </div>
         </div>
 
-        {/* CTA — centered below the grid */}
-        <div className="flex justify-center" style={{ paddingTop: '64px' }}>
+        {/* Bridge teaser — leads into quiz section */}
+        <div className="flex flex-col items-center gap-4" style={{ paddingTop: '64px' }}>
           <a
-            href={`/${locale}/app/register`}
-            data-magnetic
-            className="inline-flex items-center px-8 py-4 bg-[#262F27] text-white rounded-[5px] text-[14px] font-semibold tracking-[0.02em] hover:bg-[#1a1f1b] transition-colors duration-200 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7B8C7C]"
+            href="#quiz"
+            className="text-[clamp(18px,2vw,24px)] font-light text-[#262F27]/60 hover:text-[#262F27]/90 transition-colors duration-200 no-underline text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7B8C7C]"
           >
-            {t('howItWorks.cta')}
+            {t('quiz.bridgeTeaser')}
           </a>
+          <div className="animate-bounce motion-reduce:animate-none" aria-hidden="true">
+            <svg width="20" height="12" viewBox="0 0 20 12" fill="none" className="text-[#7B8C7C]/40">
+              <path d="M1 1L10 10L19 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
         </div>
       </div>
     </section>
