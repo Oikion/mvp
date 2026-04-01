@@ -13,7 +13,7 @@
  *   --org=<id>          Migrate only a specific organization
  *   --verify            Verify all records are DEK-encrypted (no re-encryption, just check)
  *   --model=<name>      Migrate one model only:
- *                         clients | messages | conversations | events | documents | properties
+ *                         clients | messages | events | documents | properties
  *                         | comments | mandates | mandate-comments | client-comments
  *                         | task-comments | myaccount | newsletter
  */
@@ -26,8 +26,6 @@ import {
   encryptClientForOrg,
   decryptMessageForOrg,
   encryptMessageForOrg,
-  decryptAiConversationForOrg,
-  encryptAiConversationForOrg,
   decryptCalendarEventForOrg,
   encryptCalendarEventForOrg,
   decryptDocumentForOrg,
@@ -220,69 +218,6 @@ async function migrateMessages(): Promise<Stats> {
         stats.updated++;
       } catch (err) {
         console.error(`  Error re-keying message ${record.id}:`, err);
-        stats.errors++;
-      }
-    }
-
-    if (records.length < BATCH_SIZE) break;
-  }
-
-  return stats;
-}
-
-// ────────────────────────────────────────────────────────
-// AI Conversations
-// ────────────────────────────────────────────────────────
-async function migrateAiConversations(): Promise<Stats> {
-  const stats = makeStats();
-  log("Migrating AI conversations...");
-
-  let cursor: string | undefined;
-
-  for (;;) {
-    const records = await prismadb.aiConversation.findMany({
-      where: ORG_ID ? { organizationId: ORG_ID } : undefined,
-      take: BATCH_SIZE,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-      select: { id: true, organizationId: true, title: true, messages: true, context: true },
-    });
-
-    if (records.length === 0) break;
-    cursor = records[records.length - 1].id;
-
-    for (const record of records) {
-      stats.processed++;
-
-      if (
-        !hasEncryptedStringField(record.title) &&
-        !hasEncryptedJsonField(record.messages, record.context)
-      ) {
-        stats.skipped++;
-        continue;
-      }
-
-      if (DRY_RUN) {
-        log(`  [DRY RUN] Would re-key conversation ${record.id} (org: ${record.organizationId})`);
-        stats.updated++;
-        continue;
-      }
-
-      try {
-        const decrypted = await decryptAiConversationForOrg(record, record.organizationId);
-        const encrypted = await encryptAiConversationForOrg(decrypted, record.organizationId);
-        await prismadb.aiConversation.update({
-          where: { id: record.id },
-          data: {
-            title: encrypted.title,
-            messages: encrypted.messages as Prisma.InputJsonValue,
-            ...(encrypted.context != null && {
-              context: encrypted.context as Prisma.InputJsonValue,
-            }),
-          },
-        });
-        stats.updated++;
-      } catch (err) {
-        console.error(`  Error re-keying conversation ${record.id}:`, err);
         stats.errors++;
       }
     }
@@ -1010,7 +945,6 @@ async function main() {
 
   if (run("clients")) totalStats.clients = await migrateClients();
   if (run("messages")) totalStats.messages = await migrateMessages();
-  if (run("conversations")) totalStats.conversations = await migrateAiConversations();
   if (run("events")) totalStats.events = await migrateCalendarEvents();
   if (run("documents")) totalStats.documents = await migrateDocuments();
   if (run("properties")) totalStats.properties = await migrateProperties();

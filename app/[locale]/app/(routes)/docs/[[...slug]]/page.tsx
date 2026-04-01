@@ -30,7 +30,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const page = privateSource.getPage(slug, locale);
 
   if (!page) return {};
