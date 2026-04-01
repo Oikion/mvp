@@ -812,6 +812,16 @@
       "saveError": "Failed to save settings",
       "saveSettings": "Save Settings"
     }
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "description": "We encountered an unexpected error while loading this page. Please try again or use one of the options below.",
+    "tryAgain": "Try again",
+    "backToDashboard": "Back to Dashboard",
+    "backToWebsite": "Back to Website",
+    "betaTitle": "You're helping build something great",
+    "betaDescription": "Oikion is an early-access platform, actively being developed for Greek real estate professionals. We know unexpected errors are frustrating — your continued use and feedback are what allow us to build the best platform for real estate agents. Thank you for your patience and support.",
+    "contactSupport": "If this error persists, please contact support with the Error ID."
   }
 }
 

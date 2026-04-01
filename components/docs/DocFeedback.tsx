@@ -145,7 +145,7 @@ export function DocFeedback({ pageSlug, docScope, locale }: DocFeedbackProps) {
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               maxLength={1000}
-              className="text-sm"
+              className="text-sm bg-background border-border text-foreground placeholder:text-muted-foreground"
             />
 
             <div className="flex items-center justify-center gap-2">

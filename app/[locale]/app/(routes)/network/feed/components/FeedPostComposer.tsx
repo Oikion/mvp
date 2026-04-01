@@ -6,7 +6,6 @@ import {
   Globe,
   Lock,
   Shield,
-  Settings,
   Loader2,
   X,
   FileIcon,
@@ -22,7 +21,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Link } from "@/navigation";
 import { useRouter } from "next/navigation";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -187,38 +190,32 @@ export function FeedPostComposer({
 
   // ─── Visibility ─────────────────────────────────────────────────────────────
 
-  const getVisibilityAlert = (visibility: ProfileVisibility) => {
+  const getVisibilityTooltip = (visibility: ProfileVisibility): string | null => {
     switch (visibility) {
       case "PRIVATE":
-        return {
-          icon: <Lock className="h-4 w-4 text-destructive" />,
-          className: "border-destructive/50 bg-destructive/10",
-          message:
-            t?.privacy?.personal ||
-            "Your profile is Private (hidden). Only your connections can see your posts.",
-        };
+        return (
+          t?.privacy?.personal ||
+          "Your profile is Private (hidden). Only your connections can see your posts."
+        );
       case "SECURE":
-        return {
-          icon: <Shield className="h-4 w-4 text-warning" />,
-          className: "border-warning/50 bg-warning/10",
-          message:
-            t?.privacy?.secure ||
-            "Your profile is Secure. Only registered users can see your posts.",
-        };
+        return (
+          t?.privacy?.secure ||
+          "Your profile is Secure. Only registered users can see your posts."
+        );
       case "PUBLIC":
         return null;
     }
   };
 
-  const visibilityAlert = profileVisibility
-    ? getVisibilityAlert(profileVisibility.visibility)
-    : null;
-
   const getVisibilityBadge = () => {
     if (!profileVisibility) return null;
+
+    const tooltipMessage = getVisibilityTooltip(profileVisibility.visibility);
+
+    let badge: React.ReactNode = null;
     switch (profileVisibility.visibility) {
       case "PUBLIC":
-        return (
+        badge = (
           <Badge
             variant="outline"
             className="text-xs bg-success/10 text-success border-success/20"
@@ -227,8 +224,9 @@ export function FeedPostComposer({
             {t?.visibility?.public || "Public"}
           </Badge>
         );
+        break;
       case "SECURE":
-        return (
+        badge = (
           <Badge
             variant="outline"
             className="text-xs bg-warning/10 text-warning border-warning/20"
@@ -237,8 +235,9 @@ export function FeedPostComposer({
             {t?.visibility?.secure || "Secure"}
           </Badge>
         );
+        break;
       case "PRIVATE":
-        return (
+        badge = (
           <Badge
             variant="outline"
             className="text-xs bg-destructive/10 text-destructive border-destructive/20"
@@ -247,31 +246,31 @@ export function FeedPostComposer({
             {t?.visibility?.personal || "Private"}
           </Badge>
         );
+        break;
       default:
         return null;
     }
+
+    if (!tooltipMessage) return badge;
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link href="/app/profile/public" className="cursor-pointer">
+            {badge}
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-[260px] text-center">
+          <p className="text-xs">{tooltipMessage}</p>
+        </TooltipContent>
+      </Tooltip>
+    );
   };
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-3">
-      {/* Visibility Alert */}
-      {visibilityAlert && (
-        <Alert className={visibilityAlert.className}>
-          {visibilityAlert.icon}
-          <AlertDescription className="flex items-center justify-between gap-3">
-            <span className="text-sm">{visibilityAlert.message}</span>
-            <Button variant="outline" size="sm" className="flex-shrink-0" asChild>
-              <Link href="/app/profile/public">
-                <Settings className="h-3 w-3 mr-1" />
-                {t?.privacy?.settings || "Settings"}
-              </Link>
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Hidden file input */}
       <input
         ref={fileInputRef}

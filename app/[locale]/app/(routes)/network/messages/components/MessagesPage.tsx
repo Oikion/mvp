@@ -215,10 +215,9 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
               <Wrench className="h-8 w-8 text-muted-foreground" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Messaging Not Configured</h3>
+              <h3 className="text-lg font-semibold">{t("status.notConfigured")}</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                The messaging service needs to be set up by an administrator.
-                Configure the ABLY_API_KEY environment variable.
+                {t("status.notConfiguredDesc")}
               </p>
             </div>
             <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg font-mono">
@@ -237,13 +236,13 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
               <ServerOff className="h-8 w-8 text-warning dark:text-orange-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Messaging Service Unavailable</h3>
+              <h3 className="text-lg font-semibold">{t("status.unavailable")}</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                The messaging server is currently not responding. This could be temporary.
+                {t("status.unavailableDesc")}
               </p>
             </div>
             <Button onClick={() => window.location.reload()}>
-              Try Again
+              {t("status.tryAgain")}
             </Button>
           </div>
         </div>
@@ -255,13 +254,13 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
         <div className="flex flex-col items-center gap-4 text-center max-w-md">
           <AlertCircle className="h-12 w-12 text-destructive" />
           <div>
-            <h3 className="font-semibold">Unable to connect to messaging</h3>
+            <h3 className="font-semibold">{t("status.genericError")}</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Please try refreshing the page or contact support if the issue persists.
+              {t("status.genericErrorDesc")}
             </p>
           </div>
           <Button onClick={() => window.location.reload()}>
-            Try Again
+            {t("status.tryAgain")}
           </Button>
         </div>
       </div>
@@ -278,14 +277,14 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-primary" />
             <span>
-              Enable end-to-end encryption for secure messaging.{" "}
+              {t("e2ee.banner")}{" "}
               <a href={`/${locale}/app/settings/security`} className="font-medium underline underline-offset-2 hover:text-primary">
-                Set up E2EE
+                {t("e2ee.setup")}
               </a>
             </span>
           </div>
           <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setE2eeBannerDismissed(true)}>
-            Dismiss
+            {t("e2ee.dismiss")}
           </Button>
         </div>
       )}
@@ -342,7 +341,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
                 selectedId={selectedChannelId}
                 onSelect={handleSelectChannel}
                 isLoading={isLoadingChannels}
-                emptyMessage="No channels yet"
+                emptyMessage={t("empty.channels")}
                 onMarkAsRead={handleMarkAsRead}
                 onMuteToggle={handleMuteToggle}
                 onLeave={handleLeave}
@@ -353,7 +352,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
               <ConversationList
                 items={filteredDMs.map((d) => ({
                   id: d.id,
-                  name: d.name || "Direct Message",
+                  name: d.name || t("status.directMessage"),
                   type: "dm" as const,
                   lastMessage: d.lastMessage?.content,
                   unreadCount: d.unreadCount,
@@ -361,7 +360,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
                 selectedId={selectedConversationId}
                 onSelect={handleSelectConversation}
                 isLoading={isLoadingConversations}
-                emptyMessage="No conversations yet"
+                emptyMessage={t("empty.conversations")}
                 onMarkAsRead={handleMarkAsRead}
                 onMuteToggle={handleMuteToggle}
                 onLeave={handleLeave}
@@ -372,12 +371,12 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
               {groupConversations.length > 0 && (
                 <div className="mt-4">
                   <div className="px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Groups
+                    {t("status.groups")}
                   </div>
                   <ConversationList
                     items={groupConversations.map((g) => ({
                       id: g.id,
-                      name: g.name || "Group",
+                      name: g.name || t("status.groups"),
                       type: "group" as const,
                       lastMessage: g.lastMessage?.content,
                       unreadCount: g.unreadCount,
@@ -406,7 +405,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
             onClick={() => setCreateChannelOpen(true)}
           >
             <Plus className="h-4 w-4" />
-            Create Channel
+            {t("actions.createChannel")}
           </Button>
           <Button
             variant="outline"
@@ -414,7 +413,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
             onClick={() => setStartDMOpen(true)}
           >
             <Send className="h-4 w-4" />
-            Send DM
+            {t("actions.sendDM")}
           </Button>
         </div>
       </div>
@@ -454,11 +453,11 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
                       <MessageCircle className="h-5 w-5 text-muted-foreground" />
                     )}
                     <span className="font-medium">
-                      {selectedConversation.name || "Direct Message"}
+                      {selectedConversation.name || t("status.directMessage")}
                     </span>
                   </>
                 ) : (
-                  <span className="font-medium">Conversation</span>
+                  <span className="font-medium">{t("status.conversation")}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -508,9 +507,9 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center max-w-md">
               <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Select a conversation</h3>
+              <h3 className="text-lg font-semibold mb-2">{t("status.selectConversation")}</h3>
               <p className="text-sm text-muted-foreground">
-                Choose a channel or direct message from the sidebar to start chatting with your team.
+                {t("status.selectDescription")}
               </p>
             </div>
           </div>

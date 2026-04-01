@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -41,16 +42,17 @@ export function ConnectionButton({
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const router = useRouter();
   const { toast } = useAppToast();
+  const t = useTranslations("connections");
 
   const handleConnect = async () => {
     try {
       setIsLoading(true);
       const response = await axios.post("/api/connections", { targetUserId });
       setStatus({ status: "PENDING", connectionId: response.data.id });
-      toast.success("Request Sent", { description: "Your connection request has been sent.", isTranslationKey: false });
+      toast.success(t("toast.requestSent"), { description: t("toast.requestSentDesc"), isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to send request", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: error.response?.data || t("toast.sendError"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -63,11 +65,11 @@ export function ConnectionButton({
       setIsLoading(true);
       await axios.delete(`/api/connections/${status.connectionId}`);
       setStatus({ status: "NONE" });
-      toast.success("Connection Removed", { description: "You are no longer connected.", isTranslationKey: false });
+      toast.success(t("toast.connectionRemoved"), { description: t("toast.connectionRemovedDesc"), isTranslationKey: false });
       setShowRemoveDialog(false);
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to remove connection", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: error.response?.data || t("toast.removeError"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -80,10 +82,10 @@ export function ConnectionButton({
       setIsLoading(true);
       await axios.put(`/api/connections/${status.connectionId}`, { accept: true });
       setStatus({ ...status, status: "ACCEPTED" });
-      toast.success("Connected!", { description: "You are now connected.", isTranslationKey: false });
+      toast.success(t("toast.connectionAccepted"), { description: t("toast.connectionAcceptedDesc"), isTranslationKey: false });
       router.refresh();
     } catch (error: any) {
-      toast.error("Error", { description: error.response?.data || "Failed to accept request", isTranslationKey: false });
+      toast.error(t("toast.error"), { description: error.response?.data || t("toast.respondError"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }
@@ -108,25 +110,24 @@ export function ConnectionButton({
             onClick={() => setShowRemoveDialog(true)}
           >
             <Check className="h-4 w-4 mr-2" />
-            Connected
+            {t("actions.connected")}
           </Button>
           <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Remove Connection?</AlertDialogTitle>
+                <AlertDialogTitle>{t("dialogs.removeConnection.title")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to remove this connection? You will no
-                  longer be able to share entities with this agent.
+                  {t("dialogs.removeConnection.description")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("dialogs.cancel")}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleRemove}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   <UserMinus className="h-4 w-4 mr-2" />
-                  Remove
+                  {t("dialogs.removeConnection.confirm")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -145,23 +146,23 @@ export function ConnectionButton({
               onClick={() => setShowRemoveDialog(true)}
             >
               <X className="h-4 w-4 mr-1" />
-              Decline
+              {t("actions.decline")}
             </Button>
             <Button size={size} variant={variant} className={className} onClick={handleAccept}>
               <Check className="h-4 w-4 mr-1" />
-              Accept
+              {t("actions.accept")}
             </Button>
             <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Decline Request?</AlertDialogTitle>
+                  <AlertDialogTitle>{t("dialogs.declineRequest.title")}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to decline this connection request?
+                    {t("dialogs.declineRequest.description")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleRemove}>Decline</AlertDialogAction>
+                  <AlertDialogCancel>{t("dialogs.cancel")}</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRemove}>{t("dialogs.declineRequest.confirm")}</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -176,18 +177,18 @@ export function ConnectionButton({
           onClick={() => setShowRemoveDialog(true)}
         >
           <Clock className="h-4 w-4 mr-2" />
-          Pending
+          {t("actions.pending")}
           <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Cancel Request?</AlertDialogTitle>
+                <AlertDialogTitle>{t("dialogs.cancelRequest.title")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to cancel this connection request?
+                  {t("dialogs.cancelRequest.description")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Keep Request</AlertDialogCancel>
-                <AlertDialogAction onClick={handleRemove}>Cancel Request</AlertDialogAction>
+                <AlertDialogCancel>{t("dialogs.cancelRequest.keep")}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRemove}>{t("dialogs.cancelRequest.confirm")}</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -205,23 +206,8 @@ export function ConnectionButton({
           onClick={handleConnect}
         >
           <UserPlus className="h-4 w-4 mr-2" />
-          Connect
+          {t("actions.connect")}
         </Button>
       );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

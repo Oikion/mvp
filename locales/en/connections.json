@@ -58,6 +58,25 @@
   "badges": {
     "pending": "Pending"
   },
+  "dialogs": {
+    "removeConnection": {
+      "title": "Remove Connection?",
+      "description": "Are you sure you want to remove this connection? You will no longer be able to share entities with this agent.",
+      "confirm": "Remove"
+    },
+    "declineRequest": {
+      "title": "Decline Request?",
+      "description": "Are you sure you want to decline this connection request?",
+      "confirm": "Decline"
+    },
+    "cancelRequest": {
+      "title": "Cancel Request?",
+      "description": "Are you sure you want to cancel this connection request?",
+      "confirm": "Cancel Request",
+      "keep": "Keep Request"
+    },
+    "cancel": "Cancel"
+  },
   "toast": {
     "requestCancelled": "Request Cancelled",
     "requestCancelledDesc": "Your connection request has been cancelled.",

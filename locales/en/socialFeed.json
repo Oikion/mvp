@@ -50,7 +50,8 @@
   },
   "empty": {
     "title": "No posts yet",
-    "description": "Be the first to share something with your network, or connect with other agents to see their posts."
+    "description": "Be the first to share something with your network, or connect with other agents to see their posts.",
+    "findConnections": "Find Connections"
   },
   "filters": {
     "all": "All Posts",
@@ -79,6 +80,12 @@
     "interestedInPost": "Interested in this post?",
     "connectWithAgent": "Connect with the agent for more information.",
     "viewProfile": "View Profile"
+  },
+  "sidebar": {
+    "suggestedAgents": "Suggested Agents",
+    "suggestedAgencies": "Suggested Agencies",
+    "seeAllAgents": "See all",
+    "seeAllAgencies": "See all"
   },
   "realtime": {
     "connected": "Live",

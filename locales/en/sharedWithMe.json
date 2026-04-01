@@ -1,4 +1,10 @@
 {
+  "pageTitle": "Sharing Hub",
+  "pageDescription": "Manage everything you share and everything shared with you",
+  "topTabs": {
+    "sharedWithMe": "Shared with Me",
+    "mySharing": "My Sharing"
+  },
   "title": "Shared With Me",
   "description": "View properties, clients, and documents shared by your connections",
   "tabs": {

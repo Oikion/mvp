@@ -54,6 +54,7 @@ import dataOwnershipEn from "@/locales/en/dataOwnership.json";
 import encryptionEn from "@/locales/en/encryption.json";
 import createOrganizationEn from "@/locales/en/createOrganization.json";
 import cookiesEn from "@/locales/en/cookies.json";
+import docsEn from "@/locales/en/docs.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -96,6 +97,7 @@ import dataOwnershipEl from "@/locales/el/dataOwnership.json";
 import encryptionEl from "@/locales/el/encryption.json";
 import createOrganizationEl from "@/locales/el/createOrganization.json";
 import cookiesEl from "@/locales/el/cookies.json";
+import docsEl from "@/locales/el/docs.json";
 
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const metadataBaseUrl = new URL(appBaseUrl);
@@ -158,6 +160,7 @@ function getLocales(locale: string) {
     messages.encryption = encryptionEl;
     messages.createOrganization = createOrganizationEl;
     messages.cookies = cookiesEl;
+    messages.docs = docsEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -209,6 +212,7 @@ function getLocales(locale: string) {
     messages.encryption = encryptionEn;
     messages.createOrganization = createOrganizationEn;
     messages.cookies = cookiesEn;
+    messages.docs = docsEn;
   }
 
   if (Object.keys(messages).length === 0) {

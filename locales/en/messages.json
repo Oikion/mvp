@@ -78,5 +78,28 @@
     "channels": "No channels yet",
     "conversations": "No conversations",
     "createFirst": "Create your first channel to get started"
+  },
+  "e2ee": {
+    "banner": "Enable end-to-end encryption for secure messaging.",
+    "setup": "Set up E2EE",
+    "dismiss": "Dismiss"
+  },
+  "actions": {
+    "createChannel": "Channel",
+    "sendDM": "DM"
+  },
+  "status": {
+    "notConfigured": "Messaging Not Configured",
+    "notConfiguredDesc": "The messaging service needs to be set up by an administrator. Configure the ABLY_API_KEY environment variable.",
+    "unavailable": "Messaging Service Unavailable",
+    "unavailableDesc": "The messaging server is currently not responding. This could be temporary.",
+    "genericError": "Unable to connect to messaging",
+    "genericErrorDesc": "Please try refreshing the page or contact support if the issue persists.",
+    "tryAgain": "Try Again",
+    "selectConversation": "Select a conversation",
+    "selectDescription": "Choose a channel or direct message from the sidebar to start chatting with your team.",
+    "groups": "Groups",
+    "directMessage": "Direct Message",
+    "conversation": "Conversation"
   }
 }

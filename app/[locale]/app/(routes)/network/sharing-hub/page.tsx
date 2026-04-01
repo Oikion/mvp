@@ -60,14 +60,14 @@ export default async function SharingHubPage({ params }: SharingHubPageProps) {
 
   return (
     <Container
-      title="Sharing Hub"
-      description="Manage everything you share and everything shared with you"
+      title={t.pageTitle}
+      description={t.pageDescription}
     >
       <Tabs defaultValue="shared-with-me" className="space-y-6">
         <TabsList className="inline-grid grid-cols-2">
           <TabsTrigger value="shared-with-me">
             <Share2 className="h-4 w-4 shrink-0" />
-            <span className="hidden sm:inline ml-2">Shared with Me</span>
+            <span className="hidden sm:inline ml-2">{t.topTabs.sharedWithMe}</span>
             {allShared.length > 0 && (
               <span className="ml-1 px-2 py-0.5 rounded-full bg-sidebar-primary-foreground/20 text-xs">
                 {allShared.length}
@@ -76,7 +76,7 @@ export default async function SharingHubPage({ params }: SharingHubPageProps) {
           </TabsTrigger>
           <TabsTrigger value="my-sharing">
             <Globe className="h-4 w-4 shrink-0" />
-            <span className="hidden sm:inline ml-2">My Sharing</span>
+            <span className="hidden sm:inline ml-2">{t.topTabs.mySharing}</span>
           </TabsTrigger>
         </TabsList>
 
