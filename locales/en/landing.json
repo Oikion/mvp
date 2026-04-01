@@ -5,6 +5,7 @@
     "solution": "The Solution",
     "how-it-works": "How It Works",
     "team": "The Team",
+    "quiz": "Your Style",
     "contact": "Contact",
     "cta": "Get Early Access",
     "languageLabel": "Select language",
@@ -124,30 +125,154 @@
       }
     }
   },
+  "quiz": {
+    "bridgeTeaser": "What type of agent are you?",
+    "sectionLabel": "DISCOVER YOUR STYLE",
+    "sectionTitle": "What type of agent are you?",
+    "sectionSubtitle": "5 questions. 60 seconds. A personalized look at how Oikion fits your workflow.",
+    "startButton": "Start Quiz",
+    "progressLabel": "Question {current} of {total}",
+    "questions": [
+      {
+        "text": "A new property just came in. What's the first thing you do?",
+        "options": [
+          { "text": "Check if anyone in your network has a matching buyer", "profile": "networker" },
+          { "text": "Log it in your system, upload photos, update the file", "profile": "organizer" },
+          { "text": "Check comparable prices and time-on-market data", "profile": "strategist" },
+          { "text": "Start calling potential buyers while updating the listing", "profile": "allRounder" }
+        ]
+      },
+      {
+        "text": "What frustrates you most about your current workflow?",
+        "options": [
+          { "text": "I have no visibility into my pipeline or performance", "profile": "strategist" },
+          { "text": "I'm doing sales, admin, marketing, and accounting all at once", "profile": "allRounder" },
+          { "text": "I can't see what other agencies have available", "profile": "networker" },
+          { "text": "I lose track of things — follow-ups slip, client details get lost", "profile": "organizer" }
+        ]
+      },
+      {
+        "text": "A colleague asks what makes you successful. You say:",
+        "options": [
+          { "text": "\"I wear every hat and still get it done.\"", "profile": "allRounder" },
+          { "text": "\"I know everyone. My phone never stops ringing.\"", "profile": "networker" },
+          { "text": "\"I never drop the ball. Every client, every detail, tracked.\"", "profile": "organizer" },
+          { "text": "\"I read the market better than anyone.\"", "profile": "strategist" }
+        ]
+      },
+      {
+        "text": "You have one free hour. How do you use it?",
+        "options": [
+          { "text": "Organize your client files and catch up on follow-ups", "profile": "organizer" },
+          { "text": "Review your numbers — what sold, what didn't, why", "profile": "strategist" },
+          { "text": "Answer emails, schedule showings, update a listing", "profile": "allRounder" },
+          { "text": "Coffee with another agent to discuss potential deals", "profile": "networker" }
+        ]
+      },
+      {
+        "text": "What would change your business the most?",
+        "options": [
+          { "text": "Seeing what buyers and sellers other agencies have", "profile": "networker" },
+          { "text": "A dashboard showing my pipeline, revenue, and KPIs", "profile": "strategist" },
+          { "text": "Knowing that every client, every property, every deadline is tracked and nothing falls through", "profile": "organizer" },
+          { "text": "Getting back hours every week so I can focus on what actually grows my business", "profile": "allRounder" }
+        ]
+      }
+    ],
+    "result": {
+      "label": "YOUR AGENT STYLE",
+      "helpTitle": "How Oikion helps you",
+      "cta": "Start Free",
+      "retake": "Retake Quiz",
+      "profiles": {
+        "networker": {
+          "title": "The Networker",
+          "titleAlt": "Ο Δικτυωτής",
+          "tagline": "Your network is your net worth.",
+          "description": "You thrive on connections. While others search for buyers and sellers alone, you've built a web of relationships that surfaces opportunities before they hit the market. Your challenge isn't finding deals — it's finding the right tools to manage a growing network across agencies.",
+          "metrics": [
+            { "label": "Cross-Agency Visibility", "value": "Access listings from agencies across Greece" },
+            { "label": "Instant Matching", "value": "Match mandates to properties in seconds, not weeks" },
+            { "label": "Smart Alerts", "value": "Get notified when a mandate matches your listing — or vice versa" }
+          ],
+          "features": [
+            "Polis cross-organization matching",
+            "Sharing Hub with visibility controls",
+            "Connection requests & agent discovery"
+          ]
+        },
+        "organizer": {
+          "title": "The Organizer",
+          "titleAlt": "Ο Οργανωτής",
+          "tagline": "Nothing falls through the cracks.",
+          "description": "You're the person who always knows where the file is, which client needs a callback, and what's due this week. Your systems work — but they're held together with spreadsheets, WhatsApp threads, and memory. You need tools that match your discipline.",
+          "metrics": [
+            { "label": "Time Saved", "value": "~8 hours/week back from manual admin" },
+            { "label": "Tool Consolidation", "value": "Replace spreadsheets, WhatsApp, and notebooks with one CRM" },
+            { "label": "Data Migration", "value": "Import your entire client database in minutes" }
+          ],
+          "features": [
+            "Full CRM with client & property management",
+            "Calendar with event scheduling",
+            "Document templates & management"
+          ]
+        },
+        "strategist": {
+          "title": "The Strategist",
+          "titleAlt": "Ο Στρατηγικός",
+          "tagline": "Data-driven decisions, not gut feelings.",
+          "description": "You don't just close deals — you study them. You want to know your average days-on-market, your list-to-sale ratio, and which property types are moving. You're held back by the fact that your data lives in five different places and you can't see the full picture.",
+          "metrics": [
+            { "label": "Pipeline Visibility", "value": "Full mandate-to-close pipeline in one dashboard" },
+            { "label": "Market Intelligence", "value": "Track days-on-market and sale prices across your portfolio" },
+            { "label": "GCI Visibility", "value": "Track your commission on every deal" }
+          ],
+          "features": [
+            "KPI dashboard (GCI, days-on-market, list-to-sale ratio)",
+            "Deal pipeline with status tracking",
+            "Mandate-property matching with scores"
+          ]
+        },
+        "allRounder": {
+          "title": "The All-Rounder",
+          "titleAlt": "Ο Πολυπράγμων",
+          "tagline": "One person. Every role. Zero excuses.",
+          "description": "You're the agent, the admin, the marketer, and the accountant. You don't have the luxury of specialization — you need every tool to be in the same place so you can switch between roles without losing time. Your biggest enemy isn't competition — it's context-switching.",
+          "metrics": [
+            { "label": "Platform Consolidation", "value": "CRM, MLS, documents, calendar, and team feed — one login" },
+            { "label": "Zero Context-Switching", "value": "Go from a client call to updating their listing in under a minute" },
+            { "label": "End-to-End Workflow", "value": "From listing to matched buyer without leaving the platform" }
+          ],
+          "features": [
+            "Unified platform (CRM + MLS + Calendar + Documents + Feed)",
+            "Quick-add for properties and clients",
+            "Bulk import to migrate from existing tools"
+          ]
+        }
+      }
+    }
+  },
   "team": {
     "label": "The Team",
     "title": "Three people. One mission.",
     "subtitle": "We are not a corporation. We are three people who got tired of watching Greek agents work with broken tools, and decided to build something better.",
     "members": {
-      "member1": {
-        "initial": "S",
+      "stavros": {
         "name": "Stavros",
-        "role": "CEO & Product",
+        "role": "Product Officer",
         "skills": ["Product Strategy", "UX Design", "Full-Stack Development"],
         "philosophy": "The best software is the kind you do not notice. It just works, and you get on with your day."
       },
-      "member2": {
-        "initial": "A",
-        "name": "Alex",
-        "role": "Marketing & Growth",
+      "ermis": {
+        "name": "Ermis",
+        "role": "Marketing Officer",
         "skills": ["Go-to-Market", "Brand Strategy", "Market Research"],
         "philosophy": "If the product is good, you do not need to oversell it. Just show people what it does."
       },
-      "member3": {
-        "initial": "N",
-        "name": "Nikos",
-        "role": "Operations & Real Estate",
-        "skills": ["Real Estate Operations", "Industry Expertise", "Agent Relations"],
+      "manos": {
+        "name": "Manos",
+        "role": "Growth Officer",
+        "skills": ["Business Development", "Market Expansion", "Agent Relations"],
         "philosophy": "I have sat on the other side of this screen. Every feature we build comes from a real problem I have lived through."
       }
     },
