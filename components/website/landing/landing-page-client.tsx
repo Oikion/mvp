@@ -20,6 +20,10 @@ const HowItWorksSection = dynamic(
   () => import('./how-it-works-section').then(m => m.HowItWorksSection),
   { ssr: true }
 )
+const QuizSection = dynamic(
+  () => import('./quiz-section').then(m => m.QuizSection),
+  { ssr: true }
+)
 const TeamSection = dynamic(
   () => import('./team-section').then(m => m.TeamSection),
   { ssr: true }
@@ -50,7 +54,8 @@ export function LandingPageClient() {
             <ProblemSection />
             <SolutionSection />
             <HowItWorksSection />
-            {/* <TeamSection /> — hidden until implemented */}
+            <QuizSection />
+            <TeamSection />
             <ContactSection />
           </main>
 

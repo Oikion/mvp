@@ -11,7 +11,7 @@ import { Logo } from '../logo'
 
 gsap.registerPlugin(useGSAP)
 
-const NAV_SECTIONS = ['problem', 'solution', 'how-it-works', 'contact'] as const
+const NAV_SECTIONS = ['problem', 'solution', 'how-it-works', 'quiz', 'team', 'contact'] as const
 
 export function LandingNav() {
   const [scrolled, setScrolled] = useState(false)
@@ -29,7 +29,7 @@ export function LandingNav() {
   const localePath = pathname.replace(`/${locale}`, `/${otherLocale}`)
 
   useEffect(() => {
-    const DARK_SECTIONS = ['hero', 'solution']
+    const DARK_SECTIONS = ['hero', 'solution', 'quiz', 'team']
 
     const onScroll = () => {
       setScrolled(globalThis.scrollY > 30)
