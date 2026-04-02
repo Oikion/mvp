@@ -261,19 +261,19 @@
     "members": {
       "stavros": {
         "name": "Stavros",
-        "role": "Product Officer",
+        "role": "Product Lead",
         "skills": ["Product Strategy", "UX Design", "Full-Stack Development"],
         "philosophy": "The best software is the kind you do not notice. It just works, and you get on with your day."
       },
       "ermis": {
         "name": "Ermis",
-        "role": "Marketing Officer",
+        "role": "Growth Lead",
         "skills": ["Go-to-Market", "Brand Strategy", "Market Research"],
         "philosophy": "If the product is good, you do not need to oversell it. Just show people what it does."
       },
       "manos": {
         "name": "Manos",
-        "role": "Growth Officer",
+        "role": "Outreach Lead",
         "skills": ["Business Development", "Market Expansion", "Agent Relations"],
         "philosophy": "I have sat on the other side of this screen. Every feature we build comes from a real problem I have lived through."
       }

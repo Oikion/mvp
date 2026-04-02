@@ -261,19 +261,19 @@
     "members": {
       "stavros": {
         "name": "Σταύρος",
-        "role": "Product Officer",
+        "role": "Product Lead",
         "skills": ["Στρατηγική Προϊόντος", "UX Design", "Full-Stack Development"],
         "philosophy": "Το καλύτερο software είναι αυτό που δεν το προσέχεις. Απλά δουλεύει, κι εσύ συνεχίζεις τη μέρα σου."
       },
       "ermis": {
         "name": "Ερμής",
-        "role": "Marketing Officer",
+        "role": "Growth Lead",
         "skills": ["Go-to-Market", "Brand Strategy", "Έρευνα Αγοράς"],
         "philosophy": "Αν το προϊόν είναι καλό, δεν χρειάζεται να το υπερπουλήσεις. Απλά δείξε στον κόσμο τι κάνει."
       },
       "manos": {
         "name": "Μάνος",
-        "role": "Growth Officer",
+        "role": "Outreach Lead",
         "skills": ["Ανάπτυξη Επιχειρήσεων", "Επέκταση Αγοράς", "Σχέσεις Μεσιτών"],
         "philosophy": "Έχω καθίσει στην άλλη πλευρά αυτής της οθόνης. Κάθε λειτουργία που χτίζουμε προέρχεται από ένα πραγματικό πρόβλημα που έχω ζήσει."
       }
