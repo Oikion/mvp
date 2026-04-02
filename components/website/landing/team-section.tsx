@@ -13,9 +13,9 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 const TEAM_MEMBERS = ['stavros', 'ermis', 'manos'] as const
 
 const MEMBER_IMAGES: Record<(typeof TEAM_MEMBERS)[number], string> = {
-  stavros: '/assets/team/Stavros.png',
-  ermis: '/assets/team/Ermis.png',
-  manos: '/assets/team/Manos.png',
+  stavros: 'https://rsxe0cpd8wmi3uxj.public.blob.vercel-storage.com/website/team/Stavros.png',
+  ermis: 'https://rsxe0cpd8wmi3uxj.public.blob.vercel-storage.com/website/team/Ermis.png',
+  manos: 'https://rsxe0cpd8wmi3uxj.public.blob.vercel-storage.com/website/team/Manos.png',
 }
 
 const MEMBER_LINKEDIN: Record<(typeof TEAM_MEMBERS)[number], string> = {
