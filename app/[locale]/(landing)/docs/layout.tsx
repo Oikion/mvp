@@ -19,7 +19,7 @@ export default async function Layout({ children, params }: DocsLayoutProps) {
       search={{ enabled: true, options: { api: "/api/docs-search" } }}
     >
       <DocsLayout
-        tree={publicSource.pageTree[locale]}
+        tree={publicSource.pageTree[locale as "el" | "en"]}
         nav={{
           title: t("title"),
           url: `/${locale}/docs`,

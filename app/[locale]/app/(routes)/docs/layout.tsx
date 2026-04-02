@@ -24,7 +24,7 @@ export default async function Layout({ children, params }: PrivateDocsLayoutProp
       search={{ enabled: true, options: { api: "/api/docs-search?scope=private" } }}
     >
       <DocsLayout
-        tree={privateSource.pageTree[locale]}
+        tree={privateSource.pageTree[locale as "el" | "en"]}
         nav={{
           title: t("internalTitle"),
           url: `/${locale}/app/docs`,

@@ -15,6 +15,7 @@ type Locale = (typeof LOCALES)[number];
 const DEFAULT_LOCALE: Locale = "el";
 
 type LoaderResult = ReturnType<typeof loader>;
+type PageItem = ReturnType<LoaderResult["getPages"]>[number];
 
 function resolveLocale(locale?: string): Locale {
   return LOCALES.includes(locale as Locale)
@@ -31,7 +32,7 @@ function createI18nSource(
     getPage(slugs: string[] | undefined, locale?: string) {
       return loaders[resolveLocale(locale)].getPage(slugs);
     },
-    getPages(locale?: string) {
+    getPages(locale?: string): PageItem[] {
       return loaders[resolveLocale(locale)].getPages();
     },
     /** Indexed by locale — used by DocsLayout: tree={source.pageTree[locale]} */

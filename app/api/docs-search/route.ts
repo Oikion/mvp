@@ -9,8 +9,10 @@ import { NextRequest } from "next/server";
  * (auth is enforced by the private docs layout, not this endpoint).
  */
 
-const publicSearch = createFromSource(publicSource);
-const privateSearch = createFromSource(privateSource);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- custom i18n wrapper is structurally compatible
+const publicSearch = createFromSource(publicSource as any);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const privateSearch = createFromSource(privateSource as any);
 
 export const revalidate = false; // Static — revalidate at build time only
 
