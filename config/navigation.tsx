@@ -302,7 +302,7 @@ export function getNavigationConfig({
   const navSecondaryItems: NavSecondaryItem[] = [
     {
       title: dict.docs?.nav?.privateDocs || "Help & Guides",
-      url: `/${locale}/app/docs`,
+      url: "/app/docs",
       icon: BookOpen,
     },
     {

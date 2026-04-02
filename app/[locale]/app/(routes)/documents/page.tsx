@@ -4,8 +4,9 @@ import { getTemplates } from "@/actions/templates/get-templates";
 import Container from "../components/ui/Container";
 import DocumentsPageView from "./components/DocumentsPageView";
 
-export default async function DocumentsPage() {
-  const t = await getTranslations("documents.DocumentsPage");
+export default async function DocumentsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "documents.DocumentsPage" });
   const [documents, templates] = await Promise.all([
     getDocuments(),
     getTemplates(),

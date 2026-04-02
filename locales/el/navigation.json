@@ -27,6 +27,8 @@
     },
     "social": {
       "title": "Κοινωνικά",
+      "feed": "Ροή",
+      "messages": "Μηνύματα",
       "socialFeed": "Κοινωνική Ροή",
       "connections": "Συνδέσεις",
       "sharedWithMe": "Μοιράστηκαν μαζί μου",
@@ -34,7 +36,7 @@
       "deals": "Συνεργασίες",
       "publicProfile": "Δημόσιο Προφίλ"
     },
-    "matchmaking": "Matchmaking",
+    "matchmaking": "Αντιστοίχιση",
     "import": "Εισαγωγή",
     "emails": "E-mail",
     "tasks": "Εργασίες",

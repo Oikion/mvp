@@ -242,12 +242,12 @@ export function CustomCursor() {
       <div
         ref={dotRef}
         aria-hidden="true"
-        className="oikion-cursor-dot pointer-events-none fixed top-0 left-0 z-[9999] h-2 w-2 rounded-full bg-[#7B8C7C] transition-[width,height,background,opacity] duration-200 ease-out [&.cursor-hover]:h-10 [&.cursor-hover]:w-10 [&.cursor-hover]:opacity-30 [&.cursor-on-dark]:bg-white will-change-transform"
+        className="oikion-cursor-dot pointer-events-none fixed top-0 left-0 z-[10001] h-2 w-2 rounded-full bg-[#7B8C7C] transition-[width,height,background,opacity] duration-200 ease-out [&.cursor-hover]:h-10 [&.cursor-hover]:w-10 [&.cursor-hover]:opacity-30 [&.cursor-on-dark]:bg-white will-change-transform"
       />
       <div
         ref={ringRef}
         aria-hidden="true"
-        className="oikion-cursor-ring pointer-events-none fixed top-0 left-0 z-[9998] h-9 w-9 rounded-full border border-[#7B8C7C] opacity-50 transition-[width,height,opacity,border-color] duration-200 ease-out [&.ring-hover]:h-2 [&.ring-hover]:w-2 [&.ring-hover]:opacity-0 [&.cursor-on-dark]:border-white/60 will-change-transform"
+        className="oikion-cursor-ring pointer-events-none fixed top-0 left-0 z-[10000] h-9 w-9 rounded-full border border-[#7B8C7C] opacity-50 transition-[width,height,opacity,border-color] duration-200 ease-out [&.ring-hover]:h-2 [&.ring-hover]:w-2 [&.ring-hover]:opacity-0 [&.cursor-on-dark]:border-white/60 will-change-transform"
       />
     </>
   )

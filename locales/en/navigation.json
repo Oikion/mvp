@@ -27,6 +27,8 @@
     },
     "social": {
       "title": "Social",
+      "feed": "Feed",
+      "messages": "Messages",
       "socialFeed": "Social Feed",
       "connections": "Connections",
       "sharedWithMe": "Shared With Me",
