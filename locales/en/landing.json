@@ -132,6 +132,8 @@
     "sectionSubtitle": "5 questions. 60 seconds. A personalized look at how Oikion fits your workflow.",
     "startButton": "Start Quiz",
     "progressLabel": "Question {current} of {total}",
+    "back": "Back",
+    "next": "Continue",
     "questions": [
       {
         "text": "A new property just came in. What's the first thing you do?",

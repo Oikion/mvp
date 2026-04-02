@@ -2,13 +2,27 @@
 
 import { useRef } from 'react'
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
+import { Linkedin } from 'lucide-react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
-const TEAM_MEMBERS = ['member1', 'member2', 'member3'] as const
+const TEAM_MEMBERS = ['stavros', 'ermis', 'manos'] as const
+
+const MEMBER_IMAGES: Record<(typeof TEAM_MEMBERS)[number], string> = {
+  stavros: '/assets/team/Stavros.png',
+  ermis: '/assets/team/Ermis.png',
+  manos: '/assets/team/Manos.png',
+}
+
+const MEMBER_LINKEDIN: Record<(typeof TEAM_MEMBERS)[number], string> = {
+  stavros: 'https://www.linkedin.com/in/stavros-apostolou-a72a9b216/',
+  ermis: 'https://www.linkedin.com/in/ermis-papadopoulos-2850a02aa/',
+  manos: 'https://www.linkedin.com/in/emmanuel-tzampazakis-11b50b21a/',
+}
 
 export function TeamSection() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -98,7 +112,7 @@ export function TeamSection() {
           </p>
         </div>
 
-        {/* Team members — philosophy-driven, no photos */}
+        {/* Team member cards */}
         <div className="team-grid grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-16 md:mb-20">
           {TEAM_MEMBERS.map(memberId => (
             <article
@@ -112,16 +126,29 @@ export function TeamSection() {
                 hover:bg-white/[0.06] hover:border-[#7B8C7C]/20
               "
             >
-              {/* Monogram / initial */}
-              <div className="w-14 h-14 rounded-full bg-[#7B8C7C]/15 flex items-center justify-center mb-6">
-                <span className="text-xl font-light text-[#7B8C7C]">
-                  {t(`team.members.${memberId}.initial`)}
-                </span>
+              {/* Photo */}
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-[#7B8C7C]/15 mb-6 ring-2 ring-white/[0.06]">
+                <Image
+                  src={MEMBER_IMAGES[memberId]}
+                  alt={t(`team.members.${memberId}.name`)}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
               </div>
 
-              {/* Name + Role */}
-              <h3 className="text-lg font-light text-white/90 mb-1">
+              {/* Name + LinkedIn */}
+              <h3 className="text-lg font-light text-white/90 mb-1 flex items-center gap-2">
                 {t(`team.members.${memberId}.name`)}
+                <a
+                  href={MEMBER_LINKEDIN[memberId]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${t(`team.members.${memberId}.name`)} LinkedIn`}
+                  className="text-white/30 hover:text-[#0A66C2] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7B8C7C]"
+                >
+                  <Linkedin className="w-4 h-4" aria-hidden="true" />
+                </a>
               </h3>
               <p className="text-[11px] font-medium tracking-[0.06em] uppercase text-[#7B8C7C]/70 mb-4">
                 {t(`team.members.${memberId}.role`)}

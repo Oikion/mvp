@@ -17,39 +17,20 @@ export function QuizSection() {
     if (globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     const ctx = gsap.context(() => {
-      // Header reveal
       gsap.fromTo(
         '.quiz-header > *',
         { y: 30, opacity: 0 },
         {
-          y: 0,
-          opacity: 1,
-          duration: 0.6,
-          stagger: 0.12,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top 70%',
-            once: true,
-          },
+          y: 0, opacity: 1, duration: 0.6, stagger: 0.12, ease: 'power3.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 70%', once: true },
         }
       )
-
-      // Quiz card reveal
       gsap.fromTo(
         '.quiz-card-wrapper',
         { y: 40, opacity: 0 },
         {
-          y: 0,
-          opacity: 1,
-          duration: 0.6,
-          delay: 0.2,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: '.quiz-card-wrapper',
-            start: 'top 85%',
-            once: true,
-          },
+          y: 0, opacity: 1, duration: 0.6, ease: 'power3.out',
+          scrollTrigger: { trigger: '.quiz-card-wrapper', start: 'top 85%', once: true },
         }
       )
     }, sectionRef)
@@ -61,24 +42,30 @@ export function QuizSection() {
     <section
       ref={sectionRef}
       id="quiz"
-      className="relative py-24 md:py-32 px-5 md:px-[52px] bg-[#262F27]"
+      className="relative px-5 md:px-[52px] bg-[#262F27]"
+      style={{ paddingTop: '120px', paddingBottom: '120px' }}
       aria-labelledby="quiz-title"
     >
-      <div className="max-w-[1200px] mx-auto">
-        {/* Header */}
-        <div className="quiz-header mb-16 md:mb-20 text-center">
+      <div className="max-w-screen-md mx-auto">
+
+        {/* Header — same pattern as contact-section */}
+        <div className="quiz-header text-center mb-10">
           <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#7B8C7C] mb-4">
             {t('quiz.sectionLabel')}
           </p>
           <h2
             id="quiz-title"
-            className="text-[clamp(28px,3vw,44px)] font-light leading-[1.15] text-white tracking-[-0.01em] mb-5"
+            style={{ fontSize: 'clamp(28px, 3vw, 44px)', fontWeight: 300, lineHeight: 1.15, letterSpacing: '-0.01em', textWrap: 'balance' as const }}
+            className="text-white mb-4"
           >
             {t('quiz.sectionTitle')}
           </h2>
+          <p className="text-[15px] text-white/50 leading-[1.7] max-w-[420px] mx-auto">
+            {t('quiz.sectionSubtitle')}
+          </p>
         </div>
 
-        {/* Quiz card */}
+        {/* Quiz card — same card style as contact wizard */}
         <div className="quiz-card-wrapper">
           <QuizCard />
         </div>

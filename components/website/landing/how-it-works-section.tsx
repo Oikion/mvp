@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import { useTranslations, useLocale } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
@@ -19,7 +19,6 @@ const STEPS = [
 export function HowItWorksSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const t = useTranslations('landing')
-  const locale = useLocale()
 
   useGSAP(() => {
     if (globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -154,7 +153,7 @@ export function HowItWorksSection() {
           </div>
 
           {/* Right — Stacking cards with proper gaps + extra height for sticky stacking */}
-          <div className="hiw-cards flex flex-col gap-6 md:gap-8" style={{ paddingBottom: '60vh' }}>
+          <div className="hiw-cards flex flex-col gap-6 md:gap-8" style={{ paddingBottom: '40vh' }}>
             {STEPS.map(({ id, num, icon: Icon }, index) => (
               <div
                 key={id}
@@ -186,20 +185,6 @@ export function HowItWorksSection() {
           </div>
         </div>
 
-        {/* Bridge teaser — leads into quiz section */}
-        <div className="flex flex-col items-center gap-4" style={{ paddingTop: '64px' }}>
-          <a
-            href="#quiz"
-            className="text-[clamp(18px,2vw,24px)] font-light text-[#262F27]/60 hover:text-[#262F27]/90 transition-colors duration-200 no-underline text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7B8C7C]"
-          >
-            {t('quiz.bridgeTeaser')}
-          </a>
-          <div className="animate-bounce motion-reduce:animate-none" aria-hidden="true">
-            <svg width="20" height="12" viewBox="0 0 20 12" fill="none" className="text-[#7B8C7C]/40">
-              <path d="M1 1L10 10L19 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        </div>
       </div>
     </section>
   )
