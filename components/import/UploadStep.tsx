@@ -21,6 +21,7 @@ interface UploadStepProps {
     readonly dropzone: string;
     readonly supportedFormats: string;
     readonly maxSize: string;
+    readonly maxRows: string;
     readonly selectedFile: string;
     readonly removeFile: string;
     readonly downloadTemplate: string;
@@ -895,12 +896,12 @@ export function UploadStep({
       {/* Feature 5: Import limits info card */}
       <Alert>
         <Info className="h-4 w-4" aria-hidden="true" />
-        <AlertDescription className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-          <span>Supported formats: CSV, XLSX, XML</span>
+        <AlertDescription className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+          <span>{dict.supportedFormats}</span>
           <span aria-hidden="true">·</span>
-          <span>Maximum file size: 10 MB</span>
+          <span>{dict.maxSize}</span>
           <span aria-hidden="true">·</span>
-          <span>Maximum rows: {MAX_ROWS.toLocaleString()}</span>
+          <span>{dict.maxRows}</span>
         </AlertDescription>
       </Alert>
 

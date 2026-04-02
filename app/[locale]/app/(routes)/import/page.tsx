@@ -6,8 +6,9 @@ import { ImportHistoryClient } from "./components/ImportHistoryClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function ImportPage() {
-  const t = await getTranslations("import.history");
+export default async function ImportPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "import.history" });
   const { orgId } = await auth();
 
   if (!orgId) {

@@ -41,6 +41,7 @@ export default async function ImportAddPage({ params }: PageProps) {
         dropzone: string;
         supportedFormats: string;
         maxSize: string;
+        maxRows: string;
         selectedFile: string;
         removeFile: string;
         downloadTemplate: string;

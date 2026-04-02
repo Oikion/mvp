@@ -43,6 +43,7 @@ export interface ImportWizardDict {
     dropzone: string;
     supportedFormats: string;
     maxSize: string;
+    maxRows: string;
     selectedFile: string;
     removeFile: string;
     downloadTemplate: string;

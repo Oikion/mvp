@@ -32,6 +32,7 @@
       "dropzone": "Drag and drop your file here, or click to browse",
       "supportedFormats": "Supported formats: CSV, XLS, XLSX, XML",
       "maxSize": "Maximum file size: 10MB",
+      "maxRows": "Maximum rows: 5,000",
       "selectedFile": "Selected file",
       "removeFile": "Remove file",
       "downloadTemplate": "Download template",
