@@ -129,7 +129,7 @@ function DraftEventBlock({
         "event-card absolute left-1 right-1 p-2 overflow-hidden cursor-grab hover:shadow-md z-20",
         "select-none touch-none",
         "bg-primary/10 border-primary/40 border-2 border-dashed",
-        isDragging && "opacity-60 transition-[top,height] duration-100 ease-out"
+        isDragging && "opacity-0 pointer-events-none"
       )}
       style={style}
       onClick={(e) => {
@@ -249,7 +249,7 @@ function DraggableEvent({
         "event-card absolute left-1 right-1 p-2 overflow-hidden cursor-move hover:shadow-md z-20",
         "select-none touch-none",
         "bg-primary/10 border-primary/30 border-l-4 border-l-primary",
-        isDragging && "opacity-50 transition-[top,height] duration-100 ease-out"
+        isDragging && "opacity-0 pointer-events-none"
       )}
       style={style}
       onClick={() => {
@@ -371,6 +371,12 @@ export function DayHourView({
   // Track pointer position independently of dnd-kit to avoid its
   // scroll-compensation drift inside Radix ScrollArea.
   const pointerYRef = useRef<number>(0);
+  // Keep dragState in a ref so handleDragMove doesn't need it as a dependency
+  const dragStateRef = useRef<DragState | null>(null);
+  // Track last snapped position to skip redundant state updates during drag
+  const lastSnappedRef = useRef<{ hours: number; minutes: number } | null>(null);
+  // RAF handle for create-drag throttling
+  const createRafRef = useRef<number | null>(null);
 
   // Prevent browser text/element selection while dragging (create/move/resize).
   // Also track raw pointer position to bypass dnd-kit's scroll compensation.
@@ -409,6 +415,11 @@ export function DayHourView({
     useSensor(MouseSensor),
     useSensor(TouchSensor)
   );
+
+  // Keep dragStateRef in sync with dragState
+  useEffect(() => {
+    dragStateRef.current = dragState;
+  }, [dragState]);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
@@ -462,6 +473,9 @@ export function DayHourView({
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active, activatorEvent } = event;
     const data = active.data.current;
+
+    // Reset snapped position tracking for the new drag
+    lastSnappedRef.current = null;
 
     // Seed pointer position for handleDragMove's raw-pointer approach
     if (activatorEvent && "clientY" in activatorEvent) {
@@ -522,7 +536,8 @@ export function DayHourView({
   }, [draftEndTime, draftStartTime, startHour]);
 
   const handleDragMove = useCallback((_event: DragMoveEvent) => {
-    if (!dragState || !gridRef.current) return;
+    const ds = dragStateRef.current;
+    if (!ds || !gridRef.current) return;
 
     // Compute grid-relative Y from raw pointer position (tracked via
     // our own pointermove listener). dnd-kit's delta/translated values
@@ -532,109 +547,111 @@ export function DayHourView({
     const rawY = pointerYRef.current - rect.top;
     const currentY = Math.max(0, rawY);
 
-    if (dragState.type === "draft-move") {
-      const duration = dragState.endTime.getTime() - dragState.startTime.getTime();
-      const { hours, minutes } = snapPixelsToTime(currentY, startHour);
+    const { hours, minutes } = snapPixelsToTime(currentY, startHour);
+
+    // Skip state update if snapped position hasn't changed
+    const last = lastSnappedRef.current;
+    if (last && last.hours === hours && last.minutes === minutes) return;
+    lastSnappedRef.current = { hours, minutes };
+
+    if (ds.type === "draft-move") {
+      const duration = ds.endTime.getTime() - ds.startTime.getTime();
       const newStartTime = createDateWithTime(selectedDate, hours, minutes);
       const newEndTime = new Date(newStartTime.getTime() + duration);
 
       onDraftSelectionChange?.(newStartTime, newEndTime);
       setDragState({
-        ...dragState,
+        ...ds,
         startTime: newStartTime,
         endTime: newEndTime,
       });
-    } else if (dragState.type === "draft-resize-top") {
-      const { hours, minutes } = snapPixelsToTime(currentY, startHour);
+    } else if (ds.type === "draft-resize-top") {
       const newStartTime = createDateWithTime(selectedDate, hours, minutes);
-      if (newStartTime < dragState.endTime) {
-        onDraftSelectionChange?.(newStartTime, dragState.endTime);
+      if (newStartTime < ds.endTime) {
+        onDraftSelectionChange?.(newStartTime, ds.endTime);
         setDragState({
-          ...dragState,
+          ...ds,
           startTime: newStartTime,
         });
       }
-    } else if (dragState.type === "draft-resize-bottom") {
-      const { hours, minutes } = snapPixelsToTime(currentY, startHour);
+    } else if (ds.type === "draft-resize-bottom") {
       const newEndTime = createDateWithTime(selectedDate, hours, minutes);
-      if (newEndTime > dragState.startTime) {
-        onDraftSelectionChange?.(dragState.startTime, newEndTime);
+      if (newEndTime > ds.startTime) {
+        onDraftSelectionChange?.(ds.startTime, newEndTime);
         setDragState({
-          ...dragState,
+          ...ds,
           endTime: newEndTime,
         });
       }
-    } else if (dragState.type === "move" && dragState.eventId) {
-      const duration = dragState.endTime.getTime() - dragState.startTime.getTime();
-      const { hours, minutes } = snapPixelsToTime(currentY, startHour);
+    } else if (ds.type === "move" && ds.eventId) {
+      const duration = ds.endTime.getTime() - ds.startTime.getTime();
       const newStartTime = createDateWithTime(selectedDate, hours, minutes);
       const newEndTime = new Date(newStartTime.getTime() + duration);
 
       // Update optimistic event position
-      const event = eventsForDay.find((e) => e.eventId === dragState.eventId);
-      if (event) {
+      const eventId = ds.eventId;
+      setOptimisticEvents((prev) => {
+        const existing = prev.get(eventId);
+        const base = existing || eventsForDay.find((e) => e.eventId === eventId);
+        if (!base) return prev;
+        const updated = new Map(prev);
+        updated.set(eventId, {
+          ...base,
+          startTime: newStartTime.toISOString(),
+          endTime: newEndTime.toISOString(),
+        });
+        return updated;
+      });
+
+      setDragState({
+        ...ds,
+        startTime: newStartTime,
+        endTime: newEndTime,
+      });
+    } else if (ds.type === "resize-top" && ds.eventId) {
+      const newStartTime = createDateWithTime(selectedDate, hours, minutes);
+      if (newStartTime < ds.endTime) {
+        const eventId = ds.eventId;
         setOptimisticEvents((prev) => {
+          const existing = prev.get(eventId);
+          const base = existing || eventsForDay.find((e) => e.eventId === eventId);
+          if (!base) return prev;
           const updated = new Map(prev);
-          updated.set(event.eventId!, {
-            ...event,
+          updated.set(eventId, {
+            ...base,
             startTime: newStartTime.toISOString(),
+          });
+          return updated;
+        });
+
+        setDragState({
+          ...ds,
+          startTime: newStartTime,
+        });
+      }
+    } else if (ds.type === "resize-bottom" && ds.eventId) {
+      const newEndTime = createDateWithTime(selectedDate, hours, minutes);
+      if (newEndTime > ds.startTime) {
+        const eventId = ds.eventId;
+        setOptimisticEvents((prev) => {
+          const existing = prev.get(eventId);
+          const base = existing || eventsForDay.find((e) => e.eventId === eventId);
+          if (!base) return prev;
+          const updated = new Map(prev);
+          updated.set(eventId, {
+            ...base,
             endTime: newEndTime.toISOString(),
           });
           return updated;
         });
-      }
-
-      setDragState({
-        ...dragState,
-        startTime: newStartTime,
-        endTime: newEndTime,
-      });
-    } else if (dragState.type === "resize-top" && dragState.eventId) {
-      const { hours, minutes } = snapPixelsToTime(currentY, startHour);
-      const newStartTime = createDateWithTime(selectedDate, hours, minutes);
-      if (newStartTime < dragState.endTime) {
-        // Update optimistic event resize
-        const event = eventsForDay.find((e) => e.eventId === dragState.eventId);
-        if (event) {
-          setOptimisticEvents((prev) => {
-            const updated = new Map(prev);
-            updated.set(event.eventId!, {
-              ...event,
-              startTime: newStartTime.toISOString(),
-            });
-            return updated;
-          });
-        }
 
         setDragState({
-          ...dragState,
-          startTime: newStartTime,
-        });
-      }
-    } else if (dragState.type === "resize-bottom" && dragState.eventId) {
-      const { hours, minutes } = snapPixelsToTime(currentY, startHour);
-      const newEndTime = createDateWithTime(selectedDate, hours, minutes);
-      if (newEndTime > dragState.startTime) {
-        // Update optimistic event resize
-        const event = eventsForDay.find((e) => e.eventId === dragState.eventId);
-        if (event) {
-          setOptimisticEvents((prev) => {
-            const updated = new Map(prev);
-            updated.set(event.eventId!, {
-              ...event,
-              endTime: newEndTime.toISOString(),
-            });
-            return updated;
-          });
-        }
-
-        setDragState({
-          ...dragState,
+          ...ds,
           endTime: newEndTime,
         });
       }
     }
-  }, [dragState, onDraftSelectionChange, selectedDate, startHour]);
+  }, [onDraftSelectionChange, selectedDate, startHour, eventsForDay]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     if (!dragState) {
@@ -708,6 +725,7 @@ export function DayHourView({
           : t("calendarView.failedToResizeEvent")
       );
     } finally {
+      lastSnappedRef.current = null;
       setDragState(null);
       setIsDragging(false);
     }
@@ -750,6 +768,9 @@ export function DayHourView({
   useEffect(() => {
     if (!dragState || dragState.type !== "create") return;
 
+    // Reset snapped position tracking for create drag
+    lastSnappedRef.current = null;
+
     const handlePointerMove = (e: PointerEvent) => {
       if (!gridRef.current) return;
       if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
@@ -758,45 +779,76 @@ export function DayHourView({
       const rawY = e.clientY - rect.top;
       const y = Math.max(0, Math.min(rect.height, rawY));
 
-      const startY = Math.min(dragState.startY, y);
-      const endY = Math.max(dragState.startY, y);
+      const anchorY = dragStateRef.current?.startY ?? dragState.startY;
+      const startY = Math.min(anchorY, y);
+      const endY = Math.max(anchorY, y);
 
       const { hours: startHours, minutes: startMinutes } = snapPixelsToTime(startY, startHour);
       const { hours: endHours, minutes: endMinutes } = snapPixelsToTime(endY, startHour);
 
-      const startTime = createDateWithTime(selectedDate, startHours, startMinutes);
-      let endTime = createDateWithTime(selectedDate, endHours, endMinutes);
+      // Skip update if both snapped endpoints are unchanged
+      const last = lastSnappedRef.current;
+      // Encode both start and end into a comparable key
+      const snapKey = startHours * 60 + startMinutes;
+      const snapKeyEnd = endHours * 60 + endMinutes;
+      const lastKey = last ? last.hours : -1;
+      const lastKeyEnd = last ? last.minutes : -1;
+      if (snapKey === lastKey && snapKeyEnd === lastKeyEnd) return;
+      lastSnappedRef.current = { hours: snapKey, minutes: snapKeyEnd };
 
-      if (endTime <= startTime) {
-        endTime = addMinutes(startTime, 15);
+      // Throttle via requestAnimationFrame — coalesce rapid moves into one render
+      if (createRafRef.current !== null) {
+        cancelAnimationFrame(createRafRef.current);
       }
+      createRafRef.current = requestAnimationFrame(() => {
+        createRafRef.current = null;
+        const startTime = createDateWithTime(selectedDate, startHours, startMinutes);
+        let endTime = createDateWithTime(selectedDate, endHours, endMinutes);
 
-      setDragState((prev) => {
-        if (!prev || prev.type !== "create") return prev;
-        return {
-          ...prev,
-          startTime,
-          endTime,
-        };
+        if (endTime <= startTime) {
+          endTime = addMinutes(startTime, 15);
+        }
+
+        setDragState((prev) => {
+          if (!prev || prev.type !== "create") return prev;
+          return {
+            ...prev,
+            startTime,
+            endTime,
+          };
+        });
       });
     };
 
     const handlePointerUp = (e: PointerEvent) => {
       if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
 
-      // finalize create
-      if (onCreateEvent) {
-        onCreateEvent(dragState.startTime, dragState.endTime);
+      // Cancel any pending RAF
+      if (createRafRef.current !== null) {
+        cancelAnimationFrame(createRafRef.current);
+        createRafRef.current = null;
+      }
+
+      // Use the latest state from ref for finalization
+      const finalState = dragStateRef.current;
+      if (onCreateEvent && finalState && finalState.type === "create") {
+        onCreateEvent(finalState.startTime, finalState.endTime);
       }
 
       createPointerIdRef.current = null;
+      lastSnappedRef.current = null;
       setDragState(null);
       setIsDragging(false);
     };
 
     const handlePointerCancel = (e: PointerEvent) => {
       if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
+      if (createRafRef.current !== null) {
+        cancelAnimationFrame(createRafRef.current);
+        createRafRef.current = null;
+      }
       createPointerIdRef.current = null;
+      lastSnappedRef.current = null;
       setDragState(null);
       setIsDragging(false);
     };
@@ -809,8 +861,15 @@ export function DayHourView({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerCancel);
+      if (createRafRef.current !== null) {
+        cancelAnimationFrame(createRafRef.current);
+        createRafRef.current = null;
+      }
     };
-  }, [dragState, onCreateEvent, selectedDate, startHour]);
+    // Only re-attach listeners when the drag type changes (create start/stop),
+    // not on every dragState update — we read the latest via dragStateRef.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragState?.type === "create", onCreateEvent, selectedDate, startHour]);
 
   const { setNodeRef: setDroppableRef } = useDroppable({
     id: "hour-grid",
@@ -930,7 +989,7 @@ export function DayHourView({
               {/* Drag preview for creating */}
               {dragState?.type === "create" && (
                 <div
-                  className="absolute left-1 right-1 bg-primary/20 border-2 border-dashed border-primary rounded z-30 transition-[top,height] duration-100 ease-out"
+                  className="absolute left-1 right-1 bg-primary/20 border-2 border-dashed border-primary rounded z-30"
                   style={{
                     top: `${timeToPixels(
                       dragState.startTime.getHours(),
@@ -969,7 +1028,7 @@ export function DayHourView({
                 dragState.type !== "create" &&
                 (dragState.eventId || (dragState.type && dragState.type.startsWith("draft-"))) && (
                 <div
-                  className="absolute left-1 right-1 bg-primary/30 border-2 border-primary rounded z-30 opacity-75 transition-[top,height] duration-100 ease-out"
+                  className="absolute left-1 right-1 bg-primary/30 border-2 border-primary rounded z-30 opacity-75"
                   style={{
                     top: `${timeToPixels(
                       dragState.startTime.getHours(),

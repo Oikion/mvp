@@ -97,6 +97,15 @@ export function WeekView({
   const createColumnElementRef = useRef<HTMLDivElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
+  // Track last snapped position to skip redundant state updates
+  const lastSnappedRef = useRef<{ startKey: number; endKey: number } | null>(null);
+  // RAF handle for throttling
+  const createRafRef = useRef<number | null>(null);
+  // Keep createDrag in a ref for stable pointermove handler
+  const createDragRef = useRef<CreateDragState | null>(null);
+  useEffect(() => {
+    createDragRef.current = createDrag;
+  }, [createDrag]);
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday start
   const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -219,6 +228,9 @@ export function WeekView({
   useEffect(() => {
     if (!createDrag) return;
 
+    // Reset snap tracking for new drag
+    lastSnappedRef.current = null;
+
     const handlePointerMove = (e: PointerEvent) => {
       if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
       const columnEl = createColumnElementRef.current;
@@ -229,44 +241,67 @@ export function WeekView({
       const rawY = e.clientY - rect.top;
       const y = Math.max(0, Math.min(rect.height, rawY));
 
-      const startY = Math.min(createDrag.startY, y);
-      const endY = Math.max(createDrag.startY, y);
+      const anchorY = createDragRef.current?.startY ?? createDrag.startY;
+      const startY = Math.min(anchorY, y);
+      const endY = Math.max(anchorY, y);
 
       const { hours: startH, minutes: startM } = snapPixelsToTime(startY, START_HOUR);
       const { hours: endH, minutes: endM } = snapPixelsToTime(endY, START_HOUR);
 
-      const startTime = createDateWithTime(createDrag.day, startH, startM);
-      let endTime = createDateWithTime(createDrag.day, endH, endM);
-      if (endTime <= startTime) {
-        endTime = addMinutes(startTime, MIN_CREATE_MINUTES);
-      }
+      // Skip update if snapped positions haven't changed
+      const startKey = startH * 60 + startM;
+      const endKey = endH * 60 + endM;
+      const last = lastSnappedRef.current;
+      if (last && last.startKey === startKey && last.endKey === endKey) return;
+      lastSnappedRef.current = { startKey, endKey };
 
-      setCreateDrag((prev) =>
-        prev
-          ? {
-              ...prev,
-              startTime,
-              endTime,
-            }
-          : prev
-      );
+      // Throttle via requestAnimationFrame
+      if (createRafRef.current !== null) {
+        cancelAnimationFrame(createRafRef.current);
+      }
+      createRafRef.current = requestAnimationFrame(() => {
+        createRafRef.current = null;
+        const cd = createDragRef.current;
+        if (!cd) return;
+
+        const startTime = createDateWithTime(cd.day, startH, startM);
+        let endTime = createDateWithTime(cd.day, endH, endM);
+        if (endTime <= startTime) {
+          endTime = addMinutes(startTime, MIN_CREATE_MINUTES);
+        }
+
+        setCreateDrag((prev) =>
+          prev ? { ...prev, startTime, endTime } : prev
+        );
+      });
     };
 
     const handlePointerUp = (e: PointerEvent) => {
       if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
-      if (onCreateEvent) {
-        onCreateEvent(createDrag.startTime, createDrag.endTime);
+      if (createRafRef.current !== null) {
+        cancelAnimationFrame(createRafRef.current);
+        createRafRef.current = null;
+      }
+      const finalState = createDragRef.current;
+      if (onCreateEvent && finalState) {
+        onCreateEvent(finalState.startTime, finalState.endTime);
       }
       createPointerIdRef.current = null;
       createColumnElementRef.current = null;
+      lastSnappedRef.current = null;
       setCreateDrag(null);
       setIsDragging(false);
     };
 
     const handlePointerCancel = (e: PointerEvent) => {
       if (createPointerIdRef.current !== null && e.pointerId !== createPointerIdRef.current) return;
+      if (createRafRef.current !== null) {
+        cancelAnimationFrame(createRafRef.current);
+        createRafRef.current = null;
+      }
       createPointerIdRef.current = null;
       createColumnElementRef.current = null;
+      lastSnappedRef.current = null;
       setCreateDrag(null);
       setIsDragging(false);
     };
@@ -279,8 +314,14 @@ export function WeekView({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerCancel);
+      if (createRafRef.current !== null) {
+        cancelAnimationFrame(createRafRef.current);
+        createRafRef.current = null;
+      }
     };
-  }, [createDrag, onCreateEvent]);
+    // Only re-attach when drag starts/stops, not on every state change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createDrag !== null, onCreateEvent]);
 
   return (
     <div className="flex flex-col h-full">
@@ -384,7 +425,7 @@ export function WeekView({
                   {/* Drag preview for creating */}
                   {createDrag && isSameDay(createDrag.day, day) && (
                     <div
-                      className="absolute left-1 right-1 bg-primary/20 border-2 border-dashed border-primary rounded z-20 transition-all duration-75"
+                      className="absolute left-1 right-1 bg-primary/20 border-2 border-dashed border-primary rounded z-20"
                       style={{
                         top: `${timeToPixels(
                           createDrag.startTime.getHours(),
