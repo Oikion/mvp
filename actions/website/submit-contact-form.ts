@@ -4,6 +4,7 @@ import { prismadb } from '@/lib/prisma'
 import resendHelper from '@/lib/resend'
 import { EMAIL_CONFIG } from '@/lib/resend-segments'
 import { actionSuccess, actionError, type ActionResponse } from '@/lib/action-response'
+import { trackEvent } from '@/lib/posthog'
 import { z } from 'zod'
 
 const ContactFormSchema = z.object({
@@ -146,7 +147,15 @@ export async function submitWebsiteContactForm(
       },
     })
 
-    // 2. Send emails (non-blocking, don't fail the submission if email fails)
+    // 2. Track server-side (fires regardless of cookie consent)
+    trackEvent(`website_visitor_${submission.id}`, 'contact_form_server_submitted', {
+      inquiry_type: formData.inquiryType,
+      locale: formData.locale,
+      has_message: !!formData.message,
+      submission_id: submission.id,
+    })
+
+    // 3. Send emails (non-blocking, don't fail the submission if email fails)
     try {
       const resend = await resendHelper()
 

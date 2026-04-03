@@ -6,6 +6,7 @@ import { submitWebsiteContactForm } from '@/actions/website/submit-contact-form'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
+import posthog from 'posthog-js'
 import {
   TrendingUp,
   Handshake,
@@ -77,6 +78,7 @@ export function ContactSection() {
     if (!container) { setStep(nextStep); return }
 
     const goingForward = nextStep > step
+    posthog.capture('contact_step_changed', { from_step: step, to_step: nextStep, inquiry_type: inquiryType })
 
     // Exit: fade out + slide
     gsap.to(container, {
@@ -91,7 +93,7 @@ export function ContactSection() {
         gsap.to(container, { y: 0, duration: 0.3, ease: 'power2.out' })
       },
     })
-  }, [step])
+  }, [step, inquiryType])
 
   const handleSubmit = async () => {
     if (!inquiryType || !privacyConsent) return
@@ -111,8 +113,10 @@ export function ContactSection() {
     setSubmitting(false)
     if (result.success) {
       setSubmitted(true)
+      posthog.capture('contact_form_submitted', { inquiry_type: inquiryType, locale })
     } else {
       setSubmitError(result.error ?? t('contact.wizard.submitError'))
+      posthog.capture('contact_form_error', { inquiry_type: inquiryType, error: result.error })
     }
   }
 
@@ -197,7 +201,10 @@ export function ContactSection() {
                           type="button"
                           role="radio"
                           aria-checked={inquiryType === id}
-                          onClick={() => setInquiryType(id)}
+                          onClick={() => {
+                            setInquiryType(id)
+                            posthog.capture('contact_inquiry_selected', { inquiry_type: id })
+                          }}
                           className="step-field flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7B8C7C]"
                           style={{
                             backgroundColor: inquiryType === id ? '#262F27' : '#E8E2D9',
