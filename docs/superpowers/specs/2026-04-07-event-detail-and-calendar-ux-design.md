@@ -28,7 +28,7 @@ The Calendar feature in Oikion has four UX issues that are visible on the stagin
 
 ## Non-Goals
 
-- No backend changes. The existing `PUT /api/calendar/events/[eventId]` already accepts `clientIds`, `propertyIds`, `documentIds`, and `mandateIds` arrays with set-replace semantics (verified at `app/api/calendar/events/[eventId]/route.ts:297-392`).
+- One new backend endpoint: `app/api/calendar/events/[eventId]/linked/route.ts` (POST + DELETE) mirroring the existing `app/api/mls/properties/[propertyId]/linked/route.ts` convention. No schema changes; reuses existing many-to-many tables.
 - No new entity types, no schema changes, no migrations.
 - No changes to the calendar matching/fetching logic or the data returned by `getEvent()`.
 - Existing `EventCreateForm` (Sheet modal) usage from `PropertyView`, `ClientView`, etc. is preserved — only the Calendar page itself switches to the drawer pattern.
@@ -115,40 +115,30 @@ The `linkedTasks` section currently in EventDetailView is dropped — tasks are 
 - `<EventEditForm open={editOpen} onOpenChange={setEditOpen} …>` (existing component, used in Dialog mode)
 - Delete confirmation `<Dialog>` (existing)
 
-### New data layer
+### Data layer (revised after codebase verification)
 
-Backend contract: `PUT /api/calendar/events/[eventId]` accepts `clientIds`, `propertyIds`, `documentIds`, `mandateIds` as replacement arrays. Send the desired final set; the server computes the diff.
+**Existing hook is sufficient — no new linked-data hook needed.** `hooks/swr/useCalendarEvent.ts` already exists and returns the exact shape required, including `linkedClients`, `linkedProperties`, `linkedDocuments`, `linkedTasks`, `reminders`, etc. EventDetailView will consume `useCalendarEvent(friendlyId)` directly.
 
-**New hook `hooks/swr/useEventLinked.ts`:**
+**New API endpoint** `app/api/calendar/events/[eventId]/linked/route.ts` exposing POST and DELETE handlers, mirroring the convention from `app/api/mls/properties/[propertyId]/linked/route.ts`. Rationale: every other entity in the codebase uses dedicated `*/linked/route.ts` endpoints for link/unlink operations. Reusing the existing PUT `/api/calendar/events/[eventId]` with set-replace semantics would introduce a one-off pattern that future maintainers would need to learn separately.
+
+The new endpoint accepts a `relationType` field in the body to multiplex between client/property/document/mandate links:
 
 ```ts
-export function useEventLinked(eventId: string | null | undefined) {
-  const { data, error, isLoading, mutate } = useSWR(
-    eventId ? `/api/calendar/events/${eventId}` : null,
-    fetcher
-  );
-  return {
-    clients: data?.event?.linkedClients ?? [],
-    properties: data?.event?.linkedProperties ?? [],
-    documents: data?.event?.linkedDocuments ?? [],
-    mandates: data?.event?.linkedMandates ?? [],
-    isLoading,
-    error,
-    mutate,
-  };
-}
+// POST body
+{ relationType: "client" | "property" | "document" | "mandate", ids: string[] }
+
+// DELETE query
+?relationType=client&id=<id>
 ```
 
-**Extend `hooks/swr/useLinkMutations.ts`** with 8 new hooks, each following the existing `useLinkClientsToProperty` / `useUnlinkClientFromProperty` pattern:
+**Extend `hooks/swr/useLinkMutations.ts`** with 8 new hooks following the existing `useLinkClientsToProperty` / `useUnlinkClientFromProperty` pattern. Each uses `useSWRMutation` and invalidates the calendar event cache key (`getCalendarEventKey(eventId)`) on success:
 
-- `useLinkClientsToEvent(eventFriendlyId)` / `useUnlinkClientFromEvent(eventFriendlyId)`
-- `useLinkPropertiesToEvent(eventFriendlyId)` / `useUnlinkPropertyFromEvent(eventFriendlyId)`
-- `useLinkDocumentsToEvent(eventFriendlyId)` / `useUnlinkDocumentFromEvent(eventFriendlyId)`
-- `useLinkMandatesToEvent(eventFriendlyId)` / `useUnlinkMandateFromEvent(eventFriendlyId)`
+- `useLinkClientsToEvent(eventId)` / `useUnlinkClientFromEvent(eventId)`
+- `useLinkPropertiesToEvent(eventId)` / `useUnlinkPropertyFromEvent(eventId)`
+- `useLinkDocumentsToEvent(eventId)` / `useUnlinkDocumentFromEvent(eventId)`
+- `useLinkMandatesToEvent(eventId)` / `useUnlinkMandateFromEvent(eventId)`
 
-Implementation pattern: read current linked IDs from `useEventLinked` cache, compute new array, PUT to `/api/calendar/events/${eventFriendlyId}` with the full new array, then `mutate()` the `useEventLinked` key.
-
-**Export** both from `hooks/swr/index.ts`.
+**Export** the new hooks from `hooks/swr/index.ts`.
 
 ### Page wrapper change
 
@@ -464,7 +454,7 @@ Below `sm:` (640px) the drawer takes `w-full`, which causes the left column to s
 
 ### New files
 
-- `hooks/swr/useEventLinked.ts`
+- `app/api/calendar/events/[eventId]/linked/route.ts`
 - `components/calendar/NextUpCard.tsx`
 
 ### Modified files
@@ -482,7 +472,8 @@ Below `sm:` (640px) the drawer takes `w-full`, which causes the left column to s
 
 ### Unchanged
 
-- All backend routes (`app/api/calendar/events/**`)
+- Existing backend routes (`app/api/calendar/events/route.ts`, `[eventId]/route.ts`, `[eventId]/invitees/route.ts`)
+- `hooks/swr/useCalendarEvent.ts` — already returns the linked-entities shape we need; consumed by EventDetailView
 - All server actions (`actions/calendar/**`)
 - `components/linking/LinkedEntitiesPanel.tsx` (used as-is)
 - `components/linking/LinkEntityDialog.tsx` (used as-is — already supports `sourceType="event"` via its generic signature)
@@ -494,7 +485,7 @@ Below `sm:` (640px) the drawer takes `w-full`, which causes the left column to s
 
 ### Unit tests (Vitest, `tests/`)
 
-- `useEventLinked` — returns expected shape from mocked fetcher
+- `useCalendarEvent` — returns expected shape from mocked fetcher (existing hook; verify it still includes linked entities after EventDetailView refactor)
 - Event link/unlink hooks — compute correct final array from existing + new IDs
 - `NextUpCard` filter logic — next 3 excluding current event, sorted ascending, respects user filter
 
