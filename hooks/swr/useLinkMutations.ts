@@ -4,6 +4,8 @@ import { getPropertyLinkedKey } from "./usePropertyLinked";
 import { getClientLinkedKey } from "./useClientLinked";
 import { getMandateLinkedKey } from "./useMandateLinked";
 import { getDocumentLinkedKey } from "./useDocumentLinked";
+import { getContactLinkedKey } from "./useContactLinked";
+import { getRequestLinkedKey } from "./useRequestLinked";
 
 // ============================================================
 // Types
@@ -895,4 +897,348 @@ export function useUnlinkDocumentFromMandate(mandateId: string) {
   };
 
   return { unlinkDocument, isUnlinking: isMutating, error };
+}
+
+// ============================================================
+// Contact ↔ Request Fetchers
+// ============================================================
+
+async function linkRequestsToContactFetcher(
+  url: string,
+  { arg }: { arg: { requestIds: string[] } }
+): Promise<{ links: any[] }> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(arg),
+  });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to link requests");
+  return res.json();
+}
+
+async function unlinkRequestFromContactFetcher(
+  url: string,
+  { arg }: { arg: { requestId: string } }
+): Promise<UnlinkResponse> {
+  const res = await fetch(`${url}?requestId=${arg.requestId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink request");
+  return res.json();
+}
+
+// ============================================================
+// Contact ↔ Property Fetchers
+// ============================================================
+
+async function linkPropertiesToContactFetcher(
+  url: string,
+  { arg }: { arg: { propertyIds: string[] } }
+): Promise<{ links: any[] }> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(arg),
+  });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to link properties");
+  return res.json();
+}
+
+async function unlinkPropertyFromContactFetcher(
+  url: string,
+  { arg }: { arg: { propertyId: string } }
+): Promise<UnlinkResponse> {
+  const res = await fetch(`${url}?propertyId=${arg.propertyId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink property");
+  return res.json();
+}
+
+// ============================================================
+// Request ↔ Contact Fetchers
+// ============================================================
+
+async function linkContactsToRequestFetcher(
+  url: string,
+  { arg }: { arg: { contactIds: string[] } }
+): Promise<{ links: any[] }> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(arg),
+  });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to link contacts");
+  return res.json();
+}
+
+async function unlinkContactFromRequestFetcher(
+  url: string,
+  { arg }: { arg: { contactId: string } }
+): Promise<UnlinkResponse> {
+  const res = await fetch(`${url}?contactId=${arg.contactId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink contact");
+  return res.json();
+}
+
+// ============================================================
+// Request ↔ Property Fetchers
+// ============================================================
+
+async function linkPropertiesToRequestFetcher(
+  url: string,
+  { arg }: { arg: { propertyIds: string[] } }
+): Promise<{ links: any[] }> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(arg),
+  });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to link properties");
+  return res.json();
+}
+
+async function unlinkPropertyFromRequestFetcher(
+  url: string,
+  { arg }: { arg: { propertyId: string } }
+): Promise<UnlinkResponse> {
+  const res = await fetch(`${url}?propertyId=${arg.propertyId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink property");
+  return res.json();
+}
+
+// ============================================================
+// Contact ↔ Request Hooks
+// ============================================================
+
+/**
+ * Hook to link requests to a contact
+ * Invalidates contact linked entities cache after mutation
+ */
+export function useLinkRequestsToContact(contactId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/crm/contacts/${contactId}/link-entities`,
+    linkRequestsToContactFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getContactLinkedKey(contactId));
+      },
+    }
+  );
+
+  const linkRequests = async (requestIds: string[]) => {
+    return trigger({ requestIds });
+  };
+
+  return {
+    linkRequests,
+    isLinking: isMutating,
+    error,
+  };
+}
+
+/**
+ * Hook to unlink a request from a contact
+ * Invalidates contact linked entities cache after mutation
+ */
+export function useUnlinkRequestFromContact(contactId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/crm/contacts/${contactId}/link-entities`,
+    unlinkRequestFromContactFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getContactLinkedKey(contactId));
+      },
+    }
+  );
+
+  const unlinkRequest = async (requestId: string) => {
+    return trigger({ requestId });
+  };
+
+  return {
+    unlinkRequest,
+    isUnlinking: isMutating,
+    error,
+  };
+}
+
+// ============================================================
+// Contact ↔ Property Hooks
+// ============================================================
+
+/**
+ * Hook to link properties to a contact
+ * Invalidates contact linked entities cache after mutation
+ */
+export function useLinkPropertiesToContact(contactId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/crm/contacts/${contactId}/link-entities`,
+    linkPropertiesToContactFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getContactLinkedKey(contactId));
+      },
+    }
+  );
+
+  const linkProperties = async (propertyIds: string[]) => {
+    return trigger({ propertyIds });
+  };
+
+  return {
+    linkProperties,
+    isLinking: isMutating,
+    error,
+  };
+}
+
+/**
+ * Hook to unlink a property from a contact
+ * Invalidates contact linked entities cache after mutation
+ */
+export function useUnlinkPropertyFromContact(contactId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/crm/contacts/${contactId}/link-entities`,
+    unlinkPropertyFromContactFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getContactLinkedKey(contactId));
+      },
+    }
+  );
+
+  const unlinkProperty = async (propertyId: string) => {
+    return trigger({ propertyId });
+  };
+
+  return {
+    unlinkProperty,
+    isUnlinking: isMutating,
+    error,
+  };
+}
+
+// ============================================================
+// Request ↔ Contact Hooks
+// ============================================================
+
+/**
+ * Hook to link contacts to a request
+ * Invalidates request linked entities cache after mutation
+ */
+export function useLinkContactsToRequest(requestId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/requests/${requestId}/link-entities`,
+    linkContactsToRequestFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getRequestLinkedKey(requestId));
+      },
+    }
+  );
+
+  const linkContacts = async (contactIds: string[]) => {
+    return trigger({ contactIds });
+  };
+
+  return {
+    linkContacts,
+    isLinking: isMutating,
+    error,
+  };
+}
+
+/**
+ * Hook to unlink a contact from a request
+ * Invalidates request linked entities cache after mutation
+ */
+export function useUnlinkContactFromRequest(requestId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/requests/${requestId}/link-entities`,
+    unlinkContactFromRequestFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getRequestLinkedKey(requestId));
+      },
+    }
+  );
+
+  const unlinkContact = async (contactId: string) => {
+    return trigger({ contactId });
+  };
+
+  return {
+    unlinkContact,
+    isUnlinking: isMutating,
+    error,
+  };
+}
+
+// ============================================================
+// Request ↔ Property Hooks
+// ============================================================
+
+/**
+ * Hook to link properties to a request
+ * Invalidates request linked entities cache after mutation
+ */
+export function useLinkPropertiesToRequest(requestId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/requests/${requestId}/link-entities`,
+    linkPropertiesToRequestFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getRequestLinkedKey(requestId));
+      },
+    }
+  );
+
+  const linkProperties = async (propertyIds: string[]) => {
+    return trigger({ propertyIds });
+  };
+
+  return {
+    linkProperties,
+    isLinking: isMutating,
+    error,
+  };
+}
+
+/**
+ * Hook to unlink a property from a request
+ * Invalidates request linked entities cache after mutation
+ */
+export function useUnlinkPropertyFromRequest(requestId: string) {
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const { trigger, isMutating, error } = useSWRMutation(
+    `/api/requests/${requestId}/link-entities`,
+    unlinkPropertyFromRequestFetcher,
+    {
+      onSuccess: () => {
+        globalMutate(getRequestLinkedKey(requestId));
+      },
+    }
+  );
+
+  const unlinkProperty = async (propertyId: string) => {
+    return trigger({ propertyId });
+  };
+
+  return {
+    unlinkProperty,
+    isUnlinking: isMutating,
+    error,
+  };
 }

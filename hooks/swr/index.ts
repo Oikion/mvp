@@ -71,6 +71,22 @@ export type { EventInvitee, InvitedEvent } from "./useEventInvitations";
 export { useClients } from "./useClients";
 export type { ClientOption } from "./useClients";
 
+// v2.0 Contact hooks
+export { useContacts } from "./useContacts";
+export type { ContactOption } from "./useContacts";
+export { useContact } from "./useContact";
+export { useContactComments } from "./useContactComments";
+
+// v2.0 Request hooks
+export { useRequests } from "./useRequests";
+export type { RequestOption } from "./useRequests";
+export { useRequest } from "./useRequest";
+export { useRequestComments } from "./useRequestComments";
+
+// v2.0 Deal hooks (Phase 3)
+export { useDeals, useDeal, getDealsKey, getDealKey } from "./useDeals";
+export type { DealOption } from "./useDeals";
+
 export { useProperties } from "./useProperties";
 export type { PropertyOption } from "./useProperties";
 
@@ -81,9 +97,13 @@ export type { DocumentOption } from "./useDocuments";
 export {
   useUnifiedEntitySearch,
   useClientSearch,
+  useContactSearch,
   usePropertySearch,
   useDocumentSearch,
   useEventSearch,
+  useMandateSearch,
+  useRequestSearch,
+  useDealSearch,
 } from "./useUnifiedEntitySearch";
 export type {
   EntityType,
@@ -142,6 +162,12 @@ export type {
   BulkShareResponse,
 } from "./useShareMutations";
 
+// Contact Linked Entities
+export { useContactLinked, getContactLinkedKey } from "./useContactLinked";
+
+// Request Linked Entities
+export { useRequestLinked, getRequestLinkedKey } from "./useRequestLinked";
+
 // Mandate Linked Entities
 export { useMandateLinked, getMandateLinkedKey } from "./useMandateLinked";
 
@@ -170,6 +196,14 @@ export {
   useUnlinkDocumentFromProperty,
   useLinkDocumentsToMandate,
   useUnlinkDocumentFromMandate,
+  useLinkRequestsToContact,
+  useUnlinkRequestFromContact,
+  useLinkPropertiesToContact,
+  useUnlinkPropertyFromContact,
+  useLinkContactsToRequest,
+  useUnlinkContactFromRequest,
+  useLinkPropertiesToRequest,
+  useUnlinkPropertyFromRequest,
 } from "./useLinkMutations";
 
 // ============================================================

@@ -44,14 +44,50 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 
 For shared entity actions (delete, share, schedule): use `useActionModal()` hook (Zustand-backed store) — do not open a one-off Dialog for actions that already have a shared modal.
 
-### Toasts
+### Toasts — Canonical Pattern
+
+All toasts go through `useAppToast()`, which wraps Sonner with automatic translation via the `"toast"` namespace in `common.json`. Never call `sonnerToast()` / raw `toast()` directly (ESLint rule `@oikion/no-deprecated-toast` enforces this).
 
 ```typescript
+"use client";
 import { useAppToast } from "@/hooks/use-app-toast";
-// const { success, error, info } = useAppToast();
+
+function MyComponent() {
+  const { toast } = useAppToast();
+
+  // ✅ Preferred — translation key from common.json → toast.*
+  toast.success("createSuccess");    // "Created successfully"
+  toast.error("deleteFailed");       // "Delete failed"
+  toast.warning("networkError");     // "Network error"
+  toast.info("copiedToClipboard");   // "Copied to clipboard"
+
+  // ✅ With extra description
+  toast.success("updateSuccess", { description: "Property #123 updated" });
+
+  // ✅ Custom (non-translated) message — explicit opt-out
+  toast.error("Something specific happened", { isTranslationKey: false });
+
+  // ✅ Promise-based (loading → success/error)
+  toast.promise(saveProperty(), {
+    loading: "Saving…",
+    success: "updateSuccess",
+    error: "updateFailed",
+  });
+}
 ```
 
-Never call raw `toast()` directly (ESLint rule `@oikion/no-deprecated-toast` enforces this).
+**Toast keys** are defined in `locales/{en,el}/common.json` under `toast.*` and typed in `hooks/use-app-toast.ts` → `ToastKey`. When adding a new toast message:
+
+1. Add the key to `locales/en/common.json` → `toast.{yourKey}`
+2. Add the Greek translation to `locales/el/common.json` → `toast.{yourKey}`
+3. Add the key name to the `ToastKey` union type in `hooks/use-app-toast.ts`
+
+**For non-component contexts** (server actions, callbacks outside React tree), use the non-hook version:
+
+```typescript
+import { appToast } from "@/hooks/use-app-toast";
+appToast.success("Raw message — no translations available here");
+```
 
 ### Buttons
 

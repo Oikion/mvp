@@ -290,7 +290,8 @@
   "QuickAdd": {
     "property": {
       "title": "Quick Add Property",
-      "description": "Fill in the basic information to quickly create a property"
+      "description": "Fill in the basic information to quickly create a property",
+      "success": "Property created successfully"
     }
   },
   "MlsPropertiesTable": {
