@@ -111,7 +111,7 @@ export function getContactColumns(): ColumnDef<ContactRow>[] {
             className={cn("text-[10px]", STATUS_COLORS[status] || STATUS_COLORS.LEAD)}
             variant="secondary"
           >
-            {t(`contacts.status.${status}`)}
+            {t(`contacts.status.${status}` as Parameters<typeof t>[0])}
           </Badge>
         );
       },
@@ -136,7 +136,7 @@ export function getContactColumns(): ColumnDef<ContactRow>[] {
                 variant="outline"
                 className={cn("text-[10px] px-1.5 py-0", CATEGORY_COLORS[cat])}
               >
-                {t(`contacts.category.${cat}`)}
+                {t(`contacts.category.${cat}` as Parameters<typeof t>[0])}
               </Badge>
             ))}
             {categories.length > 2 && (

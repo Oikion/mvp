@@ -86,7 +86,7 @@ export function QuickAddMandate({
   const locale = useLocale();
   const tCommon = useTranslations("common");
 
-  const quickAddMandateSchema = createQuickAddMandateSchema(t);
+  const quickAddMandateSchema = createQuickAddMandateSchema((k: string) => t(k as Parameters<typeof t>[0]));
   type QuickAddMandateFormValues = z.infer<typeof quickAddMandateSchema>;
 
   const form = useForm<QuickAddMandateFormValues>({

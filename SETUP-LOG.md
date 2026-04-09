@@ -1,4 +1,4 @@
-# Claude Code Harness Setup Log — ECC + Impeccable
+    # Claude Code Harness Setup Log — ECC + Impeccable
 
 **Date:** 2026-04-09
 **Branch:** `staging`

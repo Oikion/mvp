@@ -1,4 +1,20 @@
 {
+  "contactForm": {
+    "title": "Επικοινωνία",
+    "name": "Όνομα",
+    "namePlaceholder": "Το όνομά σας",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "message": "Μήνυμα",
+    "messagePlaceholder": "Το μήνυμά σας",
+    "send": "Αποστολή",
+    "sending": "Αποστολή...",
+    "successMessage": "Το μήνυμα στάλθηκε με επιτυχία",
+    "errorMessage": "Αποτυχία αποστολής μηνύματος. Δοκιμάστε ξανά.",
+    "thankYou": "Ευχαριστούμε!",
+    "confirmationMessage": "Λάβαμε το μήνυμά σας και θα απαντήσουμε σύντομα.",
+    "sendAnother": "Αποστολή νέου μηνύματος"
+  },
   "title": "Ρυθμίσεις Προφίλ",
   "publicProfile": {
     "title": "Δημόσιο Προφίλ",

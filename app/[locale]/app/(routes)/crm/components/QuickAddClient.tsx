@@ -79,7 +79,10 @@ export function QuickAddClient({
   const locale = useLocale();
   const tCommon = useTranslations("common");
 
-  const quickAddClientSchema = createQuickAddClientSchema(t, tCommon);
+  const quickAddClientSchema = createQuickAddClientSchema(
+    (k: string) => t(k as Parameters<typeof t>[0]),
+    (k: string) => tCommon(k as Parameters<typeof tCommon>[0]),
+  );
   type QuickAddClientFormValues = z.infer<typeof quickAddClientSchema>;
 
   const form = useForm<QuickAddClientFormValues>({

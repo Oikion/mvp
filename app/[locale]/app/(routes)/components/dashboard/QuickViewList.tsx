@@ -141,12 +141,12 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
     
     if (isProperties) {
       return {
-        label: getPropertyStatusLabel(status, tCommon),
+        label: getPropertyStatusLabel(status, (k: string) => tCommon(k as Parameters<typeof tCommon>[0])),
         variant: getPropertyStatusVariant(status),
       };
     } else {
       return {
-        label: getClientStatusLabel(status, tCommon),
+        label: getClientStatusLabel(status, (k: string) => tCommon(k as Parameters<typeof tCommon>[0])),
         variant: getClientStatusVariant(status),
       };
     }
@@ -169,7 +169,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
         throw new Error("Failed to delete");
       }
 
-      toast.info(tCommon("deleteSuccess"), { 
+      toast.info(tCommon("toast.deleteSuccess"), {
         description: isProperties ? tDashboard("propertyDeleted") : tDashboard("clientDeleted"), 
         isTranslationKey: false 
       });
@@ -177,7 +177,7 @@ export const QuickViewList: React.FC<QuickViewListProps> = ({
       router.refresh();
     } catch (error) {
       console.error("Failed to delete item", error);
-      toast.error(tCommon("error"), { description: tDashboard("deleteFailed"), isTranslationKey: false });
+      toast.error(tCommon("error"), { description: tCommon("toast.deleteFailed"), isTranslationKey: false });
     } finally {
       setDeletingId(null);
     }

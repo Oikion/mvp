@@ -89,8 +89,8 @@ async function entitySearchFetcher(url: string): Promise<EntitySearchResponse> {
   if (res.status === 429) {
     console.warn("[EntitySearch] Rate limited, returning empty results");
     return {
-      results: { client: [], contact: [], property: [], document: [], event: [], mandate: [], request: [] },
-      timing: { total: 0, perType: { client: 0, contact: 0, property: 0, document: 0, event: 0, mandate: 0, request: 0 } },
+      results: { client: [], contact: [], property: [], document: [], event: [], mandate: [], request: [], deal: [] },
+      timing: { total: 0, perType: { client: 0, contact: 0, property: 0, document: 0, event: 0, mandate: 0, request: 0, deal: 0 } },
     };
   }
 

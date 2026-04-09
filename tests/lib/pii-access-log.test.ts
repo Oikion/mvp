@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 
 const mockCreate = vi.fn();
 
@@ -10,7 +10,12 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-const { logPiiAccess, PiiAction } = await import("@/lib/pii-access-log");
+type PiiLog = typeof import("@/lib/pii-access-log");
+let logPiiAccess: PiiLog["logPiiAccess"];
+let PiiAction: PiiLog["PiiAction"];
+beforeAll(async () => {
+  ({ logPiiAccess, PiiAction } = await import("@/lib/pii-access-log"));
+});
 
 describe("logPiiAccess", () => {
   beforeEach(() => {

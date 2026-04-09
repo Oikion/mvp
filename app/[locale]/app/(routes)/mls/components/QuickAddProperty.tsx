@@ -65,7 +65,10 @@ export function QuickAddProperty({ open, onOpenChange, users, onSuccess, onConti
   const t = useTranslations("mls");
   const tCommon = useTranslations("common");
 
-  const quickAddSchema = createQuickAddSchema(t, tCommon);
+  const quickAddSchema = createQuickAddSchema(
+    (k: string) => t(k as Parameters<typeof t>[0]),
+    (k: string) => tCommon(k as Parameters<typeof tCommon>[0]),
+  );
   type QuickAddFormValues = z.infer<typeof quickAddSchema>;
 
   const form = useForm<QuickAddFormValues>({

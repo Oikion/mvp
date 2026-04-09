@@ -225,7 +225,7 @@ export default function ContactView({ contact }: ContactViewProps) {
             )}
             variant="secondary"
           >
-            {t(`contacts.status.${contact.status}`)}
+            {t(`contacts.status.${contact.status}` as Parameters<typeof t>[0])}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
@@ -449,7 +449,7 @@ export default function ContactView({ contact }: ContactViewProps) {
                           </Link>
                           <p className="text-xs text-muted-foreground">
                             {t(
-                              `contacts.relationshipType.${rel.relationshipType}`
+                              `contacts.relationshipType.${rel.relationshipType}` as Parameters<typeof t>[0]
                             )}
                           </p>
                         </div>
@@ -482,7 +482,7 @@ export default function ContactView({ contact }: ContactViewProps) {
                     )}
                     variant="secondary"
                   >
-                    {t(`contacts.status.${contact.status}`)}
+                    {t(`contacts.status.${contact.status}` as Parameters<typeof t>[0])}
                   </Badge>
                 }
               />
@@ -493,7 +493,7 @@ export default function ContactView({ contact }: ContactViewProps) {
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {(contact.category as string[]).map((cat) => (
                         <Badge key={cat} variant="outline" className="text-xs">
-                          {t(`contacts.category.${cat}`)}
+                          {t(`contacts.category.${cat}` as Parameters<typeof t>[0])}
                         </Badge>
                       ))}
                     </div>
@@ -504,7 +504,7 @@ export default function ContactView({ contact }: ContactViewProps) {
                 label={t("contacts.view.source")}
                 value={
                   contact.source
-                    ? t(`contacts.source.${contact.source}`)
+                    ? t(`contacts.source.${contact.source}` as Parameters<typeof t>[0])
                     : null
                 }
               />

@@ -154,9 +154,9 @@ export async function migrateAgentEntities(
 
       // Notify the counterparty agent
       const counterpartyId =
-        deal.propertyAgentId === userId
-          ? deal.clientAgentId
-          : deal.propertyAgentId;
+        deal.listingAgentId === userId
+          ? deal.buyerAgentId
+          : deal.listingAgentId;
       if (counterpartyId) {
         await tx.notification.create({
           data: {
@@ -293,9 +293,9 @@ export async function migrateAgentEntities(
       cancelledDeals.push({ id: deal.id, title: deal.title ?? deal.friendlyId });
 
       const counterpartyId =
-        deal.clientAgentId === userId
-          ? deal.propertyAgentId
-          : deal.clientAgentId;
+        deal.buyerAgentId === userId
+          ? deal.listingAgentId
+          : deal.buyerAgentId;
       if (counterpartyId) {
         await tx.notification.create({
           data: {

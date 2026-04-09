@@ -1,204 +1,141 @@
-import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { generateFriendlyId } from "@/lib/friendly-id";
+import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
-import { DealStatus } from "@prisma/client";
-import { notifyDealProposed } from "@/lib/notifications";
+import {
+  apiSuccess,
+  apiUnauthorized,
+  apiInternalError,
+  apiBadRequest,
+  apiCreated,
+} from "@/lib/api-response";
+import { createDealSchema, dealQuerySchema } from "@/lib/validations/deals";
+import { generateFriendlyId } from "@/lib/friendly-id";
+import { serializeDealForClient } from "@/lib/deals/serialize";
 
 export async function GET(req: Request) {
   try {
-    const currentUser = await getCurrentUser();
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status") as DealStatus | null;
+    const { userId, orgId: organizationId } = await auth();
+    if (!userId || !organizationId) return apiUnauthorized();
 
-    const dealsRaw = await prismadb.deal.findMany({
-      where: {
-        OR: [
-          { propertyAgentId: currentUser.id },
-          { clientAgentId: currentUser.id },
-        ],
-        ...(status && { status }),
-      },
+    const { searchParams } = new URL(req.url);
+    const stage = searchParams.get("stage");
+    const dealType = searchParams.get("dealType");
+    const search = searchParams.get("search");
+    const limit = searchParams.get("limit");
+
+    const where: any = { organizationId };
+    if (stage) where.stage = stage;
+    if (dealType) where.dealType = dealType;
+    if (search) {
+      where.OR = [
+        { friendlyId: { contains: search, mode: "insensitive" } },
+        { title: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const deals = await prismadb.deal.findMany({
+      where,
       include: {
-        Properties: {
+        property: {
           select: {
             id: true,
             property_name: true,
             property_type: true,
             price: true,
             address_city: true,
-            Documents: {
-              where: {
-                document_file_mimeType: { startsWith: "image/" },
-              },
-              select: { document_file_url: true },
-              take: 1,
+          },
+        },
+        listingAgent: {
+          select: { id: true, name: true, avatar: true },
+        },
+        buyerAgent: {
+          select: { id: true, name: true, avatar: true },
+        },
+        dealParties: {
+          include: {
+            contact: {
+              select: { id: true, displayName: true, category: true },
             },
           },
         },
-        Clients: {
-          select: {
-            id: true,
-            client_name: true,
-            primary_email: true,
-          },
-        },
-        Users_Deal_propertyAgentIdToUsers: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-          },
-        },
-        Users_Deal_clientAgentIdToUsers: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-          },
-        },
+        _count: { select: { stageLogs: true } },
       },
       orderBy: { createdAt: "desc" },
+      take: limit ? Math.min(parseInt(limit, 10), 100) : 50,
     });
 
-    // Map to expected field names
-    const deals = dealsRaw.map((deal) => ({
-      ...deal,
-      property: deal.Properties ? {
-        ...deal.Properties,
-        linkedDocuments: deal.Properties.Documents,
-      } : null,
-      client: deal.Clients,
-      propertyAgent: deal.Users_Deal_propertyAgentIdToUsers,
-      clientAgent: deal.Users_Deal_clientAgentIdToUsers,
-    }));
-
-    const enrichedDeals = deals.map((deal) => ({
-      ...deal,
-      isPropertyAgent: deal.propertyAgentId === currentUser.id,
-      isProposer: deal.proposedById === currentUser.id,
-    }));
-
-    return NextResponse.json(enrichedDeals);
+    // Flatten Prisma Decimal columns so the JSON response carries plain
+    // numbers (matches what the client SWR cache + list UI expect).
+    return apiSuccess(deals.map((d) => serializeDealForClient(d)));
   } catch (error) {
     console.error("[DEALS_GET]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return apiInternalError("Failed to fetch deals", error);
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const currentUser = await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
-    const body = await req.json() as {
-      propertyId?: string;
-      clientId?: string;
-      propertyAgentId?: string;
-      clientAgentId?: string;
-      propertyAgentSplit?: number;
-      clientAgentSplit?: number;
-      totalCommission?: number;
-      commissionCurrency?: string;
-      title?: string;
-      notes?: string;
-    };
+    const { userId, orgId: organizationId } = await auth();
+    if (!userId || !organizationId) return apiUnauthorized();
 
-    const {
-      propertyId,
-      clientId,
-      propertyAgentId,
-      clientAgentId,
-      propertyAgentSplit = 50,
-      clientAgentSplit = 50,
-      totalCommission,
-      commissionCurrency = "EUR",
-      title,
-      notes,
-    } = body;
-
-    if (!propertyId || !clientId || !propertyAgentId || !clientAgentId) {
-      return new NextResponse("Missing required fields", { status: 400 });
+    const body = await req.json();
+    const validation = createDealSchema.safeParse(body);
+    if (!validation.success) {
+      return apiBadRequest("Validation failed", validation.error.flatten().fieldErrors);
     }
 
-    // Validate splits
-    if (propertyAgentSplit + clientAgentSplit !== 100) {
-      return new NextResponse("Commission split must sum to 100%", {
-        status: 400,
-      });
-    }
+    const data = validation.data;
 
-    // Resolve agent IDs - if not provided, use current user
-    const resolvedPropertyAgentId = propertyAgentId || currentUser.id;
-    const resolvedClientAgentId = clientAgentId || currentUser.id;
-
-    // Current user must be one of the agents
-    if (
-      currentUser.id !== resolvedPropertyAgentId &&
-      currentUser.id !== resolvedClientAgentId
-    ) {
-      return new NextResponse("You must be one of the agents", { status: 403 });
-    }
-
-    // Verify agents exist
-    const [propertyAgent, clientAgent, property, client] = await Promise.all([
-      prismadb.users.findUnique({ where: { id: resolvedPropertyAgentId } }),
-      prismadb.users.findUnique({ where: { id: resolvedClientAgentId } }),
-      prismadb.properties.findUnique({ where: { id: propertyId } }),
-      prismadb.clients.findUnique({ where: { id: clientId } }),
-    ]);
-
-    if (!propertyAgent || !clientAgent) {
-      return new NextResponse("Agent not found", { status: 404 });
-    }
-
-    if (!property || !client) {
-      return new NextResponse("Property or client not found", { status: 404 });
+    // Validate property belongs to org
+    const property = await prismadb.properties.findFirst({
+      where: { id: data.propertyId, organizationId },
+      select: { id: true, property_name: true },
+    });
+    if (!property) {
+      return apiBadRequest("Property not found or access denied");
     }
 
     const friendlyId = await generateFriendlyId(prismadb, "Deal", organizationId);
 
     const deal = await prismadb.deal.create({
       data: {
-        id: randomUUID(),
         friendlyId,
         organizationId,
-        propertyId,
-        clientId,
-        propertyAgentId: resolvedPropertyAgentId,
-        clientAgentId: resolvedClientAgentId,
-        propertyAgentSplit,
-        clientAgentSplit,
-        totalCommission: totalCommission ?? null,
-        commissionCurrency,
-        proposedById: currentUser.id,
-        title: title ?? `Deal: ${property.property_name}`,
-        notes,
+        propertyId: data.propertyId,
+        requestId: data.requestId ?? null,
+        notaryContactId: data.notaryContactId ?? null,
+        listingAgentId: data.listingAgentId ?? null,
+        buyerAgentId: data.buyerAgentId ?? null,
+        proposedById: userId,
+        stage: data.stage ?? "INTEREST",
+        dealType: data.dealType ?? null,
+        agentRole: data.agentRole ?? null,
         status: "PROPOSED",
-        updatedAt: new Date(),
+        agreedPrice: data.agreedPrice ?? null,
+        totalCommission: data.totalCommission ?? null,
+        commissionRate: data.commissionRate ?? null,
+        commissionCurrency: data.commissionCurrency ?? "EUR",
+        listingAgentSplit: data.listingAgentSplit ?? 50,
+        buyerAgentSplit: data.buyerAgentSplit ?? 50,
+        title: data.title || `Deal: ${property.property_name || friendlyId}`,
+        notes: data.notes ?? null,
       },
     });
 
-    // Notify the other agent about the deal proposal
-    const otherAgentId = currentUser.id === resolvedPropertyAgentId 
-      ? resolvedClientAgentId 
-      : resolvedPropertyAgentId;
-
-    await notifyDealProposed({
-      dealId: deal.id,
-      dealTitle: deal.title || undefined,
-      propertyName: property.property_name || "Property",
-      clientName: client.client_name,
-      actorId: currentUser.id,
-      actorName: currentUser.name || currentUser.email || "Someone",
-      targetUserId: otherAgentId,
-      organizationId,
+    // Create initial stage log
+    await prismadb.dealStageLog.create({
+      data: {
+        dealId: deal.id,
+        fromStage: "INTEREST",
+        toStage: data.stage ?? "INTEREST",
+        changedBy: userId,
+        notes: "Deal created via API",
+      },
     });
 
-    return NextResponse.json(deal, { status: 201 });
+    return apiCreated(serializeDealForClient(deal));
   } catch (error) {
     console.error("[DEALS_POST]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return apiInternalError("Failed to create deal", error);
   }
 }
-

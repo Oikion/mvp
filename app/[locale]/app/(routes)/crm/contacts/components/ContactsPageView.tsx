@@ -154,7 +154,7 @@ export default function ContactsPageView({
                 )}
                 variant="secondary"
               >
-                {t(`contacts.status.${contact.status}`)}
+                {t(`contacts.status.${contact.status}` as Parameters<typeof t>[0])}
               </Badge>
             </div>
 
@@ -186,7 +186,7 @@ export default function ContactsPageView({
                       CATEGORY_COLORS[cat]
                     )}
                   >
-                    {t(`contacts.category.${cat}`)}
+                    {t(`contacts.category.${cat}` as Parameters<typeof t>[0])}
                   </Badge>
                 ))}
                 {contact.category.length > 3 && (

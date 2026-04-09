@@ -14,7 +14,7 @@ type Props = {
 const ChatGPTModuleMenu = ({ open }: Props) => {
   const pathname = usePathname();
   const isPath = pathname.includes("openAi");
-  const t = useTranslations();
+  const t = useTranslations("navigation");
 
   return (
     <Button

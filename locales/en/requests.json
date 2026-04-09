@@ -57,6 +57,8 @@
   },
   "quickAdd": {
     "title": "Quick Add Request",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Buyer looking for 3-bed in Kolonaki",
     "contactLabel": "Contact",
     "contactPlaceholder": "Select contact",
     "requestTypeLabel": "Request Type",
@@ -87,6 +89,8 @@
       "preferences": "Timeline, financing, agent, and notes"
     },
     "fields": {
+      "title": "Title",
+      "titlePlaceholder": "e.g. Buyer looking for 3-bed in Kolonaki",
       "contact": "Contact",
       "contactPlaceholder": "Select a contact",
       "requestType": "Request Type",
@@ -244,5 +248,10 @@
     "area": "Area",
     "bedrooms": "Beds",
     "surface": "sqm"
+  },
+  "toast": {
+    "created": "Request created",
+    "createdDesc": "The request has been saved to your organization.",
+    "createError": "Failed to create request"
   }
 }

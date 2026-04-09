@@ -1,4 +1,16 @@
 {
+  "tags": {
+    "title": "Tags",
+    "description": "Manage tags used to label entities across your organization",
+    "updateError": "Failed to update tags",
+    "created": "Tag created",
+    "createError": "Failed to create tag",
+    "updated": "Tag updated",
+    "deleted": "Tag deleted",
+    "deleteError": "Failed to delete tag",
+    "noTags": "No tags",
+    "addTags": "Add tags"
+  },
   "new": "New",
   "saved": "Saved",
   "quickAdd": "Quick Add",
@@ -648,6 +660,7 @@
     "linkedDocuments": "Documents",
     "linkedContacts": "Contacts",
     "linkedRequests": "Requests",
+    "linkedDeals": "Deals",
     "noLinkedProperties": "No properties linked yet.",
     "noLinkedClients": "No clients linked yet.",
     "noLinkedContacts": "No contacts linked yet.",
@@ -655,6 +668,7 @@
     "noLinkedMandates": "No mandates linked yet.",
     "noLinkedRequests": "No requests linked yet.",
     "noLinkedDocuments": "No documents linked yet.",
+    "noLinkedDeals": "No deals linked yet.",
     "link": "Link",
     "createEvent": "Create Event"
   },

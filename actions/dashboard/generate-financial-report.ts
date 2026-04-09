@@ -34,7 +34,10 @@ export async function generateFinancialReport() {
         status: "COMPLETED",
       },
       include: {
-        Properties: {
+        // v2.0 Phase 3: Deal relations renamed (property, listingAgent, buyerAgent).
+        // The legacy Clients FK is kept on the Deal model for backward compat
+        // but new code should use DealParty join records via `dealParties`.
+        property: {
           select: {
             property_name: true,
             address_street: true,
@@ -49,7 +52,7 @@ export async function generateFinancialReport() {
             primary_email: true,
           },
         },
-        Users_Deal_clientAgentIdToUsers: {
+        buyerAgent: {
           select: {
             name: true,
             email: true,
@@ -114,8 +117,8 @@ export async function generateFinancialReport() {
     > = {};
 
     completedDeals.forEach((deal) => {
-      if (deal.Users_Deal_clientAgentIdToUsers) {
-        const agent = deal.Users_Deal_clientAgentIdToUsers;
+      if (deal.buyerAgent) {
+        const agent = deal.buyerAgent;
         const agentId = agent.email || agent.name || "Unknown";
         if (!agentPerformance[agentId]) {
           agentPerformance[agentId] = {
@@ -191,12 +194,12 @@ export async function generateFinancialReport() {
         topAgents,
         recentDeals: completedDeals.slice(0, 20).map((deal) => ({
           id: deal.id,
-          propertyTitle: deal.Properties?.property_name || "Unknown Property",
-          propertyAddress: `${deal.Properties?.address_street || ""} ${deal.Properties?.address_city || ""}`.trim() || "Unknown Address",
+          propertyTitle: deal.property?.property_name || "Unknown Property",
+          propertyAddress: `${deal.property?.address_street || ""} ${deal.property?.address_city || ""}`.trim() || "Unknown Address",
           clientName: deal.Clients?.client_name || "Unknown Client",
-          agentName: deal.Users_Deal_clientAgentIdToUsers?.name || "Unassigned",
+          agentName: deal.buyerAgent?.name || "Unassigned",
           commission: deal.totalCommission ? Number(deal.totalCommission) : 0,
-          salePrice: deal.Properties?.salePrice || 0,
+          salePrice: deal.property?.salePrice || 0,
           closedAt: deal.closedAt,
           dealType: deal.dealType,
         })),

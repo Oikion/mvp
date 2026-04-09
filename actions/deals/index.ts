@@ -1,547 +1,520 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { revalidatePath } from "next/cache";
-import { DealStatus } from "@prisma/client";
 import { generateFriendlyId } from "@/lib/friendly-id";
-import { notifyDealProposed, notifyDealStatusChanged } from "@/lib/notifications";
-import { requireAction, requireDealAction } from "@/lib/permissions";
-import { createSystemActivity } from "@/actions/activities";
+import { requireAction } from "@/lib/permissions/action-guards";
+import {
+  actionSuccess,
+  actionError,
+  actionNotFound,
+  actionValidationError,
+  type ActionResponse,
+} from "@/lib/action-response";
+import {
+  createDealSchema,
+  updateDealSchema,
+  advanceDealStageSchema,
+  dealPartySchema,
+  dealQuerySchema,
+} from "@/lib/validations/deals";
+import {
+  isValidDealStageTransition,
+  getDealStageTransitionError,
+} from "@/lib/validations/status-transitions";
+import type { Deal, DealParty, DealStageLog } from "@prisma/client";
+import { serializeDealForClient } from "@/lib/deals/serialize";
 
-export interface CreateDealInput {
-  propertyId: string;
-  clientId: string;
-  propertyAgentId: string;
-  clientAgentId: string;
-  propertyAgentSplit?: number; // Percentage (0-100)
-  clientAgentSplit?: number; // Percentage (0-100)
-  totalCommission?: number;
-  commissionCurrency?: string;
-  title?: string;
-  notes?: string;
-}
-
-export interface UpdateDealInput {
-  propertyAgentSplit?: number;
-  clientAgentSplit?: number;
-  totalCommission?: number;
-  title?: string;
-  notes?: string;
-  status?: DealStatus;
-}
+// ============================================
+// Deal CRUD
+// ============================================
 
 /**
- * Create a new deal proposal
+ * Create a new deal.
+ * Follows the v2.0 server action pattern: permission → org → validate → write → response.
  */
-export async function createDeal(input: CreateDealInput) {
-  // Permission check: Users need deal:create permission
+export async function createDeal(
+  input: unknown
+): Promise<ActionResponse<Deal>> {
   const guard = await requireAction("deal:create");
-  if (guard) throw new Error(guard.error);
+  if (guard) return guard;
 
-  const currentUser = await getCurrentUser();
   const organizationId = await getCurrentOrgId();
-
-  // Validate that the agents exist
-  const [propertyAgent, clientAgent] = await Promise.all([
-    prismadb.users.findUnique({ where: { id: input.propertyAgentId } }),
-    prismadb.users.findUnique({ where: { id: input.clientAgentId } }),
-  ]);
-
-  if (!propertyAgent || !clientAgent) {
-    throw new Error("One or both agents not found");
-  }
-
-  // SECURITY: Validate that property and client exist AND belong to the same organization
-  const [property, client] = await Promise.all([
-    prismadb.properties.findFirst({ 
-      where: { id: input.propertyId, organizationId } 
-    }),
-    prismadb.clients.findFirst({ 
-      where: { id: input.clientId, organizationId } 
-    }),
-  ]);
-
-  if (!property) {
-    throw new Error("Property not found or access denied");
-  }
-
-  if (!client) {
-    throw new Error("Client not found or access denied");
-  }
-
-  // Validate split percentages
-  const propertyAgentSplit = input.propertyAgentSplit ?? 50;
-  const clientAgentSplit = input.clientAgentSplit ?? 50;
-
-  if (propertyAgentSplit + clientAgentSplit !== 100) {
-    throw new Error("Commission split must sum to 100%");
-  }
-
-  if (propertyAgentSplit < 0 || clientAgentSplit < 0) {
-    throw new Error("Commission split cannot be negative");
-  }
-
-  // The current user must be one of the agents
-  if (
-    currentUser.id !== input.propertyAgentId &&
-    currentUser.id !== input.clientAgentId
-  ) {
-    throw new Error("You must be one of the agents in this deal");
-  }
-
-  // Generate friendly ID
-  const friendlyId = await generateFriendlyId(prismadb, "Deal", organizationId);
-
-  const deal = await prismadb.deal.create({
-    data: {
-      friendlyId,
-      organizationId, // SECURITY: Always set organizationId for tenant isolation
-      propertyId: input.propertyId,
-      clientId: input.clientId,
-      propertyAgentId: input.propertyAgentId,
-      clientAgentId: input.clientAgentId,
-      propertyAgentSplit: propertyAgentSplit,
-      clientAgentSplit: clientAgentSplit,
-      totalCommission: input.totalCommission || null,
-      commissionCurrency: input.commissionCurrency || "EUR",
-      proposedById: currentUser.id,
-      title: input.title || `Deal: ${property.property_name}`,
-      notes: input.notes,
-      status: "PROPOSED",
-      updatedAt: new Date(),
-    },
-  });
-
-  void createSystemActivity({
-    organizationId,
-    parentType: "DEAL",
-    parentId: deal.id,
-    kind: "OTHER",
-    body: `Deal created with status PROPOSED`,
-    createdByUserId: currentUser.id,
-  });
-
-  // Notify the other agent about the deal proposal
-  const otherAgentId =
-    currentUser.id === input.propertyAgentId
-      ? input.clientAgentId
-      : input.propertyAgentId;
-
-  await notifyDealProposed({
-    dealId: deal.id,
-    dealTitle: deal.title || undefined,
-    propertyName: property.property_name,
-    clientName: client.client_name,
-    actorId: currentUser.id,
-    actorName: currentUser.name || currentUser.email || "Someone",
-    targetUserId: otherAgentId ?? "",
-    organizationId,
-  });
-
-  revalidatePath("/deals");
-  return deal;
-}
-
-/**
- * Update a deal (negotiate split, change status, etc.)
- */
-export async function updateDeal(dealId: string, input: UpdateDealInput) {
   const currentUser = await getCurrentUser();
 
-  const deal = await prismadb.deal.findUnique({
-    where: { id: dealId },
+  const validation = createDealSchema.safeParse(input);
+  if (!validation.success) {
+    return actionValidationError(
+      "Validation failed",
+      validation.error.flatten().fieldErrors
+    );
+  }
+
+  const data = validation.data;
+
+  // SECURITY: Validate property belongs to the org
+  const property = await prismadb.properties.findFirst({
+    where: { id: data.propertyId, organizationId },
+    select: { id: true, property_name: true },
   });
+  if (!property) return actionNotFound("Property");
 
-  if (!deal) {
-    throw new Error("Deal not found");
-  }
-
-  // Permission check: Users need deal:update permission with involvement check
-  const guard = await requireDealAction(
-    "deal:update",
-    dealId,
-    deal.propertyAgentId ?? "",
-    deal.clientAgentId ?? ""
-  );
-  if (guard) throw new Error(guard.error);
-
-  // Validate split if being updated
-  if (input.propertyAgentSplit !== undefined || input.clientAgentSplit !== undefined) {
-    const propertyAgentSplit =
-      input.propertyAgentSplit ?? Number(deal.propertyAgentSplit);
-    const clientAgentSplit =
-      input.clientAgentSplit ?? Number(deal.clientAgentSplit);
-
-    if (propertyAgentSplit + clientAgentSplit !== 100) {
-      throw new Error("Commission split must sum to 100%");
-    }
-  }
-
-  // Handle status transitions
-  if (input.status) {
-    const validTransitions: Record<DealStatus, DealStatus[]> = {
-      PROPOSED: ["NEGOTIATING", "ACCEPTED", "CANCELLED"],
-      NEGOTIATING: ["ACCEPTED", "CANCELLED"],
-      ACCEPTED: ["IN_PROGRESS", "CANCELLED"],
-      IN_PROGRESS: ["COMPLETED", "CANCELLED"],
-      COMPLETED: [],
-      CANCELLED: [],
-    };
-
-    if (!validTransitions[deal.status].includes(input.status)) {
-      throw new Error(
-        `Cannot transition from ${deal.status} to ${input.status}`
-      );
-    }
-  }
-
-  const updated = await prismadb.deal.update({
-    where: { id: dealId },
-    data: {
-      ...(input.propertyAgentSplit !== undefined && {
-        propertyAgentSplit: input.propertyAgentSplit,
-      }),
-      ...(input.clientAgentSplit !== undefined && {
-        clientAgentSplit: input.clientAgentSplit,
-      }),
-      ...(input.totalCommission !== undefined && {
-        totalCommission: input.totalCommission,
-      }),
-      ...(input.title && { title: input.title }),
-      ...(input.notes !== undefined && { notes: input.notes }),
-      ...(input.status && {
-        status: input.status,
-        ...(input.status === "COMPLETED" && { closedAt: new Date() }),
-      }),
-    },
-  });
-
-  if (input.status) {
-    const organizationId = deal.organizationId ?? "";
-    void createSystemActivity({
-      organizationId,
-      parentType: "DEAL",
-      parentId: dealId,
-      kind: "OTHER",
-      body: `Status changed from ${deal.status} to ${input.status}`,
+  // Validate optional references
+  if (data.requestId) {
+    const request = await prismadb.request.findFirst({
+      where: { id: data.requestId, organizationId },
+      select: { id: true },
     });
+    if (!request) return actionNotFound("Request");
   }
 
-  revalidatePath("/deals");
-  revalidatePath(`/deals/${dealId}`);
-  return updated;
+  if (data.notaryContactId) {
+    const notary = await prismadb.contact.findFirst({
+      where: { id: data.notaryContactId, organizationId },
+      select: { id: true },
+    });
+    if (!notary) return actionNotFound("Notary contact");
+  }
+
+  try {
+    const friendlyId = await generateFriendlyId(prismadb, "Deal", organizationId);
+    // Compute once so the deal row and the stage log agree on the initial stage.
+    const initialStage = data.stage ?? "INTEREST";
+
+    // Wrap the deal create + initial DealStageLog insert in a single
+    // transaction. Without this, a failure in the stage-log insert (FK
+    // violation, deadlock, network blip) would leave a deal in the DB without
+    // its "Deal created" audit entry — a permanent gap in the stage history
+    // timeline that can't be reconstructed after the fact. `advanceDealStage`
+    // uses the same atomic pattern; this matches it.
+    const deal = await prismadb.$transaction(async (tx) => {
+      const created = await tx.deal.create({
+        data: {
+          friendlyId,
+          organizationId,
+          propertyId: data.propertyId,
+          requestId: data.requestId ?? null,
+          notaryContactId: data.notaryContactId ?? null,
+          listingAgentId: data.listingAgentId ?? null,
+          buyerAgentId: data.buyerAgentId ?? null,
+          proposedById: currentUser.id,
+          stage: initialStage,
+          dealType: data.dealType ?? null,
+          agentRole: data.agentRole ?? null,
+          status: "PROPOSED", // legacy field
+          agreedPrice: data.agreedPrice ?? null,
+          totalCommission: data.totalCommission ?? null,
+          commissionRate: data.commissionRate ?? null,
+          commissionCurrency: data.commissionCurrency ?? "EUR",
+          // Prisma Json columns require InputJsonValue; cast the typed split
+          // object to satisfy the generated client's strict JSON input type.
+          commissionSplit: (data.commissionSplit ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+          depositAmount: data.depositAmount ?? null,
+          depositDate: data.depositDate ?? null,
+          listingAgentSplit: data.listingAgentSplit ?? 50,
+          buyerAgentSplit: data.buyerAgentSplit ?? 50,
+          monthlyRentAmount: data.monthlyRentAmount ?? null,
+          securityDeposit: data.securityDeposit ?? null,
+          leaseStartDate: data.leaseStartDate ?? null,
+          leaseEndDate: data.leaseEndDate ?? null,
+          leaseDurationMonths: data.leaseDurationMonths ?? null,
+          title: data.title || `Deal: ${property.property_name || friendlyId}`,
+          notes: data.notes ?? null,
+          contractDate: data.contractDate ?? null,
+          closedAt: data.closedAt ?? null,
+        },
+      });
+
+      // Initial stage log entry — creates the "Deal created" audit row that
+      // anchors the stage history timeline.
+      await tx.dealStageLog.create({
+        data: {
+          dealId: created.id,
+          fromStage: "INTEREST",
+          toStage: initialStage,
+          changedBy: currentUser.id,
+          notes: "Deal created",
+        },
+      });
+
+      return created;
+    });
+
+    revalidatePath("/deals");
+    return actionSuccess(serializeDealForClient(deal));
+  } catch (error) {
+    console.error("[DEAL_CREATE]", error);
+    return actionError("Failed to create deal");
+  }
 }
 
 /**
- * Accept a deal proposal (changes status to ACCEPTED)
+ * Update a deal's details (not stage — use advanceDealStage for that).
  */
-export async function acceptDeal(dealId: string) {
-  const currentUser = await getCurrentUser();
+export async function updateDeal(
+  input: unknown
+): Promise<ActionResponse<Deal>> {
+  const guard = await requireAction("deal:update");
+  if (guard) return guard;
 
-  const deal = await prismadb.deal.findUnique({
-    where: { id: dealId },
-    include: {
-      Properties: { select: { property_name: true } },
-      Clients: { select: { client_name: true } },
-    },
-  });
-
-  if (!deal) {
-    throw new Error("Deal not found");
-  }
-
-  // Permission check: Users need deal:accept permission with involvement check
-  const guard = await requireDealAction(
-    "deal:accept",
-    dealId,
-    deal.propertyAgentId ?? "",
-    deal.clientAgentId ?? ""
-  );
-  if (guard) throw new Error(guard.error);
-
-  // Only the other agent (not the proposer) can accept
-  if (deal.proposedById === currentUser.id) {
-    throw new Error("You cannot accept your own proposal");
-  }
-
-  if (deal.status !== "PROPOSED" && deal.status !== "NEGOTIATING") {
-    throw new Error("This deal cannot be accepted in its current state");
-  }
-
-  const result = await updateDeal(dealId, { status: "ACCEPTED" });
-
-  // Notify the proposer that the deal was accepted
-  await notifyDealStatusChanged({
-    dealId,
-    dealTitle: deal.title || undefined,
-    propertyName: deal.Properties?.property_name || "Property",
-    clientName: deal.Clients?.client_name || "Client",
-    actorId: currentUser.id,
-    actorName: currentUser.name || currentUser.email || "Someone",
-    targetUserId: deal.proposedById ?? "",
-    organizationId: deal.organizationId || "", // Use deal's organizationId
-    status: "ACCEPTED",
-  });
-
-  return result;
-}
-
-/**
- * Propose new terms (changes status to NEGOTIATING)
- */
-export async function proposeDealTerms(
-  dealId: string,
-  propertyAgentSplit: number,
-  clientAgentSplit: number
-) {
-  await getCurrentUser();
-
-  const deal = await prismadb.deal.findUnique({
-    where: { id: dealId },
-  });
-
-  if (!deal) {
-    throw new Error("Deal not found");
-  }
-
-  // Permission check: Users need deal:propose_terms permission with involvement check
-  const guard = await requireDealAction(
-    "deal:propose_terms",
-    dealId,
-    deal.propertyAgentId ?? "",
-    deal.clientAgentId ?? ""
-  );
-  if (guard) throw new Error(guard.error);
-
-  if (deal.status !== "PROPOSED" && deal.status !== "NEGOTIATING") {
-    throw new Error("Cannot negotiate in the current state");
-  }
-
-  return updateDeal(dealId, {
-    propertyAgentSplit,
-    clientAgentSplit,
-    status: "NEGOTIATING",
-  });
-}
-
-/**
- * Cancel a deal
- */
-export async function cancelDeal(dealId: string) {
-  const currentUser = await getCurrentUser();
-
-  // First fetch the deal to check permissions
-  const dealForPerm = await prismadb.deal.findUnique({
-    where: { id: dealId },
-    select: { propertyAgentId: true, clientAgentId: true },
-  });
-
-  if (!dealForPerm) {
-    throw new Error("Deal not found");
-  }
-
-  // Permission check: Users need deal:cancel permission with involvement check
-  const guard = await requireDealAction(
-    "deal:cancel",
-    dealId,
-    dealForPerm.propertyAgentId ?? "",
-    dealForPerm.clientAgentId ?? ""
-  );
-  if (guard) throw new Error(guard.error);
-
-  const deal = await prismadb.deal.findUnique({
-    where: { id: dealId },
-    include: {
-      Properties: { select: { property_name: true } },
-      Clients: { select: { client_name: true } },
-    },
-  });
-
-  if (!deal) {
-    throw new Error("Deal not found");
-  }
-
-  if (
-    deal.propertyAgentId !== currentUser.id &&
-    deal.clientAgentId !== currentUser.id
-  ) {
-    throw new Error("You are not part of this deal");
-  }
-
-  if (deal.status === "COMPLETED") {
-    throw new Error("Cannot cancel a completed deal");
-  }
-
-  const result = await updateDeal(dealId, { status: "CANCELLED" });
-
-  // Notify the other agent that the deal was cancelled
-  const otherAgentId =
-    currentUser.id === deal.propertyAgentId
-      ? deal.clientAgentId
-      : deal.propertyAgentId;
-
-  await notifyDealStatusChanged({
-    dealId,
-    dealTitle: deal.title || undefined,
-    propertyName: deal.Properties?.property_name || "Property",
-    clientName: deal.Clients?.client_name || "Client",
-    actorId: currentUser.id,
-    actorName: currentUser.name || currentUser.email || "Someone",
-    targetUserId: otherAgentId ?? "",
-    organizationId: deal.organizationId || "", // Use deal's organizationId
-    status: "CANCELLED",
-  });
-
-  return result;
-}
-
-/**
- * Complete a deal
- */
-export async function completeDeal(dealId: string, totalCommission?: number) {
-  const currentUser = await getCurrentUser();
-
-  const deal = await prismadb.deal.findUnique({
-    where: { id: dealId },
-    include: {
-      Properties: { select: { property_name: true } },
-      Clients: { select: { client_name: true } },
-    },
-  });
-
-  if (!deal) {
-    throw new Error("Deal not found");
-  }
-
-  if (
-    deal.propertyAgentId !== currentUser.id &&
-    deal.clientAgentId !== currentUser.id
-  ) {
-    throw new Error("You are not part of this deal");
-  }
-
-  if (deal.status !== "ACCEPTED" && deal.status !== "IN_PROGRESS") {
-    throw new Error("Deal must be accepted or in progress to complete");
-  }
-
-  const result = await updateDeal(dealId, {
-    status: "COMPLETED",
-    ...(totalCommission && { totalCommission }),
-  });
-
-  // Notify the other agent that the deal was completed
-  const otherAgentId =
-    currentUser.id === deal.propertyAgentId
-      ? deal.clientAgentId
-      : deal.propertyAgentId;
-
-  await notifyDealStatusChanged({
-    dealId,
-    dealTitle: deal.title || undefined,
-    propertyName: deal.Properties?.property_name || "Property",
-    clientName: deal.Clients?.client_name || "Client",
-    actorId: currentUser.id,
-    actorName: currentUser.name || currentUser.email || "Someone",
-    targetUserId: otherAgentId ?? "",
-    organizationId: deal.organizationId || "", // Use deal's organizationId
-    status: "COMPLETED",
-  });
-
-  return result;
-}
-
-/**
- * Get all my deals
- */
-export async function getMyDeals(status?: DealStatus) {
-  const currentUser = await getCurrentUser();
   const organizationId = await getCurrentOrgId();
 
-  // SECURITY: Always filter by organizationId for tenant isolation
-  const dealsRaw = await prismadb.deal.findMany({
-    where: {
-      organizationId, // Tenant isolation
-      OR: [
-        { propertyAgentId: currentUser.id },
-        { clientAgentId: currentUser.id },
-      ],
-      ...(status && { status }),
-    },
-    include: {
-      Properties: {
-        select: {
-          id: true,
-          property_name: true,
-          property_type: true,
-          price: true,
-          address_city: true,
-          Documents: {
-            where: {
-              document_file_mimeType: { startsWith: "image/" },
-            },
-            select: { document_file_url: true },
-            take: 1,
+  const validation = updateDealSchema.safeParse(input);
+  if (!validation.success) {
+    return actionValidationError(
+      "Validation failed",
+      validation.error.flatten().fieldErrors
+    );
+  }
+
+  const { id, ...data } = validation.data;
+
+  // TOCTOU-safe: always include organizationId in where
+  const existing = await prismadb.deal.findFirst({
+    where: { id, organizationId },
+    select: { id: true, listingAgentId: true },
+  });
+  if (!existing) return actionNotFound("Deal");
+
+  try {
+    const deal = await prismadb.deal.update({
+      where: { id },
+      data: {
+        ...(data.propertyId !== undefined && { propertyId: data.propertyId }),
+        ...(data.requestId !== undefined && { requestId: data.requestId }),
+        ...(data.notaryContactId !== undefined && { notaryContactId: data.notaryContactId }),
+        ...(data.listingAgentId !== undefined && { listingAgentId: data.listingAgentId }),
+        ...(data.buyerAgentId !== undefined && { buyerAgentId: data.buyerAgentId }),
+        ...(data.dealType !== undefined && { dealType: data.dealType }),
+        ...(data.agentRole !== undefined && { agentRole: data.agentRole }),
+        ...(data.agreedPrice !== undefined && { agreedPrice: data.agreedPrice }),
+        ...(data.totalCommission !== undefined && { totalCommission: data.totalCommission }),
+        ...(data.commissionRate !== undefined && { commissionRate: data.commissionRate }),
+        ...(data.commissionSplit !== undefined && {
+          commissionSplit: (data.commissionSplit ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        }),
+        ...(data.depositAmount !== undefined && { depositAmount: data.depositAmount }),
+        ...(data.depositDate !== undefined && { depositDate: data.depositDate }),
+        ...(data.listingAgentSplit !== undefined && { listingAgentSplit: data.listingAgentSplit }),
+        ...(data.buyerAgentSplit !== undefined && { buyerAgentSplit: data.buyerAgentSplit }),
+        ...(data.monthlyRentAmount !== undefined && { monthlyRentAmount: data.monthlyRentAmount }),
+        ...(data.securityDeposit !== undefined && { securityDeposit: data.securityDeposit }),
+        ...(data.leaseStartDate !== undefined && { leaseStartDate: data.leaseStartDate }),
+        ...(data.leaseEndDate !== undefined && { leaseEndDate: data.leaseEndDate }),
+        ...(data.leaseDurationMonths !== undefined && { leaseDurationMonths: data.leaseDurationMonths }),
+        ...(data.title !== undefined && { title: data.title }),
+        ...(data.notes !== undefined && { notes: data.notes }),
+        ...(data.fallenThroughReason !== undefined && { fallenThroughReason: data.fallenThroughReason }),
+        ...(data.contractDate !== undefined && { contractDate: data.contractDate }),
+        ...(data.closedAt !== undefined && { closedAt: data.closedAt }),
+      },
+    });
+
+    revalidatePath("/deals");
+    revalidatePath(`/deals/${deal.friendlyId}`);
+    return actionSuccess(serializeDealForClient(deal));
+  } catch (error) {
+    console.error("[DEAL_UPDATE]", error);
+    return actionError("Failed to update deal");
+  }
+}
+
+/**
+ * Soft-delete a deal.
+ */
+export async function deleteDeal(
+  dealId: string
+): Promise<ActionResponse<{ id: string }>> {
+  const guard = await requireAction("deal:delete");
+  if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
+
+  const deal = await prismadb.deal.findFirst({
+    where: { id: dealId, organizationId },
+    select: { id: true },
+  });
+  if (!deal) return actionNotFound("Deal");
+
+  try {
+    await prismadb.deal.update({
+      where: { id: dealId },
+      data: { deletedAt: new Date() },
+    });
+
+    revalidatePath("/deals");
+    return actionSuccess({ id: dealId });
+  } catch (error) {
+    console.error("[DEAL_DELETE]", error);
+    return actionError("Failed to delete deal");
+  }
+}
+
+// ============================================
+// Stage Pipeline
+// ============================================
+
+/**
+ * Advance a deal through the 10-stage Greek RE pipeline.
+ * Creates an immutable DealStageLog entry for audit trail.
+ */
+export async function advanceDealStage(
+  input: unknown
+): Promise<ActionResponse<Deal>> {
+  const guard = await requireAction("deal:advance_stage");
+  if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
+  const currentUser = await getCurrentUser();
+
+  const validation = advanceDealStageSchema.safeParse(input);
+  if (!validation.success) {
+    return actionValidationError(
+      "Validation failed",
+      validation.error.flatten().fieldErrors
+    );
+  }
+
+  const { dealId, toStage, notes } = validation.data;
+
+  const deal = await prismadb.deal.findFirst({
+    where: { id: dealId, organizationId },
+    select: { id: true, stage: true },
+  });
+  if (!deal) return actionNotFound("Deal");
+
+  // Validate the transition
+  if (!isValidDealStageTransition(deal.stage, toStage)) {
+    return actionError(getDealStageTransitionError(deal.stage, toStage));
+  }
+
+  try {
+    // Use a transaction: update stage + create log atomically
+    const [updated] = await prismadb.$transaction([
+      prismadb.deal.update({
+        where: { id: dealId },
+        data: {
+          stage: toStage,
+          ...(toStage === "COMPLETED" && { closedAt: new Date() }),
+          ...(toStage === "FALLEN_THROUGH" && {
+            fallenThroughReason: notes ?? null,
+          }),
+        },
+      }),
+      prismadb.dealStageLog.create({
+        data: {
+          dealId,
+          fromStage: deal.stage,
+          toStage,
+          changedBy: currentUser.id,
+          notes: notes ?? null,
+        },
+      }),
+    ]);
+
+    revalidatePath("/deals");
+    revalidatePath(`/deals/${dealId}`);
+    return actionSuccess(serializeDealForClient(updated));
+  } catch (error) {
+    console.error("[DEAL_ADVANCE_STAGE]", error);
+    return actionError("Failed to advance deal stage");
+  }
+}
+
+// ============================================
+// Deal Party Management
+// ============================================
+
+/**
+ * Add a contact as a party to a deal.
+ */
+export async function addDealParty(
+  input: unknown
+): Promise<ActionResponse<DealParty>> {
+  const guard = await requireAction("deal:manage_parties");
+  if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
+
+  const validation = dealPartySchema.safeParse(input);
+  if (!validation.success) {
+    return actionValidationError(
+      "Validation failed",
+      validation.error.flatten().fieldErrors
+    );
+  }
+
+  const { dealId, contactId, role, notes } = validation.data;
+
+  // Validate deal + contact belong to org
+  const [deal, contact] = await Promise.all([
+    prismadb.deal.findFirst({
+      where: { id: dealId, organizationId },
+      select: { id: true },
+    }),
+    prismadb.contact.findFirst({
+      where: { id: contactId, organizationId },
+      select: { id: true },
+    }),
+  ]);
+  if (!deal) return actionNotFound("Deal");
+  if (!contact) return actionNotFound("Contact");
+
+  try {
+    const party = await prismadb.dealParty.create({
+      data: {
+        organizationId,
+        dealId,
+        contactId,
+        role,
+        notes: notes ?? null,
+      },
+    });
+
+    revalidatePath(`/deals/${dealId}`);
+    return actionSuccess(party);
+  } catch (error: any) {
+    if (error?.code === "P2002") {
+      return actionError("This contact already has this role in the deal");
+    }
+    console.error("[DEAL_PARTY_ADD]", error);
+    return actionError("Failed to add deal party");
+  }
+}
+
+/**
+ * Remove a party from a deal.
+ */
+export async function removeDealParty(
+  partyId: string
+): Promise<ActionResponse<{ id: string }>> {
+  const guard = await requireAction("deal:manage_parties");
+  if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
+
+  const party = await prismadb.dealParty.findFirst({
+    where: { id: partyId, organizationId },
+    select: { id: true, dealId: true },
+  });
+  if (!party) return actionNotFound("Deal party");
+
+  try {
+    await prismadb.dealParty.delete({ where: { id: partyId } });
+    revalidatePath(`/deals/${party.dealId}`);
+    return actionSuccess({ id: partyId });
+  } catch (error) {
+    console.error("[DEAL_PARTY_REMOVE]", error);
+    return actionError("Failed to remove deal party");
+  }
+}
+
+// ============================================
+// Read Operations
+// ============================================
+
+/**
+ * Get all deals for the current org, with optional stage filter.
+ */
+export async function getDeals(params?: unknown) {
+  const guard = await requireAction("deal:read");
+  if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
+  const currentUser = await getCurrentUser();
+
+  const parsed = dealQuerySchema.safeParse(params ?? {});
+  const filters = parsed.success ? parsed.data : {};
+
+  const where: any = { organizationId };
+  if (filters.stage) where.stage = filters.stage;
+  if (filters.dealType) where.dealType = filters.dealType;
+  if (filters.propertyId) where.propertyId = filters.propertyId;
+  if (filters.contactId) {
+    where.dealParties = { some: { contactId: filters.contactId } };
+  }
+  if (filters.search) {
+    const term = filters.search.trim();
+    where.OR = [
+      { friendlyId: { contains: term, mode: "insensitive" } },
+      { title: { contains: term, mode: "insensitive" } },
+    ];
+  }
+
+  try {
+    const deals = await prismadb.deal.findMany({
+      where,
+      include: {
+        property: {
+          select: {
+            id: true,
+            property_name: true,
+            property_type: true,
+            price: true,
+            address_city: true,
           },
         },
-      },
-      Clients: {
-        select: {
-          id: true,
-          client_name: true,
-          primary_email: true,
+        listingAgent: {
+          select: { id: true, name: true, avatar: true },
+        },
+        buyerAgent: {
+          select: { id: true, name: true, avatar: true },
+        },
+        dealParties: {
+          include: {
+            contact: {
+              select: { id: true, displayName: true, category: true },
+            },
+          },
+        },
+        _count: {
+          select: { stageLogs: true },
         },
       },
-      Users_Deal_propertyAgentIdToUsers: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-        },
-      },
-      Users_Deal_clientAgentIdToUsers: {
-        select: {
-          id: true,
-          name: true,
-          avatar: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+      take: filters.limit ?? 50,
+    });
 
-  return dealsRaw.map((deal) => ({
-    ...deal,
-    property: deal.Properties ? {
-      ...deal.Properties,
-      linkedDocuments: deal.Properties.Documents,
-    } : null,
-    client: deal.Clients,
-    propertyAgent: deal.Users_Deal_propertyAgentIdToUsers,
-    clientAgent: deal.Users_Deal_clientAgentIdToUsers,
-    isPropertyAgent: deal.propertyAgentId === currentUser.id,
-    isProposer: deal.proposedById === currentUser.id,
-  }));
+    return actionSuccess(
+      deals.map((d) =>
+        serializeDealForClient({
+          ...d,
+          isListingAgent: d.listingAgentId === currentUser.id,
+          isBuyerAgent: d.buyerAgentId === currentUser.id,
+        })
+      )
+    );
+  } catch (error) {
+    console.error("[DEAL_LIST]", error);
+    return actionError("Failed to fetch deals");
+  }
 }
 
 /**
- * Get a single deal
+ * Get a single deal by ID or friendlyId.
  */
-export async function getDeal(dealId: string) {
-  const currentUser = await getCurrentUser();
-  const organizationId = await getCurrentOrgId();
+export async function getDeal(
+  dealId: string
+): Promise<ActionResponse<any>> {
+  const guard = await requireAction("deal:read");
+  if (guard) return guard;
 
-  // Support lookup by friendlyId (e.g. "deal-000011") or raw id
+  const organizationId = await getCurrentOrgId();
+  const currentUser = await getCurrentUser();
+
   const isFriendlyId = dealId.startsWith("deal-");
-  const dealRaw = await prismadb.deal.findFirst({
+  const deal = await prismadb.deal.findFirst({
     where: {
       ...(isFriendlyId ? { friendlyId: dealId } : { id: dealId }),
       organizationId,
     },
     include: {
-      Properties: {
+      property: {
         select: {
           id: true,
+          friendlyId: true,
           property_name: true,
           property_type: true,
           price: true,
@@ -550,94 +523,164 @@ export async function getDeal(dealId: string) {
           bedrooms: true,
           bathrooms: true,
           size_net_sqm: true,
-          square_feet: true,
-          description: true,
-          Documents: {
-            where: {
-              document_file_mimeType: { startsWith: "image/" },
-            },
-            select: { document_file_url: true },
-            take: 5,
-          },
         },
       },
-      Clients: {
+      request: {
         select: {
           id: true,
-          client_name: true,
-          primary_email: true,
-          primary_phone: true,
-          client_status: true,
+          friendlyId: true,
+          requestType: true,
+          status: true,
+          locationDisplayName: true,
         },
       },
-      Users_Deal_propertyAgentIdToUsers: {
+      notaryContact: {
+        select: {
+          id: true,
+          friendlyId: true,
+          displayName: true,
+          email: true,
+          primaryPhone: true,
+        },
+      },
+      listingAgent: {
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
-          AgentProfile: {
-            select: {
-              slug: true,
-              publicPhone: true,
-            },
-          },
+          AgentProfile: { select: { slug: true, publicPhone: true } },
         },
       },
-      Users_Deal_clientAgentIdToUsers: {
+      buyerAgent: {
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
-          AgentProfile: {
+          AgentProfile: { select: { slug: true, publicPhone: true } },
+        },
+      },
+      dealParties: {
+        include: {
+          contact: {
             select: {
-              slug: true,
-              publicPhone: true,
+              id: true,
+              friendlyId: true,
+              displayName: true,
+              email: true,
+              primaryPhone: true,
+              category: true,
             },
           },
         },
+        orderBy: { createdAt: "asc" },
+      },
+      stageLogs: {
+        orderBy: { changedAt: "desc" },
       },
     },
   });
 
-  if (!dealRaw) {
-    return null;
+  if (!deal) return actionNotFound("Deal");
+
+  // Build userDisplayMap for everyone referenced in stageLogs.
+  // The soft-delete Prisma extension erases the `include` type-narrowing, so
+  // we read `stageLogs` via a narrow local cast rather than a global `any`.
+  const userDisplayMap: Record<string, string> = {};
+  const stageLogs =
+    (deal as { stageLogs?: Array<{ changedBy: string | null }> }).stageLogs ?? [];
+  const userIds = Array.from(
+    new Set(
+      stageLogs
+        .map((l) => l.changedBy)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+  if (userIds.length > 0) {
+    try {
+      const users = await prismadb.users.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, name: true, email: true },
+      });
+      for (const u of users) {
+        userDisplayMap[u.id] = u.name || u.email || "";
+      }
+    } catch (err) {
+      console.error("[DEAL_GET_USER_DISPLAY_MAP]", err);
+    }
   }
 
-  // Map to expected field names
-  const deal = {
-    ...dealRaw,
-    property: dealRaw.Properties ? {
-      ...dealRaw.Properties,
-      linkedDocuments: dealRaw.Properties.Documents,
-    } : null,
-    client: dealRaw.Clients,
-    propertyAgent: dealRaw.Users_Deal_propertyAgentIdToUsers ? {
-      ...dealRaw.Users_Deal_propertyAgentIdToUsers,
-      agentProfile: dealRaw.Users_Deal_propertyAgentIdToUsers.AgentProfile,
-    } : null,
-    clientAgent: dealRaw.Users_Deal_clientAgentIdToUsers ? {
-      ...dealRaw.Users_Deal_clientAgentIdToUsers,
-      agentProfile: dealRaw.Users_Deal_clientAgentIdToUsers.AgentProfile,
-    } : null,
-  };
-
-  // Check authorization
-  if (
-    deal.propertyAgentId !== currentUser.id &&
-    deal.clientAgentId !== currentUser.id
-  ) {
-    throw new Error("You are not part of this deal");
-  }
-
-  return {
-    ...deal,
-    isPropertyAgent: deal.propertyAgentId === currentUser.id,
-    isProposer: deal.proposedById === currentUser.id,
-  };
+  return actionSuccess(
+    serializeDealForClient({
+      ...deal,
+      userDisplayMap,
+      isListingAgent: deal.listingAgentId === currentUser.id,
+      isBuyerAgent: deal.buyerAgentId === currentUser.id,
+      isProposer: deal.proposedById === currentUser.id,
+    })
+  );
 }
 
-// Note: calculateCommissionSplit utility function moved to lib/deal-utils.ts
-// Import it from there: import { calculateCommissionSplit } from "@/lib/deal-utils";
+/**
+ * Get the stage log (audit trail) for a deal.
+ */
+export async function getDealStageLogs(
+  dealId: string
+): Promise<ActionResponse<DealStageLog[]>> {
+  const guard = await requireAction("deal:read");
+  if (guard) return guard;
 
+  const organizationId = await getCurrentOrgId();
+
+  const deal = await prismadb.deal.findFirst({
+    where: { id: dealId, organizationId },
+    select: { id: true },
+  });
+  if (!deal) return actionNotFound("Deal");
+
+  const logs = await prismadb.dealStageLog.findMany({
+    where: { dealId },
+    orderBy: { changedAt: "desc" },
+  });
+
+  return actionSuccess(logs);
+}
+
+/**
+ * Get deal parties for a deal.
+ */
+export async function getDealParties(
+  dealId: string
+): Promise<ActionResponse<any[]>> {
+  const guard = await requireAction("deal:read");
+  if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
+
+  const deal = await prismadb.deal.findFirst({
+    where: { id: dealId, organizationId },
+    select: { id: true },
+  });
+  if (!deal) return actionNotFound("Deal");
+
+  const parties = await prismadb.dealParty.findMany({
+    where: { dealId },
+    include: {
+      contact: {
+        select: {
+          id: true,
+          friendlyId: true,
+          displayName: true,
+          email: true,
+          primaryPhone: true,
+          category: true,
+          isCompany: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  return actionSuccess(parties);
+}

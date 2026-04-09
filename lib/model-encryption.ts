@@ -55,6 +55,37 @@ type ClientWithEncryptedFields = Partial<Record<ClientStringField, string | null
 };
 
 // ─────────────────────────────────────────────
+// Contacts (v2.0 — replaces Clients)
+// ─────────────────────────────────────────────
+
+const CONTACT_ENCRYPTED_STRING_FIELDS = [
+  "firstName",
+  "lastName",
+  "displayName",
+  "companyName",
+  "email",
+  "secondaryEmail",
+  "primaryPhone",
+  "secondaryPhone",
+  "officePhone",
+  "whatsapp",
+  "viber",
+  "taxId",
+  "doy",
+  "vatNumber",
+  "companyGemi",
+  "companyId",
+  "idDocument",
+  "notes",
+] as const;
+
+type ContactStringField = (typeof CONTACT_ENCRYPTED_STRING_FIELDS)[number];
+type ContactWithEncryptedFields = Partial<Record<ContactStringField, string | null | undefined>> & {
+  communicationNotes?: Prisma.JsonValue | null;
+  addresses?: Prisma.JsonValue | null;
+};
+
+// ─────────────────────────────────────────────
 // Messages
 // ─────────────────────────────────────────────
 
@@ -180,6 +211,67 @@ export async function decryptClientForOrg<T extends ClientWithEncryptedFields>(
     result.communication_notes = decryptJsonWithKey(result.communication_notes, dek);
   }
   return result as T;
+}
+
+export async function encryptContactForOrg<T extends ContactWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & ContactWithEncryptedFields;
+  for (const field of CONTACT_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  if ("communicationNotes" in result) {
+    result.communicationNotes = encryptJsonWithKey(result.communicationNotes, dek);
+  }
+  if ("addresses" in result) {
+    result.addresses = encryptJsonWithKey(result.addresses, dek);
+  }
+  return result as T;
+}
+
+export async function decryptContactForOrg<T extends ContactWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...record } as T & ContactWithEncryptedFields;
+  for (const field of CONTACT_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  if ("communicationNotes" in result) {
+    result.communicationNotes = decryptJsonWithKey(result.communicationNotes, dek);
+  }
+  if ("addresses" in result) {
+    result.addresses = decryptJsonWithKey(result.addresses, dek);
+  }
+  return result as T;
+}
+
+// ContactComment (content field) — delegates to Message helpers
+export async function encryptContactCommentForOrg<T extends MessageWithContent>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  return encryptMessageForOrg(data, orgId);
+}
+
+export async function decryptContactCommentForOrg<T extends MessageWithContent>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  return decryptMessageForOrg(record, orgId);
 }
 
 export async function encryptMessageForOrg<T extends MessageWithContent>(
@@ -362,6 +454,83 @@ export async function encryptMandateCommentForOrg<T extends MessageWithContent>(
 }
 
 export async function decryptMandateCommentForOrg<T extends MessageWithContent>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  return decryptMessageForOrg(record, orgId);
+}
+
+// ─────────────────────────────────────────────
+// Requests (v2.0 — replaces Mandates)
+// ─────────────────────────────────────────────
+
+const REQUEST_ENCRYPTED_STRING_FIELDS = [
+  "title",
+  "notes",
+  "locationDisplayName",
+] as const;
+
+type RequestStringField = (typeof REQUEST_ENCRYPTED_STRING_FIELDS)[number];
+type RequestWithEncryptedFields = Partial<Record<RequestStringField, string | null | undefined>> & {
+  communicationNotes?: Prisma.JsonValue | null;
+  areasOfInterest?: Prisma.JsonValue | null;
+};
+
+export async function encryptRequestForOrg<T extends RequestWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & RequestWithEncryptedFields;
+  for (const field of REQUEST_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  if ("communicationNotes" in result) {
+    result.communicationNotes = encryptJsonWithKey(result.communicationNotes, dek);
+  }
+  if ("areasOfInterest" in result) {
+    result.areasOfInterest = encryptJsonWithKey(result.areasOfInterest, dek);
+  }
+  return result as T;
+}
+
+export async function decryptRequestForOrg<T extends RequestWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...record } as T & RequestWithEncryptedFields;
+  for (const field of REQUEST_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  if ("communicationNotes" in result) {
+    result.communicationNotes = decryptJsonWithKey(result.communicationNotes, dek);
+  }
+  if ("areasOfInterest" in result) {
+    result.areasOfInterest = decryptJsonWithKey(result.areasOfInterest, dek);
+  }
+  return result as T;
+}
+
+// RequestComment (content field) — delegates to Message helpers
+export async function encryptRequestCommentForOrg<T extends MessageWithContent>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  return encryptMessageForOrg(data, orgId);
+}
+
+export async function decryptRequestCommentForOrg<T extends MessageWithContent>(
   record: T,
   orgId: string
 ): Promise<T> {

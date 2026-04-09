@@ -1,7 +1,7 @@
 // tests/api/e2ee/monotonicity.test.ts
 // Tests for messageIndex monotonicity enforcement in client comments POST route
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mock prismadb — must be hoisted before any module imports that use it
@@ -52,9 +52,10 @@ vi.mock("@/lib/entity-session/encryption-mode", () => ({
 // ---------------------------------------------------------------------------
 // Import the route AFTER all mocks are registered
 // ---------------------------------------------------------------------------
-const { POST } = await import(
-  "@/app/api/crm/clients/[clientId]/comments/route"
-);
+let POST: typeof import("@/app/api/crm/clients/[clientId]/comments/route").POST;
+beforeAll(async () => {
+  ({ POST } = await import("@/app/api/crm/clients/[clientId]/comments/route"));
+});
 
 // ---------------------------------------------------------------------------
 // Helpers

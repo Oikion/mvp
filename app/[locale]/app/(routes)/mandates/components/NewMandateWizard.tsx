@@ -1318,7 +1318,7 @@ export function NewMandateWizard({
                       <SelectTrigger>
                         <SelectValue
                           placeholder={t(
-                            "MandateForm.fields.timelinePlaceholder"
+                            "MandateForm.fields.timelinePlaceholder" as Parameters<typeof t>[0]
                           )}
                         />
                       </SelectTrigger>
@@ -1427,7 +1427,7 @@ export function NewMandateWizard({
                       value={field.value || []}
                       onChange={field.onChange}
                       placeholder={t(
-                        "MandateForm.fields.conditionPlaceholder"
+                        "MandateForm.fields.conditionPlaceholder" as Parameters<typeof t>[0]
                       )}
                     />
                   </FormControl>
@@ -1451,7 +1451,7 @@ export function NewMandateWizard({
                       value={field.value || []}
                       onChange={field.onChange}
                       placeholder={t(
-                        "MandateForm.fields.heatingTypePlaceholder"
+                        "MandateForm.fields.heatingTypePlaceholder" as Parameters<typeof t>[0]
                       )}
                     />
                   </FormControl>
@@ -1614,7 +1614,7 @@ export function NewMandateWizard({
                       value={field.value || []}
                       onChange={field.onChange}
                       placeholder={t(
-                        "MandateForm.fields.amenitiesPlaceholder"
+                        "MandateForm.fields.amenitiesPlaceholder" as Parameters<typeof t>[0]
                       )}
                     />
                   </FormControl>

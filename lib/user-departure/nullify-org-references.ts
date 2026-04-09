@@ -33,16 +33,16 @@ export async function nullifyOrgReferences(
       data: { assigned_to: null },
     }),
 
-    // Deal.clientAgentId
+    // Deal.buyerAgentId
     prismadb.deal.updateMany({
-      where: { organizationId: orgId, clientAgentId: userId },
-      data: { clientAgentId: null },
+      where: { organizationId: orgId, buyerAgentId: userId },
+      data: { buyerAgentId: null },
     }),
 
-    // Deal.propertyAgentId
+    // Deal.listingAgentId
     prismadb.deal.updateMany({
-      where: { organizationId: orgId, propertyAgentId: userId },
-      data: { propertyAgentId: null },
+      where: { organizationId: orgId, listingAgentId: userId },
+      data: { listingAgentId: null },
     }),
 
     // Deal.proposedById

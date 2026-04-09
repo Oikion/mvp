@@ -145,7 +145,11 @@ export function ConversionTransformStep({
   rawData,
 }: ConversionTransformStepProps) {
   const t = useTranslations("conversion");
-  const tImport = useTranslations("import");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tImport = useTranslations("import" as any) as unknown as {
+    (key: string): string;
+    has: (key: string) => boolean;
+  };
 
   // Get enum fields that are mapped
   const mappedEnumFields = useMemo(() => {

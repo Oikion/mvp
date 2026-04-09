@@ -39,7 +39,8 @@ export function AgencyContactForm({
   agencyName,
   contactFormFields: _contactFormFields,
 }: AgencyContactFormProps) {
-  const t = useTranslations("profile.contactForm");
+  const tProfile = useTranslations("profile");
+  const t = (k: string) => tProfile(`contactForm.${k}` as Parameters<typeof tProfile>[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 

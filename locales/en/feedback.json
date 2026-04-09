@@ -61,6 +61,14 @@
     "success": "Thank you for your feedback. We appreciate your help in making Oikion better!",
     "error": "Something went wrong. Please try again later."
   },
+  "success": {
+    "title": "Feedback Submitted",
+    "description": "Thank you for your feedback. We appreciate your help in making Oikion better!"
+  },
+  "error": {
+    "title": "Submission Failed",
+    "description": "Something went wrong. Please try again later."
+  },
   "validation": {
     "feedbackTypeRequired": "Please select a feedback type.",
     "feedbackRequired": "Feedback must be at least 10 characters."

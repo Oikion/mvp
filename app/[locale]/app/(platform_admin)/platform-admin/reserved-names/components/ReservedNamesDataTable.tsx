@@ -144,7 +144,7 @@ export function ReservedNamesDataTable({
       header: t("columns.type"),
       cell: ({ row }) => (
         <Badge variant="secondary">
-          {t(`types.${row.original.type.toLowerCase()}`)}
+          {t(`types.${row.original.type.toLowerCase()}` as Parameters<typeof t>[0])}
         </Badge>
       ),
     },
@@ -153,7 +153,7 @@ export function ReservedNamesDataTable({
       header: t("columns.status"),
       cell: ({ row }) => (
         <Badge variant={row.original.status === "ACTIVE" ? "default" : "secondary"}>
-          {t(`status.${row.original.status.toLowerCase()}`)}
+          {t(`status.${row.original.status.toLowerCase()}` as Parameters<typeof t>[0])}
         </Badge>
       ),
     },
@@ -243,7 +243,7 @@ export function ReservedNamesDataTable({
               <SelectItem value="ALL">{t("filters.allTypes")}</SelectItem>
               {(["USERNAME", "ORG_NAME", "ORG_SLUG"] as ReservedNameType[]).map((type) => (
                 <SelectItem key={type} value={type}>
-                  {t(`types.${type.toLowerCase()}`)}
+                  {t(`types.${type.toLowerCase()}` as Parameters<typeof t>[0])}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -262,7 +262,7 @@ export function ReservedNamesDataTable({
               <SelectItem value="ALL">{t("filters.allStatus")}</SelectItem>
               {(["ACTIVE", "INACTIVE"] as ReservedNameStatus[]).map((status) => (
                 <SelectItem key={status} value={status}>
-                  {t(`status.${status.toLowerCase()}`)}
+                  {t(`status.${status.toLowerCase()}` as Parameters<typeof t>[0])}
                 </SelectItem>
               ))}
             </SelectContent>

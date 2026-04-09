@@ -23,12 +23,19 @@ afterAll(() => {
   vi.unstubAllEnvs();
 });
 
-const {
-  encryptClientCommentForOrg,
-  decryptClientCommentForOrg,
-  encryptTaskCommentForOrg,
-  decryptTaskCommentForOrg,
-} = await import("@/lib/model-encryption");
+type ModelEnc = typeof import("@/lib/model-encryption");
+let encryptClientCommentForOrg: ModelEnc["encryptClientCommentForOrg"];
+let decryptClientCommentForOrg: ModelEnc["decryptClientCommentForOrg"];
+let encryptTaskCommentForOrg: ModelEnc["encryptTaskCommentForOrg"];
+let decryptTaskCommentForOrg: ModelEnc["decryptTaskCommentForOrg"];
+beforeAll(async () => {
+  ({
+    encryptClientCommentForOrg,
+    decryptClientCommentForOrg,
+    encryptTaskCommentForOrg,
+    decryptTaskCommentForOrg,
+  } = await import("@/lib/model-encryption"));
+});
 
 describe("encryptClientCommentForOrg / decryptClientCommentForOrg", () => {
   it("round-trips client comment content", async () => {

@@ -8,8 +8,7 @@ import { ClipboardListIcon } from "@/components/ui/ClipboardListIcon"
 import { FeedbackIcon } from "@/components/ui/FeedbackIcon"
 import { CalendarIcon } from "@/components/ui/CalendarIcon"
 import { FileTextIcon } from "@/components/ui/FileTextIcon"
-// HandCoinsIcon import removed - was used for Deals navigation (retained for future use)
-// import { HandCoinsIcon } from "@/components/ui/HandCoinsIcon"
+import { HandCoinsIcon } from "@/components/ui/HandCoinsIcon"
 // NetworkIcon import removed - was used for Connections standalone nav item (merged into Profile)
 // import { NetworkIcon } from "@/components/ui/NetworkIcon"
 import { InboxIcon } from "@/components/ui/InboxIcon"
@@ -133,23 +132,32 @@ export function getNavigationConfig({
         },
       ],
     }] : []),
-    // CRM module - always available based on user permissions
+    // CRM module — Contacts is the primary entity (v2.0 replaces Clients)
     ...(canAccess("crm") ? [{
-      title: dict.navigation.ModuleMenu.crm.title,
-      url: "/app/crm",
+      title: dict.crm?.contacts?.pageTitle || dict.navigation.ModuleMenu.crm.title,
+      url: "/app/crm/contacts",
       icon: ContactRoundIcon,
       isActive: isRouteActive(pathname, "/app/crm", locale),
       moduleId: "crm" as ModuleId,
       notificationKey: "crm",
     }] : []),
-    // Mandates module - buyer/renter briefs (shares CRM permission)
+    // Requests module (v2.0 — replaces Mandates) - buyer/renter search briefs
     ...(canAccess("crm") ? [{
-      title: dict.navigation.ModuleMenu.mandates?.title || "Mandates",
-      url: "/app/mandates",
+      title: dict.navigation?.ModuleMenu?.requests?.title || "Requests",
+      url: "/app/requests",
       icon: ClipboardListIcon,
-      isActive: isRouteActive(pathname, "/app/mandates", locale),
+      isActive: isRouteActive(pathname, "/app/requests", locale),
       moduleId: "crm" as ModuleId,
-      notificationKey: "mandates",
+      notificationKey: "requests",
+    }] : []),
+    // Deals module (v2.0 Phase 3 — 10-stage Greek RE pipeline)
+    ...(canAccess("crm") ? [{
+      title: dict.navigation?.ModuleMenu?.deals?.title || "Deals",
+      url: "/app/deals",
+      icon: HandCoinsIcon,
+      isActive: isRouteActive(pathname, "/app/deals", locale),
+      moduleId: "crm" as ModuleId,
+      notificationKey: "deals",
     }] : []),
   ]
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentOrgId, getCurrentUserId } from "@/lib/get-current-user";
+import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { requireAction, requireActionOnEntity } from "@/lib/permissions/action-guards";
 import { encryptActivityForOrg, decryptActivityForOrg } from "@/lib/model-encryption";
 import { createActivitySchema, updateActivitySchema } from "@/lib/validations/activities";
@@ -18,7 +18,7 @@ export async function createActivity(input: unknown): Promise<ActionResponse> {
   if (guard) return guard;
 
   const organizationId = await getCurrentOrgId();
-  const userId = await getCurrentUserId();
+  const currentUser = await getCurrentUser();
 
   // Strip organizationId from input — always injected from server auth context
   const clientInput =
@@ -56,7 +56,7 @@ export async function createActivity(input: unknown): Promise<ActionResponse> {
       data: {
         ...encrypted,
         organizationId,
-        createdByUserId: userId ?? undefined,
+        createdByUserId: currentUser?.id ?? undefined,
         relatedDocumentId: parsed.data.relatedDocumentId ?? undefined,
         relatedContactId: parsed.data.relatedContactId ?? undefined,
         relatedPropertyId: parsed.data.relatedPropertyId ?? undefined,

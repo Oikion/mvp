@@ -1,5 +1,4 @@
 {
-  "model": "sonnet",
   "env": {
     "MAX_THINKING_TOKENS": "10000",
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
@@ -27,7 +26,11 @@
       "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/\\\\\\(public\\\\\\) -name \"layout.tsx\")",
       "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\) -name \"page.tsx\")",
       "Bash(npx tsx:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(git merge feature/phase4-activities-templates-calendar --no-ff -m ':*)",
+      "Bash(git worktree:*)",
+      "Bash(git branch:*)"
     ]
-  }
+  },
+  "model": "sonnet"
 }
