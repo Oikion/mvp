@@ -151,10 +151,10 @@ export async function deleteActivity(id: string): Promise<ActionResponse> {
 // Maps ActivityParentType enum values to their Prisma model delegate names
 const PARENT_TYPE_TO_MODEL: Record<string, string> = {
   CONTACT: "contact",
-  REQUEST: "mandate",
+  REQUEST: "request",
   DEAL: "deal",
-  PROPERTY: "property",
-  SHOWING: "showing",
+  PROPERTY: "properties",
+  SHOWING: "propertyShowing",
 };
 
 export async function listActivities(
