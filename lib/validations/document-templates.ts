@@ -63,7 +63,6 @@ export const updateOrgDocumentTemplateSchema = z
     body: z.record(z.unknown()).optional(),
     placeholders: z.array(z.unknown()).optional(),
     isPublished: z.boolean().optional(),
-    version: z.coerce.number().int().min(1).optional(),
   })
   .strict();
 
@@ -118,8 +117,8 @@ export const createDocumentTemplateSchema =
 
 /**
  * Action-layer update schema — derived from updateOrgDocumentTemplateSchema
- * (organizationId is not present on the update schema; version and
- * baseTemplateId are preserved from the org-level shape).
+ * (organizationId is not present on the update schema; version is
+ * system-managed via { increment: 1 } and must not be accepted from clients).
  */
 export const updateDocumentTemplateSchema = updateOrgDocumentTemplateSchema;
 

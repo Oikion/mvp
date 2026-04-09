@@ -16,6 +16,7 @@ import {
   actionSuccess,
   actionError,
   actionNotFound,
+  actionValidationError,
   type ActionResponse,
 } from "@/lib/action-response";
 
@@ -63,14 +64,17 @@ export async function createDocumentTemplate(input: unknown): Promise<ActionResp
     delete (sanitized as Record<string, unknown>).organizationId;
   }
 
-  const parsed = createDocumentTemplateSchema.parse(sanitized);
+  const parsed = createDocumentTemplateSchema.safeParse(sanitized);
+  if (!parsed.success) {
+    return actionValidationError("Invalid input", parsed.error.flatten().fieldErrors);
+  }
 
   try {
     const encrypted = await encryptOrgDocumentTemplateForOrg(
       {
-        name: parsed.name,
-        nameEl: parsed.nameEl,
-        nameEn: parsed.nameEn,
+        name: parsed.data.name,
+        nameEl: parsed.data.nameEl,
+        nameEn: parsed.data.nameEn,
       },
       organizationId
     );
@@ -79,12 +83,12 @@ export async function createDocumentTemplate(input: unknown): Promise<ActionResp
       data: {
         ...encrypted,
         organizationId,
-        category: parsed.category ?? "GENERAL",
-        body: parsed.body,
-        placeholders: parsed.placeholders ?? [],
+        category: parsed.data.category ?? "GENERAL",
+        body: parsed.data.body,
+        placeholders: parsed.data.placeholders ?? [],
         version: 1,
         isPublished: false,
-        baseTemplateId: parsed.baseTemplateId,
+        baseTemplateId: parsed.data.baseTemplateId,
         createdByUserId: userId ?? undefined,
       },
     });
@@ -126,12 +130,15 @@ export async function updateDocumentTemplate(
   );
   if (guard) return guard;
 
-  try {
-    const parsed = updateDocumentTemplateSchema.parse(input);
+  const parsed = updateDocumentTemplateSchema.safeParse(input);
+  if (!parsed.success) {
+    return actionValidationError("Invalid input", parsed.error.flatten().fieldErrors);
+  }
 
+  try {
     // Separate isPublished from content fields to avoid mixing publish state
     // with version-bumping content updates
-    const { isPublished, ...contentFields } = parsed;
+    const { isPublished, ...contentFields } = parsed.data;
 
     const hasContentUpdate = Object.keys(contentFields).some(
       (k) => contentFields[k as keyof typeof contentFields] !== undefined
@@ -328,10 +335,10 @@ export async function deleteDocumentTemplate(id: string): Promise<ActionResponse
  * Names are decrypted before returning.
  */
 export async function listDocumentTemplates(): Promise<ActionResponse> {
-  const organizationId = await getCurrentOrgId();
-
   const guard = await requireAction("template:read");
   if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
 
   try {
     const templates = await prismadb.orgDocumentTemplate.findMany({

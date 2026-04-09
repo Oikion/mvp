@@ -25,10 +25,10 @@ vi.mock("@/lib/model-encryption", () => ({
 }));
 vi.mock("@/lib/validations/document-templates", () => ({
   createDocumentTemplateSchema: {
-    parse: vi.fn((x: unknown) => x),
+    safeParse: vi.fn((x: unknown) => ({ success: true, data: x })),
   },
   updateDocumentTemplateSchema: {
-    parse: vi.fn((x: unknown) => x),
+    safeParse: vi.fn((x: unknown) => ({ success: true, data: x })),
   },
 }));
 vi.mock("@/lib/prisma-serialize", () => ({
