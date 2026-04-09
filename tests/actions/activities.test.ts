@@ -9,6 +9,11 @@ vi.mock("@/lib/prisma", () => ({
       findMany: vi.fn(),
       findFirst: vi.fn(),
     },
+    contact: { findFirst: vi.fn() },
+    mandate: { findFirst: vi.fn() },
+    deal: { findFirst: vi.fn() },
+    property: { findFirst: vi.fn() },
+    showing: { findFirst: vi.fn() },
   },
 }));
 vi.mock("@/lib/get-current-user", () => ({
@@ -24,8 +29,8 @@ vi.mock("@/lib/model-encryption", () => ({
   decryptActivityForOrg: vi.fn((data: unknown) => Promise.resolve(data)),
 }));
 vi.mock("@/lib/validations/activities", () => ({
-  createActivitySchema: { parse: vi.fn((x: unknown) => x) },
-  updateActivitySchema: { parse: vi.fn((x: unknown) => x) },
+  createActivitySchema: { safeParse: vi.fn((x: unknown) => ({ success: true, data: x })) },
+  updateActivitySchema: { safeParse: vi.fn((x: unknown) => ({ success: true, data: x })) },
 }));
 vi.mock("@/lib/prisma-serialize", () => ({
   serializePrisma: vi.fn((x: unknown) => x),
@@ -131,6 +136,9 @@ describe("listActivities", () => {
     (getCurrentOrgId as ReturnType<typeof vi.fn>).mockResolvedValue("org-1");
     (requireAction as ReturnType<typeof vi.fn>).mockResolvedValue(null);
     (prismadb.activity.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    // Ownership proof: parent entity belongs to the org
+    (prismadb.contact as any).findFirst.mockResolvedValue({ id: "cont-1" });
+    (prismadb.deal as any).findFirst.mockResolvedValue({ id: "deal-1" });
   });
 
   it("filters by organizationId and parentId", async () => {
