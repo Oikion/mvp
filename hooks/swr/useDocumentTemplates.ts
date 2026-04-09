@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+import fetcher from "@/lib/fetcher";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,25 +39,6 @@ export interface UseDocumentTemplatesOptions {
   enabled?: boolean;
 }
 
-// ─── Fetcher ──────────────────────────────────────────────────────────────────
-
-async function documentTemplatesFetcher(
-  url: string
-): Promise<DocumentTemplatesResponse> {
-  const res = await fetch(url);
-
-  if (res.status === 429) {
-    console.warn("[useDocumentTemplates] Rate limited, returning empty data");
-    return { data: [] };
-  }
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch document templates: ${res.status}`);
-  }
-
-  return res.json();
-}
-
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 /**
@@ -71,7 +53,7 @@ export function useDocumentTemplates(
   const { data, error, isLoading, mutate } =
     useSWR<DocumentTemplatesResponse>(
       enabled ? "/api/document-templates" : null,
-      documentTemplatesFetcher,
+      fetcher,
       {
         revalidateOnFocus: false,
         // Templates are stable reference data — dedupe for 60 s

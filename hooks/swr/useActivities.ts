@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+import fetcher from "@/lib/fetcher";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,23 +63,6 @@ export interface UseActivitiesOptions {
   enabled?: boolean;
 }
 
-// ─── Fetcher ──────────────────────────────────────────────────────────────────
-
-async function activitiesFetcher(url: string): Promise<ActivitiesResponse> {
-  const res = await fetch(url);
-
-  if (res.status === 429) {
-    console.warn("[useActivities] Rate limited, returning empty data");
-    return { data: [] };
-  }
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch activities: ${res.status}`);
-  }
-
-  return res.json();
-}
-
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 /**
@@ -92,12 +76,12 @@ export function useActivities({
 }: UseActivitiesOptions) {
   const key =
     enabled && parentId
-      ? `/api/activities?parentType=${parentType}&parentId=${parentId}`
+      ? `/api/activities?parentType=${encodeURIComponent(parentType)}&parentId=${encodeURIComponent(parentId)}`
       : null;
 
   const { data, error, isLoading, mutate } = useSWR<ActivitiesResponse>(
     key,
-    activitiesFetcher,
+    fetcher,
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
