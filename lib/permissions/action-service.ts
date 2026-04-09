@@ -25,6 +25,32 @@ import {
 } from "./action-defaults";
 
 // =============================================================================
+// MODULE RESOURCE PATHS
+// Maps action module names to their URL resource path segments
+// =============================================================================
+
+export const MODULE_RESOURCE_PATHS: Record<string, string> = {
+  property: "properties",
+  client: "clients",
+  messaging: "messages",
+  calendar: "calendar",
+  document: "documents",
+  report: "reports",
+  deal: "deals",
+  activity: "activities",
+  matchmaking: "matchmaking",
+  social: "social",
+  task: "tasks",
+  admin: "admin",
+  template: "document-templates",
+  xe: "xe-portal",
+  n8n: "n8n",
+  notification: "notifications",
+  referral: "referrals",
+  import: "import",
+};
+
+// =============================================================================
 // TYPES
 // =============================================================================
 
