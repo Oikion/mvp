@@ -39,6 +39,7 @@
   },
   "actions": {
     "log": "Log Activity",
+    "create": "Save",
     "edit": "Edit",
     "delete": "Delete",
     "export": "Export",

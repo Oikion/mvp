@@ -35,8 +35,9 @@ interface LinkedTask {
 
 interface EventReminder {
   id: string;
+  reminderMinutes: number;
   scheduledFor: string;
-  sent: boolean;
+  status: "PENDING" | "SENT" | "FAILED" | "CANCELLED";
 }
 
 export interface EventContactAttendee {

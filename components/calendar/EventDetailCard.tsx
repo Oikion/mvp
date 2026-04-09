@@ -8,7 +8,7 @@ import { Clock, MapPin, Edit, Trash2, User, Link as LinkIcon, ExternalLink, Load
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { EventEditForm } from "./EventEditForm";
 import { useCalendarEvent, useDeleteEvent } from "@/hooks/swr";
 
@@ -20,6 +20,7 @@ interface EventDetailCardProps {
 
 export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardProps) {
   const t = useTranslations("calendar");
+  const { toast } = useAppToast();
   const router = useRouter();
   const [showEditForm, setShowEditForm] = useState(false);
 
@@ -36,12 +37,12 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
 
     try {
       await deleteEvent();
-      toast.success(t("eventDetail.eventDeleted"));
+      toast.success("eventDeleted");
       onClose?.();
       onUpdate?.();
     } catch (error) {
-      console.error("Failed to delete event:", error);
-      toast.error("Failed to delete event");
+      console.error("[EVENT_DELETE]", error);
+      toast.error("eventDeleteFailed");
     }
   };
 
@@ -297,14 +298,14 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
               {event.reminders.map((reminder) => (
                 <div key={reminder.id} className="flex items-center justify-between text-sm">
                   <span>
-                    {parseInt(String(reminder.scheduledFor)) >= 1440
-                      ? `${Math.floor(parseInt(String(reminder.scheduledFor)) / 1440)} day(s)`
-                      : parseInt(String(reminder.scheduledFor)) >= 60
-                      ? `${Math.floor(parseInt(String(reminder.scheduledFor)) / 60)} hour(s)`
-                      : `${reminder.scheduledFor} minute(s)`} {t("eventDetail.beforeEvent")}
+                    {reminder.reminderMinutes >= 1440
+                      ? t("eventDetail.reminderDays", { count: Math.floor(reminder.reminderMinutes / 1440) })
+                      : reminder.reminderMinutes >= 60
+                      ? t("eventDetail.reminderHours", { count: Math.floor(reminder.reminderMinutes / 60) })
+                      : t("eventDetail.reminderMinutes", { count: reminder.reminderMinutes })}
                   </span>
-                  <Badge variant={reminder.sent ? "default" : "secondary"}>
-                    {reminder.sent ? "SENT" : "PENDING"}
+                  <Badge variant={reminder.status === "SENT" ? "default" : reminder.status === "FAILED" ? "destructive" : "secondary"}>
+                    {t(`eventDetail.reminderStatus.${reminder.status}` as any)}
                   </Badge>
                 </div>
               ))}

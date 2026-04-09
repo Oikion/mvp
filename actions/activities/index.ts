@@ -6,7 +6,7 @@ import { requireAction, requireActionOnEntity } from "@/lib/permissions/action-g
 import { encryptActivityForOrg, decryptActivityForOrg } from "@/lib/model-encryption";
 import { createActivitySchema, updateActivitySchema } from "@/lib/validations/activities";
 import { serializePrisma } from "@/lib/prisma-serialize";
-import { actionSuccess, actionError, actionNotFound, type ActionResponse } from "@/lib/action-response";
+import { actionSuccess, actionError, actionNotFound, actionValidationError, type ActionResponse } from "@/lib/action-response";
 import type { ActivityParentType } from "@prisma/client";
 
 /**
@@ -20,27 +20,34 @@ export async function createActivity(input: unknown): Promise<ActionResponse> {
   const organizationId = await getCurrentOrgId();
   const userId = await getCurrentUserId();
 
-  // Strip organizationId from input — we inject it from server auth context
-  const parsed = createActivitySchema.parse(
+  // Strip organizationId from input — always injected from server auth context
+  const clientInput =
     typeof input === "object" && input !== null
-      ? { ...input, organizationId }
-      : input
+      ? { ...(input as Record<string, unknown>), organizationId: undefined }
+      : input;
+  const parsed = createActivitySchema.safeParse(
+    typeof clientInput === "object" && clientInput !== null
+      ? { ...clientInput, organizationId }
+      : clientInput
   );
+  if (!parsed.success) {
+    return actionValidationError("Validation failed", parsed.error.flatten().fieldErrors);
+  }
 
   try {
     const encrypted = await encryptActivityForOrg(
       {
-        parentType: parsed.parentType,
-        parentId: parsed.parentId,
-        kind: parsed.kind,
-        direction: parsed.direction,
-        assignedToUserId: parsed.assignedToUserId,
-        subject: parsed.subject,
-        body: parsed.body,
-        outcome: parsed.outcome,
-        scheduledAt: parsed.scheduledAt,
-        occurredAt: parsed.occurredAt ?? new Date(),
-        durationMin: parsed.durationMin,
+        parentType: parsed.data.parentType,
+        parentId: parsed.data.parentId,
+        kind: parsed.data.kind,
+        direction: parsed.data.direction,
+        assignedToUserId: parsed.data.assignedToUserId,
+        subject: parsed.data.subject,
+        body: parsed.data.body,
+        outcome: parsed.data.outcome,
+        scheduledAt: parsed.data.scheduledAt,
+        occurredAt: parsed.data.occurredAt ?? new Date(),
+        durationMin: parsed.data.durationMin,
       },
       organizationId
     );
@@ -82,9 +89,13 @@ export async function updateActivity(id: string, input: unknown): Promise<Action
   );
   if (guard) return guard;
 
+  const parsed = updateActivitySchema.safeParse(input);
+  if (!parsed.success) {
+    return actionValidationError("Validation failed", parsed.error.flatten().fieldErrors);
+  }
+
   try {
-    const parsed = updateActivitySchema.parse(input);
-    const encrypted = await encryptActivityForOrg(parsed, organizationId);
+    const encrypted = await encryptActivityForOrg(parsed.data, organizationId);
 
     const activity = await prismadb.activity.update({
       where: { id, organizationId },
@@ -137,14 +148,35 @@ export async function deleteActivity(id: string): Promise<ActionResponse> {
  * List activities for a given parent entity.
  * Results are decrypted and serialized before returning.
  */
+// Maps ActivityParentType enum values to their Prisma model delegate names
+const PARENT_TYPE_TO_MODEL: Record<string, string> = {
+  CONTACT: "contact",
+  REQUEST: "mandate",
+  DEAL: "deal",
+  PROPERTY: "property",
+  SHOWING: "showing",
+};
+
 export async function listActivities(
   parentType: string,
   parentId: string
 ): Promise<ActionResponse> {
-  const organizationId = await getCurrentOrgId();
-
   const guard = await requireAction("activity:read");
   if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
+
+  // Verify the parent entity belongs to this org (prevents IDOR)
+  const modelName = PARENT_TYPE_TO_MODEL[parentType];
+  if (!modelName) {
+    return actionValidationError("Validation failed", { parentType: ["Invalid parent type"] });
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parentExists = await (prismadb as any)[modelName].findFirst({
+    where: { id: parentId, organizationId },
+    select: { id: true },
+  });
+  if (!parentExists) return actionNotFound("Parent entity");
 
   try {
     const activities = await prismadb.activity.findMany({
