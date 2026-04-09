@@ -108,6 +108,8 @@ model CalendarEvent {
   Clients            Clients[]            @relation("EventToClients")
   Properties         Properties[]         @relation("EventToProperties")
   Mandates           Mandate[]            @relation("EventToMandates")
+  EventContacts      CalendarEventContact[] @relation("EventContacts")
+  EventAgents        CalendarEventAgent[]   @relation("EventAgents")
 
   @@unique([friendlyId, organizationId])
   @@index([assignedUserId])
@@ -376,6 +378,8 @@ model DocumentTemplate {
   isActive      Boolean      @default(true)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime
+
+  OrgTemplates OrgDocumentTemplate[] @relation("OrgFromSystemTemplate")
 
   @@index([isActive])
   @@index([templateType])
@@ -1003,6 +1007,10 @@ model Users {
   identityKey                                        UserIdentityKey?
   e2eePepper                                         UserE2eePepper?
   preKeys                                            UserPreKey[]
+  ActivitiesCreated                                  Activity[]            @relation("ActivityCreatedBy")
+  ActivitiesAssigned                                 Activity[]            @relation("ActivityAssignedTo")
+  OrgTemplatesCreated                                OrgDocumentTemplate[] @relation("OrgTemplateCreatedBy")
+  CalendarEventAgents                                CalendarEventAgent[]  @relation("AgentCalendarEvents")
 
   @@index([clerkUserId])
   @@index([email])
@@ -3498,4 +3506,192 @@ model DocFeedback {
   @@index([pageSlug, locale])
   @@index([docScope])
   @@map("doc_feedback")
+}
+
+// ─────────────────────────────────────────────
+// Phase 4 — Activity Feed
+// ─────────────────────────────────────────────
+
+enum ActivityKind {
+  EMAIL
+  CALL
+  MEETING
+  NOTE
+  TASK
+  SHOWING
+  DOCUMENT
+  OTHER
+}
+
+enum ActivityDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+enum ActivityParentType {
+  CONTACT
+  REQUEST
+  DEAL
+  PROPERTY
+  SHOWING
+}
+
+model Activity {
+  id               String             @id @default(cuid())
+  organizationId   String
+  parentType       ActivityParentType
+  parentId         String
+  kind             ActivityKind
+  direction        ActivityDirection  @default(INTERNAL)
+  subject          String?
+  body             String?
+  durationMin      Int?
+  outcome          String?
+  scheduledAt      DateTime?
+  occurredAt       DateTime           @default(now())
+  createdByUserId  String?
+  assignedToUserId String?
+  deletedAt        DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  CreatedBy  Users? @relation("ActivityCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  AssignedTo Users? @relation("ActivityAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([organizationId, parentType, parentId])
+  @@index([organizationId, kind])
+  @@index([createdByUserId])
+  @@index([assignedToUserId])
+  @@index([deletedAt])
+  @@map("activities")
+}
+
+// ─────────────────────────────────────────────
+// Phase 4 — Org Document Templates
+// ─────────────────────────────────────────────
+
+enum DocTemplateCategory {
+  LISTING_AGREEMENT
+  BUYER_AGREEMENT
+  OFFER
+  COUNTER_OFFER
+  PURCHASE_CONTRACT
+  TRANSFER_DEED
+  POWER_OF_ATTORNEY
+  NDA
+  GENERAL
+}
+
+model OrgDocumentTemplate {
+  id              String              @id @default(cuid())
+  organizationId  String
+  name            String
+  nameEl          String?
+  nameEn          String?
+  category        DocTemplateCategory @default(GENERAL)
+  body            Json
+  placeholders    Json                @default("[]")
+  version         Int                 @default(1)
+  isPublished     Boolean             @default(false)
+  baseTemplateId  String?
+  createdByUserId String?
+  deletedAt       DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  BaseTemplate DocumentTemplate? @relation("OrgFromSystemTemplate", fields: [baseTemplateId], references: [id], onDelete: SetNull)
+  CreatedBy    Users?             @relation("OrgTemplateCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([organizationId, category])
+  @@index([organizationId, isPublished])
+  @@index([createdByUserId])
+  @@map("org_document_templates")
+}
+
+// ─────────────────────────────────────────────
+// Phase 4 — Calendar Explicit Join Tables
+// ─────────────────────────────────────────────
+
+enum EventContactRole {
+  ATTENDEE
+  BUYER
+  SELLER
+  WITNESS
+  NOTARY
+  AGENT
+  OTHER
+}
+
+enum RsvpStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  TENTATIVE
+}
+
+model CalendarEventContact {
+  id         String           @id @default(cuid())
+  eventId    String
+  contactId  String
+  role       EventContactRole @default(ATTENDEE)
+  rsvpStatus RsvpStatus       @default(PENDING)
+  note       String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  Event   CalendarEvent @relation("EventContacts", fields: [eventId], references: [id], onDelete: Cascade)
+  Contact Contact       @relation("ContactEvents", fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, contactId])
+  @@index([eventId])
+  @@index([contactId])
+  @@map("calendar_event_contacts")
+}
+
+model CalendarEventAgent {
+  id         String     @id @default(cuid())
+  eventId    String
+  userId     String
+  role       String?
+  rsvpStatus RsvpStatus @default(PENDING)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  Event CalendarEvent @relation("EventAgents", fields: [eventId], references: [id], onDelete: Cascade)
+  User  Users         @relation("AgentCalendarEvents", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("calendar_event_agents")
+}
+
+// ─────────────────────────────────────────────
+// Phase 4 — Contact (Phase 1 entity architecture)
+// Minimal model required for CalendarEventContact FK.
+// Full field set per Oikion_Entity_Architecture_Spec_v2_0.
+// ─────────────────────────────────────────────
+
+model Contact {
+  id             String   @id @default(cuid())
+  organizationId String
+  firstName      String?
+  lastName       String?
+  displayName    String?
+  isCompany      Boolean  @default(false)
+  companyName    String?
+  email          String?
+  primaryPhone   String?
+  notes          String?
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  CalendarEventContacts CalendarEventContact[] @relation("ContactEvents")
+
+  @@index([organizationId])
+  @@map("contacts")
 }

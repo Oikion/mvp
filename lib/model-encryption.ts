@@ -592,3 +592,96 @@ export async function decryptAgentContactForOrg<T extends AgentContactWithEncryp
   }
   return result as T;
 }
+
+// ─── Activity ────────────────────────────────────────────────────────────────
+
+const ACTIVITY_ENCRYPTED_STRING_FIELDS = [
+  "subject",
+  "body",
+  "outcome",
+] as const;
+
+type ActivityStringField = (typeof ACTIVITY_ENCRYPTED_STRING_FIELDS)[number];
+
+type ActivityWithEncryptedFields = Partial<
+  Record<ActivityStringField, string | null | undefined>
+>;
+
+export async function encryptActivityForOrg<T extends ActivityWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & ActivityWithEncryptedFields;
+  for (const field of ACTIVITY_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
+
+export async function decryptActivityForOrg<T extends ActivityWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & ActivityWithEncryptedFields;
+  for (const field of ACTIVITY_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
+
+// ─── OrgDocumentTemplate ──────────────────────────────────────────────────────
+
+const ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS = [
+  "name",
+] as const;
+
+type OrgDocumentTemplateStringField =
+  (typeof ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS)[number];
+
+type OrgDocumentTemplateWithEncryptedFields = Partial<
+  Record<OrgDocumentTemplateStringField, string | null | undefined>
+>;
+
+export async function encryptOrgDocumentTemplateForOrg<
+  T extends OrgDocumentTemplateWithEncryptedFields
+>(data: T, orgId: string): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & OrgDocumentTemplateWithEncryptedFields;
+  for (const field of ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
+
+export async function decryptOrgDocumentTemplateForOrg<
+  T extends OrgDocumentTemplateWithEncryptedFields
+>(data: T, orgId: string): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & OrgDocumentTemplateWithEncryptedFields;
+  for (const field of ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
