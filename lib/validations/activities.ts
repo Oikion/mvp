@@ -69,6 +69,11 @@ export const createActivitySchema = z
 
     // Duration
     durationMin: z.coerce.number().int().min(0).optional(),
+
+    // Rich linking (optional)
+    relatedDocumentId: z.string().optional(),           // UUID (Documents model uses UUID, not CUID)
+    relatedContactId: z.string().cuid().optional(),
+    relatedPropertyId: z.string().optional(),           // UUID (Properties model uses UUID, not CUID)
   })
   .strict();
 

@@ -57,6 +57,9 @@ export async function createActivity(input: unknown): Promise<ActionResponse> {
         ...encrypted,
         organizationId,
         createdByUserId: userId ?? undefined,
+        relatedDocumentId: parsed.data.relatedDocumentId ?? undefined,
+        relatedContactId: parsed.data.relatedContactId ?? undefined,
+        relatedPropertyId: parsed.data.relatedPropertyId ?? undefined,
       },
     });
 
@@ -186,6 +189,23 @@ export async function listActivities(
         parentId,
         deletedAt: null,
       },
+      include: {
+        CreatedBy: {
+          select: { id: true, firstName: true, lastName: true, avatar: true },
+        },
+        AssignedTo: {
+          select: { id: true, firstName: true, lastName: true, avatar: true },
+        },
+        RelatedDocument: {
+          select: { id: true, document_name: true },
+        },
+        RelatedContact: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+        RelatedProperty: {
+          select: { id: true, property_name: true, friendlyId: true },
+        },
+      },
       orderBy: { occurredAt: "desc" },
     });
 
@@ -197,5 +217,43 @@ export async function listActivities(
   } catch (error) {
     console.error("[ACTIVITY_LIST]", error);
     return actionError("Failed to list activities", error as Error);
+  }
+}
+
+/**
+ * Internal helper for auto-capturing system events (status changes, visibility
+ * updates, document links, etc.). Called from other server actions — never
+ * directly from client code. No permission guard; caller is trusted server context.
+ */
+export async function createSystemActivity(input: {
+  organizationId: string;
+  parentType: "CONTACT" | "REQUEST" | "DEAL" | "PROPERTY" | "SHOWING";
+  parentId: string;
+  kind: "NOTE" | "DOCUMENT" | "TASK" | "EMAIL" | "CALL" | "MEETING" | "SHOWING" | "OTHER";
+  body: string;
+  createdByUserId?: string;
+  relatedDocumentId?: string;
+  relatedContactId?: string;
+  relatedPropertyId?: string;
+}): Promise<void> {
+  try {
+    await prismadb.activity.create({
+      data: {
+        organizationId: input.organizationId,
+        parentType: input.parentType,
+        parentId: input.parentId,
+        kind: input.kind,
+        direction: "INTERNAL",
+        body: input.body,
+        occurredAt: new Date(),
+        createdByUserId: input.createdByUserId ?? undefined,
+        relatedDocumentId: input.relatedDocumentId ?? undefined,
+        relatedContactId: input.relatedContactId ?? undefined,
+        relatedPropertyId: input.relatedPropertyId ?? undefined,
+      },
+    });
+  } catch (error) {
+    // System activity failures are non-fatal — log but don't surface to caller
+    console.error("[SYSTEM_ACTIVITY_CREATE]", error);
   }
 }
