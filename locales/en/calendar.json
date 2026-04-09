@@ -234,6 +234,23 @@
     "linkedMandates": "Linked Mandates",
     "invitees": "Invitees",
     "noInvitees": "No one invited yet",
+    "attendees": "Attendees",
+    "noAttendees": "No attendees yet",
+    "rsvp": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted",
+      "DECLINED": "Declined",
+      "TENTATIVE": "Tentative"
+    },
+    "roles": {
+      "ATTENDEE": "Attendee",
+      "BUYER": "Buyer",
+      "SELLER": "Seller",
+      "WITNESS": "Witness",
+      "NOTARY": "Notary",
+      "AGENT": "Agent",
+      "OTHER": "Other"
+    },
     "reminders": "Reminders",
     "beforeEvent": "before event"
   },
@@ -271,6 +288,15 @@
     "forClient": "For client",
     "reminders": "Reminders",
     "beforeEvent": "before event",
+    "reminderDays": "{count, plural, one {# day} other {# days}} before event",
+    "reminderHours": "{count, plural, one {# hour} other {# hours}} before event",
+    "reminderMinutes": "{count, plural, one {# minute} other {# minutes}} before event",
+    "reminderStatus": {
+      "PENDING": "Pending",
+      "SENT": "Sent",
+      "FAILED": "Failed",
+      "CANCELLED": "Cancelled"
+    },
     "scheduledFor": "Scheduled for",
     "sentAt": "Sent at",
     "eventTypes": {

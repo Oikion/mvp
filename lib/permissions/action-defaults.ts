@@ -135,29 +135,41 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "admin:transfer_ownership": "none",
   "admin:manage_org_settings": "none",
   
+  // Activities - Read only
+  "activity:read": "all",
+  "activity:create": "none",
+  "activity:update": "none",
+  "activity:delete": "none",
+  "activity:bulk_delete": "none",
+  "activity:export": "none",
+  "activity:reassign": "none",
+  "activity:log_on_behalf": "none",
+
   // Templates - Read and use only
   "template:read": "all",
   "template:use": "none",
   "template:create": "none",
   "template:update": "none",
   "template:delete": "none",
-  
+  "template:publish": "none",
+  "template:clone": "none",
+
   // XE Portal - No access
   "xe:view_config": "none",
   "xe:manage_config": "none",
   "xe:sync_properties": "none",
   "xe:view_history": "none",
-  
+
   // N8N - No access
   "n8n:view_config": "none",
   "n8n:manage_config": "none",
   "n8n:manage_workflows": "none",
-  
+
   // Notifications - Own only
   "notification:read": "own",
   "notification:mark_read": "own",
   "notification:manage_settings": "own",
-  
+
   // Referrals - No access
   "referral:view": "none",
   "referral:apply": "none",
@@ -287,29 +299,41 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "admin:transfer_ownership": "none",
   "admin:manage_org_settings": "none",
   
+  // Activities - Create and manage own
+  "activity:read": "all",
+  "activity:create": "all",
+  "activity:update": "own",
+  "activity:delete": "own",
+  "activity:bulk_delete": "none",
+  "activity:export": "own",
+  "activity:reassign": "none",
+  "activity:log_on_behalf": "none",
+
   // Templates - Read and use
   "template:read": "all",
   "template:use": "all",
   "template:create": "none",
   "template:update": "none",
   "template:delete": "none",
-  
+  "template:publish": "none",
+  "template:clone": "all",
+
   // XE Portal - Can sync properties
   "xe:view_config": "none",
   "xe:manage_config": "none",
   "xe:sync_properties": "own",
   "xe:view_history": "own",
-  
+
   // N8N - No access
   "n8n:view_config": "none",
   "n8n:manage_config": "none",
   "n8n:manage_workflows": "none",
-  
+
   // Notifications - Own only
   "notification:read": "own",
   "notification:mark_read": "own",
   "notification:manage_settings": "own",
-  
+
   // Referrals - Can view and apply
   "referral:view": "all",
   "referral:apply": "all",
@@ -439,29 +463,41 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "admin:transfer_ownership": "none",
   "admin:manage_org_settings": "none",
   
+  // Activities - Full access
+  "activity:read": "all",
+  "activity:create": "all",
+  "activity:update": "all",
+  "activity:delete": "all",
+  "activity:bulk_delete": "all",
+  "activity:export": "all",
+  "activity:reassign": "all",
+  "activity:log_on_behalf": "all",
+
   // Templates - Full access
   "template:read": "all",
   "template:use": "all",
   "template:create": "all",
   "template:update": "all",
   "template:delete": "all",
-  
+  "template:publish": "all",
+  "template:clone": "all",
+
   // XE Portal - Full access except config
   "xe:view_config": "all",
   "xe:manage_config": "none",
   "xe:sync_properties": "all",
   "xe:view_history": "all",
-  
+
   // N8N - View only
   "n8n:view_config": "all",
   "n8n:manage_config": "none",
   "n8n:manage_workflows": "all",
-  
+
   // Notifications - Full access
   "notification:read": "all",
   "notification:mark_read": "all",
   "notification:manage_settings": "own",
-  
+
   // Referrals - Can view and track, limited admin
   "referral:view": "all",
   "referral:apply": "all",
@@ -591,29 +627,41 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "admin:transfer_ownership": "all",
   "admin:manage_org_settings": "all",
   
+  // Activities - Full access
+  "activity:read": "all",
+  "activity:create": "all",
+  "activity:update": "all",
+  "activity:delete": "all",
+  "activity:bulk_delete": "all",
+  "activity:export": "all",
+  "activity:reassign": "all",
+  "activity:log_on_behalf": "all",
+
   // Templates - Full access
   "template:read": "all",
   "template:use": "all",
   "template:create": "all",
   "template:update": "all",
   "template:delete": "all",
-  
+  "template:publish": "all",
+  "template:clone": "all",
+
   // XE Portal - Full access
   "xe:view_config": "all",
   "xe:manage_config": "all",
   "xe:sync_properties": "all",
   "xe:view_history": "all",
-  
+
   // N8N - Full access
   "n8n:view_config": "all",
   "n8n:manage_config": "all",
   "n8n:manage_workflows": "all",
-  
+
   // Notifications - Full access
   "notification:read": "all",
   "notification:mark_read": "all",
   "notification:manage_settings": "all",
-  
+
   // Referrals - Full admin access
   "referral:view": "all",
   "referral:apply": "all",

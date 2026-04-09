@@ -3,9 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
+  provider = "postgresql"
+  // Prisma 7: `url` and `directUrl` moved to prisma.config.ts
+  // Runtime connection URL is read from process.env.DATABASE_URL in lib/prisma.ts
+  // CLI operations (migrate, generate, introspect) read from prisma.config.ts
 }
 
 model AgentConnection {
@@ -108,6 +109,13 @@ model CalendarEvent {
   Clients            Clients[]            @relation("EventToClients")
   Properties         Properties[]         @relation("EventToProperties")
   Mandates           Mandate[]            @relation("EventToMandates")
+  Contacts           Contact[]            @relation("EventToContacts")
+  Requests           Request[]            @relation("EventToRequests")
+  // v2.0 Phase 3: Showing back-relation
+  Showings           PropertyShowing[]    @relation("ShowingCalendarEvent")
+  // Phase 4: explicit join tables
+  EventContacts      CalendarEventContact[] @relation("EventContacts")
+  EventAgents        CalendarEventAgent[]   @relation("EventAgents")
 
   @@unique([friendlyId, organizationId])
   @@index([assignedUserId])
@@ -187,7 +195,7 @@ model Client_Contacts {
   documentsIDs                             String[]
   organizationId                           String
   Users_Client_Contacts_assigned_toToUsers Users?             @relation("Client_Contacts_assigned_toToUsers", fields: [assigned_to], references: [id], onDelete: SetNull)
-  Clients                                  Clients?           @relation(fields: [clientsIDs], references: [id])
+  Clients                                  Clients?           @relation(fields: [clientsIDs], references: [id], onDelete: SetNull)
   Users_Client_Contacts_created_byToUsers  Users?             @relation("Client_Contacts_created_byToUsers", fields: [created_by], references: [id], onDelete: SetNull)
   Documents                                Documents[]        @relation("DocumentsToClientContacts")
 
@@ -311,56 +319,105 @@ model Clients {
 }
 
 model Deal {
-  id                 String      @id @default(uuid())
-  friendlyId         String
-  organizationId     String // SECURITY: Required for tenant isolation
-  propertyId         String
-  clientId           String
-  propertyAgentId    String?
-  clientAgentId      String?
-  propertyAgentSplit Decimal     @default(50)
-  clientAgentSplit   Decimal     @default(50)
-  totalCommission    Decimal?
-  commissionCurrency String      @default("EUR")
-  status             DealStatus  @default(PROPOSED)
-  proposedById       String?
-  title              String?
-  notes              String?
-  cancellationReason String?
-  closedAt           DateTime?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime
-  // New fields for metrics tracking
-  contractDate       DateTime? // When offer was accepted
-  hoursWorked        Decimal? // Total hours worked on this deal
-  dealType           DealType? // SELLER or BUYER transaction
-  leadSource         LeadSource? // Lead source for this deal
-  marketingSpendId   String? // Link to marketing spend
+  id             String   @id @default(cuid())
+  friendlyId     String
+  organizationId String // SECURITY: Required for tenant isolation
 
-  Users_Deal_clientAgentIdToUsers   Users?          @relation("Deal_clientAgentIdToUsers", fields: [clientAgentId], references: [id], onDelete: SetNull)
-  Clients                           Clients         @relation(fields: [clientId], references: [id])
-  Users_Deal_propertyAgentIdToUsers Users?          @relation("Deal_propertyAgentIdToUsers", fields: [propertyAgentId], references: [id], onDelete: SetNull)
-  Users_Deal_proposedByToUsers      Users?          @relation("Deal_proposedByToUsers", fields: [proposedById], references: [id], onDelete: SetNull)
-  Properties                        Properties      @relation(fields: [propertyId], references: [id])
-  MarketingSpend                    MarketingSpend? @relation(fields: [marketingSpendId], references: [id])
-  AgentHours                        AgentHours[]
+  // ── Core references ──
+  propertyId       String
+  requestId        String?          // v2.0: optional link to the Request that originated this deal
+  notaryContactId  String?          // v2.0: Contact record for the notary handling this deal
+
+  // ── Legacy client FK (kept for backward compat, DealParty is canonical) ──
+  clientId String? // Nullable for SetNull cascade safety
+
+  // ── Agent assignments ──
+  listingAgentId String? // v2.0: renamed from propertyAgentId
+  buyerAgentId   String? // v2.0: renamed from clientAgentId
+  proposedById   String?
+
+  // ── Classification ──
+  stage     DealStage    @default(INTEREST) // v2.0: 10-stage Greek RE pipeline (replaces status)
+  dealType  DealTransactionType? // v2.0: Sale | Rent (replaces old DealType SELLER/BUYER/DUAL)
+  agentRole AgentRole?   // v2.0: LISTING_SIDE | BUYER_SIDE | DUAL_AGENCY
+
+  // ── Legacy status (kept during migration, will be removed in cleanup phase) ──
+  status DealStatus @default(PROPOSED)
+
+  // ── Financial ──
+  agreedPrice        Decimal? // Final agreed sale/rent price
+  totalCommission    Decimal?
+  commissionRate     Decimal?         // Percentage rate
+  commissionCurrency String   @default("EUR")
+  commissionSplit    Json?            // v2.0: structured split {listingAgent: %, buyerAgent: %, agency: %}
+  depositAmount      Decimal?
+  depositDate        DateTime?
+  listingAgentSplit  Decimal  @default(50) // v2.0: renamed from propertyAgentSplit
+  buyerAgentSplit    Decimal  @default(50) // v2.0: renamed from clientAgentSplit
+
+  // ── Rental-specific fields ──
+  monthlyRentAmount  Decimal?
+  securityDeposit    Decimal?
+  leaseStartDate     DateTime?
+  leaseEndDate       DateTime?
+  leaseDurationMonths Int?
+
+  // ── Descriptive ──
+  title                String?
+  notes                String?
+  fallenThroughReason  String?  // v2.0: renamed from cancellationReason
+  cancellationReason   String?  // legacy, kept during migration
+
+  // ── Metrics ──
+  contractDate     DateTime?   // When offer was accepted
+  closedAt         DateTime?
+  hoursWorked      Decimal?    // Total hours worked on this deal
+  leadSource       LeadSource? // Lead source for this deal
+  marketingSpendId String?     // Link to marketing spend
+
+  // ── Audit & lifecycle ──
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // v2.0: soft delete
+
+  // ── Relations ──
+  listingAgent  Users?     @relation("Deal_listingAgentToUsers", fields: [listingAgentId], references: [id], onDelete: SetNull)
+  buyerAgent    Users?     @relation("Deal_buyerAgentToUsers", fields: [buyerAgentId], references: [id], onDelete: SetNull)
+  proposedBy    Users?     @relation("Deal_proposedByToUsers", fields: [proposedById], references: [id], onDelete: SetNull)
+  Clients       Clients?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  property      Properties @relation(fields: [propertyId], references: [id])
+  request       Request?   @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  notaryContact Contact?   @relation("DealNotaryContact", fields: [notaryContactId], references: [id], onDelete: SetNull)
+  MarketingSpend MarketingSpend? @relation(fields: [marketingSpendId], references: [id])
+
+  // ── v2.0 join tables ──
+  dealParties   DealParty[]
+  stageLogs     DealStageLog[]
+  showings      PropertyShowing[] @relation("DealShowings")
+
+  // ── Legacy relations ──
+  AgentHours AgentHours[]
 
   @@unique([friendlyId, organizationId])
-  @@index([clientAgentId])
-  @@index([clientId])
-  @@index([friendlyId])
   @@index([organizationId])
-  @@index([proposedById])
-  @@index([propertyAgentId])
   @@index([propertyId])
-  @@index([status])
+  @@index([requestId])
+  @@index([notaryContactId])
+  @@index([clientId])
+  @@index([listingAgentId])
+  @@index([buyerAgentId])
+  @@index([proposedById])
+  @@index([stage])
   @@index([dealType])
+  @@index([status]) // legacy, kept during migration
   @@index([leadSource])
   @@index([marketingSpendId])
-  @@index([createdAt]) // Performance: For sorting
-  @@index([closedAt]) // Performance: For completed deals queries
-  @@index([organizationId, status]) // Performance: Composite for common query pattern
-  @@index([organizationId, createdAt]) // Performance: Composite for listing
+  @@index([createdAt])
+  @@index([closedAt])
+  @@index([deletedAt])
+  @@index([organizationId, stage])
+  @@index([organizationId, createdAt])
+  @@map("deals")
 }
 
 model DocumentTemplate {
@@ -376,6 +433,8 @@ model DocumentTemplate {
   isActive      Boolean      @default(true)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime
+
+  OrgTemplates OrgDocumentTemplate[] @relation("OrgFromSystemTemplate")
 
   @@index([isActive])
   @@index([templateType])
@@ -447,6 +506,8 @@ model Documents {
   Properties                                     Properties[]
   crm_Accounts_Tasks_DocumentsToTasksExplicit    crm_Accounts_Tasks[] @relation("DocumentsToTasksExplicit")
   Mandates                                       Mandate[]            @relation("DocumentsToMandates")
+  Contacts                                       Contact[]            @relation("DocumentsToContacts")
+  Requests                                       Request[]            @relation("DocumentsToRequests")
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_user])
@@ -729,6 +790,14 @@ model Properties {
   daysOnMarket           Int? // Calculated days on market
   estimatedPrice         Decimal? // For CMA accuracy tracking
 
+  // ── Supply-side mandate (v2.0 — fields absorbed from Mandate entity) ──
+  mandateType      MandateType? // EXCLUSIVE, OPEN, NONE
+  mandateStartDate DateTime?
+  mandateEndDate   DateTime?
+  commissionRate   Decimal?     // Agent commission percentage
+  askingRent       Decimal?     // For dual-listed sale+rent properties
+  ownerId          String?      // FK → Contact (property owner, v2.0)
+
   // XE.gr Portal Publishing
   xePublished Boolean @default(false)
   xeRefId     String? @unique // External reference ID for XE
@@ -744,7 +813,9 @@ model Properties {
   Users_watching_properties           Users[]                   @relation("watching_properties")
   PropertyShowing                     PropertyShowing[]
   XeSyncItems                         XeSyncItem[]
+  owner                               Contact?                  @relation("PropertyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   Mandate_Properties                  Mandate_Properties[]
+  PropertyRequestMatch                PropertyRequestMatch[]
   PropertyImage                       PropertyImage[]
 
   @@unique([friendlyId, organizationId])
@@ -968,8 +1039,8 @@ model Users {
   Client_Contacts_Client_Contacts_assigned_toToUsers Client_Contacts[]             @relation("Client_Contacts_assigned_toToUsers")
   Client_Contacts_Client_Contacts_created_byToUsers  Client_Contacts[]             @relation("Client_Contacts_created_byToUsers")
   Clients_Clients_assigned_toToUsers                 Clients[]                     @relation("Clients_assigned_toToUsers")
-  Deal_Deal_clientAgentIdToUsers                     Deal[]                        @relation("Deal_clientAgentIdToUsers")
-  Deal_Deal_propertyAgentIdToUsers                   Deal[]                        @relation("Deal_propertyAgentIdToUsers")
+  Deal_Deal_listingAgentToUsers                      Deal[]                        @relation("Deal_listingAgentToUsers")
+  Deal_Deal_buyerAgentToUsers                        Deal[]                        @relation("Deal_buyerAgentToUsers")
   Deal_Deal_proposedByToUsers                        Deal[]                        @relation("Deal_proposedByToUsers")
   DocumentView                                       DocumentView[]
   Documents_Documents_assigned_userToUsers           Documents[]                   @relation("Documents_assigned_userToUsers")
@@ -1003,6 +1074,17 @@ model Users {
   identityKey                                        UserIdentityKey?
   e2eePepper                                         UserE2eePepper?
   preKeys                                            UserPreKey[]
+  // v2.0 Contact system
+  ContactsAssigned                                   Contact[]                     @relation("ContactAssignedAgent")
+  ContactComment                                     ContactComment[]              @relation("ContactComments")
+  // v2.0 Request system
+  RequestsAssigned                                   Request[]                     @relation("RequestAssignedAgent")
+  RequestComment                                     RequestComment[]              @relation("RequestComments")
+  // Phase 4 back-relations
+  ActivitiesCreated                                  Activity[]            @relation("ActivityCreatedBy")
+  ActivitiesAssigned                                 Activity[]            @relation("ActivityAssignedTo")
+  OrgTemplatesCreated                                OrgDocumentTemplate[] @relation("OrgTemplateCreatedBy")
+  CalendarEventAgents                                CalendarEventAgent[]  @relation("AgentCalendarEvents")
 
   @@index([clerkUserId])
   @@index([email])
@@ -1027,7 +1109,7 @@ model crm_Accounts_Tasks {
   account                               String?
   calendarEventId                       String?
   organizationId                        String
-  Clients                               Clients?                      @relation(fields: [account], references: [id])
+  Clients                               Clients?                      @relation(fields: [account], references: [id], onDelete: SetNull)
   CalendarEvent                         CalendarEvent?                @relation(fields: [calendarEventId], references: [id])
   Users                                 Users?                        @relation(fields: [user], references: [id], onDelete: SetNull)
   crm_Accounts_Tasks_Comments           crm_Accounts_Tasks_Comments[]
@@ -1131,27 +1213,62 @@ model AgentHours {
 }
 
 model PropertyShowing {
-  id             String        @id @default(uuid())
+  id             String @id @default(cuid())
   organizationId String
   propertyId     String
-  clientId       String? // Client who was shown the property
-  agentId        String // Agent who conducted the showing
-  showingDate    DateTime      @default(now())
-  result         ShowingResult @default(NO_INTEREST)
-  notes          String?
-  duration       Int? // Duration in minutes
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
 
-  Properties Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  Clients    Clients?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  // ── Legacy FK (kept for backward compat, use primaryContactId for v2.0) ──
+  clientId String? // Client who was shown the property
+
+  // ── v2.0 references ──
+  primaryContactId String? // v2.0: Contact record for the primary viewer
+  requestId        String? // v2.0: Request that triggered this showing
+  calendarEventId  String? // v2.0: Linked calendar event
+  dealId           String? // v2.0: Linked deal (if showing is part of a deal)
+  agentId          String  // Agent who conducted the showing (plain String, no FK)
+
+  // ── Scheduling ──
+  showingDate DateTime      @default(now()) // legacy, kept for backward compat
+  scheduledAt DateTime?     // v2.0: planned date/time
+  conductedAt DateTime?     // v2.0: actual date/time (null if not yet conducted)
+  duration    Int?          // Duration in minutes
+
+  // ── Status & outcome ──
+  result        ShowingResult  @default(NO_INTEREST) // legacy
+  showingStatus ShowingStatus  @default(SCHEDULED)   // v2.0: lifecycle status
+  interestLevel InterestLevel? // v2.0: buyer interest after viewing
+  feedback      String?        // v2.0: detailed feedback from the showing
+  followUpAction String?       // v2.0: next steps after the showing
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ── Relations ──
+  property       Properties     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  Clients        Clients?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  primaryContact Contact?       @relation("ShowingPrimaryContact", fields: [primaryContactId], references: [id], onDelete: SetNull)
+  request        Request?       @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  calendarEvent  CalendarEvent? @relation("ShowingCalendarEvent", fields: [calendarEventId], references: [id], onDelete: SetNull)
+  deal           Deal?          @relation("DealShowings", fields: [dealId], references: [id], onDelete: SetNull)
+
+  // ── v2.0 join table ──
+  attendees ShowingAttendee[]
 
   @@index([organizationId])
   @@index([propertyId])
   @@index([clientId])
+  @@index([primaryContactId])
+  @@index([requestId])
+  @@index([calendarEventId])
+  @@index([dealId])
   @@index([agentId])
   @@index([showingDate])
+  @@index([scheduledAt])
   @@index([result])
+  @@index([showingStatus])
+  @@index([organizationId, showingStatus])
+  @@map("property_showings")
 }
 
 model MarketData {
@@ -1220,10 +1337,89 @@ enum ShowingResult {
   CONTRACT_SIGNED
 }
 
+/// Legacy DealType — kept for backward compat during migration.
+/// v2.0 uses DealTransactionType + AgentRole instead.
 enum DealType {
   SELLER // Listing side transaction
   BUYER // Buyer side transaction
   DUAL // Both sides (dual agency)
+}
+
+// ============================================
+// v2.0 DEAL PIPELINE ENUMS (Phase 3)
+// ============================================
+
+/// 10-stage Greek real estate deal pipeline.
+/// Maps to the actual lifecycle of a property transaction in Greece:
+/// INTEREST → client expresses interest → OFFER → formal offer submitted →
+/// NEGOTIATION → price/terms negotiation → PRELIMINARY_AGREEMENT → symvasi prokatavoli →
+/// DUE_DILIGENCE → legal/technical checks → TRANSFER_TAX → tax payment at DOY →
+/// SIGNING → notarial deed signing → REGISTRATION → cadastral registration →
+/// COMPLETED → deal closed | FALLEN_THROUGH → deal terminated at any stage.
+enum DealStage {
+  INTEREST
+  OFFER
+  NEGOTIATION
+  PRELIMINARY_AGREEMENT
+  DUE_DILIGENCE
+  TRANSFER_TAX
+  SIGNING
+  REGISTRATION
+  COMPLETED
+  FALLEN_THROUGH
+}
+
+/// Transaction type — orthogonal to agent role.
+enum DealTransactionType {
+  SALE
+  RENT
+}
+
+/// Agent's role in the deal — orthogonal to transaction type.
+enum AgentRole {
+  LISTING_SIDE
+  BUYER_SIDE
+  DUAL_AGENCY
+}
+
+/// Role of a party (Contact) in a deal.
+enum DealPartyRole {
+  BUYER
+  SELLER
+  TENANT
+  LANDLORD
+  BUYER_AGENT
+  LISTING_AGENT
+  NOTARY
+  LAWYER
+  ACCOUNTANT
+  GUARANTOR
+  REPRESENTATIVE
+  OTHER
+}
+
+// ============================================
+// v2.0 SHOWING ENUMS (Phase 3)
+// ============================================
+
+/// Lifecycle status for property showings.
+enum ShowingStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  RESCHEDULED
+}
+
+/// Buyer interest level after a showing.
+enum InterestLevel {
+  NOT_INTERESTED
+  SLIGHTLY_INTERESTED
+  INTERESTED
+  VERY_INTERESTED
+  READY_TO_OFFER
 }
 
 // ============================================
@@ -2982,6 +3178,9 @@ model OrganizationSettings {
   policyVersion          Int               @default(1)
   policyHistory          Json?             // [{mode: "AGENCY"|"AGENT", from: ISO, to: ISO|null}]
 
+  // v2.0 Contact Pipeline Customisation
+  contactPipelineConfig Json? // [{stage: "LEAD", label: "New Lead", visible: true, order: 1, color: "#..."}]
+
   @@index([organizationId])
   @@index([databaseSiloEnabled])
 }
@@ -3498,4 +3697,696 @@ model DocFeedback {
   @@index([pageSlug, locale])
   @@index([docScope])
   @@map("doc_feedback")
+}
+
+// ─────────────────────────────────────────────
+// Entity Architecture v2.0 — Contact System
+// ─────────────────────────────────────────────
+
+/// Phonebook-style master record for every person or organisation an agency
+/// interacts with. Replaces the v1.0 Clients model with multi-role categories,
+/// richer CRM pipeline, and Greek business field support.
+model Contact {
+  id             String   @id @default(cuid())
+  friendlyId     String?
+  organizationId String
+
+  // ── Name ──
+  firstName   String? // encrypted
+  lastName    String? // encrypted
+  displayName String  // encrypted, auto-generated from first+last or companyName
+  isCompany   Boolean @default(false)
+  companyName String? // encrypted, required if isCompany
+
+  // ── Classification ──
+  category   ContactCategory[] // multi-select roles
+  status     ContactStatus     @default(LEAD)
+  source     ContactSource?
+  visibility ItemVisibility    @default(PRIVATE)
+
+  // ── Contact info (encrypted) ──
+  email          String? // primary email
+  secondaryEmail String?
+  primaryPhone   String?
+  secondaryPhone String?
+  officePhone    String?
+  whatsapp       String?
+  viber          String?
+
+  // ── Greek business fields (encrypted) ──
+  taxId      String? // ΑΦΜ
+  doy        String? // Δ.Ο.Υ. (tax office)
+  vatNumber  String? // ΦΠΑ number (may differ from ΑΦΜ for companies)
+  companyGemi String? // ΓΕΜΗ (General Electronic Commercial Registry)
+  companyId  String? // Company registration number
+  idDocument String? // ID document number (passport / ταυτότητα)
+
+  // ── Address (JSON array supporting billing + shipping) ──
+  addresses Json? // [{type: "billing"|"shipping", street, city, postalCode, municipality, country}]
+
+  // ── CRM fields ──
+  assignedAgentId    String? // FK → User
+  languagePreference Language?
+  tags               String[]
+  leadScore          Int?
+  doNotContact       Boolean  @default(false)
+  gdprConsentGiven   Boolean  @default(false)
+  gdprConsentDate    DateTime?
+  allowMarketing     Boolean  @default(false)
+  lastContactedAt    DateTime?
+  nextFollowUpAt     DateTime?
+  referredById       String? // self-referential FK → Contact
+  notes              String? // encrypted, freeform internal notes
+  communicationNotes Json?   // encrypted, structured communication log
+
+  // ── Audit & lifecycle ──
+  createdBy  String?
+  updatedBy  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime? // soft delete
+
+  // ── Migration traceability ──
+  legacyClientId String? // maps back to Clients.id for FK rewiring
+
+  // ── Relations ──
+  assignedAgent Users? @relation("ContactAssignedAgent", fields: [assignedAgentId], references: [id], onDelete: SetNull)
+  referredBy    Contact?  @relation("ContactReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals     Contact[] @relation("ContactReferrals")
+
+  contactComments          ContactComment[]
+  contactRelationshipsA    ContactRelationship[] @relation("ContactRelationshipA")
+  contactRelationshipsB    ContactRelationship[] @relation("ContactRelationshipB")
+  requestContacts          RequestContact[]       // M2M — requests this contact is linked to
+  ownedProperties          Properties[]          @relation("PropertyOwner")
+  CalendarEvent            CalendarEvent[]        @relation("EventToContacts")
+  Documents                Documents[]            @relation("DocumentsToContacts")
+  // v2.0 Phase 3: Deal + Showing relations
+  dealsAsNotary            Deal[]                @relation("DealNotaryContact")
+  dealParties              DealParty[]
+  showingsAsPrimary        PropertyShowing[]     @relation("ShowingPrimaryContact")
+  showingAttendances       ShowingAttendee[]
+  // Phase 4: explicit calendar join tables
+  calendarEventContacts    CalendarEventContact[] @relation("ContactEvents")
+
+  @@unique([friendlyId, organizationId])
+  @@index([organizationId])
+  @@index([assignedAgentId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([visibility])
+  @@index([legacyClientId])
+  @@index([referredById])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@map("contacts")
+}
+
+/// Comments on contacts, with optional E2EE support.
+model ContactComment {
+  id              String   @id @default(cuid())
+  contactId       String
+  userId          String?
+  content         String
+  entitySessionId String? // Megolm session ID for E2EE
+  messageIndex    Int? // Megolm message index for E2EE
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  user    Users?  @relation("ContactComments", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([contactId])
+  @@index([userId])
+  @@map("contact_comments")
+}
+
+/// Self-referential M2M for contact-to-contact relationships.
+/// Replaces the v1.0 Client_Contacts sub-contact model with peer relationships.
+model ContactRelationship {
+  id               String                    @id @default(cuid())
+  organizationId   String
+  contactIdA       String
+  contactIdB       String
+  relationshipType ContactRelationshipType
+  notes            String?
+  createdAt        DateTime                  @default(now())
+
+  contactA Contact @relation("ContactRelationshipA", fields: [contactIdA], references: [id], onDelete: Cascade)
+  contactB Contact @relation("ContactRelationshipB", fields: [contactIdB], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, contactIdA, contactIdB, relationshipType])
+  @@index([organizationId])
+  @@index([contactIdA])
+  @@index([contactIdB])
+  @@map("contact_relationships")
+}
+
+// ── Contact Enums ──
+
+enum ContactCategory {
+  OWNER
+  BUYER
+  TENANT
+  SELLER
+  INVESTOR
+  BROKER
+  COLLEAGUE
+  NOTARY
+  LAWYER
+  ACCOUNTANT
+  OTHER
+}
+
+/// CRM pipeline status. Default stages are provided; agencies can
+/// customise display labels, visibility, and order via
+/// OrganizationSettings.contactPipelineConfig (JSON).
+enum ContactStatus {
+  LEAD
+  CONTACTED
+  QUALIFIED
+  ACTIVE
+  UNDER_CONTRACT
+  COMPLETED
+  ON_HOLD
+  INACTIVE
+}
+
+enum ContactSource {
+  PORTAL_LEAD
+  REFERRAL
+  WALK_IN
+  COLD_CALL
+  SOCIAL_MEDIA
+  WEB
+  OTHER
+}
+
+enum ContactRelationshipType {
+  SPOUSE
+  CO_BUYER
+  CO_OWNER
+  EMPLOYER
+  PARENT
+  CHILD
+  COLLEAGUE
+  LEGAL_REPRESENTATIVE
+  OTHER
+}
+
+// ============================================
+// REQUESTS MODULE (v2.0 — replaces Mandates)
+// ============================================
+
+/// A demand-side search brief: what a contact is looking to buy or rent.
+/// Replaces the v1.0 Mandate model with richer criteria, scoring, and PostGIS-ready location fields.
+model Request {
+  id             String   @id @default(cuid())
+  friendlyId     String?
+  organizationId String
+
+  // ── Assignment ──
+  assignedAgentId String? // FK → User
+
+  // ── Classification ──
+  requestType      RequestType          // BUY or RENT
+  propertyCategory PropertyPurpose?     // Residential, Commercial, Land, etc.
+  propertyTypes    PropertyType[]       // Multi-select (apartment, house, etc.)
+  status           RequestStatus        @default(ACTIVE)
+  urgency          RequestUrgency?      @default(MEDIUM)
+  closureReason    ClosureReason?       // Only set when status = CLOSED
+
+  // ── Budget ──
+  budgetMin Decimal?
+  budgetMax Decimal?
+
+  // ── Size criteria ──
+  surfaceMin  Decimal? // sqm
+  surfaceMax  Decimal?
+  plotSizeMin Decimal? // Greek land / plot searches
+  plotSizeMax Decimal?
+
+  // ── Room criteria ──
+  bedroomsMin  Int?
+  bedroomsMax  Int?
+  bathroomsMin Int?
+  bathroomsMax Int?
+
+  // ── Floor criteria ──
+  floorMin        Int?
+  floorMax        Int?
+  groundFloorOnly Boolean @default(false)
+
+  // ── Construction ──
+  constructionYearMin Int?
+  constructionYearMax Int?
+
+  // ── Features (first-class fields, not JSON blobs) ──
+  conditionPreference PropertyCondition[]
+  heatingTypes        HeatingType[]
+  energyClassMin      EnergyCertClass?
+  furnished           FurnishedStatus?
+  requiresElevator    Boolean?
+  requiresParking     Boolean?
+  requiresStorage     Boolean?
+  requiresGarden      Boolean?
+  petFriendly         Boolean?
+  requiresAC          Boolean?
+  insideCityPlan      Boolean? // εντός σχεδίου πόλεως
+  legalizationOk      Boolean? // accepts τακτοποίηση
+  amenities           Json?    // Flexible amenity preferences
+  viewTypes           String[] // sea, mountain, city, park, etc.
+  orientationPref     String[] // N, S, E, W, NE, NW, SE, SW
+  balconyMinSqm       Decimal?
+
+  // ── Location (text + PostGIS-ready) ──
+  locationDisplayName String? // Human-readable location summary
+  areasOfInterest     Json?   // Structured area preferences [{name, type}]
+  municipality        String?
+  region              String?
+  centerLatitude      Float?
+  centerLongitude     Float?
+  radiusKm            Float?
+  // PostGIS columns (added via raw SQL migration when PostGIS is enabled):
+  // locationCenter  GEOGRAPHY(POINT, 4326)
+  // searchArea      GEOGRAPHY(POLYGON, 4326)
+
+  // ── Investment context ──
+  isInvestmentPurpose Boolean?
+  expectedYieldPct    Decimal?
+  goldenVisaEligible  Boolean?
+  financingStatus     FinancingStatus?
+  auctionInterest     Boolean?
+
+  // ── Timeline ──
+  timeline  Timeline?
+  expiresAt DateTime?
+
+  // ── Title & Notes (encrypted) ──
+  title              String? // Human-readable title for the search brief (encrypted)
+  notes              String?
+  communicationNotes Json?
+
+  // ── Visibility & draft ──
+  visibility  ItemVisibility @default(PRIVATE)
+  draftStatus Boolean?       @default(false)
+
+  // ── Audit & lifecycle ──
+  createdBy String?
+  updatedBy String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // soft delete
+
+  // ── Migration traceability ──
+  legacyMandateId String? // maps back to Mandate.id for FK rewiring
+
+  // ── Relations ──
+  assignedAgent    Users?             @relation("RequestAssignedAgent", fields: [assignedAgentId], references: [id], onDelete: SetNull)
+  requestContacts  RequestContact[]   // M2M — contacts linked to this request
+  requestComments  RequestComment[]
+  propertyMatches  PropertyRequestMatch[]
+  CalendarEvent    CalendarEvent[]    @relation("EventToRequests")
+  Documents        Documents[]        @relation("DocumentsToRequests")
+  // v2.0 Phase 3: Deal + Showing back-relations
+  deals            Deal[]
+  showings         PropertyShowing[]
+
+  @@unique([friendlyId, organizationId])
+  @@index([organizationId])
+  @@index([assignedAgentId])
+  @@index([status])
+  @@index([requestType])
+  @@index([createdAt])
+  @@index([visibility])
+  @@index([legacyMandateId])
+  @@index([organizationId, status])
+  @@index([organizationId, requestType])
+  @@map("requests")
+}
+
+/// Comments on requests, with optional E2EE support.
+model RequestComment {
+  id              String   @id @default(cuid())
+  requestId       String
+  userId          String?
+  content         String
+  entitySessionId String? // Megolm session ID for E2EE
+  messageIndex    Int?    // Megolm message index for E2EE
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  request Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user    Users?  @relation("RequestComments", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([requestId])
+  @@index([userId])
+  @@map("request_comments")
+}
+
+/// Many-to-many join between Request and Contact.
+/// A Request can exist without any contacts; contacts relate as peers with optional roles.
+model RequestContact {
+  id             String   @id @default(cuid())
+  organizationId String
+  requestId      String
+  contactId      String
+  role           String?  // e.g., "buyer", "co-buyer", "representative", "tenant"
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  request Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, contactId])
+  @@index([organizationId])
+  @@index([requestId])
+  @@index([contactId])
+  @@map("request_contacts")
+}
+
+/// Tracks property-to-request matches with scoring and status.
+/// Replaces the simple Mandate_Properties join table.
+model PropertyRequestMatch {
+  id             String   @id @default(cuid())
+  organizationId String
+  propertyId     String
+  requestId      String
+
+  matchScore      Decimal?        // 0.0 – 1.0
+  matchMethod     MatchMethod?    // How the match was generated
+  status          MatchStatus     @default(PENDING) // Pipeline tracking
+  presentedAt     DateTime?       // When shown to buyer/agent
+  dismissedAt     DateTime?
+  dismissalReason DismissalReason?
+  agentNotes      String?         // Internal notes about this match
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  property Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  request  Request    @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, propertyId, requestId])
+  @@index([organizationId])
+  @@index([propertyId])
+  @@index([requestId])
+  @@index([status])
+  @@map("property_request_matches")
+}
+
+// ── Request Enums ──
+
+enum RequestType {
+  BUY
+  RENT
+}
+
+enum RequestStatus {
+  ACTIVE
+  MATCHED
+  UNDER_OFFER
+  CLOSED
+  PAUSED
+}
+
+enum RequestUrgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ClosureReason {
+  MATCHED
+  EXPIRED
+  CANCELLED
+  OTHER
+}
+
+enum MatchMethod {
+  RULE_BASED
+  AI
+  MANUAL
+}
+
+enum MatchStatus {
+  PENDING
+  PRESENTED
+  INTERESTED
+  DISMISSED
+}
+
+enum DismissalReason {
+  PRICE_TOO_HIGH
+  WRONG_LOCATION
+  WRONG_TYPE
+  CLIENT_DECLINED
+  OTHER
+}
+
+enum FinancingStatus {
+  CASH
+  MORTGAGE_PREAPPROVED
+  MORTGAGE_PENDING
+  SEEKING_FINANCING
+  UNKNOWN
+}
+
+// ============================================
+// DEAL JOIN TABLES (v2.0 Phase 3)
+// ============================================
+
+/// M2M: links Contacts to Deals as named parties (buyer, seller, lawyer, notary, etc.).
+/// Replaces the single clientId FK with a flexible party model.
+model DealParty {
+  id             String        @id @default(cuid())
+  organizationId String
+  dealId         String
+  contactId      String
+  role           DealPartyRole
+  notes          String?
+  createdAt      DateTime      @default(now())
+
+  deal    Deal    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([dealId, contactId, role])
+  @@index([organizationId])
+  @@index([dealId])
+  @@index([contactId])
+  @@index([role])
+  @@map("deal_parties")
+}
+
+/// Immutable audit trail: every deal stage transition is logged.
+model DealStageLog {
+  id        String    @id @default(cuid())
+  dealId    String
+  fromStage DealStage
+  toStage   DealStage
+  changedBy String?   // User ID who triggered the transition
+  notes     String?   // Optional reason or context
+  changedAt DateTime  @default(now())
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId])
+  @@index([changedAt])
+  @@map("deal_stage_logs")
+}
+
+// ============================================
+// SHOWING JOIN TABLE (v2.0 Phase 3)
+// ============================================
+
+/// M2M: additional attendees for a property showing beyond the primary contact.
+model ShowingAttendee {
+  id        String  @id @default(cuid())
+  showingId String
+  contactId String
+  role      String? // e.g., "buyer", "co-buyer", "spouse", "representative"
+  notes     String?
+  createdAt DateTime @default(now())
+
+  showing PropertyShowing @relation(fields: [showingId], references: [id], onDelete: Cascade)
+  contact Contact         @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([showingId, contactId])
+  @@index([showingId])
+  @@index([contactId])
+  @@map("showing_attendees")
+}
+
+// ── Supply-side Mandate Type (on Property) ──
+
+enum MandateType {
+  EXCLUSIVE
+  OPEN
+  NONE
+}
+
+// ============================================
+// PHASE 4 — Activities, Org Document Templates, Calendar Join Tables
+// ============================================
+
+// ─────────────────────────────────────────────
+// Phase 4 — Activity
+// ─────────────────────────────────────────────
+
+enum ActivityKind {
+  EMAIL
+  CALL
+  MEETING
+  NOTE
+  TASK
+  SHOWING
+  DOCUMENT
+  OTHER
+}
+
+enum ActivityDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+enum ActivityParentType {
+  CONTACT
+  REQUEST
+  DEAL
+  PROPERTY
+  SHOWING
+}
+
+model Activity {
+  id               String             @id @default(cuid())
+  organizationId   String
+  parentType       ActivityParentType
+  parentId         String
+  kind             ActivityKind
+  direction        ActivityDirection  @default(INTERNAL)
+  subject          String?
+  body             String?
+  durationMin      Int?
+  outcome          String?
+  scheduledAt      DateTime?
+  occurredAt       DateTime           @default(now())
+  createdByUserId  String?
+  assignedToUserId String?
+  deletedAt        DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  CreatedBy  Users? @relation("ActivityCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  AssignedTo Users? @relation("ActivityAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([organizationId, parentType, parentId])
+  @@index([organizationId, kind])
+  @@index([createdByUserId])
+  @@index([assignedToUserId])
+  @@index([deletedAt])
+  @@map("activities")
+}
+
+// ─────────────────────────────────────────────
+// Phase 4 — Org Document Templates
+// ─────────────────────────────────────────────
+
+enum DocTemplateCategory {
+  LISTING_AGREEMENT
+  BUYER_AGREEMENT
+  OFFER
+  COUNTER_OFFER
+  PURCHASE_CONTRACT
+  TRANSFER_DEED
+  POWER_OF_ATTORNEY
+  NDA
+  GENERAL
+}
+
+model OrgDocumentTemplate {
+  id              String              @id @default(cuid())
+  organizationId  String
+  name            String
+  nameEl          String?
+  nameEn          String?
+  category        DocTemplateCategory @default(GENERAL)
+  body            Json
+  placeholders    Json                @default("[]")
+  version         Int                 @default(1)
+  isPublished     Boolean             @default(false)
+  baseTemplateId  String?
+  createdByUserId String?
+  deletedAt       DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  BaseTemplate DocumentTemplate? @relation("OrgFromSystemTemplate", fields: [baseTemplateId], references: [id], onDelete: SetNull)
+  CreatedBy    Users?             @relation("OrgTemplateCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([organizationId, category])
+  @@index([organizationId, isPublished])
+  @@index([createdByUserId])
+  @@map("org_document_templates")
+}
+
+// ─────────────────────────────────────────────
+// Phase 4 — Calendar Explicit Join Tables
+// ─────────────────────────────────────────────
+
+enum EventContactRole {
+  ATTENDEE
+  BUYER
+  SELLER
+  WITNESS
+  NOTARY
+  AGENT
+  OTHER
+}
+
+enum RsvpStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  TENTATIVE
+}
+
+model CalendarEventContact {
+  id         String           @id @default(cuid())
+  eventId    String
+  contactId  String
+  role       EventContactRole @default(ATTENDEE)
+  rsvpStatus RsvpStatus       @default(PENDING)
+  note       String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  Event   CalendarEvent @relation("EventContacts", fields: [eventId], references: [id], onDelete: Cascade)
+  Contact Contact       @relation("ContactEvents", fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, contactId])
+  @@index([eventId])
+  @@index([contactId])
+  @@map("calendar_event_contacts")
+}
+
+model CalendarEventAgent {
+  id         String     @id @default(cuid())
+  eventId    String
+  userId     String
+  role       String?
+  rsvpStatus RsvpStatus @default(PENDING)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  Event CalendarEvent @relation("EventAgents", fields: [eventId], references: [id], onDelete: Cascade)
+  User  Users         @relation("AgentCalendarEvents", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("calendar_event_agents")
 }

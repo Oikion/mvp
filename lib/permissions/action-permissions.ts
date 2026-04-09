@@ -107,6 +107,20 @@ export type DealAction =
   | "deal:propose_terms";
 
 // =============================================================================
+// ACTIVITIES MODULE
+// =============================================================================
+
+export type ActivityAction =
+  | "activity:read"
+  | "activity:create"
+  | "activity:update"
+  | "activity:delete"
+  | "activity:bulk_delete"
+  | "activity:export"
+  | "activity:reassign"
+  | "activity:log_on_behalf";
+
+// =============================================================================
 // MATCHMAKING MODULE
 // =============================================================================
 
@@ -166,7 +180,9 @@ export type TemplateAction =
   | "template:use"
   | "template:create"
   | "template:update"
-  | "template:delete";
+  | "template:delete"
+  | "template:publish"
+  | "template:clone";
 
 // =============================================================================
 // XE PORTAL MODULE
@@ -231,6 +247,7 @@ export type ActionPermission =
   | DocumentAction
   | ReportAction
   | DealAction
+  | ActivityAction
   | MatchmakingAction
   | SocialAction
   | TaskAction
@@ -320,6 +337,16 @@ export const ACTION_MODULES = {
     "deal:complete",
     "deal:propose_terms",
   ] as const,
+  activity: [
+    "activity:read",
+    "activity:create",
+    "activity:update",
+    "activity:delete",
+    "activity:bulk_delete",
+    "activity:export",
+    "activity:reassign",
+    "activity:log_on_behalf",
+  ] as const,
   matchmaking: [
     "matchmaking:view",
     "matchmaking:run",
@@ -361,6 +388,8 @@ export const ACTION_MODULES = {
     "template:create",
     "template:update",
     "template:delete",
+    "template:publish",
+    "template:clone",
   ] as const,
   xe: [
     "xe:view_config",
@@ -542,12 +571,24 @@ export const ACTION_DESCRIPTIONS: Record<ActionPermission, string> = {
   "admin:transfer_ownership": "Transfer organization ownership",
   "admin:manage_org_settings": "Manage organization settings",
   
+  // Activity actions
+  "activity:read": "View activity logs",
+  "activity:create": "Log new activities",
+  "activity:update": "Edit activity records",
+  "activity:delete": "Delete activity records",
+  "activity:bulk_delete": "Bulk delete activities",
+  "activity:export": "Export activity data",
+  "activity:reassign": "Reassign activities to another agent",
+  "activity:log_on_behalf": "Log activities on behalf of another agent",
+
   // Template actions
   "template:read": "View document templates",
   "template:use": "Use templates to generate documents",
   "template:create": "Create new templates",
   "template:update": "Edit templates",
   "template:delete": "Delete templates",
+  "template:publish": "Publish templates to the organization",
+  "template:clone": "Clone templates from system or org library",
   
   // XE portal actions
   "xe:view_config": "View XE.gr integration settings",

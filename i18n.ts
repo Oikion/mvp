@@ -42,6 +42,8 @@ import encryptionEn from "./locales/en/encryption.json";
 import importDataEn from "./locales/en/import.json";
 import landingEn from "./locales/en/landing.json";
 import docsEn from "./locales/en/docs.json";
+import activitiesEn from "./locales/en/activities.json";
+import documentTemplatesEn from "./locales/en/document-templates.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -84,6 +86,8 @@ import encryptionEl from "./locales/el/encryption.json";
 import importDataEl from "./locales/el/import.json";
 import landingEl from "./locales/el/landing.json";
 import docsEl from "./locales/el/docs.json";
+import activitiesEl from "./locales/el/activities.json";
+import documentTemplatesEl from "./locales/el/document-templates.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -136,6 +140,8 @@ function loadMessages(locale: string) {
     messages.import = importDataEl;
     messages.landing = landingEl;
     messages.docs = docsEl;
+    messages.activities = activitiesEl;
+    messages["document-templates"] = documentTemplatesEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -190,6 +196,8 @@ function loadMessages(locale: string) {
     messages.import = importDataEn;
     messages.landing = landingEn;
     messages.docs = docsEn;
+    messages.activities = activitiesEn;
+    messages["document-templates"] = documentTemplatesEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))

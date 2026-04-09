@@ -57,7 +57,7 @@ export { useCalendarEvents, getCalendarEventsKey } from "./useCalendarEvents";
 
 // Calendar Event (Single)
 export { useCalendarEvent, getCalendarEventKey } from "./useCalendarEvent";
-export type { CalendarEventDetail } from "./useCalendarEvent";
+export type { CalendarEventDetail, EventContactAttendee, EventAgentAttendee } from "./useCalendarEvent";
 
 // Event Invitations
 export {
@@ -277,3 +277,28 @@ export {
   getEntityTagsKey,
 } from "./useTags";
 export type { Tag } from "./useTags";
+
+// ============================================================
+// Activities (Phase 4)
+// ============================================================
+
+export { useActivities } from "./useActivities";
+export type {
+  Activity,
+  ActivityUser,
+  ActivityKind,
+  ActivityDirection,
+  ActivityParentType,
+  UseActivitiesOptions,
+} from "./useActivities";
+
+// ============================================================
+// Document Templates (Phase 4)
+// ============================================================
+
+export { useDocumentTemplates } from "./useDocumentTemplates";
+export type {
+  DocumentTemplate,
+  DocTemplateCategory,
+  UseDocumentTemplatesOptions,
+} from "./useDocumentTemplates";

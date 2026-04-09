@@ -386,7 +386,11 @@
       "linkRequests": "Σύνδεση Αιτημάτων",
       "linkRequestsDescription": "Επιλέξτε αιτήματα για σύνδεση με αυτή την επαφή.",
       "linkProperties": "Σύνδεση Ακινήτων",
-      "linkPropertiesDescription": "Επιλέξτε ακίνητα που ανήκουν σε αυτή την επαφή."
+      "linkPropertiesDescription": "Επιλέξτε ακίνητα που ανήκουν σε αυτή την επαφή.",
+      "tabs": {
+        "overview": "Επισκόπηση",
+        "activity": "Δραστηριότητα"
+      }
     },
     "searchPlaceholder": "Αναζήτηση επαφών...",
     "table": {
