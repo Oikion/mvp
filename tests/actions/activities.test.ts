@@ -95,15 +95,33 @@ describe("createActivity", () => {
     expect(requireAction).toHaveBeenCalledWith("activity:create");
   });
 
-  it("throws when permission guard returns error", async () => {
+  it("returns error when permission guard denies", async () => {
     (requireAction as ReturnType<typeof vi.fn>).mockResolvedValue({
       success: false,
       error: "Permission denied",
       code: "FORBIDDEN",
     });
-    await expect(
-      createActivity({ parentType: "CONTACT", parentId: "cont-1", kind: "NOTE" })
-    ).rejects.toThrow("Permission denied");
+    const result = await createActivity({
+      parentType: "CONTACT",
+      parentId: "cont-1",
+      kind: "NOTE",
+    });
+    expect(result).toMatchObject({ success: false, error: "Permission denied" });
+  });
+
+  it("ignores client-supplied organizationId", async () => {
+    await createActivity({
+      organizationId: "org-attacker",
+      parentType: "CONTACT",
+      parentId: "cont-1",
+      kind: "NOTE",
+      direction: "INTERNAL",
+    });
+    expect(prismadb.activity.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ organizationId: "org-1" }),
+      })
+    );
   });
 });
 
@@ -168,11 +186,10 @@ describe("updateActivity", () => {
     });
   });
 
-  it("throws not found when activity does not exist", async () => {
+  it("returns not found error when activity does not exist", async () => {
     (prismadb.activity.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-    await expect(updateActivity("nonexistent", { subject: "Updated" })).rejects.toThrow(
-      "Not found"
-    );
+    const result = await updateActivity("nonexistent", { subject: "Updated" });
+    expect(result).toMatchObject({ success: false, error: "Activity not found" });
   });
 
   it("checks ownership via requireActionOnEntity", async () => {
@@ -190,6 +207,15 @@ describe("updateActivity", () => {
     expect(prismadb.activity.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ organizationId: "org-1", deletedAt: null }),
+      })
+    );
+  });
+
+  it("includes organizationId in the update where clause", async () => {
+    await updateActivity("act-1", { subject: "Updated" });
+    expect(prismadb.activity.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: "act-1", organizationId: "org-1" }),
       })
     );
   });
@@ -213,8 +239,17 @@ describe("deleteActivity", () => {
     await deleteActivity("act-1");
     expect(prismadb.activity.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: "act-1" },
+        where: expect.objectContaining({ id: "act-1" }),
         data: expect.objectContaining({ deletedAt: expect.any(Date) }),
+      })
+    );
+  });
+
+  it("includes organizationId in the soft-delete where clause", async () => {
+    await deleteActivity("act-1");
+    expect(prismadb.activity.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: "act-1", organizationId: "org-1" }),
       })
     );
   });
@@ -224,13 +259,14 @@ describe("deleteActivity", () => {
     expect((prismadb.activity as Record<string, unknown>).delete).toBeUndefined();
   });
 
-  it("throws not found when activity does not exist", async () => {
+  it("returns not found error when activity does not exist", async () => {
     (prismadb.activity.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-    await expect(deleteActivity("nonexistent")).rejects.toThrow("Not found");
+    const result = await deleteActivity("nonexistent");
+    expect(result).toMatchObject({ success: false, error: "Activity not found" });
   });
 
   it("returns success true", async () => {
     const result = await deleteActivity("act-1");
-    expect(result).toEqual({ success: true });
+    expect(result).toMatchObject({ success: true });
   });
 });
