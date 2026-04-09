@@ -108,30 +108,20 @@ export const listOrgDocumentTemplatesSchema = z
 // Alias schemas aligned with plan naming (used by server actions / route handlers)
 // =============================================================================
 
-/** Alias for action-layer code that omits organizationId (extracted from auth context). */
-export const createDocumentTemplateSchema = z
-  .object({
-    name: z.string().min(1, "Name is required").max(255),
-    nameEl: z.string().max(255).optional(),
-    nameEn: z.string().max(255).optional(),
-    category: docTemplateCategorySchema.default("GENERAL"),
-    body: z.record(z.unknown()),
-    placeholders: z.array(z.unknown()).default([]),
-    baseTemplateId: z.string().cuid().optional(),
-  })
-  .strict();
+/**
+ * Action-layer create schema — derived from createOrgDocumentTemplateSchema
+ * with organizationId omitted (extracted from auth context instead).
+ * Retains isPublished, version, and baseTemplateId from the org-level schema.
+ */
+export const createDocumentTemplateSchema =
+  createOrgDocumentTemplateSchema.omit({ organizationId: true });
 
-export const updateDocumentTemplateSchema = z
-  .object({
-    name: z.string().min(1, "Name is required").max(255).optional(),
-    nameEl: z.string().max(255).optional(),
-    nameEn: z.string().max(255).optional(),
-    category: docTemplateCategorySchema.optional(),
-    body: z.record(z.unknown()).optional(),
-    placeholders: z.array(z.unknown()).optional(),
-    isPublished: z.boolean().optional(),
-  })
-  .strict();
+/**
+ * Action-layer update schema — derived from updateOrgDocumentTemplateSchema
+ * (organizationId is not present on the update schema; version and
+ * baseTemplateId are preserved from the org-level shape).
+ */
+export const updateDocumentTemplateSchema = updateOrgDocumentTemplateSchema;
 
 // =============================================================================
 // Type Exports
@@ -158,3 +148,5 @@ export type CreateDocumentTemplateInput = z.infer<
 export type UpdateDocumentTemplateInput = z.infer<
   typeof updateDocumentTemplateSchema
 >;
+// Note: The above types are intentionally re-derived via z.infer so that they
+// stay in sync automatically when the org-level schemas change.

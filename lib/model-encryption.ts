@@ -608,11 +608,11 @@ type ActivityWithEncryptedFields = Partial<
 >;
 
 export async function encryptActivityForOrg<T extends ActivityWithEncryptedFields>(
-  data: T,
+  record: T,
   orgId: string
 ): Promise<T> {
   const dek = await getOrgDek(orgId);
-  const result = { ...data } as T & ActivityWithEncryptedFields;
+  const result = { ...record } as T & ActivityWithEncryptedFields;
   for (const field of ACTIVITY_ENCRYPTED_STRING_FIELDS) {
     if (field in result) {
       (result as Record<string, unknown>)[field] = encryptFieldWithKey(
@@ -643,6 +643,11 @@ export async function decryptActivityForOrg<T extends ActivityWithEncryptedField
 
 // ─── OrgDocumentTemplate ──────────────────────────────────────────────────────
 
+// NOTE: `body` (TipTap JSON) and `placeholders` are intentionally NOT included here.
+// Template bodies are agency-owned contractual assets, not contact PII, and are
+// excluded from per-org DEK encryption to preserve content searchability/indexing.
+// Only display names (name/nameEl/nameEn) are encrypted as they may contain
+// client-identifying information in some naming conventions.
 const ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS = [
   "name",
   "nameEl",
