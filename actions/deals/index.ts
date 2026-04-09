@@ -7,6 +7,7 @@ import { DealStatus } from "@prisma/client";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { notifyDealProposed, notifyDealStatusChanged } from "@/lib/notifications";
 import { requireAction, requireDealAction } from "@/lib/permissions";
+import { createSystemActivity } from "@/actions/activities";
 
 export interface CreateDealInput {
   propertyId: string;
@@ -112,6 +113,15 @@ export async function createDeal(input: CreateDealInput) {
     },
   });
 
+  void createSystemActivity({
+    organizationId,
+    parentType: "DEAL",
+    parentId: deal.id,
+    kind: "OTHER",
+    body: `Deal created with status PROPOSED`,
+    createdByUserId: currentUser.id,
+  });
+
   // Notify the other agent about the deal proposal
   const otherAgentId =
     currentUser.id === input.propertyAgentId
@@ -206,6 +216,17 @@ export async function updateDeal(dealId: string, input: UpdateDealInput) {
       }),
     },
   });
+
+  if (input.status) {
+    const organizationId = deal.organizationId ?? "";
+    void createSystemActivity({
+      organizationId,
+      parentType: "DEAL",
+      parentId: dealId,
+      kind: "OTHER",
+      body: `Status changed from ${deal.status} to ${input.status}`,
+    });
+  }
 
   revalidatePath("/deals");
   revalidatePath(`/deals/${dealId}`);

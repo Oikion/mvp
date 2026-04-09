@@ -4,7 +4,10 @@ import { useTranslations } from "next-intl";
 import { useActivities } from "@/hooks/swr/useActivities";
 import type { ActivityParentType } from "@/hooks/swr/useActivities";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "@/navigation";
 import { formatDistanceToNow } from "date-fns";
+import { FileText, User, Building2 } from "lucide-react";
 
 interface ActivityFeedProps {
   parentType: ActivityParentType;
@@ -56,14 +59,69 @@ export function ActivityFeed({ parentType, parentId }: ActivityFeedProps) {
                 })}
               </time>
             </div>
+
             {activity.body && (
               <p className="mt-1 text-muted-foreground line-clamp-2">
                 {activity.body}
               </p>
             )}
+
+            {/* Linked entity chips */}
+            {(activity.RelatedContact ||
+              activity.RelatedProperty ||
+              activity.RelatedDocument) && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {activity.RelatedContact && (
+                  <Link
+                    href={`/app/crm/contacts/${activity.RelatedContact.id}`}
+                  >
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 text-xs font-normal hover:bg-accent transition-colors cursor-pointer"
+                    >
+                      <User className="h-3 w-3 shrink-0" aria-hidden />
+                      {[
+                        activity.RelatedContact.firstName,
+                        activity.RelatedContact.lastName,
+                      ]
+                        .filter(Boolean)
+                        .join(" ") || activity.RelatedContact.id}
+                    </Badge>
+                  </Link>
+                )}
+                {activity.RelatedProperty && (
+                  <Link
+                    href={`/app/mls/properties/${activity.RelatedProperty.friendlyId ?? activity.RelatedProperty.id}`}
+                  >
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 text-xs font-normal hover:bg-accent transition-colors cursor-pointer"
+                    >
+                      <Building2 className="h-3 w-3 shrink-0" aria-hidden />
+                      {activity.RelatedProperty.property_name ??
+                        activity.RelatedProperty.friendlyId ??
+                        activity.RelatedProperty.id}
+                    </Badge>
+                  </Link>
+                )}
+                {activity.RelatedDocument && (
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1 text-xs font-normal"
+                  >
+                    <FileText className="h-3 w-3 shrink-0" aria-hidden />
+                    {activity.RelatedDocument.document_name}
+                  </Badge>
+                )}
+              </div>
+            )}
+
             {activity.CreatedBy && (
               <p className="mt-1 text-xs text-muted-foreground">
-                {[activity.CreatedBy.firstName, activity.CreatedBy.lastName]
+                {[
+                  activity.CreatedBy.firstName,
+                  activity.CreatedBy.lastName,
+                ]
                   .filter(Boolean)
                   .join(" ")}
               </p>

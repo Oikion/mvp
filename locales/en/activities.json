@@ -35,7 +35,14 @@
     "contact": "Contact",
     "assignedTo": "Agent",
     "parentType": "Related To",
-    "parentId": "Related Record"
+    "parentId": "Related Record",
+    "subject": "Subject",
+    "relatedContact": "Linked Contact",
+    "relatedProperty": "Linked Property",
+    "relatedDocument": "Linked Document",
+    "selectContact": "Select a contact…",
+    "selectProperty": "Select a property…",
+    "selectDocument": "Select a document…"
   },
   "actions": {
     "log": "Log Activity",

@@ -35,7 +35,14 @@
     "contact": "Επαφή",
     "assignedTo": "Υπεύθυνος",
     "parentType": "Σχετίζεται με",
-    "parentId": "Σχετική Εγγραφή"
+    "parentId": "Σχετική Εγγραφή",
+    "subject": "Θέμα",
+    "relatedContact": "Σχετική Επαφή",
+    "relatedProperty": "Σχετικό Ακίνητο",
+    "relatedDocument": "Σχετικό Έγγραφο",
+    "selectContact": "Επιλογή επαφής…",
+    "selectProperty": "Επιλογή ακινήτου…",
+    "selectDocument": "Επιλογή εγγράφου…"
   },
   "actions": {
     "log": "Καταγραφή Δραστηριότητας",

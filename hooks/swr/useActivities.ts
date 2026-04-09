@@ -28,7 +28,24 @@ export interface ActivityUser {
   id: string;
   firstName: string | null;
   lastName: string | null;
-  imageUrl: string | null;
+  avatar: string | null;
+}
+
+export interface ActivityDocument {
+  id: string;
+  document_name: string;
+}
+
+export interface ActivityContact {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+}
+
+export interface ActivityProperty {
+  id: string;
+  property_name: string | null;
+  friendlyId: string | null;
 }
 
 export interface Activity {
@@ -46,11 +63,17 @@ export interface Activity {
   occurredAt: string;
   createdByUserId: string | null;
   assignedToUserId: string | null;
+  relatedDocumentId: string | null;
+  relatedContactId: string | null;
+  relatedPropertyId: string | null;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
   CreatedBy: ActivityUser | null;
   AssignedTo: ActivityUser | null;
+  RelatedDocument: ActivityDocument | null;
+  RelatedContact: ActivityContact | null;
+  RelatedProperty: ActivityProperty | null;
 }
 
 interface ActivitiesResponse {
