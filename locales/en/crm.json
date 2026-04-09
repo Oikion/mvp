@@ -386,7 +386,11 @@
       "linkRequests": "Link Requests",
       "linkRequestsDescription": "Select requests to associate with this contact.",
       "linkProperties": "Link Properties",
-      "linkPropertiesDescription": "Select properties owned by this contact."
+      "linkPropertiesDescription": "Select properties owned by this contact.",
+      "tabs": {
+        "overview": "Overview",
+        "activity": "Activity"
+      }
     },
     "searchPlaceholder": "Search contacts...",
     "table": {

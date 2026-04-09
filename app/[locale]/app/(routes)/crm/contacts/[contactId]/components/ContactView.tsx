@@ -21,8 +21,11 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/navigation";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { ActivityFeed } from "@/components/activity/ActivityFeed";
+import { QuickLogActivity } from "@/components/activity/QuickLogActivity";
 import { useContactLinked, getContactLinkedKey } from "@/hooks/swr/useContactLinked";
 import {
   useLinkRequestsToContact,
@@ -235,7 +238,14 @@ export default function ContactView({ contact }: ContactViewProps) {
         </div>
       </div>
 
-      {/* ── Main content: 2/3 + 1/3 grid (Gestalt: proximity grouping) ── */}
+      {/* ── Main content: tabs + 2/3 + 1/3 grid (Gestalt: proximity grouping) ── */}
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">{t("contacts.view.tabs.overview")}</TabsTrigger>
+          <TabsTrigger value="activity">{t("contacts.view.tabs.activity")}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="mt-6">
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column — 2/3 */}
         <div className="lg:col-span-2 space-y-6">
@@ -631,7 +641,18 @@ export default function ContactView({ contact }: ContactViewProps) {
             showAddButton={false}
           />
         </div>
-      </div>
+        </div>
+        </TabsContent>
+
+        <TabsContent value="activity" className="mt-6 space-y-4">
+          <QuickLogActivity
+            parentType="CONTACT"
+            parentId={contact.id}
+            onSuccess={() => {}}
+          />
+          <ActivityFeed parentType="CONTACT" parentId={contact.id} />
+        </TabsContent>
+      </Tabs>
 
       {/* Link Request Dialog */}
       <LinkEntityDialog
