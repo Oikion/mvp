@@ -54,6 +54,8 @@ import {
   useUnlinkDocumentFromProperty,
 } from "@/hooks/swr";
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
+import { ActivityFeed } from "@/components/activity/ActivityFeed";
+import { QuickLogActivity } from "@/components/activity/QuickLogActivity";
 import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
@@ -151,6 +153,7 @@ export default function PropertyView({
 }: PropertyViewProps) {
   const router = useRouter();
   const t = useTranslations("mls");
+  const tActivities = useTranslations("activities");
   const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
@@ -652,6 +655,24 @@ export default function PropertyView({
               maxItems={5}
             />
           )}
+
+          {/* Activity Log */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                {tActivities("title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <QuickLogActivity
+                parentType="PROPERTY"
+                parentId={data.id}
+                onSuccess={() => {}}
+              />
+              <ActivityFeed parentType="PROPERTY" parentId={data.id} />
+            </CardContent>
+          </Card>
         </div>
       </div>
 

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
 import { LinkEntityDialog } from "@/components/linking/LinkEntityDialog";
+import { ActivityFeed } from "@/components/activity/ActivityFeed";
+import { QuickLogActivity } from "@/components/activity/QuickLogActivity";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useRequestLinked } from "@/hooks/swr/useRequestLinked";
 import {
@@ -92,6 +94,7 @@ interface RequestViewProps {
 
 export default function RequestView({ request }: RequestViewProps) {
   const t = useTranslations("requests");
+  const tActivities = useTranslations("activities");
   const { toast } = useAppToast();
 
   // Linked entities via SWR (for real-time updates after mutations)
@@ -204,10 +207,10 @@ export default function RequestView({ request }: RequestViewProps) {
             </div>
           </div>
           <Badge className={cn("ml-2", TYPE_COLORS[request.requestType])} variant="secondary">
-            {t(`requestType.${request.requestType}`)}
+            {t(`requestType.${request.requestType}` as Parameters<typeof t>[0])}
           </Badge>
           <Badge className={cn(STATUS_COLORS[request.status] || STATUS_COLORS.ACTIVE)} variant="secondary">
-            {t(`status.${request.status}`)}
+            {t(`status.${request.status}` as Parameters<typeof t>[0])}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
@@ -316,7 +319,7 @@ export default function RequestView({ request }: RequestViewProps) {
                 label={t("view.status")}
                 value={
                   <Badge className={cn(STATUS_COLORS[request.status])} variant="secondary">
-                    {t(`status.${request.status}`)}
+                    {t(`status.${request.status}` as Parameters<typeof t>[0])}
                   </Badge>
                 }
               />
@@ -324,13 +327,13 @@ export default function RequestView({ request }: RequestViewProps) {
                 label={t("view.requestType")}
                 value={
                   <Badge className={cn(TYPE_COLORS[request.requestType])} variant="secondary">
-                    {t(`requestType.${request.requestType}`)}
+                    {t(`requestType.${request.requestType}` as Parameters<typeof t>[0])}
                   </Badge>
                 }
               />
-              <DetailField label={t("view.urgency")} value={request.urgency ? t(`urgency.${request.urgency}`) : null} />
-              <DetailField label={t("view.propertyCategory")} value={request.propertyCategory ? t(`propertyPurpose.${request.propertyCategory}`) : null} />
-              <DetailField label={t("view.timeline")} value={request.timeline ? t(`timeline.${request.timeline}`) : null} />
+              <DetailField label={t("view.urgency")} value={request.urgency ? t(`urgency.${request.urgency}` as Parameters<typeof t>[0]) : null} />
+              <DetailField label={t("view.propertyCategory")} value={request.propertyCategory ? t(`propertyPurpose.${request.propertyCategory}` as Parameters<typeof t>[0]) : null} />
+              <DetailField label={t("view.timeline")} value={request.timeline ? t(`timeline.${request.timeline}` as Parameters<typeof t>[0]) : null} />
               <DetailField label={t("view.assignedTo")} value={request.assignedAgent?.name} />
               <DetailField label={t("view.visibility")} value={request.visibility} />
               <Separator />
@@ -393,11 +396,29 @@ export default function RequestView({ request }: RequestViewProps) {
               <CardContent className="space-y-3">
                 <BoolField label={t("view.investment")} value={request.isInvestmentPurpose} t={t} />
                 <BoolField label={t("view.goldenVisa")} value={request.goldenVisaEligible} t={t} />
-                <DetailField label={t("view.financing")} value={request.financingStatus ? t(`financingStatus.${request.financingStatus}`) : null} />
+                <DetailField label={t("view.financing")} value={request.financingStatus ? t(`financingStatus.${request.financingStatus}` as Parameters<typeof t>[0]) : null} />
                 <BoolField label={t("view.auction")} value={request.auctionInterest} t={t} />
               </CardContent>
             </Card>
           )}
+
+          {/* Activity Log */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                {tActivities("title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <QuickLogActivity
+                parentType="REQUEST"
+                parentId={request.id}
+                onSuccess={() => {}}
+              />
+              <ActivityFeed parentType="REQUEST" parentId={request.id} />
+            </CardContent>
+          </Card>
         </div>
       </div>
 
