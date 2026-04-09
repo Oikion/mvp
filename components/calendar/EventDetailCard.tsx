@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Edit, Trash2, User, Link as LinkIcon, ExternalLink, Loader2 } from "lucide-react";
+import { Clock, MapPin, Edit, Trash2, User, Link as LinkIcon, ExternalLink, Loader2, Users } from "lucide-react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -219,6 +219,74 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
                 </Button>
               ))}
             </div>
+          </div>
+        )}
+
+        {((event.eventContacts && event.eventContacts.length > 0) ||
+          (event.eventAgents && event.eventAgents.length > 0)) ? (
+          <div>
+            <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              {t("eventDetail.attendees")}
+            </h4>
+            <div className="space-y-2">
+              {event.eventContacts?.map((attendee) => (
+                <div key={attendee.id} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <User className="h-3 w-3 text-muted-foreground" />
+                    <span>{attendee.contact?.full_name || attendee.contact?.primary_email || attendee.contactId}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {t(`eventDetail.roles.${attendee.role}` as any)}
+                    </Badge>
+                  </div>
+                  <Badge
+                    variant={
+                      attendee.rsvpStatus === "ACCEPTED"
+                        ? "default"
+                        : attendee.rsvpStatus === "DECLINED"
+                        ? "destructive"
+                        : "secondary"
+                    }
+                    className="text-xs"
+                  >
+                    {t(`eventDetail.rsvp.${attendee.rsvpStatus}` as any)}
+                  </Badge>
+                </div>
+              ))}
+              {event.eventAgents?.map((attendee) => (
+                <div key={attendee.id} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <User className="h-3 w-3 text-muted-foreground" />
+                    <span>{attendee.user?.name || attendee.user?.email || attendee.userId}</span>
+                    {attendee.role && (
+                      <Badge variant="outline" className="text-xs">
+                        {t(`eventDetail.roles.${attendee.role}` as any)}
+                      </Badge>
+                    )}
+                  </div>
+                  <Badge
+                    variant={
+                      attendee.rsvpStatus === "ACCEPTED"
+                        ? "default"
+                        : attendee.rsvpStatus === "DECLINED"
+                        ? "destructive"
+                        : "secondary"
+                    }
+                    className="text-xs"
+                  >
+                    {t(`eventDetail.rsvp.${attendee.rsvpStatus}` as any)}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h4 className="text-sm font-semibold mb-1 flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              {t("eventDetail.attendees")}
+            </h4>
+            <p className="text-sm text-muted-foreground">{t("eventDetail.noAttendees")}</p>
           </div>
         )}
 

@@ -57,7 +57,7 @@ export { useCalendarEvents, getCalendarEventsKey } from "./useCalendarEvents";
 
 // Calendar Event (Single)
 export { useCalendarEvent, getCalendarEventKey } from "./useCalendarEvent";
-export type { CalendarEventDetail } from "./useCalendarEvent";
+export type { CalendarEventDetail, EventContactAttendee, EventAgentAttendee } from "./useCalendarEvent";
 
 // Event Invitations
 export {

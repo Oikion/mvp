@@ -39,6 +39,32 @@ interface EventReminder {
   sent: boolean;
 }
 
+export interface EventContactAttendee {
+  id: string;
+  contactId: string;
+  role: string;
+  rsvpStatus: string;
+  note: string | null;
+  contact: {
+    id: string;
+    full_name: string | null;
+    primary_email: string | null;
+    friendlyId: string;
+  } | null;
+}
+
+export interface EventAgentAttendee {
+  id: string;
+  userId: string;
+  role: string | null;
+  rsvpStatus: string;
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+  } | null;
+}
+
 export interface CalendarEventDetail {
   id: string;
   calendarEventId: number;
@@ -61,6 +87,8 @@ export interface CalendarEventDetail {
   linkedDocuments?: LinkedDocument[];
   linkedTasks?: LinkedTask[];
   reminders?: EventReminder[];
+  eventContacts?: EventContactAttendee[];
+  eventAgents?: EventAgentAttendee[];
 }
 
 interface CalendarEventResponse {

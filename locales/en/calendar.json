@@ -234,6 +234,23 @@
     "linkedMandates": "Linked Mandates",
     "invitees": "Invitees",
     "noInvitees": "No one invited yet",
+    "attendees": "Attendees",
+    "noAttendees": "No attendees yet",
+    "rsvp": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted",
+      "DECLINED": "Declined",
+      "TENTATIVE": "Tentative"
+    },
+    "roles": {
+      "ATTENDEE": "Attendee",
+      "BUYER": "Buyer",
+      "SELLER": "Seller",
+      "WITNESS": "Witness",
+      "NOTARY": "Notary",
+      "AGENT": "Agent",
+      "OTHER": "Other"
+    },
     "reminders": "Reminders",
     "beforeEvent": "before event"
   },

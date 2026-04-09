@@ -195,6 +195,24 @@ export async function GET(
             scheduledFor: "asc",
           },
         },
+        // Phase 4 explicit join tables — @ts-expect-error until Prisma client is regenerated
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        EventContacts: {
+          include: {
+            Contact: {
+              select: { id: true, full_name: true, primary_email: true, friendlyId: true },
+            },
+          },
+        },
+        // @ts-expect-error
+        EventAgents: {
+          include: {
+            User: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+        },
       },
     });
 
@@ -208,7 +226,7 @@ export async function GET(
     const decrypted = await decryptCalendarEventForOrg(event, currentOrgId);
 
     // Map Prisma relation names to the keys expected by the EventDetailView UI
-    const { Clients, Properties, Documents, Mandates, Users, crm_Accounts_Tasks, CalendarReminder, ...rest } = decrypted as any;
+    const { Clients, Properties, Documents, Mandates, Users, crm_Accounts_Tasks, CalendarReminder, EventContacts, EventAgents, ...rest } = decrypted as any;
     return NextResponse.json({
       event: {
         ...rest,
@@ -219,6 +237,21 @@ export async function GET(
         linkedMandates: Mandates ?? [],
         linkedTasks: crm_Accounts_Tasks ?? [],
         reminders: CalendarReminder ?? [],
+        eventContacts: (EventContacts ?? []).map((ec: any) => ({
+          id: ec.id,
+          contactId: ec.contactId,
+          role: ec.role,
+          rsvpStatus: ec.rsvpStatus,
+          note: ec.note ?? null,
+          contact: ec.Contact,
+        })),
+        eventAgents: (EventAgents ?? []).map((ea: any) => ({
+          id: ea.id,
+          userId: ea.userId,
+          role: ea.role ?? null,
+          rsvpStatus: ea.rsvpStatus,
+          user: ea.User,
+        })),
       },
     });
   } catch (error: any) {
