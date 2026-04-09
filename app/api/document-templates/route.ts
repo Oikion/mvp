@@ -1,22 +1,20 @@
-import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { apiUnauthorized, apiSuccess, apiInternalError } from "@/lib/api-response";
 import { listDocumentTemplates } from "@/actions/document-templates";
 
 export async function GET(_req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { userId, orgId: organizationId } = await auth();
+    if (!userId || !organizationId) return apiUnauthorized();
 
     const result = await listDocumentTemplates();
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 500 });
+      return apiInternalError("Internal server error");
     }
 
-    return NextResponse.json({ data: result.data });
+    return apiSuccess(result.data);
   } catch (error) {
     console.error("[API_DOCUMENT_TEMPLATES_GET]", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiInternalError("Internal server error");
   }
 }

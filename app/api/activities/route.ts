@@ -1,33 +1,34 @@
-import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { apiUnauthorized, apiSuccess, apiBadRequest, apiInternalError } from "@/lib/api-response";
 import { listActivities } from "@/actions/activities";
+import { activityParentTypeSchema } from "@/lib/validations/activities";
 
 export async function GET(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { userId, orgId: organizationId } = await auth();
+    if (!userId || !organizationId) return apiUnauthorized();
 
     const { searchParams } = new URL(req.url);
-    const parentType = searchParams.get("parentType");
+    const parentTypeRaw = searchParams.get("parentType");
     const parentId = searchParams.get("parentId");
 
-    if (!parentType || !parentId) {
-      return NextResponse.json(
-        { error: "parentType and parentId are required" },
-        { status: 400 }
-      );
+    if (!parentTypeRaw || !parentId) {
+      return apiBadRequest("parentType and parentId are required");
     }
 
-    const result = await listActivities(parentType, parentId);
+    const parentTypeParsed = activityParentTypeSchema.safeParse(parentTypeRaw);
+    if (!parentTypeParsed.success) {
+      return apiBadRequest("Invalid parentType");
+    }
+
+    const result = await listActivities(parentTypeParsed.data, parentId);
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 500 });
+      return apiInternalError("Internal server error");
     }
 
-    return NextResponse.json({ data: result.data });
+    return apiSuccess(result.data);
   } catch (error) {
     console.error("[API_ACTIVITIES_GET]", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiInternalError("Internal server error");
   }
 }
