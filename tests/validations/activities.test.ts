@@ -83,39 +83,53 @@ describe("createActivitySchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects negative durationMinutes", () => {
+  it("rejects negative durationMin", () => {
     const result = createActivitySchema.safeParse({
       organizationId: "org_abc123",
       parentType: "CONTACT",
       parentId: "cld123abc",
       kind: "CALL",
-      durationMinutes: -5,
+      durationMin: -5,
     });
     expect(result.success).toBe(false);
   });
 
-  it("accepts durationMinutes of zero", () => {
+  it("accepts durationMin of zero", () => {
     const result = createActivitySchema.safeParse({
       organizationId: "org_abc123",
       parentType: "CONTACT",
       parentId: "cld123abc",
       kind: "CALL",
-      durationMinutes: 0,
+      durationMin: 0,
     });
     expect(result.success).toBe(true);
   });
 
-  it("coerces durationMinutes string to integer", () => {
+  it("coerces durationMin string to integer", () => {
     const result = createActivitySchema.safeParse({
       organizationId: "org_abc123",
       parentType: "CONTACT",
       parentId: "cld123abc",
       kind: "CALL",
-      durationMinutes: "30",
+      durationMin: "30",
     });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.durationMinutes).toBe(30);
+      expect(result.data.durationMin).toBe(30);
+    }
+  });
+
+  it("coerces scheduledAt string to Date", () => {
+    const result = createActivitySchema.safeParse({
+      organizationId: "org_abc123",
+      parentType: "CONTACT",
+      parentId: "cld123abc",
+      kind: "MEETING",
+      scheduledAt: "2026-05-01T10:00:00Z",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.scheduledAt).toBeInstanceOf(Date);
     }
   });
 
@@ -198,8 +212,8 @@ describe("updateActivitySchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects negative durationMinutes in update", () => {
-    const result = updateActivitySchema.safeParse({ durationMinutes: -1 });
+  it("rejects negative durationMin in update", () => {
+    const result = updateActivitySchema.safeParse({ durationMin: -1 });
     expect(result.success).toBe(false);
   });
 
@@ -266,8 +280,7 @@ describe("listActivitiesSchema", () => {
       organizationId: "org_abc123",
       parentType: "CONTACT",
       parentId: "cld123abc",
-      contactId: "cnt456",
-      assignedTo: "user_789",
+      assignedToUserId: "user_789",
     });
     expect(result.success).toBe(true);
   });

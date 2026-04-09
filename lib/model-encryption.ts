@@ -625,11 +625,11 @@ export async function encryptActivityForOrg<T extends ActivityWithEncryptedField
 }
 
 export async function decryptActivityForOrg<T extends ActivityWithEncryptedFields>(
-  data: T,
+  record: T,
   orgId: string
 ): Promise<T> {
   const dek = await getOrgDek(orgId);
-  const result = { ...data } as T & ActivityWithEncryptedFields;
+  const result = { ...record } as T & ActivityWithEncryptedFields;
   for (const field of ACTIVITY_ENCRYPTED_STRING_FIELDS) {
     if (field in result) {
       (result as Record<string, unknown>)[field] = decryptFieldWithKey(
@@ -645,6 +645,8 @@ export async function decryptActivityForOrg<T extends ActivityWithEncryptedField
 
 const ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS = [
   "name",
+  "nameEl",
+  "nameEn",
 ] as const;
 
 type OrgDocumentTemplateStringField =
@@ -672,9 +674,9 @@ export async function encryptOrgDocumentTemplateForOrg<
 
 export async function decryptOrgDocumentTemplateForOrg<
   T extends OrgDocumentTemplateWithEncryptedFields
->(data: T, orgId: string): Promise<T> {
+>(record: T, orgId: string): Promise<T> {
   const dek = await getOrgDek(orgId);
-  const result = { ...data } as T & OrgDocumentTemplateWithEncryptedFields;
+  const result = { ...record } as T & OrgDocumentTemplateWithEncryptedFields;
   for (const field of ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS) {
     if (field in result) {
       (result as Record<string, unknown>)[field] = decryptFieldWithKey(

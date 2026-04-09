@@ -71,32 +71,38 @@ export const updateOrgDocumentTemplateSchema = z
 // Publish OrgDocumentTemplate Schema
 // =============================================================================
 
-export const publishOrgDocumentTemplateSchema = z.object({
-  organizationId: z.string().min(1, "organizationId is required"),
-  id: z.string().min(1, "id is required"),
-});
+export const publishOrgDocumentTemplateSchema = z
+  .object({
+    organizationId: z.string().min(1, "organizationId is required"),
+    id: z.string().min(1, "id is required"),
+  })
+  .strict();
 
 // =============================================================================
 // Clone OrgDocumentTemplate Schema
 // =============================================================================
 
-export const cloneOrgDocumentTemplateSchema = z.object({
-  organizationId: z.string().min(1, "organizationId is required"),
-  id: z.string().min(1, "id is required"),
-  name: z.string().min(1).max(255).optional(),
-});
+export const cloneOrgDocumentTemplateSchema = z
+  .object({
+    organizationId: z.string().min(1, "organizationId is required"),
+    id: z.string().min(1, "id is required"),
+    name: z.string().min(1).max(255).optional(),
+  })
+  .strict();
 
 // =============================================================================
 // List OrgDocumentTemplates Schema (query params)
 // =============================================================================
 
-export const listOrgDocumentTemplatesSchema = z.object({
-  organizationId: z.string().min(1, "organizationId is required"),
-  category: docTemplateCategorySchema.optional(),
-  isPublished: z.boolean().optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
-});
+export const listOrgDocumentTemplatesSchema = z
+  .object({
+    organizationId: z.string().min(1, "organizationId is required"),
+    category: docTemplateCategorySchema.optional(),
+    isPublished: z.boolean().optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  })
+  .strict();
 
 // =============================================================================
 // Alias schemas aligned with plan naming (used by server actions / route handlers)

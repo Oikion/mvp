@@ -55,11 +55,8 @@ export const createActivitySchema = z
     kind: activityKindSchema,
     direction: activityDirectionSchema.optional().default("INTERNAL"),
 
-    // Optional contact link (separate from parent)
-    contactId: z.string().optional(),
-
     // Assignment
-    assignedTo: z.string().optional(),
+    assignedToUserId: z.string().optional(),
 
     // Content
     subject: z.string().max(500).optional(),
@@ -67,10 +64,11 @@ export const createActivitySchema = z
     outcome: z.string().optional(),
 
     // Timing
+    scheduledAt: z.coerce.date().optional(),
     occurredAt: z.coerce.date().optional(),
 
     // Duration
-    durationMinutes: z.coerce.number().int().min(0).optional(),
+    durationMin: z.coerce.number().int().min(0).optional(),
   })
   .strict();
 
@@ -86,15 +84,16 @@ export const updateActivitySchema = createActivitySchema
 // List Activities Schema — query parameters
 // =============================================================================
 
-export const listActivitiesSchema = z.object({
-  organizationId: z.string().min(1),
-  parentType: activityParentTypeSchema.optional(),
-  parentId: z.string().optional(),
-  contactId: z.string().optional(),
-  assignedTo: z.string().optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
-});
+export const listActivitiesSchema = z
+  .object({
+    organizationId: z.string().min(1),
+    parentType: activityParentTypeSchema.optional(),
+    parentId: z.string().optional(),
+    assignedToUserId: z.string().optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  })
+  .strict();
 
 // =============================================================================
 // Type exports
