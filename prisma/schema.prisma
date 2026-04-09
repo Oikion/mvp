@@ -508,6 +508,7 @@ model Documents {
   Mandates                                       Mandate[]            @relation("DocumentsToMandates")
   Contacts                                       Contact[]            @relation("DocumentsToContacts")
   Requests                                       Request[]            @relation("DocumentsToRequests")
+  ActivityLinks                                  Activity[]           @relation("ActivityRelatedDocument")
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_user])
@@ -817,6 +818,7 @@ model Properties {
   Mandate_Properties                  Mandate_Properties[]
   PropertyRequestMatch                PropertyRequestMatch[]
   PropertyImage                       PropertyImage[]
+  ActivityLinks                       Activity[]            @relation("ActivityRelatedProperty")
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_to])
@@ -3788,6 +3790,7 @@ model Contact {
   showingAttendances       ShowingAttendee[]
   // Phase 4: explicit calendar join tables
   calendarEventContacts    CalendarEventContact[] @relation("ContactEvents")
+  ActivityLinks            Activity[]             @relation("ActivityRelatedContact")
 
   @@unique([friendlyId, organizationId])
   @@index([organizationId])
@@ -4274,18 +4277,28 @@ model Activity {
   occurredAt       DateTime           @default(now())
   createdByUserId  String?
   assignedToUserId String?
+  // Rich linking — optional references to related entities
+  relatedDocumentId  String?
+  relatedContactId   String?
+  relatedPropertyId  String?
   deletedAt        DateTime?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 
-  CreatedBy  Users? @relation("ActivityCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  AssignedTo Users? @relation("ActivityAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  CreatedBy        Users?      @relation("ActivityCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  AssignedTo       Users?      @relation("ActivityAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  RelatedDocument  Documents?  @relation("ActivityRelatedDocument", fields: [relatedDocumentId], references: [id], onDelete: SetNull)
+  RelatedContact   Contact?    @relation("ActivityRelatedContact", fields: [relatedContactId], references: [id], onDelete: SetNull)
+  RelatedProperty  Properties? @relation("ActivityRelatedProperty", fields: [relatedPropertyId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([organizationId, parentType, parentId])
   @@index([organizationId, kind])
   @@index([createdByUserId])
   @@index([assignedToUserId])
+  @@index([relatedDocumentId])
+  @@index([relatedContactId])
+  @@index([relatedPropertyId])
   @@index([deletedAt])
   @@map("activities")
 }
