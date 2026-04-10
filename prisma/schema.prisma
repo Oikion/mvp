@@ -849,7 +849,7 @@ model Users {
   username                                           String?
   userStatus                                         ActiveStatus                  @default(PENDING)
   userLanguage                                       Language                      @default(en)
-  watching_accountsIDs                               String[]
+  watching_accountsIDs                               String[] // TODO(clients-to-contacts): was M2M scalar array for Clients; rewire to Contact watchers in follow-up task
   watching_propertiesIDs                             String[]
   clerkUserId                                        String?                       @unique
   onboardingCompleted                                Boolean                       @default(false)
@@ -935,7 +935,7 @@ model crm_Accounts_Tasks {
   title                                 String
   likes                                 Int?                          @default(0)
   user                                  String?
-  account                               String?
+  account                               String? // TODO(clients-to-contacts): was FK→Clients.id; rewire to Contact.id in follow-up task
   calendarEventId                       String?
   organizationId                        String
   CalendarEvent                         CalendarEvent?                @relation(fields: [calendarEventId], references: [id])
@@ -1268,29 +1268,6 @@ enum CalendarEventType {
   REMINDER
   TASK_DEADLINE
   OTHER
-}
-
-enum ClientContactType {
-  PRIMARY
-  SECONDARY
-  EMERGENCY
-  REFERRAL
-}
-
-enum ClientStatus {
-  LEAD
-  ACTIVE
-  INACTIVE
-  CONVERTED
-  LOST
-}
-
-enum ClientType {
-  BUYER
-  SELLER
-  RENTER
-  INVESTOR
-  REFERRAL_PARTNER
 }
 
 enum ConnectionStatus {
@@ -3630,14 +3607,16 @@ model Contact {
 /// M2M join table linking contacts to properties they are interested in (not ownership).
 /// Replaces the legacy Client_Properties table.
 model ContactProperty {
-  id         String     @id @default(uuid())
-  createdAt  DateTime   @default(now())
-  contactId  String
-  propertyId String
-  contact    Contact    @relation("ContactLinkedProperties", fields: [contactId], references: [id], onDelete: Cascade)
-  property   Properties @relation("PropertyLinkedContacts", fields: [propertyId], references: [id], onDelete: Cascade)
+  id             String     @id @default(cuid())
+  organizationId String
+  createdAt      DateTime   @default(now())
+  contactId      String
+  propertyId     String
+  contact        Contact    @relation("ContactLinkedProperties", fields: [contactId], references: [id], onDelete: Cascade)
+  property       Properties @relation("PropertyLinkedContacts", fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@unique([contactId, propertyId])
+  @@index([organizationId])
   @@index([contactId])
   @@index([propertyId])
   @@map("contact_properties")
