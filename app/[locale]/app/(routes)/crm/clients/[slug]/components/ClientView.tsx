@@ -40,7 +40,7 @@ import { ClientComments } from "./ClientComments";
 
 import { toast } from "sonner";
 import {
-  useClientLinked,
+  useContactLinked,
   useLinkPropertiesToClient,
   useUnlinkPropertyFromClient,
   useLinkMandatesToClient,
@@ -142,12 +142,12 @@ export default function ClientView({
   // Linked entities via SWR
   const {
     properties,
-    mandates: linkedMandates,
+    requests: linkedMandates,
     documents: linkedDocuments,
     events,
     isLoading: isLoadingLinked,
     mutate: mutateLinked,
-  } = useClientLinked(data?.id);
+  } = useContactLinked(data?.id);
 
   const { linkProperties, isLinking } = useLinkPropertiesToClient(data.id);
   const { unlinkProperty, isUnlinking } = useUnlinkPropertyFromClient(data.id);

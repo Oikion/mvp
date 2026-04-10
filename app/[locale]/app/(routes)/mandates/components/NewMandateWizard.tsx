@@ -37,7 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { ConditionalFormSection } from "@/components/form/conditional-section";
-import { useClients } from "@/hooks/swr/useClients";
+import { useContacts } from "@/hooks/swr/useContacts";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 import {
   Popover,
@@ -103,8 +103,8 @@ export function NewMandateWizard({
   // Fetch org users for agent selector
   const { users: orgUsers, isLoading: usersLoading } = useOrgUsers();
 
-  // Fetch clients for client selector
-  const { clients, isLoading: clientsLoading } = useClients();
+  // Fetch contacts for contact selector
+  const { contacts: clients, isLoading: clientsLoading } = useContacts();
 
   // ---------------------------------------------------------------------------
   // Steps configuration

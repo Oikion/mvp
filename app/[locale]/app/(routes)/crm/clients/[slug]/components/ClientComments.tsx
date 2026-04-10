@@ -20,10 +20,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  useClientComments,
-  useAddClientComment,
-  useDeleteClientComment,
-  type ClientComment,
+  useContactComments,
+  useAddContactComment,
+  useDeleteContactComment,
+  type ContactComment,
 } from "@/hooks/swr";
 
 interface ClientCommentsProps {
@@ -42,9 +42,9 @@ export function ClientComments({
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
   // SWR hooks for data fetching and mutations
-  const { comments, isLoading, mutate } = useClientComments(clientId);
-  const { addComment, isAdding } = useAddClientComment(clientId);
-  const { deleteComment, isDeleting } = useDeleteClientComment(clientId);
+  const { comments, isLoading, mutate } = useContactComments(clientId);
+  const { addComment, isAdding } = useAddContactComment(clientId);
+  const { deleteComment, isDeleting } = useDeleteContactComment(clientId);
 
   const handleSubmit = async () => {
     if (!newComment.trim() || !canComment) return;
@@ -52,7 +52,7 @@ export function ClientComments({
     const commentContent = newComment.trim();
     
     // Optimistic update - add temporary comment immediately
-    const tempComment: ClientComment = {
+    const tempComment: ContactComment = {
       id: `temp-${Date.now()}`,
       content: commentContent,
       createdAt: new Date().toISOString(),

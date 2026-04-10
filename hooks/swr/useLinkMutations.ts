@@ -1,7 +1,6 @@
 import useSWRMutation from "swr/mutation";
 import { useSWRConfig } from "swr";
 import { getPropertyLinkedKey } from "./usePropertyLinked";
-import { getClientLinkedKey } from "./useClientLinked";
 import { getMandateLinkedKey } from "./useMandateLinked";
 import { getDocumentLinkedKey } from "./useDocumentLinked";
 import { getContactLinkedKey } from "./useContactLinked";
@@ -282,7 +281,7 @@ export function useLinkPropertiesToClient(clientId: string) {
     {
       onSuccess: () => {
         // Invalidate contact linked cache
-        globalMutate(getClientLinkedKey(clientId));
+        globalMutate(getContactLinkedKey(clientId));
       },
     }
   );
@@ -311,7 +310,7 @@ export function useUnlinkPropertyFromClient(clientId: string) {
     {
       onSuccess: () => {
         // Invalidate contact linked cache
-        globalMutate(getClientLinkedKey(clientId));
+        globalMutate(getContactLinkedKey(clientId));
       },
     }
   );
@@ -519,7 +518,7 @@ export function useLinkMandatesToClient(clientId: string) {
     linkMandatesToClientFetcher,
     {
       onSuccess: () => {
-        globalMutate(getClientLinkedKey(clientId));
+        globalMutate(getContactLinkedKey(clientId));
       },
     }
   );
@@ -547,7 +546,7 @@ export function useUnlinkMandateFromClient(clientId: string) {
     unlinkMandateFromClientFetcher,
     {
       onSuccess: () => {
-        globalMutate(getClientLinkedKey(clientId));
+        globalMutate(getContactLinkedKey(clientId));
       },
     }
   );
@@ -750,7 +749,7 @@ export function useLinkDocumentsToClient(clientId: string) {
     },
     {
       onSuccess: () => {
-        globalMutate(getClientLinkedKey(clientId));
+        globalMutate(getContactLinkedKey(clientId));
       },
     }
   );
@@ -777,7 +776,7 @@ export function useUnlinkDocumentFromClient(clientId: string) {
     },
     {
       onSuccess: () => {
-        globalMutate(getClientLinkedKey(clientId));
+        globalMutate(getContactLinkedKey(clientId));
       },
     }
   );
