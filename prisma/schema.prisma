@@ -1542,6 +1542,7 @@ enum SharedEntityType {
   PROPERTY
   CLIENT
   DOCUMENT
+  CONTACT
 }
 
 enum TemplateType {
