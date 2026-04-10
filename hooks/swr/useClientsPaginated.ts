@@ -79,14 +79,14 @@ export function useClientsPaginated(options: UseClientsPaginatedOptions = {}) {
 
     // First page
     if (pageIndex === 0) {
-      return buildPaginatedUrl("/api/crm/clients", { limit }, { status, search });
+      return buildPaginatedUrl("/api/crm/contacts", { limit }, { status, search });
     }
 
     // Subsequent pages with cursor
     const cursor = previousPageData?.nextCursor;
     if (!cursor) return null;
 
-    return buildPaginatedUrl("/api/crm/clients", { cursor, limit }, { status, search });
+    return buildPaginatedUrl("/api/crm/contacts", { cursor, limit }, { status, search });
   };
 
   const {

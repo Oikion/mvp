@@ -99,7 +99,7 @@ export function useClientLinked(
 ) {
   const { enabled = true } = options;
 
-  const key = enabled && clientId ? `/api/crm/clients/${clientId}/linked` : null;
+  const key = enabled && clientId ? `/api/crm/contacts/${clientId}/linked` : null;
 
   const { data, error, isLoading, isValidating, mutate } = useSWR<ClientLinkedData>(key);
 
@@ -122,5 +122,5 @@ export function useClientLinked(
  * Useful for manual cache invalidation
  */
 export function getClientLinkedKey(clientId: string): string {
-  return `/api/crm/clients/${clientId}/linked`;
+  return `/api/crm/contacts/${clientId}/linked`;
 }

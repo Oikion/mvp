@@ -85,7 +85,7 @@ export function EditClientForm({ initialData }: { initialData: EditClientInitial
   const onSubmit = async (data: ClientEditFormValues) => {
     setIsLoading(true);
     try {
-      await axios.put("/api/crm/clients", data);
+      await axios.put("/api/crm/contacts", data);
       router.refresh();
     } finally {
       setIsLoading(false);

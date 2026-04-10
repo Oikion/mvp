@@ -23,41 +23,50 @@ interface UnlinkResponse {
 // Fetchers
 // ============================================================
 
+// Link multiple contacts to a property — iterates per contactId
 async function linkClientsToPropertyFetcher(
-  url: string,
+  _url: string,
   { arg }: { arg: { propertyId: string; clientIds: string[] } }
 ): Promise<LinkResponse> {
-  const res = await fetch(url, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(arg),
-  });
+  const results = await Promise.all(
+    arg.clientIds.map((contactId) =>
+      fetch(`/api/crm/contacts/${contactId}/link-entities`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyIds: [arg.propertyId] }),
+      }).then(async (res) => {
+        if (!res.ok) {
+          const error = await res.text();
+          throw new Error(error || "Failed to link contact to property");
+        }
+        return res.json();
+      })
+    )
+  );
 
-  if (!res.ok) {
-    const error = await res.text();
-    throw new Error(error || "Failed to link clients");
-  }
-
-  return res.json();
+  // Return a normalised shape for cache invalidation callers
+  return { links: results.map((_, i) => ({ clientId: arg.clientIds[i], propertyId: arg.propertyId })) };
 }
 
+// Unlink a contact from a property via the contact-centric endpoint
 async function unlinkClientFromPropertyFetcher(
-  url: string,
+  _url: string,
   { arg }: { arg: { clientId: string; propertyId: string } }
 ): Promise<UnlinkResponse> {
   const res = await fetch(
-    `${url}?clientId=${arg.clientId}&propertyIds=${arg.propertyId}`,
+    `/api/crm/contacts/${arg.clientId}/link-entities?propertyId=${arg.propertyId}`,
     { method: "DELETE" }
   );
 
   if (!res.ok) {
     const error = await res.text();
-    throw new Error(error || "Failed to unlink client");
+    throw new Error(error || "Failed to unlink contact from property");
   }
 
   return res.json();
 }
 
+// Link properties to a contact via the contact-centric endpoint
 async function linkPropertiesToClientFetcher(
   url: string,
   { arg }: { arg: { clientId: string; propertyIds: string[] } }
@@ -65,7 +74,7 @@ async function linkPropertiesToClientFetcher(
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(arg),
+    body: JSON.stringify({ propertyIds: arg.propertyIds }),
   });
 
   if (!res.ok) {
@@ -76,12 +85,13 @@ async function linkPropertiesToClientFetcher(
   return res.json();
 }
 
+// Unlink a property from a contact via the contact-centric endpoint
 async function unlinkPropertyFromClientFetcher(
   url: string,
   { arg }: { arg: { clientId: string; propertyId: string } }
 ): Promise<UnlinkResponse> {
   const res = await fetch(
-    `${url}?clientId=${arg.clientId}&propertyIds=${arg.propertyId}`,
+    `${url}?propertyId=${arg.propertyId}`,
     { method: "DELETE" }
   );
 
@@ -209,7 +219,7 @@ export function useLinkClientsToProperty(propertyId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/crm/clients/link-properties",
+    "/api/crm/contacts/link-entities-property",
     linkClientsToPropertyFetcher,
     {
       onSuccess: () => {
@@ -238,7 +248,7 @@ export function useUnlinkClientFromProperty(propertyId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/crm/clients/link-properties",
+    "/api/crm/contacts/link-entities-property",
     unlinkClientFromPropertyFetcher,
     {
       onSuccess: () => {
@@ -260,18 +270,18 @@ export function useUnlinkClientFromProperty(propertyId: string) {
 }
 
 /**
- * Hook to link properties to a client
- * Invalidates client linked entities cache after mutation
+ * Hook to link properties to a contact
+ * Invalidates contact linked entities cache after mutation
  */
 export function useLinkPropertiesToClient(clientId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/crm/clients/link-properties",
+    `/api/crm/contacts/${clientId}/link-entities`,
     linkPropertiesToClientFetcher,
     {
       onSuccess: () => {
-        // Invalidate client linked cache
+        // Invalidate contact linked cache
         globalMutate(getClientLinkedKey(clientId));
       },
     }
@@ -289,18 +299,18 @@ export function useLinkPropertiesToClient(clientId: string) {
 }
 
 /**
- * Hook to unlink a property from a client
- * Invalidates client linked entities cache after mutation
+ * Hook to unlink a property from a contact
+ * Invalidates contact linked entities cache after mutation
  */
 export function useUnlinkPropertyFromClient(clientId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/crm/clients/link-properties",
+    `/api/crm/contacts/${clientId}/link-entities`,
     unlinkPropertyFromClientFetcher,
     {
       onSuccess: () => {
-        // Invalidate client linked cache
+        // Invalidate contact linked cache
         globalMutate(getClientLinkedKey(clientId));
       },
     }
