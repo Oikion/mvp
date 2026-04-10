@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptCalendarEventForOrg, decryptClientForOrg, decryptMandateForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
+import { decryptCalendarEventForOrg, decryptContactForOrg, decryptMandateForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/mls/properties/[propertyId]/linked
@@ -67,24 +67,25 @@ export async function GET(
       );
     }
 
-    // Fetch linked clients
-    const linkedClientsRaw = await prismadb.client_Properties.findMany({
+    // Fetch linked contacts (via ContactProperty M2M — replaces legacy client_Properties)
+    const linkedContactsRaw = await prismadb.contactProperty.findMany({
       where: {
         propertyId,
+        contact: { organizationId },
       },
       include: {
-        Clients: {
+        contact: {
           select: {
             id: true,
             friendlyId: true,
-            client_name: true,
-            client_type: true,
-            client_status: true,
-            primary_email: true,
-            primary_phone: true,
+            displayName: true,
+            email: true,
+            primaryPhone: true,
+            status: true,
+            category: true,
             createdAt: true,
             updatedAt: true,
-            Users_Clients_assigned_toToUsers: {
+            assignedAgent: {
               select: {
                 id: true,
                 name: true,
@@ -98,20 +99,17 @@ export async function GET(
       },
     });
 
-    // Decrypt and map to expected field names
+    // Decrypt and map to shape expected by usePropertyLinked (key: "clients" kept for frontend compat)
     const linkedClients = await Promise.all(
-      linkedClientsRaw.map(async (lc) => {
-        if (!lc.Clients) return { ...lc, client: null };
-        const decrypted = await decryptClientForOrg(lc.Clients, property.organizationId);
+      linkedContactsRaw.map(async (lc) => {
+        if (!lc.contact) return null;
+        const decrypted = await decryptContactForOrg(lc.contact, property.organizationId);
         return {
-          ...lc,
-          client: {
-            ...decrypted,
-            assigned_to_user: lc.Clients.Users_Clients_assigned_toToUsers,
-          },
+          ...decrypted,
+          assigned_to_user: lc.contact.assignedAgent,
         };
       })
-    );
+    ).then((results) => results.filter(Boolean));
 
     // Fetch linked calendar events (use property's org for shared properties)
     const linkedEventsRaw = await prismadb.calendarEvent.findMany({
@@ -140,10 +138,10 @@ export async function GET(
             email: true,
           },
         },
-        Clients: {
+        Contacts: {
           select: {
             id: true,
-            client_name: true,
+            displayName: true,
           },
         },
       },
@@ -156,17 +154,18 @@ export async function GET(
     const linkedEvents = await Promise.all(
       linkedEventsRaw.map(async (event) => {
         const decrypted = await decryptCalendarEventForOrg(event, property.organizationId);
-        // Also decrypt linked client names
-        const decryptedClients = await Promise.all(
-          event.Clients.map(async (c) => {
-            const dc = await decryptClientForOrg(c, property.organizationId);
-            return { id: dc.id, client_name: dc.client_name };
+        // Decrypt linked contact display names
+        const decryptedContacts = await Promise.all(
+          event.Contacts.map(async (c) => {
+            const dc = await decryptContactForOrg(c, property.organizationId);
+            return { id: dc.id, client_name: dc.displayName };
           })
         );
         return {
           ...decrypted,
           assignedUser: event.Users,
-          linkedClients: decryptedClients,
+          // key kept as "linkedClients" for frontend compat (usePropertyLinked / PropertyView)
+          linkedClients: decryptedContacts,
         };
       })
     );
@@ -259,7 +258,8 @@ export async function GET(
 
     return NextResponse.json({
       property: serializePrismaObject(property),
-      clients: serializePrismaObject(linkedClients.map((lc) => lc.client)),
+      // key "clients" kept for frontend compat — usePropertyLinked and PropertyView both read data?.clients
+      clients: serializePrismaObject(linkedClients),
       mandates: serializePrismaObject(mandates),
       documents: serializePrismaObject(documents),
       events: {
