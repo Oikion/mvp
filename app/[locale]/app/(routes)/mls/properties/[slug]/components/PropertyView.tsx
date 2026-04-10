@@ -594,15 +594,15 @@ export default function PropertyView({
             </Card>
           )}
 
-          {/* Linked Clients */}
+          {/* Linked Contacts */}
           <LinkedEntitiesPanel
-            type="clients"
-            entities={clients as unknown as Array<{ id: string; friendlyId: string; client_name: string; client_type?: string; client_status?: string; primary_email?: string; primary_phone?: string; assigned_to_user?: { id: string; name: string }; }>}
+            type="contacts"
+            entities={clients as unknown as Array<{ id: string; friendlyId: string; displayName: string; email?: string; primaryPhone?: string; status?: string; category?: string[]; }>}
             isLoading={isLoadingLinked || isLinking || isUnlinking}
             onLinkEntity={isReadOnly ? undefined : () => setLinkClientDialogOpen(true)}
             onUnlinkEntity={isReadOnly ? undefined : handleUnlinkClient}
             showAddButton={!isReadOnly}
-            emptyMessage="No clients linked to this property yet."
+            emptyMessage="No contacts linked to this property yet."
           />
 
           {/* Linked Mandates */}
