@@ -1270,6 +1270,25 @@ enum CalendarEventType {
   OTHER
 }
 
+// TODO(clients-to-contacts): ClientStatus and ClientType are referenced by 6 live files
+// (app/api/v1/crm/clients/*, lib/validations/crm.ts, lib/validations/status-transitions.ts).
+// Remove these enums once those files are migrated/deleted (Tasks 8, 9, 12).
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+  CONVERTED
+  LOST
+}
+
+enum ClientType {
+  BUYER
+  SELLER
+  RENTER
+  INVESTOR
+  REFERRAL_PARTNER
+}
+
 enum ConnectionStatus {
   PENDING
   ACCEPTED
@@ -3606,6 +3625,9 @@ model Contact {
 
 /// M2M join table linking contacts to properties they are interested in (not ownership).
 /// Replaces the legacy Client_Properties table.
+/// IMPORTANT: organizationId must be explicitly set on every write — Prisma cannot enforce
+/// that contactId and propertyId belong to the same org; callers must pass the org's
+/// organizationId and query writers must always filter by it alongside contactId/propertyId.
 model ContactProperty {
   id             String     @id @default(cuid())
   organizationId String
