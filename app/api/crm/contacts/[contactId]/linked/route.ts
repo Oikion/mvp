@@ -144,7 +144,30 @@ export async function GET(
       endTime: e.endTime instanceof Date ? e.endTime.toISOString() : e.endTime,
     }));
 
-    return NextResponse.json({ requests, properties, documents, events: allEvents });
+    // Fetch linked properties via ContactProperty M2M join table
+    const linkedPropertiesRaw = await prismadb.contactProperty.findMany({
+      where: { contactId, contact: { organizationId } },
+      include: {
+        property: {
+          select: {
+            id: true,
+            friendlyId: true,
+            property_name: true,
+            property_status: true,
+            property_type: true,
+            price: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    });
+    const linkedProperties = linkedPropertiesRaw.map((lp) => ({
+      ...lp.property,
+      price: lp.property.price ? Number(lp.property.price) : undefined,
+    }));
+
+    return NextResponse.json({ requests, properties, linkedProperties, documents, events: allEvents });
   } catch (error) {
     console.error("[CONTACT_LINKED_GET]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
