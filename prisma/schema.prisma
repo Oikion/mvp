@@ -1432,6 +1432,8 @@ enum NotificationCategory {
   CONTACT_FORM_SUBMISSION
   // Organization invites
   ORGANIZATION_INVITE
+  CONTACT_CREATED
+  CONTACT_ASSIGNED
 }
 
 enum NotificationEntityType {
@@ -1449,6 +1451,7 @@ enum NotificationEntityType {
   ORGANIZATION
   CHANNEL
   CONTACT_SUBMISSION
+  CONTACT
 }
 
 enum NotificationType {
