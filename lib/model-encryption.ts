@@ -8,51 +8,13 @@
  *
  * All encryption uses per-org DEKs (Data Encryption Keys) via the *ForOrg() functions.
  *
- * Usage on WRITE: const encrypted = await encryptClientForOrg(data, orgId);
- * Usage on READ:  const record = await prismadb.clients.findFirst(...); return decryptClientForOrg(record, orgId);
+ * Usage on WRITE: const encrypted = await encryptContactForOrg(data, orgId);
+ * Usage on READ:  const record = await prismadb.contact.findFirst(...); return decryptContactForOrg(record, orgId);
  */
 
 import { encryptWithKey, decryptWithKey, isEncrypted } from "@/lib/encryption";
 import { getOrgDek } from "@/lib/key-management";
 import type { Prisma } from "@prisma/client";
-
-// ─────────────────────────────────────────────
-// Clients
-// ─────────────────────────────────────────────
-
-const CLIENT_ENCRYPTED_STRING_FIELDS = [
-  "client_name",
-  "full_name",
-  "company_name",
-  "company_id",
-  "primary_email",
-  "secondary_email",
-  "primary_phone",
-  "secondary_phone",
-  "office_phone",
-  "fax",
-  "afm",
-  "vat",
-  "doy",
-  "id_doc",
-  "company_gemi",
-  "description",
-  "billing_street",
-  "billing_city",
-  "billing_state",
-  "billing_postal_code",
-  "billing_country",
-  "shipping_street",
-  "shipping_city",
-  "shipping_state",
-  "shipping_postal_code",
-  "shipping_country",
-] as const;
-
-type ClientStringField = (typeof CLIENT_ENCRYPTED_STRING_FIELDS)[number];
-type ClientWithEncryptedFields = Partial<Record<ClientStringField, string | null | undefined>> & {
-  communication_notes?: Prisma.JsonValue | null;
-};
 
 // ─────────────────────────────────────────────
 // Contacts (v2.0 — replaces Clients)
@@ -172,46 +134,6 @@ function decryptJsonWithKey(
 // Each fetches the org DEK once, then applies the same field logic as the
 // sync helpers above. Falls back to master key automatically via decryptWithKey.
 // ─────────────────────────────────────────────
-
-export async function encryptClientForOrg<T extends ClientWithEncryptedFields>(
-  data: T,
-  orgId: string
-): Promise<T> {
-  const dek = await getOrgDek(orgId);
-  const result = { ...data } as T & ClientWithEncryptedFields;
-  for (const field of CLIENT_ENCRYPTED_STRING_FIELDS) {
-    if (field in result) {
-      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
-        result[field] as string | null | undefined,
-        dek
-      );
-    }
-  }
-  if ("communication_notes" in result) {
-    result.communication_notes = encryptJsonWithKey(result.communication_notes, dek);
-  }
-  return result as T;
-}
-
-export async function decryptClientForOrg<T extends ClientWithEncryptedFields>(
-  record: T,
-  orgId: string
-): Promise<T> {
-  const dek = await getOrgDek(orgId);
-  const result = { ...record } as T & ClientWithEncryptedFields;
-  for (const field of CLIENT_ENCRYPTED_STRING_FIELDS) {
-    if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
-        result[field] as string | null | undefined,
-        dek
-      );
-    }
-  }
-  if ("communication_notes" in result) {
-    result.communication_notes = decryptJsonWithKey(result.communication_notes, dek);
-  }
-  return result as T;
-}
 
 export async function encryptContactForOrg<T extends ContactWithEncryptedFields>(
   data: T,
@@ -552,26 +474,6 @@ export async function encryptPropertyCommentForOrg<T extends MessageWithContent>
 }
 
 export async function decryptPropertyCommentForOrg<T extends MessageWithContent>(
-  record: T,
-  orgId: string
-): Promise<T> {
-  return decryptMessageForOrg(record, orgId);
-}
-
-// ─────────────────────────────────────────────
-// ClientComment (content field)
-// Note: ClientComment has no organizationId — pass the parent client's orgId.
-// Delegates to Message helpers (same {content?: string | null} shape).
-// ─────────────────────────────────────────────
-
-export async function encryptClientCommentForOrg<T extends MessageWithContent>(
-  data: T,
-  orgId: string
-): Promise<T> {
-  return encryptMessageForOrg(data, orgId);
-}
-
-export async function decryptClientCommentForOrg<T extends MessageWithContent>(
   record: T,
   orgId: string
 ): Promise<T> {
