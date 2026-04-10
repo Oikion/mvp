@@ -106,7 +106,6 @@ model CalendarEvent {
   EventInvitee       EventInvitee[]
   crm_Accounts_Tasks crm_Accounts_Tasks[]
   Documents          Documents[]          @relation("DocumentsToCalendarEvents")
-  Clients            Clients[]            @relation("EventToClients")
   Properties         Properties[]         @relation("EventToProperties")
   Mandates           Mandate[]            @relation("EventToMandates")
   Contacts           Contact[]            @relation("EventToContacts")
@@ -145,80 +144,6 @@ model CalendarReminder {
   @@index([status])
 }
 
-model ClientComment {
-  id              String   @id
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime
-  clientId        String
-  userId          String?
-  content         String
-  entitySessionId String?  // Megolm session ID (null for Standard org comments)
-  messageIndex    Int?     // Megolm ratchet index (null for Standard org comments)
-  Clients         Clients  @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  Users           Users?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([clientId])
-  @@index([createdAt])
-  @@index([userId])
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model Client_Contacts {
-  id                                       String             @id
-  client                                   String?
-  assigned_to                              String?
-  birthday                                 String?
-  created_by                               String?
-  createdBy                                String?
-  created_on                               DateTime?          @default(now())
-  cratedAt                                 DateTime?          @default(now())
-  last_activity                            DateTime?          @default(now())
-  updatedAt                                DateTime?
-  updatedBy                                String?
-  last_activity_by                         String?
-  description                              String?
-  email                                    String?
-  personal_email                           String?
-  contact_first_name                       String?
-  contact_last_name                        String
-  office_phone                             String?
-  mobile_phone                             String?
-  website                                  String?
-  position                                 String?
-  status                                   Boolean            @default(true)
-  contact_type                             ClientContactType?
-  relationship_to_client                   String?
-  type                                     String?            @default("Customer")
-  tags                                     String[]
-  notes                                    String[]
-  clientsIDs                               String?
-  documentsIDs                             String[]
-  organizationId                           String
-  Users_Client_Contacts_assigned_toToUsers Users?             @relation("Client_Contacts_assigned_toToUsers", fields: [assigned_to], references: [id], onDelete: SetNull)
-  Clients                                  Clients?           @relation(fields: [clientsIDs], references: [id], onDelete: SetNull)
-  Users_Client_Contacts_created_byToUsers  Users?             @relation("Client_Contacts_created_byToUsers", fields: [created_by], references: [id], onDelete: SetNull)
-  Documents                                Documents[]        @relation("DocumentsToClientContacts")
-
-  @@index([assigned_to])
-  @@index([clientsIDs])
-  @@index([created_by])
-  @@index([created_on])
-  @@index([organizationId])
-}
-
-model Client_Properties {
-  id         String     @id @default(uuid())
-  createdAt  DateTime   @default(now())
-  clientId   String
-  propertyId String
-  Clients    Clients    @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  Properties Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-
-  @@unique([clientId, propertyId])
-  @@index([clientId])
-  @@index([propertyId])
-}
-
 model Mandate_Properties {
   id         String     @id @default(uuid())
   createdAt  DateTime   @default(now())
@@ -232,92 +157,6 @@ model Mandate_Properties {
   @@index([propertyId])
 }
 
-model Mandate_Clients {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  mandateId String
-  clientId  String
-  Mandate   Mandate  @relation(fields: [mandateId], references: [id], onDelete: Cascade)
-  Clients   Clients  @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
-  @@unique([mandateId, clientId])
-  @@index([mandateId])
-  @@index([clientId])
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model Clients {
-  id                               String               @id @default(uuid())
-  friendlyId                       String
-  createdAt                        DateTime             @default(now())
-  createdBy                        String?
-  updatedAt                        DateTime?
-  updatedBy                        String?
-  assigned_to                      String?
-  client_name                      String
-  primary_email                    String?
-  client_type                      ClientType?
-  client_status                    ClientStatus?        @default(LEAD)
-  communication_notes              Json?
-  billing_city                     String?
-  billing_country                  String?
-  billing_postal_code              String?
-  billing_state                    String?
-  billing_street                   String?
-  company_id                       String?
-  description                      String?
-  fax                              String?
-  member_of                        String?
-  office_phone                     String?
-  shipping_city                    String?
-  shipping_country                 String?
-  shipping_postal_code             String?
-  shipping_state                   String?
-  shipping_street                  String?
-  vat                              String?
-  website                          String?
-  documentsIDs                     String[]
-  watchers                         String[]
-  organizationId                   String
-  afm                              String?
-  allow_marketing                  Boolean?             @default(false)
-  channels                         String[]
-  company_gemi                     String?
-  company_name                     String?
-  doy                              String?
-  draft_status                     Boolean?             @default(false)
-  visibility                       ItemVisibility       @default(PRIVATE)
-  full_name                        String?
-  gdpr_consent                     Boolean?             @default(false)
-  id_doc                           String?
-  language                         Language?            @default(en)
-  lead_source                      LeadSource?
-  person_type                      PersonType?
-  primary_phone                    String?
-  secondary_email                  String?
-  secondary_phone                  String?
-  ClientComment                    ClientComment[]
-  Client_Contacts                  Client_Contacts[]
-  Client_Properties                Client_Properties[]
-  Users_Clients_assigned_toToUsers Users?               @relation("Clients_assigned_toToUsers", fields: [assigned_to], references: [id], onDelete: SetNull)
-  Deal                             Deal[]
-  crm_Accounts_Tasks               crm_Accounts_Tasks[]
-  Documents                        Documents[]          @relation("DocumentsToClients")
-  CalendarEvent                    CalendarEvent[]      @relation("EventToClients")
-  Users_watching_accounts          Users[]              @relation("watching_accounts")
-  PropertyShowing                  PropertyShowing[]
-  Mandate_Clients                  Mandate_Clients[]
-
-  @@unique([friendlyId, organizationId])
-  @@index([assigned_to])
-  @@index([client_status])
-  @@index([createdAt])
-  @@index([friendlyId])
-  @@index([organizationId])
-  @@index([lead_source])
-  @@index([visibility])
-}
-
 model Deal {
   id             String   @id @default(cuid())
   friendlyId     String
@@ -327,9 +166,6 @@ model Deal {
   propertyId       String
   requestId        String?          // v2.0: optional link to the Request that originated this deal
   notaryContactId  String?          // v2.0: Contact record for the notary handling this deal
-
-  // ── Legacy client FK (kept for backward compat, DealParty is canonical) ──
-  clientId String? // Nullable for SetNull cascade safety
 
   // ── Agent assignments ──
   listingAgentId String? // v2.0: renamed from propertyAgentId
@@ -384,7 +220,6 @@ model Deal {
   listingAgent  Users?     @relation("Deal_listingAgentToUsers", fields: [listingAgentId], references: [id], onDelete: SetNull)
   buyerAgent    Users?     @relation("Deal_buyerAgentToUsers", fields: [buyerAgentId], references: [id], onDelete: SetNull)
   proposedBy    Users?     @relation("Deal_proposedByToUsers", fields: [proposedById], references: [id], onDelete: SetNull)
-  Clients       Clients?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
   property      Properties @relation(fields: [propertyId], references: [id])
   request       Request?   @relation(fields: [requestId], references: [id], onDelete: SetNull)
   notaryContact Contact?   @relation("DealNotaryContact", fields: [notaryContactId], references: [id], onDelete: SetNull)
@@ -403,7 +238,6 @@ model Deal {
   @@index([propertyId])
   @@index([requestId])
   @@index([notaryContactId])
-  @@index([clientId])
   @@index([listingAgentId])
   @@index([buyerAgentId])
   @@index([proposedById])
@@ -500,8 +334,6 @@ model Documents {
   Users_Documents_created_by_userToUsers         Users?               @relation("Documents_created_by_userToUsers", fields: [created_by_user], references: [id], onDelete: SetNull)
   Documents_Types                                Documents_Types?     @relation(fields: [document_type], references: [id])
   CalendarEvent                                  CalendarEvent[]      @relation("DocumentsToCalendarEvents")
-  Client_Contacts                                Client_Contacts[]    @relation("DocumentsToClientContacts")
-  Clients                                        Clients[]            @relation("DocumentsToClients")
   crm_Accounts_Tasks_DocumentsToCrmAccountsTasks crm_Accounts_Tasks[] @relation("DocumentsToCrmAccountsTasks")
   Properties                                     Properties[]
   crm_Accounts_Tasks_DocumentsToTasksExplicit    crm_Accounts_Tasks[] @relation("DocumentsToTasksExplicit")
@@ -803,7 +635,7 @@ model Properties {
   xePublished Boolean @default(false)
   xeRefId     String? @unique // External reference ID for XE
 
-  Client_Properties                   Client_Properties[]
+  linkedContacts                      ContactProperty[]  @relation("PropertyLinkedContacts")
   Deal                                Deal[]
   ProfileShowcaseProperty             ProfileShowcaseProperty[]
   Users_Properties_assigned_toToUsers Users?                    @relation("Properties_assigned_toToUsers", fields: [assigned_to], references: [id], onDelete: SetNull)
@@ -1037,10 +869,6 @@ model Users {
   AgentConnection_AgentConnection_followingIdToUsers AgentConnection[]             @relation("AgentConnection_followingIdToUsers")
   AgentProfile                                       AgentProfile?
   CalendarEvent                                      CalendarEvent[]
-  ClientComment                                      ClientComment[]
-  Client_Contacts_Client_Contacts_assigned_toToUsers Client_Contacts[]             @relation("Client_Contacts_assigned_toToUsers")
-  Client_Contacts_Client_Contacts_created_byToUsers  Client_Contacts[]             @relation("Client_Contacts_created_byToUsers")
-  Clients_Clients_assigned_toToUsers                 Clients[]                     @relation("Clients_assigned_toToUsers")
   Deal_Deal_listingAgentToUsers                      Deal[]                        @relation("Deal_listingAgentToUsers")
   Deal_Deal_buyerAgentToUsers                        Deal[]                        @relation("Deal_buyerAgentToUsers")
   Deal_Deal_proposedByToUsers                        Deal[]                        @relation("Deal_proposedByToUsers")
@@ -1061,7 +889,6 @@ model Users {
   UserNotificationSettings                           UserNotificationSettings?
   crm_Accounts_Tasks                                 crm_Accounts_Tasks[]
   crm_Accounts_Tasks_Comments                        crm_Accounts_Tasks_Comments[]
-  Clients_watching_accounts                          Clients[]                     @relation("watching_accounts")
   Properties_watching_properties                     Properties[]                  @relation("watching_properties")
   Attachment                                         Attachment[]
   ApiKey                                             ApiKey[]
@@ -1111,7 +938,6 @@ model crm_Accounts_Tasks {
   account                               String?
   calendarEventId                       String?
   organizationId                        String
-  Clients                               Clients?                      @relation(fields: [account], references: [id], onDelete: SetNull)
   CalendarEvent                         CalendarEvent?                @relation(fields: [calendarEventId], references: [id])
   Users                                 Users?                        @relation(fields: [user], references: [id], onDelete: SetNull)
   crm_Accounts_Tasks_Comments           crm_Accounts_Tasks_Comments[]
@@ -1219,9 +1045,6 @@ model PropertyShowing {
   organizationId String
   propertyId     String
 
-  // ── Legacy FK (kept for backward compat, use primaryContactId for v2.0) ──
-  clientId String? // Client who was shown the property
-
   // ── v2.0 references ──
   primaryContactId String? // v2.0: Contact record for the primary viewer
   requestId        String? // v2.0: Request that triggered this showing
@@ -1248,7 +1071,6 @@ model PropertyShowing {
 
   // ── Relations ──
   property       Properties     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  Clients        Clients?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
   primaryContact Contact?       @relation("ShowingPrimaryContact", fields: [primaryContactId], references: [id], onDelete: SetNull)
   request        Request?       @relation(fields: [requestId], references: [id], onDelete: SetNull)
   calendarEvent  CalendarEvent? @relation("ShowingCalendarEvent", fields: [calendarEventId], references: [id], onDelete: SetNull)
@@ -1259,7 +1081,6 @@ model PropertyShowing {
 
   @@index([organizationId])
   @@index([propertyId])
-  @@index([clientId])
   @@index([primaryContactId])
   @@index([requestId])
   @@index([calendarEventId])
@@ -1835,7 +1656,6 @@ model Mandate {
   assigned_to_user    Users?               @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
   comments            MandateComment[]
   Mandate_Properties  Mandate_Properties[]
-  Mandate_Clients     Mandate_Clients[]
   Documents           Documents[]          @relation("DocumentsToMandates")
   CalendarEvent       CalendarEvent[]      @relation("EventToMandates")
 
@@ -3750,6 +3570,7 @@ model Contact {
   assignedAgentId    String? // FK → User
   languagePreference Language?
   tags               String[]
+  watchers           String[]
   leadScore          Int?
   doNotContact       Boolean  @default(false)
   gdprConsentGiven   Boolean  @default(false)
@@ -3791,6 +3612,7 @@ model Contact {
   // Phase 4: explicit calendar join tables
   calendarEventContacts    CalendarEventContact[] @relation("ContactEvents")
   ActivityLinks            Activity[]             @relation("ActivityRelatedContact")
+  linkedProperties         ContactProperty[]      @relation("ContactLinkedProperties")
 
   @@unique([friendlyId, organizationId])
   @@index([organizationId])
@@ -3803,6 +3625,22 @@ model Contact {
   @@index([organizationId, status])
   @@index([organizationId, createdAt])
   @@map("contacts")
+}
+
+/// M2M join table linking contacts to properties they are interested in (not ownership).
+/// Replaces the legacy Client_Properties table.
+model ContactProperty {
+  id         String     @id @default(uuid())
+  createdAt  DateTime   @default(now())
+  contactId  String
+  propertyId String
+  contact    Contact    @relation("ContactLinkedProperties", fields: [contactId], references: [id], onDelete: Cascade)
+  property   Properties @relation("PropertyLinkedContacts", fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, propertyId])
+  @@index([contactId])
+  @@index([propertyId])
+  @@map("contact_properties")
 }
 
 /// Comments on contacts, with optional E2EE support.
