@@ -121,8 +121,9 @@ export async function notifyEntityShared(payload: SharingNotificationPayload): P
     message: payload.message
       ? `"${payload.entityName}" - ${payload.message}`
       : `"${payload.entityName}" has been shared with you`,
-    entityType: payload.entityType === "PROPERTY" ? "PROPERTY" : 
-                payload.entityType === "CLIENT" ? "ACCOUNT" : "DOCUMENT",
+    entityType: payload.entityType === "PROPERTY" ? "PROPERTY" :
+                payload.entityType === "CLIENT" ? "CONTACT" :
+                payload.entityType === "CONTACT" ? "CONTACT" : "DOCUMENT",
     entityId: payload.entityId,
     actorId: payload.sharedById,
     actorName: payload.sharedByName,
@@ -186,6 +187,47 @@ export async function notifyClientCreated(payload: EntityCreationPayload): Promi
       actorName: payload.creatorName,
       metadata: {
         clientName: payload.entityName,
+      },
+    });
+  }
+}
+
+/**
+ * Notify organization when a new contact is created
+ */
+export async function notifyContactCreated(payload: EntityCreationPayload): Promise<void> {
+  // Notify all org members except the creator
+  await notifyOrganization(
+    payload.organizationId,
+    payload.creatorId,
+    "CONTACT_CREATED",
+    "New contact added",
+    `${payload.creatorName} added a new contact: "${payload.entityName}"`,
+    {
+      entityType: "CONTACT",
+      entityId: payload.entityId,
+      actorId: payload.creatorId,
+      actorName: payload.creatorName,
+      metadata: {
+        contactName: payload.entityName,
+      },
+    }
+  );
+
+  // If assigned to someone else, send additional assignment notification
+  if (payload.assignedToId && payload.assignedToId !== payload.creatorId) {
+    await createNotification({
+      userId: payload.assignedToId,
+      organizationId: payload.organizationId,
+      type: "CONTACT_ASSIGNED",
+      title: "Contact assigned to you",
+      message: `${payload.creatorName} assigned the contact "${payload.entityName}" to you`,
+      entityType: "CONTACT",
+      entityId: payload.entityId,
+      actorId: payload.creatorId,
+      actorName: payload.creatorName,
+      metadata: {
+        contactName: payload.entityName,
       },
     });
   }
@@ -515,27 +557,25 @@ export async function notifyAccountWatchers(
   type: "ACCOUNT_UPDATED" | "ACCOUNT_DELETED" | "ACCOUNT_TASK_CREATED" | "ACCOUNT_TASK_UPDATED",
   title: string,
   message: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   try {
-    // Get the account with watchers (watchers is a String[] of user IDs)
-    const account = await prismadb.clients.findUnique({
-      where: { id: accountId },
+    // Get the contact with watchers
+    const contact = await prismadb.contact.findFirst({
+      where: { id: accountId, organizationId },
       select: {
         id: true,
-        client_name: true,
+        displayName: true,
         watchers: true,
       },
     });
 
-    if (!account || !account.watchers || account.watchers.length === 0) {
+    if (!contact || !contact.watchers || contact.watchers.length === 0) {
       return;
     }
 
-    const watcherIds = account.watchers;
-
-    // Exclude the actor from notifications if provided
-    const actorId = metadata?.updatedBy;
+    const watcherIds = contact.watchers;
+    const actorId = metadata?.updatedBy as string | undefined;
     const filteredIds = actorId
       ? watcherIds.filter((id) => id !== actorId)
       : watcherIds;
@@ -544,33 +584,28 @@ export async function notifyAccountWatchers(
       return;
     }
 
-    // Create in-app notifications
     await createBulkNotifications({
       userIds: filteredIds,
       organizationId,
       type,
       title,
       message,
-      entityType: "ACCOUNT",
+      entityType: "CONTACT",
       entityId: accountId,
-      actorId: metadata?.updatedBy,
-      actorName: metadata?.updatedByName,
+      actorId: metadata?.updatedBy as string | undefined,
+      actorName: metadata?.updatedByName as string | undefined,
       metadata: {
-        accountName: account.client_name,
+        accountName: contact.displayName,
         ...metadata,
       },
     });
 
-    // Send email notifications to watchers (respects user preferences)
     await sendNotificationEmailToUsers(filteredIds, type, {
-      actorName: metadata?.updatedByName,
-      actorId: metadata?.updatedBy,
+      actorName: metadata?.updatedByName as string | undefined,
+      actorId: metadata?.updatedBy as string | undefined,
       entityId: accountId,
-      entityName: account.client_name,
-      metadata: {
-        accountName: account.client_name,
-        ...metadata,
-      },
+      entityName: contact.displayName,
+      metadata,
     });
   } catch (error) {
     console.error("[NOTIFY_ACCOUNT_WATCHERS]", error);
