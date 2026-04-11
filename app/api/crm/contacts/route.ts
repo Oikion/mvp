@@ -8,6 +8,7 @@ import { createContactSchema, contactQuerySchema } from "@/lib/validations/conta
 import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { validateAssignedTo } from "@/lib/validate-assigned-to";
 import { notifyContactCreated } from "@/lib/notifications";
+import { createChangeLogEntry } from "@/lib/entity-change-log";
 
 export async function GET(req: Request) {
   try {
@@ -193,6 +194,14 @@ export async function POST(req: Request) {
       organizationId,
       assignedToId: validatedAgent ?? undefined,
     }).catch((err) => console.error("[CONTACTS_POST] notifyContactCreated failed", err));
+
+    createChangeLogEntry({
+      organizationId,
+      entityType: "CONTACT",
+      entityId: contact.id,
+      eventType: "CREATED",
+      actorUserId: userId,
+    }).catch((err) => console.error("[CONTACT_CREATED_LOG]", err));
 
     return NextResponse.json({ data: contact }, { status: 201 });
   } catch (error) {
