@@ -50,7 +50,7 @@ export async function getAutoFillData(input: AutoFillInput): Promise<AutoFillRes
   // Fetch client if provided
   let client = null;
   if (input.clientId) {
-    client = await prismadb.clients.findFirst({
+    client = await prismadb.contact.findFirst({
       where: {
         id: input.clientId,
         organizationId,
@@ -77,7 +77,7 @@ export async function getAutoFillData(input: AutoFillInput): Promise<AutoFillRes
   return {
     values,
     propertyName: property?.property_name,
-    clientName: client?.client_name,
+    clientName: (client as any)?.displayName,
   };
 }
 
@@ -122,16 +122,16 @@ export async function getClientsForTemplate() {
     return [];
   }
 
-  const clients = await prismadb.clients.findMany({
+  const clients = await prismadb.contact.findMany({
     where: {
       organizationId,
     },
     select: {
       id: true,
-      client_name: true,
-      primary_email: true,
-      primary_phone: true,
-      client_type: true,
+      displayName: true,
+      email: true,
+      primaryPhone: true,
+      status: true,
     },
     orderBy: {
       createdAt: "desc",

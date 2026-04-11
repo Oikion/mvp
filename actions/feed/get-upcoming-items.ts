@@ -62,8 +62,8 @@ export async function getUpcomingItems(): Promise<{
       },
       orderBy: { startTime: "asc" },
       include: {
-        Clients: {
-          select: { id: true, friendlyId: true, client_name: true },
+        Contacts: {
+          select: { id: true, friendlyId: true, displayName: true },
           take: 1,
         },
         Properties: {
@@ -76,7 +76,7 @@ export async function getUpcomingItems(): Promise<{
     for (const event of events) {
       const eventDate = new Date(event.startTime);
       const isEventOverdue = eventDate < now && event.status !== "completed";
-      
+
       let linkedEntity: UpcomingItem["linkedEntity"] = undefined;
       if (event.Properties?.[0]) {
         linkedEntity = {
@@ -85,12 +85,12 @@ export async function getUpcomingItems(): Promise<{
           friendlyId: event.Properties[0].friendlyId,
           name: event.Properties[0].property_name || "Property",
         };
-      } else if (event.Clients?.[0]) {
+      } else if (event.Contacts?.[0]) {
         linkedEntity = {
           type: "client",
-          id: event.Clients[0].id,
-          friendlyId: event.Clients[0].friendlyId,
-          name: event.Clients[0].client_name || "Client",
+          id: event.Contacts[0].id,
+          friendlyId: event.Contacts[0].friendlyId || event.Contacts[0].id,
+          name: event.Contacts[0].displayName || "Contact",
         };
       }
 
@@ -124,28 +124,15 @@ export async function getUpcomingItems(): Promise<{
         },
       },
       orderBy: { dueDateAt: "asc" },
-      include: {
-        Clients: {
-          select: { id: true, friendlyId: true, client_name: true },
-        },
-      },
     });
 
     for (const task of tasks) {
       if (!task.dueDateAt) continue;
-      
+
       const taskDate = new Date(task.dueDateAt);
       const isTaskOverdue = taskDate < now;
 
-      let linkedEntity: UpcomingItem["linkedEntity"] = undefined;
-      if (task.Clients) {
-        linkedEntity = {
-          type: "client",
-          id: task.Clients.id,
-          friendlyId: task.Clients.friendlyId,
-          name: task.Clients.client_name || "Client",
-        };
-      }
+      const linkedEntity: UpcomingItem["linkedEntity"] = undefined;
 
       items.push({
         id: `task-${task.id}`,

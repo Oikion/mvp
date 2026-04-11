@@ -3,7 +3,7 @@ import useSWR from "swr";
 interface LinkedClient {
   id: string;
   friendlyId: string;
-  client_name: string;
+  displayName: string;
 }
 
 interface LinkedProperty {
@@ -29,7 +29,7 @@ interface LinkedTask {
   } | null;
   crm_accounts?: {
     id: string;
-    client_name: string;
+    displayName: string;
   } | null;
 }
 
@@ -48,8 +48,8 @@ export interface EventContactAttendee {
   note: string | null;
   contact: {
     id: string;
-    full_name: string | null;
-    primary_email: string | null;
+    displayName: string;
+    email: string | null;
     friendlyId: string;
   } | null;
 }

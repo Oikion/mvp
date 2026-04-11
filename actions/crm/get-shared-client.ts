@@ -5,9 +5,9 @@ import { getCurrentOrgId } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
 import { decryptContactForOrg } from "@/lib/model-encryption";
 import { serializePrisma } from "@/lib/prisma-serialize";
-import { actionSuccess, actionError, actionNotFound, type ActionResponse } from "@/lib/action-response";
+import { actionSuccess, actionError, actionNotFound } from "@/lib/action-response";
 
-export async function getSharedContact(contactId: string): Promise<ActionResponse> {
+export async function getSharedContact(contactId: string) {
   const guard = await requireAction("contact:read");
   if (guard) return guard;
 
@@ -39,3 +39,6 @@ export async function getSharedContact(contactId: string): Promise<ActionRespons
     return actionError("Failed to fetch contact", error as Error);
   }
 }
+
+// Backward-compat alias
+export const getSharedClient = getSharedContact;

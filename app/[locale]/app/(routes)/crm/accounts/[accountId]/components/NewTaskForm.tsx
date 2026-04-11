@@ -32,7 +32,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import fetcher from "@/lib/fetcher";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Clients } from "@prisma/client";
+import { Contact } from "@prisma/client";
 import axios from "axios";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -45,7 +45,7 @@ import useSWR from "swr";
 import { z } from "zod";
 
 interface NewTaskFormProps {
-  account: Clients | null;
+  account: Contact | null;
   onFinish: () => void;
 }
 

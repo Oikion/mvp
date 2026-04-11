@@ -138,13 +138,13 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
           where: { id: post.linkedEntityId },
           select: { friendlyId: true },
         });
-        linkedEntityFriendlyId = prop?.friendlyId;
+        linkedEntityFriendlyId = prop?.friendlyId ?? undefined;
       } else if (post.linkedEntityType === "client") {
-        const client = await prismadb.clients.findUnique({
+        const client = await prismadb.contact.findUnique({
           where: { id: post.linkedEntityId },
           select: { friendlyId: true },
         });
-        linkedEntityFriendlyId = client?.friendlyId;
+        linkedEntityFriendlyId = client?.friendlyId ?? undefined;
       }
     } catch {
       // Entity may have been deleted

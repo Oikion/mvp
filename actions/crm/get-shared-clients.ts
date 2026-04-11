@@ -5,9 +5,30 @@ import { getCurrentOrgId } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
 import { decryptContactForOrg } from "@/lib/model-encryption";
 import { serializePrisma } from "@/lib/prisma-serialize";
-import { actionSuccess, actionError, actionNotFound, type ActionResponse } from "@/lib/action-response";
+import { actionSuccess, actionError } from "@/lib/action-response";
 
-export async function getSharedContacts(): Promise<ActionResponse> {
+export type SharedClientData = {
+  id: string;
+  entityType: string;
+  entityId: string;
+  sharedById: string | null;
+  sharedWithId: string | null;
+  permissions: string;
+  message: string | null;
+  createdAt: Date;
+  contact: {
+    id: string;
+    friendlyId: string | null;
+    displayName: string;
+    email: string | null;
+    primaryPhone: string | null;
+    status: string;
+    visibility: string;
+    category: string[];
+  } | null;
+};
+
+export async function getSharedContacts() {
   const guard = await requireAction("contact:read");
   if (guard) return guard;
 
@@ -18,9 +39,14 @@ export async function getSharedContacts(): Promise<ActionResponse> {
       where: {
         organizationId,
         entityType: "CONTACT",
-      },
-      include: {
-        contact: {
+      } as any,
+    });
+
+    // Manually join contacts since SharedEntity has no Prisma relation to Contact
+    const results = await Promise.all(
+      sharedEntities.map(async (se) => {
+        const contact = await prismadb.contact.findFirst({
+          where: { id: se.entityId, organizationId },
           select: {
             id: true,
             friendlyId: true,
@@ -31,17 +57,13 @@ export async function getSharedContacts(): Promise<ActionResponse> {
             visibility: true,
             category: true,
           },
-        },
-      },
-    });
+        });
 
-    const results = await Promise.all(
-      sharedEntities
-        .filter((se) => se.contact)
-        .map(async (se) => {
-          const decrypted = await decryptContactForOrg(se.contact!, organizationId);
-          return { ...se, contact: decrypted };
-        })
+        if (!contact) return { ...se, contact: null };
+
+        const decrypted = await decryptContactForOrg(contact, organizationId);
+        return { ...se, contact: decrypted };
+      })
     );
 
     return actionSuccess(serializePrisma(results));
@@ -50,3 +72,6 @@ export async function getSharedContacts(): Promise<ActionResponse> {
     return actionError("Failed to fetch shared contacts", error as Error);
   }
 }
+
+// Backward-compat alias
+export const getSharedClients = getSharedContacts;

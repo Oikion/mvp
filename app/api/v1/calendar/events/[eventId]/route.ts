@@ -45,8 +45,8 @@ export const GET = withExternalApi(
         recurrenceRule: true,
         createdAt: true,
         updatedAt: true,
-        Clients: {
-          select: { id: true, client_name: true },
+        Contacts: {
+          select: { id: true, displayName: true },
         },
         Properties: {
           select: { id: true, property_name: true },
@@ -74,7 +74,7 @@ export const GET = withExternalApi(
         assignedUser: event.Users,
         reminderMinutes: event.reminderMinutes,
         recurrenceRule: event.recurrenceRule,
-        linkedClients: event.Clients,
+        linkedContacts: event.Contacts,
         linkedProperties: event.Properties,
         createdAt: event.createdAt.toISOString(),
         updatedAt: event.updatedAt.toISOString(),
@@ -156,7 +156,7 @@ export const PUT = withExternalApi(
 
     // Handle relations
     if (clientIds !== undefined) {
-      updateData.Clients = {
+      updateData.Contacts = {
         set: [], // Clear existing
         connect: Array.isArray(clientIds) ? clientIds.map((id: string) => ({ id })) : [],
       };

@@ -204,13 +204,9 @@ export async function deleteOrganization(
       });
 
       // =============================================================================
-      // Step 7: Delete client-related data
+      // Step 7: Delete contact-related data
       // =============================================================================
-      await tx.client_Contacts.deleteMany({
-        where: { organizationId },
-      });
-
-      await tx.clients.deleteMany({
+      await tx.contact.deleteMany({
         where: { organizationId },
       });
 

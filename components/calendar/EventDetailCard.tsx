@@ -173,7 +173,7 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
                   onClick={() => router.push(`/app/crm/clients/${client.friendlyId}`)}
                 >
                   <LinkIcon className="h-3 w-3 mr-2" />
-                  {client.client_name}
+                  {client.displayName}
                   <ExternalLink className="h-3 w-3 ml-auto" />
                 </Button>
               ))}
@@ -235,7 +235,7 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
                 <div key={attendee.id} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <User className="h-3 w-3 text-muted-foreground" />
-                    <span>{attendee.contact?.full_name || attendee.contact?.primary_email || attendee.contactId}</span>
+                    <span>{attendee.contact?.displayName || attendee.contact?.email || attendee.contactId}</span>
                     <Badge variant="outline" className="text-xs">
                       {t(`eventDetail.roles.${attendee.role}` as any)}
                     </Badge>

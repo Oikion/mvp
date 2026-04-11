@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptClientForOrg, decryptCalendarEventForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg, decryptCalendarEventForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/mandates/[mandateId]/linked
@@ -81,60 +81,19 @@ export async function GET(
       assigned_to_user: lp.Properties?.Users_Properties_assigned_toToUsers ?? null,
     }));
 
-    // Fetch linked clients
-    const linkedClientsRaw = await prismadb.mandate_Clients.findMany({
-      where: {
-        mandateId,
-      },
-      include: {
-        Clients: {
-          select: {
-            id: true,
-            friendlyId: true,
-            client_name: true,
-            client_type: true,
-            client_status: true,
-            primary_email: true,
-            primary_phone: true,
-            Users_Clients_assigned_toToUsers: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    // Decrypt and map to expected field names
-    const linkedClients = await Promise.all(
-      linkedClientsRaw.map(async (lc) => {
-        if (!lc.Clients) return null;
-        const decrypted = await decryptClientForOrg(lc.Clients, organizationId);
-        return {
-          ...decrypted,
-          assigned_to_user: lc.Clients.Users_Clients_assigned_toToUsers ?? null,
-        };
-      })
-    ).then((results) => results.filter(Boolean));
+    // Mandate_Clients relation no longer exists in the new schema — return empty
+    const linkedClients: any[] = [];
 
     // Fetch calendar events linked to the mandate's clients or properties
     const clientIds = linkedClients.map((c: any) => c.id).filter(Boolean);
     const propertyIds = linkedProperties.map((p: any) => p.id).filter(Boolean);
 
     let linkedEvents: any[] = [];
-    if (clientIds.length > 0 || propertyIds.length > 0) {
+    if (propertyIds.length > 0) {
       const linkedEventsRaw = await prismadb.calendarEvent.findMany({
         where: {
           organizationId,
           OR: [
-            ...(clientIds.length > 0
-              ? [{ Clients: { some: { id: { in: clientIds } } } }]
-              : []),
             ...(propertyIds.length > 0
               ? [{ Properties: { some: { id: { in: propertyIds } } } }]
               : []),
@@ -153,9 +112,6 @@ export async function GET(
           Users: {
             select: { id: true, name: true, email: true },
           },
-          Clients: {
-            select: { id: true, client_name: true },
-          },
           Properties: {
             select: { id: true, property_name: true },
           },
@@ -166,16 +122,10 @@ export async function GET(
       linkedEvents = await Promise.all(
         linkedEventsRaw.map(async (event) => {
           const decrypted = await decryptCalendarEventForOrg(event, organizationId);
-          const decryptedClients = await Promise.all(
-            event.Clients.map(async (c) => {
-              const dc = await decryptClientForOrg(c, organizationId);
-              return { id: dc.id, client_name: dc.client_name };
-            })
-          );
           return {
             ...decrypted,
             assignedUser: event.Users,
-            linkedClients: decryptedClients,
+            linkedClients: [],
             linkedProperties: event.Properties.map((p) => ({
               id: p.id,
               property_name: p.property_name,

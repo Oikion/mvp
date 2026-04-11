@@ -229,7 +229,7 @@ export default function ClientView({
   };
 
   // Derived values
-  const allEvents = [...(events.upcoming || []), ...(events.past || [])];
+  const allEvents = events || [];
   const billingAddress = [data.billing_street, data.billing_city, data.billing_state, data.billing_postal_code, data.billing_country].filter(Boolean).join(", ");
   const shippingAddress = [data.shipping_street, data.shipping_city, data.shipping_state, data.shipping_postal_code, data.shipping_country].filter(Boolean).join(", ");
 

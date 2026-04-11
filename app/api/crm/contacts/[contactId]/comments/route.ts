@@ -123,7 +123,7 @@ export async function DELETE(
   { params }: { params: Promise<{ contactId: string }> }
 ) {
   try {
-    const deleteCheck = await canPerformAction("contact:delete_comment");
+    const deleteCheck = await canPerformAction("contact:update");
     if (!deleteCheck.allowed) {
       return NextResponse.json({ error: "Permission denied" }, { status: 403 });
     }

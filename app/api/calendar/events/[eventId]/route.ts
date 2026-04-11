@@ -92,18 +92,18 @@ async function createCancellationNotifications(
       });
     }
     
-    // Notify linked client agents
-    if (event.Clients && event.Clients.length > 0) {
-      const clientIds = event.Clients.map((c: any) => c.id);
-      const clients = await prismadb.clients.findMany({
+    // Notify linked contact agents
+    if (event.Contacts && event.Contacts.length > 0) {
+      const clientIds = event.Contacts.map((c: any) => c.id);
+      const clients = await prismadb.contact.findMany({
         where: { id: { in: clientIds } },
-        select: { assigned_to: true, client_name: true },
+        select: { assignedAgentId: true, displayName: true },
       });
       
       const agentIds = new Set(
         clients
-          .filter((c) => c.assigned_to && c.assigned_to !== cancellerId && c.assigned_to !== event.assignedUserId)
-          .map((c) => c.assigned_to!)
+          .filter((c) => c.assignedAgentId && c.assignedAgentId !== cancellerId && c.assignedAgentId !== event.assignedUserId)
+          .map((c) => c.assignedAgentId!)
       );
       
       for (const agentId of Array.from(agentIds)) {
@@ -167,13 +167,10 @@ export async function GET(
             Users: {
               select: { id: true, name: true, email: true },
             },
-            Clients: {
-              select: { id: true, client_name: true },
-            },
           },
         },
-        Clients: {
-          select: { id: true, client_name: true, primary_email: true, friendlyId: true },
+        Contacts: {
+          select: { id: true, displayName: true, email: true, friendlyId: true },
         },
         Properties: {
           select: { id: true, property_name: true, address_street: true, address_city: true, friendlyId: true },
@@ -195,17 +192,14 @@ export async function GET(
             scheduledFor: "asc",
           },
         },
-        // Phase 4 explicit join tables — @ts-expect-error until Prisma client is regenerated
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
+        // Phase 4 explicit join tables
         EventContacts: {
           include: {
             Contact: {
-              select: { id: true, full_name: true, primary_email: true, friendlyId: true },
+              select: { id: true, displayName: true, email: true, friendlyId: true },
             },
           },
         },
-        // @ts-expect-error
         EventAgents: {
           include: {
             User: {
@@ -226,12 +220,12 @@ export async function GET(
     const decrypted = await decryptCalendarEventForOrg(event, currentOrgId);
 
     // Map Prisma relation names to the keys expected by the EventDetailView UI
-    const { Clients, Properties, Documents, Mandates, Users, crm_Accounts_Tasks, CalendarReminder, EventContacts, EventAgents, ...rest } = decrypted as any;
+    const { Contacts, Properties, Documents, Mandates, Users, crm_Accounts_Tasks, CalendarReminder, EventContacts, EventAgents, ...rest } = decrypted as any;
     return NextResponse.json({
       event: {
         ...rest,
         assignedUser: Users ?? null,
-        linkedClients: Clients ?? [],
+        linkedClients: Contacts ?? [],
         linkedProperties: Properties ?? [],
         linkedDocuments: Documents ?? [],
         linkedMandates: Mandates ?? [],
@@ -362,20 +356,20 @@ export async function PUT(
     if (clientIds !== undefined) {
       if (Array.isArray(clientIds) && clientIds.length > 0) {
         // Validate client IDs exist
-        const validClients = await prismadb.clients.findMany({
+        const validClients = await prismadb.contact.findMany({
           where: {
             id: { in: clientIds },
             organizationId: currentOrgId,
           },
           select: { id: true },
         });
-        
-        connectDisconnect.Clients = {
+
+        connectDisconnect.Contacts = {
           set: validClients.map((client) => ({ id: client.id })),
         };
       } else {
-        // Clear all clients if empty array
-        connectDisconnect.Clients = { set: [] };
+        // Clear all contacts if empty array
+        connectDisconnect.Contacts = { set: [] };
       }
     }
 
@@ -470,7 +464,7 @@ export async function PUT(
           },
         },
         crm_Accounts_Tasks: true,
-        Clients: true,
+        Contacts: true,
         Properties: true,
         Documents: true,
         CalendarReminder: true,
@@ -537,8 +531,8 @@ export async function DELETE(
         organizationId: currentOrgId,
       },
       include: {
-        Clients: {
-          select: { id: true, client_name: true },
+        Contacts: {
+          select: { id: true, displayName: true },
         },
         Properties: {
           select: { id: true, property_name: true },

@@ -189,7 +189,7 @@ export const POST = withExternalApi(
         updatedBy: context.createdById,
         ...encrypted,
         isCompany: v.isCompany ?? false,
-        category: v.category ?? [],
+        category: (v.category ?? []) as import("@prisma/client").ContactCategory[],
         status: v.status ?? "LEAD",
         source: v.source ?? null,
         visibility: v.visibility ?? "PRIVATE",

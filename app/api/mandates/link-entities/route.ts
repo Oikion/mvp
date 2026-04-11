@@ -68,41 +68,8 @@ export async function POST(req: Request) {
       links.push(...propertyLinks);
     }
 
-    // Link clients to mandate
-    if (Array.isArray(clientIds) && clientIds.length > 0) {
-      // Verify all clients belong to organization
-      const clients = await prismadb.clients.findMany({
-        where: { id: { in: clientIds }, organizationId },
-      });
-
-      if (clients.length !== clientIds.length) {
-        return NextResponse.json(
-          { error: "Some clients not found or access denied" },
-          { status: 404 }
-        );
-      }
-
-      const clientLinks = await Promise.all(
-        clientIds.map((clientId: string) =>
-          prismadb.mandate_Clients.upsert({
-            where: {
-              mandateId_clientId: {
-                mandateId,
-                clientId,
-              },
-            },
-            create: {
-              id: crypto.randomUUID(),
-              mandateId,
-              clientId,
-            },
-            update: {},
-          })
-        )
-      );
-
-      links.push(...clientLinks);
-    }
+    // Mandate_Clients relation no longer exists — client linking is no longer supported
+    // clientIds parameter is ignored in this version
 
     await invalidateCache([`mandate:${mandateId}`, "mandates:list"]);
 
@@ -152,15 +119,7 @@ export async function DELETE(req: Request) {
       });
     }
 
-    // Delete client links
-    if (clientIds.length > 0) {
-      await prismadb.mandate_Clients.deleteMany({
-        where: {
-          mandateId,
-          clientId: { in: clientIds },
-        },
-      });
-    }
+    // mandate_Clients table removed in Contact migration — client links no longer apply
 
     await invalidateCache([`mandate:${mandateId}`, "mandates:list"]);
 
@@ -236,41 +195,7 @@ export async function PUT(req: Request) {
       await invalidateCache([`property:${propertyId}`, "properties:list"]);
     }
 
-    if (clientId) {
-      // Verify client belongs to organization
-      const client = await prismadb.clients.findFirst({
-        where: { id: clientId, organizationId },
-      });
-
-      if (!client) {
-        return NextResponse.json(
-          { error: "Client not found or access denied" },
-          { status: 404 }
-        );
-      }
-
-      const clientLinks = await Promise.all(
-        mandateIds.map((mandateId: string) =>
-          prismadb.mandate_Clients.upsert({
-            where: {
-              mandateId_clientId: {
-                mandateId,
-                clientId,
-              },
-            },
-            create: {
-              id: crypto.randomUUID(),
-              mandateId,
-              clientId,
-            },
-            update: {},
-          })
-        )
-      );
-
-      links.push(...clientLinks);
-      await invalidateCache([`account:${clientId}`, "clients:list"]);
-    }
+    // Mandate_Clients relation no longer exists — client linking via mandates is not supported
 
     await invalidateCache(["mandates:list"]);
 

@@ -5,7 +5,7 @@ import { getCurrentOrgId } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
 
-export async function getAccountsCount(): Promise<ActionResponse> {
+export async function getAccountsCount(): Promise<ActionResponse<{ count: number }>> {
   const guard = await requireAction("contact:read");
   if (guard) return guard;
 

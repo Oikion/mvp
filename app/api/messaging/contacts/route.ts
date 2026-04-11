@@ -5,13 +5,13 @@ import { getCurrentOrgId } from "@/lib/get-current-user";
 
 /**
  * GET /api/messaging/contacts
- * 
+ *
  * Returns all contacts for the current organization that can be messaged.
  */
 export async function GET() {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -22,28 +22,21 @@ export async function GET() {
     const organizationId = await getCurrentOrgId();
 
     // Get all active contacts for the organization
-    const contacts = await prismadb.client_Contacts.findMany({
+    const contacts = await prismadb.contact.findMany({
       where: {
         organizationId,
-        status: true,
       },
       select: {
         id: true,
-        contact_first_name: true,
-        contact_last_name: true,
+        firstName: true,
+        lastName: true,
         email: true,
-        mobile_phone: true,
-        position: true,
-        Clients: {
-          select: {
-            id: true,
-            client_name: true,
-          },
-        },
+        primaryPhone: true,
+        displayName: true,
       },
       orderBy: [
-        { contact_last_name: "asc" },
-        { contact_first_name: "asc" },
+        { lastName: "asc" },
+        { firstName: "asc" },
       ],
       take: 100, // Limit for performance
     });
@@ -51,14 +44,14 @@ export async function GET() {
     // Format the response
     const formattedContacts = contacts.map((contact) => ({
       id: contact.id,
-      name: [contact.contact_first_name, contact.contact_last_name]
+      name: contact.displayName || [contact.firstName, contact.lastName]
         .filter(Boolean)
         .join(" ") || "Unknown",
       email: contact.email,
-      phone: contact.mobile_phone,
-      position: contact.position,
-      clientName: contact.Clients?.client_name,
-      clientId: contact.Clients?.id,
+      phone: contact.primaryPhone,
+      position: null,
+      clientName: null,
+      clientId: null,
     }));
 
     return NextResponse.json({ contacts: formattedContacts });

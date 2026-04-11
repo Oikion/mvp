@@ -66,25 +66,25 @@ export function ClientComments({
 
     // Optimistically update the cache
     mutate(
-      { comments: [tempComment, ...comments] },
+      { data: [tempComment, ...comments] },
       { revalidate: false }
     );
-    
+
     setNewComment("");
 
     try {
       const result = await addComment({ content: commentContent });
-      
+
       // Update cache with the actual comment from server
       mutate(
-        { comments: [result.comment, ...comments.filter((c) => !c.id.startsWith("temp-"))] },
+        { data: [result.data, ...comments.filter((c) => !c.id.startsWith("temp-"))] },
         { revalidate: false }
       );
-      
+
       toast.success("Comment added");
     } catch (error: unknown) {
       // Rollback on error
-      mutate({ comments }, { revalidate: true });
+      mutate({ data: comments }, { revalidate: true });
       
       const message =
         error instanceof Error ? error.message : "Failed to add comment";
@@ -104,7 +104,7 @@ export function ClientComments({
 
     // Optimistically remove the comment
     mutate(
-      { comments: comments.filter((c) => c.id !== commentId) },
+      { data: comments.filter((c) => c.id !== commentId) },
       { revalidate: false }
     );
 
@@ -113,7 +113,7 @@ export function ClientComments({
       toast.success("Comment deleted");
     } catch (error: unknown) {
       // Rollback on error
-      mutate({ comments: originalComments }, { revalidate: true });
+      mutate({ data: originalComments }, { revalidate: true });
       
       const message =
         error instanceof Error ? error.message : "Failed to delete comment";

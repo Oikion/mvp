@@ -7,7 +7,23 @@ import { decryptContactForOrg } from "@/lib/model-encryption";
 import { serializePrisma } from "@/lib/prisma-serialize";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
 
-export async function getRecentClients(limit = 5): Promise<ActionResponse> {
+type RecentClientRow = {
+  id: string;
+  friendlyId: string | null;
+  name: string;
+  email: string | null;
+  status: string;
+  createdAt: Date;
+  assigned_to: string | null;
+  assigned_to_user: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    avatar: string | null;
+  } | null;
+};
+
+export async function getRecentClients(limit = 5): Promise<ActionResponse<RecentClientRow[]>> {
   const guard = await requireAction("contact:read");
   if (guard) return guard;
 

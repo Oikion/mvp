@@ -13,14 +13,14 @@ const mockClientCommentCreate = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prismadb: {
-    clients: {
+    contact: {
       findFirst: (...args: any[]) => mockClientsFind(...args),
     },
     entitySession: {
       findFirst: (...args: any[]) => mockEntitySessionFind(...args),
       updateMany: (...args: any[]) => mockEntitySessionUpdateMany(...args),
     },
-    clientComment: {
+    contactComment: {
       create: (...args: any[]) => mockClientCommentCreate(...args),
     },
   },
@@ -38,8 +38,8 @@ vi.mock("@/lib/get-current-user", () => ({
 // Mock encryption helpers — return content unchanged (not testing encryption)
 // ---------------------------------------------------------------------------
 vi.mock("@/lib/model-encryption", () => ({
-  encryptClientCommentForOrg: vi.fn().mockImplementation(async (data: any) => data),
-  decryptClientCommentForOrg: vi.fn().mockImplementation(async (data: any) => data),
+  encryptContactCommentForOrg: vi.fn().mockImplementation(async (data: any) => data),
+  decryptContactCommentForOrg: vi.fn().mockImplementation(async (data: any) => data),
 }));
 
 // ---------------------------------------------------------------------------

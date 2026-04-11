@@ -68,7 +68,7 @@ export function TemplateDataTable({ initialTemplates }: TemplateDataTableProps) 
           {rows.map((tpl) => (
             <TableRow key={tpl.id}>
               <TableCell className="font-medium">{tpl.name}</TableCell>
-              <TableCell>{t(`categories.${tpl.category}`)}</TableCell>
+              <TableCell>{t(`categories.${tpl.category}` as Parameters<typeof t>[0])}</TableCell>
               <TableCell>
                 <Badge variant={tpl.isPublished ? "default" : "secondary"}>
                   {tpl.isPublished ? t("status.published") : t("status.draft")}

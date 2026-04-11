@@ -41,8 +41,8 @@ async function getAvgDaysOnMarket(organizationId: string) {
 }
 
 async function getTotalClients(organizationId: string) {
-  return prismadb.clients.count({
-    where: { organizationId, draft_status: false },
+  return prismadb.contact.count({
+    where: { organizationId },
   });
 }
 
