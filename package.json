@@ -184,6 +184,7 @@
     "react-youtube": "^10.1.0",
     "recharts": "^3.4.1",
     "resend": "^6.9.4",
+    "server-only": "^0.0.1",
     "sharp": "^0.33.5",
     "sonner": "^1.7.0",
     "svgo": "^4.0.0",

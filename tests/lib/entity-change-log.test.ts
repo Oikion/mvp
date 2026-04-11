@@ -52,6 +52,9 @@ describe("diffEntity", () => {
     const before = { status: "LEAD", visibility: "PRIVATE" };
     const after  = { status: "ACTIVE", visibility: "PUBLIC" };
     const result = diffEntity(before, after, watchedFields, encryptedFields);
-    expect(result).toHaveLength(2);
+    expect(result).toEqual([
+      { field: "status",     from: "LEAD",    to: "ACTIVE" },
+      { field: "visibility", from: "PRIVATE", to: "PUBLIC"  },
+    ]);
   });
 });

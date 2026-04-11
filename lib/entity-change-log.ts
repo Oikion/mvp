@@ -1,3 +1,5 @@
+import "server-only";
+
 /**
  * lib/entity-change-log.ts
  * Server-side only — never import from client components.
@@ -7,6 +9,7 @@
  *   createChangeLogEntry — persists a non-fatal EntityChangeLog record
  */
 import { prismadb } from "@/lib/prisma";
+import type { EntityChangeLogType, EntityChangeEventType } from "@prisma/client";
 
 // ─── Watched fields per entity ────────────────────────────────────────────────
 
@@ -76,9 +79,9 @@ export function diffEntity(
 
 interface ChangeLogInput {
   organizationId: string;
-  entityType: "CONTACT" | "PROPERTY" | "REQUEST" | "DEAL";
+  entityType: EntityChangeLogType;
   entityId: string;
-  eventType: "CREATED" | "UPDATED" | "LINKED" | "UNLINKED" | "DELETED" | "ARCHIVED";
+  eventType: EntityChangeEventType;
   actorUserId?: string;
   changedFields?: ChangedField[];
   linkTarget?: { type: string; id: string; friendlyId?: string; label?: string };
