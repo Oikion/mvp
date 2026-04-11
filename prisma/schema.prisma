@@ -4260,6 +4260,8 @@ enum EntityChangeEventType {
   UPDATED
   LINKED
   UNLINKED
+  DELETED
+  ARCHIVED
 }
 
 model EntityChangeLog {
@@ -4272,12 +4274,12 @@ model EntityChangeLog {
   changedFields  Json?
   linkTarget     Json?
   occurredAt     DateTime              @default(now())
-  createdAt      DateTime              @default(now())
 
   Actor Users? @relation("EntityChangeLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([organizationId, entityType, entityId])
   @@index([organizationId, entityType, entityId, occurredAt])
+  @@index([actorUserId])
   @@map("entity_change_logs")
 }
