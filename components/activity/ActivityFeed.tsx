@@ -7,16 +7,197 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { FileText, User, Building2 } from "lucide-react";
+import { FileText, User, Building2, Plus, GitCommitHorizontal, LinkIcon, Unlink } from "lucide-react";
 
 interface ActivityFeedProps {
   parentType: ActivityParentType;
   parentId: string;
+  unified?: boolean;
 }
 
-export function ActivityFeed({ parentType, parentId }: ActivityFeedProps) {
+// ─── Type helpers ─────────────────────────────────────────────────────────────
+
+interface ActivityEntry {
+  _source: "activity";
+  id: string;
+  kind: string;
+  subject?: string | null;
+  body?: string | null;
+  occurredAt: string;
+  CreatedBy?: { id: string; firstName?: string | null; lastName?: string | null } | null;
+  RelatedContact?: { id: string; firstName?: string | null; lastName?: string | null } | null;
+  RelatedProperty?: { id: string; property_name?: string | null; friendlyId?: string | null } | null;
+  RelatedDocument?: { id: string; document_name?: string | null } | null;
+}
+
+interface ChangedField {
+  field: string;
+  from: unknown;
+  to: unknown;
+}
+
+interface LinkTarget {
+  type: string;
+  id: string;
+  friendlyId?: string;
+  label?: string;
+}
+
+interface ChangelogEntry {
+  _source: "changelog";
+  id: string;
+  eventType: "CREATED" | "UPDATED" | "LINKED" | "UNLINKED";
+  changedFields?: ChangedField[] | null;
+  linkTarget?: LinkTarget | null;
+  occurredAt: string;
+  Actor?: { id: string; firstName?: string | null; lastName?: string | null } | null;
+}
+
+type FeedEntry = ActivityEntry | ChangelogEntry;
+
+// ─── Changelog icons ──────────────────────────────────────────────────────────
+
+const CHANGELOG_ICONS = {
+  CREATED: Plus,
+  UPDATED: GitCommitHorizontal,
+  LINKED: LinkIcon,
+  UNLINKED: Unlink,
+} as const;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function actorName(actor?: { firstName?: string | null; lastName?: string | null } | null): string {
+  return [actor?.firstName, actor?.lastName].filter(Boolean).join(" ") || "System";
+}
+
+// ─── Changelog row ────────────────────────────────────────────────────────────
+
+function ChangelogRow({ entry, t }: { entry: ChangelogEntry; t: ReturnType<typeof useTranslations> }) {
+  const Icon = CHANGELOG_ICONS[entry.eventType];
+  const actor = actorName(entry.Actor);
+
+  let sentence: React.ReactNode;
+
+  if (entry.eventType === "CREATED") {
+    sentence = t("changelog.created", { actor });
+  } else if (entry.eventType === "UPDATED" && entry.changedFields && entry.changedFields.length > 0) {
+    sentence = (
+      <span>
+        {entry.changedFields.map((cf, i) => (
+          <span key={cf.field}>
+            {i > 0 && " · "}
+            <span className="font-medium">{cf.field}</span>
+            {" "}
+            {t("changelog.fieldChanged", { field: "", from: String(cf.from ?? "—"), to: String(cf.to ?? "—") }).replace("{field} ", "")}
+          </span>
+        ))}
+      </span>
+    );
+  } else if (entry.eventType === "UPDATED") {
+    sentence = t("changelog.updated", { actor });
+  } else if (entry.eventType === "LINKED" && entry.linkTarget) {
+    sentence = t("changelog.linked", {
+      targetType: entry.linkTarget.type,
+      label: entry.linkTarget.label ?? entry.linkTarget.friendlyId ?? entry.linkTarget.id,
+    });
+  } else if (entry.eventType === "UNLINKED" && entry.linkTarget) {
+    sentence = t("changelog.unlinked", {
+      targetType: entry.linkTarget.type,
+      label: entry.linkTarget.label ?? entry.linkTarget.friendlyId ?? entry.linkTarget.id,
+    });
+  } else {
+    sentence = t("changelog.updated", { actor });
+  }
+
+  return (
+    <li className="relative py-1.5 flex items-start gap-2">
+      <span
+        className="absolute -left-[0.8125rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
+        aria-hidden
+      />
+      <Icon className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" aria-hidden />
+      <div className="flex flex-col gap-0.5 min-w-0">
+        <span className="text-sm text-foreground">{sentence}</span>
+        <span className="text-xs text-muted-foreground">
+          {actor} ·{" "}
+          <time dateTime={entry.occurredAt}>
+            {formatDistanceToNow(new Date(entry.occurredAt), { addSuffix: true })}
+          </time>
+        </span>
+      </div>
+    </li>
+  );
+}
+
+// ─── Activity row (existing treatment) ───────────────────────────────────────
+
+function ActivityRow({ activity, t }: { activity: ActivityEntry; t: ReturnType<typeof useTranslations> }) {
+  return (
+    <li className="relative">
+      <span
+        className="absolute -left-[0.8125rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
+        aria-hidden
+      />
+      <div className="rounded-lg border border-border bg-card p-3 text-sm">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-medium">
+            {t(`kinds.${activity.kind}` as Parameters<typeof t>[0])}
+            {activity.subject ? ` — ${activity.subject}` : ""}
+          </span>
+          <time
+            dateTime={activity.occurredAt}
+            className="shrink-0 text-xs text-muted-foreground"
+          >
+            {formatDistanceToNow(new Date(activity.occurredAt), { addSuffix: true })}
+          </time>
+        </div>
+
+        {activity.body && (
+          <p className="mt-1 text-muted-foreground line-clamp-2">{activity.body}</p>
+        )}
+
+        {(activity.RelatedContact || activity.RelatedProperty || activity.RelatedDocument) && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {activity.RelatedContact && (
+              <Link href={`/app/crm/contacts/${activity.RelatedContact.id}`}>
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs font-normal hover:bg-accent transition-colors cursor-pointer">
+                  <User className="h-3 w-3 shrink-0" aria-hidden />
+                  {[activity.RelatedContact.firstName, activity.RelatedContact.lastName].filter(Boolean).join(" ") || activity.RelatedContact.id}
+                </Badge>
+              </Link>
+            )}
+            {activity.RelatedProperty && (
+              <Link href={`/app/mls/properties/${activity.RelatedProperty.friendlyId ?? activity.RelatedProperty.id}`}>
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs font-normal hover:bg-accent transition-colors cursor-pointer">
+                  <Building2 className="h-3 w-3 shrink-0" aria-hidden />
+                  {activity.RelatedProperty.property_name ?? activity.RelatedProperty.friendlyId ?? activity.RelatedProperty.id}
+                </Badge>
+              </Link>
+            )}
+            {activity.RelatedDocument && (
+              <Badge variant="secondary" className="flex items-center gap-1 text-xs font-normal">
+                <FileText className="h-3 w-3 shrink-0" aria-hidden />
+                {activity.RelatedDocument.document_name}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {activity.CreatedBy && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            {[activity.CreatedBy.firstName, activity.CreatedBy.lastName].filter(Boolean).join(" ")}
+          </p>
+        )}
+      </div>
+    </li>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export function ActivityFeed({ parentType, parentId, unified = false }: ActivityFeedProps) {
   const t = useTranslations("activities");
-  const { activities, isLoading } = useActivities({ parentType, parentId });
+  const { activities, isLoading } = useActivities({ parentType, parentId, unified });
 
   if (isLoading) {
     return (
@@ -28,7 +209,9 @@ export function ActivityFeed({ parentType, parentId }: ActivityFeedProps) {
     );
   }
 
-  if (activities.length === 0) {
+  const feed = activities as unknown as FeedEntry[];
+
+  if (feed.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-6 text-center">
         {t("empty")}
@@ -38,97 +221,13 @@ export function ActivityFeed({ parentType, parentId }: ActivityFeedProps) {
 
   return (
     <ol className="relative border-l border-border space-y-6 pl-6">
-      {activities.map((activity) => (
-        <li key={activity.id} className="relative">
-          <span
-            className="absolute -left-[0.8125rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
-            aria-hidden
-          />
-          <div className="rounded-lg border border-border bg-card p-3 text-sm">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-medium">
-                {t(`kinds.${activity.kind}`)}
-                {activity.subject ? ` — ${activity.subject}` : ""}
-              </span>
-              <time
-                dateTime={activity.occurredAt}
-                className="shrink-0 text-xs text-muted-foreground"
-              >
-                {formatDistanceToNow(new Date(activity.occurredAt), {
-                  addSuffix: true,
-                })}
-              </time>
-            </div>
-
-            {activity.body && (
-              <p className="mt-1 text-muted-foreground line-clamp-2">
-                {activity.body}
-              </p>
-            )}
-
-            {/* Linked entity chips */}
-            {(activity.RelatedContact ||
-              activity.RelatedProperty ||
-              activity.RelatedDocument) && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {activity.RelatedContact && (
-                  <Link
-                    href={`/app/crm/contacts/${activity.RelatedContact.id}`}
-                  >
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 text-xs font-normal hover:bg-accent transition-colors cursor-pointer"
-                    >
-                      <User className="h-3 w-3 shrink-0" aria-hidden />
-                      {[
-                        activity.RelatedContact.firstName,
-                        activity.RelatedContact.lastName,
-                      ]
-                        .filter(Boolean)
-                        .join(" ") || activity.RelatedContact.id}
-                    </Badge>
-                  </Link>
-                )}
-                {activity.RelatedProperty && (
-                  <Link
-                    href={`/app/mls/properties/${activity.RelatedProperty.friendlyId ?? activity.RelatedProperty.id}`}
-                  >
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 text-xs font-normal hover:bg-accent transition-colors cursor-pointer"
-                    >
-                      <Building2 className="h-3 w-3 shrink-0" aria-hidden />
-                      {activity.RelatedProperty.property_name ??
-                        activity.RelatedProperty.friendlyId ??
-                        activity.RelatedProperty.id}
-                    </Badge>
-                  </Link>
-                )}
-                {activity.RelatedDocument && (
-                  <Badge
-                    variant="secondary"
-                    className="flex items-center gap-1 text-xs font-normal"
-                  >
-                    <FileText className="h-3 w-3 shrink-0" aria-hidden />
-                    {activity.RelatedDocument.document_name}
-                  </Badge>
-                )}
-              </div>
-            )}
-
-            {activity.CreatedBy && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                {[
-                  activity.CreatedBy.firstName,
-                  activity.CreatedBy.lastName,
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              </p>
-            )}
-          </div>
-        </li>
-      ))}
+      {feed.map((entry) =>
+        entry._source === "changelog" ? (
+          <ChangelogRow key={entry.id} entry={entry} t={t} />
+        ) : (
+          <ActivityRow key={entry.id} activity={entry} t={t} />
+        )
+      )}
     </ol>
   );
 }

@@ -63,5 +63,13 @@
     "updated": "Η δραστηριότητα ενημερώθηκε",
     "deleted": "Η δραστηριότητα διαγράφηκε",
     "error": "Παρουσιάστηκε σφάλμα. Παρακαλώ δοκιμάστε ξανά."
-  }
+  },
+  "changelog": {
+    "created": "Ο/η {actor} δημιούργησε αυτή την εγγραφή",
+    "updated": "Ο/η {actor} ενημέρωσε αυτή την εγγραφή",
+    "fieldChanged": "{field}άλλαξε από {from} σε {to}",
+    "linked": "Συνδέθηκε με {targetType} {label}",
+    "unlinked": "Αποσυνδέθηκε από {targetType} {label}"
+  },
+  "watchedFields": {}
 }
