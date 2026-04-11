@@ -9,7 +9,7 @@ import "server-only";
  *   createChangeLogEntry — persists a non-fatal EntityChangeLog record
  */
 import { prismadb } from "@/lib/prisma";
-import type { EntityChangeLogType, EntityChangeEventType } from "@prisma/client";
+import type { EntityChangeLogType } from "@prisma/client";
 
 // ─── Watched fields per entity ────────────────────────────────────────────────
 
@@ -81,7 +81,8 @@ interface ChangeLogInput {
   organizationId: string;
   entityType: EntityChangeLogType;
   entityId: string;
-  eventType: EntityChangeEventType;
+  /** DELETED and ARCHIVED exist in the DB enum but are reserved for future tasks — callers may only use these four values via this helper. */
+  eventType: "CREATED" | "UPDATED" | "LINKED" | "UNLINKED";
   actorUserId?: string;
   changedFields?: ChangedField[];
   linkTarget?: { type: string; id: string; friendlyId?: string; label?: string };

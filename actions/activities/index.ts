@@ -290,8 +290,8 @@ export async function listUnifiedFeed(
   }));
 
   const merged = [...activities, ...changeLogs].sort((a, b) => {
-    const aTime = new Date((a as Record<string, unknown>).occurredAt as string).getTime();
-    const bTime = new Date((b as Record<string, unknown>).occurredAt as string).getTime();
+    const aTime = new Date((a as Record<string, unknown>).occurredAt as string).getTime() || 0;
+    const bTime = new Date((b as Record<string, unknown>).occurredAt as string).getTime() || 0;
     return bTime - aTime;
   });
 
