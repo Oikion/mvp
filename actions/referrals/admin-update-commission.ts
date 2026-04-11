@@ -9,6 +9,34 @@ export interface UpdateCommissionInput {
 }
 
 /**
+ * Update a user's commission rate by referral ID. Looks up the referral's
+ * associated `referralCodeId` server-side so client components don't need
+ * to import Prisma (which pulls Node-only modules like `pg`/`fs`/`net`).
+ */
+export async function adminUpdateCommissionRateByReferralId(
+  referralId: string,
+  commissionRate: number
+): Promise<{ success: boolean; error?: string }> {
+  await requirePlatformAdmin();
+  try {
+    const referral = await prismadb.referral.findUnique({
+      where: { id: referralId },
+      select: { referralCodeId: true },
+    });
+    if (!referral) {
+      return { success: false, error: "Referral not found" };
+    }
+    return adminUpdateCommissionRate({
+      referralCodeId: referral.referralCodeId,
+      commissionRate,
+    });
+  } catch (error) {
+    console.error("[ADMIN_UPDATE_COMMISSION_BY_REFERRAL_ID]", error);
+    return { success: false, error: "Failed to update commission rate" };
+  }
+}
+
+/**
  * Update a user's commission rate
  */
 export async function adminUpdateCommissionRate(input: UpdateCommissionInput): Promise<{

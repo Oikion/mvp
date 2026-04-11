@@ -7,6 +7,10 @@ export const WEBHOOK_EVENTS = {
   CLIENT_CREATED: "client.created",
   CLIENT_UPDATED: "client.updated",
   CLIENT_DELETED: "client.deleted",
+  // Contact events (v2.0 — replaces client events)
+  CONTACT_CREATED: "contact.created",
+  CONTACT_UPDATED: "contact.updated",
+  CONTACT_DELETED: "contact.deleted",
   // Property events
   PROPERTY_CREATED: "property.created",
   PROPERTY_UPDATED: "property.updated",
@@ -40,6 +44,9 @@ export const WEBHOOK_EVENT_DESCRIPTIONS: Record<WebhookEvent, string> = {
   "client.created": "Triggered when a new client is created",
   "client.updated": "Triggered when a client is updated",
   "client.deleted": "Triggered when a client is deleted",
+  "contact.created": "Triggered when a new contact is created",
+  "contact.updated": "Triggered when a contact is updated",
+  "contact.deleted": "Triggered when a contact is deleted",
   "property.created": "Triggered when a new property is created",
   "property.updated": "Triggered when a property is updated",
   "property.deleted": "Triggered when a property is deleted",
@@ -481,6 +488,33 @@ export async function dispatchClientWebhook(
       status: client.client_status,
       type: client.client_type,
       assignedTo: client.assigned_to,
+    },
+  });
+}
+
+/**
+ * Dispatch contact webhook (v2.0 — replaces dispatchClientWebhook)
+ */
+export async function dispatchContactWebhook(
+  organizationId: string,
+  event: "contact.created" | "contact.updated" | "contact.deleted",
+  contact: {
+    id: string;
+    displayName: string;
+    email?: string | null;
+    status?: string | null;
+    category?: string[] | null;
+    assignedAgentId?: string | null;
+  }
+): Promise<void> {
+  await dispatchWebhook(organizationId, event, {
+    contact: {
+      id: contact.id,
+      name: contact.displayName,
+      email: contact.email,
+      status: contact.status,
+      category: contact.category,
+      assignedTo: contact.assignedAgentId,
     },
   });
 }

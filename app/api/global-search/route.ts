@@ -109,8 +109,8 @@ export async function POST(req: Request) {
         db.properties.findMany({
           where: propertyWhere,
           include: includeRelationships ? {
-            Client_Properties: {
-              include: { Clients: { select: { id: true, client_name: true } } },
+            linkedContacts: {
+              include: { contact: { select: { id: true, displayName: true } } },
               take: 3,
             },
             CalendarEvent: {
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
               include: { Mandate: { select: { id: true, title: true, friendlyId: true } } },
               take: 3,
             },
-            _count: { select: { Client_Properties: true, CalendarEvent: true, Mandate_Properties: true } },
+            _count: { select: { linkedContacts: true, CalendarEvent: true, Mandate_Properties: true } },
           } : undefined,
           take: limit,
           skip,
@@ -135,68 +135,56 @@ export async function POST(req: Request) {
       countPromises.push(Promise.resolve(0));
     }
 
-    // Clients search
+    // Clients/Contacts search (now unified Contact model)
     if (types.includes("client")) {
       const clientWhere = {
         OR: [
-          { client_name: { contains: query, mode: "insensitive" as const } },
-          { primary_email: { contains: query, mode: "insensitive" as const } },
-          { description: { contains: query, mode: "insensitive" as const } },
+          { displayName: { contains: query, mode: "insensitive" as const } },
+          { email: { contains: query, mode: "insensitive" as const } },
+          { notes: { contains: query, mode: "insensitive" as const } },
         ],
       };
 
       searchPromises.push(
-        db.clients.findMany({
+        db.contact.findMany({
           where: clientWhere,
           include: includeRelationships ? {
-            Client_Properties: {
-              include: { Properties: { select: { id: true, property_name: true } } },
+            linkedProperties: {
+              include: { property: { select: { id: true, property_name: true } } },
               take: 3,
             },
-            CalendarEvent: {
-              select: { id: true, title: true, startTime: true },
-              take: 3,
-              orderBy: { startTime: "desc" },
-            },
-            Mandate_Clients: {
-              include: { Mandate: { select: { id: true, title: true, friendlyId: true } } },
-              take: 3,
-            },
-            _count: { select: { Client_Properties: true, CalendarEvent: true, Mandate_Clients: true } },
+            _count: { select: { linkedProperties: true } },
           } : undefined,
           take: limit,
           skip,
           orderBy: { updatedAt: "desc" },
         }).catch(() => [])
       );
-      countPromises.push(db.clients.count({ where: clientWhere }).catch(() => 0));
+      countPromises.push(db.contact.count({ where: clientWhere }).catch(() => 0));
     } else {
       searchPromises.push(Promise.resolve([]));
       countPromises.push(Promise.resolve(0));
     }
 
-    // Contacts search
+    // Contacts search (legacy — now same as client search, return empty to avoid duplicates)
     if (types.includes("contact")) {
       const contactWhere = {
         OR: [
-          { contact_first_name: { contains: query, mode: "insensitive" as const } },
-          { contact_last_name: { contains: query, mode: "insensitive" as const } },
+          { firstName: { contains: query, mode: "insensitive" as const } },
+          { lastName: { contains: query, mode: "insensitive" as const } },
           { email: { contains: query, mode: "insensitive" as const } },
         ],
       };
 
       searchPromises.push(
-        db.client_Contacts.findMany({
+        db.contact.findMany({
           where: contactWhere,
-          include: includeRelationships ? {
-            Clients: { select: { id: true, client_name: true } },
-          } : undefined,
           take: limit,
           skip,
           orderBy: { updatedAt: "desc" },
         }).catch(() => [])
       );
-      countPromises.push(db.client_Contacts.count({ where: contactWhere }).catch(() => 0));
+      countPromises.push(db.contact.count({ where: contactWhere }).catch(() => 0));
     } else {
       searchPromises.push(Promise.resolve([]));
       countPromises.push(Promise.resolve(0));
@@ -215,7 +203,7 @@ export async function POST(req: Request) {
         db.documents.findMany({
           where: documentWhere,
           include: includeRelationships ? {
-            _count: { select: { Clients: true, Properties: true, CalendarEvent: true } },
+            _count: { select: { Contacts: true, Properties: true, CalendarEvent: true } },
           } : undefined,
           take: limit,
           skip,
@@ -247,9 +235,8 @@ export async function POST(req: Request) {
           calendarEventModel.findMany({
             where: eventWhere,
             include: includeRelationships ? {
-              linkedClients: { select: { id: true, client_name: true }, take: 3 },
               linkedProperties: { select: { id: true, property_name: true }, take: 3 },
-              _count: { select: { linkedClients: true, linkedProperties: true } },
+              _count: { select: { linkedProperties: true } },
             } : undefined,
             take: limit,
             skip,
@@ -279,15 +266,11 @@ export async function POST(req: Request) {
         db.mandate.findMany({
           where: mandateWhere,
           include: includeRelationships ? {
-            Mandate_Clients: {
-              include: { Clients: { select: { id: true, client_name: true } } },
-              take: 3,
-            },
             Mandate_Properties: {
               include: { Properties: { select: { id: true, property_name: true } } },
               take: 3,
             },
-            _count: { select: { Mandate_Clients: true, Mandate_Properties: true } },
+            _count: { select: { Mandate_Properties: true } },
           } : undefined,
           take: fetchLimit,
           orderBy: { createdAt: "desc" },
@@ -362,8 +345,8 @@ export async function POST(req: Request) {
       ...p,
       relationships: includeRelationships ? {
         clients: {
-          count: p._count?.Client_Properties || 0,
-          preview: p.Client_Properties?.map((cp: any) => cp.Clients) || [],
+          count: p._count?.ContactProperty || 0,
+          preview: p.ContactProperty?.map((cp: any) => cp.Contact) || [],
         },
         events: {
           count: p._count?.CalendarEvent || 0,
@@ -380,31 +363,29 @@ export async function POST(req: Request) {
       ...c,
       relationships: includeRelationships ? {
         properties: {
-          count: c._count?.Client_Properties || 0,
-          preview: c.Client_Properties?.map((cp: any) => cp.Properties) || [],
+          count: c._count?.ContactProperty || 0,
+          preview: c.ContactProperty?.map((cp: any) => cp.Property) || [],
         },
         events: {
-          count: c._count?.CalendarEvent || 0,
-          preview: c.CalendarEvent || [],
+          count: 0,
+          preview: [],
         },
         mandates: {
-          count: c._count?.Mandate_Clients || 0,
-          preview: c.Mandate_Clients?.map((mc: any) => mc.Mandate) || [],
+          count: 0,
+          preview: [],
         },
       } : undefined,
     }));
 
     const transformedContacts = contacts.map((c: any) => ({
       ...c,
-      relationships: includeRelationships ? {
-        client: c.Clients || null,
-      } : undefined,
+      relationships: undefined,
     }));
 
     const transformedDocuments = documents.map((d: any) => ({
       ...d,
       relationships: includeRelationships ? {
-        clients: { count: d._count?.Clients || 0 },
+        clients: { count: d._count?.Contacts || 0 },
         properties: { count: d._count?.Properties || 0 },
         events: { count: d._count?.CalendarEvent || 0 },
       } : undefined,
@@ -414,8 +395,8 @@ export async function POST(req: Request) {
       ...e,
       relationships: includeRelationships ? {
         clients: {
-          count: e._count?.linkedClients || 0,
-          preview: e.linkedClients || [],
+          count: 0,
+          preview: [],
         },
         properties: {
           count: e._count?.linkedProperties || 0,
@@ -428,8 +409,8 @@ export async function POST(req: Request) {
       ...m,
       relationships: includeRelationships ? {
         clients: {
-          count: m._count?.Mandate_Clients || 0,
-          preview: m.Mandate_Clients?.map((mc: any) => mc.Clients) || [],
+          count: 0,
+          preview: [],
         },
         properties: {
           count: m._count?.Mandate_Properties || 0,

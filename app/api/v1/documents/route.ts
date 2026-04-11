@@ -135,11 +135,11 @@ export const POST = withExternalApi(
 
     // Validate that linked entities belong to the caller's organization
     if (clientIds && Array.isArray(clientIds) && clientIds.length > 0) {
-      const ownedClients = await prismadb.clients.findMany({
+      const ownedContacts = await prismadb.contact.findMany({
         where: { id: { in: clientIds }, organizationId: context.organizationId },
         select: { id: true },
       });
-      if (ownedClients.length !== clientIds.length) {
+      if (ownedContacts.length !== clientIds.length) {
         return createApiErrorResponse(
           "One or more clientIds do not belong to your organization",
           400
@@ -175,9 +175,9 @@ export const POST = withExternalApi(
         document_file_url: url,
         description: description || null,
         size: size || null,
-        // Link to clients if provided
+        // Link to contacts if provided
         ...(clientIds && Array.isArray(clientIds) && clientIds.length > 0
-          ? { Clients: { connect: clientIds.map((id: string) => ({ id })) } }
+          ? { Contacts: { connect: clientIds.map((id: string) => ({ id })) } }
           : {}),
         // Link to properties if provided
         ...(propertyIds && Array.isArray(propertyIds) && propertyIds.length > 0

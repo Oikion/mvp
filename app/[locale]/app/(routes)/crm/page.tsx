@@ -32,7 +32,7 @@ const ClientsPage = async ({ params }: { params: Promise<{ locale: string }> }) 
       <Suspense fallback={<SuspenseLoading />}>
         <ClientsPageView
           agencyClients={agencyClients}
-          sharedClients={sharedClients}
+          sharedClients={"data" in sharedClients ? sharedClients.data ?? [] : []}
           crmData={crmData}
         />
       </Suspense>

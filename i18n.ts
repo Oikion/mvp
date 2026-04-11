@@ -33,6 +33,7 @@ import signInEn from "./locales/en/signIn.json";
 import referralsEn from "./locales/en/referrals.json";
 import messagesEn from "./locales/en/messages.json";
 import mandatesEn from "./locales/en/mandates.json";
+import requestsEn from "./locales/en/requests.json";
 import networkEn from "./locales/en/network.json";
 import matchmakingEn from "./locales/en/matchmaking.json";
 import dataOwnershipEn from "./locales/en/dataOwnership.json";
@@ -41,6 +42,8 @@ import encryptionEn from "./locales/en/encryption.json";
 import importDataEn from "./locales/en/import.json";
 import landingEn from "./locales/en/landing.json";
 import docsEn from "./locales/en/docs.json";
+import activitiesEn from "./locales/en/activities.json";
+import documentTemplatesEn from "./locales/en/document-templates.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -74,6 +77,7 @@ import signInEl from "./locales/el/signIn.json";
 import referralsEl from "./locales/el/referrals.json";
 import messagesEl from "./locales/el/messages.json";
 import mandatesEl from "./locales/el/mandates.json";
+import requestsEl from "./locales/el/requests.json";
 import networkEl from "./locales/el/network.json";
 import matchmakingEl from "./locales/el/matchmaking.json";
 import dataOwnershipEl from "./locales/el/dataOwnership.json";
@@ -82,6 +86,8 @@ import encryptionEl from "./locales/el/encryption.json";
 import importDataEl from "./locales/el/import.json";
 import landingEl from "./locales/el/landing.json";
 import docsEl from "./locales/el/docs.json";
+import activitiesEl from "./locales/el/activities.json";
+import documentTemplatesEl from "./locales/el/document-templates.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -124,6 +130,7 @@ function loadMessages(locale: string) {
     messages.referrals = referralsEl;
     messages.messages = messagesEl;
     messages.mandates = mandatesEl;
+    messages.requests = requestsEl;
     messages.network = networkEl;
     messages.matchmaking = matchmakingEl;
     messages.networkSettings = networkEl.matchmaking;
@@ -133,6 +140,8 @@ function loadMessages(locale: string) {
     messages.import = importDataEl;
     messages.landing = landingEl;
     messages.docs = docsEl;
+    messages.activities = activitiesEl;
+    messages["document-templates"] = documentTemplatesEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -177,6 +186,7 @@ function loadMessages(locale: string) {
     messages.referrals = referralsEn;
     messages.messages = messagesEn;
     messages.mandates = mandatesEn;
+    messages.requests = requestsEn;
     messages.network = networkEn;
     messages.matchmaking = matchmakingEn;
     messages.networkSettings = networkEn.matchmaking;
@@ -186,6 +196,8 @@ function loadMessages(locale: string) {
     messages.import = importDataEn;
     messages.landing = landingEn;
     messages.docs = docsEn;
+    messages.activities = activitiesEn;
+    messages["document-templates"] = documentTemplatesEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))

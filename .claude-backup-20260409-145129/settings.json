@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm vitest run tests/e2ee/)",
+      "Bash(pnpm vitest run tests/e2ee/megolm.test.ts)",
+      "Bash(npx tsc --noEmit lib/import/client-import-schema.ts lib/import/client-import-config.ts lib/import/enum-normalizer.ts lib/import/index.ts lib/import/mandate-import-schema.ts lib/export/data-formatter.ts)",
+      "Bash(git log --oneline -1 -- app/api/mandates/[mandateId]/link-client/route.ts)",
+      "Bash(pnpm add idb fake-indexeddb)",
+      "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\)/settings -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "Bash(ls -la /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(platform_admin\\\\\\)/platform-admin/)",
+      "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\)/profile -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "Bash(ls /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(platform_admin\\\\\\)/platform-admin/)",
+      "Bash(ls -la \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/matchmaking/\")",
+      "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/matchmaking/components/UnmatchedClientsList.tsx\")",
+      "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/crm/clients/[slug]/components/ClientMatchingProperties.tsx\")",
+      "Bash(cat \"/Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\(routes\\)/mls/properties/[slug]/components/PropertyMatchingClients.tsx\")",
+      "Bash(grep -rn \"setTheme\\\\|theme.*update\\\\|updateTheme\\\\|userTheme\" /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\)/profile/ --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(grep -n \"toggleNetwork\\\\|Network\\\\|network\" /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(platform_admin\\\\\\)/platform-admin/organizations/components/OrganizationsDataTable.tsx)",
+      "Bash(git diff main -- app/[locale]/app/\\\\\\(platform_admin\\\\\\)/platform-admin/network/page.tsx app/[locale]/app/\\\\\\(routes\\\\\\)/settings/network/page.tsx)",
+      "Bash(git stash push -m \"pre-merge-main-changes\")",
+      "Bash(find /Users/stapo/Desktop/Oikion/MVP/app -path *agent*[slug]* -name page.tsx -o -name layout.tsx)",
+      "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/\\\\\\(public\\\\\\) -name \"layout.tsx\")",
+      "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\) -name \"page.tsx\")",
+      "Bash(npx tsx:*)"
+    ]
+  }
+}

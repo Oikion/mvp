@@ -139,8 +139,8 @@ export default function ClientsPageView({
 
   const filteredSharedClients = useMemo(() => {
     return sharedClients.filter((item) =>
-      item.client_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.primary_email?.toLowerCase().includes(searchQuery.toLowerCase())
+      item.contact?.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.contact?.email?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [sharedClients, searchQuery]);
 
@@ -403,7 +403,7 @@ export default function ClientsPageView({
                   ) : (
                     <VirtualizedGrid
                       items={filteredSharedClients}
-                      getItemKey={(client) => client.shareId}
+                      getItemKey={(client) => client.id}
                       renderItem={(client, index) => (
                         <SharedClientCard data={client} />
                       )}

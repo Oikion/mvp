@@ -37,6 +37,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   useUnifiedEntitySearch,
   type EntityType as UnifiedEntityType,
+  type EntitySearchResult,
 } from "@/hooks/swr/useUnifiedEntitySearch";
 import {
   useMentionShortcut,
@@ -136,10 +137,11 @@ export function MentionShortcutOverlay() {
   const items = React.useMemo((): EntityItem[] => {
     if (!activeCategory) return [];
 
-    const entityResults = groupedResults[currentEntityType] || [];
+    const entityResults =
+      (groupedResults as Record<UnifiedEntityType, EntitySearchResult[]>)[currentEntityType] || [];
 
     // Map to EntityItem with index
-    return entityResults.map((item, index) => ({
+    return entityResults.map((item: EntitySearchResult, index: number) => ({
       id: item.value,
       friendlyId: (item.metadata?.friendlyId as string) || item.value,
       name: item.label,

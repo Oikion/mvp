@@ -41,6 +41,40 @@ export type ClientAction =
   | "client:manage_contacts";
 
 // =============================================================================
+// CONTACTS (v2.0 — replaces CLIENTS) MODULE
+// =============================================================================
+
+export type ContactAction =
+  | "contact:read"
+  | "contact:create"
+  | "contact:update"
+  | "contact:delete"
+  | "contact:export"
+  | "contact:share"
+  | "contact:import"
+  | "contact:reassign_agent"
+  | "contact:bulk_update"
+  | "contact:add_comment"
+  | "contact:manage_relationships";
+
+// =============================================================================
+// REQUESTS (v2.0 — replaces MANDATES) MODULE
+// =============================================================================
+
+export type RequestAction =
+  | "request:read"
+  | "request:create"
+  | "request:update"
+  | "request:delete"
+  | "request:export"
+  | "request:share"
+  | "request:import"
+  | "request:reassign_agent"
+  | "request:bulk_update"
+  | "request:add_comment"
+  | "request:manage_matches";
+
+// =============================================================================
 // MESSAGING MODULE
 // =============================================================================
 
@@ -101,10 +135,28 @@ export type DealAction =
   | "deal:read"
   | "deal:create"
   | "deal:update"
-  | "deal:accept"
-  | "deal:cancel"
-  | "deal:complete"
-  | "deal:propose_terms";
+  | "deal:delete"
+  | "deal:export"
+  | "deal:share"
+  | "deal:reassign_agent"
+  | "deal:bulk_update"
+  | "deal:add_comment"
+  | "deal:manage_parties"      // v2.0: manage DealParty join table
+  | "deal:advance_stage";      // v2.0: transition deal through pipeline stages
+
+// =============================================================================
+// ACTIVITIES MODULE
+// =============================================================================
+
+export type ActivityAction =
+  | "activity:read"
+  | "activity:create"
+  | "activity:update"
+  | "activity:delete"
+  | "activity:bulk_delete"
+  | "activity:export"
+  | "activity:reassign"
+  | "activity:log_on_behalf";
 
 // =============================================================================
 // MATCHMAKING MODULE
@@ -166,7 +218,9 @@ export type TemplateAction =
   | "template:use"
   | "template:create"
   | "template:update"
-  | "template:delete";
+  | "template:delete"
+  | "template:publish"
+  | "template:clone";
 
 // =============================================================================
 // XE PORTAL MODULE
@@ -226,11 +280,14 @@ export type ImportAction =
 export type ActionPermission =
   | PropertyAction
   | ClientAction
+  | ContactAction
+  | RequestAction
   | MessagingAction
   | CalendarAction
   | DocumentAction
   | ReportAction
   | DealAction
+  | ActivityAction
   | MatchmakingAction
   | SocialAction
   | TaskAction
@@ -274,6 +331,32 @@ export const ACTION_MODULES = {
     "client:add_comment",
     "client:manage_contacts",
   ] as const,
+  contact: [
+    "contact:read",
+    "contact:create",
+    "contact:update",
+    "contact:delete",
+    "contact:export",
+    "contact:share",
+    "contact:import",
+    "contact:reassign_agent",
+    "contact:bulk_update",
+    "contact:add_comment",
+    "contact:manage_relationships",
+  ] as const,
+  request: [
+    "request:read",
+    "request:create",
+    "request:update",
+    "request:delete",
+    "request:export",
+    "request:share",
+    "request:import",
+    "request:reassign_agent",
+    "request:bulk_update",
+    "request:add_comment",
+    "request:manage_matches",
+  ] as const,
   messaging: [
     "messaging:read",
     "messaging:send_message",
@@ -315,10 +398,24 @@ export const ACTION_MODULES = {
     "deal:read",
     "deal:create",
     "deal:update",
-    "deal:accept",
-    "deal:cancel",
-    "deal:complete",
-    "deal:propose_terms",
+    "deal:delete",
+    "deal:export",
+    "deal:share",
+    "deal:reassign_agent",
+    "deal:bulk_update",
+    "deal:add_comment",
+    "deal:manage_parties",
+    "deal:advance_stage",
+  ] as const,
+  activity: [
+    "activity:read",
+    "activity:create",
+    "activity:update",
+    "activity:delete",
+    "activity:bulk_delete",
+    "activity:export",
+    "activity:reassign",
+    "activity:log_on_behalf",
   ] as const,
   matchmaking: [
     "matchmaking:view",
@@ -361,6 +458,8 @@ export const ACTION_MODULES = {
     "template:create",
     "template:update",
     "template:delete",
+    "template:publish",
+    "template:clone",
   ] as const,
   xe: [
     "xe:view_config",
@@ -411,7 +510,7 @@ export const ALL_ACTIONS: ActionPermission[] = Object.values(ACTION_MODULES).fla
  */
 export interface ActionContext {
   /** The type of entity being acted upon */
-  entityType?: "property" | "client" | "document" | "event" | "task" | "deal" | "post";
+  entityType?: "property" | "client" | "contact" | "request" | "document" | "event" | "task" | "deal" | "showing" | "post";
   /** The ID of the entity */
   entityId?: string;
   /** The user ID of the entity owner (assigned_to, created_by, etc.) */
@@ -461,6 +560,32 @@ export const ACTION_DESCRIPTIONS: Record<ActionPermission, string> = {
   "client:add_comment": "Add comments to clients",
   "client:manage_contacts": "Manage client contacts",
   
+  // Contact actions (v2.0)
+  "contact:read": "View contact information",
+  "contact:create": "Create new contacts",
+  "contact:update": "Edit contact details",
+  "contact:delete": "Delete contacts",
+  "contact:export": "Export contact data",
+  "contact:share": "Share contacts with other agents",
+  "contact:import": "Import contacts from external sources",
+  "contact:reassign_agent": "Change the assigned agent on contacts",
+  "contact:bulk_update": "Update multiple contacts at once",
+  "contact:add_comment": "Add comments to contacts",
+  "contact:manage_relationships": "Manage contact relationships",
+
+  // Request actions (v2.0)
+  "request:read": "View search requests",
+  "request:create": "Create new search requests",
+  "request:update": "Edit request details",
+  "request:delete": "Delete search requests",
+  "request:export": "Export request data",
+  "request:share": "Share requests with other agents",
+  "request:import": "Import requests from external sources",
+  "request:reassign_agent": "Change the assigned agent on requests",
+  "request:bulk_update": "Update multiple requests at once",
+  "request:add_comment": "Add comments to requests",
+  "request:manage_matches": "Manage property-request matches",
+
   // Messaging actions
   "messaging:read": "View messages and channels",
   "messaging:send_message": "Send messages in channels and DMs",
@@ -498,14 +623,18 @@ export const ACTION_DESCRIPTIONS: Record<ActionPermission, string> = {
   "report:view_analytics": "View detailed analytics",
   "report:view_metrics": "View performance metrics",
   
-  // Deal actions
+  // Deal actions (v2.0 — 11-action standard pattern)
   "deal:read": "View deal information",
   "deal:create": "Create new deals",
   "deal:update": "Update deal details",
-  "deal:accept": "Accept deal proposals",
-  "deal:cancel": "Cancel deals",
-  "deal:complete": "Mark deals as completed",
-  "deal:propose_terms": "Propose new deal terms",
+  "deal:delete": "Delete deals",
+  "deal:export": "Export deal data",
+  "deal:share": "Share deals with other agents",
+  "deal:reassign_agent": "Change assigned agents on deals",
+  "deal:bulk_update": "Update multiple deals at once",
+  "deal:add_comment": "Add comments to deals",
+  "deal:manage_parties": "Add or remove deal parties (contacts)",
+  "deal:advance_stage": "Advance deal through pipeline stages",
   
   // Matchmaking actions
   "matchmaking:view": "View property-client matches",
@@ -542,12 +671,24 @@ export const ACTION_DESCRIPTIONS: Record<ActionPermission, string> = {
   "admin:transfer_ownership": "Transfer organization ownership",
   "admin:manage_org_settings": "Manage organization settings",
   
+  // Activity actions
+  "activity:read": "View activity logs",
+  "activity:create": "Log new activities",
+  "activity:update": "Edit activity records",
+  "activity:delete": "Delete activity records",
+  "activity:bulk_delete": "Bulk delete activities",
+  "activity:export": "Export activity data",
+  "activity:reassign": "Reassign activities to another agent",
+  "activity:log_on_behalf": "Log activities on behalf of another agent",
+
   // Template actions
   "template:read": "View document templates",
   "template:use": "Use templates to generate documents",
   "template:create": "Create new templates",
   "template:update": "Edit templates",
   "template:delete": "Delete templates",
+  "template:publish": "Publish templates to the organization",
+  "template:clone": "Clone templates from system or org library",
   
   // XE portal actions
   "xe:view_config": "View XE.gr integration settings",

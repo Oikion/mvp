@@ -20,10 +20,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  useClientComments,
-  useAddClientComment,
-  useDeleteClientComment,
-  type ClientComment,
+  useContactComments,
+  useAddContactComment,
+  useDeleteContactComment,
+  type ContactComment,
 } from "@/hooks/swr";
 
 interface ClientCommentsProps {
@@ -42,9 +42,9 @@ export function ClientComments({
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
   // SWR hooks for data fetching and mutations
-  const { comments, isLoading, mutate } = useClientComments(clientId);
-  const { addComment, isAdding } = useAddClientComment(clientId);
-  const { deleteComment, isDeleting } = useDeleteClientComment(clientId);
+  const { comments, isLoading, mutate } = useContactComments(clientId);
+  const { addComment, isAdding } = useAddContactComment(clientId);
+  const { deleteComment, isDeleting } = useDeleteContactComment(clientId);
 
   const handleSubmit = async () => {
     if (!newComment.trim() || !canComment) return;
@@ -52,7 +52,7 @@ export function ClientComments({
     const commentContent = newComment.trim();
     
     // Optimistic update - add temporary comment immediately
-    const tempComment: ClientComment = {
+    const tempComment: ContactComment = {
       id: `temp-${Date.now()}`,
       content: commentContent,
       createdAt: new Date().toISOString(),
@@ -66,25 +66,25 @@ export function ClientComments({
 
     // Optimistically update the cache
     mutate(
-      { comments: [tempComment, ...comments] },
+      { data: [tempComment, ...comments] },
       { revalidate: false }
     );
-    
+
     setNewComment("");
 
     try {
       const result = await addComment({ content: commentContent });
-      
+
       // Update cache with the actual comment from server
       mutate(
-        { comments: [result.comment, ...comments.filter((c) => !c.id.startsWith("temp-"))] },
+        { data: [result.data, ...comments.filter((c) => !c.id.startsWith("temp-"))] },
         { revalidate: false }
       );
-      
+
       toast.success("Comment added");
     } catch (error: unknown) {
       // Rollback on error
-      mutate({ comments }, { revalidate: true });
+      mutate({ data: comments }, { revalidate: true });
       
       const message =
         error instanceof Error ? error.message : "Failed to add comment";
@@ -104,7 +104,7 @@ export function ClientComments({
 
     // Optimistically remove the comment
     mutate(
-      { comments: comments.filter((c) => c.id !== commentId) },
+      { data: comments.filter((c) => c.id !== commentId) },
       { revalidate: false }
     );
 
@@ -113,7 +113,7 @@ export function ClientComments({
       toast.success("Comment deleted");
     } catch (error: unknown) {
       // Rollback on error
-      mutate({ comments: originalComments }, { revalidate: true });
+      mutate({ data: originalComments }, { revalidate: true });
       
       const message =
         error instanceof Error ? error.message : "Failed to delete comment";

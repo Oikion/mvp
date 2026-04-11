@@ -234,8 +234,34 @@
     "linkedMandates": "Συνδεδεμένες Εντολές",
     "invitees": "Προσκεκλημένοι",
     "noInvitees": "Δεν έχει προσκληθεί κανείς ακόμη",
+    "attendees": "Συμμετέχοντες",
+    "noAttendees": "Δεν υπάρχουν συμμετέχοντες ακόμη",
+    "rsvp": {
+      "PENDING": "Εκκρεμεί",
+      "ACCEPTED": "Αποδέχτηκε",
+      "DECLINED": "Αρνήθηκε",
+      "TENTATIVE": "Πιθανόν"
+    },
+    "roles": {
+      "ATTENDEE": "Συμμετέχων",
+      "BUYER": "Αγοραστής",
+      "SELLER": "Πωλητής",
+      "WITNESS": "Μάρτυρας",
+      "NOTARY": "Συμβολαιογράφος",
+      "AGENT": "Μεσίτης",
+      "OTHER": "Άλλο"
+    },
     "reminders": "Υπενθυμίσεις",
-    "beforeEvent": "πριν το συμβάν"
+    "beforeEvent": "πριν το συμβάν",
+    "reminderDays": "{count, plural, one {# ημέρα} other {# ημέρες}} πριν το συμβάν",
+    "reminderHours": "{count, plural, one {# ώρα} other {# ώρες}} πριν το συμβάν",
+    "reminderMinutes": "{count, plural, one {# λεπτό} other {# λεπτά}} πριν το συμβάν",
+    "reminderStatus": {
+      "PENDING": "Εκκρεμεί",
+      "SENT": "Εστάλη",
+      "FAILED": "Απέτυχε",
+      "CANCELLED": "Ακυρώθηκε"
+    }
   },
   "eventPage": {
     "untitledEvent": "Ανώνυμο Συμβάν",
@@ -271,6 +297,15 @@
     "forClient": "Για πελάτη",
     "reminders": "Υπενθυμίσεις",
     "beforeEvent": "πριν το συμβάν",
+    "reminderDays": "{count, plural, one {# ημέρα} other {# ημέρες}} πριν το συμβάν",
+    "reminderHours": "{count, plural, one {# ώρα} other {# ώρες}} πριν το συμβάν",
+    "reminderMinutes": "{count, plural, one {# λεπτό} other {# λεπτά}} πριν το συμβάν",
+    "reminderStatus": {
+      "PENDING": "Εκκρεμεί",
+      "SENT": "Εστάλη",
+      "FAILED": "Απέτυχε",
+      "CANCELLED": "Ακυρώθηκε"
+    },
     "scheduledFor": "Προγραμματισμένο για",
     "sentAt": "Απεστάλη στις",
     "eventTypes": {

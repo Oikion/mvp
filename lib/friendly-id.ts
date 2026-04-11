@@ -9,6 +9,8 @@ export const ENTITY_PREFIXES = {
   Properties: "prp",
   Clients: "clt",
   Mandates: "mnd",
+  Contact: "cnt", // v2.0 entity
+  Request: "req", // v2.0 entity — replaces Mandates
   Users: "usr",
   Documents: "doc",
   crm_Accounts_Tasks: "tsk",
@@ -31,7 +33,7 @@ const GLOBAL_ORG_ID = "__global__";
 
 /** Core business entities with per-org friendly ID sequences */
 const ORG_SCOPED_ENTITIES = new Set<EntityType>([
-  "Properties", "Clients", "Mandates", "Documents",
+  "Properties", "Clients", "Mandates", "Contact", "Request", "Documents",
   "crm_Accounts_Tasks", "Deal", "CalendarEvent",
 ]);
 

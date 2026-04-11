@@ -129,9 +129,6 @@ export async function GET(req: Request) {
         Users: {
           select: { id: true, name: true, email: true },
         },
-        Clients: {
-          select: { id: true, client_name: true },
-        },
       },
       orderBy: { dueDateAt: 'asc' },
     });

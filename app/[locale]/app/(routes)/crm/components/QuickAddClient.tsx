@@ -79,7 +79,10 @@ export function QuickAddClient({
   const locale = useLocale();
   const tCommon = useTranslations("common");
 
-  const quickAddClientSchema = createQuickAddClientSchema(t, tCommon);
+  const quickAddClientSchema = createQuickAddClientSchema(
+    (k: string) => t(k as Parameters<typeof t>[0]),
+    (k: string) => tCommon(k as Parameters<typeof tCommon>[0]),
+  );
   type QuickAddClientFormValues = z.infer<typeof quickAddClientSchema>;
 
   const form = useForm<QuickAddClientFormValues>({
@@ -96,7 +99,7 @@ export function QuickAddClient({
   const onSubmit = async (data: QuickAddClientFormValues) => {
     setIsLoading(true);
     try {
-      const response = await axios.post("/api/crm/clients", {
+      const response = await axios.post("/api/crm/contacts", {
         client_name: data.client_name?.trim() || undefined,
         person_type: data.person_type || undefined,
         primary_email: data.primary_email?.trim() || undefined,

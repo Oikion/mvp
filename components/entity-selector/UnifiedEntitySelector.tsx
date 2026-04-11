@@ -30,6 +30,9 @@ import {
   Loader2,
   ChevronDown,
   Plus,
+  UserCircle,
+  ClipboardList,
+  Handshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -202,6 +205,24 @@ const ENTITY_CONFIG: Record<
     label: "Mandates",
     colorClass: "text-orange-500",
   },
+  // v2.0 Phase 1: Contacts (replaces Clients)
+  contact: {
+    icon: UserCircle,
+    label: "Contacts",
+    colorClass: "text-primary",
+  },
+  // v2.0 Phase 2: Requests (replaces Mandates as demand-side entities)
+  request: {
+    icon: ClipboardList,
+    label: "Requests",
+    colorClass: "text-orange-500",
+  },
+  // v2.0 Phase 3: Deals
+  deal: {
+    icon: Handshake,
+    label: "Deals",
+    colorClass: "text-purple-500",
+  },
 };
 
 // ============================================
@@ -279,7 +300,7 @@ export function UnifiedEntitySelector({
 
   // Use the unified search hook with dynamic limit
   const {
-    groupedResults,
+    groupedResults: groupedResultsRaw,
     isLoading,
     isSearching,
     debouncedQuery,
@@ -289,6 +310,7 @@ export function UnifiedEntitySelector({
     filters,
     enabled: open,
   });
+  const groupedResults = groupedResultsRaw as Record<EntityType, EntitySearchResult[]>;
 
   // Flatten results for keyboard navigation
   const flatResults = useMemo(() => {

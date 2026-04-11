@@ -33,6 +33,17 @@ import {
   Send,
   Calendar,
   Eye,
+  PhoneCall,
+  ShieldCheck,
+  FileSignature,
+  Pause,
+  Search,
+  Gavel,
+  ClipboardCheck,
+  Landmark,
+  Receipt,
+  MapPin,
+  CalendarCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -128,28 +139,107 @@ export const CLIENT_STATUS: Record<string, StatusConfig> = {
 };
 
 /**
- * Deal Status Configuration
+ * Contact Status Configuration (v2.0)
  */
-export const DEAL_STATUS: Record<string, StatusConfig> = {
-  PROPOSED: {
-    variant: "warning",
-    icon: FileText,
-    label: "Proposed",
-  },
-  NEGOTIATING: {
+export const CONTACT_STATUS: Record<string, StatusConfig> = {
+  LEAD: {
     variant: "info",
-    icon: Users,
-    label: "Negotiating",
+    icon: Target,
+    label: "Lead",
   },
-  ACCEPTED: {
+  CONTACTED: {
+    variant: "info",
+    icon: PhoneCall,
+    label: "Contacted",
+  },
+  QUALIFIED: {
+    variant: "purple",
+    icon: ShieldCheck,
+    label: "Qualified",
+  },
+  ACTIVE: {
     variant: "success",
     icon: CheckCircle,
-    label: "Accepted",
+    label: "Active",
   },
-  IN_PROGRESS: {
+  UNDER_CONTRACT: {
+    variant: "warning",
+    icon: FileSignature,
+    label: "Under Contract",
+  },
+  COMPLETED: {
+    variant: "success",
+    icon: Handshake,
+    label: "Completed",
+  },
+  ON_HOLD: {
+    variant: "gray",
+    icon: Pause,
+    label: "On Hold",
+  },
+  INACTIVE: {
+    variant: "secondary",
+    icon: UserMinus,
+    label: "Inactive",
+  },
+};
+
+/**
+ * Deal Status Configuration (legacy 6-stage — kept for backward compat)
+ */
+export const DEAL_STATUS_LEGACY: Record<string, StatusConfig> = {
+  PROPOSED: { variant: "warning", icon: FileText, label: "Proposed" },
+  NEGOTIATING: { variant: "info", icon: Users, label: "Negotiating" },
+  ACCEPTED: { variant: "success", icon: CheckCircle, label: "Accepted" },
+  IN_PROGRESS: { variant: "info", icon: Loader2, label: "In Progress", animate: true },
+  COMPLETED: { variant: "purple", icon: Handshake, label: "Completed" },
+  CANCELLED: { variant: "gray", icon: Ban, label: "Cancelled" },
+};
+
+/**
+ * Deal Stage Configuration (v2.0 — 10-stage Greek RE pipeline)
+ */
+export const DEAL_STATUS: Record<string, StatusConfig> = {
+  INTEREST: {
     variant: "info",
-    icon: Loader2,
-    label: "In Progress",
+    icon: Eye,
+    label: "Interest",
+  },
+  OFFER: {
+    variant: "warning",
+    icon: FileText,
+    label: "Offer",
+  },
+  NEGOTIATION: {
+    variant: "info",
+    icon: Users,
+    label: "Negotiation",
+  },
+  PRELIMINARY_AGREEMENT: {
+    variant: "success",
+    icon: ClipboardCheck,
+    label: "Preliminary Agreement",
+  },
+  DUE_DILIGENCE: {
+    variant: "info",
+    icon: Search,
+    label: "Due Diligence",
+    animate: true,
+  },
+  TRANSFER_TAX: {
+    variant: "warning",
+    icon: Receipt,
+    label: "Transfer Tax",
+  },
+  SIGNING: {
+    variant: "success",
+    icon: Gavel,
+    label: "Signing",
+  },
+  REGISTRATION: {
+    variant: "info",
+    icon: Landmark,
+    label: "Registration",
     animate: true,
   },
   COMPLETED: {
@@ -157,10 +247,52 @@ export const DEAL_STATUS: Record<string, StatusConfig> = {
     icon: Handshake,
     label: "Completed",
   },
+  FALLEN_THROUGH: {
+    variant: "gray",
+    icon: Ban,
+    label: "Fallen Through",
+  },
+};
+
+/**
+ * Showing Status Configuration (v2.0 Phase 3)
+ */
+export const SHOWING_STATUS: Record<string, StatusConfig> = {
+  SCHEDULED: {
+    variant: "info",
+    icon: Calendar,
+    label: "Scheduled",
+  },
+  CONFIRMED: {
+    variant: "success",
+    icon: CalendarCheck,
+    label: "Confirmed",
+  },
+  IN_PROGRESS: {
+    variant: "info",
+    icon: MapPin,
+    label: "In Progress",
+    animate: true,
+  },
+  COMPLETED: {
+    variant: "purple",
+    icon: CheckCircle,
+    label: "Completed",
+  },
   CANCELLED: {
     variant: "gray",
     icon: Ban,
     label: "Cancelled",
+  },
+  NO_SHOW: {
+    variant: "destructive",
+    icon: XCircle,
+    label: "No Show",
+  },
+  RESCHEDULED: {
+    variant: "warning",
+    icon: Clock,
+    label: "Rescheduled",
   },
 };
 
@@ -298,6 +430,37 @@ export const PUBLISH_STATUS: Record<string, StatusConfig> = {
 };
 
 /**
+ * Request Status Configuration (v2.0 — replaces Mandate)
+ */
+export const REQUEST_STATUS: Record<string, StatusConfig> = {
+  ACTIVE: {
+    variant: "success",
+    icon: Search,
+    label: "Active",
+  },
+  MATCHED: {
+    variant: "purple",
+    icon: Target,
+    label: "Matched",
+  },
+  UNDER_OFFER: {
+    variant: "warning",
+    icon: FileSignature,
+    label: "Under Offer",
+  },
+  CLOSED: {
+    variant: "gray",
+    icon: CheckCircle,
+    label: "Closed",
+  },
+  PAUSED: {
+    variant: "secondary",
+    icon: Pause,
+    label: "Paused",
+  },
+};
+
+/**
  * Generic Status Configuration (fallback)
  */
 export const GENERIC_STATUS: Record<string, StatusConfig> = {
@@ -338,7 +501,10 @@ export const GENERIC_STATUS: Record<string, StatusConfig> = {
 export const STATUS_CONFIGS = {
   property: PROPERTY_STATUS,
   client: CLIENT_STATUS,
+  contact: CONTACT_STATUS,
+  request: REQUEST_STATUS,
   deal: DEAL_STATUS,
+  showing: SHOWING_STATUS,
   job: JOB_STATUS,
   campaign: CAMPAIGN_STATUS,
   social: SOCIAL_STATUS,

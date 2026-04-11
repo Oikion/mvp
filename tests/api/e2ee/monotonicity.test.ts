@@ -1,7 +1,7 @@
 // tests/api/e2ee/monotonicity.test.ts
 // Tests for messageIndex monotonicity enforcement in client comments POST route
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mock prismadb — must be hoisted before any module imports that use it
@@ -13,14 +13,14 @@ const mockClientCommentCreate = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prismadb: {
-    clients: {
+    contact: {
       findFirst: (...args: any[]) => mockClientsFind(...args),
     },
     entitySession: {
       findFirst: (...args: any[]) => mockEntitySessionFind(...args),
       updateMany: (...args: any[]) => mockEntitySessionUpdateMany(...args),
     },
-    clientComment: {
+    contactComment: {
       create: (...args: any[]) => mockClientCommentCreate(...args),
     },
   },
@@ -38,8 +38,8 @@ vi.mock("@/lib/get-current-user", () => ({
 // Mock encryption helpers — return content unchanged (not testing encryption)
 // ---------------------------------------------------------------------------
 vi.mock("@/lib/model-encryption", () => ({
-  encryptClientCommentForOrg: vi.fn().mockImplementation(async (data: any) => data),
-  decryptClientCommentForOrg: vi.fn().mockImplementation(async (data: any) => data),
+  encryptContactCommentForOrg: vi.fn().mockImplementation(async (data: any) => data),
+  decryptContactCommentForOrg: vi.fn().mockImplementation(async (data: any) => data),
 }));
 
 // ---------------------------------------------------------------------------
@@ -52,9 +52,10 @@ vi.mock("@/lib/entity-session/encryption-mode", () => ({
 // ---------------------------------------------------------------------------
 // Import the route AFTER all mocks are registered
 // ---------------------------------------------------------------------------
-const { POST } = await import(
-  "@/app/api/crm/clients/[clientId]/comments/route"
-);
+let POST: typeof import("@/app/api/crm/clients/[clientId]/comments/route").POST;
+beforeAll(async () => {
+  ({ POST } = await import("@/app/api/crm/clients/[clientId]/comments/route"));
+});
 
 // ---------------------------------------------------------------------------
 // Helpers

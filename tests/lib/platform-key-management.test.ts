@@ -39,7 +39,13 @@ afterAll(() => {
 });
 
 // Import after mocks are set up
-const { getPlatformDek, rotatePlatformDek, _resetL1CacheForTesting } = await import("@/lib/platform-key-management");
+type PKM = typeof import("@/lib/platform-key-management");
+let getPlatformDek: PKM["getPlatformDek"];
+let rotatePlatformDek: PKM["rotatePlatformDek"];
+let _resetL1CacheForTesting: PKM["_resetL1CacheForTesting"];
+beforeAll(async () => {
+  ({ getPlatformDek, rotatePlatformDek, _resetL1CacheForTesting } = await import("@/lib/platform-key-management"));
+});
 
 describe("getPlatformDek", () => {
   beforeEach(() => {

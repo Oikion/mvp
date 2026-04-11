@@ -14,7 +14,7 @@ export const getAccountsTrend = async () => {
   const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
   const [currentCount, previousCount] = await Promise.all([
-    prismadb.clients.count({
+    prismadb.contact.count({
       where: {
         organizationId,
         createdAt: {
@@ -22,7 +22,7 @@ export const getAccountsTrend = async () => {
         },
       },
     }),
-    prismadb.clients.count({
+    prismadb.contact.count({
       where: {
         organizationId,
         createdAt: {
@@ -45,22 +45,3 @@ export const getAccountsTrend = async () => {
     direction: percentageChange >= 0 ? ("up" as const) : ("down" as const),
   };
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

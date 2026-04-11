@@ -53,7 +53,33 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "client:bulk_update": "none",
   "client:add_comment": "none",
   "client:manage_contacts": "none",
-  
+
+  // Contacts (v2.0) - Read only for Viewers
+  "contact:read": "all",
+  "contact:create": "none",
+  "contact:update": "none",
+  "contact:delete": "none",
+  "contact:export": "none",
+  "contact:share": "none",
+  "contact:import": "none",
+  "contact:reassign_agent": "none",
+  "contact:bulk_update": "none",
+  "contact:add_comment": "none",
+  "contact:manage_relationships": "none",
+
+  // Requests (v2.0) - Read only for Viewers
+  "request:read": "all",
+  "request:create": "none",
+  "request:update": "none",
+  "request:delete": "none",
+  "request:export": "none",
+  "request:share": "none",
+  "request:import": "none",
+  "request:reassign_agent": "none",
+  "request:bulk_update": "none",
+  "request:add_comment": "none",
+  "request:manage_matches": "none",
+
   // Messaging - No access (viewers shouldn't access internal comms)
   "messaging:read": "none",
   "messaging:send_message": "none",
@@ -95,10 +121,14 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "deal:read": "all",
   "deal:create": "none",
   "deal:update": "none",
-  "deal:accept": "none",
-  "deal:cancel": "none",
-  "deal:complete": "none",
-  "deal:propose_terms": "none",
+  "deal:delete": "none",
+  "deal:export": "none",
+  "deal:share": "none",
+  "deal:reassign_agent": "none",
+  "deal:bulk_update": "none",
+  "deal:add_comment": "none",
+  "deal:manage_parties": "none",
+  "deal:advance_stage": "none",
   
   // Matchmaking - No access
   "matchmaking:view": "none",
@@ -135,29 +165,41 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "admin:transfer_ownership": "none",
   "admin:manage_org_settings": "none",
   
+  // Activities - Read only
+  "activity:read": "all",
+  "activity:create": "none",
+  "activity:update": "none",
+  "activity:delete": "none",
+  "activity:bulk_delete": "none",
+  "activity:export": "none",
+  "activity:reassign": "none",
+  "activity:log_on_behalf": "none",
+
   // Templates - Read and use only
   "template:read": "all",
   "template:use": "none",
   "template:create": "none",
   "template:update": "none",
   "template:delete": "none",
-  
+  "template:publish": "none",
+  "template:clone": "none",
+
   // XE Portal - No access
   "xe:view_config": "none",
   "xe:manage_config": "none",
   "xe:sync_properties": "none",
   "xe:view_history": "none",
-  
+
   // N8N - No access
   "n8n:view_config": "none",
   "n8n:manage_config": "none",
   "n8n:manage_workflows": "none",
-  
+
   // Notifications - Own only
   "notification:read": "own",
   "notification:mark_read": "own",
   "notification:manage_settings": "own",
-  
+
   // Referrals - No access
   "referral:view": "none",
   "referral:apply": "none",
@@ -205,7 +247,33 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "client:bulk_update": "none",
   "client:add_comment": "all",
   "client:manage_contacts": "own",
-  
+
+  // Contacts (v2.0) - Members can create/edit own
+  "contact:read": "all",
+  "contact:create": "all",
+  "contact:update": "own",
+  "contact:delete": "own",
+  "contact:export": "all",
+  "contact:share": "all",
+  "contact:import": "none",
+  "contact:reassign_agent": "none",
+  "contact:bulk_update": "none",
+  "contact:add_comment": "all",
+  "contact:manage_relationships": "own",
+
+  // Requests (v2.0) - Members can create/edit own
+  "request:read": "all",
+  "request:create": "all",
+  "request:update": "own",
+  "request:delete": "own",
+  "request:export": "all",
+  "request:share": "all",
+  "request:import": "none",
+  "request:reassign_agent": "none",
+  "request:bulk_update": "none",
+  "request:add_comment": "all",
+  "request:manage_matches": "own",
+
   // Messaging - Full access except channel management
   "messaging:read": "all",
   "messaging:send_message": "all",
@@ -243,15 +311,19 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "report:view_analytics": "none",
   "report:view_metrics": "none",
   
-  // Deals - Full access on involved deals
+  // Deals - Read/create all, modify own/involved
   "deal:read": "all",
   "deal:create": "all",
-  "deal:update": "involved",
-  "deal:accept": "involved",
-  "deal:cancel": "involved",
-  "deal:complete": "involved",
-  "deal:propose_terms": "involved",
-  
+  "deal:update": "own",
+  "deal:delete": "own",
+  "deal:export": "all",
+  "deal:share": "all",
+  "deal:reassign_agent": "none",
+  "deal:bulk_update": "none",
+  "deal:add_comment": "all",
+  "deal:manage_parties": "own",
+  "deal:advance_stage": "own",
+
   // Matchmaking - Full access
   "matchmaking:view": "all",
   "matchmaking:run": "all",
@@ -287,29 +359,41 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "admin:transfer_ownership": "none",
   "admin:manage_org_settings": "none",
   
+  // Activities - Create and manage own
+  "activity:read": "all",
+  "activity:create": "all",
+  "activity:update": "own",
+  "activity:delete": "own",
+  "activity:bulk_delete": "none",
+  "activity:export": "own",
+  "activity:reassign": "none",
+  "activity:log_on_behalf": "none",
+
   // Templates - Read and use
   "template:read": "all",
   "template:use": "all",
   "template:create": "none",
   "template:update": "none",
   "template:delete": "none",
-  
+  "template:publish": "none",
+  "template:clone": "all",
+
   // XE Portal - Can sync properties
   "xe:view_config": "none",
   "xe:manage_config": "none",
   "xe:sync_properties": "own",
   "xe:view_history": "own",
-  
+
   // N8N - No access
   "n8n:view_config": "none",
   "n8n:manage_config": "none",
   "n8n:manage_workflows": "none",
-  
+
   // Notifications - Own only
   "notification:read": "own",
   "notification:mark_read": "own",
   "notification:manage_settings": "own",
-  
+
   // Referrals - Can view and apply
   "referral:view": "all",
   "referral:apply": "all",
@@ -357,7 +441,33 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "client:bulk_update": "all",
   "client:add_comment": "all",
   "client:manage_contacts": "all",
-  
+
+  // Contacts (v2.0) - Leads have full access
+  "contact:read": "all",
+  "contact:create": "all",
+  "contact:update": "all",
+  "contact:delete": "all",
+  "contact:export": "all",
+  "contact:share": "all",
+  "contact:import": "all",
+  "contact:reassign_agent": "all",
+  "contact:bulk_update": "all",
+  "contact:add_comment": "all",
+  "contact:manage_relationships": "all",
+
+  // Requests (v2.0) - Leads have full access
+  "request:read": "all",
+  "request:create": "all",
+  "request:update": "all",
+  "request:delete": "all",
+  "request:export": "all",
+  "request:share": "all",
+  "request:import": "all",
+  "request:reassign_agent": "all",
+  "request:bulk_update": "all",
+  "request:add_comment": "all",
+  "request:manage_matches": "all",
+
   // Messaging - Full access including channel management
   "messaging:read": "all",
   "messaging:send_message": "all",
@@ -399,10 +509,14 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "deal:read": "all",
   "deal:create": "all",
   "deal:update": "all",
-  "deal:accept": "all",
-  "deal:cancel": "all",
-  "deal:complete": "all",
-  "deal:propose_terms": "all",
+  "deal:delete": "all",
+  "deal:export": "all",
+  "deal:share": "all",
+  "deal:reassign_agent": "all",
+  "deal:bulk_update": "all",
+  "deal:add_comment": "all",
+  "deal:manage_parties": "all",
+  "deal:advance_stage": "all",
   
   // Matchmaking - Full access
   "matchmaking:view": "all",
@@ -439,29 +553,41 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "admin:transfer_ownership": "none",
   "admin:manage_org_settings": "none",
   
+  // Activities - Full access
+  "activity:read": "all",
+  "activity:create": "all",
+  "activity:update": "all",
+  "activity:delete": "all",
+  "activity:bulk_delete": "all",
+  "activity:export": "all",
+  "activity:reassign": "all",
+  "activity:log_on_behalf": "all",
+
   // Templates - Full access
   "template:read": "all",
   "template:use": "all",
   "template:create": "all",
   "template:update": "all",
   "template:delete": "all",
-  
+  "template:publish": "all",
+  "template:clone": "all",
+
   // XE Portal - Full access except config
   "xe:view_config": "all",
   "xe:manage_config": "none",
   "xe:sync_properties": "all",
   "xe:view_history": "all",
-  
+
   // N8N - View only
   "n8n:view_config": "all",
   "n8n:manage_config": "none",
   "n8n:manage_workflows": "all",
-  
+
   // Notifications - Full access
   "notification:read": "all",
   "notification:mark_read": "all",
   "notification:manage_settings": "own",
-  
+
   // Referrals - Can view and track, limited admin
   "referral:view": "all",
   "referral:apply": "all",
@@ -509,7 +635,33 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "client:bulk_update": "all",
   "client:add_comment": "all",
   "client:manage_contacts": "all",
-  
+
+  // Contacts (v2.0) - Owners have full access
+  "contact:read": "all",
+  "contact:create": "all",
+  "contact:update": "all",
+  "contact:delete": "all",
+  "contact:export": "all",
+  "contact:share": "all",
+  "contact:import": "all",
+  "contact:reassign_agent": "all",
+  "contact:bulk_update": "all",
+  "contact:add_comment": "all",
+  "contact:manage_relationships": "all",
+
+  // Requests (v2.0) - Owners have full access
+  "request:read": "all",
+  "request:create": "all",
+  "request:update": "all",
+  "request:delete": "all",
+  "request:export": "all",
+  "request:share": "all",
+  "request:import": "all",
+  "request:reassign_agent": "all",
+  "request:bulk_update": "all",
+  "request:add_comment": "all",
+  "request:manage_matches": "all",
+
   // Messaging - Full access
   "messaging:read": "all",
   "messaging:send_message": "all",
@@ -551,10 +703,14 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "deal:read": "all",
   "deal:create": "all",
   "deal:update": "all",
-  "deal:accept": "all",
-  "deal:cancel": "all",
-  "deal:complete": "all",
-  "deal:propose_terms": "all",
+  "deal:delete": "all",
+  "deal:export": "all",
+  "deal:share": "all",
+  "deal:reassign_agent": "all",
+  "deal:bulk_update": "all",
+  "deal:add_comment": "all",
+  "deal:manage_parties": "all",
+  "deal:advance_stage": "all",
   
   // Matchmaking - Full access
   "matchmaking:view": "all",
@@ -591,29 +747,41 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "admin:transfer_ownership": "all",
   "admin:manage_org_settings": "all",
   
+  // Activities - Full access
+  "activity:read": "all",
+  "activity:create": "all",
+  "activity:update": "all",
+  "activity:delete": "all",
+  "activity:bulk_delete": "all",
+  "activity:export": "all",
+  "activity:reassign": "all",
+  "activity:log_on_behalf": "all",
+
   // Templates - Full access
   "template:read": "all",
   "template:use": "all",
   "template:create": "all",
   "template:update": "all",
   "template:delete": "all",
-  
+  "template:publish": "all",
+  "template:clone": "all",
+
   // XE Portal - Full access
   "xe:view_config": "all",
   "xe:manage_config": "all",
   "xe:sync_properties": "all",
   "xe:view_history": "all",
-  
+
   // N8N - Full access
   "n8n:view_config": "all",
   "n8n:manage_config": "all",
   "n8n:manage_workflows": "all",
-  
+
   // Notifications - Full access
   "notification:read": "all",
   "notification:mark_read": "all",
   "notification:manage_settings": "all",
-  
+
   // Referrals - Full admin access
   "referral:view": "all",
   "referral:apply": "all",

@@ -120,10 +120,10 @@ export function DataTableToolbar<TData>({
   const chips: FilterChip[] = React.useMemo(() => {
     const result: FilterChip[] = [];
     activeFilters.status.forEach((v) =>
-      result.push({ label: `Status: ${t(`MandateForm.status.${v}`)}`, onRemove: () => removeChip("status", v) })
+      result.push({ label: `Status: ${t(`MandateForm.status.${v}` as Parameters<typeof t>[0])}`, onRemove: () => removeChip("status", v) })
     );
     activeFilters.urgency.forEach((v) =>
-      result.push({ label: `Urgency: ${t(`MandateForm.urgency.${v}`)}`, onRemove: () => removeChip("urgency", v) })
+      result.push({ label: `Urgency: ${t(`MandateForm.urgency.${v}` as Parameters<typeof t>[0])}`, onRemove: () => removeChip("urgency", v) })
     );
     activeFilters.transactionType.forEach((v) =>
       result.push({ label: `Type: ${v}`, onRemove: () => removeChip("transactionType", v) })

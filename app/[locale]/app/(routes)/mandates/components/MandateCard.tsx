@@ -100,14 +100,14 @@ export const MandateCard = memo(
               <h3 className="font-semibold text-base truncate">{data.title}</h3>
               <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                 <Badge variant={TRANSACTION_VARIANT[data.transaction_type] ?? "outline"} className="text-xs">
-                  {t(`MandateForm.transactionType.${data.transaction_type}`) || data.transaction_type}
+                  {t(`MandateForm.transactionType.${data.transaction_type}` as Parameters<typeof t>[0]) || data.transaction_type}
                 </Badge>
                 <Badge variant={STATUS_VARIANT[data.status] ?? "secondary"} className="text-xs">
-                  {t(`MandateForm.status.${data.status}`)}
+                  {t(`MandateForm.status.${data.status}` as Parameters<typeof t>[0])}
                 </Badge>
                 {data.urgency && (
                   <Badge variant={URGENCY_VARIANT[data.urgency] ?? "outline"} className="text-xs">
-                    {t(`MandateForm.urgency.${data.urgency}`)}
+                    {t(`MandateForm.urgency.${data.urgency}` as Parameters<typeof t>[0])}
                   </Badge>
                 )}
               </div>

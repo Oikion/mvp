@@ -1,44 +1,23 @@
-import { getDeal } from "@/actions/deals";
 import { notFound } from "next/navigation";
-import Container from "../../components/ui/Container";
-import { DealDetail } from "./components/DealDetail";
+import { getDeal } from "@/actions/deals";
+import DealView from "./components/DealView";
 
-interface DealPageProps {
-  params: Promise<{ dealId: string }>;
+export const dynamic = "force-dynamic";
+
+interface DealDetailPageProps {
+  params: Promise<{ dealId: string; locale: string }>;
 }
 
-export default async function DealPage({ params }: DealPageProps) {
+export default async function DealDetailPage({ params }: Readonly<DealDetailPageProps>) {
   const { dealId } = await params;
 
-  try {
-    const deal = await getDeal(dealId);
+  const result = await getDeal(dealId);
 
-    if (!deal) {
-      notFound();
-    }
-
-    return (
-      <Container
-        title={deal.title || "Deal Details"}
-        description="Manage this collaborative deal"
-      >
-        <DealDetail deal={deal} />
-      </Container>
-    );
-  } catch (error) {
+  // getDeal returns ActionResponse<Deal> — must unwrap and check shape.
+  // It also returns a permission-denied or not-found error object.
+  if (!result || !("success" in result) || !result.success || !result.data) {
     notFound();
   }
+
+  return <DealView deal={result.data} />;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

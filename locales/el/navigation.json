@@ -8,6 +8,7 @@
       "organization": "Οργανισμός"
     },
     "dashboard": "Πίνακας Ελέγχου",
+    "chatGPT": "ChatGPT",
     "feed": "Επερχόμενα",
     "crm": {
       "title": "Πελάτες",
@@ -24,6 +25,12 @@
     },
     "mandates": {
       "title": "Εντολές"
+    },
+    "requests": {
+      "title": "Αιτήματα"
+    },
+    "deals": {
+      "title": "Συμφωνίες"
     },
     "social": {
       "title": "Κοινωνικά",

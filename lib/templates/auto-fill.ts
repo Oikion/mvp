@@ -1,9 +1,9 @@
-import type { Clients, Properties, Users, MyAccount } from "@prisma/client";
+import type { Contact, Properties, Users, MyAccount } from "@prisma/client";
 import type { TemplatePlaceholder } from "./template-definitions";
 
 interface AutoFillContext {
   property?: Properties | null;
-  client?: Clients | null;
+  client?: Contact | null;
   agent?: Users | null;
   organization?: MyAccount | null;
 }

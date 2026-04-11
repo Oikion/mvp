@@ -78,14 +78,14 @@ export async function GET(req: NextRequest) {
     }
     
     // Fetch clients statistics
-    const clients = await prismadb.clients.findMany({
+    const clients = await prismadb.contact.findMany({
       where: { organizationId: orgId },
-      select: { client_status: true },
+      select: { status: true },
     });
-    
+
     const clientsCount = clients.length;
     const clientsByStatus = clients.reduce((acc: Record<string, number>, client) => {
-      const status = client.client_status || "LEAD";
+      const status = client.status || "LEAD";
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {});

@@ -76,7 +76,7 @@ export function EventActionsMenu({
       onEventDeleted?.();
     } catch (error) {
       console.error("Failed to delete event:", error);
-      toast.error(t("eventDetail.failedToDeleteEvent"));
+      toast.error(t("eventDetail.failedToDeleteEvent" as Parameters<typeof t>[0]));
     } finally {
       setIsDeleting(false);
     }
@@ -191,9 +191,9 @@ export function EventActionsMenu({
       } catch (error: any) {
         console.error("Failed to fetch event:", error);
         if (error.message?.includes("Too many requests")) {
-          toast.error(t("eventDetail.failedToLoad") + " - " + error.message);
+          toast.error(t("eventDetail.failedToLoad" as Parameters<typeof t>[0]) + " - " + error.message);
         } else {
-          toast.error(t("eventDetail.failedToLoad"));
+          toast.error(t("eventDetail.failedToLoad" as Parameters<typeof t>[0]));
         }
       } finally {
         setIsLoadingEvent(false);

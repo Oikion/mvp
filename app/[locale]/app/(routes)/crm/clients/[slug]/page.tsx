@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/get-current-user";
 import ClientView from "./components/ClientView";
 import { SharedAccessBanner } from "../../../mls/properties/[slug]/components/SharedAccessBanner";
 
-type ShareInfo = NonNullable<Awaited<ReturnType<typeof getSharedClient>>>["_shareInfo"] | null;
+type ShareInfo = { permissions: string; sharedById: string | null } | null;
 
 export const dynamic = "force-dynamic";
 
@@ -28,10 +28,10 @@ export default async function ClientDetailPage({
   // If not found in org, check for share access (by slug)
   if (!client) {
     const sharedClient = await getSharedClient(slug);
-    if (sharedClient) {
-      client = sharedClient;
+    if (sharedClient && "data" in sharedClient) {
+      client = sharedClient.data;
       isSharedView = true;
-      shareInfo = sharedClient._shareInfo;
+      shareInfo = null;
     }
   }
 
@@ -44,7 +44,7 @@ export default async function ClientDetailPage({
   const defaultEditOpen = isSharedView ? false : resolvedSearchParams?.action === "edit";
 
   // Determine share permission for comments
-  const sharePermission = shareInfo?.permissions as "VIEW_ONLY" | "VIEW_COMMENT" | null;
+  const sharePermission = (shareInfo as { permissions: string } | null)?.permissions as "VIEW_ONLY" | "VIEW_COMMENT" | null;
 
   return (
     <div className="space-y-4">

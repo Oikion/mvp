@@ -1,0 +1,54 @@
+{
+  "title": "Document Templates",
+  "empty": "No templates yet",
+  "createTemplate": "Create Template",
+  "categories": {
+    "LISTING_AGREEMENT": "Listing Agreement",
+    "BUYER_AGREEMENT": "Buyer Agreement",
+    "OFFER": "Offer",
+    "COUNTER_OFFER": "Counter Offer",
+    "PURCHASE_CONTRACT": "Purchase Contract",
+    "TRANSFER_DEED": "Transfer Deed",
+    "POWER_OF_ATTORNEY": "Power of Attorney",
+    "NDA": "NDA",
+    "GENERAL": "General"
+  },
+  "fields": {
+    "name": "Template Name",
+    "category": "Category",
+    "content": "Content",
+    "isPublished": "Published",
+    "status": "Status",
+    "version": "Version",
+    "baseTemplate": "Base Template",
+    "lastModified": "Last Modified"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published"
+  },
+  "actions": {
+    "create": "Create Template",
+    "edit": "Edit",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "clone": "Clone",
+    "delete": "Delete",
+    "confirmDelete": "Delete this template?"
+  },
+  "form": {
+    "createTitle": "Create Document Template",
+    "editTitle": "Edit Document Template",
+    "submit": "Save Template",
+    "cancel": "Cancel"
+  },
+  "messages": {
+    "created": "Template created successfully.",
+    "updated": "Template updated successfully.",
+    "published": "Template published.",
+    "unpublished": "Template unpublished.",
+    "cloned": "Template cloned.",
+    "deleted": "Template deleted.",
+    "error": "An error occurred. Please try again."
+  }
+}

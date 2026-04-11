@@ -45,15 +45,12 @@ dotenv.config({ path: path.join(__dirname, "../.env.local") });
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
 import { PrismaClient, type Prisma } from "@prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { createClerkClient } from "@clerk/backend";
 
-// Detect Accelerate URL and add extension if needed (production Prisma Postgres uses prisma+postgres://)
 const databaseUrl = process.env.DATABASE_URL || "";
-const isAccelerate = databaseUrl.startsWith("prisma://") || databaseUrl.startsWith("prisma+postgres://");
-const prismadb = isAccelerate
-  ? new PrismaClient().$extends(withAccelerate()) as unknown as PrismaClient
-  : new PrismaClient();
+const adapter = new PrismaPg(databaseUrl);
+const prismadb = new PrismaClient({ adapter });
 
 // ============================================
 // INLINE ENCRYPTION (standalone — no @/ imports)

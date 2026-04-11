@@ -243,7 +243,7 @@ const FeedbackChatSheet = ({
                 const typeConfig = getFeedbackTypeConfig(feedback.feedbackType);
                 return (
                   <Badge className={typeConfig.color}>
-                    {t(`types.${feedback.feedbackType}`) || typeConfig.label}
+                    {t(`types.${feedback.feedbackType}` as Parameters<typeof t>[0]) || typeConfig.label}
                   </Badge>
                 );
               })()}

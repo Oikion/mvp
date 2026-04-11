@@ -67,7 +67,7 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const response = await axios.get("/api/crm/clients");
+        const response = await axios.get("/api/crm/contacts");
         setClients(response.data || []);
       } catch (error) {
         console.error("Failed to fetch clients:", error);
@@ -101,12 +101,15 @@ export function NewPropertyForm({ onFinish }: { onFinish: () => void }) {
 
       const propertyId = propertyResponse.data.newProperty.id;
 
-      // Link clients if any are selected
+      // Link contacts if any are selected — contact-centric endpoint requires one call per contact
       if (data.clientIds && data.clientIds.length > 0) {
-        await axios.put("/api/crm/clients/link-properties", {
-          propertyId,
-          clientIds: data.clientIds,
-        });
+        await Promise.all(
+          data.clientIds.map((contactId: string) =>
+            axios.post(`/api/crm/contacts/${contactId}/link-entities`, {
+              propertyIds: [propertyId],
+            })
+          )
+        );
       }
 
       toast.success("Success", { description: "Property created successfully", isTranslationKey: false });

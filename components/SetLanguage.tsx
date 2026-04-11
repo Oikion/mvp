@@ -61,7 +61,7 @@ export function SetLanguage({ userId }: Props) {
   const { toast } = useAppToast();
 
   const form = useForm<z.infer<ReturnType<typeof FormSchema>>>({
-    resolver: zodResolver(FormSchema(t)),
+    resolver: zodResolver(FormSchema((k: string) => t(k as Parameters<typeof t>[0]))),
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +70,7 @@ export function SetLanguage({ userId }: Props) {
     setIsLoading(true);
     try {
       await axios.put(`/api/user/${userId}/set-language`, data);
-      toast.success("success", { description: t("setLanguage.languageChanged") });
+      toast.success("success", { description: t("setLanguage.languageChanged" as Parameters<typeof t>[0]) });
     } catch (e) {
       toast.error("error", { description: tCommon("error") });
     } finally {

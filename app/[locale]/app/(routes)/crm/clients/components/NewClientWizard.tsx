@@ -130,7 +130,7 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
     const loadDraft = async () => {
       if (initialDraftId && !draftId) {
         try {
-          const response = await axios.get(`/api/crm/clients/${initialDraftId}`);
+          const response = await axios.get(`/api/crm/contacts/${initialDraftId}`);
           if (response.data?.client) {
             const draft = response.data.client;
             form.reset({
@@ -239,9 +239,9 @@ export function NewClientWizard({ users, onFinish, initialDraftId }: Readonly<Pr
       const submitData = { ...cleaned, draft_status: false };
 
       if (draftId) {
-        await axios.put(`/api/crm/clients/${draftId}`, submitData);
+        await axios.put(`/api/crm/contacts/${draftId}`, submitData);
       } else {
-        await axios.post("/api/crm/clients", submitData);
+        await axios.post("/api/crm/contacts", submitData);
       }
 
       hasSubmittedRef.current = true;

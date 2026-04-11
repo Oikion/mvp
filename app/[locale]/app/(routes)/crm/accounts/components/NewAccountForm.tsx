@@ -192,7 +192,7 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
     setIsLoading(true);
     try {
       // Create the client first
-      const clientResponse = await axios.post("/api/crm/clients", {
+      const clientResponse = await axios.post("/api/crm/contacts", {
         client_name: data.client_name,
         primary_email: data.primary_email || undefined,
         office_phone: data.office_phone || undefined,
@@ -216,8 +216,7 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
 
       // Link properties if any are selected
       if (data.propertyIds && data.propertyIds.length > 0) {
-        await axios.post("/api/crm/clients/link-properties", {
-          clientId,
+        await axios.post(`/api/crm/contacts/${clientId}/link-entities`, {
           propertyIds: data.propertyIds,
         });
       }

@@ -54,6 +54,8 @@ import {
   useUnlinkDocumentFromProperty,
 } from "@/hooks/swr";
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
+import { ActivityFeed } from "@/components/activity/ActivityFeed";
+import { QuickLogActivity } from "@/components/activity/QuickLogActivity";
 import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
@@ -151,6 +153,7 @@ export default function PropertyView({
 }: PropertyViewProps) {
   const router = useRouter();
   const t = useTranslations("mls");
+  const tActivities = useTranslations("activities");
   const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
@@ -591,15 +594,15 @@ export default function PropertyView({
             </Card>
           )}
 
-          {/* Linked Clients */}
+          {/* Linked Contacts */}
           <LinkedEntitiesPanel
-            type="clients"
-            entities={clients as unknown as Array<{ id: string; friendlyId: string; client_name: string; client_type?: string; client_status?: string; primary_email?: string; primary_phone?: string; assigned_to_user?: { id: string; name: string }; }>}
+            type="contacts"
+            entities={clients as unknown as Array<{ id: string; friendlyId: string; displayName: string; email?: string; primaryPhone?: string; status?: string; category?: string[]; }>}
             isLoading={isLoadingLinked || isLinking || isUnlinking}
             onLinkEntity={isReadOnly ? undefined : () => setLinkClientDialogOpen(true)}
             onUnlinkEntity={isReadOnly ? undefined : handleUnlinkClient}
             showAddButton={!isReadOnly}
-            emptyMessage="No clients linked to this property yet."
+            emptyMessage="No contacts linked to this property yet."
           />
 
           {/* Linked Mandates */}
@@ -652,6 +655,24 @@ export default function PropertyView({
               maxItems={5}
             />
           )}
+
+          {/* Activity Log */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                {tActivities("title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <QuickLogActivity
+                parentType="PROPERTY"
+                parentId={data.id}
+                onSuccess={() => {}}
+              />
+              <ActivityFeed parentType="PROPERTY" parentId={data.id} />
+            </CardContent>
+          </Card>
         </div>
       </div>
 

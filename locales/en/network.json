@@ -17,6 +17,12 @@
     "agencies": "No agencies found. Try adjusting your search or filters.",
     "posts": "No posts yet. Connect with agents to see their updates."
   },
+  "myConnections": "My Connections",
+  "pending": "Pending",
+  "sent": "Sent",
+  "search": "Search",
+  "loading": "Loading...",
+  "loadMore": "Load more",
   "connect": "Connect",
   "viewProfile": "View profile",
   "viewPost": "View post",

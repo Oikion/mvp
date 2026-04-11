@@ -1,113 +1,183 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import moment from "moment";
 import { useTranslations } from "next-intl";
-
-import { Opportunity } from "../table-data/schema";
+import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
-import { ContactRowActions } from "./ContactRowActions";
+import { cn } from "@/lib/utils";
+import { Building2, User } from "lucide-react";
+import { format } from "date-fns";
 
-export const columns: ColumnDef<Opportunity>[] = [
-  {
-    accessorKey: "created_on",
-    header: ({ column }) => {
-      const t = useTranslations("crm");
-      return <DataTableColumnHeader column={column} title={t("ContactsTable.dateCreated") || "Date created"} />;
+const STATUS_COLORS: Record<string, string> = {
+  LEAD: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  CONTACTED: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400",
+  QUALIFIED: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400",
+  ACTIVE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  UNDER_CONTRACT: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  COMPLETED: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400",
+  ON_HOLD: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  INACTIVE: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  OWNER: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  BUYER: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  TENANT: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
+  SELLER: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400",
+  INVESTOR: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",
+  BROKER: "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-400",
+};
+
+interface ContactRow {
+  id: string;
+  friendlyId: string;
+  displayName: string;
+  isCompany?: boolean;
+  email?: string | null;
+  primaryPhone?: string | null;
+  status: string;
+  category?: string[];
+  source?: string | null;
+  assignedAgent?: { id: string; name: string | null } | null;
+  createdAt: string | Date;
+}
+
+export function getContactColumns(): ColumnDef<ContactRow>[] {
+  return [
+    {
+      accessorKey: "displayName",
+      header: ({ column }) => {
+        const t = useTranslations("crm");
+        return <DataTableColumnHeader column={column} title={t("contacts.table.name")} />;
+      },
+      cell: ({ row }) => {
+        const contact = row.original;
+        return (
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+                contact.isCompany ? "bg-amber-100 dark:bg-amber-900/30" : "bg-primary/10"
+              )}
+            >
+              {contact.isCompany ? (
+                <Building2 className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
+              ) : (
+                <User className="h-3.5 w-3.5 text-primary" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate max-w-[200px]">{contact.displayName}</p>
+              <p className="text-xs text-muted-foreground">{contact.friendlyId}</p>
+            </div>
+          </div>
+        );
+      },
+      enableSorting: true,
     },
-    cell: ({ row }) => (
-      <div className="whitespace-nowrap">
-        {moment(row.getValue("created_on")).format("YY-MM-DD")}
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "assigned_to_user",
-    header: ({ column }) => {
-      const t = useTranslations("crm");
-      return <DataTableColumnHeader column={column} title={t("ContactsTable.assignedTo") || "Assigned to"} />;
+    {
+      accessorKey: "email",
+      header: ({ column }) => {
+        const t = useTranslations("crm");
+        return <DataTableColumnHeader column={column} title={t("contacts.table.email")} />;
+      },
+      cell: ({ row }) => (
+        <span className="text-sm truncate max-w-[180px] block">{row.getValue("email") || "—"}</span>
+      ),
+      enableSorting: true,
     },
-    cell: ({ row }) => (
-      <div className="whitespace-nowrap">
-        {(row.getValue("assigned_to_user") as { name?: string } | null)?.name ?? "Unassigned"}
-      </div>
-    ),
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
-    accessorKey: "assigned_account",
-    header: ({ column }) => {
-      const t = useTranslations("crm");
-      return <DataTableColumnHeader column={column} title={t("ContactsTable.assignedAccount") || "Assigned account"} />;
+    {
+      accessorKey: "primaryPhone",
+      header: ({ column }) => {
+        const t = useTranslations("crm");
+        return <DataTableColumnHeader column={column} title={t("contacts.table.phone")} />;
+      },
+      cell: ({ row }) => (
+        <span className="text-sm">{row.getValue("primaryPhone") || "—"}</span>
+      ),
+      enableSorting: false,
     },
-    cell: ({ row }) => (
-      <div className="whitespace-nowrap">
-        {(row.original as unknown as { assigned_accounts?: { name?: string } }).assigned_accounts?.name ?? "Unassigned"}
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: true,
-  },
-  {
-    accessorKey: "first_name",
-    header: ({ column }) => {
-      const t = useTranslations("crm");
-      return <DataTableColumnHeader column={column} title={t("ContactsTable.firstName") || "Name"} />;
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+        const t = useTranslations("crm");
+        return <DataTableColumnHeader column={column} title={t("contacts.table.status")} />;
+      },
+      cell: ({ row }) => {
+        const t = useTranslations("crm");
+        const status = row.getValue("status") as string;
+        return (
+          <Badge
+            className={cn("text-[10px]", STATUS_COLORS[status] || STATUS_COLORS.LEAD)}
+            variant="secondary"
+          >
+            {t(`contacts.status.${status}` as Parameters<typeof t>[0])}
+          </Badge>
+        );
+      },
+      enableSorting: true,
+      filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
-    cell: ({ row }) => <div>{row.getValue("first_name")}</div>,
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
-    accessorKey: "last_name",
-    header: ({ column }) => {
-      const t = useTranslations("crm");
-      return <DataTableColumnHeader column={column} title={t("ContactsTable.lastName") || "Last name"} />;
+    {
+      accessorKey: "category",
+      header: ({ column }) => {
+        const t = useTranslations("crm");
+        return <DataTableColumnHeader column={column} title={t("contacts.table.categories")} />;
+      },
+      cell: ({ row }) => {
+        const t = useTranslations("crm");
+        const categories = (row.getValue("category") as string[]) || [];
+        if (categories.length === 0) return <span className="text-muted-foreground text-sm">—</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {categories.slice(0, 2).map((cat) => (
+              <Badge
+                key={cat}
+                variant="outline"
+                className={cn("text-[10px] px-1.5 py-0", CATEGORY_COLORS[cat])}
+              >
+                {t(`contacts.category.${cat}` as Parameters<typeof t>[0])}
+              </Badge>
+            ))}
+            {categories.length > 2 && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                +{categories.length - 2}
+              </Badge>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
     },
-    cell: ({ row }) => <div>{row.getValue("last_name")}</div>,
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => {
-      const t = useTranslations("crm");
-      return <DataTableColumnHeader column={column} title={t("ContactsTable.email") || "E-mail"} />;
+    {
+      accessorKey: "assignedAgent",
+      header: ({ column }) => {
+        const t = useTranslations("crm");
+        return <DataTableColumnHeader column={column} title={t("contacts.table.assignedTo")} />;
+      },
+      cell: ({ row }) => {
+        const agent = row.original.assignedAgent;
+        return (
+          <span className="text-sm">{agent?.name || "—"}</span>
+        );
+      },
+      enableSorting: false,
     },
-    cell: ({ row }) => <div>{row.getValue("email")}</div>,
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
-    accessorKey: "mobile_phone",
-    header: ({ column }) => {
-      const t = useTranslations("crm");
-      return <DataTableColumnHeader column={column} title={t("ContactsTable.mobile") || "Mobile"} />;
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        const t = useTranslations("crm");
+        return <DataTableColumnHeader column={column} title={t("contacts.table.created")} />;
+      },
+      cell: ({ row }) => {
+        const date = row.getValue("createdAt");
+        return (
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            {date ? format(new Date(date as string), "dd/MM/yy") : "—"}
+          </span>
+        );
+      },
+      enableSorting: true,
     },
-    cell: ({ row }) => <div>{row.getValue("mobile_phone")}</div>,
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => {
-      const t = useTranslations("crm");
-      return <DataTableColumnHeader column={column} title={t("ContactsTable.status") || "Status"} />;
-    },
-    cell: ({ row }) => {
-      const t = useTranslations("common");
-      return (
-        <div>{row.original.status ? t("statusLabels.client.ACTIVE") || "Active" : t("statusLabels.client.INACTIVE") || "Inactive"}</div>
-      );
-    },
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => <ContactRowActions row={row} />,
-  },
-];
+  ];
+}

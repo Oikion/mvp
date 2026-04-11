@@ -44,7 +44,7 @@ export function EncryptionPolicyStep({
   const [setupError, setSetupError] = useState<string | null>(null);
   const [setupSuccess, setSetupSuccess] = useState(false);
 
-  const pinStrength = getPinStrength(pin, t);
+  const pinStrength = getPinStrength(pin, (k: string) => t(k as Parameters<typeof t>[0]));
   const pinsMatch = pin.length >= 6 && pin === confirmPin;
   const canSubmit = pinsMatch && !isSubmitting;
 

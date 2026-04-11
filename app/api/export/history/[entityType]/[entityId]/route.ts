@@ -101,19 +101,19 @@ export async function GET(
         };
       }
     } else if (upperEntityType === "CLIENT") {
-      const client = await prismadb.clients.findFirst({
+      const client = await prismadb.contact.findFirst({
         where: { id: entityId, organizationId: orgId },
         select: {
-          client_status: true,
-          primary_email: true,
-          primary_phone: true,
+          status: true,
+          email: true,
+          primaryPhone: true,
         },
       });
       if (client) {
         currentData = {
-          client_status: client.client_status,
-          primary_email: client.primary_email,
-          primary_phone: client.primary_phone,
+          client_status: client.status,
+          primary_email: client.email,
+          primary_phone: client.primaryPhone,
         };
       }
     }

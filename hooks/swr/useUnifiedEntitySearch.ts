@@ -18,7 +18,7 @@ import { useMemo } from "react";
 // Types
 // ============================================
 
-export type EntityType = "client" | "property" | "document" | "event" | "mandate";
+export type EntityType = "client" | "contact" | "property" | "document" | "event" | "mandate" | "request" | "deal";
 
 export interface EntitySearchResult {
   value: string;
@@ -89,8 +89,8 @@ async function entitySearchFetcher(url: string): Promise<EntitySearchResponse> {
   if (res.status === 429) {
     console.warn("[EntitySearch] Rate limited, returning empty results");
     return {
-      results: { client: [], property: [], document: [], event: [], mandate: [] },
-      timing: { total: 0, perType: { client: 0, property: 0, document: 0, event: 0, mandate: 0 } },
+      results: { client: [], contact: [], property: [], document: [], event: [], mandate: [], request: [], deal: [] },
+      timing: { total: 0, perType: { client: 0, contact: 0, property: 0, document: 0, event: 0, mandate: 0, request: 0, deal: 0 } },
     };
   }
 
@@ -110,7 +110,7 @@ export function useUnifiedEntitySearch(
   options: UseUnifiedEntitySearchOptions = {}
 ) {
   const {
-    types = ["client", "property", "document", "event", "mandate"],
+    types = ["client", "contact", "property", "document", "event", "mandate", "request"],
     limit = 10,
     debounceMs = 300,
     filters = {},
@@ -185,10 +185,12 @@ export function useUnifiedEntitySearch(
     if (!data?.results) {
       return {
         client: [],
+        contact: [],
         property: [],
         document: [],
         event: [],
         mandate: [],
+        request: [],
       };
     }
     return data.results;
@@ -271,6 +273,36 @@ export function useMandateSearch(
   options: Omit<UseUnifiedEntitySearchOptions, "types"> = {}
 ) {
   return useUnifiedEntitySearch(query, { ...options, types: ["mandate"] });
+}
+
+/**
+ * Hook for searching only contacts
+ */
+export function useContactSearch(
+  query: string,
+  options: Omit<UseUnifiedEntitySearchOptions, "types"> = {}
+) {
+  return useUnifiedEntitySearch(query, { ...options, types: ["contact"] });
+}
+
+/**
+ * Hook for searching only requests
+ */
+export function useRequestSearch(
+  query: string,
+  options: Omit<UseUnifiedEntitySearchOptions, "types"> = {}
+) {
+  return useUnifiedEntitySearch(query, { ...options, types: ["request"] });
+}
+
+/**
+ * Convenience hook for searching deals only.
+ */
+export function useDealSearch(
+  query: string,
+  options: Omit<UseUnifiedEntitySearchOptions, "types"> = {}
+) {
+  return useUnifiedEntitySearch(query, { ...options, types: ["deal"] });
 }
 
 // Default export

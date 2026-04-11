@@ -19,7 +19,16 @@ export async function resolveClient(
   friendlyId: string,
   organizationId: string
 ) {
-  return prismadb.clients.findFirst({
+  return prismadb.contact.findFirst({
+    where: { friendlyId, organizationId },
+  });
+}
+
+export async function resolveContact(
+  friendlyId: string,
+  organizationId: string
+) {
+  return prismadb.contact.findFirst({
     where: { friendlyId, organizationId },
   });
 }
@@ -29,6 +38,15 @@ export async function resolveMandate(
   organizationId: string
 ) {
   return prismadb.mandate.findFirst({
+    where: { friendlyId, organizationId },
+  });
+}
+
+export async function resolveRequest(
+  friendlyId: string,
+  organizationId: string
+) {
+  return prismadb.request.findFirst({
     where: { friendlyId, organizationId },
   });
 }

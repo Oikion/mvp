@@ -31,17 +31,6 @@ export {
 } from "./usePropertyComments";
 export type { PropertyComment } from "./usePropertyComments";
 
-// Client Linked Entities
-export { useClientLinked, getClientLinkedKey } from "./useClientLinked";
-
-// Client Comments
-export {
-  useClientComments,
-  useAddClientComment,
-  useDeleteClientComment,
-  getClientCommentsKey,
-} from "./useClientComments";
-export type { ClientComment } from "./useClientComments";
 
 // Feedback Comments (for real-time chat between users and admins)
 export {
@@ -57,7 +46,7 @@ export { useCalendarEvents, getCalendarEventsKey } from "./useCalendarEvents";
 
 // Calendar Event (Single)
 export { useCalendarEvent, getCalendarEventKey } from "./useCalendarEvent";
-export type { CalendarEventDetail } from "./useCalendarEvent";
+export type { CalendarEventDetail, EventContactAttendee, EventAgentAttendee } from "./useCalendarEvent";
 
 // Event Invitations
 export {
@@ -67,9 +56,27 @@ export {
 } from "./useEventInvitations";
 export type { EventInvitee, InvitedEvent } from "./useEventInvitations";
 
-// Selector Hooks
-export { useClients } from "./useClients";
-export type { ClientOption } from "./useClients";
+// v2.0 Contact hooks
+export { useContacts } from "./useContacts";
+export type { ContactOption } from "./useContacts";
+export { useContact } from "./useContact";
+export {
+  useContactComments,
+  useAddContactComment,
+  useDeleteContactComment,
+  getContactCommentsKey,
+} from "./useContactComments";
+export type { ContactComment } from "./useContactComments";
+
+// v2.0 Request hooks
+export { useRequests } from "./useRequests";
+export type { RequestOption } from "./useRequests";
+export { useRequest } from "./useRequest";
+export { useRequestComments } from "./useRequestComments";
+
+// v2.0 Deal hooks (Phase 3)
+export { useDeals, useDeal, getDealsKey, getDealKey } from "./useDeals";
+export type { DealOption } from "./useDeals";
 
 export { useProperties } from "./useProperties";
 export type { PropertyOption } from "./useProperties";
@@ -81,9 +88,13 @@ export type { DocumentOption } from "./useDocuments";
 export {
   useUnifiedEntitySearch,
   useClientSearch,
+  useContactSearch,
   usePropertySearch,
   useDocumentSearch,
   useEventSearch,
+  useMandateSearch,
+  useRequestSearch,
+  useDealSearch,
 } from "./useUnifiedEntitySearch";
 export type {
   EntityType,
@@ -142,6 +153,12 @@ export type {
   BulkShareResponse,
 } from "./useShareMutations";
 
+// Contact Linked Entities
+export { useContactLinked, getContactLinkedKey } from "./useContactLinked";
+
+// Request Linked Entities
+export { useRequestLinked, getRequestLinkedKey } from "./useRequestLinked";
+
 // Mandate Linked Entities
 export { useMandateLinked, getMandateLinkedKey } from "./useMandateLinked";
 
@@ -170,6 +187,14 @@ export {
   useUnlinkDocumentFromProperty,
   useLinkDocumentsToMandate,
   useUnlinkDocumentFromMandate,
+  useLinkRequestsToContact,
+  useUnlinkRequestFromContact,
+  useLinkPropertiesToContact,
+  useUnlinkPropertyFromContact,
+  useLinkContactsToRequest,
+  useUnlinkContactFromRequest,
+  useLinkPropertiesToRequest,
+  useUnlinkPropertyFromRequest,
 } from "./useLinkMutations";
 
 // ============================================================
@@ -179,8 +204,8 @@ export {
 export { usePropertiesPaginated } from "./usePropertiesPaginated";
 export type { PropertyData as PaginatedPropertyData } from "./usePropertiesPaginated";
 
-export { useClientsPaginated } from "./useClientsPaginated";
-export type { ClientData as PaginatedClientData } from "./useClientsPaginated";
+export { useContactsPaginated } from "./useContactsPaginated";
+export type { ContactData as PaginatedContactData } from "./useContactsPaginated";
 
 // ============================================================
 // Prefetch Utility
@@ -243,3 +268,28 @@ export {
   getEntityTagsKey,
 } from "./useTags";
 export type { Tag } from "./useTags";
+
+// ============================================================
+// Activities (Phase 4)
+// ============================================================
+
+export { useActivities } from "./useActivities";
+export type {
+  Activity,
+  ActivityUser,
+  ActivityKind,
+  ActivityDirection,
+  ActivityParentType,
+  UseActivitiesOptions,
+} from "./useActivities";
+
+// ============================================================
+// Document Templates (Phase 4)
+// ============================================================
+
+export { useDocumentTemplates } from "./useDocumentTemplates";
+export type {
+  DocumentTemplate,
+  DocTemplateCategory,
+  UseDocumentTemplatesOptions,
+} from "./useDocumentTemplates";
