@@ -84,6 +84,7 @@ export interface UseActivitiesOptions {
   parentType: ActivityParentType;
   parentId: string | null;
   enabled?: boolean;
+  unified?: boolean;
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -91,15 +92,18 @@ export interface UseActivitiesOptions {
 /**
  * Fetches activities for a given parent entity (contact, request, deal, etc.).
  * Returns an empty array when `parentId` is null or `enabled` is false.
+ * Pass `unified: true` to include EntityChangeLog entries merged into the feed.
  */
 export function useActivities({
   parentType,
   parentId,
   enabled = true,
+  unified = false,
 }: UseActivitiesOptions) {
+  const unifiedParam = unified ? "&unified=true" : "";
   const key =
     enabled && parentId
-      ? `/api/activities?parentType=${encodeURIComponent(parentType)}&parentId=${encodeURIComponent(parentId)}`
+      ? `/api/activities?parentType=${encodeURIComponent(parentType)}&parentId=${encodeURIComponent(parentId)}${unifiedParam}`
       : null;
 
   const { data, error, isLoading, mutate } = useSWR<ActivitiesResponse>(
