@@ -11,7 +11,7 @@ import { encryptPropertyForOrg } from "@/lib/model-encryption";
 import { validateAssignedTo } from "@/lib/validate-assigned-to";
 import { createChangeLogEntry, diffEntity, PROPERTY_WATCHED_FIELDS } from "@/lib/entity-change-log";
 
-const PROPERTY_ENCRYPTED_FIELDS = ["primary_email"] as const;
+const PROPERTY_ENCRYPTED_FIELDS = ["primary_email", "communication_notes"] as const;
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
