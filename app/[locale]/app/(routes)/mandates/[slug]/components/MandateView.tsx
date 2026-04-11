@@ -57,6 +57,7 @@ import { EntityQuickActions } from "@/components/entity-actions/EntityQuickActio
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient"
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty"
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers"
+import { ActivityFeed } from "@/components/activity/ActivityFeed"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -655,6 +656,19 @@ export default function MandateView({
             </CardHeader>
             <CardContent>
               <MandateComments mandateId={mandate.id} />
+            </CardContent>
+          </Card>
+
+          {/* Activity */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Clock className="h-4 w-4" />
+                {t("MandateView.activity")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ActivityFeed parentType="REQUEST" parentId={mandate.id} unified />
             </CardContent>
           </Card>
         </div>
