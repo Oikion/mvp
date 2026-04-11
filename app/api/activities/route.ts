@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { apiUnauthorized, apiSuccess, apiBadRequest, apiInternalError } from "@/lib/api-response";
-import { listActivities } from "@/actions/activities";
+import { listActivities, listUnifiedFeed } from "@/actions/activities";
 import { activityParentTypeSchema } from "@/lib/validations/activities";
 
 export async function GET(req: Request) {
@@ -9,6 +9,7 @@ export async function GET(req: Request) {
     if (!userId || !organizationId) return apiUnauthorized();
 
     const { searchParams } = new URL(req.url);
+    const unified = searchParams.get("unified") === "true";
     const parentTypeRaw = searchParams.get("parentType");
     const parentId = searchParams.get("parentId");
 
@@ -21,7 +22,9 @@ export async function GET(req: Request) {
       return apiBadRequest("Invalid parentType");
     }
 
-    const result = await listActivities(parentTypeParsed.data, parentId);
+    const result = unified
+      ? await listUnifiedFeed(parentTypeParsed.data as Parameters<typeof listUnifiedFeed>[0], parentId)
+      : await listActivities(parentTypeParsed.data, parentId);
     if (!result.success) {
       return apiInternalError("Internal server error");
     }
