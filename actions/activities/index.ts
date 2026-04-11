@@ -221,6 +221,84 @@ export async function listActivities(
 }
 
 /**
+ * List EntityChangeLog entries for a given entity.
+ * Verifies the parent entity belongs to the org before querying (IDOR protection).
+ */
+export async function listEntityChangeLogs(
+  entityType: "CONTACT" | "PROPERTY" | "REQUEST" | "DEAL",
+  entityId: string
+): Promise<ActionResponse<unknown>> {
+  const guard = await requireAction("activity:read");
+  if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
+
+  const modelName = PARENT_TYPE_TO_MODEL[entityType];
+  if (!modelName) {
+    return actionValidationError("Validation failed", { entityType: ["Invalid entity type"] });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parentExists = await (prismadb as any)[modelName].findFirst({
+    where: { id: entityId, organizationId },
+    select: { id: true },
+  });
+  if (!parentExists) return actionNotFound("Entity");
+
+  try {
+    const logs = await prismadb.entityChangeLog.findMany({
+      where: { organizationId, entityType, entityId },
+      include: {
+        Actor: {
+          select: { id: true, firstName: true, lastName: true, avatar: true },
+        },
+      },
+      orderBy: { occurredAt: "desc" },
+    });
+
+    return actionSuccess(serializePrisma(logs));
+  } catch (error) {
+    console.error("[ENTITY_CHANGE_LOG_LIST]", error);
+    return actionError("Failed to list change logs", error as Error);
+  }
+}
+
+/**
+ * Unified feed: merges activities and entity change logs for a parent entity,
+ * sorted by occurredAt descending. Each item is tagged with _source.
+ */
+export async function listUnifiedFeed(
+  parentType: "CONTACT" | "PROPERTY" | "REQUEST" | "DEAL",
+  parentId: string
+): Promise<ActionResponse<unknown>> {
+  const [activitiesResult, changeLogsResult] = await Promise.all([
+    listActivities(parentType, parentId),
+    listEntityChangeLogs(parentType, parentId),
+  ]);
+
+  if (!activitiesResult.success) return activitiesResult;
+  if (!changeLogsResult.success) return changeLogsResult;
+
+  const activities = (activitiesResult.data as unknown[]).map((item) => ({
+    ...(item as Record<string, unknown>),
+    _source: "activity" as const,
+  }));
+
+  const changeLogs = (changeLogsResult.data as unknown[]).map((item) => ({
+    ...(item as Record<string, unknown>),
+    _source: "changelog" as const,
+  }));
+
+  const merged = [...activities, ...changeLogs].sort((a, b) => {
+    const aTime = new Date((a as Record<string, unknown>).occurredAt as string).getTime();
+    const bTime = new Date((b as Record<string, unknown>).occurredAt as string).getTime();
+    return bTime - aTime;
+  });
+
+  return actionSuccess(merged);
+}
+
+/**
  * Internal helper for auto-capturing system events (status changes, visibility
  * updates, document links, etc.). Called from other server actions — never
  * directly from client code. No permission guard; caller is trusted server context.
