@@ -36,7 +36,6 @@
     "assignedTo": "Agent",
     "parentType": "Related To",
     "parentId": "Related Record",
-    "subject": "Subject",
     "relatedContact": "Linked Contact",
     "relatedProperty": "Linked Property",
     "relatedDocument": "Linked Document",
@@ -68,8 +67,10 @@
     "created": "{actor} created this record",
     "updated": "{actor} updated this record",
     "fieldChanged": "{field}changed from {from} to {to}",
+    "fieldChangedNoLabel": "changed from {from} to {to}",
     "linked": "Linked to {targetType} {label}",
-    "unlinked": "Unlinked from {targetType} {label}"
+    "unlinked": "Unlinked from {targetType} {label}",
+    "systemActor": "System"
   },
   "watchedFields": {}
 }

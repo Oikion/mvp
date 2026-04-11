@@ -36,7 +36,6 @@
     "assignedTo": "Υπεύθυνος",
     "parentType": "Σχετίζεται με",
     "parentId": "Σχετική Εγγραφή",
-    "subject": "Θέμα",
     "relatedContact": "Σχετική Επαφή",
     "relatedProperty": "Σχετικό Ακίνητο",
     "relatedDocument": "Σχετικό Έγγραφο",
@@ -68,8 +67,10 @@
     "created": "Ο/η {actor} δημιούργησε αυτή την εγγραφή",
     "updated": "Ο/η {actor} ενημέρωσε αυτή την εγγραφή",
     "fieldChanged": "{field}άλλαξε από {from} σε {to}",
+    "fieldChangedNoLabel": "άλλαξε από {from} σε {to}",
     "linked": "Συνδέθηκε με {targetType} {label}",
-    "unlinked": "Αποσυνδέθηκε από {targetType} {label}"
+    "unlinked": "Αποσυνδέθηκε από {targetType} {label}",
+    "systemActor": "Σύστημα"
   },
   "watchedFields": {}
 }

@@ -66,15 +66,15 @@ const CHANGELOG_ICONS = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function actorName(actor?: { firstName?: string | null; lastName?: string | null } | null): string {
-  return [actor?.firstName, actor?.lastName].filter(Boolean).join(" ") || "System";
+function actorName(actor?: { firstName?: string | null; lastName?: string | null } | null, t?: ReturnType<typeof useTranslations>): string {
+  return [actor?.firstName, actor?.lastName].filter(Boolean).join(" ") || (t ? t("changelog.systemActor") : "System");
 }
 
 // ─── Changelog row ────────────────────────────────────────────────────────────
 
 function ChangelogRow({ entry, t }: { entry: ChangelogEntry; t: ReturnType<typeof useTranslations> }) {
   const Icon = CHANGELOG_ICONS[entry.eventType];
-  const actor = actorName(entry.Actor);
+  const actor = actorName(entry.Actor, t);
 
   let sentence: React.ReactNode;
 
@@ -86,9 +86,9 @@ function ChangelogRow({ entry, t }: { entry: ChangelogEntry; t: ReturnType<typeo
         {entry.changedFields.map((cf, i) => (
           <span key={cf.field}>
             {i > 0 && " · "}
-            <span className="font-medium">{cf.field}</span>
+            <span className="font-medium">{t(`watchedFields.${cf.field}` as Parameters<typeof t>[0])}</span>
             {" "}
-            {t("changelog.fieldChanged", { field: "", from: String(cf.from ?? "—"), to: String(cf.to ?? "—") }).replace("{field} ", "")}
+            {t("changelog.fieldChangedNoLabel", { from: String(cf.from ?? "—"), to: String(cf.to ?? "—") })}
           </span>
         ))}
       </span>
