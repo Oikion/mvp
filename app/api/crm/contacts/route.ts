@@ -7,6 +7,7 @@ import { canPerformAction } from "@/lib/permissions";
 import { createContactSchema, contactQuerySchema } from "@/lib/validations/contacts";
 import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { validateAssignedTo } from "@/lib/validate-assigned-to";
+import { notifyContactCreated } from "@/lib/notifications";
 
 export async function GET(req: Request) {
   try {
@@ -182,6 +183,16 @@ export async function POST(req: Request) {
         referredById: data.referredById ?? null,
       },
     });
+
+    notifyContactCreated({
+      entityType: "CONTACT",
+      entityId: contact.id,
+      entityName: contact.displayName,
+      creatorId: user.id,
+      creatorName: user.name || user.email || "Someone",
+      organizationId,
+      assignedToId: validatedAgent ?? undefined,
+    }).catch((err) => console.error("[CONTACTS_POST] notifyContactCreated failed", err));
 
     return NextResponse.json({ data: contact }, { status: 201 });
   } catch (error) {

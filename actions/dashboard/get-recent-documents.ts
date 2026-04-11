@@ -1,6 +1,6 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
-import { decryptDocumentForOrg, decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptDocumentForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 
 export interface RecentDocument {
   id: string;
@@ -22,7 +22,7 @@ export interface RecentDocument {
 
 export const getRecentDocuments = async (limit: number = 5): Promise<RecentDocument[]> => {
   const organizationId = await getCurrentOrgIdSafe();
-  
+
   // Return empty array if no organization context
   if (!organizationId) {
     return [];
@@ -48,10 +48,10 @@ export const getRecentDocuments = async (limit: number = 5): Promise<RecentDocum
           avatar: true,
         },
       },
-      Clients: {
+      Contacts: {
         select: {
           id: true,
-          client_name: true,
+          displayName: true,
         },
       },
       Properties: {
@@ -71,11 +71,11 @@ export const getRecentDocuments = async (limit: number = 5): Promise<RecentDocum
   return Promise.all(
     documents.map(async (doc) => {
       const decDoc = await decryptDocumentForOrg(doc, organizationId);
-      // Decrypt linked client names (client_name is encrypted)
+      // Decrypt linked contact names (displayName is encrypted)
       const linkedClients = await Promise.all(
-        doc.Clients.map(async (c) => {
-          const dc = await decryptClientForOrg(c, organizationId);
-          return { id: dc.id, name: dc.client_name };
+        doc.Contacts.map(async (c) => {
+          const dc = await decryptContactForOrg(c, organizationId);
+          return { id: dc.id, name: dc.displayName };
         })
       );
       return {

@@ -1,5 +1,5 @@
 import { prismadb } from "@/lib/prisma";
-import { decryptDocumentForOrg, decryptClientForOrg, decryptCalendarEventForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
+import { decryptDocumentForOrg, decryptContactForOrg, decryptCalendarEventForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
 
 export async function getDocument(documentId: string, organizationId: string) {
   // Support lookup by friendlyId (e.g. "doc-000011") or raw id
@@ -10,11 +10,11 @@ export async function getDocument(documentId: string, organizationId: string) {
       organizationId,
     },
     include: {
-      Clients: {
+      Contacts: {
         select: {
           id: true,
-          client_name: true,
-          primary_email: true,
+          displayName: true,
+          email: true,
         },
       },
       Properties: {
@@ -95,7 +95,7 @@ export async function getDocument(documentId: string, organizationId: string) {
   // Map to expected field names for backward compatibility
   return {
     ...decryptedDoc,
-    accounts: await Promise.all(document.Clients.map((c) => decryptClientForOrg(c, organizationId))),
+    accounts: await Promise.all(document.Contacts.map((c) => decryptContactForOrg(c, organizationId))),
     linkedProperties: document.Properties,
     linkedCalendarEvents: await Promise.all(document.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, organizationId))),
     linkedTasks: document.crm_Accounts_Tasks_DocumentsToCrmAccountsTasks,
@@ -115,10 +115,10 @@ export async function getDocumentByShareLink(shareableLink: string) {
       shareableLink,
     },
     include: {
-      Clients: {
+      Contacts: {
         select: {
           id: true,
-          client_name: true,
+          displayName: true,
         },
       },
       Properties: {
@@ -151,7 +151,7 @@ export async function getDocumentByShareLink(shareableLink: string) {
   // Map to expected field names for backward compatibility
   return {
     ...decryptedDoc,
-    accounts: await Promise.all(document.Clients.map((c) => decryptClientForOrg(c, orgId))),
+    accounts: await Promise.all(document.Contacts.map((c) => decryptContactForOrg(c, orgId))),
     linkedProperties: document.Properties,
     linkedCalendarEvents: await Promise.all(document.CalendarEvent.map((e) => decryptCalendarEventForOrg(e, orgId))),
     linkedTasks: document.crm_Accounts_Tasks_DocumentsToCrmAccountsTasks,

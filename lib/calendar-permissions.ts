@@ -121,9 +121,6 @@ export async function canViewTask(taskId: string): Promise<boolean> {
 
     const task = await prismadb.crm_Accounts_Tasks.findUnique({
       where: { id: taskId },
-      include: {
-        Clients: true,
-      },
     });
 
     if (!task) {
@@ -132,8 +129,8 @@ export async function canViewTask(taskId: string): Promise<boolean> {
 
     // Agency owners can view all tasks in their organization
     if (currentUser.is_account_admin || currentUser.is_admin) {
-      if (task.Clients?.organizationId) {
-        return task.Clients.organizationId === currentOrgId;
+      if (task.organizationId) {
+        return task.organizationId === currentOrgId;
       }
       return true; // Allow if no org restriction
     }
@@ -144,7 +141,7 @@ export async function canViewTask(taskId: string): Promise<boolean> {
     }
 
     // Regular users can view tasks in their organization
-    if (task.Clients?.organizationId === currentOrgId) {
+    if (task.organizationId === currentOrgId) {
       return true;
     }
 
@@ -166,9 +163,6 @@ export async function canEditTask(taskId: string): Promise<boolean> {
 
     const task = await prismadb.crm_Accounts_Tasks.findUnique({
       where: { id: taskId },
-      include: {
-        Clients: true,
-      },
     });
 
     if (!task) {
@@ -177,8 +171,8 @@ export async function canEditTask(taskId: string): Promise<boolean> {
 
     // Agency owners can edit all tasks in their organization
     if (currentUser.is_account_admin || currentUser.is_admin) {
-      if (task.Clients?.organizationId) {
-        return task.Clients.organizationId === currentOrgId;
+      if (task.organizationId) {
+        return task.organizationId === currentOrgId;
       }
       return true;
     }

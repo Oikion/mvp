@@ -98,11 +98,7 @@ export async function GET(req: Request) {
       where.title = { contains: search.trim(), mode: "insensitive" };
     }
 
-    if (linked === "true") {
-      where.Mandate_Clients = { some: {} };
-    } else if (linked === "false") {
-      where.Mandate_Clients = { none: {} };
-    }
+    // Mandate_Clients relation removed — linked filter is no longer supported
 
     // Fetch one extra to check if there are more items
     const mandates = await prismadb.mandate.findMany({
@@ -114,13 +110,6 @@ export async function GET(req: Request) {
       include: {
         assigned_to_user: {
           select: { id: true, name: true, email: true, avatar: true },
-        },
-        Mandate_Clients: {
-          include: {
-            Clients: {
-              select: { id: true, friendlyId: true, client_name: true, client_status: true, primary_email: true, primary_phone: true },
-            },
-          },
         },
         Mandate_Properties: {
           include: {

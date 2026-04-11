@@ -43,9 +43,6 @@ export const GET = withExternalApi(
         Users: {
           select: { id: true, name: true, email: true },
         },
-        Clients: {
-          select: { id: true, client_name: true },
-        },
         crm_Accounts_Tasks_Comments: {
           select: {
             id: true,
@@ -74,7 +71,7 @@ export const GET = withExternalApi(
         dueDate: task.dueDateAt?.toISOString(),
         tags: task.tags,
         assignedTo: task.Users,
-        client: task.Clients,
+        client: task.account ?? null,
         comments: task.crm_Accounts_Tasks_Comments.map((c) => ({
           id: c.id,
           comment: c.comment,

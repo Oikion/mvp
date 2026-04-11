@@ -1,30 +1,27 @@
 import { prismadb } from "@/lib/prisma";
 
 export const getContactsByAccountId = async (accountId: string) => {
-  const data = await prismadb.client_Contacts.findMany({
+  // In v2.0, contacts are the primary entity. This function returns
+  // the contact matching accountId for backward compatibility.
+  const data = await prismadb.contact.findMany({
     where: {
-      clientsIDs: accountId,
+      id: accountId,
     },
     include: {
-      Users_Client_Contacts_assigned_toToUsers: {
+      assignedAgent: {
         select: {
-          name: true,
+          firstName: true,
+          lastName: true,
         },
       },
-      Users_Client_Contacts_created_byToUsers: {
-        select: {
-          name: true,
-        },
-      },
-      Clients: true,
     },
   });
-  
+
   // Map to expected field names for backward compatibility
   return data.map((contact) => ({
     ...contact,
-    assigned_to_user: contact.Users_Client_Contacts_assigned_toToUsers,
-    crate_by_user: contact.Users_Client_Contacts_created_byToUsers,
-    assigned_client: contact.Clients,
+    assigned_to_user: contact.assignedAgent,
+    crate_by_user: null,
+    assigned_client: null,
   }));
 };

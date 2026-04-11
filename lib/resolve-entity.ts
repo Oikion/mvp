@@ -19,7 +19,7 @@ export async function resolveClient(
   friendlyId: string,
   organizationId: string
 ) {
-  return prismadb.clients.findFirst({
+  return prismadb.contact.findFirst({
     where: { friendlyId, organizationId },
   });
 }

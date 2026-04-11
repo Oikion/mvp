@@ -1,8 +1,8 @@
 /**
  * Unified Entity Search Utilities
- * 
+ *
  * Provides consistent search functionality across all entity types:
- * - Clients
+ * - Contacts
  * - Properties
  * - Documents
  * - Events
@@ -11,7 +11,6 @@
 import { prismadb } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import {
-  decryptClientForOrg,
   decryptContactForOrg,
   decryptDocumentForOrg,
   decryptCalendarEventForOrg,
@@ -23,7 +22,7 @@ import {
 // Types
 // ============================================
 
-export type EntityType = "client" | "contact" | "property" | "document" | "event" | "mandate" | "request" | "deal";
+export type EntityType = "contact" | "property" | "document" | "event" | "mandate" | "request" | "deal";
 
 export interface EntitySearchResult {
   value: string;
@@ -43,7 +42,6 @@ export interface EntitySearchOptions {
   organizationId: string;
   limit?: number;
   filters?: {
-    clientStatus?: string;
     contactStatus?: string;
     propertyStatus?: string;
     documentType?: string;
@@ -65,69 +63,6 @@ export interface EntitySearchResponse {
 // ============================================
 // Search Functions
 // ============================================
-
-/**
- * Search clients by multiple fields
- */
-async function searchClients(
-  organizationId: string,
-  query: string,
-  limit: number,
-  statusFilter?: string
-): Promise<{ results: EntitySearchResult[]; timing: number }> {
-  const start = Date.now();
-
-  const where: Prisma.ClientsWhereInput = {
-    organizationId,
-  };
-
-  if (query?.trim()) {
-    const searchTerm = query.trim();
-    where.OR = [
-      { client_name: { contains: searchTerm, mode: "insensitive" } },
-      { primary_email: { contains: searchTerm, mode: "insensitive" } },
-      { primary_phone: { contains: searchTerm, mode: "insensitive" } },
-      { secondary_phone: { contains: searchTerm, mode: "insensitive" } },
-      { full_name: { contains: searchTerm, mode: "insensitive" } },
-      { company_name: { contains: searchTerm, mode: "insensitive" } },
-      { id: { contains: searchTerm, mode: "insensitive" } },
-    ];
-  }
-
-  if (statusFilter) {
-    where.client_status = statusFilter as Prisma.ClientsWhereInput["client_status"];
-  }
-
-  const clients = await prismadb.clients.findMany({
-    where,
-    select: {
-      id: true,
-      client_name: true,
-      primary_email: true,
-      primary_phone: true,
-      client_status: true,
-    },
-    orderBy: [{ updatedAt: "desc" }, { client_name: "asc" }],
-    take: limit,
-  });
-
-  // Decrypt encrypted client fields
-  const decryptedClients = await Promise.all(
-    clients.map((c) => decryptClientForOrg(c, organizationId))
-  );
-
-  const results: EntitySearchResult[] = decryptedClients.map((client) => ({
-    value: client.id,
-    label: client.client_name,
-    type: "client" as const,
-    metadata: {
-      subtitle: client.primary_email || client.primary_phone || undefined,
-      status: client.client_status || undefined,
-    },
-  }));
-
-  return { results, timing: Date.now() - start };
-}
 
 /**
  * Search contacts (v2.0) by display name, email, phone
@@ -692,14 +627,6 @@ export async function searchEntities(
   }>[] = [];
 
   // Run searches in parallel for each requested type
-  if (types.includes("client")) {
-    searchPromises.push(
-      searchClients(organizationId, query, limit, filters.clientStatus).then(
-        (res) => ({ type: "client" as const, ...res })
-      )
-    );
-  }
-
   if (types.includes("contact")) {
     searchPromises.push(
       searchContacts(organizationId, query, limit, filters.contactStatus).then(
@@ -760,7 +687,6 @@ export async function searchEntities(
 
   // Group results by type
   const results: Record<EntityType, EntitySearchResult[]> = {
-    client: [],
     contact: [],
     property: [],
     document: [],
@@ -771,7 +697,6 @@ export async function searchEntities(
   };
 
   const timingPerType: Record<EntityType, number> = {
-    client: 0,
     contact: 0,
     property: 0,
     document: 0,

@@ -32,11 +32,10 @@ export async function resetPersonalWorkspace() {
       // Delete in order of dependencies
       await tx.crm_Accounts_Tasks_Comments.deleteMany({});
       await tx.crm_Accounts_Tasks.deleteMany({});
-      await tx.clientComment.deleteMany({});
+      await tx.contactComment.deleteMany({});
       await tx.propertyComment.deleteMany({});
-      await tx.client_Properties.deleteMany({});
-      await tx.client_Contacts.deleteMany({});
-      await tx.clients.deleteMany({});
+      await tx.contactProperty.deleteMany({});
+      await tx.contact.deleteMany({});
       await tx.properties.deleteMany({});
       await tx.documents.deleteMany({});
       await tx.calendarEvent.deleteMany({});

@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     // Fetch client if provided
     let client = null;
     if (clientId) {
-      client = await prismadb.clients.findFirst({
+      client = await prismadb.contact.findFirst({
         where: {
           id: clientId,
           organizationId,
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       values,
       propertyName: property?.property_name,
-      clientName: client?.client_name,
+      clientName: client?.displayName,
     });
   } catch (error: unknown) {
     console.error("[TEMPLATE_AUTOFILL]", error);

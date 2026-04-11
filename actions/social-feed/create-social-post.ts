@@ -3,7 +3,7 @@
 import { getCurrentOrgIdSafe, getCurrentUserSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { prismaForOrg } from "@/lib/tenant";
-import { decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg } from "@/lib/model-encryption";
 import { revalidatePath } from "next/cache";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { randomBytes } from "crypto";
@@ -108,20 +108,20 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
         };
       }
     } else if (type === "client") {
-      const client = await prisma.clients.findUnique({
+      const client = await prisma.contact.findUnique({
         where: { id: linkedEntityId },
         select: {
-          client_name: true,
-          person_type: true,
+          displayName: true,
+          status: true,
         },
       });
 
       if (client) {
-        const decrypted = await decryptClientForOrg(client, orgId);
-        linkedEntityTitle = decrypted.client_name || "Unnamed Client";
-        linkedEntitySubtitle = decrypted.person_type || undefined;
+        const decrypted = await decryptContactForOrg(client, orgId);
+        linkedEntityTitle = decrypted.displayName || "Unnamed Contact";
+        linkedEntitySubtitle = decrypted.status || undefined;
         linkedEntityMetadata = {
-          personType: decrypted.person_type,
+          status: decrypted.status,
         };
       }
     } else if (type === "mandate") {

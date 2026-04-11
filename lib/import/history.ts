@@ -385,17 +385,8 @@ export async function deleteImportBatch(
   await prismadb.$transaction(
     async (tx) => {
       // 4a. Delete junction links first (avoid FK constraint failures)
-      //     Client_Properties: where clientId OR propertyId is in delete set
-      if (clientIds.length > 0 || propertyIds.length > 0) {
-        await tx.client_Properties.deleteMany({
-          where: {
-            OR: [
-              ...(clientIds.length > 0 ? [{ clientId: { in: clientIds } }] : []),
-              ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
-            ],
-          },
-        });
-      }
+      //     ContactProperty: where contactId OR propertyId is in delete set
+      // (client_Properties and mandate_Clients tables removed — no M2M junction needed)
 
       //     Mandate_Properties: where mandateId OR propertyId is in delete set
       if (mandateIds.length > 0 || propertyIds.length > 0) {
@@ -404,18 +395,6 @@ export async function deleteImportBatch(
             OR: [
               ...(mandateIds.length > 0 ? [{ mandateId: { in: mandateIds } }] : []),
               ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
-            ],
-          },
-        });
-      }
-
-      //     Mandate_Clients: where mandateId OR clientId is in delete set
-      if (mandateIds.length > 0 || clientIds.length > 0) {
-        await tx.mandate_Clients.deleteMany({
-          where: {
-            OR: [
-              ...(mandateIds.length > 0 ? [{ mandateId: { in: mandateIds } }] : []),
-              ...(clientIds.length > 0 ? [{ clientId: { in: clientIds } }] : []),
             ],
           },
         });
@@ -430,7 +409,7 @@ export async function deleteImportBatch(
       }
 
       if (clientIds.length > 0) {
-        const { count } = await tx.clients.deleteMany({
+        const { count } = await tx.contact.deleteMany({
           where: { id: { in: clientIds }, organizationId: orgId },
         });
         deletedCounts.clients = count;

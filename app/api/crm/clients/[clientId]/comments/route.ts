@@ -2,15 +2,16 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import {
-  encryptClientCommentForOrg,
-  decryptClientCommentForOrg,
+  encryptContactCommentForOrg,
+  decryptContactCommentForOrg,
 } from "@/lib/model-encryption";
 import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
 import { EncryptionMode } from "@prisma/client";
 
 /**
  * GET /api/crm/clients/[clientId]/comments
- * Fetch comments for a client (accessible to org members and sharees)
+ * Legacy route — proxies to the new contact comment model.
+ * `clientId` param is treated as a Contact ID.
  */
 export async function GET(
   req: Request,
@@ -29,7 +30,7 @@ export async function GET(
     }
 
     // Check access: either org member or shared with user
-    const client = await prismadb.clients.findFirst({
+    const contact = await prismadb.contact.findFirst({
       where: {
         id: clientId,
         organizationId,
@@ -37,7 +38,7 @@ export async function GET(
       select: { id: true },
     });
 
-    let hasAccess = !!client;
+    let hasAccess = !!contact;
 
     if (!hasAccess) {
       // Check if shared with user
@@ -60,10 +61,10 @@ export async function GET(
     }
 
     // Fetch comments
-    const comments = await prismadb.clientComment.findMany({
-      where: { clientId },
+    const comments = await prismadb.contactComment.findMany({
+      where: { contactId: clientId },
       include: {
-        Users: {
+        user: {
           select: {
             id: true,
             name: true,
@@ -83,7 +84,7 @@ export async function GET(
       return NextResponse.json({
         comments: comments.map((c) => ({
           ...c,
-          user: c.Users,
+          Users: c.user,
           isEncrypted: c.entitySessionId !== null,
         })),
         encryptionMode: "E2EE",
@@ -92,11 +93,11 @@ export async function GET(
 
     // Standard: server-side decryption
     const decryptedComments = await Promise.all(
-      comments.map((c) => decryptClientCommentForOrg(c, organizationId))
+      comments.map((c) => decryptContactCommentForOrg(c, organizationId))
     );
 
     return NextResponse.json({
-      comments: decryptedComments.map((c) => ({ ...c, user: (c as any).Users, isEncrypted: (c as any).entitySessionId !== null })),
+      comments: decryptedComments.map((c) => ({ ...c, Users: (c as any).user, isEncrypted: (c as any).entitySessionId !== null })),
       encryptionMode: "STANDARD",
     });
   } catch (error) {
@@ -110,9 +111,7 @@ export async function GET(
 
 /**
  * POST /api/crm/clients/[clientId]/comments
- * Add a comment to a client
- * - Org members can always comment
- * - Sharees can comment only if they have VIEW_COMMENT permission
+ * Legacy route — adds a comment to a contact (clientId = contactId).
  */
 export async function POST(
   req: Request,
@@ -140,16 +139,16 @@ export async function POST(
     }
 
     // Check access and permissions
-    const client = await prismadb.clients.findFirst({
+    const contact = await prismadb.contact.findFirst({
       where: {
         id: clientId,
         organizationId,
       },
-      select: { id: true, client_name: true },
+      select: { id: true, displayName: true },
     });
 
-    let canComment = !!client; // Org members can always comment
-    let clientName = client?.client_name;
+    let canComment = !!contact;
+    let contactName = contact?.displayName;
 
     if (!canComment) {
       // Check if shared with VIEW_COMMENT permission
@@ -158,19 +157,18 @@ export async function POST(
           entityType: "CLIENT",
           entityId: clientId,
           sharedWithId: user.id,
-          permissions: "VIEW_COMMENT", // Only allow if VIEW_COMMENT
+          permissions: "VIEW_COMMENT",
         },
         select: { id: true, sharedById: true },
       });
 
       if (share) {
         canComment = true;
-        // Fetch client name for notification
-        const sharedClient = await prismadb.clients.findUnique({
+        const sharedContact = await prismadb.contact.findUnique({
           where: { id: clientId },
-          select: { client_name: true },
+          select: { displayName: true },
         });
-        clientName = sharedClient?.client_name;
+        contactName = sharedContact?.displayName;
       }
     }
 
@@ -190,9 +188,6 @@ export async function POST(
     let messageIndex: number | null = null;
 
     if (isE2EE) {
-      // E2EE: client sends pre-encrypted content (iv:ciphertext) + session metadata.
-      // Skip server-side length validation — ciphertext is larger than plaintext.
-      // Plaintext length is validated client-side before encryption.
       const { entitySessionId: sid, messageIndex: idx } = body;
       if (!sid || idx === undefined) {
         return NextResponse.json(
@@ -201,7 +196,6 @@ export async function POST(
         );
       }
 
-      // Validate entitySessionId belongs to this entity
       const sessionOwnership = await prismadb.entitySession.findFirst({
         where: {
           id: sid,
@@ -219,7 +213,6 @@ export async function POST(
         );
       }
 
-      // Validate messageIndex monotonicity
       if (!Number.isInteger(idx) || idx < 0) {
         return NextResponse.json(
           { error: "messageIndex must be a non-negative integer" },
@@ -245,7 +238,7 @@ export async function POST(
         );
       }
 
-      commentContent = content.trim(); // Already ciphertext (iv:ciphertext format)
+      commentContent = content.trim();
       if (!commentContent.includes(":")) {
         return NextResponse.json(
           { error: "Invalid encrypted content format" },
@@ -255,14 +248,13 @@ export async function POST(
       entitySessionId = sid;
       messageIndex = idx;
     } else {
-      // Standard: validate length then server-side Layer 1 encryption
       if (content.length > 2000) {
         return NextResponse.json(
           { error: "Comment is too long (max 2000 characters)" },
           { status: 400 }
         );
       }
-      const { content: encrypted } = await encryptClientCommentForOrg(
+      const { content: encrypted } = await encryptContactCommentForOrg(
         { content: content.trim() },
         organizationId
       );
@@ -270,18 +262,17 @@ export async function POST(
     }
 
     // Create comment
-    const comment = await prismadb.clientComment.create({
+    const comment = await prismadb.contactComment.create({
       data: {
         id: crypto.randomUUID(),
-        clientId,
+        contactId: clientId,
         userId: user.id,
         content: commentContent,
         entitySessionId,
         messageIndex,
-        updatedAt: new Date(),
       },
       include: {
-        Users: {
+        user: {
           select: {
             id: true,
             name: true,
@@ -295,10 +286,10 @@ export async function POST(
     // For Standard orgs, decrypt before returning to client
     const responseComment = isE2EE
       ? comment
-      : await decryptClientCommentForOrg(comment, organizationId);
+      : await decryptContactCommentForOrg(comment, organizationId);
 
     return NextResponse.json(
-      { comment: { ...responseComment, user: comment.Users } },
+      { comment: { ...responseComment, Users: comment.user } },
       { status: 201 }
     );
   } catch (error) {
@@ -332,11 +323,11 @@ export async function DELETE(
     }
 
     // Verify comment exists and belongs to user
-    const comment = await prismadb.clientComment.findFirst({
+    const comment = await prismadb.contactComment.findFirst({
       where: {
         id: commentId,
-        clientId,
-        userId: user.id, // Only author can delete
+        contactId: clientId,
+        userId: user.id,
       },
     });
 
@@ -347,7 +338,7 @@ export async function DELETE(
       );
     }
 
-    await prismadb.clientComment.delete({
+    await prismadb.contactComment.delete({
       where: { id: commentId },
     });
 
@@ -360,17 +351,3 @@ export async function DELETE(
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -13,7 +13,7 @@ import type { ActivityParentType } from "@prisma/client";
  * Create a new activity log entry attached to a parent entity.
  * organizationId and createdByUserId are always injected server-side.
  */
-export async function createActivity(input: unknown): Promise<ActionResponse> {
+export async function createActivity(input: unknown): Promise<ActionResponse<unknown>> {
   const guard = await requireAction("activity:create");
   if (guard) return guard;
 
@@ -74,7 +74,7 @@ export async function createActivity(input: unknown): Promise<ActionResponse> {
  * Update an existing activity.
  * Only the creator (or higher-privilege roles) may edit.
  */
-export async function updateActivity(id: string, input: unknown): Promise<ActionResponse> {
+export async function updateActivity(id: string, input: unknown): Promise<ActionResponse<unknown>> {
   const organizationId = await getCurrentOrgId();
 
   const existing = await prismadb.activity.findFirst({
@@ -163,7 +163,7 @@ const PARENT_TYPE_TO_MODEL: Record<string, string> = {
 export async function listActivities(
   parentType: string,
   parentId: string
-): Promise<ActionResponse> {
+): Promise<ActionResponse<unknown>> {
   const guard = await requireAction("activity:read");
   if (guard) return guard;
 

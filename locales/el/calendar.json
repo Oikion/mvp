@@ -252,7 +252,16 @@
       "OTHER": "Άλλο"
     },
     "reminders": "Υπενθυμίσεις",
-    "beforeEvent": "πριν το συμβάν"
+    "beforeEvent": "πριν το συμβάν",
+    "reminderDays": "{count, plural, one {# ημέρα} other {# ημέρες}} πριν το συμβάν",
+    "reminderHours": "{count, plural, one {# ώρα} other {# ώρες}} πριν το συμβάν",
+    "reminderMinutes": "{count, plural, one {# λεπτό} other {# λεπτά}} πριν το συμβάν",
+    "reminderStatus": {
+      "PENDING": "Εκκρεμεί",
+      "SENT": "Εστάλη",
+      "FAILED": "Απέτυχε",
+      "CANCELLED": "Ακυρώθηκε"
+    }
   },
   "eventPage": {
     "untitledEvent": "Ανώνυμο Συμβάν",

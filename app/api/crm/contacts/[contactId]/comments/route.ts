@@ -117,3 +117,45 @@ export async function POST(
     return NextResponse.json({ error: "Failed to create comment" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ contactId: string }> }
+) {
+  try {
+    const deleteCheck = await canPerformAction("contact:update");
+    if (!deleteCheck.allowed) {
+      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+    }
+
+    const organizationId = await getCurrentOrgId();
+    const { contactId } = await params;
+    const { searchParams } = new URL(req.url);
+    const commentId = searchParams.get("commentId");
+
+    if (!commentId) {
+      return NextResponse.json({ error: "commentId is required" }, { status: 400 });
+    }
+
+    // Verify contact belongs to org and comment belongs to contact
+    const comment = await prismadb.contactComment.findFirst({
+      where: {
+        id: commentId,
+        contactId,
+        contact: { organizationId },
+      },
+      select: { id: true },
+    });
+
+    if (!comment) {
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+    }
+
+    await prismadb.contactComment.delete({ where: { id: commentId } });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[CONTACT_COMMENTS_DELETE]", error);
+    return NextResponse.json({ error: "Failed to delete comment" }, { status: 500 });
+  }
+}

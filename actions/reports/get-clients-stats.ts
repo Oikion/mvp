@@ -5,7 +5,7 @@ export const getClientsCount = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return 0;
   
-  const count = await prismadb.clients.count({
+  const count = await prismadb.contact.count({
     where: { organizationId },
   });
   return count;
@@ -15,15 +15,15 @@ export const getClientsByStatus = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return [];
   
-  const clients = await prismadb.clients.findMany({
+  const clients = await prismadb.contact.findMany({
     where: { organizationId },
     select: {
-      client_status: true,
+      status: true,
     },
   });
 
   const statusCounts = clients.reduce((acc: any, client: any) => {
-    const status = client.client_status || "LEAD";
+    const status = client.status || "LEAD";
     acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {});
@@ -50,7 +50,7 @@ export const getClientsByMonth = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return [];
   
-  const clients = await prismadb.clients.findMany({
+  const clients = await prismadb.contact.findMany({
     where: { organizationId },
     select: {
       createdAt: true,
@@ -87,7 +87,7 @@ export const getClientsByMonthAndYear = async (year: number) => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return [];
   
-  const clients = await prismadb.clients.findMany({
+  const clients = await prismadb.contact.findMany({
     where: { organizationId },
     select: {
       createdAt: true,

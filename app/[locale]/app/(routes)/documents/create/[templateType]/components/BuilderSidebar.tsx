@@ -40,9 +40,9 @@ type PropertyOption = {
 
 type ClientOption = {
   id: string;
-  client_name: string;
-  primary_email: string | null;
-  primary_phone: string | null;
+  displayName: string;
+  email: string | null;
+  primaryPhone: string | null;
 };
 
 interface BuilderSidebarProps {
@@ -174,10 +174,10 @@ export function BuilderSidebar({
                     {clients.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         <div className="flex flex-col">
-                          <span className="truncate">{c.client_name}</span>
-                          {c.primary_phone && (
+                          <span className="truncate">{c.displayName}</span>
+                          {c.primaryPhone && (
                             <span className="text-xs text-muted-foreground truncate">
-                              {c.primary_phone}
+                              {c.primaryPhone}
                             </span>
                           )}
                         </div>

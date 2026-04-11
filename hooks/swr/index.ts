@@ -31,17 +31,6 @@ export {
 } from "./usePropertyComments";
 export type { PropertyComment } from "./usePropertyComments";
 
-// Client Linked Entities
-export { useClientLinked, getClientLinkedKey } from "./useClientLinked";
-
-// Client Comments
-export {
-  useClientComments,
-  useAddClientComment,
-  useDeleteClientComment,
-  getClientCommentsKey,
-} from "./useClientComments";
-export type { ClientComment } from "./useClientComments";
 
 // Feedback Comments (for real-time chat between users and admins)
 export {
@@ -67,15 +56,17 @@ export {
 } from "./useEventInvitations";
 export type { EventInvitee, InvitedEvent } from "./useEventInvitations";
 
-// Selector Hooks
-export { useClients } from "./useClients";
-export type { ClientOption } from "./useClients";
-
 // v2.0 Contact hooks
 export { useContacts } from "./useContacts";
 export type { ContactOption } from "./useContacts";
 export { useContact } from "./useContact";
-export { useContactComments } from "./useContactComments";
+export {
+  useContactComments,
+  useAddContactComment,
+  useDeleteContactComment,
+  getContactCommentsKey,
+} from "./useContactComments";
+export type { ContactComment } from "./useContactComments";
 
 // v2.0 Request hooks
 export { useRequests } from "./useRequests";
@@ -213,8 +204,8 @@ export {
 export { usePropertiesPaginated } from "./usePropertiesPaginated";
 export type { PropertyData as PaginatedPropertyData } from "./usePropertiesPaginated";
 
-export { useClientsPaginated } from "./useClientsPaginated";
-export type { ClientData as PaginatedClientData } from "./useClientsPaginated";
+export { useContactsPaginated } from "./useContactsPaginated";
+export type { ContactData as PaginatedContactData } from "./useContactsPaginated";
 
 // ============================================================
 // Prefetch Utility

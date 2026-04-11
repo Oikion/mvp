@@ -99,7 +99,7 @@ export function QuickAddClient({
   const onSubmit = async (data: QuickAddClientFormValues) => {
     setIsLoading(true);
     try {
-      const response = await axios.post("/api/crm/clients", {
+      const response = await axios.post("/api/crm/contacts", {
         client_name: data.client_name?.trim() || undefined,
         person_type: data.person_type || undefined,
         primary_email: data.primary_email?.trim() || undefined,

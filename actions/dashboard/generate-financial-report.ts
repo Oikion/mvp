@@ -34,9 +34,6 @@ export async function generateFinancialReport() {
         status: "COMPLETED",
       },
       include: {
-        // v2.0 Phase 3: Deal relations renamed (property, listingAgent, buyerAgent).
-        // The legacy Clients FK is kept on the Deal model for backward compat
-        // but new code should use DealParty join records via `dealParties`.
         property: {
           select: {
             property_name: true,
@@ -44,12 +41,6 @@ export async function generateFinancialReport() {
             address_city: true,
             salePrice: true,
             property_type: true,
-          },
-        },
-        Clients: {
-          select: {
-            client_name: true,
-            primary_email: true,
           },
         },
         buyerAgent: {
@@ -196,7 +187,7 @@ export async function generateFinancialReport() {
           id: deal.id,
           propertyTitle: deal.property?.property_name || "Unknown Property",
           propertyAddress: `${deal.property?.address_street || ""} ${deal.property?.address_city || ""}`.trim() || "Unknown Address",
-          clientName: deal.Clients?.client_name || "Unknown Client",
+          clientName: "Unknown Client",
           agentName: deal.buyerAgent?.name || "Unassigned",
           commission: deal.totalCommission ? Number(deal.totalCommission) : 0,
           salePrice: deal.property?.salePrice || 0,

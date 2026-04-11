@@ -108,18 +108,18 @@ export async function POST(req: Request) {
         entityName = property?.property_name || "Property";
         break;
       case "CLIENT":
-        const client = await prismadb.clients.findFirst({
+        const client = await prismadb.contact.findFirst({
           where: {
             id: entityId,
             OR: [
-              { assigned_to: currentUser.id },
+              { assignedAgentId: currentUser.id },
               ...(organizationId ? [{ organizationId }] : []),
             ],
           },
-          select: { id: true, client_name: true },
+          select: { id: true, displayName: true },
         });
         entityExists = !!client;
-        entityName = client?.client_name || "Client";
+        entityName = client?.displayName || "Client";
         break;
       case "DOCUMENT":
         const document = await prismadb.documents.findFirst({

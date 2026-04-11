@@ -28,10 +28,10 @@ export async function GET(request: NextRequest) {
                 avatar: true,
               },
             },
-            Clients: {
+            Contacts: {
               select: {
                 id: true,
-                client_name: true,
+                displayName: true,
               },
             },
             Properties: {
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
           location: inv.CalendarEvent.location,
           eventType: inv.CalendarEvent.eventType,
           assignedUser: inv.CalendarEvent.Users,
-          linkedClients: inv.CalendarEvent.Clients,
+          linkedClients: inv.CalendarEvent.Contacts,
           linkedProperties: inv.CalendarEvent.Properties,
         },
       }))

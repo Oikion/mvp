@@ -3,37 +3,32 @@ import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export const getClientContacts = async () => {
   const organizationId = await getCurrentOrgIdSafe();
-  
+
   // Return empty array if no organization context (e.g., session not synced yet)
   if (!organizationId) {
     return [];
   }
-  const data = await prismadb.client_Contacts.findMany({
+  const data = await prismadb.contact.findMany({
     where: {
-      organizationId: organizationId,
+      organizationId,
     },
     include: {
-      Users_Client_Contacts_assigned_toToUsers: {
+      assignedAgent: {
         select: {
-          name: true,
+          firstName: true,
+          lastName: true,
         },
       },
-      Users_Client_Contacts_created_byToUsers: {
-        select: {
-          name: true,
-        },
-      },
-      Clients: true,
     },
   });
   // Map to legacy fields expected by existing UI until refactor completes
-  return data.map((p: any) => ({
+  return data.map((p) => ({
     ...p,
-    first_name: p.contact_first_name,
-    last_name: p.contact_last_name,
-    assigned_accounts: p.Clients,
-    assigned_to_user: p.Users_Client_Contacts_assigned_toToUsers,
-    created_by_user: p.Users_Client_Contacts_created_byToUsers,
+    first_name: p.firstName,
+    last_name: p.lastName,
+    assigned_accounts: [],
+    assigned_to_user: p.assignedAgent,
+    created_by_user: null,
   }));
 };
 

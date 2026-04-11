@@ -90,10 +90,10 @@ export async function getInvitedEvents(status?: "PENDING" | "ACCEPTED" | "DECLIN
                 avatar: true,
               },
             },
-            Clients: {
+            Contacts: {
               select: {
                 id: true,
-                client_name: true,
+                displayName: true,
               },
             },
             Properties: {
@@ -125,7 +125,7 @@ export async function getInvitedEvents(status?: "PENDING" | "ACCEPTED" | "DECLIN
         location: inv.CalendarEvent.location,
         eventType: inv.CalendarEvent.eventType,
         assignedUser: inv.CalendarEvent.Users,
-        linkedClients: inv.CalendarEvent.Clients,
+        linkedClients: inv.CalendarEvent.Contacts,
         linkedProperties: inv.CalendarEvent.Properties,
       },
     }));

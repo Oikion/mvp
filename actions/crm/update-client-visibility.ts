@@ -12,13 +12,13 @@ export async function updateClientVisibility(
     const { orgId } = await auth();
     if (!orgId) return { success: false, error: "Unauthorized" };
 
-    const client = await prismadb.clients.findFirst({
+    const contact = await prismadb.contact.findFirst({
       where: { id: clientId, organizationId: orgId },
       select: { id: true },
     });
-    if (!client) return { success: false, error: "Client not found" };
+    if (!contact) return { success: false, error: "Client not found" };
 
-    await prismadb.clients.update({
+    await prismadb.contact.update({
       where: { id: clientId },
       data: { visibility },
     });

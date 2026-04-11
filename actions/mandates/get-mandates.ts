@@ -35,13 +35,6 @@ export const getMandates = async () => {
           avatar: true,
         },
       },
-      Mandate_Clients: {
-        include: {
-          Clients: {
-            select: { id: true, friendlyId: true, client_name: true, client_status: true, primary_email: true, primary_phone: true },
-          },
-        },
-      },
       Mandate_Properties: {
         include: {
           Properties: {

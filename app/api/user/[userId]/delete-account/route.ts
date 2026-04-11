@@ -84,8 +84,8 @@ export async function DELETE(
           // Delete all data associated with this organization
           const orgIdString = orgId;
 
-          // Delete clients associated with this organization
-          await prismadb.clients.deleteMany({
+          // Delete contacts associated with this organization
+          await prismadb.contact.deleteMany({
             where: {
               organizationId: orgIdString,
             },
@@ -123,17 +123,10 @@ export async function DELETE(
       },
     });
 
-    // Delete all clients where user is assigned
-    await prismadb.clients.deleteMany({
-      where: {
-        assigned_to: currentUser.id,
-      },
-    });
-
     // Delete all contacts where user is assigned
-    await prismadb.client_Contacts.deleteMany({
+    await prismadb.contact.deleteMany({
       where: {
-        assigned_to: currentUser.id,
+        assignedAgentId: currentUser.id,
       },
     });
 

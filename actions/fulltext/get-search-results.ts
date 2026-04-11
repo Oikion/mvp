@@ -24,41 +24,20 @@ export const getSearch = async (search: string) => {
     .map(m => m.publicUserData?.userId)
     .filter(Boolean) as string[];
 
-  const [resultsCrmClients, resultsCrmContacts, resultsUser] = await Promise.all([
-    prismadb.clients.findMany({
+  const [resultsCrmContacts, resultsUser] = await Promise.all([
+    prismadb.contact.findMany({
       where: {
         organizationId,
         OR: [
-          { description: { contains: query, mode: "insensitive" } },
-          { client_name: { contains: query, mode: "insensitive" } },
-          { primary_email: { contains: query, mode: "insensitive" } },
+          { displayName: { contains: query, mode: "insensitive" } },
+          { notes: { contains: query, mode: "insensitive" } },
         ],
       },
       select: {
         id: true,
-        client_name: true,
-        primary_email: true,
-        primary_phone: true,
-        client_status: true,
+        displayName: true,
+        status: true,
         createdAt: true,
-      },
-      take: 20,
-    }),
-    prismadb.client_Contacts.findMany({
-      where: {
-        organizationId,
-        OR: [
-          { contact_last_name: { contains: query, mode: "insensitive" } },
-          { contact_first_name: { contains: query, mode: "insensitive" } },
-          { email: { contains: query, mode: "insensitive" } },
-        ],
-      },
-      select: {
-        id: true,
-        contact_first_name: true,
-        contact_last_name: true,
-        email: true,
-        mobile_phone: true,
       },
       take: 20,
     }),
@@ -87,7 +66,7 @@ export const getSearch = async (search: string) => {
   return {
     message: "Fulltext search response",
     results: {
-      clients: resultsCrmClients,
+      clients: resultsCrmContacts,
       contacts: resultsCrmContacts,
       users: resultsUser,
     },

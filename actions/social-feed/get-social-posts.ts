@@ -165,7 +165,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
         ? prismadb.properties.findMany({ where: { id: { in: linkedPropertyIds } }, select: { id: true, friendlyId: true } })
         : [],
       linkedClientIds.length > 0
-        ? prismadb.clients.findMany({ where: { id: { in: linkedClientIds } }, select: { id: true, friendlyId: true } })
+        ? prismadb.contact.findMany({ where: { id: { in: linkedClientIds } }, select: { id: true, friendlyId: true } })
         : [],
       linkedMandateIds.length > 0
         ? prismadb.mandate.findMany({ where: { id: { in: linkedMandateIds } }, select: { id: true, friendlyId: true } })
@@ -173,7 +173,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
     ]);
 
     for (const e of [...linkedProps, ...linkedClients, ...linkedMandates]) {
-      friendlyIdMap.set(e.id, e.friendlyId);
+      if (e.friendlyId) friendlyIdMap.set(e.id, e.friendlyId);
     }
 
     return filteredPosts.map((post) => ({

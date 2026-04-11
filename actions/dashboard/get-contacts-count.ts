@@ -4,14 +4,9 @@ import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 export const getContactCount = async () => {
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return 0;
-  
-  // Filter contacts through their associated client's organizationId
-  const data = await prismadb.client_Contacts.count({
-    where: {
-      Clients: {
-        organizationId,
-      },
-    },
+
+  const data = await prismadb.contact.count({
+    where: { organizationId },
   });
   return data;
 };

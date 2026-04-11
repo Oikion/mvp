@@ -144,7 +144,7 @@ export async function POST(req: Request) {
 
     if (id) {
       // Update existing draft
-      const existingClient = await prismadb.clients.findFirst({
+      const existingClient = await prismadb.contact.findFirst({
         where: { id, organizationId },
       });
 
@@ -155,7 +155,7 @@ export async function POST(req: Request) {
         );
       }
 
-      client = await prismadb.clients.update({
+      client = await prismadb.contact.update({
         where: { id },
         data,
       });
@@ -163,17 +163,17 @@ export async function POST(req: Request) {
       // Create new draft
       data.createdBy = user.id;
       data.organizationId = organizationId;
-      
+
       // Generate friendly ID
-      const friendlyId = await generateFriendlyId(prismadb, "Clients", organizationId);
+      const friendlyId = await generateFriendlyId(prismadb, "Contact", organizationId);
       data.friendlyId = friendlyId;
-      
+
       // Set minimum required fields for draft
-      if (!data.client_name) {
-        data.client_name = "Draft Client";
+      if (!data.displayName) {
+        data.displayName = "Draft Client";
       }
 
-      client = await prismadb.clients.create({
+      client = await prismadb.contact.create({
         data,
       });
     }

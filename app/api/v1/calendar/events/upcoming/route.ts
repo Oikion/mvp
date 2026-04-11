@@ -58,8 +58,8 @@ export const GET = withExternalApi(
           assignedUserId: true,
           createdAt: true,
           updatedAt: true,
-          Clients: {
-            select: { id: true, client_name: true },
+          Contacts: {
+            select: { id: true, displayName: true },
           },
           Properties: {
             select: { id: true, property_name: true },
@@ -79,7 +79,7 @@ export const GET = withExternalApi(
             status: event.status,
             eventType: event.eventType,
             assignedUserId: event.assignedUserId,
-            linkedClients: event.Clients,
+            linkedContacts: event.Contacts,
             linkedProperties: event.Properties,
             createdAt: event.createdAt.toISOString(),
             updatedAt: event.updatedAt.toISOString(),

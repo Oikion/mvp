@@ -74,13 +74,13 @@ export async function getShareableEntities(): Promise<ShareableEntities> {
     });
 
     // Fetch clients
-    const clients = await prisma.clients.findMany({
+    const clients = await prisma.contact.findMany({
       take: 50,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        client_name: true,
-        person_type: true,
+        displayName: true,
+        status: true,
       },
     });
 
@@ -136,8 +136,8 @@ export async function getShareableEntities(): Promise<ShareableEntities> {
       clients: clients.map((c) => ({
         id: c.id,
         type: "client" as const,
-        title: c.client_name || "Unnamed Client",
-        subtitle: c.person_type || undefined,
+        title: c.displayName || "Unnamed Contact",
+        subtitle: c.status || undefined,
       })),
       documents: documents.map((d) => ({
         id: d.id,
@@ -217,12 +217,12 @@ export async function getEntityDetails(
         };
       }
       case "client": {
-        const client = await prisma.clients.findUnique({
+        const client = await prisma.contact.findUnique({
           where: { id: entityId },
           select: {
             id: true,
-            client_name: true,
-            person_type: true,
+            displayName: true,
+            status: true,
           },
         });
         if (!client) return { success: false, error: "Client not found" };
@@ -231,10 +231,10 @@ export async function getEntityDetails(
           entity: {
             id: client.id,
             type: "client",
-            title: client.client_name || "Unnamed Client",
-            subtitle: client.person_type || undefined,
+            title: client.displayName || "Unnamed Contact",
+            subtitle: client.status || undefined,
             metadata: {
-              personType: client.person_type,
+              status: client.status,
             },
           },
         };

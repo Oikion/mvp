@@ -67,18 +67,18 @@ export async function shareEntity(input: ShareEntityInput) {
       entityName = property?.property_name || "Property";
       break;
     case "CLIENT":
-      const client = await prismadb.clients.findFirst({
+      const client = await prismadb.contact.findFirst({
         where: {
           id: input.entityId,
           OR: [
-            { assigned_to: currentUser.id },
+            { assignedAgentId: currentUser.id },
             { organizationId },
           ],
         },
-        select: { id: true, client_name: true },
+        select: { id: true, displayName: true },
       });
       entityExists = !!client;
-      entityName = client?.client_name || "Client";
+      entityName = client?.displayName || "Contact";
       break;
     case "DOCUMENT":
       const document = await prismadb.documents.findFirst({
@@ -229,14 +229,14 @@ export async function getSharedWithMe(entityType?: SharedEntityType) {
           }
           break;
         case "CLIENT":
-          entity = await prismadb.clients.findUnique({
+          entity = await prismadb.contact.findUnique({
             where: { id: share.entityId },
             select: {
               id: true,
-              client_name: true,
-              primary_email: true,
-              primary_phone: true,
-              client_status: true,
+              displayName: true,
+              email: true,
+              primaryPhone: true,
+              status: true,
             },
           });
           break;

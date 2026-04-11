@@ -252,7 +252,16 @@
       "OTHER": "Other"
     },
     "reminders": "Reminders",
-    "beforeEvent": "before event"
+    "beforeEvent": "before event",
+    "reminderDays": "{count, plural, one {# day} other {# days}} before event",
+    "reminderHours": "{count, plural, one {# hour} other {# hours}} before event",
+    "reminderMinutes": "{count, plural, one {# minute} other {# minutes}} before event",
+    "reminderStatus": {
+      "PENDING": "Pending",
+      "SENT": "Sent",
+      "FAILED": "Failed",
+      "CANCELLED": "Cancelled"
+    }
   },
   "eventPage": {
     "untitledEvent": "Untitled Event",

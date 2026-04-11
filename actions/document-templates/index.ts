@@ -48,7 +48,7 @@ const TEMPLATE_LIST_SELECT = {
  * Create a new OrgDocumentTemplate.
  * organizationId and createdByUserId are always injected server-side.
  */
-export async function createDocumentTemplate(input: unknown): Promise<ActionResponse> {
+export async function createDocumentTemplate(input: unknown): Promise<ActionResponse<unknown>> {
   const guard = await requireAction("template:create");
   if (guard) return guard;
 
@@ -84,8 +84,10 @@ export async function createDocumentTemplate(input: unknown): Promise<ActionResp
         ...encrypted,
         organizationId,
         category: parsed.data.category ?? "GENERAL",
-        body: parsed.data.body,
-        placeholders: parsed.data.placeholders ?? [],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        body: parsed.data.body as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        placeholders: (parsed.data.placeholders ?? []) as any,
         version: 1,
         isPublished: false,
         baseTemplateId: parsed.data.baseTemplateId,
@@ -112,7 +114,7 @@ export async function createDocumentTemplate(input: unknown): Promise<ActionResp
 export async function updateDocumentTemplate(
   id: string,
   input: unknown
-): Promise<ActionResponse> {
+): Promise<ActionResponse<unknown>> {
   const organizationId = await getCurrentOrgId();
 
   const existing = await prismadb.orgDocumentTemplate.findFirst({
@@ -124,7 +126,7 @@ export async function updateDocumentTemplate(
 
   const guard = await requireActionOnEntity(
     "template:update",
-    "document-template",
+    "document",
     id,
     existing.createdByUserId
   );
@@ -195,7 +197,7 @@ export async function updateDocumentTemplate(
  * Publish an OrgDocumentTemplate to make it available org-wide.
  * Does NOT increment version — publishing is not a content change.
  */
-export async function publishDocumentTemplate(id: string): Promise<ActionResponse> {
+export async function publishDocumentTemplate(id: string): Promise<ActionResponse<unknown>> {
   const organizationId = await getCurrentOrgId();
 
   const existing = await prismadb.orgDocumentTemplate.findFirst({
@@ -207,7 +209,7 @@ export async function publishDocumentTemplate(id: string): Promise<ActionRespons
 
   const guard = await requireActionOnEntity(
     "template:publish",
-    "document-template",
+    "document",
     id,
     existing.createdByUserId
   );
@@ -234,7 +236,7 @@ export async function publishDocumentTemplate(id: string): Promise<ActionRespons
  * Clone an existing OrgDocumentTemplate.
  * The new template starts at version 1, unpublished, with baseTemplateId set.
  */
-export async function cloneDocumentTemplate(id: string): Promise<ActionResponse> {
+export async function cloneDocumentTemplate(id: string): Promise<ActionResponse<unknown>> {
   const guard = await requireAction("template:create");
   if (guard) return guard;
 
@@ -270,8 +272,10 @@ export async function cloneDocumentTemplate(id: string): Promise<ActionResponse>
         ...encrypted,
         organizationId,
         category: source.category,
-        body: source.body,
-        placeholders: source.placeholders,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        body: source.body as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        placeholders: source.placeholders as any,
         version: 1,
         isPublished: false,
         baseTemplateId: source.id,
@@ -294,7 +298,7 @@ export async function cloneDocumentTemplate(id: string): Promise<ActionResponse>
  * Soft-delete an OrgDocumentTemplate by setting deletedAt.
  * Never hard-deletes from the database.
  */
-export async function deleteDocumentTemplate(id: string): Promise<ActionResponse> {
+export async function deleteDocumentTemplate(id: string): Promise<ActionResponse<unknown>> {
   const organizationId = await getCurrentOrgId();
 
   const existing = await prismadb.orgDocumentTemplate.findFirst({
@@ -306,7 +310,7 @@ export async function deleteDocumentTemplate(id: string): Promise<ActionResponse
 
   const guard = await requireActionOnEntity(
     "template:delete",
-    "document-template",
+    "document",
     id,
     existing.createdByUserId
   );
@@ -334,7 +338,7 @@ export async function deleteDocumentTemplate(id: string): Promise<ActionResponse
  * Returns a select subset (body excluded) for performance.
  * Names are decrypted before returning.
  */
-export async function listDocumentTemplates(): Promise<ActionResponse> {
+export async function listDocumentTemplates(): Promise<ActionResponse<unknown>> {
   const guard = await requireAction("template:read");
   if (guard) return guard;
 
