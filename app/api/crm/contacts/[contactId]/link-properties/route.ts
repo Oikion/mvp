@@ -118,7 +118,7 @@ export async function DELETE(
     });
 
     await prismadb.contactProperty.deleteMany({
-      where: { contactId, propertyId: validation.data.propertyId },
+      where: { contactId, propertyId: validation.data.propertyId, organizationId },
     });
 
     if (unlinkedProperty) {

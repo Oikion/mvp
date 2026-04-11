@@ -55,7 +55,7 @@ export async function POST(
       // Fetch request labels for changelog (only the ones actually inserted)
       const linkedRequestRecords = await prismadb.request.findMany({
         where: { id: { in: requestIds }, organizationId },
-        select: { id: true, friendlyId: true, requestType: true },
+        select: { id: true, friendlyId: true },
       });
       for (const req of linkedRequestRecords) {
         createChangeLogEntry({
