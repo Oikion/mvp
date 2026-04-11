@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { canPerformAction } from "@/lib/permissions";
+import { createChangeLogEntry } from "@/lib/entity-change-log";
 import { z } from "zod";
 
 const linkSchema = z.object({
@@ -52,6 +53,27 @@ export async function POST(
       )
     );
 
+    // Fetch property labels for changelog
+    const linkedPropertyRecords = await prismadb.properties.findMany({
+      where: { id: { in: validation.data.propertyIds }, organizationId },
+      select: { id: true, friendlyId: true, property_name: true },
+    });
+    for (const prop of linkedPropertyRecords) {
+      createChangeLogEntry({
+        organizationId,
+        entityType: "CONTACT",
+        entityId: contactId,
+        eventType: "LINKED",
+        actorUserId: userId,
+        linkTarget: {
+          type: "PROPERTY",
+          id: prop.id,
+          friendlyId: prop.friendlyId ?? undefined,
+          label: prop.property_name ?? prop.friendlyId ?? prop.id,
+        },
+      }).catch((err) => console.error("[CONTACT_LINKED_LOG]", err));
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[CONTACT_LINK_PROPERTIES_POST]", error);
@@ -89,9 +111,31 @@ export async function DELETE(
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
+    // Fetch label before deleting
+    const unlinkedProperty = await prismadb.properties.findFirst({
+      where: { id: validation.data.propertyId, organizationId },
+      select: { id: true, friendlyId: true, property_name: true },
+    });
+
     await prismadb.contactProperty.deleteMany({
       where: { contactId, propertyId: validation.data.propertyId },
     });
+
+    if (unlinkedProperty) {
+      createChangeLogEntry({
+        organizationId,
+        entityType: "CONTACT",
+        entityId: contactId,
+        eventType: "UNLINKED",
+        actorUserId: userId,
+        linkTarget: {
+          type: "PROPERTY",
+          id: unlinkedProperty.id,
+          friendlyId: unlinkedProperty.friendlyId ?? undefined,
+          label: unlinkedProperty.property_name ?? unlinkedProperty.friendlyId ?? unlinkedProperty.id,
+        },
+      }).catch((err) => console.error("[CONTACT_UNLINKED_LOG]", err));
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
