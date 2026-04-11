@@ -47,7 +47,7 @@ export async function POST(
     const pushData: Record<string, unknown> = {};
 
     if (Array.isArray(clientIds) && clientIds.length > 0) {
-      const clients = await prismadb.contact.findMany({
+      const clients = await prismadb.clients.findMany({
         where: { id: { in: clientIds }, organizationId },
         select: { id: true },
       });
@@ -57,7 +57,7 @@ export async function POST(
           { status: 404 }
         );
       }
-      connectData.Contacts = { connect: clientIds.map((id: string) => ({ id })) };
+      connectData.Clients = { connect: clientIds.map((id: string) => ({ id })) };
       pushData.accountsIDs = { push: clientIds };
     }
 

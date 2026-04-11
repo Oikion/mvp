@@ -23,9 +23,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/navigation";
 import { toast } from "sonner";
 import type { TemplateListItem } from "@/actions/templates/get-templates";
-import type { Prisma } from "@prisma/client";
-// Prisma 7: JsonValue is accessed via the `Prisma` namespace.
-type JsonValue = Prisma.JsonValue;
+import type { JsonValue } from "@prisma/client/runtime/library";
 import type { MentionData } from "./MentionDisplay";
 
 interface Document {
@@ -207,7 +205,7 @@ export default function DocumentsPageView({
           ) : view === "list" ? (
             <DocumentDataTable
               data={documents}
-              columns={getColumns((k: string) => t(k as Parameters<typeof t>[0]))}
+              columns={getColumns(t)}
               getRowHref={(row: any) => `/app/documents/${row.friendlyId ?? row.id}`}
               toolbarRight={<ViewToggle view={view} setView={setView} />}
               onRefresh={handleRefresh}

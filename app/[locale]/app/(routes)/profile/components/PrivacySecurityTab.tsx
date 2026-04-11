@@ -184,7 +184,7 @@ export function PrivacySecurityTab({
                 className={`${selectedOption.bgColor} ${selectedOption.borderColor}`}
               >
                 <selectedOption.icon className={`h-3 w-3 mr-1 ${selectedOption.color}`} />
-                {tVisibility(`${selectedOption.translationKey}.label` as Parameters<typeof tVisibility>[0])}
+                {tVisibility(`${selectedOption.translationKey}.label`)}
               </Badge>
             )}
           </div>
@@ -209,7 +209,7 @@ export function PrivacySecurityTab({
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{tVisibility(`${option.translationKey}.label` as Parameters<typeof tVisibility>[0])}</span>
+                      <span className="font-medium">{tVisibility(`${option.translationKey}.label`)}</span>
                       {isSelected && (
                         <Badge variant="outline" className="text-xs">
                           {tCommon("misc.selected")}
@@ -217,7 +217,7 @@ export function PrivacySecurityTab({
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {tVisibility(`${option.translationKey}.description` as Parameters<typeof tVisibility>[0])}
+                      {tVisibility(`${option.translationKey}.description`)}
                     </p>
                   </div>
                 </div>

@@ -1,20 +1,4 @@
 {
-  "contactForm": {
-    "title": "Contact",
-    "name": "Name",
-    "namePlaceholder": "Your name",
-    "email": "Email",
-    "emailPlaceholder": "you@example.com",
-    "message": "Message",
-    "messagePlaceholder": "Your message",
-    "send": "Send",
-    "sending": "Sending...",
-    "successMessage": "Message sent successfully",
-    "errorMessage": "Failed to send message. Please try again.",
-    "thankYou": "Thank you!",
-    "confirmationMessage": "We have received your message and will respond soon.",
-    "sendAnother": "Send another message"
-  },
   "title": "Profile Settings",
   "publicProfile": {
     "title": "Public Profile",

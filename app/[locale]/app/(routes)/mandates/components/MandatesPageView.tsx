@@ -337,7 +337,7 @@ export default function MandatesPageView({
           ) : view === "list" ? (
             <MandateDataTable
               data={mandates}
-              columns={getColumns((k: string) => t(k as Parameters<typeof t>[0]), users)}
+              columns={getColumns(t, users)}
               users={users}
               getRowHref={(row: any) => `/app/mandates/${row.friendlyId ?? row.id}`}
               toolbarRight={<ViewToggle view={view} setView={setView} />}

@@ -58,9 +58,9 @@ export function PageDropZone({ children }: PageDropZoneProps) {
           <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center pointer-events-none">
             <div className="bg-background border-2 border-dashed border-primary rounded-2xl p-16 text-center shadow-2xl">
               <Upload className="h-16 w-16 mx-auto text-primary mb-6 animate-bounce" />
-              <p className="text-2xl font-semibold mb-2">{t("massUpload.dropFilesHere")}</p>
+              <p className="text-2xl font-semibold mb-2">{t("pageDropZone.dropFilesHere")}</p>
               <p className="text-muted-foreground">
-                {t("massUpload.dragDropMultiple")}
+                {t("pageDropZone.uploadMultipleFiles")}
               </p>
             </div>
           </div>

@@ -2,7 +2,6 @@ import { prismadb } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { z } from "zod";
-import { generateFriendlyId } from "@/lib/friendly-id";
 
 const createContactSchema = z.object({
   name: z.string().min(1).max(200),
@@ -47,27 +46,21 @@ export async function POST(req: Request) {
   const { name, surname, email, phone, company, message, tag, organizationId } = parsed.data;
 
   try {
-    const friendlyId = await generateFriendlyId(prismadb, "Contact", organizationId);
-
-    await prismadb.contact.create({
+    await prismadb.client_Contacts.create({
       data: {
-        friendlyId,
-        organizationId,
-        firstName: name,
-        lastName: surname,
-        displayName: `${name} ${surname}`.trim(),
+        id: crypto.randomUUID(),
+        contact_first_name: name,
+        contact_last_name: surname,
         email,
-        primaryPhone: phone,
-        companyName: company,
-        notes: `Message: ${message}`,
+        mobile_phone: phone,
+        type: "Prospect",
         tags: [tag],
-        status: "LEAD",
-        source: "PORTAL_LEAD",
+        notes: ["Account: " + company, "Message: " + message],
+        organizationId,
       },
     });
     return NextResponse.json({ message: "Contact created" });
   } catch (error) {
-    console.error("[CREATE_FROM_REMOTE]", error);
     return NextResponse.json(
       { error: "Error creating contact" },
       { status: 500 }

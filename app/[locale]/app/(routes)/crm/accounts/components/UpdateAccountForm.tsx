@@ -181,7 +181,7 @@ export function UpdateAccountForm({
   const onSubmit = async (data: NewAccountFormValues) => {
     setIsLoading(true);
     try {
-      await axios.put("/api/crm/contacts", {
+      await axios.put("/api/crm/clients", {
         id: data.id,
         client_name: data.name,
         primary_email: data.email,

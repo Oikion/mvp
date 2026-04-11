@@ -34,12 +34,12 @@ async function createEventNotifications(
     
     // Get client names if linked
     if (clientIds && clientIds.length > 0) {
-      const clients = await prismadb.contact.findMany({
+      const clients = await prismadb.clients.findMany({
         where: { id: { in: clientIds } },
-        select: { displayName: true },
+        select: { client_name: true },
       });
       if (clients.length > 0) {
-        linkedEntities.push(`Clients: ${clients.map(c => c.displayName).join(', ')}`);
+        linkedEntities.push(`Clients: ${clients.map(c => c.client_name).join(', ')}`);
       }
     }
     
@@ -85,21 +85,21 @@ async function createEventNotifications(
     
     // If there are linked clients, notify their assigned agents (if they have one)
     if (clientIds && clientIds.length > 0) {
-      const clients = await prismadb.contact.findMany({
+      const clients = await prismadb.clients.findMany({
         where: { id: { in: clientIds } },
-        select: { assignedAgentId: true, displayName: true },
+        select: { assigned_to: true, client_name: true },
       });
-
+      
       const agentIds = Array.from(new Set(
         clients
-          .filter(c => c.assignedAgentId && c.assignedAgentId !== creatorId && c.assignedAgentId !== event.assignedUserId)
-          .map(c => c.assignedAgentId!)
+          .filter(c => c.assigned_to && c.assigned_to !== creatorId && c.assigned_to !== event.assignedUserId)
+          .map(c => c.assigned_to!)
       ));
-
+      
       for (const agentId of agentIds) {
         const linkedClientNames = clients
-          .filter(c => c.assignedAgentId === agentId)
-          .map(c => c.displayName)
+          .filter(c => c.assigned_to === agentId)
+          .map(c => c.client_name)
           .join(', ');
           
         await db.notification.create({
@@ -185,10 +185,13 @@ export async function GET(req: Request) {
             Users: {
               select: { id: true, name: true, email: true },
             },
+            Clients: {
+              select: { id: true, client_name: true },
+            },
           },
         },
-        Contacts: {
-          select: { id: true, displayName: true },
+        Clients: {
+          select: { id: true, client_name: true },
         },
         Properties: {
           select: { id: true, property_name: true },
@@ -222,6 +225,9 @@ export async function GET(req: Request) {
         include: {
           Users: {
             select: { id: true, name: true, email: true },
+          },
+          Clients: {
+            select: { id: true, client_name: true },
           },
         },
         orderBy: { dueDateAt: 'asc' },
@@ -339,16 +345,16 @@ export async function POST(req: Request) {
     
     if (clientIds && Array.isArray(clientIds) && clientIds.length > 0) {
       // Validate client IDs exist
-      const validClients = await prismadb.contact.findMany({
+      const validClients = await prismadb.clients.findMany({
         where: {
           id: { in: clientIds },
           organizationId,
         },
         select: { id: true },
       });
-
+      
       if (validClients.length > 0) {
-        relations.Contacts = {
+        relations.Clients = {
           connect: validClients.map((client) => ({ id: client.id })),
         };
       }

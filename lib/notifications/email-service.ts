@@ -60,8 +60,6 @@ const categoryToPreference: Record<NotificationCategory, PreferenceCategory> = {
   ACCOUNT_TASK_UPDATED: "crm",
   CLIENT_CREATED: "crm",
   CLIENT_ASSIGNED: "crm",
-  CONTACT_CREATED: "crm",
-  CONTACT_ASSIGNED: "crm",
   PROPERTY_CREATED: "crm",
   PROPERTY_ASSIGNED: "crm",
   PROPERTY_UPDATED: "crm",
@@ -296,16 +294,6 @@ function getSubjectLine(
       en: "Client assigned to you",
       el: "Πελάτης ανατέθηκε σε εσάς",
       cz: "Klient vám byl přiřazen",
-    },
-    CONTACT_CREATED: {
-      en: "New contact added",
-      el: "Νέα επαφή προστέθηκε",
-      cz: "Nový kontakt přidán",
-    },
-    CONTACT_ASSIGNED: {
-      en: "Contact assigned to you",
-      el: "Επαφή ανατέθηκε σε εσάς",
-      cz: "Kontakt vám byl přiřazen",
     },
     PROPERTY_CREATED: {
       en: "New property added",
@@ -653,28 +641,6 @@ function getEmailComponent(
       });
 
     case "CLIENT_ASSIGNED":
-      return ClientCreatedEmail({
-        recipientName,
-        creatorName: actorName || "Someone",
-        clientId: entityId || "",
-        clientName: entityName || metadata?.clientName || "",
-        isAssigned: true,
-        userLanguage,
-        userTheme,
-      });
-
-    case "CONTACT_CREATED":
-      return ClientCreatedEmail({
-        recipientName,
-        creatorName: actorName || "Someone",
-        clientId: entityId || "",
-        clientName: entityName || metadata?.clientName || "",
-        isAssigned: false,
-        userLanguage,
-        userTheme,
-      });
-
-    case "CONTACT_ASSIGNED":
       return ClientCreatedEmail({
         recipientName,
         creatorName: actorName || "Someone",

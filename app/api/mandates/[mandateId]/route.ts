@@ -35,6 +35,13 @@ export async function GET(
         assigned_to_user: {
           select: { id: true, name: true, email: true, avatar: true },
         },
+        Mandate_Clients: {
+          include: {
+            Clients: {
+              select: { id: true, friendlyId: true, client_name: true, client_status: true, primary_email: true, primary_phone: true },
+            },
+          },
+        },
         Mandate_Properties: {
           include: {
             Properties: {

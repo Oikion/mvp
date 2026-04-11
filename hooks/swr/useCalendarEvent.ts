@@ -3,7 +3,7 @@ import useSWR from "swr";
 interface LinkedClient {
   id: string;
   friendlyId: string;
-  displayName: string;
+  client_name: string;
 }
 
 interface LinkedProperty {
@@ -29,41 +29,14 @@ interface LinkedTask {
   } | null;
   crm_accounts?: {
     id: string;
-    displayName: string;
+    client_name: string;
   } | null;
 }
 
 interface EventReminder {
   id: string;
-  reminderMinutes: number;
   scheduledFor: string;
-  status: "PENDING" | "SENT" | "FAILED" | "CANCELLED";
-}
-
-export interface EventContactAttendee {
-  id: string;
-  contactId: string;
-  role: string;
-  rsvpStatus: string;
-  note: string | null;
-  contact: {
-    id: string;
-    displayName: string;
-    email: string | null;
-    friendlyId: string;
-  } | null;
-}
-
-export interface EventAgentAttendee {
-  id: string;
-  userId: string;
-  role: string | null;
-  rsvpStatus: string;
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-  } | null;
+  sent: boolean;
 }
 
 export interface CalendarEventDetail {
@@ -88,8 +61,6 @@ export interface CalendarEventDetail {
   linkedDocuments?: LinkedDocument[];
   linkedTasks?: LinkedTask[];
   reminders?: EventReminder[];
-  eventContacts?: EventContactAttendee[];
-  eventAgents?: EventAgentAttendee[];
 }
 
 interface CalendarEventResponse {

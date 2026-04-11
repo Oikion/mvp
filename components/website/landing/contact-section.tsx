@@ -264,7 +264,7 @@ export function ContactSection() {
                       {t('contact.wizard.step3Title')}
                     </h3>
                     <p className="step-field text-[13px] text-[#262F27]/40 mb-6">
-                      {t(`contact.wizard.step3Hint.${inquiryType}` as Parameters<typeof t>[0])}
+                      {t(`contact.wizard.step3Hint.${inquiryType}`)}
                     </p>
                     <div className="step-field">
                       <textarea

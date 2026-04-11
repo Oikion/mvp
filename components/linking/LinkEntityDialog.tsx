@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Building2, User, UserCircle, FileText, ClipboardList, Search, Loader2, Upload, Plus } from "lucide-react";
+import { Building2, User, FileText, Search, Loader2, Upload, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   useUnifiedEntitySearch,
@@ -43,9 +43,9 @@ interface Entity {
 interface LinkEntityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entityType: "property" | "client" | "contact" | "mandate" | "document" | "request";
+  entityType: "property" | "client" | "mandate" | "document";
   sourceId: string;
-  sourceType: "client" | "contact" | "property" | "mandate" | "document" | "request";
+  sourceType: "client" | "property" | "mandate" | "document";
   alreadyLinkedIds?: string[];
   onLink: (entityIds: string[]) => Promise<void>;
   onCreate?: () => void;
@@ -75,24 +75,20 @@ export function LinkEntityDialog({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const iconMap = { property: Building2, client: User, contact: UserCircle, mandate: FileText, document: FileText, request: ClipboardList };
+  const iconMap = { property: Building2, client: User, mandate: FileText, document: FileText };
   const Icon = iconMap[entityType];
   const defaultTitleMap: Record<string, string> = {
     property: t("dialogs.linkProperties"),
     mandate: t("dialogs.linkMandates"),
     client: t("dialogs.linkClients"),
-    contact: t("dialogs.linkContacts"),
     document: t("dialogs.linkDocuments"),
-    request: t("dialogs.linkRequests"),
   };
   const defaultTitle = defaultTitleMap[entityType];
   const defaultDescriptionMap: Record<string, string> = {
     property: t("placeholders.searchProperties"),
     mandate: t("placeholders.searchMandates"),
     client: t("placeholders.searchClients"),
-    contact: t("placeholders.searchContacts"),
     document: t("placeholders.searchDocuments"),
-    request: t("placeholders.searchRequests"),
   };
   const defaultDescription = defaultDescriptionMap[entityType];
 
@@ -278,10 +274,6 @@ export function LinkEntityDialog({
                     ? t("emptyStates.noMandatesAvailable")
                     : entityType === "document"
                     ? t("emptyStates.noDocumentsAvailable")
-                    : entityType === "contact"
-                    ? t("emptyStates.noContactsAvailable")
-                    : entityType === "request"
-                    ? t("emptyStates.noRequestsAvailable")
                     : t("emptyStates.noClientsAvailable")
                   : t("emptyStates.searchNoResults")}
                 {entityType === "document" && (

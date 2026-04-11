@@ -3,24 +3,30 @@ import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export const getAccountsByContactId = async (contactId: string) => {
   const organizationId = await getCurrentOrgIdSafe();
-
+  
   // Return empty array if no organization context (e.g., session not synced yet)
   if (!organizationId) {
     return [];
   }
-  // In v2.0 the old "clients with contacts" pattern is gone.
-  // A contact IS the entity. Return the contact itself as a single-item array
-  // for backward compatibility with callers that expected a list of "accounts".
-  const data = await prismadb.contact.findMany({
+  const data = await prismadb.clients.findMany({
     where: {
       organizationId,
-      id: contactId,
+      Client_Contacts: {
+        some: {
+          id: contactId,
+        },
+      },
     },
     include: {
-      assignedAgent: {
+      Users_Clients_assigned_toToUsers: {
         select: {
-          firstName: true,
-          lastName: true,
+          name: true,
+        },
+      },
+      Client_Contacts: {
+        select: {
+          contact_first_name: true,
+          contact_last_name: true,
         },
       },
     },
@@ -28,11 +34,11 @@ export const getAccountsByContactId = async (contactId: string) => {
       createdAt: "desc",
     },
   });
-
+  
   // Map to expected field names for backward compatibility
-  return data.map((contact) => ({
-    ...contact,
-    assigned_to_user: contact.assignedAgent,
-    contacts: [],
+  return data.map((client) => ({
+    ...client,
+    assigned_to_user: client.Users_Clients_assigned_toToUsers,
+    contacts: client.Client_Contacts,
   }));
 };

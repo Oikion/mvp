@@ -49,15 +49,12 @@ import onboardingEn from "@/locales/en/onboarding.json";
 import platformAdminEn from "@/locales/en/platformAdmin.json";
 import shareEn from "@/locales/en/share.json";
 import mandatesEn from "@/locales/en/mandates.json";
-import requestsEn from "@/locales/en/requests.json";
 import networkEn from "@/locales/en/network.json";
 import dataOwnershipEn from "@/locales/en/dataOwnership.json";
 import encryptionEn from "@/locales/en/encryption.json";
 import createOrganizationEn from "@/locales/en/createOrganization.json";
 import cookiesEn from "@/locales/en/cookies.json";
 import docsEn from "@/locales/en/docs.json";
-import activitiesEn from "@/locales/en/activities.json";
-import documentTemplatesEn from "@/locales/en/document-templates.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -95,15 +92,12 @@ import onboardingEl from "@/locales/el/onboarding.json";
 import platformAdminEl from "@/locales/el/platformAdmin.json";
 import shareEl from "@/locales/el/share.json";
 import mandatesEl from "@/locales/el/mandates.json";
-import requestsEl from "@/locales/el/requests.json";
 import networkEl from "@/locales/el/network.json";
 import dataOwnershipEl from "@/locales/el/dataOwnership.json";
 import encryptionEl from "@/locales/el/encryption.json";
 import createOrganizationEl from "@/locales/el/createOrganization.json";
 import cookiesEl from "@/locales/el/cookies.json";
 import docsEl from "@/locales/el/docs.json";
-import activitiesEl from "@/locales/el/activities.json";
-import documentTemplatesEl from "@/locales/el/document-templates.json";
 
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const metadataBaseUrl = new URL(appBaseUrl);
@@ -160,7 +154,6 @@ function getLocales(locale: string) {
     messages.platformAdmin = platformAdminEl;
     messages.share = shareEl;
     messages.mandates = mandatesEl;
-    messages.requests = requestsEl;
     messages.network = networkEl;
     messages.networkSettings = networkEl.matchmaking;
     messages.dataOwnership = dataOwnershipEl;
@@ -168,8 +161,6 @@ function getLocales(locale: string) {
     messages.createOrganization = createOrganizationEl;
     messages.cookies = cookiesEl;
     messages.docs = docsEl;
-    messages.activities = activitiesEl;
-    messages["document-templates"] = documentTemplatesEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -215,7 +206,6 @@ function getLocales(locale: string) {
     messages.platformAdmin = platformAdminEn;
     messages.share = shareEn;
     messages.mandates = mandatesEn;
-    messages.requests = requestsEn;
     messages.network = networkEn;
     messages.networkSettings = networkEn.matchmaking;
     messages.dataOwnership = dataOwnershipEn;
@@ -223,8 +213,6 @@ function getLocales(locale: string) {
     messages.createOrganization = createOrganizationEn;
     messages.cookies = cookiesEn;
     messages.docs = docsEn;
-    messages.activities = activitiesEn;
-    messages["document-templates"] = documentTemplatesEn;
   }
 
   if (Object.keys(messages).length === 0) {

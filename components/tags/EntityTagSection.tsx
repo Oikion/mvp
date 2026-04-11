@@ -32,7 +32,7 @@ export function EntityTagSection({
   compact = false,
   showLabel = true,
 }: EntityTagSectionProps) {
-  const t = useTranslations("tags");
+  const t = useTranslations("common.tags");
   
   // Fetch all available tags and entity's current tags
   const { tags: availableTags, isLoading: tagsLoading } = useTags();

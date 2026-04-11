@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptContactForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
+import { decryptClientForOrg, decryptMandateForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/documents/[documentId]/linked
@@ -33,16 +33,16 @@ export async function GET(
         id: true,
         friendlyId: true,
         document_name: true,
-        Contacts: {
+        Clients: {
           select: {
             id: true,
             friendlyId: true,
-            displayName: true,
-            category: true,
-            status: true,
-            email: true,
-            primaryPhone: true,
-            assignedAgent: {
+            client_name: true,
+            client_type: true,
+            client_status: true,
+            primary_email: true,
+            primary_phone: true,
+            Users_Clients_assigned_toToUsers: {
               select: {
                 id: true,
                 name: true,
@@ -93,13 +93,13 @@ export async function GET(
       );
     }
 
-    // Decrypt contact names
+    // Decrypt client names
     const clients = await Promise.all(
-      document.Contacts.map(async (contact) => {
-        const decrypted = await decryptContactForOrg(contact, organizationId);
+      document.Clients.map(async (client) => {
+        const decrypted = await decryptClientForOrg(client, organizationId);
         return {
           ...decrypted,
-          assigned_to_user: contact.assignedAgent,
+          assigned_to_user: client.Users_Clients_assigned_toToUsers,
         };
       })
     );

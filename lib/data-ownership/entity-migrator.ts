@@ -15,8 +15,8 @@ import { getOrgDek } from "@/lib/key-management";
 import {
   decryptPropertyForOrg,
   encryptPropertyForOrg,
-  decryptContactForOrg,
-  encryptContactForOrg,
+  decryptClientForOrg,
+  encryptClientForOrg,
   decryptMandateForOrg,
   encryptMandateForOrg,
 } from "@/lib/model-encryption";
@@ -154,9 +154,9 @@ export async function migrateAgentEntities(
 
       // Notify the counterparty agent
       const counterpartyId =
-        deal.listingAgentId === userId
-          ? deal.buyerAgentId
-          : deal.listingAgentId;
+        deal.propertyAgentId === userId
+          ? deal.clientAgentId
+          : deal.propertyAgentId;
       if (counterpartyId) {
         await tx.notification.create({
           data: {
@@ -196,68 +196,78 @@ export async function migrateAgentEntities(
     migratedProperties.push({ id: newPropertyId, title: prop.property_name });
   }
 
-  // ── Contacts (formerly Clients) ──────────────────────────────
-  const contacts = await tx.contact.findMany({
-    where: { organizationId: sourceOrgId, assignedAgentId: userId },
+  // ── Clients ─────────────────────────────────────────────────
+  const clients = await tx.clients.findMany({
+    where: { organizationId: sourceOrgId, assigned_to: userId },
     include: {
-      contactComments: { where: { userId } },
-      dealParties: { include: { deal: true } },
+      ClientComment: { where: { userId } },
+      Deal: true,
     },
   });
 
-  for (const contact of contacts) {
-    const policy = getPolicyForEntity(contact.createdAt, currentMode, policyHistory);
+  for (const client of clients) {
+    const policy = getPolicyForEntity(client.createdAt, currentMode, policyHistory);
     if (policy.mode !== "AGENT") continue;
 
-    const decrypted = await decryptContactForOrg(contact, sourceOrgId);
-    const reEncrypted = await encryptContactForOrg(decrypted, personalOrgId);
+    const decrypted = await decryptClientForOrg(client, sourceOrgId);
+    const reEncrypted = await encryptClientForOrg(decrypted, personalOrgId);
 
-    const newContactId = crypto.randomUUID();
+    const newClientId = crypto.randomUUID();
 
-    await tx.contact.create({
+    await tx.clients.create({
       data: {
-        id: newContactId,
-        friendlyId: contact.friendlyId,
+        id: newClientId,
+        friendlyId: client.friendlyId,
         organizationId: personalOrgId,
-        assignedAgentId: userId,
-        displayName: reEncrypted.displayName,
-        firstName: reEncrypted.firstName,
-        lastName: reEncrypted.lastName,
-        email: reEncrypted.email,
-        secondaryEmail: reEncrypted.secondaryEmail,
-        primaryPhone: reEncrypted.primaryPhone,
-        secondaryPhone: reEncrypted.secondaryPhone,
-        officePhone: reEncrypted.officePhone,
-        companyName: reEncrypted.companyName,
-        companyId: reEncrypted.companyId,
-        companyGemi: reEncrypted.companyGemi,
-        taxId: reEncrypted.taxId,
-        vatNumber: reEncrypted.vatNumber,
+        assigned_to: userId,
+        client_name: reEncrypted.client_name,
+        full_name: reEncrypted.full_name,
+        primary_email: reEncrypted.primary_email,
+        secondary_email: reEncrypted.secondary_email,
+        primary_phone: reEncrypted.primary_phone,
+        secondary_phone: reEncrypted.secondary_phone,
+        office_phone: reEncrypted.office_phone,
+        fax: reEncrypted.fax,
+        company_name: reEncrypted.company_name,
+        company_id: reEncrypted.company_id,
+        company_gemi: reEncrypted.company_gemi,
+        afm: reEncrypted.afm,
+        vat: reEncrypted.vat,
         doy: reEncrypted.doy,
-        idDocument: reEncrypted.idDocument,
-        notes: reEncrypted.notes,
-        communicationNotes: reEncrypted.communicationNotes as any,
-        addresses: contact.addresses as any,
-        category: contact.category,
-        status: contact.status,
-        isCompany: contact.isCompany,
-        source: contact.source,
-        languagePreference: contact.languagePreference,
-        tags: contact.tags,
-        gdprConsentGiven: contact.gdprConsentGiven,
-        allowMarketing: contact.allowMarketing,
+        id_doc: reEncrypted.id_doc,
+        description: reEncrypted.description,
+        communication_notes: reEncrypted.communication_notes as any,
+        billing_street: reEncrypted.billing_street,
+        billing_city: reEncrypted.billing_city,
+        billing_state: reEncrypted.billing_state,
+        billing_postal_code: reEncrypted.billing_postal_code,
+        billing_country: reEncrypted.billing_country,
+        shipping_street: reEncrypted.shipping_street,
+        shipping_city: reEncrypted.shipping_city,
+        shipping_state: reEncrypted.shipping_state,
+        shipping_postal_code: reEncrypted.shipping_postal_code,
+        shipping_country: reEncrypted.shipping_country,
+        client_type: client.client_type,
+        client_status: client.client_status,
+        person_type: client.person_type,
+        language: client.language,
+        lead_source: client.lead_source,
+        website: client.website,
+        gdpr_consent: client.gdpr_consent,
+        allow_marketing: client.allow_marketing,
         createdBy: userId,
-        createdAt: contact.createdAt,
+        createdAt: client.createdAt,
+        draft_status: false,
       },
     });
 
     // Copy agent's own comments
-    for (const comment of contact.contactComments) {
-      await tx.contactComment.create({
+    for (const comment of client.ClientComment) {
+      await tx.clientComment.create({
         data: {
           id: crypto.randomUUID(),
-          contact: { connect: { id: newContactId } },
-          user: { connect: { id: userId } },
+          Clients: { connect: { id: newClientId } },
+          Users: { connect: { id: userId } },
           content: comment.content,
           createdAt: comment.createdAt,
           updatedAt: comment.createdAt,
@@ -265,11 +275,10 @@ export async function migrateAgentEntities(
       });
     }
 
-    // Cancel active deals referencing this contact
-    const activeDeals = contact.dealParties
-      .map((dp) => dp.deal)
-      .filter((d) => ACTIVE_DEAL_STATUSES.includes(d.status));
-
+    // Cancel active deals referencing this client
+    const activeDeals = client.Deal.filter((d) =>
+      ACTIVE_DEAL_STATUSES.includes(d.status)
+    );
     for (const deal of activeDeals) {
       // Skip if already cancelled (e.g. shared deal with a property above)
       if (cancelledDeals.some((cd) => cd.id === deal.id)) continue;
@@ -284,9 +293,9 @@ export async function migrateAgentEntities(
       cancelledDeals.push({ id: deal.id, title: deal.title ?? deal.friendlyId });
 
       const counterpartyId =
-        deal.buyerAgentId === userId
-          ? deal.listingAgentId
-          : deal.buyerAgentId;
+        deal.clientAgentId === userId
+          ? deal.propertyAgentId
+          : deal.clientAgentId;
       if (counterpartyId) {
         await tx.notification.create({
           data: {
@@ -306,21 +315,21 @@ export async function migrateAgentEntities(
 
     // Delete shared entity links
     await tx.sharedEntity.deleteMany({
-      where: { entityType: "CLIENT", entityId: contact.id },
+      where: { entityType: "CLIENT", entityId: client.id },
     });
 
-    const hasAnyDeals = contact.dealParties.length > 0;
+    const hasAnyDeals = client.Deal.length > 0;
     if (hasAnyDeals) {
-      await tx.contact.update({
-        where: { id: contact.id },
-        data: { assignedAgentId: null },
+      await tx.clients.update({
+        where: { id: client.id },
+        data: { assigned_to: null },
       });
     } else {
-      await tx.contactComment.deleteMany({ where: { contactId: contact.id } });
-      await tx.contact.delete({ where: { id: contact.id } });
+      await tx.clientComment.deleteMany({ where: { clientId: client.id } });
+      await tx.clients.delete({ where: { id: client.id } });
     }
 
-    migratedClients.push({ id: newContactId, name: contact.displayName });
+    migratedClients.push({ id: newClientId, name: client.client_name });
   }
 
   // ── Mandates ────────────────────────────────────────────────
@@ -406,7 +415,7 @@ export async function migrateAgentEntities(
     // Delete junction tables + comments + original mandate
     // (Mandate has no Deal FK — safe to delete unconditionally)
     await tx.mandate_Properties.deleteMany({ where: { mandateId: mandate.id } });
-    // mandate_Clients table removed — contacts linked via requestContacts instead
+    await tx.mandate_Clients.deleteMany({ where: { mandateId: mandate.id } });
     await tx.mandateComment.deleteMany({ where: { mandateId: mandate.id } });
     await tx.mandate.delete({ where: { id: mandate.id } });
 

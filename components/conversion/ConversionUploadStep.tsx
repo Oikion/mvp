@@ -355,7 +355,7 @@ export function ConversionUploadStep({
                     )}
                     {fileExtension}
                   </Badge>
-                  <Badge variant="outline">{sampleData.length} {t(("entity." + entityType) as Parameters<typeof t>[0])}</Badge>
+                  <Badge variant="outline">{sampleData.length} {t("entity." + entityType)}</Badge>
                   <Badge variant="outline">{headers.length} columns</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">

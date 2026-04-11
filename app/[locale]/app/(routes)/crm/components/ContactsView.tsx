@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { getContactColumns } from "../contacts/table-components/columns";
+import { columns } from "../contacts/table-components/columns";
 import { NewContactForm } from "../contacts/components/NewContactForm";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { useRouter } from "next/navigation";
@@ -84,7 +84,7 @@ const ContactsView = ({ data, crmData }: any) => {
         ) : (
           <DataTable 
             data={data} 
-            columns={getContactColumns()}
+            columns={columns} 
             searchKey="first_name"
             searchPlaceholder="Filter contacts..."
           />

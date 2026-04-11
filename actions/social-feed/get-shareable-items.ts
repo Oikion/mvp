@@ -2,7 +2,7 @@
 
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
-import { decryptContactForOrg } from "@/lib/model-encryption";
+import { decryptClientForOrg } from "@/lib/model-encryption";
 
 export interface ShareableItem {
   id: string;
@@ -38,14 +38,14 @@ export async function getShareableItems(): Promise<{
       },
     });
 
-    // Fetch contacts that can be shared (maybe with consent)
-    const clients = await prisma.contact.findMany({
+    // Fetch clients that can be shared (maybe with consent)
+    const clients = await prisma.clients.findMany({
       take: 50,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        displayName: true,
-        status: true,
+        client_name: true,
+        person_type: true,
       },
     });
 
@@ -58,12 +58,12 @@ export async function getShareableItems(): Promise<{
       })),
       clients: await Promise.all(
         clients.map(async (c) => {
-          const decrypted = await decryptContactForOrg(c, orgId);
+          const decrypted = await decryptClientForOrg(c, orgId);
           return {
             id: decrypted.id,
             type: "client" as const,
-            title: decrypted.displayName || "Unnamed Contact",
-            subtitle: decrypted.status || undefined,
+            title: decrypted.client_name || "Unnamed Client",
+            subtitle: decrypted.person_type || undefined,
           };
         })
       ),

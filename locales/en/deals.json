@@ -1,58 +1,34 @@
 {
   "title": "Deals",
-  "description": "Manage property transactions through the deal pipeline",
+  "description": "Manage collaborative deals and commission splits (Διαμοιρασμός)",
   "tabs": {
-    "all": "All",
+    "pending": "Pending",
+    "accepted": "Accepted",
     "active": "Active",
     "completed": "Completed",
-    "fallenThrough": "Fallen Through"
+    "cancelled": "Cancelled"
   },
-  "stage": {
-    "INTEREST": "Interest",
-    "OFFER": "Offer",
-    "NEGOTIATION": "Negotiation",
-    "PRELIMINARY_AGREEMENT": "Preliminary Agreement",
-    "DUE_DILIGENCE": "Due Diligence",
-    "TRANSFER_TAX": "Transfer Tax",
-    "SIGNING": "Signing",
-    "REGISTRATION": "Registration",
-    "COMPLETED": "Completed",
-    "FALLEN_THROUGH": "Fallen Through"
-  },
-  "stageDescription": {
-    "INTEREST": "Buyer has expressed interest in the property",
-    "OFFER": "A formal offer has been submitted",
-    "NEGOTIATION": "Price and terms are being negotiated",
-    "PRELIMINARY_AGREEMENT": "Preliminary agreement (Προσύμφωνο) signed",
-    "DUE_DILIGENCE": "Legal and technical checks in progress",
-    "TRANSFER_TAX": "Transfer tax payment at DOY (tax office)",
-    "SIGNING": "Notarial deed signing (Συμβόλαιο)",
-    "REGISTRATION": "Registration at the Land Registry (Κτηματολόγιο)",
-    "COMPLETED": "Deal fully closed and registered",
-    "FALLEN_THROUGH": "Deal terminated"
-  },
-  "dealType": {
-    "SALE": "Sale",
-    "RENT": "Rental"
-  },
-  "agentRole": {
-    "LISTING_SIDE": "Listing Side",
-    "BUYER_SIDE": "Buyer Side",
-    "DUAL_AGENCY": "Dual Agency"
-  },
-  "partyRole": {
-    "BUYER": "Buyer",
-    "SELLER": "Seller",
-    "TENANT": "Tenant",
-    "LANDLORD": "Landlord",
-    "BUYER_AGENT": "Buyer Agent",
-    "LISTING_AGENT": "Listing Agent",
-    "NOTARY": "Notary",
-    "LAWYER": "Lawyer",
-    "ACCOUNTANT": "Accountant",
-    "GUARANTOR": "Guarantor",
-    "REPRESENTATIVE": "Representative",
-    "OTHER": "Other"
+  "sections": {
+    "pending": {
+      "title": "Pending Deals",
+      "description": "Deal proposals waiting for acceptance or under negotiation"
+    },
+    "accepted": {
+      "title": "Accepted Deals",
+      "description": "Deals that have been accepted by both agents"
+    },
+    "active": {
+      "title": "Active Deals",
+      "description": "Deals currently in progress"
+    },
+    "completed": {
+      "title": "Completed Deals",
+      "description": "Successfully closed deals"
+    },
+    "cancelled": {
+      "title": "Cancelled Deals",
+      "description": "Deals that were cancelled"
+    }
   },
   "status": {
     "PROPOSED": "Proposal",
@@ -63,176 +39,115 @@
     "CANCELLED": "Cancelled"
   },
   "list": {
-    "empty": "No deals found.",
-    "emptyActive": "No active deals.",
-    "emptyCompleted": "No completed deals yet.",
+    "empty": "No deals in this category.",
+    "awaitingResponse": "Awaiting Your Response",
     "propertyValue": "Property Value",
-    "agreedPrice": "Agreed Price",
-    "monthlyRent": "Monthly Rent",
     "createdAgo": "Created {time} ago",
-    "closedAgo": "Closed {time} ago",
-    "stageProgress": "Stage {current} of {total}",
-    "parties": "{count, plural, one {# party} other {# parties}}"
+    "closedAgo": "Closed {time} ago"
   },
-  "create": {
-    "title": "New Deal",
-    "description": "Create a new property transaction deal",
+  "createDialog": {
+    "newDeal": "New Deal",
+    "title": "Create New Deal",
+    "description": "Propose a new collaborative deal with another agent",
+    "loading": "Loading...",
     "property": "Property",
     "selectProperty": "Select a property",
-    "request": "Request (Optional)",
-    "selectRequest": "Link to a search request",
-    "dealType": "Transaction Type",
-    "selectDealType": "Sale or Rental",
-    "agentRole": "Your Role",
-    "selectAgentRole": "Your role in this deal",
-    "listingAgent": "Listing Agent",
-    "selectListingAgent": "Select listing agent",
-    "buyerAgent": "Buyer Agent",
-    "selectBuyerAgent": "Select buyer agent",
-    "agreedPrice": "Agreed Price",
-    "pricePlaceholder": "e.g., 250000",
-    "commission": "Commission",
-    "commissionRate": "Commission Rate (%)",
-    "totalCommission": "Total Commission",
-    "listingAgentSplit": "Listing Agent Split (%)",
-    "buyerAgentSplit": "Buyer Agent Split (%)",
-    "monthlyRent": "Monthly Rent",
-    "securityDeposit": "Security Deposit",
-    "depositAmount": "Deposit Amount",
-    "leaseDuration": "Lease Duration (months)",
-    "leaseStart": "Lease Start Date",
-    "leaseEnd": "Lease End Date",
-    "title": "Title (Optional)",
-    "titlePlaceholder": "Deal title...",
+    "client": "Client",
+    "selectClient": "Select a client",
+    "partnerAgent": "Partner Agent",
+    "selectPartner": "Select partner agent",
+    "noConnections": "You need connections to create deals.",
+    "findAgents": "Find agents",
+    "yourRole": "Your Role",
+    "propertyAgent": "Property Agent",
+    "propertyAgentDesc": "I bring the property",
+    "clientAgent": "Client Agent",
+    "clientAgentDesc": "I bring the client",
+    "commissionSplit": "Commission Split (Διαμοιρασμός)",
+    "you": "You",
+    "partner": "Partner",
+    "propertyShort": "Property",
+    "clientShort": "Client",
+    "totalCommission": "Total Commission (Optional)",
+    "commissionPlaceholder": "e.g., 10000",
     "notes": "Notes (Optional)",
-    "notesPlaceholder": "Additional details about this deal...",
+    "notesPlaceholder": "Any additional details about this deal...",
     "cancel": "Cancel",
-    "createDeal": "Create Deal",
-    "quickAdd": "Quick Add Deal",
-    "fullWizard": "Open Full Wizard",
-    "notary": "Notary",
-    "selectAgent": "Select agent",
-    "selectNotary": "Select notary contact",
-    "splitHint": "Must sum to 100%",
-    "splitOk": "✓ equals 100%",
-    "pickDealTypeFirst": "Pick a deal type first",
-    "steps": {
-      "propertyRequest": "Property & Request",
-      "parties": "Parties & Agents",
-      "financial": "Financial",
-      "notes": "Notes",
-      "review": "Review"
-    },
-    "stepDescriptions": {
-      "propertyRequest": "Select the property and optionally link a search request",
-      "parties": "Assign listing agent, buyer agent, and notary",
-      "financial": "Set price, commission, and split details",
-      "notes": "Add a title and any internal notes",
-      "review": "Review all details before creating the deal"
-    },
-    "validation": {
-      "propertyRequired": "Property is required",
-      "splitMustTotal100": "Commission split must total 100%",
-      "fixErrors": "Please fix the highlighted errors before continuing"
-    }
+    "proposeDeal": "Propose Deal",
+    "missingInfo": "Missing Information",
+    "missingInfoDescription": "Please fill in all required fields."
   },
   "detail": {
-    "overview": "Overview",
-    "pipeline": "Pipeline",
-    "parties": "Parties",
-    "stageLog": "Stage History",
-    "financial": "Financial Details",
-    "rental": "Rental Details",
-    "advanceStage": "Advance Stage",
-    "advanceTo": "Advance to {stage}",
-    "markFallenThrough": "Mark as Fallen Through",
-    "fallenThroughReason": "Reason for falling through",
-    "noNotary": "No notary assigned",
-    "noRequest": "No linked request",
-    "commission": {
-      "title": "Commission",
-      "rate": "Rate",
-      "total": "Total",
-      "split": "Split",
-      "listingAgent": "Listing Agent",
-      "buyerAgent": "Buyer Agent"
+    "acceptDeal": "Accept Deal",
+    "startProgress": "Start Progress",
+    "completeDeal": "Complete Deal",
+    "cancel": "Cancel",
+    "awaitingResponse": "Awaiting Your Response",
+    "commissionSplit": {
+      "title": "Commission Split (Διαμοιρασμός)",
+      "description": "Agreement on how the commission will be divided",
+      "propertyAgent": "Property Agent",
+      "clientAgent": "Client Agent",
+      "totalCommission": "Total Commission",
+      "proposeDifferent": "Propose Different Split",
+      "proposeThis": "Propose This Split"
     },
     "property": "Property",
-    "viewProperty": "View Property",
-    "request": "Linked Request",
-    "viewRequest": "View Request",
-    "notary": "Notary",
-    "viewNotary": "View Contact",
+    "client": "Client",
+    "viewClient": "View Client",
     "notes": "Notes",
     "timeline": {
       "title": "Timeline",
       "created": "Created",
-      "contractDate": "Contract Date",
       "closed": "Closed"
     },
-    "stageLogEntry": "{user} moved deal from {from} to {to}",
-    "deleteDialog": {
-      "title": "Delete This Deal?",
-      "description": "This will soft-delete the deal. It can be recovered if needed.",
-      "cancel": "Cancel",
-      "delete": "Delete Deal"
+    "cancelDialog": {
+      "title": "Cancel This Deal?",
+      "description": "Are you sure you want to cancel this deal? This action cannot be undone.",
+      "keepDeal": "Keep Deal",
+      "cancelDeal": "Cancel Deal"
     },
-    "fallenThroughDialog": {
-      "title": "Mark Deal as Fallen Through?",
-      "description": "Please provide a reason for this deal falling through.",
-      "reason": "Reason",
-      "reasonPlaceholder": "Why did the deal fall through?",
+    "completeDialog": {
+      "title": "Complete This Deal?",
+      "description": "Congratulations! Enter the final commission amount to close this deal.",
+      "finalCommission": "Final Commission Amount",
+      "enterAmount": "Enter amount",
+      "splitBreakdown": "Split breakdown:",
       "cancel": "Cancel",
-      "confirm": "Confirm"
-    },
-    "backToDeals": "Back to deals",
-    "edit": "Edit",
-    "editComingSoon": "Edit coming soon",
-    "stagePosition": "Stage {current} of {total}",
-    "noParties": "No parties yet",
-    "noStageHistory": "No stage history yet",
-    "addParty": "Add party",
-    "removeParty": "Remove party",
-    "searchContacts": "Search contacts…",
-    "contacts": "Contacts",
-    "addPartyDialog": {
-      "title": "Add Party to Deal",
-      "description": "Link a contact to this deal with a specific role.",
-      "contact": "Contact",
-      "role": "Role",
-      "selectRole": "Select role",
-      "notes": "Notes (Optional)",
-      "notesPlaceholder": "Optional notes about this party's involvement",
-      "cancel": "Cancel",
-      "add": "Add Party",
-      "noContacts": "No contacts found"
-    },
-    "removePartyDialog": {
-      "title": "Remove Party?",
-      "description": "Remove {name} from this deal? This won't delete the contact.",
-      "cancel": "Cancel",
-      "remove": "Remove"
-    },
-    "unknownUser": "Unknown user"
+      "complete": "Complete Deal"
+    }
   },
   "toast": {
-    "created": "Deal created",
-    "createdDesc": "New deal has been created successfully.",
-    "updated": "Deal updated",
-    "updatedDesc": "Deal details have been updated.",
-    "deleted": "Deal deleted",
-    "deletedDesc": "The deal has been deleted.",
-    "stageAdvanced": "Stage advanced",
-    "stageAdvancedDesc": "Deal moved to {stage}.",
-    "partyAdded": "Party added",
-    "partyAddedDesc": "Contact has been added as a deal party.",
-    "partyRemoved": "Party removed",
-    "partyRemovedDesc": "Contact has been removed from the deal.",
+    "dealProposed": "Deal Proposed",
+    "dealProposedDesc": "Your deal proposal has been sent!",
+    "dealAccepted": "Deal Accepted",
+    "dealAcceptedDesc": "You have accepted this deal!",
+    "dealCancelled": "Deal Cancelled",
+    "dealCancelledDesc": "The deal has been cancelled.",
+    "counterProposalSent": "Counter-proposal Sent",
+    "counterProposalSentDesc": "Your proposed split has been sent to the other agent.",
+    "dealInProgress": "Deal In Progress",
+    "dealInProgressDesc": "The deal is now marked as in progress.",
+    "dealCompleted": "Deal Completed! 🎉",
+    "dealCompletedDesc": "Congratulations on closing this deal!",
     "error": "Error",
     "createError": "Failed to create deal",
+    "acceptError": "Failed to accept deal",
+    "cancelError": "Failed to cancel deal",
+    "proposeError": "Failed to propose new split",
     "updateError": "Failed to update deal",
-    "deleteError": "Failed to delete deal",
-    "stageError": "Failed to advance stage",
-    "partyError": "Failed to manage deal parties"
+    "completeError": "Failed to complete deal"
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+

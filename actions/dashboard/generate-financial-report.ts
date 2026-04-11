@@ -34,7 +34,7 @@ export async function generateFinancialReport() {
         status: "COMPLETED",
       },
       include: {
-        property: {
+        Properties: {
           select: {
             property_name: true,
             address_street: true,
@@ -43,7 +43,13 @@ export async function generateFinancialReport() {
             property_type: true,
           },
         },
-        buyerAgent: {
+        Clients: {
+          select: {
+            client_name: true,
+            primary_email: true,
+          },
+        },
+        Users_Deal_clientAgentIdToUsers: {
           select: {
             name: true,
             email: true,
@@ -108,8 +114,8 @@ export async function generateFinancialReport() {
     > = {};
 
     completedDeals.forEach((deal) => {
-      if (deal.buyerAgent) {
-        const agent = deal.buyerAgent;
+      if (deal.Users_Deal_clientAgentIdToUsers) {
+        const agent = deal.Users_Deal_clientAgentIdToUsers;
         const agentId = agent.email || agent.name || "Unknown";
         if (!agentPerformance[agentId]) {
           agentPerformance[agentId] = {
@@ -185,12 +191,12 @@ export async function generateFinancialReport() {
         topAgents,
         recentDeals: completedDeals.slice(0, 20).map((deal) => ({
           id: deal.id,
-          propertyTitle: deal.property?.property_name || "Unknown Property",
-          propertyAddress: `${deal.property?.address_street || ""} ${deal.property?.address_city || ""}`.trim() || "Unknown Address",
-          clientName: "Unknown Client",
-          agentName: deal.buyerAgent?.name || "Unassigned",
+          propertyTitle: deal.Properties?.property_name || "Unknown Property",
+          propertyAddress: `${deal.Properties?.address_street || ""} ${deal.Properties?.address_city || ""}`.trim() || "Unknown Address",
+          clientName: deal.Clients?.client_name || "Unknown Client",
+          agentName: deal.Users_Deal_clientAgentIdToUsers?.name || "Unassigned",
           commission: deal.totalCommission ? Number(deal.totalCommission) : 0,
-          salePrice: deal.property?.salePrice || 0,
+          salePrice: deal.Properties?.salePrice || 0,
           closedAt: deal.closedAt,
           dealType: deal.dealType,
         })),

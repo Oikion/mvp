@@ -328,7 +328,7 @@ export default function MandateView({
                 }
                 variant="secondary"
               >
-                {t(`MandateForm.status.${mandate.status}` as Parameters<typeof t>[0])}
+                {t(`MandateForm.status.${mandate.status}`)}
               </Badge>
               {mandate.urgency && (
                 <Badge
@@ -337,7 +337,7 @@ export default function MandateView({
                   }
                   variant="secondary"
                 >
-                  {t(`MandateForm.urgency.${mandate.urgency}` as Parameters<typeof t>[0])}
+                  {t(`MandateForm.urgency.${mandate.urgency}`)}
                 </Badge>
               )}
             </div>
@@ -681,7 +681,7 @@ export default function MandateView({
                     }
                     variant="secondary"
                   >
-                    {t(`MandateForm.status.${mandate.status}` as Parameters<typeof t>[0])}
+                    {t(`MandateForm.status.${mandate.status}`)}
                   </Badge>
                 }
               />
@@ -696,7 +696,7 @@ export default function MandateView({
                       }
                       variant="secondary"
                     >
-                      {t(`MandateForm.urgency.${mandate.urgency}` as Parameters<typeof t>[0])}
+                      {t(`MandateForm.urgency.${mandate.urgency}`)}
                     </Badge>
                   ) : null
                 }

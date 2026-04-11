@@ -37,7 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { ConditionalFormSection } from "@/components/form/conditional-section";
-import { useContacts } from "@/hooks/swr/useContacts";
+import { useClients } from "@/hooks/swr/useClients";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 import {
   Popover,
@@ -103,8 +103,8 @@ export function NewMandateWizard({
   // Fetch org users for agent selector
   const { users: orgUsers, isLoading: usersLoading } = useOrgUsers();
 
-  // Fetch contacts for contact selector
-  const { contacts: clients, isLoading: clientsLoading } = useContacts();
+  // Fetch clients for client selector
+  const { clients, isLoading: clientsLoading } = useClients();
 
   // ---------------------------------------------------------------------------
   // Steps configuration
@@ -1318,7 +1318,7 @@ export function NewMandateWizard({
                       <SelectTrigger>
                         <SelectValue
                           placeholder={t(
-                            "MandateForm.fields.timelinePlaceholder" as Parameters<typeof t>[0]
+                            "MandateForm.fields.timelinePlaceholder"
                           )}
                         />
                       </SelectTrigger>
@@ -1427,7 +1427,7 @@ export function NewMandateWizard({
                       value={field.value || []}
                       onChange={field.onChange}
                       placeholder={t(
-                        "MandateForm.fields.conditionPlaceholder" as Parameters<typeof t>[0]
+                        "MandateForm.fields.conditionPlaceholder"
                       )}
                     />
                   </FormControl>
@@ -1451,7 +1451,7 @@ export function NewMandateWizard({
                       value={field.value || []}
                       onChange={field.onChange}
                       placeholder={t(
-                        "MandateForm.fields.heatingTypePlaceholder" as Parameters<typeof t>[0]
+                        "MandateForm.fields.heatingTypePlaceholder"
                       )}
                     />
                   </FormControl>
@@ -1614,7 +1614,7 @@ export function NewMandateWizard({
                       value={field.value || []}
                       onChange={field.onChange}
                       placeholder={t(
-                        "MandateForm.fields.amenitiesPlaceholder" as Parameters<typeof t>[0]
+                        "MandateForm.fields.amenitiesPlaceholder"
                       )}
                     />
                   </FormControl>

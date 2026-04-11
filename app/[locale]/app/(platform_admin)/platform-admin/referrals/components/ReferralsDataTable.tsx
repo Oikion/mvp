@@ -163,7 +163,7 @@ export function ReferralsDataTable({
     return (
       <Badge variant={config.variant} className="gap-1">
         <Icon className="h-3 w-3" />
-        {t(`status.${status.toLowerCase()}` as Parameters<typeof t>[0])}
+        {t(`status.${status.toLowerCase()}`)}
       </Badge>
     );
   };

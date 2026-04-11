@@ -16,15 +16,15 @@ export async function getMentionOptions(): Promise<{
   const organizationId = await getCurrentOrgId();
 
   const [clients, properties, events, tasks] = await Promise.all([
-    // Contacts
-    prismadb.contact.findMany({
+    // Clients
+    prismadb.clients.findMany({
       where: { organizationId },
       select: {
         id: true,
-        displayName: true,
+        client_name: true,
       },
       orderBy: {
-        displayName: "asc",
+        client_name: "asc",
       },
       take: 1000,
     }),
@@ -71,7 +71,7 @@ export async function getMentionOptions(): Promise<{
   return {
     clients: clients.map((c) => ({
       id: c.id,
-      name: c.displayName,
+      name: c.client_name,
       type: "client" as const,
     })),
     properties: properties.map((p) => ({
@@ -80,8 +80,8 @@ export async function getMentionOptions(): Promise<{
       type: "property" as const,
     })),
     events: events
-      .filter((e) => e.title)
-      .map((e) => ({
+      .filter((e: any) => e.title)
+      .map((e: any) => ({
         id: e.id,
         name: e.title || "",
         type: "event" as const,

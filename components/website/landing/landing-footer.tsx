@@ -47,7 +47,7 @@ export function LandingFooter() {
                         focus-visible:outline-[#7B8C7C]
                       "
                     >
-                      {t(`nav.${id}` as Parameters<typeof t>[0])}
+                      {t(`nav.${id}`)}
                     </a>
                   </li>
                 ))}

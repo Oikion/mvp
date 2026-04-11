@@ -93,22 +93,22 @@ export async function resolveMentions(
   // Resolve clients
   if (clientMentions.length > 0) {
     const clientNames = clientMentions.map((m) => m.name);
-    const clients = await prismaClient.contact.findMany({
+    const clients = await prismaClient.clients.findMany({
       where: {
         organizationId,
-        displayName: {
+        client_name: {
           in: clientNames,
         },
       },
       select: {
         id: true,
-        displayName: true,
+        client_name: true,
       },
     });
 
     resolved.clients = clients.map((c) => ({
       id: c.id,
-      name: c.displayName,
+      name: c.client_name,
     }));
   }
 
@@ -207,21 +207,21 @@ export async function mergeMentions(
 
   // Add explicit client associations
   if (explicitAssociations.clientIds && explicitAssociations.clientIds.length > 0) {
-    const explicitClients = await prismaClient.contact.findMany({
+    const explicitClients = await prismaClient.clients.findMany({
       where: {
         id: { in: explicitAssociations.clientIds },
         organizationId,
       },
       select: {
         id: true,
-        displayName: true,
+        client_name: true,
       },
     });
 
     // Merge, avoiding duplicates
     for (const client of explicitClients) {
       if (!merged.clients.some((c) => c.id === client.id)) {
-        merged.clients.push({ id: client.id, name: client.displayName });
+        merged.clients.push({ id: client.id, name: client.client_name });
       }
     }
   }

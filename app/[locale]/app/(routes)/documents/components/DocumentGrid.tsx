@@ -1,8 +1,6 @@
 "use client";
 
-import type { Prisma } from "@prisma/client";
-// Prisma 7: JsonValue is accessed via the `Prisma` namespace.
-type JsonValue = Prisma.JsonValue;
+import type { JsonValue } from "@prisma/client/runtime/library";
 import { DocumentCard } from "./DocumentCard";
 import { type MentionData } from "./MentionDisplay";
 import { useRouter } from "@/navigation";

@@ -281,9 +281,6 @@
       "quickAdd": "Create",
       "update": "Update property"
     },
-    "autosave": {
-      "saving": "Saving..."
-    },
     "step3": {
       "noPropertyType": "Please select a property type in step 1 first.",
       "otherType": "Fields are shown based on the property type you selected.",
@@ -293,8 +290,7 @@
   "QuickAdd": {
     "property": {
       "title": "Quick Add Property",
-      "description": "Fill in the basic information to quickly create a property",
-      "success": "Property created successfully"
+      "description": "Fill in the basic information to quickly create a property"
     }
   },
   "MlsPropertiesTable": {

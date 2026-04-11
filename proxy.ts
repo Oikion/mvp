@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { availableLocales } from "@/lib/locales";
 import { rateLimit, getRateLimitIdentifier, getRateLimitTier } from "@/lib/rate-limit";
-import { verifyAccessCookie, verifyStagingCookie } from "@/lib/app-access";
+import { verifyAccessCookie } from "@/lib/app-access";
 
 // Configure next-intl middleware for locale routing
 const intlMiddleware = createMiddleware({
@@ -85,14 +85,6 @@ const isAppAccessApiRoute = createRouteMatcher([
   "/api/app-access(.*)",
 ]);
 
-// Routes exempt from the staging passcode gate
-const isStagingGatePage = createRouteMatcher([
-  "/:locale/staging-access(.*)",
-]);
-const isStagingAccessApiRoute = createRouteMatcher([
-  "/api/staging-access(.*)",
-]);
-
 
 /**
  * Check if user is a platform admin
@@ -158,35 +150,6 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
     pathname.includes('/__nextjs_')
   )) {
     return NextResponse.next();
-  }
-
-  // ============================================
-  // STAGING PASSCODE GATE
-  // Site-wide gate: when STAGING_PASSCODE is set, ALL pages (public, app,
-  // API) require a valid oik_staging cookie. Only the gate page itself,
-  // the verify API, static files, and Next.js internals are exempt.
-  // Disabled when STAGING_PASSCODE is not set (safe for production / local dev).
-  // ============================================
-  if (
-    process.env.STAGING_PASSCODE &&
-    !isStagingGatePage(req) &&
-    !isStagingAccessApiRoute(req) &&
-    !pathname.startsWith("/_next") &&
-    !pathname.includes("/_next/") &&
-    !pathname.startsWith("/__nextjs") &&
-    !/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|map|json|lottie|mp4)$/i.test(pathname)
-  ) {
-    const stagingCookie = req.cookies.get("oik_staging")?.value;
-    if (!verifyStagingCookie(stagingCookie)) {
-      const pathLocale = pathname.split("/")[1];
-      const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
-      const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
-        ? (pathLocale as "en" | "el")
-        : "el";
-      const stagingUrl = new URL(`/${locale}/staging-access`, req.url);
-      stagingUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(stagingUrl);
-    }
   }
 
   // ============================================

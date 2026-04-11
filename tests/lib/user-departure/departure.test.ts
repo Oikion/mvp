@@ -17,7 +17,7 @@ vi.mock("@/lib/prisma", () => ({
     notification: { deleteMany: (...args: unknown[]) => mockDeleteMany(...args) },
     eventInvitee: { deleteMany: (...args: unknown[]) => mockDeleteMany(...args) },
     // All org-data models use updateMany
-    contact: { updateMany: mockUpdateMany },
+    clients: { updateMany: mockUpdateMany },
     properties: { updateMany: mockUpdateMany },
     mandate: { updateMany: mockUpdateMany },
     deal: { updateMany: mockUpdateMany },
@@ -33,7 +33,6 @@ vi.mock("@/lib/prisma", () => ({
     client_Contacts: { updateMany: mockUpdateMany },
     crm_Accounts_Tasks_Comments: { updateMany: mockUpdateMany },
     clientComment: { updateMany: mockUpdateMany },
-    contactComment: { updateMany: mockUpdateMany },
     propertyComment: { updateMany: mockUpdateMany },
     mandateComment: { updateMany: mockUpdateMany },
     socialPostComment: { updateMany: mockUpdateMany },

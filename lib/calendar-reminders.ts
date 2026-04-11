@@ -107,10 +107,10 @@ export async function getUpcomingReminders(
               userTheme: true,
             },
           },
-          Contacts: {
+          Clients: {
             select: {
               id: true,
-              displayName: true,
+              client_name: true,
             },
           },
           Properties: {
@@ -148,10 +148,10 @@ export async function sendReminderNotification(
               userTheme: true,
             },
           },
-          Contacts: {
+          Clients: {
             select: {
               id: true,
-              displayName: true,
+              client_name: true,
             },
           },
           Properties: {
@@ -216,7 +216,7 @@ export async function sendReminderNotification(
           location: event.location || "",
           reminderMinutes: reminder.reminderMinutes,
           minutesLabel,
-          linkedClients: event.Contacts || [],
+          linkedClients: event.Clients || [],
           linkedProperties: event.Properties || [],
           userLanguage: user.userLanguage || "en",
           userTheme: user.userTheme ?? "estate",

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -16,9 +15,6 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { useTableWithPageSize } from "@/lib/hooks/use-table-with-page-size";
-import { useTranslations } from "next-intl";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 
 import {
   Table,
@@ -28,39 +24,44 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTablePagination } from "./data-table-pagination";
 
-interface ContactsDataTableProps<TData, TValue> {
+import { DataTablePagination } from "./data-table-pagination";
+import { DataTableToolbar } from "./data-table-toolbar";
+import { PanelTopClose, PanelTopOpen } from "lucide-react";
+
+interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  getRowHref?: (row: TData) => string;
-  toolbarRight?: React.ReactNode;
 }
 
 export function ContactsDataTable<TData, TValue>({
   columns,
   data,
-  getRowHref,
-  toolbarRight,
-}: ContactsDataTableProps<TData, TValue>) {
-  const router = useRouter();
-  const t = useTranslations("crm");
+}: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = React.useState("");
+
+  const [hide, setHide] = React.useState(false);
 
   const table = useTableWithPageSize({
     data,
     columns,
-    state: { sorting, columnVisibility, rowSelection, columnFilters, globalFilter },
+    state: {
+      sorting,
+      columnVisibility,
+      rowSelection,
+      columnFilters,
+    },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -71,78 +72,91 @@ export function ContactsDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      {/* Toolbar: search + right content (ViewToggle) */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t("contacts.searchPlaceholder")}
-            value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="pl-8 h-9"
-          />
+      <div className="flex justify-between items-start gap-3">
+        <div></div>
+        {/*         <RightViewModal
+          label={"Create account"}
+          title="Create account"
+          description=""
+        >
+          <NewAccountForm industries={industries} users={users} />
+        </RightViewModal> */}
+
+        <div className="flex justify-end space-x-2">
+          {hide ? (
+            <PanelTopOpen
+              onClick={() => setHide(!hide)}
+              className="text-muted-foreground"
+            />
+          ) : (
+            <PanelTopClose
+              onClick={() => setHide(!hide)}
+              className="text-muted-foreground"
+            />
+          )}
         </div>
-        {toolbarRight && <div className="flex items-center gap-2">{toolbarRight}</div>}
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
+      {hide ? (
+        <div className="flex gap-2">
+          This content is hidden now. Click on <PanelTopOpen /> to show content
+        </div>
+      ) : (
+        <>
+          <DataTableToolbar table={table} />
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className={getRowHref ? "cursor-pointer" : undefined}
-                  onClick={
-                    getRowHref
-                      ? (e: React.MouseEvent) => {
-                          const target = e.target as HTMLElement;
-                          if (
-                            target.closest(
-                              'button, a, input, select, textarea, [role="combobox"], [role="menuitem"], [data-radix-collection-item]'
-                            )
-                          )
-                            return;
-                          router.push(getRowHref(row.original));
-                        }
-                      : undefined
-                  }
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  {t("contacts.emptyState.noResults")}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      <DataTablePagination table={table} />
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <DataTablePagination table={table} />
+        </>
+      )}
     </div>
   );
 }

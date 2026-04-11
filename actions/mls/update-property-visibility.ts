@@ -3,7 +3,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { ItemVisibility } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
-import { createSystemActivity } from "@/actions/activities";
 
 export async function updatePropertyVisibility(
   propertyId: string,
@@ -15,7 +14,7 @@ export async function updatePropertyVisibility(
 
     const property = await prismadb.properties.findFirst({
       where: { id: propertyId, organizationId: orgId },
-      select: { id: true, visibility: true },
+      select: { id: true },
     });
     if (!property) return { success: false, error: "Property not found" };
 
@@ -32,14 +31,6 @@ export async function updatePropertyVisibility(
           where: { propertyId },
         });
       }
-    });
-
-    void createSystemActivity({
-      organizationId: orgId,
-      parentType: "PROPERTY",
-      parentId: propertyId,
-      kind: "OTHER",
-      body: `Visibility changed from ${property.visibility} to ${visibility}`,
     });
 
     return { success: true };

@@ -197,22 +197,22 @@ export function MandateFilterDrawer({
   // Build translated options
   const statusOptions = STATUS_OPTIONS.map((o) => ({
     value: o.value,
-    label: t(o.labelKey as Parameters<typeof t>[0]),
+    label: t(o.labelKey),
   }));
 
   const urgencyOptions = URGENCY_OPTIONS.map((o) => ({
     value: o.value,
-    label: t(o.labelKey as Parameters<typeof t>[0]),
+    label: t(o.labelKey),
   }));
 
   const transactionTypeOptions = TRANSACTION_TYPE_OPTIONS.map((o) => ({
     value: o.value,
-    label: t(o.labelKey as Parameters<typeof t>[0]),
+    label: t(o.labelKey),
   }));
 
   const propertyTypeOptions = PROPERTY_TYPE_OPTIONS.map((o) => ({
     value: o.value,
-    label: t(o.labelKey as Parameters<typeof t>[0]),
+    label: t(o.labelKey),
   }));
 
   return (
@@ -323,7 +323,7 @@ export function MandateFilterDrawer({
                     htmlFor={`filter-linked-${option.value || "all"}`}
                     className="text-sm font-normal cursor-pointer leading-none"
                   >
-                    {t(option.labelKey as Parameters<typeof t>[0])}
+                    {t(option.labelKey)}
                   </Label>
                 </div>
               ))}

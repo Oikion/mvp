@@ -8,17 +8,17 @@ import { getModules } from "@/actions/get-modules";
 
 const AdminModulesPage = async () => {
   try {
-    const t = await getTranslations("admin");
+    const t = await getTranslations();
     const user = await getCurrentUser();
 
     if (!user?.is_admin) {
       return (
         <Container
-          title={t("title")}
-          description={t("accessDenied")}
+          title={t("Admin.title")}
+          description={t("Admin.accessDenied")}
         >
           <div className="flex w-full h-full items-center justify-center">
-            {t("accessNotAllowed")}
+            {t("Admin.accessNotAllowed")}
           </div>
         </Container>
       );
@@ -27,21 +27,21 @@ const AdminModulesPage = async () => {
     const modules: any = await getModules();
     return (
       <Container
-        title={t("modulesAdministration")}
-        description={t("manageModulesDescription")}
+        title={t("Admin.modulesAdministration")}
+        description={t("Admin.manageModulesDescription")}
       >
         <DataTable columns={columns} data={modules} search="name" />
       </Container>
     );
   } catch (error) {
-    const t = await getTranslations("admin");
+    const t = await getTranslations();
     return (
       <Container
-        title={t("title")}
-        description={t("accessNotAllowed")}
+        title={t("Admin.title")}
+        description={t("Admin.accessNotAllowed")}
       >
         <div className="flex w-full h-full items-center justify-center">
-          {t("accessNotAllowed")}
+          {t("Admin.accessNotAllowed")}
         </div>
       </Container>
     );

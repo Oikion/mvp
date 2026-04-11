@@ -19,7 +19,7 @@ interface CalendarReminderEmailProps {
   location?: string;
   reminderMinutes: number;
   minutesLabel: string;
-  linkedClients?: Array<{ id: string; displayName: string }>;
+  linkedClients?: Array<{ id: string; client_name: string }>;
   linkedProperties?: Array<{ id: string; property_name: string }>;
   userLanguage: string;
   eventUrl: string;
@@ -137,7 +137,7 @@ export default function CalendarReminderEmail({
             </Text>
             {linkedClients.map((client) => (
               <Text key={client.id} style={{ color: colors.textSecondary }} className="text-sm m-0 mb-1">
-                • {client.displayName}
+                • {client.client_name}
               </Text>
             ))}
           </>

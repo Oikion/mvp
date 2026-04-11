@@ -96,21 +96,21 @@ export async function PUT(
         linkedPropertiesIds: mergedMentions.properties.map((p) => p.id),
         linkedCalendarEventsIds: mergedMentions.events.map((e) => e.id),
         linkedTasksIds: mergedMentions.tasks.map((t) => t.id),
-        Contacts: {
-          set: mergedMentions.clients.map((c: { id: string }) => ({ id: c.id })),
+        Clients: {
+          set: mergedMentions.clients.map((c) => ({ id: c.id })),
         },
         Properties: {
-          set: mergedMentions.properties.map((p: { id: string }) => ({ id: p.id })),
+          set: mergedMentions.properties.map((p) => ({ id: p.id })),
         },
         CalendarEvent: {
-          set: mergedMentions.events.map((e: { id: string }) => ({ id: e.id })),
+          set: mergedMentions.events.map((e) => ({ id: e.id })),
         },
         crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: {
-          set: mergedMentions.tasks.map((t: { id: string }) => ({ id: t.id })),
+          set: mergedMentions.tasks.map((t) => ({ id: t.id })),
         },
       },
       include: {
-        Contacts: true,
+        Clients: true,
         Properties: true,
         CalendarEvent: true,
         crm_Accounts_Tasks_DocumentsToCrmAccountsTasks: true,

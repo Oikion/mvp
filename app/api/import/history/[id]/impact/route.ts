@@ -102,7 +102,7 @@ export async function POST(
     // Count entities that will be affected
     const [clientCount, propertyCount, mandateCount] = await Promise.all([
       clientIds.length > 0
-        ? prismadb.contact.count({ where: { id: { in: clientIds }, organizationId: orgId } })
+        ? prismadb.clients.count({ where: { id: { in: clientIds }, organizationId: orgId } })
         : Promise.resolve(0),
       propertyIds.length > 0
         ? prismadb.properties.count({ where: { id: { in: propertyIds }, organizationId: orgId } })
@@ -119,12 +119,12 @@ export async function POST(
       mandateClientLinkCount,
       dealCount,
     ] = await Promise.all([
-      // ContactProperty: any link touching the targeted clients OR properties
+      // Client_Properties: any link touching the targeted clients OR properties
       clientIds.length > 0 || propertyIds.length > 0
-        ? prismadb.contactProperty.count({
+        ? prismadb.client_Properties.count({
             where: {
               OR: [
-                ...(clientIds.length > 0 ? [{ contactId: { in: clientIds } }] : []),
+                ...(clientIds.length > 0 ? [{ clientId: { in: clientIds } }] : []),
                 ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
               ],
             },
@@ -143,17 +143,24 @@ export async function POST(
           })
         : Promise.resolve(0),
 
-      // Mandate_Clients no longer exists — return 0
-      Promise.resolve(0),
+      // Mandate_Clients
+      mandateIds.length > 0 || clientIds.length > 0
+        ? prismadb.mandate_Clients.count({
+            where: {
+              OR: [
+                ...(mandateIds.length > 0 ? [{ mandateId: { in: mandateIds } }] : []),
+                ...(clientIds.length > 0 ? [{ clientId: { in: clientIds } }] : []),
+              ],
+            },
+          })
+        : Promise.resolve(0),
 
-      // Deals: any deal referencing the targeted clients (via DealParty) OR properties
+      // Deals: any deal referencing the targeted clients OR properties
       clientIds.length > 0 || propertyIds.length > 0
         ? prismadb.deal.count({
             where: {
               OR: [
-                ...(clientIds.length > 0
-                  ? [{ dealParties: { some: { contactId: { in: clientIds } } } }]
-                  : []),
+                ...(clientIds.length > 0 ? [{ clientId: { in: clientIds } }] : []),
                 ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
               ],
             },

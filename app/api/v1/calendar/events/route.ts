@@ -11,7 +11,7 @@ import {
 } from "@/lib/external-api-middleware";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchCalendarWebhook } from "@/lib/webhooks";
-import { decryptCalendarEventForOrg, decryptContactForOrg } from "@/lib/model-encryption";
+import { decryptCalendarEventForOrg, decryptClientForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/v1/calendar/events
@@ -65,8 +65,8 @@ export const GET = withExternalApi(
         assignedUserId: true,
         createdAt: true,
         updatedAt: true,
-        Contacts: {
-          select: { id: true, displayName: true },
+        Clients: {
+          select: { id: true, client_name: true },
         },
         Properties: {
           select: { id: true, property_name: true },
@@ -78,17 +78,17 @@ export const GET = withExternalApi(
     const items = hasMore ? events.slice(0, -1) : events;
     const nextCursor = hasMore ? items[items.length - 1]?.id : null;
 
-    // Decrypt encrypted event fields and linked contact names
+    // Decrypt encrypted event fields and linked client names
     const decryptedItems = await Promise.all(
       items.map(async (event) => {
         const dec = await decryptCalendarEventForOrg(event, context.organizationId);
-        const contacts = await Promise.all(
-          event.Contacts.map(async (c) => {
-            const dc = await decryptContactForOrg(c, context.organizationId);
-            return { id: dc.id, displayName: dc.displayName };
+        const clients = await Promise.all(
+          event.Clients.map(async (c) => {
+            const dc = await decryptClientForOrg(c, context.organizationId);
+            return { id: dc.id, client_name: dc.client_name };
           })
         );
-        return { ...dec, Contacts: contacts };
+        return { ...dec, Clients: clients };
       })
     );
 
@@ -104,7 +104,7 @@ export const GET = withExternalApi(
           status: event.status,
           eventType: event.eventType,
           assignedUserId: event.assignedUserId,
-          linkedContacts: event.Contacts,
+          linkedClients: event.Clients,
           linkedProperties: event.Properties,
           createdAt: event.createdAt.toISOString(),
           updatedAt: event.updatedAt.toISOString(),
@@ -159,17 +159,17 @@ export const POST = withExternalApi(
     // Validate that linked entities belong to the caller's organization
     const relations: Record<string, unknown> = {};
     if (clientIds && Array.isArray(clientIds) && clientIds.length > 0) {
-      const ownedContacts = await prismadb.contact.findMany({
+      const ownedClients = await prismadb.clients.findMany({
         where: { id: { in: clientIds }, organizationId: context.organizationId },
         select: { id: true },
       });
-      if (ownedContacts.length !== clientIds.length) {
+      if (ownedClients.length !== clientIds.length) {
         return createApiErrorResponse(
           "One or more clientIds do not belong to your organization",
           400
         );
       }
-      relations.Contacts = { connect: clientIds.map((id: string) => ({ id })) };
+      relations.Clients = { connect: clientIds.map((id: string) => ({ id })) };
     }
     if (propertyIds && Array.isArray(propertyIds) && propertyIds.length > 0) {
       const ownedProperties = await prismadb.properties.findMany({

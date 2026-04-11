@@ -23,33 +23,26 @@ afterAll(() => {
   vi.unstubAllEnvs();
 });
 
-type ModelEnc = typeof import("@/lib/model-encryption");
-let encryptContactCommentForOrg: ModelEnc["encryptContactCommentForOrg"];
-let decryptContactCommentForOrg: ModelEnc["decryptContactCommentForOrg"];
-let encryptTaskCommentForOrg: ModelEnc["encryptTaskCommentForOrg"];
-let decryptTaskCommentForOrg: ModelEnc["decryptTaskCommentForOrg"];
-beforeAll(async () => {
-  ({
-    encryptContactCommentForOrg,
-    decryptContactCommentForOrg,
-    encryptTaskCommentForOrg,
-    decryptTaskCommentForOrg,
-  } = await import("@/lib/model-encryption"));
-});
+const {
+  encryptClientCommentForOrg,
+  decryptClientCommentForOrg,
+  encryptTaskCommentForOrg,
+  decryptTaskCommentForOrg,
+} = await import("@/lib/model-encryption");
 
-describe("encryptContactCommentForOrg / decryptContactCommentForOrg", () => {
+describe("encryptClientCommentForOrg / decryptClientCommentForOrg", () => {
   it("round-trips client comment content", async () => {
     const original = { content: "Hello from client comment" };
-    const encrypted = await encryptContactCommentForOrg(original, "org-1");
+    const encrypted = await encryptClientCommentForOrg(original, "org-1");
     expect(encrypted.content).not.toBe("Hello from client comment");
 
-    const decrypted = await decryptContactCommentForOrg(encrypted, "org-1");
+    const decrypted = await decryptClientCommentForOrg(encrypted, "org-1");
     expect(decrypted.content).toBe("Hello from client comment");
   });
 
   it("passes through null content", async () => {
     const data = { content: null };
-    const result = await encryptContactCommentForOrg(data, "org-1");
+    const result = await encryptClientCommentForOrg(data, "org-1");
     expect(result.content).toBeNull();
   });
 });

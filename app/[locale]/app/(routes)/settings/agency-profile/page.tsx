@@ -32,8 +32,7 @@ export default async function AgencyProfileSettingsPage({
   const isAgencyWorkspace = orgType === "agency";
 
   if (!isAgencyWorkspace) {
-    const tProfile = await getTranslations("profile");
-    const t = (k: string) => tProfile(`agencyProfile.${k}` as Parameters<typeof tProfile>[0]);
+    const t = await getTranslations("profile.agencyProfile");
     return (
       <Container
         title={t("title")}
@@ -51,8 +50,7 @@ export default async function AgencyProfileSettingsPage({
 
   const profile = profileResult.success && profileResult.data ? profileResult.data : null;
 
-  const tProfile2 = await getTranslations("profile");
-  const t = (k: string) => tProfile2(`agencyProfile.${k}` as Parameters<typeof tProfile2>[0]);
+  const t = await getTranslations("profile.agencyProfile");
   return (
     <Container
       title={t("title")}

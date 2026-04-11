@@ -105,17 +105,17 @@ export function UserActionDialog({
     // Validate reason (must be at least 10 characters for warn, suspend, delete)
     if (actionType !== "unsuspend") {
       if (!reason.trim()) {
-        toast.error(t("actions.reasonRequired"), { isTranslationKey: false });
+        toast.error(t("actions.validation.reasonRequired"), { isTranslationKey: false });
         return;
       }
       if (reason.trim().length < 10) {
-        toast.error(t("actions.reasonTooShort"), { isTranslationKey: false });
+        toast.error(t("actions.validation.reasonTooShort"), { isTranslationKey: false });
         return;
       }
     }
 
     if (config.requiresConfirm && confirmText !== "DELETE") {
-      toast.error(t("actions.confirmRequired"), { isTranslationKey: false });
+      toast.error(t("actions.validation.confirmRequired"), { isTranslationKey: false });
       return;
     }
 
@@ -148,7 +148,7 @@ export function UserActionDialog({
       }
     } catch (error) {
       console.error("Action error:", error);
-      toast.error(t("actions.error"), { description: t("actions.genericError"), isTranslationKey: false });
+      toast.error(t("actions.error"), { description: t("actions.unexpectedError"), isTranslationKey: false });
     } finally {
       setIsLoading(false);
     }

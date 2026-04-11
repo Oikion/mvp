@@ -27,7 +27,7 @@ async function fetchEntityName(
     // Use different endpoints based on entity type
     const endpoints: Record<EntityType, string> = {
       property: `/api/mls/properties/${entityId}/name`,
-      client: `/api/crm/contacts/${entityId}/name`,
+      client: `/api/crm/clients/${entityId}/name`,
       event: `/api/calendar/events/${entityId}/name`,
       document: `/api/documents/${entityId}/name`,
       task: `/api/crm/tasks/${entityId}/name`,

@@ -14,7 +14,7 @@ import { uploadToBlob } from "@/lib/vercel-blob";
 import resendHelper from "@/lib/resend";
 import { DataExportStatus } from "@prisma/client";
 import {
-  decryptContactForOrg,
+  decryptClientForOrg,
   decryptPropertyForOrg,
   decryptCalendarEventForOrg,
   decryptDocumentForOrg,
@@ -153,19 +153,18 @@ async function fetchOrganizationData(
     apiKeys,
     webhooks,
   ] = await Promise.all([
-    // Contacts (replaces Clients)
-    prismadb.contact.findMany({
+    // Clients
+    prismadb.clients.findMany({
       where: { organizationId },
       include: {
-        contactComments: true,
+        Client_Contacts: true,
+        ClientComment: true,
       },
     }),
 
-    // Contact relationships (replaces client_Contacts)
-    prismadb.contactRelationship.findMany({
-      where: {
-        contactA: { organizationId },
-      },
+    // Client contacts
+    prismadb.client_Contacts.findMany({
+      where: { organizationId },
     }),
 
     // Properties
@@ -281,7 +280,7 @@ async function fetchOrganizationData(
 
   // Decrypt all encrypted model data before export
   const decryptedClients = await Promise.all(
-    clients.map((c) => decryptContactForOrg(c, organizationId))
+    clients.map((c) => decryptClientForOrg(c, organizationId))
   );
   const decryptedProperties = await Promise.all(
     properties.map((p) => decryptPropertyForOrg(p, organizationId))

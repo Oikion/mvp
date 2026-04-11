@@ -31,7 +31,7 @@ import { EventActionsMenu } from "./EventActionsMenu";
 import { MiniMonthCalendar } from "./MiniMonthCalendar";
 import { DayHourView } from "./DayHourView";
 import { EventListSidebar } from "./EventListSidebar";
-import { useCalendarEvents, useOrgUsers, useContacts, useProperties } from "@/hooks/swr";
+import { useCalendarEvents, useOrgUsers, useClients, useProperties } from "@/hooks/swr";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -277,7 +277,7 @@ export function CalendarPageView() {
   const { users } = useOrgUsers();
 
   // Prefetch selector data so dropdowns open instantly
-  useContacts();
+  useClients();
   useProperties();
 
   // Filter events based on current filters

@@ -573,8 +573,7 @@ export function EventCreateForm({
   // Use mutation hook for create
   const { createEvent, isCreating } = useCreateEvent();
 
-  const tString = (key: string) => t(key as Parameters<typeof t>[0]);
-  const eventFormSchema = createEventFormSchema(tString);
+  const eventFormSchema = createEventFormSchema(t);
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
@@ -661,7 +660,7 @@ export function EventCreateForm({
         
         <ScrollArea className="flex-1 px-6">
           <EventCreateFormBody
-            t={tString}
+            t={t}
             form={form}
             isCreating={isCreating}
             users={users}
@@ -692,8 +691,7 @@ export function EventCreateSidePanel({
   // Use mutation hook for create
   const { createEvent, isCreating } = useCreateEvent();
 
-  const tString = (key: string) => t(key as Parameters<typeof t>[0]);
-  const eventFormSchema = createEventFormSchema(tString);
+  const eventFormSchema = createEventFormSchema(t);
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
@@ -789,7 +787,7 @@ export function EventCreateSidePanel({
 
       <ScrollArea className="flex-1 px-6">
         <EventCreateFormBody
-          t={tString}
+          t={t}
           form={form}
           isCreating={isCreating}
           users={users}

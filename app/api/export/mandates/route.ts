@@ -134,6 +134,16 @@ export async function GET(req: NextRequest) {
         expires_at: true,
         notes: true,
         communication_notes: true,
+        Mandate_Clients: {
+          include: {
+            Clients: {
+              select: { client_name: true },
+            },
+          },
+        },
+        assigned_to_user: {
+          select: { name: true },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -199,8 +209,8 @@ export async function GET(req: NextRequest) {
         return {
           ...decrypted,
           // Add derived display fields
-          client_name: "",
-          assigned_to_name: "",
+          client_name: (decrypted as any).Mandate_Clients?.[0]?.Clients?.client_name || "",
+          assigned_to_name: decrypted.assigned_to_user?.name || "",
           // Convert Decimal fields to numbers
           budget_min: decrypted.budget_min ? Number(decrypted.budget_min) : null,
           budget_max: decrypted.budget_max ? Number(decrypted.budget_max) : null,

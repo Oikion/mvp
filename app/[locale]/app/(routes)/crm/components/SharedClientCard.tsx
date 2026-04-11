@@ -17,8 +17,8 @@ interface SharedClientCardProps {
 export function SharedClientCard({ data }: SharedClientCardProps) {
   const t = useTranslations("crm");
 
-  const initials = data.contact?.displayName
-    ? data.contact.displayName
+  const initials = data.client_name
+    ? data.client_name
         .split(" ")
         .map((n: string) => n[0])
         .join("")
@@ -27,7 +27,7 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
     : "CL";
 
   const statusLabel =
-    data.contact?.status === "ACTIVE" ? "Active" : data.contact?.status || "Unknown";
+    data.client_status === "ACTIVE" ? "Active" : data.client_status || "Unknown";
 
   return (
     <Card className="hover:shadow-lg transition-shadow flex flex-col h-full relative">
@@ -46,7 +46,7 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 overflow-hidden">
-          <h3 className="font-semibold text-lg truncate">{data.contact?.displayName}</h3>
+          <h3 className="font-semibold text-lg truncate">{data.client_name}</h3>
           <div className="flex items-center gap-2">
             <Badge
               variant={statusLabel === "Active" ? "default" : "secondary"}
@@ -61,25 +61,25 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
       <CardContent className="flex-1 space-y-3 text-sm">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Mail className="h-4 w-4" />
-          <span className="truncate">{data.contact?.email || "-"}</span>
+          <span className="truncate">{data.primary_email || "-"}</span>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Phone className="h-4 w-4" />
-          <span className="truncate">{data.contact?.primaryPhone || "-"}</span>
+          <span className="truncate">{data.primary_phone || "-"}</span>
         </div>
 
         {/* Shared by info */}
         <div className="pt-3 border-t mt-3 space-y-2">
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src="" />
+              <AvatarImage src={data.sharedBy?.avatar || ""} />
               <AvatarFallback className="text-xs bg-muted">
-                ?
+                {data.sharedBy?.name?.charAt(0) || "?"}
               </AvatarFallback>
             </Avatar>
             <span className="text-xs text-muted-foreground">
               {t("SharedView.sharedBy")}{" "}
-              <span className="font-medium text-foreground">{"Deleted User"}</span>
+              <span className="font-medium text-foreground">{data.sharedBy?.name ?? "Deleted User"}</span>
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -95,7 +95,7 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
               </span>
             )}
             <span>•</span>
-            <span>{formatDistanceToNow(new Date(data.createdAt))} ago</span>
+            <span>{formatDistanceToNow(new Date(data.sharedAt))} ago</span>
           </div>
           {data.message && (
             <p className="text-xs italic text-muted-foreground bg-muted/50 rounded p-2">
@@ -107,7 +107,7 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
 
       <CardFooter className="pt-0 flex justify-end">
         <Button variant="ghost" size="sm" className="w-full" asChild>
-          <Link href={`/app/crm/clients/${data.contact?.friendlyId}`} className="inline-flex items-center gap-2">
+          <Link href={`/app/crm/clients/${data.friendlyId}`} className="inline-flex items-center gap-2">
             <ExternalLink className="h-4 w-4" />
             {t("SharedView.viewProfile")}
           </Link>

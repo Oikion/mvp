@@ -292,9 +292,9 @@ export function NotificationsTab() {
                     {group.icon}
                   </div>
                   <div>
-                    <h4 className="font-medium">{t(`groups.${group.id}.title` as Parameters<typeof t>[0])}</h4>
+                    <h4 className="font-medium">{t(`groups.${group.id}.title`)}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {t(`groups.${group.id}.description` as Parameters<typeof t>[0])}
+                      {t(`groups.${group.id}.description`)}
                     </p>
                   </div>
                 </div>

@@ -16,11 +16,11 @@ export async function notifyAccountWatchers(
     const prismaTenant = prismaForOrg(organizationId);
     
     // Get the account with watchers (watchers is a String[] of user IDs)
-    const account = await prismaTenant.contact.findUnique({
+    const account = await prismaTenant.clients.findUnique({
       where: { id: accountId },
       select: {
         id: true,
-        displayName: true,
+        client_name: true,
         watchers: true,
       },
     });
@@ -39,7 +39,7 @@ export async function notifyAccountWatchers(
       entityType: "ACCOUNT",
       entityId: accountId,
       metadata: {
-        accountName: account.displayName,
+        accountName: account.client_name,
         ...metadata,
       },
     });

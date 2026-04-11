@@ -46,7 +46,7 @@ export async function GET(req: Request) {
     // NEW-C6: Verify caller has access to the underlying entity
     switch (entityType) {
       case "CLIENT": {
-        const entity = await prismadb.contact.findFirst({
+        const entity = await prismadb.clients.findFirst({
           where: { id: entityId, organizationId: orgId },
           select: { id: true },
         });

@@ -14,18 +14,22 @@ export const getContactsTrend = async () => {
   const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
   const [currentCount, previousCount] = await Promise.all([
-    prismadb.contact.count({
+    prismadb.client_Contacts.count({
       where: {
-        organizationId,
-        createdAt: {
+        Clients: {
+          organizationId,
+        },
+        created_on: {
           gte: currentMonthStart,
         },
       },
     }),
-    prismadb.contact.count({
+    prismadb.client_Contacts.count({
       where: {
-        organizationId,
-        createdAt: {
+        Clients: {
+          organizationId,
+        },
+        created_on: {
           gte: previousMonthStart,
           lte: previousMonthEnd,
         },
@@ -45,3 +49,4 @@ export const getContactsTrend = async () => {
     direction: percentageChange >= 0 ? ("up" as const) : ("down" as const),
   };
 };
+

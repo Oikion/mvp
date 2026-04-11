@@ -43,6 +43,13 @@ export async function GET(
             avatar: true,
           },
         },
+        Clients: {
+          select: {
+            id: true,
+            client_name: true,
+            primary_email: true,
+          },
+        },
         CalendarEvent: {
           select: {
             id: true,
@@ -165,12 +172,20 @@ export async function PUT(
             avatar: true,
           },
         },
+        Clients: {
+          select: {
+            id: true,
+            client_name: true,
+            primary_email: true,
+          },
+        },
       },
     });
 
     return NextResponse.json({
       ...updatedTask,
       assigned_user: updatedTask.Users,
+      crm_accounts: updatedTask.Clients,
     });
   } catch (error: unknown) {
     console.error('[UPDATE_TASK]', error);

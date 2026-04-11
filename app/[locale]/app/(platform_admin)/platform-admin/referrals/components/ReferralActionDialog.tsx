@@ -29,7 +29,10 @@ import { toast } from "sonner";
 
 import type { AdminReferralData } from "@/actions/referrals/admin-get-all-referrals";
 import { adminCreatePayout } from "@/actions/referrals/admin-update-payout";
-import { adminUpdateReferralStatus } from "@/actions/referrals/admin-update-commission";
+import {
+  adminUpdateReferralStatus,
+  adminUpdateCommissionRate,
+} from "@/actions/referrals/admin-update-commission";
 
 interface ReferralActionDialogProps {
   open: boolean;
@@ -159,16 +162,22 @@ export function ReferralActionDialog({
         return;
       }
 
-      // Call the server-side variant that looks up the referralCodeId
-      // internally — client components cannot import `@/lib/prisma` in
-      // Prisma 7 (the `pg` driver adapter pulls Node-only modules).
-      const { adminUpdateCommissionRateByReferralId } = await import(
-        "@/actions/referrals/admin-update-commission"
-      );
-      const result = await adminUpdateCommissionRateByReferralId(
-        referral.id,
-        rate
-      );
+      // Get the referral code ID from the referral
+      const { prismadb } = await import("@/lib/prisma");
+      const ref = await prismadb.referral.findUnique({
+        where: { id: referral.id },
+        select: { referralCodeId: true },
+      });
+
+      if (!ref) {
+        toast.error(t("errors.referralNotFound"));
+        return;
+      }
+
+      const result = await adminUpdateCommissionRate({
+        referralCodeId: ref.referralCodeId,
+        commissionRate: rate,
+      });
 
       if (result.success) {
         toast.success(t("commissionUpdated"));
@@ -266,7 +275,7 @@ export function ReferralActionDialog({
                         : "destructive"
                     }
                   >
-                    {t(`status.${referral.status.toLowerCase()}` as Parameters<typeof t>[0])}
+                    {t(`status.${referral.status.toLowerCase()}`)}
                   </Badge>
                 </div>
               </div>
@@ -378,7 +387,7 @@ export function ReferralActionDialog({
                     : "destructive"
                 }
               >
-                {t(`status.${referral.status.toLowerCase()}` as Parameters<typeof t>[0])}
+                {t(`status.${referral.status.toLowerCase()}`)}
               </Badge>
             </div>
 

@@ -1,8 +1,8 @@
 /**
  * Unified Entity Search Utilities
- *
+ * 
  * Provides consistent search functionality across all entity types:
- * - Contacts
+ * - Clients
  * - Properties
  * - Documents
  * - Events
@@ -11,18 +11,17 @@
 import { prismadb } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import {
-  decryptContactForOrg,
+  decryptClientForOrg,
   decryptDocumentForOrg,
   decryptCalendarEventForOrg,
   decryptMandateForOrg,
-  decryptRequestForOrg,
 } from "@/lib/model-encryption";
 
 // ============================================
 // Types
 // ============================================
 
-export type EntityType = "contact" | "property" | "document" | "event" | "mandate" | "request" | "deal";
+export type EntityType = "client" | "property" | "document" | "event" | "mandate";
 
 export interface EntitySearchResult {
   value: string;
@@ -42,13 +41,11 @@ export interface EntitySearchOptions {
   organizationId: string;
   limit?: number;
   filters?: {
-    contactStatus?: string;
+    clientStatus?: string;
     propertyStatus?: string;
     documentType?: string;
     eventType?: string;
     mandateStatus?: string;
-    requestStatus?: string;
-    dealStage?: string;
   };
 }
 
@@ -65,9 +62,9 @@ export interface EntitySearchResponse {
 // ============================================
 
 /**
- * Search contacts (v2.0) by display name, email, phone
+ * Search clients by multiple fields
  */
-async function searchContacts(
+async function searchClients(
   organizationId: string,
   query: string,
   limit: number,
@@ -75,53 +72,52 @@ async function searchContacts(
 ): Promise<{ results: EntitySearchResult[]; timing: number }> {
   const start = Date.now();
 
-  const where: Prisma.ContactWhereInput = { organizationId };
-  if (statusFilter) where.status = statusFilter as any;
+  const where: Prisma.ClientsWhereInput = {
+    organizationId,
+  };
 
-  const contacts = await prismadb.contact.findMany({
+  if (query?.trim()) {
+    const searchTerm = query.trim();
+    where.OR = [
+      { client_name: { contains: searchTerm, mode: "insensitive" } },
+      { primary_email: { contains: searchTerm, mode: "insensitive" } },
+      { primary_phone: { contains: searchTerm, mode: "insensitive" } },
+      { secondary_phone: { contains: searchTerm, mode: "insensitive" } },
+      { full_name: { contains: searchTerm, mode: "insensitive" } },
+      { company_name: { contains: searchTerm, mode: "insensitive" } },
+      { id: { contains: searchTerm, mode: "insensitive" } },
+    ];
+  }
+
+  if (statusFilter) {
+    where.client_status = statusFilter as Prisma.ClientsWhereInput["client_status"];
+  }
+
+  const clients = await prismadb.clients.findMany({
     where,
     select: {
       id: true,
-      friendlyId: true,
-      displayName: true,
-      email: true,
-      primaryPhone: true,
-      status: true,
-      category: true,
-      isCompany: true,
+      client_name: true,
+      primary_email: true,
+      primary_phone: true,
+      client_status: true,
     },
-    orderBy: { createdAt: "desc" },
-    take: limit * 3, // Over-fetch for post-decrypt filtering
+    orderBy: [{ updatedAt: "desc" }, { client_name: "asc" }],
+    take: limit,
   });
 
-  // Decrypt and filter
-  const decrypted = [];
-  for (const contact of contacts) {
-    try {
-      decrypted.push(await decryptContactForOrg(contact, organizationId));
-    } catch {
-      // Skip records that fail to decrypt
-    }
-  }
+  // Decrypt encrypted client fields
+  const decryptedClients = await Promise.all(
+    clients.map((c) => decryptClientForOrg(c, organizationId))
+  );
 
-  const searchTerm = query.trim().toLowerCase();
-  const filtered = searchTerm
-    ? decrypted.filter(
-        (c) =>
-          c.displayName?.toLowerCase().includes(searchTerm) ||
-          c.email?.toLowerCase().includes(searchTerm) ||
-          c.primaryPhone?.includes(searchTerm)
-      )
-    : decrypted;
-
-  const results: EntitySearchResult[] = filtered.slice(0, limit).map((c) => ({
-    value: c.id,
-    label: c.displayName || "Unknown Contact",
-    type: "contact" as const,
+  const results: EntitySearchResult[] = decryptedClients.map((client) => ({
+    value: client.id,
+    label: client.client_name,
+    type: "client" as const,
     metadata: {
-      subtitle: c.email || c.primaryPhone || undefined,
-      status: c.status || undefined,
-      icon: c.isCompany ? "building" : "user",
+      subtitle: client.primary_email || client.primary_phone || undefined,
+      status: client.client_status || undefined,
     },
   }));
 
@@ -458,155 +454,6 @@ async function searchMandates(
 }
 
 // ============================================
-// Requests (v2.0)
-// ============================================
-
-async function searchRequests(
-  organizationId: string,
-  query: string,
-  limit: number,
-  statusFilter?: string
-): Promise<{ results: EntitySearchResult[]; timing: number }> {
-  const start = Date.now();
-
-  const where: Prisma.RequestWhereInput = { organizationId };
-  if (statusFilter) {
-    where.status = statusFilter as Prisma.RequestWhereInput["status"];
-  }
-
-  const fetchLimit = query?.trim() ? Math.max(limit * 5, 50) : limit;
-
-  const requests = await prismadb.request.findMany({
-    where,
-    select: {
-      id: true,
-      friendlyId: true,
-      requestType: true,
-      budgetMin: true,
-      budgetMax: true,
-      locationDisplayName: true,
-      municipality: true,
-      status: true,
-      urgency: true,
-      requestContacts: {
-        select: {
-          contact: { select: { displayName: true } },
-        },
-        take: 1,
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: fetchLimit,
-  });
-
-  // Decrypt encrypted fields
-  const decrypted = await Promise.all(
-    requests.map(async (r) => {
-      const dec = await decryptRequestForOrg(r, organizationId);
-      return dec;
-    })
-  );
-
-  // Filter by query after decryption
-  let filtered = decrypted;
-  if (query?.trim()) {
-    const q = query.trim().toLowerCase();
-    filtered = decrypted.filter((r) => {
-      const fid = (r.friendlyId || "").toLowerCase();
-      const loc = (r.locationDisplayName || "").toLowerCase();
-      const mun = (r.municipality || "").toLowerCase();
-      return fid.includes(q) || loc.includes(q) || mun.includes(q);
-    });
-  }
-
-  const results: EntitySearchResult[] = filtered.slice(0, limit).map((req) => {
-    const budgetParts: string[] = [];
-    if (req.budgetMin || req.budgetMax) {
-      const min = req.budgetMin ? `€${Number(req.budgetMin).toLocaleString()}` : "";
-      const max = req.budgetMax ? `€${Number(req.budgetMax).toLocaleString()}` : "";
-      if (min && max) budgetParts.push(`${min}–${max}`);
-      else if (min) budgetParts.push(`from ${min}`);
-      else if (max) budgetParts.push(`up to ${max}`);
-    }
-
-    const subtitleParts = [
-      req.requestType,
-      req.locationDisplayName || req.municipality,
-      budgetParts[0],
-    ].filter(Boolean);
-
-    return {
-      value: req.id,
-      label: `${req.friendlyId} — ${(req as any).requestContacts?.[0]?.contact?.displayName || "Unknown"}`,
-      type: "request" as const,
-      metadata: {
-        subtitle: subtitleParts.join(" · ") || undefined,
-        status: req.status || undefined,
-        urgency: req.urgency || undefined,
-        friendlyId: req.friendlyId || undefined,
-      },
-    };
-  });
-
-  return { results, timing: Date.now() - start };
-}
-
-/**
- * Search deals by title, property, or friendly ID
- */
-async function searchDeals(
-  organizationId: string,
-  query: string,
-  limit: number,
-  stageFilter?: string
-): Promise<{ results: EntitySearchResult[]; timing: number }> {
-  const start = Date.now();
-
-  const where: Prisma.DealWhereInput = { organizationId };
-  if (stageFilter) where.stage = stageFilter as any;
-
-  if (query?.trim()) {
-    const searchTerm = query.trim();
-    where.OR = [
-      { friendlyId: { contains: searchTerm, mode: "insensitive" } },
-      { title: { contains: searchTerm, mode: "insensitive" } },
-      { property: { property_name: { contains: searchTerm, mode: "insensitive" } } },
-    ];
-  }
-
-  const deals = await prismadb.deal.findMany({
-    where,
-    select: {
-      id: true,
-      friendlyId: true,
-      title: true,
-      stage: true,
-      dealType: true,
-      agreedPrice: true,
-      property: {
-        select: { property_name: true },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-  });
-
-  const results: EntitySearchResult[] = deals.map((d) => ({
-    value: d.id,
-    label: d.title || d.property?.property_name || d.friendlyId || "Untitled Deal",
-    type: "deal" as const,
-    metadata: {
-      subtitle: d.friendlyId || undefined,
-      status: d.stage || undefined,
-      dealType: d.dealType || undefined,
-      price: d.agreedPrice ? String(d.agreedPrice) : undefined,
-    },
-  }));
-
-  return { results, timing: Date.now() - start };
-}
-
-// ============================================
 // Main Search Function
 // ============================================
 
@@ -627,10 +474,10 @@ export async function searchEntities(
   }>[] = [];
 
   // Run searches in parallel for each requested type
-  if (types.includes("contact")) {
+  if (types.includes("client")) {
     searchPromises.push(
-      searchContacts(organizationId, query, limit, filters.contactStatus).then(
-        (res) => ({ type: "contact" as const, ...res })
+      searchClients(organizationId, query, limit, filters.clientStatus).then(
+        (res) => ({ type: "client" as const, ...res })
       )
     );
   }
@@ -667,43 +514,23 @@ export async function searchEntities(
     );
   }
 
-  if (types.includes("request")) {
-    searchPromises.push(
-      searchRequests(organizationId, query, limit, filters.requestStatus).then(
-        (res) => ({ type: "request" as const, ...res })
-      )
-    );
-  }
-
-  if (types.includes("deal")) {
-    searchPromises.push(
-      searchDeals(organizationId, query, limit, filters.dealStage).then(
-        (res) => ({ type: "deal" as const, ...res })
-      )
-    );
-  }
-
   const searchResults = await Promise.all(searchPromises);
 
   // Group results by type
   const results: Record<EntityType, EntitySearchResult[]> = {
-    contact: [],
+    client: [],
     property: [],
     document: [],
     event: [],
     mandate: [],
-    request: [],
-    deal: [],
   };
 
   const timingPerType: Record<EntityType, number> = {
-    contact: 0,
+    client: 0,
     property: 0,
     document: 0,
     event: 0,
     mandate: 0,
-    request: 0,
-    deal: 0,
   };
 
   for (const result of searchResults) {

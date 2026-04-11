@@ -36,7 +36,6 @@ export {
   notifyEntityShared,
   // Entity creation
   notifyClientCreated,
-  notifyContactCreated,
   notifyPropertyCreated,
   // Deals
   notifyDealProposed,

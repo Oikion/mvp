@@ -326,10 +326,7 @@ export async function POST(req: Request) {
       dispatchPropertyWebhook(organizationId, "property.created", property).catch(console.error);
     }
 
-    return NextResponse.json(
-      { newProperty: property },
-      { status: id ? 200 : 201 }
-    );
+    return NextResponse.json({ newProperty: property }, { status: 200 });
   } catch (error) {
     console.error("[NEW_PROPERTY_POST]", error);
     return NextResponse.json(

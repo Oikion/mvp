@@ -83,6 +83,9 @@ export const GET = withExternalApi(
         Users: {
           select: { id: true, name: true, email: true },
         },
+        Clients: {
+          select: { id: true, client_name: true },
+        },
       },
     });
 
@@ -99,7 +102,7 @@ export const GET = withExternalApi(
           priority: task.priority,
           dueDate: task.dueDateAt?.toISOString(),
           assignedTo: task.Users,
-          client: task.account ?? null,
+          client: task.Clients,
           createdAt: task.createdAt?.toISOString(),
           updatedAt: task.updatedAt?.toISOString(),
         })),

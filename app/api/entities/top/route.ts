@@ -17,7 +17,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { getTopEntities, type EntityType } from "@/lib/search/entity-search";
 
-const VALID_TYPES: EntityType[] = ["contact", "property", "document", "event", "mandate", "request", "deal"];
+const VALID_TYPES: EntityType[] = ["client", "property", "document", "event", "mandate"];
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 10;
 

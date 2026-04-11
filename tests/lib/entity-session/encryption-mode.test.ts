@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EncryptionMode } from "@prisma/client";
 
 const mockFindUnique = vi.fn();
@@ -11,14 +11,9 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-let getOrgEncryptionMode: typeof import("@/lib/entity-session/encryption-mode").getOrgEncryptionMode;
-let isE2EEOrg: typeof import("@/lib/entity-session/encryption-mode").isE2EEOrg;
-let _resetCacheForTesting: typeof import("@/lib/entity-session/encryption-mode")._resetCacheForTesting;
-beforeAll(async () => {
-  ({ getOrgEncryptionMode, isE2EEOrg, _resetCacheForTesting } = await import(
-    "@/lib/entity-session/encryption-mode"
-  ));
-});
+const { getOrgEncryptionMode, isE2EEOrg, _resetCacheForTesting } = await import(
+  "@/lib/entity-session/encryption-mode"
+);
 
 describe("getOrgEncryptionMode", () => {
   beforeEach(() => {

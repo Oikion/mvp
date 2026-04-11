@@ -108,7 +108,7 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
   const statusOptions = useMemo(() => {
     return statuses.map(status => ({
       ...status,
-      label: t(`PropertyForm.status.${status.value}` as Parameters<typeof t>[0])
+      label: t(`PropertyForm.status.${status.value}`)
     }));
   }, [t]);
 

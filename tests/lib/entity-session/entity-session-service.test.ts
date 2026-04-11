@@ -1,5 +1,5 @@
 // tests/lib/entity-session/entity-session-service.test.ts
-import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock prismadb
 const mockFindFirst = vi.fn();
@@ -33,25 +33,15 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-type EntitySessionService = typeof import("@/lib/entity-session/entity-session-service");
-let createEntitySession: EntitySessionService["createEntitySession"];
-let getActiveEntitySession: EntitySessionService["getActiveEntitySession"];
-let getEntitySessionShareForUser: EntitySessionService["getEntitySessionShareForUser"];
-let createSessionShare: EntitySessionService["createSessionShare"];
-let rotateEntitySession: EntitySessionService["rotateEntitySession"];
-let deleteEntitySessionsForEntity: EntitySessionService["deleteEntitySessionsForEntity"];
-let EntitySessionExistsError: EntitySessionService["EntitySessionExistsError"];
-beforeAll(async () => {
-  ({
-    createEntitySession,
-    getActiveEntitySession,
-    getEntitySessionShareForUser,
-    createSessionShare,
-    rotateEntitySession,
-    deleteEntitySessionsForEntity,
-    EntitySessionExistsError,
-  } = await import("@/lib/entity-session/entity-session-service"));
-});
+const {
+  createEntitySession,
+  getActiveEntitySession,
+  getEntitySessionShareForUser,
+  createSessionShare,
+  rotateEntitySession,
+  deleteEntitySessionsForEntity,
+  EntitySessionExistsError,
+} = await import("@/lib/entity-session/entity-session-service");
 
 describe("createEntitySession", () => {
   beforeEach(() => {
@@ -90,8 +80,6 @@ describe("createEntitySession", () => {
       creatorShare: {
         userId: "user-1",
         encryptedSession: "encrypted-export-for-user-1",
-        ephemeralPublicKey: "test-pk",
-        iv: "test-iv",
       },
       orkBackup: "encrypted-export-for-ork",
     });
@@ -120,7 +108,7 @@ describe("createEntitySession", () => {
         entityId: "client-1",
         orgId: "org-1",
         megolmSessionId: "megolm-abc",
-        creatorShare: { userId: "user-1", encryptedSession: "enc", ephemeralPublicKey: "test-pk", iv: "test-iv" },
+        creatorShare: { userId: "user-1", encryptedSession: "enc" },
         orkBackup: "ork",
       })
     ).rejects.toMatchObject({ message: "ALREADY_EXISTS", sessionId: "es-existing" });
@@ -243,8 +231,8 @@ describe("rotateEntitySession", () => {
       orgId: "org-1",
       newMegolmSessionId: "megolm-new",
       shares: [
-        { userId: "user-1", encryptedSession: "enc-1", ephemeralPublicKey: "test-pk", iv: "test-iv" },
-        { userId: "user-2", encryptedSession: "enc-2", ephemeralPublicKey: "test-pk", iv: "test-iv" },
+        { userId: "user-1", encryptedSession: "enc-1" },
+        { userId: "user-2", encryptedSession: "enc-2" },
       ],
       orkBackup: "ork-backup-new",
     });

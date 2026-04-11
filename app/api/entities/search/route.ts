@@ -9,9 +9,10 @@
  * Request body:
  * {
  *   query: string;           // Search query
- *   types: string[];         // Entity types: ["contact", "property", "document", "event"]
+ *   types: string[];         // Entity types: ["client", "property", "document", "event"]
  *   limit?: number;          // Max results per type (default: 10, max: 50)
  *   filters?: {              // Optional type-specific filters
+ *     clientStatus?: string;
  *     propertyStatus?: string;
  *     documentType?: string;
  *     eventType?: string;
@@ -21,7 +22,7 @@
  * Response:
  * {
  *   results: {
- *     contact: EntitySearchResult[];
+ *     client: EntitySearchResult[];
  *     property: EntitySearchResult[];
  *     document: EntitySearchResult[];
  *     event: EntitySearchResult[];
@@ -37,7 +38,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { searchEntities, type EntityType } from "@/lib/search/entity-search";
 
-const VALID_TYPES: EntityType[] = ["contact", "property", "document", "event", "mandate", "request", "deal"];
+const VALID_TYPES: EntityType[] = ["client", "property", "document", "event", "mandate"];
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 10;
 
@@ -153,11 +154,13 @@ export async function GET(req: Request) {
 
     // Parse optional filters from URL params
     const filters: Record<string, string> = {};
+    const clientStatus = searchParams.get("clientStatus");
     const propertyStatus = searchParams.get("propertyStatus");
     const documentType = searchParams.get("documentType");
     const eventType = searchParams.get("eventType");
     const mandateStatus = searchParams.get("mandateStatus");
 
+    if (clientStatus) filters.clientStatus = clientStatus;
     if (propertyStatus) filters.propertyStatus = propertyStatus;
     if (documentType) filters.documentType = documentType;
     if (eventType) filters.eventType = eventType;

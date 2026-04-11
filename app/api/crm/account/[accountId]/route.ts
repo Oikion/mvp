@@ -16,16 +16,16 @@ export async function DELETE(_req: Request, props: { params: Promise<{ accountId
     const prismaTenant = prismaForOrg(organizationId);
 
     // Get account info before deleting for notifications
-    const account = await prismaTenant.contact.findUnique({
+    const account = await prismaTenant.clients.findUnique({
       where: { id: params.accountId },
       select: {
         id: true,
-        displayName: true,
+        client_name: true,
         watchers: true,
       },
     });
 
-    await prismaTenant.contact.delete({
+    await prismaTenant.clients.delete({
       where: {
         id: params.accountId,
       },
@@ -37,8 +37,8 @@ export async function DELETE(_req: Request, props: { params: Promise<{ accountId
         params.accountId,
         organizationId,
         "ACCOUNT_DELETED",
-        `Account "${account.displayName}" was deleted`,
-        `${user.name || user.email} deleted the account "${account.displayName}"`,
+        `Account "${account.client_name}" was deleted`,
+        `${user.name || user.email} deleted the account "${account.client_name}"`,
         {
           deletedBy: user.id,
           deletedByName: user.name || user.email,

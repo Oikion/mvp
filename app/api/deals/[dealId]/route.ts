@@ -1,37 +1,24 @@
-import { auth } from "@clerk/nextjs/server";
-import { Prisma } from "@prisma/client";
+import { NextResponse } from "next/server";
+import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
-import {
-  apiSuccess,
-  apiUnauthorized,
-  apiNotFound,
-  apiInternalError,
-  apiBadRequest,
-} from "@/lib/api-response";
-import { updateDealSchema, advanceDealStageSchema } from "@/lib/validations/deals";
-import {
-  isValidDealStageTransition,
-  getDealStageTransitionError,
-} from "@/lib/validations/status-transitions";
-import { serializeDealForClient } from "@/lib/deals/serialize";
+import { DealStatus } from "@prisma/client";
+import { notifyDealStatusChanged } from "@/lib/notifications";
 
 export async function GET(
   req: Request,
   props: { params: Promise<{ dealId: string }> }
 ) {
   try {
-    const { userId, orgId: organizationId } = await auth();
-    if (!userId || !organizationId) return apiUnauthorized();
+    const currentUser = await getCurrentUser();
+    const params = await props.params;
+    const { dealId } = params;
 
-    const { dealId } = await props.params;
-
-    const deal = await prismadb.deal.findFirst({
-      where: { id: dealId, organizationId },
+    const dealRaw = await prismadb.deal.findUnique({
+      where: { id: dealId },
       include: {
-        property: {
+        Properties: {
           select: {
             id: true,
-            friendlyId: true,
             property_name: true,
             property_type: true,
             price: true,
@@ -40,66 +27,76 @@ export async function GET(
             bedrooms: true,
             bathrooms: true,
             size_net_sqm: true,
-          },
-        },
-        request: {
-          select: {
-            id: true,
-            friendlyId: true,
-            requestType: true,
-            status: true,
-            locationDisplayName: true,
-          },
-        },
-        notaryContact: {
-          select: {
-            id: true,
-            displayName: true,
-            email: true,
-            primaryPhone: true,
-          },
-        },
-        listingAgent: {
-          select: { id: true, name: true, email: true, avatar: true },
-        },
-        buyerAgent: {
-          select: { id: true, name: true, email: true, avatar: true },
-        },
-        dealParties: {
-          include: {
-            contact: {
-              select: {
-                id: true,
-                friendlyId: true,
-                displayName: true,
-                email: true,
-                primaryPhone: true,
-                category: true,
+            square_feet: true,
+            description: true,
+            Documents: {
+              where: {
+                document_file_mimeType: { startsWith: "image/" },
               },
+              select: { document_file_url: true },
+              take: 5,
             },
           },
-          orderBy: { createdAt: "asc" },
         },
-        stageLogs: {
-          orderBy: { changedAt: "desc" },
-          take: 20,
+        Clients: {
+          select: {
+            id: true,
+            client_name: true,
+            primary_email: true,
+            primary_phone: true,
+            client_status: true,
+          },
+        },
+        Users_Deal_propertyAgentIdToUsers: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+        Users_Deal_clientAgentIdToUsers: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
         },
       },
     });
 
-    if (!deal) return apiNotFound("Deal");
+    if (!dealRaw) {
+      return new NextResponse("Deal not found", { status: 404 });
+    }
 
-    return apiSuccess(
-      serializeDealForClient({
-        ...deal,
-        isListingAgent: deal.listingAgentId === userId,
-        isBuyerAgent: deal.buyerAgentId === userId,
-        isProposer: deal.proposedById === userId,
-      })
-    );
+    // Map to expected field names
+    const deal = {
+      ...dealRaw,
+      property: dealRaw.Properties ? {
+        ...dealRaw.Properties,
+        linkedDocuments: dealRaw.Properties.Documents,
+      } : null,
+      client: dealRaw.Clients,
+      propertyAgent: dealRaw.Users_Deal_propertyAgentIdToUsers,
+      clientAgent: dealRaw.Users_Deal_clientAgentIdToUsers,
+    };
+
+    if (
+      deal.propertyAgentId !== currentUser.id &&
+      deal.clientAgentId !== currentUser.id
+    ) {
+      return new NextResponse("Unauthorized", { status: 403 });
+    }
+
+    return NextResponse.json({
+      ...deal,
+      isPropertyAgent: deal.propertyAgentId === currentUser.id,
+      isProposer: deal.proposedById === currentUser.id,
+    });
   } catch (error) {
     console.error("[DEAL_GET]", error);
-    return apiInternalError("Failed to fetch deal", error);
+    return new NextResponse("Internal error", { status: 500 });
   }
 }
 
@@ -108,84 +105,116 @@ export async function PUT(
   props: { params: Promise<{ dealId: string }> }
 ) {
   try {
-    const { userId, orgId: organizationId } = await auth();
-    if (!userId || !organizationId) return apiUnauthorized();
-
-    const { dealId } = await props.params;
+    const currentUser = await getCurrentUser();
+    const organizationId = await getCurrentOrgId();
+    const params = await props.params;
+    const { dealId } = params;
     const body = await req.json();
 
-    // Check if this is a stage advance or a general update
-    if (body.toStage) {
-      // Stage advance
-      const validation = advanceDealStageSchema.safeParse({
-        dealId,
-        toStage: body.toStage,
-        notes: body.notes,
-      });
-      if (!validation.success) {
-        return apiBadRequest("Validation failed", validation.error.flatten().fieldErrors);
-      }
-
-      const deal = await prismadb.deal.findFirst({
-        where: { id: dealId, organizationId },
-        select: { id: true, stage: true },
-      });
-      if (!deal) return apiNotFound("Deal");
-
-      if (!isValidDealStageTransition(deal.stage, body.toStage)) {
-        return apiBadRequest(getDealStageTransitionError(deal.stage, body.toStage));
-      }
-
-      const [updated] = await prismadb.$transaction([
-        prismadb.deal.update({
-          where: { id: dealId },
-          data: {
-            stage: body.toStage,
-            ...(body.toStage === "COMPLETED" && { closedAt: new Date() }),
-            ...(body.toStage === "FALLEN_THROUGH" && {
-              fallenThroughReason: body.notes ?? null,
-            }),
-          },
-        }),
-        prismadb.dealStageLog.create({
-          data: {
-            dealId,
-            fromStage: deal.stage,
-            toStage: body.toStage,
-            changedBy: userId,
-            notes: body.notes ?? null,
-          },
-        }),
-      ]);
-
-      return apiSuccess(serializeDealForClient(updated));
-    }
-
-    // General update
-    const validation = updateDealSchema.safeParse({ id: dealId, ...body });
-    if (!validation.success) {
-      return apiBadRequest("Validation failed", validation.error.flatten().fieldErrors);
-    }
-
-    const deal = await prismadb.deal.findFirst({
-      where: { id: dealId, organizationId },
-      select: { id: true },
+    const deal = await prismadb.deal.findUnique({
+      where: { id: dealId },
+      include: {
+        Properties: { select: { property_name: true } },
+        Clients: { select: { client_name: true } },
+      },
     });
-    if (!deal) return apiNotFound("Deal");
 
-    const { id: _, ...updateData } = validation.data;
+    if (!deal) {
+      return new NextResponse("Deal not found", { status: 404 });
+    }
+
+    if (
+      deal.propertyAgentId !== currentUser.id &&
+      deal.clientAgentId !== currentUser.id
+    ) {
+      return new NextResponse("Unauthorized", { status: 403 });
+    }
+
+    const {
+      propertyAgentSplit,
+      clientAgentSplit,
+      totalCommission,
+      title,
+      notes,
+      status,
+    } = body;
+
+    // Validate splits if provided
+    if (propertyAgentSplit !== undefined || clientAgentSplit !== undefined) {
+      const newPropertySplit = propertyAgentSplit ?? Number(deal.propertyAgentSplit);
+      const newClientSplit = clientAgentSplit ?? Number(deal.clientAgentSplit);
+
+      if (newPropertySplit + newClientSplit !== 100) {
+        return new NextResponse("Commission split must sum to 100%", {
+          status: 400,
+        });
+      }
+    }
+
+    // Validate status transition
+    if (status) {
+      const validTransitions: Record<DealStatus, DealStatus[]> = {
+        PROPOSED: ["NEGOTIATING", "ACCEPTED", "CANCELLED"],
+        NEGOTIATING: ["ACCEPTED", "CANCELLED"],
+        ACCEPTED: ["IN_PROGRESS", "CANCELLED"],
+        IN_PROGRESS: ["COMPLETED", "CANCELLED"],
+        COMPLETED: [],
+        CANCELLED: [],
+      };
+
+      if (!validTransitions[deal.status].includes(status)) {
+        return new NextResponse(
+          `Cannot transition from ${deal.status} to ${status}`,
+          { status: 400 }
+        );
+      }
+
+      // Only non-proposer can accept
+      if (status === "ACCEPTED" && deal.proposedById === currentUser.id) {
+        return new NextResponse("Cannot accept your own proposal", {
+          status: 400,
+        });
+      }
+    }
+
     const updated = await prismadb.deal.update({
       where: { id: dealId },
-      // Zod has already validated the shape; the cast bridges Zod's output
-      // (which includes a typed commissionSplit object) to Prisma's
-      // DealUpdateInput (which expects InputJsonValue for JSON columns).
-      data: updateData as Prisma.DealUpdateInput,
+      data: {
+        ...(propertyAgentSplit !== undefined && { propertyAgentSplit }),
+        ...(clientAgentSplit !== undefined && { clientAgentSplit }),
+        ...(totalCommission !== undefined && { totalCommission }),
+        ...(title && { title }),
+        ...(notes !== undefined && { notes }),
+        ...(status && {
+          status,
+          ...(status === "COMPLETED" && { closedAt: new Date() }),
+        }),
+      },
     });
 
-    return apiSuccess(serializeDealForClient(updated));
+    // Notify the other agent about the status change
+    if (status && status !== deal.status) {
+      const otherAgentId = currentUser.id === deal.propertyAgentId 
+        ? deal.clientAgentId 
+        : deal.propertyAgentId;
+
+      await notifyDealStatusChanged({
+        dealId: deal.id,
+        dealTitle: deal.title || undefined,
+        propertyName: deal.Properties?.property_name || "Property",
+        clientName: deal.Clients?.client_name || "Client",
+        actorId: currentUser.id,
+        actorName: currentUser.name || currentUser.email || "Someone",
+        targetUserId: otherAgentId ?? "",
+        organizationId,
+        status,
+      });
+    }
+
+    return NextResponse.json(updated);
   } catch (error) {
     console.error("[DEAL_PUT]", error);
-    return apiInternalError("Failed to update deal", error);
+    return new NextResponse("Internal error", { status: 500 });
   }
 }
 
@@ -194,26 +223,40 @@ export async function DELETE(
   props: { params: Promise<{ dealId: string }> }
 ) {
   try {
-    const { userId, orgId: organizationId } = await auth();
-    if (!userId || !organizationId) return apiUnauthorized();
+    const currentUser = await getCurrentUser();
+    const params = await props.params;
+    const { dealId } = params;
 
-    const { dealId } = await props.params;
-
-    const deal = await prismadb.deal.findFirst({
-      where: { id: dealId, organizationId },
-      select: { id: true, stage: true },
-    });
-    if (!deal) return apiNotFound("Deal");
-
-    // Soft delete
-    await prismadb.deal.update({
+    const deal = await prismadb.deal.findUnique({
       where: { id: dealId },
-      data: { deletedAt: new Date() },
     });
 
-    return new Response(null, { status: 204 });
+    if (!deal) {
+      return new NextResponse("Deal not found", { status: 404 });
+    }
+
+    if (
+      deal.propertyAgentId !== currentUser.id &&
+      deal.clientAgentId !== currentUser.id
+    ) {
+      return new NextResponse("Unauthorized", { status: 403 });
+    }
+
+    // Only allow deletion of proposed/cancelled deals
+    if (!["PROPOSED", "CANCELLED"].includes(deal.status)) {
+      return new NextResponse("Cannot delete deal in current state", {
+        status: 400,
+      });
+    }
+
+    await prismadb.deal.delete({
+      where: { id: dealId },
+    });
+
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("[DEAL_DELETE]", error);
-    return apiInternalError("Failed to delete deal", error);
+    return new NextResponse("Internal error", { status: 500 });
   }
 }
+

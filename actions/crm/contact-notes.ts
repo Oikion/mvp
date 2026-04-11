@@ -16,11 +16,6 @@ const deleteNoteSchema = z.object({
   noteIndex: z.number().int().min(0),
 });
 
-/**
- * Add a note to a contact's communicationNotes JSON array.
- * In v2.0, notes are stored as an array in `communicationNotes` since
- * the Contact model's `notes` field is a single encrypted string.
- */
 export async function addContactNote(
   input: z.infer<typeof addNoteSchema>
 ): Promise<ActionResponse<{ notes: string[] }>> {
@@ -37,28 +32,20 @@ export async function addContactNote(
   const { contactId, note } = validation.data;
 
   try {
-    const contact = await prismadb.contact.findFirst({
+    const contact = await prismadb.client_Contacts.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true, communicationNotes: true },
+      select: { id: true, notes: true },
     });
 
     if (!contact) return actionNotFound("Contact");
 
-    const existingNotes: string[] = Array.isArray(contact.communicationNotes)
-      ? (contact.communicationNotes as string[])
-      : [];
-
-    const updated = await prismadb.contact.update({
+    const updated = await prismadb.client_Contacts.update({
       where: { id: contactId },
-      data: { communicationNotes: [...existingNotes, note] },
-      select: { communicationNotes: true },
+      data: { notes: [...contact.notes, note] },
+      select: { notes: true },
     });
 
-    const notes = Array.isArray(updated.communicationNotes)
-      ? (updated.communicationNotes as string[])
-      : [];
-
-    return actionSuccess({ notes });
+    return actionSuccess({ notes: updated.notes });
   } catch (error) {
     console.error("[ADD_CONTACT_NOTE]", error);
     return actionError("Failed to add note", error as Error);
@@ -81,30 +68,22 @@ export async function deleteContactNote(
   const { contactId, noteIndex } = validation.data;
 
   try {
-    const contact = await prismadb.contact.findFirst({
+    const contact = await prismadb.client_Contacts.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true, communicationNotes: true },
+      select: { id: true, notes: true },
     });
 
     if (!contact) return actionNotFound("Contact");
 
-    const existingNotes: string[] = Array.isArray(contact.communicationNotes)
-      ? (contact.communicationNotes as string[])
-      : [];
+    const updatedNotes = contact.notes.filter((_, i) => i !== noteIndex);
 
-    const updatedNotes = existingNotes.filter((_, i) => i !== noteIndex);
-
-    const updated = await prismadb.contact.update({
+    const updated = await prismadb.client_Contacts.update({
       where: { id: contactId },
-      data: { communicationNotes: updatedNotes },
-      select: { communicationNotes: true },
+      data: { notes: updatedNotes },
+      select: { notes: true },
     });
 
-    const notes = Array.isArray(updated.communicationNotes)
-      ? (updated.communicationNotes as string[])
-      : [];
-
-    return actionSuccess({ notes });
+    return actionSuccess({ notes: updated.notes });
   } catch (error) {
     console.error("[DELETE_CONTACT_NOTE]", error);
     return actionError("Failed to delete note", error as Error);

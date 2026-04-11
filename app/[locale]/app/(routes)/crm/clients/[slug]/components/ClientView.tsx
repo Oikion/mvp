@@ -40,7 +40,7 @@ import { ClientComments } from "./ClientComments";
 
 import { toast } from "sonner";
 import {
-  useContactLinked,
+  useClientLinked,
   useLinkPropertiesToClient,
   useUnlinkPropertyFromClient,
   useLinkMandatesToClient,
@@ -142,12 +142,12 @@ export default function ClientView({
   // Linked entities via SWR
   const {
     properties,
-    requests: linkedMandates,
+    mandates: linkedMandates,
     documents: linkedDocuments,
     events,
     isLoading: isLoadingLinked,
     mutate: mutateLinked,
-  } = useContactLinked(data?.id);
+  } = useClientLinked(data?.id);
 
   const { linkProperties, isLinking } = useLinkPropertiesToClient(data.id);
   const { unlinkProperty, isUnlinking } = useUnlinkPropertyFromClient(data.id);
@@ -229,7 +229,7 @@ export default function ClientView({
   };
 
   // Derived values
-  const allEvents = events || [];
+  const allEvents = [...(events.upcoming || []), ...(events.past || [])];
   const billingAddress = [data.billing_street, data.billing_city, data.billing_state, data.billing_postal_code, data.billing_country].filter(Boolean).join(", ");
   const shippingAddress = [data.shipping_street, data.shipping_city, data.shipping_state, data.shipping_postal_code, data.shipping_country].filter(Boolean).join(", ");
 
