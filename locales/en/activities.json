@@ -72,5 +72,21 @@
     "unlinked": "Unlinked from {targetType} {label}",
     "systemActor": "System"
   },
-  "watchedFields": {}
+  "watchedFields": {
+    "status": "Status",
+    "assignedToUserId": "Assigned To",
+    "visibility": "Visibility",
+    "category": "Category",
+    "source": "Source",
+    "doNotContact": "Do Not Contact",
+    "allowMarketing": "Allow Marketing",
+    "gdprConsentGiven": "GDPR Consent",
+    "property_status": "Property Status",
+    "price": "Price",
+    "property_type": "Property Type",
+    "urgency": "Urgency",
+    "budgetMin": "Min Budget",
+    "budgetMax": "Max Budget",
+    "requestType": "Request Type"
+  }
 }

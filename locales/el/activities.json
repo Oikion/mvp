@@ -72,5 +72,21 @@
     "unlinked": "Αποσυνδέθηκε από {targetType} {label}",
     "systemActor": "Σύστημα"
   },
-  "watchedFields": {}
+  "watchedFields": {
+    "status": "Κατάσταση",
+    "assignedToUserId": "Ανατεθειμένο σε",
+    "visibility": "Ορατότητα",
+    "category": "Κατηγορία",
+    "source": "Πηγή",
+    "doNotContact": "Να μην επικοινωνήσετε",
+    "allowMarketing": "Επιτρέπεται Marketing",
+    "gdprConsentGiven": "Συγκατάθεση GDPR",
+    "property_status": "Κατάσταση Ακινήτου",
+    "price": "Τιμή",
+    "property_type": "Τύπος Ακινήτου",
+    "urgency": "Επείγον",
+    "budgetMin": "Ελάχιστος Προϋπολογισμός",
+    "budgetMax": "Μέγιστος Προϋπολογισμός",
+    "requestType": "Τύπος Αιτήματος"
+  }
 }
