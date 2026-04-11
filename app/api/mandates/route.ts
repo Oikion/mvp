@@ -7,6 +7,7 @@ import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 import { createMandateSchema, updateMandateSchema, mandateQuerySchema } from "@/lib/validations/mandates";
 import { encryptMandateForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
 import { validateAssignedTo } from "@/lib/validate-assigned-to";
+import { createChangeLogEntry } from "@/lib/entity-change-log";
 
 /**
  * GET /api/mandates
@@ -266,6 +267,14 @@ export async function POST(req: Request) {
         draft_status: validated.draft_status ?? false,
       },
     });
+
+    createChangeLogEntry({
+      organizationId,
+      entityType: "REQUEST",
+      entityId: newMandate.id,
+      eventType: "CREATED",
+      actorUserId: user.id,
+    }).catch((err) => console.error("[MANDATE_CREATED_LOG]", err));
 
     await invalidateCache(
       [

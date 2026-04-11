@@ -35,10 +35,10 @@ export const PROPERTY_WATCHED_FIELDS = [
 export const REQUEST_WATCHED_FIELDS = [
   "status",
   "urgency",
-  "assignedToUserId",
-  "budgetMin",
-  "budgetMax",
-  "requestType",
+  "assigned_to",
+  "budget_min",
+  "budget_max",
+  "transaction_type",
 ] as const;
 
 // ─── diffEntity ───────────────────────────────────────────────────────────────
