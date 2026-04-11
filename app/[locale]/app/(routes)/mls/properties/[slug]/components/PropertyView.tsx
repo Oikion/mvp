@@ -670,7 +670,7 @@ export default function PropertyView({
                 parentId={data.id}
                 onSuccess={() => {}}
               />
-              <ActivityFeed parentType="PROPERTY" parentId={data.id} />
+              <ActivityFeed parentType="PROPERTY" parentId={data.id} unified />
             </CardContent>
           </Card>
         </div>
