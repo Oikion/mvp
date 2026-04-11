@@ -914,6 +914,7 @@ model Users {
   ActivitiesAssigned                                 Activity[]            @relation("ActivityAssignedTo")
   OrgTemplatesCreated                                OrgDocumentTemplate[] @relation("OrgTemplateCreatedBy")
   CalendarEventAgents                                CalendarEventAgent[]  @relation("AgentCalendarEvents")
+  EntityChangeLogs                                   EntityChangeLog[]     @relation("EntityChangeLogActor")
 
   @@index([clerkUserId])
   @@index([email])
@@ -4245,4 +4246,38 @@ model CalendarEventAgent {
   @@index([eventId])
   @@index([userId])
   @@map("calendar_event_agents")
+}
+
+enum EntityChangeLogType {
+  CONTACT
+  PROPERTY
+  REQUEST
+  DEAL
+}
+
+enum EntityChangeEventType {
+  CREATED
+  UPDATED
+  LINKED
+  UNLINKED
+}
+
+model EntityChangeLog {
+  id             String                @id @default(cuid())
+  organizationId String
+  entityType     EntityChangeLogType
+  entityId       String
+  eventType      EntityChangeEventType
+  actorUserId    String?
+  changedFields  Json?
+  linkTarget     Json?
+  occurredAt     DateTime              @default(now())
+  createdAt      DateTime              @default(now())
+
+  Actor Users? @relation("EntityChangeLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([organizationId, entityType, entityId])
+  @@index([organizationId, entityType, entityId, occurredAt])
+  @@map("entity_change_logs")
 }
