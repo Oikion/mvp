@@ -15,7 +15,7 @@ import type { EntityChangeLogType } from "@prisma/client";
 
 export const CONTACT_WATCHED_FIELDS = [
   "status",
-  "assignedToUserId",
+  "assignedAgentId",
   "visibility",
   "category",
   "source",

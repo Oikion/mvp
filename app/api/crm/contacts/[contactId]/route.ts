@@ -115,7 +115,7 @@ export async function PUT(
       select: {
         id: true,
         status: true,
-        assignedToUserId: true,
+        assignedAgentId: true,
         visibility: true,
         category: true,
         source: true,
