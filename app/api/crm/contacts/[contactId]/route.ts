@@ -5,6 +5,7 @@ import { canPerformAction } from "@/lib/permissions";
 import { updateContactSchema } from "@/lib/validations/contacts";
 import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { isFriendlyId } from "@/lib/friendly-id";
+import { createChangeLogEntry, diffEntity, CONTACT_WATCHED_FIELDS } from "@/lib/entity-change-log";
 
 export async function GET(
   req: Request,
@@ -108,10 +109,20 @@ export async function PUT(
 
     const { id, ...data } = validation.data;
 
-    // Verify ownership
+    // Verify ownership — also capture watched fields for changelog diff
     const existing = await prismadb.contact.findFirst({
       where: { id, organizationId },
-      select: { id: true },
+      select: {
+        id: true,
+        status: true,
+        assignedToUserId: true,
+        visibility: true,
+        category: true,
+        source: true,
+        doNotContact: true,
+        allowMarketing: true,
+        gdprConsentGiven: true,
+      },
     });
 
     if (!existing) {
@@ -130,6 +141,24 @@ export async function PUT(
         updatedBy: user.id,
       },
     });
+
+    // Fire-and-forget changelog — errors must not affect the API response
+    const changedFields = diffEntity(
+      existing as Record<string, unknown>,
+      updated as Record<string, unknown>,
+      CONTACT_WATCHED_FIELDS,
+      [] // all watched fields are non-PII, none are encrypted
+    );
+    if (changedFields.length > 0) {
+      createChangeLogEntry({
+        organizationId,
+        entityType: "CONTACT",
+        entityId: updated.id,
+        eventType: "UPDATED",
+        actorUserId: user.id,
+        changedFields,
+      }).catch((err) => console.error("[CONTACT_UPDATED_LOG]", err));
+    }
 
     return NextResponse.json({ data: updated });
   } catch (error) {
