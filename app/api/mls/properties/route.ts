@@ -9,6 +9,9 @@ import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 
 import { encryptPropertyForOrg } from "@/lib/model-encryption";
 import { validateAssignedTo } from "@/lib/validate-assigned-to";
+import { createChangeLogEntry, diffEntity, PROPERTY_WATCHED_FIELDS } from "@/lib/entity-change-log";
+
+const PROPERTY_ENCRYPTED_FIELDS = ["primary_email"] as const;
 
 // Valid enum values
 const VALID_PROPERTY_CONDITIONS = new Set(["EXCELLENT", "VERY_GOOD", "GOOD", "NEEDS_RENOVATION"]);
@@ -302,6 +305,14 @@ export async function POST(req: Request) {
           ...data,
         },
       });
+
+      createChangeLogEntry({
+        organizationId,
+        entityType: "PROPERTY",
+        entityId: property.id,
+        eventType: "CREATED",
+        actorUserId: user.id,
+      }).catch((err) => console.error("[PROPERTY_CREATED_LOG]", err));
     }
 
     await invalidateCache([
@@ -415,6 +426,23 @@ export async function PUT(req: Request) {
       where: { id },
       data,
     });
+
+    const changedFields = diffEntity(
+      existingProperty as Record<string, unknown>,
+      updatedProperty as Record<string, unknown>,
+      PROPERTY_WATCHED_FIELDS,
+      PROPERTY_ENCRYPTED_FIELDS
+    );
+    if (changedFields.length > 0) {
+      createChangeLogEntry({
+        organizationId,
+        entityType: "PROPERTY",
+        entityId: id,
+        eventType: "UPDATED",
+        actorUserId: user.id,
+        changedFields,
+      }).catch((err) => console.error("[PROPERTY_UPDATED_LOG]", err));
+    }
 
     await invalidateCache([
       "properties:list",

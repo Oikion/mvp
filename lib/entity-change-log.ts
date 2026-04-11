@@ -102,8 +102,8 @@ export async function createChangeLogEntry(input: ChangeLogInput): Promise<void>
         entityId:       input.entityId,
         eventType:      input.eventType,
         actorUserId:    input.actorUserId ?? undefined,
-        changedFields:  input.changedFields ?? undefined,
-        linkTarget:     input.linkTarget    ?? undefined,
+        changedFields:  (input.changedFields ?? undefined) as unknown as import("@prisma/client").Prisma.InputJsonValue | undefined,
+        linkTarget:     (input.linkTarget    ?? undefined) as unknown as import("@prisma/client").Prisma.InputJsonValue | undefined,
       },
     });
   } catch (error) {
