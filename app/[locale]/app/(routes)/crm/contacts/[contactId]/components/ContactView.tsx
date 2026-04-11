@@ -650,7 +650,7 @@ export default function ContactView({ contact }: ContactViewProps) {
             parentId={contact.id}
             onSuccess={() => {}}
           />
-          <ActivityFeed parentType="CONTACT" parentId={contact.id} />
+          <ActivityFeed parentType="CONTACT" parentId={contact.id} unified />
         </TabsContent>
       </Tabs>
 
