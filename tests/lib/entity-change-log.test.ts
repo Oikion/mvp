@@ -1,5 +1,18 @@
-import { describe, it, expect } from "vitest";
-import { diffEntity } from "@/lib/entity-change-log";
+import { describe, it, expect, vi } from "vitest";
+import { diffEntity, createChangeLogEntry } from "@/lib/entity-change-log";
+
+vi.mock("server-only", () => ({}));
+
+vi.mock("@/lib/prisma", () => ({
+  prismadb: {
+    entityChangeLog: {
+      create: vi.fn(),
+    },
+  },
+}));
+
+// Pull in the mocked prismadb so we can assert on it
+import { prismadb } from "@/lib/prisma";
 
 describe("diffEntity", () => {
   const watchedFields = ["status", "assignedToUserId", "visibility"];
@@ -56,5 +69,40 @@ describe("diffEntity", () => {
       { field: "status",     from: "LEAD",    to: "ACTIVE" },
       { field: "visibility", from: "PRIVATE", to: "PUBLIC"  },
     ]);
+  });
+});
+
+describe("createChangeLogEntry", () => {
+  it("creates a STAGE_CHANGED changelog entry with stageTransition data", async () => {
+    const mockCreate = vi.fn().mockResolvedValue({ id: "log-1" });
+    vi.mocked(prismadb.entityChangeLog.create).mockImplementation(mockCreate);
+
+    await createChangeLogEntry({
+      organizationId: "org-1",
+      entityType: "DEAL",
+      entityId: "deal-1",
+      eventType: "STAGE_CHANGED",
+      actorUserId: "user-1",
+      stageTransition: {
+        fromStage: "OFFER",
+        toStage: "NEGOTIATION",
+        notes: "Accepted counter",
+      },
+    });
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          eventType: "STAGE_CHANGED",
+          linkTarget: {
+            stageTransition: {
+              fromStage: "OFFER",
+              toStage: "NEGOTIATION",
+              notes: "Accepted counter",
+            },
+          },
+        }),
+      })
+    );
   });
 });

@@ -4262,6 +4262,7 @@ enum EntityChangeEventType {
   UNLINKED
   DELETED
   ARCHIVED
+  STAGE_CHANGED
 }
 
 model EntityChangeLog {
