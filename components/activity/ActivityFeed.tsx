@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { el, enUS } from "date-fns/locale";
+import { el, enUS, type Locale } from "date-fns/locale";
 import { useActivities } from "@/hooks/swr/useActivities";
 import type { ActivityParentType } from "@/hooks/swr/useActivities";
 import { Skeleton } from "@/components/ui/skeleton";
