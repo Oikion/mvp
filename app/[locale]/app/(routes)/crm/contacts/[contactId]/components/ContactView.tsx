@@ -8,9 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   Building2,
+  Clock,
   Mail,
   Phone,
-  Plus,
   User,
   Calendar,
   Shield,
@@ -21,7 +21,6 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/navigation";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel";
@@ -88,6 +87,7 @@ interface ContactViewProps {
 
 export default function ContactView({ contact }: ContactViewProps) {
   const t = useTranslations("crm");
+  const tActivities = useTranslations("activities");
   const { toast } = useAppToast();
 
   const addresses = contact.addresses || [];
