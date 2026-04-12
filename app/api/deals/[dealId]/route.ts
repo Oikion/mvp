@@ -14,6 +14,7 @@ import {
   getDealStageTransitionError,
 } from "@/lib/validations/status-transitions";
 import { serializeDealForClient } from "@/lib/deals/serialize";
+import { createChangeLogEntry } from "@/lib/entity-change-log";
 
 export async function GET(
   req: Request,
@@ -157,6 +158,20 @@ export async function PUT(
           },
         }),
       ]);
+
+      // Fire-and-forget: non-fatal changelog entry for unified activity feed
+      await createChangeLogEntry({
+        organizationId,
+        entityType: "DEAL",
+        entityId: dealId,
+        eventType: "STAGE_CHANGED",
+        actorUserId: userId,
+        stageTransition: {
+          fromStage: deal.stage,
+          toStage: body.toStage,
+          notes: body.notes ?? undefined,
+        },
+      });
 
       return apiSuccess(serializeDealForClient(updated));
     }
