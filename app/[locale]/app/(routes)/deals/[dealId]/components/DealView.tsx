@@ -49,7 +49,6 @@ import { DEAL_STATUS } from "@/lib/status-mappings";
 import { cn } from "@/lib/utils";
 import DealStagePipeline from "./DealStagePipeline";
 import DealPartiesPanel from "./DealPartiesPanel";
-import DealStageHistory from "./DealStageHistory";
 
 // ── Reusable detail field (mirrors ContactView pattern) ──
 function DetailField({
@@ -477,11 +476,6 @@ export default function DealView({ deal }: DealViewProps) {
             </Card>
           )}
 
-          {/* Stage history */}
-          <DealStageHistory
-            logs={deal.stageLogs ?? []}
-            userDisplayMap={deal.userDisplayMap}
-          />
         </div>
 
         {/* Right column — sidebar */}
