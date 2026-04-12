@@ -10,7 +10,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { FileText, User, Building2, Plus, GitCommitHorizontal, LinkIcon, Unlink } from "lucide-react";
+import { FileText, User, Building2, Plus, GitCommitHorizontal, LinkIcon, Unlink, GitBranch } from "lucide-react";
 
 interface ActivityFeedProps {
   parentType: ActivityParentType;
@@ -49,9 +49,14 @@ interface LinkTarget {
 interface ChangelogEntry {
   _source: "changelog";
   id: string;
-  eventType: "CREATED" | "UPDATED" | "LINKED" | "UNLINKED";
+  eventType: "CREATED" | "UPDATED" | "LINKED" | "UNLINKED" | "STAGE_CHANGED";
   changedFields?: ChangedField[] | null;
   linkTarget?: LinkTarget | null;
+  stageTransition?: {
+    fromStage: string;
+    toStage: string;
+    notes?: string;
+  } | null;
   occurredAt: string;
   Actor?: { id: string; firstName?: string | null; lastName?: string | null } | null;
 }
@@ -76,6 +81,7 @@ const CHANGELOG_ICONS = {
   UPDATED: GitCommitHorizontal,
   LINKED: LinkIcon,
   UNLINKED: Unlink,
+  STAGE_CHANGED: GitBranch,
 } as const;
 
 // ─── Empty state mapping ──────────────────────────────────────────────────────
@@ -92,6 +98,22 @@ const PARENT_TYPE_TO_EMPTY_STATE = {
 
 function actorName(actor?: { firstName?: string | null; lastName?: string | null } | null, t?: ReturnType<typeof useTranslations>): string {
   return [actor?.firstName, actor?.lastName].filter(Boolean).join(" ") || (t ? t("changelog.systemActor") : "System");
+}
+
+/**
+ * Normalizes a raw changelog entry from the API.
+ * For STAGE_CHANGED entries, `stageTransition` is stored inside `linkTarget`
+ * (as JSON). This helper surfaces it as a top-level field on ChangelogEntry.
+ */
+function normalizeChangelogEntry(entry: ChangelogEntry): ChangelogEntry {
+  if (entry.eventType !== "STAGE_CHANGED") return entry;
+  const rawLinkTarget = entry.linkTarget as (Record<string, unknown> & { stageTransition?: { fromStage: string; toStage: string; notes?: string } }) | null;
+  if (!rawLinkTarget?.stageTransition) return entry;
+  return {
+    ...entry,
+    stageTransition: rawLinkTarget.stageTransition,
+    linkTarget: undefined,
+  };
 }
 
 // ─── Changelog row ────────────────────────────────────────────────────────────
@@ -137,6 +159,11 @@ function ChangelogRow({
     sentence = t("changelog.unlinked", {
       targetType: entry.linkTarget.type,
       label: entry.linkTarget.label ?? entry.linkTarget.friendlyId ?? entry.linkTarget.id,
+    });
+  } else if (entry.eventType === "STAGE_CHANGED" && entry.stageTransition) {
+    sentence = t("changelog.stageChanged", {
+      from: entry.stageTransition.fromStage,
+      to: entry.stageTransition.toStage,
     });
   } else {
     sentence = t("changelog.updated", { actor });
@@ -266,7 +293,7 @@ export function ActivityFeed({ parentType, parentId, unified = false }: Readonly
     <ol className="relative border-l border-border space-y-6 pl-6">
       {feed.map((entry) =>
         entry._source === "changelog" ? (
-          <ChangelogRow key={entry.id} entry={entry} t={t} dateLocale={dateLocale} />
+          <ChangelogRow key={entry.id} entry={normalizeChangelogEntry(entry)} t={t} dateLocale={dateLocale} />
         ) : (
           <ActivityRow key={entry.id} activity={entry} t={t} dateLocale={dateLocale} />
         )

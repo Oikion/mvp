@@ -70,6 +70,7 @@
     "fieldChangedNoLabel": "changed from {from} to {to}",
     "linked": "Linked to {targetType} {label}",
     "unlinked": "Unlinked from {targetType} {label}",
+    "stageChanged": "Stage changed: {from} → {to}",
     "systemActor": "System"
   },
   "watchedFields": {

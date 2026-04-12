@@ -70,6 +70,7 @@
     "fieldChangedNoLabel": "άλλαξε από {from} σε {to}",
     "linked": "Συνδέθηκε με {targetType} {label}",
     "unlinked": "Αποσυνδέθηκε από {targetType} {label}",
+    "stageChanged": "Αλλαγή σταδίου: {from} → {to}",
     "systemActor": "Σύστημα"
   },
   "watchedFields": {
