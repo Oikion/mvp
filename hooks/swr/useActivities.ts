@@ -77,7 +77,7 @@ export interface Activity {
 }
 
 interface ActivitiesResponse {
-  data: Activity[];
+  data: unknown[];
 }
 
 export interface UseActivitiesOptions {
