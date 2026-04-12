@@ -25,7 +25,7 @@ export function EntityActivityPanel({
       <QuickLogActivity
         parentType={parentType}
         parentId={parentId}
-        onSuccess={onSuccess ?? (() => {})}
+        onSuccess={onSuccess}
       />
       <ActivityFeed parentType={parentType} parentId={parentId} unified />
     </div>
