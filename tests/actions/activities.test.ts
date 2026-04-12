@@ -264,7 +264,7 @@ describe("deleteActivity", () => {
 
   it("does not hard-delete", async () => {
     await deleteActivity("act-1");
-    expect((prismadb.activity as Record<string, unknown>).delete).toBeUndefined();
+    expect((prismadb.activity as unknown as Record<string, unknown>).delete).toBeUndefined();
   });
 
   it("returns not found error when activity does not exist", async () => {

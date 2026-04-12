@@ -391,7 +391,7 @@ describe("deleteDocumentTemplate", () => {
   it("does not hard-delete", async () => {
     await deleteDocumentTemplate("tmpl-1");
     expect(
-      (prismadb.orgDocumentTemplate as Record<string, unknown>).delete
+      (prismadb.orgDocumentTemplate as unknown as Record<string, unknown>).delete
     ).toBeUndefined();
   });
 
