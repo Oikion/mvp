@@ -416,7 +416,7 @@ export default function RequestView({ request }: RequestViewProps) {
                 parentId={request.id}
                 onSuccess={() => {}}
               />
-              <ActivityFeed parentType="REQUEST" parentId={request.id} />
+              <ActivityFeed parentType="REQUEST" parentId={request.id} unified />
             </CardContent>
           </Card>
         </div>

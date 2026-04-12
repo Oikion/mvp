@@ -614,7 +614,7 @@ export default function DealView({ deal }: DealViewProps) {
                 parentId={deal.id}
                 onSuccess={() => {}}
               />
-              <ActivityFeed parentType="DEAL" parentId={deal.id} />
+              <ActivityFeed parentType="DEAL" parentId={deal.id} unified />
             </CardContent>
           </Card>
         </aside>
