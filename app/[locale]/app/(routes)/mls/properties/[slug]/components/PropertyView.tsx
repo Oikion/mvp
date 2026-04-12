@@ -54,8 +54,7 @@ import {
   useUnlinkDocumentFromProperty,
 } from "@/hooks/swr";
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
-import { ActivityFeed } from "@/components/activity/ActivityFeed";
-import { QuickLogActivity } from "@/components/activity/QuickLogActivity";
+import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel";
 import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
@@ -664,13 +663,8 @@ export default function PropertyView({
                 {tActivities("title")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <QuickLogActivity
-                parentType="PROPERTY"
-                parentId={data.id}
-                onSuccess={() => {}}
-              />
-              <ActivityFeed parentType="PROPERTY" parentId={data.id} unified />
+            <CardContent>
+              <EntityActivityPanel parentType="PROPERTY" parentId={data.id} />
             </CardContent>
           </Card>
         </div>

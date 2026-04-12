@@ -39,8 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
-import { ActivityFeed } from "@/components/activity/ActivityFeed";
-import { QuickLogActivity } from "@/components/activity/QuickLogActivity";
+import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel";
 import { PermissionGate } from "@/lib/permissions/components";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { getDealKey } from "@/hooks/swr/useDeals";
@@ -608,13 +607,8 @@ export default function DealView({ deal }: DealViewProps) {
                 {tActivities("title")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <QuickLogActivity
-                parentType="DEAL"
-                parentId={deal.id}
-                onSuccess={() => {}}
-              />
-              <ActivityFeed parentType="DEAL" parentId={deal.id} unified />
+            <CardContent>
+              <EntityActivityPanel parentType="DEAL" parentId={deal.id} />
             </CardContent>
           </Card>
         </aside>

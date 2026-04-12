@@ -57,7 +57,7 @@ import { EntityQuickActions } from "@/components/entity-actions/EntityQuickActio
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient"
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty"
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers"
-import { ActivityFeed } from "@/components/activity/ActivityFeed"
+import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -668,7 +668,7 @@ export default function MandateView({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ActivityFeed parentType="REQUEST" parentId={mandate.id} unified />
+              <EntityActivityPanel parentType="REQUEST" parentId={mandate.id} />
             </CardContent>
           </Card>
         </div>

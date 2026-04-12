@@ -24,8 +24,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { ActivityFeed } from "@/components/activity/ActivityFeed";
-import { QuickLogActivity } from "@/components/activity/QuickLogActivity";
+import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel";
 import { useContactLinked, getContactLinkedKey } from "@/hooks/swr/useContactLinked";
 import {
   useLinkRequestsToContact,
@@ -644,13 +643,8 @@ export default function ContactView({ contact }: ContactViewProps) {
         </div>
         </TabsContent>
 
-        <TabsContent value="activity" className="mt-6 space-y-4">
-          <QuickLogActivity
-            parentType="CONTACT"
-            parentId={contact.id}
-            onSuccess={() => {}}
-          />
-          <ActivityFeed parentType="CONTACT" parentId={contact.id} unified />
+        <TabsContent value="activity" className="mt-6">
+          <EntityActivityPanel parentType="CONTACT" parentId={contact.id} />
         </TabsContent>
       </Tabs>
 
