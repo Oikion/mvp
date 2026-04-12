@@ -77,15 +77,22 @@ export function diffEntity(
 
 // ─── createChangeLogEntry ─────────────────────────────────────────────────────
 
+export interface StageTransition {
+  fromStage: string;
+  toStage: string;
+  notes?: string;
+}
+
 interface ChangeLogInput {
   organizationId: string;
   entityType: EntityChangeLogType;
   entityId: string;
   /** DELETED and ARCHIVED exist in the DB enum but are reserved for future tasks — callers may only use these four values via this helper. */
-  eventType: "CREATED" | "UPDATED" | "LINKED" | "UNLINKED";
+  eventType: "CREATED" | "UPDATED" | "LINKED" | "UNLINKED" | "STAGE_CHANGED";
   actorUserId?: string;
   changedFields?: ChangedField[];
   linkTarget?: { type: string; id: string; friendlyId?: string; label?: string };
+  stageTransition?: StageTransition;
 }
 
 /**
@@ -94,6 +101,11 @@ interface ChangeLogInput {
  * that should abort on failure.
  */
 export async function createChangeLogEntry(input: ChangeLogInput): Promise<void> {
+  // Merge stageTransition into linkTarget JSON when present
+  const linkTargetData = input.stageTransition
+    ? { ...input.linkTarget, stageTransition: input.stageTransition }
+    : input.linkTarget;
+
   try {
     await prismadb.entityChangeLog.create({
       data: {
@@ -103,7 +115,7 @@ export async function createChangeLogEntry(input: ChangeLogInput): Promise<void>
         eventType:      input.eventType,
         actorUserId:    input.actorUserId ?? undefined,
         changedFields:  (input.changedFields ?? undefined) as unknown as import("@prisma/client").Prisma.InputJsonValue | undefined,
-        linkTarget:     (input.linkTarget    ?? undefined) as unknown as import("@prisma/client").Prisma.InputJsonValue | undefined,
+        linkTarget:     (linkTargetData ?? undefined) as unknown as import("@prisma/client").Prisma.InputJsonValue | undefined,
       },
     });
   } catch (error) {
