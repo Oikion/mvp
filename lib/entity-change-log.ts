@@ -83,7 +83,7 @@ export interface StageTransition {
   notes?: string;
 }
 
-interface ChangeLogInput {
+export interface ChangeLogInput {
   organizationId: string;
   entityType: EntityChangeLogType;
   entityId: string;
@@ -91,7 +91,9 @@ interface ChangeLogInput {
   eventType: "CREATED" | "UPDATED" | "LINKED" | "UNLINKED" | "STAGE_CHANGED";
   actorUserId?: string;
   changedFields?: ChangedField[];
+  /** For LINKED/UNLINKED events: entity reference. For STAGE_CHANGED: leave absent; use stageTransition instead. Providing both is valid — stageTransition is nested under linkTarget in the persisted JSON. */
   linkTarget?: { type: string; id: string; friendlyId?: string; label?: string };
+  /** For STAGE_CHANGED events only. Merged into linkTarget JSON as linkTarget.stageTransition. */
   stageTransition?: StageTransition;
 }
 

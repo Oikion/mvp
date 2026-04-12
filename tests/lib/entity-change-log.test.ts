@@ -105,4 +105,31 @@ describe("createChangeLogEntry", () => {
       })
     );
   });
+
+  it("merges stageTransition into linkTarget when both are provided", async () => {
+    const mockCreate = vi.fn().mockResolvedValue({ id: "log-2" });
+    vi.mocked(prismadb.entityChangeLog.create).mockImplementation(mockCreate);
+
+    await createChangeLogEntry({
+      organizationId: "org-1",
+      entityType: "DEAL",
+      entityId: "deal-1",
+      eventType: "STAGE_CHANGED",
+      actorUserId: "user-1",
+      linkTarget: { type: "CONTACT", id: "c-1" },
+      stageTransition: { fromStage: "OFFER", toStage: "NEGOTIATION" },
+    });
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          linkTarget: {
+            type: "CONTACT",
+            id: "c-1",
+            stageTransition: { fromStage: "OFFER", toStage: "NEGOTIATION" },
+          },
+        }),
+      })
+    );
+  });
 });
