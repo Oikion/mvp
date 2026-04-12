@@ -158,7 +158,6 @@ interface DealWithRelations {
   readonly buyerAgent?: DealAgent | null;
   readonly dealParties?: readonly DealPartyView[];
   readonly stageLogs?: readonly DealStageLogView[];
-  readonly userDisplayMap?: Record<string, string>;
 }
 
 interface DealViewProps {

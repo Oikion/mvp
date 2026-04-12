@@ -584,37 +584,9 @@ export async function getDeal(
 
   if (!deal) return actionNotFound("Deal");
 
-  // Build userDisplayMap for everyone referenced in stageLogs.
-  // The soft-delete Prisma extension erases the `include` type-narrowing, so
-  // we read `stageLogs` via a narrow local cast rather than a global `any`.
-  const userDisplayMap: Record<string, string> = {};
-  const stageLogs =
-    (deal as { stageLogs?: Array<{ changedBy: string | null }> }).stageLogs ?? [];
-  const userIds = Array.from(
-    new Set(
-      stageLogs
-        .map((l) => l.changedBy)
-        .filter((id): id is string => Boolean(id))
-    )
-  );
-  if (userIds.length > 0) {
-    try {
-      const users = await prismadb.users.findMany({
-        where: { id: { in: userIds } },
-        select: { id: true, name: true, email: true },
-      });
-      for (const u of users) {
-        userDisplayMap[u.id] = u.name || u.email || "";
-      }
-    } catch (err) {
-      console.error("[DEAL_GET_USER_DISPLAY_MAP]", err);
-    }
-  }
-
   return actionSuccess(
     serializeDealForClient({
       ...deal,
-      userDisplayMap,
       isListingAgent: deal.listingAgentId === currentUser.id,
       isBuyerAgent: deal.buyerAgentId === currentUser.id,
       isProposer: deal.proposedById === currentUser.id,
