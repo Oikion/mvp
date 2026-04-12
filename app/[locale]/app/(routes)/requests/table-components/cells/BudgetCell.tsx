@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { updateMandate } from "@/actions/mandates/update-mandate";
+import { useRouter } from "@/navigation";
+import { updateRequest } from "@/actions/requests/update-request";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Pencil, Check, X } from "lucide-react";
@@ -10,9 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 interface BudgetCellProps {
-  mandateId: string;
-  budgetMin: number | string | null | undefined;
-  budgetMax: number | string | null | undefined;
+  requestId: string;
+  budgetMin: number | null | undefined;
+  budgetMax: number | null | undefined;
 }
 
 function formatBudget(
@@ -36,7 +36,7 @@ function formatBudget(
 }
 
 export const BudgetCell = ({
-  mandateId,
+  requestId,
   budgetMin,
   budgetMax,
 }: BudgetCellProps) => {
@@ -46,7 +46,7 @@ export const BudgetCell = ({
   const [maxValue, setMaxValue] = useState(budgetMax?.toString() ?? "");
   const [loading, setLoading] = useState(false);
   const tCommon = useTranslations("common");
-  const t = useTranslations("mandates");
+  const t = useTranslations("requests");
   const minRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -61,11 +61,11 @@ export const BudgetCell = ({
     const parsedMax = maxValue.trim() ? parseFloat(maxValue.replace(/,/g, "")) : null;
 
     if (minValue.trim() && (parsedMin === null || isNaN(parsedMin))) {
-      toast.error(t("MandateForm.validation.invalidMinBudget"));
+      toast.error(t("wizard.validation.invalidMinBudget" as any));
       return;
     }
     if (maxValue.trim() && (parsedMax === null || isNaN(parsedMax))) {
-      toast.error(t("MandateForm.validation.invalidMaxBudget"));
+      toast.error(t("wizard.validation.invalidMaxBudget" as any));
       return;
     }
 
@@ -79,16 +79,16 @@ export const BudgetCell = ({
 
     setLoading(true);
     try {
-      await updateMandate({
-        id: mandateId,
-        budget_min: parsedMin,
-        budget_max: parsedMax,
+      const result = await updateRequest(requestId, {
+        budgetMin: parsedMin,
+        budgetMax: parsedMax,
       } as any);
-      toast.success(tCommon("success"));
+      if (!result.success) throw new Error(result.error);
+      toast.success(tCommon("toast.updateSuccess"));
       setIsEditing(false);
       router.refresh();
     } catch {
-      toast.error(tCommon("error"));
+      toast.error(tCommon("toast.updateFailed"));
       setMinValue(budgetMin?.toString() ?? "");
       setMaxValue(budgetMax?.toString() ?? "");
     } finally {
@@ -125,7 +125,7 @@ export const BudgetCell = ({
             onChange={(e) => setMinValue(e.target.value)}
             onKeyDown={handleKeyDown}
             className="h-8 pl-5 pr-1 w-full text-sm"
-            placeholder={t("Filters.min")}
+            placeholder={t("wizard.fields.budgetMin" as any)}
             disabled={loading}
           />
         </div>
@@ -140,7 +140,7 @@ export const BudgetCell = ({
             onChange={(e) => setMaxValue(e.target.value)}
             onKeyDown={handleKeyDown}
             className="h-8 pl-5 pr-1 w-full text-sm"
-            placeholder={t("Filters.max")}
+            placeholder={t("wizard.fields.budgetMax" as any)}
             disabled={loading}
           />
         </div>
@@ -183,7 +183,7 @@ export const BudgetCell = ({
       }}
       className="group flex items-center gap-2 whitespace-nowrap cursor-pointer hover:bg-muted/50 rounded px-2 py-1 -mx-2 transition-colors text-left"
     >
-      <span>{formatBudget(budgetMin, budgetMax, t("budget.upTo"))}</span>
+      <span>{formatBudget(budgetMin, budgetMax, t("budget.upTo" as any))}</span>
       <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
     </button>
   );

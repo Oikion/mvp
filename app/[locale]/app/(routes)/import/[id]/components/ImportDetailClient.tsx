@@ -172,7 +172,7 @@ const ENTITY_CONFIG: Record<
     badgeClass:
       "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",
     icon: FileText,
-    href: "/app/mandates",
+    href: "/app/requests",
   },
 };
 

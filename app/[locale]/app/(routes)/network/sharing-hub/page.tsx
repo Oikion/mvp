@@ -252,7 +252,7 @@ export default async function SharingHubPage({ params }: SharingHubPageProps) {
                   {networkItems.mandates.map((m) => (
                     <Link
                       key={m.id}
-                      href={`/app/mandates/${m.friendlyId}`}
+                      href={`/app/requests/${m.friendlyId}`}
                       className="flex items-center justify-between gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex items-center gap-3 min-w-0">

@@ -165,6 +165,8 @@
       "contactRequired": "A contact must be selected",
       "requestTypeRequired": "Request type is required",
       "budgetMinMax": "Min budget cannot exceed max budget",
+      "invalidMinBudget": "Invalid minimum budget value",
+      "invalidMaxBudget": "Invalid maximum budget value",
       "surfaceMinMax": "Min surface cannot exceed max surface",
       "bedroomsMinMax": "Min bedrooms cannot exceed max bedrooms",
       "floorMinMax": "Min floor cannot exceed max floor"
@@ -242,6 +244,20 @@
     "createFirst": "Create your first buyer or renter search brief",
     "noResults": "No requests match your filters",
     "noShared": "No shared requests"
+  },
+  "budget": {
+    "upTo": "Up to"
+  },
+  "table": {
+    "title": "Title",
+    "requestType": "Type",
+    "budget": "Budget",
+    "status": "Status",
+    "urgency": "Urgency",
+    "contact": "Contact",
+    "assignedTo": "Agent",
+    "created": "Created",
+    "noContact": "No contact"
   },
   "card": {
     "budget": "Budget",

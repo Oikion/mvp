@@ -127,7 +127,8 @@ export function DataTableRowActions<TData extends { id?: string }>({
       case "task":
         return "/app/crm/tasks/viewtask";
       case "mandate":
-        return "/app/mandates";
+      case "request":
+        return "/app/requests";
       case "employee":
         return "/app/employees";
       case "user":

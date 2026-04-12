@@ -67,7 +67,7 @@ const FILTER_TABS: { value: FilterType; label: string; icon: React.ComponentType
 const QUICK_ACTIONS = [
   { id: "new-property", label: "New Property", icon: Building2, path: "/app/mls/new", shortcut: "P" },
   { id: "new-client", label: "New Client", icon: User, path: "/app/crm/new", shortcut: "C" },
-  { id: "new-mandate", label: "New Mandate", icon: ScrollText, path: "/app/mandates/new", shortcut: "M" },
+  { id: "new-request", label: "New Request", icon: ScrollText, path: "/app/requests/new", shortcut: "M" },
   { id: "new-event", label: "New Event", icon: Calendar, path: "/app/calendar/new", shortcut: "E" },
   { id: "new-document", label: "Upload Document", icon: FileText, path: "/app/documents/upload", shortcut: "D" },
 ];
@@ -75,7 +75,7 @@ const QUICK_ACTIONS = [
 const NAVIGATION_ITEMS = [
   { id: "go-properties", label: "Properties", icon: Building2, path: "/app/mls/properties", shortcut: "G P" },
   { id: "go-clients", label: "Clients", icon: User, path: "/app/crm/clients", shortcut: "G C" },
-  { id: "go-mandates", label: "Mandates", icon: ScrollText, path: "/app/mandates", shortcut: "G M" },
+  { id: "go-requests", label: "Requests", icon: ScrollText, path: "/app/requests", shortcut: "G M" },
   { id: "go-contacts", label: "Contacts", icon: Users, path: "/app/crm/contacts", shortcut: "G O" },
   { id: "go-documents", label: "Documents", icon: FileText, path: "/app/documents", shortcut: "G D" },
   { id: "go-calendar", label: "Calendar", icon: Calendar, path: "/app/calendar", shortcut: "G E" },

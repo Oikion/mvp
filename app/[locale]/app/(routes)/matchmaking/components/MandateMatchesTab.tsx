@@ -220,7 +220,7 @@ function TopMandateMatchesGrid({
             </Avatar>
             <div className="min-w-0">
               <Link
-                href={`/${locale}/app/mandates/${match.client?.friendlyId ?? match.clientId}`}
+                href={`/${locale}/app/requests/${match.client?.friendlyId ?? match.clientId}`}
                 className="font-medium hover:text-primary truncate block"
               >
                 {match.client.client_name}
@@ -307,7 +307,7 @@ function TopMandateMatchesGrid({
           {/* Actions */}
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/app/mandates/${match.client?.friendlyId ?? match.clientId}`}>
+              <Link href={`/${locale}/app/requests/${match.client?.friendlyId ?? match.clientId}`}>
                 {t("mandateMatches.topMatches.viewMandate")}
               </Link>
             </Button>
@@ -388,7 +388,7 @@ function UnmatchedMandatesList({
 
             <div className="flex-1 min-w-0">
               <Link
-                href={`/${locale}/app/mandates/${mandate.friendlyId}`}
+                href={`/${locale}/app/requests/${mandate.friendlyId}`}
                 className="font-medium hover:text-primary"
               >
                 {mandate.client_name}
@@ -414,7 +414,7 @@ function UnmatchedMandatesList({
             </div>
 
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/app/mandates/${mandate.friendlyId}`}>
+              <Link href={`/${locale}/app/requests/${mandate.friendlyId}`}>
                 {t("mandateMatches.unmatched.review")}
                 <ArrowRight className="h-4 w-4 ml-1" />
               </Link>

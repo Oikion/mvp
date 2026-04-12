@@ -227,7 +227,7 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
         type: "mandate",
         title: mandate.title || "Untitled Mandate",
         subtitle: subtitleParts.length > 0 ? subtitleParts.join(" · ") : undefined,
-        url: `/app/mandates/${mandate.friendlyId}`,
+        url: `/app/requests/${mandate.friendlyId}`,
         relationships: mandate.relationships,
       });
     });

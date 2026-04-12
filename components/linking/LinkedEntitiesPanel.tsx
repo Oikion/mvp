@@ -282,7 +282,7 @@ function MandateCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
-      onClick={() => router.push(`/app/mandates/${mandate.friendlyId}`)}
+      onClick={() => router.push(`/app/requests/${mandate.friendlyId}`)}
     >
       {onUnlink && (
         <Button

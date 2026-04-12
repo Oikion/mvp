@@ -1,26 +1,30 @@
 "use client";
 
-import { updateMandate } from "@/actions/mandates/update-mandate";
+import { useRouter } from "@/navigation";
+import { updateRequest } from "@/actions/requests/update-request";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { EditableSelectCell } from "@/components/ui/data-table/editable-select-cell";
 
 interface AssignedUserCellProps {
-  mandateId: string;
-  assignedTo: string | null;
+  requestId: string;
+  assignedAgentId: string | null;
   users: { id: string; name: string | null }[];
 }
 
 export const AssignedUserCell = ({
-  mandateId,
-  assignedTo,
+  requestId,
+  assignedAgentId,
   users,
 }: AssignedUserCellProps) => {
+  const router = useRouter();
   const tCommon = useTranslations("common");
 
   const handleSave = async (value: string | null) => {
-    await updateMandate({ id: mandateId, assigned_to: value ?? undefined });
+    const result = await updateRequest(requestId, { assignedAgentId: value ?? undefined });
+    if (!result.success) throw new Error(result.error);
     toast.success(tCommon("toast.updateSuccess"));
+    router.refresh();
   };
 
   const userOptions = users.map((u) => ({
@@ -30,7 +34,7 @@ export const AssignedUserCell = ({
 
   return (
     <EditableSelectCell
-      value={assignedTo}
+      value={assignedAgentId}
       onSave={handleSave}
       options={userOptions}
       width="160px"

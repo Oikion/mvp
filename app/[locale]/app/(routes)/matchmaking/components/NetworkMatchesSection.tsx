@@ -129,7 +129,7 @@ function MatchCard({ match, locale, t }: { match: CrossOrgMatchResult; locale: s
       <div className="flex gap-2 shrink-0">
         {mandateFriendlyId && (
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/${locale}/app/mandates/${mandateFriendlyId}`}>
+            <Link href={`/${locale}/app/requests/${mandateFriendlyId}`}>
               {t("dashboard.viewMandate")}
             </Link>
           </Button>

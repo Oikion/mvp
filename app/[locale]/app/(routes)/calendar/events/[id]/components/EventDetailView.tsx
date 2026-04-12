@@ -408,7 +408,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
                       <Button
                         variant="ghost"
                         className="w-full justify-start h-auto p-0"
-                        onClick={() => router.push(`/app/mandates/${mandate.friendlyId}`)}
+                        onClick={() => router.push(`/app/requests/${mandate.friendlyId}`)}
                       >
                         <div className="flex items-center gap-3 w-full">
                           <LinkIcon className="h-4 w-4 text-muted-foreground" />
