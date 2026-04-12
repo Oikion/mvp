@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel";
-import { useContactLinked, getContactLinkedKey } from "@/hooks/swr/useContactLinked";
+import { useContactLinked } from "@/hooks/swr/useContactLinked";
 import {
   useLinkRequestsToContact,
   useUnlinkRequestFromContact,
@@ -32,7 +32,6 @@ import {
   useUnlinkPropertyFromContact,
 } from "@/hooks/swr/useLinkMutations";
 import { LinkEntityDialog } from "@/components/linking/LinkEntityDialog";
-import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 
 // ── Status colors (consistent with list view — Gestalt: similarity) ──
 const STATUS_COLORS: Record<string, string> = {
@@ -237,14 +236,7 @@ export default function ContactView({ contact }: ContactViewProps) {
         </div>
       </div>
 
-      {/* ── Main content: tabs + 2/3 + 1/3 grid (Gestalt: proximity grouping) ── */}
-      <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">{t("contacts.view.tabs.overview")}</TabsTrigger>
-          <TabsTrigger value="activity">{t("contacts.view.tabs.activity")}</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="mt-6">
+      {/* ── Main content: 2/3 + 1/3 grid (Gestalt: proximity grouping) ── */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column — 2/3 */}
         <div className="lg:col-span-2 space-y-6">
@@ -418,6 +410,19 @@ export default function ContactView({ contact }: ContactViewProps) {
               </CardContent>
             </Card>
           )}
+
+          {/* Activity */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="h-4 w-4" aria-hidden="true" />
+                {tActivities("title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EntityActivityPanel parentType="CONTACT" parentId={contact.id} />
+            </CardContent>
+          </Card>
 
           {/* Relationships Card */}
           {contact.relationships?.length > 0 && (
@@ -640,13 +645,7 @@ export default function ContactView({ contact }: ContactViewProps) {
             showAddButton={false}
           />
         </div>
-        </div>
-        </TabsContent>
-
-        <TabsContent value="activity" className="mt-6">
-          <EntityActivityPanel parentType="CONTACT" parentId={contact.id} />
-        </TabsContent>
-      </Tabs>
+      </div>
 
       {/* Link Request Dialog */}
       <LinkEntityDialog
