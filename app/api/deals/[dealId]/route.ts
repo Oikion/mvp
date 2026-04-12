@@ -133,18 +133,18 @@ export async function PUT(
       });
       if (!deal) return apiNotFound("Deal");
 
-      if (!isValidDealStageTransition(deal.stage, body.toStage)) {
-        return apiBadRequest(getDealStageTransitionError(deal.stage, body.toStage));
+      if (!isValidDealStageTransition(deal.stage, validation.data.toStage)) {
+        return apiBadRequest(getDealStageTransitionError(deal.stage, validation.data.toStage));
       }
 
       const [updated] = await prismadb.$transaction([
         prismadb.deal.update({
           where: { id: dealId },
           data: {
-            stage: body.toStage,
-            ...(body.toStage === "COMPLETED" && { closedAt: new Date() }),
-            ...(body.toStage === "FALLEN_THROUGH" && {
-              fallenThroughReason: body.notes ?? null,
+            stage: validation.data.toStage,
+            ...(validation.data.toStage === "COMPLETED" && { closedAt: new Date() }),
+            ...(validation.data.toStage === "FALLEN_THROUGH" && {
+              fallenThroughReason: validation.data.notes ?? null,
             }),
           },
         }),
@@ -152,15 +152,15 @@ export async function PUT(
           data: {
             dealId,
             fromStage: deal.stage,
-            toStage: body.toStage,
+            toStage: validation.data.toStage,
             changedBy: userId,
-            notes: body.notes ?? null,
+            notes: validation.data.notes ?? null,
           },
         }),
       ]);
 
       // Fire-and-forget: non-fatal changelog entry for unified activity feed
-      await createChangeLogEntry({
+      void createChangeLogEntry({
         organizationId,
         entityType: "DEAL",
         entityId: dealId,
@@ -168,8 +168,8 @@ export async function PUT(
         actorUserId: userId,
         stageTransition: {
           fromStage: deal.stage,
-          toStage: body.toStage,
-          notes: body.notes ?? undefined,
+          toStage: validation.data.toStage,
+          notes: validation.data.notes ?? undefined,
         },
       });
 
