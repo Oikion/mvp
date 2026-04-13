@@ -49,7 +49,8 @@ interface QuickAddRequestProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organizationUsers: any[];
-  onContinueToFull: () => void;
+  onContinueToFull?: () => void;
+  onSuccess?: () => void;
 }
 
 export function QuickAddRequest({
@@ -57,6 +58,7 @@ export function QuickAddRequest({
   onOpenChange,
   organizationUsers,
   onContinueToFull,
+  onSuccess,
 }: Readonly<QuickAddRequestProps>) {
   const t = useTranslations("requests");
   const commonT = useTranslations("common");
@@ -96,6 +98,7 @@ export function QuickAddRequest({
       form.reset();
       onOpenChange(false);
       router.refresh();
+      onSuccess?.();
     } else {
       toast.error(result.error || t("toast.createError"), {
         isTranslationKey: false,

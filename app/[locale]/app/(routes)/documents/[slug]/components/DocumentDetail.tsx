@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
-import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 
 interface DocumentData {
@@ -478,8 +478,8 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         }}
       />
 
-      {/* Quick Add Mandate */}
-      <QuickAddMandate
+      {/* Quick Add Request */}
+      <QuickAddRequest
         open={createMandateOpen}
         onOpenChange={(open) => {
           setCreateMandateOpen(open);
