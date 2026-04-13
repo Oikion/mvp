@@ -90,13 +90,15 @@ Implemented in `lib/matchmaking/disqualifiers.ts`:
 
 | Disqualifier | Condition |
 |---|---|
-| `BUDGET_HARD_FLOOR` | `property.price > request.budget_max` |
+| `BUDGET_HARD_FLOOR` | `property.price > request.budget_max * 1.15` |
 | `PROPERTY_TYPE_MISMATCH` | `property.type` not in `request.property_types` |
 | `PURPOSE_MISMATCH` | `property.purpose` (SALE/RENT) ≠ `request.purpose` |
 | `AREA_HARD_EXCLUSION` | Request has `areas_of_interest` AND property area not in list (zero geographic overlap) |
 | `ARCHIVED_OR_INACTIVE` | Either item has `status = ARCHIVED` or `status = INACTIVE` |
 
 `AREA_HARD_EXCLUSION` only fires when the Request explicitly lists areas. If `areas_of_interest` is empty, the criterion is skipped (not disqualified).
+
+**`BUDGET_HARD_FLOOR` rationale:** A 15% tolerance is used rather than a strict price-equals-ceiling rule. In Greek real estate practice agents routinely show properties slightly over a stated budget — buyers negotiate, and a buyer who says €400k may stretch to €440k for the right property. The 15% band lets the price criterion in Layer 2 score these marginal cases low (they'll appear as FAIR or POOR) rather than eliminating them entirely. Properties more than 15% over `budget_max` have no realistic path to conversion and are hard-killed.
 
 ### Layer 2 — Weighted Scoring (19 Criteria)
 
@@ -126,7 +128,7 @@ After passing Layer 1, each pair receives a score of 0–100 built from weighted
 | 18 | Timeline urgency | 2 | Request `timeline = IMMEDIATE` on ready-to-sell property = full; FLEXIBLE = neutral |
 | 19 | Energy class | 2 | A+/A = full if Request prefers green; F/G = penalty if Request requires A-class |
 
-**Note on Column totals:** Criteria 1–19 sum to 104 base points (Financing type has a 5-pt bonus). After computing the raw sum, scores are clamped to 100. The effective weight balance is maintained through the seeded defaults; `OrgMatchWeights` stores overrides per criterion as JSON.
+**Note on Column totals — intentional over-budget design:** Criteria 1–19 sum to 104 base points because Criterion 16 (Financing type) carries a 5-pt exceptional bonus that stacks on top of the 2-pt base weight. This is deliberate: a CASH buyer on a high-value property is a genuinely exceptional signal that warrants boosting a match above what the base criteria alone would produce. After computing the raw sum, scores are clamped to 100. Do **not** "fix" the column sum to equal 100 — doing so would eliminate the bonus mechanic entirely. Future developers maintaining the weight system should preserve this: the `OrgMatchWeights` JSON stores per-criterion overrides, and the financing bonus is hardcoded in the calculator, not a configurable weight. If `OrgMatchWeights` are ever restructured, the financing bonus logic must be explicitly carried over.
 
 #### Golden Visa Regional Logic (Criterion 15)
 
@@ -353,6 +355,8 @@ Used in: Matchmaking Dashboard → Network / Polis tabs.
 #### "Request Introduction" Action
 
 "Request Introduction" sends an **in-app notification** to the listing agent of the property (inbound flow: property owner org receives the introduction request). The notification reads: "Agency [X] has a potential buyer for your listing at [Property]. View match details." No email is sent. No buyer Contact identity is disclosed. Direct messaging via the Network layer will be added in a future iteration when the DM feature is available.
+
+**Fast-follow (post-launch):** In-app-only introductions are a V1 constraint. Greek agents are pre-launch and do not yet have established app habits, meaning introductions that land in a notification tray may go unseen. Once usage patterns are established, add an **email notification option** (gated by an org-level preference: "Notify me by email when a new introduction arrives"). This is a product decision for post-launch, not a V1 requirement. The preference toggle should be added to `OrgNetworkSettings` when implemented.
 
 ---
 
