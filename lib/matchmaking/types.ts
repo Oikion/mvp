@@ -152,28 +152,29 @@ export interface CriterionScore {
 // ============================================
 
 /**
- * All possible matching criteria for the v2 engine (Request-based matching)
+ * All possible matching criteria for the v2 engine (Request-based matching).
+ * 19 canonical Layer 2 criteria per the Matchmaking System v2 design spec.
  */
 export type MatchCriterionV2 =
   | "BUDGET"
   | "PROPERTY_TYPE"
-  | "SIZE"
+  | "LOCATION"
   | "BEDROOMS"
-  | "BATHROOMS"
-  | "LOCATION_AREA"
-  | "LOCATION_RADIUS"
-  | "PURPOSE_OF_USE"
-  | "TRANSACTION_TYPE"
+  | "SIZE"
   | "FLOOR"
+  | "CONDITION"
+  | "CONSTRUCTION_YEAR"
   | "PARKING"
   | "STORAGE"
   | "ELEVATOR"
-  | "ACCESSIBILITY"
-  | "CONSTRUCTION_YEAR"
-  | "NEW_CONSTRUCTION"
+  | "GARDEN"
   | "AMENITIES"
+  | "INSIDE_CITY_PLAN"
   | "GOLDEN_VISA"
-  | "TIMELINE";
+  | "FINANCING_TYPE"
+  | "BATHROOMS"
+  | "TIMELINE"
+  | "ENERGY_CLASS";
 
 /**
  * All possible matching criteria
@@ -429,6 +430,7 @@ export interface PropertyForMatchingV2 extends PropertyForMatching {
   region: string | null;
   inside_city_plan: boolean | null;
   year_built: number | null;
+  garden: boolean | null;
 }
 
 /**

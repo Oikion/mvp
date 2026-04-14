@@ -44,29 +44,31 @@ export const MATCH_WEIGHTS: Record<MatchCriterion, number> = {
 
 /**
  * Default weights for the v2 matching engine.
- * Intentional base sum: 104. Scores are clamped to 100 after calculation,
- * so the 4-pt overflow creates natural headroom for the additive cash bonus (+5).
+ * Intentional base sum: 104 (20+12+12+8+7+5+5+4+4+3+3+3+5+3+2+2+2+2+2).
+ * The FINANCING_TYPE criterion has a 2-pt base weight; an additional +5 additive
+ * bonus is applied on top when the buyer's financing status matches the property's
+ * accepted financing. Final scores are clamped to 100 after calculation.
  */
 export const MATCH_WEIGHTS_V2: Record<MatchCriterionV2, number> = {
-  BUDGET: 25,
+  BUDGET: 20,
   PROPERTY_TYPE: 12,
-  SIZE: 10,
+  LOCATION: 12,
   BEDROOMS: 8,
-  BATHROOMS: 4,
-  LOCATION_AREA: 10,
-  LOCATION_RADIUS: 8,
-  PURPOSE_OF_USE: 5,
-  TRANSACTION_TYPE: 5,
-  FLOOR: 3,
-  PARKING: 3,
-  STORAGE: 2,
-  ELEVATOR: 2,
-  ACCESSIBILITY: 2,
-  CONSTRUCTION_YEAR: 3,
-  NEW_CONSTRUCTION: 2,
-  AMENITIES: 4,
-  GOLDEN_VISA: 3,
-  TIMELINE: 3,
+  SIZE: 7,
+  FLOOR: 5,
+  CONDITION: 5,
+  CONSTRUCTION_YEAR: 4,
+  PARKING: 4,
+  STORAGE: 3,
+  ELEVATOR: 3,
+  GARDEN: 3,
+  AMENITIES: 5,
+  INSIDE_CITY_PLAN: 3,
+  GOLDEN_VISA: 2,
+  FINANCING_TYPE: 2,
+  BATHROOMS: 2,
+  TIMELINE: 2,
+  ENERGY_CLASS: 2,
 };
 
 /**
