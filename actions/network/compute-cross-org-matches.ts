@@ -302,6 +302,8 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
 
   // Map: orgId → decrypted mandates adapted for scoring
   const mandatesByOrg = new Map<string, ClientForMatching[]>();
+  // Map: mandateId → expires_at (sourced from the already-fetched mandate row)
+  const mandateExpiresAt = new Map<string, Date | null>();
   // Map: orgId → adapted properties for scoring
   const propertiesByOrg = new Map<string, PropertyForMatching[]>();
 
@@ -318,6 +320,7 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
               try {
                 const dec = await decryptMandateForOrg(m, orgId);
                 decrypted.push(adaptMandateToClient(dec));
+                mandateExpiresAt.set(m.id, m.expires_at);
               } catch {
                 // Skip corrupted records
               }
@@ -377,16 +380,12 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
           try {
             const result = calculateMatchScore(mandate, property);
 
-            const mandateRow = await prismadb.mandate.findFirst({
-              where: { id: mandate.id },
-              select: { expires_at: true },
-            });
-
             const defaultExpiry = new Date();
             defaultExpiry.setDate(defaultExpiry.getDate() + MATCH_TTL_DAYS);
+            const mandateExpiry = mandateExpiresAt.get(mandate.id) ?? null;
             const expiresAt =
-              mandateRow?.expires_at && mandateRow.expires_at < defaultExpiry
-                ? mandateRow.expires_at
+              mandateExpiry && mandateExpiry < defaultExpiry
+                ? mandateExpiry
                 : defaultExpiry;
 
             await prismadb.crossOrgMatch.upsert({

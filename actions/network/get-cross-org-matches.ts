@@ -156,6 +156,40 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
   const mandateMap = new Map(mandateRows.map((m) => [m.id, m]));
   const propertyMap = new Map(propertyRows.map((p) => [p.id, p]));
 
+  // Batch-fetch all agent info needed across all rows (single query)
+  const uniqueAgentIds = new Set<string>();
+  for (const row of rows) {
+    const mandate = mandateMap.get(row.requestId);
+    const property = propertyMap.get(row.propertyId);
+    if (!mandate || !property) continue;
+
+    const mandatePeerSetting = peerSettings.get(row.requestOrgId);
+    const propertyPeerSetting = peerSettings.get(row.propertyOrgId);
+    const mandatePrivacy =
+      row.requestOrgId === orgId
+        ? settings.mandatePrivacyLevel
+        : mandatePeerSetting?.mandatePrivacyLevel ?? "ANONYMIZED";
+    const propertyPrivacy =
+      row.propertyOrgId === orgId
+        ? settings.propertyPrivacyLevel
+        : propertyPeerSetting?.propertyPrivacyLevel ?? "ANONYMIZED";
+
+    if (mandatePrivacy === "FULL" && mandate.assigned_to) uniqueAgentIds.add(mandate.assigned_to);
+    if (propertyPrivacy === "FULL" && property.assigned_to) uniqueAgentIds.add(property.assigned_to);
+  }
+
+  const agentRows =
+    uniqueAgentIds.size > 0
+      ? await prismadb.users.findMany({
+          where: { id: { in: Array.from(uniqueAgentIds) } },
+          select: { id: true, firstName: true, lastName: true },
+        })
+      : [];
+  const agentMap = new Map(agentRows.map((a) => [a.id, a]));
+
+  // Fetch the viewing org's own profile once (reused per row)
+  const ownProfile = await loadOrgProfile(orgId);
+
   const results: CrossOrgMatchResult[] = [];
   let lastComputedAt: Date | null = null;
 
@@ -169,9 +203,6 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
     }
 
     const viewingOrgHasMandate = row.requestOrgId === orgId;
-    const peerOrgId = viewingOrgHasMandate ? row.propertyOrgId : row.requestOrgId;
-    const peerSetting = peerSettings.get(peerOrgId);
-    const peerProfile = profiles.get(peerOrgId);
 
     // Load agent info on demand (only for FULL privacy level)
     const mandatePeerSetting = peerSettings.get(row.requestOrgId);
@@ -187,21 +218,21 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
         ? settings.propertyPrivacyLevel  // own data: use own setting
         : propertyPeerSetting?.propertyPrivacyLevel ?? "ANONYMIZED";
 
-    // Build agent info if needed
+    // Build agent info if needed (map lookup — no DB query)
     let mandateAgentName: string | null = null;
     let mandateAgentPhone: string | null = null;
     let propertyAgentName: string | null = null;
     let propertyAgentPhone: string | null = null;
 
     if (mandatePrivacy === "FULL" && mandate.assigned_to) {
-      const agent = await loadAgentInfo(mandate.assigned_to);
+      const agent = agentMap.get(mandate.assigned_to);
       if (agent) {
         mandateAgentName = [agent.firstName, agent.lastName].filter(Boolean).join(" ");
         mandateAgentPhone = null;
       }
     }
     if (propertyPrivacy === "FULL" && property.assigned_to) {
-      const agent = await loadAgentInfo(property.assigned_to);
+      const agent = agentMap.get(property.assigned_to);
       if (agent) {
         propertyAgentName = [agent.firstName, agent.lastName].filter(Boolean).join(" ");
         propertyAgentPhone = null;
@@ -210,12 +241,12 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
 
     const mandateSourceProfile =
       row.requestOrgId === orgId
-        ? await loadOrgProfile(orgId)
+        ? ownProfile
         : profiles.get(row.requestOrgId) ?? null;
 
     const propertySourceProfile =
       row.propertyOrgId === orgId
-        ? await loadOrgProfile(orgId)
+        ? ownProfile
         : profiles.get(row.propertyOrgId) ?? null;
 
     const filteredMandate = filterMandate(
