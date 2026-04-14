@@ -1,13 +1,12 @@
-// @ts-nocheck
-// TODO: Fix type errors
 /**
  * Data Normalizers for Matchmaking
- * 
+ *
  * Utilities to normalize and extract data from client/property records
  * for consistent matching calculations.
  */
 
-import type { Decimal } from "@prisma/client/runtime/library";
+import type { Prisma } from "@prisma/client";
+type Decimal = Prisma.Decimal;
 import type {
   ClientForMatching,
   PropertyForMatching,
@@ -50,6 +49,18 @@ export function parseFloor(floor: string | null | undefined): number | null {
   // Try parsing as number
   const parsed = parseFloat(normalized);
   return isNaN(parsed) ? null : parsed;
+}
+
+/**
+ * Parse construction year from string or number.
+ * Returns null if the value cannot be interpreted as a plausible year.
+ * Plausible range: 1800–2100.
+ */
+export function parseConstructionYear(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  const n = typeof value === "number" ? value : parseInt(String(value), 10);
+  if (isNaN(n) || n < 1800 || n > 2100) return null;
+  return n;
 }
 
 // ============================================
@@ -155,7 +166,7 @@ export function getPropertyLocations(property: PropertyForMatching): string[] {
   if (property.address_state) locations.push(normalizeLocation(property.address_state));
   
   // Remove duplicates and empty strings
-  return [...new Set(locations.filter(Boolean))];
+  return Array.from(new Set(locations.filter(Boolean)));
 }
 
 /**
