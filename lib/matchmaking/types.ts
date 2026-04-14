@@ -139,13 +139,41 @@ export interface PropertyForMatching {
  * Individual criterion score breakdown
  */
 export interface CriterionScore {
-  criterion: MatchCriterion;
+  criterion: MatchCriterion | MatchCriterionV2;
   weight: number;
   score: number;          // 0-100
   weightedScore: number;  // score * weight
   matched: boolean;       // Quick flag for binary criteria
   reason?: string;        // Human-readable explanation
 }
+
+// ============================================
+// V2 CRITERION TYPE (must precede CriterionScore)
+// ============================================
+
+/**
+ * All possible matching criteria for the v2 engine (Request-based matching)
+ */
+export type MatchCriterionV2 =
+  | "BUDGET"
+  | "PROPERTY_TYPE"
+  | "SIZE"
+  | "BEDROOMS"
+  | "BATHROOMS"
+  | "LOCATION_AREA"
+  | "LOCATION_RADIUS"
+  | "PURPOSE_OF_USE"
+  | "TRANSACTION_TYPE"
+  | "FLOOR"
+  | "PARKING"
+  | "STORAGE"
+  | "ELEVATOR"
+  | "ACCESSIBILITY"
+  | "CONSTRUCTION_YEAR"
+  | "NEW_CONSTRUCTION"
+  | "AMENITIES"
+  | "GOLDEN_VISA"
+  | "TIMELINE";
 
 /**
  * All possible matching criteria
@@ -319,4 +347,100 @@ export interface MatchOptions {
   sortOrder?: "asc" | "desc";
   includeBreakdown?: boolean;
   minScoreThreshold?: number;
+}
+
+// ============================================
+// V2 TYPES — Request-based matching engine
+// ============================================
+
+export type FinancingStatus = "CASH" | "MORTGAGE" | "MIXED" | "UNSPECIFIED";
+export type Timeline = "IMMEDIATE" | "THREE_MONTHS" | "SIX_MONTHS" | "ONE_YEAR" | "FLEXIBLE";
+
+/**
+ * Request (demand-side) data needed for v2 matching calculations.
+ * Replaces the v1 client-centric model; a Request captures a buyer/renter's
+ * structured property requirements.
+ */
+export interface RequestForMatching {
+  id: string;
+  organizationId: string;
+  assignedAgentId: string | null;
+
+  // Budget
+  budgetMin: number | null;
+  budgetMax: number | null;
+
+  // Property preferences
+  propertyTypes: string[];       // e.g. ["APARTMENT", "HOUSE"]
+  purposeOfUse: string | null;   // "RESIDENTIAL" | "COMMERCIAL" | "INVESTMENT" etc.
+  transactionType: string | null; // "BUY" | "RENT"
+
+  // Location preferences
+  areas: string[];               // preferred area/neighbourhood names
+  municipality: string | null;
+  region: string | null;
+
+  // Geo search
+  centerLatitude: number | null;
+  centerLongitude: number | null;
+  radiusKm: number | null;
+
+  // Size preferences
+  minSizeSqm: number | null;
+  maxSizeSqm: number | null;
+  minBedrooms: number | null;
+  maxBedrooms: number | null;
+  minBathrooms: number | null;
+
+  // Floor preferences
+  floorMin: number | null;
+  floorMax: number | null;
+
+  // Features & amenities
+  requiredAmenities: string[];   // must-have amenities
+  preferredAmenities: string[];  // nice-to-have amenities
+  parkingRequired: boolean | null;
+  storageRequired: boolean | null;
+  elevatorRequired: boolean | null;
+  accessibilityRequired: boolean | null;
+
+  // Investment criteria
+  goldenVisaRequired: boolean | null;
+  financingStatus: FinancingStatus | null;
+  timeline: Timeline | null;
+
+  // Construction
+  yearBuiltMin: number | null;
+  yearBuiltMax: number | null;
+  newConstructionOnly: boolean | null;
+
+  // Status
+  status: string;  // "ACTIVE" | "PENDING" | "ARCHIVED" etc.
+  expires_at: Date | null;
+}
+
+/**
+ * Extended property data for v2 matching, adding geo and construction fields
+ * not present in the v1 PropertyForMatching interface.
+ */
+export interface PropertyForMatchingV2 extends PropertyForMatching {
+  latitude: number | null;
+  longitude: number | null;
+  region: string | null;
+  inside_city_plan: boolean | null;
+  year_built: number | null;
+}
+
+/**
+ * Complete match result between a Request and a Property (v2 engine)
+ */
+export interface MatchResultV2 {
+  requestId: string;
+  propertyId: string;
+  overallScore: number;         // 0–100 integer
+  financingBonus: number;       // additive bonus (0 or 5)
+  breakdown: CriterionScore[];
+  matchedCriteria: number;
+  totalCriteria: number;
+  calculatedAt: Date;
 }
