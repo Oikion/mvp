@@ -5,7 +5,7 @@
  * Weights should sum to 100 for easy percentage interpretation.
  */
 
-import type { MatchCriterion, EnergyCertClass } from "./types";
+import type { MatchCriterion, MatchCriterionV2, EnergyCertClass } from "./types";
 
 // ============================================
 // CRITERION WEIGHTS (total = 100)
@@ -38,10 +38,49 @@ export const MATCH_WEIGHTS: Record<MatchCriterion, number> = {
   parking: 0.2,         // Parking availability
 };
 
-// Validate weights sum to ~100
-const totalWeight = Object.values(MATCH_WEIGHTS).reduce((sum, w) => sum + w, 0);
-if (Math.abs(totalWeight - 100) > 0.1) {
-  console.warn(`[Matchmaking] Weights sum to ${totalWeight}, expected 100`);
+// ============================================
+// V2 CRITERION WEIGHTS (base sum = 104)
+// ============================================
+
+/**
+ * Default weights for the v2 matching engine.
+ * Intentional base sum: 104. Scores are clamped to 100 after calculation,
+ * so the 4-pt overflow creates natural headroom for the additive cash bonus (+5).
+ */
+export const MATCH_WEIGHTS_V2: Record<MatchCriterionV2, number> = {
+  BUDGET: 25,
+  PROPERTY_TYPE: 12,
+  SIZE: 10,
+  BEDROOMS: 8,
+  BATHROOMS: 4,
+  LOCATION_AREA: 10,
+  LOCATION_RADIUS: 8,
+  PURPOSE_OF_USE: 5,
+  TRANSACTION_TYPE: 5,
+  FLOOR: 3,
+  PARKING: 3,
+  STORAGE: 2,
+  ELEVATOR: 2,
+  ACCESSIBILITY: 2,
+  CONSTRUCTION_YEAR: 3,
+  NEW_CONSTRUCTION: 2,
+  AMENITIES: 4,
+  GOLDEN_VISA: 3,
+  TIMELINE: 3,
+};
+
+/**
+ * Returns the weight for a v2 criterion, applying per-org overrides when provided.
+ * Falls back to MATCH_WEIGHTS_V2 defaults if the criterion is not in orgWeights.
+ */
+export function getWeightV2(
+  criterion: MatchCriterionV2,
+  orgWeights?: Partial<Record<MatchCriterionV2, number>> | null
+): number {
+  if (orgWeights && criterion in orgWeights) {
+    return orgWeights[criterion] as number;
+  }
+  return MATCH_WEIGHTS_V2[criterion];
 }
 
 // ============================================
