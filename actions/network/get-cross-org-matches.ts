@@ -78,10 +78,10 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
     return { results: [], isNetworkMember: false, lastComputedAt: null };
   }
 
-  // Load rows where this org is either the mandate owner or property owner
+  // Load rows where this org is either the request owner or property owner
   const rows = await prismadb.crossOrgMatch.findMany({
     where: {
-      OR: [{ mandateOrgId: orgId }, { propertyOrgId: orgId }],
+      OR: [{ requestOrgId: orgId }, { propertyOrgId: orgId }],
       expiresAt: { gt: new Date() },
     },
     orderBy: { matchScore: "desc" },
@@ -95,7 +95,7 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
   // Load source org settings + profiles in parallel (deduplicated)
   const peerOrgIds = new Set(
     rows.flatMap((r) => [
-      r.mandateOrgId === orgId ? r.propertyOrgId : r.mandateOrgId,
+      r.requestOrgId === orgId ? r.propertyOrgId : r.requestOrgId,
     ]),
   );
 
@@ -114,8 +114,8 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
   const peerSettings = new Map(peerSettingsRows.map((s) => [s.organizationId, s]));
   const profiles = new Map(orgProfilesMap);
 
-  // Load mandate + property rows needed for privacy-filtered output
-  const mandateIds = Array.from(new Set(rows.map((r) => r.mandateId)));
+  // Load request + property rows needed for privacy-filtered output
+  const mandateIds = Array.from(new Set(rows.map((r) => r.requestId)));
   const propertyIds = Array.from(new Set(rows.map((r) => r.propertyId)));
 
   const [mandateRows, propertyRows] = await Promise.all([
@@ -160,7 +160,7 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
   let lastComputedAt: Date | null = null;
 
   for (const row of rows) {
-    const mandate = mandateMap.get(row.mandateId);
+    const mandate = mandateMap.get(row.requestId);
     const property = propertyMap.get(row.propertyId);
     if (!mandate || !property) continue;
 
@@ -168,17 +168,17 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
       lastComputedAt = row.computedAt;
     }
 
-    const viewingOrgHasMandate = row.mandateOrgId === orgId;
-    const peerOrgId = viewingOrgHasMandate ? row.propertyOrgId : row.mandateOrgId;
+    const viewingOrgHasMandate = row.requestOrgId === orgId;
+    const peerOrgId = viewingOrgHasMandate ? row.propertyOrgId : row.requestOrgId;
     const peerSetting = peerSettings.get(peerOrgId);
     const peerProfile = profiles.get(peerOrgId);
 
     // Load agent info on demand (only for FULL privacy level)
-    const mandatePeerSetting = peerSettings.get(row.mandateOrgId);
+    const mandatePeerSetting = peerSettings.get(row.requestOrgId);
     const propertyPeerSetting = peerSettings.get(row.propertyOrgId);
 
     const mandatePrivacy =
-      row.mandateOrgId === orgId
+      row.requestOrgId === orgId
         ? settings.mandatePrivacyLevel  // own data: use own setting
         : mandatePeerSetting?.mandatePrivacyLevel ?? "ANONYMIZED";
 
@@ -209,9 +209,9 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
     }
 
     const mandateSourceProfile =
-      row.mandateOrgId === orgId
+      row.requestOrgId === orgId
         ? await loadOrgProfile(orgId)
-        : profiles.get(row.mandateOrgId) ?? null;
+        : profiles.get(row.requestOrgId) ?? null;
 
     const propertySourceProfile =
       row.propertyOrgId === orgId

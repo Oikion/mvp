@@ -784,7 +784,7 @@ async function purgeOrgData(
     { name: "AgentConnection", run: () => prismadb.agentConnection.deleteMany({ where: { OR: [{ followerId: { in: allUserIds } }, { followingId: { in: allUserIds } }] } }) },
 
     // 20. Network entities
-    { name: "CrossOrgMatch", run: () => prismadb.crossOrgMatch.deleteMany({ where: { OR: [{ mandateOrgId: orgId }, { propertyOrgId: orgId }] } }) },
+    { name: "CrossOrgMatch", run: () => prismadb.crossOrgMatch.deleteMany({ where: { OR: [{ requestOrgId: orgId }, { propertyOrgId: orgId }] } }) },
     { name: "OrgNetworkPartner", run: () => prismadb.orgNetworkPartner.deleteMany({ where: { OR: [{ initiatorOrgId: orgId }, { partnerOrgId: orgId }] } }) },
     { name: "OrgNetworkSettings", run: () => prismadb.orgNetworkSettings.deleteMany({ where: { organizationId: orgId } }) },
 
@@ -3880,16 +3880,16 @@ async function seedNetworkAndMatching(
   const matches: Array<Record<string, unknown>> = [];
 
   if (betaMandateIds[10] && alphaPropertyIds[18]) {
-    matches.push({ mandateOrgId: beta.orgId, mandateId: betaMandateIds[10], propertyOrgId: alpha.orgId, propertyId: alphaPropertyIds[18], matchScore: 92, breakdown: { location: 95, size: 90, budget: 88, type: 95 }, expiresAt });
+    matches.push({ requestOrgId: beta.orgId, requestId: betaMandateIds[10], propertyOrgId: alpha.orgId, propertyId: alphaPropertyIds[18], scope: "BILATERAL", matchScore: 0.92, breakdown: { location: 95, size: 90, budget: 88, type: 95 }, expiresAt });
   }
   if (betaMandateIds[10] && alphaPropertyIds[19]) {
-    matches.push({ mandateOrgId: beta.orgId, mandateId: betaMandateIds[10], propertyOrgId: alpha.orgId, propertyId: alphaPropertyIds[19], matchScore: 85, breakdown: { location: 95, size: 80, budget: 82, type: 85 }, expiresAt });
+    matches.push({ requestOrgId: beta.orgId, requestId: betaMandateIds[10], propertyOrgId: alpha.orgId, propertyId: alphaPropertyIds[19], scope: "BILATERAL", matchScore: 0.85, breakdown: { location: 95, size: 80, budget: 82, type: 85 }, expiresAt });
   }
   if (alphaMandateIds[0] && betaPropertyIds[0]) {
-    matches.push({ mandateOrgId: alpha.orgId, mandateId: alphaMandateIds[0], propertyOrgId: beta.orgId, propertyId: betaPropertyIds[0], matchScore: 78, breakdown: { location: 80, size: 75, budget: 78, type: 80 }, expiresAt });
+    matches.push({ requestOrgId: alpha.orgId, requestId: alphaMandateIds[0], propertyOrgId: beta.orgId, propertyId: betaPropertyIds[0], scope: "BILATERAL", matchScore: 0.78, breakdown: { location: 80, size: 75, budget: 78, type: 80 }, expiresAt });
   }
   if (alphaMandateIds[2] && betaPropertyIds[1]) {
-    matches.push({ mandateOrgId: alpha.orgId, mandateId: alphaMandateIds[2], propertyOrgId: beta.orgId, propertyId: betaPropertyIds[1], matchScore: 75, breakdown: { location: 72, size: 78, budget: 75, type: 76 }, expiresAt });
+    matches.push({ requestOrgId: alpha.orgId, requestId: alphaMandateIds[2], propertyOrgId: beta.orgId, propertyId: betaPropertyIds[1], scope: "BILATERAL", matchScore: 0.75, breakdown: { location: 72, size: 78, budget: 75, type: 76 }, expiresAt });
   }
 
   if (matches.length > 0) {

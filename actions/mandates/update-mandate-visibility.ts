@@ -24,11 +24,8 @@ export async function updateMandateVisibility(
         data: { visibility },
       });
 
-      if (visibility === "HIDDEN" || visibility === "PRIVATE") {
-        await tx.crossOrgMatch.deleteMany({
-          where: { mandateId },
-        });
-      }
+      // CrossOrgMatch v2 links to Requests (not Mandates) via requestId.
+      // Mandate visibility no longer drives cross-org match cleanup directly.
     });
 
     return { success: true };

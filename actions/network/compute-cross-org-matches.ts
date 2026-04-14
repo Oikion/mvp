@@ -391,25 +391,27 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
 
             await prismadb.crossOrgMatch.upsert({
               where: {
-                mandateId_propertyId: {
-                  mandateId: mandate.id,
+                requestId_propertyId_scope: {
+                  requestId: mandate.id,
                   propertyId: property.id,
+                  scope: "BILATERAL",
                 },
               },
               update: {
-                matchScore: Math.round(result.overallScore),
+                matchScore: result.overallScore,
                 breakdown: result.breakdown as object[],
                 computedAt: new Date(),
                 expiresAt,
-                mandateOrgId,
+                requestOrgId: mandateOrgId,
                 propertyOrgId,
               },
               create: {
-                mandateOrgId,
-                mandateId: mandate.id,
+                requestOrgId: mandateOrgId,
+                requestId: mandate.id,
                 propertyOrgId,
                 propertyId: property.id,
-                matchScore: Math.round(result.overallScore),
+                scope: "BILATERAL",
+                matchScore: result.overallScore,
                 breakdown: result.breakdown as object[],
                 expiresAt,
               },

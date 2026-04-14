@@ -611,6 +611,8 @@ model Properties {
   price_type             PriceType?
   region                 String?
   regional_unit          String?
+  latitude               Float?
+  longitude              Float?
   renovated_year         Int?
   size_gross_sqm         Decimal?
   size_net_sqm           Decimal?
@@ -651,6 +653,7 @@ model Properties {
   PropertyRequestMatch                PropertyRequestMatch[]
   PropertyImage                       PropertyImage[]
   ActivityLinks                       Activity[]            @relation("ActivityRelatedProperty")
+  CrossOrgMatch                       CrossOrgMatch[]
 
   @@unique([friendlyId, organizationId])
   @@index([assigned_to])
@@ -3463,20 +3466,25 @@ model OrgNetworkPartner {
 
 /// Cross-org match results computed by background job
 model CrossOrgMatch {
-  id            String   @id @default(cuid())
-  mandateOrgId  String
-  mandateId     String
+  id            String        @id @default(cuid())
+  requestOrgId  String
+  requestId     String
   propertyOrgId String
   propertyId    String
-  matchScore    Int
-  breakdown     Json
-  computedAt    DateTime @default(now())
+  scope         CrossOrgScope @default(BILATERAL)
+  matchScore    Float
+  breakdown     Json?
+  computedAt    DateTime      @default(now())
   expiresAt     DateTime
 
-  @@unique([mandateId, propertyId])
-  @@index([mandateOrgId])
+  request  Request     @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  property Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, propertyId, scope])
+  @@index([requestOrgId])
   @@index([propertyOrgId])
   @@index([expiresAt])
+  @@map("cross_org_matches")
 }
 
 /// Website contact form submissions (platform-level, not tenant-scoped)
@@ -3858,6 +3866,9 @@ model Request {
   // v2.0 Phase 3: Deal + Showing back-relations
   deals            Deal[]
   showings         PropertyShowing[]
+  CrossOrgMatch    CrossOrgMatch[]
+
+  lastMatchRunAt   DateTime?
 
   @@unique([friendlyId, organizationId])
   @@index([organizationId])
@@ -3921,6 +3932,7 @@ model PropertyRequestMatch {
   requestId      String
 
   matchScore      Decimal?        // 0.0 – 1.0
+  scoreBreakdown  Json?
   matchMethod     MatchMethod?    // How the match was generated
   status          MatchStatus     @default(PENDING) // Pipeline tracking
   presentedAt     DateTime?       // When shown to buyer/agent
@@ -4283,4 +4295,47 @@ model EntityChangeLog {
   @@index([organizationId, entityType, entityId, occurredAt])
   @@index([actorUserId])
   @@map("entity_change_logs")
+}
+
+// ─────────────────────────────────────────────
+// Matchmaking v2
+// ─────────────────────────────────────────────
+
+enum CrossOrgScope {
+  BILATERAL
+  POLIS
+}
+
+enum CalibrationStatus {
+  PENDING
+  APPLIED
+  DISMISSED
+}
+
+model OrgMatchWeights {
+  id             String   @id @default(cuid())
+  organizationId String   @unique
+  weights        Json
+  updatedAt      DateTime @updatedAt
+  updatedBy      String?
+
+  @@map("org_match_weights")
+}
+
+model WeightCalibrationReport {
+  id              String            @id @default(cuid())
+  organizationId  String
+  status          CalibrationStatus @default(PENDING)
+  computedAt      DateTime          @default(now())
+  appliedAt       DateTime?
+  dismissedAt     DateTime?
+  proposedWeights Json
+  currentWeights  Json
+  signalSummary   Json?
+  reviewedBy      String?
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([computedAt])
+  @@map("weight_calibration_reports")
 }
