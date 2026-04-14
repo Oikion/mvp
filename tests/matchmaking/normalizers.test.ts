@@ -38,7 +38,7 @@ describe("parseConstructionYear", () => {
     expect(parseConstructionYear(2100)).toBe(2100);
   });
 
-  it("returns 2010 for string '  2010  ' (parseInt handles whitespace)", () => {
+  it("returns 2010 for string with leading/trailing whitespace", () => {
     expect(parseConstructionYear("  2010  ")).toBe(2010);
   });
 });

@@ -6,7 +6,6 @@
  */
 
 import type { Prisma } from "@prisma/client";
-type Decimal = Prisma.Decimal;
 import type {
   ClientForMatching,
   PropertyForMatching,
@@ -24,7 +23,7 @@ import type {
 /**
  * Convert Decimal or number to number
  */
-export function toNumber(value: Decimal | number | null | undefined): number | null {
+export function toNumber(value: Prisma.Decimal | number | null | undefined): number | null {
   if (value === null || value === undefined) return null;
   if (typeof value === "number") return value;
   // Prisma Decimal
@@ -53,12 +52,13 @@ export function parseFloor(floor: string | null | undefined): number | null {
 
 /**
  * Parse construction year from string or number.
+ * Floats are truncated to integer (e.g. 1985.7 → 1985).
  * Returns null if the value cannot be interpreted as a plausible year.
  * Plausible range: 1800–2100.
  */
 export function parseConstructionYear(value: string | number | null | undefined): number | null {
   if (value === null || value === undefined) return null;
-  const n = typeof value === "number" ? value : parseInt(String(value), 10);
+  const n = Math.trunc(typeof value === "number" ? value : Number(value));
   if (isNaN(n) || n < 1800 || n > 2100) return null;
   return n;
 }
