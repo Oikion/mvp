@@ -139,6 +139,8 @@ export interface PropertyForMatching {
  * Individual criterion score breakdown
  */
 export interface CriterionScore {
+  // v1 uses lowercase snake_case ("budget", "location"); v2 uses SCREAMING_SNAKE_CASE ("BUDGET", "LOCATION").
+  // Do not compare criterion strings across versions — use the engine's own output for each version.
   criterion: MatchCriterion | MatchCriterionV2;
   weight: number;
   score: number;          // 0-100
@@ -148,7 +150,7 @@ export interface CriterionScore {
 }
 
 // ============================================
-// V2 CRITERION TYPE (must precede CriterionScore)
+// V2 CRITERION TYPE
 // ============================================
 
 /**
@@ -431,6 +433,7 @@ export interface PropertyForMatchingV2 extends PropertyForMatching {
   inside_city_plan: boolean | null;
   year_built: number | null;
   garden: boolean | null;
+  parking: boolean | null;
 }
 
 /**

@@ -39,7 +39,7 @@ export const MATCH_WEIGHTS: Record<MatchCriterion, number> = {
 };
 
 // ============================================
-// V2 CRITERION WEIGHTS (base sum = 104)
+// V2 CRITERION WEIGHTS (base sum = 104; financing bonus +5 stacks additively; clamped to 100)
 // ============================================
 
 /**
@@ -79,8 +79,9 @@ export function getWeightV2(
   criterion: MatchCriterionV2,
   orgWeights?: Partial<Record<MatchCriterionV2, number>> | null
 ): number {
-  if (orgWeights && criterion in orgWeights) {
-    return orgWeights[criterion] as number;
+  const override = orgWeights?.[criterion];
+  if (override !== undefined) {
+    return override;
   }
   return MATCH_WEIGHTS_V2[criterion];
 }
