@@ -11,7 +11,7 @@
  *   4. AREA_HARD_EXCLUSION   — property is outside all requested areas
  */
 
-import { toNumber } from "./normalizers";
+import { normalizeLocation } from "./normalizers";
 import type { RequestForMatching, PropertyForMatching } from "./types";
 
 // ============================================
@@ -43,7 +43,7 @@ const BUY_TRANSACTION_TYPES = new Set(["SALE", "EXCHANGE", "AUCTION"]);
 const RENT_TRANSACTION_TYPES = new Set(["RENTAL", "SHORT_TERM"]);
 
 /** Maximum asking-price multiple over budgetMax before hard rejection */
-const BUDGET_SOFT_CEILING_MULTIPLIER = 1.15;
+const BUDGET_HARD_CEILING_MULTIPLIER = 1.15;
 
 // ============================================
 // PRIVATE DISQUALIFIER FUNCTIONS
@@ -101,36 +101,24 @@ function disqualifyBudget(
   request: RequestForMatching,
   property: PropertyForMatching
 ): DisqualifierResult | null {
-  const price = toNumber(property.price);
-  const budgetMax = toNumber(request.budgetMax);
+  const price = property.price;
+  const budgetMax = request.budgetMax;
 
   // No constraint if either value is absent
-  if (price === null || budgetMax === null) return null;
+  if (price == null || budgetMax === null) return null;
 
   // Round to the nearest integer to avoid IEEE 754 drift when comparing exact
   // multiples (e.g. 200_000 * 1.15 = 229_999.999... in floating point).
-  const ceiling = Math.round(budgetMax * BUDGET_SOFT_CEILING_MULTIPLIER);
+  const ceiling = Math.round(budgetMax * BUDGET_HARD_CEILING_MULTIPLIER);
   if (price > ceiling) {
     return {
       disqualified: true,
       reason: "BUDGET_HARD_FLOOR",
-      detail: `Price ${price} exceeds budgetMax ceiling ${ceiling} (${budgetMax} × ${BUDGET_SOFT_CEILING_MULTIPLIER})`,
+      detail: `Price ${price} exceeds budgetMax ceiling ${ceiling} (${budgetMax} × ${BUDGET_HARD_CEILING_MULTIPLIER})`,
     };
   }
 
   return null;
-}
-
-/**
- * Normalize a location string for area matching:
- * lowercase + trim + strip accents.
- */
-function normalizeArea(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .normalize("NFD")
-    .replaceAll(/[\u0300-\u036f]/gu, "");
 }
 
 /**
@@ -139,8 +127,8 @@ function normalizeArea(value: string): string {
  * normalization.
  */
 function areaMatches(loc: string, area: string): boolean {
-  const normLoc = normalizeArea(loc);
-  const normArea = normalizeArea(area);
+  const normLoc = normalizeLocation(loc);
+  const normArea = normalizeLocation(area);
   if (!normLoc || !normArea) return false;
   return normLoc.includes(normArea) || normArea.includes(normLoc);
 }

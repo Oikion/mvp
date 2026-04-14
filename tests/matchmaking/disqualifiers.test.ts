@@ -92,6 +92,15 @@ describe("checkDisqualifiers — ARCHIVED_OR_INACTIVE", () => {
     const result = checkDisqualifiers(baseRequest, property);
     expect(result.disqualified).toBe(false);
   });
+
+  it("disqualifies WITHDRAWN property", () => {
+    const result = checkDisqualifiers(baseRequest, {
+      ...baseProperty,
+      property_status: "WITHDRAWN",
+    });
+    expect(result.disqualified).toBe(true);
+    expect(result.reason).toBe("ARCHIVED_OR_INACTIVE");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -100,7 +109,7 @@ describe("checkDisqualifiers — ARCHIVED_OR_INACTIVE", () => {
 
 describe("checkDisqualifiers — PURPOSE_MISMATCH", () => {
   it("disqualifies a RENT request against a SALE property", () => {
-    const request = { ...baseRequest, transactionType: "RENT" };
+    const request = { ...baseRequest, transactionType: "RENT" as const };
     const property = { ...baseProperty, transaction_type: "SALE" as const };
     const result = checkDisqualifiers(request, property);
     expect(result.disqualified).toBe(true);
@@ -108,7 +117,7 @@ describe("checkDisqualifiers — PURPOSE_MISMATCH", () => {
   });
 
   it("disqualifies a BUY request against a RENTAL property", () => {
-    const request = { ...baseRequest, transactionType: "BUY" };
+    const request = { ...baseRequest, transactionType: "BUY" as const };
     const property = { ...baseProperty, transaction_type: "RENTAL" as const };
     const result = checkDisqualifiers(request, property);
     expect(result.disqualified).toBe(true);
@@ -116,21 +125,21 @@ describe("checkDisqualifiers — PURPOSE_MISMATCH", () => {
   });
 
   it("passes a BUY request against a SALE property", () => {
-    const request = { ...baseRequest, transactionType: "BUY" };
+    const request = { ...baseRequest, transactionType: "BUY" as const };
     const property = { ...baseProperty, transaction_type: "SALE" as const };
     const result = checkDisqualifiers(request, property);
     expect(result.disqualified).toBe(false);
   });
 
   it("passes a RENT request against a RENTAL property", () => {
-    const request = { ...baseRequest, transactionType: "RENT" };
+    const request = { ...baseRequest, transactionType: "RENT" as const };
     const property = { ...baseProperty, transaction_type: "RENTAL" as const };
     const result = checkDisqualifiers(request, property);
     expect(result.disqualified).toBe(false);
   });
 
   it("passes a RENT request against a SHORT_TERM property", () => {
-    const request = { ...baseRequest, transactionType: "RENT" };
+    const request = { ...baseRequest, transactionType: "RENT" as const };
     const property = { ...baseProperty, transaction_type: "SHORT_TERM" as const };
     const result = checkDisqualifiers(request, property);
     expect(result.disqualified).toBe(false);

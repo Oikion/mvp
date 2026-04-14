@@ -376,7 +376,7 @@ export interface RequestForMatching {
   // Property preferences
   propertyTypes: string[];       // e.g. ["APARTMENT", "HOUSE"]
   purposeOfUse: string | null;   // "RESIDENTIAL" | "COMMERCIAL" | "INVESTMENT" etc.
-  transactionType: string | null; // "BUY" | "RENT"
+  transactionType: "BUY" | "RENT" | null;
 
   // Location preferences
   areas: string[];               // preferred area/neighbourhood names
