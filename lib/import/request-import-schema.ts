@@ -137,14 +137,14 @@ export const requestImportFieldDefinitions: readonly RequestFieldDefinition[] = 
     key: "id",
     required: false,
     group: "basic",
-    aliases: ["request_id", "ref", "reference", "code", "entoli_id"],
+    aliases: ["request_id", "mandate_id", "ref", "reference", "code", "entoli_id"],
     description: "Request ID (auto-generated if not provided)",
   },
   {
     key: "title",
     required: false,
     group: "basic",
-    aliases: ["name", "request_name", "titlos", "onoma_entolis", "subject"],
+    aliases: ["name", "request_name", "mandate_name", "titlos", "onoma_entolis", "subject"],
     description: "Request title",
   },
   {
@@ -172,7 +172,7 @@ export const requestImportFieldDefinitions: readonly RequestFieldDefinition[] = 
     key: "status",
     required: false,
     group: "basic",
-    aliases: ["request_status", "katastasi", "Κατάσταση", "Κατάσταση Αίτησης"],
+    aliases: ["request_status", "mandate_status", "katastasi", "Κατάσταση", "Κατάσταση Αίτησης", "Κατάσταση Εντολής"],
     description: "Status (ACTIVE, MATCHED, UNDER_OFFER, CLOSED, PAUSED)",
   },
   {
@@ -419,7 +419,7 @@ export const requestImportFieldDefinitions: readonly RequestFieldDefinition[] = 
     key: "visibility",
     required: false,
     group: "visibility",
-    aliases: ["request_oratotita", "request_publish_status", "oratotita"],
+    aliases: ["request_oratotita", "mandate_oratotita", "request_publish_status", "mandate_publish_status", "oratotita"],
     description: "Request visibility (HIDDEN, PRIVATE, SECURE, PUBLIC)",
   },
 ] as const;
