@@ -285,7 +285,7 @@ export async function runIntraOrgMatches(
   );
 
   const requests: RequestForMatching[] = decryptedRequests.map(
-    (r) => adaptRequestToV2(r as RequestRow)
+    (r) => adaptRequestToV2(r)
   );
 
   // Parse custom weights — null if none configured
@@ -300,6 +300,9 @@ export async function runIntraOrgMatches(
   const aboveThreshold = allMatches.filter(
     (m) => m.overallScore >= MATCH_THRESHOLDS.FAIR
   );
+
+  // Note: stale matches that now score below threshold are NOT deleted here.
+  // They remain in the DB until a future cleanup cron or the row is updated on next run.
 
   // Upsert in batches of 50
   const BATCH_SIZE = 50;
