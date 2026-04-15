@@ -88,20 +88,21 @@ async function fetchActiveRequests(organizationId: string) {
 
 type RequestRow = Awaited<ReturnType<typeof fetchActiveRequests>>[number];
 
-function extractAreas(r: RequestRow): string[] {
-  const areas: string[] = [];
-  if (r.areasOfInterest && Array.isArray(r.areasOfInterest)) {
-    for (const item of r.areasOfInterest as unknown[]) {
-      if (typeof item === "string") {
-        areas.push(item);
-      } else if (item && typeof item === "object" && "name" in item && typeof (item as { name: unknown }).name === "string") {
-        areas.push((item as { name: string }).name);
-      }
-    }
+function extractAreas(areasOfInterest: unknown): string[] {
+  if (!areasOfInterest) return [];
+  if (Array.isArray(areasOfInterest)) {
+    return (areasOfInterest as unknown[])
+      .filter((item): item is string => typeof item === "string" && item.length > 0);
   }
-  if (r.municipality && areas.indexOf(r.municipality) === -1) areas.push(r.municipality);
-  if (r.region && areas.indexOf(r.region) === -1) areas.push(r.region);
-  return areas;
+  if (typeof areasOfInterest === "string" && areasOfInterest.length > 0) {
+    return [areasOfInterest];
+  }
+  if (typeof areasOfInterest === "object") {
+    // Handle {"0":"Athens","1":"Glyfada"} shape
+    return Object.values(areasOfInterest as Record<string, unknown>)
+      .filter((v): v is string => typeof v === "string" && v.length > 0);
+  }
+  return [];
 }
 
 function extractRequiredAmenities(amenities: unknown): string[] {
@@ -117,7 +118,10 @@ function extractRequiredAmenities(amenities: unknown): string[] {
  * Adapt a Request DB row into the RequestForMatching shape used by the v2 engine.
  */
 function adaptRequestToV2(r: RequestRow): RequestForMatching {
-  const areas = extractAreas(r);
+  const rawAreas = extractAreas(r.areasOfInterest);
+  const areas = [...rawAreas];
+  if (r.municipality && !areas.includes(r.municipality)) areas.push(r.municipality);
+  if (r.region && !areas.includes(r.region)) areas.push(r.region);
   const requiredAmenities = extractRequiredAmenities(r.amenities);
 
   return {
@@ -214,6 +218,7 @@ function getEmptyRequestAnalytics(): RequestMatchAnalytics {
  */
 export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics> {
   const guard = await requireAction("matchmaking:view_analytics");
+  // Return empty analytics on permission denial — dashboards show empty state
   if (guard) return getEmptyRequestAnalytics();
 
   const organizationId = await getCurrentOrgIdSafe();
