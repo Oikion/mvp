@@ -51,6 +51,10 @@ export async function GET(req: Request) {
   const totalUpserted = results.reduce((s, r) => s + r.upserted, 0);
   const errors = results.filter((r) => r.error);
 
+  console.log(
+    `[CRON intra-org-matches] orgs=${orgsWithRequests.length} upserted=${totalUpserted} errors=${errors.length} duration=${Date.now() - start}ms`,
+  );
+
   return NextResponse.json({
     ok: errors.length === 0,
     orgsProcessed: orgsWithRequests.length,
