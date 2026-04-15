@@ -1,8 +1,6 @@
-// @ts-nocheck
-// TODO: Fix type errors
 /**
  * Matchmaking Calculator
- * 
+ *
  * Core matching algorithm that calculates compatibility scores
  * between clients and properties based on weighted criteria.
  */
@@ -10,9 +8,13 @@
 import type {
   ClientForMatching,
   PropertyForMatching,
+  PropertyForMatchingV2,
+  RequestForMatching,
   MatchResult,
+  MatchResultV2,
   CriterionScore,
   MatchCriterion,
+  MatchCriterionV2,
   ClientPropertyPreferences,
 } from "./types";
 
@@ -27,6 +29,7 @@ import {
   PURPOSE_TO_PROPERTY_TYPE,
   meetsEnergyRequirement,
   getWeight,
+  getWeightV2,
 } from "./weights";
 
 import {
@@ -43,7 +46,15 @@ import {
   getBudgetRange,
   normalizeHeating,
   normalizeCondition,
+  parseConstructionYear,
+  normalizeAmenityKey,
+  normalizeLocation,
+  toNumber,
 } from "./normalizers";
+
+import { checkDisqualifiers } from "./disqualifiers";
+import { haversineDistanceKm, scoreByRadius } from "./geo";
+import { getGoldenVisaThreshold } from "./constants/golden-visa";
 
 // ============================================
 // MAIN CALCULATOR
@@ -438,11 +449,11 @@ function scoreAmenities(
   
   // Check required amenities
   let requiredMet = 0;
-  for (const amenity of required) {
+  Array.from(required).forEach((amenity) => {
     if (propertyAmenities.has(amenity)) {
       requiredMet++;
     }
-  }
+  });
   
   // If not all required are met, heavy penalty
   if (required.size > 0 && requiredMet < required.size) {
@@ -455,11 +466,11 @@ function scoreAmenities(
   
   // All required met, now check preferred
   let preferredMet = 0;
-  for (const amenity of preferred) {
+  Array.from(preferred).forEach((amenity) => {
     if (propertyAmenities.has(amenity)) {
       preferredMet++;
     }
-  }
+  });
   
   const requiredScore = required.size > 0 ? AMENITIES_SCORING.REQUIRED_WEIGHT : 0;
   const preferredScore = preferred.size > 0 
@@ -784,4 +795,613 @@ function createScore(
     matched: matched || score >= 80,
     reason,
   };
+}
+
+// ============================================================================
+// V2 MATCHMAKING ENGINE
+// ============================================================================
+// Request-based matching engine per the Matchmaking System v2 design spec.
+// 19 canonical Layer 2 criteria + additive financing bonus (clamped to 100).
+// Layer 1 disqualifiers run first via `checkDisqualifiers()`.
+// DO NOT TOUCH V1 FUNCTIONS ABOVE THIS BANNER.
+// ============================================================================
+
+type OrgWeightsV2 = Partial<Record<MatchCriterionV2, number>> | null | undefined;
+
+/**
+ * Create a v2 criterion score object.
+ */
+function createScoreV2(
+  criterion: MatchCriterionV2,
+  weight: number,
+  score: number,
+  reason: string,
+  matched: boolean = false
+): CriterionScore {
+  const clampedScore = Math.max(0, Math.min(100, score));
+  return {
+    criterion,
+    weight,
+    score: Math.round(clampedScore * 100) / 100,
+    weightedScore: Math.round(((clampedScore * weight) / 100) * 100) / 100,
+    matched: matched || clampedScore >= 80,
+    reason,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function amenitySet(
+  amenities: Record<string, boolean> | string[] | null | undefined
+): Set<string> {
+  const set = new Set<string>();
+  if (!amenities) return set;
+  if (Array.isArray(amenities)) {
+    amenities.forEach((a) => {
+      if (typeof a === "string") set.add(normalizeAmenityKey(a));
+    });
+    return set;
+  }
+  if (typeof amenities === "object") {
+    Object.entries(amenities).forEach(([key, value]) => {
+      if (value === true) set.add(normalizeAmenityKey(key));
+    });
+  }
+  return set;
+}
+
+function propertySizeSqmV2(property: PropertyForMatchingV2): number | null {
+  if (property.size_net_sqm !== null && property.size_net_sqm !== undefined) {
+    return toNumber(property.size_net_sqm);
+  }
+  if (property.size_gross_sqm !== null && property.size_gross_sqm !== undefined) {
+    return toNumber(property.size_gross_sqm);
+  }
+  if (property.square_feet !== null && property.square_feet !== undefined) {
+    return Math.round(property.square_feet * 0.0929);
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Criterion scorers (19)
+// ---------------------------------------------------------------------------
+
+function scoreBudgetV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  const price = property.price;
+  const { budgetMin, budgetMax } = request;
+
+  if (price === null || price === undefined) {
+    return createScoreV2("BUDGET", weight, 50, "No property price");
+  }
+  if (budgetMax === null) {
+    return createScoreV2("BUDGET", weight, 50, "No budgetMax specified");
+  }
+
+  // Within budget range
+  const minOk = budgetMin === null || price >= budgetMin;
+  const maxOk = price <= budgetMax;
+  if (minOk && maxOk) {
+    return createScoreV2("BUDGET", weight, 100, "Price within budget", true);
+  }
+
+  // Under budgetMin
+  if (budgetMin !== null && price < budgetMin) {
+    return createScoreV2("BUDGET", weight, 80, "Price below budgetMin");
+  }
+
+  // Over budgetMax
+  if (price > budgetMax) {
+    const ceiling = budgetMax * 1.15;
+    if (price <= ceiling) {
+      return createScoreV2("BUDGET", weight, 60, "Price slightly over budget (soft zone)");
+    }
+    return createScoreV2("BUDGET", weight, 0, "Price over budget ceiling");
+  }
+
+  return createScoreV2("BUDGET", weight, 50, "Budget calculation fallback");
+}
+
+function scorePropertyTypeV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  const propertyType = property.property_type;
+  const requested = request.propertyTypes;
+
+  if (!propertyType) {
+    return createScoreV2("PROPERTY_TYPE", weight, 50, "Property type unknown");
+  }
+  if (!requested || requested.length === 0) {
+    if (request.purposeOfUse) {
+      const compatible = PURPOSE_TO_PROPERTY_TYPE[request.purposeOfUse] ?? [];
+      if (compatible.includes(propertyType)) {
+        return createScoreV2("PROPERTY_TYPE", weight, 70, "Category match via purposeOfUse");
+      }
+    }
+    return createScoreV2("PROPERTY_TYPE", weight, 50, "No property type preference");
+  }
+
+  if (requested.includes(propertyType)) {
+    return createScoreV2("PROPERTY_TYPE", weight, 100, `Property type matches: ${propertyType}`, true);
+  }
+
+  // Check category-level match via purposeOfUse
+  if (request.purposeOfUse) {
+    const compatible = PURPOSE_TO_PROPERTY_TYPE[request.purposeOfUse] ?? [];
+    if (compatible.includes(propertyType)) {
+      return createScoreV2("PROPERTY_TYPE", weight, 70, "Category match via purposeOfUse");
+    }
+  }
+
+  return createScoreV2("PROPERTY_TYPE", weight, 0, `Property type ${propertyType} not preferred`);
+}
+
+function scoreLocationV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  // Geo-based search
+  if (
+    request.centerLatitude !== null &&
+    request.centerLongitude !== null &&
+    request.radiusKm !== null &&
+    property.latitude !== null &&
+    property.longitude !== null
+  ) {
+    const distance = haversineDistanceKm(
+      request.centerLatitude,
+      request.centerLongitude,
+      property.latitude,
+      property.longitude
+    );
+    const score = scoreByRadius(distance, request.radiusKm, 100);
+    return createScoreV2("LOCATION", weight, score, `Distance ${distance}km`, score >= 80);
+  }
+
+  // Text-based area fallback
+  const requestAreas = request.areas;
+  if (!requestAreas || requestAreas.length === 0) {
+    return createScoreV2("LOCATION", weight, 50, "No location preference");
+  }
+
+  const propertyLocations: string[] = [];
+  if (property.area) propertyLocations.push(property.area);
+  if (property.address_city) propertyLocations.push(property.address_city);
+  if (property.municipality) propertyLocations.push(property.municipality);
+  if (property.address_state) propertyLocations.push(property.address_state);
+
+  if (propertyLocations.length === 0) {
+    return createScoreV2("LOCATION", weight, 20, "Property has no location data");
+  }
+
+  const normalizedRequested = requestAreas.map(normalizeLocation);
+  const normalizedProperty = propertyLocations.map(normalizeLocation);
+
+  // Exact match
+  for (const area of normalizedRequested) {
+    if (normalizedProperty.includes(area)) {
+      return createScoreV2("LOCATION", weight, 100, `Exact area match: ${area}`, true);
+    }
+  }
+
+  // Partial (substring) match
+  for (const area of normalizedRequested) {
+    if (!area) continue;
+    for (const loc of normalizedProperty) {
+      if (!loc) continue;
+      if (loc.includes(area) || area.includes(loc)) {
+        return createScoreV2("LOCATION", weight, 60, `Partial location match: ${loc}`);
+      }
+    }
+  }
+
+  return createScoreV2("LOCATION", weight, 20, "Property not in requested areas");
+}
+
+function scoreBedroomsV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  const { minBedrooms, maxBedrooms } = request;
+  const bedrooms = property.bedrooms;
+
+  if (minBedrooms === null && maxBedrooms === null) {
+    return createScoreV2("BEDROOMS", weight, 50, "No bedroom preference");
+  }
+  if (bedrooms === null || bedrooms === undefined) {
+    return createScoreV2("BEDROOMS", weight, 50, "Bedroom count unknown");
+  }
+
+  const minOk = minBedrooms === null || bedrooms >= minBedrooms;
+  const maxOk = maxBedrooms === null || bedrooms <= maxBedrooms;
+
+  if (minOk && maxOk) {
+    return createScoreV2("BEDROOMS", weight, 100, `${bedrooms} bedrooms in range`, true);
+  }
+
+  if (maxBedrooms !== null && bedrooms > maxBedrooms) {
+    return createScoreV2("BEDROOMS", weight, 80, `${bedrooms} bedrooms (surplus)`);
+  }
+
+  if (minBedrooms !== null && bedrooms < minBedrooms) {
+    return createScoreV2("BEDROOMS", weight, 40, `${bedrooms} bedrooms (deficit)`);
+  }
+
+  return createScoreV2("BEDROOMS", weight, 50, "Bedroom fallback");
+}
+
+function scoreSizeV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  const { minSizeSqm, maxSizeSqm } = request;
+  const size = propertySizeSqmV2(property);
+
+  if (minSizeSqm === null && maxSizeSqm === null) {
+    return createScoreV2("SIZE", weight, 50, "No size preference");
+  }
+  if (size === null) {
+    return createScoreV2("SIZE", weight, 50, "Size unknown");
+  }
+
+  const minOk = minSizeSqm === null || size >= minSizeSqm;
+  const maxOk = maxSizeSqm === null || size <= maxSizeSqm;
+
+  if (minOk && maxOk) {
+    return createScoreV2("SIZE", weight, 100, `${size} sqm in range`, true);
+  }
+
+  if (minSizeSqm !== null && size < minSizeSqm) {
+    const deficitPercent = (minSizeSqm - size) / minSizeSqm;
+    if (deficitPercent < 0.2) {
+      return createScoreV2("SIZE", weight, 70, `${size} sqm slightly under minimum`);
+    }
+    return createScoreV2("SIZE", weight, 30, `${size} sqm well under minimum`);
+  }
+
+  if (maxSizeSqm !== null && size > maxSizeSqm) {
+    const surplusPercent = (size - maxSizeSqm) / maxSizeSqm;
+    if (surplusPercent < 0.2) {
+      return createScoreV2("SIZE", weight, 80, `${size} sqm slightly over maximum`);
+    }
+    return createScoreV2("SIZE", weight, 50, `${size} sqm well over maximum`);
+  }
+
+  return createScoreV2("SIZE", weight, 50, "Size fallback");
+}
+
+function scoreFloorV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  const { floorMin, floorMax } = request;
+  if (floorMin === null && floorMax === null) {
+    return createScoreV2("FLOOR", weight, 50, "No floor preference");
+  }
+  const floorNum = parseFloor(property.floor);
+  if (floorNum === null) {
+    return createScoreV2("FLOOR", weight, 50, "Floor unknown");
+  }
+  const minOk = floorMin === null || floorNum >= floorMin;
+  const maxOk = floorMax === null || floorNum <= floorMax;
+  if (minOk && maxOk) {
+    return createScoreV2("FLOOR", weight, 100, `Floor ${floorNum} in range`, true);
+  }
+  return createScoreV2("FLOOR", weight, 40, `Floor ${floorNum} outside range`);
+}
+
+function scoreConditionV2(
+  _request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  // RequestForMatching has no condition preference field
+  if (!property.condition) {
+    return createScoreV2("CONDITION", weight, 50, "Property condition unknown");
+  }
+  return createScoreV2("CONDITION", weight, 50, "No condition preference in request");
+}
+
+function scoreConstructionYearV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  const { yearBuiltMin, yearBuiltMax } = request;
+  if (yearBuiltMin === null && yearBuiltMax === null) {
+    return createScoreV2("CONSTRUCTION_YEAR", weight, 50, "No construction-year preference");
+  }
+  const year = parseConstructionYear(property.year_built);
+  if (year === null) {
+    return createScoreV2("CONSTRUCTION_YEAR", weight, 50, "Construction year unknown");
+  }
+  const minOk = yearBuiltMin === null || year >= yearBuiltMin;
+  const maxOk = yearBuiltMax === null || year <= yearBuiltMax;
+  if (minOk && maxOk) {
+    return createScoreV2("CONSTRUCTION_YEAR", weight, 100, `Built in ${year}`, true);
+  }
+  return createScoreV2("CONSTRUCTION_YEAR", weight, 20, `Built in ${year} (outside range)`);
+}
+
+function scoreParkingV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  if (request.parkingRequired !== true) {
+    return createScoreV2("PARKING", weight, 50, "Parking not required");
+  }
+  if (property.parking === true) {
+    return createScoreV2("PARKING", weight, 100, "Has parking", true);
+  }
+  const amenities = amenitySet(property.amenities);
+  if (amenities.has("parking") || amenities.has("garage") || amenities.has("parking_space")) {
+    return createScoreV2("PARKING", weight, 100, "Has parking (via amenities)", true);
+  }
+  return createScoreV2("PARKING", weight, 0, "No parking (required)");
+}
+
+function scoreStorageV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  if (request.storageRequired !== true) {
+    return createScoreV2("STORAGE", weight, 50, "Storage not required");
+  }
+  const amenities = amenitySet(property.amenities);
+  if (amenities.has("storage")) {
+    return createScoreV2("STORAGE", weight, 100, "Has storage", true);
+  }
+  return createScoreV2("STORAGE", weight, 0, "No storage (required)");
+}
+
+function scoreElevatorV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  if (request.elevatorRequired !== true) {
+    return createScoreV2("ELEVATOR", weight, 50, "Elevator not required");
+  }
+  if (property.elevator === true) {
+    return createScoreV2("ELEVATOR", weight, 100, "Has elevator", true);
+  }
+  return createScoreV2("ELEVATOR", weight, 0, "No elevator (required)");
+}
+
+function scoreGardenV2(
+  _request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  // No gardenRequired field on RequestForMatching — neutral scoring.
+  const amenities = amenitySet(property.amenities);
+  if (property.garden === true || amenities.has("garden")) {
+    return createScoreV2("GARDEN", weight, 50, "Garden present (no explicit preference)");
+  }
+  return createScoreV2("GARDEN", weight, 50, "No garden preference in request");
+}
+
+function scoreAmenitiesV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  const required = (request.requiredAmenities ?? []).map(normalizeAmenityKey);
+  if (required.length === 0) {
+    return createScoreV2("AMENITIES", weight, 50, "No required amenities");
+  }
+  const propertyAmenities = amenitySet(property.amenities);
+  let matched = 0;
+  for (const amenity of required) {
+    if (propertyAmenities.has(amenity)) matched++;
+  }
+  const score = (matched / required.length) * 100;
+  return createScoreV2(
+    "AMENITIES",
+    weight,
+    score,
+    `${matched}/${required.length} required amenities matched`,
+    matched === required.length
+  );
+}
+
+function scoreInsideCityPlanV2(
+  _request: RequestForMatching,
+  _property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  // No insideCityPlan field on RequestForMatching.
+  return createScoreV2("INSIDE_CITY_PLAN", weight, 50, "No inside-city-plan preference");
+}
+
+function scoreGoldenVisaV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  if (request.goldenVisaRequired !== true) {
+    return createScoreV2("GOLDEN_VISA", weight, 50, "Golden visa not required");
+  }
+  const price = property.price;
+  if (price === null || price === undefined) {
+    return createScoreV2("GOLDEN_VISA", weight, 0, "No price — cannot verify golden-visa eligibility");
+  }
+  const threshold = getGoldenVisaThreshold(property.region, property.municipality);
+  if (price >= threshold) {
+    return createScoreV2("GOLDEN_VISA", weight, 100, `Meets golden-visa threshold €${threshold}`, true);
+  }
+  return createScoreV2("GOLDEN_VISA", weight, 0, `Below golden-visa threshold €${threshold}`);
+}
+
+function scoreFinancingTypeV2(
+  request: RequestForMatching,
+  _property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  switch (request.financingStatus) {
+    case "CASH":
+      return createScoreV2("FINANCING_TYPE", weight, 100, "Cash financing", true);
+    case "MIXED":
+      return createScoreV2("FINANCING_TYPE", weight, 80, "Mixed financing");
+    case "MORTGAGE":
+      return createScoreV2("FINANCING_TYPE", weight, 70, "Mortgage financing");
+    case "UNSPECIFIED":
+    case null:
+    case undefined:
+    default:
+      return createScoreV2("FINANCING_TYPE", weight, 50, "Financing not specified");
+  }
+}
+
+function scoreBathroomsV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  const { minBathrooms } = request;
+  const bathrooms = property.bathrooms;
+  if (minBathrooms === null) {
+    return createScoreV2("BATHROOMS", weight, 50, "No bathroom preference");
+  }
+  if (bathrooms === null || bathrooms === undefined) {
+    return createScoreV2("BATHROOMS", weight, 50, "Bathroom count unknown");
+  }
+  if (bathrooms >= minBathrooms) {
+    return createScoreV2("BATHROOMS", weight, 100, `${bathrooms} bathrooms meets minimum`, true);
+  }
+  return createScoreV2("BATHROOMS", weight, 40, `${bathrooms} bathrooms below minimum`);
+}
+
+function scoreTimelineV2(
+  _request: RequestForMatching,
+  _property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  // Properties don't expose a timeline — placeholder neutral score.
+  return createScoreV2("TIMELINE", weight, 80, "Timeline placeholder");
+}
+
+function scoreEnergyClassV2(
+  _request: RequestForMatching,
+  _property: PropertyForMatchingV2,
+  weight: number
+): CriterionScore {
+  // No energyClassMin field on RequestForMatching — neutral.
+  return createScoreV2("ENERGY_CLASS", weight, 50, "No energy-class preference");
+}
+
+// ---------------------------------------------------------------------------
+// Main v2 calculators
+// ---------------------------------------------------------------------------
+
+/**
+ * Calculate v2 match score between a Request and a Property.
+ *
+ * Layer 1: Runs disqualifiers — returns overallScore=0 with empty breakdown if disqualified.
+ * Layer 2: Scores 19 criteria using `getWeightV2()` with optional per-org overrides.
+ * Layer 3: Adds financing bonus (+5) when financingStatus=CASH AND price >= €500,000.
+ * Final overallScore is Math.round(rawSum + financingBonus), clamped to [0, 100].
+ */
+export function calculateMatchScoreV2(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
+  orgWeights?: OrgWeightsV2
+): MatchResultV2 {
+  // Layer 1
+  const disqualifier = checkDisqualifiers(request, property);
+  if (disqualifier.disqualified) {
+    return {
+      requestId: request.id,
+      propertyId: property.id,
+      overallScore: 0,
+      financingBonus: 0,
+      breakdown: [],
+      matchedCriteria: 0,
+      totalCriteria: 0,
+      calculatedAt: new Date(),
+    };
+  }
+
+  // Layer 2 — 19 criteria
+  const w = (c: MatchCriterionV2) => getWeightV2(c, orgWeights);
+  const breakdown: CriterionScore[] = [
+    scoreBudgetV2(request, property, w("BUDGET")),
+    scorePropertyTypeV2(request, property, w("PROPERTY_TYPE")),
+    scoreLocationV2(request, property, w("LOCATION")),
+    scoreBedroomsV2(request, property, w("BEDROOMS")),
+    scoreSizeV2(request, property, w("SIZE")),
+    scoreFloorV2(request, property, w("FLOOR")),
+    scoreConditionV2(request, property, w("CONDITION")),
+    scoreConstructionYearV2(request, property, w("CONSTRUCTION_YEAR")),
+    scoreParkingV2(request, property, w("PARKING")),
+    scoreStorageV2(request, property, w("STORAGE")),
+    scoreElevatorV2(request, property, w("ELEVATOR")),
+    scoreGardenV2(request, property, w("GARDEN")),
+    scoreAmenitiesV2(request, property, w("AMENITIES")),
+    scoreInsideCityPlanV2(request, property, w("INSIDE_CITY_PLAN")),
+    scoreGoldenVisaV2(request, property, w("GOLDEN_VISA")),
+    scoreFinancingTypeV2(request, property, w("FINANCING_TYPE")),
+    scoreBathroomsV2(request, property, w("BATHROOMS")),
+    scoreTimelineV2(request, property, w("TIMELINE")),
+    scoreEnergyClassV2(request, property, w("ENERGY_CLASS")),
+  ];
+
+  const rawSum = breakdown.reduce((sum, c) => sum + c.weightedScore, 0);
+
+  // Layer 3 — financing bonus
+  let financingBonus = 0;
+  if (
+    request.financingStatus === "CASH" &&
+    property.price !== null &&
+    property.price !== undefined &&
+    property.price >= 500_000
+  ) {
+    financingBonus = 5;
+  }
+
+  const overallScore = Math.min(100, Math.max(0, Math.round(rawSum + financingBonus)));
+  const matchedCriteria = breakdown.filter((c) => c.matched).length;
+
+  return {
+    requestId: request.id,
+    propertyId: property.id,
+    overallScore,
+    financingBonus,
+    breakdown,
+    matchedCriteria,
+    totalCriteria: breakdown.length,
+    calculatedAt: new Date(),
+  };
+}
+
+/**
+ * Calculate v2 match scores for the cartesian product of requests × properties.
+ * O(R × P).
+ */
+export function calculateBatchMatchesV2(
+  requests: RequestForMatching[],
+  properties: PropertyForMatchingV2[],
+  orgWeights?: OrgWeightsV2
+): MatchResultV2[] {
+  const results: MatchResultV2[] = [];
+  for (const request of requests) {
+    for (const property of properties) {
+      results.push(calculateMatchScoreV2(request, property, orgWeights));
+    }
+  }
+  return results;
 }
