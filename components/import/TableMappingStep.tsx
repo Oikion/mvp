@@ -66,7 +66,7 @@ import type {
 // Types
 // ---------------------------------------------------------------------------
 
-type EntityType = "client" | "property" | "mandate" | "unassigned";
+type EntityType = "contact" | "property" | "request" | "unassigned";
 
 interface FieldsDict {
   groups: Record<string, string>;
@@ -124,21 +124,21 @@ interface TableMappingStepProps {
 
 // Entity-level grouping labels (unified import mode)
 const ENTITY_LABELS: Record<string, string> = {
-  client: "Clients",
+  contact: "Contacts",
   property: "Properties",
-  mandate: "Mandates",
+  request: "Requests",
   unassigned: "Unassigned",
 };
 
 const ENTITY_ICONS: Record<string, typeof Users> = {
-  client: Users,
+  contact: Users,
   property: Building2,
-  mandate: FileText,
+  request: FileText,
   unassigned: HelpCircle,
 };
 
 const ENTITY_COLORS: Record<string, { tab: string; bg: string; border: string; text: string }> = {
-  client: {
+  contact: {
     tab: "data-[state=active]:bg-blue-600 data-[state=active]:text-white",
     bg: "bg-blue-50 dark:bg-blue-950/20",
     border: "border-blue-500",
@@ -150,7 +150,7 @@ const ENTITY_COLORS: Record<string, { tab: string; bg: string; border: string; t
     border: "border-emerald-500",
     text: "text-emerald-600 dark:text-emerald-400",
   },
-  mandate: {
+  request: {
     tab: "data-[state=active]:bg-violet-600 data-[state=active]:text-white",
     bg: "bg-violet-50 dark:bg-violet-950/20",
     border: "border-violet-500",
@@ -177,9 +177,9 @@ const confidenceBadge: Record<
 
 // Default grouping key fields per entity
 const DEFAULT_GROUPING_KEY_FIELDS: Record<string, string[]> = {
-  client: ["primary_phone", "primary_email", "client_name"],
+  contact: ["primary_phone", "primary_email", "client_name"],
   property: ["street_address", "address", "property_name"],
-  mandate: [],
+  request: [],
 };
 
 // ---------------------------------------------------------------------------
@@ -187,16 +187,16 @@ const DEFAULT_GROUPING_KEY_FIELDS: Record<string, string[]> = {
 // ---------------------------------------------------------------------------
 
 const ENTITY_DOT_COLORS: Record<string, string> = {
-  client: "bg-blue-500",
+  contact: "bg-blue-500",
   property: "bg-emerald-500",
-  mandate: "bg-violet-500",
+  request: "bg-violet-500",
   unassigned: "bg-muted-foreground",
 };
 
 const ENTITY_BORDER_LEFT: Record<string, string> = {
-  client: "border-l-blue-500",
+  contact: "border-l-blue-500",
   property: "border-l-emerald-500",
-  mandate: "border-l-violet-500",
+  request: "border-l-violet-500",
   unassigned: "",
 };
 
@@ -738,14 +738,14 @@ export function TableMappingStep({
   const hasMandateMapped = useMemo(() => {
     return Object.values(fieldMapping).some((target) => {
       const def = fieldDefinitions.find((f) => f.key === target);
-      return (def as any)?.entity === "mandate";
+      return (def as any)?.entity === "request";
     });
   }, [fieldMapping, fieldDefinitions]);
 
   // Per-entity required fields (unified mode)
   const missingRequiredByEntity = useMemo(() => {
     const result: Record<string, FieldDefinitionWithAliases[]> = {};
-    for (const entity of ["client", "property", "mandate"]) {
+    for (const entity of ["contact", "property", "request"]) {
       const entityRequired = fieldDefinitions.filter(
         (f) => f.required && (f as any).entity === entity
       );
@@ -760,9 +760,9 @@ export function TableMappingStep({
   // ------ Entity counts for summary bar ------
   const entityCounts = useMemo(() => {
     const counts: Record<string, number> = {
-      client: 0,
+      contact: 0,
       property: 0,
-      mandate: 0,
+      request: 0,
       unassigned: 0,
     };
     for (const header of csvHeaders) {
@@ -1069,10 +1069,10 @@ export function TableMappingStep({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="client">
+                      <SelectItem value="contact">
                         <span className="flex items-center gap-1.5">
-                          <span className={cn("h-2 w-2 rounded-full", ENTITY_DOT_COLORS.client)} />
-                          {ENTITY_LABELS.client}
+                          <span className={cn("h-2 w-2 rounded-full", ENTITY_DOT_COLORS.contact)} />
+                          {ENTITY_LABELS.contact}
                         </span>
                       </SelectItem>
                       <SelectItem value="property">
@@ -1081,10 +1081,10 @@ export function TableMappingStep({
                           {ENTITY_LABELS.property}
                         </span>
                       </SelectItem>
-                      <SelectItem value="mandate">
+                      <SelectItem value="request">
                         <span className="flex items-center gap-1.5">
-                          <span className={cn("h-2 w-2 rounded-full", ENTITY_DOT_COLORS.mandate)} />
-                          {ENTITY_LABELS.mandate}
+                          <span className={cn("h-2 w-2 rounded-full", ENTITY_DOT_COLORS.request)} />
+                          {ENTITY_LABELS.request}
                         </span>
                       </SelectItem>
                       <SelectItem value="unassigned">
@@ -1153,7 +1153,7 @@ export function TableMappingStep({
 
       {/* Entity Summary Bar */}
       <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg text-sm flex-wrap">
-        {(["client", "property", "mandate"] as const).map((entity) => {
+        {(["contact", "property", "request"] as const).map((entity) => {
           const Icon = ENTITY_ICONS[entity];
           const count = entityCounts[entity] ?? 0;
           if (count === 0) return null;

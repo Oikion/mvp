@@ -245,7 +245,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
       onCancel={handleCancel}
       returnUrl={returnUrl}
       unifiedMode={true}
-      mandateFieldKeys={REQUEST_FIELD_KEYS}
+      requestFieldKeys={REQUEST_FIELD_KEYS}
       locale={locale}
     />
   );

@@ -151,7 +151,7 @@ export interface ImportResult {
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 interface ImportWizardStepsProps {
-  entityType: "client" | "property" | "mandate";
+  entityType: "contact" | "property" | "request";
   dict: ImportWizardDict;
   fieldsDict: FieldsDict;
   schema?: z.ZodSchema;
@@ -170,7 +170,7 @@ interface ImportWizardStepsProps {
   onCancel?: () => void;
   returnUrl?: string;
   unifiedMode?: boolean;
-  mandateFieldKeys?: Set<string>;
+  requestFieldKeys?: Set<string>;
   locale?: string;
 }
 
@@ -207,7 +207,7 @@ export function ImportWizardSteps({
   onCancel,
   returnUrl,
   unifiedMode,
-  mandateFieldKeys,
+  requestFieldKeys,
 }: Readonly<ImportWizardStepsProps>) {
   // Unified mode uses 6 steps: Upload(0), Mapping(1), Validation(2), Review(3), Importing(4), Complete(5)
   // Legacy mode uses 5 steps: Upload(0), Mapping(1), Validation(2), Review(3), Complete(4)
@@ -226,7 +226,7 @@ export function ImportWizardSteps({
   // ── Step 1: Mapping ──
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const [matchResults, setMatchResults] = useState<Map<string, MatchResult>>(new Map());
-  const [columnEntities, setColumnEntities] = useState<Record<string, "client" | "property" | "mandate" | "unassigned">>({});
+  const [columnEntities, setColumnEntities] = useState<Record<string, "contact" | "property" | "request" | "unassigned">>({});
   const [groupingKeys, setGroupingKeys] = useState<Record<string, boolean>>({});
 
   // ── Step 2: Validation ──
@@ -421,12 +421,12 @@ export function ImportWizardSteps({
     return {
       validRows: validData.map((row, idx) => ({
         rowIndex: idx,
-        clientRow: entityType === "client" ? row : null,
+        clientRow: entityType === "contact" ? row : null,
         propertyRow: entityType === "property" ? row : null,
-        mandateRow: entityType === "mandate" ? row : null,
-        hasClient: entityType === "client",
+        mandateRow: entityType === "request" ? row : null,
+        hasClient: entityType === "contact",
         hasProperty: entityType === "property",
-        hasMandate: entityType === "mandate",
+        hasMandate: entityType === "request",
       })),
       errorRows: validationErrors.map((ve) => ({
         rowIndex: ve.row,
@@ -437,7 +437,7 @@ export function ImportWizardSteps({
       })),
       entitySummary: {
         clients: {
-          detected: entityType === "client",
+          detected: entityType === "contact",
           total: parsedData.length,
           unique: validData.length,
           deduplicated: 0,
@@ -449,7 +449,7 @@ export function ImportWizardSteps({
           deduplicated: 0,
         },
         mandates: {
-          detected: entityType === "mandate",
+          detected: entityType === "request",
           total: parsedData.length,
           unique: validData.length,
           deduplicated: 0,
@@ -654,10 +654,10 @@ export function ImportWizardSteps({
             mappedFields.includes("primary_phone") ||
             mappedFields.includes("primary_email");
           const hasPropertyTrigger = mappedFields.includes("property_name");
-          const hasMandateTrigger = mandateFieldKeys
-            ? mappedFields.some((f) => mandateFieldKeys.has(f))
+          const hasRequestTrigger = requestFieldKeys
+            ? mappedFields.some((f) => requestFieldKeys.has(f))
             : false;
-          return hasClientTrigger || hasPropertyTrigger || hasMandateTrigger;
+          return hasClientTrigger || hasPropertyTrigger || hasRequestTrigger;
         }
         case 2: // Validation
           return !isValidating;
@@ -696,7 +696,7 @@ export function ImportWizardSteps({
     file,
     parsedData.length,
     fieldMapping,
-    mandateFieldKeys,
+    requestFieldKeys,
     isValidating,
     validationResult,
     fieldDefinitions,
@@ -862,9 +862,9 @@ export function ImportWizardSteps({
       }
       if (row.property_name) properties++;
       if (
-        mandateFieldKeys &&
+        requestFieldKeys &&
         Object.entries(row).some(
-          ([k, v]) => mandateFieldKeys.has(k) && v !== null && v !== undefined && v !== "",
+          ([k, v]) => requestFieldKeys.has(k) && v !== null && v !== undefined && v !== "",
         )
       ) {
         mandates++;

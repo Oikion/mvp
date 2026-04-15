@@ -13,7 +13,7 @@ import { z } from "zod";
 interface ImportWizardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entityType: "client" | "property";
+  entityType: "contact" | "property";
   title: string;
   description?: string;
   dict: ImportWizardDict;

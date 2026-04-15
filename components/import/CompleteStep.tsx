@@ -19,7 +19,7 @@ interface CompleteStepProps {
     done: string;
   };
   result: ImportResult | BatchImportResult | null;
-  entityType: "client" | "property" | "mandate";
+  entityType: "contact" | "property" | "request";
   returnUrl?: string;
   onImportMore: () => void;
   onDone?: () => void;
@@ -38,9 +38,9 @@ export function CompleteStep({
   const batchResult = isBatchResult ? (result as BatchImportResult) : null;
   const legacyResult = !isBatchResult ? (result as ImportResult | null) : null;
   let entityLabel: string;
-  if (entityType === "client") {
+  if (entityType === "contact") {
     entityLabel = "clients";
-  } else if (entityType === "mandate") {
+  } else if (entityType === "request") {
     entityLabel = "mandates";
   } else {
     entityLabel = "properties";

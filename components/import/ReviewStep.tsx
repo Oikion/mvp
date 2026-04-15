@@ -87,7 +87,7 @@ interface LegacyReviewStepProps {
   data: Record<string, unknown>[];
   fieldMapping: Record<string, string>;
   errorCount: number;
-  entityType: "client" | "property" | "mandate";
+  entityType: "contact" | "property" | "request";
   entityCounts?: { clients: number; properties: number; mandates: number };
 }
 
@@ -1072,16 +1072,16 @@ function ReviewStepLegacy({
 }: LegacyReviewStepProps) {
   const previewData = data.slice(0, 10);
   let entityLabel: string;
-  if (entityType === "client") {
+  if (entityType === "contact") {
     entityLabel = "clients";
-  } else if (entityType === "mandate") {
+  } else if (entityType === "request") {
     entityLabel = "mandates";
   } else {
     entityLabel = "properties";
   }
 
   let displayColumns: string[];
-  if (entityType === "client") {
+  if (entityType === "contact") {
     displayColumns = [
       "client_name",
       "primary_email",
@@ -1089,7 +1089,7 @@ function ReviewStepLegacy({
       "client_type",
       "client_status",
     ];
-  } else if (entityType === "mandate") {
+  } else if (entityType === "request") {
     displayColumns = [
       "budget_min",
       "budget_max",

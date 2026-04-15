@@ -41,7 +41,7 @@ interface UploadStepProps {
   ) => void;
   readonly onFileHash?: (hash: string) => void;
   readonly currentFile: File | null;
-  readonly entityType: "client" | "property" | "mandate";
+  readonly entityType: "contact" | "property" | "request";
   readonly unifiedMode?: boolean;
 }
 
@@ -679,9 +679,9 @@ export function UploadStep({
   const templateHeaders = useMemo(() => {
     if (unifiedMode) return UNIFIED_TEMPLATE_HEADERS;
     switch (entityType) {
-      case "client":
+      case "contact":
         return clientImportFieldDefinitions.map((f) => f.key);
-      case "mandate":
+      case "request":
         return mandateImportFieldDefinitions.map((f) => f.key);
       case "property":
       default:
