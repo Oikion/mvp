@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ImportWizardSteps, type ImportResult } from "@/components/import";
-import { UNIFIED_FIELD_DEFINITIONS, MANDATE_FIELD_KEYS } from "@/lib/import/unified-field-definitions";
+import { UNIFIED_FIELD_DEFINITIONS, REQUEST_FIELD_KEYS } from "@/lib/import/unified-field-definitions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import type { BatchImportResult } from "@/lib/import/unified-engine";
 
@@ -185,7 +185,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
           clients: {
             created: result.clients.length,
             reused: 0,
-            failed: result.errors.filter((e) => e.entity === "client").length,
+            failed: result.errors.filter((e) => e.entity === "contact").length,
           },
           properties: {
             created: result.properties.length,
@@ -193,7 +193,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
           },
           mandates: {
             created: result.mandates.length,
-            failed: result.errors.filter((e) => e.entity === "mandate").length,
+            failed: result.errors.filter((e) => e.entity === "request").length,
           },
           links: {
             clientProperty: result.linkCounts.clientProperty,
@@ -245,7 +245,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
       onCancel={handleCancel}
       returnUrl={returnUrl}
       unifiedMode={true}
-      mandateFieldKeys={MANDATE_FIELD_KEYS}
+      mandateFieldKeys={REQUEST_FIELD_KEYS}
       locale={locale}
     />
   );

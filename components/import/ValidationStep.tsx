@@ -297,9 +297,9 @@ export function ValidationStep({
     const firstErr = errorRows.find((e) => e.rowIndex === rowIndex);
     if (!firstErr) return;
     const entity = firstErr.entity.toLowerCase();
-    if (entity === "client") skippedByEntity.clients++;
+    if (entity === "contact") skippedByEntity.clients++;
     else if (entity === "property") skippedByEntity.properties++;
-    else if (entity === "mandate") skippedByEntity.mandates++;
+    else if (entity === "request") skippedByEntity.mandates++;
   });
 
   return (

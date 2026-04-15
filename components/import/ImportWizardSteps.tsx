@@ -356,7 +356,7 @@ export function ImportWizardSteps({
           errorRows: [
             {
               rowIndex: 0,
-              entity: "client",
+              entity: "contact",
               field: "",
               error: error instanceof Error ? error.message : "Validation failed",
               rawValue: "",

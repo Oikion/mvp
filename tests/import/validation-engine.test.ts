@@ -270,10 +270,10 @@ describe("Zod validation error capture", () => {
     ]);
 
     const mandateErrors = result.errorRows.filter(
-      (e) => e.entity === "mandate",
+      (e) => e.entity === "request",
     );
     expect(mandateErrors.length).toBeGreaterThan(0);
-    expect(mandateErrors[0].entity).toBe("mandate");
+    expect(mandateErrors[0].entity).toBe("request");
     expect(mandateErrors[0].rowIndex).toBe(0);
   });
 

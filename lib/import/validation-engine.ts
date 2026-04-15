@@ -39,7 +39,7 @@ export interface ValidatedRow {
 
 export interface ValidationError {
   rowIndex: number;
-  entity: "client" | "property" | "mandate";
+  entity: "contact" | "property" | "request";
   field: string;
   error: string;
   rawValue: unknown;
@@ -66,7 +66,7 @@ export interface ValidationResult {
 // Field -> entity ownership map (built once at module load)
 // ---------------------------------------------------------------------------
 
-const fieldEntityMap = new Map<string, "client" | "property" | "mandate">();
+const fieldEntityMap = new Map<string, "contact" | "property" | "request">();
 for (const def of UNIFIED_FIELD_DEFINITIONS) {
   fieldEntityMap.set(def.key, def.entity);
 }
@@ -93,7 +93,7 @@ function partitionRow(
   for (const [key, value] of Object.entries(row)) {
     const entity = fieldEntityMap.get(key);
     if (!entity) continue; // unmapped keys are dropped
-    if (entity === "client") clientRow[key] = value;
+    if (entity === "contact") clientRow[key] = value;
     else if (entity === "property") propertyRow[key] = value;
     else mandateRow[key] = value;
   }
@@ -219,7 +219,7 @@ export function validateImportData(
         for (const issue of parsed.error.issues) {
           errorRows.push({
             rowIndex,
-            entity: "client",
+            entity: "contact",
             field: issue.path.join(".") || "unknown",
             error: issue.message,
             rawValue: normalized[issue.path[0] as string] ?? null,
@@ -302,7 +302,7 @@ export function validateImportData(
         for (const issue of parsed.error.issues) {
           errorRows.push({
             rowIndex,
-            entity: "mandate",
+            entity: "request",
             field: issue.path.join(".") || "unknown",
             error: issue.message,
             rawValue: normalized[issue.path[0] as string] ?? null,
@@ -327,7 +327,7 @@ export function validateImportData(
           .filter((e) => e.rowIndex === rowIndex)
           .map((e) => e.entity)
       );
-      if (entityErrors.has("client")) {
+      if (entityErrors.has("contact")) {
         validated.clientRow = null;
         validated.hasClient = false;
       }
@@ -335,7 +335,7 @@ export function validateImportData(
         validated.propertyRow = null;
         validated.hasProperty = false;
       }
-      if (entityErrors.has("mandate")) {
+      if (entityErrors.has("request")) {
         validated.mandateRow = null;
         validated.hasMandate = false;
       }

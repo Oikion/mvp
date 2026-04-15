@@ -63,7 +63,7 @@ export interface UnifiedImportResult {
 // Field -> entity ownership map (built once at module load)
 // ---------------------------------------------------------------------------
 
-const fieldEntityMap = new Map<string, "client" | "property" | "mandate">();
+const fieldEntityMap = new Map<string, "contact" | "property" | "request">();
 for (const def of UNIFIED_FIELD_DEFINITIONS) {
   fieldEntityMap.set(def.key, def.entity);
 }
@@ -90,7 +90,7 @@ function partitionRow(
   for (const [key, value] of Object.entries(row)) {
     const entity = fieldEntityMap.get(key);
     if (!entity) continue;
-    if (entity === "client") clientRow[key] = value;
+    if (entity === "contact") clientRow[key] = value;
     else if (entity === "property") propertyRow[key] = value;
     else mandateRow[key] = value;
   }
@@ -304,7 +304,7 @@ export async function executeBatchImport(
             const msg = err instanceof Error ? err.message : String(err);
             errors.push({
               rowIndex: row.rowIndex,
-              entity: "client",
+              entity: "contact",
               error: msg,
             });
             // Remove from dedup map so links won't reference this entity
@@ -422,7 +422,7 @@ export async function executeBatchImport(
         const msg = err instanceof Error ? err.message : String(err);
         errors.push({
           rowIndex: row.rowIndex,
-          entity: "mandate",
+          entity: "request",
           error: msg,
         });
       }
@@ -622,8 +622,8 @@ export async function executeUnifiedImport(
     clients: {
       created: batchResult.clients.length,
       reused: clientReusedCount,
-      failed: validation.errorRows.filter((e) => e.entity === "client").length +
-        batchResult.errors.filter((e) => e.entity === "client").length,
+      failed: validation.errorRows.filter((e) => e.entity === "contact").length +
+        batchResult.errors.filter((e) => e.entity === "contact").length,
     },
     properties: {
       created: batchResult.properties.length,
@@ -632,8 +632,8 @@ export async function executeUnifiedImport(
     },
     mandates: {
       created: batchResult.mandates.length,
-      failed: validation.errorRows.filter((e) => e.entity === "mandate").length +
-        batchResult.errors.filter((e) => e.entity === "mandate").length,
+      failed: validation.errorRows.filter((e) => e.entity === "request").length +
+        batchResult.errors.filter((e) => e.entity === "request").length,
     },
     links: {
       clientProperty: batchResult.linkCounts.clientProperty,

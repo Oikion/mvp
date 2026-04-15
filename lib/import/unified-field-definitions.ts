@@ -1,13 +1,13 @@
 /**
  * Unified field definitions for the Oikion import engine.
  *
- * Merges all three entity field definition arrays (property, client, mandate)
+ * Merges all three entity field definition arrays (property, contact, request)
  * into a single array with entity ownership tags. Disambiguates overlapping keys
- * by prefixing mandate fields that collide with property fields, and renames
- * the client `description` field to `client_description`.
+ * by prefixing request fields that collide with property fields, and renames
+ * the contact `description` field to `contact_description`.
  *
  * IDs are omitted from all three entities — the engine generates them.
- * The mandate `title` field is omitted — the engine auto-generates it.
+ * The request `title` field is omitted — the engine auto-generates it.
  */
 
 import { propertyImportFieldDefinitions } from "./property-import-schema";
@@ -20,7 +20,7 @@ import { mandateImportFieldDefinitions } from "./mandate-import-schema";
 
 export interface UnifiedFieldDefinition {
   key: string;
-  entity: "client" | "property" | "mandate";
+  entity: "contact" | "property" | "request";
   required: boolean;
   group: string;
   aliases: string[];
@@ -33,20 +33,20 @@ export interface UnifiedFieldDefinition {
 // ---------------------------------------------------------------------------
 
 export const PREFIX_STRIP_MAP: Record<string, string> = {
-  mandate_transaction_type: "transaction_type",
-  mandate_property_type: "property_type",
-  mandate_status: "status",
-  mandate_condition: "condition",
-  mandate_heating_type: "heating_type",
-  mandate_furnished: "furnished",
-  mandate_elevator: "elevator",
-  mandate_inside_city_plan: "inside_city_plan",
-  mandate_municipality: "municipality",
-  mandate_region: "region",
-  mandate_notes: "notes",
-  client_description: "description",
-  client_visibility: "visibility",
-  mandate_visibility: "visibility",
+  request_transaction_type: "transaction_type",
+  request_property_type: "property_type",
+  request_status: "status",
+  request_condition: "condition",
+  request_heating_type: "heating_type",
+  request_furnished: "furnished",
+  request_elevator: "elevator",
+  request_inside_city_plan: "inside_city_plan",
+  request_municipality: "municipality",
+  request_region: "region",
+  request_notes: "notes",
+  contact_description: "description",
+  contact_visibility: "visibility",
+  request_visibility: "visibility",
 };
 
 /**
@@ -67,47 +67,47 @@ export function stripEntityPrefix(
 // Keys that must be renamed/omitted when building the unified array
 // ---------------------------------------------------------------------------
 
-/** Mandate keys that collide with property keys and need a prefix. */
-const MANDATE_KEY_RENAMES: Record<string, string> = {
-  transaction_type: "mandate_transaction_type",
-  property_type: "mandate_property_type",
-  status: "mandate_status",
-  condition: "mandate_condition",
-  heating_type: "mandate_heating_type",
-  furnished: "mandate_furnished",
-  elevator: "mandate_elevator",
-  inside_city_plan: "mandate_inside_city_plan",
-  municipality: "mandate_municipality",
-  region: "mandate_region",
-  notes: "mandate_notes",
-  visibility: "mandate_visibility",
+/** Request keys that collide with property keys and need a prefix. */
+const REQUEST_KEY_RENAMES: Record<string, string> = {
+  transaction_type: "request_transaction_type",
+  property_type: "request_property_type",
+  status: "request_status",
+  condition: "request_condition",
+  heating_type: "request_heating_type",
+  furnished: "request_furnished",
+  elevator: "request_elevator",
+  inside_city_plan: "request_inside_city_plan",
+  municipality: "request_municipality",
+  region: "request_region",
+  notes: "request_notes",
+  visibility: "request_visibility",
 };
 
-/** Mandate keys that are omitted entirely from the unified array. */
-const MANDATE_OMIT_KEYS = new Set<string>([
+/** Request keys that are omitted entirely from the unified array. */
+const REQUEST_OMIT_KEYS = new Set<string>([
   "id",    // engine generates IDs
-  "title", // engine auto-generates mandate titles
+  "title", // engine auto-generates request titles
 ]);
 
-/** Client keys that are omitted entirely. */
+/** Contact keys that are omitted entirely. */
 const CLIENT_OMIT_KEYS = new Set<string>(["id"]);
 
 /** Property keys that are omitted entirely. */
 const PROPERTY_OMIT_KEYS = new Set<string>(["id"]);
 
-/** Client key renames for disambiguation. */
-const CLIENT_KEY_RENAMES: Record<string, string> = {
-  description: "client_description",
-  visibility: "client_visibility",
+/** Contact key renames for disambiguation. */
+const CONTACT_KEY_RENAMES: Record<string, string> = {
+  description: "contact_description",
+  visibility: "contact_visibility",
 };
 
 // ---------------------------------------------------------------------------
-// Extra aliases for renamed mandate fields
+// Extra aliases for renamed request fields
 // (original aliases from the source definition are preserved; these extend them)
 // ---------------------------------------------------------------------------
 
-const MANDATE_EXTRA_ALIASES: Record<string, string[]> = {
-  mandate_transaction_type: ["mandate_transaction", "buyer_intent"],
+const REQUEST_EXTRA_ALIASES: Record<string, string[]> = {
+  request_transaction_type: ["request_transaction", "buyer_intent"],
 };
 
 // ---------------------------------------------------------------------------
@@ -130,13 +130,13 @@ function buildUnifiedDefinitions(): UnifiedFieldDefinition[] {
     });
   }
 
-  // --- Client fields ---
+  // --- Contact fields ---
   for (const def of clientImportFieldDefinitions) {
     if (CLIENT_OMIT_KEYS.has(def.key)) continue;
-    const renamedKey = CLIENT_KEY_RENAMES[def.key] ?? def.key;
+    const renamedKey = CONTACT_KEY_RENAMES[def.key] ?? def.key;
     result.push({
       key: renamedKey,
-      entity: "client",
+      entity: "contact",
       required: def.required,
       group: def.group,
       aliases: [...def.aliases],
@@ -144,14 +144,14 @@ function buildUnifiedDefinitions(): UnifiedFieldDefinition[] {
     });
   }
 
-  // --- Mandate fields ---
+  // --- Request fields ---
   for (const def of mandateImportFieldDefinitions) {
-    if (MANDATE_OMIT_KEYS.has(def.key)) continue;
-    const renamedKey = MANDATE_KEY_RENAMES[def.key] ?? def.key;
-    const extraAliases = MANDATE_EXTRA_ALIASES[renamedKey] ?? [];
+    if (REQUEST_OMIT_KEYS.has(def.key)) continue;
+    const renamedKey = REQUEST_KEY_RENAMES[def.key] ?? def.key;
+    const extraAliases = REQUEST_EXTRA_ALIASES[renamedKey] ?? [];
     result.push({
       key: renamedKey,
-      entity: "mandate",
+      entity: "request",
       required: def.required,
       group: def.group,
       aliases: [...def.aliases, ...extraAliases],
@@ -169,19 +169,19 @@ export const UNIFIED_FIELD_DEFINITIONS: readonly UnifiedFieldDefinition[] =
 // Convenience sets used by the unified engine for entity detection
 // ---------------------------------------------------------------------------
 
-/** All unified keys that belong to the mandate entity. */
-export const MANDATE_FIELD_KEYS = new Set(
-  UNIFIED_FIELD_DEFINITIONS.filter((f) => f.entity === "mandate").map(
+/** All unified keys that belong to the request entity. */
+export const REQUEST_FIELD_KEYS = new Set(
+  UNIFIED_FIELD_DEFINITIONS.filter((f) => f.entity === "request").map(
     (f) => f.key
   )
 );
 
 /**
  * Presence of any of these keys in a mapped row is a strong signal that the
- * row contains client data.
+ * row contains contact data.
  */
-export const CLIENT_TRIGGER_KEYS = new Set([
-  "client_name",
+export const CONTACT_TRIGGER_KEYS = new Set([
+  "contact_name",
   "primary_phone",
   "primary_email",
 ]);
