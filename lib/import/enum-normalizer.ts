@@ -581,20 +581,20 @@ export const leadSourceMap: EnumMapping = {
   "κοινωνικά μέσα": "SOCIAL",
 };
 
+// RequestStatus enum values: ACTIVE, MATCHED, UNDER_OFFER, CLOSED, PAUSED
+// (DRAFT, FULFILLED, EXPIRED, CANCELLED removed — stale MandateStatus values)
 export const mandateStatusMap: EnumMapping = {
-  "draft": "DRAFT", "new": "DRAFT",
-  "active": "ACTIVE", "open": "ACTIVE",
+  "active": "ACTIVE", "open": "ACTIVE", "new": "ACTIVE",
+  "matched": "MATCHED",
+  "under offer": "UNDER_OFFER", "under_offer": "UNDER_OFFER", "underoffer": "UNDER_OFFER",
+  "closed": "CLOSED", "completed": "CLOSED", "done": "CLOSED",
   "paused": "PAUSED", "on hold": "PAUSED", "hold": "PAUSED",
-  "fulfilled": "FULFILLED", "completed": "FULFILLED", "done": "FULFILLED",
-  "expired": "EXPIRED",
-  "cancelled": "CANCELLED", "canceled": "CANCELLED",
   // Greek
-  "πρόχειρο": "DRAFT", "νέο": "DRAFT",
   "ενεργή": "ACTIVE", "ενεργό": "ACTIVE",
+  "ταιριασμένη": "MATCHED",
+  "σε προσφορά": "UNDER_OFFER",
+  "κλειστή": "CLOSED", "ολοκληρώθηκε": "CLOSED",
   "σε παύση": "PAUSED",
-  "εκπληρώθηκε": "FULFILLED", "ολοκληρώθηκε": "FULFILLED",
-  "έληξε": "EXPIRED",
-  "ακυρώθηκε": "CANCELLED",
 };
 
 export const mandateUrgencyMap: EnumMapping = {
@@ -736,6 +736,9 @@ export function normalizeClientEnums(
   return normalized;
 }
 
+/** Alias for normalizeClientEnums — use in Contact import contexts */
+export const normalizeContactEnums = normalizeClientEnums;
+
 export const mandateEnumMappings = {
   status: mandateStatusMap,
   urgency: mandateUrgencyMap,
@@ -784,3 +787,6 @@ export function normalizeMandateEnums(
 
   return normalized;
 }
+
+/** Alias for normalizeMandateEnums — use in Request import contexts */
+export const normalizeRequestEnums = normalizeMandateEnums;

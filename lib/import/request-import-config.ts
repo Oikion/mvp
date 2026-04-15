@@ -11,8 +11,6 @@ import {
   requestImportSchema,
   type RequestImportData,
 } from "./request-import-schema";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error — normalizeRequestEnums will be added in Task 5
 import { normalizeRequestEnums } from "./enum-normalizer";
 import { encryptWithKey, isEncrypted } from "@/lib/encryption";
 import { encryptJsonWithKey } from "@/lib/model-encryption";
