@@ -106,7 +106,12 @@ function decryptFieldWithKey(value: string | null | undefined, dek: Buffer): str
 function decryptFieldWithKeys(value: string | null | undefined, deks: Buffer[]): string | null | undefined {
   if (value == null) return value;
   if (!isEncrypted(value)) return value;
-  return decryptWithKeys(value, deks);
+  try {
+    return decryptWithKeys(value, deks);
+  } catch {
+    console.warn("[model-encryption] decryptFieldWithKeys: could not decrypt field — returning null (orphaned or unrecoverable ciphertext)");
+    return null;
+  }
 }
 
 export function encryptJsonWithKey(
@@ -141,11 +146,16 @@ function decryptJsonWithKeys(
 ): Prisma.JsonValue | null | undefined {
   if (value == null) return value;
   if (typeof value === "string" && isEncrypted(value)) {
-    const decrypted = decryptWithKeys(value, deks);
     try {
-      return JSON.parse(decrypted) as Prisma.JsonValue;
+      const decrypted = decryptWithKeys(value, deks);
+      try {
+        return JSON.parse(decrypted) as Prisma.JsonValue;
+      } catch {
+        return decrypted as Prisma.JsonValue;
+      }
     } catch {
-      return decrypted as Prisma.JsonValue;
+      console.warn("[model-encryption] decryptJsonWithKeys: could not decrypt JSON field — returning null (orphaned or unrecoverable ciphertext)");
+      return null;
     }
   }
   return value;

@@ -209,5 +209,9 @@ export function decryptWithKeys(encrypted: string, keys: Buffer[]): string {
   if (process.env.DISABLE_MASTER_KEY_FALLBACK === "true") {
     throw new Error("[encryption] decryptWithKeys: all DEK candidates failed and master key fallback is disabled");
   }
-  return decrypt(encrypted);
+  try {
+    return decrypt(encrypted);
+  } catch {
+    throw new Error("[encryption] decryptWithKeys: all DEK candidates and master key fallback failed — ciphertext is unrecoverable (orphaned or key mismatch)");
+  }
 }
