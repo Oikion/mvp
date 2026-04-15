@@ -26,6 +26,7 @@ import {
 } from "@/lib/validations/status-transitions";
 import type { Deal, DealParty, DealStageLog } from "@prisma/client";
 import { serializeDealForClient } from "@/lib/deals/serialize";
+import { createChangeLogEntry } from "@/lib/entity-change-log";
 
 // ============================================
 // Deal CRUD
@@ -313,6 +314,20 @@ export async function advanceDealStage(
         },
       }),
     ]);
+
+    // Fire-and-forget: non-fatal changelog entry for unified activity feed
+    void createChangeLogEntry({
+      organizationId,
+      entityType: "DEAL",
+      entityId: dealId,
+      eventType: "STAGE_CHANGED",
+      actorUserId: currentUser.id,
+      stageTransition: {
+        fromStage: deal.stage,
+        toStage,
+        notes: notes ?? undefined,
+      },
+    });
 
     revalidatePath("/deals");
     revalidatePath(`/deals/${dealId}`);

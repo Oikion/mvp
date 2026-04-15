@@ -15,8 +15,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
 import { GridToolbar } from "@/components/ui/grid-toolbar";
-import { ContactsDataTable } from "../table-components/data-table";
-import { getContactColumns } from "../table-components/columns";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { useContactColumns } from "../table-components/columns";
+import type { ContactRow } from "../table-components/columns";
 import { QuickAddContact } from "./QuickAddContact";
 import { NewContactWizard } from "./NewContactWizard";
 import { ExportButton } from "@/components/export";
@@ -33,7 +34,7 @@ import {
   UserRoundSearch,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "@/navigation";
 import { Link } from "@/navigation";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +60,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 interface ContactsPageViewProps {
-  contacts: any[];
+  contacts: ContactRow[];
   crmData: any;
 }
 
@@ -84,6 +85,7 @@ export default function ContactsPageView({
   }, []);
 
   const { users } = crmData;
+  const columns = useContactColumns(users);
 
   // ── Filter logic ──
   const filteredContacts = useMemo(() => {
@@ -289,10 +291,12 @@ export default function ContactsPageView({
               </div>
             ) : view === "list" ? (
               /* ── List view (DataTable) ── */
-              <ContactsDataTable
+              <DataTable
                 data={contacts}
-                columns={getContactColumns()}
-                getRowHref={(row: any) => `/app/crm/contacts/${row.friendlyId}`}
+                columns={columns}
+                searchKey="displayName"
+                searchPlaceholder={t("contacts.searchPlaceholder")}
+                onRowOpen={(row) => { if (row.original.friendlyId) router.push(`/app/crm/contacts/${row.original.friendlyId}`); }}
                 toolbarRight={<ViewToggle view={view} setView={setView} />}
               />
             ) : (

@@ -6,7 +6,7 @@ import { decryptMandateForOrg } from "@/lib/model-encryption";
 /**
  * Entity types that can be searched
  */
-type SearchEntityType = "property" | "client" | "contact" | "document" | "event" | "mandate";
+type SearchEntityType = "property" | "client" | "contact" | "document" | "event" | "mandate" | "request";
 
 /**
  * Request body for search
@@ -32,7 +32,7 @@ interface SearchResponse {
   contacts: any[];
   documents: any[];
   events: any[];
-  mandates: any[];
+  requests: any[];
   meta: {
     query: string;
     page: number;
@@ -43,7 +43,7 @@ interface SearchResponse {
       contacts: number;
       documents: number;
       events: number;
-      mandates: number;
+      requests: number;
       total: number;
     };
     hasMore: boolean;
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     const body: SearchRequestBody = await req.json();
 
     const query = body.query?.trim();
-    const types = body.types || ["property", "client", "contact", "document", "event", "mandate"];
+    const types = body.types || ["property", "client", "contact", "document", "event", "request"];
     const page = Math.max(1, body.page || 1);
     const limit = Math.min(100, Math.max(1, body.limit || 50));
     const includeRelationships = body.includeRelationships !== false;
@@ -73,12 +73,12 @@ export async function POST(req: Request) {
         contacts: [],
         documents: [],
         events: [],
-        mandates: [],
+        requests: [],
         meta: {
           query: query || "",
           page,
           limit,
-          counts: { properties: 0, clients: 0, contacts: 0, documents: 0, events: 0, mandates: 0, total: 0 },
+          counts: { properties: 0, clients: 0, contacts: 0, documents: 0, events: 0, requests: 0, total: 0 },
           hasMore: false,
           timing: performance.now() - startTime,
         },
@@ -253,8 +253,9 @@ export async function POST(req: Request) {
       countPromises.push(Promise.resolve(0));
     }
 
-    // Mandates search (encrypted title — fetch, decrypt, filter in-memory)
-    if (types.includes("mandate")) {
+    // Requests search (encrypted title — fetch, decrypt, filter in-memory)
+    // Accept both "request" (new) and "mandate" (backward compat) as type values
+    if (types.includes("request") || types.includes("mandate")) {
       const mandateWhere: any = {};
 
       // We can only filter by plaintext fields at DB level
@@ -319,8 +320,8 @@ export async function POST(req: Request) {
       Promise.all(countPromises),
     ]);
 
-    const [properties, clients, contacts, documents, events, mandates] = searchResults;
-    const [propertiesCount, clientsCount, contactsCount, documentsCount, eventsCount, mandatesCount] = counts;
+    const [properties, clients, contacts, documents, events, requests] = searchResults;
+    const [propertiesCount, clientsCount, contactsCount, documentsCount, eventsCount, requestsCount] = counts;
 
     // Helper function to serialize Prisma objects
     const serializePrismaObject = (obj: any): any => {
@@ -352,7 +353,7 @@ export async function POST(req: Request) {
           count: p._count?.CalendarEvent || 0,
           preview: p.CalendarEvent || [],
         },
-        mandates: {
+        requests: {
           count: p._count?.Mandate_Properties || 0,
           preview: p.Mandate_Properties?.map((mp: any) => mp.Mandate) || [],
         },
@@ -370,7 +371,7 @@ export async function POST(req: Request) {
           count: 0,
           preview: [],
         },
-        mandates: {
+        requests: {
           count: 0,
           preview: [],
         },
@@ -405,7 +406,7 @@ export async function POST(req: Request) {
       } : undefined,
     }));
 
-    const transformedMandates = mandates.map((m: any) => ({
+    const transformedRequests = requests.map((m: any) => ({
       ...m,
       relationships: includeRelationships ? {
         clients: {
@@ -419,8 +420,8 @@ export async function POST(req: Request) {
       } : undefined,
     }));
 
-    const totalCount = propertiesCount + clientsCount + contactsCount + documentsCount + eventsCount + mandatesCount;
-    const totalResults = properties.length + clients.length + contacts.length + documents.length + events.length + mandates.length;
+    const totalCount = propertiesCount + clientsCount + contactsCount + documentsCount + eventsCount + requestsCount;
+    const totalResults = properties.length + clients.length + contacts.length + documents.length + events.length + requests.length;
 
     const response: SearchResponse = {
       properties: serializePrismaObject(transformedProperties),
@@ -428,7 +429,7 @@ export async function POST(req: Request) {
       contacts: serializePrismaObject(transformedContacts),
       documents: serializePrismaObject(transformedDocuments),
       events: serializePrismaObject(transformedEvents),
-      mandates: serializePrismaObject(transformedMandates),
+      requests: serializePrismaObject(transformedRequests),
       meta: {
         query,
         page,
@@ -439,7 +440,7 @@ export async function POST(req: Request) {
           contacts: contactsCount,
           documents: documentsCount,
           events: eventsCount,
-          mandates: mandatesCount,
+          requests: requestsCount,
           total: totalCount,
         },
         hasMore: skip + totalResults < totalCount,

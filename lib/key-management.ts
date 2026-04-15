@@ -175,6 +175,55 @@ export async function rotateOrgDek(orgId: string): Promise<number> {
 }
 
 /**
+ * Get all DEK candidates for decryption in priority order: active key first,
+ * then inactive versions sorted newest → oldest.
+ *
+ * The active key is served from the L1/L2/L3 cache path (getOrgDek).
+ * Inactive previous versions are fetched directly from DB — they are rare reads
+ * that only occur when a field was encrypted with an older DEK (post-rotation).
+ *
+ * Each inactive key is silently skipped if its encryptedDek cannot be decrypted
+ * by the current master key (e.g. the master key was rotated), rather than
+ * aborting the entire decryption attempt.
+ */
+export async function getOrgDeksForDecryption(orgId: string): Promise<Buffer[]> {
+  if (!orgId) throw new Error("[key-management] getOrgDeksForDecryption: orgId is required");
+
+  const deks: Buffer[] = [];
+
+  // Active key first (uses cache layers)
+  try {
+    const activeDek = await getOrgDek(orgId);
+    deks.push(activeDek);
+  } catch {
+    // If even the active key can't be loaded, proceed with whatever we can get from DB
+    console.warn(`[key-management] getOrgDeksForDecryption: failed to load active DEK for org ${orgId}`);
+  }
+
+  // Previous (inactive) versions — fetch from DB, newest first
+  const inactiveRows = await prismadb.orgEncryptionKey.findMany({
+    where: { organizationId: orgId, isActive: false },
+    orderBy: { keyVersion: "desc" },
+    select: { encryptedDek: true, keyVersion: true },
+  });
+
+  for (const row of inactiveRows) {
+    try {
+      const dekHex = decrypt(row.encryptedDek);
+      deks.push(Buffer.from(dekHex, "hex"));
+    } catch {
+      // Master key cannot decrypt this DEK version — skip it silently
+      // (can happen if SECRETS_ENCRYPTION_KEY was rotated between DEK generation and now)
+      console.warn(
+        `[key-management] getOrgDeksForDecryption: could not decrypt inactive DEK version ${row.keyVersion} for org ${orgId}, skipping`
+      );
+    }
+  }
+
+  return deks;
+}
+
+/**
  * Get a specific key version for an org (used during re-encryption migrations).
  */
 export async function getOrgDekByVersion(orgId: string, version: number): Promise<Buffer> {

@@ -94,9 +94,9 @@ async function createCancellationNotifications(
     
     // Notify linked contact agents
     if (event.Contacts && event.Contacts.length > 0) {
-      const clientIds = event.Contacts.map((c: any) => c.id);
+      const contactIdList = event.Contacts.map((c: any) => c.id);
       const clients = await prismadb.contact.findMany({
-        where: { id: { in: clientIds } },
+        where: { id: { in: contactIdList } },
         select: { assignedAgentId: true, displayName: true },
       });
       
@@ -184,7 +184,7 @@ export async function GET(
             friendlyId: true,
           },
         },
-        Mandates: {
+        Requests: {
           select: { id: true, title: true, friendlyId: true, status: true },
         },
         CalendarReminder: {
@@ -220,15 +220,17 @@ export async function GET(
     const decrypted = await decryptCalendarEventForOrg(event, currentOrgId);
 
     // Map Prisma relation names to the keys expected by the EventDetailView UI
-    const { Contacts, Properties, Documents, Mandates, Users, crm_Accounts_Tasks, CalendarReminder, EventContacts, EventAgents, ...rest } = decrypted as any;
+    const { Contacts, Properties, Documents, Requests, Users, crm_Accounts_Tasks, CalendarReminder, EventContacts, EventAgents, ...rest } = decrypted as any;
     return NextResponse.json({
       event: {
         ...rest,
         assignedUser: Users ?? null,
         linkedClients: Contacts ?? [],
+        linkedContacts: Contacts ?? [],
         linkedProperties: Properties ?? [],
         linkedDocuments: Documents ?? [],
-        linkedMandates: Mandates ?? [],
+        linkedMandates: Requests ?? [],
+        linkedRequests: Requests ?? [],
         linkedTasks: crm_Accounts_Tasks ?? [],
         reminders: CalendarReminder ?? [],
         eventContacts: (EventContacts ?? []).map((ec: any) => ({
@@ -321,14 +323,15 @@ export async function PUT(
       status,
       eventType,
       assignedUserId,
-      clientIds,
+      clientIds: clientIdsOld,
+      contactIds,
       propertyIds,
       documentIds,
-      mandateIds,
+      mandateIds: mandateIdsOld,
+      requestIds,
       taskIds,
       reminderMinutes,
     } = body;
-
     // Build update data
     const updateData: any = {};
 
@@ -353,12 +356,13 @@ export async function PUT(
     // Validate that all IDs exist before attempting to connect them
     const connectDisconnect: any = {};
 
-    if (clientIds !== undefined) {
-      if (Array.isArray(clientIds) && clientIds.length > 0) {
-        // Validate client IDs exist
+    const resolvedContactIds = contactIds ?? clientIdsOld;
+    if (resolvedContactIds !== undefined) {
+      if (Array.isArray(resolvedContactIds) && resolvedContactIds.length > 0) {
+        // Validate contact IDs exist
         const validClients = await prismadb.contact.findMany({
           where: {
-            id: { in: clientIds },
+            id: { in: resolvedContactIds },
             organizationId: currentOrgId,
           },
           select: { id: true },
@@ -413,17 +417,18 @@ export async function PUT(
       }
     }
 
-    if (mandateIds !== undefined) {
-      if (Array.isArray(mandateIds) && mandateIds.length > 0) {
-        const validMandates = await prismadb.mandate.findMany({
-          where: { id: { in: mandateIds }, organizationId: currentOrgId },
+    const resolvedRequestIds = requestIds ?? mandateIdsOld;
+    if (resolvedRequestIds !== undefined) {
+      if (Array.isArray(resolvedRequestIds) && resolvedRequestIds.length > 0) {
+        const validRequests = await prismadb.request.findMany({
+          where: { id: { in: resolvedRequestIds }, organizationId: currentOrgId },
           select: { id: true },
         });
-        connectDisconnect.Mandates = {
-          set: validMandates.map((m) => ({ id: m.id })),
+        connectDisconnect.Requests = {
+          set: validRequests.map((r) => ({ id: r.id })),
         };
       } else {
-        connectDisconnect.Mandates = { set: [] };
+        connectDisconnect.Requests = { set: [] };
       }
     }
 

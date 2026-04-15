@@ -45,7 +45,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { ClientSelector } from "./ClientSelector";
+import { ContactSelector } from "./ClientSelector";
 import { PropertySelector } from "./PropertySelector";
 import { DocumentSelector } from "./DocumentSelector";
 import { InviteeSelector, Invitee } from "./InviteeSelector";
@@ -61,7 +61,7 @@ const createEventFormSchema = (t: (key: string) => string) => z.object({
   eventType: z.string().optional(),
   eventTypeOther: z.string().optional(),
   assignedUserId: z.string().optional(),
-  clientIds: z.array(z.string()).default([]),
+  contactIds: z.array(z.string()).default([]),
   propertyIds: z.array(z.string()).default([]),
   documentIds: z.array(z.string()).default([]),
   reminderMinutes: z.array(z.number()).default([]),
@@ -138,7 +138,7 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
       eventType: initialData?.eventType || undefined,
       eventTypeOther: "",
       assignedUserId: initialData?.assignedUserId || undefined,
-      clientIds: initialData?.linkedClients?.map((c) => c.id) || [],
+      contactIds: initialData?.linkedClients?.map((c) => c.id) || [],
       propertyIds: initialData?.linkedProperties?.map((p) => p.id) || [],
       documentIds: initialData?.linkedDocuments?.map((d) => d.id) || [],
       reminderMinutes: initialData?.reminderMinutes || [],
@@ -174,7 +174,7 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
         location: locationString,
         eventType: data.eventType,
         assignedUserId: data.assignedUserId,
-        clientIds: data.clientIds,
+        contactIds: data.contactIds,
         propertyIds: data.propertyIds,
         documentIds: data.documentIds,
         reminderMinutes: data.reminderMinutes,
@@ -450,12 +450,12 @@ export function EventEditForm({ eventId, initialData, onSuccess, onCancel }: Eve
 
             <FormField
               control={form.control}
-              name="clientIds"
+              name="contactIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("eventCreateForm.linkClients")}</FormLabel>
+                  <FormLabel>{t("eventCreateForm.linkContacts")}</FormLabel>
                   <FormControl>
-                    <ClientSelector
+                    <ContactSelector
                       value={field.value}
                       onChange={field.onChange}
                     />

@@ -49,6 +49,8 @@ interface DataTableProps<TData, TValue> {
   enableKeyboardNav?: boolean;
   /** Bulk actions to show when rows are selected */
   bulkActions?: BulkAction<TData>[];
+  /** Content rendered to the right of the toolbar (e.g. ViewToggle) */
+  toolbarRight?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({ 
@@ -62,6 +64,7 @@ export function DataTable<TData, TValue>({
   onRowDelete,
   enableKeyboardNav = true,
   bulkActions,
+  toolbarRight,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -169,6 +172,7 @@ export function DataTable<TData, TValue>({
           filters?.forEach((f) => table.getColumn(f.column)?.setFilterValue(undefined));
           setShowFilters(false);
         }}
+        rightContent={toolbarRight}
       >
         {showFilters && filters && (
           <div className="flex items-center gap-2 flex-wrap">
@@ -208,11 +212,16 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row, index) => {
                 const rowProps = getRowProps(index);
                 return (
-                  <TableRow 
-                    key={row.id} 
+                  <TableRow
+                    key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                     data-focused={isRowFocused(index)}
-                    onClick={rowProps.onClick}
+                    onClick={(e) => {
+                      rowProps.onClick(e);
+                      if (onRowOpen && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+                        onRowOpen(row);
+                      }
+                    }}
                     className={cn(
                       "cursor-pointer transition-colors",
                       isRowFocused(index) && "bg-accent/50 ring-1 ring-inset ring-primary/50",

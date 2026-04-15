@@ -71,17 +71,6 @@ interface LinkedEvent {
   linkedProperties?: { id: string; property_name: string }[];
 }
 
-interface LinkedMandate {
-  id: string;
-  friendlyId: string;
-  title: string;
-  transaction_type?: string;
-  status?: string;
-  urgency?: string;
-  budget_min?: number;
-  budget_max?: number;
-}
-
 interface LinkedDocument {
   id: string;
   friendlyId: string;
@@ -126,7 +115,7 @@ interface LinkedDeal {
 }
 
 interface LinkedEntitiesPanelProps {
-  type: "properties" | "clients" | "contacts" | "events" | "mandates" | "requests" | "documents" | "deals";
+  type: "properties" | "clients" | "contacts" | "events" | "requests" | "documents" | "deals";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entities: any[];
   isLoading?: boolean;
@@ -258,63 +247,6 @@ function ClientCard({
               >
                 {client.client_status}
               </Badge>
-            )}
-          </div>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-      </div>
-    </div>
-  );
-}
-
-function MandateCard({
-  mandate,
-  onUnlink,
-}: {
-  mandate: LinkedMandate;
-  onUnlink?: () => void;
-}) {
-  const router = useRouter();
-  const budgetLabel = mandate.budget_min || mandate.budget_max
-    ? `€${(mandate.budget_min ?? 0).toLocaleString()} - €${(mandate.budget_max ?? 0).toLocaleString()}`
-    : null;
-
-  return (
-    <div
-      className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
-      onClick={() => router.push(`/app/requests/${mandate.friendlyId}`)}
-    >
-      {onUnlink && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={(e) => {
-            e.stopPropagation();
-            onUnlink();
-          }}
-        >
-          <X className="h-3 w-3" />
-        </Button>
-      )}
-      <div className="flex items-start gap-3">
-        <div className="p-2 rounded-md bg-primary/10">
-          <FileText className="h-4 w-4 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm truncate">{mandate.title}</h4>
-          {budgetLabel && (
-            <p className="text-xs text-muted-foreground truncate">{budgetLabel}</p>
-          )}
-          <div className="flex items-center gap-2 mt-1.5">
-            {mandate.transaction_type && (
-              <Badge variant="outline" className="text-[10px] h-5">{mandate.transaction_type}</Badge>
-            )}
-            {mandate.status && (
-              <Badge variant={mandate.status === "ACTIVE" ? "default" : "secondary"} className="text-[10px] h-5">{mandate.status}</Badge>
-            )}
-            {mandate.urgency && (
-              <Badge variant={mandate.urgency === "HIGH" || mandate.urgency === "CRITICAL" ? "destructive" : "secondary"} className="text-[10px] h-5">{mandate.urgency}</Badge>
             )}
           </div>
         </div>
@@ -635,7 +567,6 @@ export function LinkedEntitiesPanel({
     clients: User,
     contacts: UserCircle,
     events: Calendar,
-    mandates: FileText,
     requests: ClipboardList,
     documents: FileText,
     deals: Handshake,
@@ -646,7 +577,6 @@ export function LinkedEntitiesPanel({
     clients: t("linkedEntities.linkedClients"),
     contacts: t("linkedEntities.linkedContacts"),
     events: t("linkedEntities.calendarEvents"),
-    mandates: t("linkedEntities.linkedMandates"),
     requests: t("linkedEntities.linkedRequests"),
     documents: t("linkedEntities.linkedDocuments"),
     deals: t("linkedEntities.linkedDeals"),
@@ -657,7 +587,6 @@ export function LinkedEntitiesPanel({
     clients: t("linkedEntities.noLinkedClients"),
     contacts: t("linkedEntities.noLinkedContacts"),
     events: t("linkedEntities.noCalendarEvents"),
-    mandates: t("linkedEntities.noLinkedMandates"),
     requests: t("linkedEntities.noLinkedRequests"),
     documents: t("linkedEntities.noLinkedDocuments"),
     deals: t("linkedEntities.noLinkedDeals"),
@@ -728,14 +657,6 @@ export function LinkedEntitiesPanel({
               {type === "events" &&
                 (entities as LinkedEvent[]).map((event) => (
                   <EventCard key={event.id} event={event} />
-                ))}
-              {type === "mandates" &&
-                (entities as LinkedMandate[]).map((mandate) => (
-                  <MandateCard
-                    key={mandate.id}
-                    mandate={mandate}
-                    onUnlink={onUnlinkEntity ? () => onUnlinkEntity(mandate.id) : undefined}
-                  />
                 ))}
               {type === "contacts" &&
                 (entities as LinkedContact[]).map((contact) => (

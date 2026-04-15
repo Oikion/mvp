@@ -49,7 +49,7 @@ import {
   useUnlinkDocumentFromClient,
 } from "@/hooks/swr";
 import { QuickExportButton } from "@/components/export";
-import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 
@@ -495,15 +495,15 @@ export default function ClientView({
             emptyMessage="No properties linked to this client yet."
           />
 
-          {/* Linked Mandates */}
+          {/* Linked Requests */}
           <LinkedEntitiesPanel
-            type="mandates"
+            type="requests"
             entities={linkedMandates}
             isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
             onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
             onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
             showAddButton={!isReadOnly}
-            emptyMessage="No mandates linked to this client yet."
+            emptyMessage="No requests linked to this client yet."
           />
 
           {/* Calendar Events */}
@@ -607,12 +607,12 @@ export default function ClientView({
         />
       )}
 
-      {/* Link Mandate Dialog */}
+      {/* Link Request Dialog */}
       {!isReadOnly && (
         <LinkEntityDialog
           open={linkMandateDialogOpen}
           onOpenChange={setLinkMandateDialogOpen}
-          entityType="mandate"
+          entityType="request"
           sourceId={data.id}
           sourceType="client"
           alreadyLinkedIds={(linkedMandates ?? []).map((m: any) => m.id)}
@@ -627,8 +627,8 @@ export default function ClientView({
             setAutoLinkNewMandate(true);
             setCreateMandateOpen(true);
           }}
-          title="Link Mandates to Client"
-          description="Select mandates associated with this client."
+          title="Link Requests to Client"
+          description="Select requests associated with this client."
         />
       )}
 
@@ -658,16 +658,15 @@ export default function ClientView({
         />
       )}
 
-      {/* Quick Add Mandate */}
+      {/* Quick Add Request */}
       {!isReadOnly && (
-        <QuickAddMandate
+        <QuickAddRequest
           open={createMandateOpen}
           onOpenChange={(open) => {
             setCreateMandateOpen(open);
             if (!open) setAutoLinkNewMandate(false);
           }}
           organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
-          preLinkedClientId={autoLinkNewMandate ? data.id : undefined}
           onSuccess={() => mutateLinked()}
         />
       )}

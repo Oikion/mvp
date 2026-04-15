@@ -43,9 +43,9 @@ interface Entity {
 interface LinkEntityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entityType: "property" | "client" | "contact" | "mandate" | "document" | "request";
+  entityType: "property" | "client" | "contact" | "document" | "request";
   sourceId: string;
-  sourceType: "client" | "contact" | "property" | "mandate" | "document" | "request";
+  sourceType: "client" | "contact" | "property" | "document" | "request";
   alreadyLinkedIds?: string[];
   onLink: (entityIds: string[]) => Promise<void>;
   onCreate?: () => void;
@@ -75,11 +75,10 @@ export function LinkEntityDialog({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const iconMap = { property: Building2, client: User, contact: UserCircle, mandate: FileText, document: FileText, request: ClipboardList };
+  const iconMap = { property: Building2, client: User, contact: UserCircle, document: FileText, request: ClipboardList };
   const Icon = iconMap[entityType];
   const defaultTitleMap: Record<string, string> = {
     property: t("dialogs.linkProperties"),
-    mandate: t("dialogs.linkMandates"),
     client: t("dialogs.linkClients"),
     contact: t("dialogs.linkContacts"),
     document: t("dialogs.linkDocuments"),
@@ -88,7 +87,6 @@ export function LinkEntityDialog({
   const defaultTitle = defaultTitleMap[entityType];
   const defaultDescriptionMap: Record<string, string> = {
     property: t("placeholders.searchProperties"),
-    mandate: t("placeholders.searchMandates"),
     client: t("placeholders.searchClients"),
     contact: t("placeholders.searchContacts"),
     document: t("placeholders.searchDocuments"),
@@ -274,8 +272,6 @@ export function LinkEntityDialog({
                 {transformedEntities.length === 0
                   ? entityType === "property"
                     ? t("emptyStates.noPropertiesAvailable")
-                    : entityType === "mandate"
-                    ? t("emptyStates.noMandatesAvailable")
                     : entityType === "document"
                     ? t("emptyStates.noDocumentsAvailable")
                     : entityType === "contact"

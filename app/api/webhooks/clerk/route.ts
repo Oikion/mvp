@@ -4,6 +4,7 @@ import { WebhookEvent } from "@clerk/nextjs/server";
 import { syncClerkUser } from "@/lib/clerk-sync";
 import { restorePersonalWorkspaceIfNeeded } from "@/lib/personal-workspace-guard";
 import { handleUserDeparture } from "@/lib/user-departure";
+import { deleteOrgData } from "@/lib/delete-org-data";
 import { syncUserToMessaging, disableUserMessaging } from "@/actions/messaging";
 import { prismadb } from "@/lib/prisma";
 import { createClerkClient } from "@clerk/backend";
@@ -110,19 +111,30 @@ export async function POST(req: Request) {
     }
   }
 
-  // Handle organization deletion - restore personal workspaces if accidentally deleted
+  // Handle organization deletion — hard-delete all org data, restore personal workspaces
   if (eventType === "organization.deleted") {
     const { id, public_metadata, created_by } = evt.data as {
       id: string;
       public_metadata?: Record<string, unknown>;
       created_by?: string;
     };
-    
-    if (id && created_by && public_metadata) {
+
+    if (id) {
+      // 1. Delete all tenant-scoped DB data for the deleted org
       try {
-        await restorePersonalWorkspaceIfNeeded(id, public_metadata, created_by);
+        await deleteOrgData(id);
       } catch (error) {
-        console.error("Error handling organization deletion:", error);
+        console.error(`[WEBHOOK] Failed to delete data for org ${id}:`, error);
+        // Non-fatal: continue so personal workspace restore still runs
+      }
+
+      // 2. If this was a personal workspace, re-create it for the owner
+      if (created_by && public_metadata) {
+        try {
+          await restorePersonalWorkspaceIfNeeded(id, public_metadata, created_by);
+        } catch (error) {
+          console.error("[WEBHOOK] Error restoring personal workspace after org deletion:", error);
+        }
       }
     }
   }

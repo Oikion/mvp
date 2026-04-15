@@ -6,19 +6,19 @@ import { decryptContactForOrg } from "@/lib/model-encryption";
 
 export interface ShareableItem {
   id: string;
-  type: "property" | "client";
+  type: "property" | "contact";
   title: string;
   subtitle?: string;
 }
 
 export async function getShareableItems(): Promise<{
   properties: ShareableItem[];
-  clients: ShareableItem[];
+  contacts: ShareableItem[];
 }> {
   const orgId = await getCurrentOrgIdSafe();
-  
+
   if (!orgId) {
-    return { properties: [], clients: [] };
+    return { properties: [], contacts: [] };
   }
 
   const prisma = prismaForOrg(orgId);
@@ -56,12 +56,12 @@ export async function getShareableItems(): Promise<{
         title: p.property_name || "Unnamed Property",
         subtitle: [p.municipality, p.area].filter(Boolean).join(", ") || undefined,
       })),
-      clients: await Promise.all(
+      contacts: await Promise.all(
         clients.map(async (c) => {
           const decrypted = await decryptContactForOrg(c, orgId);
           return {
             id: decrypted.id,
-            type: "client" as const,
+            type: "contact" as const,
             title: decrypted.displayName || "Unnamed Contact",
             subtitle: decrypted.status || undefined,
           };
@@ -70,7 +70,7 @@ export async function getShareableItems(): Promise<{
     };
   } catch (error) {
     console.error("Error fetching shareable items:", error);
-    return { properties: [], clients: [] };
+    return { properties: [], contacts: [] };
   }
 }
 

@@ -20,10 +20,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useMandates } from "@/hooks/swr/useMandates";
+import { useRequests } from "@/hooks/swr/useRequests";
 import { useDocuments } from "@/hooks/swr/useDocuments";
 
-export type AttachEntityType = "property" | "client" | "mandate" | "document";
+export type AttachEntityType = "property" | "contact" | "request" | "document";
 
 interface EntityOption {
   id: string;
@@ -35,7 +35,7 @@ interface FeedAttachmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   properties: EntityOption[];
-  clients: EntityOption[];
+  contacts: EntityOption[];
   onEntitySelect: (type: AttachEntityType, id: string, title: string) => void;
   onFileUploadRequested: () => void;
 }
@@ -53,16 +53,16 @@ const ENTITY_TYPES: {
     description: "Share a listing",
   },
   {
-    type: "client",
+    type: "contact",
     icon: User,
-    label: "Client",
-    description: "Attach a client profile",
+    label: "Contact",
+    description: "Attach a contact profile",
   },
   {
-    type: "mandate",
+    type: "request",
     icon: ClipboardList,
-    label: "Mandate",
-    description: "Link a mandate",
+    label: "Request",
+    description: "Link a request",
   },
   {
     type: "document",
@@ -76,7 +76,7 @@ export function FeedAttachmentDialog({
   open,
   onOpenChange,
   properties,
-  clients,
+  contacts,
   onEntitySelect,
   onFileUploadRequested,
 }: FeedAttachmentDialogProps) {
@@ -86,8 +86,8 @@ export function FeedAttachmentDialog({
   const [entityType, setEntityType] = useState<AttachEntityType | null>(null);
   const [search, setSearch] = useState("");
 
-  const { mandates, isLoading: mandatesLoading } = useMandates({
-    enabled: open && entityType === "mandate",
+  const { requests, isLoading: requestsLoading } = useRequests({
+    enabled: open && entityType === "request",
   });
   const { documents, isLoading: documentsLoading } = useDocuments({
     enabled: open && entityType === "document",
@@ -123,10 +123,10 @@ export function FeedAttachmentDialog({
     switch (entityType) {
       case "property":
         return properties;
-      case "client":
-        return clients;
-      case "mandate":
-        return mandates.map((m) => ({ id: m.value, title: m.label }));
+      case "contact":
+        return contacts;
+      case "request":
+        return requests.map((r) => ({ id: r.value, title: r.label }));
       case "document":
         return documents.map((d) => ({ id: d.value, title: d.label }));
       default:
@@ -135,7 +135,7 @@ export function FeedAttachmentDialog({
   };
 
   const isLoading =
-    (entityType === "mandate" && mandatesLoading) ||
+    (entityType === "request" && requestsLoading) ||
     (entityType === "document" && documentsLoading);
 
   const filtered = getEntityList().filter((item) =>

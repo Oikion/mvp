@@ -48,6 +48,8 @@ interface Relationships {
   clients?: { count: number; preview?: RelationshipPreview[] };
   properties?: { count: number; preview?: RelationshipPreview[] };
   events?: { count: number; preview?: RelationshipPreview[] };
+  requests?: { count: number; preview?: RelationshipPreview[] };
+  /** @deprecated use requests */
   mandates?: { count: number; preview?: RelationshipPreview[] };
   client?: { id: string; client_name: string } | null;
 }
@@ -58,7 +60,7 @@ const FILTER_TABS: { value: FilterType; label: string; icon: React.ComponentType
   { value: "all", label: "All", icon: Search },
   { value: "property", label: "Properties", icon: Building2 },
   { value: "client", label: "Clients", icon: User },
-  { value: "mandate", label: "Mandates", icon: ScrollText },
+  { value: "request", label: "Requests", icon: ScrollText },
   { value: "contact", label: "Contacts", icon: Users },
   { value: "document", label: "Documents", icon: FileText },
   { value: "event", label: "Events", icon: Calendar },
@@ -214,6 +216,7 @@ export function GlobalSearch() {
         return Building2;
       case "client":
         return User;
+      case "request":
       case "mandate":
         return ScrollText;
       case "contact":
@@ -233,8 +236,9 @@ export function GlobalSearch() {
         return t("GlobalSearch.types.property");
       case "client":
         return t("GlobalSearch.types.client");
+      case "request":
       case "mandate":
-        return t("GlobalSearch.types.mandate");
+        return t("GlobalSearch.types.request");
       case "contact":
         return t("GlobalSearch.types.contact");
       case "document":
@@ -265,7 +269,8 @@ export function GlobalSearch() {
     if (relationships.clients?.count) total += relationships.clients.count;
     if (relationships.properties?.count) total += relationships.properties.count;
     if (relationships.events?.count) total += relationships.events.count;
-    if (relationships.mandates?.count) total += relationships.mandates.count;
+    const reqRel = relationships.requests ?? relationships.mandates;
+    if (reqRel?.count) total += reqRel.count;
     if (relationships.client) total += 1;
     return total;
   };
@@ -315,15 +320,16 @@ export function GlobalSearch() {
       );
     }
 
-    if (relationships.mandates?.count && relationships.mandates.count > 0) {
+    const reqRelBadge = relationships.requests ?? relationships.mandates;
+    if (reqRelBadge?.count && reqRelBadge.count > 0) {
       badges.push(
         <Badge
-          key="mandates"
+          key="requests"
           variant="secondary"
           className="text-[10px] px-1.5 py-0 h-4 gap-0.5"
         >
           <ScrollText className="h-2.5 w-2.5" />
-          {relationships.mandates.count}
+          {reqRelBadge.count}
         </Badge>
       );
     }

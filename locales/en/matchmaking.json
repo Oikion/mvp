@@ -29,12 +29,12 @@
   "dashboard": {
     "title": "Matchmaking Dashboard",
     "stats": {
-      "activeClients": "Active Clients",
-      "activeClientsDesc": "Clients seeking properties",
+      "activeClients": "Active Requests",
+      "activeClientsDesc": "Requests seeking properties",
       "availableProperties": "Available Properties",
       "availablePropertiesDesc": "Properties to match",
-      "clientsWithMatches": "Clients with Matches",
-      "clientsWithMatchesDesc": "of clients",
+      "clientsWithMatches": "Requests with Matches",
+      "clientsWithMatchesDesc": "of requests",
       "averageMatchScore": "Average Match Score",
       "averageMatchScoreDesc": "Across all pairs"
     },

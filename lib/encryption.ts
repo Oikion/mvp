@@ -165,3 +165,49 @@ export function decryptWithKey(encrypted: string, key: Buffer): string {
     return decrypt(encrypted);
   }
 }
+
+/**
+ * Attempt decryption with a prioritized list of DEK candidates, then fall back to master key.
+ *
+ * Key order: active DEK first, then previous versions (newest → oldest), then master key.
+ * The first key that produces a valid AES-GCM authentication tag wins.
+ *
+ * This handles:
+ *   - Data encrypted with a previous DEK version (after key rotation)
+ *   - Data encrypted with the master key (pre-DEK migration)
+ *   - Data encrypted with a DEK from a different SECRETS_ENCRYPTION_KEY environment
+ *     (last resort: master key fallback still tries current env key)
+ *
+ * @param encrypted  Ciphertext in "iv:authTag:ct" hex format
+ * @param keys       Candidate DEKs to try, in priority order (active first)
+ */
+export function decryptWithKeys(encrypted: string, keys: Buffer[]): string {
+  if (!isEncrypted(encrypted)) {
+    if (encrypted !== "") {
+      console.warn("[encryption] decryptWithKeys() called on non-encrypted value, returning as-is");
+    }
+    return encrypted;
+  }
+
+  const parts = encrypted.split(":");
+  const iv = Buffer.from(parts[0], "hex");
+  const authTag = Buffer.from(parts[1], "hex");
+  const ciphertext = Buffer.from(parts[2], "hex");
+
+  for (const key of keys) {
+    try {
+      const decipher = createDecipheriv(ALGORITHM, key, iv);
+      decipher.setAuthTag(authTag);
+      const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+      return decrypted.toString("utf8");
+    } catch {
+      // Auth tag mismatch — try next key
+    }
+  }
+
+  // All DEK candidates exhausted — fall back to master key (handles pre-DEK migration data)
+  if (process.env.DISABLE_MASTER_KEY_FALLBACK === "true") {
+    throw new Error("[encryption] decryptWithKeys: all DEK candidates failed and master key fallback is disabled");
+  }
+  return decrypt(encrypted);
+}

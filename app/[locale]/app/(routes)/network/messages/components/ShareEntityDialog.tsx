@@ -67,7 +67,7 @@ export function ShareEntityDialog({
     isLoading,
     isSearching,
   } = useUnifiedEntitySearch(searchQuery, {
-    types: ["client", "property", "document", "event"],
+    types: ["contact", "property", "document", "event"],
     limit: 20,
     enabled: open,
     debounceMs: 200,
@@ -91,9 +91,9 @@ export function ShareEntityDialog({
     [groupedResults.property, transformToShareable]
   );
   
-  const filteredClients = useMemo(
-    () => (groupedResults.client || []).map(transformToShareable),
-    [groupedResults.client, transformToShareable]
+  const filteredContacts = useMemo(
+    () => (groupedResults.contact || []).map(transformToShareable),
+    [groupedResults.contact, transformToShareable]
   );
   
   const filteredDocuments = useMemo(
@@ -133,7 +133,7 @@ export function ShareEntityDialog({
     switch (type) {
       case "property":
         return <Building2 className="h-4 w-4" />;
-      case "client":
+      case "contact":
         return <User className="h-4 w-4" />;
       case "document":
         return <FileText className="h-4 w-4" />;
@@ -246,7 +246,7 @@ export function ShareEntityDialog({
             Share in Chat
           </DialogTitle>
           <DialogDescription>
-            Select a property, client, document, or event to share
+            Select a property, contact, document, or event to share
           </DialogDescription>
         </DialogHeader>
 
@@ -271,9 +271,9 @@ export function ShareEntityDialog({
               <Building2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Properties</span>
             </TabsTrigger>
-            <TabsTrigger value="client">
+            <TabsTrigger value="contact">
               <User className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Clients</span>
+              <span className="hidden sm:inline">Contacts</span>
             </TabsTrigger>
             <TabsTrigger value="document">
               <FileText className="h-3.5 w-3.5" />
@@ -289,8 +289,8 @@ export function ShareEntityDialog({
             <TabsContent value="property" className="m-0">
               {renderEntityList(filteredProperties, "property")}
             </TabsContent>
-            <TabsContent value="client" className="m-0">
-              {renderEntityList(filteredClients, "client")}
+            <TabsContent value="contact" className="m-0">
+              {renderEntityList(filteredContacts, "contact")}
             </TabsContent>
             <TabsContent value="document" className="m-0">
               {renderEntityList(filteredDocuments, "document")}

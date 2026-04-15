@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "@/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { NewPropertyWizard } from "../properties/components/NewPropertyWizard";
 import { DataTable } from "@/components/ui/data-table/data-table";
-import { getColumns } from "../properties/table-components/columns";
+import { usePropertyColumns } from "../properties/table-components/columns";
 import { statuses } from "../properties/table-data/data";
 import { useTranslations } from "next-intl";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -35,14 +35,11 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
   const t = useTranslations("mls");
   const tCommon = useTranslations("common");
   const router = useRouter();
-  const pathname = usePathname();
   const { openDeleteModal } = useActionModal();
-
-  // Get locale from pathname
-  const locale = pathname.split("/")[1] || "en";
 
   // Use SWR for fetching org users
   const { users } = useOrgUsers();
+  const columns = usePropertyColumns(users ?? []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -52,17 +49,17 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
   const handleRowOpen = useCallback(
     (row: Row<any>) => {
       const propertyId = row.original.friendlyId;
-      router.push(`/${locale}/app/mls/properties/${propertyId}`);
+      router.push(`/app/mls/properties/${propertyId}`);
     },
-    [router, locale]
+    [router]
   );
 
   const handleRowEdit = useCallback(
     (row: Row<any>) => {
       const propertyId = row.original.friendlyId;
-      router.push(`/${locale}/app/mls/properties/${propertyId}?edit=true`);
+      router.push(`/app/mls/properties/${propertyId}?edit=true`);
     },
-    [router, locale]
+    [router]
   );
 
   const handleRowDelete = useCallback(
@@ -224,7 +221,7 @@ export default function PropertiesView({ data = [] }: { data: any[] }) {
           ) : view === "list" ? (
             <DataTable 
               data={data} 
-              columns={getColumns(users)} 
+              columns={columns} 
               searchKey="property_name"
               searchPlaceholder={t("MlsPropertiesTable.filterPlaceholder")}
               filters={[

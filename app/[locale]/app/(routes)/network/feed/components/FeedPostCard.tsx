@@ -43,7 +43,7 @@ interface PostAttachment {
 export interface SocialPost {
   id: string;
   slug?: string | null;
-  type: "property" | "client" | "mandate" | "text";
+  type: "property" | "contact" | "request" | "document" | "text";
   content: string;
   timestamp: string;
   author: {
@@ -57,7 +57,7 @@ export interface SocialPost {
   linkedEntity?: {
     id: string;
     friendlyId: string;
-    type: "property" | "client" | "mandate";
+    type: "property" | "contact" | "request" | "document";
     title: string;
     subtitle?: string;
     image?: string;
@@ -96,10 +96,10 @@ export function FeedPostCard({
     switch (type) {
       case "property":
         return t?.post?.sharedProperty || "shared a property";
-      case "client":
-        return t?.post?.sharedClient || "shared a client";
-      case "mandate":
-        return t?.post?.sharedMandate || "shared a mandate";
+      case "contact":
+        return t?.post?.sharedContact || t?.post?.sharedClient || "shared a contact";
+      case "request":
+        return t?.post?.sharedRequest || "shared a request";
       default:
         return t?.post?.postedUpdate || "posted an update";
     }
@@ -110,10 +110,10 @@ export function FeedPostCard({
     switch (post.linkedEntity.type) {
       case "property":
         return `/app/mls/properties/${post.linkedEntity.friendlyId}`;
-      case "client":
-        return `/app/crm/clients/${post.linkedEntity.friendlyId}`;
-      case "mandate":
-        return `/app/crm/mandates/${post.linkedEntity.friendlyId}`;
+      case "contact":
+        return `/app/crm/contacts/${post.linkedEntity.friendlyId}`;
+      case "request":
+        return `/app/requests/${post.linkedEntity.friendlyId}`;
       default:
         return "#";
     }
@@ -123,9 +123,9 @@ export function FeedPostCard({
     switch (type) {
       case "property":
         return <Building2 className="h-4 w-4" />;
-      case "client":
+      case "contact":
         return <User className="h-4 w-4" />;
-      case "mandate":
+      case "request":
         return <ClipboardList className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
@@ -136,9 +136,9 @@ export function FeedPostCard({
     switch (type) {
       case "property":
         return "bg-primary/10 text-primary border-primary/20";
-      case "client":
+      case "contact":
         return "bg-success/10 text-success border-success/20";
-      case "mandate":
+      case "request":
         return "bg-warning/10 text-warning border-warning/20";
       default:
         return "bg-gray-500/10 text-muted-foreground border-gray-500/20";
@@ -285,12 +285,12 @@ export function FeedPostCard({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs capitalize">
-                      {post.linkedEntity.type === "client"
-                        ? t?.badges?.client || "Client"
+                      {post.linkedEntity.type === "contact"
+                        ? t?.badges?.contact || t?.badges?.client || "Contact"
                         : post.linkedEntity.type === "property"
                           ? t?.badges?.property || "Property"
-                          : post.linkedEntity.type === "mandate"
-                            ? t?.badges?.mandate || "Mandate"
+                          : post.linkedEntity.type === "request"
+                            ? t?.badges?.request || "Request"
                             : post.linkedEntity.type}
                     </Badge>
                   </div>
@@ -307,7 +307,7 @@ export function FeedPostCard({
                       &euro;{post.linkedEntity.metadata.price.toLocaleString()}
                     </p>
                   )}
-                  {post.linkedEntity.type === "mandate" &&
+                  {post.linkedEntity.type === "request" &&
                     (post.linkedEntity.metadata?.budgetMin ||
                       post.linkedEntity.metadata?.budgetMax) && (
                       <p className="text-sm font-semibold text-warning mt-1">

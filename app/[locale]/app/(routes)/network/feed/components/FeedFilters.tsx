@@ -17,12 +17,12 @@ const FILTERS = [
     labelKey: "properties",
     fallback: "Properties",
   },
-  { value: "clients", icon: User, labelKey: "clients", fallback: "Clients" },
+  { value: "contacts", icon: User, labelKey: "contacts", fallback: "Contacts" },
   {
-    value: "mandates",
+    value: "requests",
     icon: ClipboardList,
-    labelKey: "mandates",
-    fallback: "Mandates",
+    labelKey: "requests",
+    fallback: "Requests",
   },
   {
     value: "updates",

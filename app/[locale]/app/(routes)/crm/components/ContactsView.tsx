@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { getContactColumns } from "../contacts/table-components/columns";
+import { useContactColumns } from "../contacts/table-components/columns";
 import { NewContactForm } from "../contacts/components/NewContactForm";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import { useRouter } from "next/navigation";
@@ -29,6 +29,9 @@ const ContactsView = ({ data, crmData }: any) => {
   const [open, setOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
+  const { users, accounts } = crmData ?? {};
+  const columns = useContactColumns(users ?? []);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -36,8 +39,6 @@ const ContactsView = ({ data, crmData }: any) => {
   if (!isMounted) {
     return null;
   }
-
-  const { users, accounts } = crmData;
 
   return (
     <Card>
@@ -82,10 +83,10 @@ const ContactsView = ({ data, crmData }: any) => {
         {!data || data.length === 0 ? (
           "No assigned contacts found"
         ) : (
-          <DataTable 
-            data={data} 
-            columns={getContactColumns()}
-            searchKey="first_name"
+          <DataTable
+            data={data}
+            columns={columns}
+            searchKey="displayName"
             searchPlaceholder="Filter contacts..."
           />
         )}

@@ -3,7 +3,7 @@ import { createClerkClient } from "@clerk/backend";
 import { getTranslations } from "next-intl/server";
 import { Building2 } from "lucide-react";
 
-export default async function SettingsLayout({
+export default async function OrgRequiredSettingsLayout({
   children,
 }: {
   children: React.ReactNode;

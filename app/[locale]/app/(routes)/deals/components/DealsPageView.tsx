@@ -240,6 +240,7 @@ export default function DealsPageView({
           data={filteredDeals}
           toolbarRight={<ViewToggle view={view} setView={setView} />}
           onRefresh={handleRefresh}
+          users={crmData?.users ?? []}
         />
       );
     }

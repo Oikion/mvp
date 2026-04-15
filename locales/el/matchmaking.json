@@ -29,12 +29,12 @@
   "dashboard": {
     "title": "Πίνακας Matchmaking",
     "stats": {
-      "activeClients": "Ενεργοί Πελάτες",
-      "activeClientsDesc": "Πελάτες που αναζητούν ακίνητα",
+      "activeClients": "Ενεργά Αιτήματα",
+      "activeClientsDesc": "Αιτήματα προς αντιστοίχιση",
       "availableProperties": "Διαθέσιμα Ακίνητα",
       "availablePropertiesDesc": "Ακίνητα προς αντιστοίχιση",
-      "clientsWithMatches": "Πελάτες με Matches",
-      "clientsWithMatchesDesc": "των πελατών",
+      "clientsWithMatches": "Αιτήματα με Matches",
+      "clientsWithMatchesDesc": "των αιτημάτων",
       "averageMatchScore": "Μέσος Βαθμός Match",
       "averageMatchScoreDesc": "Σε όλα τα ζεύγη"
     },

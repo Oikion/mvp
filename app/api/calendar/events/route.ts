@@ -285,16 +285,21 @@ export async function POST(req: Request) {
       endTime,
       location,
       userId: targetUserId,
+      // Accept both old (clientIds/mandateIds) and new (contactIds/requestIds) field names
       clientIds,
+      contactIds: contactIdsNew,
       propertyIds,
       documentIds,
       mandateIds,
+      requestIds: requestIdsNew,
       taskIds,
       eventType,
       assignedUserId,
       reminderMinutes,
       recurrenceRule,
     } = body;
+    const contactIds = contactIdsNew ?? clientIds;
+    const requestIds = requestIdsNew ?? mandateIds;
 
     if (!title || !startTime || !endTime) {
       return NextResponse.json(
@@ -337,11 +342,10 @@ export async function POST(req: Request) {
     // Validate that all IDs exist before attempting to connect them
     const relations: any = {};
     
-    if (clientIds && Array.isArray(clientIds) && clientIds.length > 0) {
-      // Validate client IDs exist
+    if (contactIds && Array.isArray(contactIds) && contactIds.length > 0) {
       const validClients = await prismadb.contact.findMany({
         where: {
-          id: { in: clientIds },
+          id: { in: contactIds },
           organizationId,
         },
         select: { id: true },
@@ -388,19 +392,18 @@ export async function POST(req: Request) {
       }
     }
 
-    if (mandateIds && Array.isArray(mandateIds) && mandateIds.length > 0) {
-      // Validate mandate IDs exist
-      const validMandates = await prismadb.mandate.findMany({
+    if (requestIds && Array.isArray(requestIds) && requestIds.length > 0) {
+      const validRequests = await prismadb.request.findMany({
         where: {
-          id: { in: mandateIds },
+          id: { in: requestIds },
           organizationId,
         },
         select: { id: true },
       });
 
-      if (validMandates.length > 0) {
-        relations.Mandates = {
-          connect: validMandates.map((mandate) => ({ id: mandate.id })),
+      if (validRequests.length > 0) {
+        relations.Requests = {
+          connect: validRequests.map((req) => ({ id: req.id })),
         };
       }
     }
@@ -464,7 +467,7 @@ export async function POST(req: Request) {
       organizationId,
       currentUser.id,
       currentUser.name || currentUser.email,
-      clientIds,
+      contactIds,
       propertyIds
     ).catch(err => console.error('[EVENT_NOTIFICATIONS_ERROR]', err));
 

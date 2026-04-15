@@ -55,7 +55,7 @@ import {
 } from "@/hooks/swr";
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
 import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel";
-import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 import { PropertyImageGallery } from "@/components/property-images/PropertyImageGallery";
@@ -604,15 +604,15 @@ export default function PropertyView({
             emptyMessage="No contacts linked to this property yet."
           />
 
-          {/* Linked Mandates */}
+          {/* Linked Requests */}
           <LinkedEntitiesPanel
-            type="mandates"
+            type="requests"
             entities={linkedMandates}
             isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
             onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
             onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
             showAddButton={!isReadOnly}
-            emptyMessage="No mandates linked to this property yet."
+            emptyMessage="No requests linked to this property yet."
           />
 
           {/* Calendar Events */}
@@ -719,12 +719,12 @@ export default function PropertyView({
         />
       )}
 
-      {/* Link Mandate Dialog */}
+      {/* Link Request Dialog */}
       {!isReadOnly && (
         <LinkEntityDialog
           open={linkMandateDialogOpen}
           onOpenChange={setLinkMandateDialogOpen}
-          entityType="mandate"
+          entityType="request"
           sourceId={data.id}
           sourceType="property"
           alreadyLinkedIds={(linkedMandates ?? []).map((m: any) => m.id)}
@@ -739,8 +739,8 @@ export default function PropertyView({
             setAutoLinkNewMandate(true);
             setCreateMandateOpen(true);
           }}
-          title="Link Mandates to Property"
-          description="Select mandates associated with this property."
+          title="Link Requests to Property"
+          description="Select requests associated with this property."
         />
       )}
 
@@ -770,16 +770,15 @@ export default function PropertyView({
         />
       )}
 
-      {/* Quick Add Mandate */}
+      {/* Quick Add Request */}
       {!isReadOnly && (
-        <QuickAddMandate
+        <QuickAddRequest
           open={createMandateOpen}
           onOpenChange={(open) => {
             setCreateMandateOpen(open);
             if (!open) setAutoLinkNewMandate(false);
           }}
           organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
-          preLinkedPropertyId={autoLinkNewMandate ? data.id : undefined}
           onSuccess={() => mutateLinked()}
         />
       )}

@@ -18,7 +18,7 @@ function generatePostSlug(): string {
 }
 
 interface CreateSocialPostInput {
-  type: "property" | "client" | "mandate" | "document" | "text";
+  type: "property" | "contact" | "request" | "document" | "text";
   content: string;
   linkedEntityId?: string;
   attachmentIds?: string[];
@@ -107,7 +107,7 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
           transactionType: property.transaction_type,
         };
       }
-    } else if (type === "client") {
+    } else if (type === "contact") {
       const client = await prisma.contact.findUnique({
         where: { id: linkedEntityId },
         select: {
@@ -124,14 +124,14 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
           status: decrypted.status,
         };
       }
-    } else if (type === "mandate") {
+    } else if (type === "request") {
       const mandate = await prisma.mandate.findUnique({
         where: { id: linkedEntityId },
         select: { title: true, transaction_type: true, property_type: true },
       });
 
       if (mandate) {
-        linkedEntityTitle = mandate.title || "Unnamed Mandate";
+        linkedEntityTitle = mandate.title || "Unnamed Request";
         linkedEntityMetadata = {
           transactionType: mandate.transaction_type,
           propertyType: mandate.property_type,

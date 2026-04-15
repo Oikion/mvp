@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "@/navigation";
 
 import {
   Card,
@@ -42,27 +42,22 @@ const AccountsView = ({ data = [], crmData }: any) => {
   const t = useTranslations("crm");
   const tCommon = useTranslations("common");
   const router = useRouter();
-  const pathname = usePathname();
   const { openDeleteModal } = useActionModal();
-
-  // Get locale from pathname
-  const locale = pathname.split("/")[1] || "en";
 
   // Keyboard navigation callbacks
   const handleRowOpen = useCallback(
     (row: Row<any>) => {
-      router.push(`/${locale}/app/crm/clients/${row.original.friendlyId}`);
+      router.push(`/app/crm/contacts/${row.original.friendlyId}`);
     },
-    [router, locale]
+    [router]
   );
 
   const handleRowEdit = useCallback(
     (row: Row<any>) => {
       const clientId = row.original.friendlyId;
-      // Navigate to client edit page or open edit dialog
-      router.push(`/${locale}/app/crm/clients/${clientId}?edit=true`);
+      router.push(`/app/crm/contacts/${clientId}?edit=true`);
     },
-    [router, locale]
+    [router]
   );
 
   const handleRowDelete = useCallback(
