@@ -73,12 +73,15 @@ export const contactImportConfig: ImportEntityConfig<ContactImportData> = {
 
   toPrismaData(
     item: ContactImportData,
-    encrypted: Record<string, string | null>,
+    encrypted: Record<string, unknown>,
     friendlyId: string,
     userId: string,
     orgId: string,
   ): Record<string, unknown> {
-    const e = (key: string) => encrypted[key] ?? null;
+    const e = (key: string): string | null => {
+      const v = encrypted[key];
+      return typeof v === "string" ? v : null;
+    };
 
     // Build addresses Json array from billing/shipping fields
     const addresses: Array<Record<string, string | null>> = [];
