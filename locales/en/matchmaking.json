@@ -40,7 +40,7 @@
     },
     "tabs": {
       "overview": "Overview",
-      "mandates": "Mandates",
+      "requests": "Requests",
       "matches": "Top Matches",
       "unmatched": "Needs Attention",
       "hot": "Hot Properties"
@@ -54,36 +54,31 @@
     "quickStats": {
       "excellentMatches": "Excellent Matches",
       "clientsNeedProperties": "Clients Need Properties",
-      "highDemandProperties": "High Demand Properties"
+      "highDemandProperties": "High Demand Properties",
+      "persistedMatches": "Saved Matches"
     }
   },
-  "mandateMatches": {
+  "requestMatches": {
     "stats": {
-      "totalMandates": "Total Mandates",
-      "activeMandates": "Active Mandates",
-      "mandatesWithMatches": "Mandates with Matches",
+      "totalRequests": "Total Requests",
+      "activeRequests": "Active Requests",
+      "requestsWithMatches": "Requests with Matches",
       "avgMatchScore": "Avg Match Score"
     },
     "topMatches": {
-      "title": "Top Mandate-Property Matches",
-      "description": "Best matching mandate-property pairs based on client preferences and criteria",
-      "noMatches": "No matches found above the threshold.",
-      "noMatchesHint": "Add more mandates or properties to see matches.",
-      "viewMandate": "View Mandate"
+      "title": "Top Request-Property Matches",
+      "description": "Best matching request-property pairs from the last matching run",
+      "noMatches": "No saved matches yet.",
+      "noMatchesHint": "Run matching now to generate and save the top matches.",
+      "viewRequest": "View Request"
+    },
+    "runNow": {
+      "label": "Run Matching Now",
+      "running": "Running..."
     },
     "distribution": {
       "title": "Match Score Distribution",
-      "description": "Distribution of match scores across all mandate-property pairs",
-      "noData": "No match data yet — add mandates and properties to see score distribution"
-    },
-    "unmatched": {
-      "title": "Mandates Without Good Matches",
-      "description": "These mandates have no properties matching their criteria above 50%",
-      "allMatched": "All mandates have good matches!",
-      "allMatchedDesc": "Every active mandate has at least one property matching above 50%.",
-      "needsAttention": "mandates need attention",
-      "attentionDesc": "These mandates have no properties matching their preferences above 50%. Consider expanding search criteria or adding new properties.",
-      "review": "Review"
+      "description": "Distribution of match scores across all request-property pairs"
     }
   },
   "topMatches": {
@@ -190,5 +185,36 @@
     "selectRequired": "Select required amenities",
     "preferredAmenities": "Preferred amenities (optional)",
     "selectPreferred": "Select preferred amenities"
+  },
+  "strikeDeal": {
+    "button": "Strike a Deal",
+    "dialogTitle": "Strike a Deal",
+    "dialogDescription": "Select the parties to include in this deal. The property and request will be linked automatically.",
+    "partiesSection": "Deal Parties",
+    "requestContacts": "Request Contacts",
+    "propertyOwner": "Property Owner",
+    "autoAdded": "Auto-added",
+    "roleLabel": "Role",
+    "roles": {
+      "BUYER": "Buyer",
+      "SELLER": "Seller",
+      "TENANT": "Tenant",
+      "LANDLORD": "Landlord",
+      "BUYER_AGENT": "Buyer's Agent",
+      "LISTING_AGENT": "Listing Agent",
+      "NOTARY": "Notary",
+      "LAWYER": "Lawyer",
+      "ACCOUNTANT": "Accountant",
+      "GUARANTOR": "Guarantor",
+      "REPRESENTATIVE": "Representative",
+      "OTHER": "Other"
+    },
+    "submit": "Strike a Deal",
+    "submitting": "Creating...",
+    "cancel": "Cancel",
+    "success": "Deal created successfully",
+    "successHint": "You can add more parties from the deal page.",
+    "viewDeal": "View Deal",
+    "noBuyers": "No buyer contacts on this request"
   }
 }
