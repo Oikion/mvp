@@ -3,18 +3,14 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import {
-  calculateBatchMatches,
+  calculateBatchMatchesV2,
   MATCH_THRESHOLDS,
 } from "@/lib/matchmaking";
 import type {
-  ClientForMatching,
-  PropertyForMatching,
+  RequestForMatching,
+  PropertyForMatchingV2,
   MatchAnalytics,
-  MatchResultWithClient,
-  MatchResultWithProperty,
   MatchDistribution,
-  ClientSummary,
-  PropertyWithMatchStats,
 } from "@/lib/matchmaking";
 import { requireAction } from "@/lib/permissions/action-guards";
 import { decryptRequestForOrg } from "@/lib/model-encryption";
@@ -37,28 +33,6 @@ export interface RequestMatchAnalytics extends MatchAnalytics {
 // Helpers
 // ──────────────────────────────────────────────
 
-function mapRequestTypeToIntent(requestType: string): string | null {
-  switch (requestType) {
-    case "BUY": return "BUY";
-    case "RENT": return "RENT";
-    default: return null;
-  }
-}
-
-function buildAreasFromRequest(
-  areasJson: unknown,
-  municipality: string | null,
-  region: string | null,
-): string[] {
-  const areas: string[] = [];
-  if (areasJson && Array.isArray(areasJson)) {
-    areas.push(...(areasJson as string[]));
-  }
-  if (municipality && !areas.includes(municipality)) areas.push(municipality);
-  if (region && !areas.includes(region)) areas.push(region);
-  return areas;
-}
-
 async function fetchActiveRequests(organizationId: string) {
   return prismadb.request.findMany({
     where: {
@@ -76,6 +50,9 @@ async function fetchActiveRequests(organizationId: string) {
       areasOfInterest: true,
       municipality: true,
       region: true,
+      centerLatitude: true,
+      centerLongitude: true,
+      radiusKm: true,
       surfaceMin: true,
       surfaceMax: true,
       budgetMin: true,
@@ -86,17 +63,17 @@ async function fetchActiveRequests(organizationId: string) {
       bathroomsMax: true,
       floorMin: true,
       floorMax: true,
-      groundFloorOnly: true,
-      conditionPreference: true,
-      heatingTypes: true,
-      energyClassMin: true,
-      furnished: true,
+      constructionYearMin: true,
+      constructionYearMax: true,
       requiresElevator: true,
       requiresParking: true,
-      petFriendly: true,
+      requiresStorage: true,
+      goldenVisaEligible: true,
+      financingStatus: true,
+      timeline: true,
       amenities: true,
-      notes: true,
-      locationDisplayName: true,
+      expiresAt: true,
+      status: true,
       assignedAgentId: true,
       organizationId: true,
       requestContacts: {
@@ -111,46 +88,94 @@ async function fetchActiveRequests(organizationId: string) {
 
 type RequestRow = Awaited<ReturnType<typeof fetchActiveRequests>>[number];
 
-/**
- * Adapt a Request into the ClientForMatching shape used by the matching engine.
- */
-function adaptRequestToClient(r: RequestRow, decryptedName: string | null): ClientForMatching {
-  const intent = mapRequestTypeToIntent(r.requestType);
-  const purpose = r.propertyCategory ?? null;
-  const areas = buildAreasFromRequest(r.areasOfInterest, r.municipality, r.region);
+function extractAreas(r: RequestRow): string[] {
+  const areas: string[] = [];
+  if (r.areasOfInterest && Array.isArray(r.areasOfInterest)) {
+    for (const item of r.areasOfInterest as unknown[]) {
+      if (typeof item === "string") {
+        areas.push(item);
+      } else if (item && typeof item === "object" && "name" in item && typeof (item as { name: unknown }).name === "string") {
+        areas.push((item as { name: string }).name);
+      }
+    }
+  }
+  if (r.municipality && areas.indexOf(r.municipality) === -1) areas.push(r.municipality);
+  if (r.region && areas.indexOf(r.region) === -1) areas.push(r.region);
+  return areas;
+}
 
-  const propertyPreferences: NonNullable<ClientForMatching["property_preferences"]> = {
-    bedrooms_min: r.bedroomsMin ?? undefined,
-    bedrooms_max: r.bedroomsMax ?? undefined,
-    bathrooms_min: r.bathroomsMin ?? undefined,
-    bathrooms_max: r.bathroomsMax ?? undefined,
-    size_min_sqm: r.surfaceMin ? Number(r.surfaceMin) : undefined,
-    size_max_sqm: r.surfaceMax ? Number(r.surfaceMax) : undefined,
-    floor_min: r.floorMin ?? undefined,
-    floor_max: r.floorMax ?? undefined,
-    ground_floor_only: r.groundFloorOnly ?? undefined,
-    requires_elevator: r.requiresElevator ?? undefined,
-    requires_parking: r.requiresParking ?? undefined,
-    requires_pet_friendly: r.petFriendly ?? undefined,
-    furnished_preference: r.furnished ?? undefined,
-    heating_preferences: r.heatingTypes?.length > 0 ? r.heatingTypes : undefined,
-    energy_class_min: r.energyClassMin ?? undefined,
-    condition_preferences: r.conditionPreference?.length > 0 ? r.conditionPreference : undefined,
-  };
+function extractRequiredAmenities(amenities: unknown): string[] {
+  if (amenities && typeof amenities === "object" && Array.isArray(amenities) === false) {
+    return Object.entries(amenities as Record<string, unknown>)
+      .filter(([, v]) => v === true)
+      .map(([k]) => k);
+  }
+  return [];
+}
+
+/**
+ * Adapt a Request DB row into the RequestForMatching shape used by the v2 engine.
+ */
+function adaptRequestToV2(r: RequestRow): RequestForMatching {
+  const areas = extractAreas(r);
+  const requiredAmenities = extractRequiredAmenities(r.amenities);
 
   return {
     id: r.id,
-    client_name: decryptedName || r.friendlyId || "Untitled Request",
-    full_name: null,
-    intent: intent as ClientForMatching["intent"],
-    purpose: purpose as ClientForMatching["purpose"],
-    budget_min: r.budgetMin,
-    budget_max: r.budgetMax,
-    areas_of_interest: areas.length > 0 ? areas : null,
-    property_preferences: propertyPreferences,
-    client_status: "ACTIVE" as ClientForMatching["client_status"],
-    assigned_to: r.assignedAgentId,
     organizationId: r.organizationId,
+    assignedAgentId: r.assignedAgentId ?? null,
+
+    // Budget
+    budgetMin: r.budgetMin != null ? Number(r.budgetMin) : null,
+    budgetMax: r.budgetMax != null ? Number(r.budgetMax) : null,
+
+    // Property preferences
+    propertyTypes: r.propertyTypes ?? [],
+    purposeOfUse: r.propertyCategory ?? null,
+    transactionType: (r.requestType as "BUY" | "RENT" | null) ?? null,
+
+    // Location preferences
+    areas,
+    municipality: r.municipality ?? null,
+    region: r.region ?? null,
+
+    // Geo search
+    centerLatitude: r.centerLatitude ?? null,
+    centerLongitude: r.centerLongitude ?? null,
+    radiusKm: r.radiusKm ?? null,
+
+    // Size preferences
+    minSizeSqm: r.surfaceMin != null ? Number(r.surfaceMin) : null,
+    maxSizeSqm: r.surfaceMax != null ? Number(r.surfaceMax) : null,
+    minBedrooms: r.bedroomsMin ?? null,
+    maxBedrooms: r.bedroomsMax ?? null,
+    minBathrooms: r.bathroomsMin ?? null,
+
+    // Floor preferences
+    floorMin: r.floorMin ?? null,
+    floorMax: r.floorMax ?? null,
+
+    // Features & amenities
+    requiredAmenities,
+    preferredAmenities: [],
+    parkingRequired: r.requiresParking ?? null,
+    storageRequired: r.requiresStorage ?? null,
+    elevatorRequired: r.requiresElevator ?? null,
+    accessibilityRequired: null, // Not stored as a separate field on Request
+
+    // Investment criteria
+    goldenVisaRequired: r.goldenVisaEligible ?? null,
+    financingStatus: (r.financingStatus as RequestForMatching["financingStatus"]) ?? null,
+    timeline: (r.timeline as RequestForMatching["timeline"]) ?? null,
+
+    // Construction
+    yearBuiltMin: r.constructionYearMin ?? null,
+    yearBuiltMax: r.constructionYearMax ?? null,
+    newConstructionOnly: null, // Not a separate field on Request
+
+    // Status
+    status: r.status ?? "ACTIVE",
+    expires_at: r.expiresAt ?? null,
   };
 }
 
@@ -185,8 +210,7 @@ function getEmptyRequestAnalytics(): RequestMatchAnalytics {
 
 /**
  * Get request-to-property match analytics for the dashboard.
- * Adapts each active Request into the ClientForMatching shape so the
- * existing batch matching algorithm is reused without modification.
+ * Uses the v2 engine (Request-based matching) directly.
  */
 export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics> {
   const guard = await requireAction("matchmaking:view_analytics");
@@ -197,7 +221,6 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
 
   const [rawRequests, properties] = await Promise.all([
     fetchActiveRequests(organizationId),
-    // Reuse the same property fetch as mandate matches
     prismadb.properties.findMany({
       where: {
         organizationId,
@@ -216,6 +239,11 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
         address_city: true,
         address_state: true,
         municipality: true,
+        region: true,
+        latitude: true,
+        longitude: true,
+        year_built: true,
+        inside_city_plan: true,
         bedrooms: true,
         bathrooms: true,
         size_net_sqm: true,
@@ -235,25 +263,23 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
     }),
   ]);
 
-  // Decrypt request fields (notes and locationDisplayName)
+  // Decrypt request fields (title/notes are encrypted)
   const decryptedRequests = await Promise.all(
     rawRequests.map((r) => decryptRequestForOrg(r, organizationId))
   );
 
-  // Adapt to matching shapes
-  const clients: ClientForMatching[] = decryptedRequests.map((r, i) => {
-    const firstContact = (rawRequests[i] as any).requestContacts?.[0]?.contact;
-    const contactName = firstContact?.displayName || null;
-    return adaptRequestToClient(r as RequestRow, contactName);
-  });
+  // Map to v2 matching shapes
+  const requests: RequestForMatching[] = decryptedRequests.map(
+    (r) => adaptRequestToV2(r as RequestRow)
+  );
 
-  const matchableProperties: PropertyForMatching[] = properties.map((p) => ({
+  const matchableProperties: PropertyForMatchingV2[] = properties.map((p) => ({
     id: p.id,
     property_name: p.property_name,
     price: p.price != null ? Number(p.price) : null,
-    property_type: p.property_type as PropertyForMatching["property_type"],
-    transaction_type: p.transaction_type as PropertyForMatching["transaction_type"],
-    property_status: p.property_status as PropertyForMatching["property_status"],
+    property_type: p.property_type as PropertyForMatchingV2["property_type"],
+    transaction_type: p.transaction_type as PropertyForMatchingV2["transaction_type"],
+    property_status: p.property_status as PropertyForMatchingV2["property_status"],
     area: p.area,
     address_city: p.address_city,
     address_state: p.address_state,
@@ -266,19 +292,27 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
     floor: p.floor,
     elevator: p.elevator,
     accepts_pets: p.accepts_pets,
-    furnished: p.furnished as PropertyForMatching["furnished"],
-    heating_type: p.heating_type as PropertyForMatching["heating_type"],
-    energy_cert_class: p.energy_cert_class as PropertyForMatching["energy_cert_class"],
-    condition: p.condition as PropertyForMatching["condition"],
-    amenities: p.amenities as PropertyForMatching["amenities"],
+    furnished: p.furnished as PropertyForMatchingV2["furnished"],
+    heating_type: p.heating_type as PropertyForMatchingV2["heating_type"],
+    energy_cert_class: p.energy_cert_class as PropertyForMatchingV2["energy_cert_class"],
+    condition: p.condition as PropertyForMatchingV2["condition"],
+    amenities: p.amenities as PropertyForMatchingV2["amenities"],
     assigned_to: p.assigned_to,
     organizationId: p.organizationId,
+    // V2 extended fields
+    latitude: p.latitude ?? null,
+    longitude: p.longitude ?? null,
+    region: p.region ?? null,
+    inside_city_plan: p.inside_city_plan ?? null,
+    year_built: p.year_built ?? null,
+    garden: null,   // Not a field on Properties model
+    parking: null,  // Not a field on Properties model
   }));
 
-  if (clients.length === 0 || matchableProperties.length === 0) {
+  if (requests.length === 0 || matchableProperties.length === 0) {
     return {
       ...getEmptyRequestAnalytics(),
-      totalClients: clients.length,
+      totalClients: requests.length,
       totalProperties: matchableProperties.length,
       requestStats: {
         totalRequests: rawRequests.length,
@@ -289,7 +323,7 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
     };
   }
 
-  const allMatches = calculateBatchMatches(clients, matchableProperties);
+  const allMatches = calculateBatchMatchesV2(requests, matchableProperties);
 
   const matchDistribution: MatchDistribution[] = [
     { range: "0-25%", min: 0, max: 25, count: 0 },
@@ -313,7 +347,7 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
   const requestsWithMatchesSet = new Set(
     allMatches
       .filter((m) => m.overallScore >= MATCH_THRESHOLDS.FAIR)
-      .map((m) => m.clientId)
+      .map((m) => m.requestId)
   );
   const requestsWithMatches = requestsWithMatchesSet.size;
 
@@ -322,7 +356,7 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
     matchDistribution,
     unmatchedClients: [],
     hotProperties: [],
-    totalClients: clients.length,
+    totalClients: requests.length,
     totalProperties: matchableProperties.length,
     averageMatchScore: averageScore,
     clientsWithMatches: requestsWithMatches,
