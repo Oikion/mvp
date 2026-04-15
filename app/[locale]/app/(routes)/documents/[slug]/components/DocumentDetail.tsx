@@ -281,7 +281,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
                 onUnlinkEntity={handleUnlinkProperty}
               />
               <LinkedEntitiesPanel
-                type="mandates"
+                type="requests"
                 entities={mandates}
                 isLoading={isLinkedLoading}
                 onLinkEntity={() => setLinkMandateDialogOpen(true)}
@@ -431,7 +431,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
       <LinkEntityDialog
         open={linkMandateDialogOpen}
         onOpenChange={setLinkMandateDialogOpen}
-        entityType="mandate"
+        entityType="request"
         sourceId={document.id}
         sourceType="document"
         alreadyLinkedIds={mandates.map((m) => m.id)}

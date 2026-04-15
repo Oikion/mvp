@@ -7,7 +7,7 @@
  */
 
 import { useTranslations } from "next-intl";
-import { MandateSelector as UnifiedMandateSelector } from "@/components/entity-selector";
+import { RequestSelector as UnifiedMandateSelector } from "@/components/entity-selector";
 
 interface MandateSelectorProps {
   value: string[];

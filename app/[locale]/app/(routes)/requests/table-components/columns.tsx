@@ -96,7 +96,7 @@ export function useRequestColumns(
         cell: ({ row }) => (
           <TransactionTypeCell
             requestId={row.original.id}
-            requestType={row.original.requestType}
+            requestType={row.original.requestType ?? null}
           />
         ),
         filterFn: (row, id, value) => value.includes(row.getValue(id)),
@@ -141,7 +141,7 @@ export function useRequestColumns(
         cell: ({ row }) => (
           <UrgencyCell
             requestId={row.original.id}
-            urgency={row.original.urgency}
+            urgency={row.original.urgency ?? null}
           />
         ),
         filterFn: (row, id, value) => value.includes(row.getValue(id)),
@@ -192,7 +192,7 @@ export function useRequestColumns(
         cell: ({ row }) => (
           <AssignedUserCell
             requestId={row.original.id}
-            assignedAgentId={row.original.assignedAgentId}
+            assignedAgentId={row.original.assignedAgentId ?? null}
             users={users}
           />
         ),
