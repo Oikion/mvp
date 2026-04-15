@@ -19,8 +19,9 @@ import { encryptJsonWithKey } from "@/lib/model-encryption";
 import { coerceDate } from "./zod-helpers";
 
 /**
- * The 2 string fields that must be encrypted, matching
- * REQUEST_ENCRYPTED_STRING_FIELDS in lib/model-encryption.ts.
+ * Importable string fields that must be encrypted, matching the string subset
+ * of REQUEST_ENCRYPTED_STRING_FIELDS in lib/model-encryption.ts.
+ * Note: "locationDisplayName" is omitted because it has no CSV source field.
  */
 const ENCRYPTED_STRING_FIELDS = ["title", "notes"] as const;
 
@@ -75,6 +76,11 @@ export const requestImportConfig: ImportEntityConfig<RequestImportData> = {
     if (data.communication_notes != null) {
       // Stored as camelCase (communicationNotes) in the Request Prisma model
       encrypted.communicationNotes = encryptJsonWithKey(data.communication_notes, dek);
+    }
+
+    if (data.areas_of_interest != null) {
+      // areasOfInterest is encrypted by encryptRequestForOrg — must match here
+      encrypted.areasOfInterest = encryptJsonWithKey(data.areas_of_interest, dek);
     }
 
     return encrypted;
@@ -157,8 +163,8 @@ export const requestImportConfig: ImportEntityConfig<RequestImportData> = {
       municipality: item.municipality || null,
       region: item.region || null,
 
-      // JSON arrays
-      areasOfInterest: item.areas_of_interest || null,
+      // JSON arrays — areasOfInterest is encrypted (matches encryptRequestForOrg)
+      areasOfInterest: encryptedFields.areasOfInterest ?? null,
       amenities: item.amenities || null,
 
       // Notes (encrypted string, nullable)
