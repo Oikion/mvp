@@ -246,8 +246,7 @@ async function fetchActiveProperties(organizationId: string): Promise<PropertyFo
 export interface IntraOrgMatchResult {
   upserted: number;
   skipped: number;
-  requestCount: number;
-  propertyCount: number;
+  durationMs: number;
 }
 
 // ──────────────────────────────────────────────
@@ -261,6 +260,7 @@ export interface IntraOrgMatchResult {
 export async function runIntraOrgMatches(
   organizationId: string
 ): Promise<IntraOrgMatchResult> {
+  const start = Date.now();
   // Fetch requests, properties, and optional custom weights in parallel
   const [rawRequests, matchableProperties, orgWeightsRow] = await Promise.all([
     fetchActiveRequests(organizationId),
@@ -275,8 +275,7 @@ export async function runIntraOrgMatches(
     return {
       upserted: 0,
       skipped: 0,
-      requestCount: rawRequests.length,
-      propertyCount: matchableProperties.length,
+      durationMs: Date.now() - start,
     };
   }
 
@@ -309,7 +308,7 @@ export async function runIntraOrgMatches(
   for (let i = 0; i < aboveThreshold.length; i += BATCH_SIZE) {
     const batch = aboveThreshold.slice(i, i + BATCH_SIZE);
 
-    await Promise.all(
+    await prismadb.$transaction(
       batch.map((m) =>
         prismadb.propertyRequestMatch.upsert({
           where: {
@@ -342,8 +341,7 @@ export async function runIntraOrgMatches(
   return {
     upserted,
     skipped: allMatches.length - aboveThreshold.length,
-    requestCount: requests.length,
-    propertyCount: matchableProperties.length,
+    durationMs: Date.now() - start,
   };
 }
 
