@@ -318,7 +318,7 @@ function getSheetNameForModule(module: ExportModule, locale: "en" | "el"): strin
   const names: Record<ExportModule, { en: string; el: string }> = {
     crm: { en: "Clients", el: "Πελάτες" },
     mls: { en: "Properties", el: "Ακίνητα" },
-    mandates: { en: "Mandates", el: "Αναθέσεις" },
+    requests: { en: "Requests", el: "Αιτήματα" },
     calendar: { en: "Events", el: "Εκδηλώσεις" },
     reports: { en: "Reports", el: "Αναφορές" },
     documents: { en: "Documents", el: "Έγγραφα" },

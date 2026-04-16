@@ -1,7 +1,7 @@
 /**
  * Name generators for import auto-naming
  *
- * Used when mandate titles or client names are not explicitly provided
+ * Used when request titles or client names are not explicitly provided
  * in the import source data.
  */
 
@@ -19,19 +19,19 @@ const TX_LABELS: Record<string, string> = {
 };
 
 /**
- * Generate a mandate title from import row data.
+ * Generate a request title from import row data.
  *
- * The `mandateRow` must already have prefix-stripped keys
- * (e.g. `transaction_type`, not `mandate_transaction_type`).
+ * The `requestRow` must already have prefix-stripped keys
+ * (e.g. `transaction_type`, not `request_transaction_type`).
  *
  * Priority:
  * 1. transaction_type + property_type → "Buy Apartment Glyfada"
- * 2. transaction_type only            → "Rent mandate"
- * 3. clientName provided              → "Mandate for Nikos Papadopoulos"
- * 4. propertyName provided            → "Mandate for Glyfada Apartment"
- * 5. fallback                         → "Mandate"
+ * 2. transaction_type only            → "Rent request"
+ * 3. clientName provided              → "Request for Nikos Papadopoulos"
+ * 4. propertyName provided            → "Request for Glyfada Apartment"
+ * 5. fallback                         → "Request"
  */
-export function generateMandateTitle(
+export function generateRequestTitle(
   mandateRow: Record<string, unknown>,
   clientName: string | null,
   propertyName: string | null,
@@ -56,18 +56,18 @@ export function generateMandateTitle(
       return `${txLabel} ${ptDisplay}`;
     }
 
-    return `${txLabel} mandate`;
+    return `${txLabel} request`;
   }
 
   if (clientName) {
-    return `Mandate for ${clientName}`;
+    return `Request for ${clientName}`;
   }
 
   if (propertyName) {
-    return `Mandate for ${propertyName}`;
+    return `Request for ${propertyName}`;
   }
 
-  return "Mandate";
+  return "Request";
 }
 
 /**

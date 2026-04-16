@@ -15,7 +15,7 @@ import {
   UNIFIED_FIELD_DEFINITIONS,
   stripEntityPrefix,
 } from "./unified-field-definitions";
-import { generateMandateTitle, generateClientName } from "./name-generator";
+import { generateRequestTitle, generateClientName } from "./name-generator";
 import { contactImportConfig } from "./contact-import-config";
 import { propertyImportConfig } from "./property-import-config";
 import { requestImportConfig } from "./request-import-config";
@@ -370,7 +370,7 @@ export async function executeBatchImport(
         if (!requestRowData.title) {
           const contactName = rowClientName.get(row.rowIndex) ?? null;
           const propertyName = rowPropertyName.get(row.rowIndex) ?? null;
-          requestRowData.title = generateMandateTitle(
+          requestRowData.title = generateRequestTitle(
             requestRowData,
             contactName,
             propertyName,

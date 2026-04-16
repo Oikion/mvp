@@ -94,16 +94,16 @@ export function DepartureDetailClient({ log }: DepartureDetailClientProps) {
           </Card>
         )}
 
-        {counts.mandates > 0 && (
+        {counts.requests > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">
-                {td("mandates")} ({counts.mandates})
+                {td("requests")} ({counts.requests})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-1">
-                {entities.mandates.map((m) => (
+                {entities.requests.map((m) => (
                   <li key={m.id} className="text-sm">{m.title}</li>
                 ))}
               </ul>

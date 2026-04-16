@@ -90,7 +90,7 @@ export {
 } from "./unified-field-definitions";
 
 export {
-  generateMandateTitle,
+  generateRequestTitle,
   generateClientName,
 } from "./name-generator";
 

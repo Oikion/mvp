@@ -395,27 +395,27 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
           )}
 
           {/* Linked Requests */}
-          {event.linkedMandates && event.linkedMandates.length > 0 && (
+          {event.linkedRequests && event.linkedRequests.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <LinkIcon className="h-4 w-4" />
-                {t("eventPage.linkedRequests")} ({event.linkedMandates.length})
+                {t("eventPage.linkedRequests")} ({event.linkedRequests.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {event.linkedMandates.map((mandate: any) => (
-                  <Card key={mandate.id} className="hover:shadow-md transition-shadow">
+                {event.linkedRequests.map((request: any) => (
+                  <Card key={request.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <Button
                         variant="ghost"
                         className="w-full justify-start h-auto p-0"
-                        onClick={() => router.push(`/app/requests/${mandate.friendlyId}`)}
+                        onClick={() => router.push(`/app/requests/${request.friendlyId}`)}
                       >
                         <div className="flex items-center gap-3 w-full">
                           <LinkIcon className="h-4 w-4 text-muted-foreground" />
                           <div className="flex-1 text-left">
-                            <p className="font-medium">{mandate.title}</p>
-                            {mandate.status && (
-                              <p className="text-xs text-muted-foreground">{mandate.status}</p>
+                            <p className="font-medium">{request.title}</p>
+                            {request.status && (
+                              <p className="text-xs text-muted-foreground">{request.status}</p>
                             )}
                           </div>
                           <ExternalLink className="h-4 w-4 text-muted-foreground" />

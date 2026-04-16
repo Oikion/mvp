@@ -92,7 +92,7 @@ import { Loading } from "@/components/ui/loading";
 const DATA_CATEGORIES = [
   { key: "clients", icon: Users },
   { key: "properties", icon: Home },
-  { key: "mandates", icon: ClipboardList },
+  { key: "requests", icon: ClipboardList },
   { key: "documents", icon: FileText },
   { key: "calendar", icon: Calendar },
   { key: "tasks", icon: CheckSquare },

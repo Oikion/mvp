@@ -14,12 +14,12 @@ import {
 import {
   normalizeClientEnums,
   normalizePropertyEnums,
-  normalizeMandateEnums,
+  normalizeRequestEnums,
 } from "./enum-normalizer";
 import { contactImportSchema } from "./contact-import-schema";
 import { propertyImportSchema } from "./property-import-schema";
 import { requestImportSchema } from "./request-import-schema";
-import { generateMandateTitle, generateClientName } from "./name-generator";
+import { generateRequestTitle, generateClientName } from "./name-generator";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -290,10 +290,10 @@ export function validateImportData(
       }
 
       // Normalize enums (must happen before title generation for tx_type lookup)
-      const normalized = normalizeMandateEnums(requestRow);
+      const normalized = normalizeRequestEnums(requestRow);
 
       // Inject auto-generated title BEFORE safeParse
-      const title = generateMandateTitle(normalized, clientName, propertyName);
+      const title = generateRequestTitle(normalized, clientName, propertyName);
       normalized.title = title;
 
       // Validate with Zod — use parsed.data for proper types

@@ -155,25 +155,25 @@ export default function PropertyView({
   const tActivities = useTranslations("activities");
   const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
-  const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
+  const [linkRequestDialogOpen, setLinkRequestDialogOpen] = useState(false);
   const [linkDocumentDialogOpen, setLinkDocumentDialogOpen] = useState(false);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [createMandateOpen, setCreateMandateOpen] = useState(false);
+  const [createRequestOpen, setCreateRequestOpen] = useState(false);
   const [createClientOpen, setCreateClientOpen] = useState(false);
   const [autoLinkNewClient, setAutoLinkNewClient] = useState(false);
-  const [autoLinkNewMandate, setAutoLinkNewMandate] = useState(false);
+  const [autoLinkNewRequest, setAutoLinkNewRequest] = useState(false);
   const [visibility, setVisibility] = useState<ItemVisibility>(data.visibility || "PRIVATE");
   const [copied, setCopied] = useState(false);
   const [publicUrl, setPublicUrl] = useState(`/property/${data.id}`);
 
-  // Organization users for QuickAddMandate
+  // Organization users for QuickAddRequest
   const { users: orgUsers } = useOrgUsers({ enabled: !isReadOnly });
 
   // Linked entities via SWR
   const {
     clients,
-    mandates: linkedMandates,
+    mandates: linkedRequests,
     documents: linkedDocuments,
     events,
     isLoading: isLoadingLinked,
@@ -182,8 +182,8 @@ export default function PropertyView({
 
   const { linkClients, isLinking } = useLinkClientsToProperty(data.id);
   const { unlinkClient, isUnlinking } = useUnlinkClientFromProperty(data.id);
-  const { linkMandates, isLinking: isLinkingMandates } = useLinkMandatesToProperty(data.id);
-  const { unlinkMandate, isUnlinking: isUnlinkingMandates } = useUnlinkMandateFromProperty(data.id);
+  const { linkMandates: linkRequests, isLinking: isLinkingRequests } = useLinkMandatesToProperty(data.id);
+  const { unlinkMandate: unlinkRequest, isUnlinking: isUnlinkingRequests } = useUnlinkMandateFromProperty(data.id);
   const { linkDocuments, isLinking: isLinkingDocuments } = useLinkDocumentsToProperty(data.id);
   const { unlinkDocument, isUnlinking: isUnlinkingDocuments } = useUnlinkDocumentFromProperty(data.id);
 
@@ -218,24 +218,24 @@ export default function PropertyView({
     }
   };
 
-  const handleLinkMandates = async (mandateIds: string[]) => {
+  const handleLinkRequests = async (requestIds: string[]) => {
     try {
-      await linkMandates(mandateIds);
+      await linkRequests(requestIds);
       await mutateLinked();
     } catch (error) {
-      console.error("Failed to link mandates:", error);
+      console.error("Failed to link requests:", error);
       throw error;
     }
   };
 
-  const handleUnlinkMandate = async (mandateId: string) => {
+  const handleUnlinkRequest = async (requestId: string) => {
     try {
-      await unlinkMandate(mandateId);
-      toast.success("Mandate unlinked successfully");
+      await unlinkRequest(requestId);
+      toast.success("Request unlinked successfully");
       await mutateLinked();
     } catch (error) {
-      console.error("Failed to unlink mandate:", error);
-      toast.error("Failed to unlink mandate");
+      console.error("Failed to unlink request:", error);
+      toast.error("Failed to unlink request");
     }
   };
 
@@ -331,10 +331,10 @@ export default function PropertyView({
             </Button>
             <EntityQuickActions
               entityType="property"
-              onCreateMandate={() => setCreateMandateOpen(true)}
+              onCreateMandate={() => setCreateRequestOpen(true)}
               onCreateEvent={() => setCreateEventOpen(true)}
               onLinkClient={() => setLinkClientDialogOpen(true)}
-              onLinkMandate={() => setLinkMandateDialogOpen(true)}
+              onLinkMandate={() => setLinkRequestDialogOpen(true)}
             />
             <QuickExportButton
               entityType="property"
@@ -607,10 +607,10 @@ export default function PropertyView({
           {/* Linked Requests */}
           <LinkedEntitiesPanel
             type="requests"
-            entities={linkedMandates}
-            isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
-            onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
-            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
+            entities={linkedRequests}
+            isLoading={isLoadingLinked || isLinkingRequests || isUnlinkingRequests}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkRequestDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkRequest}
             showAddButton={!isReadOnly}
             emptyMessage="No requests linked to this property yet."
           />
@@ -722,22 +722,22 @@ export default function PropertyView({
       {/* Link Request Dialog */}
       {!isReadOnly && (
         <LinkEntityDialog
-          open={linkMandateDialogOpen}
-          onOpenChange={setLinkMandateDialogOpen}
+          open={linkRequestDialogOpen}
+          onOpenChange={setLinkRequestDialogOpen}
           entityType="request"
           sourceId={data.id}
           sourceType="property"
-          alreadyLinkedIds={(linkedMandates ?? []).map((m: any) => m.id)}
-          onLink={handleLinkMandates}
+          alreadyLinkedIds={(linkedRequests ?? []).map((m: any) => m.id)}
+          onLink={handleLinkRequests}
           onCreate={() => {
-            setLinkMandateDialogOpen(false);
-            setAutoLinkNewMandate(false);
-            setCreateMandateOpen(true);
+            setLinkRequestDialogOpen(false);
+            setAutoLinkNewRequest(false);
+            setCreateRequestOpen(true);
           }}
           onCreateAndLink={() => {
-            setLinkMandateDialogOpen(false);
-            setAutoLinkNewMandate(true);
-            setCreateMandateOpen(true);
+            setLinkRequestDialogOpen(false);
+            setAutoLinkNewRequest(true);
+            setCreateRequestOpen(true);
           }}
           title="Link Requests to Property"
           description="Select requests associated with this property."
@@ -773,10 +773,10 @@ export default function PropertyView({
       {/* Quick Add Request */}
       {!isReadOnly && (
         <QuickAddRequest
-          open={createMandateOpen}
+          open={createRequestOpen}
           onOpenChange={(open) => {
-            setCreateMandateOpen(open);
-            if (!open) setAutoLinkNewMandate(false);
+            setCreateRequestOpen(open);
+            if (!open) setAutoLinkNewRequest(false);
           }}
           organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
           onSuccess={() => mutateLinked()}

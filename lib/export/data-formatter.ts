@@ -185,10 +185,10 @@ export const REPORTS_COLUMNS: ColumnDefinition[] = [
 ];
 
 // ============================================
-// MANDATE COLUMN DEFINITIONS
+// REQUEST COLUMN DEFINITIONS
 // ============================================
 
-export const MANDATE_COLUMNS: ColumnDefinition[] = [
+export const REQUEST_COLUMNS: ColumnDefinition[] = [
   { key: "id", label: "ID", type: "string", width: 18 },
   { key: "createdAt", label: "Created", labelEl: "Δημιουργήθηκε", type: "datetime", width: 18 },
   { key: "title", label: "Title", labelEl: "Τίτλος", type: "string", width: 30 },
@@ -307,8 +307,8 @@ export function getColumnsForModule(module: ExportModule): ColumnDefinition[] {
       return CRM_COLUMNS;
     case "mls":
       return MLS_COLUMNS;
-    case "mandates":
-      return MANDATE_COLUMNS;
+    case "requests":
+      return REQUEST_COLUMNS;
     case "calendar":
       return CALENDAR_COLUMNS;
     case "reports":

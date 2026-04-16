@@ -18,7 +18,7 @@ export interface MigratedEntity {
 export interface MigratedEntities {
   properties: MigratedEntity[];
   clients: { id: string; name: string }[];
-  mandates: MigratedEntity[];
+  requests: MigratedEntity[];
 }
 
 export type CancelledDeals = { id: string; title: string }[];
@@ -26,7 +26,7 @@ export type CancelledDeals = { id: string; title: string }[];
 export interface EntityCounts {
   properties: number;
   clients: number;
-  mandates: number;
+  requests: number;
   deals: number;
 }
 

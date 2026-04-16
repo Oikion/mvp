@@ -65,7 +65,7 @@ export function DepartureListClient({ logs }: DepartureListClientProps) {
                 </Badge>
               </TableCell>
               <TableCell>
-                {counts.properties + counts.clients + counts.mandates}
+                {counts.properties + counts.clients + counts.requests}
               </TableCell>
               <TableCell>{counts.deals}</TableCell>
             </TableRow>

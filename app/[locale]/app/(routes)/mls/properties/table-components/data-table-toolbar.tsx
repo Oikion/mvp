@@ -95,7 +95,7 @@ export function DataTableToolbar_Properties<TData>({ table, rightContent, onRefr
     return map;
   }, [users]);
 
-  // Build chips array with prefixed labels matching Clients/Mandates pattern
+  // Build chips array with prefixed labels matching Contacts/Requests pattern
   const chips: FilterChip[] = useMemo(() => {
     const result: FilterChip[] = [];
     activeFilters.status.forEach((v) =>

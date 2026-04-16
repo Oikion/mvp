@@ -17,7 +17,7 @@ const PDF_ROW_THRESHOLD = 500; // PDF is more resource-intensive
 
 export interface ExportJobOptions {
   organizationId: string;
-  exportType: "crm" | "mls" | "mandates" | "reports" | "calendar" | "documents";
+  exportType: "crm" | "mls" | "requests" | "reports" | "calendar" | "documents";
   format: "xlsx" | "xls" | "csv" | "pdf" | "xml";
   rowCount: number;
   filters?: Record<string, unknown>;
