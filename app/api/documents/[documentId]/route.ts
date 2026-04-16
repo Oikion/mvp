@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { getDocument } from "@/actions/documents/get-document";

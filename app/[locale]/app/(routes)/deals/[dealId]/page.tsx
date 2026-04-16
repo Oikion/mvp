@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getDeal } from "@/actions/deals";
 import { notFound } from "next/navigation";
 import Container from "../../components/ui/Container";

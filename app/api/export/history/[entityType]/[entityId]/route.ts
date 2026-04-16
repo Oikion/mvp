@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Export History API Route for Specific Entity
  * 

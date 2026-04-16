@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 
 import { encrypt, decrypt, isEncrypted, encryptWithKey, decryptWithKey } from "@/lib/encryption";

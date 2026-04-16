@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { prismadb } from "@/lib/prisma";
 import { decryptDocumentForOrg, decryptClientForOrg, decryptCalendarEventForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
 

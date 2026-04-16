@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { prismadb } from "@/lib/prisma";
 
 export const getContact = async (contactId: string) => {

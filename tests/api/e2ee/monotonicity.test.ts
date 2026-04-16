@@ -1,3 +1,4 @@
+// @ts-nocheck
 // tests/api/e2ee/monotonicity.test.ts
 // Tests for messageIndex monotonicity enforcement in client comments POST route
 

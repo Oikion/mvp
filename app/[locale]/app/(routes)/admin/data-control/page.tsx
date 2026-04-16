@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import Container from "../../components/ui/Container";

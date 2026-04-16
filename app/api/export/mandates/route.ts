@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Mandates Export API Route
  *

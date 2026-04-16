@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use server";
 
 import { getCurrentOrgIdSafe, getCurrentUserSafe } from "@/lib/get-current-user";

@@ -14,7 +14,7 @@ import { uploadToBlob } from "@/lib/vercel-blob";
 import resendHelper from "@/lib/resend";
 import { DataExportStatus } from "@prisma/client";
 import {
-  decryptClientForOrg,
+  decryptContactForOrg,
   decryptPropertyForOrg,
   decryptCalendarEventForOrg,
   decryptDocumentForOrg,
@@ -40,8 +40,7 @@ interface ExportedData {
     email: string;
   };
   data: {
-    clients: unknown[];
-    clientContacts: unknown[];
+    contacts: unknown[];
     properties: unknown[];
     propertyContacts: unknown[];
     documents: unknown[];
@@ -139,8 +138,7 @@ async function fetchOrganizationData(
 ): Promise<ExportedData> {
   // Fetch all data in parallel
   const [
-    clients,
-    clientContacts,
+    contacts,
     properties,
     propertyContacts,
     documents,
@@ -153,18 +151,12 @@ async function fetchOrganizationData(
     apiKeys,
     webhooks,
   ] = await Promise.all([
-    // Clients
-    prismadb.clients.findMany({
+    // Contacts
+    prismadb.contact.findMany({
       where: { organizationId },
       include: {
-        Client_Contacts: true,
-        ClientComment: true,
+        contactComments: true,
       },
-    }),
-
-    // Client contacts
-    prismadb.client_Contacts.findMany({
-      where: { organizationId },
     }),
 
     // Properties
@@ -279,8 +271,8 @@ async function fetchOrganizationData(
   ]);
 
   // Decrypt all encrypted model data before export
-  const decryptedClients = await Promise.all(
-    clients.map((c) => decryptClientForOrg(c, organizationId))
+  const decryptedContacts = await Promise.all(
+    contacts.map((c) => decryptContactForOrg(c, organizationId))
   );
   const decryptedProperties = await Promise.all(
     properties.map((p) => decryptPropertyForOrg(p, organizationId))
@@ -297,8 +289,7 @@ async function fetchOrganizationData(
 
   // Calculate total records
   const totalRecords =
-    clients.length +
-    clientContacts.length +
+    contacts.length +
     properties.length +
     propertyContacts.length +
     documents.length +
@@ -316,8 +307,7 @@ async function fetchOrganizationData(
     organizationId,
     requestedBy: user,
     data: {
-      clients: decryptedClients,
-      clientContacts,
+      contacts: decryptedContacts,
       properties: decryptedProperties,
       propertyContacts,
       documents: decryptedDocuments,

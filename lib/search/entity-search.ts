@@ -11,7 +11,7 @@
 import { prismadb } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import {
-  decryptClientForOrg,
+  decryptContactForOrg,
   decryptDocumentForOrg,
   decryptCalendarEventForOrg,
   decryptMandateForOrg,
@@ -72,52 +72,52 @@ async function searchClients(
 ): Promise<{ results: EntitySearchResult[]; timing: number }> {
   const start = Date.now();
 
-  const where: Prisma.ClientsWhereInput = {
+  const where: Prisma.ContactWhereInput = {
     organizationId,
   };
 
   if (query?.trim()) {
     const searchTerm = query.trim();
     where.OR = [
-      { client_name: { contains: searchTerm, mode: "insensitive" } },
-      { primary_email: { contains: searchTerm, mode: "insensitive" } },
-      { primary_phone: { contains: searchTerm, mode: "insensitive" } },
-      { secondary_phone: { contains: searchTerm, mode: "insensitive" } },
-      { full_name: { contains: searchTerm, mode: "insensitive" } },
-      { company_name: { contains: searchTerm, mode: "insensitive" } },
+      { displayName: { contains: searchTerm, mode: "insensitive" } },
+      { email: { contains: searchTerm, mode: "insensitive" } },
+      { primaryPhone: { contains: searchTerm, mode: "insensitive" } },
+      { secondaryPhone: { contains: searchTerm, mode: "insensitive" } },
+      { firstName: { contains: searchTerm, mode: "insensitive" } },
+      { companyName: { contains: searchTerm, mode: "insensitive" } },
       { id: { contains: searchTerm, mode: "insensitive" } },
     ];
   }
 
   if (statusFilter) {
-    where.client_status = statusFilter as Prisma.ClientsWhereInput["client_status"];
+    where.status = statusFilter as Prisma.ContactWhereInput["status"];
   }
 
-  const clients = await prismadb.clients.findMany({
+  const clients = await prismadb.contact.findMany({
     where,
     select: {
       id: true,
-      client_name: true,
-      primary_email: true,
-      primary_phone: true,
-      client_status: true,
+      displayName: true,
+      email: true,
+      primaryPhone: true,
+      status: true,
     },
-    orderBy: [{ updatedAt: "desc" }, { client_name: "asc" }],
+    orderBy: [{ updatedAt: "desc" }, { displayName: "asc" }],
     take: limit,
   });
 
-  // Decrypt encrypted client fields
+  // Decrypt encrypted contact fields
   const decryptedClients = await Promise.all(
-    clients.map((c) => decryptClientForOrg(c, organizationId))
+    clients.map((c) => decryptContactForOrg(c, organizationId))
   );
 
   const results: EntitySearchResult[] = decryptedClients.map((client) => ({
     value: client.id,
-    label: client.client_name,
+    label: client.displayName,
     type: "client" as const,
     metadata: {
-      subtitle: client.primary_email || client.primary_phone || undefined,
-      status: client.client_status || undefined,
+      subtitle: client.email || client.primaryPhone || undefined,
+      status: client.status || undefined,
     },
   }));
 

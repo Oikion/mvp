@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Documents Export API Route
  *

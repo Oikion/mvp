@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextRequest } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";

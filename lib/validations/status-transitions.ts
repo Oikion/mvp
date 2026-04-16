@@ -10,7 +10,7 @@
  * - DEAL-002: Deal status transitions
  */
 
-import type { ClientStatus, PropertyStatus, DealStatus } from "@prisma/client";
+import type { ClientStatus, PropertyStatus, DealStatus, DealStage } from "@prisma/client";
 
 // =============================================================================
 // Client Status Transitions (CRM-005)
@@ -360,3 +360,74 @@ export const DEAL_STATUS_METADATA: Record<DealStatus, StatusMetadata> = {
     isTerminal: true,
   },
 };
+
+// =============================================================================
+// Deal Stage Transitions (v2.0 — 10-stage Greek RE pipeline)
+// =============================================================================
+
+/**
+ * Ordered list of deal stages in the Greek RE pipeline.
+ * Terminal stages (COMPLETED, FALLEN_THROUGH) are at the end.
+ */
+export const DEAL_STAGE_ORDER: DealStage[] = [
+  "INTEREST",
+  "OFFER",
+  "NEGOTIATION",
+  "PRELIMINARY_AGREEMENT",
+  "DUE_DILIGENCE",
+  "TRANSFER_TAX",
+  "SIGNING",
+  "REGISTRATION",
+  "COMPLETED",
+  "FALLEN_THROUGH",
+];
+
+/** Terminal stages — no further progression possible */
+const DEAL_STAGE_TERMINAL = new Set<DealStage>(["COMPLETED", "FALLEN_THROUGH"]);
+
+/**
+ * Valid forward transitions for each deal stage.
+ * Any stage can also move to FALLEN_THROUGH (deal collapsed).
+ */
+export const DEAL_STAGE_TRANSITIONS: Record<DealStage, DealStage[]> = {
+  INTEREST: ["OFFER", "FALLEN_THROUGH"],
+  OFFER: ["NEGOTIATION", "FALLEN_THROUGH"],
+  NEGOTIATION: ["PRELIMINARY_AGREEMENT", "FALLEN_THROUGH"],
+  PRELIMINARY_AGREEMENT: ["DUE_DILIGENCE", "FALLEN_THROUGH"],
+  DUE_DILIGENCE: ["TRANSFER_TAX", "FALLEN_THROUGH"],
+  TRANSFER_TAX: ["SIGNING", "FALLEN_THROUGH"],
+  SIGNING: ["REGISTRATION", "FALLEN_THROUGH"],
+  REGISTRATION: ["COMPLETED", "FALLEN_THROUGH"],
+  COMPLETED: [],
+  FALLEN_THROUGH: [],
+};
+
+/** Returns the zero-based index of a stage in DEAL_STAGE_ORDER, or -1 if not found. */
+export function getDealStageIndex(stage: DealStage): number {
+  return DEAL_STAGE_ORDER.indexOf(stage);
+}
+
+/** Returns true if the stage is a terminal state (no further progression). */
+export function isDealStageTerminal(stage: DealStage): boolean {
+  return DEAL_STAGE_TERMINAL.has(stage);
+}
+
+/** Returns the valid next stages from the current stage. */
+export function getValidDealNextStages(current: DealStage): DealStage[] {
+  return DEAL_STAGE_TRANSITIONS[current] ?? [];
+}
+
+/** Returns true if the transition from → to is valid. */
+export function isValidDealStageTransition(from: DealStage, to: DealStage): boolean {
+  if (from === to) return true;
+  return DEAL_STAGE_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+/** Returns a human-readable error message for an invalid stage transition. */
+export function getDealStageTransitionError(from: DealStage, to: DealStage): string {
+  if (isDealStageTerminal(from)) {
+    return `Deal stage "${from}" is a terminal state and cannot be changed`;
+  }
+  const valid = DEAL_STAGE_TRANSITIONS[from];
+  return `Cannot transition from "${from}" to "${to}". Valid next stages: ${valid.join(", ")}`;
+}

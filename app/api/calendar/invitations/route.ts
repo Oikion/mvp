@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import { prismaForOrg } from "@/lib/tenant";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";

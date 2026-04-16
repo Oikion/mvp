@@ -15,10 +15,10 @@ export async function nullifyOrgReferences(
   const results = await prismadb.$transaction([
     // ── Top-level org models (direct organizationId filter) ──
 
-    // Clients.assigned_to
-    prismadb.clients.updateMany({
-      where: { organizationId: orgId, assigned_to: userId },
-      data: { assigned_to: null },
+    // Contact.assignedAgentId
+    prismadb.contact.updateMany({
+      where: { organizationId: orgId, assignedAgentId: userId },
+      data: { assignedAgentId: null },
     }),
 
     // Properties.assigned_to
@@ -33,16 +33,16 @@ export async function nullifyOrgReferences(
       data: { assigned_to: null },
     }),
 
-    // Deal.clientAgentId
+    // Deal.buyerAgentId
     prismadb.deal.updateMany({
-      where: { organizationId: orgId, clientAgentId: userId },
-      data: { clientAgentId: null },
+      where: { organizationId: orgId, buyerAgentId: userId },
+      data: { buyerAgentId: null },
     }),
 
-    // Deal.propertyAgentId
+    // Deal.listingAgentId
     prismadb.deal.updateMany({
-      where: { organizationId: orgId, propertyAgentId: userId },
-      data: { propertyAgentId: null },
+      where: { organizationId: orgId, listingAgentId: userId },
+      data: { listingAgentId: null },
     }),
 
     // Deal.proposedById
@@ -111,18 +111,6 @@ export async function nullifyOrgReferences(
       data: { sentById: null },
     }),
 
-    // Client_Contacts.assigned_to (has organizationId)
-    prismadb.client_Contacts.updateMany({
-      where: { organizationId: orgId, assigned_to: userId },
-      data: { assigned_to: null },
-    }),
-
-    // Client_Contacts.created_by (has organizationId)
-    prismadb.client_Contacts.updateMany({
-      where: { organizationId: orgId, created_by: userId },
-      data: { created_by: null },
-    }),
-
     // crm_Accounts_Tasks_Comments.user (has organizationId)
     prismadb.crm_Accounts_Tasks_Comments.updateMany({
       where: { organizationId: orgId, user: userId },
@@ -131,9 +119,9 @@ export async function nullifyOrgReferences(
 
     // ── Comment models (join through parent) ──
 
-    // ClientComment → via Clients.organizationId
-    prismadb.clientComment.updateMany({
-      where: { userId, Clients: { organizationId: orgId } },
+    // ContactComment → via Contact.organizationId
+    prismadb.contactComment.updateMany({
+      where: { userId, contact: { organizationId: orgId } },
       data: { userId: null },
     }),
 
@@ -202,6 +190,6 @@ export async function nullifyOrgReferences(
     }),
   ]);
 
-  const nulledCount = results.reduce((sum, r) => sum + r.count, 0);
+  const nulledCount = results.reduce((sum: number, r: { count: number }) => sum + r.count, 0);
   return { nulledCount };
 }

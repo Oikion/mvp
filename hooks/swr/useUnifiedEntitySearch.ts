@@ -18,7 +18,7 @@ import { useMemo } from "react";
 // Types
 // ============================================
 
-export type EntityType = "client" | "property" | "document" | "event" | "mandate";
+export type EntityType = "client" | "contact" | "property" | "document" | "event" | "mandate" | "request";
 
 export interface EntitySearchResult {
   value: string;
@@ -89,8 +89,8 @@ async function entitySearchFetcher(url: string): Promise<EntitySearchResponse> {
   if (res.status === 429) {
     console.warn("[EntitySearch] Rate limited, returning empty results");
     return {
-      results: { client: [], property: [], document: [], event: [], mandate: [] },
-      timing: { total: 0, perType: { client: 0, property: 0, document: 0, event: 0, mandate: 0 } },
+      results: { client: [], contact: [], property: [], document: [], event: [], mandate: [], request: [] },
+      timing: { total: 0, perType: { client: 0, contact: 0, property: 0, document: 0, event: 0, mandate: 0, request: 0 } },
     };
   }
 

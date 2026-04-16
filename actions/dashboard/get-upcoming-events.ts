@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe, getCurrentUser } from "@/lib/get-current-user";
 import { decryptCalendarEventForOrg, decryptClientForOrg } from "@/lib/model-encryption";

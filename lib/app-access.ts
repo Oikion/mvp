@@ -60,3 +60,37 @@ export function verifyAccessCookie(cookieValue: string | undefined): boolean {
 export function isAccessGateEnabled(): boolean {
   return !!process.env.APP_ACCESS_CODE;
 }
+
+// ============================================
+// Staging gate aliases (v2.0 naming)
+// ============================================
+
+/**
+ * Verify whether the given cookie value is the valid staging access token.
+ * Alias for verifyAccessCookie — uses STAGING_ACCESS_CODE / STAGING_COOKIE_SECRET env vars.
+ */
+export function verifyStagingCookie(cookieValue: string | undefined): boolean {
+  const code = process.env.STAGING_ACCESS_CODE ?? process.env.APP_ACCESS_CODE;
+  const secret = process.env.STAGING_COOKIE_SECRET ?? process.env.APP_ACCESS_COOKIE_SECRET;
+
+  if (!code || !secret) return false;
+  if (!cookieValue) return false;
+
+  const expected = computeAccessToken(code, secret);
+
+  try {
+    const a = Buffer.from(expected, "hex");
+    const b = Buffer.from(cookieValue, "hex");
+    if (a.length !== b.length) return false;
+    return timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns true if the staging access gate is enabled.
+ */
+export function isStagingGateEnabled(): boolean {
+  return !!(process.env.STAGING_ACCESS_CODE ?? process.env.APP_ACCESS_CODE);
+}

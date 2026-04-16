@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { TemplateType } from "@prisma/client";

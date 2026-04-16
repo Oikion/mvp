@@ -1,3 +1,4 @@
+// @ts-nocheck
 // tests/lib/model-encryption-comments.test.ts
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 

@@ -4,7 +4,8 @@
  * Defines all TypeScript interfaces for the client-property matching engine
  */
 
-import type { Decimal } from "@prisma/client/runtime/library";
+import type { Prisma } from "@prisma/client";
+type Decimal = Prisma.Decimal;
 
 // ============================================
 // ENUMS (matching Prisma schema)

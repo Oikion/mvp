@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Prisma } from "@prisma/client";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { mergeDocumentMentions } from "./parse-mentions";

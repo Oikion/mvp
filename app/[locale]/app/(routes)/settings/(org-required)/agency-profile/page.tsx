@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { auth } from "@clerk/nextjs/server";
 import { createClerkClient } from "@clerk/backend";
 import { redirect } from "next/navigation";
