@@ -93,7 +93,7 @@ const getEntityUrl = (type: EntityType, id: string, friendlyId: string | undefin
     case "PROPERTY":
       return `${baseUrl}/app/properties/${slug}`;
     case "CLIENT":
-      return `${baseUrl}/app/crm/accounts/${slug}`;
+      return `${baseUrl}/app/crm/contacts/${slug}`;
     case "DOCUMENT":
       return `${baseUrl}/app/documents/${slug}`;
     default:

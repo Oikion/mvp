@@ -7,7 +7,10 @@ import { EditableDropdownCell } from "@/components/ui/data-table/editable-dropdo
 import type { DropdownOption } from "@/components/ui/data-table/editable-dropdown-cell";
 
 interface StatusCellProps {
-  clientId: string;
+  /** v1 prop name (legacy getColumns) */
+  clientId?: string;
+  /** v2 prop name (useContactColumns) */
+  contactId?: string;
   status: string;
 }
 
@@ -25,11 +28,12 @@ const normalizeStatus = (s: string) => {
   return s;
 };
 
-export const StatusCell = ({ clientId, status }: StatusCellProps) => {
+export const StatusCell = ({ clientId, contactId, status }: StatusCellProps) => {
   const t = useTranslations("crm");
+  const id = contactId ?? clientId ?? "";
 
   const handleSave = async (value: string) => {
-    await updateClient(clientId, { client_status: value });
+    await updateClient(id, { client_status: value });
     toast.success(t("CrmAccountsTable.statusUpdated"));
   };
 

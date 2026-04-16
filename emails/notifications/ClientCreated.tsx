@@ -132,7 +132,7 @@ export const ClientCreatedEmail = ({
   const colors = resolveColors(userTheme);
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
   const type = isAssigned ? "assigned" : "created";
-  const clientUrl = `${baseUrl}/app/crm/accounts/${clientId}`;
+  const clientUrl = `${baseUrl}/app/crm/contacts/${clientId}`;
 
   return (
     <BaseLayout

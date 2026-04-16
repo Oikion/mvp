@@ -27,6 +27,6 @@ export const updateClient = async (clientId: string, data: any) => {
   });
 
   revalidatePath("/crm/clients");
-  revalidatePath("/crm/accounts"); // Just in case
+  revalidatePath("/crm/contacts");
   return updatedClient;
 };

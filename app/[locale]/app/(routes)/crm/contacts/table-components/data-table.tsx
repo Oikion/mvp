@@ -39,7 +39,7 @@ interface DataTableProps<TData, TValue> {
   onRefresh?: () => void;
 }
 
-export function AccountDataTable<TData, TValue>({
+export function ContactDataTable<TData, TValue>({
   columns,
   data,
   users,

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { getColumns } from "../accounts/table-components/columns";
+import { getColumns } from "../contacts/table-components/columns";
 import { NewClientWizard } from "../clients/components/NewClientWizard";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import {

@@ -31,7 +31,7 @@ import {
   Share2,
   MessageSquare,
 } from "lucide-react";
-import { UpdateAccountForm } from "../../../accounts/components/UpdateAccountForm";
+import { UpdateContactForm as UpdateAccountForm } from "../../../contacts/components/UpdateContactForm";
 import { LinkedEntitiesPanel, LinkEntityDialog } from "@/components/linking";
 import { EventCreateForm } from "@/components/calendar/EventCreateForm";
 import { EntityQuickActions } from "@/components/entity-actions/EntityQuickActions";
@@ -566,7 +566,7 @@ export default function ClientView({
                 member_of: data.member_of ?? "",
                 industry: data.industry ?? "",
               }}
-              open={setEditOpen}
+              setOpen={setEditOpen}
             />
           </div>
         </SheetContent>

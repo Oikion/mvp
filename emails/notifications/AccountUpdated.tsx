@@ -135,7 +135,7 @@ export const AccountUpdatedEmail = ({
   const colors = resolveColors(userTheme);
   const t = translations[userLanguage as keyof typeof translations] || translations.en;
   const config = updateConfig[updateType];
-  const accountUrl = `${baseUrl}/app/crm/accounts/${accountId}`;
+  const accountUrl = `${baseUrl}/app/crm/contacts/${accountId}`;
 
   return (
     <BaseLayout

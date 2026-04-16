@@ -3,6 +3,7 @@
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
+import moment from "moment";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/data-table/data-table-select-checkbox";
 import { cn } from "@/lib/utils";
 import { ContactRowActions } from "./ContactRowActions";
+import { ClientRowActions } from "./ClientRowActions";
 import { StatusCell } from "./cells/StatusCell";
 import { AssignedUserCell } from "./cells/AssignedUserCell";
 import { NameCell } from "./cells/NameCell";
@@ -196,3 +198,104 @@ export function useContactColumns(
     [t, commonT, users]
   );
 }
+
+// ---------------------------------------------------------------------------
+// Legacy-compatible columns for ClientsPageView (uses getClients() shape with
+// aliased fields: name, email, phone, assigned_to, contacts[])
+// ---------------------------------------------------------------------------
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getColumns = (users: { id: string; name: string | null }[] = []): ColumnDef<any>[] => [
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.created")} />;
+    },
+    cell: ({ row }) => (
+      <div className="text-sm text-muted-foreground whitespace-nowrap">
+        {moment(row.getValue("createdAt")).format("YY/MM/DD")}
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "assigned_to_user",
+    header: ({ column }) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.assignedTo")} />;
+    },
+    cell: ({ row }) => (
+      <AssignedUserCell
+        clientId={row.original.id}
+        assignedTo={(row.original as { assigned_to?: string | null }).assigned_to ?? null}
+        users={users}
+      />
+    ),
+    enableSorting: true,
+    enableHiding: true,
+  },
+  {
+    accessorKey: "name",
+    header: ({ column }) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.name")} />;
+    },
+    cell: ({ row }) => (
+      <NameCell clientId={row.original.id} value={row.original.name ?? ""} />
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    accessorKey: "email",
+    header: ({ column }) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.email")} />;
+    },
+    cell: ({ row }) => (
+      <EmailCell clientId={row.original.id} value={row.original.email} />
+    ),
+    enableSorting: true,
+    enableHiding: true,
+  },
+  {
+    accessorKey: "phone",
+    header: ({ column }) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.phone")} />;
+    },
+    cell: ({ row }) => (
+      <PhoneCell clientId={row.original.id} value={row.original.phone} />
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const t = useTranslations("crm");
+      return <DataTableColumnHeader column={column} title={t("CrmAccountsTable.status")} />;
+    },
+    cell: ({ row }) => (
+      <StatusCell
+        clientId={row.original.id}
+        status={
+          (row.original as { client_status?: string }).client_status ||
+          (row.getValue("status") as string)
+        }
+      />
+    ),
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => <ClientRowActions row={row} />,
+  },
+];

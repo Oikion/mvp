@@ -248,7 +248,7 @@ export const PROTECTED_ROUTES = {
   ALWAYS_PROTECTED: [
     "/app/crm/clients",
     "/app/crm/contacts",
-    "/app/crm/accounts",
+    "/app/crm/contacts",
     "/app/documents",
     "/app/network/messages",
     "/app/reports",
