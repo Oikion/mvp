@@ -48,8 +48,8 @@ import {
   usePropertyLinked,
   useLinkClientsToProperty,
   useUnlinkClientFromProperty,
-  useLinkMandatesToProperty,
-  useUnlinkMandateFromProperty,
+  useLinkRequestsToProperty,
+  useUnlinkRequestFromProperty,
   useLinkDocumentsToProperty,
   useUnlinkDocumentFromProperty,
 } from "@/hooks/swr";
@@ -182,8 +182,8 @@ export default function PropertyView({
 
   const { linkClients, isLinking } = useLinkClientsToProperty(data.id);
   const { unlinkClient, isUnlinking } = useUnlinkClientFromProperty(data.id);
-  const { linkMandates: linkRequests, isLinking: isLinkingRequests } = useLinkMandatesToProperty(data.id);
-  const { unlinkMandate: unlinkRequest, isUnlinking: isUnlinkingRequests } = useUnlinkMandateFromProperty(data.id);
+  const { linkRequests, isLinking: isLinkingRequests } = useLinkRequestsToProperty(data.id);
+  const { unlinkRequest, isUnlinking: isUnlinkingRequests } = useUnlinkRequestFromProperty(data.id);
   const { linkDocuments, isLinking: isLinkingDocuments } = useLinkDocumentsToProperty(data.id);
   const { unlinkDocument, isUnlinking: isUnlinkingDocuments } = useUnlinkDocumentFromProperty(data.id);
 

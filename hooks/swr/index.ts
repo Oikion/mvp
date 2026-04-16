@@ -92,7 +92,6 @@ export {
   usePropertySearch,
   useDocumentSearch,
   useEventSearch,
-  useMandateSearch,
   useRequestSearch,
   useDealSearch,
 } from "./useUnifiedEntitySearch";
@@ -159,34 +158,29 @@ export { useContactLinked, getContactLinkedKey } from "./useContactLinked";
 // Request Linked Entities
 export { useRequestLinked, getRequestLinkedKey } from "./useRequestLinked";
 
-// Mandate Linked Entities
-export { useMandateLinked, getMandateLinkedKey } from "./useMandateLinked";
-
 // Document Linked Entities
 export { useDocumentLinked, getDocumentLinkedKey } from "./useDocumentLinked";
 
-// Link Mutations (Property-Client linking, Property-Mandate linking, Document linking)
+// Link Mutations (Property-Contact linking, Property-Request linking, Document linking)
 export {
   useLinkClientsToProperty,
   useUnlinkClientFromProperty,
   useLinkPropertiesToClient,
   useUnlinkPropertyFromClient,
-  useLinkMandatesToProperty,
-  useUnlinkMandateFromProperty,
-  useLinkMandatesToClient,
-  useUnlinkMandateFromClient,
+  useLinkRequestsToProperty,
+  useUnlinkRequestFromProperty,
   useLinkClientsToDocument,
   useUnlinkClientFromDocument,
   useLinkPropertiesToDocument,
   useUnlinkPropertyFromDocument,
-  useLinkMandatesToDocument,
-  useUnlinkMandateFromDocument,
+  useLinkRequestsToDocument,
+  useUnlinkRequestFromDocument,
   useLinkDocumentsToClient,
   useUnlinkDocumentFromClient,
   useLinkDocumentsToProperty,
   useUnlinkDocumentFromProperty,
-  useLinkDocumentsToMandate,
-  useUnlinkDocumentFromMandate,
+  useLinkDocumentsToRequest,
+  useUnlinkDocumentFromRequest,
   useLinkRequestsToContact,
   useUnlinkRequestFromContact,
   useLinkPropertiesToContact,

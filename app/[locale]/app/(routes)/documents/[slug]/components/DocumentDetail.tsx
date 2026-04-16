@@ -17,8 +17,8 @@ import {
   useUnlinkClientFromDocument,
   useLinkPropertiesToDocument,
   useUnlinkPropertyFromDocument,
-  useLinkMandatesToDocument,
-  useUnlinkMandateFromDocument,
+  useLinkRequestsToDocument,
+  useUnlinkRequestFromDocument,
 } from "@/hooks/swr/useLinkMutations";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -81,8 +81,8 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
   const { unlinkClient } = useUnlinkClientFromDocument(document.id);
   const { linkProperties } = useLinkPropertiesToDocument(document.id);
   const { unlinkProperty } = useUnlinkPropertyFromDocument(document.id);
-  const { linkMandates: linkRequests } = useLinkMandatesToDocument(document.id);
-  const { unlinkMandate: unlinkRequest } = useUnlinkMandateFromDocument(document.id);
+  const { linkRequests } = useLinkRequestsToDocument(document.id);
+  const { unlinkRequest } = useUnlinkRequestFromDocument(document.id);
 
   const isEditable = document.document_file_mimeType === "text/html";
 

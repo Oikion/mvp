@@ -1,7 +1,6 @@
 import useSWRMutation from "swr/mutation";
 import { useSWRConfig } from "swr";
 import { getPropertyLinkedKey } from "./usePropertyLinked";
-import { getMandateLinkedKey } from "./useMandateLinked";
 import { getDocumentLinkedKey } from "./useDocumentLinked";
 import { getContactLinkedKey } from "./useContactLinked";
 import { getRequestLinkedKey } from "./useRequestLinked";
@@ -103,106 +102,31 @@ async function unlinkPropertyFromClientFetcher(
 }
 
 // ============================================================
-// Mandate Fetchers
+// Request Fetchers
 // ============================================================
 
-async function linkPropertiesToMandateFetcher(
+async function linkRequestsToPropertyFetcher(
   url: string,
-  { arg }: { arg: { mandateId: string; propertyIds: string[] } }
-): Promise<{ links: any[] }> {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(arg),
-  });
-  if (!res.ok) throw new Error((await res.text()) || "Failed to link properties");
-  return res.json();
-}
-
-async function unlinkPropertyFromMandateFetcher(
-  url: string,
-  { arg }: { arg: { mandateId: string; propertyId: string } }
-): Promise<UnlinkResponse> {
-  const res = await fetch(
-    `${url}?mandateId=${arg.mandateId}&propertyIds=${arg.propertyId}`,
-    { method: "DELETE" }
-  );
-  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink property");
-  return res.json();
-}
-
-async function linkClientsToMandateFetcher(
-  url: string,
-  { arg }: { arg: { mandateId: string; clientIds: string[] } }
-): Promise<{ links: any[] }> {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(arg),
-  });
-  if (!res.ok) throw new Error((await res.text()) || "Failed to link clients");
-  return res.json();
-}
-
-async function unlinkClientFromMandateFetcher(
-  url: string,
-  { arg }: { arg: { mandateId: string; clientId: string } }
-): Promise<UnlinkResponse> {
-  const res = await fetch(
-    `${url}?mandateId=${arg.mandateId}&clientIds=${arg.clientId}`,
-    { method: "DELETE" }
-  );
-  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink client");
-  return res.json();
-}
-
-async function linkMandatesToPropertyFetcher(
-  url: string,
-  { arg }: { arg: { propertyId: string; mandateIds: string[] } }
+  { arg }: { arg: { propertyId: string; requestIds: string[] } }
 ): Promise<{ links: any[] }> {
   const res = await fetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(arg),
   });
-  if (!res.ok) throw new Error((await res.text()) || "Failed to link mandates");
+  if (!res.ok) throw new Error((await res.text()) || "Failed to link requests");
   return res.json();
 }
 
-async function unlinkMandateFromPropertyFetcher(
+async function unlinkRequestFromPropertyFetcher(
   url: string,
-  { arg }: { arg: { propertyId: string; mandateId: string } }
+  { arg }: { arg: { propertyId: string; requestId: string } }
 ): Promise<UnlinkResponse> {
   const res = await fetch(
-    `${url}?mandateId=${arg.mandateId}&propertyIds=${arg.propertyId}`,
+    `${url}?requestId=${arg.requestId}&propertyIds=${arg.propertyId}`,
     { method: "DELETE" }
   );
-  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink mandate");
-  return res.json();
-}
-
-async function linkMandatesToClientFetcher(
-  url: string,
-  { arg }: { arg: { clientId: string; mandateIds: string[] } }
-): Promise<{ links: any[] }> {
-  const res = await fetch(url, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(arg),
-  });
-  if (!res.ok) throw new Error((await res.text()) || "Failed to link mandates");
-  return res.json();
-}
-
-async function unlinkMandateFromClientFetcher(
-  url: string,
-  { arg }: { arg: { clientId: string; mandateId: string } }
-): Promise<UnlinkResponse> {
-  const res = await fetch(
-    `${url}?mandateId=${arg.mandateId}&clientIds=${arg.clientId}`,
-    { method: "DELETE" }
-  );
-  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink mandate");
+  if (!res.ok) throw new Error((await res.text()) || "Failed to unlink request");
   return res.json();
 }
 
@@ -327,139 +251,19 @@ export function useUnlinkPropertyFromClient(clientId: string) {
 }
 
 // ============================================================
-// Mandate ↔ Property Hooks
+// Reverse: Property → Request Hooks
 // ============================================================
 
 /**
- * Hook to link properties to a mandate
- * Invalidates mandate linked entities cache after mutation
- */
-export function useLinkPropertiesToMandate(mandateId: string) {
-  const { mutate: globalMutate } = useSWRConfig();
-
-  const { trigger, isMutating, error } = useSWRMutation(
-    "/api/requests/link-entities",
-    linkPropertiesToMandateFetcher,
-    {
-      onSuccess: () => {
-        globalMutate(getMandateLinkedKey(mandateId));
-      },
-    }
-  );
-
-  const linkProperties = async (propertyIds: string[]) => {
-    return trigger({ mandateId, propertyIds });
-  };
-
-  return {
-    linkProperties,
-    isLinking: isMutating,
-    error,
-  };
-}
-
-/**
- * Hook to unlink a property from a mandate
- * Invalidates mandate linked entities cache after mutation
- */
-export function useUnlinkPropertyFromMandate(mandateId: string) {
-  const { mutate: globalMutate } = useSWRConfig();
-
-  const { trigger, isMutating, error } = useSWRMutation(
-    "/api/requests/link-entities",
-    unlinkPropertyFromMandateFetcher,
-    {
-      onSuccess: () => {
-        globalMutate(getMandateLinkedKey(mandateId));
-      },
-    }
-  );
-
-  const unlinkProperty = async (propertyId: string) => {
-    return trigger({ mandateId, propertyId });
-  };
-
-  return {
-    unlinkProperty,
-    isUnlinking: isMutating,
-    error,
-  };
-}
-
-// ============================================================
-// Mandate ↔ Client Hooks
-// ============================================================
-
-/**
- * Hook to link clients to a mandate
- * Invalidates mandate linked entities cache after mutation
- */
-export function useLinkClientsToMandate(mandateId: string) {
-  const { mutate: globalMutate } = useSWRConfig();
-
-  const { trigger, isMutating, error } = useSWRMutation(
-    "/api/requests/link-entities",
-    linkClientsToMandateFetcher,
-    {
-      onSuccess: () => {
-        globalMutate(getMandateLinkedKey(mandateId));
-      },
-    }
-  );
-
-  const linkClients = async (clientIds: string[]) => {
-    return trigger({ mandateId, clientIds });
-  };
-
-  return {
-    linkClients,
-    isLinking: isMutating,
-    error,
-  };
-}
-
-/**
- * Hook to unlink a client from a mandate
- * Invalidates mandate linked entities cache after mutation
- */
-export function useUnlinkClientFromMandate(mandateId: string) {
-  const { mutate: globalMutate } = useSWRConfig();
-
-  const { trigger, isMutating, error } = useSWRMutation(
-    "/api/requests/link-entities",
-    unlinkClientFromMandateFetcher,
-    {
-      onSuccess: () => {
-        globalMutate(getMandateLinkedKey(mandateId));
-      },
-    }
-  );
-
-  const unlinkClient = async (clientId: string) => {
-    return trigger({ mandateId, clientId });
-  };
-
-  return {
-    unlinkClient,
-    isUnlinking: isMutating,
-    error,
-  };
-}
-
-// ============================================================
-// Reverse: Property/Client → Mandate Hooks
-// ============================================================
-
-/**
- * Hook to link mandates to a property
+ * Hook to link requests to a property
  * Invalidates property linked entities cache after mutation
  */
-export function useLinkMandatesToProperty(propertyId: string) {
+export function useLinkRequestsToProperty(propertyId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
     "/api/requests/link-entities",
-    linkMandatesToPropertyFetcher,
+    linkRequestsToPropertyFetcher,
     {
       onSuccess: () => {
         globalMutate(getPropertyLinkedKey(propertyId));
@@ -467,27 +271,27 @@ export function useLinkMandatesToProperty(propertyId: string) {
     }
   );
 
-  const linkMandates = async (mandateIds: string[]) => {
-    return trigger({ propertyId, mandateIds });
+  const linkRequests = async (requestIds: string[]) => {
+    return trigger({ propertyId, requestIds });
   };
 
   return {
-    linkMandates,
+    linkRequests,
     isLinking: isMutating,
     error,
   };
 }
 
 /**
- * Hook to unlink a mandate from a property
+ * Hook to unlink a request from a property
  * Invalidates property linked entities cache after mutation
  */
-export function useUnlinkMandateFromProperty(propertyId: string) {
+export function useUnlinkRequestFromProperty(propertyId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
     "/api/requests/link-entities",
-    unlinkMandateFromPropertyFetcher,
+    unlinkRequestFromPropertyFetcher,
     {
       onSuccess: () => {
         globalMutate(getPropertyLinkedKey(propertyId));
@@ -495,68 +299,12 @@ export function useUnlinkMandateFromProperty(propertyId: string) {
     }
   );
 
-  const unlinkMandate = async (mandateId: string) => {
-    return trigger({ propertyId, mandateId });
+  const unlinkRequest = async (requestId: string) => {
+    return trigger({ propertyId, requestId });
   };
 
   return {
-    unlinkMandate,
-    isUnlinking: isMutating,
-    error,
-  };
-}
-
-/**
- * Hook to link mandates to a client
- * Invalidates client linked entities cache after mutation
- */
-export function useLinkMandatesToClient(clientId: string) {
-  const { mutate: globalMutate } = useSWRConfig();
-
-  const { trigger, isMutating, error } = useSWRMutation(
-    "/api/requests/link-entities",
-    linkMandatesToClientFetcher,
-    {
-      onSuccess: () => {
-        globalMutate(getContactLinkedKey(clientId));
-      },
-    }
-  );
-
-  const linkMandates = async (mandateIds: string[]) => {
-    return trigger({ clientId, mandateIds });
-  };
-
-  return {
-    linkMandates,
-    isLinking: isMutating,
-    error,
-  };
-}
-
-/**
- * Hook to unlink a mandate from a client
- * Invalidates client linked entities cache after mutation
- */
-export function useUnlinkMandateFromClient(clientId: string) {
-  const { mutate: globalMutate } = useSWRConfig();
-
-  const { trigger, isMutating, error } = useSWRMutation(
-    "/api/requests/link-entities",
-    unlinkMandateFromClientFetcher,
-    {
-      onSuccess: () => {
-        globalMutate(getContactLinkedKey(clientId));
-      },
-    }
-  );
-
-  const unlinkMandate = async (mandateId: string) => {
-    return trigger({ clientId, mandateId });
-  };
-
-  return {
-    unlinkMandate,
+    unlinkRequest,
     isUnlinking: isMutating,
     error,
   };
@@ -568,7 +316,7 @@ export function useUnlinkMandateFromClient(clientId: string) {
 
 async function linkEntitiesToDocumentFetcher(
   url: string,
-  { arg }: { arg: { clientIds?: string[]; propertyIds?: string[]; mandateIds?: string[] } }
+  { arg }: { arg: { clientIds?: string[]; propertyIds?: string[]; requestIds?: string[] } }
 ): Promise<{ success: boolean }> {
   const res = await fetch(url, {
     method: "POST",
@@ -581,12 +329,12 @@ async function linkEntitiesToDocumentFetcher(
 
 async function unlinkEntityFromDocumentFetcher(
   url: string,
-  { arg }: { arg: { clientIds?: string; propertyIds?: string; mandateIds?: string } }
+  { arg }: { arg: { clientIds?: string; propertyIds?: string; requestIds?: string } }
 ): Promise<UnlinkResponse> {
   const params = new URLSearchParams();
   if (arg.clientIds) params.set("clientIds", arg.clientIds);
   if (arg.propertyIds) params.set("propertyIds", arg.propertyIds);
-  if (arg.mandateIds) params.set("mandateIds", arg.mandateIds);
+  if (arg.requestIds) params.set("requestIds", arg.requestIds);
   const res = await fetch(`${url}?${params.toString()}`, { method: "DELETE" });
   if (!res.ok) throw new Error((await res.text()) || "Failed to unlink entity");
   return res.json();
@@ -681,10 +429,10 @@ export function useUnlinkPropertyFromDocument(documentId: string) {
 }
 
 // ============================================================
-// Document ↔ Mandate Hooks
+// Document ↔ Request Hooks
 // ============================================================
 
-export function useLinkMandatesToDocument(documentId: string) {
+export function useLinkRequestsToDocument(documentId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
@@ -697,14 +445,14 @@ export function useLinkMandatesToDocument(documentId: string) {
     }
   );
 
-  const linkMandates = async (mandateIds: string[]) => {
-    return trigger({ mandateIds });
+  const linkRequests = async (requestIds: string[]) => {
+    return trigger({ requestIds });
   };
 
-  return { linkMandates, isLinking: isMutating, error };
+  return { linkRequests, isLinking: isMutating, error };
 }
 
-export function useUnlinkMandateFromDocument(documentId: string) {
+export function useUnlinkRequestFromDocument(documentId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
@@ -717,11 +465,11 @@ export function useUnlinkMandateFromDocument(documentId: string) {
     }
   );
 
-  const unlinkMandate = async (mandateId: string) => {
-    return trigger({ mandateIds: mandateId });
+  const unlinkRequest = async (requestId: string) => {
+    return trigger({ requestIds: requestId });
   };
 
-  return { unlinkMandate, isUnlinking: isMutating, error };
+  return { unlinkRequest, isUnlinking: isMutating, error };
 }
 
 // ============================================================
@@ -848,18 +596,18 @@ export function useUnlinkDocumentFromProperty(propertyId: string) {
   return { unlinkDocument, isUnlinking: isMutating, error };
 }
 
-export function useLinkDocumentsToMandate(mandateId: string) {
+export function useLinkDocumentsToRequest(requestId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    `/api/documents/link-to-mandate/${mandateId}`,
-    async (url: string, { arg }: { arg: { mandateId: string; documentIds: string[] } }) => {
+    `/api/documents/link-to-request/${requestId}`,
+    async (url: string, { arg }: { arg: { requestId: string; documentIds: string[] } }) => {
       const results = await Promise.all(
         arg.documentIds.map((docId) =>
           fetch(`/api/documents/${docId}/link-entities`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mandateIds: [arg.mandateId] }),
+            body: JSON.stringify({ requestIds: [arg.requestId] }),
           })
         )
       );
@@ -869,26 +617,26 @@ export function useLinkDocumentsToMandate(mandateId: string) {
     },
     {
       onSuccess: () => {
-        globalMutate(getMandateLinkedKey(mandateId));
+        globalMutate(getRequestLinkedKey(requestId));
       },
     }
   );
 
   const linkDocuments = async (documentIds: string[]) => {
-    return trigger({ mandateId, documentIds });
+    return trigger({ requestId, documentIds });
   };
 
   return { linkDocuments, isLinking: isMutating, error };
 }
 
-export function useUnlinkDocumentFromMandate(mandateId: string) {
+export function useUnlinkDocumentFromRequest(requestId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    `/api/documents/unlink-from-mandate/${mandateId}`,
-    async (_url: string, { arg }: { arg: { mandateId: string; documentId: string } }) => {
+    `/api/documents/unlink-from-request/${requestId}`,
+    async (_url: string, { arg }: { arg: { requestId: string; documentId: string } }) => {
       const res = await fetch(
-        `/api/documents/${arg.documentId}/link-entities?mandateIds=${arg.mandateId}`,
+        `/api/documents/${arg.documentId}/link-entities?requestIds=${arg.requestId}`,
         { method: "DELETE" }
       );
       if (!res.ok) throw new Error("Failed to unlink document");
@@ -896,13 +644,13 @@ export function useUnlinkDocumentFromMandate(mandateId: string) {
     },
     {
       onSuccess: () => {
-        globalMutate(getMandateLinkedKey(mandateId));
+        globalMutate(getRequestLinkedKey(requestId));
       },
     }
   );
 
   const unlinkDocument = async (documentId: string) => {
-    return trigger({ mandateId, documentId });
+    return trigger({ requestId, documentId });
   };
 
   return { unlinkDocument, isUnlinking: isMutating, error };

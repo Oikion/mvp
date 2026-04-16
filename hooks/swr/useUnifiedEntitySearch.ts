@@ -266,16 +266,6 @@ export function useEventSearch(
 }
 
 /**
- * Hook for searching only mandates
- */
-export function useMandateSearch(
-  query: string,
-  options: Omit<UseUnifiedEntitySearchOptions, "types"> = {}
-) {
-  return useUnifiedEntitySearch(query, { ...options, types: ["mandate"] });
-}
-
-/**
  * Hook for searching only contacts
  */
 export function useContactSearch(
