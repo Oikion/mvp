@@ -95,10 +95,7 @@ export {
 // Unified import engine
 export {
   executeBatchImport,
-  /** @deprecated Use executeBatchImport instead */
-  executeUnifiedImport,
   type BatchImportResult,
-  type UnifiedImportResult,
 } from "./unified-engine";
 
 // Validation engine

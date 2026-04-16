@@ -1,18 +1,16 @@
 /**
  * lib/import/unified-engine.ts
  *
- * Unified import engine — processes validated rows containing Client + Property
- * + Mandate data. The batch engine wraps all writes in a single $transaction
+ * Unified import engine — processes validated rows containing Contact + Property
+ * + Request data. The batch engine wraps all writes in a single $transaction
  * using createMany for performance and atomicity.
  *
  * Primary export: executeBatchImport()
- * Deprecated export: executeUnifiedImport() — calls executeBatchImport() internally
  */
 
 import { prismadb } from "@/lib/prisma";
 import { generateFriendlyIds, type EntityType } from "@/lib/friendly-id";
 import { getOrgDek } from "@/lib/key-management";
-import { type ImportError } from "./types";
 import {
   UNIFIED_FIELD_DEFINITIONS,
   stripEntityPrefix,
@@ -48,16 +46,6 @@ export interface BatchImportResult {
   skippedCount: number;
 }
 
-/** @deprecated — kept for backward compatibility. Use BatchImportResult. */
-export interface UnifiedImportResult {
-  clients: { created: number; reused: number; failed: number };
-  properties: { created: number; failed: number };
-  mandates: { created: number; failed: number };
-  links: { clientProperty: number; mandateClient: number; mandateProperty: number };
-  skipped: number;
-  errors: ImportError[];
-  entityIds: { clients: string[]; properties: string[]; mandates: string[] };
-}
 
 // ---------------------------------------------------------------------------
 // Field -> entity ownership map (built once at module load)
@@ -577,81 +565,3 @@ export async function executeBatchImport(
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// Deprecated wrapper — will be removed in Task 22
-// ---------------------------------------------------------------------------
-
-/**
- * @deprecated Use executeBatchImport() with pre-validated rows instead.
- * This function partitions + validates + imports in one call (old API).
- * Kept temporarily for backward compatibility during migration.
- */
-export async function executeUnifiedImport(
-  rows: Record<string, unknown>[],
-  orgId: string,
-  userId: string,
-): Promise<UnifiedImportResult> {
-  // Lazy import to avoid circular dependency
-  const { validateImportData } = await import("./validation-engine");
-
-  const validation = validateImportData(rows);
-  const batchResult = await executeBatchImport(
-    validation.validRows,
-    orgId,
-    userId,
-  );
-
-  // Map BatchImportResult back to the old UnifiedImportResult shape
-  const contactReusedCount = Math.max(
-    0,
-    (validation.entitySummary.contacts.total -
-      validation.entitySummary.contacts.unique),
-  );
-
-  const errors: ImportError[] = [
-    // Validation errors
-    ...validation.errorRows.map((e) => ({
-      row: e.rowIndex + 2, // +2 for 0-index + header
-      field: `${e.entity}.${e.field}`,
-      error: e.error,
-      value: e.rawValue != null ? String(e.rawValue) : undefined,
-    })),
-    // Batch execution errors
-    ...batchResult.errors.map((e) => ({
-      row: e.rowIndex + 2,
-      field: e.entity,
-      error: e.error,
-    })),
-  ];
-
-  return {
-    clients: {
-      created: batchResult.contacts.length,
-      reused: contactReusedCount,
-      failed: validation.errorRows.filter((e) => e.entity === "contact").length +
-        batchResult.errors.filter((e) => e.entity === "contact").length,
-    },
-    properties: {
-      created: batchResult.properties.length,
-      failed: validation.errorRows.filter((e) => e.entity === "property").length +
-        batchResult.errors.filter((e) => e.entity === "property").length,
-    },
-    mandates: {
-      created: batchResult.requests.length,
-      failed: validation.errorRows.filter((e) => e.entity === "request").length +
-        batchResult.errors.filter((e) => e.entity === "request").length,
-    },
-    links: {
-      clientProperty: batchResult.linkCounts.contactProperty,
-      mandateClient: batchResult.linkCounts.requestContact,
-      mandateProperty: batchResult.linkCounts.requestProperty,
-    },
-    skipped: batchResult.skippedCount,
-    errors,
-    entityIds: {
-      clients: batchResult.contacts.map((c) => c.uuid),
-      properties: batchResult.properties.map((p) => p.uuid),
-      mandates: batchResult.requests.map((m) => m.uuid),
-    },
-  };
-}
