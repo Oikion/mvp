@@ -839,11 +839,11 @@ export function ImportWizardSteps({
     let properties = 0;
     let mandates = 0;
     for (const row of validData) {
-      const hasClient = !!(row.client_name || row.primary_phone || row.primary_email);
+      const hasClient = !!(row.contact_name || row.primary_phone || row.primary_email);
       if (hasClient) {
         const phoneVal = row.primary_phone;
         const emailVal = row.primary_email;
-        const nameVal = row.client_name;
+        const nameVal = row.contact_name;
         const phoneStr = phoneVal === null || phoneVal === undefined ? "" : String(phoneVal);
         const emailStr = emailVal === null || emailVal === undefined ? "" : String(emailVal);
         const nameStr = nameVal === null || nameVal === undefined ? "" : String(nameVal);

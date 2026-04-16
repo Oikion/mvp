@@ -103,7 +103,7 @@ function clientDedupKeyFromRow(row: Record<string, unknown>): string {
     .trim()
     .replace(/\D/g, "");
   const email = String(row.primary_email ?? "").trim().toLowerCase();
-  const name = String(row.client_name ?? "").trim().toLowerCase();
+  const name = String(row.contact_name ?? "").trim().toLowerCase();
   if (phone) return `phone:${phone}`;
   if (email) return `email:${email}`;
   return `name:${name}`;
@@ -264,7 +264,7 @@ export async function executeBatchImport(
         const clientUuid = dedupEntry.uuid;
         rowClientUuid.set(row.rowIndex, clientUuid);
 
-        const clientName = String(row.clientRow.client_name ?? row.clientRow.name ?? "");
+        const clientName = String(row.clientRow.contact_name ?? row.clientRow.name ?? "");
         rowClientName.set(row.rowIndex, clientName);
 
         // Only build create data for the first occurrence of this dedup key

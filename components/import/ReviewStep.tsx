@@ -333,7 +333,7 @@ function formatValue(value: unknown): string {
 
 function getClientName(row: Record<string, unknown> | null): string {
   if (!row) return "";
-  return String(row.client_name ?? row.full_name ?? "").trim();
+  return String(row.contact_name ?? row.full_name ?? "").trim();
 }
 
 function getPropertyName(row: Record<string, unknown> | null): string {

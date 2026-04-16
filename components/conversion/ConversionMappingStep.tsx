@@ -49,7 +49,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   description: ["description", "desc", "details", "perigrafi"],
   
   // Client fields
-  client_name: ["name", "full_name", "client", "contact_name", "onoma", "eponymo"],
+  contact_name: ["name", "full_name", "client", "client_name", "onoma", "eponymo"],
   primary_email: ["email", "mail", "contact_email", "email_address"],
   primary_phone: ["phone", "mobile", "tel", "telephone", "tilefono", "kinito"],
   company_name: ["company", "business", "organization", "etairia"],

@@ -110,7 +110,7 @@ function clientDedupKey(row: Record<string, unknown>): string {
     .trim()
     .replace(/\D/g, "");
   const email = String(row.primary_email ?? "").trim().toLowerCase();
-  const name = String(row.client_name ?? "").trim().toLowerCase();
+  const name = String(row.contact_name ?? "").trim().toLowerCase();
   if (phone) return `phone:${phone}`;
   if (email) return `email:${email}`;
   return `name:${name}`;
@@ -153,8 +153,8 @@ export function validateImportData(
   let propertyTotal = 0;
   let mandateTotal = 0;
 
-  // Detect whether the file has a client_name column mapped at all
-  const fileHasClientNameColumn = rows.some((r) => r.client_name !== undefined);
+  // Detect whether the file has a contact_name column mapped at all
+  const fileHasClientNameColumn = rows.some((r) => r.contact_name !== undefined);
 
   for (let i = 0; i < rows.length; i++) {
     const rowIndex = i;
@@ -165,7 +165,7 @@ export function validateImportData(
 
     // ── 2. DETECT ─────────────────────────────────────────────────────────
     const hasClient =
-      isNonEmpty(rawClientRow.client_name) ||
+      isNonEmpty(rawClientRow.contact_name) ||
       (!fileHasClientNameColumn &&
         (isNonEmpty(rawClientRow.primary_phone) ||
           isNonEmpty(rawClientRow.primary_email)));
@@ -201,10 +201,10 @@ export function validateImportData(
     // ── 3. CLIENT VALIDATION ──────────────────────────────────────────────
     if (hasClient) {
       // Auto-name when triggered by phone/email without explicit name
-      if (!isNonEmpty(rawClientRow.client_name)) {
-        rawClientRow.client_name = generateClientName(rawClientRow);
+      if (!isNonEmpty(rawClientRow.contact_name)) {
+        rawClientRow.contact_name = generateClientName(rawClientRow);
       }
-      clientName = String(rawClientRow.client_name ?? "");
+      clientName = String(rawClientRow.contact_name ?? "");
 
       // Strip entity prefixes (e.g. client_description -> description)
       const clientRowStripped = stripEntityPrefix(rawClientRow);
