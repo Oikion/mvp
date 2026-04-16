@@ -121,10 +121,6 @@ export function NewContactForm({
         assignedAgentId: data.assigned_to || null,
       });
       toast.success("Success", { description: "Contact created successfully", isTranslationKey: false });
-    } catch (error: any) {
-      toast.error("Error", { description: error?.response?.data, isTranslationKey: false });
-    } finally {
-      setIsLoading(false);
       form.reset({
         first_name: "",
         last_name: "",
@@ -151,6 +147,10 @@ export function NewContactForm({
       });
       router.refresh();
       onFinish();
+    } catch (error: any) {
+      toast.error("Error", { description: error?.response?.data, isTranslationKey: false });
+    } finally {
+      setIsLoading(false);
     }
   };
 
