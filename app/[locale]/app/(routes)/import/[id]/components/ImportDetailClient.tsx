@@ -110,20 +110,19 @@ interface TypedResultDetails {
 /** Impact scan data shape returned by /api/import/history/[id]/impact */
 interface ImpactData {
   entities: {
-    clients: number;
+    contacts: number;
     properties: number;
-    mandates: number;
+    requests: number;
   };
   cascade: {
-    clientPropertyLinks: number;
-    mandatePropertyLinks: number;
-    mandateClientLinks: number;
+    contactPropertyLinks: number;
+    requestPropertyLinks: number;
     deals: number;
   };
 }
 
-type EntityType = "clients" | "properties" | "mandates";
-const ALL_ENTITY_TYPES: EntityType[] = ["clients", "properties", "mandates"];
+type EntityType = "contacts" | "properties" | "requests";
+const ALL_ENTITY_TYPES: EntityType[] = ["contacts", "properties", "requests"];
 
 // ---------------------------------------------------------------------------
 // Type guards
@@ -133,8 +132,10 @@ const ALL_ENTITY_TYPES: EntityType[] = ["clients", "properties", "mandates"];
 function isTypedResultDetails(rd: unknown): rd is TypedResultDetails {
   if (!rd || typeof rd !== "object") return false;
   return (
+    Array.isArray((rd as Record<string, unknown>).contacts) ||
     Array.isArray((rd as Record<string, unknown>).clients) ||
     Array.isArray((rd as Record<string, unknown>).properties) ||
+    Array.isArray((rd as Record<string, unknown>).requests) ||
     Array.isArray((rd as Record<string, unknown>).mandates)
   );
 }
@@ -144,13 +145,19 @@ function isTypedResultDetails(rd: unknown): rd is TypedResultDetails {
 // ---------------------------------------------------------------------------
 
 const TYPE_CLASSES: Record<string, string> = {
-  CLIENTS:
+  // v2 import types
+  CONTACTS:
     "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   PROPERTIES:
     "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  MANDATES:
+  REQUESTS:
     "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",
   UNIFIED: "bg-primary/10 text-primary",
+  // legacy import types kept for reading old DB records
+  CLIENTS:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  MANDATES:
+    "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",
 };
 
 const ENTITY_CONFIG: Record<
@@ -162,12 +169,12 @@ const ENTITY_CONFIG: Record<
     href: string;
   }
 > = {
-  clients: {
-    labelKey: "detail.clients",
+  contacts: {
+    labelKey: "detail.contacts",
     badgeClass:
       "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
     icon: Users,
-    href: "/app/crm/clients",
+    href: "/app/crm/contacts",
   },
   properties: {
     labelKey: "detail.properties",
@@ -176,8 +183,8 @@ const ENTITY_CONFIG: Record<
     icon: Building2,
     href: "/app/mls/properties",
   },
-  mandates: {
-    labelKey: "detail.mandates",
+  requests: {
+    labelKey: "detail.requests",
     badgeClass:
       "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",
     icon: FileText,
@@ -203,26 +210,25 @@ const STATUS_VARIANT: Record<
 function ImpactReport({ data }: Readonly<{ data: ImpactData }>) {
   const t = useTranslations("import.history");
   const hasEntities =
-    data.entities.clients > 0 ||
+    data.entities.contacts > 0 ||
     data.entities.properties > 0 ||
-    data.entities.mandates > 0;
+    data.entities.requests > 0;
 
   const hasCascade =
-    data.cascade.clientPropertyLinks > 0 ||
-    data.cascade.mandatePropertyLinks > 0 ||
-    data.cascade.mandateClientLinks > 0 ||
+    data.cascade.contactPropertyLinks > 0 ||
+    data.cascade.requestPropertyLinks > 0 ||
     data.cascade.deals > 0;
 
   return (
     <div className="space-y-3 text-sm">
       {hasEntities ? (
         <div className="space-y-1">
-          {data.entities.clients > 0 && (
+          {data.entities.contacts > 0 && (
             <div className="flex items-center gap-2">
               <span className="font-medium text-destructive">
-                {data.entities.clients}
+                {data.entities.contacts}
               </span>
-              <span className="text-muted-foreground">{t("detail.clients")}</span>
+              <span className="text-muted-foreground">{t("detail.contacts")}</span>
             </div>
           )}
           {data.entities.properties > 0 && (
@@ -233,12 +239,12 @@ function ImpactReport({ data }: Readonly<{ data: ImpactData }>) {
               <span className="text-muted-foreground">{t("detail.properties")}</span>
             </div>
           )}
-          {data.entities.mandates > 0 && (
+          {data.entities.requests > 0 && (
             <div className="flex items-center gap-2">
               <span className="font-medium text-destructive">
-                {data.entities.mandates}
+                {data.entities.requests}
               </span>
-              <span className="text-muted-foreground">{t("detail.mandates")}</span>
+              <span className="text-muted-foreground">{t("detail.requests")}</span>
             </div>
           )}
         </div>
@@ -253,22 +259,16 @@ function ImpactReport({ data }: Readonly<{ data: ImpactData }>) {
           <p className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
             {t("batchDelete.alsoRemove")}
           </p>
-          {data.cascade.clientPropertyLinks > 0 && (
+          {data.cascade.contactPropertyLinks > 0 && (
             <div className="text-muted-foreground flex items-center gap-2">
               <span className="text-xs">{"\u2192"}</span>
-              <span>{t("batchDelete.clientPropertyLinks", { count: data.cascade.clientPropertyLinks })}</span>
+              <span>{t("batchDelete.contactPropertyLinks", { count: data.cascade.contactPropertyLinks })}</span>
             </div>
           )}
-          {data.cascade.mandatePropertyLinks > 0 && (
+          {data.cascade.requestPropertyLinks > 0 && (
             <div className="text-muted-foreground flex items-center gap-2">
               <span className="text-xs">{"\u2192"}</span>
-              <span>{t("batchDelete.mandatePropertyLinks", { count: data.cascade.mandatePropertyLinks })}</span>
-            </div>
-          )}
-          {data.cascade.mandateClientLinks > 0 && (
-            <div className="text-muted-foreground flex items-center gap-2">
-              <span className="text-xs">{"\u2192"}</span>
-              <span>{t("batchDelete.mandateClientLinks", { count: data.cascade.mandateClientLinks })}</span>
+              <span>{t("batchDelete.requestPropertyLinks", { count: data.cascade.requestPropertyLinks })}</span>
             </div>
           )}
           {data.cascade.deals > 0 && (
@@ -478,11 +478,13 @@ function getTypeBadgeVariant(
   importType: string
 ): "default" | "secondary" | "outline" {
   switch (importType) {
-    case "CLIENTS":
+    case "CONTACTS":
+    case "CLIENTS": // legacy
       return "default";
     case "PROPERTIES":
       return "secondary";
-    case "MANDATES":
+    case "REQUESTS":
+    case "MANDATES": // legacy
       return "outline";
     default:
       return "default";
