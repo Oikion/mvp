@@ -33,15 +33,15 @@ export interface RawPropertyForNetwork {
   listingAgentPhone: string | null;
 }
 
-export interface RawMandateForNetwork {
+export interface RawRequestForNetwork {
   id: string;
-  friendlyId: string;
-  transaction_type: string | null;
-  property_type: string | null;
-  areas_of_interest: string[] | null;
+  friendlyId: string | null;
+  requestType: string;
+  propertyCategory: string | null;
+  areasOfInterest: string[] | null;
   municipality: string | null;
-  budget_min: number | null;
-  budget_max: number | null;
+  budgetMin: number | null;
+  budgetMax: number | null;
   organizationId: string;
   // Agency info
   agencyName: string | null;
@@ -94,41 +94,41 @@ export type FilteredProperty =
   | AgencyIdentifiedProperty
   | FullProperty;
 
-interface MandateBase {
+interface RequestBase {
   id: string;
-  transaction_type: string | null;
-  property_type: string | null;
-  areas_of_interest: string[] | null;
+  requestType: string;
+  propertyCategory: string | null;
+  areasOfInterest: string[] | null;
   municipality: string | null;
-  budget_min: number | null;
-  budget_max: number | null;
+  budgetMin: number | null;
+  budgetMax: number | null;
   sourceOrgId: string;
   privacyLevel: NetworkPrivacyLevel;
 }
 
-export interface AnonymizedMandate extends MandateBase {
+export interface AnonymizedRequest extends RequestBase {
   privacyLevel: "ANONYMIZED";
 }
 
-export interface AgencyIdentifiedMandate extends MandateBase {
+export interface AgencyIdentifiedRequest extends RequestBase {
   privacyLevel: "AGENCY_IDENTIFIED";
   agencyName: string | null;
   agencyLogo: string | null;
 }
 
-export interface FullMandate extends MandateBase {
+export interface FullRequest extends RequestBase {
   privacyLevel: "FULL";
   agencyName: string | null;
   agencyLogo: string | null;
   agentName: string | null;
   agentPhone: string | null;
-  friendlyId: string;
+  friendlyId: string | null;
 }
 
-export type FilteredMandate =
-  | AnonymizedMandate
-  | AgencyIdentifiedMandate
-  | FullMandate;
+export type FilteredRequest =
+  | AnonymizedRequest
+  | AgencyIdentifiedRequest
+  | FullRequest;
 
 // ─────────────────────────────────────────────────────────────────
 // Filter functions
@@ -177,18 +177,18 @@ export function filterProperty(
   };
 }
 
-export function filterMandate(
-  raw: RawMandateForNetwork,
+export function filterRequest(
+  raw: RawRequestForNetwork,
   privacyLevel: NetworkPrivacyLevel,
-): FilteredMandate {
-  const base: MandateBase = {
+): FilteredRequest {
+  const base: RequestBase = {
     id: raw.id,
-    transaction_type: raw.transaction_type,
-    property_type: raw.property_type,
-    areas_of_interest: raw.areas_of_interest,
+    requestType: raw.requestType,
+    propertyCategory: raw.propertyCategory,
+    areasOfInterest: raw.areasOfInterest,
     municipality: raw.municipality,
-    budget_min: raw.budget_min,
-    budget_max: raw.budget_max,
+    budgetMin: raw.budgetMin,
+    budgetMax: raw.budgetMax,
     sourceOrgId: raw.organizationId,
     privacyLevel,
   };

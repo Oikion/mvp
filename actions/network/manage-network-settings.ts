@@ -63,9 +63,9 @@ export async function getNetworkPartners() {
 export interface UpdateNetworkSettingsInput {
   membership: OrgNetworkMembership;
   shareProperties: boolean;
-  shareMandates: boolean;
+  shareRequests: boolean;
   propertyPrivacyLevel: NetworkPrivacyLevel;
-  mandatePrivacyLevel: NetworkPrivacyLevel;
+  requestPrivacyLevel: NetworkPrivacyLevel;
 }
 
 export async function updateNetworkSettings(input: UpdateNetworkSettingsInput) {

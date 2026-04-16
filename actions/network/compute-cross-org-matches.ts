@@ -346,7 +346,7 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
       batch.map(async (orgSettings) => {
         const orgId = orgSettings.organizationId;
 
-        if (orgSettings.shareMandates) {
+        if (orgSettings.shareRequests) {
           try {
             const rawRequests = await fetchNetworkRequests(orgId);
             const decrypted: RequestForMatching[] = [];

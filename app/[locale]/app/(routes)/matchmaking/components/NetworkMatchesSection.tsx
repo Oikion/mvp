@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Globe, ArrowRight, Building2, FileText, Clock } from "lucide-react";
 import type { CrossOrgMatchSummary, CrossOrgMatchResult } from "@/actions/network/get-cross-org-matches";
-import type { FullProperty, AgencyIdentifiedProperty, FullMandate, AgencyIdentifiedMandate } from "@/lib/network/privacy-filter";
+import type { FullProperty, AgencyIdentifiedProperty, FullRequest, AgencyIdentifiedRequest } from "@/lib/network/privacy-filter";
 
 interface Props {
   summary: CrossOrgMatchSummary;
@@ -40,15 +40,15 @@ function AgencyBadge({ name, logo }: { name: string | null; logo: string | null 
 }
 
 function MatchCard({ match, locale, t }: { match: CrossOrgMatchResult; locale: string; t: ReturnType<typeof useTranslations> }) {
-  const { mandate, property, matchScore } = match;
+  const { request, property, matchScore } = match;
 
-  const mandateAgency =
-    mandate.privacyLevel !== "ANONYMIZED"
-      ? (mandate as AgencyIdentifiedMandate | FullMandate).agencyName
+  const requestAgency =
+    request.privacyLevel !== "ANONYMIZED"
+      ? (request as AgencyIdentifiedRequest | FullRequest).agencyName
       : null;
-  const mandateLogo =
-    mandate.privacyLevel !== "ANONYMIZED"
-      ? (mandate as AgencyIdentifiedMandate | FullMandate).agencyLogo
+  const requestLogo =
+    request.privacyLevel !== "ANONYMIZED"
+      ? (request as AgencyIdentifiedRequest | FullRequest).agencyLogo
       : null;
   const propertyAgency =
     property.privacyLevel !== "ANONYMIZED"
@@ -61,31 +61,31 @@ function MatchCard({ match, locale, t }: { match: CrossOrgMatchResult; locale: s
 
   const propertyFriendlyId =
     property.privacyLevel === "FULL" ? (property as FullProperty).friendlyId : null;
-  const mandateFriendlyId =
-    mandate.privacyLevel === "FULL" ? (mandate as FullMandate).friendlyId : null;
+  const requestFriendlyId =
+    request.privacyLevel === "FULL" ? (request as FullRequest).friendlyId : null;
 
   return (
     <div className="flex flex-col md:flex-row items-start md:items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-      {/* Mandate side */}
+      {/* Request side */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
           <FileText className="h-5 w-5 text-primary" />
         </div>
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">
-            {mandate.transaction_type} · {mandate.property_type ?? "—"}
+            {request.requestType} · {request.propertyCategory ?? "—"}
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-            {mandate.municipality && <span>{mandate.municipality}</span>}
-            {(mandate.budget_min || mandate.budget_max) && (
+            {request.municipality && <span>{request.municipality}</span>}
+            {(request.budgetMin || request.budgetMax) && (
               <span>
-                {mandate.budget_min ? `€${(mandate.budget_min / 1000).toFixed(0)}k` : ""}
-                {mandate.budget_min && mandate.budget_max ? "–" : ""}
-                {mandate.budget_max ? `€${(mandate.budget_max / 1000).toFixed(0)}k` : ""}
+                {request.budgetMin ? `€${(request.budgetMin / 1000).toFixed(0)}k` : ""}
+                {request.budgetMin && request.budgetMax ? "–" : ""}
+                {request.budgetMax ? `€${(request.budgetMax / 1000).toFixed(0)}k` : ""}
               </span>
             )}
           </div>
-          <AgencyBadge name={mandateAgency ?? null} logo={mandateLogo ?? null} />
+          <AgencyBadge name={requestAgency ?? null} logo={requestLogo ?? null} />
         </div>
       </div>
 
@@ -127,9 +127,9 @@ function MatchCard({ match, locale, t }: { match: CrossOrgMatchResult; locale: s
 
       {/* Actions */}
       <div className="flex gap-2 shrink-0">
-        {mandateFriendlyId && (
+        {requestFriendlyId && (
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/${locale}/app/requests/${mandateFriendlyId}`}>
+            <Link href={`/${locale}/app/requests/${requestFriendlyId}`}>
               {t("dashboard.viewMandate")}
             </Link>
           </Button>

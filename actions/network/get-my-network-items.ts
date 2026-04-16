@@ -5,9 +5,9 @@ import { prismadb } from "@/lib/prisma";
 
 export async function getMyNetworkItems() {
   const { userId, orgId } = await auth();
-  if (!userId || !orgId) return { properties: [], mandates: [] };
+  if (!userId || !orgId) return { properties: [], requests: [] };
 
-  const [properties, mandates] = await Promise.all([
+  const [properties, requests] = await Promise.all([
     prismadb.properties.findMany({
       where: {
         organizationId: orgId,
@@ -25,7 +25,7 @@ export async function getMyNetworkItems() {
       orderBy: { updatedAt: "desc" },
       take: 50,
     }),
-    prismadb.mandate.findMany({
+    prismadb.request.findMany({
       where: {
         organizationId: orgId,
         visibility: { in: ["SECURE", "PUBLIC"] },
@@ -36,13 +36,13 @@ export async function getMyNetworkItems() {
         title: true,
         visibility: true,
         status: true,
-        transaction_type: true,
-        budget_max: true,
+        requestType: true,
+        budgetMax: true,
       },
       orderBy: { updatedAt: "desc" },
       take: 50,
     }),
   ]);
 
-  return { properties, mandates };
+  return { properties, requests };
 }

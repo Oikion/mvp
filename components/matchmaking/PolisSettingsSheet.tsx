@@ -240,14 +240,14 @@ export function PolisSettingsSheet({
   const [shareProperties, setShareProperties] = useState(
     initialSettings?.shareProperties ?? false
   );
-  const [shareMandates, setShareMandates] = useState(
-    initialSettings?.shareMandates ?? false
+  const [shareRequests, setShareRequests] = useState(
+    initialSettings?.shareRequests ?? false
   );
   const [propertyPrivacy, setPropertyPrivacy] = useState<NetworkPrivacyLevel>(
     initialSettings?.propertyPrivacyLevel ?? "ANONYMIZED"
   );
-  const [mandatePrivacy, setMandatePrivacy] = useState<NetworkPrivacyLevel>(
-    initialSettings?.mandatePrivacyLevel ?? "ANONYMIZED"
+  const [requestPrivacy, setRequestPrivacy] = useState<NetworkPrivacyLevel>(
+    initialSettings?.requestPrivacyLevel ?? "ANONYMIZED"
   );
   const [partners, setPartners] = useState<Partner[]>(initialPartners);
   const [inviteError, setInviteError] = useState<string | null>(null);
@@ -262,9 +262,9 @@ export function PolisSettingsSheet({
       const input: UpdateNetworkSettingsInput = {
         membership,
         shareProperties,
-        shareMandates,
+        shareRequests,
         propertyPrivacyLevel: propertyPrivacy,
-        mandatePrivacyLevel: mandatePrivacy,
+        requestPrivacyLevel: requestPrivacy,
       };
       const result = await updateNetworkSettings(input);
       if (result.success) {
@@ -395,8 +395,8 @@ export function PolisSettingsSheet({
                       </Label>
                       <Switch
                         id="share-mandates"
-                        checked={shareMandates}
-                        onCheckedChange={setShareMandates}
+                        checked={shareRequests}
+                        onCheckedChange={setShareRequests}
                       />
                     </div>
                   </div>
@@ -411,7 +411,7 @@ export function PolisSettingsSheet({
                   </div>
                   <div className="space-y-1.5">
                     <p className="text-xs text-muted-foreground font-medium">Mandates</p>
-                    <PrivacySlider value={mandatePrivacy} onChange={setMandatePrivacy} />
+                    <PrivacySlider value={requestPrivacy} onChange={setRequestPrivacy} />
                   </div>
                 </div>
 

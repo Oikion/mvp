@@ -3440,9 +3440,9 @@ model OrgNetworkSettings {
   organizationId       String               @unique
   membership           OrgNetworkMembership @default(NONE)
   shareProperties      Boolean              @default(false)
-  shareMandates        Boolean              @default(false)
+  shareRequests        Boolean              @default(false)
   propertyPrivacyLevel NetworkPrivacyLevel  @default(ANONYMIZED)
-  mandatePrivacyLevel  NetworkPrivacyLevel  @default(ANONYMIZED)
+  requestPrivacyLevel  NetworkPrivacyLevel  @default(ANONYMIZED)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
 

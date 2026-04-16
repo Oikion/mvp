@@ -12,9 +12,9 @@ import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
 import {
   filterProperty,
-  filterMandate,
+  filterRequest,
   type FilteredProperty,
-  type FilteredMandate,
+  type FilteredRequest,
 } from "@/lib/network/privacy-filter";
 import type { CriterionScore } from "@/lib/matchmaking/types";
 
@@ -27,9 +27,9 @@ export interface CrossOrgMatchResult {
   matchScore: number;
   breakdown: CriterionScore[];
   computedAt: Date;
-  /** True when the viewing org owns the mandate; false when they own the property */
-  viewingOrgHasMandate: boolean;
-  mandate: FilteredMandate;
+  /** True when the viewing org owns the request; false when they own the property */
+  viewingOrgHasRequest: boolean;
+  request: FilteredRequest;
   property: FilteredProperty;
 }
 
@@ -115,22 +115,22 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
   const profiles = new Map(orgProfilesMap);
 
   // Load request + property rows needed for privacy-filtered output
-  const mandateIds = Array.from(new Set(rows.map((r) => r.requestId)));
+  const requestIds = Array.from(new Set(rows.map((r) => r.requestId)));
   const propertyIds = Array.from(new Set(rows.map((r) => r.propertyId)));
 
-  const [mandateRows, propertyRows] = await Promise.all([
-    prismadb.mandate.findMany({
-      where: { id: { in: mandateIds } },
+  const [requestRows, propertyRows] = await Promise.all([
+    prismadb.request.findMany({
+      where: { id: { in: requestIds } },
       select: {
         id: true,
         friendlyId: true,
-        transaction_type: true,
-        property_type: true,
-        areas_of_interest: true,
+        requestType: true,
+        propertyCategory: true,
+        areasOfInterest: true,
         municipality: true,
-        budget_min: true,
-        budget_max: true,
-        assigned_to: true,
+        budgetMin: true,
+        budgetMax: true,
+        assignedAgentId: true,
         organizationId: true,
       },
     }),
@@ -153,28 +153,28 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
     }),
   ]);
 
-  const mandateMap = new Map(mandateRows.map((m) => [m.id, m]));
+  const requestMap = new Map(requestRows.map((m) => [m.id, m]));
   const propertyMap = new Map(propertyRows.map((p) => [p.id, p]));
 
   // Batch-fetch all agent info needed across all rows (single query)
   const uniqueAgentIds = new Set<string>();
   for (const row of rows) {
-    const mandate = mandateMap.get(row.requestId);
+    const request = requestMap.get(row.requestId);
     const property = propertyMap.get(row.propertyId);
-    if (!mandate || !property) continue;
+    if (!request || !property) continue;
 
-    const mandatePeerSetting = peerSettings.get(row.requestOrgId);
+    const requestPeerSetting = peerSettings.get(row.requestOrgId);
     const propertyPeerSetting = peerSettings.get(row.propertyOrgId);
-    const mandatePrivacy =
+    const requestPrivacy =
       row.requestOrgId === orgId
-        ? settings.mandatePrivacyLevel
-        : mandatePeerSetting?.mandatePrivacyLevel ?? "ANONYMIZED";
+        ? settings.requestPrivacyLevel
+        : requestPeerSetting?.requestPrivacyLevel ?? "ANONYMIZED";
     const propertyPrivacy =
       row.propertyOrgId === orgId
         ? settings.propertyPrivacyLevel
         : propertyPeerSetting?.propertyPrivacyLevel ?? "ANONYMIZED";
 
-    if (mandatePrivacy === "FULL" && mandate.assigned_to) uniqueAgentIds.add(mandate.assigned_to);
+    if (requestPrivacy === "FULL" && request.assignedAgentId) uniqueAgentIds.add(request.assignedAgentId);
     if (propertyPrivacy === "FULL" && property.assigned_to) uniqueAgentIds.add(property.assigned_to);
   }
 
@@ -194,24 +194,24 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
   let lastComputedAt: Date | null = null;
 
   for (const row of rows) {
-    const mandate = mandateMap.get(row.requestId);
+    const request = requestMap.get(row.requestId);
     const property = propertyMap.get(row.propertyId);
-    if (!mandate || !property) continue;
+    if (!request || !property) continue;
 
     if (!lastComputedAt || row.computedAt > lastComputedAt) {
       lastComputedAt = row.computedAt;
     }
 
-    const viewingOrgHasMandate = row.requestOrgId === orgId;
+    const viewingOrgHasRequest = row.requestOrgId === orgId;
 
     // Load agent info on demand (only for FULL privacy level)
-    const mandatePeerSetting = peerSettings.get(row.requestOrgId);
+    const requestPeerSetting = peerSettings.get(row.requestOrgId);
     const propertyPeerSetting = peerSettings.get(row.propertyOrgId);
 
-    const mandatePrivacy =
+    const requestPrivacy =
       row.requestOrgId === orgId
-        ? settings.mandatePrivacyLevel  // own data: use own setting
-        : mandatePeerSetting?.mandatePrivacyLevel ?? "ANONYMIZED";
+        ? settings.requestPrivacyLevel  // own data: use own setting
+        : requestPeerSetting?.requestPrivacyLevel ?? "ANONYMIZED";
 
     const propertyPrivacy =
       row.propertyOrgId === orgId
@@ -219,16 +219,16 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
         : propertyPeerSetting?.propertyPrivacyLevel ?? "ANONYMIZED";
 
     // Build agent info if needed (map lookup — no DB query)
-    let mandateAgentName: string | null = null;
-    let mandateAgentPhone: string | null = null;
+    let requestAgentName: string | null = null;
+    let requestAgentPhone: string | null = null;
     let propertyAgentName: string | null = null;
     let propertyAgentPhone: string | null = null;
 
-    if (mandatePrivacy === "FULL" && mandate.assigned_to) {
-      const agent = agentMap.get(mandate.assigned_to);
+    if (requestPrivacy === "FULL" && request.assignedAgentId) {
+      const agent = agentMap.get(request.assignedAgentId);
       if (agent) {
-        mandateAgentName = [agent.firstName, agent.lastName].filter(Boolean).join(" ");
-        mandateAgentPhone = null;
+        requestAgentName = [agent.firstName, agent.lastName].filter(Boolean).join(" ");
+        requestAgentPhone = null;
       }
     }
     if (propertyPrivacy === "FULL" && property.assigned_to) {
@@ -239,7 +239,7 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
       }
     }
 
-    const mandateSourceProfile =
+    const requestSourceProfile =
       row.requestOrgId === orgId
         ? ownProfile
         : profiles.get(row.requestOrgId) ?? null;
@@ -249,23 +249,23 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
         ? ownProfile
         : profiles.get(row.propertyOrgId) ?? null;
 
-    const filteredMandate = filterMandate(
+    const filteredRequest = filterRequest(
       {
-        id: mandate.id,
-        friendlyId: mandate.friendlyId,
-        transaction_type: mandate.transaction_type,
-        property_type: mandate.property_type,
-        areas_of_interest: mandate.areas_of_interest as string[] | null,
-        municipality: mandate.municipality,
-        budget_min: mandate.budget_min ? Number(mandate.budget_min) : null,
-        budget_max: mandate.budget_max ? Number(mandate.budget_max) : null,
-        organizationId: mandate.organizationId,
-        agencyName: mandateSourceProfile?.name ?? null,
-        agencyLogo: mandateSourceProfile?.logo ?? null,
-        agentName: mandateAgentName,
-        agentPhone: mandateAgentPhone,
+        id: request.id,
+        friendlyId: request.friendlyId ?? null,
+        requestType: request.requestType,
+        propertyCategory: request.propertyCategory ?? null,
+        areasOfInterest: request.areasOfInterest as string[] | null,
+        municipality: request.municipality ?? null,
+        budgetMin: request.budgetMin ? Number(request.budgetMin) : null,
+        budgetMax: request.budgetMax ? Number(request.budgetMax) : null,
+        organizationId: request.organizationId,
+        agencyName: requestSourceProfile?.name ?? null,
+        agencyLogo: requestSourceProfile?.logo ?? null,
+        agentName: requestAgentName,
+        agentPhone: requestAgentPhone,
       },
-      mandatePrivacy,
+      requestPrivacy,
     );
 
     const filteredProperty = filterProperty(
@@ -295,8 +295,8 @@ export async function getCrossOrgMatches(): Promise<CrossOrgMatchSummary> {
       matchScore: row.matchScore,
       breakdown: row.breakdown as unknown as CriterionScore[],
       computedAt: row.computedAt,
-      viewingOrgHasMandate,
-      mandate: filteredMandate,
+      viewingOrgHasRequest,
+      request: filteredRequest,
       property: filteredProperty,
     });
   }

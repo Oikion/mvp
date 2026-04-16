@@ -263,14 +263,14 @@ export function NetworkSettingsClient({ initialSettings, initialPartners, locale
   const [shareProperties, setShareProperties] = useState(
     initialSettings?.shareProperties ?? false,
   );
-  const [shareMandates, setShareMandates] = useState(
-    initialSettings?.shareMandates ?? false,
+  const [shareRequests, setShareRequests] = useState(
+    initialSettings?.shareRequests ?? false,
   );
   const [propertyPrivacy, setPropertyPrivacy] = useState<NetworkPrivacyLevel>(
     initialSettings?.propertyPrivacyLevel ?? "ANONYMIZED",
   );
-  const [mandatePrivacy, setMandatePrivacy] = useState<NetworkPrivacyLevel>(
-    initialSettings?.mandatePrivacyLevel ?? "ANONYMIZED",
+  const [requestPrivacy, setRequestPrivacy] = useState<NetworkPrivacyLevel>(
+    initialSettings?.requestPrivacyLevel ?? "ANONYMIZED",
   );
   const [partners, setPartners] = useState<Partner[]>(initialPartners);
   const [inviteError, setInviteError] = useState<string | null>(null);
@@ -309,9 +309,9 @@ export function NetworkSettingsClient({ initialSettings, initialPartners, locale
       const input: UpdateNetworkSettingsInput = {
         membership,
         shareProperties,
-        shareMandates,
+        shareRequests,
         propertyPrivacyLevel: propertyPrivacy,
-        mandatePrivacyLevel: mandatePrivacy,
+        requestPrivacyLevel: requestPrivacy,
       };
       const result = await updateNetworkSettings(input);
       if (result.success) setSaveSuccess(true);
@@ -433,14 +433,14 @@ export function NetworkSettingsClient({ initialSettings, initialPartners, locale
                   <div className="text-xs text-muted-foreground/70 mt-1">{t("sharing.mandatesDetail")}</div>
                 </div>
                 <Switch
-                  checked={shareMandates}
-                  onCheckedChange={setShareMandates}
+                  checked={shareRequests}
+                  onCheckedChange={setShareRequests}
                 />
               </div>
-              {shareMandates && (
+              {shareRequests && (
                 <div className="ml-4 space-y-2">
                   <Label className="text-sm font-medium">{t("privacy.mandatesLabel")}</Label>
-                  <PrivacySlider value={mandatePrivacy} onChange={setMandatePrivacy} t={t} />
+                  <PrivacySlider value={requestPrivacy} onChange={setRequestPrivacy} t={t} />
                 </div>
               )}
             </div>

@@ -137,7 +137,7 @@ export default async function PlatformAdminNetworkPage() {
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
                         Properties: {s.shareProperties ? "shared" : "private"} ·
-                        Mandates: {s.shareMandates ? "shared" : "private"} ·
+                        Requests: {s.shareRequests ? "shared" : "private"} ·
                         Updated {format(s.updatedAt, "dd/MM/yyyy")}
                       </div>
                     </div>

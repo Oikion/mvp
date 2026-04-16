@@ -269,14 +269,14 @@ export async function finalizeOrganizationSetup(
           organizationId: orgId,
           membership: validated.networkMembership,
           propertyPrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
-          mandatePrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
+          requestPrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
           shareProperties: true,
-          shareMandates: true,
+          shareRequests: true,
         },
         update: {
           membership: validated.networkMembership,
           propertyPrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
-          mandatePrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
+          requestPrivacyLevel: validated.networkPrivacy ?? "ANONYMIZED",
         },
       });
     } catch (err) {
