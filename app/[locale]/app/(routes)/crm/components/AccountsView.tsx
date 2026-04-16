@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { getColumns } from "../contacts/table-components/columns";
+import { useClientColumns } from "../contacts/table-components/columns";
 import { NewClientWizard } from "../clients/components/NewClientWizard";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import {
@@ -102,6 +102,8 @@ const AccountsView = ({ data = [], crmData }: any) => {
     },
     [openDeleteModal, router]
   );
+
+  const clientColumns = useClientColumns(crmData?.users ?? []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -195,7 +197,7 @@ const AccountsView = ({ data = [], crmData }: any) => {
           ) : view === "list" ? (
             <DataTable
               data={data}
-              columns={getColumns(users)}
+              columns={clientColumns}
               searchKey="name"
               searchPlaceholder={t("CrmAccountsTable.filterPlaceholder")}
               enableKeyboardNav={true}
