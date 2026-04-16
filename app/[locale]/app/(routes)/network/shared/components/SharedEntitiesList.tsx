@@ -109,7 +109,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
       case "PROPERTY":
         return `/app/mls/properties/${entity.friendlyId}`;
       case "CLIENT":
-        return `/app/crm/accounts/${entity.friendlyId}`;
+        return `/app/crm/contacts/${entity.friendlyId}`;
       case "DOCUMENT":
         return `/app/documents/${entity.friendlyId}`;
       default:
