@@ -1,3 +1,5 @@
+"use server";
+
 import { getOrganizationUsers } from "@/actions/organization/get-organization-users";
 import { getClients } from "@/actions/crm/get-clients";
 import { getContacts } from "@/actions/crm/get-contacts";
@@ -20,13 +22,14 @@ export const getAllCrmData = async () => {
   ]);
 
   // Legacy keys kept for UI compatibility; to be removed in follow-up refactor
-  const opportunities: any[] = [];
-  const leads: any[] = [];
-  const contracts: any[] = [];
-  const saleTypes: any[] = [];
-  const saleStages: any[] = [];
-  const campaigns: any[] = [];
-  const industries: any[] = [];
+  // Legacy keys — always empty; kept for UI key compatibility until Task 17 cleanup
+  const opportunities: never[] = [];
+  const leads: never[] = [];
+  const contracts: never[] = [];
+  const saleTypes: never[] = [];
+  const saleStages: never[] = [];
+  const campaigns: never[] = [];
+  const industries: never[] = [];
 
   const data = {
     users,

@@ -1,27 +1,39 @@
+"use server";
+
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import type { Prisma } from "@prisma/client";
 
-export const getContacts = async () => {
+type ContactWithAgent = Prisma.ContactGetPayload<{
+  include: { assignedAgent: { select: { firstName: true; lastName: true } } };
+}>;
+
+export const getContacts = async (): Promise<ContactWithAgent[]> => {
   const organizationId = await getCurrentOrgIdSafe();
 
   if (!organizationId) {
     return [];
   }
 
-  const data = await prismadb.contact.findMany({
-    where: {
-      organizationId,
-    },
-    include: {
-      assignedAgent: {
-        select: {
-          firstName: true,
-          lastName: true,
+  try {
+    const data = await prismadb.contact.findMany({
+      where: {
+        organizationId,
+      },
+      include: {
+        assignedAgent: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return data;
+    return data;
+  } catch (error) {
+    console.error("[GET_CONTACTS]", error);
+    return [];
+  }
 };
 
