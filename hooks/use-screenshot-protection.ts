@@ -246,7 +246,7 @@ export function useScreenshotProtection(
 export const PROTECTED_ROUTES = {
   // Always protect sensitive areas
   ALWAYS_PROTECTED: [
-    "/app/crm/clients",
+    "/app/crm/contacts",
     "/app/crm/contacts",
     "/app/crm/contacts",
     "/app/documents",

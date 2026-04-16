@@ -140,7 +140,7 @@ export async function shareEntity(input: ShareEntityInput) {
   // Revalidate all relevant paths so the recipient sees the shared item
   revalidatePath("/shared-with-me");
   revalidatePath("/mls/properties");
-  revalidatePath("/crm/clients");
+  revalidatePath("/crm/contacts");
   
   return shared;
 }

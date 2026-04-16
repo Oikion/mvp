@@ -141,7 +141,7 @@ export const MENTION_CATEGORY_CONFIG: Record<
     label: "Clients",
     labelKey: "mentions.categories.clients",
     shortcut: "⌘⇧1",
-    route: "/app/crm/clients",
+    route: "/app/crm/contacts",
   },
   properties: {
     label: "Properties",

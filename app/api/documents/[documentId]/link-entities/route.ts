@@ -5,7 +5,7 @@ import { invalidateCache } from "@/lib/cache-invalidate";
 
 /**
  * POST /api/documents/[documentId]/link-entities
- * Link clients, properties, or mandates TO a document
+ * Link contacts, properties, or requests TO a document
  */
 export async function POST(
   req: Request,
@@ -16,16 +16,18 @@ export async function POST(
     const organizationId = await getCurrentOrgId();
     const { documentId } = await params;
     const body = await req.json();
-    const { clientIds, propertyIds, mandateIds } = body;
+    // Accept both `requestIds` (v2) and legacy `mandateIds` (v1 backward compat)
+    const { clientIds, propertyIds, requestIds: requestIdsV2, mandateIds: requestIdsLegacy } = body;
+    const requestIds = requestIdsV2 ?? requestIdsLegacy;
 
     const hasEntities =
       (Array.isArray(clientIds) && clientIds.length > 0) ||
       (Array.isArray(propertyIds) && propertyIds.length > 0) ||
-      (Array.isArray(mandateIds) && mandateIds.length > 0);
+      (Array.isArray(requestIds) && requestIds.length > 0);
 
     if (!hasEntities) {
       return NextResponse.json(
-        { error: "At least one of clientIds, propertyIds, or mandateIds is required" },
+        { error: "At least one of clientIds, propertyIds, or requestIds is required" },
         { status: 400 }
       );
     }
@@ -76,19 +78,19 @@ export async function POST(
       pushData.linkedPropertiesIds = { push: propertyIds };
     }
 
-    if (Array.isArray(mandateIds) && mandateIds.length > 0) {
-      const requests = await prismadb.request.findMany({
-        where: { id: { in: mandateIds }, organizationId },
+    if (Array.isArray(requestIds) && requestIds.length > 0) {
+      const foundRequests = await prismadb.request.findMany({
+        where: { id: { in: requestIds }, organizationId },
         select: { id: true },
       });
-      if (requests.length !== mandateIds.length) {
+      if (foundRequests.length !== requestIds.length) {
         return NextResponse.json(
           { error: "Some requests not found or access denied" },
           { status: 404 }
         );
       }
-      connectData.Requests = { connect: mandateIds.map((id: string) => ({ id })) };
-      pushData.linkedMandatesIds = { push: mandateIds };
+      connectData.Requests = { connect: requestIds.map((id: string) => ({ id })) };
+      pushData.linkedMandatesIds = { push: requestIds };
     }
 
     await prismadb.documents.update({

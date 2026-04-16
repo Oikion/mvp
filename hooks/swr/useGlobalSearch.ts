@@ -167,7 +167,7 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
         type: "client",
         title: client.client_name || "Unnamed Client",
         subtitle: client.primary_email || undefined,
-        url: `/app/crm/clients/${client.friendlyId}`,
+        url: `/app/crm/contacts/${client.friendlyId}`,
         relationships: client.relationships,
       });
     });
