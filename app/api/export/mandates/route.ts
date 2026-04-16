@@ -24,7 +24,7 @@ import {
 } from "@/lib/export";
 import { requireCanExport } from "@/lib/permissions/guards";
 import { shouldUseK8sForExport, submitExportJob } from "@/lib/export/job-handler";
-import { decryptMandateForOrg } from "@/lib/model-encryption";
+import { decryptRequestForOrg } from "@/lib/model-encryption";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
     // Build where clause
     const whereClause: Record<string, unknown> = {
       organizationId: orgId,
-      draft_status: { not: true },
+      draftStatus: { not: true },
     };
 
     // Apply status filter if provided
@@ -111,29 +111,29 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    // Fetch mandates with full data for export
-    const mandates = await prismadb.mandate.findMany({
+    // Fetch requests with full data for export
+    const mandates = await prismadb.request.findMany({
       where: whereClause,
       select: {
         id: true,
         createdAt: true,
         title: true,
-        transaction_type: true,
-        property_type: true,
+        requestType: true,
+        propertyCategory: true,
         status: true,
         urgency: true,
-        budget_min: true,
-        budget_max: true,
-        size_min_sqm: true,
-        size_max_sqm: true,
-        bedrooms_min: true,
-        bedrooms_max: true,
+        budgetMin: true,
+        budgetMax: true,
+        surfaceMin: true,
+        surfaceMax: true,
+        bedroomsMin: true,
+        bedroomsMax: true,
         municipality: true,
         region: true,
-        assigned_to: true,
-        expires_at: true,
+        assignedAgentId: true,
+        expiresAt: true,
         notes: true,
-        communication_notes: true,
+        communicationNotes: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -192,20 +192,20 @@ export async function GET(req: NextRequest) {
     // Inline export (small datasets)
     // ===========================================
 
-    // Decrypt mandates and add derived fields
+    // Decrypt requests and add derived fields
     const exportData = await Promise.all(
       mandates.map(async (m) => {
-        const decrypted = await decryptMandateForOrg(m, orgId);
+        const decrypted = await decryptRequestForOrg(m, orgId);
         return {
           ...decrypted,
           // Add derived display fields
           client_name: "",
           assigned_to_name: "",
           // Convert Decimal fields to numbers
-          budget_min: decrypted.budget_min ? Number(decrypted.budget_min) : null,
-          budget_max: decrypted.budget_max ? Number(decrypted.budget_max) : null,
-          size_min_sqm: decrypted.size_min_sqm ? Number(decrypted.size_min_sqm) : null,
-          size_max_sqm: decrypted.size_max_sqm ? Number(decrypted.size_max_sqm) : null,
+          budgetMin: decrypted.budgetMin ? Number(decrypted.budgetMin) : null,
+          budgetMax: decrypted.budgetMax ? Number(decrypted.budgetMax) : null,
+          surfaceMin: decrypted.surfaceMin ? Number(decrypted.surfaceMin) : null,
+          surfaceMax: decrypted.surfaceMax ? Number(decrypted.surfaceMax) : null,
         };
       })
     );

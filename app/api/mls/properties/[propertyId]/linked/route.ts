@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptCalendarEventForOrg, decryptContactForOrg, decryptMandateForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
+import { decryptCalendarEventForOrg, decryptContactForOrg, decryptRequestForOrg, decryptDocumentForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/mls/properties/[propertyId]/linked
@@ -170,20 +170,20 @@ export async function GET(
       })
     );
 
-    // Fetch linked mandates
-    const linkedMandatesRaw = await prismadb.mandate_Properties.findMany({
-      where: { propertyId },
+    // Fetch linked requests (via PropertyRequestMatch)
+    const linkedRequestMatchesRaw = await prismadb.propertyRequestMatch.findMany({
+      where: { propertyId, organizationId: property.organizationId },
       include: {
-        Mandate: {
+        request: {
           select: {
             id: true,
             friendlyId: true,
             title: true,
-            transaction_type: true,
+            requestType: true,
             status: true,
             urgency: true,
-            budget_min: true,
-            budget_max: true,
+            budgetMin: true,
+            budgetMax: true,
             organizationId: true,
           },
         },
@@ -191,15 +191,13 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    // Filter to same org and decrypt titles
+    // Decrypt titles
     const mandates = await Promise.all(
-      linkedMandatesRaw
-        .filter((lm) => lm.Mandate.organizationId === property!.organizationId)
-        .map(async (lm) => {
-          const { organizationId: _, ...rest } = lm.Mandate;
-          const decrypted = await decryptMandateForOrg(rest, property!.organizationId);
-          return decrypted;
-        })
+      linkedRequestMatchesRaw.map(async (match) => {
+        const { organizationId: _, ...rest } = match.request;
+        const decrypted = await decryptRequestForOrg(rest, property!.organizationId);
+        return decrypted;
+      })
     );
 
     // Fetch linked documents

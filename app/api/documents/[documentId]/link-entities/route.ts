@@ -77,17 +77,17 @@ export async function POST(
     }
 
     if (Array.isArray(mandateIds) && mandateIds.length > 0) {
-      const mandates = await prismadb.mandate.findMany({
+      const requests = await prismadb.request.findMany({
         where: { id: { in: mandateIds }, organizationId },
         select: { id: true },
       });
-      if (mandates.length !== mandateIds.length) {
+      if (requests.length !== mandateIds.length) {
         return NextResponse.json(
-          { error: "Some mandates not found or access denied" },
+          { error: "Some requests not found or access denied" },
           { status: 404 }
         );
       }
-      connectData.Mandates = { connect: mandateIds.map((id: string) => ({ id })) };
+      connectData.Requests = { connect: mandateIds.map((id: string) => ({ id })) };
       pushData.linkedMandatesIds = { push: mandateIds };
     }
 
@@ -154,7 +154,7 @@ export async function DELETE(
       disconnectData.Properties = { disconnect: propertyIds.map((id) => ({ id })) };
     }
     if (mandateIds.length > 0) {
-      disconnectData.Mandates = { disconnect: mandateIds.map((id) => ({ id })) };
+      disconnectData.Requests = { disconnect: mandateIds.map((id) => ({ id })) };
     }
 
     // Update legacy array fields by removing the IDs

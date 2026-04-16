@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
-import { decryptContactForOrg, decryptMandateForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg, decryptRequestForOrg } from "@/lib/model-encryption";
 
 /**
  * GET /api/documents/[documentId]/linked
@@ -71,16 +71,16 @@ export async function GET(
             },
           },
         },
-        Mandates: {
+        Requests: {
           select: {
             id: true,
             friendlyId: true,
             title: true,
-            transaction_type: true,
+            requestType: true,
             status: true,
             urgency: true,
-            budget_min: true,
-            budget_max: true,
+            budgetMin: true,
+            budgetMax: true,
           },
         },
       },
@@ -111,10 +111,10 @@ export async function GET(
       Users_Properties_assigned_toToUsers: undefined,
     }));
 
-    // Decrypt mandate titles
+    // Decrypt request titles
     const mandates = await Promise.all(
-      document.Mandates.map(async (mandate) => {
-        return decryptMandateForOrg(mandate, organizationId);
+      document.Requests.map(async (request) => {
+        return decryptRequestForOrg(request, organizationId);
       })
     );
 

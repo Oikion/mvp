@@ -70,7 +70,7 @@ export async function GET(req: Request) {
         break;
       }
       case "MANDATE": {
-        const entity = await prismadb.mandate.findFirst({
+        const entity = await prismadb.request.findFirst({
           where: { id: entityId, organizationId: orgId },
           select: { id: true },
         });

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
-import { decryptMandateForOrg } from "@/lib/model-encryption";
+import { decryptRequestForOrg } from "@/lib/model-encryption";
 
 /**
  * Entity types that can be searched
@@ -118,11 +118,7 @@ export async function POST(req: Request) {
               take: 3,
               orderBy: { startTime: "desc" },
             },
-            Mandate_Properties: {
-              include: { Mandate: { select: { id: true, title: true, friendlyId: true } } },
-              take: 3,
-            },
-            _count: { select: { linkedContacts: true, CalendarEvent: true, Mandate_Properties: true } },
+            _count: { select: { linkedContacts: true, CalendarEvent: true } },
           } : undefined,
           take: limit,
           skip,
@@ -264,27 +260,23 @@ export async function POST(req: Request) {
       const fetchLimit = Math.max(limit * 5, 50);
 
       searchPromises.push(
-        db.mandate.findMany({
+        db.request.findMany({
           where: mandateWhere,
           include: includeRelationships ? {
-            Mandate_Properties: {
-              include: { Properties: { select: { id: true, property_name: true } } },
-              take: 3,
-            },
-            _count: { select: { Mandate_Properties: true } },
+            _count: { select: { Documents: true } },
           } : undefined,
           take: fetchLimit,
           orderBy: { createdAt: "desc" },
-        }).then(async (mandates: any[]) => {
+        }).then(async (requests: any[]) => {
           // Decrypt and filter in memory
           const decrypted = await Promise.all(
-            mandates.map((m: any) => decryptMandateForOrg(m, organizationId))
+            requests.map((r: any) => decryptRequestForOrg(r, organizationId))
           );
           const searchTerm = query.toLowerCase();
-          const filtered = decrypted.filter((m: any) => {
-            const title = (m.title || "").toLowerCase();
-            const fid = (m.friendlyId || "").toLowerCase();
-            const txType = (m.transaction_type || "").toLowerCase();
+          const filtered = decrypted.filter((r: any) => {
+            const title = (r.title || "").toLowerCase();
+            const fid = (r.friendlyId || "").toLowerCase();
+            const txType = (r.requestType || "").toLowerCase();
             return title.includes(searchTerm) || fid.includes(searchTerm) || txType.includes(searchTerm);
           });
           return filtered.slice(skip, skip + limit);
@@ -292,19 +284,19 @@ export async function POST(req: Request) {
       );
       // Count also needs decrypt + filter
       countPromises.push(
-        db.mandate.findMany({
+        db.request.findMany({
           where: mandateWhere,
-          select: { id: true, title: true, friendlyId: true, transaction_type: true },
+          select: { id: true, title: true, friendlyId: true, requestType: true },
           take: 500,
-        }).then(async (mandates: any[]) => {
+        }).then(async (requests: any[]) => {
           const decrypted = await Promise.all(
-            mandates.map((m: any) => decryptMandateForOrg(m, organizationId))
+            requests.map((r: any) => decryptRequestForOrg(r, organizationId))
           );
           const searchTerm = query.toLowerCase();
-          return decrypted.filter((m: any) => {
-            const title = (m.title || "").toLowerCase();
-            const fid = (m.friendlyId || "").toLowerCase();
-            const txType = (m.transaction_type || "").toLowerCase();
+          return decrypted.filter((r: any) => {
+            const title = (r.title || "").toLowerCase();
+            const fid = (r.friendlyId || "").toLowerCase();
+            const txType = (r.requestType || "").toLowerCase();
             return title.includes(searchTerm) || fid.includes(searchTerm) || txType.includes(searchTerm);
           }).length;
         }).catch(() => 0)
@@ -354,8 +346,8 @@ export async function POST(req: Request) {
           preview: p.CalendarEvent || [],
         },
         requests: {
-          count: p._count?.Mandate_Properties || 0,
-          preview: p.Mandate_Properties?.map((mp: any) => mp.Mandate) || [],
+          count: 0,
+          preview: [],
         },
       } : undefined,
     }));
@@ -406,16 +398,16 @@ export async function POST(req: Request) {
       } : undefined,
     }));
 
-    const transformedRequests = requests.map((m: any) => ({
-      ...m,
+    const transformedRequests = requests.map((r: any) => ({
+      ...r,
       relationships: includeRelationships ? {
         clients: {
           count: 0,
           preview: [],
         },
         properties: {
-          count: m._count?.Mandate_Properties || 0,
-          preview: m.Mandate_Properties?.map((mp: any) => mp.Properties) || [],
+          count: 0,
+          preview: [],
         },
       } : undefined,
     }));
