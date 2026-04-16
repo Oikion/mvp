@@ -62,7 +62,7 @@ export const ClientCard = memo(function ClientCard({ data }: ClientCardProps) {
   }, [data.id]);
 
   const handleEdit = useCallback(() => {
-    router.push(`/app/crm/clients/${data.friendlyId}?edit=true`);
+    router.push(`/app/crm/contacts/${data.friendlyId}?edit=true`);
   }, [router, data.id, data.friendlyId]);
 
   const handleActionComplete = useCallback(() => {
@@ -98,7 +98,7 @@ export const ClientCard = memo(function ClientCard({ data }: ClientCardProps) {
             entityType="client"
             entityId={data.id}
             entityName={data.name}
-            viewHref={`/app/crm/clients/${data.friendlyId}`}
+            viewHref={`/app/crm/contacts/${data.friendlyId}`}
             entityFriendlyId={data.friendlyId}
             onEdit={handleEdit}
             onDelete={handleDelete}
@@ -141,7 +141,7 @@ export const ClientCard = memo(function ClientCard({ data }: ClientCardProps) {
 
       <CardFooter className="pt-0 flex justify-end">
         <Button variant="ghost" size="sm" className="w-full" asChild>
-          <Link href={`/app/crm/clients/${data.friendlyId}`} className="inline-flex items-center gap-2">
+          <Link href={`/app/crm/contacts/${data.friendlyId}`} className="inline-flex items-center gap-2">
             <Eye className="h-4 w-4" />
             {commonT("view")}
           </Link>

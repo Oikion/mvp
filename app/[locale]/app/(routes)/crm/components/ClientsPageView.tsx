@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NewClientWizard } from "../clients/components/NewClientWizard";
+import { NewContactWizard as NewClientWizard } from "../contacts/components/NewContactWizard";
 import { useClientColumns } from "../contacts/table-components/columns";
 import { ContactDataTable as AccountDataTable } from "../contacts/table-components/data-table";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -326,7 +326,7 @@ export default function ClientsPageView({
                   columns={clientColumns}
                   industries={[]}
                   users={users}
-                  getRowHref={(row: any) => `/app/crm/clients/${row.friendlyId}`}
+                  getRowHref={(row: any) => `/app/crm/contacts/${row.friendlyId}`}
                   toolbarRight={<ViewToggle view={view} setView={setView} />}
                   onRefresh={handleRefresh}
                 />

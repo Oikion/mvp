@@ -164,7 +164,7 @@ function UpcomingItemCard({ item, locale, t }: { item: UpcomingItem; locale: str
             <Link 
               href={item.linkedEntity.type === "property"
                 ? `/app/mls/properties/${item.linkedEntity.friendlyId}`
-                : `/app/crm/clients/${item.linkedEntity.friendlyId}`
+                : `/app/crm/contacts/${item.linkedEntity.friendlyId}`
               }
               className="flex items-center gap-1 hover:text-primary"
             >

@@ -58,7 +58,7 @@ const getActivityHref = (activity: ActivityItem, locale: string): string => {
     case "property":
       return `/${locale}/app/mls/properties/${activity.entityFriendlyId ?? activity.entityId}`;
     case "client":
-      return `/${locale}/app/crm/clients/${activity.entityFriendlyId ?? activity.entityId}`;
+      return `/${locale}/app/crm/contacts/${activity.entityFriendlyId ?? activity.entityId}`;
     case "document":
       return `/${locale}/app/documents?id=${activity.entityFriendlyId ?? activity.entityId}`;
     case "event":

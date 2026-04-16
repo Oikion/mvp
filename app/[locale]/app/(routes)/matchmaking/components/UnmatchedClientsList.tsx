@@ -58,7 +58,7 @@ export function UnmatchedClientsList({ clients, locale }: Props) {
 
             <div className="flex-1 min-w-0">
               <Link 
-                href={`/${locale}/app/crm/clients/${client.friendlyId}`}
+                href={`/${locale}/app/crm/contacts/${client.friendlyId}`}
                 className="font-medium hover:text-primary"
               >
                 {client.full_name || client.client_name}
@@ -80,7 +80,7 @@ export function UnmatchedClientsList({ clients, locale }: Props) {
             </div>
 
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/app/crm/clients/${client.friendlyId}`}>
+              <Link href={`/${locale}/app/crm/contacts/${client.friendlyId}`}>
                 {t("unmatchedClients.review")}
                 <ArrowRight className="h-4 w-4 ml-1" />
               </Link>

@@ -107,7 +107,7 @@ export function NotificationCenter({ initialNotifications, dict }: NotificationC
 
     switch (notification.entityType) {
       case "ACCOUNT":
-        router.push(`/app/crm/clients/${notification.entityId}`);
+        router.push(`/app/crm/contacts/${notification.entityId}`);
         break;
       case "PROPERTY":
         router.push(`/app/mls/properties/${(notification.metadata as Record<string, string> | null)?.friendlyId ?? notification.entityId}`);
@@ -116,7 +116,7 @@ export function NotificationCenter({ initialNotifications, dict }: NotificationC
         router.push(`/app/calendar?eventId=${notification.entityId}`);
         break;
       case "TASK":
-        router.push(`/app/crm/clients/${notification.metadata?.accountId || ""}`);
+        router.push(`/app/crm/contacts/${notification.metadata?.accountId || ""}`);
         break;
       case "FEEDBACK":
         router.push(`/app/feedback/${notification.entityId}`);

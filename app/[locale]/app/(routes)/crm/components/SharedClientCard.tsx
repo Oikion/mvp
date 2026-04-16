@@ -107,7 +107,7 @@ export function SharedClientCard({ data }: SharedClientCardProps) {
 
       <CardFooter className="pt-0 flex justify-end">
         <Button variant="ghost" size="sm" className="w-full" asChild>
-          <Link href={`/app/crm/clients/${data.contact?.friendlyId}`} className="inline-flex items-center gap-2">
+          <Link href={`/app/crm/contacts/${data.contact?.friendlyId}`} className="inline-flex items-center gap-2">
             <ExternalLink className="h-4 w-4" />
             {t("SharedView.viewProfile")}
           </Link>

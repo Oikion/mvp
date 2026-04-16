@@ -13,7 +13,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { useClientColumns } from "../contacts/table-components/columns";
-import { NewClientWizard } from "../clients/components/NewClientWizard";
+import { NewContactWizard as NewClientWizard } from "../contacts/components/NewContactWizard";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import {
   Sheet,
