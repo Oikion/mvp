@@ -49,13 +49,13 @@ import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 
 interface ValidatedRow {
   rowIndex: number;
-  clientRow: Record<string, unknown> | null;
+  contactRow: Record<string, unknown> | null;
   propertyRow: Record<string, unknown> | null;
-  mandateRow: Record<string, unknown> | null;
-  hasClient: boolean;
+  requestRow: Record<string, unknown> | null;
+  hasContact: boolean;
   hasProperty: boolean;
-  hasMandate: boolean;
-  clientDedupKey?: string;
+  hasRequest: boolean;
+  contactDedupKey?: string;
   propertyDedupKey?: string;
 }
 
@@ -88,7 +88,7 @@ interface LegacyReviewStepProps {
   fieldMapping: Record<string, string>;
   errorCount: number;
   entityType: "contact" | "property" | "request";
-  entityCounts?: { clients: number; properties: number; mandates: number };
+  entityCounts?: { contacts: number; properties: number; requests: number };
 }
 
 type ReviewStepCombinedProps = ReviewStepProps | LegacyReviewStepProps;
@@ -570,19 +570,19 @@ function ReviewStepNew({
     for (const row of validatedRows) {
       if (skippedRows.has(row.rowIndex)) continue;
 
-      const clientKey = row.clientDedupKey;
+      const clientKey = row.contactDedupKey;
       const propertyKey = row.propertyDedupKey;
 
-      // Collect clients (deduped by key)
-      if (row.hasClient && row.clientRow) {
+      // Collect contacts (deduped by key)
+      if (row.hasContact && row.contactRow) {
         clientRawCount++;
         if (clientKey && !clientMap.has(clientKey)) {
           clientMap.set(clientKey, {
-            data: row.clientRow,
+            data: row.contactRow,
             originalIndex: row.rowIndex,
           });
         }
-        // Build client-to-properties map
+        // Build contact-to-properties map
         if (clientKey && row.hasProperty && row.propertyRow) {
           const propName = getPropertyName(row.propertyRow);
           if (propName) {
@@ -604,23 +604,23 @@ function ReviewStepNew({
             originalIndex: row.rowIndex,
           });
         }
-        // Build property-to-client map
-        if (propertyKey && row.hasClient && row.clientRow) {
-          const cName = getClientName(row.clientRow);
+        // Build property-to-contact map
+        if (propertyKey && row.hasContact && row.contactRow) {
+          const cName = getClientName(row.contactRow);
           if (cName) {
             propertyToClient.set(propertyKey, cName);
           }
         }
       }
 
-      // Collect mandates (no dedup — each row is unique)
-      if (row.hasMandate && row.mandateRow) {
+      // Collect requests (no dedup — each row is unique)
+      if (row.hasRequest && row.requestRow) {
         mandateList.push({
-          data: row.mandateRow,
+          data: row.requestRow,
           originalIndex: row.rowIndex,
         });
-        if (row.hasClient && row.clientRow) {
-          mandateToClient.set(row.rowIndex, getClientName(row.clientRow));
+        if (row.hasContact && row.contactRow) {
+          mandateToClient.set(row.rowIndex, getClientName(row.contactRow));
         }
         if (row.hasProperty && row.propertyRow) {
           mandateToProperty.set(
@@ -631,20 +631,20 @@ function ReviewStepNew({
       }
 
       // Count cross-entity links
-      if (row.hasClient && row.hasProperty) clientPropertyLinks++;
-      if (row.hasMandate && row.hasProperty) mandatePropertyLinks++;
-      if (row.hasMandate && row.hasClient) mandateClientLinks++;
+      if (row.hasContact && row.hasProperty) clientPropertyLinks++;
+      if (row.hasRequest && row.hasProperty) mandatePropertyLinks++;
+      if (row.hasRequest && row.hasContact) mandateClientLinks++;
     }
 
-    // Build skip-cascade warnings for properties whose client was skipped
+    // Build skip-cascade warnings for properties whose contact was skipped
     const skippedClientKeys = new Set<string>();
     for (const row of validatedRows) {
       if (
         skippedRows.has(row.rowIndex) &&
-        row.hasClient &&
-        row.clientDedupKey
+        row.hasContact &&
+        row.contactDedupKey
       ) {
-        skippedClientKeys.add(row.clientDedupKey);
+        skippedClientKeys.add(row.contactDedupKey);
       }
     }
 
@@ -664,13 +664,13 @@ function ReviewStepNew({
     const properties: EntityStepProps["items"] = [];
     Array.from(propertyMap.entries()).forEach(([key, entry]) => {
       const linkedClientName = propertyToClient.get(key);
-      // Check if this property's client was skipped
+      // Check if this property's contact was skipped
       const row = validatedRows.find(
         (r) =>
-          r.propertyDedupKey === key && r.hasClient && r.clientDedupKey,
+          r.propertyDedupKey === key && r.hasContact && r.contactDedupKey,
       );
       const clientWasSkipped =
-        row?.clientDedupKey && skippedClientKeys.has(row.clientDedupKey);
+        row?.contactDedupKey && skippedClientKeys.has(row.contactDedupKey);
 
       properties.push({
         originalIndex: entry.originalIndex,
@@ -1141,13 +1141,13 @@ function ReviewStepLegacy({
       {/* Per-entity summary cards (unified import) */}
       {entityCounts && (
         <div className="grid grid-cols-3 gap-4">
-          {entityCounts.clients > 0 && (
+          {entityCounts.contacts > 0 && (
             <Card>
               <CardContent className="pt-6 text-center">
                 <p className="text-2xl font-bold text-primary">
-                  {entityCounts.clients}
+                  {entityCounts.contacts}
                 </p>
-                <p className="text-sm text-muted-foreground">Clients</p>
+                <p className="text-sm text-muted-foreground">Contacts</p>
               </CardContent>
             </Card>
           )}
@@ -1161,13 +1161,13 @@ function ReviewStepLegacy({
               </CardContent>
             </Card>
           )}
-          {entityCounts.mandates > 0 && (
+          {entityCounts.requests > 0 && (
             <Card>
               <CardContent className="pt-6 text-center">
                 <p className="text-2xl font-bold text-primary">
-                  {entityCounts.mandates}
+                  {entityCounts.requests}
                 </p>
-                <p className="text-sm text-muted-foreground">Mandates</p>
+                <p className="text-sm text-muted-foreground">Requests</p>
               </CardContent>
             </Card>
           )}

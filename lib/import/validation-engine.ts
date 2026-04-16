@@ -27,13 +27,13 @@ import { generateMandateTitle, generateClientName } from "./name-generator";
 
 export interface ValidatedRow {
   rowIndex: number;
-  clientRow: Record<string, unknown> | null;
+  contactRow: Record<string, unknown> | null;
   propertyRow: Record<string, unknown> | null;
-  mandateRow: Record<string, unknown> | null;
-  hasClient: boolean;
+  requestRow: Record<string, unknown> | null;
+  hasContact: boolean;
   hasProperty: boolean;
-  hasMandate: boolean;
-  clientDedupKey?: string;
+  hasRequest: boolean;
+  contactDedupKey?: string;
   propertyDedupKey?: string;
 }
 
@@ -56,9 +56,9 @@ export interface ValidationResult {
   validRows: ValidatedRow[];
   errorRows: ValidationError[];
   entitySummary: {
-    clients: EntitySummary;
+    contacts: EntitySummary;
     properties: EntitySummary;
-    mandates: EntitySummary;
+    requests: EntitySummary;
   };
 }
 
@@ -82,30 +82,30 @@ function isNonEmpty(v: unknown): boolean {
 function partitionRow(
   row: Record<string, unknown>,
 ): {
-  clientRow: Record<string, unknown>;
+  contactRow: Record<string, unknown>;
   propertyRow: Record<string, unknown>;
-  mandateRow: Record<string, unknown>;
+  requestRow: Record<string, unknown>;
 } {
-  const clientRow: Record<string, unknown> = {};
+  const contactRow: Record<string, unknown> = {};
   const propertyRow: Record<string, unknown> = {};
-  const mandateRow: Record<string, unknown> = {};
+  const requestRow: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(row)) {
     const entity = fieldEntityMap.get(key);
     if (!entity) continue; // unmapped keys are dropped
-    if (entity === "contact") clientRow[key] = value;
+    if (entity === "contact") contactRow[key] = value;
     else if (entity === "property") propertyRow[key] = value;
-    else mandateRow[key] = value;
+    else requestRow[key] = value;
   }
 
-  return { clientRow, propertyRow, mandateRow };
+  return { contactRow, propertyRow, requestRow };
 }
 
 // ---------------------------------------------------------------------------
-// Client deduplication key  (phone > email > name)
+// Contact deduplication key  (phone > email > name)
 // ---------------------------------------------------------------------------
 
-function clientDedupKey(row: Record<string, unknown>): string {
+function contactDedupKey(row: Record<string, unknown>): string {
   const phone = String(row.primary_phone ?? "")
     .trim()
     .replace(/\D/g, "");
@@ -145,51 +145,51 @@ export function validateImportData(
   const errorRows: ValidationError[] = [];
 
   // Dedup tracking
-  const clientDedupMap = new Map<string, number[]>();
+  const contactDedupMap = new Map<string, number[]>();
   const propertyDedupMap = new Map<string, number[]>();
 
   // Entity counters
-  let clientTotal = 0;
+  let contactTotal = 0;
   let propertyTotal = 0;
-  let mandateTotal = 0;
+  let requestTotal = 0;
 
   // Detect whether the file has a contact_name column mapped at all
-  const fileHasClientNameColumn = rows.some((r) => r.contact_name !== undefined);
+  const fileHasContactNameColumn = rows.some((r) => r.contact_name !== undefined);
 
   for (let i = 0; i < rows.length; i++) {
     const rowIndex = i;
 
     // ── 1. PARTITION ──────────────────────────────────────────────────────
-    const { clientRow: rawClientRow, propertyRow, mandateRow: rawMandateRow } =
+    const { contactRow: rawContactRow, propertyRow, requestRow: rawRequestRow } =
       partitionRow(rows[i]);
 
     // ── 2. DETECT ─────────────────────────────────────────────────────────
-    const hasClient =
-      isNonEmpty(rawClientRow.contact_name) ||
-      (!fileHasClientNameColumn &&
-        (isNonEmpty(rawClientRow.primary_phone) ||
-          isNonEmpty(rawClientRow.primary_email)));
+    const hasContact =
+      isNonEmpty(rawContactRow.contact_name) ||
+      (!fileHasContactNameColumn &&
+        (isNonEmpty(rawContactRow.primary_phone) ||
+          isNonEmpty(rawContactRow.primary_email)));
 
     const hasProperty = isNonEmpty(propertyRow.property_name);
 
-    // Strip entity prefixes from mandate row so keys match the per-entity schema
-    const mandateRow = stripEntityPrefix(rawMandateRow);
-    const hasMandate = Object.values(rawMandateRow).some(isNonEmpty);
+    // Strip entity prefixes from request row so keys match the per-entity schema
+    const requestRow = stripEntityPrefix(rawRequestRow);
+    const hasRequest = Object.values(rawRequestRow).some(isNonEmpty);
 
     // Track entity detection
-    if (hasClient) clientTotal++;
+    if (hasContact) contactTotal++;
     if (hasProperty) propertyTotal++;
-    if (hasMandate) mandateTotal++;
+    if (hasRequest) requestTotal++;
 
     // Build the validated row shell
     const validated: ValidatedRow = {
       rowIndex,
-      clientRow: null,
+      contactRow: null,
       propertyRow: null,
-      mandateRow: null,
-      hasClient,
+      requestRow: null,
+      hasContact,
       hasProperty,
-      hasMandate,
+      hasRequest,
     };
 
     let rowHasErrors = false;
@@ -198,19 +198,19 @@ export function validateImportData(
     let clientName: string | null = null;
     let propertyName: string | null = null;
 
-    // ── 3. CLIENT VALIDATION ──────────────────────────────────────────────
-    if (hasClient) {
+    // ── 3. CONTACT VALIDATION ─────────────────────────────────────────────
+    if (hasContact) {
       // Auto-name when triggered by phone/email without explicit name
-      if (!isNonEmpty(rawClientRow.contact_name)) {
-        rawClientRow.contact_name = generateClientName(rawClientRow);
+      if (!isNonEmpty(rawContactRow.contact_name)) {
+        rawContactRow.contact_name = generateClientName(rawContactRow);
       }
-      clientName = String(rawClientRow.contact_name ?? "");
+      clientName = String(rawContactRow.contact_name ?? "");
 
-      // Strip entity prefixes (e.g. client_description -> description)
-      const clientRowStripped = stripEntityPrefix(rawClientRow);
+      // Strip entity prefixes (e.g. contact_description -> description)
+      const contactRowStripped = stripEntityPrefix(rawContactRow);
 
       // Normalize enums
-      const normalized = normalizeClientEnums(clientRowStripped);
+      const normalized = normalizeClientEnums(contactRowStripped);
 
       // Validate with Zod — use parsed.data which has preprocessed types
       // (e.g. zBoolean converts "true" → true, zOptionalNumber converts "" → undefined)
@@ -226,21 +226,21 @@ export function validateImportData(
           });
         }
         rowHasErrors = true;
-        validated.clientRow = normalized;
+        validated.contactRow = normalized;
       } else {
         // Use Zod-transformed data (booleans, numbers, dates properly typed)
-        validated.clientRow = parsed.data as Record<string, unknown>;
+        validated.contactRow = parsed.data as Record<string, unknown>;
       }
 
-      // Client dedup key (use the raw row with original keys for phone/email/name)
-      const dedupKey = clientDedupKey(rawClientRow);
-      validated.clientDedupKey = dedupKey;
+      // Contact dedup key (use the raw row with original keys for phone/email/name)
+      const dedupKey = contactDedupKey(rawContactRow);
+      validated.contactDedupKey = dedupKey;
 
-      const existing = clientDedupMap.get(dedupKey);
+      const existing = contactDedupMap.get(dedupKey);
       if (existing) {
         existing.push(rowIndex);
       } else {
-        clientDedupMap.set(dedupKey, [rowIndex]);
+        contactDedupMap.set(dedupKey, [rowIndex]);
       }
     }
 
@@ -281,16 +281,16 @@ export function validateImportData(
       }
     }
 
-    // ── 5. MANDATE VALIDATION ─────────────────────────────────────────────
-    if (hasMandate) {
+    // ── 5. REQUEST VALIDATION ─────────────────────────────────────────────
+    if (hasRequest) {
       // Budget auto-copy from property price
       if (hasProperty && propertyRow.price != null) {
-        if (mandateRow.budget_min == null) mandateRow.budget_min = propertyRow.price;
-        if (mandateRow.budget_max == null) mandateRow.budget_max = propertyRow.price;
+        if (requestRow.budget_min == null) requestRow.budget_min = propertyRow.price;
+        if (requestRow.budget_max == null) requestRow.budget_max = propertyRow.price;
       }
 
       // Normalize enums (must happen before title generation for tx_type lookup)
-      const normalized = normalizeMandateEnums(mandateRow);
+      const normalized = normalizeMandateEnums(requestRow);
 
       // Inject auto-generated title BEFORE safeParse
       const title = generateMandateTitle(normalized, clientName, propertyName);
@@ -309,9 +309,9 @@ export function validateImportData(
           });
         }
         rowHasErrors = true;
-        validated.mandateRow = normalized;
+        validated.requestRow = normalized;
       } else {
-        validated.mandateRow = parsed.data as Record<string, unknown>;
+        validated.requestRow = parsed.data as Record<string, unknown>;
       }
     }
 
@@ -328,35 +328,35 @@ export function validateImportData(
           .map((e) => e.entity)
       );
       if (entityErrors.has("contact")) {
-        validated.clientRow = null;
-        validated.hasClient = false;
+        validated.contactRow = null;
+        validated.hasContact = false;
       }
       if (entityErrors.has("property")) {
         validated.propertyRow = null;
         validated.hasProperty = false;
       }
       if (entityErrors.has("request")) {
-        validated.mandateRow = null;
-        validated.hasMandate = false;
+        validated.requestRow = null;
+        validated.hasRequest = false;
       }
     }
 
     // Include in validRows if at least one entity survived validation
-    if (validated.hasClient || validated.hasProperty || validated.hasMandate) {
+    if (validated.hasContact || validated.hasProperty || validated.hasRequest) {
       validRows.push(validated);
     }
   }
 
   // ── 6. BUILD ENTITY SUMMARIES ─────────────────────────────────────────
-  const clientUnique = clientDedupMap.size;
+  const contactUnique = contactDedupMap.size;
   const propertyUnique = propertyDedupMap.size;
 
   const entitySummary: ValidationResult["entitySummary"] = {
-    clients: {
-      detected: clientTotal > 0,
-      total: clientTotal,
-      unique: clientUnique,
-      deduplicated: clientTotal - clientUnique,
+    contacts: {
+      detected: contactTotal > 0,
+      total: contactTotal,
+      unique: contactUnique,
+      deduplicated: contactTotal - contactUnique,
     },
     properties: {
       detected: propertyTotal > 0,
@@ -364,10 +364,10 @@ export function validateImportData(
       unique: propertyUnique,
       deduplicated: propertyTotal - propertyUnique,
     },
-    mandates: {
-      detected: mandateTotal > 0,
-      total: mandateTotal,
-      unique: mandateTotal, // mandates are not deduplicated
+    requests: {
+      detected: requestTotal > 0,
+      total: requestTotal,
+      unique: requestTotal, // requests are not deduplicated
       deduplicated: 0,
     },
   };

@@ -42,20 +42,20 @@ export interface ServerValidationErrorRow {
 export interface ServerValidationResult {
   validRows: Array<{
     rowIndex: number;
-    clientRow: Record<string, unknown> | null;
+    contactRow: Record<string, unknown> | null;
     propertyRow: Record<string, unknown> | null;
-    mandateRow: Record<string, unknown> | null;
-    hasClient: boolean;
+    requestRow: Record<string, unknown> | null;
+    hasContact: boolean;
     hasProperty: boolean;
-    hasMandate: boolean;
-    clientDedupKey?: string;
+    hasRequest: boolean;
+    contactDedupKey?: string;
     propertyDedupKey?: string;
   }>;
   errorRows: ServerValidationErrorRow[];
   entitySummary: {
-    clients: { detected: boolean; total: number; unique: number; deduplicated: number };
+    contacts: { detected: boolean; total: number; unique: number; deduplicated: number };
     properties: { detected: boolean; total: number; unique: number; deduplicated: number };
-    mandates: { detected: boolean; total: number; unique: number; deduplicated: number };
+    requests: { detected: boolean; total: number; unique: number; deduplicated: number };
   };
 }
 
@@ -292,14 +292,14 @@ export function ValidationStep({
   const hasErrors = invalidCount > 0;
 
   // Count skipped per entity for the entity summary cards
-  const skippedByEntity = { clients: 0, properties: 0, mandates: 0 };
+  const skippedByEntity = { contacts: 0, properties: 0, requests: 0 };
   Array.from(skippedRows).forEach((rowIndex) => {
     const firstErr = errorRows.find((e) => e.rowIndex === rowIndex);
     if (!firstErr) return;
     const entity = firstErr.entity.toLowerCase();
-    if (entity === "contact") skippedByEntity.clients++;
+    if (entity === "contact") skippedByEntity.contacts++;
     else if (entity === "property") skippedByEntity.properties++;
-    else if (entity === "request") skippedByEntity.mandates++;
+    else if (entity === "request") skippedByEntity.requests++;
   });
 
   return (
@@ -350,17 +350,17 @@ export function ValidationStep({
       )}
 
       {/* ── Entity summary cards ── */}
-      {(entitySummary.clients.detected ||
+      {(entitySummary.contacts.detected ||
         entitySummary.properties.detected ||
-        entitySummary.mandates.detected) && (
+        entitySummary.requests.detected) && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <EntitySummaryCard
             icon={<Users className="h-4 w-4" aria-hidden="true" />}
             iconBg="bg-blue-100 dark:bg-blue-900/30"
             iconColor="text-blue-700 dark:text-blue-300"
-            label="Clients"
-            summary={entitySummary.clients}
-            skippedCount={skippedByEntity.clients}
+            label="Contacts"
+            summary={entitySummary.contacts}
+            skippedCount={skippedByEntity.contacts}
           />
           <EntitySummaryCard
             icon={<Building2 className="h-4 w-4" aria-hidden="true" />}
@@ -374,9 +374,9 @@ export function ValidationStep({
             icon={<FileText className="h-4 w-4" aria-hidden="true" />}
             iconBg="bg-violet-100 dark:bg-violet-900/30"
             iconColor="text-violet-700 dark:text-violet-300"
-            label="Mandates"
-            summary={entitySummary.mandates}
-            skippedCount={skippedByEntity.mandates}
+            label="Requests"
+            summary={entitySummary.requests}
+            skippedCount={skippedByEntity.requests}
           />
         </div>
       )}

@@ -363,9 +363,9 @@ export function ImportWizardSteps({
             },
           ],
           entitySummary: {
-            clients: { detected: false, total: 0, unique: 0, deduplicated: 0 },
+            contacts: { detected: false, total: 0, unique: 0, deduplicated: 0 },
             properties: { detected: false, total: 0, unique: 0, deduplicated: 0 },
-            mandates: { detected: false, total: 0, unique: 0, deduplicated: 0 },
+            requests: { detected: false, total: 0, unique: 0, deduplicated: 0 },
           },
         });
       } finally {
@@ -421,12 +421,12 @@ export function ImportWizardSteps({
     return {
       validRows: validData.map((row, idx) => ({
         rowIndex: idx,
-        clientRow: entityType === "contact" ? row : null,
+        contactRow: entityType === "contact" ? row : null,
         propertyRow: entityType === "property" ? row : null,
-        mandateRow: entityType === "request" ? row : null,
-        hasClient: entityType === "contact",
+        requestRow: entityType === "request" ? row : null,
+        hasContact: entityType === "contact",
         hasProperty: entityType === "property",
-        hasMandate: entityType === "request",
+        hasRequest: entityType === "request",
       })),
       errorRows: validationErrors.map((ve) => ({
         rowIndex: ve.row,
@@ -436,7 +436,7 @@ export function ImportWizardSteps({
         rawValue: ve.value ?? "",
       })),
       entitySummary: {
-        clients: {
+        contacts: {
           detected: entityType === "contact",
           total: parsedData.length,
           unique: validData.length,
@@ -448,7 +448,7 @@ export function ImportWizardSteps({
           unique: validData.length,
           deduplicated: 0,
         },
-        mandates: {
+        requests: {
           detected: entityType === "request",
           total: parsedData.length,
           unique: validData.length,
@@ -870,7 +870,7 @@ export function ImportWizardSteps({
         mandates++;
       }
     }
-    return { clients: clientDedupKeys.size, properties, mandates };
+    return { contacts: clientDedupKeys.size, properties, requests: mandates };
   };
 
   const renderLegacyReview = () => {

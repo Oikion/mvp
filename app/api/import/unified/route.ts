@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     // Rows arrive as ValidatedRow[] — already validated by /api/import/validate.
     // Do NOT re-run validateImportData() here — the rows have already been
-    // partitioned into clientRow/propertyRow/mandateRow sub-objects, and
+    // partitioned into contactRow/propertyRow/requestRow sub-objects, and
     // partitionRow() would fail to find any field keys in that shape.
     const validatedRows = rows as ValidatedRow[];
 

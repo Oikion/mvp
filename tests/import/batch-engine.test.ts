@@ -122,12 +122,12 @@ function makeValidatedRow(
 ): ValidatedRow {
   return {
     rowIndex: 0,
-    clientRow: null,
+    contactRow: null,
     propertyRow: null,
-    mandateRow: null,
-    hasClient: false,
+    requestRow: null,
+    hasContact: false,
     hasProperty: false,
-    hasMandate: false,
+    hasRequest: false,
     ...overrides,
   };
 }
@@ -162,9 +162,9 @@ describe("executeBatchImport", () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
-        hasClient: true,
-        clientRow: { client_name: "Alice", client_type: "BUYER" },
-        clientDedupKey: "name:alice",
+        hasContact: true,
+        contactRow:{ client_name: "Alice", client_type: "BUYER" },
+        contactDedupKey:"name:alice",
       }),
     ];
 
@@ -179,17 +179,17 @@ describe("executeBatchImport", () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
-        hasClient: true,
+        hasContact: true,
         hasProperty: true,
-        hasMandate: true,
-        clientRow: { client_name: "Alice", client_type: "BUYER" },
+        hasRequest: true,
+        contactRow:{ client_name: "Alice", client_type: "BUYER" },
         propertyRow: { property_name: "Villa Test", property_type: "HOUSE" },
-        mandateRow: {
+        requestRow:{
           transaction_type: "SALE",
           title: "Buy House",
           budget_min: 100000,
         },
-        clientDedupKey: "name:alice",
+        contactDedupKey:"name:alice",
         propertyDedupKey: "name:villa test",
       }),
     ];
@@ -207,9 +207,9 @@ describe("executeBatchImport", () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
-        hasClient: true,
-        clientRow: { client_name: "Bob" },
-        clientDedupKey: "name:bob",
+        hasContact: true,
+        contactRow:{ client_name: "Bob" },
+        contactDedupKey:"name:bob",
       }),
     ];
 
@@ -234,16 +234,16 @@ describe("executeBatchImport", () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
-        hasClient: true,
+        hasContact: true,
         hasProperty: true,
-        hasMandate: true,
-        clientRow: { client_name: "Carol" },
+        hasRequest: true,
+        contactRow:{ client_name: "Carol" },
         propertyRow: { property_name: "Beach House" },
-        mandateRow: {
+        requestRow:{
           transaction_type: "SALE",
           title: "Buy Beach House",
         },
-        clientDedupKey: "name:carol",
+        contactDedupKey:"name:carol",
         propertyDedupKey: "name:beach house",
       }),
     ];
@@ -262,11 +262,11 @@ describe("executeBatchImport", () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
-        hasClient: true,
+        hasContact: true,
         hasProperty: true,
-        clientRow: { client_name: "Dave" },
+        contactRow:{ client_name: "Dave" },
         propertyRow: { property_name: "Mountain Cabin" },
-        clientDedupKey: "name:dave",
+        contactDedupKey:"name:dave",
         propertyDedupKey: "name:mountain cabin",
       }),
     ];
@@ -294,20 +294,20 @@ describe("executeBatchImport", () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
-        hasClient: true,
+        hasContact: true,
         hasProperty: true,
-        clientRow: { client_name: "Eve" },
+        contactRow:{ client_name: "Eve" },
         propertyRow: { property_name: "Prop A" },
-        clientDedupKey: "name:eve",
+        contactDedupKey:"name:eve",
         propertyDedupKey: "name:prop a",
       }),
       makeValidatedRow({
         rowIndex: 1,
-        hasClient: true,
+        hasContact: true,
         hasProperty: true,
-        clientRow: { client_name: "Eve" },
+        contactRow:{ client_name: "Eve" },
         propertyRow: { property_name: "Prop B" },
-        clientDedupKey: "name:eve",
+        contactDedupKey:"name:eve",
         propertyDedupKey: "name:prop b",
       }),
     ];
@@ -343,15 +343,15 @@ describe("executeBatchImport", () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
-        hasClient: false,
+        hasContact: false,
         hasProperty: false,
-        hasMandate: false,
+        hasRequest: false,
       }),
       makeValidatedRow({
         rowIndex: 1,
-        hasClient: false,
+        hasContact: false,
         hasProperty: false,
-        hasMandate: false,
+        hasRequest: false,
       }),
     ];
 
@@ -390,9 +390,9 @@ describe("executeBatchImport", () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
-        hasClient: true,
-        clientRow: { client_name: "Timeout Test" },
-        clientDedupKey: "name:timeout test",
+        hasContact: true,
+        contactRow:{ client_name: "Timeout Test" },
+        contactDedupKey:"name:timeout test",
       }),
     ];
 

@@ -20,12 +20,12 @@ describe("Row partitioning and entity detection", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasClient).toBe(true);
+    expect(result.validRows[0].hasContact).toBe(true);
     expect(result.validRows[0].hasProperty).toBe(false);
-    expect(result.validRows[0].hasMandate).toBe(false);
-    expect(result.validRows[0].clientRow).not.toBeNull();
+    expect(result.validRows[0].hasRequest).toBe(false);
+    expect(result.validRows[0].contactRow).not.toBeNull();
     expect(result.validRows[0].propertyRow).toBeNull();
-    expect(result.validRows[0].mandateRow).toBeNull();
+    expect(result.validRows[0].requestRow).toBeNull();
   });
 
   it("detects property when property_name is present", () => {
@@ -34,9 +34,9 @@ describe("Row partitioning and entity detection", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasClient).toBe(false);
+    expect(result.validRows[0].hasContact).toBe(false);
     expect(result.validRows[0].hasProperty).toBe(true);
-    expect(result.validRows[0].hasMandate).toBe(false);
+    expect(result.validRows[0].hasRequest).toBe(false);
   });
 
   it("detects mandate when mandate-entity fields are present", () => {
@@ -45,9 +45,9 @@ describe("Row partitioning and entity detection", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasMandate).toBe(true);
+    expect(result.validRows[0].hasRequest).toBe(true);
     // mandate auto-generates a title so it should pass validation
-    expect(result.validRows[0].mandateRow).not.toBeNull();
+    expect(result.validRows[0].requestRow).not.toBeNull();
   });
 
   it("detects client from phone when no client_name column exists in file", () => {
@@ -58,9 +58,9 @@ describe("Row partitioning and entity detection", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasClient).toBe(true);
+    expect(result.validRows[0].hasContact).toBe(true);
     // Auto-generated name from phone
-    expect(result.validRows[0].clientDedupKey).toContain("phone:");
+    expect(result.validRows[0].contactDedupKey).toContain("phone:");
   });
 
   it("does NOT detect client from phone when client_name column exists but is empty for this row", () => {
@@ -72,7 +72,7 @@ describe("Row partitioning and entity detection", () => {
     ]);
 
     // Row 1: has client + property
-    expect(result.validRows[0].hasClient).toBe(true);
+    expect(result.validRows[0].hasContact).toBe(true);
     // Row 2: client_name is empty and the file HAS client_name column,
     // so hasClient should be false
     const row2 = [...result.validRows, ...result.errorRows.map(e => e.rowIndex)]
@@ -81,7 +81,7 @@ describe("Row partitioning and entity detection", () => {
     // Since row 2 has no client and has property, it should be in validRows
     const row2Valid = result.validRows.find((r) => r.rowIndex === 1);
     expect(row2Valid).toBeDefined();
-    expect(row2Valid!.hasClient).toBe(false);
+    expect(row2Valid!.hasContact).toBe(false);
   });
 
   it("partitions fields correctly across entities", () => {
@@ -98,12 +98,12 @@ describe("Row partitioning and entity detection", () => {
 
     expect(result.validRows).toHaveLength(1);
     const row = result.validRows[0];
-    expect(row.hasClient).toBe(true);
+    expect(row.hasContact).toBe(true);
     expect(row.hasProperty).toBe(true);
-    expect(row.hasMandate).toBe(true);
-    expect(row.clientRow).not.toBeNull();
+    expect(row.hasRequest).toBe(true);
+    expect(row.contactRow).not.toBeNull();
     expect(row.propertyRow).not.toBeNull();
-    expect(row.mandateRow).not.toBeNull();
+    expect(row.requestRow).not.toBeNull();
   });
 
   it("unmapped keys are dropped during partitioning", () => {
@@ -114,7 +114,7 @@ describe("Row partitioning and entity detection", () => {
     expect(result.validRows).toHaveLength(1);
     // The unknown field should not appear in any entity row
     const row = result.validRows[0];
-    expect(row.clientRow).not.toHaveProperty("random_unknown_field");
+    expect(row.contactRow).not.toHaveProperty("random_unknown_field");
   });
 });
 
@@ -130,9 +130,9 @@ describe("Client deduplication", () => {
       { client_name: "Jane C", primary_phone: "6955999888" },
     ]);
 
-    expect(result.entitySummary.clients.total).toBe(3);
-    expect(result.entitySummary.clients.unique).toBe(2);
-    expect(result.entitySummary.clients.deduplicated).toBe(1);
+    expect(result.entitySummary.contacts.total).toBe(3);
+    expect(result.entitySummary.contacts.unique).toBe(2);
+    expect(result.entitySummary.contacts.deduplicated).toBe(1);
   });
 
   it("deduplicates clients by email when phone is absent", () => {
@@ -141,9 +141,9 @@ describe("Client deduplication", () => {
       { client_name: "Alice Copy", primary_email: "alice@test.com" },
     ]);
 
-    expect(result.entitySummary.clients.total).toBe(2);
-    expect(result.entitySummary.clients.unique).toBe(1);
-    expect(result.entitySummary.clients.deduplicated).toBe(1);
+    expect(result.entitySummary.contacts.total).toBe(2);
+    expect(result.entitySummary.contacts.unique).toBe(1);
+    expect(result.entitySummary.contacts.deduplicated).toBe(1);
   });
 
   it("deduplicates clients by name when phone and email are absent", () => {
@@ -153,9 +153,9 @@ describe("Client deduplication", () => {
       { client_name: "Jane Smith" },
     ]);
 
-    expect(result.entitySummary.clients.total).toBe(3);
-    expect(result.entitySummary.clients.unique).toBe(2);
-    expect(result.entitySummary.clients.deduplicated).toBe(1);
+    expect(result.entitySummary.contacts.total).toBe(3);
+    expect(result.entitySummary.contacts.unique).toBe(2);
+    expect(result.entitySummary.contacts.deduplicated).toBe(1);
   });
 
   it("phone takes priority over email for dedup key", () => {
@@ -165,7 +165,7 @@ describe("Client deduplication", () => {
     ]);
 
     // Same phone -> same dedup key -> unique = 1
-    expect(result.entitySummary.clients.unique).toBe(1);
+    expect(result.entitySummary.contacts.unique).toBe(1);
   });
 
   it("strips non-digit characters from phone for dedup", () => {
@@ -175,7 +175,7 @@ describe("Client deduplication", () => {
     ]);
 
     // After stripping non-digits, both become "306944123456"
-    expect(result.entitySummary.clients.unique).toBe(1);
+    expect(result.entitySummary.contacts.unique).toBe(1);
   });
 
   it("email dedup is case-insensitive", () => {
@@ -184,7 +184,7 @@ describe("Client deduplication", () => {
       { client_name: "Alice2", primary_email: "alice@test.com" },
     ]);
 
-    expect(result.entitySummary.clients.unique).toBe(1);
+    expect(result.entitySummary.contacts.unique).toBe(1);
   });
 });
 
@@ -244,7 +244,7 @@ describe("Zod validation error capture", () => {
     // client_name is explicitly present (not undefined) so the file "has" the column
     // empty client_name -> hasClient = false (isNonEmpty("") = false)
     // So no client detection here, row is skipped
-    expect(result.entitySummary.clients.total).toBe(0);
+    expect(result.entitySummary.contacts.total).toBe(0);
   });
 
   it("captures property validation errors for invalid enum values", () => {
@@ -313,17 +313,17 @@ describe("Entity summary counts", () => {
       { client_name: "Client 1" }, // duplicate client
     ]);
 
-    expect(result.entitySummary.clients.detected).toBe(true);
-    expect(result.entitySummary.clients.total).toBe(3);
-    expect(result.entitySummary.clients.unique).toBe(2);
-    expect(result.entitySummary.clients.deduplicated).toBe(1);
+    expect(result.entitySummary.contacts.detected).toBe(true);
+    expect(result.entitySummary.contacts.total).toBe(3);
+    expect(result.entitySummary.contacts.unique).toBe(2);
+    expect(result.entitySummary.contacts.deduplicated).toBe(1);
 
     expect(result.entitySummary.properties.detected).toBe(true);
     expect(result.entitySummary.properties.total).toBe(2);
 
-    expect(result.entitySummary.mandates.detected).toBe(true);
-    expect(result.entitySummary.mandates.total).toBe(1);
-    expect(result.entitySummary.mandates.deduplicated).toBe(0);
+    expect(result.entitySummary.requests.detected).toBe(true);
+    expect(result.entitySummary.requests.total).toBe(1);
+    expect(result.entitySummary.requests.deduplicated).toBe(0);
   });
 
   it("returns detected=false when no entities of that type exist", () => {
@@ -331,10 +331,10 @@ describe("Entity summary counts", () => {
       { property_name: "Prop Only" },
     ]);
 
-    expect(result.entitySummary.clients.detected).toBe(false);
-    expect(result.entitySummary.clients.total).toBe(0);
-    expect(result.entitySummary.mandates.detected).toBe(false);
-    expect(result.entitySummary.mandates.total).toBe(0);
+    expect(result.entitySummary.contacts.detected).toBe(false);
+    expect(result.entitySummary.contacts.total).toBe(0);
+    expect(result.entitySummary.requests.detected).toBe(false);
+    expect(result.entitySummary.requests.total).toBe(0);
     expect(result.entitySummary.properties.detected).toBe(true);
   });
 
@@ -343,9 +343,9 @@ describe("Entity summary counts", () => {
 
     expect(result.validRows).toHaveLength(0);
     expect(result.errorRows).toHaveLength(0);
-    expect(result.entitySummary.clients.total).toBe(0);
+    expect(result.entitySummary.contacts.total).toBe(0);
     expect(result.entitySummary.properties.total).toBe(0);
-    expect(result.entitySummary.mandates.total).toBe(0);
+    expect(result.entitySummary.requests.total).toBe(0);
   });
 });
 
@@ -373,20 +373,20 @@ describe("Mixed entity rows", () => {
     expect(result.validRows).toHaveLength(1);
     const row = result.validRows[0];
 
-    expect(row.hasClient).toBe(true);
+    expect(row.hasContact).toBe(true);
     expect(row.hasProperty).toBe(true);
-    expect(row.hasMandate).toBe(true);
+    expect(row.hasRequest).toBe(true);
 
-    expect(row.clientRow).not.toBeNull();
+    expect(row.contactRow).not.toBeNull();
     expect(row.propertyRow).not.toBeNull();
-    expect(row.mandateRow).not.toBeNull();
+    expect(row.requestRow).not.toBeNull();
 
-    expect(row.clientDedupKey).toContain("phone:");
+    expect(row.contactDedupKey).toContain("phone:");
     expect(row.propertyDedupKey).toContain("addr:");
 
-    expect(result.entitySummary.clients.total).toBe(1);
+    expect(result.entitySummary.contacts.total).toBe(1);
     expect(result.entitySummary.properties.total).toBe(1);
-    expect(result.entitySummary.mandates.total).toBe(1);
+    expect(result.entitySummary.requests.total).toBe(1);
   });
 
   it("mandate title is auto-generated from transaction_type and property data", () => {
@@ -399,7 +399,7 @@ describe("Mixed entity rows", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    const mandateRow = result.validRows[0].mandateRow;
+    const mandateRow = result.validRows[0].requestRow;
     expect(mandateRow).not.toBeNull();
     // The title should be auto-generated (e.g. "Buy Apartment")
     expect(mandateRow!.title).toBeTruthy();
@@ -418,11 +418,11 @@ describe("Single entity rows", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasClient).toBe(true);
+    expect(result.validRows[0].hasContact).toBe(true);
     expect(result.validRows[0].hasProperty).toBe(false);
-    expect(result.validRows[0].hasMandate).toBe(false);
+    expect(result.validRows[0].hasRequest).toBe(false);
     expect(result.validRows[0].propertyRow).toBeNull();
-    expect(result.validRows[0].mandateRow).toBeNull();
+    expect(result.validRows[0].requestRow).toBeNull();
   });
 
   it("property-only rows work correctly", () => {
@@ -432,8 +432,8 @@ describe("Single entity rows", () => {
 
     expect(result.validRows).toHaveLength(1);
     expect(result.validRows[0].hasProperty).toBe(true);
-    expect(result.validRows[0].hasClient).toBe(false);
-    expect(result.validRows[0].hasMandate).toBe(false);
+    expect(result.validRows[0].hasContact).toBe(false);
+    expect(result.validRows[0].hasRequest).toBe(false);
   });
 
   it("mandate-only rows work correctly (title auto-generated)", () => {
@@ -442,12 +442,12 @@ describe("Single entity rows", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasMandate).toBe(true);
-    expect(result.validRows[0].hasClient).toBe(false);
+    expect(result.validRows[0].hasRequest).toBe(true);
+    expect(result.validRows[0].hasContact).toBe(false);
     expect(result.validRows[0].hasProperty).toBe(false);
-    expect(result.validRows[0].mandateRow).not.toBeNull();
+    expect(result.validRows[0].requestRow).not.toBeNull();
     // Auto-generated title should be "Rent mandate"
-    expect(result.validRows[0].mandateRow!.title).toBe("Rent mandate");
+    expect(result.validRows[0].requestRow!.title).toBe("Rent mandate");
   });
 });
 
@@ -472,8 +472,8 @@ describe("Enum normalization", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].clientRow).not.toBeNull();
-    expect(result.validRows[0].clientRow!.client_type).toBe("BUYER");
+    expect(result.validRows[0].contactRow).not.toBeNull();
+    expect(result.validRows[0].contactRow!.client_type).toBe("BUYER");
   });
 
   it("normalizes mandate transaction type", () => {
@@ -482,8 +482,8 @@ describe("Enum normalization", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].mandateRow).not.toBeNull();
-    expect(result.validRows[0].mandateRow!.transaction_type).toBe("RENTAL");
+    expect(result.validRows[0].requestRow).not.toBeNull();
+    expect(result.validRows[0].requestRow!.transaction_type).toBe("RENTAL");
   });
 });
 
@@ -498,7 +498,7 @@ describe("Prefix stripping", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    const mandateRow = result.validRows[0].mandateRow;
+    const mandateRow = result.validRows[0].requestRow;
     expect(mandateRow).not.toBeNull();
     // After prefix stripping, keys should be transaction_type and status
     expect(mandateRow!.transaction_type).toBe("SALE");
@@ -513,8 +513,8 @@ describe("Prefix stripping", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    const clientRow = result.validRows[0].clientRow;
-    expect(clientRow).not.toBeNull();
-    expect(clientRow!.description).toBe("VIP client");
+    const contactRow = result.validRows[0].contactRow;
+    expect(contactRow).not.toBeNull();
+    expect(contactRow!.description).toBe("VIP client");
   });
 });

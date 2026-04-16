@@ -199,14 +199,14 @@ export async function executeBatchImport(
 
   // First pass: identify unique entities and count
   for (const row of validatedRows) {
-    if (!row.hasClient && !row.hasProperty && !row.hasMandate) {
+    if (!row.hasContact && !row.hasProperty && !row.hasRequest) {
       skippedCount++;
       continue;
     }
 
-    if (row.hasClient && row.clientDedupKey) {
-      if (!clientDedupMap.has(row.clientDedupKey)) {
-        clientDedupMap.set(row.clientDedupKey, {
+    if (row.hasContact && row.contactDedupKey) {
+      if (!clientDedupMap.has(row.contactDedupKey)) {
+        clientDedupMap.set(row.contactDedupKey, {
           uuid: crypto.randomUUID(),
           rowIndex: row.rowIndex,
         });
@@ -224,7 +224,7 @@ export async function executeBatchImport(
       }
     }
 
-    if (row.hasMandate) {
+    if (row.hasRequest) {
       mandateCount++;
     }
   }
@@ -253,26 +253,26 @@ export async function executeBatchImport(
   const processedPropertyKeys = new Set<string>();
 
   for (const row of validatedRows) {
-    if (!row.hasClient && !row.hasProperty && !row.hasMandate) {
+    if (!row.hasContact && !row.hasProperty && !row.hasRequest) {
       continue; // already counted as skipped
     }
 
-    // --- CLIENT ---
-    if (row.hasClient && row.clientRow && row.clientDedupKey) {
-      const dedupEntry = clientDedupMap.get(row.clientDedupKey);
+    // --- CONTACT ---
+    if (row.hasContact && row.contactRow && row.contactDedupKey) {
+      const dedupEntry = clientDedupMap.get(row.contactDedupKey);
       if (dedupEntry) {
         const clientUuid = dedupEntry.uuid;
         rowClientUuid.set(row.rowIndex, clientUuid);
 
-        const clientName = String(row.clientRow.contact_name ?? row.clientRow.name ?? "");
+        const clientName = String(row.contactRow.contact_name ?? row.contactRow.name ?? "");
         rowClientName.set(row.rowIndex, clientName);
 
         // Only build create data for the first occurrence of this dedup key
-        if (!processedClientKeys.has(row.clientDedupKey)) {
-          processedClientKeys.add(row.clientDedupKey);
+        if (!processedClientKeys.has(row.contactDedupKey)) {
+          processedClientKeys.add(row.contactDedupKey);
 
           try {
-            const clientRowData = { ...row.clientRow };
+            const clientRowData = { ...row.contactRow };
 
             // Encrypt with DEK (use the raw validated row which already has
             // stripped keys from the validation engine)
@@ -367,14 +367,14 @@ export async function executeBatchImport(
       }
     }
 
-    // --- MANDATE ---
-    if (row.hasMandate && row.mandateRow) {
+    // --- REQUEST ---
+    if (row.hasRequest && row.requestRow) {
       try {
         const mandateUuid = crypto.randomUUID();
-        const mandateRowData = { ...row.mandateRow };
+        const mandateRowData = { ...row.requestRow };
 
         // Budget auto-copy from property price (already done in validation
-        // engine for mandateRow, but re-check for safety)
+        // engine for requestRow, but re-check for safety)
         if (row.hasProperty && row.propertyRow?.price != null) {
           if (mandateRowData.budget_min == null)
             mandateRowData.budget_min = row.propertyRow.price;
@@ -598,8 +598,8 @@ export async function executeUnifiedImport(
   // Map BatchImportResult back to the old UnifiedImportResult shape
   const clientReusedCount = Math.max(
     0,
-    (validation.entitySummary.clients.total -
-      validation.entitySummary.clients.unique),
+    (validation.entitySummary.contacts.total -
+      validation.entitySummary.contacts.unique),
   );
 
   const errors: ImportError[] = [
