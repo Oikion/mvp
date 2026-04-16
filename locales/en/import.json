@@ -1,9 +1,9 @@
 {
   "ImportWizard": {
     "title": "Import {entity}",
-    "titleClients": "Import Clients",
+    "titleContacts": "Import Contacts",
     "titleProperties": "Import Properties",
-    "titleMandates": "Import Mandates",
+    "titleRequests": "Import Requests",
     "description": "Upload a CSV, Excel, or XML file to import {entity} in bulk",
     "progress": "Step {current} of {total}",
     "steps": {
@@ -111,7 +111,7 @@
     }
   },
   "ImportFields": {
-    "client": {
+    "contact": {
       "groups": {
         "basic": "Basic Information",
         "contact": "Contact Information",
@@ -124,8 +124,8 @@
         "other": "Other"
       },
       "fields": {
-        "id": "Client ID",
-        "client_name": "Client Name",
+        "id": "Contact ID",
+        "contact_name": "Contact Name",
         "primary_email": "Primary Email",
         "primary_phone": "Primary Phone",
         "office_phone": "Office Phone",
@@ -367,7 +367,7 @@
         }
       }
     },
-    "mandate": {
+    "request": {
       "groups": {
         "basic": "Basic Information",
         "budget": "Budget",
@@ -379,7 +379,7 @@
         "other": "Other"
       },
       "fields": {
-        "id": "Mandate ID",
+        "id": "Request ID",
         "title": "Title",
         "transaction_type": "Transaction Type",
         "property_type": "Property Type",
@@ -516,18 +516,18 @@
         "rental": "Property — Rental",
         "visibility": "Property — Visibility",
         "other": "Property — Other",
-        "contact": "Client — Contact",
-        "classification_client": "Client — Classification",
-        "company": "Client — Company",
-        "greece": "Client — Greece IDs",
-        "billing": "Client — Billing Address",
-        "shipping": "Client — Shipping Address",
-        "other_client": "Client — Other",
-        "budget": "Mandate — Budget",
-        "size": "Mandate — Size",
-        "rooms": "Mandate — Rooms",
-        "features": "Mandate — Features",
-        "location": "Mandate — Location"
+        "contact": "Contact — Contact",
+        "classification_client": "Contact — Classification",
+        "company": "Contact — Company",
+        "greece": "Contact — Greece IDs",
+        "billing": "Contact — Billing Address",
+        "shipping": "Contact — Shipping Address",
+        "other_client": "Contact — Other",
+        "budget": "Request — Budget",
+        "size": "Request — Size",
+        "rooms": "Request — Rooms",
+        "features": "Request — Features",
+        "location": "Request — Location"
       },
       "fields": {
         "property_name": "Property Name",
@@ -583,7 +583,7 @@
         "address_privacy_level": "Address Privacy",
         "description": "Description",
         "primary_email": "Property Email",
-        "client_name": "Client Name",
+        "contact_name": "Contact Name",
         "client_description": "Client Notes",
         "primary_phone": "Phone",
         "office_phone": "Office Phone",
@@ -618,10 +618,10 @@
         "client_visibility": "Client Visibility",
         "budget_min": "Min Budget",
         "budget_max": "Max Budget",
-        "mandate_transaction_type": "Mandate Transaction Type",
-        "mandate_property_type": "Desired Property Type",
+        "request_transaction_type": "Request Transaction Type",
+        "request_property_type": "Desired Property Type",
         "property_purpose": "Property Purpose",
-        "mandate_status": "Mandate Status",
+        "request_status": "Request Status",
         "urgency": "Urgency",
         "timeline": "Timeline",
         "size_min_sqm": "Min Size (sqm)",
@@ -636,23 +636,23 @@
         "floor_max": "Max Floor",
         "year_built_min": "Min Year Built",
         "year_built_max": "Max Year Built",
-        "mandate_condition": "Desired Condition",
-        "mandate_heating_type": "Desired Heating Type",
+        "request_condition": "Desired Condition",
+        "request_heating_type": "Desired Heating Type",
         "energy_cert_min": "Min Energy Certificate",
-        "mandate_furnished": "Desired Furnished Status",
+        "request_furnished": "Desired Furnished Status",
         "ground_floor_only": "Ground Floor Only",
-        "mandate_elevator": "Elevator Required",
+        "request_elevator": "Elevator Required",
         "parking": "Parking Required",
         "pets_allowed": "Pets Allowed",
-        "mandate_inside_city_plan": "Inside City Plan Required",
+        "request_inside_city_plan": "Inside City Plan Required",
         "legalization_ok": "Legalization OK",
-        "mandate_municipality": "Target Municipality",
-        "mandate_region": "Target Region",
+        "request_municipality": "Target Municipality",
+        "request_region": "Target Region",
         "areas_of_interest": "Areas of Interest",
         "amenities": "Amenities",
-        "mandate_notes": "Mandate Notes",
+        "request_notes": "Request Notes",
         "expires_at": "Expiration Date",
-        "mandate_visibility": "Mandate Visibility"
+        "request_visibility": "Request Visibility"
       }
     }
   },
@@ -686,9 +686,9 @@
       "PARTIALLY_DELETED": "Partially Deleted"
     },
     "type": {
-      "CLIENTS": "Clients",
+      "CONTACTS": "Contacts",
       "PROPERTIES": "Properties",
-      "MANDATES": "Mandates",
+      "REQUESTS": "Requests",
       "UNIFIED": "Mixed"
     },
     "detail": {
@@ -700,9 +700,9 @@
       "errorField": "Field",
       "errorMessage": "Error",
       "errorValue": "Submitted Value",
-      "clients": "Clients",
+      "contacts": "Contacts",
       "properties": "Properties",
-      "mandates": "Mandates",
+      "requests": "Requests",
       "created": "Created",
       "reused": "Reused",
       "failed": "Failed",
@@ -717,9 +717,9 @@
       "allDeleted": "All entities were deleted",
       "noEntities": "No entities of this type",
       "linkCounts": "Relationship Links Created",
-      "clientPropertyLinks": "client-property links",
-      "mandatePropertyLinks": "mandate-property links",
-      "mandateClientLinks": "mandate-client links",
+      "contactPropertyLinks": "contact-property links",
+      "requestPropertyLinks": "request-property links",
+      "requestContactLinks": "request-contact links",
       "partiallyDeletedTitle": "Some entities have been deleted",
       "partiallyDeletedDescription": "Part of this import batch was selectively deleted. The remaining entities are still active in their respective modules.",
       "batchDeletedTitle": "This import batch has been deleted",
@@ -742,16 +742,12 @@
       "impactError": "Failed to load impact data. You can still proceed with deletion.",
       "noEntities": "No entities will be deleted.",
       "alsoRemove": "This will also remove:",
-      "clientPropertyLinks": "{count} client-property links",
-      "mandatePropertyLinks": "{count} mandate-property links",
-      "mandateClientLinks": "{count} mandate-client links",
+      "contactPropertyLinks": "{count} contact-property links",
+      "requestPropertyLinks": "{count} request-property links",
+      "requestContactLinks": "{count} request-contact links",
       "dealsLinked": "{count} deals linked to these entities",
       "showLess": "Show less",
       "showMore": "+{count} more"
     }
   }
 }
-
-
-
-

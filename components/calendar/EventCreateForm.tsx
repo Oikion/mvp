@@ -45,16 +45,16 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { ClientSelector } from "./ClientSelector";
+import { ContactSelector } from "./ClientSelector";
 import { PropertySelector } from "./PropertySelector";
 import { DocumentSelector } from "./DocumentSelector";
-import { MandateSelector } from "./MandateSelector";
+import { RequestSelector } from "./RequestSelector";
 import { InviteeSelector, Invitee } from "./InviteeSelector";
 import { useOrgUsers, useCreateEvent } from "@/hooks/swr";
 import { inviteToEvent } from "@/actions/calendar/invite-to-event";
-import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
+import { QuickAddContact } from "@/app/[locale]/app/(routes)/crm/contacts/components/QuickAddContact";
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
-import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
 
 const createEventFormSchema = (t: (key: string) => string) => z.object({
   title: z.string().min(1, t("eventCreateForm.titleRequired")),
@@ -65,10 +65,10 @@ const createEventFormSchema = (t: (key: string) => string) => z.object({
   eventType: z.string().optional(),
   eventTypeOther: z.string().optional(),
   assignedUserId: z.string().optional(),
-  clientIds: z.array(z.string()).default([]),
+  contactIds: z.array(z.string()).default([]),
   propertyIds: z.array(z.string()).default([]),
   documentIds: z.array(z.string()).default([]),
-  mandateIds: z.array(z.string()).default([]),
+  requestIds: z.array(z.string()).default([]),
   reminderMinutes: z.array(z.number()).default([]),
   recurrenceRule: z.string().optional(),
   invitees: z.array(z.custom<Invitee>()).default([]),
@@ -121,9 +121,9 @@ function EventCreateFormBody({
   const selectedReminders = form.watch("reminderMinutes");
 
   // QuickAdd overlay state
-  const [quickAddClient, setQuickAddClient] = React.useState(false);
+  const [quickAddContact, setQuickAddContact] = React.useState(false);
   const [quickAddProperty, setQuickAddProperty] = React.useState(false);
-  const [quickAddMandate, setQuickAddMandate] = React.useState(false);
+  const [quickAddRequest, setQuickAddRequest] = React.useState(false);
 
   const orgUsers = React.useMemo(
     () => users.map((u) => ({ id: u.id, name: u.name || u.email })),
@@ -382,16 +382,16 @@ function EventCreateFormBody({
 
           <FormField
             control={form.control}
-            name="clientIds"
+            name="contactIds"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("eventCreateForm.linkClients")}</FormLabel>
+                <FormLabel>{t("eventCreateForm.linkContacts")}</FormLabel>
                 <FormControl>
-                  <ClientSelector
+                  <ContactSelector
                     value={field.value}
                     onChange={field.onChange}
-                    createNewLabel={t("selectors.createClient")}
-                    onCreateNew={() => setQuickAddClient(true)}
+                    createNewLabel={t("selectors.createContact")}
+                    onCreateNew={() => setQuickAddContact(true)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -434,16 +434,16 @@ function EventCreateFormBody({
 
           <FormField
             control={form.control}
-            name="mandateIds"
+            name="requestIds"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("eventCreateForm.linkMandates")}</FormLabel>
+                <FormLabel>{t("eventCreateForm.linkRequests")}</FormLabel>
                 <FormControl>
-                  <MandateSelector
+                  <RequestSelector
                     value={field.value}
                     onChange={field.onChange}
-                    createNewLabel={t("selectors.createMandate")}
-                    onCreateNew={() => setQuickAddMandate(true)}
+                    createNewLabel={t("selectors.createRequest")}
+                    onCreateNew={() => setQuickAddRequest(true)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -453,14 +453,14 @@ function EventCreateFormBody({
         </div>
 
         {/* QuickAdd overlays — render as sibling Sheets so they stack above the parent */}
-        <QuickAddClient
-          open={quickAddClient}
-          onOpenChange={setQuickAddClient}
+        <QuickAddContact
+          open={quickAddContact}
+          onOpenChange={setQuickAddContact}
           organizationUsers={orgUsers}
-          onSuccess={(clientId) => {
-            if (clientId) {
-              const current = form.getValues("clientIds");
-              form.setValue("clientIds", [...current, clientId]);
+          onSuccess={(contactId) => {
+            if (contactId) {
+              const current = form.getValues("contactIds");
+              form.setValue("contactIds", [...current, contactId]);
             }
           }}
         />
@@ -475,10 +475,11 @@ function EventCreateFormBody({
             }
           }}
         />
-        <QuickAddMandate
-          open={quickAddMandate}
-          onOpenChange={setQuickAddMandate}
+        <QuickAddRequest
+          open={quickAddRequest}
+          onOpenChange={setQuickAddRequest}
           organizationUsers={orgUsers}
+          onContinueToFull={() => setQuickAddRequest(false)}
         />
 
         <Separator />
@@ -586,10 +587,10 @@ export function EventCreateForm({
       eventType: undefined,
       eventTypeOther: "",
       assignedUserId: userId || undefined,
-      clientIds: clientId ? [clientId] : [],
+      contactIds: clientId ? [clientId] : [],
       propertyIds: propertyId ? [propertyId] : [],
       documentIds: [],
-      mandateIds: [],
+      requestIds: [],
       reminderMinutes: [],
       recurrenceRule: undefined,
       invitees: [],
@@ -618,10 +619,10 @@ export function EventCreateForm({
         location: locationString,
         eventType: data.eventType,
         assignedUserId: data.assignedUserId,
-        clientIds: data.clientIds,
+        contactIds: data.contactIds,
         propertyIds: data.propertyIds,
         documentIds: data.documentIds,
-        mandateIds: data.mandateIds,
+        requestIds: data.requestIds,
         reminderMinutes: data.reminderMinutes,
         recurrenceRule: data.recurrenceRule,
       });
@@ -704,10 +705,10 @@ export function EventCreateSidePanel({
       eventType: undefined,
       eventTypeOther: "",
       assignedUserId: userId || undefined,
-      clientIds: clientId ? [clientId] : [],
+      contactIds: clientId ? [clientId] : [],
       propertyIds: propertyId ? [propertyId] : [],
       documentIds: [],
-      mandateIds: [],
+      requestIds: [],
       reminderMinutes: [],
       recurrenceRule: undefined,
       invitees: [],
@@ -736,10 +737,10 @@ export function EventCreateSidePanel({
         location: locationString,
         eventType: data.eventType,
         assignedUserId: data.assignedUserId,
-        clientIds: data.clientIds,
+        contactIds: data.contactIds,
         propertyIds: data.propertyIds,
         documentIds: data.documentIds,
-        mandateIds: data.mandateIds,
+        requestIds: data.requestIds,
         reminderMinutes: data.reminderMinutes,
         recurrenceRule: data.recurrenceRule,
       });

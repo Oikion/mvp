@@ -435,6 +435,9 @@ importers:
       resend:
         specifier: ^6.9.4
         version: 6.9.4(@react-email/render@1.4.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0))
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
       sharp:
         specifier: ^0.33.5
         version: 0.33.5

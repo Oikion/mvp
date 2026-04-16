@@ -73,7 +73,8 @@ function getEntityIcon(type: string) {
   switch (type) {
     case "property":
       return <Building2 className="h-4 w-4" />;
-    case "client":
+    case "contact":
+    case "client": // backward compat: old messages stored "client"
       return <User className="h-4 w-4" />;
     case "document":
       return <FileText className="h-4 w-4" />;
@@ -89,8 +90,9 @@ function getEntityPath(type: string, id: string, locale: string, friendlyId: str
   switch (type) {
     case "property":
       return `/${locale}/app/mls/properties/${friendlyId}`;
-    case "client":
-      return `/${locale}/app/crm/clients/${id}`;
+    case "contact":
+    case "client": // backward compat: old messages stored "client"
+      return `/${locale}/app/crm/contacts/${id}`;
     case "document":
       return `/${locale}/app/documents/${id}`;
     case "event":
@@ -105,7 +107,8 @@ function getEntityColors(type: string) {
   switch (type) {
     case "property":
       return "bg-primary/10 text-primary border-primary/20";
-    case "client":
+    case "contact":
+    case "client": // backward compat: old messages stored "client"
       return "bg-success/10 text-success border-success/20";
     case "document":
       return "bg-warning/10 text-warning border-warning/20";

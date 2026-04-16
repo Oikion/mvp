@@ -24,14 +24,14 @@ export async function GET(
     }
 
     // Verify client belongs to organization
-    const client = await prismadb.clients.findFirst({
+    const client = await prismadb.contact.findFirst({
       where: {
         id: clientId,
         organizationId,
       },
       select: {
         id: true,
-        client_name: true,
+        displayName: true,
       },
     });
 
@@ -43,12 +43,12 @@ export async function GET(
     }
 
     // Fetch linked properties
-    const linkedPropertiesRaw = await prismadb.client_Properties.findMany({
+    const linkedPropertiesRaw = await prismadb.contactProperty.findMany({
       where: {
-        clientId,
+        contactId: clientId,
       },
       include: {
-        Properties: {
+        property: {
           select: {
             id: true,
             friendlyId: true,
@@ -80,9 +80,9 @@ export async function GET(
     // Map to expected field names
     const linkedProperties = linkedPropertiesRaw.map((lp) => ({
       ...lp,
-      property: lp.Properties ? {
-        ...lp.Properties,
-        assigned_to_user: lp.Properties.Users_Properties_assigned_toToUsers,
+      property: lp.property ? {
+        ...lp.property,
+        assigned_to_user: lp.property.Users_Properties_assigned_toToUsers,
       } : null,
     }));
 
@@ -90,7 +90,7 @@ export async function GET(
     const linkedEventsRaw = await prismadb.calendarEvent.findMany({
       where: {
         organizationId,
-        Clients: {
+        Contacts: {
           some: {
             id: clientId,
           },
@@ -137,20 +137,20 @@ export async function GET(
       })
     );
 
-    // Fetch linked mandates
-    const linkedMandatesRaw = await prismadb.mandate_Clients.findMany({
-      where: { clientId },
+    // Fetch linked mandates/requests
+    const linkedMandatesRaw = await prismadb.requestContact.findMany({
+      where: { contactId: clientId },
       include: {
-        Mandate: {
+        request: {
           select: {
             id: true,
             friendlyId: true,
             title: true,
-            transaction_type: true,
+            requestType: true,
             status: true,
             urgency: true,
-            budget_min: true,
-            budget_max: true,
+            budgetMin: true,
+            budgetMax: true,
             organizationId: true,
           },
         },
@@ -161,9 +161,9 @@ export async function GET(
     // Filter to same org and decrypt titles
     const mandates = await Promise.all(
       linkedMandatesRaw
-        .filter((lm) => lm.Mandate.organizationId === organizationId)
+        .filter((lm) => lm.request.organizationId === organizationId)
         .map(async (lm) => {
-          const { organizationId: _, ...rest } = lm.Mandate;
+          const { organizationId: _, ...rest } = lm.request;
           const decrypted = await decryptMandateForOrg(rest, organizationId);
           return decrypted;
         })
@@ -173,7 +173,7 @@ export async function GET(
     const linkedDocumentsRaw = await prismadb.documents.findMany({
       where: {
         organizationId,
-        Clients: { some: { id: clientId } },
+        Contacts: { some: { id: clientId } },
       },
       select: {
         id: true,
@@ -200,6 +200,7 @@ export async function GET(
     );
 
     // Helper function to serialize Prisma objects
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const serializePrismaObject = (obj: any): any => {
       if (obj === null || obj === undefined) {
         return obj;
@@ -214,6 +215,7 @@ export async function GET(
         return obj.map(serializePrismaObject);
       }
       if (typeof obj === "object") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const serialized: any = {};
         for (const [key, value] of Object.entries(obj)) {
           serialized[key] = serializePrismaObject(value);
@@ -250,18 +252,3 @@ export async function GET(
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

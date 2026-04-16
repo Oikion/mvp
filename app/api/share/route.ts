@@ -107,19 +107,19 @@ export async function POST(req: Request) {
         entityExists = !!property;
         entityName = property?.property_name || "Property";
         break;
-      case "CLIENT":
-        const client = await prismadb.clients.findFirst({
+      case "CONTACT":
+        const client = await prismadb.contact.findFirst({
           where: {
             id: entityId,
             OR: [
-              { assigned_to: currentUser.id },
+              { assignedAgentId: currentUser.id },
               ...(organizationId ? [{ organizationId }] : []),
             ],
           },
-          select: { id: true, client_name: true },
+          select: { id: true, displayName: true },
         });
         entityExists = !!client;
-        entityName = client?.client_name || "Client";
+        entityName = client?.displayName || "Client";
         break;
       case "DOCUMENT":
         const document = await prismadb.documents.findFirst({
@@ -203,7 +203,7 @@ export async function POST(req: Request) {
     // Revalidate relevant paths so the recipient sees the shared item
     revalidatePath("/shared-with-me");
     revalidatePath("/mls/properties");
-    revalidatePath("/crm/clients");
+    revalidatePath("/crm/contacts");
 
     return NextResponse.json(share, { status: 201 });
   } catch (error) {

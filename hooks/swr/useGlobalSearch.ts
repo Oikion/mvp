@@ -15,20 +15,22 @@ interface Relationships {
   clients?: { count: number; preview?: RelationshipPreview[] };
   properties?: { count: number; preview?: RelationshipPreview[] };
   events?: { count: number; preview?: RelationshipPreview[] };
+  requests?: { count: number; preview?: RelationshipPreview[] };
+  /** @deprecated use requests */
   mandates?: { count: number; preview?: RelationshipPreview[] };
   client?: { id: string; client_name: string } | null;
 }
 
 export interface SearchResult {
   id: string;
-  type: "property" | "client" | "contact" | "document" | "event" | "mandate";
+  type: "property" | "client" | "contact" | "document" | "event" | "mandate" | "request";
   title: string;
   subtitle?: string;
   url: string;
   relationships?: Relationships;
 }
 
-export type SearchEntityType = "property" | "client" | "contact" | "document" | "event" | "mandate";
+export type SearchEntityType = "property" | "client" | "contact" | "document" | "event" | "mandate" | "request";
 
 interface SearchMeta {
   query: string;
@@ -40,7 +42,9 @@ interface SearchMeta {
     contacts: number;
     documents: number;
     events: number;
-    mandates: number;
+    requests: number;
+    /** @deprecated use requests */
+    mandates?: number;
     total: number;
   };
   hasMore: boolean;
@@ -87,6 +91,18 @@ interface SearchApiResponse {
     attendeeName?: string;
     relationships?: Relationships;
   }>;
+  requests?: Array<{
+    id: string;
+    friendlyId: string;
+    title?: string;
+    transaction_type?: string;
+    budget_min?: number;
+    budget_max?: number;
+    status?: string;
+    urgency?: string;
+    relationships?: Relationships;
+  }>;
+  /** @deprecated use requests */
   mandates?: Array<{
     id: string;
     friendlyId: string;
@@ -209,9 +225,10 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
     });
   }
 
-  // Format mandates
-  if (data.mandates && Array.isArray(data.mandates)) {
-    data.mandates.forEach((mandate) => {
+  // Format requests (backward compat: fall back to data.mandates for old API responses)
+  const requestItems = data.requests || data.mandates;
+  if (requestItems && Array.isArray(requestItems)) {
+    requestItems.forEach((mandate) => {
       const subtitleParts: string[] = [];
       if (mandate.transaction_type) subtitleParts.push(mandate.transaction_type);
       if (mandate.budget_min || mandate.budget_max) {
@@ -224,10 +241,10 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
 
       formattedResults.push({
         id: mandate.id,
-        type: "mandate",
-        title: mandate.title || "Untitled Mandate",
+        type: "request",
+        title: mandate.title || "Untitled Request",
         subtitle: subtitleParts.length > 0 ? subtitleParts.join(" · ") : undefined,
-        url: `/app/mandates/${mandate.friendlyId}`,
+        url: `/app/requests/${mandate.friendlyId}`,
         relationships: mandate.relationships,
       });
     });
@@ -239,7 +256,7 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
       query: "",
       page: 1,
       limit: 50,
-      counts: { properties: 0, clients: 0, contacts: 0, documents: 0, events: 0, mandates: 0, total: 0 },
+      counts: { properties: 0, clients: 0, contacts: 0, documents: 0, events: 0, requests: 0, total: 0 },
       hasMore: false,
       timing: 0,
     },

@@ -5,7 +5,7 @@ import { prismadb } from "@/lib/prisma";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { notifyAccountWatchers } from "@/lib/notifications";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
-import { decryptClientForOrg, encryptClientForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg, encryptContactForOrg } from "@/lib/model-encryption";
 
 export async function GET(
   _req: Request,
@@ -31,7 +31,7 @@ export async function GET(
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
 
-    const client = await prismaTenant.clients.findFirst({
+    const client = await prismaTenant.contact.findFirst({
       where: {
         organizationId,
         friendlyId: clientId,
@@ -43,7 +43,7 @@ export async function GET(
     }
 
     // Decrypt encrypted fields, then serialize to plain object
-    const decrypted = await decryptClientForOrg(client, organizationId);
+    const decrypted = await decryptContactForOrg(client, organizationId);
     const serialized = JSON.parse(JSON.stringify(decrypted));
 
     return NextResponse.json({ client: serialized }, { status: 200 });
@@ -77,9 +77,7 @@ export async function PUT(
       secondary_phone,
       secondary_email,
       person_type,
-      full_name,
       company_name,
-      channels,
       language,
       afm,
       doy,
@@ -88,7 +86,6 @@ export async function PUT(
       gdpr_consent,
       allow_marketing,
       lead_source,
-      draft_status,
       client_type,
       client_status,
       communication_notes,
@@ -97,27 +94,16 @@ export async function PUT(
       fax,
       company_id,
       vat,
-      billing_street,
-      billing_postal_code,
-      billing_city,
-      billing_state,
-      billing_country,
-      shipping_street,
-      shipping_postal_code,
-      shipping_city,
-      shipping_state,
-      shipping_country,
       description,
       assigned_to,
-      member_of,
     } = body;
 
     // Verify the client belongs to the current organization before updating.
     // Accept both UUID (from wizard autosave draftId) and friendlyId (from client detail routes).
     const existingClient =
-      (await prismadb.clients.findFirst({ where: { organizationId, id: clientId } })) ??
+      (await prismadb.contact.findFirst({ where: { organizationId, id: clientId } })) ??
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (await prismadb.clients.findFirst({ where: { organizationId, friendlyId: clientId } as any }));
+      (await prismadb.contact.findFirst({ where: { organizationId, friendlyId: clientId } as any }));
 
     if (!existingClient) {
       return NextResponse.json({ error: "Client not found or access denied" }, { status: 404 });
@@ -128,7 +114,7 @@ export async function PUT(
       "client:update",
       "client",
       existingClient.id,
-      existingClient.assigned_to
+      existingClient.assignedAgentId
     );
     if (!updateCheck.allowed) {
       return NextResponse.json(
@@ -138,7 +124,7 @@ export async function PUT(
     }
 
     // Permission check: Check if user can reassign agent
-    if (assigned_to !== undefined && assigned_to !== existingClient.assigned_to) {
+    if (assigned_to !== undefined && assigned_to !== existingClient.assignedAgentId) {
       const reassignCheck = await canPerformAction("client:reassign_agent");
       if (!reassignCheck.allowed) {
         return NextResponse.json(
@@ -150,51 +136,40 @@ export async function PUT(
 
     const rawData = {
         updatedBy: user.id,
-        client_name,
-        primary_email,
-        primary_phone,
-        secondary_phone,
-        secondary_email,
-        person_type,
-        full_name,
-        company_name,
-        channels,
-        language,
-        afm,
+        // Map legacy snake_case body fields → Contact camelCase model fields
+        displayName: client_name,
+        email: primary_email,
+        primaryPhone: primary_phone,
+        secondaryPhone: secondary_phone,
+        secondaryEmail: secondary_email,
+        isCompany: person_type === "company",
+        companyName: company_name,
+        languagePreference: language,
+        taxId: afm,
         doy,
-        id_doc,
-        company_gemi,
-        gdpr_consent,
-        allow_marketing,
-        lead_source,
-        draft_status: draft_status !== undefined ? draft_status : undefined,
-        client_type,
-        client_status,
-        communication_notes,
-        office_phone,
+        idDocument: id_doc,
+        companyGemi: company_gemi,
+        gdprConsentGiven: gdpr_consent,
+        allowMarketing: allow_marketing,
+        source: lead_source,
+        category: client_type,
+        status: client_status,
+        communicationNotes: communication_notes,
+        officePhone: office_phone,
         website,
         fax,
-        company_id,
-        vat,
-        billing_street,
-        billing_postal_code,
-        billing_city,
-        billing_state,
-        billing_country,
-        shipping_street,
-        shipping_postal_code,
-        shipping_city,
-        shipping_state,
-        shipping_country,
+        companyId: company_id,
+        vatNumber: vat,
         description,
-        assigned_to,
-        member_of,
+        assignedAgentId: assigned_to,
+        // channels, full_name, draft_status, billing_*/shipping_* fields have no
+        // direct equivalent on the Contact model — omit them silently
     };
 
     // Encrypt sensitive fields before writing to DB
-    const encryptedData = await encryptClientForOrg(rawData, organizationId);
+    const encryptedData = await encryptContactForOrg(rawData, organizationId);
 
-    const updatedClient = await prismadb.clients.update({
+    const updatedClient = await prismadb.contact.update({
       where: { id: existingClient.id },
       data: { ...rawData, ...encryptedData },
     });
@@ -206,8 +181,8 @@ export async function PUT(
       clientId,
       organizationId,
       "ACCOUNT_UPDATED",
-      `Client "${updatedClient.client_name}" was updated`,
-      `${user.name || user.email} updated the client "${updatedClient.client_name}"`,
+      `Client "${updatedClient.displayName}" was updated`,
+      `${user.name || user.email} updated the client "${updatedClient.displayName}"`,
       {
         updatedBy: user.id,
         updatedByName: user.name || user.email,

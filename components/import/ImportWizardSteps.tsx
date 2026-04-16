@@ -140,10 +140,10 @@ export interface ImportResult {
   failed: number;
   errors?: ValidationError[];
   // Unified import fields (present when using unified engine)
-  clients?: { created: number; reused: number; failed: number };
+  contacts?: { created: number; reused: number; failed: number };
   properties?: { created: number; failed: number };
-  mandates?: { created: number; failed: number };
-  links?: { clientProperty: number; mandateClient: number; mandateProperty: number };
+  requests?: { created: number; failed: number };
+  links?: { contactProperty: number; requestContact: number; requestProperty: number };
   // Batch result passthrough for new CompleteStep
   _batchResult?: unknown;
 }
@@ -151,7 +151,7 @@ export interface ImportResult {
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 interface ImportWizardStepsProps {
-  entityType: "client" | "property" | "mandate";
+  entityType: "contact" | "property" | "request";
   dict: ImportWizardDict;
   fieldsDict: FieldsDict;
   schema?: z.ZodSchema;
@@ -170,7 +170,7 @@ interface ImportWizardStepsProps {
   onCancel?: () => void;
   returnUrl?: string;
   unifiedMode?: boolean;
-  mandateFieldKeys?: Set<string>;
+  requestFieldKeys?: Set<string>;
   locale?: string;
 }
 
@@ -207,7 +207,7 @@ export function ImportWizardSteps({
   onCancel,
   returnUrl,
   unifiedMode,
-  mandateFieldKeys,
+  requestFieldKeys,
 }: Readonly<ImportWizardStepsProps>) {
   // Unified mode uses 6 steps: Upload(0), Mapping(1), Validation(2), Review(3), Importing(4), Complete(5)
   // Legacy mode uses 5 steps: Upload(0), Mapping(1), Validation(2), Review(3), Complete(4)
@@ -226,7 +226,7 @@ export function ImportWizardSteps({
   // ── Step 1: Mapping ──
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const [matchResults, setMatchResults] = useState<Map<string, MatchResult>>(new Map());
-  const [columnEntities, setColumnEntities] = useState<Record<string, "client" | "property" | "mandate" | "unassigned">>({});
+  const [columnEntities, setColumnEntities] = useState<Record<string, "contact" | "property" | "request" | "unassigned">>({});
   const [groupingKeys, setGroupingKeys] = useState<Record<string, boolean>>({});
 
   // ── Step 2: Validation ──
@@ -356,16 +356,16 @@ export function ImportWizardSteps({
           errorRows: [
             {
               rowIndex: 0,
-              entity: "client",
+              entity: "contact",
               field: "",
               error: error instanceof Error ? error.message : "Validation failed",
               rawValue: "",
             },
           ],
           entitySummary: {
-            clients: { detected: false, total: 0, unique: 0, deduplicated: 0 },
+            contacts: { detected: false, total: 0, unique: 0, deduplicated: 0 },
             properties: { detected: false, total: 0, unique: 0, deduplicated: 0 },
-            mandates: { detected: false, total: 0, unique: 0, deduplicated: 0 },
+            requests: { detected: false, total: 0, unique: 0, deduplicated: 0 },
           },
         });
       } finally {
@@ -421,12 +421,12 @@ export function ImportWizardSteps({
     return {
       validRows: validData.map((row, idx) => ({
         rowIndex: idx,
-        clientRow: entityType === "client" ? row : null,
+        contactRow: entityType === "contact" ? row : null,
         propertyRow: entityType === "property" ? row : null,
-        mandateRow: entityType === "mandate" ? row : null,
-        hasClient: entityType === "client",
+        requestRow: entityType === "request" ? row : null,
+        hasContact: entityType === "contact",
         hasProperty: entityType === "property",
-        hasMandate: entityType === "mandate",
+        hasRequest: entityType === "request",
       })),
       errorRows: validationErrors.map((ve) => ({
         rowIndex: ve.row,
@@ -436,8 +436,8 @@ export function ImportWizardSteps({
         rawValue: ve.value ?? "",
       })),
       entitySummary: {
-        clients: {
-          detected: entityType === "client",
+        contacts: {
+          detected: entityType === "contact",
           total: parsedData.length,
           unique: validData.length,
           deduplicated: 0,
@@ -448,8 +448,8 @@ export function ImportWizardSteps({
           unique: validData.length,
           deduplicated: 0,
         },
-        mandates: {
-          detected: entityType === "mandate",
+        requests: {
+          detected: entityType === "request",
           total: parsedData.length,
           unique: validData.length,
           deduplicated: 0,
@@ -649,15 +649,15 @@ export function ImportWizardSteps({
           return file !== null && parsedData.length > 0;
         case 1: { // Mapping
           const mappedFields = Object.values(fieldMapping);
-          const hasClientTrigger =
-            mappedFields.includes("client_name") ||
+          const hasContactTrigger =
+            mappedFields.includes("contact_name") ||
             mappedFields.includes("primary_phone") ||
             mappedFields.includes("primary_email");
           const hasPropertyTrigger = mappedFields.includes("property_name");
-          const hasMandateTrigger = mandateFieldKeys
-            ? mappedFields.some((f) => mandateFieldKeys.has(f))
+          const hasRequestTrigger = requestFieldKeys
+            ? mappedFields.some((f) => requestFieldKeys.has(f))
             : false;
-          return hasClientTrigger || hasPropertyTrigger || hasMandateTrigger;
+          return hasContactTrigger || hasPropertyTrigger || hasRequestTrigger;
         }
         case 2: // Validation
           return !isValidating;
@@ -696,7 +696,7 @@ export function ImportWizardSteps({
     file,
     parsedData.length,
     fieldMapping,
-    mandateFieldKeys,
+    requestFieldKeys,
     isValidating,
     validationResult,
     fieldDefinitions,
@@ -839,11 +839,11 @@ export function ImportWizardSteps({
     let properties = 0;
     let mandates = 0;
     for (const row of validData) {
-      const hasClient = !!(row.client_name || row.primary_phone || row.primary_email);
+      const hasClient = !!(row.contact_name || row.primary_phone || row.primary_email);
       if (hasClient) {
         const phoneVal = row.primary_phone;
         const emailVal = row.primary_email;
-        const nameVal = row.client_name;
+        const nameVal = row.contact_name;
         const phoneStr = phoneVal === null || phoneVal === undefined ? "" : String(phoneVal);
         const emailStr = emailVal === null || emailVal === undefined ? "" : String(emailVal);
         const nameStr = nameVal === null || nameVal === undefined ? "" : String(nameVal);
@@ -862,15 +862,15 @@ export function ImportWizardSteps({
       }
       if (row.property_name) properties++;
       if (
-        mandateFieldKeys &&
+        requestFieldKeys &&
         Object.entries(row).some(
-          ([k, v]) => mandateFieldKeys.has(k) && v !== null && v !== undefined && v !== "",
+          ([k, v]) => requestFieldKeys.has(k) && v !== null && v !== undefined && v !== "",
         )
       ) {
         mandates++;
       }
     }
-    return { clients: clientDedupKeys.size, properties, mandates };
+    return { contacts: clientDedupKeys.size, properties, requests: mandates };
   };
 
   const renderLegacyReview = () => {

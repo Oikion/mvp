@@ -48,6 +48,8 @@ interface Relationships {
   clients?: { count: number; preview?: RelationshipPreview[] };
   properties?: { count: number; preview?: RelationshipPreview[] };
   events?: { count: number; preview?: RelationshipPreview[] };
+  requests?: { count: number; preview?: RelationshipPreview[] };
+  /** @deprecated use requests */
   mandates?: { count: number; preview?: RelationshipPreview[] };
   client?: { id: string; client_name: string } | null;
 }
@@ -58,7 +60,7 @@ const FILTER_TABS: { value: FilterType; label: string; icon: React.ComponentType
   { value: "all", label: "All", icon: Search },
   { value: "property", label: "Properties", icon: Building2 },
   { value: "client", label: "Clients", icon: User },
-  { value: "mandate", label: "Mandates", icon: ScrollText },
+  { value: "request", label: "Requests", icon: ScrollText },
   { value: "contact", label: "Contacts", icon: Users },
   { value: "document", label: "Documents", icon: FileText },
   { value: "event", label: "Events", icon: Calendar },
@@ -67,7 +69,7 @@ const FILTER_TABS: { value: FilterType; label: string; icon: React.ComponentType
 const QUICK_ACTIONS = [
   { id: "new-property", label: "New Property", icon: Building2, path: "/app/mls/new", shortcut: "P" },
   { id: "new-client", label: "New Client", icon: User, path: "/app/crm/new", shortcut: "C" },
-  { id: "new-mandate", label: "New Mandate", icon: ScrollText, path: "/app/mandates/new", shortcut: "M" },
+  { id: "new-request", label: "New Request", icon: ScrollText, path: "/app/requests/new", shortcut: "M" },
   { id: "new-event", label: "New Event", icon: Calendar, path: "/app/calendar/new", shortcut: "E" },
   { id: "new-document", label: "Upload Document", icon: FileText, path: "/app/documents/upload", shortcut: "D" },
 ];
@@ -75,7 +77,7 @@ const QUICK_ACTIONS = [
 const NAVIGATION_ITEMS = [
   { id: "go-properties", label: "Properties", icon: Building2, path: "/app/mls/properties", shortcut: "G P" },
   { id: "go-clients", label: "Clients", icon: User, path: "/app/crm/clients", shortcut: "G C" },
-  { id: "go-mandates", label: "Mandates", icon: ScrollText, path: "/app/mandates", shortcut: "G M" },
+  { id: "go-requests", label: "Requests", icon: ScrollText, path: "/app/requests", shortcut: "G M" },
   { id: "go-contacts", label: "Contacts", icon: Users, path: "/app/crm/contacts", shortcut: "G O" },
   { id: "go-documents", label: "Documents", icon: FileText, path: "/app/documents", shortcut: "G D" },
   { id: "go-calendar", label: "Calendar", icon: Calendar, path: "/app/calendar", shortcut: "G E" },
@@ -214,6 +216,7 @@ export function GlobalSearch() {
         return Building2;
       case "client":
         return User;
+      case "request":
       case "mandate":
         return ScrollText;
       case "contact":
@@ -233,8 +236,9 @@ export function GlobalSearch() {
         return t("GlobalSearch.types.property");
       case "client":
         return t("GlobalSearch.types.client");
+      case "request":
       case "mandate":
-        return t("GlobalSearch.types.mandate");
+        return t("GlobalSearch.types.request");
       case "contact":
         return t("GlobalSearch.types.contact");
       case "document":
@@ -265,7 +269,8 @@ export function GlobalSearch() {
     if (relationships.clients?.count) total += relationships.clients.count;
     if (relationships.properties?.count) total += relationships.properties.count;
     if (relationships.events?.count) total += relationships.events.count;
-    if (relationships.mandates?.count) total += relationships.mandates.count;
+    const reqRel = relationships.requests ?? relationships.mandates;
+    if (reqRel?.count) total += reqRel.count;
     if (relationships.client) total += 1;
     return total;
   };
@@ -315,15 +320,16 @@ export function GlobalSearch() {
       );
     }
 
-    if (relationships.mandates?.count && relationships.mandates.count > 0) {
+    const reqRelBadge = relationships.requests ?? relationships.mandates;
+    if (reqRelBadge?.count && reqRelBadge.count > 0) {
       badges.push(
         <Badge
-          key="mandates"
+          key="requests"
           variant="secondary"
           className="text-[10px] px-1.5 py-0 h-4 gap-0.5"
         >
           <ScrollText className="h-2.5 w-2.5" />
-          {relationships.mandates.count}
+          {reqRelBadge.count}
         </Badge>
       );
     }

@@ -13,8 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/navigation";
 import { propertyImportFieldDefinitions } from "@/lib/import/property-import-schema";
-import { clientImportFieldDefinitions } from "@/lib/import/client-import-schema";
-import { mandateImportFieldDefinitions } from "@/lib/import/mandate-import-schema";
+import { contactImportFieldDefinitions } from "@/lib/import/contact-import-schema";
+import { requestImportFieldDefinitions } from "@/lib/import/request-import-schema";
 
 interface UploadStepProps {
   readonly dict: {
@@ -41,7 +41,7 @@ interface UploadStepProps {
   ) => void;
   readonly onFileHash?: (hash: string) => void;
   readonly currentFile: File | null;
-  readonly entityType: "client" | "property" | "mandate";
+  readonly entityType: "contact" | "property" | "request";
   readonly unifiedMode?: boolean;
 }
 
@@ -338,7 +338,7 @@ async function computeFileHash(file: File): Promise<string> {
 /** Curated ~25 columns for the unified template (most common from each entity). */
 const UNIFIED_TEMPLATE_HEADERS = [
   // Client
-  "client_name", "primary_phone", "primary_email", "client_type",
+  "contact_name", "primary_phone", "primary_email", "client_type",
   // Property
   "property_name", "property_type", "transaction_type", "price",
   "address_street", "address_city", "municipality", "bedrooms", "bathrooms",
@@ -395,7 +395,7 @@ const FIELD_DESCRIPTIONS: Record<string, { label: string; required: boolean; des
   size_net_sqm: { label: "Net Size (sqm)", required: false, description: "Net area in square meters" },
   visibility: { label: "Visibility", required: false, description: "HIDDEN, PRIVATE, SECURE, or PUBLIC" },
   // Client
-  client_name: { label: "Client Name", required: true, description: "Full name of the client" },
+  contact_name: { label: "Contact Name", required: true, description: "Full name of the contact" },
   primary_email: { label: "Email", required: false, description: "Primary email address" },
   primary_phone: { label: "Phone", required: false, description: "Primary phone number" },
   client_type: { label: "Client Type", required: false, description: "BUYER, SELLER, RENTER, INVESTOR, REFERRAL_PARTNER" },
@@ -679,10 +679,10 @@ export function UploadStep({
   const templateHeaders = useMemo(() => {
     if (unifiedMode) return UNIFIED_TEMPLATE_HEADERS;
     switch (entityType) {
-      case "client":
-        return clientImportFieldDefinitions.map((f) => f.key);
-      case "mandate":
-        return mandateImportFieldDefinitions.map((f) => f.key);
+      case "contact":
+        return contactImportFieldDefinitions.map((f) => f.key);
+      case "request":
+        return requestImportFieldDefinitions.map((f) => f.key);
       case "property":
       default:
         return propertyImportFieldDefinitions.map((f) => f.key);

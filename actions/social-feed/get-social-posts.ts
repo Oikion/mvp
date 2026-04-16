@@ -14,7 +14,7 @@ export interface SocialPostAttachment {
 export interface SocialPost {
   id: string;
   slug?: string | null;
-  type: "property" | "client" | "mandate" | "text";
+  type: "property" | "contact" | "request" | "document" | "text";
   content: string;
   timestamp: string;
   author: {
@@ -28,7 +28,7 @@ export interface SocialPost {
   linkedEntity?: {
     id: string;
     friendlyId: string;
-    type: "property" | "client" | "mandate";
+    type: "property" | "contact" | "request" | "document";
     title: string;
     subtitle?: string;
     image?: string;
@@ -151,35 +151,37 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
     const linkedPropertyIds = filteredPosts
       .filter((p) => p.linkedEntityId && p.linkedEntityType === "property")
       .map((p) => p.linkedEntityId!);
-    const linkedClientIds = filteredPosts
-      .filter((p) => p.linkedEntityId && p.linkedEntityType === "client")
+    // Accept both "contact" (new) and "client" (legacy) stored values
+    const linkedContactIds = filteredPosts
+      .filter((p) => p.linkedEntityId && (p.linkedEntityType === "contact" || p.linkedEntityType === "client"))
       .map((p) => p.linkedEntityId!);
-    const linkedMandateIds = filteredPosts
-      .filter((p) => p.linkedEntityId && p.linkedEntityType === "mandate")
+    // Accept both "request" (new) and "mandate" (legacy) stored values
+    const linkedRequestIds = filteredPosts
+      .filter((p) => p.linkedEntityId && (p.linkedEntityType === "request" || p.linkedEntityType === "mandate"))
       .map((p) => p.linkedEntityId!);
 
     const friendlyIdMap = new Map<string, string>();
 
-    const [linkedProps, linkedClients, linkedMandates] = await Promise.all([
+    const [linkedProps, linkedContacts, linkedRequests] = await Promise.all([
       linkedPropertyIds.length > 0
         ? prismadb.properties.findMany({ where: { id: { in: linkedPropertyIds } }, select: { id: true, friendlyId: true } })
         : [],
-      linkedClientIds.length > 0
-        ? prismadb.clients.findMany({ where: { id: { in: linkedClientIds } }, select: { id: true, friendlyId: true } })
+      linkedContactIds.length > 0
+        ? prismadb.contact.findMany({ where: { id: { in: linkedContactIds } }, select: { id: true, friendlyId: true } })
         : [],
-      linkedMandateIds.length > 0
-        ? prismadb.mandate.findMany({ where: { id: { in: linkedMandateIds } }, select: { id: true, friendlyId: true } })
+      linkedRequestIds.length > 0
+        ? prismadb.request.findMany({ where: { id: { in: linkedRequestIds }, organizationId }, select: { id: true, friendlyId: true } })
         : [],
     ]);
 
-    for (const e of [...linkedProps, ...linkedClients, ...linkedMandates]) {
-      friendlyIdMap.set(e.id, e.friendlyId);
+    for (const e of [...linkedProps, ...linkedContacts, ...linkedRequests]) {
+      if (e.friendlyId) friendlyIdMap.set(e.id, e.friendlyId);
     }
 
     return filteredPosts.map((post) => ({
       id: post.id,
       slug: post.slug,
-      type: post.postType as "property" | "client" | "mandate" | "text",
+      type: (post.postType === "client" ? "contact" : post.postType === "mandate" ? "request" : post.postType) as "property" | "contact" | "request" | "document" | "text",
       content: post.content || "",
       timestamp: post.createdAt.toISOString(),
       author: {
@@ -193,7 +195,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
       linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
         id: post.linkedEntityId,
         friendlyId: friendlyIdMap.get(post.linkedEntityId) || post.linkedEntityId,
-        type: post.linkedEntityType as "property" | "client" | "mandate",
+        type: (post.linkedEntityType === "client" ? "contact" : post.linkedEntityType === "mandate" ? "request" : post.linkedEntityType) as "property" | "contact" | "request" | "document",
         title: post.linkedEntityTitle || "Untitled",
         subtitle: post.linkedEntitySubtitle || undefined,
         metadata: post.linkedEntityMetadata as Record<string, any> || undefined,

@@ -13,10 +13,10 @@ export interface CreateEventData {
   location?: string;
   eventType?: string;
   assignedUserId?: string;
-  clientIds?: string[];
+  contactIds?: string[];
   propertyIds?: string[];
   documentIds?: string[];
-  mandateIds?: string[];
+  requestIds?: string[];
   reminderMinutes?: number[];
   recurrenceRule?: string;
 }

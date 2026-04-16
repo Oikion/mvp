@@ -394,12 +394,12 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
             </div>
           )}
 
-          {/* Linked Mandates */}
+          {/* Linked Requests */}
           {event.linkedMandates && event.linkedMandates.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <LinkIcon className="h-4 w-4" />
-                {t("eventPage.linkedMandates")} ({event.linkedMandates.length})
+                {t("eventPage.linkedRequests")} ({event.linkedMandates.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {event.linkedMandates.map((mandate: any) => (
@@ -408,7 +408,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
                       <Button
                         variant="ghost"
                         className="w-full justify-start h-auto p-0"
-                        onClick={() => router.push(`/app/mandates/${mandate.friendlyId}`)}
+                        onClick={() => router.push(`/app/requests/${mandate.friendlyId}`)}
                       >
                         <div className="flex items-center gap-3 w-full">
                           <LinkIcon className="h-4 w-4 text-muted-foreground" />

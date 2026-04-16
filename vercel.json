@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/cleanup-orphan-images",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/intra-org-matches",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

@@ -255,7 +255,8 @@
     "deleteCommentDescription": "Are you sure you want to delete this comment? This action cannot be undone.",
     "commentFailed": "Failed to add comment",
     "deleteCommentFailed": "Failed to delete comment",
-    "visibility": "Visibility"
+    "visibility": "Visibility",
+    "activity": "Activity"
   },
   "QuickAdd": {
     "title": "Quick Add Mandate",

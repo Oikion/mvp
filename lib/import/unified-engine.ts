@@ -1,34 +1,27 @@
 /**
  * lib/import/unified-engine.ts
  *
- * Unified import engine — processes validated rows containing Client + Property
- * + Mandate data. The batch engine wraps all writes in a single $transaction
+ * Unified import engine — processes validated rows containing Contact + Property
+ * + Request data. The batch engine wraps all writes in a single $transaction
  * using createMany for performance and atomicity.
  *
  * Primary export: executeBatchImport()
- * Deprecated export: executeUnifiedImport() — calls executeBatchImport() internally
  */
 
 import { prismadb } from "@/lib/prisma";
 import { generateFriendlyIds, type EntityType } from "@/lib/friendly-id";
 import { getOrgDek } from "@/lib/key-management";
-import { type ImportError } from "./types";
 import {
   UNIFIED_FIELD_DEFINITIONS,
   stripEntityPrefix,
 } from "./unified-field-definitions";
 import { generateMandateTitle, generateClientName } from "./name-generator";
-import { clientImportConfig } from "./client-import-config";
+import { contactImportConfig } from "./contact-import-config";
 import { propertyImportConfig } from "./property-import-config";
-import { mandateImportConfig } from "./mandate-import-config";
-import {
-  normalizeClientEnums,
-  normalizePropertyEnums,
-  normalizeMandateEnums,
-} from "./enum-normalizer";
-import { clientImportSchema } from "./client-import-schema";
+import { requestImportConfig } from "./request-import-config";
+import { contactImportSchema } from "./contact-import-schema";
 import { propertyImportSchema } from "./property-import-schema";
-import { mandateImportSchema } from "./mandate-import-schema";
+import { requestImportSchema } from "./request-import-schema";
 import type { ValidatedRow } from "./validation-engine";
 
 // ---------------------------------------------------------------------------
@@ -36,34 +29,24 @@ import type { ValidatedRow } from "./validation-engine";
 // ---------------------------------------------------------------------------
 
 export interface BatchImportResult {
-  clients: Array<{ uuid: string; friendlyId: string }>;
+  contacts: Array<{ uuid: string; friendlyId: string }>;
   properties: Array<{ uuid: string; friendlyId: string }>;
-  mandates: Array<{ uuid: string; friendlyId: string }>;
+  requests: Array<{ uuid: string; friendlyId: string }>;
   linkCounts: {
-    clientProperty: number;
-    mandateProperty: number;
-    mandateClient: number;
+    contactProperty: number;
+    requestProperty: number;
+    requestContact: number;
   };
   errors: Array<{ rowIndex: number; entity: string; error: string }>;
   skippedCount: number;
 }
 
-/** @deprecated — kept for backward compatibility. Use BatchImportResult. */
-export interface UnifiedImportResult {
-  clients: { created: number; reused: number; failed: number };
-  properties: { created: number; failed: number };
-  mandates: { created: number; failed: number };
-  links: { clientProperty: number; mandateClient: number; mandateProperty: number };
-  skipped: number;
-  errors: ImportError[];
-  entityIds: { clients: string[]; properties: string[]; mandates: string[] };
-}
 
 // ---------------------------------------------------------------------------
 // Field -> entity ownership map (built once at module load)
 // ---------------------------------------------------------------------------
 
-const fieldEntityMap = new Map<string, "client" | "property" | "mandate">();
+const fieldEntityMap = new Map<string, "contact" | "property" | "request">();
 for (const def of UNIFIED_FIELD_DEFINITIONS) {
   fieldEntityMap.set(def.key, def.entity);
 }
@@ -79,31 +62,31 @@ function isNonEmpty(v: unknown): boolean {
 function partitionRow(
   row: Record<string, unknown>,
 ): {
-  clientRow: Record<string, unknown>;
+  contactRow: Record<string, unknown>;
   propertyRow: Record<string, unknown>;
-  mandateRow: Record<string, unknown>;
+  requestRow: Record<string, unknown>;
 } {
-  const clientRow: Record<string, unknown> = {};
+  const contactRow: Record<string, unknown> = {};
   const propertyRow: Record<string, unknown> = {};
-  const mandateRow: Record<string, unknown> = {};
+  const requestRow: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(row)) {
     const entity = fieldEntityMap.get(key);
     if (!entity) continue;
-    if (entity === "client") clientRow[key] = value;
+    if (entity === "contact") contactRow[key] = value;
     else if (entity === "property") propertyRow[key] = value;
-    else mandateRow[key] = value;
+    else requestRow[key] = value;
   }
 
-  return { clientRow, propertyRow, mandateRow };
+  return { contactRow, propertyRow, requestRow };
 }
 
-function clientDedupKeyFromRow(row: Record<string, unknown>): string {
+function contactDedupKeyFromRow(row: Record<string, unknown>): string {
   const phone = String(row.primary_phone ?? "")
     .trim()
     .replace(/\D/g, "");
   const email = String(row.primary_email ?? "").trim().toLowerCase();
-  const name = String(row.client_name ?? "").trim().toLowerCase();
+  const name = String(row.contact_name ?? "").trim().toLowerCase();
   if (phone) return `phone:${phone}`;
   if (email) return `email:${email}`;
   return `name:${name}`;
@@ -138,10 +121,10 @@ export async function executeBatchImport(
 
   if (validatedRows.length === 0) {
     return {
-      clients: [],
+      contacts: [],
       properties: [],
-      mandates: [],
-      linkCounts: { clientProperty: 0, mandateProperty: 0, mandateClient: 0 },
+      requests: [],
+      linkCounts: { contactProperty: 0, requestProperty: 0, requestContact: 0 },
       errors: [],
       skippedCount: 0,
     };
@@ -153,12 +136,12 @@ export async function executeBatchImport(
   // 2. Pre-process: determine unique entities, assign UUIDs, build dedup maps.
   //    Track per-row entity UUID mappings for junction links.
 
-  // --- Client dedup ---
-  // Key: clientDedupKey -> { uuid, rowIndices }
-  const clientDedupMap = new Map<string, { uuid: string; rowIndex: number }>();
-  // Per-row: rowIndex -> clientUuid (for linking)
+  // --- Contact dedup ---
+  // Key: contactDedupKey -> { uuid, rowIndices }
+  const contactDedupMap = new Map<string, { uuid: string; rowIndex: number }>();
+  // Per-row: rowIndex -> contactUuid (for linking)
   const rowClientUuid = new Map<number, string>();
-  // Per-row: rowIndex -> clientName (for mandate title)
+  // Per-row: rowIndex -> contactName (for request title)
   const rowClientName = new Map<number, string>();
 
   // --- Property dedup ---
@@ -166,11 +149,11 @@ export async function executeBatchImport(
   const rowPropertyUuid = new Map<number, string>();
   const rowPropertyName = new Map<number, string>();
 
-  // --- Mandate (no dedup, 1 per row) ---
-  const rowMandateUuid = new Map<number, string>();
+  // --- Request (no dedup, 1 per row) ---
+  const rowRequestUuid = new Map<number, string>();
 
   // Collect data arrays for createMany
-  interface ClientCreateData {
+  interface ContactCreateData {
     uuid: string;
     prismaData: Record<string, unknown>;
   }
@@ -178,39 +161,39 @@ export async function executeBatchImport(
     uuid: string;
     prismaData: Record<string, unknown>;
   }
-  interface MandateCreateData {
+  interface RequestCreateData {
     uuid: string;
     prismaData: Record<string, unknown>;
   }
 
-  const clientsToCreate: ClientCreateData[] = [];
+  const contactsToCreate: ContactCreateData[] = [];
   const propertiesToCreate: PropertyCreateData[] = [];
-  const mandatesToCreate: MandateCreateData[] = [];
+  const requestsToCreate: RequestCreateData[] = [];
 
   // Track friendly IDs by UUID for result assembly
-  const clientFriendlyIds = new Map<string, string>();
+  const contactFriendlyIds = new Map<string, string>();
   const propertyFriendlyIds = new Map<string, string>();
-  const mandateFriendlyIds = new Map<string, string>();
+  const requestFriendlyIds = new Map<string, string>();
 
   // Count unique entities needed for batch friendly ID generation
-  let uniqueClientCount = 0;
+  let uniqueContactCount = 0;
   let uniquePropertyCount = 0;
-  let mandateCount = 0;
+  let requestCount = 0;
 
   // First pass: identify unique entities and count
   for (const row of validatedRows) {
-    if (!row.hasClient && !row.hasProperty && !row.hasMandate) {
+    if (!row.hasContact && !row.hasProperty && !row.hasRequest) {
       skippedCount++;
       continue;
     }
 
-    if (row.hasClient && row.clientDedupKey) {
-      if (!clientDedupMap.has(row.clientDedupKey)) {
-        clientDedupMap.set(row.clientDedupKey, {
+    if (row.hasContact && row.contactDedupKey) {
+      if (!contactDedupMap.has(row.contactDedupKey)) {
+        contactDedupMap.set(row.contactDedupKey, {
           uuid: crypto.randomUUID(),
           rowIndex: row.rowIndex,
         });
-        uniqueClientCount++;
+        uniqueContactCount++;
       }
     }
 
@@ -224,28 +207,28 @@ export async function executeBatchImport(
       }
     }
 
-    if (row.hasMandate) {
-      mandateCount++;
+    if (row.hasRequest) {
+      requestCount++;
     }
   }
 
   // Pre-generate all friendly IDs in batch (outside transaction, uses raw SQL)
-  const clientFriendlyIdBatch =
-    uniqueClientCount > 0
-      ? await generateFriendlyIds(prismadb, "Clients", uniqueClientCount, orgId)
+  const contactFriendlyIdBatch =
+    uniqueContactCount > 0
+      ? await generateFriendlyIds(prismadb, "Contact", uniqueContactCount, orgId)
       : [];
   const propertyFriendlyIdBatch =
     uniquePropertyCount > 0
       ? await generateFriendlyIds(prismadb, "Properties", uniquePropertyCount, orgId)
       : [];
-  const mandateFriendlyIdBatch =
-    mandateCount > 0
-      ? await generateFriendlyIds(prismadb, "Mandates", mandateCount, orgId)
+  const requestFriendlyIdBatch =
+    requestCount > 0
+      ? await generateFriendlyIds(prismadb, "Request", requestCount, orgId)
       : [];
 
-  let clientFidCursor = 0;
+  let contactFidCursor = 0;
   let propertyFidCursor = 0;
-  let mandateFidCursor = 0;
+  let requestFidCursor = 0;
 
   // Second pass: build Prisma data arrays
   // Track which dedup keys have already been processed (for first-occurrence assembly)
@@ -253,38 +236,38 @@ export async function executeBatchImport(
   const processedPropertyKeys = new Set<string>();
 
   for (const row of validatedRows) {
-    if (!row.hasClient && !row.hasProperty && !row.hasMandate) {
+    if (!row.hasContact && !row.hasProperty && !row.hasRequest) {
       continue; // already counted as skipped
     }
 
-    // --- CLIENT ---
-    if (row.hasClient && row.clientRow && row.clientDedupKey) {
-      const dedupEntry = clientDedupMap.get(row.clientDedupKey);
+    // --- CONTACT ---
+    if (row.hasContact && row.contactRow && row.contactDedupKey) {
+      const dedupEntry = contactDedupMap.get(row.contactDedupKey);
       if (dedupEntry) {
-        const clientUuid = dedupEntry.uuid;
-        rowClientUuid.set(row.rowIndex, clientUuid);
+        const contactUuid = dedupEntry.uuid;
+        rowClientUuid.set(row.rowIndex, contactUuid);
 
-        const clientName = String(row.clientRow.client_name ?? row.clientRow.name ?? "");
-        rowClientName.set(row.rowIndex, clientName);
+        const contactName = String(row.contactRow.contact_name ?? row.contactRow.name ?? "");
+        rowClientName.set(row.rowIndex, contactName);
 
         // Only build create data for the first occurrence of this dedup key
-        if (!processedClientKeys.has(row.clientDedupKey)) {
-          processedClientKeys.add(row.clientDedupKey);
+        if (!processedClientKeys.has(row.contactDedupKey)) {
+          processedClientKeys.add(row.contactDedupKey);
 
           try {
-            const clientRowData = { ...row.clientRow };
+            const contactRowData = { ...row.contactRow };
 
             // Encrypt with DEK (use the raw validated row which already has
             // stripped keys from the validation engine)
-            const encrypted = clientImportConfig.encryptWithDek(clientRowData, dek);
+            const encrypted = contactImportConfig.encryptWithDek(contactRowData, dek);
 
             // Get friendly ID from pre-generated batch
-            const friendlyId = clientFriendlyIdBatch[clientFidCursor++];
-            clientFriendlyIds.set(clientUuid, friendlyId);
+            const friendlyId = contactFriendlyIdBatch[contactFidCursor++];
+            contactFriendlyIds.set(contactUuid, friendlyId);
 
             // Build Prisma data using the import config's toPrismaData
-            const prismaData = clientImportConfig.toPrismaData(
-              clientRowData as any,
+            const prismaData = contactImportConfig.toPrismaData(
+              contactRowData as any,
               encrypted,
               friendlyId,
               userId,
@@ -292,19 +275,19 @@ export async function executeBatchImport(
             );
 
             // Override with pre-generated UUID
-            prismaData.id = clientUuid;
+            prismaData.id = contactUuid;
 
             // Apply assignedTo if provided
             if (assignedTo) {
               prismaData.assigned_to = assignedTo;
             }
 
-            clientsToCreate.push({ uuid: clientUuid, prismaData });
+            contactsToCreate.push({ uuid: contactUuid, prismaData });
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
             errors.push({
               rowIndex: row.rowIndex,
-              entity: "client",
+              entity: "contact",
               error: msg,
             });
             // Remove from dedup map so links won't reference this entity
@@ -367,62 +350,62 @@ export async function executeBatchImport(
       }
     }
 
-    // --- MANDATE ---
-    if (row.hasMandate && row.mandateRow) {
+    // --- REQUEST ---
+    if (row.hasRequest && row.requestRow) {
       try {
-        const mandateUuid = crypto.randomUUID();
-        const mandateRowData = { ...row.mandateRow };
+        const requestUuid = crypto.randomUUID();
+        const requestRowData = { ...row.requestRow };
 
         // Budget auto-copy from property price (already done in validation
-        // engine for mandateRow, but re-check for safety)
+        // engine for requestRow, but re-check for safety)
         if (row.hasProperty && row.propertyRow?.price != null) {
-          if (mandateRowData.budget_min == null)
-            mandateRowData.budget_min = row.propertyRow.price;
-          if (mandateRowData.budget_max == null)
-            mandateRowData.budget_max = row.propertyRow.price;
+          if (requestRowData.budget_min == null)
+            requestRowData.budget_min = row.propertyRow.price;
+          if (requestRowData.budget_max == null)
+            requestRowData.budget_max = row.propertyRow.price;
         }
 
-        // The mandateRow from validation already has normalized enums and title.
+        // The requestRow from validation already has normalized enums and title.
         // If title is missing, generate it now.
-        if (!mandateRowData.title) {
-          const clientName = rowClientName.get(row.rowIndex) ?? null;
+        if (!requestRowData.title) {
+          const contactName = rowClientName.get(row.rowIndex) ?? null;
           const propertyName = rowPropertyName.get(row.rowIndex) ?? null;
-          mandateRowData.title = generateMandateTitle(
-            mandateRowData,
-            clientName,
+          requestRowData.title = generateMandateTitle(
+            requestRowData,
+            contactName,
             propertyName,
           );
         }
 
         // Encrypt
-        const encrypted = mandateImportConfig.encryptWithDek(mandateRowData, dek);
+        const encrypted = requestImportConfig.encryptWithDek(requestRowData, dek);
 
         // Get friendly ID
-        const friendlyId = mandateFriendlyIdBatch[mandateFidCursor++];
-        mandateFriendlyIds.set(mandateUuid, friendlyId);
+        const friendlyId = requestFriendlyIdBatch[requestFidCursor++];
+        requestFriendlyIds.set(requestUuid, friendlyId);
 
         // Build Prisma data
-        const prismaData = mandateImportConfig.toPrismaData(
-          mandateRowData as any,
+        const prismaData = requestImportConfig.toPrismaData(
+          requestRowData as any,
           encrypted,
           friendlyId,
           userId,
           orgId,
         );
 
-        prismaData.id = mandateUuid;
+        prismaData.id = requestUuid;
 
         if (assignedTo) {
           prismaData.assigned_to = assignedTo;
         }
 
-        rowMandateUuid.set(row.rowIndex, mandateUuid);
-        mandatesToCreate.push({ uuid: mandateUuid, prismaData });
+        rowRequestUuid.set(row.rowIndex, requestUuid);
+        requestsToCreate.push({ uuid: requestUuid, prismaData });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         errors.push({
           rowIndex: row.rowIndex,
-          entity: "mandate",
+          entity: "request",
           error: msg,
         });
       }
@@ -430,64 +413,70 @@ export async function executeBatchImport(
   }
 
   // 3. Build junction link arrays
-  interface ClientPropertyLink {
+  interface ContactPropertyLink {
     id: string;
-    clientId: string;
+    contactId: string;
     propertyId: string;
+    organizationId: string;
   }
-  interface MandatePropertyLink {
+  interface RequestPropertyLink {
     mandateId: string;
     propertyId: string;
   }
-  interface MandateClientLink {
-    mandateId: string;
-    clientId: string;
+  interface RequestContactLink {
+    id: string;
+    requestId: string;
+    contactId: string;
+    organizationId: string;
   }
 
-  const clientPropertyLinks: ClientPropertyLink[] = [];
-  const mandatePropertyLinks: MandatePropertyLink[] = [];
-  const mandateClientLinks: MandateClientLink[] = [];
+  const contactPropertyLinks: ContactPropertyLink[] = [];
+  const requestPropertyLinks: RequestPropertyLink[] = [];
+  const requestContactLinks: RequestContactLink[] = [];
 
-  // Dedup junction links (a deduped client may link to the same property from multiple rows)
+  // Dedup junction links (a deduped contact may link to the same property from multiple rows)
   const cpLinkSet = new Set<string>();
-  const mpLinkSet = new Set<string>();
-  const mcLinkSet = new Set<string>();
+  const rpLinkSet = new Set<string>();
+  const rcLinkSet = new Set<string>();
 
   for (const row of validatedRows) {
-    const clientUuid = rowClientUuid.get(row.rowIndex);
+    const contactUuid = rowClientUuid.get(row.rowIndex);
     const propertyUuid = rowPropertyUuid.get(row.rowIndex);
-    const mandateUuid = rowMandateUuid.get(row.rowIndex);
+    const requestUuid = rowRequestUuid.get(row.rowIndex);
 
-    if (clientUuid && propertyUuid) {
-      const key = `${clientUuid}:${propertyUuid}`;
+    if (contactUuid && propertyUuid) {
+      const key = `${contactUuid}:${propertyUuid}`;
       if (!cpLinkSet.has(key)) {
         cpLinkSet.add(key);
-        clientPropertyLinks.push({
+        contactPropertyLinks.push({
           id: crypto.randomUUID(),
-          clientId: clientUuid,
+          contactId: contactUuid,
+          propertyId: propertyUuid,
+          organizationId: orgId,
+        });
+      }
+    }
+
+    if (requestUuid && propertyUuid) {
+      const key = `${requestUuid}:${propertyUuid}`;
+      if (!rpLinkSet.has(key)) {
+        rpLinkSet.add(key);
+        requestPropertyLinks.push({
+          mandateId: requestUuid,
           propertyId: propertyUuid,
         });
       }
     }
 
-    if (mandateUuid && propertyUuid) {
-      const key = `${mandateUuid}:${propertyUuid}`;
-      if (!mpLinkSet.has(key)) {
-        mpLinkSet.add(key);
-        mandatePropertyLinks.push({
-          mandateId: mandateUuid,
-          propertyId: propertyUuid,
-        });
-      }
-    }
-
-    if (mandateUuid && clientUuid) {
-      const key = `${mandateUuid}:${clientUuid}`;
-      if (!mcLinkSet.has(key)) {
-        mcLinkSet.add(key);
-        mandateClientLinks.push({
-          mandateId: mandateUuid,
-          clientId: clientUuid,
+    if (requestUuid && contactUuid) {
+      const key = `${requestUuid}:${contactUuid}`;
+      if (!rcLinkSet.has(key)) {
+        rcLinkSet.add(key);
+        requestContactLinks.push({
+          id: crypto.randomUUID(),
+          requestId: requestUuid,
+          contactId: contactUuid,
+          organizationId: orgId,
         });
       }
     }
@@ -496,10 +485,10 @@ export async function executeBatchImport(
   // 4. Execute everything inside a single transaction
   await prismadb.$transaction(
     async (tx: any) => {
-      // Phase 1 — Clients
-      if (clientsToCreate.length > 0) {
-        await tx.clients.createMany({
-          data: clientsToCreate.map((c) => c.prismaData),
+      // Phase 1 — Contacts
+      if (contactsToCreate.length > 0) {
+        await tx.contact.createMany({
+          data: contactsToCreate.map((c) => c.prismaData),
           skipDuplicates: true,
         });
       }
@@ -512,32 +501,32 @@ export async function executeBatchImport(
         });
       }
 
-      // Phase 3 — Mandates
-      if (mandatesToCreate.length > 0) {
-        await tx.mandate.createMany({
-          data: mandatesToCreate.map((m) => m.prismaData),
+      // Phase 3 — Requests
+      if (requestsToCreate.length > 0) {
+        await tx.request.createMany({
+          data: requestsToCreate.map((m) => m.prismaData),
           skipDuplicates: true,
         });
       }
 
       // Phase 4 — Junction Links
-      if (clientPropertyLinks.length > 0) {
-        await tx.client_Properties.createMany({
-          data: clientPropertyLinks,
+      if (contactPropertyLinks.length > 0) {
+        await tx.contactProperty.createMany({
+          data: contactPropertyLinks,
           skipDuplicates: true,
         });
       }
 
-      if (mandatePropertyLinks.length > 0) {
+      if (requestPropertyLinks.length > 0) {
         await tx.mandate_Properties.createMany({
-          data: mandatePropertyLinks,
+          data: requestPropertyLinks,
           skipDuplicates: true,
         });
       }
 
-      if (mandateClientLinks.length > 0) {
-        await tx.mandate_Clients.createMany({
-          data: mandateClientLinks,
+      if (requestContactLinks.length > 0) {
+        await tx.requestContact.createMany({
+          data: requestContactLinks,
           skipDuplicates: true,
         });
       }
@@ -547,22 +536,22 @@ export async function executeBatchImport(
 
   // 5. Assemble typed result
   const result: BatchImportResult = {
-    clients: clientsToCreate.map((c) => ({
+    contacts: contactsToCreate.map((c) => ({
       uuid: c.uuid,
-      friendlyId: clientFriendlyIds.get(c.uuid) ?? "",
+      friendlyId: contactFriendlyIds.get(c.uuid) ?? "",
     })),
     properties: propertiesToCreate.map((p) => ({
       uuid: p.uuid,
       friendlyId: propertyFriendlyIds.get(p.uuid) ?? "",
     })),
-    mandates: mandatesToCreate.map((m) => ({
+    requests: requestsToCreate.map((m) => ({
       uuid: m.uuid,
-      friendlyId: mandateFriendlyIds.get(m.uuid) ?? "",
+      friendlyId: requestFriendlyIds.get(m.uuid) ?? "",
     })),
     linkCounts: {
-      clientProperty: clientPropertyLinks.length,
-      mandateProperty: mandatePropertyLinks.length,
-      mandateClient: mandateClientLinks.length,
+      contactProperty: contactPropertyLinks.length,
+      requestProperty: requestPropertyLinks.length,
+      requestContact: requestContactLinks.length,
     },
     errors,
     skippedCount,
@@ -571,81 +560,3 @@ export async function executeBatchImport(
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// Deprecated wrapper — will be removed in Task 22
-// ---------------------------------------------------------------------------
-
-/**
- * @deprecated Use executeBatchImport() with pre-validated rows instead.
- * This function partitions + validates + imports in one call (old API).
- * Kept temporarily for backward compatibility during migration.
- */
-export async function executeUnifiedImport(
-  rows: Record<string, unknown>[],
-  orgId: string,
-  userId: string,
-): Promise<UnifiedImportResult> {
-  // Lazy import to avoid circular dependency
-  const { validateImportData } = await import("./validation-engine");
-
-  const validation = validateImportData(rows);
-  const batchResult = await executeBatchImport(
-    validation.validRows,
-    orgId,
-    userId,
-  );
-
-  // Map BatchImportResult back to the old UnifiedImportResult shape
-  const clientReusedCount = Math.max(
-    0,
-    (validation.entitySummary.clients.total -
-      validation.entitySummary.clients.unique),
-  );
-
-  const errors: ImportError[] = [
-    // Validation errors
-    ...validation.errorRows.map((e) => ({
-      row: e.rowIndex + 2, // +2 for 0-index + header
-      field: `${e.entity}.${e.field}`,
-      error: e.error,
-      value: e.rawValue != null ? String(e.rawValue) : undefined,
-    })),
-    // Batch execution errors
-    ...batchResult.errors.map((e) => ({
-      row: e.rowIndex + 2,
-      field: e.entity,
-      error: e.error,
-    })),
-  ];
-
-  return {
-    clients: {
-      created: batchResult.clients.length,
-      reused: clientReusedCount,
-      failed: validation.errorRows.filter((e) => e.entity === "client").length +
-        batchResult.errors.filter((e) => e.entity === "client").length,
-    },
-    properties: {
-      created: batchResult.properties.length,
-      failed: validation.errorRows.filter((e) => e.entity === "property").length +
-        batchResult.errors.filter((e) => e.entity === "property").length,
-    },
-    mandates: {
-      created: batchResult.mandates.length,
-      failed: validation.errorRows.filter((e) => e.entity === "mandate").length +
-        batchResult.errors.filter((e) => e.entity === "mandate").length,
-    },
-    links: {
-      clientProperty: batchResult.linkCounts.clientProperty,
-      mandateClient: batchResult.linkCounts.mandateClient,
-      mandateProperty: batchResult.linkCounts.mandateProperty,
-    },
-    skipped: batchResult.skippedCount,
-    errors,
-    entityIds: {
-      clients: batchResult.clients.map((c) => c.uuid),
-      properties: batchResult.properties.map((p) => p.uuid),
-      mandates: batchResult.mandates.map((m) => m.uuid),
-    },
-  };
-}

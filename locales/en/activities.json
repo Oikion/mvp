@@ -1,0 +1,93 @@
+{
+  "title": "Activity Log",
+  "empty": "No activities yet",
+  "logActivity": "Log Activity",
+  "kinds": {
+    "CALL": "Call",
+    "EMAIL": "Email",
+    "MEETING": "Meeting",
+    "NOTE": "Note",
+    "TASK": "Task",
+    "SHOWING": "Showing",
+    "DOCUMENT": "Document",
+    "OTHER": "Other"
+  },
+  "directions": {
+    "INBOUND": "Inbound",
+    "OUTBOUND": "Outbound",
+    "INTERNAL": "Internal"
+  },
+  "parentTypes": {
+    "CONTACT": "Contact",
+    "PROPERTY": "Property",
+    "REQUEST": "Request",
+    "DEAL": "Deal",
+    "SHOWING": "Showing"
+  },
+  "fields": {
+    "kind": "Activity Type",
+    "direction": "Direction",
+    "subject": "Subject",
+    "body": "Notes",
+    "outcome": "Outcome",
+    "occurredAt": "Date",
+    "durationMinutes": "Duration (min)",
+    "contact": "Contact",
+    "assignedTo": "Agent",
+    "parentType": "Related To",
+    "parentId": "Related Record",
+    "relatedContact": "Linked Contact",
+    "relatedProperty": "Linked Property",
+    "relatedDocument": "Linked Document",
+    "selectContact": "Select a contact…",
+    "selectProperty": "Select a property…",
+    "selectDocument": "Select a document…"
+  },
+  "actions": {
+    "log": "Log Activity",
+    "create": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "export": "Export",
+    "confirmDelete": "Delete this activity?"
+  },
+  "form": {
+    "createTitle": "Log Activity",
+    "editTitle": "Edit Activity",
+    "submit": "Save",
+    "cancel": "Cancel"
+  },
+  "messages": {
+    "created": "Activity logged successfully",
+    "updated": "Activity updated",
+    "deleted": "Activity deleted",
+    "error": "Something went wrong. Please try again."
+  },
+  "changelog": {
+    "created": "{actor} created this record",
+    "updated": "{actor} updated this record",
+    "fieldChanged": "{field}changed from {from} to {to}",
+    "fieldChangedNoLabel": "changed from {from} to {to}",
+    "linked": "Linked to {targetType} {label}",
+    "unlinked": "Unlinked from {targetType} {label}",
+    "stageChanged": "Stage changed: {from} → {to}",
+    "systemActor": "System"
+  },
+  "watchedFields": {
+    "status": "Status",
+    "assignedToUserId": "Assigned To",
+    "visibility": "Visibility",
+    "category": "Category",
+    "source": "Source",
+    "doNotContact": "Do Not Contact",
+    "allowMarketing": "Allow Marketing",
+    "gdprConsentGiven": "GDPR Consent",
+    "property_status": "Property Status",
+    "price": "Price",
+    "property_type": "Property Type",
+    "urgency": "Urgency",
+    "budgetMin": "Min Budget",
+    "budgetMax": "Max Budget",
+    "requestType": "Request Type"
+  }
+}

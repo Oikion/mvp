@@ -6,7 +6,7 @@ import { invalidateCache } from "@/lib/cache-invalidate";
 // Link properties to a client
 export async function POST(req: Request) {
   try {
-    const user = await getCurrentUser();
+    await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();
     const { clientId, propertyIds } = body;
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     // Verify client belongs to organization
-    const client = await prismadb.clients.findFirst({
+    const client = await prismadb.contact.findFirst({
       where: { id: clientId, organizationId },
     });
 
@@ -36,16 +36,17 @@ export async function POST(req: Request) {
     // Create links (Prisma will handle duplicates via unique constraint)
     const links = await Promise.all(
       propertyIds.map((propertyId: string) =>
-        prismadb.client_Properties.upsert({
+        prismadb.contactProperty.upsert({
           where: {
-            clientId_propertyId: {
-              clientId,
+            contactId_propertyId: {
+              contactId: clientId,
               propertyId,
             },
           },
           create: {
             id: crypto.randomUUID(),
-            clientId,
+            organizationId,
+            contactId: clientId,
             propertyId,
           },
           update: {},
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ links }, { status: 200 });
   } catch (error) {
+    console.error("[LINK_PROPERTIES_POST]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
@@ -64,7 +66,7 @@ export async function POST(req: Request) {
 // Unlink properties from a client
 export async function DELETE(req: Request) {
   try {
-    const user = await getCurrentUser();
+    await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const { searchParams } = new URL(req.url);
     const clientId = searchParams.get("clientId");
@@ -75,7 +77,7 @@ export async function DELETE(req: Request) {
     }
 
     // Verify client belongs to organization
-    const client = await prismadb.clients.findFirst({
+    const client = await prismadb.contact.findFirst({
       where: { id: clientId, organizationId },
     });
 
@@ -84,9 +86,9 @@ export async function DELETE(req: Request) {
     }
 
     // Delete links
-    await prismadb.client_Properties.deleteMany({
+    await prismadb.contactProperty.deleteMany({
       where: {
-        clientId,
+        contactId: clientId,
         propertyId: { in: propertyIds },
       },
     });
@@ -95,6 +97,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
+    console.error("[LINK_PROPERTIES_DELETE]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
@@ -102,7 +105,7 @@ export async function DELETE(req: Request) {
 // Link clients to a property
 export async function PUT(req: Request) {
   try {
-    const user = await getCurrentUser();
+    await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const body = await req.json();
     const { propertyId, clientIds } = body;
@@ -121,7 +124,7 @@ export async function PUT(req: Request) {
     }
 
     // Verify all clients belong to organization
-    const clients = await prismadb.clients.findMany({
+    const clients = await prismadb.contact.findMany({
       where: { id: { in: clientIds }, organizationId },
     });
 
@@ -132,16 +135,17 @@ export async function PUT(req: Request) {
     // Create links
     const links = await Promise.all(
       clientIds.map((clientId: string) =>
-        prismadb.client_Properties.upsert({
+        prismadb.contactProperty.upsert({
           where: {
-            clientId_propertyId: {
-              clientId,
+            contactId_propertyId: {
+              contactId: clientId,
               propertyId,
             },
           },
           create: {
             id: crypto.randomUUID(),
-            clientId,
+            organizationId,
+            contactId: clientId,
             propertyId,
           },
           update: {},
@@ -153,7 +157,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ links }, { status: 200 });
   } catch (error) {
+    console.error("[LINK_PROPERTIES_PUT]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
-

@@ -1,19 +1,21 @@
+"use server";
+
 /**
  * Cross-org match computation — background job logic.
  *
  * Called by the Vercel Cron endpoint every 30 minutes.
- * Decrypts network-visible mandates and properties server-side
+ * Decrypts network-visible requests and properties server-side
  * (platform holds master KEK → per-org DEK chain), then runs
- * the existing scoring engine and upserts CrossOrgMatch rows.
+ * the v2 scoring engine and upserts CrossOrgMatch rows.
  *
  * Never exposes decrypted data externally; CrossOrgMatch stores
  * only scores, breakdowns, and IDs.
  */
 
 import { prismadb } from "@/lib/prisma";
-import { decryptMandateForOrg, decryptPropertyForOrg } from "@/lib/model-encryption";
-import { calculateMatchScore } from "@/lib/matchmaking/calculator";
-import type { ClientForMatching, PropertyForMatching } from "@/lib/matchmaking/types";
+import { decryptRequestForOrg } from "@/lib/model-encryption";
+import { calculateBatchMatchesV2 } from "@/lib/matchmaking";
+import type { RequestForMatching, PropertyForMatchingV2 } from "@/lib/matchmaking/types";
 import type { OrgNetworkMembership } from "@prisma/client";
 
 const BATCH_SIZE = 10;
@@ -23,59 +25,86 @@ const MATCH_TTL_DAYS = 30;
 // Types
 // ─────────────────────────────────────────────────────────────────
 
-interface OrgWithSettings {
-  organizationId: string;
-  membership: OrgNetworkMembership;
-  shareProperties: boolean;
-  shareMandates: boolean;
+type NetworkRequest = Awaited<ReturnType<typeof fetchNetworkRequests>>[number];
+type NetworkProperty = Awaited<ReturnType<typeof fetchNetworkProperties>>[number];
+
+// ─────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────
+
+function extractAreas(areasOfInterest: unknown): string[] {
+  if (!areasOfInterest) return [];
+  if (Array.isArray(areasOfInterest)) {
+    return (areasOfInterest as unknown[]).filter(
+      (item): item is string => typeof item === "string" && item.length > 0,
+    );
+  }
+  if (typeof areasOfInterest === "string" && areasOfInterest.length > 0) {
+    return [areasOfInterest];
+  }
+  if (typeof areasOfInterest === "object") {
+    return Object.values(areasOfInterest as Record<string, unknown>).filter(
+      (v): v is string => typeof v === "string" && v.length > 0,
+    );
+  }
+  return [];
 }
 
-type NetworkMandate = Awaited<ReturnType<typeof fetchNetworkMandates>>[number];
-type NetworkProperty = Awaited<ReturnType<typeof fetchNetworkProperties>>[number];
+function extractRequiredAmenities(amenities: unknown): string[] {
+  if (amenities && typeof amenities === "object" && !Array.isArray(amenities)) {
+    return Object.entries(amenities as Record<string, unknown>)
+      .filter(([, v]) => v === true)
+      .map(([k]) => k);
+  }
+  return [];
+}
 
 // ─────────────────────────────────────────────────────────────────
 // DB fetchers
 // ─────────────────────────────────────────────────────────────────
 
-async function fetchNetworkMandates(organizationId: string) {
-  return prismadb.mandate.findMany({
+async function fetchNetworkRequests(organizationId: string) {
+  return prismadb.request.findMany({
     where: {
       organizationId,
       status: "ACTIVE",
-      draft_status: { not: true },
+      draftStatus: { not: true },
       visibility: { in: ["SECURE", "PUBLIC"] },
     },
     select: {
       id: true,
       friendlyId: true,
-      title: true,
-      transaction_type: true,
-      property_type: true,
-      property_purpose: true,
-      areas_of_interest: true,
+      requestType: true,
+      propertyCategory: true,
+      propertyTypes: true,
+      areasOfInterest: true,
       municipality: true,
       region: true,
-      size_min_sqm: true,
-      size_max_sqm: true,
-      budget_min: true,
-      budget_max: true,
-      bedrooms_min: true,
-      bedrooms_max: true,
-      bathrooms_min: true,
-      bathrooms_max: true,
-      floor_min: true,
-      floor_max: true,
-      ground_floor_only: true,
-      condition: true,
-      heating_type: true,
-      energy_cert_min: true,
-      furnished: true,
-      elevator: true,
-      parking: true,
-      pets_allowed: true,
+      centerLatitude: true,
+      centerLongitude: true,
+      radiusKm: true,
+      surfaceMin: true,
+      surfaceMax: true,
+      budgetMin: true,
+      budgetMax: true,
+      bedroomsMin: true,
+      bedroomsMax: true,
+      bathroomsMin: true,
+      bathroomsMax: true,
+      floorMin: true,
+      floorMax: true,
+      constructionYearMin: true,
+      constructionYearMax: true,
+      requiresElevator: true,
+      requiresParking: true,
+      requiresStorage: true,
+      goldenVisaEligible: true,
+      financingStatus: true,
+      timeline: true,
       amenities: true,
-      expires_at: true,
-      assigned_to: true,
+      expiresAt: true,
+      status: true,
+      assignedAgentId: true,
       organizationId: true,
     },
   });
@@ -90,7 +119,6 @@ async function fetchNetworkProperties(organizationId: string) {
     },
     select: {
       id: true,
-      friendlyId: true,
       property_name: true,
       price: true,
       property_type: true,
@@ -100,6 +128,11 @@ async function fetchNetworkProperties(organizationId: string) {
       address_city: true,
       address_state: true,
       municipality: true,
+      region: true,
+      latitude: true,
+      longitude: true,
+      year_built: true,
+      inside_city_plan: true,
       bedrooms: true,
       bathrooms: true,
       size_net_sqm: true,
@@ -120,98 +153,99 @@ async function fetchNetworkProperties(organizationId: string) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Adapters (reuse same shape as the single-org job)
+// Adapters
 // ─────────────────────────────────────────────────────────────────
 
-function adaptMandateToClient(m: NetworkMandate): ClientForMatching {
-  const intent =
-    m.transaction_type === "SALE"
-      ? "BUY"
-      : m.transaction_type === "RENTAL" || m.transaction_type === "SHORT_TERM"
-        ? "RENT"
-        : null;
-
-  const areas: string[] = [];
-  if (m.areas_of_interest && Array.isArray(m.areas_of_interest)) {
-    areas.push(...(m.areas_of_interest as string[]));
-  }
-  if (m.municipality && !areas.includes(m.municipality)) areas.push(m.municipality);
-  if (m.region && !areas.includes(m.region)) areas.push(m.region);
-
-  let amenitiesRequired: string[] | undefined;
-  if (m.amenities && typeof m.amenities === "object" && !Array.isArray(m.amenities)) {
-    const required = Object.entries(m.amenities as Record<string, boolean>)
-      .filter(([, v]) => v === true)
-      .map(([k]) => k);
-    if (required.length > 0) amenitiesRequired = required;
-  } else if (Array.isArray(m.amenities)) {
-    amenitiesRequired = m.amenities as string[];
-  }
+function adaptRequestToV2(r: NetworkRequest): RequestForMatching {
+  const rawAreas = extractAreas(r.areasOfInterest);
+  const areas = [...rawAreas];
+  if (r.municipality && !areas.includes(r.municipality)) areas.push(r.municipality);
+  if (r.region && !areas.includes(r.region)) areas.push(r.region);
+  const requiredAmenities = extractRequiredAmenities(r.amenities);
 
   return {
-    id: m.id,
-    client_name: m.title || "Untitled Mandate",
-    full_name: null,
-    intent: intent as ClientForMatching["intent"],
-    purpose: m.property_purpose as ClientForMatching["purpose"],
-    budget_min: m.budget_min,
-    budget_max: m.budget_max,
-    areas_of_interest: areas.length > 0 ? areas : null,
-    property_preferences: {
-      bedrooms_min: m.bedrooms_min ?? undefined,
-      bedrooms_max: m.bedrooms_max ?? undefined,
-      bathrooms_min: m.bathrooms_min ?? undefined,
-      bathrooms_max: m.bathrooms_max ?? undefined,
-      size_min_sqm: m.size_min_sqm ? Number(m.size_min_sqm) : undefined,
-      size_max_sqm: m.size_max_sqm ? Number(m.size_max_sqm) : undefined,
-      floor_min: m.floor_min ?? undefined,
-      floor_max: m.floor_max ?? undefined,
-      ground_floor_only: m.ground_floor_only ?? undefined,
-      requires_elevator: m.elevator ?? undefined,
-      requires_parking: m.parking ?? undefined,
-      requires_pet_friendly: m.pets_allowed ?? undefined,
-      furnished_preference: m.furnished ?? undefined,
-      heating_preferences:
-        m.heating_type && m.heating_type.length > 0 ? m.heating_type : undefined,
-      energy_class_min: m.energy_cert_min ?? undefined,
-      condition_preferences:
-        m.condition && m.condition.length > 0 ? m.condition : undefined,
-      amenities_required: amenitiesRequired,
-    },
-    client_status: "ACTIVE" as ClientForMatching["client_status"],
-    assigned_to: m.assigned_to,
-    organizationId: m.organizationId,
+    id: r.id,
+    organizationId: r.organizationId,
+    assignedAgentId: r.assignedAgentId ?? null,
+
+    budgetMin: r.budgetMin != null ? Number(r.budgetMin) : null,
+    budgetMax: r.budgetMax != null ? Number(r.budgetMax) : null,
+
+    propertyTypes: r.propertyTypes ?? [],
+    purposeOfUse: r.propertyCategory ?? null,
+    transactionType: (r.requestType as "BUY" | "RENT" | null) ?? null,
+
+    areas,
+    municipality: r.municipality ?? null,
+    region: r.region ?? null,
+
+    centerLatitude: r.centerLatitude ?? null,
+    centerLongitude: r.centerLongitude ?? null,
+    radiusKm: r.radiusKm ?? null,
+
+    minSizeSqm: r.surfaceMin != null ? Number(r.surfaceMin) : null,
+    maxSizeSqm: r.surfaceMax != null ? Number(r.surfaceMax) : null,
+    minBedrooms: r.bedroomsMin ?? null,
+    maxBedrooms: r.bedroomsMax ?? null,
+    minBathrooms: r.bathroomsMin ?? null,
+
+    floorMin: r.floorMin ?? null,
+    floorMax: r.floorMax ?? null,
+
+    requiredAmenities,
+    preferredAmenities: [],
+    parkingRequired: r.requiresParking ?? null,
+    storageRequired: r.requiresStorage ?? null,
+    elevatorRequired: r.requiresElevator ?? null,
+    accessibilityRequired: null,
+
+    goldenVisaRequired: r.goldenVisaEligible ?? null,
+    financingStatus: (r.financingStatus as RequestForMatching["financingStatus"]) ?? null,
+    timeline: (r.timeline as RequestForMatching["timeline"]) ?? null,
+
+    yearBuiltMin: r.constructionYearMin ?? null,
+    yearBuiltMax: r.constructionYearMax ?? null,
+    newConstructionOnly: null,
+
+    status: r.status ?? "ACTIVE",
+    expires_at: r.expiresAt ?? null,
   };
 }
 
-function adaptPropertyForMatching(p: NetworkProperty): PropertyForMatching {
+function adaptPropertyForMatchingV2(p: NetworkProperty): PropertyForMatchingV2 {
   return {
     id: p.id,
     property_name: p.property_name,
-    price: p.price !== null && p.price !== undefined ? Number(p.price) : null,
-    property_type: p.property_type as PropertyForMatching["property_type"],
-    transaction_type: p.transaction_type as PropertyForMatching["transaction_type"],
-    property_status: p.property_status as PropertyForMatching["property_status"],
+    price: p.price != null ? Number(p.price) : null,
+    property_type: p.property_type as PropertyForMatchingV2["property_type"],
+    transaction_type: p.transaction_type as PropertyForMatchingV2["transaction_type"],
+    property_status: p.property_status as PropertyForMatchingV2["property_status"],
     area: p.area,
     address_city: p.address_city,
     address_state: p.address_state,
     municipality: p.municipality,
+    region: p.region ?? null,
+    latitude: p.latitude ?? null,
+    longitude: p.longitude ?? null,
+    year_built: p.year_built ?? null,
+    inside_city_plan: p.inside_city_plan ?? null,
     bedrooms: p.bedrooms,
     bathrooms: p.bathrooms,
     size_net_sqm: p.size_net_sqm,
     size_gross_sqm: p.size_gross_sqm,
-    square_feet:
-      p.square_feet !== null && p.square_feet !== undefined ? Number(p.square_feet) : null,
+    square_feet: p.square_feet != null ? Number(p.square_feet) : null,
     floor: p.floor,
     elevator: p.elevator,
     accepts_pets: p.accepts_pets,
-    furnished: p.furnished as PropertyForMatching["furnished"],
-    heating_type: p.heating_type as PropertyForMatching["heating_type"],
-    energy_cert_class: p.energy_cert_class as PropertyForMatching["energy_cert_class"],
-    condition: p.condition as PropertyForMatching["condition"],
-    amenities: p.amenities as PropertyForMatching["amenities"],
+    furnished: p.furnished as PropertyForMatchingV2["furnished"],
+    heating_type: p.heating_type as PropertyForMatchingV2["heating_type"],
+    energy_cert_class: p.energy_cert_class as PropertyForMatchingV2["energy_cert_class"],
+    condition: p.condition as PropertyForMatchingV2["condition"],
+    amenities: p.amenities as PropertyForMatchingV2["amenities"],
     assigned_to: p.assigned_to,
     organizationId: p.organizationId,
+    garden: null, // Not a field on Properties model
+    parking: null, // Not a field on Properties model
   };
 }
 
@@ -235,26 +269,26 @@ async function getAcceptedPartnerIds(orgId: string): Promise<Set<string>> {
 }
 
 /**
- * Returns the set of property-org IDs whose properties a given mandate org
+ * Returns the set of property-org IDs whose properties a given request org
  * is eligible to match against, based on network membership.
  */
 function eligiblePropertyOrgs(
-  mandateOrgId: string,
-  mandateOrgMembership: OrgNetworkMembership,
+  requestOrgId: string,
+  requestOrgMembership: OrgNetworkMembership,
   allPoolOrgs: Set<string>,
   bilateralPartners: Set<string>,
 ): Set<string> {
   const eligible = new Set<string>();
 
-  if (mandateOrgMembership === "POOL" || mandateOrgMembership === "BOTH") {
+  if (requestOrgMembership === "POOL" || requestOrgMembership === "BOTH") {
     Array.from(allPoolOrgs).forEach((orgId) => {
-      if (orgId !== mandateOrgId) eligible.add(orgId);
+      if (orgId !== requestOrgId) eligible.add(orgId);
     });
   }
 
-  if (mandateOrgMembership === "BILATERAL" || mandateOrgMembership === "BOTH") {
+  if (requestOrgMembership === "BILATERAL" || requestOrgMembership === "BOTH") {
     Array.from(bilateralPartners).forEach((orgId) => {
-      if (orgId !== mandateOrgId) eligible.add(orgId);
+      if (orgId !== requestOrgId) eligible.add(orgId);
     });
   }
 
@@ -295,15 +329,17 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
   const settingsByOrg = new Map(allSettings.map((s) => [s.organizationId, s]));
 
   // 2. Load network-visible data per org (in batches to limit memory)
-  const orgBatches: OrgWithSettings[][] = [];
+  const orgBatches: (typeof allSettings)[] = [];
   for (let i = 0; i < allSettings.length; i += BATCH_SIZE) {
     orgBatches.push(allSettings.slice(i, i + BATCH_SIZE));
   }
 
-  // Map: orgId → decrypted mandates adapted for scoring
-  const mandatesByOrg = new Map<string, ClientForMatching[]>();
-  // Map: orgId → adapted properties for scoring
-  const propertiesByOrg = new Map<string, PropertyForMatching[]>();
+  // Map: orgId → decrypted requests adapted for v2 scoring
+  const requestsByOrg = new Map<string, RequestForMatching[]>();
+  // Map: requestId → expiresAt (sourced from the already-fetched request row)
+  const requestExpiresAt = new Map<string, Date | null>();
+  // Map: orgId → adapted properties for v2 scoring
+  const propertiesByOrg = new Map<string, PropertyForMatchingV2[]>();
 
   for (const batch of orgBatches) {
     await Promise.all(
@@ -312,19 +348,26 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
 
         if (orgSettings.shareMandates) {
           try {
-            const rawMandates = await fetchNetworkMandates(orgId);
-            const decrypted: ClientForMatching[] = [];
-            for (const m of rawMandates) {
+            const rawRequests = await fetchNetworkRequests(orgId);
+            const decrypted: RequestForMatching[] = [];
+            let decryptErrors = 0;
+            for (const r of rawRequests) {
               try {
-                const dec = await decryptMandateForOrg(m, orgId);
-                decrypted.push(adaptMandateToClient(dec));
+                const dec = await decryptRequestForOrg(r, orgId);
+                decrypted.push(adaptRequestToV2(dec));
+                requestExpiresAt.set(r.id, r.expiresAt);
               } catch {
-                // Skip corrupted records
+                decryptErrors++;
               }
             }
-            mandatesByOrg.set(orgId, decrypted);
+            if (decryptErrors > 0) {
+              console.warn(
+                `[CROSS_ORG_MATCH] Skipped ${decryptErrors} corrupted requests for ${orgId}`,
+              );
+            }
+            requestsByOrg.set(orgId, decrypted);
           } catch (err) {
-            console.error(`[CROSS_ORG_MATCH] Failed to load mandates for ${orgId}:`, err);
+            console.error(`[CROSS_ORG_MATCH] Failed to load requests for ${orgId}:`, err);
             errors++;
           }
         }
@@ -332,14 +375,9 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
         if (orgSettings.shareProperties) {
           try {
             const rawProperties = await fetchNetworkProperties(orgId);
-            const adapted: PropertyForMatching[] = [];
+            const adapted: PropertyForMatchingV2[] = [];
             for (const p of rawProperties) {
-              try {
-                const dec = await decryptPropertyForOrg(p as any, orgId);
-                adapted.push(adaptPropertyForMatching(dec));
-              } catch {
-                // Skip corrupted records
-              }
+              adapted.push(adaptPropertyForMatchingV2(p));
             }
             propertiesByOrg.set(orgId, adapted);
           } catch (err) {
@@ -351,16 +389,24 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
     );
   }
 
-  // 3. Compute matches across orgs
-  for (const [mandateOrgId, mandates] of Array.from(mandatesByOrg.entries())) {
-    if (mandates.length === 0) continue;
+  // 3. Pre-fetch bilateral partner sets for all request-sharing orgs in parallel
+  const partnersByOrg = new Map<string, Set<string>>();
+  await Promise.all(
+    Array.from(requestsByOrg.keys()).map(async (orgId) => {
+      partnersByOrg.set(orgId, await getAcceptedPartnerIds(orgId));
+    }),
+  );
 
-    const mandateOrgSettings = settingsByOrg.get(mandateOrgId)!;
-    const partners = await getAcceptedPartnerIds(mandateOrgId);
+  // 4. Compute matches across orgs using v2 batch engine
+  for (const [requestOrgId, requests] of Array.from(requestsByOrg.entries())) {
+    if (requests.length === 0) continue;
+
+    const requestOrgSettings = settingsByOrg.get(requestOrgId)!;
+    const partners = partnersByOrg.get(requestOrgId) ?? new Set<string>();
 
     const eligible = eligiblePropertyOrgs(
-      mandateOrgId,
-      mandateOrgSettings.membership,
+      requestOrgId,
+      requestOrgSettings.membership,
       poolOrgIds,
       partners,
     );
@@ -372,57 +418,54 @@ export async function computeCrossOrgMatches(): Promise<ComputeResult> {
       const properties = propertiesByOrg.get(propertyOrgId);
       if (!properties || properties.length === 0) continue;
 
-      for (const mandate of mandates) {
-        for (const property of properties) {
-          try {
-            const result = calculateMatchScore(mandate, property);
+      // Scope reflects the actual relationship: bilateral partners take precedence
+      const scope = partners.has(propertyOrgId) ? "BILATERAL" : "POLIS";
 
-            const mandateRow = await prismadb.mandate.findFirst({
-              where: { id: mandate.id },
-              select: { expires_at: true },
-            });
+      try {
+        const results = calculateBatchMatchesV2(requests, properties);
 
-            const defaultExpiry = new Date();
-            defaultExpiry.setDate(defaultExpiry.getDate() + MATCH_TTL_DAYS);
-            const expiresAt =
-              mandateRow?.expires_at && mandateRow.expires_at < defaultExpiry
-                ? mandateRow.expires_at
-                : defaultExpiry;
+        for (const result of results) {
+          const defaultExpiry = new Date();
+          defaultExpiry.setDate(defaultExpiry.getDate() + MATCH_TTL_DAYS);
+          const requestExpiry = requestExpiresAt.get(result.requestId) ?? null;
+          const expiresAt =
+            requestExpiry && requestExpiry < defaultExpiry ? requestExpiry : defaultExpiry;
 
-            await prismadb.crossOrgMatch.upsert({
-              where: {
-                mandateId_propertyId: {
-                  mandateId: mandate.id,
-                  propertyId: property.id,
-                },
+          await prismadb.crossOrgMatch.upsert({
+            where: {
+              requestId_propertyId_scope: {
+                requestId: result.requestId,
+                propertyId: result.propertyId,
+                scope,
               },
-              update: {
-                matchScore: Math.round(result.overallScore),
-                breakdown: result.breakdown as object[],
-                computedAt: new Date(),
-                expiresAt,
-                mandateOrgId,
-                propertyOrgId,
-              },
-              create: {
-                mandateOrgId,
-                mandateId: mandate.id,
-                propertyOrgId,
-                propertyId: property.id,
-                matchScore: Math.round(result.overallScore),
-                breakdown: result.breakdown as object[],
-                expiresAt,
-              },
-            });
-            upserted++;
-          } catch (err) {
-            console.error(
-              `[CROSS_ORG_MATCH] Score error mandate=${mandate.id} property=${property.id}:`,
-              err,
-            );
-            errors++;
-          }
+            },
+            update: {
+              matchScore: result.overallScore / 100,
+              breakdown: result.breakdown as object[],
+              computedAt: new Date(),
+              expiresAt,
+              requestOrgId,
+              propertyOrgId,
+            },
+            create: {
+              requestOrgId,
+              requestId: result.requestId,
+              propertyOrgId,
+              propertyId: result.propertyId,
+              scope,
+              matchScore: result.overallScore / 100,
+              breakdown: result.breakdown as object[],
+              expiresAt,
+            },
+          });
+          upserted++;
         }
+      } catch (err) {
+        console.error(
+          `[CROSS_ORG_MATCH] Batch score error requestOrg=${requestOrgId} propertyOrg=${propertyOrgId}:`,
+          err,
+        );
+        errors++;
       }
     }
   }

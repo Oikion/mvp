@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     // Rows arrive as ValidatedRow[] — already validated by /api/import/validate.
     // Do NOT re-run validateImportData() here — the rows have already been
-    // partitioned into clientRow/propertyRow/mandateRow sub-objects, and
+    // partitioned into contactRow/propertyRow/requestRow sub-objects, and
     // partitionRow() would fail to find any field keys in that shape.
     const validatedRows = rows as ValidatedRow[];
 
@@ -36,9 +36,9 @@ export async function POST(req: Request) {
     // Record or update import history
     try {
       const allEntityIds = [
-        ...batchResult.clients.map((c) => c.uuid),
+        ...batchResult.contacts.map((c) => c.uuid),
         ...batchResult.properties.map((p) => p.uuid),
-        ...batchResult.mandates.map((m) => m.uuid),
+        ...batchResult.requests.map((m) => m.uuid),
       ];
 
       await recordImport({
@@ -62,9 +62,9 @@ export async function POST(req: Request) {
 
     // Invalidate cache keys
     await invalidateCache([
-      "clients:list",
+      "contacts:list",
       "properties:list",
-      "mandates:list",
+      "requests:list",
       "dashboard:accounts-count",
     ]);
 

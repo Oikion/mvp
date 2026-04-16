@@ -22,25 +22,25 @@ export type {
   ClientForMatching,
   PropertyForMatching,
   ClientPropertyPreferences,
-  
+
   // Result types
   MatchResult,
   CriterionScore,
   MatchCriterion,
   MatchResultWithClient,
   MatchResultWithProperty,
-  
+
   // Analytics types
   MatchAnalytics,
   MatchDistribution,
   ClientSummary,
   PropertySummary,
   PropertyWithMatchStats,
-  
+
   // Options
   MatchFilters,
   MatchOptions,
-  
+
   // Enums
   ClientIntent,
   PropertyPurpose,
@@ -54,12 +54,28 @@ export type {
   ClientStatus,
 } from "./types";
 
+// V2 types
+export type {
+  RequestForMatching,
+  PropertyForMatchingV2,
+  MatchCriterionV2,
+  MatchResultV2,
+  FinancingStatus,
+  Timeline,
+} from "./types";
+
 // Calculator functions
 export {
   calculateMatchScore,
   calculateBatchMatches,
   findMatchingProperties,
   findMatchingClients,
+} from "./calculator";
+
+// V2 calculator functions
+export {
+  calculateMatchScoreV2,
+  calculateBatchMatchesV2,
 } from "./calculator";
 
 // Weights and configuration
@@ -81,6 +97,22 @@ export {
   getMatchQuality,
   meetsEnergyRequirement,
 } from "./weights";
+
+// V2 weights
+export {
+  MATCH_WEIGHTS_V2,
+  getWeightV2,
+} from "./weights";
+
+// Disqualifiers
+export { checkDisqualifiers } from "./disqualifiers";
+export type { DisqualifierResult, DisqualifierReason } from "./disqualifiers";
+
+// Geo utilities
+export { haversineDistanceKm, scoreByRadius } from "./geo";
+
+// Golden Visa constants
+export { getGoldenVisaThreshold } from "./constants/golden-visa";
 
 // Normalizers
 export {

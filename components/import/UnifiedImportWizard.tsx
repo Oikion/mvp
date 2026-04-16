@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ImportWizardSteps, type ImportResult } from "@/components/import";
-import { UNIFIED_FIELD_DEFINITIONS, MANDATE_FIELD_KEYS } from "@/lib/import/unified-field-definitions";
+import { UNIFIED_FIELD_DEFINITIONS, REQUEST_FIELD_KEYS } from "@/lib/import/unified-field-definitions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import type { BatchImportResult } from "@/lib/import/unified-engine";
 
@@ -94,9 +94,9 @@ interface UnifiedImportWizardProps {
       };
     };
     ImportFields: {
-      client?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
+      contact?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
       property?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
-      mandate?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
+      request?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
       unified?: { groups: Record<string, string>; fields: Record<string, string> };
     };
   };
@@ -116,9 +116,9 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
     const fields = importFields.unified?.fields ?? {};
     // Merge enums from all entity types into a single flat map
     const enums: Record<string, Record<string, string>> = {
-      ...importFields.client?.enums,
+      ...importFields.contact?.enums,
       ...importFields.property?.enums,
-      ...importFields.mandate?.enums,
+      ...importFields.request?.enums,
     };
     return { groups, fields, enums };
   }, [dict.ImportFields]);
@@ -163,11 +163,11 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
         }
 
         const totalCreated =
-          result.clients.length + result.properties.length + result.mandates.length;
+          result.contacts.length + result.properties.length + result.requests.length;
 
         if (totalCreated > 0) {
           toast.success("Import successful", {
-            description: `Created ${result.clients.length} client(s), ${result.properties.length} property(ies), ${result.mandates.length} mandate(s)`,
+            description: `Created ${result.contacts.length} contact(s), ${result.properties.length} property(ies), ${result.requests.length} request(s)`,
             isTranslationKey: false,
           });
         }
@@ -182,23 +182,23 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
             error: e.error,
           })),
           // Summary counts for legacy display
-          clients: {
-            created: result.clients.length,
+          contacts: {
+            created: result.contacts.length,
             reused: 0,
-            failed: result.errors.filter((e) => e.entity === "client").length,
+            failed: result.errors.filter((e) => e.entity === "contact").length,
           },
           properties: {
             created: result.properties.length,
             failed: result.errors.filter((e) => e.entity === "property").length,
           },
-          mandates: {
-            created: result.mandates.length,
-            failed: result.errors.filter((e) => e.entity === "mandate").length,
+          requests: {
+            created: result.requests.length,
+            failed: result.errors.filter((e) => e.entity === "request").length,
           },
           links: {
-            clientProperty: result.linkCounts.clientProperty,
-            mandateClient: result.linkCounts.mandateClient,
-            mandateProperty: result.linkCounts.mandateProperty,
+            contactProperty: result.linkCounts.contactProperty,
+            requestContact: result.linkCounts.requestContact,
+            requestProperty: result.linkCounts.requestProperty,
           },
           // Attach the raw batch result for the new CompleteStep
           _batchResult: result,
@@ -245,7 +245,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
       onCancel={handleCancel}
       returnUrl={returnUrl}
       unifiedMode={true}
-      mandateFieldKeys={MANDATE_FIELD_KEYS}
+      requestFieldKeys={REQUEST_FIELD_KEYS}
       locale={locale}
     />
   );

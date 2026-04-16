@@ -370,11 +370,11 @@ describe("Property schema number coercion integration", () => {
 
 describe("Mandate schema coercion integration", () => {
   it("bathrooms_min requires integer (Prisma Int?)", async () => {
-    const { mandateImportSchema } = await import(
-      "@/lib/import/mandate-import-schema"
+    const { requestImportSchema } = await import(
+      "@/lib/import/request-import-schema"
     );
     expect(() =>
-      mandateImportSchema.parse({
+      requestImportSchema.parse({
         title: "Test Mandate",
         bathrooms_min: "1.5",
       })
@@ -382,10 +382,10 @@ describe("Mandate schema coercion integration", () => {
   });
 
   it("bathrooms_min accepts integer string", async () => {
-    const { mandateImportSchema } = await import(
-      "@/lib/import/mandate-import-schema"
+    const { requestImportSchema } = await import(
+      "@/lib/import/request-import-schema"
     );
-    const result = mandateImportSchema.parse({
+    const result = requestImportSchema.parse({
       title: "Test Mandate",
       bathrooms_min: "2",
     });
@@ -393,10 +393,10 @@ describe("Mandate schema coercion integration", () => {
   });
 
   it("empty budget_min does NOT cause validation error", async () => {
-    const { mandateImportSchema } = await import(
-      "@/lib/import/mandate-import-schema"
+    const { requestImportSchema } = await import(
+      "@/lib/import/request-import-schema"
     );
-    const result = mandateImportSchema.parse({
+    const result = requestImportSchema.parse({
       title: "Test Mandate",
       budget_min: "",
     });
@@ -404,10 +404,10 @@ describe("Mandate schema coercion integration", () => {
   });
 
   it("'\u03cc\u03c7\u03b9' in ground_floor_only becomes false", async () => {
-    const { mandateImportSchema } = await import(
-      "@/lib/import/mandate-import-schema"
+    const { requestImportSchema } = await import(
+      "@/lib/import/request-import-schema"
     );
-    const result = mandateImportSchema.parse({
+    const result = requestImportSchema.parse({
       title: "Test Mandate",
       ground_floor_only: "\u03cc\u03c7\u03b9",
     });
@@ -415,10 +415,10 @@ describe("Mandate schema coercion integration", () => {
   });
 
   it("elevator nullable: empty → undefined (no preference)", async () => {
-    const { mandateImportSchema } = await import(
-      "@/lib/import/mandate-import-schema"
+    const { requestImportSchema } = await import(
+      "@/lib/import/request-import-schema"
     );
-    const result = mandateImportSchema.parse({
+    const result = requestImportSchema.parse({
       title: "Test Mandate",
       elevator: "",
     });
@@ -426,10 +426,10 @@ describe("Mandate schema coercion integration", () => {
   });
 
   it("expires_at handles DD/MM/YYYY", async () => {
-    const { mandateImportSchema } = await import(
-      "@/lib/import/mandate-import-schema"
+    const { requestImportSchema } = await import(
+      "@/lib/import/request-import-schema"
     );
-    const result = mandateImportSchema.parse({
+    const result = requestImportSchema.parse({
       title: "Test Mandate",
       expires_at: "31/12/2025",
     });
@@ -439,22 +439,22 @@ describe("Mandate schema coercion integration", () => {
 
 describe("Client schema boolean coercion integration", () => {
   it("'no' in gdpr_consent becomes false", async () => {
-    const { clientImportSchema } = await import(
-      "@/lib/import/client-import-schema"
+    const { contactImportSchema } = await import(
+      "@/lib/import/contact-import-schema"
     );
-    const result = clientImportSchema.parse({
-      client_name: "Test Client",
+    const result = contactImportSchema.parse({
+      contact_name: "Test Client",
       gdpr_consent: "no",
     });
     expect(result.gdpr_consent).toBe(false);
   });
 
   it("'\u03bd\u03b1\u03b9' in allow_marketing becomes true", async () => {
-    const { clientImportSchema } = await import(
-      "@/lib/import/client-import-schema"
+    const { contactImportSchema } = await import(
+      "@/lib/import/contact-import-schema"
     );
-    const result = clientImportSchema.parse({
-      client_name: "Test Client",
+    const result = contactImportSchema.parse({
+      contact_name: "Test Client",
       allow_marketing: "\u03bd\u03b1\u03b9",
     });
     expect(result.allow_marketing).toBe(true);

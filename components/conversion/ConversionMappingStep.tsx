@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 
 import { propertyImportFieldDefinitions } from "@/lib/import/property-import-schema";
-import { clientImportFieldDefinitions } from "@/lib/import/client-import-schema";
+import { contactImportFieldDefinitions } from "@/lib/import/contact-import-schema";
 
 import type { EntityType, ColumnMapping, FieldKey } from "./ConversionWizard";
 
@@ -49,7 +49,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   description: ["description", "desc", "details", "perigrafi"],
   
   // Client fields
-  client_name: ["name", "full_name", "client", "contact_name", "onoma", "eponymo"],
+  contact_name: ["name", "full_name", "client", "client_name", "onoma", "eponymo"],
   primary_email: ["email", "mail", "contact_email", "email_address"],
   primary_phone: ["phone", "mobile", "tel", "telephone", "tilefono", "kinito"],
   company_name: ["company", "business", "organization", "etairia"],
@@ -68,7 +68,7 @@ export function ConversionMappingStep({
 
   const fieldDefinitions = entityType === "properties" 
     ? propertyImportFieldDefinitions 
-    : clientImportFieldDefinitions;
+    : contactImportFieldDefinitions;
 
   // Group fields by category
   const groupedFields = useMemo(() => {

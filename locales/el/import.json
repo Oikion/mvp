@@ -1,9 +1,9 @@
 {
   "ImportWizard": {
     "title": "Εισαγωγή {entity}",
-    "titleClients": "Εισαγωγή Πελατών",
+    "titleContacts": "Εισαγωγή Επαφών",
     "titleProperties": "Εισαγωγή Ακινήτων",
-    "titleMandates": "Εισαγωγή Εντολών",
+    "titleRequests": "Εισαγωγή Αιτημάτων",
     "description": "Ανεβάστε ένα αρχείο CSV, Excel ή XML για μαζική εισαγωγή {entity}",
     "progress": "Βήμα {current} από {total}",
     "steps": {
@@ -111,7 +111,7 @@
     }
   },
   "ImportFields": {
-    "client": {
+    "contact": {
       "groups": {
         "basic": "Βασικές Πληροφορίες",
         "contact": "Στοιχεία Επικοινωνίας",
@@ -124,8 +124,8 @@
         "other": "Άλλα"
       },
       "fields": {
-        "id": "Κωδικός Πελάτη",
-        "client_name": "Όνομα Πελάτη",
+        "id": "Κωδικός Επαφής",
+        "contact_name": "Όνομα Επαφής",
         "primary_email": "Κύριο Email",
         "primary_phone": "Κύριο Τηλέφωνο",
         "office_phone": "Τηλέφωνο Γραφείου",
@@ -367,7 +367,7 @@
         }
       }
     },
-    "mandate": {
+    "request": {
       "groups": {
         "basic": "Βασικές Πληροφορίες",
         "budget": "Προϋπολογισμός",
@@ -379,7 +379,7 @@
         "other": "Άλλα"
       },
       "fields": {
-        "id": "Κωδικός Εντολής",
+        "id": "Κωδικός Αιτήματος",
         "title": "Τίτλος",
         "transaction_type": "Τύπος Συναλλαγής",
         "property_type": "Τύπος Ακινήτου",
@@ -516,18 +516,18 @@
         "rental": "Ακίνητο — Ενοικίαση",
         "visibility": "Ακίνητο — Ορατότητα",
         "other": "Ακίνητο — Άλλα",
-        "contact": "Πελάτης — Επικοινωνία",
-        "classification_client": "Πελάτης — Κατηγοριοποίηση",
-        "company": "Πελάτης — Εταιρεία",
-        "greece": "Πελάτης — Ελληνικά ΙΔ",
-        "billing": "Πελάτης — Διεύθυνση Χρέωσης",
-        "shipping": "Πελάτης — Διεύθυνση Αποστολής",
-        "other_client": "Πελάτης — Άλλα",
-        "budget": "Εντολή — Προϋπολογισμός",
-        "size": "Εντολή — Μέγεθος",
-        "rooms": "Εντολή — Δωμάτια",
-        "features": "Εντολή — Χαρακτηριστικά",
-        "location": "Εντολή — Τοποθεσία"
+        "contact": "Επαφής — Επικοινωνία",
+        "classification_client": "Επαφής — Κατηγοριοποίηση",
+        "company": "Επαφής — Εταιρεία",
+        "greece": "Επαφής — Ελληνικά ΙΔ",
+        "billing": "Επαφής — Διεύθυνση Χρέωσης",
+        "shipping": "Επαφής — Διεύθυνση Αποστολής",
+        "other_client": "Επαφής — Άλλα",
+        "budget": "Αιτήματος — Προϋπολογισμός",
+        "size": "Αιτήματος — Μέγεθος",
+        "rooms": "Αιτήματος — Δωμάτια",
+        "features": "Αιτήματος — Χαρακτηριστικά",
+        "location": "Αιτήματος — Τοποθεσία"
       },
       "fields": {
         "property_name": "Όνομα Ακινήτου",
@@ -583,8 +583,8 @@
         "address_privacy_level": "Απόρρητο Διεύθυνσης",
         "description": "Περιγραφή",
         "primary_email": "Email Ακινήτου",
-        "client_name": "Όνομα Πελάτη",
-        "client_description": "Σημειώσεις Πελάτη",
+        "contact_name": "Όνομα Επαφής",
+        "client_description": "Σημειώσεις Επαφής",
         "primary_phone": "Τηλέφωνο",
         "office_phone": "Τηλ. Γραφείου",
         "secondary_phone": "Δεύτερο Τηλέφωνο",
@@ -615,13 +615,13 @@
         "gdpr_consent": "Συγκατάθεση GDPR",
         "allow_marketing": "Αποδοχή Marketing",
         "member_of": "Μέλος",
-        "client_visibility": "Ορατότητα Πελάτη",
+        "client_visibility": "Ορατότητα Επαφής",
         "budget_min": "Ελάχιστο Budget",
         "budget_max": "Μέγιστο Budget",
-        "mandate_transaction_type": "Τύπος Συναλλαγής Εντολής",
-        "mandate_property_type": "Επιθυμητός Τύπος Ακινήτου",
+        "request_transaction_type": "Τύπος Συναλλαγής Αιτήματος",
+        "request_property_type": "Επιθυμητός Τύπος Ακινήτου",
         "property_purpose": "Σκοπός Ακινήτου",
-        "mandate_status": "Κατάσταση Εντολής",
+        "request_status": "Κατάσταση Αιτήματος",
         "urgency": "Επείγον",
         "timeline": "Χρονοδιάγραμμα",
         "size_min_sqm": "Ελάχ. Μέγεθος (τ.μ.)",
@@ -636,23 +636,23 @@
         "floor_max": "Μέγ. Όροφος",
         "year_built_min": "Ελάχ. Έτος Κατασκευής",
         "year_built_max": "Μέγ. Έτος Κατασκευής",
-        "mandate_condition": "Επιθυμητή Κατάσταση",
-        "mandate_heating_type": "Επιθυμητή Θέρμανση",
+        "request_condition": "Επιθυμητή Κατάσταση",
+        "request_heating_type": "Επιθυμητή Θέρμανση",
         "energy_cert_min": "Ελάχ. Ενεργειακή Κλάση",
-        "mandate_furnished": "Επιθυμητή Επίπλωση",
+        "request_furnished": "Επιθυμητή Επίπλωση",
         "ground_floor_only": "Μόνο Ισόγειο",
-        "mandate_elevator": "Απαιτείται Ασανσέρ",
+        "request_elevator": "Απαιτείται Ασανσέρ",
         "parking": "Απαιτείται Πάρκινγκ",
         "pets_allowed": "Κατοικίδια Δεκτά",
-        "mandate_inside_city_plan": "Απαιτείται Εντός Σχεδίου",
+        "request_inside_city_plan": "Απαιτείται Εντός Σχεδίου",
         "legalization_ok": "Δεκτή Τακτοποίηση",
-        "mandate_municipality": "Δήμος (Εντολή)",
-        "mandate_region": "Περιφέρεια (Εντολή)",
+        "request_municipality": "Δήμος (Αίτημα)",
+        "request_region": "Περιφέρεια (Αίτημα)",
         "areas_of_interest": "Περιοχές Ενδιαφέροντος",
         "amenities": "Παροχές",
-        "mandate_notes": "Σημειώσεις Εντολής",
+        "request_notes": "Σημειώσεις Αιτήματος",
         "expires_at": "Ημερομηνία Λήξης",
-        "mandate_visibility": "Ορατότητα Εντολής"
+        "request_visibility": "Ορατότητα Αιτήματος"
       }
     }
   },
@@ -686,9 +686,9 @@
       "PARTIALLY_DELETED": "Μερικώς Διαγραμμένη"
     },
     "type": {
-      "CLIENTS": "Πελάτες",
+      "CONTACTS": "Επαφές",
       "PROPERTIES": "Ακίνητα",
-      "MANDATES": "Εντολές",
+      "REQUESTS": "Αιτήματα",
       "UNIFIED": "Μικτή"
     },
     "detail": {
@@ -700,9 +700,9 @@
       "errorField": "Πεδίο",
       "errorMessage": "Σφάλμα",
       "errorValue": "Τιμή",
-      "clients": "Πελάτες",
+      "contacts": "Επαφές",
       "properties": "Ακίνητα",
-      "mandates": "Εντολές",
+      "requests": "Αιτήματα",
       "created": "Δημιουργήθηκαν",
       "reused": "Επαναχρησιμοποιήθηκαν",
       "failed": "Απέτυχαν",
@@ -717,9 +717,9 @@
       "allDeleted": "Όλες οι οντότητες διαγράφηκαν",
       "noEntities": "Δεν υπάρχουν οντότητες αυτού του τύπου",
       "linkCounts": "Δημιουργημένες Συνδέσεις",
-      "clientPropertyLinks": "συνδέσεις πελάτη-ακινήτου",
-      "mandatePropertyLinks": "συνδέσεις εντολής-ακινήτου",
-      "mandateClientLinks": "συνδέσεις εντολής-πελάτη",
+      "contactPropertyLinks": "συνδέσεις επαφής-ακινήτου",
+      "requestPropertyLinks": "συνδέσεις αιτήματος-ακινήτου",
+      "requestContactLinks": "συνδέσεις αιτήματος-επαφής",
       "partiallyDeletedTitle": "Ορισμένες οντότητες έχουν διαγραφεί",
       "partiallyDeletedDescription": "Μέρος αυτής της παρτίδας εισαγωγής διαγράφηκε επιλεκτικά. Οι υπόλοιπες οντότητες παραμένουν ενεργές στις αντίστοιχες λίστες τους.",
       "batchDeletedTitle": "Αυτή η παρτίδα εισαγωγής έχει διαγραφεί",
@@ -742,18 +742,12 @@
       "impactError": "Αποτυχία φόρτωσης δεδομένων επιπτώσεων. Μπορείτε να συνεχίσετε με τη διαγραφή.",
       "noEntities": "Δεν θα διαγραφούν οντότητες.",
       "alsoRemove": "Θα αφαιρεθούν επίσης:",
-      "clientPropertyLinks": "{count} συνδέσεις πελάτη-ακινήτου",
-      "mandatePropertyLinks": "{count} συνδέσεις εντολής-ακινήτου",
-      "mandateClientLinks": "{count} συνδέσεις εντολής-πελάτη",
+      "contactPropertyLinks": "{count} συνδέσεις επαφής-ακινήτου",
+      "requestPropertyLinks": "{count} συνδέσεις αιτήματος-ακινήτου",
+      "requestContactLinks": "{count} συνδέσεις αιτήματος-επαφής",
       "dealsLinked": "{count} συμφωνίες συνδεδεμένες με αυτές τις οντότητες",
       "showLess": "Λιγότερα",
       "showMore": "+{count} ακόμα"
     }
   }
 }
-
-
-
-
-
-

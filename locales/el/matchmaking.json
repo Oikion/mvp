@@ -29,18 +29,18 @@
   "dashboard": {
     "title": "Πίνακας Matchmaking",
     "stats": {
-      "activeClients": "Ενεργοί Πελάτες",
-      "activeClientsDesc": "Πελάτες που αναζητούν ακίνητα",
+      "activeClients": "Ενεργά Αιτήματα",
+      "activeClientsDesc": "Αιτήματα προς αντιστοίχιση",
       "availableProperties": "Διαθέσιμα Ακίνητα",
       "availablePropertiesDesc": "Ακίνητα προς αντιστοίχιση",
-      "clientsWithMatches": "Πελάτες με Matches",
-      "clientsWithMatchesDesc": "των πελατών",
+      "clientsWithMatches": "Αιτήματα με Matches",
+      "clientsWithMatchesDesc": "των αιτημάτων",
       "averageMatchScore": "Μέσος Βαθμός Match",
       "averageMatchScoreDesc": "Σε όλα τα ζεύγη"
     },
     "tabs": {
       "overview": "Επισκόπηση",
-      "mandates": "Εντολές",
+      "requests": "Αιτήματα",
       "matches": "Κορυφαία Matches",
       "unmatched": "Χρειάζονται Προσοχή",
       "hot": "Hot Ακίνητα"
@@ -54,36 +54,31 @@
     "quickStats": {
       "excellentMatches": "Εξαιρετικά Matches",
       "clientsNeedProperties": "Πελάτες Χρειάζονται Ακίνητα",
-      "highDemandProperties": "Ακίνητα Υψηλής Ζήτησης"
+      "highDemandProperties": "Ακίνητα Υψηλής Ζήτησης",
+      "persistedMatches": "Αποθηκευμένα Matches"
     }
   },
-  "mandateMatches": {
+  "requestMatches": {
     "stats": {
-      "totalMandates": "Σύνολο Εντολών",
-      "activeMandates": "Ενεργές Εντολές",
-      "mandatesWithMatches": "Εντολές με Matches",
+      "totalRequests": "Σύνολο Αιτημάτων",
+      "activeRequests": "Ενεργά Αιτήματα",
+      "requestsWithMatches": "Αιτήματα με Matches",
       "avgMatchScore": "Μέσος Βαθμός Match"
     },
     "topMatches": {
-      "title": "Κορυφαία Ζεύγη Εντολών-Ακινήτων",
-      "description": "Τα καλύτερα ζευγάρια βάσει προτιμήσεων και κριτηρίων εντολών",
-      "noMatches": "Δεν βρέθηκαν matches πάνω από το όριο.",
-      "noMatchesHint": "Προσθέστε εντολές ή ακίνητα για να δείτε matches.",
-      "viewMandate": "Προβολή Εντολής"
+      "title": "Κορυφαία Ζεύγη Αιτημάτων-Ακινήτων",
+      "description": "Τα καλύτερα ζευγάρια από την τελευταία εκτέλεση αντιστοίχισης",
+      "noMatches": "Δεν υπάρχουν αποθηκευμένα matches ακόμα.",
+      "noMatchesHint": "Εκτελέστε αντιστοίχιση τώρα για να δημιουργηθούν και αποθηκευτούν τα κορυφαία matches.",
+      "viewRequest": "Προβολή Αιτήματος"
+    },
+    "runNow": {
+      "label": "Εκτέλεση Αντιστοίχισης",
+      "running": "Εκτελείται..."
     },
     "distribution": {
       "title": "Κατανομή Βαθμολογίας Match",
-      "description": "Κατανομή βαθμολογιών σε όλα τα ζεύγη εντολών-ακινήτων",
-      "noData": "Δεν υπάρχουν δεδομένα ακόμα — προσθέστε εντολές και ακίνητα για να δείτε την κατανομή"
-    },
-    "unmatched": {
-      "title": "Εντολές Χωρίς Καλά Matches",
-      "description": "Αυτές οι εντολές δεν έχουν ακίνητα που ταιριάζουν πάνω από 50%",
-      "allMatched": "Όλες οι εντολές έχουν καλά matches!",
-      "allMatchedDesc": "Κάθε ενεργή εντολή έχει τουλάχιστον ένα ακίνητο με match πάνω από 50%.",
-      "needsAttention": "εντολές χρειάζονται προσοχή",
-      "attentionDesc": "Αυτές οι εντολές δεν έχουν ακίνητα που ταιριάζουν πάνω από 50%. Σκεφτείτε να επεκτείνετε τα κριτήρια ή να προσθέσετε νέα ακίνητα.",
-      "review": "Εξέταση"
+      "description": "Κατανομή βαθμολογιών σε όλα τα ζεύγη αιτημάτων-ακινήτων"
     }
   },
   "topMatches": {
@@ -190,5 +185,36 @@
     "selectRequired": "Επιλέξτε απαραίτητες παροχές",
     "preferredAmenities": "Επιθυμητές παροχές (προαιρετικές)",
     "selectPreferred": "Επιλέξτε επιθυμητές παροχές"
+  },
+  "strikeDeal": {
+    "button": "Σύναψη Συμφωνίας",
+    "dialogTitle": "Σύναψη Συμφωνίας",
+    "dialogDescription": "Επιλέξτε τα μέρη που θα συμμετέχουν στη συμφωνία. Το ακίνητο και το αίτημα θα συνδεθούν αυτόματα.",
+    "partiesSection": "Μέρη Συμφωνίας",
+    "requestContacts": "Επαφές Αιτήματος",
+    "propertyOwner": "Ιδιοκτήτης Ακινήτου",
+    "autoAdded": "Αυτόματη Προσθήκη",
+    "roleLabel": "Ρόλος",
+    "roles": {
+      "BUYER": "Αγοραστής",
+      "SELLER": "Πωλητής",
+      "TENANT": "Ενοικιαστής",
+      "LANDLORD": "Εκμισθωτής",
+      "BUYER_AGENT": "Μεσίτης Αγοραστή",
+      "LISTING_AGENT": "Μεσίτης Πωλητή",
+      "NOTARY": "Συμβολαιογράφος",
+      "LAWYER": "Δικηγόρος",
+      "ACCOUNTANT": "Λογιστής",
+      "GUARANTOR": "Εγγυητής",
+      "REPRESENTATIVE": "Εκπρόσωπος",
+      "OTHER": "Άλλο"
+    },
+    "submit": "Σύναψη Συμφωνίας",
+    "submitting": "Δημιουργία...",
+    "cancel": "Ακύρωση",
+    "success": "Η συμφωνία δημιουργήθηκε επιτυχώς",
+    "successHint": "Μπορείτε να προσθέσετε περισσότερα μέρη από τη σελίδα της συμφωνίας.",
+    "viewDeal": "Προβολή Συμφωνίας",
+    "noBuyers": "Δεν υπάρχουν επαφές αγοραστή"
   }
 }

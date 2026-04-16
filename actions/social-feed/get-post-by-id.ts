@@ -1,12 +1,12 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUserSafe } from "@/lib/get-current-user";
+import { getCurrentUserSafe, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export interface PostWithAuthor {
   id: string;
   slug: string | null;
-  type: "property" | "client" | "text";
+  type: "property" | "contact" | "request" | "document" | "text";
   content: string | null;
   timestamp: string;
   author: {
@@ -19,7 +19,7 @@ export interface PostWithAuthor {
   linkedEntity?: {
     id: string;
     friendlyId: string;
-    type: "property" | "client";
+    type: "property" | "contact" | "request" | "document";
     title: string;
     subtitle?: string;
     metadata?: Record<string, any>;
@@ -51,11 +51,17 @@ export interface GetPostResult {
  * - PERSONAL: Only connections can view (not shareable publicly)
  */
 export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
-  const currentUser = await getCurrentUserSafe();
-  
-  // Try to find post by slug first, then by ID
+  const [currentUser, organizationId] = await Promise.all([
+    getCurrentUserSafe(),
+    getCurrentOrgIdSafe(),
+  ]);
+
+  // Try to find post by slug first, then by ID.
+  // Scope to the current org so authenticated users cannot read posts
+  // belonging to a different organization.
   const post = await prismadb.socialPost.findFirst({
     where: {
+      ...(organizationId ? { organizationId } : {}),
       OR: [
         { slug: idOrSlug },
         { id: idOrSlug },
@@ -138,13 +144,13 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
           where: { id: post.linkedEntityId },
           select: { friendlyId: true },
         });
-        linkedEntityFriendlyId = prop?.friendlyId;
-      } else if (post.linkedEntityType === "client") {
-        const client = await prismadb.clients.findUnique({
+        linkedEntityFriendlyId = prop?.friendlyId ?? undefined;
+      } else if (post.linkedEntityType === "contact" || post.linkedEntityType === "client") {
+        const client = await prismadb.contact.findUnique({
           where: { id: post.linkedEntityId },
           select: { friendlyId: true },
         });
-        linkedEntityFriendlyId = client?.friendlyId;
+        linkedEntityFriendlyId = client?.friendlyId ?? undefined;
       }
     } catch {
       // Entity may have been deleted
@@ -155,7 +161,7 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
   const postData: PostWithAuthor = {
     id: post.id,
     slug: post.slug,
-    type: post.postType as "property" | "client" | "text",
+    type: (post.postType === "client" ? "contact" : post.postType === "mandate" ? "request" : post.postType) as "property" | "contact" | "request" | "document" | "text",
     content: post.content,
     timestamp: post.createdAt.toISOString(),
     author: {
@@ -168,7 +174,7 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
     linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
       id: post.linkedEntityId,
       friendlyId: linkedEntityFriendlyId || post.linkedEntityId,
-      type: post.linkedEntityType as "property" | "client",
+      type: (post.linkedEntityType === "client" ? "contact" : post.linkedEntityType === "mandate" ? "request" : post.linkedEntityType) as "property" | "contact" | "request" | "document",
       title: post.linkedEntityTitle || "",
       subtitle: post.linkedEntitySubtitle || undefined,
       metadata: post.linkedEntityMetadata as Record<string, any> | undefined,

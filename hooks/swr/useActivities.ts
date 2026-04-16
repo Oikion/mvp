@@ -1,0 +1,125 @@
+"use client";
+
+import useSWR from "swr";
+import fetcher from "@/lib/fetcher";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type ActivityKind =
+  | "EMAIL"
+  | "CALL"
+  | "MEETING"
+  | "NOTE"
+  | "TASK"
+  | "SHOWING"
+  | "DOCUMENT"
+  | "OTHER";
+
+export type ActivityDirection = "INBOUND" | "OUTBOUND" | "INTERNAL";
+
+export type ActivityParentType =
+  | "CONTACT"
+  | "REQUEST"
+  | "DEAL"
+  | "PROPERTY"
+  | "SHOWING";
+
+export interface ActivityUser {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatar: string | null;
+}
+
+export interface ActivityDocument {
+  id: string;
+  document_name: string;
+}
+
+export interface ActivityContact {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+}
+
+export interface ActivityProperty {
+  id: string;
+  property_name: string | null;
+  friendlyId: string | null;
+}
+
+export interface Activity {
+  id: string;
+  organizationId: string;
+  parentType: ActivityParentType;
+  parentId: string;
+  kind: ActivityKind;
+  direction: ActivityDirection;
+  subject: string | null;
+  body: string | null;
+  durationMin: number | null;
+  outcome: string | null;
+  scheduledAt: string | null;
+  occurredAt: string;
+  createdByUserId: string | null;
+  assignedToUserId: string | null;
+  relatedDocumentId: string | null;
+  relatedContactId: string | null;
+  relatedPropertyId: string | null;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  CreatedBy: ActivityUser | null;
+  AssignedTo: ActivityUser | null;
+  RelatedDocument: ActivityDocument | null;
+  RelatedContact: ActivityContact | null;
+  RelatedProperty: ActivityProperty | null;
+}
+
+interface ActivitiesResponse {
+  data: unknown[];
+}
+
+export interface UseActivitiesOptions {
+  parentType: ActivityParentType;
+  parentId: string | null;
+  enabled?: boolean;
+  unified?: boolean;
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Fetches activities for a given parent entity (contact, request, deal, etc.).
+ * Returns an empty array when `parentId` is null or `enabled` is false.
+ * Pass `unified: true` to include EntityChangeLog entries merged into the feed.
+ */
+export function useActivities({
+  parentType,
+  parentId,
+  enabled = true,
+  unified = false,
+}: UseActivitiesOptions) {
+  const unifiedParam = unified ? "&unified=true" : "";
+  const key =
+    enabled && parentId
+      ? `/api/activities?parentType=${encodeURIComponent(parentType)}&parentId=${encodeURIComponent(parentId)}${unifiedParam}`
+      : null;
+
+  const { data, error, isLoading, mutate } = useSWR<ActivitiesResponse>(
+    key,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+    }
+  );
+
+  return {
+    activities: data?.data ?? [],
+    isLoading,
+    error,
+    mutate,
+    refresh: () => mutate(),
+  };
+}

@@ -2,23 +2,23 @@
 
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
-import { decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg } from "@/lib/model-encryption";
 
 export interface ShareableItem {
   id: string;
-  type: "property" | "client";
+  type: "property" | "contact";
   title: string;
   subtitle?: string;
 }
 
 export async function getShareableItems(): Promise<{
   properties: ShareableItem[];
-  clients: ShareableItem[];
+  contacts: ShareableItem[];
 }> {
   const orgId = await getCurrentOrgIdSafe();
-  
+
   if (!orgId) {
-    return { properties: [], clients: [] };
+    return { properties: [], contacts: [] };
   }
 
   const prisma = prismaForOrg(orgId);
@@ -38,14 +38,14 @@ export async function getShareableItems(): Promise<{
       },
     });
 
-    // Fetch clients that can be shared (maybe with consent)
-    const clients = await prisma.clients.findMany({
+    // Fetch contacts that can be shared (maybe with consent)
+    const clients = await prisma.contact.findMany({
       take: 50,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        client_name: true,
-        person_type: true,
+        displayName: true,
+        status: true,
       },
     });
 
@@ -56,21 +56,21 @@ export async function getShareableItems(): Promise<{
         title: p.property_name || "Unnamed Property",
         subtitle: [p.municipality, p.area].filter(Boolean).join(", ") || undefined,
       })),
-      clients: await Promise.all(
+      contacts: await Promise.all(
         clients.map(async (c) => {
-          const decrypted = await decryptClientForOrg(c, orgId);
+          const decrypted = await decryptContactForOrg(c, orgId);
           return {
             id: decrypted.id,
-            type: "client" as const,
-            title: decrypted.client_name || "Unnamed Client",
-            subtitle: decrypted.person_type || undefined,
+            type: "contact" as const,
+            title: decrypted.displayName || "Unnamed Contact",
+            subtitle: decrypted.status || undefined,
           };
         })
       ),
     };
   } catch (error) {
     console.error("Error fetching shareable items:", error);
-    return { properties: [], clients: [] };
+    return { properties: [], contacts: [] };
   }
 }
 

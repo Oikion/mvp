@@ -3,7 +3,7 @@
 import { getCurrentOrgIdSafe, getCurrentUserSafe } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { prismaForOrg } from "@/lib/tenant";
-import { decryptClientForOrg } from "@/lib/model-encryption";
+import { decryptContactForOrg } from "@/lib/model-encryption";
 import { revalidatePath } from "next/cache";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { randomBytes } from "crypto";
@@ -18,7 +18,7 @@ function generatePostSlug(): string {
 }
 
 interface CreateSocialPostInput {
-  type: "property" | "client" | "mandate" | "document" | "text";
+  type: "property" | "contact" | "request" | "document" | "text";
   content: string;
   linkedEntityId?: string;
   attachmentIds?: string[];
@@ -107,31 +107,31 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
           transactionType: property.transaction_type,
         };
       }
-    } else if (type === "client") {
-      const client = await prisma.clients.findUnique({
+    } else if (type === "contact") {
+      const client = await prisma.contact.findUnique({
         where: { id: linkedEntityId },
         select: {
-          client_name: true,
-          person_type: true,
+          displayName: true,
+          status: true,
         },
       });
 
       if (client) {
-        const decrypted = await decryptClientForOrg(client, orgId);
-        linkedEntityTitle = decrypted.client_name || "Unnamed Client";
-        linkedEntitySubtitle = decrypted.person_type || undefined;
+        const decrypted = await decryptContactForOrg(client, orgId);
+        linkedEntityTitle = decrypted.displayName || "Unnamed Contact";
+        linkedEntitySubtitle = decrypted.status || undefined;
         linkedEntityMetadata = {
-          personType: decrypted.person_type,
+          status: decrypted.status,
         };
       }
-    } else if (type === "mandate") {
+    } else if (type === "request") {
       const mandate = await prisma.mandate.findUnique({
         where: { id: linkedEntityId },
         select: { title: true, transaction_type: true, property_type: true },
       });
 
       if (mandate) {
-        linkedEntityTitle = mandate.title || "Unnamed Mandate";
+        linkedEntityTitle = mandate.title || "Unnamed Request";
         linkedEntityMetadata = {
           transactionType: mandate.transaction_type,
           propertyType: mandate.property_type,
@@ -247,10 +247,10 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
       message,
     };
   } catch (error) {
-    console.error("Error creating social post:", error);
+    console.error("[CREATE_SOCIAL_POST]", error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to create post",
+      message: "Failed to create post",
     };
   }
 }

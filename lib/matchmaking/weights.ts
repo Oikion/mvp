@@ -5,7 +5,7 @@
  * Weights should sum to 100 for easy percentage interpretation.
  */
 
-import type { MatchCriterion, EnergyCertClass } from "./types";
+import type { MatchCriterion, MatchCriterionV2, EnergyCertClass } from "./types";
 
 // ============================================
 // CRITERION WEIGHTS (total = 100)
@@ -38,10 +38,52 @@ export const MATCH_WEIGHTS: Record<MatchCriterion, number> = {
   parking: 0.2,         // Parking availability
 };
 
-// Validate weights sum to ~100
-const totalWeight = Object.values(MATCH_WEIGHTS).reduce((sum, w) => sum + w, 0);
-if (Math.abs(totalWeight - 100) > 0.1) {
-  console.warn(`[Matchmaking] Weights sum to ${totalWeight}, expected 100`);
+// ============================================
+// V2 CRITERION WEIGHTS (base sum = 104; financing bonus +5 stacks additively; clamped to 100)
+// ============================================
+
+/**
+ * Default weights for the v2 matching engine.
+ * Intentional base sum: 104 (20+12+12+8+7+5+5+4+4+3+3+3+5+3+2+2+2+2+2).
+ * The FINANCING_TYPE criterion has a 2-pt base weight; an additional +5 additive
+ * bonus is applied on top when the buyer's financing status matches the property's
+ * accepted financing. Final scores are clamped to 100 after calculation.
+ */
+export const MATCH_WEIGHTS_V2: Record<MatchCriterionV2, number> = {
+  BUDGET: 20,
+  PROPERTY_TYPE: 12,
+  LOCATION: 12,
+  BEDROOMS: 8,
+  SIZE: 7,
+  FLOOR: 5,
+  CONDITION: 5,
+  CONSTRUCTION_YEAR: 4,
+  PARKING: 4,
+  STORAGE: 3,
+  ELEVATOR: 3,
+  GARDEN: 3,
+  AMENITIES: 5,
+  INSIDE_CITY_PLAN: 3,
+  GOLDEN_VISA: 2,
+  FINANCING_TYPE: 2,
+  BATHROOMS: 2,
+  TIMELINE: 2,
+  ENERGY_CLASS: 2,
+};
+
+/**
+ * Returns the weight for a v2 criterion, applying per-org overrides when provided.
+ * Falls back to MATCH_WEIGHTS_V2 defaults if the criterion is not in orgWeights.
+ */
+export function getWeightV2(
+  criterion: MatchCriterionV2,
+  orgWeights?: Partial<Record<MatchCriterionV2, number>> | null
+): number {
+  const override = orgWeights?.[criterion];
+  if (override !== undefined) {
+    return override;
+  }
+  return MATCH_WEIGHTS_V2[criterion];
 }
 
 // ============================================

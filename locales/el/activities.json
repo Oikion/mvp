@@ -1,0 +1,93 @@
+{
+  "title": "Ιστορικό Δραστηριοτήτων",
+  "empty": "Δεν υπάρχουν δραστηριότητες",
+  "logActivity": "Καταγραφή Δραστηριότητας",
+  "kinds": {
+    "CALL": "Κλήση",
+    "EMAIL": "Email",
+    "MEETING": "Συνάντηση",
+    "NOTE": "Σημείωση",
+    "TASK": "Εργασία",
+    "SHOWING": "Επίσκεψη Ακινήτου",
+    "DOCUMENT": "Έγγραφο",
+    "OTHER": "Άλλο"
+  },
+  "directions": {
+    "INBOUND": "Εισερχόμενο",
+    "OUTBOUND": "Εξερχόμενο",
+    "INTERNAL": "Εσωτερικό"
+  },
+  "parentTypes": {
+    "CONTACT": "Επαφή",
+    "PROPERTY": "Ακίνητο",
+    "REQUEST": "Αίτημα",
+    "DEAL": "Συμφωνία",
+    "SHOWING": "Επίσκεψη"
+  },
+  "fields": {
+    "kind": "Τύπος Δραστηριότητας",
+    "direction": "Κατεύθυνση",
+    "subject": "Θέμα",
+    "body": "Σημειώσεις",
+    "outcome": "Αποτέλεσμα",
+    "occurredAt": "Ημερομηνία",
+    "durationMinutes": "Διάρκεια (λεπτά)",
+    "contact": "Επαφή",
+    "assignedTo": "Υπεύθυνος",
+    "parentType": "Σχετίζεται με",
+    "parentId": "Σχετική Εγγραφή",
+    "relatedContact": "Σχετική Επαφή",
+    "relatedProperty": "Σχετικό Ακίνητο",
+    "relatedDocument": "Σχετικό Έγγραφο",
+    "selectContact": "Επιλογή επαφής…",
+    "selectProperty": "Επιλογή ακινήτου…",
+    "selectDocument": "Επιλογή εγγράφου…"
+  },
+  "actions": {
+    "log": "Καταγραφή Δραστηριότητας",
+    "create": "Αποθήκευση",
+    "edit": "Επεξεργασία",
+    "delete": "Διαγραφή",
+    "export": "Εξαγωγή",
+    "confirmDelete": "Διαγραφή αυτής της δραστηριότητας;"
+  },
+  "form": {
+    "createTitle": "Καταγραφή Δραστηριότητας",
+    "editTitle": "Επεξεργασία Δραστηριότητας",
+    "submit": "Αποθήκευση",
+    "cancel": "Ακύρωση"
+  },
+  "messages": {
+    "created": "Η δραστηριότητα καταχωρήθηκε επιτυχώς",
+    "updated": "Η δραστηριότητα ενημερώθηκε",
+    "deleted": "Η δραστηριότητα διαγράφηκε",
+    "error": "Παρουσιάστηκε σφάλμα. Παρακαλώ δοκιμάστε ξανά."
+  },
+  "changelog": {
+    "created": "Ο/η {actor} δημιούργησε αυτή την εγγραφή",
+    "updated": "Ο/η {actor} ενημέρωσε αυτή την εγγραφή",
+    "fieldChanged": "{field}άλλαξε από {from} σε {to}",
+    "fieldChangedNoLabel": "άλλαξε από {from} σε {to}",
+    "linked": "Συνδέθηκε με {targetType} {label}",
+    "unlinked": "Αποσυνδέθηκε από {targetType} {label}",
+    "stageChanged": "Αλλαγή σταδίου: {from} → {to}",
+    "systemActor": "Σύστημα"
+  },
+  "watchedFields": {
+    "status": "Κατάσταση",
+    "assignedToUserId": "Ανατεθειμένο σε",
+    "visibility": "Ορατότητα",
+    "category": "Κατηγορία",
+    "source": "Πηγή",
+    "doNotContact": "Να μην επικοινωνήσετε",
+    "allowMarketing": "Επιτρέπεται Marketing",
+    "gdprConsentGiven": "Συγκατάθεση GDPR",
+    "property_status": "Κατάσταση Ακινήτου",
+    "price": "Τιμή",
+    "property_type": "Τύπος Ακινήτου",
+    "urgency": "Επείγον",
+    "budgetMin": "Ελάχιστος Προϋπολογισμός",
+    "budgetMax": "Μέγιστος Προϋπολογισμός",
+    "requestType": "Τύπος Αιτήματος"
+  }
+}

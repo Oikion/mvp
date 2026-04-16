@@ -40,7 +40,7 @@ type ProfileVisibility = "PRIVATE" | "SECURE" | "PUBLIC";
 
 export interface ShareableItem {
   id: string;
-  type: "property" | "client";
+  type: "property" | "contact";
   title: string;
   subtitle?: string;
 }
@@ -55,7 +55,7 @@ interface FeedPostComposerProps {
   currentUser: any;
   shareableItems: {
     properties: ShareableItem[];
-    clients: ShareableItem[];
+    contacts: ShareableItem[];
   };
   profileVisibility: {
     hasProfile: boolean;
@@ -66,8 +66,8 @@ interface FeedPostComposerProps {
 
 const ENTITY_TYPE_ICON: Record<AttachEntityType, React.ElementType> = {
   property: Building2,
-  client: User,
-  mandate: ClipboardList,
+  contact: User,
+  request: ClipboardList,
   document: FileText,
 };
 
@@ -288,7 +288,7 @@ export function FeedPostComposer({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         properties={shareableItems.properties}
-        clients={shareableItems.clients}
+        contacts={shareableItems.contacts}
         onEntitySelect={(type, id, title) => setLinkedEntity({ type, id, title })}
         onFileUploadRequested={() => fileInputRef.current?.click()}
       />

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/navigation";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,11 @@ import {
   ChevronRight,
   Unlink,
   X,
+  Search,
+  DollarSign,
+  ClipboardList,
+  UserCircle,
+  Handshake,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -67,17 +71,6 @@ interface LinkedEvent {
   linkedProperties?: { id: string; property_name: string }[];
 }
 
-interface LinkedMandate {
-  id: string;
-  friendlyId: string;
-  title: string;
-  transaction_type?: string;
-  status?: string;
-  urgency?: string;
-  budget_min?: number;
-  budget_max?: number;
-}
-
 interface LinkedDocument {
   id: string;
   friendlyId: string;
@@ -87,8 +80,42 @@ interface LinkedDocument {
   createdAt?: string;
 }
 
+interface LinkedContact {
+  id: string;
+  friendlyId: string;
+  displayName: string;
+  isCompany?: boolean;
+  email?: string;
+  primaryPhone?: string;
+  category?: string[];
+  status?: string;
+  role?: string; // from RequestContact join
+}
+
+interface LinkedRequest {
+  id: string;
+  friendlyId: string;
+  requestType: string;
+  status?: string;
+  urgency?: string;
+  budgetMin?: number;
+  budgetMax?: number;
+  locationDisplayName?: string;
+  municipality?: string;
+}
+
+interface LinkedDeal {
+  id: string;
+  friendlyId: string;
+  title?: string;
+  stage?: string;
+  dealType?: string;
+  agreedPrice?: number;
+  property?: { title?: string; property_name?: string };
+}
+
 interface LinkedEntitiesPanelProps {
-  type: "properties" | "clients" | "events" | "mandates" | "documents";
+  type: "properties" | "clients" | "contacts" | "events" | "requests" | "documents" | "deals";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   entities: any[];
   isLoading?: boolean;
@@ -229,63 +256,6 @@ function ClientCard({
   );
 }
 
-function MandateCard({
-  mandate,
-  onUnlink,
-}: {
-  mandate: LinkedMandate;
-  onUnlink?: () => void;
-}) {
-  const router = useRouter();
-  const budgetLabel = mandate.budget_min || mandate.budget_max
-    ? `€${(mandate.budget_min ?? 0).toLocaleString()} - €${(mandate.budget_max ?? 0).toLocaleString()}`
-    : null;
-
-  return (
-    <div
-      className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
-      onClick={() => router.push(`/app/mandates/${mandate.friendlyId}`)}
-    >
-      {onUnlink && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={(e) => {
-            e.stopPropagation();
-            onUnlink();
-          }}
-        >
-          <X className="h-3 w-3" />
-        </Button>
-      )}
-      <div className="flex items-start gap-3">
-        <div className="p-2 rounded-md bg-primary/10">
-          <FileText className="h-4 w-4 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm truncate">{mandate.title}</h4>
-          {budgetLabel && (
-            <p className="text-xs text-muted-foreground truncate">{budgetLabel}</p>
-          )}
-          <div className="flex items-center gap-2 mt-1.5">
-            {mandate.transaction_type && (
-              <Badge variant="outline" className="text-[10px] h-5">{mandate.transaction_type}</Badge>
-            )}
-            {mandate.status && (
-              <Badge variant={mandate.status === "ACTIVE" ? "default" : "secondary"} className="text-[10px] h-5">{mandate.status}</Badge>
-            )}
-            {mandate.urgency && (
-              <Badge variant={mandate.urgency === "HIGH" || mandate.urgency === "CRITICAL" ? "destructive" : "secondary"} className="text-[10px] h-5">{mandate.urgency}</Badge>
-            )}
-          </div>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-      </div>
-    </div>
-  );
-}
-
 function DocumentCard({
   document,
   onUnlink,
@@ -405,6 +375,180 @@ function EventCard({ event }: { event: LinkedEvent }) {
   );
 }
 
+function ContactCard({
+  contact,
+  onUnlink,
+}: {
+  contact: LinkedContact;
+  onUnlink?: () => void;
+}) {
+  return (
+    <div className="group relative rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+      <div className="flex items-center gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+          {contact.isCompany ? (
+            <Building2 className="h-4 w-4 text-amber-600" />
+          ) : (
+            <UserCircle className="h-4 w-4 text-primary" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <Link
+            href={`/app/crm/contacts/${contact.friendlyId}`}
+            className="text-sm font-medium hover:underline truncate block"
+          >
+            {contact.displayName || "—"}
+          </Link>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {contact.email && <span className="truncate">{contact.email}</span>}
+            {contact.role && (
+              <Badge variant="outline" className="text-[10px] h-4">
+                {contact.role}
+              </Badge>
+            )}
+          </div>
+        </div>
+        {onUnlink && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUnlink();
+            }}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+    </div>
+  );
+}
+
+function RequestCard({
+  request,
+  onUnlink,
+}: {
+  request: LinkedRequest;
+  onUnlink?: () => void;
+}) {
+  const typeColors: Record<string, string> = {
+    BUY: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+    RENT: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
+  };
+  const statusColors: Record<string, string> = {
+    ACTIVE: "bg-emerald-100 text-emerald-800",
+    MATCHED: "bg-purple-100 text-purple-800",
+    UNDER_OFFER: "bg-amber-100 text-amber-800",
+    CLOSED: "bg-gray-100 text-gray-800",
+    PAUSED: "bg-slate-100 text-slate-800",
+  };
+
+  const budgetStr = (() => {
+    const min = request.budgetMin ? `€${Number(request.budgetMin).toLocaleString()}` : null;
+    const max = request.budgetMax ? `€${Number(request.budgetMax).toLocaleString()}` : null;
+    if (min && max) return `${min} – ${max}`;
+    if (min) return `${min}+`;
+    if (max) return `up to ${max}`;
+    return null;
+  })();
+
+  return (
+    <div className="group relative rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+      <div className="flex items-center gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+          <Search className="h-4 w-4 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <Link
+            href={`/app/requests/${request.friendlyId}`}
+            className="text-sm font-medium hover:underline truncate block"
+          >
+            {request.friendlyId}
+          </Link>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Badge className={cn("text-[10px] h-4", typeColors[request.requestType])} variant="secondary">
+              {request.requestType}
+            </Badge>
+            {request.status && (
+              <Badge className={cn("text-[10px] h-4", statusColors[request.status])} variant="secondary">
+                {request.status}
+              </Badge>
+            )}
+            {budgetStr && <span className="truncate">{budgetStr}</span>}
+          </div>
+        </div>
+        {onUnlink && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUnlink();
+            }}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+    </div>
+  );
+}
+
+function DealCard({
+  deal,
+  onUnlink,
+}: {
+  deal: LinkedDeal;
+  onUnlink?: () => void;
+}) {
+  const router = useRouter();
+
+  return (
+    <div
+      className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
+      onClick={() => router.push(`/app/deals/${deal.friendlyId}`)}
+    >
+      {onUnlink && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+            onUnlink();
+          }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+      <div className="flex items-center gap-2 mb-1">
+        <Handshake className="h-4 w-4 text-purple-500 shrink-0" />
+        <span className="font-medium text-sm truncate">
+          {deal.title || deal.property?.title || deal.property?.property_name || deal.friendlyId}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        {deal.stage && (
+          <Badge variant="outline" className="text-[10px] h-5">
+            {deal.stage.replaceAll("_", " ")}
+          </Badge>
+        )}
+        {deal.dealType && (
+          <span>{deal.dealType}</span>
+        )}
+        {deal.friendlyId && (
+          <span className="ml-auto">{deal.friendlyId}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function LinkedEntitiesPanel({
   type,
   entities,
@@ -421,25 +565,31 @@ export function LinkedEntitiesPanel({
   const iconMap = {
     properties: Building2,
     clients: User,
+    contacts: UserCircle,
     events: Calendar,
-    mandates: FileText,
+    requests: ClipboardList,
     documents: FileText,
+    deals: Handshake,
   };
 
   const titleMap = {
     properties: t("linkedEntities.linkedProperties"),
     clients: t("linkedEntities.linkedClients"),
+    contacts: t("linkedEntities.linkedContacts"),
     events: t("linkedEntities.calendarEvents"),
-    mandates: t("linkedEntities.linkedMandates"),
+    requests: t("linkedEntities.linkedRequests"),
     documents: t("linkedEntities.linkedDocuments"),
+    deals: t("linkedEntities.linkedDeals"),
   };
 
   const defaultEmptyMap = {
     properties: t("linkedEntities.noLinkedProperties"),
     clients: t("linkedEntities.noLinkedClients"),
+    contacts: t("linkedEntities.noLinkedContacts"),
     events: t("linkedEntities.noCalendarEvents"),
-    mandates: t("linkedEntities.noLinkedMandates"),
+    requests: t("linkedEntities.noLinkedRequests"),
     documents: t("linkedEntities.noLinkedDocuments"),
+    deals: t("linkedEntities.noLinkedDeals"),
   };
 
   const Icon = iconMap[type];
@@ -508,12 +658,20 @@ export function LinkedEntitiesPanel({
                 (entities as LinkedEvent[]).map((event) => (
                   <EventCard key={event.id} event={event} />
                 ))}
-              {type === "mandates" &&
-                (entities as LinkedMandate[]).map((mandate) => (
-                  <MandateCard
-                    key={mandate.id}
-                    mandate={mandate}
-                    onUnlink={onUnlinkEntity ? () => onUnlinkEntity(mandate.id) : undefined}
+              {type === "contacts" &&
+                (entities as LinkedContact[]).map((contact) => (
+                  <ContactCard
+                    key={contact.id}
+                    contact={contact}
+                    onUnlink={onUnlinkEntity ? () => onUnlinkEntity(contact.id) : undefined}
+                  />
+                ))}
+              {type === "requests" &&
+                (entities as LinkedRequest[]).map((request) => (
+                  <RequestCard
+                    key={request.id}
+                    request={request}
+                    onUnlink={onUnlinkEntity ? () => onUnlinkEntity(request.id) : undefined}
                   />
                 ))}
               {type === "documents" &&
@@ -522,6 +680,14 @@ export function LinkedEntitiesPanel({
                     key={doc.id}
                     document={doc}
                     onUnlink={onUnlinkEntity ? () => onUnlinkEntity(doc.id) : undefined}
+                  />
+                ))}
+              {type === "deals" &&
+                (entities as LinkedDeal[]).map((deal) => (
+                  <DealCard
+                    key={deal.id}
+                    deal={deal}
+                    onUnlink={onUnlinkEntity ? () => onUnlinkEntity(deal.id) : undefined}
                   />
                 ))}
             </div>

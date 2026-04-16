@@ -1,14 +1,14 @@
-// Client import
+// Contact import
 export {
-  clientImportSchema,
-  clientImportFieldDefinitions,
-  ClientTypeEnum,
-  ClientStatusEnum,
+  contactImportSchema,
+  contactImportFieldDefinitions,
+  ContactCategoryEnum,
+  ContactStatusEnum,
   PersonTypeEnum,
   LeadSourceEnum,
-  type ClientImportData,
-  type ClientImportFieldKey,
-} from "./client-import-schema";
+  type ContactImportData,
+  type ContactImportFieldKey,
+} from "./contact-import-schema";
 
 // Property import
 export {
@@ -50,28 +50,30 @@ export {
   normalizeEnumValue,
   normalizePropertyEnums,
   normalizeClientEnums,
+  normalizeContactEnums,
   propertyEnumMappings,
   clientEnumMappings,
 } from "./enum-normalizer";
 
-// Mandate import
+// Request import
 export {
-  mandateImportSchema,
-  mandateImportFieldDefinitions,
-  MandateStatusEnum,
-  MandateUrgencyEnum,
-  type MandateImportData,
-  type MandateImportFieldKey,
-} from "./mandate-import-schema";
+  requestImportSchema,
+  requestImportFieldDefinitions,
+  RequestStatusEnum,
+  RequestUrgencyEnum,
+  type RequestImportData,
+  type RequestImportFieldKey,
+} from "./request-import-schema";
 
 // Entity configs
-export { clientImportConfig } from "./client-import-config";
+export { contactImportConfig } from "./contact-import-config";
 export { propertyImportConfig } from "./property-import-config";
-export { mandateImportConfig } from "./mandate-import-config";
+export { requestImportConfig } from "./request-import-config";
 
-// Mandate enum normalizer additions
+// Mandate/Request enum normalizer additions
 export {
   normalizeMandateEnums,
+  normalizeRequestEnums,
   splitArrayField,
   mandateEnumMappings,
 } from "./enum-normalizer";
@@ -79,8 +81,8 @@ export {
 // Unified import system
 export {
   UNIFIED_FIELD_DEFINITIONS,
-  MANDATE_FIELD_KEYS,
-  CLIENT_TRIGGER_KEYS,
+  REQUEST_FIELD_KEYS,
+  CONTACT_TRIGGER_KEYS,
   PROPERTY_TRIGGER_KEYS,
   PREFIX_STRIP_MAP,
   stripEntityPrefix,
@@ -95,10 +97,7 @@ export {
 // Unified import engine
 export {
   executeBatchImport,
-  /** @deprecated Use executeBatchImport instead */
-  executeUnifiedImport,
   type BatchImportResult,
-  type UnifiedImportResult,
 } from "./unified-engine";
 
 // Validation engine

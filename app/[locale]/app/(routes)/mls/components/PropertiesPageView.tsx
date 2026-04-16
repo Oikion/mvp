@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NewPropertyWizard } from "../properties/components/NewPropertyWizard";
 import { PropertyDataTable } from "../properties/table-components/data-table";
-import { getColumns } from "../properties/table-components/columns";
+import { usePropertyColumns } from "../properties/table-components/columns";
 import { QuickAddProperty } from "./QuickAddProperty";
 import { useTranslations } from "next-intl";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -55,6 +55,7 @@ export default function PropertiesPageView({
 
   // Use SWR for fetching org users
   const { users } = useOrgUsers();
+  const columns = usePropertyColumns(users ?? []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -316,7 +317,7 @@ export default function PropertiesPageView({
               ) : view === "list" ? (
                 <PropertyDataTable
                   data={agencyProperties}
-                  columns={getColumns(users)}
+                  columns={columns}
                   getRowHref={(row: any) => `/app/mls/properties/${row.friendlyId}`}
                   toolbarRight={<ViewToggle view={view} setView={setView} />}
                   onRefresh={handleRefresh}

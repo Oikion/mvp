@@ -36,7 +36,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { ClientSelector } from "./ClientSelector";
+import { ContactSelector } from "./ClientSelector";
 import { PropertySelector } from "./PropertySelector";
 import { DocumentSelector } from "./DocumentSelector";
 import { useOrgUsers, useCreateEvent } from "@/hooks/swr";
@@ -51,7 +51,7 @@ const createEventFormSchema = (t: (key: string) => string) =>
     eventType: z.string().optional(),
     eventTypeOther: z.string().optional(),
     assignedUserId: z.string().optional(),
-    clientIds: z.array(z.string()).default([]),
+    contactIds: z.array(z.string()).default([]),
     propertyIds: z.array(z.string()).default([]),
     documentIds: z.array(z.string()).default([]),
     reminderMinutes: z.array(z.number()).default([]),
@@ -115,7 +115,7 @@ export default function EventCreateFormContent({
       eventType: undefined,
       eventTypeOther: "",
       assignedUserId: userId || undefined,
-      clientIds: clientId ? [clientId] : [],
+      contactIds: clientId ? [clientId] : [],
       propertyIds: propertyId ? [propertyId] : [],
       documentIds: [],
       reminderMinutes: [],
@@ -152,7 +152,7 @@ export default function EventCreateFormContent({
         location: data.location,
         eventType: data.eventType,
         assignedUserId: data.assignedUserId,
-        clientIds: data.clientIds,
+        contactIds: data.contactIds,
         propertyIds: data.propertyIds,
         documentIds: data.documentIds,
         reminderMinutes: data.reminderMinutes,
@@ -389,12 +389,12 @@ export default function EventCreateFormContent({
 
         <FormField
           control={form.control}
-          name="clientIds"
+          name="contactIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("eventCreateForm.linkClients")}</FormLabel>
+              <FormLabel>{t("eventCreateForm.linkContacts")}</FormLabel>
               <FormControl>
-                <ClientSelector value={field.value} onChange={field.onChange} />
+                <ContactSelector value={field.value} onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>

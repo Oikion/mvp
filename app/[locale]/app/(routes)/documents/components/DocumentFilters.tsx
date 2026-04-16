@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
-import { SingleClientSelector } from "@/components/entity-selector/ClientSelector";
+import { SingleContactSelector } from "@/components/entity-selector/ContactSelector";
 import { SinglePropertySelector } from "@/components/entity-selector/PropertySelector";
 
 interface DocumentFiltersProps {
@@ -85,7 +85,7 @@ export function DocumentFilters({ initialFilters }: DocumentFiltersProps) {
 
         <div className="space-y-2">
           <Label htmlFor="client">{t("documentFilters.client")}</Label>
-          <SingleClientSelector
+          <SingleContactSelector
             value={initialFilters.clientId || ""}
             onChange={(value) => updateFilter("clientId", value || null)}
             placeholder={t("documentFilters.allClients")}

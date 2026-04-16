@@ -13,7 +13,7 @@ import { QuickUploadZone } from "./QuickUploadZone";
 import { MassUploadModal } from "./MassUploadModal";
 import { DocumentCard } from "./DocumentCard";
 import { getColumns } from "../table-components/columns";
-import { DocumentDataTable } from "../table-components/data-table";
+import { DataTable } from "@/components/ui/data-table/data-table";
 import { SharedActionModals } from "@/components/entity";
 import {
   FileText,
@@ -23,7 +23,9 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/navigation";
 import { toast } from "sonner";
 import type { TemplateListItem } from "@/actions/templates/get-templates";
-import type { JsonValue } from "@prisma/client/runtime/library";
+import type { Prisma } from "@prisma/client";
+// Prisma 7: JsonValue is accessed via the `Prisma` namespace.
+type JsonValue = Prisma.JsonValue;
 import type { MentionData } from "./MentionDisplay";
 
 interface Document {
@@ -203,12 +205,13 @@ export default function DocumentsPageView({
               <p className="text-sm mt-1">{t("DocumentsPage.description")}</p>
             </div>
           ) : view === "list" ? (
-            <DocumentDataTable
+            <DataTable
               data={documents}
-              columns={getColumns(t)}
-              getRowHref={(row: any) => `/app/documents/${row.friendlyId ?? row.id}`}
+              columns={getColumns((k: string) => t(k as Parameters<typeof t>[0]))}
+              searchKey="document_name"
+              searchPlaceholder={t("DocumentsTable.filterPlaceholder")}
+              onRowOpen={(row) => router.push(`/app/documents/${(row.original as any).friendlyId ?? (row.original as any).id}`)}
               toolbarRight={<ViewToggle view={view} setView={setView} />}
-              onRefresh={handleRefresh}
             />
           ) : (
             <div className="space-y-4">

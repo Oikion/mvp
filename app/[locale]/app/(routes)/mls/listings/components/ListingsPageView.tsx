@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PropertyDataTable } from "../../properties/table-components/data-table";
-import { getColumns } from "../../properties/table-components/columns";
+import { usePropertyColumns } from "../../properties/table-components/columns";
 import { statuses } from "../../properties/table-data/data";
 import { useTranslations } from "next-intl";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -29,6 +29,7 @@ export default function ListingsPageView({ listings = [] }: ListingsPageViewProp
 
   // Use SWR for fetching org users
   const { users } = useOrgUsers();
+  const columns = usePropertyColumns(users ?? []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -149,7 +150,7 @@ export default function ListingsPageView({ listings = [] }: ListingsPageViewProp
           ) : view === "list" ? (
             <PropertyDataTable
               data={listings}
-              columns={getColumns(users)}
+              columns={columns}
             />
           ) : (
             <div className="space-y-4">

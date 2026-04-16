@@ -65,7 +65,7 @@ export function MatchDistributionChart({ distribution }: Props) {
         {/* Overlay */}
         <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px]">
           <p className="text-muted-foreground text-sm text-center px-8">
-            {t("mandateMatches.distribution.noData")}
+            {t("requestMatches.distribution.title")}
           </p>
         </div>
       </div>

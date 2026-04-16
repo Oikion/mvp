@@ -26,7 +26,7 @@ interface FeedPageProps {
   posts: SocialPost[];
   shareableItems: {
     properties: ShareableItem[];
-    clients: ShareableItem[];
+    contacts: ShareableItem[];
   };
   currentUser: any;
   dict: any;
@@ -140,8 +140,8 @@ export function FeedPage({
       ? localPosts
       : localPosts.filter((p) => {
           if (filter === "properties") return p.type === "property";
-          if (filter === "clients") return p.type === "client";
-          if (filter === "mandates") return p.type === "mandate";
+          if (filter === "contacts") return p.type === "contact";
+          if (filter === "requests") return p.type === "request";
           if (filter === "updates") return p.type === "text";
           return true;
         });

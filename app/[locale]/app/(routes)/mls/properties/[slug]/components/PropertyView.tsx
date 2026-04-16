@@ -54,7 +54,8 @@ import {
   useUnlinkDocumentFromProperty,
 } from "@/hooks/swr";
 import { QuickExportButton, ExportHistoryPanel } from "@/components/export";
-import { QuickAddMandate } from "@/app/[locale]/app/(routes)/mandates/components/QuickAddMandate";
+import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel";
+import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 import { PropertyImageGallery } from "@/components/property-images/PropertyImageGallery";
@@ -151,6 +152,7 @@ export default function PropertyView({
 }: PropertyViewProps) {
   const router = useRouter();
   const t = useTranslations("mls");
+  const tActivities = useTranslations("activities");
   const [editOpen, setEditOpen] = useState(defaultEditOpen);
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
@@ -591,26 +593,26 @@ export default function PropertyView({
             </Card>
           )}
 
-          {/* Linked Clients */}
+          {/* Linked Contacts */}
           <LinkedEntitiesPanel
-            type="clients"
-            entities={clients as unknown as Array<{ id: string; friendlyId: string; client_name: string; client_type?: string; client_status?: string; primary_email?: string; primary_phone?: string; assigned_to_user?: { id: string; name: string }; }>}
+            type="contacts"
+            entities={clients as unknown as Array<{ id: string; friendlyId: string; displayName: string; email?: string; primaryPhone?: string; status?: string; category?: string[]; }>}
             isLoading={isLoadingLinked || isLinking || isUnlinking}
             onLinkEntity={isReadOnly ? undefined : () => setLinkClientDialogOpen(true)}
             onUnlinkEntity={isReadOnly ? undefined : handleUnlinkClient}
             showAddButton={!isReadOnly}
-            emptyMessage="No clients linked to this property yet."
+            emptyMessage="No contacts linked to this property yet."
           />
 
-          {/* Linked Mandates */}
+          {/* Linked Requests */}
           <LinkedEntitiesPanel
-            type="mandates"
+            type="requests"
             entities={linkedMandates}
             isLoading={isLoadingLinked || isLinkingMandates || isUnlinkingMandates}
             onLinkEntity={isReadOnly ? undefined : () => setLinkMandateDialogOpen(true)}
             onUnlinkEntity={isReadOnly ? undefined : handleUnlinkMandate}
             showAddButton={!isReadOnly}
-            emptyMessage="No mandates linked to this property yet."
+            emptyMessage="No requests linked to this property yet."
           />
 
           {/* Calendar Events */}
@@ -652,6 +654,19 @@ export default function PropertyView({
               maxItems={5}
             />
           )}
+
+          {/* Activity Log */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                {tActivities("title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EntityActivityPanel parentType="PROPERTY" parentId={data.id} />
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -704,12 +719,12 @@ export default function PropertyView({
         />
       )}
 
-      {/* Link Mandate Dialog */}
+      {/* Link Request Dialog */}
       {!isReadOnly && (
         <LinkEntityDialog
           open={linkMandateDialogOpen}
           onOpenChange={setLinkMandateDialogOpen}
-          entityType="mandate"
+          entityType="request"
           sourceId={data.id}
           sourceType="property"
           alreadyLinkedIds={(linkedMandates ?? []).map((m: any) => m.id)}
@@ -724,8 +739,8 @@ export default function PropertyView({
             setAutoLinkNewMandate(true);
             setCreateMandateOpen(true);
           }}
-          title="Link Mandates to Property"
-          description="Select mandates associated with this property."
+          title="Link Requests to Property"
+          description="Select requests associated with this property."
         />
       )}
 
@@ -755,16 +770,15 @@ export default function PropertyView({
         />
       )}
 
-      {/* Quick Add Mandate */}
+      {/* Quick Add Request */}
       {!isReadOnly && (
-        <QuickAddMandate
+        <QuickAddRequest
           open={createMandateOpen}
           onOpenChange={(open) => {
             setCreateMandateOpen(open);
             if (!open) setAutoLinkNewMandate(false);
           }}
           organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
-          preLinkedPropertyId={autoLinkNewMandate ? data.id : undefined}
           onSuccess={() => mutateLinked()}
         />
       )}

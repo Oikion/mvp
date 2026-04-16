@@ -14,7 +14,7 @@ import {
   resolveColors,
 } from "./components/BaseLayout";
 
-export type ShareEntityType = "property" | "client" | "post";
+export type ShareEntityType = "property" | "contact" | "post";
 
 interface ShareEntityEmailProps {
   senderName: string;
@@ -34,7 +34,7 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 // Entity type icons (emoji for email compatibility)
 const entityIcons = {
   property: "🏠",
-  client: "👤",
+  contact: "👤",
   post: "📝",
 };
 
@@ -48,12 +48,12 @@ const translations = {
       intro: (sender: string) => `${sender} wants to share a property listing with you.`,
       viewButton: "View Property",
     },
-    client: {
-      previewText: (sender: string) => `${sender} shared a client with you`,
-      badge: "Client Shared",
-      heading: "New Client Shared",
-      intro: (sender: string) => `${sender} wants to share a client profile with you.`,
-      viewButton: "View Client",
+    contact: {
+      previewText: (sender: string) => `${sender} shared a contact with you`,
+      badge: "Contact Shared",
+      heading: "New Contact Shared",
+      intro: (sender: string) => `${sender} wants to share a contact profile with you.`,
+      viewButton: "View Contact",
     },
     post: {
       previewText: (sender: string) => `${sender} shared a post with you`,
@@ -80,12 +80,12 @@ const translations = {
       intro: (sender: string) => `Ο/Η ${sender} θέλει να μοιραστεί μια καταχώριση ακινήτου μαζί σας.`,
       viewButton: "Προβολή Ακινήτου",
     },
-    client: {
-      previewText: (sender: string) => `Ο/Η ${sender} μοιράστηκε έναν πελάτη μαζί σας`,
-      badge: "Κοινοποίηση Πελάτη",
-      heading: "Νέα Κοινοποίηση Πελάτη",
-      intro: (sender: string) => `Ο/Η ${sender} θέλει να μοιραστεί ένα προφίλ πελάτη μαζί σας.`,
-      viewButton: "Προβολή Πελάτη",
+    contact: {
+      previewText: (sender: string) => `Ο/Η ${sender} μοιράστηκε έναν επαφή μαζί σας`,
+      badge: "Κοινοποίηση Επαφής",
+      heading: "Νέα Κοινοποίηση Επαφής",
+      intro: (sender: string) => `Ο/Η ${sender} θέλει να μοιραστεί ένα προφίλ επαφής μαζί σας.`,
+      viewButton: "Προβολή Επαφής",
     },
     post: {
       previewText: (sender: string) => `Ο/Η ${sender} μοιράστηκε μια δημοσίευση μαζί σας`,

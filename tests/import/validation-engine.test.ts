@@ -14,18 +14,18 @@ import { validateImportData } from "@/lib/import/validation-engine";
 // ---------------------------------------------------------------------------
 
 describe("Row partitioning and entity detection", () => {
-  it("detects client when client_name is present", () => {
+  it("detects contact when contact_name is present", () => {
     const result = validateImportData([
-      { client_name: "John Doe" },
+      { contact_name: "John Doe" },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasClient).toBe(true);
+    expect(result.validRows[0].hasContact).toBe(true);
     expect(result.validRows[0].hasProperty).toBe(false);
-    expect(result.validRows[0].hasMandate).toBe(false);
-    expect(result.validRows[0].clientRow).not.toBeNull();
+    expect(result.validRows[0].hasRequest).toBe(false);
+    expect(result.validRows[0].contactRow).not.toBeNull();
     expect(result.validRows[0].propertyRow).toBeNull();
-    expect(result.validRows[0].mandateRow).toBeNull();
+    expect(result.validRows[0].requestRow).toBeNull();
   });
 
   it("detects property when property_name is present", () => {
@@ -34,87 +34,87 @@ describe("Row partitioning and entity detection", () => {
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasClient).toBe(false);
+    expect(result.validRows[0].hasContact).toBe(false);
     expect(result.validRows[0].hasProperty).toBe(true);
-    expect(result.validRows[0].hasMandate).toBe(false);
+    expect(result.validRows[0].hasRequest).toBe(false);
   });
 
-  it("detects mandate when mandate-entity fields are present", () => {
+  it("detects request when request-entity fields are present", () => {
     const result = validateImportData([
-      { mandate_transaction_type: "sale", budget_min: 100000 },
+      { request_transaction_type: "sale", budget_min: 100000 },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasMandate).toBe(true);
+    expect(result.validRows[0].hasRequest).toBe(true);
     // mandate auto-generates a title so it should pass validation
-    expect(result.validRows[0].mandateRow).not.toBeNull();
+    expect(result.validRows[0].requestRow).not.toBeNull();
   });
 
-  it("detects client from phone when no client_name column exists in file", () => {
-    // When NO row in the entire set has client_name defined,
+  it("detects contact from phone when no contact_name column exists in file", () => {
+    // When NO row in the entire set has contact_name defined,
     // phone/email alone triggers client detection
     const result = validateImportData([
       { primary_phone: "6944123456" },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasClient).toBe(true);
+    expect(result.validRows[0].hasContact).toBe(true);
     // Auto-generated name from phone
-    expect(result.validRows[0].clientDedupKey).toContain("phone:");
+    expect(result.validRows[0].contactDedupKey).toContain("phone:");
   });
 
-  it("does NOT detect client from phone when client_name column exists but is empty for this row", () => {
-    // When at least one row defines client_name, presence of phone alone
-    // is not enough to detect a client
+  it("does NOT detect contact from phone when contact_name column exists but is empty for this row", () => {
+    // When at least one row defines contact_name, presence of phone alone
+    // is not enough to detect a contact
     const result = validateImportData([
-      { client_name: "Alice", property_name: "Property A" },
-      { client_name: "", primary_phone: "6944123456", property_name: "Property B" },
+      { contact_name: "Alice", property_name: "Property A" },
+      { contact_name: "", primary_phone: "6944123456", property_name: "Property B" },
     ]);
 
-    // Row 1: has client + property
-    expect(result.validRows[0].hasClient).toBe(true);
-    // Row 2: client_name is empty and the file HAS client_name column,
-    // so hasClient should be false
+    // Row 1: has contact + property
+    expect(result.validRows[0].hasContact).toBe(true);
+    // Row 2: contact_name is empty and the file HAS contact_name column,
+    // so hasContact should be false
     const row2 = [...result.validRows, ...result.errorRows.map(e => e.rowIndex)]
       .find((r) => typeof r === "object" && r.rowIndex === 1);
-    // We need to check if row index 1 has hasClient false
-    // Since row 2 has no client and has property, it should be in validRows
+    // We need to check if row index 1 has hasContact false
+    // Since row 2 has no contact and has property, it should be in validRows
     const row2Valid = result.validRows.find((r) => r.rowIndex === 1);
     expect(row2Valid).toBeDefined();
-    expect(row2Valid!.hasClient).toBe(false);
+    expect(row2Valid!.hasContact).toBe(false);
   });
 
   it("partitions fields correctly across entities", () => {
     const result = validateImportData([
       {
-        client_name: "John Doe",
+        contact_name: "John Doe",
         primary_phone: "6944123456",
         property_name: "Villa Test",
         address_city: "Athens",
-        mandate_transaction_type: "sale",
+        request_transaction_type: "sale",
         budget_min: 200000,
       },
     ]);
 
     expect(result.validRows).toHaveLength(1);
     const row = result.validRows[0];
-    expect(row.hasClient).toBe(true);
+    expect(row.hasContact).toBe(true);
     expect(row.hasProperty).toBe(true);
-    expect(row.hasMandate).toBe(true);
-    expect(row.clientRow).not.toBeNull();
+    expect(row.hasRequest).toBe(true);
+    expect(row.contactRow).not.toBeNull();
     expect(row.propertyRow).not.toBeNull();
-    expect(row.mandateRow).not.toBeNull();
+    expect(row.requestRow).not.toBeNull();
   });
 
   it("unmapped keys are dropped during partitioning", () => {
     const result = validateImportData([
-      { client_name: "John", random_unknown_field: "xyz" },
+      { contact_name: "John", random_unknown_field: "xyz" },
     ]);
 
     expect(result.validRows).toHaveLength(1);
     // The unknown field should not appear in any entity row
     const row = result.validRows[0];
-    expect(row.clientRow).not.toHaveProperty("random_unknown_field");
+    expect(row.contactRow).not.toHaveProperty("random_unknown_field");
   });
 });
 
@@ -122,69 +122,69 @@ describe("Row partitioning and entity detection", () => {
 // 2. Client deduplication (phone > email > name priority)
 // ---------------------------------------------------------------------------
 
-describe("Client deduplication", () => {
-  it("deduplicates clients by phone number (highest priority)", () => {
+describe("Contact deduplication", () => {
+  it("deduplicates contacts by phone number (highest priority)", () => {
     const result = validateImportData([
-      { client_name: "John A", primary_phone: "6944123456" },
-      { client_name: "John B", primary_phone: "6944123456" },
-      { client_name: "Jane C", primary_phone: "6955999888" },
+      { contact_name: "John A", primary_phone: "6944123456" },
+      { contact_name: "John B", primary_phone: "6944123456" },
+      { contact_name: "Jane C", primary_phone: "6955999888" },
     ]);
 
-    expect(result.entitySummary.clients.total).toBe(3);
-    expect(result.entitySummary.clients.unique).toBe(2);
-    expect(result.entitySummary.clients.deduplicated).toBe(1);
+    expect(result.entitySummary.contacts.total).toBe(3);
+    expect(result.entitySummary.contacts.unique).toBe(2);
+    expect(result.entitySummary.contacts.deduplicated).toBe(1);
   });
 
-  it("deduplicates clients by email when phone is absent", () => {
+  it("deduplicates contacts by email when phone is absent", () => {
     const result = validateImportData([
-      { client_name: "Alice", primary_email: "alice@test.com" },
-      { client_name: "Alice Copy", primary_email: "alice@test.com" },
+      { contact_name: "Alice", primary_email: "alice@test.com" },
+      { contact_name: "Alice Copy", primary_email: "alice@test.com" },
     ]);
 
-    expect(result.entitySummary.clients.total).toBe(2);
-    expect(result.entitySummary.clients.unique).toBe(1);
-    expect(result.entitySummary.clients.deduplicated).toBe(1);
+    expect(result.entitySummary.contacts.total).toBe(2);
+    expect(result.entitySummary.contacts.unique).toBe(1);
+    expect(result.entitySummary.contacts.deduplicated).toBe(1);
   });
 
-  it("deduplicates clients by name when phone and email are absent", () => {
+  it("deduplicates contacts by name when phone and email are absent", () => {
     const result = validateImportData([
-      { client_name: "John Doe" },
-      { client_name: "John Doe" },
-      { client_name: "Jane Smith" },
+      { contact_name: "John Doe" },
+      { contact_name: "John Doe" },
+      { contact_name: "Jane Smith" },
     ]);
 
-    expect(result.entitySummary.clients.total).toBe(3);
-    expect(result.entitySummary.clients.unique).toBe(2);
-    expect(result.entitySummary.clients.deduplicated).toBe(1);
+    expect(result.entitySummary.contacts.total).toBe(3);
+    expect(result.entitySummary.contacts.unique).toBe(2);
+    expect(result.entitySummary.contacts.deduplicated).toBe(1);
   });
 
   it("phone takes priority over email for dedup key", () => {
     const result = validateImportData([
-      { client_name: "A", primary_phone: "6944000001", primary_email: "a@test.com" },
-      { client_name: "B", primary_phone: "6944000001", primary_email: "b@test.com" },
+      { contact_name: "A", primary_phone: "6944000001", primary_email: "a@test.com" },
+      { contact_name: "B", primary_phone: "6944000001", primary_email: "b@test.com" },
     ]);
 
     // Same phone -> same dedup key -> unique = 1
-    expect(result.entitySummary.clients.unique).toBe(1);
+    expect(result.entitySummary.contacts.unique).toBe(1);
   });
 
   it("strips non-digit characters from phone for dedup", () => {
     const result = validateImportData([
-      { client_name: "A", primary_phone: "+30 694-412-3456" },
-      { client_name: "B", primary_phone: "306944123456" },
+      { contact_name: "A", primary_phone: "+30 694-412-3456" },
+      { contact_name: "B", primary_phone: "306944123456" },
     ]);
 
     // After stripping non-digits, both become "306944123456"
-    expect(result.entitySummary.clients.unique).toBe(1);
+    expect(result.entitySummary.contacts.unique).toBe(1);
   });
 
   it("email dedup is case-insensitive", () => {
     const result = validateImportData([
-      { client_name: "Alice", primary_email: "Alice@Test.COM" },
-      { client_name: "Alice2", primary_email: "alice@test.com" },
+      { contact_name: "Alice", primary_email: "Alice@Test.COM" },
+      { contact_name: "Alice2", primary_email: "alice@test.com" },
     ]);
 
-    expect(result.entitySummary.clients.unique).toBe(1);
+    expect(result.entitySummary.contacts.unique).toBe(1);
   });
 });
 
@@ -232,19 +232,19 @@ describe("Property deduplication", () => {
 // ---------------------------------------------------------------------------
 
 describe("Zod validation error capture", () => {
-  it("captures client validation errors with correct context", () => {
+  it("captures contact validation errors with correct context", () => {
     const result = validateImportData([
       {
-        client_name: "", // required, empty = error
+        contact_name: "", // required, empty = error
         primary_email: "not-an-email", // invalid format
       },
     ]);
 
-    // client_name is empty so hasClient depends on the fileHasClientNameColumn logic
-    // client_name is explicitly present (not undefined) so the file "has" the column
-    // empty client_name -> hasClient = false (isNonEmpty("") = false)
-    // So no client detection here, row is skipped
-    expect(result.entitySummary.clients.total).toBe(0);
+    // contact_name is empty so hasContact depends on the fileHasContactNameColumn logic
+    // contact_name is explicitly present (not undefined) so the file "has" the column
+    // empty contact_name -> hasContact = false (isNonEmpty("") = false)
+    // So no contact detection here, row is skipped
+    expect(result.entitySummary.contacts.total).toBe(0);
   });
 
   it("captures property validation errors for invalid enum values", () => {
@@ -264,25 +264,25 @@ describe("Zod validation error capture", () => {
     // Mandate with an invalid numeric field
     const result = validateImportData([
       {
-        mandate_transaction_type: "sale",
+        request_transaction_type: "sale",
         budget_min: -100, // z.coerce.number().positive() should fail
       },
     ]);
 
     const mandateErrors = result.errorRows.filter(
-      (e) => e.entity === "mandate",
+      (e) => e.entity === "request",
     );
     expect(mandateErrors.length).toBeGreaterThan(0);
-    expect(mandateErrors[0].entity).toBe("mandate");
+    expect(mandateErrors[0].entity).toBe("request");
     expect(mandateErrors[0].rowIndex).toBe(0);
   });
 
   it("error rows are excluded from validRows", () => {
     const result = validateImportData([
-      { client_name: "Good Client" },
+      { contact_name: "Good Contact" },
       {
         // mandate with invalid budget
-        mandate_transaction_type: "sale",
+        request_transaction_type: "sale",
         budget_min: -500,
       },
     ]);
@@ -308,22 +308,22 @@ describe("Zod validation error capture", () => {
 describe("Entity summary counts", () => {
   it("returns correct summary for mixed import", () => {
     const result = validateImportData([
-      { client_name: "Client 1", property_name: "Prop 1", mandate_transaction_type: "sale" },
-      { client_name: "Client 2", property_name: "Prop 2" },
-      { client_name: "Client 1" }, // duplicate client
+      { contact_name: "Contact 1", property_name: "Prop 1", request_transaction_type: "sale" },
+      { contact_name: "Contact 2", property_name: "Prop 2" },
+      { contact_name: "Contact 1" }, // duplicate contact
     ]);
 
-    expect(result.entitySummary.clients.detected).toBe(true);
-    expect(result.entitySummary.clients.total).toBe(3);
-    expect(result.entitySummary.clients.unique).toBe(2);
-    expect(result.entitySummary.clients.deduplicated).toBe(1);
+    expect(result.entitySummary.contacts.detected).toBe(true);
+    expect(result.entitySummary.contacts.total).toBe(3);
+    expect(result.entitySummary.contacts.unique).toBe(2);
+    expect(result.entitySummary.contacts.deduplicated).toBe(1);
 
     expect(result.entitySummary.properties.detected).toBe(true);
     expect(result.entitySummary.properties.total).toBe(2);
 
-    expect(result.entitySummary.mandates.detected).toBe(true);
-    expect(result.entitySummary.mandates.total).toBe(1);
-    expect(result.entitySummary.mandates.deduplicated).toBe(0);
+    expect(result.entitySummary.requests.detected).toBe(true);
+    expect(result.entitySummary.requests.total).toBe(1);
+    expect(result.entitySummary.requests.deduplicated).toBe(0);
   });
 
   it("returns detected=false when no entities of that type exist", () => {
@@ -331,10 +331,10 @@ describe("Entity summary counts", () => {
       { property_name: "Prop Only" },
     ]);
 
-    expect(result.entitySummary.clients.detected).toBe(false);
-    expect(result.entitySummary.clients.total).toBe(0);
-    expect(result.entitySummary.mandates.detected).toBe(false);
-    expect(result.entitySummary.mandates.total).toBe(0);
+    expect(result.entitySummary.contacts.detected).toBe(false);
+    expect(result.entitySummary.contacts.total).toBe(0);
+    expect(result.entitySummary.requests.detected).toBe(false);
+    expect(result.entitySummary.requests.total).toBe(0);
     expect(result.entitySummary.properties.detected).toBe(true);
   });
 
@@ -343,9 +343,9 @@ describe("Entity summary counts", () => {
 
     expect(result.validRows).toHaveLength(0);
     expect(result.errorRows).toHaveLength(0);
-    expect(result.entitySummary.clients.total).toBe(0);
+    expect(result.entitySummary.contacts.total).toBe(0);
     expect(result.entitySummary.properties.total).toBe(0);
-    expect(result.entitySummary.mandates.total).toBe(0);
+    expect(result.entitySummary.requests.total).toBe(0);
   });
 });
 
@@ -354,17 +354,17 @@ describe("Entity summary counts", () => {
 // ---------------------------------------------------------------------------
 
 describe("Mixed entity rows", () => {
-  it("handles a row with client + property + mandate data", () => {
+  it("handles a row with contact + property + request data", () => {
     const result = validateImportData([
       {
-        client_name: "Nikos Papadopoulos",
+        contact_name: "Nikos Papadopoulos",
         primary_phone: "6944111222",
         primary_email: "nikos@example.com",
         property_name: "Glyfada Apartment",
         address_street: "Poseidonos 15",
         address_city: "Glyfada",
         price: 250000,
-        mandate_transaction_type: "sale",
+        request_transaction_type: "sale",
         budget_min: 200000,
         budget_max: 300000,
       },
@@ -373,33 +373,33 @@ describe("Mixed entity rows", () => {
     expect(result.validRows).toHaveLength(1);
     const row = result.validRows[0];
 
-    expect(row.hasClient).toBe(true);
+    expect(row.hasContact).toBe(true);
     expect(row.hasProperty).toBe(true);
-    expect(row.hasMandate).toBe(true);
+    expect(row.hasRequest).toBe(true);
 
-    expect(row.clientRow).not.toBeNull();
+    expect(row.contactRow).not.toBeNull();
     expect(row.propertyRow).not.toBeNull();
-    expect(row.mandateRow).not.toBeNull();
+    expect(row.requestRow).not.toBeNull();
 
-    expect(row.clientDedupKey).toContain("phone:");
+    expect(row.contactDedupKey).toContain("phone:");
     expect(row.propertyDedupKey).toContain("addr:");
 
-    expect(result.entitySummary.clients.total).toBe(1);
+    expect(result.entitySummary.contacts.total).toBe(1);
     expect(result.entitySummary.properties.total).toBe(1);
-    expect(result.entitySummary.mandates.total).toBe(1);
+    expect(result.entitySummary.requests.total).toBe(1);
   });
 
   it("mandate title is auto-generated from transaction_type and property data", () => {
     const result = validateImportData([
       {
         property_name: "Test Property",
-        mandate_transaction_type: "sale",
-        mandate_property_type: "APARTMENT",
+        request_transaction_type: "sale",
+        request_property_type: "APARTMENT",
       },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    const mandateRow = result.validRows[0].mandateRow;
+    const mandateRow = result.validRows[0].requestRow;
     expect(mandateRow).not.toBeNull();
     // The title should be auto-generated (e.g. "Buy Apartment")
     expect(mandateRow!.title).toBeTruthy();
@@ -412,17 +412,17 @@ describe("Mixed entity rows", () => {
 // ---------------------------------------------------------------------------
 
 describe("Single entity rows", () => {
-  it("client-only rows work correctly", () => {
+  it("contact-only rows work correctly", () => {
     const result = validateImportData([
-      { client_name: "Alice", primary_email: "alice@example.com", client_type: "buyer" },
+      { contact_name: "Alice", primary_email: "alice@example.com", contact_type: "BUYER" },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasClient).toBe(true);
+    expect(result.validRows[0].hasContact).toBe(true);
     expect(result.validRows[0].hasProperty).toBe(false);
-    expect(result.validRows[0].hasMandate).toBe(false);
+    expect(result.validRows[0].hasRequest).toBe(false);
     expect(result.validRows[0].propertyRow).toBeNull();
-    expect(result.validRows[0].mandateRow).toBeNull();
+    expect(result.validRows[0].requestRow).toBeNull();
   });
 
   it("property-only rows work correctly", () => {
@@ -432,22 +432,22 @@ describe("Single entity rows", () => {
 
     expect(result.validRows).toHaveLength(1);
     expect(result.validRows[0].hasProperty).toBe(true);
-    expect(result.validRows[0].hasClient).toBe(false);
-    expect(result.validRows[0].hasMandate).toBe(false);
+    expect(result.validRows[0].hasContact).toBe(false);
+    expect(result.validRows[0].hasRequest).toBe(false);
   });
 
-  it("mandate-only rows work correctly (title auto-generated)", () => {
+  it("request-only rows work correctly (title auto-generated)", () => {
     const result = validateImportData([
-      { mandate_transaction_type: "rental", budget_min: 500, budget_max: 1000 },
+      { request_transaction_type: "rental", budget_min: 500, budget_max: 1000 },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].hasMandate).toBe(true);
-    expect(result.validRows[0].hasClient).toBe(false);
+    expect(result.validRows[0].hasRequest).toBe(true);
+    expect(result.validRows[0].hasContact).toBe(false);
     expect(result.validRows[0].hasProperty).toBe(false);
-    expect(result.validRows[0].mandateRow).not.toBeNull();
+    expect(result.validRows[0].requestRow).not.toBeNull();
     // Auto-generated title should be "Rent mandate"
-    expect(result.validRows[0].mandateRow!.title).toBe("Rent mandate");
+    expect(result.validRows[0].requestRow!.title).toBe("Rent mandate");
   });
 });
 
@@ -466,24 +466,24 @@ describe("Enum normalization", () => {
     expect(result.validRows[0].propertyRow!.property_type).toBe("APARTMENT");
   });
 
-  it("normalizes client type from English variation", () => {
+  it("normalizes contact type from English variation", () => {
     const result = validateImportData([
-      { client_name: "Test Client", client_type: "buyer" },
+      { contact_name: "Test Contact", contact_type: "buyer" },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].clientRow).not.toBeNull();
-    expect(result.validRows[0].clientRow!.client_type).toBe("BUYER");
+    expect(result.validRows[0].contactRow).not.toBeNull();
+    expect(result.validRows[0].contactRow!.contact_type).toBe("BUYER");
   });
 
   it("normalizes mandate transaction type", () => {
     const result = validateImportData([
-      { mandate_transaction_type: "for rent", budget_min: 500 },
+      { request_transaction_type: "for rent", budget_min: 500 },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    expect(result.validRows[0].mandateRow).not.toBeNull();
-    expect(result.validRows[0].mandateRow!.transaction_type).toBe("RENTAL");
+    expect(result.validRows[0].requestRow).not.toBeNull();
+    expect(result.validRows[0].requestRow!.transaction_type).toBe("RENTAL");
   });
 });
 
@@ -492,29 +492,87 @@ describe("Enum normalization", () => {
 // ---------------------------------------------------------------------------
 
 describe("Prefix stripping", () => {
-  it("strips mandate_ prefix from mandate fields", () => {
+  it("strips request_ prefix from request fields", () => {
     const result = validateImportData([
-      { mandate_transaction_type: "sale", mandate_status: "active" },
+      { request_transaction_type: "sale", request_status: "active" },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    const mandateRow = result.validRows[0].mandateRow;
-    expect(mandateRow).not.toBeNull();
+    const requestRow = result.validRows[0].requestRow;
+    expect(requestRow).not.toBeNull();
     // After prefix stripping, keys should be transaction_type and status
-    expect(mandateRow!.transaction_type).toBe("SALE");
-    expect(mandateRow!.status).toBe("ACTIVE");
+    expect(requestRow!.transaction_type).toBe("SALE");
+    expect(requestRow!.status).toBe("ACTIVE");
     // Original prefixed keys should not exist
-    expect(mandateRow!.mandate_transaction_type).toBeUndefined();
+    expect(requestRow!.request_transaction_type).toBeUndefined();
   });
 
-  it("strips client_ prefix from client description", () => {
+  it("strips contact_ prefix from contact description", () => {
     const result = validateImportData([
-      { client_name: "Test", client_description: "VIP client" },
+      { contact_name: "Test", contact_description: "VIP contact" },
     ]);
 
     expect(result.validRows).toHaveLength(1);
-    const clientRow = result.validRows[0].clientRow;
-    expect(clientRow).not.toBeNull();
-    expect(clientRow!.description).toBe("VIP client");
+    const contactRow = result.validRows[0].contactRow;
+    expect(contactRow).not.toBeNull();
+    expect(contactRow!.description).toBe("VIP contact");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 10. contactDedupKey priority order
+// ---------------------------------------------------------------------------
+
+describe("contactDedupKey priority", () => {
+  it("phone wins over email wins over name", () => {
+    // Row with all three: phone, email, contact_name
+    const resultAll = validateImportData([
+      { contact_name: "Alice", primary_phone: "6944000001", primary_email: "alice@test.com" },
+    ]);
+    expect(resultAll.validRows).toHaveLength(1);
+    expect(resultAll.validRows[0].contactDedupKey).toMatch(/^phone:/);
+
+    // Row with email and contact_name but no phone
+    const resultEmailName = validateImportData([
+      { contact_name: "Bob", primary_email: "bob@test.com" },
+    ]);
+    expect(resultEmailName.validRows).toHaveLength(1);
+    expect(resultEmailName.validRows[0].contactDedupKey).toMatch(/^email:/);
+
+    // Row with contact_name only — no phone, no email
+    const resultNameOnly = validateImportData([
+      { contact_name: "Carol" },
+    ]);
+    expect(resultNameOnly.validRows).toHaveLength(1);
+    expect(resultNameOnly.validRows[0].contactDedupKey).toMatch(/^name:/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 11. ContactCategory single-value parsing
+// ---------------------------------------------------------------------------
+
+describe("ContactCategory parsing", () => {
+  it("accepts a single BUYER contact_type value", () => {
+    // contactImportSchema defines contact_type as a single enum (not array)
+    // A valid enum value should pass validation
+    const result = validateImportData([
+      { contact_name: "Dave", contact_type: "BUYER" },
+    ]);
+
+    expect(result.validRows).toHaveLength(1);
+    expect(result.validRows[0].contactRow).not.toBeNull();
+    expect(result.validRows[0].contactRow!.contact_type).toBe("BUYER");
+  });
+
+  it("normalizes lowercase contact_type to enum value", () => {
+    // "buyer" should normalize to "BUYER" via normalizeClientEnums
+    const result = validateImportData([
+      { contact_name: "Eve", contact_type: "investor" },
+    ]);
+
+    expect(result.validRows).toHaveLength(1);
+    expect(result.validRows[0].contactRow).not.toBeNull();
+    expect(result.validRows[0].contactRow!.contact_type).toBe("INVESTOR");
   });
 });

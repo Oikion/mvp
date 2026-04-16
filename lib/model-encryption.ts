@@ -8,50 +8,43 @@
  *
  * All encryption uses per-org DEKs (Data Encryption Keys) via the *ForOrg() functions.
  *
- * Usage on WRITE: const encrypted = await encryptClientForOrg(data, orgId);
- * Usage on READ:  const record = await prismadb.clients.findFirst(...); return decryptClientForOrg(record, orgId);
+ * Usage on WRITE: const encrypted = await encryptContactForOrg(data, orgId);
+ * Usage on READ:  const record = await prismadb.contact.findFirst(...); return decryptContactForOrg(record, orgId);
  */
 
-import { encryptWithKey, decryptWithKey, isEncrypted } from "@/lib/encryption";
-import { getOrgDek } from "@/lib/key-management";
+import { encryptWithKey, decryptWithKey, decryptWithKeys, isEncrypted } from "@/lib/encryption";
+import { getOrgDek, getOrgDeksForDecryption } from "@/lib/key-management";
 import type { Prisma } from "@prisma/client";
 
 // ─────────────────────────────────────────────
-// Clients
+// Contacts (v2.0 — replaces Clients)
 // ─────────────────────────────────────────────
 
-const CLIENT_ENCRYPTED_STRING_FIELDS = [
-  "client_name",
-  "full_name",
-  "company_name",
-  "company_id",
-  "primary_email",
-  "secondary_email",
-  "primary_phone",
-  "secondary_phone",
-  "office_phone",
-  "fax",
-  "afm",
-  "vat",
+const CONTACT_ENCRYPTED_STRING_FIELDS = [
+  "firstName",
+  "lastName",
+  "displayName",
+  "companyName",
+  "email",
+  "secondaryEmail",
+  "primaryPhone",
+  "secondaryPhone",
+  "officePhone",
+  "whatsapp",
+  "viber",
+  "taxId",
   "doy",
-  "id_doc",
-  "company_gemi",
-  "description",
-  "billing_street",
-  "billing_city",
-  "billing_state",
-  "billing_postal_code",
-  "billing_country",
-  "shipping_street",
-  "shipping_city",
-  "shipping_state",
-  "shipping_postal_code",
-  "shipping_country",
+  "vatNumber",
+  "companyGemi",
+  "companyId",
+  "idDocument",
+  "notes",
 ] as const;
 
-type ClientStringField = (typeof CLIENT_ENCRYPTED_STRING_FIELDS)[number];
-type ClientWithEncryptedFields = Partial<Record<ClientStringField, string | null | undefined>> & {
-  communication_notes?: Prisma.JsonValue | null;
+type ContactStringField = (typeof CONTACT_ENCRYPTED_STRING_FIELDS)[number];
+type ContactWithEncryptedFields = Partial<Record<ContactStringField, string | null | undefined>> & {
+  communicationNotes?: Prisma.JsonValue | null;
+  addresses?: Prisma.JsonValue | null;
 };
 
 // ─────────────────────────────────────────────
@@ -110,6 +103,17 @@ function decryptFieldWithKey(value: string | null | undefined, dek: Buffer): str
   return decryptWithKey(value, dek);
 }
 
+function decryptFieldWithKeys(value: string | null | undefined, deks: Buffer[]): string | null | undefined {
+  if (value == null) return value;
+  if (!isEncrypted(value)) return value;
+  try {
+    return decryptWithKeys(value, deks);
+  } catch {
+    console.warn("[model-encryption] decryptFieldWithKeys: could not decrypt field — returning null (orphaned or unrecoverable ciphertext)");
+    return null;
+  }
+}
+
 export function encryptJsonWithKey(
   value: Prisma.JsonValue | null | undefined,
   dek: Buffer
@@ -136,19 +140,40 @@ function decryptJsonWithKey(
   return value;
 }
 
+function decryptJsonWithKeys(
+  value: Prisma.JsonValue | null | undefined,
+  deks: Buffer[]
+): Prisma.JsonValue | null | undefined {
+  if (value == null) return value;
+  if (typeof value === "string" && isEncrypted(value)) {
+    try {
+      const decrypted = decryptWithKeys(value, deks);
+      try {
+        return JSON.parse(decrypted) as Prisma.JsonValue;
+      } catch {
+        return decrypted as Prisma.JsonValue;
+      }
+    } catch {
+      console.warn("[model-encryption] decryptJsonWithKeys: could not decrypt JSON field — returning null (orphaned or unrecoverable ciphertext)");
+      return null;
+    }
+  }
+  return value;
+}
+
 // ─────────────────────────────────────────────
 // Per-org async helpers
 // Each fetches the org DEK once, then applies the same field logic as the
 // sync helpers above. Falls back to master key automatically via decryptWithKey.
 // ─────────────────────────────────────────────
 
-export async function encryptClientForOrg<T extends ClientWithEncryptedFields>(
+export async function encryptContactForOrg<T extends ContactWithEncryptedFields>(
   data: T,
   orgId: string
 ): Promise<T> {
   const dek = await getOrgDek(orgId);
-  const result = { ...data } as T & ClientWithEncryptedFields;
-  for (const field of CLIENT_ENCRYPTED_STRING_FIELDS) {
+  const result = { ...data } as T & ContactWithEncryptedFields;
+  for (const field of CONTACT_ENCRYPTED_STRING_FIELDS) {
     if (field in result) {
       (result as Record<string, unknown>)[field] = encryptFieldWithKey(
         result[field] as string | null | undefined,
@@ -156,30 +181,51 @@ export async function encryptClientForOrg<T extends ClientWithEncryptedFields>(
       );
     }
   }
-  if ("communication_notes" in result) {
-    result.communication_notes = encryptJsonWithKey(result.communication_notes, dek);
+  if ("communicationNotes" in result) {
+    result.communicationNotes = encryptJsonWithKey(result.communicationNotes, dek);
+  }
+  if ("addresses" in result) {
+    result.addresses = encryptJsonWithKey(result.addresses, dek);
   }
   return result as T;
 }
 
-export async function decryptClientForOrg<T extends ClientWithEncryptedFields>(
+export async function decryptContactForOrg<T extends ContactWithEncryptedFields>(
   record: T,
   orgId: string
 ): Promise<T> {
-  const dek = await getOrgDek(orgId);
-  const result = { ...record } as T & ClientWithEncryptedFields;
-  for (const field of CLIENT_ENCRYPTED_STRING_FIELDS) {
+  const deks = await getOrgDeksForDecryption(orgId);
+  const result = { ...record } as T & ContactWithEncryptedFields;
+  for (const field of CONTACT_ENCRYPTED_STRING_FIELDS) {
     if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
         result[field] as string | null | undefined,
-        dek
+        deks
       );
     }
   }
-  if ("communication_notes" in result) {
-    result.communication_notes = decryptJsonWithKey(result.communication_notes, dek);
+  if ("communicationNotes" in result) {
+    result.communicationNotes = decryptJsonWithKeys(result.communicationNotes, deks);
+  }
+  if ("addresses" in result) {
+    result.addresses = decryptJsonWithKeys(result.addresses, deks);
   }
   return result as T;
+}
+
+// ContactComment (content field) — delegates to Message helpers
+export async function encryptContactCommentForOrg<T extends MessageWithContent>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  return encryptMessageForOrg(data, orgId);
+}
+
+export async function decryptContactCommentForOrg<T extends MessageWithContent>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  return decryptMessageForOrg(record, orgId);
 }
 
 export async function encryptMessageForOrg<T extends MessageWithContent>(
@@ -195,9 +241,9 @@ export async function decryptMessageForOrg<T extends MessageWithContent>(
   record: T,
   orgId: string
 ): Promise<T> {
-  const dek = await getOrgDek(orgId);
+  const deks = await getOrgDeksForDecryption(orgId);
   if (!("content" in record)) return record;
-  return { ...record, content: decryptFieldWithKey(record.content, dek) };
+  return { ...record, content: decryptFieldWithKeys(record.content, deks) };
 }
 
 export async function encryptCalendarEventForOrg<T extends CalendarWithEncryptedFields>(
@@ -221,13 +267,13 @@ export async function decryptCalendarEventForOrg<T extends CalendarWithEncrypted
   record: T,
   orgId: string
 ): Promise<T> {
-  const dek = await getOrgDek(orgId);
+  const deks = await getOrgDeksForDecryption(orgId);
   const result = { ...record } as T & CalendarWithEncryptedFields;
   for (const field of CALENDAR_ENCRYPTED_FIELDS) {
     if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
         result[field] as string | null | undefined,
-        dek
+        deks
       );
     }
   }
@@ -254,13 +300,13 @@ export async function decryptDocumentForOrg<T extends DocumentWithEncryptedField
   record: T,
   orgId: string
 ): Promise<T> {
-  const dek = await getOrgDek(orgId);
+  const deks = await getOrgDeksForDecryption(orgId);
   const result = { ...record };
   if ("document_name" in result) {
-    result.document_name = decryptFieldWithKey(result.document_name, dek);
+    result.document_name = decryptFieldWithKeys(result.document_name, deks);
   }
   if ("description" in result) {
-    result.description = decryptFieldWithKey(result.description, dek);
+    result.description = decryptFieldWithKeys(result.description, deks);
   }
   return result as T;
 }
@@ -284,13 +330,13 @@ export async function decryptPropertyForOrg<T extends PropertyWithEncryptedField
   record: T,
   orgId: string
 ): Promise<T> {
-  const dek = await getOrgDek(orgId);
+  const deks = await getOrgDeksForDecryption(orgId);
   const result = { ...record };
   if ("primary_email" in result) {
-    result.primary_email = decryptFieldWithKey(result.primary_email, dek);
+    result.primary_email = decryptFieldWithKeys(result.primary_email, deks);
   }
   if ("communication_notes" in result) {
-    result.communication_notes = decryptJsonWithKey(result.communication_notes, dek);
+    result.communication_notes = decryptJsonWithKeys(result.communication_notes, deks);
   }
   return result as T;
 }
@@ -333,18 +379,18 @@ export async function decryptMandateForOrg<T extends MandateWithEncryptedFields>
   record: T,
   orgId: string
 ): Promise<T> {
-  const dek = await getOrgDek(orgId);
+  const deks = await getOrgDeksForDecryption(orgId);
   const result = { ...record } as T & MandateWithEncryptedFields;
   for (const field of MANDATE_ENCRYPTED_STRING_FIELDS) {
     if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
         result[field] as string | null | undefined,
-        dek
+        deks
       );
     }
   }
   if ("communication_notes" in result) {
-    result.communication_notes = decryptJsonWithKey(result.communication_notes, dek);
+    result.communication_notes = decryptJsonWithKeys(result.communication_notes, deks);
   }
   return result as T;
 }
@@ -369,6 +415,83 @@ export async function decryptMandateCommentForOrg<T extends MessageWithContent>(
 }
 
 // ─────────────────────────────────────────────
+// Requests (v2.0 — replaces Mandates)
+// ─────────────────────────────────────────────
+
+const REQUEST_ENCRYPTED_STRING_FIELDS = [
+  "title",
+  "notes",
+  "locationDisplayName",
+] as const;
+
+type RequestStringField = (typeof REQUEST_ENCRYPTED_STRING_FIELDS)[number];
+type RequestWithEncryptedFields = Partial<Record<RequestStringField, string | null | undefined>> & {
+  communicationNotes?: Prisma.JsonValue | null;
+  areasOfInterest?: Prisma.JsonValue | null;
+};
+
+export async function encryptRequestForOrg<T extends RequestWithEncryptedFields>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & RequestWithEncryptedFields;
+  for (const field of REQUEST_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  if ("communicationNotes" in result) {
+    result.communicationNotes = encryptJsonWithKey(result.communicationNotes, dek);
+  }
+  if ("areasOfInterest" in result) {
+    result.areasOfInterest = encryptJsonWithKey(result.areasOfInterest, dek);
+  }
+  return result as T;
+}
+
+export async function decryptRequestForOrg<T extends RequestWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const deks = await getOrgDeksForDecryption(orgId);
+  const result = { ...record } as T & RequestWithEncryptedFields;
+  for (const field of REQUEST_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
+        result[field] as string | null | undefined,
+        deks
+      );
+    }
+  }
+  if ("communicationNotes" in result) {
+    result.communicationNotes = decryptJsonWithKeys(result.communicationNotes, deks);
+  }
+  if ("areasOfInterest" in result) {
+    result.areasOfInterest = decryptJsonWithKeys(result.areasOfInterest, deks);
+  }
+  return result as T;
+}
+
+// RequestComment (content field) — delegates to Message helpers
+export async function encryptRequestCommentForOrg<T extends MessageWithContent>(
+  data: T,
+  orgId: string
+): Promise<T> {
+  return encryptMessageForOrg(data, orgId);
+}
+
+export async function decryptRequestCommentForOrg<T extends MessageWithContent>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  return decryptMessageForOrg(record, orgId);
+}
+
+// ─────────────────────────────────────────────
 // PropertyComment (content field)
 // Note: PropertyComment has no organizationId — pass the parent property's orgId.
 // Structurally identical to Message ({content?: string | null}), so delegates to
@@ -383,26 +506,6 @@ export async function encryptPropertyCommentForOrg<T extends MessageWithContent>
 }
 
 export async function decryptPropertyCommentForOrg<T extends MessageWithContent>(
-  record: T,
-  orgId: string
-): Promise<T> {
-  return decryptMessageForOrg(record, orgId);
-}
-
-// ─────────────────────────────────────────────
-// ClientComment (content field)
-// Note: ClientComment has no organizationId — pass the parent client's orgId.
-// Delegates to Message helpers (same {content?: string | null} shape).
-// ─────────────────────────────────────────────
-
-export async function encryptClientCommentForOrg<T extends MessageWithContent>(
-  data: T,
-  orgId: string
-): Promise<T> {
-  return encryptMessageForOrg(data, orgId);
-}
-
-export async function decryptClientCommentForOrg<T extends MessageWithContent>(
   record: T,
   orgId: string
 ): Promise<T> {
@@ -476,13 +579,13 @@ export async function decryptMyAccountForOrg<T extends MyAccountWithEncryptedFie
   record: T,
   orgId: string
 ): Promise<T> {
-  const dek = await getOrgDek(orgId);
+  const deks = await getOrgDeksForDecryption(orgId);
   const result = { ...record } as T & MyAccountWithEncryptedFields;
   for (const field of MYACCOUNT_ENCRYPTED_STRING_FIELDS) {
     if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
         result[field] as string | null | undefined,
-        dek
+        deks
       );
     }
   }
@@ -523,13 +626,13 @@ export async function decryptNewsletterSubscriberForOrg<T extends NewsletterWith
   record: T,
   orgId: string
 ): Promise<T> {
-  const dek = await getOrgDek(orgId);
+  const deks = await getOrgDeksForDecryption(orgId);
   const result = { ...record } as T & NewsletterWithEncryptedFields;
   for (const field of NEWSLETTER_ENCRYPTED_STRING_FIELDS) {
     if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
         result[field] as string | null | undefined,
-        dek
+        deks
       );
     }
   }
@@ -577,18 +680,118 @@ export async function decryptAgentContactForOrg<T extends AgentContactWithEncryp
   record: T,
   orgId: string
 ): Promise<T> {
-  const dek = await getOrgDek(orgId);
+  const deks = await getOrgDeksForDecryption(orgId);
   const result = { ...record } as T & AgentContactWithEncryptedFields;
   for (const field of AGENT_CONTACT_ENCRYPTED_STRING_FIELDS) {
     if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptFieldWithKey(
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
+        result[field] as string | null | undefined,
+        deks
+      );
+    }
+  }
+  if ("formData" in result) {
+    result.formData = decryptJsonWithKeys(result.formData, deks);
+  }
+  return result as T;
+}
+
+// ─── Activity ────────────────────────────────────────────────────────────────
+
+const ACTIVITY_ENCRYPTED_STRING_FIELDS = [
+  "subject",
+  "body",
+  "outcome",
+] as const;
+
+type ActivityStringField = (typeof ACTIVITY_ENCRYPTED_STRING_FIELDS)[number];
+
+type ActivityWithEncryptedFields = Partial<
+  Record<ActivityStringField, string | null | undefined>
+>;
+
+export async function encryptActivityForOrg<T extends ActivityWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...record } as T & ActivityWithEncryptedFields;
+  for (const field of ACTIVITY_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
         result[field] as string | null | undefined,
         dek
       );
     }
   }
-  if ("formData" in result) {
-    result.formData = decryptJsonWithKey(result.formData, dek);
+  return result as T;
+}
+
+export async function decryptActivityForOrg<T extends ActivityWithEncryptedFields>(
+  record: T,
+  orgId: string
+): Promise<T> {
+  const deks = await getOrgDeksForDecryption(orgId);
+  const result = { ...record } as T & ActivityWithEncryptedFields;
+  for (const field of ACTIVITY_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
+        result[field] as string | null | undefined,
+        deks
+      );
+    }
+  }
+  return result as T;
+}
+
+// ─── OrgDocumentTemplate ──────────────────────────────────────────────────────
+
+// NOTE: `body` (TipTap JSON) and `placeholders` are intentionally NOT included here.
+// Template bodies are agency-owned contractual assets, not contact PII, and are
+// excluded from per-org DEK encryption to preserve content searchability/indexing.
+// Only display names (name/nameEl/nameEn) are encrypted as they may contain
+// client-identifying information in some naming conventions.
+const ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS = [
+  "name",
+  "nameEl",
+  "nameEn",
+] as const;
+
+type OrgDocumentTemplateStringField =
+  (typeof ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS)[number];
+
+type OrgDocumentTemplateWithEncryptedFields = Partial<
+  Record<OrgDocumentTemplateStringField, string | null | undefined>
+>;
+
+export async function encryptOrgDocumentTemplateForOrg<
+  T extends OrgDocumentTemplateWithEncryptedFields
+>(data: T, orgId: string): Promise<T> {
+  const dek = await getOrgDek(orgId);
+  const result = { ...data } as T & OrgDocumentTemplateWithEncryptedFields;
+  for (const field of ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = encryptFieldWithKey(
+        result[field] as string | null | undefined,
+        dek
+      );
+    }
+  }
+  return result as T;
+}
+
+export async function decryptOrgDocumentTemplateForOrg<
+  T extends OrgDocumentTemplateWithEncryptedFields
+>(record: T, orgId: string): Promise<T> {
+  const deks = await getOrgDeksForDecryption(orgId);
+  const result = { ...record } as T & OrgDocumentTemplateWithEncryptedFields;
+  for (const field of ORG_DOCUMENT_TEMPLATE_ENCRYPTED_STRING_FIELDS) {
+    if (field in result) {
+      (result as Record<string, unknown>)[field] = decryptFieldWithKeys(
+        result[field] as string | null | undefined,
+        deks
+      );
+    }
   }
   return result as T;
 }

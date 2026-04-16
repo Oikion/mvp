@@ -1,4 +1,8 @@
 {
+  "env": {
+    "MAX_THINKING_TOKENS": "10000",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
+  },
   "permissions": {
     "allow": [
       "Bash(pnpm vitest run tests/e2ee/)",
@@ -20,7 +24,14 @@
       "Bash(git stash push -m \"pre-merge-main-changes\")",
       "Bash(find /Users/stapo/Desktop/Oikion/MVP/app -path *agent*[slug]* -name page.tsx -o -name layout.tsx)",
       "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/\\\\\\(public\\\\\\) -name \"layout.tsx\")",
-      "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\) -name \"page.tsx\")"
+      "Bash(find /Users/stapo/Desktop/Oikion/MVP/app/[locale]/app/\\\\\\(routes\\\\\\) -name \"page.tsx\")",
+      "Bash(npx tsx:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git merge feature/phase4-activities-templates-calendar --no-ff -m ':*)",
+      "Bash(git worktree:*)",
+      "Bash(git branch:*)",
+      "Bash(npx tsc:*)"
     ]
-  }
+  },
+  "model": "sonnet"
 }

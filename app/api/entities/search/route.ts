@@ -127,7 +127,7 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q") || "";
-    const typesParam = searchParams.get("types") || "client,property,document,event,mandate";
+    const typesParam = searchParams.get("types") || "contact,property,document,event,request,deal";
     const limitParam = searchParams.get("limit");
 
     // Parse types from comma-separated string
