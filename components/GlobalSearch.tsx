@@ -76,9 +76,8 @@ const QUICK_ACTIONS = [
 
 const NAVIGATION_ITEMS = [
   { id: "go-properties", label: "Properties", icon: Building2, path: "/app/mls/properties", shortcut: "G P" },
-  { id: "go-contacts", label: "Contacts", icon: User, path: "/app/crm/contacts", shortcut: "G C" },
   { id: "go-requests", label: "Requests", icon: ScrollText, path: "/app/requests", shortcut: "G M" },
-  { id: "go-contacts", label: "Contacts", icon: Users, path: "/app/crm/contacts", shortcut: "G O" },
+  { id: "go-contacts", label: "Contacts", icon: Users, path: "/app/crm/contacts", shortcut: "G C" },
   { id: "go-documents", label: "Documents", icon: FileText, path: "/app/documents", shortcut: "G D" },
   { id: "go-calendar", label: "Calendar", icon: Calendar, path: "/app/calendar", shortcut: "G E" },
 ];
