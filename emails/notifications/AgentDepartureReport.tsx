@@ -22,7 +22,7 @@ interface AgentDepartureReportProps {
   entityCounts: {
     properties: number;
     clients: number;
-    mandates: number;
+    requests: number;
     deals: number;
   };
   departureLogId: string;
@@ -44,7 +44,7 @@ const translations = {
     entities: "Affected Entities",
     properties: "Properties",
     clients: "Clients",
-    mandates: "Mandates",
+    requests: "Requests",
     dealsCancelled: "Deals Cancelled",
     viewReport: "View Departure Report",
     altLink: "Or view at:",
@@ -64,7 +64,7 @@ const translations = {
     entities: "Επηρεαζόμενες Οντότητες",
     properties: "Ακίνητα",
     clients: "Πελάτες",
-    mandates: "Εντολές",
+    requests: "Αιτήματα",
     dealsCancelled: "Ακυρωμένες Συμφωνίες",
     viewReport: "Προβολή Αναφοράς",
     altLink: "Ή δείτε στο:",
@@ -84,7 +84,7 @@ const translations = {
     entities: "Dotčené Entity",
     properties: "Nemovitosti",
     clients: "Klienti",
-    mandates: "Mandáty",
+    requests: "Žádosti",
     dealsCancelled: "Zrušené Obchody",
     viewReport: "Zobrazit Zprávu",
     altLink: "Nebo zobrazte na:",
@@ -135,7 +135,7 @@ export default function AgentDepartureReport({
         />
         <EmailDetailRow label={t.properties} value={String(entityCounts.properties)} />
         <EmailDetailRow label={t.clients} value={String(entityCounts.clients)} />
-        <EmailDetailRow label={t.mandates} value={String(entityCounts.mandates)} />
+        <EmailDetailRow label={t.requests} value={String(entityCounts.requests)} />
         <EmailDetailRow
           label={t.dealsCancelled}
           value={String(entityCounts.deals)}

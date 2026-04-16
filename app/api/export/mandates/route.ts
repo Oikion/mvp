@@ -17,7 +17,7 @@ import {
   getSecureDownloadHeaders,
   createExportAuditLog,
   logExportEvent,
-  MANDATE_COLUMNS,
+  REQUEST_COLUMNS,
   generateExportFile,
   generateTablePDF,
   generateDescriptiveFilename,
@@ -139,7 +139,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Check row limit
-    const rowCheck = checkRowLimit("mandates", mandates.length);
+    const rowCheck = checkRowLimit("requests", mandates.length);
     if (!rowCheck.allowed) {
       return createRowLimitResponse(rowCheck);
     }
@@ -149,7 +149,7 @@ export async function GET(req: NextRequest) {
     // ===========================================
     const useK8s = shouldUseK8sForExport({
       organizationId: orgId,
-      exportType: "mandates",
+      exportType: "requests",
       format: format as "xlsx" | "xls" | "csv" | "pdf" | "xml",
       rowCount: mandates.length,
       filters: { status: statusFilter, search: searchQuery },
@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
     if (useK8s) {
       const jobResult = await submitExportJob({
         organizationId: orgId,
-        exportType: "mandates",
+        exportType: "requests",
         format: format as "xlsx" | "xls" | "csv" | "pdf" | "xml",
         rowCount: mandates.length,
         filters: { status: statusFilter, search: searchQuery },
@@ -171,7 +171,7 @@ export async function GET(req: NextRequest) {
         logExportEvent(createExportAuditLog({
           userId: user.id,
           organizationId: orgId,
-          exportType: "mandates",
+          exportType: "requests",
           format,
           rowCount: mandates.length,
           filters: { status: statusFilter, search: searchQuery, scope, destination },
@@ -214,7 +214,7 @@ export async function GET(req: NextRequest) {
     const auditLog = createExportAuditLog({
       userId: user.id,
       organizationId: orgId,
-      exportType: "mandates",
+      exportType: "requests",
       format,
       rowCount: exportData.length,
       filters: { status: statusFilter, search: searchQuery, scope, destination },
@@ -226,7 +226,7 @@ export async function GET(req: NextRequest) {
 
     // Generate descriptive filename
     const descriptiveFilename = generateDescriptiveFilename(
-      "mandates",
+      "requests",
       exportData,
       { format, destination: destination || undefined }
     );
@@ -237,21 +237,21 @@ export async function GET(req: NextRequest) {
     let contentType: string;
 
     if (format === "pdf") {
-      const pdfResult = await generateTablePDF("mandates", exportData, {
+      const pdfResult = await generateTablePDF("requests", exportData, {
         locale,
         title: locale === "el" ? "Εξαγωγή Εντολών" : "Mandates Export",
         subtitle: locale === "el"
           ? `${exportData.length} εγγραφές`
           : `${exportData.length} records`,
-        columns: MANDATE_COLUMNS,
+        columns: REQUEST_COLUMNS,
       });
       fileBuffer = pdfResult.blob;
       filename = descriptiveFilename;
       contentType = pdfResult.contentType;
     } else {
-      const result = await generateExportFile("mandates", format, exportData, {
+      const result = await generateExportFile("requests", format, exportData, {
         locale,
-        columns: MANDATE_COLUMNS,
+        columns: REQUEST_COLUMNS,
       });
       fileBuffer = result.buffer;
       filename = descriptiveFilename;

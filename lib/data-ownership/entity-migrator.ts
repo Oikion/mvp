@@ -17,8 +17,8 @@ import {
   encryptPropertyForOrg,
   decryptContactForOrg,
   encryptContactForOrg,
-  decryptMandateForOrg,
-  encryptMandateForOrg,
+  decryptRequestForOrg,
+  encryptRequestForOrg,
 } from "@/lib/model-encryption";
 import { getPolicyForEntity } from "./index";
 import type {
@@ -53,7 +53,7 @@ export async function migrateAgentEntities(
 
   const migratedProperties: MigratedEntity[] = [];
   const migratedClients: { id: string; name: string }[] = [];
-  const migratedMandates: MigratedEntity[] = [];
+  const migratedRequests: MigratedEntity[] = [];
   const cancelledDeals: CancelledDeals = [];
 
   // ── Properties ──────────────────────────────────────────────
@@ -323,79 +323,52 @@ export async function migrateAgentEntities(
     migratedClients.push({ id: newContactId, name: contact.displayName });
   }
 
-  // ── Mandates ────────────────────────────────────────────────
-  const mandates = await tx.mandate.findMany({
-    where: { organizationId: sourceOrgId, assigned_to: userId },
+  // ── Requests (v2.0 — replaces Mandates) ─────────────────────
+  const requests = await tx.request.findMany({
+    where: { organizationId: sourceOrgId, assignedAgentId: userId },
     include: {
-      comments: { where: { userId } },
+      requestComments: { where: { userId } },
     },
   });
 
-  for (const mandate of mandates) {
-    const policy = getPolicyForEntity(mandate.createdAt, currentMode, policyHistory);
+  for (const request of requests) {
+    const policy = getPolicyForEntity(request.createdAt, currentMode, policyHistory);
     if (policy.mode !== "AGENT") continue;
 
-    const decrypted = await decryptMandateForOrg(mandate, sourceOrgId);
-    const reEncrypted = await encryptMandateForOrg(decrypted, personalOrgId);
+    const decrypted = await decryptRequestForOrg(request, sourceOrgId);
+    const reEncrypted = await encryptRequestForOrg(decrypted, personalOrgId);
 
-    const newMandateId = crypto.randomUUID();
+    const newRequestId = crypto.randomUUID();
 
-    await tx.mandate.create({
+    await tx.request.create({
       data: {
-        id: newMandateId,
-        friendlyId: mandate.friendlyId,
+        id: newRequestId,
+        friendlyId: request.friendlyId,
         organizationId: personalOrgId,
-        assigned_to: userId,
+        assignedAgentId: userId,
         title: reEncrypted.title,
         notes: reEncrypted.notes,
-        communication_notes: reEncrypted.communication_notes as any,
-        transaction_type: mandate.transaction_type,
-        property_type: mandate.property_type,
-        property_purpose: mandate.property_purpose,
-        areas_of_interest: mandate.areas_of_interest as any,
-        municipality: mandate.municipality,
-        region: mandate.region,
-        size_min_sqm: mandate.size_min_sqm,
-        size_max_sqm: mandate.size_max_sqm,
-        plot_size_min_sqm: mandate.plot_size_min_sqm,
-        plot_size_max_sqm: mandate.plot_size_max_sqm,
-        budget_min: mandate.budget_min,
-        budget_max: mandate.budget_max,
-        bedrooms_min: mandate.bedrooms_min,
-        bedrooms_max: mandate.bedrooms_max,
-        bathrooms_min: mandate.bathrooms_min,
-        bathrooms_max: mandate.bathrooms_max,
-        floor_min: mandate.floor_min,
-        floor_max: mandate.floor_max,
-        ground_floor_only: mandate.ground_floor_only,
-        condition: mandate.condition,
-        year_built_min: mandate.year_built_min,
-        year_built_max: mandate.year_built_max,
-        heating_type: mandate.heating_type,
-        energy_cert_min: mandate.energy_cert_min,
-        furnished: mandate.furnished,
-        elevator: mandate.elevator,
-        parking: mandate.parking,
-        pets_allowed: mandate.pets_allowed,
-        amenities: mandate.amenities as any,
-        inside_city_plan: mandate.inside_city_plan,
-        legalization_ok: mandate.legalization_ok,
-        status: mandate.status,
-        urgency: mandate.urgency,
-        timeline: mandate.timeline,
-        expires_at: mandate.expires_at,
+        communicationNotes: reEncrypted.communicationNotes as any,
+        requestType: request.requestType,
+        propertyCategory: request.propertyCategory,
+        areasOfInterest: request.areasOfInterest as any,
+        budgetMin: request.budgetMin,
+        budgetMax: request.budgetMax,
+        status: request.status,
+        urgency: request.urgency,
+        expiresAt: request.expiresAt,
         createdBy: userId,
-        createdAt: mandate.createdAt,
-        draft_status: false,
+        createdAt: request.createdAt,
+        draftStatus: false,
       },
     });
 
     // Copy agent's own comments
-    for (const comment of mandate.comments) {
-      await tx.mandateComment.create({
+    for (const comment of request.requestComments) {
+      await tx.requestComment.create({
         data: {
           id: crypto.randomUUID(),
-          mandate: { connect: { id: newMandateId } },
+          request: { connect: { id: newRequestId } },
           user: { connect: { id: userId } },
           content: comment.content,
           createdAt: comment.createdAt,
@@ -403,27 +376,26 @@ export async function migrateAgentEntities(
       });
     }
 
-    // Delete junction tables + comments + original mandate
-    // (Mandate has no Deal FK — safe to delete unconditionally)
-    await tx.mandate_Properties.deleteMany({ where: { mandateId: mandate.id } });
-    // mandate_Clients table removed — contacts linked via requestContacts instead
-    await tx.mandateComment.deleteMany({ where: { mandateId: mandate.id } });
-    await tx.mandate.delete({ where: { id: mandate.id } });
+    // Delete junction tables + comments + original request
+    // (Request has no Deal FK — safe to delete unconditionally)
+    await tx.requestContact.deleteMany({ where: { requestId: request.id } });
+    await tx.requestComment.deleteMany({ where: { requestId: request.id } });
+    await tx.request.delete({ where: { id: request.id } });
 
-    migratedMandates.push({ id: newMandateId, title: mandate.title });
+    migratedRequests.push({ id: newRequestId, title: request.title ?? "" });
   }
 
   return {
     migratedEntities: {
       properties: migratedProperties,
       clients: migratedClients,
-      mandates: migratedMandates,
+      requests: migratedRequests,
     },
     cancelledDeals,
     entityCounts: {
       properties: migratedProperties.length,
       clients: migratedClients.length,
-      mandates: migratedMandates.length,
+      requests: migratedRequests.length,
       deals: cancelledDeals.length,
     },
   };

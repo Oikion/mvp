@@ -228,6 +228,10 @@
           "title": "Mandates",
           "description": "Search mandates, requirements, and linked entities"
         },
+        "requests": {
+          "title": "Requests",
+          "description": "Search requests, requirements, and linked entities"
+        },
         "documents": {
           "title": "Documents",
           "description": "Uploaded files, metadata, and sharing history"

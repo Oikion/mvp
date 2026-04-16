@@ -22,7 +22,7 @@ export interface ImportResult {
 }
 
 export interface ImportEntityConfig<T> {
-  prismaModel: "contact" | "properties" | "mandate";
+  prismaModel: "contact" | "properties" | "request";
   entityIdType: EntityType;
   importSchema: z.ZodSchema<T>;
   normalizeEnums: (raw: Record<string, unknown>) => Record<string, unknown>;
@@ -65,7 +65,7 @@ function normalizeId(id: string): string {
 async function resolveUserProvidedIds(
   ids: string[],
   orgId: string,
-  prismaModel: "contact" | "properties" | "mandate"
+  prismaModel: "contact" | "properties" | "request"
 ): Promise<string[]> {
   const model = prismadb[prismaModel] as any;
 

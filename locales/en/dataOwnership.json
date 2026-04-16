@@ -93,6 +93,7 @@
       "properties": "Properties",
       "clients": "Clients",
       "mandates": "Mandates",
+      "requests": "Requests",
       "cancelledDeals": "Cancelled Deals",
       "notes": "Notes"
     },

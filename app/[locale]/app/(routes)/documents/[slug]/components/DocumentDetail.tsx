@@ -63,26 +63,26 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
   // Link dialog states
   const [linkClientDialogOpen, setLinkClientDialogOpen] = useState(false);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
-  const [linkMandateDialogOpen, setLinkMandateDialogOpen] = useState(false);
+  const [linkRequestDialogOpen, setLinkRequestDialogOpen] = useState(false);
   const [createClientOpen, setCreateClientOpen] = useState(false);
   const [createPropertyOpen, setCreatePropertyOpen] = useState(false);
-  const [createMandateOpen, setCreateMandateOpen] = useState(false);
+  const [createRequestOpen, setCreateRequestOpen] = useState(false);
   const [autoLinkNewClient, setAutoLinkNewClient] = useState(false);
   const [autoLinkNewProperty, setAutoLinkNewProperty] = useState(false);
-  const [autoLinkNewMandate, setAutoLinkNewMandate] = useState(false);
+  const [autoLinkNewRequest, setAutoLinkNewRequest] = useState(false);
 
   const { users: orgUsers } = useOrgUsers();
 
   // Linked entities data
-  const { clients, properties, mandates, isLoading: isLinkedLoading, mutate: mutateLinked } = useDocumentLinked(document.id);
+  const { clients, properties, mandates: linkedRequests, isLoading: isLinkedLoading, mutate: mutateLinked } = useDocumentLinked(document.id);
 
   // Link mutation hooks
   const { linkClients } = useLinkClientsToDocument(document.id);
   const { unlinkClient } = useUnlinkClientFromDocument(document.id);
   const { linkProperties } = useLinkPropertiesToDocument(document.id);
   const { unlinkProperty } = useUnlinkPropertyFromDocument(document.id);
-  const { linkMandates } = useLinkMandatesToDocument(document.id);
-  const { unlinkMandate } = useUnlinkMandateFromDocument(document.id);
+  const { linkMandates: linkRequests } = useLinkMandatesToDocument(document.id);
+  const { unlinkMandate: unlinkRequest } = useUnlinkMandateFromDocument(document.id);
 
   const isEditable = document.document_file_mimeType === "text/html";
 
@@ -110,14 +110,14 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
     await mutateLinked();
   };
 
-  const handleLinkMandates = async (mandateIds: string[]) => {
-    await linkMandates(mandateIds);
+  const handleLinkRequests = async (requestIds: string[]) => {
+    await linkRequests(requestIds);
     toast.success(tCommon("toast.createSuccess"));
     await mutateLinked();
   };
 
-  const handleUnlinkMandate = async (mandateId: string) => {
-    await unlinkMandate(mandateId);
+  const handleUnlinkRequest = async (requestId: string) => {
+    await unlinkRequest(requestId);
     toast.success(tCommon("toast.deleteSuccess"));
     await mutateLinked();
   };
@@ -282,10 +282,10 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
               />
               <LinkedEntitiesPanel
                 type="requests"
-                entities={mandates}
+                entities={linkedRequests}
                 isLoading={isLinkedLoading}
-                onLinkEntity={() => setLinkMandateDialogOpen(true)}
-                onUnlinkEntity={handleUnlinkMandate}
+                onLinkEntity={() => setLinkRequestDialogOpen(true)}
+                onUnlinkEntity={handleUnlinkRequest}
               />
             </div>
           </div>
@@ -429,22 +429,22 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         }}
       />
       <LinkEntityDialog
-        open={linkMandateDialogOpen}
-        onOpenChange={setLinkMandateDialogOpen}
+        open={linkRequestDialogOpen}
+        onOpenChange={setLinkRequestDialogOpen}
         entityType="request"
         sourceId={document.id}
         sourceType="document"
-        alreadyLinkedIds={mandates.map((m) => m.id)}
-        onLink={handleLinkMandates}
+        alreadyLinkedIds={linkedRequests.map((m) => m.id)}
+        onLink={handleLinkRequests}
         onCreate={() => {
-          setLinkMandateDialogOpen(false);
-          setAutoLinkNewMandate(false);
-          setCreateMandateOpen(true);
+          setLinkRequestDialogOpen(false);
+          setAutoLinkNewRequest(false);
+          setCreateRequestOpen(true);
         }}
         onCreateAndLink={() => {
-          setLinkMandateDialogOpen(false);
-          setAutoLinkNewMandate(true);
-          setCreateMandateOpen(true);
+          setLinkRequestDialogOpen(false);
+          setAutoLinkNewRequest(true);
+          setCreateRequestOpen(true);
         }}
       />
 
@@ -480,14 +480,14 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
 
       {/* Quick Add Request */}
       <QuickAddRequest
-        open={createMandateOpen}
+        open={createRequestOpen}
         onOpenChange={(open) => {
-          setCreateMandateOpen(open);
-          if (!open) setAutoLinkNewMandate(false);
+          setCreateRequestOpen(open);
+          if (!open) setAutoLinkNewRequest(false);
         }}
         organizationUsers={orgUsers.map((u) => ({ id: u.id, name: u.name ?? "" }))}
         onSuccess={async () => {
-          if (autoLinkNewMandate) {
+          if (autoLinkNewRequest) {
             await mutateLinked();
           }
         }}

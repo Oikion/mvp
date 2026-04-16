@@ -132,7 +132,7 @@ export async function handleUserDeparture(
       entityCounts: (migrationResult?.entityCounts ?? {
         properties: 0,
         clients: 0,
-        mandates: 0,
+        requests: 0,
         deals: 0,
       }) as any,
       notes: departureLogNotes,
@@ -250,7 +250,7 @@ async function sendDepartureEmail(
     const counts = migrationResult?.entityCounts ?? {
       properties: 0,
       clients: 0,
-      mandates: 0,
+      requests: 0,
       deals: 0,
     };
 
