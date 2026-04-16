@@ -1,7 +1,7 @@
 "use client";
 
 import { Row } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/navigation";
 import axios from "axios";
 
 import { DataTableRowActions } from "@/components/ui/data-table/data-table-row-actions";

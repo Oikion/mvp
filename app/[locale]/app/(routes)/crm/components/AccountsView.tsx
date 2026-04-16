@@ -70,7 +70,7 @@ const AccountsView = ({ data = [], crmData }: any) => {
           entityId: row.original.id,
           entityName: row.original.name || "Client",
           onDelete: async () => {
-            await axios.delete(`/api/crm/account/${row.original.id}`);
+            await axios.delete(`/api/crm/contacts/${row.original.id}`);
             router.refresh();
           },
         });
@@ -80,7 +80,7 @@ const AccountsView = ({ data = [], crmData }: any) => {
           try {
             await Promise.all(
               rows.map((row) =>
-                axios.delete(`/api/crm/account/${row.original.id}`)
+                axios.delete(`/api/crm/contacts/${row.original.id}`)
               )
             );
             toast.success(`${rows.length} clients deleted successfully`);
