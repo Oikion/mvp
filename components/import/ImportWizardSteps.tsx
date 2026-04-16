@@ -140,10 +140,10 @@ export interface ImportResult {
   failed: number;
   errors?: ValidationError[];
   // Unified import fields (present when using unified engine)
-  clients?: { created: number; reused: number; failed: number };
+  contacts?: { created: number; reused: number; failed: number };
   properties?: { created: number; failed: number };
-  mandates?: { created: number; failed: number };
-  links?: { clientProperty: number; mandateClient: number; mandateProperty: number };
+  requests?: { created: number; failed: number };
+  links?: { contactProperty: number; requestContact: number; requestProperty: number };
   // Batch result passthrough for new CompleteStep
   _batchResult?: unknown;
 }

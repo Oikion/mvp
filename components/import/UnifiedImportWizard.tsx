@@ -94,9 +94,9 @@ interface UnifiedImportWizardProps {
       };
     };
     ImportFields: {
-      client?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
+      contact?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
       property?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
-      mandate?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
+      request?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
       unified?: { groups: Record<string, string>; fields: Record<string, string> };
     };
   };
@@ -116,9 +116,9 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
     const fields = importFields.unified?.fields ?? {};
     // Merge enums from all entity types into a single flat map
     const enums: Record<string, Record<string, string>> = {
-      ...importFields.client?.enums,
+      ...importFields.contact?.enums,
       ...importFields.property?.enums,
-      ...importFields.mandate?.enums,
+      ...importFields.request?.enums,
     };
     return { groups, fields, enums };
   }, [dict.ImportFields]);
@@ -182,7 +182,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
             error: e.error,
           })),
           // Summary counts for legacy display
-          clients: {
+          contacts: {
             created: result.contacts.length,
             reused: 0,
             failed: result.errors.filter((e) => e.entity === "contact").length,
@@ -191,14 +191,14 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
             created: result.properties.length,
             failed: result.errors.filter((e) => e.entity === "property").length,
           },
-          mandates: {
+          requests: {
             created: result.requests.length,
             failed: result.errors.filter((e) => e.entity === "request").length,
           },
           links: {
-            clientProperty: result.linkCounts.contactProperty,
-            mandateClient: result.linkCounts.requestContact,
-            mandateProperty: result.linkCounts.requestProperty,
+            contactProperty: result.linkCounts.contactProperty,
+            requestContact: result.linkCounts.requestContact,
+            requestProperty: result.linkCounts.requestProperty,
           },
           // Attach the raw batch result for the new CompleteStep
           _batchResult: result,

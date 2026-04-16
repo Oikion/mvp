@@ -111,9 +111,9 @@ export default async function ImportAddPage({ params }: PageProps) {
       };
     };
     ImportFields: {
-      client?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
+      contact?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
       property?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
-      mandate?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
+      request?: { groups: Record<string, string>; fields: Record<string, string>; enums?: Record<string, Record<string, string>> };
       unified?: { groups: Record<string, string>; fields: Record<string, string> };
     };
   };

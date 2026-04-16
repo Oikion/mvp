@@ -261,17 +261,17 @@ export function CompleteStep({
       )}
 
       {/* Per-entity breakdown — legacy ImportResult format */}
-      {legacyResult && (legacyResult.clients || legacyResult.properties || legacyResult.mandates) && (
+      {legacyResult && (legacyResult.contacts || legacyResult.properties || legacyResult.requests) && (
         <div className="space-y-3">
-          {legacyResult.clients && (
+          {legacyResult.contacts && (
             <Card className="border-primary/50">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Clients</span>
+                  <span className="text-sm font-medium">Contacts</span>
                   <div className="flex gap-3 text-sm">
-                    <span className="text-success">{legacyResult.clients.created} created</span>
-                    {legacyResult.clients.reused > 0 && <span className="text-muted-foreground">{legacyResult.clients.reused} reused</span>}
-                    {legacyResult.clients.failed > 0 && <span className="text-destructive">{legacyResult.clients.failed} failed</span>}
+                    <span className="text-success">{legacyResult.contacts.created} created</span>
+                    {legacyResult.contacts.reused > 0 && <span className="text-muted-foreground">{legacyResult.contacts.reused} reused</span>}
+                    {legacyResult.contacts.failed > 0 && <span className="text-destructive">{legacyResult.contacts.failed} failed</span>}
                   </div>
                 </div>
               </CardContent>
@@ -290,14 +290,14 @@ export function CompleteStep({
               </CardContent>
             </Card>
           )}
-          {legacyResult.mandates && (
+          {legacyResult.requests && (
             <Card className="border-primary/50">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Mandates</span>
+                  <span className="text-sm font-medium">Requests</span>
                   <div className="flex gap-3 text-sm">
-                    <span className="text-success">{legacyResult.mandates.created} created</span>
-                    {legacyResult.mandates.failed > 0 && <span className="text-destructive">{legacyResult.mandates.failed} failed</span>}
+                    <span className="text-success">{legacyResult.requests.created} created</span>
+                    {legacyResult.requests.failed > 0 && <span className="text-destructive">{legacyResult.requests.failed} failed</span>}
                   </div>
                 </div>
               </CardContent>
@@ -309,7 +309,7 @@ export function CompleteStep({
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Links established</span>
                   <span className="text-sm text-muted-foreground">
-                    {legacyResult.links.clientProperty + legacyResult.links.mandateClient + legacyResult.links.mandateProperty} total
+                    {legacyResult.links.contactProperty + legacyResult.links.requestContact + legacyResult.links.requestProperty} total
                   </span>
                 </div>
               </CardContent>
