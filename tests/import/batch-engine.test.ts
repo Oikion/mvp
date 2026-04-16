@@ -163,7 +163,7 @@ describe("executeBatchImport", () => {
       makeValidatedRow({
         rowIndex: 0,
         hasContact: true,
-        contactRow:{ client_name: "Alice", client_type: "BUYER" },
+        contactRow:{ contact_name: "Alice", contact_type: "BUYER" },
         contactDedupKey:"name:alice",
       }),
     ];
@@ -182,7 +182,7 @@ describe("executeBatchImport", () => {
         hasContact: true,
         hasProperty: true,
         hasRequest: true,
-        contactRow:{ client_name: "Alice", client_type: "BUYER" },
+        contactRow:{ contact_name: "Alice", contact_type: "BUYER" },
         propertyRow: { property_name: "Villa Test", property_type: "HOUSE" },
         requestRow:{
           transaction_type: "SALE",
@@ -196,7 +196,7 @@ describe("executeBatchImport", () => {
 
     await executeBatchImport(rows, "org-1", "user-1");
 
-    // createMany should be called at least 3 times (clients, properties, mandates)
+    // createMany should be called at least 3 times (contacts, properties, requests)
     // plus junction tables
     expect(mockCreateMany.mock.calls.length).toBeGreaterThanOrEqual(3);
   });

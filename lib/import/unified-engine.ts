@@ -19,11 +19,6 @@ import { generateMandateTitle, generateClientName } from "./name-generator";
 import { contactImportConfig } from "./contact-import-config";
 import { propertyImportConfig } from "./property-import-config";
 import { requestImportConfig } from "./request-import-config";
-import {
-  normalizeClientEnums,
-  normalizePropertyEnums,
-  normalizeMandateEnums,
-} from "./enum-normalizer";
 import { contactImportSchema } from "./contact-import-schema";
 import { propertyImportSchema } from "./property-import-schema";
 import { requestImportSchema } from "./request-import-schema";

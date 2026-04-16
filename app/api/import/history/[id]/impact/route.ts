@@ -110,7 +110,7 @@ export async function POST(
         ? prismadb.properties.count({ where: { id: { in: propertyIds }, organizationId: orgId } })
         : Promise.resolve(0),
       requestIds.length > 0
-        ? prismadb.mandate.count({ where: { id: { in: requestIds }, organizationId: orgId } })
+        ? prismadb.request.count({ where: { id: { in: requestIds }, organizationId: orgId } })
         : Promise.resolve(0),
     ]);
 
@@ -124,6 +124,7 @@ export async function POST(
       contactIds.length > 0 || propertyIds.length > 0
         ? prismadb.contactProperty.count({
             where: {
+              organizationId: orgId,
               OR: [
                 ...(contactIds.length > 0 ? [{ contactId: { in: contactIds } }] : []),
                 ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),

@@ -62,9 +62,9 @@ export async function POST(req: Request) {
 
     // Invalidate cache keys
     await invalidateCache([
-      "clients:list",
+      "contacts:list",
       "properties:list",
-      "mandates:list",
+      "requests:list",
       "dashboard:accounts-count",
     ]);
 

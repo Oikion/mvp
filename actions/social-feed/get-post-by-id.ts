@@ -1,7 +1,7 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUserSafe } from "@/lib/get-current-user";
+import { getCurrentUserSafe, getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export interface PostWithAuthor {
   id: string;
@@ -51,11 +51,17 @@ export interface GetPostResult {
  * - PERSONAL: Only connections can view (not shareable publicly)
  */
 export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
-  const currentUser = await getCurrentUserSafe();
-  
-  // Try to find post by slug first, then by ID
+  const [currentUser, organizationId] = await Promise.all([
+    getCurrentUserSafe(),
+    getCurrentOrgIdSafe(),
+  ]);
+
+  // Try to find post by slug first, then by ID.
+  // Scope to the current org so authenticated users cannot read posts
+  // belonging to a different organization.
   const post = await prismadb.socialPost.findFirst({
     where: {
+      ...(organizationId ? { organizationId } : {}),
       OR: [
         { slug: idOrSlug },
         { id: idOrSlug },

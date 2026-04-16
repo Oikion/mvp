@@ -50,6 +50,7 @@ export {
   normalizeEnumValue,
   normalizePropertyEnums,
   normalizeClientEnums,
+  normalizeContactEnums,
   propertyEnumMappings,
   clientEnumMappings,
 } from "./enum-normalizer";
@@ -69,9 +70,10 @@ export { contactImportConfig } from "./contact-import-config";
 export { propertyImportConfig } from "./property-import-config";
 export { requestImportConfig } from "./request-import-config";
 
-// Mandate enum normalizer additions
+// Mandate/Request enum normalizer additions
 export {
   normalizeMandateEnums,
+  normalizeRequestEnums,
   splitArrayField,
   mandateEnumMappings,
 } from "./enum-normalizer";

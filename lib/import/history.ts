@@ -332,14 +332,14 @@ export async function getImportDetail(
 /**
  * Hard-delete an import batch.
  *
- * Deletes the entities (clients, properties, mandates) that were created by
+ * Deletes the entities (contacts, properties, requests) that were created by
  * this import, removes related junction links first, and updates the
  * ImportHistory record status to BATCH_DELETED or PARTIALLY_DELETED.
  *
  * @param id          - ImportHistory record ID
  * @param orgId       - Organization ID (ownership check)
  * @param userId      - User performing the deletion (for audit)
- * @param entityTypes - "all" or a subset ["clients", "properties", "mandates"]
+ * @param entityTypes - "all" or a subset ["contacts", "properties", "requests"]
  * @returns Counts of deleted entities per type
  */
 export async function deleteImportBatch(
@@ -405,7 +405,7 @@ export async function deleteImportBatch(
 
       // 4b. Delete entities
       if (requestIds.length > 0) {
-        const { count } = await tx.mandate.deleteMany({
+        const { count } = await tx.request.deleteMany({
           where: { id: { in: requestIds }, organizationId: orgId },
         });
         deletedCounts.requests = count;

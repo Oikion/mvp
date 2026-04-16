@@ -247,10 +247,10 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
       message,
     };
   } catch (error) {
-    console.error("Error creating social post:", error);
+    console.error("[CREATE_SOCIAL_POST]", error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to create post",
+      message: "Failed to create post",
     };
   }
 }
