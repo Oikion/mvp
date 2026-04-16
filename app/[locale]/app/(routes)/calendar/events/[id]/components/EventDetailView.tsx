@@ -306,7 +306,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
                       <Button
                         variant="ghost"
                         className="w-full justify-start h-auto p-0"
-                        onClick={() => router.push(`/app/crm/clients/${client.friendlyId}`)}
+                        onClick={() => router.push(`/app/crm/contacts/${client.friendlyId}`)}
                       >
                         <div className="flex items-center gap-3 w-full">
                           <Building2 className="h-4 w-4 text-muted-foreground" />

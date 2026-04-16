@@ -183,7 +183,7 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
 
     switch (notification.entityType) {
       case "ACCOUNT":
-        router.push(`/app/crm/clients/${notification.entityId}`);
+        router.push(`/app/crm/contacts/${notification.entityId}`);
         break;
       case "PROPERTY":
         router.push(`/app/mls/properties/${(notification.metadata as Record<string, string> | null)?.friendlyId ?? notification.entityId}`);
@@ -193,7 +193,7 @@ export function NotificationPopover({ children, onNotificationRead }: Notificati
         break;
       case "TASK":
         if (notification.metadata?.accountId) {
-          router.push(`/app/crm/clients/${notification.metadata.accountId}`);
+          router.push(`/app/crm/contacts/${notification.metadata.accountId}`);
         } else {
           router.push("/app/crm/tasks");
         }

@@ -170,7 +170,7 @@ export function EventDetailCard({ eventId, onClose, onUpdate }: EventDetailCardP
                   variant="ghost"
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => router.push(`/app/crm/clients/${client.friendlyId}`)}
+                  onClick={() => router.push(`/app/crm/contacts/${client.friendlyId}`)}
                 >
                   <LinkIcon className="h-3 w-3 mr-2" />
                   {client.displayName}

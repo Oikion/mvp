@@ -169,7 +169,7 @@ export function MentionShortcutOverlay() {
 
       switch (activeCategory) {
         case "clients":
-          path = `/${locale}/app/crm/clients/${item.friendlyId}`;
+          path = `/${locale}/app/crm/contacts/${item.friendlyId}`;
           break;
         case "properties":
           path = `/${locale}/app/mls/properties/${item.friendlyId}`;

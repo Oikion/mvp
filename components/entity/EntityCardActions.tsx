@@ -120,7 +120,7 @@ export function EntityCardActions({
       case "property":
         return `/app/mls/properties/${entityFriendlyId ?? entityId}`;
       case "client":
-        return `/app/crm/clients/${entityFriendlyId ?? entityId}`;
+        return `/app/crm/contacts/${entityFriendlyId ?? entityId}`;
       case "contact":
         return `/app/crm/contacts/${entityFriendlyId ?? entityId}`;
       default:

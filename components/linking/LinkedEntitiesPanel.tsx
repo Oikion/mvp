@@ -208,7 +208,7 @@ function ClientCard({
   return (
     <div
       className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group relative"
-      onClick={() => router.push(`/app/crm/clients/${client.friendlyId}`)}
+      onClick={() => router.push(`/app/crm/contacts/${client.friendlyId}`)}
     >
       {onUnlink && (
         <Button
