@@ -33,15 +33,6 @@ export async function resolveContact(
   });
 }
 
-export async function resolveMandate(
-  friendlyId: string,
-  organizationId: string
-) {
-  return prismadb.mandate.findFirst({
-    where: { friendlyId, organizationId },
-  });
-}
-
 export async function resolveRequest(
   friendlyId: string,
   organizationId: string

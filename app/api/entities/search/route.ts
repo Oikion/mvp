@@ -37,7 +37,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { searchEntities, type EntityType } from "@/lib/search/entity-search";
 
-const VALID_TYPES: EntityType[] = ["contact", "property", "document", "event", "mandate", "request", "deal"];
+const VALID_TYPES: EntityType[] = ["contact", "property", "document", "event", "request", "deal"];
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 10;
 
@@ -156,12 +156,12 @@ export async function GET(req: Request) {
     const propertyStatus = searchParams.get("propertyStatus");
     const documentType = searchParams.get("documentType");
     const eventType = searchParams.get("eventType");
-    const mandateStatus = searchParams.get("mandateStatus");
+    const requestStatus = searchParams.get("requestStatus");
 
     if (propertyStatus) filters.propertyStatus = propertyStatus;
     if (documentType) filters.documentType = documentType;
     if (eventType) filters.eventType = eventType;
-    if (mandateStatus) filters.mandateStatus = mandateStatus;
+    if (requestStatus) filters.requestStatus = requestStatus;
 
     const searchResponse = await searchEntities({
       query,

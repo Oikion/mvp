@@ -14,7 +14,6 @@ import {
   decryptContactForOrg,
   decryptDocumentForOrg,
   decryptCalendarEventForOrg,
-  decryptMandateForOrg,
   decryptRequestForOrg,
 } from "@/lib/model-encryption";
 
@@ -22,7 +21,7 @@ import {
 // Types
 // ============================================
 
-export type EntityType = "contact" | "property" | "document" | "event" | "mandate" | "request" | "deal";
+export type EntityType = "contact" | "property" | "document" | "event" | "request" | "deal";
 
 export interface EntitySearchResult {
   value: string;
@@ -46,7 +45,6 @@ export interface EntitySearchOptions {
     propertyStatus?: string;
     documentType?: string;
     eventType?: string;
-    mandateStatus?: string;
     requestStatus?: string;
     dealStage?: string;
   };
@@ -366,97 +364,6 @@ async function searchEvents(
   return { results, timing: Date.now() - start };
 }
 
-/**
- * Search mandates by title and friendlyId
- * Note: mandate title is encrypted, so we fetch + decrypt + filter in memory
- */
-async function searchMandates(
-  organizationId: string,
-  query: string,
-  limit: number,
-  statusFilter?: string
-): Promise<{ results: EntitySearchResult[]; timing: number }> {
-  const start = Date.now();
-
-  const where: Prisma.MandateWhereInput = {
-    organizationId,
-  };
-
-  if (statusFilter) {
-    where.status = statusFilter as Prisma.MandateWhereInput["status"];
-  }
-
-  // Fetch a larger batch since we filter after decryption
-  const fetchLimit = query?.trim() ? Math.max(limit * 5, 50) : limit;
-
-  const mandates = await prismadb.mandate.findMany({
-    where,
-    select: {
-      id: true,
-      friendlyId: true,
-      title: true,
-      transaction_type: true,
-      budget_min: true,
-      budget_max: true,
-      status: true,
-      urgency: true,
-    },
-    orderBy: { createdAt: "desc" },
-    take: fetchLimit,
-  });
-
-  // Decrypt encrypted mandate fields
-  const decryptedMandates = await Promise.all(
-    mandates.map((m) => decryptMandateForOrg(m, organizationId))
-  );
-
-  // Filter by query after decryption
-  let filtered = decryptedMandates;
-  if (query?.trim()) {
-    const searchTerm = query.trim().toLowerCase();
-    filtered = decryptedMandates.filter((m) => {
-      const title = (m.title || "").toLowerCase();
-      const friendlyId = (m.friendlyId || "").toLowerCase();
-      return title.includes(searchTerm) || friendlyId.includes(searchTerm);
-    });
-  }
-
-  const results: EntitySearchResult[] = filtered.slice(0, limit).map((mandate) => {
-    // Build budget range string
-    const budgetParts: string[] = [];
-    if (mandate.budget_min || mandate.budget_max) {
-      const min = mandate.budget_min ? `€${Number(mandate.budget_min).toLocaleString()}` : "";
-      const max = mandate.budget_max ? `€${Number(mandate.budget_max).toLocaleString()}` : "";
-      if (min && max) {
-        budgetParts.push(`${min}–${max}`);
-      } else if (min) {
-        budgetParts.push(`from ${min}`);
-      } else if (max) {
-        budgetParts.push(`up to ${max}`);
-      }
-    }
-
-    const subtitleParts = [
-      mandate.transaction_type,
-      budgetParts[0],
-    ].filter(Boolean);
-
-    return {
-      value: mandate.id,
-      label: mandate.title || "Untitled Mandate",
-      type: "mandate" as const,
-      metadata: {
-        subtitle: subtitleParts.join(" · ") || undefined,
-        status: mandate.status || undefined,
-        urgency: mandate.urgency || undefined,
-        friendlyId: mandate.friendlyId || undefined,
-      },
-    };
-  });
-
-  return { results, timing: Date.now() - start };
-}
-
 // ============================================
 // Requests (v2.0)
 // ============================================
@@ -659,14 +566,6 @@ export async function searchEntities(
     );
   }
 
-  if (types.includes("mandate")) {
-    searchPromises.push(
-      searchMandates(organizationId, query, limit, filters.mandateStatus).then(
-        (res) => ({ type: "mandate" as const, ...res })
-      )
-    );
-  }
-
   if (types.includes("request")) {
     searchPromises.push(
       searchRequests(organizationId, query, limit, filters.requestStatus).then(
@@ -691,7 +590,6 @@ export async function searchEntities(
     property: [],
     document: [],
     event: [],
-    mandate: [],
     request: [],
     deal: [],
   };
@@ -701,7 +599,6 @@ export async function searchEntities(
     property: 0,
     document: 0,
     event: 0,
-    mandate: 0,
     request: 0,
     deal: 0,
   };

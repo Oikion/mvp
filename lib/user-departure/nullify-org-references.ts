@@ -27,10 +27,10 @@ export async function nullifyOrgReferences(
       data: { assigned_to: null },
     }),
 
-    // Mandate.assigned_to
-    prismadb.mandate.updateMany({
-      where: { organizationId: orgId, assigned_to: userId },
-      data: { assigned_to: null },
+    // Request.assignedAgentId
+    prismadb.request.updateMany({
+      where: { organizationId: orgId, assignedAgentId: userId },
+      data: { assignedAgentId: null },
     }),
 
     // Deal.buyerAgentId
@@ -133,9 +133,9 @@ export async function nullifyOrgReferences(
       data: { userId: null },
     }),
 
-    // MandateComment → via Mandate.organizationId
-    prismadb.mandateComment.updateMany({
-      where: { userId, mandate: { organizationId: orgId } },
+    // RequestComment → via Request.organizationId
+    prismadb.requestComment.updateMany({
+      where: { userId, request: { organizationId: orgId } },
       data: { userId: null },
     }),
 
