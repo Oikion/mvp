@@ -12,7 +12,7 @@ interface Contact {
 
 interface ClientData {
   id: string;
-  client_name: string;
+  displayName: string;
   client_status?: string;
   primary_email?: string;
   primary_phone?: string;

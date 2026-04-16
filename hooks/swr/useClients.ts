@@ -7,7 +7,7 @@ export interface ClientOption {
 
 interface ClientsResponse {
   id: string;
-  client_name: string;
+  displayName: string;
 }
 
 interface UseClientsOptions {
@@ -41,7 +41,7 @@ async function clientsFetcher(url: string): Promise<ClientOption[]> {
   if (Array.isArray(items)) {
     return items.map((client: ClientsResponse) => ({
       value: client.id,
-      label: client.client_name || "Unnamed Client",
+      label: client.displayName || "Unnamed Client",
     }));
   }
 

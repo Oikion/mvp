@@ -64,7 +64,7 @@ interface LinkedDocument {
 interface ClientLinkedData {
   client?: {
     id: string;
-    client_name: string;
+    displayName: string;
   };
   properties: LinkedProperty[];
   mandates: LinkedMandate[];
