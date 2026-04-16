@@ -693,8 +693,10 @@ export const propertyEnumMappings = {
  * All client enum mappings
  */
 export const clientEnumMappings = {
-  client_type: clientTypeMap,
+  client_type: clientTypeMap,   // legacy key (kept for backward compat)
+  contact_type: clientTypeMap,  // new key after contact rename
   client_status: clientStatusMap,
+  contact_status: clientStatusMap, // new key after contact rename
   person_type: personTypeMap,
   lead_source: leadSourceMap,
   visibility: itemVisibilityMap,

@@ -30,7 +30,7 @@ const {
           createMany: mockCreateMany,
           findMany: mockFindMany,
         },
-        property: {
+        properties: {
           createMany: mockCreateMany,
           findMany: mockFindMany,
         },
@@ -384,14 +384,14 @@ describe("executeBatchImport", () => {
     expect(result.properties).toHaveLength(1);
   });
 
-  // ---- 10. Transaction receives 30s timeout option ----
+  // ---- 10. Transaction receives 15s timeout option ----
 
-  it("passes 30000ms timeout to $transaction", async () => {
+  it("passes 15000ms timeout to $transaction", async () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
         hasContact: true,
-        contactRow:{ client_name: "Timeout Test" },
+        contactRow:{ contact_name: "Timeout Test" },
         contactDedupKey:"name:timeout test",
       }),
     ];
@@ -400,7 +400,30 @@ describe("executeBatchImport", () => {
 
     expect(mockTransaction).toHaveBeenCalledWith(
       expect.any(Function),
-      { timeout: 30000 },
+      { timeout: 15000 },
     );
+  });
+
+  // ---- 11. Greek space-formatted budget numbers are coerced correctly ----
+
+  it("handles Greek space-formatted budget numbers in requestRow", async () => {
+    // zOptionalPositiveNumber preprocessor strips whitespace before parsing,
+    // so "1 500 000" (Greek thousands separator) should be accepted as 1500000.
+    const rows: ValidatedRow[] = [
+      makeValidatedRow({
+        rowIndex: 0,
+        hasRequest: true,
+        requestRow: {
+          transaction_type: "SALE",
+          title: "Formatted Budget Test",
+          budget_min: "1 500 000",
+        },
+      }),
+    ];
+
+    // Should not throw — coerceOptionalNumber strips whitespace before coercion
+    const result = await executeBatchImport(rows, "org-1", "user-1");
+
+    expect(result.requests).toHaveLength(1);
   });
 });
