@@ -56,7 +56,7 @@ export function useMandates(options: UseMandatesOptions = {}) {
   const { enabled = true } = options;
 
   const { data, error, isLoading, isValidating, mutate } = useSWR<MandateOption[]>(
-    enabled ? "/api/mandates?minimal=true" : null,
+    enabled ? "/api/requests?minimal=true" : null,
     mandatesFetcher,
     {
       // Keep data fresh for 5 minutes - selector data doesn't change often

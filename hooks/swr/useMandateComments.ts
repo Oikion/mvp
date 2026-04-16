@@ -33,7 +33,7 @@ export function useMandateComments(
 ) {
   const { enabled = true } = options;
 
-  const key = enabled && mandateId ? `/api/mandates/${mandateId}/comments` : null;
+  const key = enabled && mandateId ? `/api/requests/${mandateId}/comments` : null;
 
   const { data, error, isLoading, isValidating, mutate } = useSWR<MandateCommentsResponse>(key);
 
@@ -71,7 +71,7 @@ export function useAddMandateComment(
 ) {
   const { currentUser } = options;
   const { mutate: globalMutate } = useSWRConfig();
-  const key = `/api/mandates/${mandateId}/comments`;
+  const key = `/api/requests/${mandateId}/comments`;
 
   const { trigger, isMutating, error } = useSWRMutation<
     { comment: MandateComment },
@@ -155,7 +155,7 @@ export function useAddMandateComment(
  */
 export function useDeleteMandateComment(mandateId: string) {
   const { mutate: globalMutate } = useSWRConfig();
-  const key = `/api/mandates/${mandateId}/comments`;
+  const key = `/api/requests/${mandateId}/comments`;
 
   const { trigger, isMutating, error } = useSWRMutation<
     { success: boolean },
@@ -210,5 +210,5 @@ export function useDeleteMandateComment(mandateId: string) {
  * Useful for manual cache invalidation
  */
 export function getMandateCommentsKey(mandateId: string): string {
-  return `/api/mandates/${mandateId}/comments`;
+  return `/api/requests/${mandateId}/comments`;
 }

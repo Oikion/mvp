@@ -338,7 +338,7 @@ export function useLinkPropertiesToMandate(mandateId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/mandates/link-entities",
+    "/api/requests/link-entities",
     linkPropertiesToMandateFetcher,
     {
       onSuccess: () => {
@@ -366,7 +366,7 @@ export function useUnlinkPropertyFromMandate(mandateId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/mandates/link-entities",
+    "/api/requests/link-entities",
     unlinkPropertyFromMandateFetcher,
     {
       onSuccess: () => {
@@ -398,7 +398,7 @@ export function useLinkClientsToMandate(mandateId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/mandates/link-entities",
+    "/api/requests/link-entities",
     linkClientsToMandateFetcher,
     {
       onSuccess: () => {
@@ -426,7 +426,7 @@ export function useUnlinkClientFromMandate(mandateId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/mandates/link-entities",
+    "/api/requests/link-entities",
     unlinkClientFromMandateFetcher,
     {
       onSuccess: () => {
@@ -458,7 +458,7 @@ export function useLinkMandatesToProperty(propertyId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/mandates/link-entities",
+    "/api/requests/link-entities",
     linkMandatesToPropertyFetcher,
     {
       onSuccess: () => {
@@ -486,7 +486,7 @@ export function useUnlinkMandateFromProperty(propertyId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/mandates/link-entities",
+    "/api/requests/link-entities",
     unlinkMandateFromPropertyFetcher,
     {
       onSuccess: () => {
@@ -514,7 +514,7 @@ export function useLinkMandatesToClient(clientId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/mandates/link-entities",
+    "/api/requests/link-entities",
     linkMandatesToClientFetcher,
     {
       onSuccess: () => {
@@ -542,7 +542,7 @@ export function useUnlinkMandateFromClient(clientId: string) {
   const { mutate: globalMutate } = useSWRConfig();
 
   const { trigger, isMutating, error } = useSWRMutation(
-    "/api/mandates/link-entities",
+    "/api/requests/link-entities",
     unlinkMandateFromClientFetcher,
     {
       onSuccess: () => {

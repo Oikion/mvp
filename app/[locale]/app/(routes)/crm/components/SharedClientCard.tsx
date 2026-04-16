@@ -8,7 +8,13 @@ import { Mail, Phone, ExternalLink, Share2, Eye, MessageSquare } from "lucide-re
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { formatDistanceToNow } from "date-fns";
-import type { SharedClientData } from "@/actions/crm/get-shared-clients";
+// SharedClientData — get-shared-clients removed in v2; inline type for UI compatibility
+type SharedClientData = {
+  contact?: { displayName?: string; status?: string; email?: string; primaryPhone?: string; friendlyId?: string };
+  permissions?: string;
+  createdAt: string | Date;
+  message?: string;
+};
 
 interface SharedClientCardProps {
   data: SharedClientData;

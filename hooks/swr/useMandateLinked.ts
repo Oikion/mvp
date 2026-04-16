@@ -73,7 +73,7 @@ export function useMandateLinked(
   options: UseMandateLinkedOptions = {}
 ) {
   const { enabled = true } = options;
-  const key = enabled && mandateId ? `/api/mandates/${mandateId}/linked` : null;
+  const key = enabled && mandateId ? `/api/requests/${mandateId}/linked` : null;
   const { data, error, isLoading, isValidating, mutate } =
     useSWR<MandateLinkedData>(key);
 
@@ -96,5 +96,5 @@ export function useMandateLinked(
  * Useful for manual cache invalidation
  */
 export function getMandateLinkedKey(mandateId: string): string {
-  return `/api/mandates/${mandateId}/linked`;
+  return `/api/requests/${mandateId}/linked`;
 }

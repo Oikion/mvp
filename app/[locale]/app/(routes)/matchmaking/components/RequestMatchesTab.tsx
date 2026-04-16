@@ -1,0 +1,444 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  FileText,
+  Building2,
+  Target,
+  TrendingUp,
+  CheckCircle2,
+  ArrowRight,
+  Bed,
+  MapPin,
+  Info,
+  AlertTriangle,
+  BarChart3,
+  Euro,
+  RefreshCw,
+} from "lucide-react";
+import Link from "next/link";
+import type { RequestMatchAnalytics } from "@/actions/matchmaking/get-request-matches";
+import type { PersistedMatchItem } from "@/actions/matchmaking/get-persisted-matches";
+import { MatchScoreBreakdown } from "./MatchScoreBreakdown";
+
+interface Props {
+  analytics: RequestMatchAnalytics;
+  persistedMatches: PersistedMatchItem[];
+  locale: string;
+  onRunNow?: () => void;
+  isRunning?: boolean;
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 70) return "bg-success";
+  if (score >= 50) return "bg-warning";
+  return "bg-destructive";
+}
+
+function formatPrice(price: number | null | undefined): string {
+  if (!price) return "N/A";
+  return new Intl.NumberFormat("el-GR", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+
+export function RequestMatchesTab({
+  analytics,
+  persistedMatches,
+  locale,
+  onRunNow,
+  isRunning,
+}: Props) {
+  const t = useTranslations("matchmaking");
+  const { requestStats } = analytics;
+
+  const statsCards = [
+    {
+      title: t("requestMatches.stats.totalRequests"),
+      value: requestStats.totalRequests,
+      icon: FileText,
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+    },
+    {
+      title: t("requestMatches.stats.activeRequests"),
+      value: requestStats.activeRequests,
+      icon: CheckCircle2,
+      color: "text-success",
+      bgColor: "bg-success/10",
+    },
+    {
+      title: t("requestMatches.stats.requestsWithMatches"),
+      value: requestStats.requestsWithMatches,
+      icon: Target,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+    },
+    {
+      title: t("requestMatches.stats.avgMatchScore"),
+      value: `${requestStats.avgMatchScore}%`,
+      icon: TrendingUp,
+      color: "text-warning",
+      bgColor: "bg-warning/10",
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Action bar */}
+      {onRunNow && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRunNow}
+            disabled={isRunning}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRunning ? "animate-spin" : ""}`} />
+            {isRunning ? t("requestMatches.runNow.running") : t("requestMatches.runNow.label")}
+          </Button>
+        </div>
+      )}
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statsCards.map((stat) => (
+          <Card key={stat.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Top Request-Property Matches */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            {t("requestMatches.topMatches.title")}
+          </CardTitle>
+          <CardDescription>
+            {t("requestMatches.topMatches.description")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TopRequestMatchesGrid
+            matches={analytics.topMatches}
+            locale={locale}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Match Distribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            {t("requestMatches.distribution.title")}
+          </CardTitle>
+          <CardDescription>
+            {t("requestMatches.distribution.description")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {analytics.matchDistribution.map((bucket) => {
+            const total = analytics.matchDistribution.reduce(
+              (sum, b) => sum + b.count,
+              0,
+            );
+            const percentage = total > 0 ? (bucket.count / total) * 100 : 0;
+
+            return (
+              <div key={bucket.range} className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{bucket.range}</span>
+                  <span className="text-muted-foreground">
+                    {bucket.count} {t("common.matches")} ({percentage.toFixed(1)}%)
+                  </span>
+                </div>
+                <Progress value={percentage} className="h-2" />
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {/* Unmatched Requests */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-warning" />
+            {t("unmatchedClients.title")}
+          </CardTitle>
+          <CardDescription>
+            {t("unmatchedClients.description")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <UnmatchedRequestsList
+            requests={analytics.unmatchedClients}
+            locale={locale}
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Sub-components (private to this file)
+// ──────────────────────────────────────────────
+
+function TopRequestMatchesGrid({
+  matches,
+  locale,
+}: {
+  matches: RequestMatchAnalytics["topMatches"];
+  locale: string;
+}) {
+  const t = useTranslations("matchmaking");
+
+  if (matches.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <p>{t("requestMatches.topMatches.noMatches")}</p>
+        <p className="text-sm mt-2">{t("requestMatches.topMatches.noMatchesHint")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {matches.map((match) => (
+        <div
+          key={`${match.clientId}-${match.propertyId}`}
+          className="flex flex-col md:flex-row items-start md:items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+        >
+          {/* Request Info */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="bg-primary/10 text-primary">
+                <FileText className="h-5 w-5" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <Link
+                href={`/${locale}/app/requests/${match.client?.friendlyId ?? match.clientId}`}
+                className="font-medium hover:text-primary truncate block"
+              >
+                {(match.client as any)?.displayName ?? (match.client as any)?.client_name ?? match.clientId}
+              </Link>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {(match.client as any)?.status && (
+                  <Badge variant="outline" className="text-xs">
+                    {(match.client as any).status}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Match Score */}
+          <div className="flex flex-col items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2 cursor-help">
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${getScoreColor(match.overallScore)}`}
+                    >
+                      {Math.round(match.overallScore)}%
+                    </div>
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="w-80 p-0">
+                  <MatchScoreBreakdown breakdown={match.breakdown} />
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <span className="text-xs text-muted-foreground">
+              {match.matchedCriteria}/{match.totalCriteria} {t("topMatches.criteria")}
+            </span>
+          </div>
+
+          {/* Arrow */}
+          <ArrowRight className="h-5 w-5 text-muted-foreground hidden md:block" />
+
+          {/* Property Info */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="h-10 w-10 rounded bg-muted flex items-center justify-center overflow-hidden">
+              {(match.property as any).imageUrl ? (
+                <img
+                  src={(match.property as any).imageUrl}
+                  alt={(match.property as any).property_name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Building2 className="h-5 w-5 text-muted-foreground" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <Link
+                href={`/${locale}/app/mls/properties/${match.property?.friendlyId ?? match.propertyId}`}
+                className="font-medium hover:text-primary truncate block"
+              >
+                {(match.property as any).property_name}
+              </Link>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                {(match.property as any).bedrooms && (
+                  <span className="flex items-center gap-1">
+                    <Bed className="h-3 w-3" />
+                    {(match.property as any).bedrooms}
+                  </span>
+                )}
+                {((match.property as any).area || (match.property as any).address_city) && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {(match.property as any).area || (match.property as any).address_city}
+                  </span>
+                )}
+                {(match.property as any).price && (
+                  <span className="font-medium text-foreground">
+                    {formatPrice((match.property as any).price)}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/${locale}/app/requests/${match.client?.friendlyId ?? match.clientId}`}>
+                {t("requestMatches.topMatches.viewRequest")}
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/${locale}/app/mls/properties/${match.property?.friendlyId ?? match.propertyId}`}>
+                {t("topMatches.viewProperty")}
+              </Link>
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function UnmatchedRequestsList({
+  requests,
+  locale,
+}: {
+  requests: RequestMatchAnalytics["unmatchedClients"];
+  locale: string;
+}) {
+  const t = useTranslations("matchmaking");
+
+  if (requests.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <div className="text-success mb-4">
+          <svg
+            className="h-12 w-12 mx-auto"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <p className="font-medium text-success">
+          {t("unmatchedClients.allClientsMatched")}
+        </p>
+        <p className="text-sm mt-2">
+          {t("unmatchedClients.allClientsMatchedDesc")}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-warning/10 border border-warning/30 rounded-lg p-4 flex items-start gap-3">
+        <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
+        <div>
+          <p className="font-medium text-amber-800">
+            {requests.length} {t("unmatchedClients.needsAttention")}
+          </p>
+          <p className="text-sm text-warning mt-1">
+            {t("unmatchedClients.attentionDesc")}
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {requests.map((req) => (
+          <div
+            key={req.id}
+            className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+          >
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="bg-warning/10 text-warning">
+                <FileText className="h-5 w-5" />
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex-1 min-w-0">
+              <Link
+                href={`/${locale}/app/requests/${req.friendlyId}`}
+                className="font-medium hover:text-primary"
+              >
+                {(req as any).displayName ?? (req as any).client_name ?? req.id}
+              </Link>
+            </div>
+
+            <div className="text-center">
+              <div className="text-lg font-bold text-warning">
+                {req.bestMatchScore ? `${Math.round(req.bestMatchScore)}%` : "0%"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {t("unmatchedClients.bestMatch")}
+              </div>
+            </div>
+
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/${locale}/app/requests/${req.friendlyId}`}>
+                {t("unmatchedClients.review")}
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Link>
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

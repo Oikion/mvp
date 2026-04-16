@@ -1,12 +1,11 @@
 "use server";
 
 import { getOrganizationUsers } from "@/actions/organization/get-organization-users";
-import { getClients } from "@/actions/crm/get-clients";
 import { getContacts } from "@/actions/crm/get-contacts";
 
 export const getAllCrmData = async () => {
   // Parallelize database queries for better performance
-  const [users, accounts, contacts] = await Promise.all([
+  const [users, contacts] = await Promise.all([
     getOrganizationUsers({
       select: {
         id: true,
@@ -17,12 +16,11 @@ export const getAllCrmData = async () => {
       },
       onlyActive: true,
     }),
-    getClients(),
     getContacts(),
   ]);
 
-  // Legacy keys kept for UI compatibility; to be removed in follow-up refactor
-  // Legacy keys — always empty; kept for UI key compatibility until Task 17 cleanup
+  // Legacy keys — always empty; kept for UI key compatibility
+  const accounts: never[] = [];
   const opportunities: never[] = [];
   const leads: never[] = [];
   const contracts: never[] = [];

@@ -75,14 +75,14 @@ export function useMandatesPaginated(options: UseMandatesPaginatedOptions = {}) 
 
     // First page
     if (pageIndex === 0) {
-      return buildPaginatedUrl("/api/mandates", { limit }, { status, search });
+      return buildPaginatedUrl("/api/requests", { limit }, { status, search });
     }
 
     // Subsequent pages with cursor
     const cursor = previousPageData?.nextCursor;
     if (!cursor) return null;
 
-    return buildPaginatedUrl("/api/mandates", { cursor, limit }, { status, search });
+    return buildPaginatedUrl("/api/requests", { cursor, limit }, { status, search });
   };
 
   const {

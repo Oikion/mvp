@@ -18,7 +18,14 @@ import moment from "moment";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import type { SharedClientData } from "@/actions/crm/get-shared-clients";
+// SharedClientData — get-shared-clients removed in v2; inline type for UI compatibility
+type SharedClientData = {
+  id?: string;
+  contact?: { displayName?: string; status?: string; email?: string; primaryPhone?: string; friendlyId?: string };
+  permissions?: string;
+  createdAt: string | Date;
+  message?: string;
+};
 import { SharedActionModals } from "@/components/entity";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
 import { GridToolbar } from "@/components/ui/grid-toolbar";
@@ -404,7 +411,7 @@ export default function ClientsPageView({
                   ) : (
                     <VirtualizedGrid
                       items={filteredSharedClients}
-                      getItemKey={(client) => client.id}
+                      getItemKey={(client) => client.id ?? ""}
                       renderItem={(client, index) => (
                         <SharedClientCard data={client} />
                       )}
