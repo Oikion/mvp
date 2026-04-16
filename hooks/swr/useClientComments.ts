@@ -33,7 +33,7 @@ export function useClientComments(
 ) {
   const { enabled = true } = options;
 
-  const key = enabled && clientId ? `/api/crm/clients/${clientId}/comments` : null;
+  const key = enabled && clientId ? `/api/crm/contacts/${clientId}/comments` : null;
 
   const { data, error, isLoading, isValidating, mutate } = useSWR<ClientCommentsResponse>(key);
 
@@ -71,7 +71,7 @@ export function useAddClientComment(
 ) {
   const { currentUser } = options;
   const { mutate: globalMutate } = useSWRConfig();
-  const key = `/api/crm/clients/${clientId}/comments`;
+  const key = `/api/crm/contacts/${clientId}/comments`;
 
   const { trigger, isMutating, error } = useSWRMutation<
     { comment: ClientComment },
@@ -155,7 +155,7 @@ export function useAddClientComment(
  */
 export function useDeleteClientComment(clientId: string) {
   const { mutate: globalMutate } = useSWRConfig();
-  const key = `/api/crm/clients/${clientId}/comments`;
+  const key = `/api/crm/contacts/${clientId}/comments`;
 
   const { trigger, isMutating, error } = useSWRMutation<
     { success: boolean },
@@ -210,5 +210,5 @@ export function useDeleteClientComment(clientId: string) {
  * Useful for manual cache invalidation
  */
 export function getClientCommentsKey(clientId: string): string {
-  return `/api/crm/clients/${clientId}/comments`;
+  return `/api/crm/contacts/${clientId}/comments`;
 }

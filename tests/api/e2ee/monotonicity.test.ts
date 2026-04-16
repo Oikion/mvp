@@ -52,9 +52,9 @@ vi.mock("@/lib/entity-session/encryption-mode", () => ({
 // ---------------------------------------------------------------------------
 // Import the route AFTER all mocks are registered
 // ---------------------------------------------------------------------------
-let POST: typeof import("@/app/api/crm/clients/[clientId]/comments/route").POST;
+let POST: typeof import("@/app/api/crm/contacts/[contactId]/comments/route").POST;
 beforeAll(async () => {
-  ({ POST } = await import("@/app/api/crm/clients/[clientId]/comments/route"));
+  ({ POST } = await import("@/app/api/crm/contacts/[contactId]/comments/route"));
 });
 
 // ---------------------------------------------------------------------------
@@ -62,20 +62,20 @@ beforeAll(async () => {
 // ---------------------------------------------------------------------------
 
 function makeRequest(body: Record<string, unknown>): Request {
-  return new Request("http://localhost/api/crm/clients/client-1/comments", {
+  return new Request("http://localhost/api/crm/contacts/contact-1/comments", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 }
 
-function makeParams(clientId = "client-1") {
-  return { params: Promise.resolve({ clientId }) };
+function makeParams(contactId = "contact-1") {
+  return { params: Promise.resolve({ contactId }) };
 }
 
 const DUMMY_COMMENT = {
   id: "cmt-1",
-  clientId: "client-1",
+  contactId: "contact-1",
   userId: "user-1",
   content: "iv:ciphertext",
   entitySessionId: "sess-1",
@@ -93,8 +93,8 @@ describe("messageIndex monotonicity — client comments POST", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Default: client belongs to the org
-    mockClientsFind.mockResolvedValue({ id: "client-1", client_name: "Acme" });
+    // Default: contact belongs to the org
+    mockClientsFind.mockResolvedValue({ id: "contact-1", displayName: "Acme" });
 
     // Default: session ownership check passes
     mockEntitySessionFind.mockResolvedValue({ id: "sess-1" });

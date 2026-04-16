@@ -68,7 +68,7 @@ export function useCacheInvalidation() {
    */
   const invalidateClients = useCallback(() => {
     return globalMutate(
-      (key) => typeof key === "string" && (key.includes("/api/crm/contacts") || key.includes("/api/crm/clients")),
+      (key) => typeof key === "string" && key.includes("/api/crm/contacts"),
       undefined,
       { revalidate: true }
     );

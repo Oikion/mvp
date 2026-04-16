@@ -56,7 +56,7 @@ export function useClients(options: UseClientsOptions = {}) {
   const { enabled = true } = options;
 
   const { data, error, isLoading, isValidating, mutate } = useSWR<ClientOption[]>(
-    enabled ? "/api/crm/clients?minimal=true" : null,
+    enabled ? "/api/crm/contacts?minimal=true" : null,
     clientsFetcher,
     {
       // Keep data fresh for 5 minutes - selector data doesn't change often

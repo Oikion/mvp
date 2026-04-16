@@ -6,10 +6,14 @@ import {
   encryptContactCommentForOrg,
   decryptContactCommentForOrg,
 } from "@/lib/model-encryption";
+import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
+import { EncryptionMode } from "@prisma/client";
 import { z } from "zod";
 
 const commentSchema = z.object({
   content: z.string().min(1).max(5000),
+  entitySessionId: z.string().optional(),
+  messageIndex: z.number().int().min(0).optional(),
 });
 
 export async function GET(
@@ -39,11 +43,26 @@ export async function GET(
       where: { contactId },
       orderBy: { createdAt: "desc" },
       include: {
-        user: { select: { name: true, id: true, avatar: true } },
+        user: { select: { name: true, id: true, avatar: true, email: true } },
       },
     });
 
-    // Decrypt comment content
+    const encryptionMode = await getOrgEncryptionMode(organizationId);
+    const isE2EE = encryptionMode === EncryptionMode.E2EE;
+
+    if (isE2EE) {
+      // E2EE: return ciphertext + session metadata — client decrypts
+      return NextResponse.json({
+        comments: comments.map((c) => ({
+          ...c,
+          Users: c.user,
+          isEncrypted: c.entitySessionId !== null,
+        })),
+        encryptionMode: "E2EE",
+      });
+    }
+
+    // Standard: server-side decryption
     const decrypted = [];
     for (const comment of comments) {
       try {
@@ -53,7 +72,10 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({ data: decrypted });
+    return NextResponse.json({
+      comments: decrypted.map((c) => ({ ...c, Users: (c as any).user, isEncrypted: (c as any).entitySessionId !== null })),
+      encryptionMode: "STANDARD",
+    });
   } catch (error) {
     console.error("[CONTACT_COMMENTS_GET]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
@@ -83,6 +105,8 @@ export async function POST(
       );
     }
 
+    const { content, entitySessionId: sid, messageIndex: idx } = validation.data;
+
     // Verify contact belongs to org
     const contact = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
@@ -93,25 +117,118 @@ export async function POST(
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
-    const encrypted = await encryptContactCommentForOrg(
-      { content: validation.data.content },
-      organizationId
-    );
+    // Determine encryption mode
+    const encryptionMode = await getOrgEncryptionMode(organizationId);
+    const isE2EE = encryptionMode === EncryptionMode.E2EE;
+
+    let commentContent: string;
+    let entitySessionId: string | null = null;
+    let messageIndex: number | null = null;
+
+    if (isE2EE) {
+      if (!sid || idx === undefined) {
+        return NextResponse.json(
+          { error: "entitySessionId and messageIndex required for E2EE orgs" },
+          { status: 400 }
+        );
+      }
+
+      // Verify session belongs to this contact and org
+      const sessionOwnership = await prismadb.entitySession.findFirst({
+        where: {
+          id: sid,
+          entityType: "CLIENT",
+          entityId: contactId,
+          orgId: organizationId,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+      if (!sessionOwnership) {
+        return NextResponse.json(
+          { error: "entitySessionId does not match this entity or is not active" },
+          { status: 400 }
+        );
+      }
+
+      if (!Number.isInteger(idx) || idx < 0) {
+        return NextResponse.json(
+          { error: "messageIndex must be a non-negative integer" },
+          { status: 400 }
+        );
+      }
+
+      // Enforce monotonicity: only advance if idx is strictly greater than lastMessageIndex
+      const updated = await prismadb.entitySession.updateMany({
+        where: {
+          id: sid,
+          OR: [
+            { lastMessageIndex: null },
+            { lastMessageIndex: { lt: idx } },
+          ],
+        },
+        data: { lastMessageIndex: idx },
+      });
+
+      if (updated.count === 0) {
+        return NextResponse.json(
+          { error: "messageIndex is not monotonically increasing" },
+          { status: 400 }
+        );
+      }
+
+      commentContent = content.trim();
+      if (!commentContent.includes(":")) {
+        return NextResponse.json(
+          { error: "Invalid encrypted content format" },
+          { status: 400 }
+        );
+      }
+      entitySessionId = sid;
+      messageIndex = idx;
+    } else {
+      if (content.length > 2000) {
+        return NextResponse.json(
+          { error: "Comment is too long (max 2000 characters)" },
+          { status: 400 }
+        );
+      }
+      const { content: encrypted } = await encryptContactCommentForOrg(
+        { content: content.trim() },
+        organizationId
+      );
+      commentContent = encrypted ?? content.trim();
+    }
 
     const comment = await prismadb.contactComment.create({
       data: {
         contactId,
         userId: user.id,
-        content: encrypted.content!,
+        content: commentContent,
+        entitySessionId,
+        messageIndex,
       },
       include: {
-        user: { select: { name: true, id: true, avatar: true } },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
       },
     });
 
-    // Decrypt before returning so the caller gets plaintext, not ciphertext
-    const decrypted = await decryptContactCommentForOrg(comment, organizationId);
-    return NextResponse.json({ data: decrypted }, { status: 201 });
+    // For Standard orgs, decrypt before returning to client
+    const responseComment = isE2EE
+      ? comment
+      : await decryptContactCommentForOrg(comment, organizationId);
+
+    return NextResponse.json(
+      { comment: { ...responseComment, Users: comment.user } },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("[CONTACT_COMMENTS_POST]", error);
     return NextResponse.json({ error: "Failed to create comment" }, { status: 500 });
@@ -129,6 +246,7 @@ export async function DELETE(
     }
 
     const organizationId = await getCurrentOrgId();
+    const user = await getCurrentUser();
     const { contactId } = await params;
     const { searchParams } = new URL(req.url);
     const commentId = searchParams.get("commentId");
@@ -144,11 +262,19 @@ export async function DELETE(
         contactId,
         contact: { organizationId },
       },
-      select: { id: true },
+      select: { id: true, userId: true },
     });
 
     if (!comment) {
       return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+    }
+
+    // Only the comment author can delete
+    if (comment.userId !== user.id) {
+      return NextResponse.json(
+        { error: "You don't have permission to delete this comment" },
+        { status: 403 }
+      );
     }
 
     await prismadb.contactComment.delete({ where: { id: commentId } });

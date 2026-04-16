@@ -74,7 +74,7 @@ interface UseEntityCommentsOptions {
 function getCommentsEndpoint(entityType: CommentableEntityType, entityId: string): string {
   switch (entityType) {
     case "client":
-      return `/api/crm/clients/${entityId}/comments`;
+      return `/api/crm/contacts/${entityId}/comments`;
     case "property":
       return `/api/mls/properties/${entityId}/comments`;
     default:
