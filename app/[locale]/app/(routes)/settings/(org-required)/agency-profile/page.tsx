@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 
 import { getAgencyProfile } from "@/actions/organization/agency-profile";
 import { getDictionary } from "@/dictionaries";
-import Container from "../../components/ui/Container";
+import Container from "../../../components/ui/Container";
 import { AgencyWorkspaceOnlyMessage } from "./components/AgencyWorkspaceOnlyMessage";
 import { AgencyProfileClient } from "./components/AgencyProfileClient";
 
