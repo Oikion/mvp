@@ -163,11 +163,11 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
         }
 
         const totalCreated =
-          result.clients.length + result.properties.length + result.mandates.length;
+          result.contacts.length + result.properties.length + result.requests.length;
 
         if (totalCreated > 0) {
           toast.success("Import successful", {
-            description: `Created ${result.clients.length} client(s), ${result.properties.length} property(ies), ${result.mandates.length} mandate(s)`,
+            description: `Created ${result.contacts.length} contact(s), ${result.properties.length} property(ies), ${result.requests.length} request(s)`,
             isTranslationKey: false,
           });
         }
@@ -183,7 +183,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
           })),
           // Summary counts for legacy display
           clients: {
-            created: result.clients.length,
+            created: result.contacts.length,
             reused: 0,
             failed: result.errors.filter((e) => e.entity === "contact").length,
           },
@@ -192,13 +192,13 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
             failed: result.errors.filter((e) => e.entity === "property").length,
           },
           mandates: {
-            created: result.mandates.length,
+            created: result.requests.length,
             failed: result.errors.filter((e) => e.entity === "request").length,
           },
           links: {
-            clientProperty: result.linkCounts.clientProperty,
-            mandateClient: result.linkCounts.mandateClient,
-            mandateProperty: result.linkCounts.mandateProperty,
+            clientProperty: result.linkCounts.contactProperty,
+            mandateClient: result.linkCounts.requestContact,
+            mandateProperty: result.linkCounts.requestProperty,
           },
           // Attach the raw batch result for the new CompleteStep
           _batchResult: result,

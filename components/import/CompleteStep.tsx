@@ -34,20 +34,20 @@ export function CompleteStep({
   onDone,
 }: CompleteStepProps) {
   // Type guard: detect if using new BatchImportResult format
-  const isBatchResult = result && "clients" in result && Array.isArray(result.clients);
+  const isBatchResult = result && "contacts" in result && Array.isArray((result as BatchImportResult).contacts);
   const batchResult = isBatchResult ? (result as BatchImportResult) : null;
   const legacyResult = !isBatchResult ? (result as ImportResult | null) : null;
   let entityLabel: string;
   if (entityType === "contact") {
-    entityLabel = "clients";
+    entityLabel = "contacts";
   } else if (entityType === "request") {
-    entityLabel = "mandates";
+    entityLabel = "requests";
   } else {
     entityLabel = "properties";
   }
   // Normalize counts from either result type
   const imported = batchResult
-    ? batchResult.clients.length + batchResult.properties.length + batchResult.mandates.length
+    ? batchResult.contacts.length + batchResult.properties.length + batchResult.requests.length
     : (result as ImportResult | null)?.imported ?? 0;
   const skipped = batchResult
     ? batchResult.skippedCount
@@ -143,8 +143,8 @@ export function CompleteStep({
       {/* Per-entity breakdown — new BatchImportResult format with typed entities */}
       {batchResult && (
         <div className="space-y-3">
-          {/* Clients */}
-          {batchResult.clients.length > 0 && (
+          {/* Contacts */}
+          {batchResult.contacts.length > 0 && (
             <Card className="border-blue-500/50 bg-blue-50/30 dark:bg-blue-950/20">
               <CardContent className="pt-4 pb-4">
                 <div className="space-y-3">
@@ -153,21 +153,21 @@ export function CompleteStep({
                       <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900">
                         <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <span className="text-sm font-medium">Clients</span>
+                      <span className="text-sm font-medium">Contacts</span>
                     </div>
                     <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
-                      {batchResult.clients.length} created
+                      {batchResult.contacts.length} created
                     </span>
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
-                    {batchResult.clients.slice(0, 5).map((client) => (
-                      <div key={client.uuid} className="flex items-center gap-2">
-                        <span className="text-blue-600 dark:text-blue-400 font-mono">{client.friendlyId}</span>
+                    {batchResult.contacts.slice(0, 5).map((contact) => (
+                      <div key={contact.uuid} className="flex items-center gap-2">
+                        <span className="text-blue-600 dark:text-blue-400 font-mono">{contact.friendlyId}</span>
                       </div>
                     ))}
-                    {batchResult.clients.length > 5 && (
+                    {batchResult.contacts.length > 5 && (
                       <div className="text-muted-foreground italic">
-                        +{batchResult.clients.length - 5} more
+                        +{batchResult.contacts.length - 5} more
                       </div>
                     )}
                   </div>
@@ -209,8 +209,8 @@ export function CompleteStep({
             </Card>
           )}
 
-          {/* Mandates */}
-          {batchResult.mandates.length > 0 && (
+          {/* Requests */}
+          {batchResult.requests.length > 0 && (
             <Card className="border-violet-500/50 bg-violet-50/30 dark:bg-violet-950/20">
               <CardContent className="pt-4 pb-4">
                 <div className="space-y-3">
@@ -219,21 +219,21 @@ export function CompleteStep({
                       <div className="p-1.5 rounded-full bg-violet-100 dark:bg-violet-900">
                         <Tag className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                       </div>
-                      <span className="text-sm font-medium">Mandates</span>
+                      <span className="text-sm font-medium">Requests</span>
                     </div>
                     <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded">
-                      {batchResult.mandates.length} created
+                      {batchResult.requests.length} created
                     </span>
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
-                    {batchResult.mandates.slice(0, 5).map((mandate) => (
-                      <div key={mandate.uuid} className="flex items-center gap-2">
-                        <span className="text-violet-600 dark:text-violet-400 font-mono">{mandate.friendlyId}</span>
+                    {batchResult.requests.slice(0, 5).map((request) => (
+                      <div key={request.uuid} className="flex items-center gap-2">
+                        <span className="text-violet-600 dark:text-violet-400 font-mono">{request.friendlyId}</span>
                       </div>
                     ))}
-                    {batchResult.mandates.length > 5 && (
+                    {batchResult.requests.length > 5 && (
                       <div className="text-muted-foreground italic">
-                        +{batchResult.mandates.length - 5} more
+                        +{batchResult.requests.length - 5} more
                       </div>
                     )}
                   </div>
@@ -249,9 +249,9 @@ export function CompleteStep({
                 <span className="text-sm font-medium">Links established</span>
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">
-                    <div>Client→Property: {batchResult.linkCounts.clientProperty}</div>
-                    <div>Mandate→Property: {batchResult.linkCounts.mandateProperty}</div>
-                    <div>Mandate→Client: {batchResult.linkCounts.mandateClient}</div>
+                    <div>Contact→Property: {batchResult.linkCounts.contactProperty}</div>
+                    <div>Request→Property: {batchResult.linkCounts.requestProperty}</div>
+                    <div>Request→Contact: {batchResult.linkCounts.requestContact}</div>
                   </div>
                 </div>
               </div>

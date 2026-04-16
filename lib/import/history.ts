@@ -61,13 +61,13 @@ export interface ImportHistoryDetail extends ImportHistoryListItem {
  * Shape of resultDetails stored in the ImportHistory record.
  */
 export interface StoredResultDetails {
-  clients: Array<{ uuid: string; friendlyId: string }>;
+  contacts: Array<{ uuid: string; friendlyId: string }>;
   properties: Array<{ uuid: string; friendlyId: string }>;
-  mandates: Array<{ uuid: string; friendlyId: string }>;
+  requests: Array<{ uuid: string; friendlyId: string }>;
   linkCounts: {
-    clientProperty: number;
-    mandateProperty: number;
-    mandateClient: number;
+    contactProperty: number;
+    requestProperty: number;
+    requestContact: number;
   };
 }
 
@@ -146,7 +146,7 @@ export async function recordImport(params: RecordImportParams): Promise<ImportHi
     importHistoryId,
   } = params;
 
-  const createdCount = result.clients.length + result.properties.length + result.mandates.length;
+  const createdCount = result.contacts.length + result.properties.length + result.requests.length;
   const reusedCount = 0; // BatchImportResult does not track reuse separately
   const failedCount = result.errors.length;
   const skippedCount = result.skippedCount;
@@ -154,13 +154,13 @@ export async function recordImport(params: RecordImportParams): Promise<ImportHi
   const status = deriveStatus(createdCount, reusedCount, failedCount);
 
   const storedResultDetails: StoredResultDetails = {
-    clients: result.clients,
+    contacts: result.contacts,
     properties: result.properties,
-    mandates: result.mandates,
+    requests: result.requests,
     linkCounts: {
-      clientProperty: result.linkCounts.clientProperty,
-      mandateProperty: result.linkCounts.mandateProperty,
-      mandateClient: result.linkCounts.mandateClient,
+      contactProperty: result.linkCounts.contactProperty,
+      requestProperty: result.linkCounts.requestProperty,
+      requestContact: result.linkCounts.requestContact,
     },
   };
 
@@ -358,27 +358,30 @@ export async function deleteImportBatch(
   }
 
   // 2. Read resultDetails to get typed entity arrays
-  const details = existing.resultDetails as StoredResultDetails | null;
+  // Support both new keys (contacts/requests) and legacy keys (clients/mandates)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const details = existing.resultDetails as (StoredResultDetails & Record<string, any>) | null;
 
-  const allClientIds: string[] =
-    details?.clients?.map((c) => c.uuid) ?? existing.entityIds.filter(() => false);
+  const allContactIds: string[] =
+    (details?.contacts ?? details?.clients)?.map((c: { uuid: string }) => c.uuid) ?? [];
   const allPropertyIds: string[] = details?.properties?.map((p) => p.uuid) ?? [];
-  const allMandateIds: string[] = details?.mandates?.map((m) => m.uuid) ?? [];
+  const allRequestIds: string[] =
+    (details?.requests ?? details?.mandates)?.map((m: { uuid: string }) => m.uuid) ?? [];
 
   // 3. Filter to requested entity types
   const wantAll = entityTypes === "all";
-  const wantClients = wantAll || (entityTypes as string[]).includes("clients");
+  const wantContacts = wantAll || (entityTypes as string[]).includes("contacts") || (entityTypes as string[]).includes("clients");
   const wantProperties = wantAll || (entityTypes as string[]).includes("properties");
-  const wantMandates = wantAll || (entityTypes as string[]).includes("mandates");
+  const wantRequests = wantAll || (entityTypes as string[]).includes("requests") || (entityTypes as string[]).includes("mandates");
 
-  const clientIds = wantClients ? allClientIds : [];
+  const contactIds = wantContacts ? allContactIds : [];
   const propertyIds = wantProperties ? allPropertyIds : [];
-  const mandateIds = wantMandates ? allMandateIds : [];
+  const requestIds = wantRequests ? allRequestIds : [];
 
   const deletedCounts: Record<string, number> = {
-    clients: 0,
+    contacts: 0,
     properties: 0,
-    mandates: 0,
+    requests: 0,
   };
 
   // 4. Wrap in transaction
@@ -389,11 +392,11 @@ export async function deleteImportBatch(
       // (client_Properties and mandate_Clients tables removed — no M2M junction needed)
 
       //     Mandate_Properties: where mandateId OR propertyId is in delete set
-      if (mandateIds.length > 0 || propertyIds.length > 0) {
+      if (requestIds.length > 0 || propertyIds.length > 0) {
         await tx.mandate_Properties.deleteMany({
           where: {
             OR: [
-              ...(mandateIds.length > 0 ? [{ mandateId: { in: mandateIds } }] : []),
+              ...(requestIds.length > 0 ? [{ mandateId: { in: requestIds } }] : []),
               ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
             ],
           },
@@ -401,18 +404,18 @@ export async function deleteImportBatch(
       }
 
       // 4b. Delete entities
-      if (mandateIds.length > 0) {
+      if (requestIds.length > 0) {
         const { count } = await tx.mandate.deleteMany({
-          where: { id: { in: mandateIds }, organizationId: orgId },
+          where: { id: { in: requestIds }, organizationId: orgId },
         });
-        deletedCounts.mandates = count;
+        deletedCounts.requests = count;
       }
 
-      if (clientIds.length > 0) {
+      if (contactIds.length > 0) {
         const { count } = await tx.contact.deleteMany({
-          where: { id: { in: clientIds }, organizationId: orgId },
+          where: { id: { in: contactIds }, organizationId: orgId },
         });
-        deletedCounts.clients = count;
+        deletedCounts.contacts = count;
       }
 
       if (propertyIds.length > 0) {
@@ -423,25 +426,25 @@ export async function deleteImportBatch(
       }
 
       // 4c. Determine new status and update resultDetails
-      const remainingClients = wantClients ? [] : (details?.clients ?? []);
+      const remainingContacts = wantContacts ? [] : (details?.contacts ?? details?.clients ?? []);
       const remainingProperties = wantProperties ? [] : (details?.properties ?? []);
-      const remainingMandates = wantMandates ? [] : (details?.mandates ?? []);
+      const remainingRequests = wantRequests ? [] : (details?.requests ?? details?.mandates ?? []);
 
       const anyRemaining =
-        remainingClients.length > 0 ||
+        remainingContacts.length > 0 ||
         remainingProperties.length > 0 ||
-        remainingMandates.length > 0;
+        remainingRequests.length > 0;
 
       const newStatus: ImportStatus = anyRemaining ? "PARTIALLY_DELETED" : "BATCH_DELETED";
 
       const updatedResultDetails: StoredResultDetails = {
-        clients: remainingClients,
+        contacts: remainingContacts,
         properties: remainingProperties,
-        mandates: remainingMandates,
+        requests: remainingRequests,
         linkCounts: details?.linkCounts ?? {
-          clientProperty: 0,
-          mandateProperty: 0,
-          mandateClient: 0,
+          contactProperty: 0,
+          requestProperty: 0,
+          requestContact: 0,
         },
       };
 

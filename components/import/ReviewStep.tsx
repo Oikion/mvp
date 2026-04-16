@@ -100,20 +100,20 @@ function isNewProps(props: ReviewStepCombinedProps): props is ReviewStepProps {
 
 // ─── Entity type definition ──────────────────────────────────────────────────
 
-type EntityType = "clients" | "properties" | "mandates";
+type EntityType = "contacts" | "properties" | "requests";
 
-const ENTITY_ORDER: EntityType[] = ["clients", "properties", "mandates"];
+const ENTITY_ORDER: EntityType[] = ["contacts", "properties", "requests"];
 
 const ENTITY_ICONS: Record<EntityType, typeof Users> = {
-  clients: Users,
+  contacts: Users,
   properties: Building2,
-  mandates: FileText,
+  requests: FileText,
 };
 
 const ENTITY_LABELS: Record<EntityType, string> = {
-  clients: "Clients",
+  contacts: "Contacts",
   properties: "Properties",
-  mandates: "Mandates",
+  requests: "Requests",
 };
 
 // ─── Smart Sampling ──────────────────────────────────────────────────────────
@@ -378,7 +378,7 @@ function EntityStep({
 
   const columns = useMemo(() => {
     switch (entityType) {
-      case "clients":
+      case "contacts":
         return {
           fields: ["contact_name", "primary_phone", "primary_email", "client_type"] as const,
           labels: ["Name", "Phone", "Email", "Type"],
@@ -390,15 +390,15 @@ function EntityStep({
         return {
           fields: ["property_name", "property_type", "price", "address_city"] as const,
           labels: ["Name", "Type", "Price", "City"],
-          crossEntityLabel: "Linked Client",
+          crossEntityLabel: "Linked Contact",
           crossEntityKey: "linkedClient" as const,
           crossEntityVariant: "info" as const,
         };
-      case "mandates":
+      case "requests":
         return {
           fields: ["title", "mandate_transaction_type", "budget_min"] as const,
           labels: ["Title", "Transaction Type", "Budget"],
-          crossEntityLabel: "Client",
+          crossEntityLabel: "Contact",
           crossEntityKey: "linkedClient" as const,
           crossEntityVariant: "info" as const,
         };
@@ -563,9 +563,9 @@ function ReviewStepNew({
     let propertyRawCount = 0;
 
     // Track link counts for the summary visualization
-    let clientPropertyLinks = 0;
-    let mandatePropertyLinks = 0;
-    let mandateClientLinks = 0;
+    let contactPropertyLinks = 0;
+    let requestPropertyLinks = 0;
+    let requestContactLinks = 0;
 
     for (const row of validatedRows) {
       if (skippedRows.has(row.rowIndex)) continue;
@@ -631,9 +631,9 @@ function ReviewStepNew({
       }
 
       // Count cross-entity links
-      if (row.hasContact && row.hasProperty) clientPropertyLinks++;
-      if (row.hasRequest && row.hasProperty) mandatePropertyLinks++;
-      if (row.hasRequest && row.hasContact) mandateClientLinks++;
+      if (row.hasContact && row.hasProperty) contactPropertyLinks++;
+      if (row.hasRequest && row.hasProperty) requestPropertyLinks++;
+      if (row.hasRequest && row.hasContact) requestContactLinks++;
     }
 
     // Build skip-cascade warnings for properties whose contact was skipped
@@ -649,9 +649,9 @@ function ReviewStepNew({
     }
 
     // Assemble final entity items
-    const clients: EntityStepProps["items"] = [];
+    const contacts: EntityStepProps["items"] = [];
     Array.from(clientMap.entries()).forEach(([key, entry]) => {
-      clients.push({
+      contacts.push({
         originalIndex: entry.originalIndex,
         data: entry.data,
         linkedItems: {
@@ -679,12 +679,12 @@ function ReviewStepNew({
           linkedClient: linkedClientName ? [linkedClientName] : [],
         },
         warnings: clientWasSkipped
-          ? ["Client was skipped \u2014 will import without client link"]
+          ? ["Contact was skipped \u2014 will import without contact link"]
           : [],
       });
     });
 
-    const mandates: EntityStepProps["items"] = mandateList.map((entry) => {
+    const requests: EntityStepProps["items"] = mandateList.map((entry) => {
       const clientName = mandateToClient.get(entry.originalIndex);
       const propertyName = mandateToProperty.get(entry.originalIndex);
       return {
@@ -699,23 +699,23 @@ function ReviewStepNew({
     });
 
     return {
-      clients,
+      contacts,
       properties,
-      mandates,
-      clientRawCount,
+      requests,
+      contactRawCount: clientRawCount,
       propertyRawCount,
-      clientDedupCount:
-        clientRawCount > clients.length
-          ? clientRawCount - clients.length
+      contactDedupCount:
+        clientRawCount > contacts.length
+          ? clientRawCount - contacts.length
           : 0,
       propertyDedupCount:
         propertyRawCount > properties.length
           ? propertyRawCount - properties.length
           : 0,
       linkCounts: {
-        clientProperty: clientPropertyLinks,
-        mandateProperty: mandatePropertyLinks,
-        mandateClient: mandateClientLinks,
+        contactProperty: contactPropertyLinks,
+        requestProperty: requestPropertyLinks,
+        requestContact: requestContactLinks,
       },
     };
   }, [validatedRows, skippedRows]);
@@ -813,27 +813,27 @@ function ReviewStepNew({
         <Card>
           <CardContent className="py-5">
             <div className="flex items-center justify-center gap-3">
-              {/* Clients box */}
-              {entityData.clients.length > 0 && (
+              {/* Contacts box */}
+              {entityData.contacts.length > 0 && (
                 <>
                   <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-blue-500/10 border border-blue-500/20 min-w-[100px]">
                     <Users className="h-5 w-5 text-blue-500" />
-                    <span className="text-lg font-bold">{entityData.clients.length}</span>
-                    <span className="text-xs text-muted-foreground">Clients</span>
-                    {entityData.clientDedupCount > 0 && (
+                    <span className="text-lg font-bold">{entityData.contacts.length}</span>
+                    <span className="text-xs text-muted-foreground">Contacts</span>
+                    {entityData.contactDedupCount > 0 && (
                       <span className="text-[10px] text-muted-foreground">
-                        ({entityData.clientDedupCount} deduped)
+                        ({entityData.contactDedupCount} deduped)
                       </span>
                     )}
                   </div>
 
                   {/* Link connector to Properties */}
-                  {entityData.properties.length > 0 && entityData.linkCounts.clientProperty > 0 && (
+                  {entityData.properties.length > 0 && entityData.linkCounts.contactProperty > 0 && (
                     <div className="flex flex-col items-center gap-0.5">
                       <div className="h-px w-8 bg-border" />
                       <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                         <Link2 className="h-3 w-3" />
-                        {entityData.linkCounts.clientProperty}
+                        {entityData.linkCounts.contactProperty}
                       </span>
                       <div className="h-px w-8 bg-border" />
                     </div>
@@ -855,13 +855,13 @@ function ReviewStepNew({
                     )}
                   </div>
 
-                  {/* Link connector to Mandates */}
-                  {entityData.mandates.length > 0 && entityData.linkCounts.mandateProperty > 0 && (
+                  {/* Link connector to Requests */}
+                  {entityData.requests.length > 0 && entityData.linkCounts.requestProperty > 0 && (
                     <div className="flex flex-col items-center gap-0.5">
                       <div className="h-px w-8 bg-border" />
                       <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                         <Link2 className="h-3 w-3" />
-                        {entityData.linkCounts.mandateProperty}
+                        {entityData.linkCounts.requestProperty}
                       </span>
                       <div className="h-px w-8 bg-border" />
                     </div>
@@ -869,20 +869,20 @@ function ReviewStepNew({
                 </>
               )}
 
-              {/* Mandates box */}
-              {entityData.mandates.length > 0 && (
+              {/* Requests box */}
+              {entityData.requests.length > 0 && (
                 <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-violet-500/10 border border-violet-500/20 min-w-[100px]">
                   <FileText className="h-5 w-5 text-violet-500" />
-                  <span className="text-lg font-bold">{entityData.mandates.length}</span>
-                  <span className="text-xs text-muted-foreground">Mandates</span>
+                  <span className="text-lg font-bold">{entityData.requests.length}</span>
+                  <span className="text-xs text-muted-foreground">Requests</span>
                 </div>
               )}
             </div>
 
             {/* Total links summary text */}
-            {(entityData.linkCounts.clientProperty > 0 || entityData.linkCounts.mandateProperty > 0 || entityData.linkCounts.mandateClient > 0) && (
+            {(entityData.linkCounts.contactProperty > 0 || entityData.linkCounts.requestProperty > 0 || entityData.linkCounts.requestContact > 0) && (
               <p className="text-xs text-center text-muted-foreground mt-3">
-                {entityData.linkCounts.clientProperty + entityData.linkCounts.mandateProperty + entityData.linkCounts.mandateClient} links will be established between entities
+                {entityData.linkCounts.contactProperty + entityData.linkCounts.requestProperty + entityData.linkCounts.requestContact} links will be established between entities
               </p>
             )}
           </CardContent>
@@ -968,15 +968,15 @@ function ReviewStepNew({
                       entityType={entity}
                       items={items}
                       totalRawCount={
-                        entity === "clients"
-                          ? entityData.clientRawCount
+                        entity === "contacts"
+                          ? entityData.contactRawCount
                           : entity === "properties"
                             ? entityData.propertyRawCount
                             : items.length
                       }
                       deduplicatedCount={
-                        entity === "clients"
-                          ? entityData.clientDedupCount
+                        entity === "contacts"
+                          ? entityData.contactDedupCount
                           : entity === "properties"
                             ? entityData.propertyDedupCount
                             : 0

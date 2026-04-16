@@ -88,71 +88,69 @@ export async function POST(
     const { entities } = validation.data;
 
     // Read entity IDs from resultDetails
-    const details = importRecord.resultDetails as StoredResultDetails | null;
+    // Support both new keys (contacts/requests) and legacy keys (clients/mandates)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const details = importRecord.resultDetails as (StoredResultDetails & Record<string, any>) | null;
 
     const wantAll = entities === "all";
-    const wantClients = wantAll || (entities as string[]).includes("clients");
+    const wantContacts = wantAll || (entities as string[]).includes("contacts") || (entities as string[]).includes("clients");
     const wantProperties = wantAll || (entities as string[]).includes("properties");
-    const wantMandates = wantAll || (entities as string[]).includes("mandates");
+    const wantRequests = wantAll || (entities as string[]).includes("requests") || (entities as string[]).includes("mandates");
 
-    const clientIds = wantClients ? (details?.clients?.map((c) => c.uuid) ?? []) : [];
+    const contactIds = wantContacts ? ((details?.contacts ?? details?.clients)?.map((c: { uuid: string }) => c.uuid) ?? []) : [];
     const propertyIds = wantProperties ? (details?.properties?.map((p) => p.uuid) ?? []) : [];
-    const mandateIds = wantMandates ? (details?.mandates?.map((m) => m.uuid) ?? []) : [];
+    const requestIds = wantRequests ? ((details?.requests ?? details?.mandates)?.map((m: { uuid: string }) => m.uuid) ?? []) : [];
 
     // Count entities that will be affected
-    const [clientCount, propertyCount, mandateCount] = await Promise.all([
-      clientIds.length > 0
-        ? prismadb.contact.count({ where: { id: { in: clientIds }, organizationId: orgId } })
+    const [contactCount, propertyCount, requestCount] = await Promise.all([
+      contactIds.length > 0
+        ? prismadb.contact.count({ where: { id: { in: contactIds }, organizationId: orgId } })
         : Promise.resolve(0),
       propertyIds.length > 0
         ? prismadb.properties.count({ where: { id: { in: propertyIds }, organizationId: orgId } })
         : Promise.resolve(0),
-      mandateIds.length > 0
-        ? prismadb.mandate.count({ where: { id: { in: mandateIds }, organizationId: orgId } })
+      requestIds.length > 0
+        ? prismadb.mandate.count({ where: { id: { in: requestIds }, organizationId: orgId } })
         : Promise.resolve(0),
     ]);
 
     // Count cascade dependencies across junction tables and Deal
     const [
-      clientPropertyLinkCount,
-      mandatePropertyLinkCount,
-      mandateClientLinkCount,
+      contactPropertyLinkCount,
+      requestPropertyLinkCount,
       dealCount,
     ] = await Promise.all([
-      // ContactProperty: any link touching the targeted clients OR properties
-      clientIds.length > 0 || propertyIds.length > 0
+      // ContactProperty: any link touching the targeted contacts OR properties
+      contactIds.length > 0 || propertyIds.length > 0
         ? prismadb.contactProperty.count({
             where: {
               OR: [
-                ...(clientIds.length > 0 ? [{ contactId: { in: clientIds } }] : []),
+                ...(contactIds.length > 0 ? [{ contactId: { in: contactIds } }] : []),
                 ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
               ],
             },
           })
         : Promise.resolve(0),
 
-      // Mandate_Properties
-      mandateIds.length > 0 || propertyIds.length > 0
+      // Mandate_Properties (request→property junction)
+      requestIds.length > 0 || propertyIds.length > 0
         ? prismadb.mandate_Properties.count({
             where: {
               OR: [
-                ...(mandateIds.length > 0 ? [{ mandateId: { in: mandateIds } }] : []),
+                ...(requestIds.length > 0 ? [{ mandateId: { in: requestIds } }] : []),
                 ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
               ],
             },
           })
         : Promise.resolve(0),
 
-      // Mandate_Clients no longer exists — return 0
-      Promise.resolve(0),
-
-      // Deals: any deal referencing the targeted clients (via DealParty) OR properties
-      clientIds.length > 0 || propertyIds.length > 0
+      // Deals: any deal referencing the targeted contacts (via DealParty) OR properties
+      contactIds.length > 0 || propertyIds.length > 0
         ? prismadb.deal.count({
             where: {
               OR: [
-                ...(clientIds.length > 0
-                  ? [{ dealParties: { some: { contactId: { in: clientIds } } } }]
+                ...(contactIds.length > 0
+                  ? [{ dealParties: { some: { contactId: { in: contactIds } } } }]
                   : []),
                 ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
               ],
@@ -163,14 +161,13 @@ export async function POST(
 
     return NextResponse.json({
       entities: {
-        clients: clientCount,
+        contacts: contactCount,
         properties: propertyCount,
-        mandates: mandateCount,
+        requests: requestCount,
       },
       cascade: {
-        clientPropertyLinks: clientPropertyLinkCount,
-        mandatePropertyLinks: mandatePropertyLinkCount,
-        mandateClientLinks: mandateClientLinkCount,
+        contactPropertyLinks: contactPropertyLinkCount,
+        requestPropertyLinks: requestPropertyLinkCount,
         deals: dealCount,
       },
     });

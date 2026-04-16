@@ -87,10 +87,19 @@ interface TypedEntityEntry {
 }
 
 interface TypedResultDetails {
+  // v2 keys (contact/request)
+  contacts?: TypedEntityEntry[];
+  requests?: TypedEntityEntry[];
+  // legacy keys kept for reading old records
   clients?: TypedEntityEntry[];
-  properties?: TypedEntityEntry[];
   mandates?: TypedEntityEntry[];
+  properties?: TypedEntityEntry[];
   linkCounts?: {
+    // v2 keys
+    contactProperty?: number;
+    requestProperty?: number;
+    requestContact?: number;
+    // legacy keys kept for reading old stored records
     clientProperty?: number;
     mandateProperty?: number;
     mandateClient?: number;
@@ -792,28 +801,28 @@ export function ImportDetailClient({ record }: Readonly<ImportDetailClientProps>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-4">
-                  {(typedDetails.linkCounts.clientProperty ?? 0) > 0 && (
+                  {((typedDetails.linkCounts.contactProperty ?? typedDetails.linkCounts.clientProperty ?? 0)) > 0 && (
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <span className="font-medium text-foreground">
-                        {typedDetails.linkCounts.clientProperty}
+                        {typedDetails.linkCounts.contactProperty ?? typedDetails.linkCounts.clientProperty}
                       </span>
-                      {t("detail.clientPropertyLinks")}
+                      {t("detail.contactPropertyLinks")}
                     </div>
                   )}
-                  {(typedDetails.linkCounts.mandateProperty ?? 0) > 0 && (
+                  {((typedDetails.linkCounts.requestProperty ?? typedDetails.linkCounts.mandateProperty ?? 0)) > 0 && (
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <span className="font-medium text-foreground">
-                        {typedDetails.linkCounts.mandateProperty}
+                        {typedDetails.linkCounts.requestProperty ?? typedDetails.linkCounts.mandateProperty}
                       </span>
-                      {t("detail.mandatePropertyLinks")}
+                      {t("detail.requestPropertyLinks")}
                     </div>
                   )}
-                  {(typedDetails.linkCounts.mandateClient ?? 0) > 0 && (
+                  {((typedDetails.linkCounts.requestContact ?? typedDetails.linkCounts.mandateClient ?? 0)) > 0 && (
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <span className="font-medium text-foreground">
-                        {typedDetails.linkCounts.mandateClient}
+                        {typedDetails.linkCounts.requestContact ?? typedDetails.linkCounts.mandateClient}
                       </span>
-                      {t("detail.mandateClientLinks")}
+                      {t("detail.requestContactLinks")}
                     </div>
                   )}
                 </CardContent>

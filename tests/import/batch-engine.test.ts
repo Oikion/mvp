@@ -26,25 +26,25 @@ const {
   const mockTransaction = vi.fn(
     async (fn: (tx: unknown) => Promise<unknown>, _opts?: unknown) => {
       const tx = {
-        clients: {
+        contact: {
           createMany: mockCreateMany,
           findMany: mockFindMany,
         },
-        properties: {
+        property: {
           createMany: mockCreateMany,
           findMany: mockFindMany,
         },
-        mandate: {
+        request: {
           createMany: mockCreateMany,
           findMany: mockFindMany,
         },
-        client_Properties: {
+        contactProperty: {
           createMany: mockCreateMany,
         },
         mandate_Properties: {
           createMany: mockCreateMany,
         },
-        mandate_Clients: {
+        requestContact: {
           createMany: mockCreateMany,
         },
         $queryRaw: vi.fn().mockResolvedValue([{ lastValue: 10 }]),
@@ -84,11 +84,11 @@ vi.mock("@/lib/friendly-id", () => ({
   generateFriendlyIds: vi.fn(
     (_prisma: unknown, entityType: string, count: number, _orgId: string) => {
       const prefix =
-        entityType === "Clients"
-          ? "clt"
+        entityType === "Contact"
+          ? "cnt"
           : entityType === "Properties"
             ? "prp"
-            : "mnd";
+            : "req";
       return Array.from({ length: count }, (_, i) =>
         `${prefix}-${String(i + 1).padStart(6, "0")}`,
       );
@@ -175,7 +175,7 @@ describe("executeBatchImport", () => {
 
   // ---- 2. createMany called for each entity type ----
 
-  it("calls createMany for clients, properties, and mandates", async () => {
+  it("calls createMany for contacts, properties, and requests", async () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
@@ -215,22 +215,22 @@ describe("executeBatchImport", () => {
 
     const result = await executeBatchImport(rows, "org-1", "user-1");
 
-    expect(result).toHaveProperty("clients");
+    expect(result).toHaveProperty("contacts");
     expect(result).toHaveProperty("properties");
-    expect(result).toHaveProperty("mandates");
+    expect(result).toHaveProperty("requests");
     expect(result).toHaveProperty("linkCounts");
     expect(result).toHaveProperty("errors");
     expect(result).toHaveProperty("skippedCount");
 
-    // Clients should have entries with uuid and friendlyId
-    expect(result.clients.length).toBeGreaterThan(0);
-    expect(result.clients[0]).toHaveProperty("uuid");
-    expect(result.clients[0]).toHaveProperty("friendlyId");
+    // Contacts should have entries with uuid and friendlyId
+    expect(result.contacts.length).toBeGreaterThan(0);
+    expect(result.contacts[0]).toHaveProperty("uuid");
+    expect(result.contacts[0]).toHaveProperty("friendlyId");
   });
 
   // ---- 4. Junction links are created ----
 
-  it("creates junction links for client-property, mandate-property, and mandate-client", async () => {
+  it("creates junction links for contact-property, request-property, and request-contact", async () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
@@ -251,14 +251,14 @@ describe("executeBatchImport", () => {
     const result = await executeBatchImport(rows, "org-1", "user-1");
 
     // The link counts should reflect the created links
-    expect(result.linkCounts.clientProperty).toBe(1);
-    expect(result.linkCounts.mandateProperty).toBe(1);
-    expect(result.linkCounts.mandateClient).toBe(1);
+    expect(result.linkCounts.contactProperty).toBe(1);
+    expect(result.linkCounts.requestProperty).toBe(1);
+    expect(result.linkCounts.requestContact).toBe(1);
   });
 
   // ---- 5. assignedTo is applied to created entities ----
 
-  it("applies assignedTo to client, property, and mandate data", async () => {
+  it("applies assignedTo to contact, property, and request data", async () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
@@ -290,7 +290,7 @@ describe("executeBatchImport", () => {
 
   // ---- 6. Client deduplication reuses UUIDs ----
 
-  it("deduplicates clients with the same dedupKey", async () => {
+  it("deduplicates contacts with the same dedupKey", async () => {
     const rows: ValidatedRow[] = [
       makeValidatedRow({
         rowIndex: 0,
@@ -314,8 +314,8 @@ describe("executeBatchImport", () => {
 
     const result = await executeBatchImport(rows, "org-1", "user-1");
 
-    // Only one unique client should be created
-    expect(result.clients).toHaveLength(1);
+    // Only one unique contact should be created
+    expect(result.contacts).toHaveLength(1);
     // But two properties
     expect(result.properties).toHaveLength(2);
   });
@@ -325,12 +325,12 @@ describe("executeBatchImport", () => {
   it("returns empty result for empty input", async () => {
     const result = await executeBatchImport([], "org-1", "user-1");
 
-    expect(result.clients).toHaveLength(0);
+    expect(result.contacts).toHaveLength(0);
     expect(result.properties).toHaveLength(0);
-    expect(result.mandates).toHaveLength(0);
-    expect(result.linkCounts.clientProperty).toBe(0);
-    expect(result.linkCounts.mandateProperty).toBe(0);
-    expect(result.linkCounts.mandateClient).toBe(0);
+    expect(result.requests).toHaveLength(0);
+    expect(result.linkCounts.contactProperty).toBe(0);
+    expect(result.linkCounts.requestProperty).toBe(0);
+    expect(result.linkCounts.requestContact).toBe(0);
     expect(result.errors).toHaveLength(0);
     expect(result.skippedCount).toBe(0);
     // $transaction should NOT be called for empty input

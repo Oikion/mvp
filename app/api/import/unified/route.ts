@@ -36,9 +36,9 @@ export async function POST(req: Request) {
     // Record or update import history
     try {
       const allEntityIds = [
-        ...batchResult.clients.map((c) => c.uuid),
+        ...batchResult.contacts.map((c) => c.uuid),
         ...batchResult.properties.map((p) => p.uuid),
-        ...batchResult.mandates.map((m) => m.uuid),
+        ...batchResult.requests.map((m) => m.uuid),
       ];
 
       await recordImport({
