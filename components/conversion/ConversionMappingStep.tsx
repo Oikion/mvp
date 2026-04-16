@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 
 import { propertyImportFieldDefinitions } from "@/lib/import/property-import-schema";
-import { clientImportFieldDefinitions } from "@/lib/import/client-import-schema";
+import { contactImportFieldDefinitions } from "@/lib/import/contact-import-schema";
 
 import type { EntityType, ColumnMapping, FieldKey } from "./ConversionWizard";
 
@@ -72,7 +72,7 @@ export function ConversionMappingStep({
 
   const fieldDefinitions = entityType === "properties" 
     ? propertyImportFieldDefinitions 
-    : clientImportFieldDefinitions;
+    : contactImportFieldDefinitions;
 
   // Group fields by category
   const groupedFields = useMemo(() => {

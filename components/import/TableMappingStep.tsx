@@ -177,7 +177,7 @@ const confidenceBadge: Record<
 
 // Default grouping key fields per entity
 const DEFAULT_GROUPING_KEY_FIELDS: Record<string, string[]> = {
-  contact: ["primary_phone", "primary_email", "client_name"],
+  contact: ["primary_phone", "primary_email", "contact_name"],
   property: ["street_address", "address", "property_name"],
   request: [],
 };

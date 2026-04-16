@@ -380,7 +380,7 @@ function EntityStep({
     switch (entityType) {
       case "clients":
         return {
-          fields: ["client_name", "primary_phone", "primary_email", "client_type"] as const,
+          fields: ["contact_name", "primary_phone", "primary_email", "client_type"] as const,
           labels: ["Name", "Phone", "Email", "Type"],
           crossEntityLabel: "Linked Properties",
           crossEntityKey: "linkedProperties" as const,
@@ -1083,7 +1083,7 @@ function ReviewStepLegacy({
   let displayColumns: string[];
   if (entityType === "contact") {
     displayColumns = [
-      "client_name",
+      "contact_name",
       "primary_email",
       "primary_phone",
       "client_type",

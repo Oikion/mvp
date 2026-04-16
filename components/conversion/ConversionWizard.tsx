@@ -28,12 +28,12 @@ import { ConversionExportStep } from "./ConversionExportStep";
 import type { 
   PropertyImportFieldKey 
 } from "@/lib/import/property-import-schema";
-import type { 
-  ClientImportFieldKey 
-} from "@/lib/import/client-import-schema";
+import type {
+  ContactImportFieldKey
+} from "@/lib/import/contact-import-schema";
 
 export type EntityType = "properties" | "clients";
-export type FieldKey = PropertyImportFieldKey | ClientImportFieldKey;
+export type FieldKey = PropertyImportFieldKey | ContactImportFieldKey;
 
 export interface ColumnMapping {
   sourceColumn: string;

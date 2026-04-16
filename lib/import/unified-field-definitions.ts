@@ -11,8 +11,8 @@
  */
 
 import { propertyImportFieldDefinitions } from "./property-import-schema";
-import { clientImportFieldDefinitions } from "./client-import-schema";
-import { mandateImportFieldDefinitions } from "./mandate-import-schema";
+import { contactImportFieldDefinitions } from "./contact-import-schema";
+import { requestImportFieldDefinitions } from "./request-import-schema";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -131,7 +131,7 @@ function buildUnifiedDefinitions(): UnifiedFieldDefinition[] {
   }
 
   // --- Contact fields ---
-  for (const def of clientImportFieldDefinitions) {
+  for (const def of contactImportFieldDefinitions) {
     if (CLIENT_OMIT_KEYS.has(def.key)) continue;
     const renamedKey = CONTACT_KEY_RENAMES[def.key] ?? def.key;
     result.push({
@@ -145,7 +145,7 @@ function buildUnifiedDefinitions(): UnifiedFieldDefinition[] {
   }
 
   // --- Request fields ---
-  for (const def of mandateImportFieldDefinitions) {
+  for (const def of requestImportFieldDefinitions) {
     if (REQUEST_OMIT_KEYS.has(def.key)) continue;
     const renamedKey = REQUEST_KEY_RENAMES[def.key] ?? def.key;
     const extraAliases = REQUEST_EXTRA_ALIASES[renamedKey] ?? [];

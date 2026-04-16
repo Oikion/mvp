@@ -649,15 +649,15 @@ export function ImportWizardSteps({
           return file !== null && parsedData.length > 0;
         case 1: { // Mapping
           const mappedFields = Object.values(fieldMapping);
-          const hasClientTrigger =
-            mappedFields.includes("client_name") ||
+          const hasContactTrigger =
+            mappedFields.includes("contact_name") ||
             mappedFields.includes("primary_phone") ||
             mappedFields.includes("primary_email");
           const hasPropertyTrigger = mappedFields.includes("property_name");
           const hasRequestTrigger = requestFieldKeys
             ? mappedFields.some((f) => requestFieldKeys.has(f))
             : false;
-          return hasClientTrigger || hasPropertyTrigger || hasRequestTrigger;
+          return hasContactTrigger || hasPropertyTrigger || hasRequestTrigger;
         }
         case 2: // Validation
           return !isValidating;

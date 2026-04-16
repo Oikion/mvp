@@ -41,10 +41,10 @@ afterAll(() => {
 
 // ─── Client ──────────────────────────────────────────────────────────────────
 
-describe("clientImportConfig.encryptWithDek — communication_notes", () => {
+describe("contactImportConfig.encryptWithDek — communication_notes", () => {
   it("encrypts communication_notes when present and non-null", async () => {
-    const { clientImportConfig } = await import(
-      "@/lib/import/client-import-config"
+    const { contactImportConfig } = await import(
+      "@/lib/import/contact-import-config"
     );
     const { encryptJsonWithKey } = await import("@/lib/model-encryption");
 
@@ -54,15 +54,15 @@ describe("clientImportConfig.encryptWithDek — communication_notes", () => {
       communication_notes: notes,
     };
 
-    const result = clientImportConfig.encryptWithDek(data, FAKE_DEK);
+    const result = contactImportConfig.encryptWithDek(data, FAKE_DEK);
 
     expect(encryptJsonWithKey).toHaveBeenCalledWith(notes, FAKE_DEK);
     expect(result.communication_notes).toBe(FAKE_ENCRYPTED);
   });
 
   it("skips communication_notes when null", async () => {
-    const { clientImportConfig } = await import(
-      "@/lib/import/client-import-config"
+    const { contactImportConfig } = await import(
+      "@/lib/import/contact-import-config"
     );
     const { encryptJsonWithKey } = await import("@/lib/model-encryption");
     vi.mocked(encryptJsonWithKey).mockClear();
@@ -72,21 +72,21 @@ describe("clientImportConfig.encryptWithDek — communication_notes", () => {
       communication_notes: null,
     };
 
-    const result = clientImportConfig.encryptWithDek(data, FAKE_DEK);
+    const result = contactImportConfig.encryptWithDek(data, FAKE_DEK);
 
     expect(encryptJsonWithKey).not.toHaveBeenCalled();
     expect(result.communication_notes).toBeUndefined();
   });
 
   it("skips communication_notes when absent", async () => {
-    const { clientImportConfig } = await import(
-      "@/lib/import/client-import-config"
+    const { contactImportConfig } = await import(
+      "@/lib/import/contact-import-config"
     );
     const { encryptJsonWithKey } = await import("@/lib/model-encryption");
     vi.mocked(encryptJsonWithKey).mockClear();
 
     const data: Record<string, unknown> = { client_name: "Acme Corp" };
-    clientImportConfig.encryptWithDek(data, FAKE_DEK);
+    contactImportConfig.encryptWithDek(data, FAKE_DEK);
 
     expect(encryptJsonWithKey).not.toHaveBeenCalled();
   });
@@ -148,10 +148,10 @@ describe("propertyImportConfig.encryptWithDek — communication_notes", () => {
 
 // ─── Mandate ──────────────────────────────────────────────────────────────────
 
-describe("mandateImportConfig.encryptWithDek — communication_notes", () => {
+describe("requestImportConfig.encryptWithDek — communication_notes", () => {
   it("encrypts communication_notes when present and non-null", async () => {
-    const { mandateImportConfig } = await import(
-      "@/lib/import/mandate-import-config"
+    const { requestImportConfig } = await import(
+      "@/lib/import/request-import-config"
     );
     const { encryptJsonWithKey } = await import("@/lib/model-encryption");
     vi.mocked(encryptJsonWithKey).mockClear();
@@ -162,15 +162,15 @@ describe("mandateImportConfig.encryptWithDek — communication_notes", () => {
       communication_notes: notes,
     };
 
-    const result = mandateImportConfig.encryptWithDek(data, FAKE_DEK);
+    const result = requestImportConfig.encryptWithDek(data, FAKE_DEK);
 
     expect(encryptJsonWithKey).toHaveBeenCalledWith(notes, FAKE_DEK);
     expect(result.communication_notes).toBe(FAKE_ENCRYPTED);
   });
 
   it("skips communication_notes when null", async () => {
-    const { mandateImportConfig } = await import(
-      "@/lib/import/mandate-import-config"
+    const { requestImportConfig } = await import(
+      "@/lib/import/request-import-config"
     );
     const { encryptJsonWithKey } = await import("@/lib/model-encryption");
     vi.mocked(encryptJsonWithKey).mockClear();
@@ -180,21 +180,21 @@ describe("mandateImportConfig.encryptWithDek — communication_notes", () => {
       communication_notes: null,
     };
 
-    const result = mandateImportConfig.encryptWithDek(data, FAKE_DEK);
+    const result = requestImportConfig.encryptWithDek(data, FAKE_DEK);
 
     expect(encryptJsonWithKey).not.toHaveBeenCalled();
     expect(result.communication_notes).toBeUndefined();
   });
 
   it("skips communication_notes when absent", async () => {
-    const { mandateImportConfig } = await import(
-      "@/lib/import/mandate-import-config"
+    const { requestImportConfig } = await import(
+      "@/lib/import/request-import-config"
     );
     const { encryptJsonWithKey } = await import("@/lib/model-encryption");
     vi.mocked(encryptJsonWithKey).mockClear();
 
     const data: Record<string, unknown> = { title: "Buy apartment" };
-    mandateImportConfig.encryptWithDek(data, FAKE_DEK);
+    requestImportConfig.encryptWithDek(data, FAKE_DEK);
 
     expect(encryptJsonWithKey).not.toHaveBeenCalled();
   });

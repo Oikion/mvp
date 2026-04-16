@@ -13,8 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/navigation";
 import { propertyImportFieldDefinitions } from "@/lib/import/property-import-schema";
-import { clientImportFieldDefinitions } from "@/lib/import/client-import-schema";
-import { mandateImportFieldDefinitions } from "@/lib/import/mandate-import-schema";
+import { contactImportFieldDefinitions } from "@/lib/import/contact-import-schema";
+import { requestImportFieldDefinitions } from "@/lib/import/request-import-schema";
 
 interface UploadStepProps {
   readonly dict: {
@@ -680,9 +680,9 @@ export function UploadStep({
     if (unifiedMode) return UNIFIED_TEMPLATE_HEADERS;
     switch (entityType) {
       case "contact":
-        return clientImportFieldDefinitions.map((f) => f.key);
+        return contactImportFieldDefinitions.map((f) => f.key);
       case "request":
-        return mandateImportFieldDefinitions.map((f) => f.key);
+        return requestImportFieldDefinitions.map((f) => f.key);
       case "property":
       default:
         return propertyImportFieldDefinitions.map((f) => f.key);

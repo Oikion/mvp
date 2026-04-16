@@ -18,17 +18,17 @@ import {
   stripEntityPrefix,
 } from "./unified-field-definitions";
 import { generateMandateTitle, generateClientName } from "./name-generator";
-import { clientImportConfig } from "./client-import-config";
+import { contactImportConfig } from "./contact-import-config";
 import { propertyImportConfig } from "./property-import-config";
-import { mandateImportConfig } from "./mandate-import-config";
+import { requestImportConfig } from "./request-import-config";
 import {
   normalizeClientEnums,
   normalizePropertyEnums,
   normalizeMandateEnums,
 } from "./enum-normalizer";
-import { clientImportSchema } from "./client-import-schema";
+import { contactImportSchema } from "./contact-import-schema";
 import { propertyImportSchema } from "./property-import-schema";
-import { mandateImportSchema } from "./mandate-import-schema";
+import { requestImportSchema } from "./request-import-schema";
 import type { ValidatedRow } from "./validation-engine";
 
 // ---------------------------------------------------------------------------
@@ -276,14 +276,14 @@ export async function executeBatchImport(
 
             // Encrypt with DEK (use the raw validated row which already has
             // stripped keys from the validation engine)
-            const encrypted = clientImportConfig.encryptWithDek(clientRowData, dek);
+            const encrypted = contactImportConfig.encryptWithDek(clientRowData, dek);
 
             // Get friendly ID from pre-generated batch
             const friendlyId = clientFriendlyIdBatch[clientFidCursor++];
             clientFriendlyIds.set(clientUuid, friendlyId);
 
             // Build Prisma data using the import config's toPrismaData
-            const prismaData = clientImportConfig.toPrismaData(
+            const prismaData = contactImportConfig.toPrismaData(
               clientRowData as any,
               encrypted,
               friendlyId,
@@ -395,14 +395,14 @@ export async function executeBatchImport(
         }
 
         // Encrypt
-        const encrypted = mandateImportConfig.encryptWithDek(mandateRowData, dek);
+        const encrypted = requestImportConfig.encryptWithDek(mandateRowData, dek);
 
         // Get friendly ID
         const friendlyId = mandateFriendlyIdBatch[mandateFidCursor++];
         mandateFriendlyIds.set(mandateUuid, friendlyId);
 
         // Build Prisma data
-        const prismaData = mandateImportConfig.toPrismaData(
+        const prismaData = requestImportConfig.toPrismaData(
           mandateRowData as any,
           encrypted,
           friendlyId,

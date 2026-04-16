@@ -16,9 +16,9 @@ import {
   normalizePropertyEnums,
   normalizeMandateEnums,
 } from "./enum-normalizer";
-import { clientImportSchema } from "./client-import-schema";
+import { contactImportSchema } from "./contact-import-schema";
 import { propertyImportSchema } from "./property-import-schema";
-import { mandateImportSchema } from "./mandate-import-schema";
+import { requestImportSchema } from "./request-import-schema";
 import { generateMandateTitle, generateClientName } from "./name-generator";
 
 // ---------------------------------------------------------------------------
@@ -214,7 +214,7 @@ export function validateImportData(
 
       // Validate with Zod — use parsed.data which has preprocessed types
       // (e.g. zBoolean converts "true" → true, zOptionalNumber converts "" → undefined)
-      const parsed = clientImportSchema.safeParse(normalized);
+      const parsed = contactImportSchema.safeParse(normalized);
       if (!parsed.success) {
         for (const issue of parsed.error.issues) {
           errorRows.push({
@@ -297,7 +297,7 @@ export function validateImportData(
       normalized.title = title;
 
       // Validate with Zod — use parsed.data for proper types
-      const parsed = mandateImportSchema.safeParse(normalized);
+      const parsed = requestImportSchema.safeParse(normalized);
       if (!parsed.success) {
         for (const issue of parsed.error.issues) {
           errorRows.push({
