@@ -1,3 +1,3 @@
-export { DataTableFacetedFilter } from "@/app/[locale]/app/(routes)/crm/accounts/table-components/data-table-faceted-filter";
+export { DataTableFacetedFilter } from "@/components/ui/data-table/data-table-faceted-filter";
 
 

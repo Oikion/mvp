@@ -1,3 +1,3 @@
-export { DataTablePagination } from "@/app/[locale]/app/(routes)/crm/accounts/table-components/data-table-pagination";
+export { DataTablePagination } from "@/components/ui/data-table/data-table-pagination";
 
 
