@@ -107,7 +107,6 @@ model CalendarEvent {
   crm_Accounts_Tasks crm_Accounts_Tasks[]
   Documents          Documents[]          @relation("DocumentsToCalendarEvents")
   Properties         Properties[]         @relation("EventToProperties")
-  Mandates           Mandate[]            @relation("EventToMandates")
   Contacts           Contact[]            @relation("EventToContacts")
   Requests           Request[]            @relation("EventToRequests")
   // v2.0 Phase 3: Showing back-relation
@@ -144,18 +143,6 @@ model CalendarReminder {
   @@index([status])
 }
 
-model Mandate_Properties {
-  id         String     @id @default(uuid())
-  createdAt  DateTime   @default(now())
-  mandateId  String
-  propertyId String
-  Mandate    Mandate    @relation(fields: [mandateId], references: [id], onDelete: Cascade)
-  Properties Properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-
-  @@unique([mandateId, propertyId])
-  @@index([mandateId])
-  @@index([propertyId])
-}
 
 model Deal {
   id             String   @id @default(cuid())
@@ -337,7 +324,6 @@ model Documents {
   crm_Accounts_Tasks_DocumentsToCrmAccountsTasks crm_Accounts_Tasks[] @relation("DocumentsToCrmAccountsTasks")
   Properties                                     Properties[]
   crm_Accounts_Tasks_DocumentsToTasksExplicit    crm_Accounts_Tasks[] @relation("DocumentsToTasksExplicit")
-  Mandates                                       Mandate[]            @relation("DocumentsToMandates")
   Contacts                                       Contact[]            @relation("DocumentsToContacts")
   Requests                                       Request[]            @relation("DocumentsToRequests")
   ActivityLinks                                  Activity[]           @relation("ActivityRelatedDocument")
@@ -649,7 +635,6 @@ model Properties {
   PropertyShowing                     PropertyShowing[]
   XeSyncItems                         XeSyncItem[]
   owner                               Contact?                  @relation("PropertyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
-  Mandate_Properties                  Mandate_Properties[]
   PropertyRequestMatch                PropertyRequestMatch[]
   PropertyImage                       PropertyImage[]
   ActivityLinks                       Activity[]            @relation("ActivityRelatedProperty")
@@ -901,8 +886,6 @@ model Users {
   ReferralCode                                       ReferralCode?
   ReferredByReferral                                 Referral?                     @relation("ReferredUser")
   MessagesSent                                       Message[]                     @relation("MessagesSent")
-  Mandate                                            Mandate[]                     @relation("MandateAssignedTo")
-  MandateComment                                     MandateComment[]              @relation("MandateComments")
   identityKey                                        UserIdentityKey?
   e2eePepper                                         UserE2eePepper?
   preKeys                                            UserPreKey[]
@@ -1604,89 +1587,6 @@ enum MandateUrgency {
   CRITICAL
 }
 
-// ============================================
-// MANDATES MODULE
-// ============================================
-
-model Mandate {
-  id                  String               @id @default(uuid())
-  friendlyId          String
-  organizationId      String
-  createdAt           DateTime             @default(now())
-  createdBy           String?
-  updatedAt           DateTime?
-  updatedBy           String?
-  assigned_to         String?
-  title               String
-  transaction_type    TransactionType?
-  property_type       PropertyType?
-  property_purpose    PropertyPurpose?
-  areas_of_interest   Json?
-  municipality        String?
-  region              String?
-  size_min_sqm        Decimal?
-  size_max_sqm        Decimal?
-  plot_size_min_sqm   Decimal?
-  plot_size_max_sqm   Decimal?
-  budget_min          Decimal?
-  budget_max          Decimal?
-  bedrooms_min        Int?
-  bedrooms_max        Int?
-  bathrooms_min       Int?
-  bathrooms_max       Int?
-  floor_min           Int?
-  floor_max           Int?
-  ground_floor_only   Boolean?             @default(false)
-  condition           PropertyCondition[]
-  year_built_min      Int?
-  year_built_max      Int?
-  heating_type        HeatingType[]
-  energy_cert_min     EnergyCertClass?
-  furnished           FurnishedStatus?
-  elevator            Boolean?
-  parking             Boolean?
-  pets_allowed        Boolean?
-  amenities           Json?
-  inside_city_plan    Boolean?
-  legalization_ok     Boolean?             @default(false)
-  status              MandateStatus        @default(DRAFT)
-  urgency             MandateUrgency?      @default(MEDIUM)
-  timeline            Timeline?
-  expires_at          DateTime?
-  notes               String?
-  communication_notes Json?
-  draft_status        Boolean?             @default(false)
-  visibility          ItemVisibility       @default(PRIVATE)
-  assigned_to_user    Users?               @relation("MandateAssignedTo", fields: [assigned_to], references: [id], onDelete: SetNull)
-  comments            MandateComment[]
-  Mandate_Properties  Mandate_Properties[]
-  Documents           Documents[]          @relation("DocumentsToMandates")
-  CalendarEvent       CalendarEvent[]      @relation("EventToMandates")
-
-  @@unique([friendlyId, organizationId])
-  @@index([friendlyId])
-  @@index([organizationId])
-  @@index([assigned_to])
-  @@index([status])
-  @@index([createdAt])
-  @@index([visibility])
-}
-
-model MandateComment {
-  id              String   @id
-  mandateId       String
-  userId          String?
-  content         String
-  entitySessionId String?  // Megolm session ID (null for Standard org comments)
-  messageIndex    Int?     // Megolm ratchet index (null for Standard org comments)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  mandate         Mandate  @relation(fields: [mandateId], references: [id], onDelete: Cascade)
-  user            Users?   @relation("MandateComments", fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([mandateId])
-  @@index([userId])
-}
 
 // ============================================
 // ATTACHMENTS - Reusable file attachments

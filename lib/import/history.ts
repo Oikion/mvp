@@ -391,18 +391,6 @@ export async function deleteImportBatch(
       //     ContactProperty: where contactId OR propertyId is in delete set
       // (client_Properties and mandate_Clients tables removed — no M2M junction needed)
 
-      //     Mandate_Properties: where mandateId OR propertyId is in delete set
-      if (requestIds.length > 0 || propertyIds.length > 0) {
-        await tx.mandate_Properties.deleteMany({
-          where: {
-            OR: [
-              ...(requestIds.length > 0 ? [{ mandateId: { in: requestIds } }] : []),
-              ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
-            ],
-          },
-        });
-      }
-
       // 4b. Delete entities
       if (requestIds.length > 0) {
         const { count } = await tx.request.deleteMany({

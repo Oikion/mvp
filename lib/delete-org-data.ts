@@ -149,7 +149,6 @@ export async function deleteOrgData(orgId: string): Promise<void> {
       await tx.calendarEvent.deleteMany({ where: { organizationId: orgId } });
       await tx.activity.deleteMany({ where: { organizationId: orgId } });
       await tx.socialPost.deleteMany({ where: { organizationId: orgId } });
-      await tx.mandate.deleteMany({ where: { organizationId: orgId } });
       await tx.propertyShowing.deleteMany({ where: { organizationId: orgId } });
       await tx.crm_Accounts_Tasks.deleteMany({ where: { organizationId: orgId } });
       await tx.message.deleteMany({ where: { organizationId: orgId } });

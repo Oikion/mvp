@@ -117,7 +117,6 @@ export async function POST(
     // Count cascade dependencies across junction tables and Deal
     const [
       contactPropertyLinkCount,
-      requestPropertyLinkCount,
       dealCount,
     ] = await Promise.all([
       // ContactProperty: any link touching the targeted contacts OR properties
@@ -127,18 +126,6 @@ export async function POST(
               organizationId: orgId,
               OR: [
                 ...(contactIds.length > 0 ? [{ contactId: { in: contactIds } }] : []),
-                ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
-              ],
-            },
-          })
-        : Promise.resolve(0),
-
-      // Mandate_Properties (request→property junction)
-      requestIds.length > 0 || propertyIds.length > 0
-        ? prismadb.mandate_Properties.count({
-            where: {
-              OR: [
-                ...(requestIds.length > 0 ? [{ mandateId: { in: requestIds } }] : []),
                 ...(propertyIds.length > 0 ? [{ propertyId: { in: propertyIds } }] : []),
               ],
             },
@@ -168,7 +155,6 @@ export async function POST(
       },
       cascade: {
         contactPropertyLinks: contactPropertyLinkCount,
-        requestPropertyLinks: requestPropertyLinkCount,
         deals: dealCount,
       },
     });
