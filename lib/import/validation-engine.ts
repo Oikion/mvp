@@ -318,7 +318,7 @@ export function validateImportData(
     // Rows with at least one valid entity go into validRows.
     // Entity-specific errors null out only the failing entity's sub-row —
     // the row can still be imported for its other entities.
-    // e.g. a row where client passes but property fails: hasClient=true,
+    // e.g. a row where contact passes but property fails: hasContact=true,
     // propertyRow=null (cleared below), hasProperty becomes false for import.
     if (rowHasErrors) {
       // Null out entity sub-rows that had validation errors
