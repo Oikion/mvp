@@ -6,9 +6,9 @@ import type { MatchAnalytics } from "@/lib/matchmaking";
  * Get comprehensive match analytics for the dashboard
  *
  * DEPRECATED: Client preferences (intent, purpose, areas_of_interest, budget_min,
- * budget_max, property_preferences, etc.) have been moved to the Mandate model.
- * Client-based analytics now returns empty results. Use mandate-based matching
- * (getMandateMatches / getMandateMatchAnalytics) instead.
+ * budget_max, property_preferences, etc.) have been moved to the Request model.
+ * Client-based analytics now returns empty results. Use request-based matching
+ * (getRequestMatches / getRequestMatchAnalytics) instead.
  */
 export async function getMatchAnalytics(): Promise<MatchAnalytics> {
   return getEmptyAnalytics();
@@ -17,7 +17,7 @@ export async function getMatchAnalytics(): Promise<MatchAnalytics> {
 /**
  * Get summary stats for quick dashboard display
  *
- * DEPRECATED: Returns zeros since client preferences are now on mandates.
+ * DEPRECATED: Returns zeros since client preferences are now on requests.
  */
 export async function getMatchSummaryStats(): Promise<{
   totalClients: number;

@@ -6,8 +6,8 @@ import type { MatchResult } from "@/lib/matchmaking";
  * Get match score between a specific client and property
  *
  * DEPRECATED: Client preferences (intent, purpose, areas_of_interest, budget_min,
- * budget_max, property_preferences, etc.) have been moved to the Mandate model.
- * Client-based scoring now returns null. Use mandate-based matching instead.
+ * budget_max, property_preferences, etc.) have been moved to the Request model.
+ * Client-based scoring now returns null. Use request-based matching instead.
  */
 export async function getMatchScore(
   _clientId: string,
@@ -20,7 +20,7 @@ export async function getMatchScore(
 /**
  * Get match scores for multiple client-property pairs
  *
- * DEPRECATED: Returns empty array since client preferences are now on mandates.
+ * DEPRECATED: Returns empty array since client preferences are now on requests.
  */
 export async function getBatchMatchScores(
   _pairs: Array<{ clientId: string; propertyId: string }>

@@ -125,16 +125,16 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
         };
       }
     } else if (type === "request") {
-      const mandate = await prisma.mandate.findUnique({
+      const request = await prisma.request.findUnique({
         where: { id: linkedEntityId },
-        select: { title: true, transaction_type: true, property_type: true },
+        select: { title: true, requestType: true, propertyCategory: true },
       });
 
-      if (mandate) {
-        linkedEntityTitle = mandate.title || "Unnamed Request";
+      if (request) {
+        linkedEntityTitle = request.title || "Unnamed Request";
         linkedEntityMetadata = {
-          transactionType: mandate.transaction_type,
-          propertyType: mandate.property_type,
+          transactionType: request.requestType,
+          propertyType: request.propertyCategory,
         };
       }
     } else if (type === "document") {
