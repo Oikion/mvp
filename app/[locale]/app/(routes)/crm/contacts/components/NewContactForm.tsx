@@ -101,24 +101,24 @@ export function NewContactForm({
   const onSubmit = async (data: NewAccountFormValues) => {
     setIsLoading(true);
     try {
-      await axios.post("/api/crm/client-contacts", {
-        assigned_to: data.assigned_to,
-        assigned_client: data.assigned_account,
-        birthday_day: data.birthday_day,
-        birthday_month: data.birthday_month,
-        birthday_year: data.birthday_year,
-        description: data.description,
-        email: data.email,
-        personal_email: data.personal_email,
-        contact_first_name: data.first_name,
-        contact_last_name: data.last_name,
-        office_phone: data.office_phone,
-        mobile_phone: data.mobile_phone,
-        website: data.website,
-        status: data.status,
-        contact_type: undefined,
-        relationship_to_client: undefined,
-        type: data.type,
+      const displayName = [data.first_name, data.last_name].filter(Boolean).join(" ") || data.last_name;
+      const categoryMap: Record<string, string> = {
+        Customer: "BUYER",
+        Partner: "BROKER",
+        Vendor: "OTHER",
+      };
+      await axios.post("/api/crm/contacts", {
+        firstName: data.first_name ?? null,
+        lastName: data.last_name,
+        displayName,
+        email: data.email || null,
+        secondaryEmail: data.personal_email || null,
+        officePhone: data.office_phone || null,
+        primaryPhone: data.mobile_phone || null,
+        notes: data.description || null,
+        status: data.status ? "ACTIVE" : "LEAD",
+        category: [categoryMap[data.type] ?? "OTHER"],
+        assignedAgentId: data.assigned_to || null,
       });
       toast.success("Success", { description: "Contact created successfully", isTranslationKey: false });
     } catch (error: any) {
