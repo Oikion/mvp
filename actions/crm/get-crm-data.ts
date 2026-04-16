@@ -1,6 +1,6 @@
 import { getOrganizationUsers } from "@/actions/organization/get-organization-users";
 import { getClients } from "@/actions/crm/get-clients";
-import { getClientContacts } from "@/actions/crm/get-client-contacts";
+import { getContacts } from "@/actions/crm/get-contacts";
 
 export const getAllCrmData = async () => {
   // Parallelize database queries for better performance
@@ -16,7 +16,7 @@ export const getAllCrmData = async () => {
       onlyActive: true,
     }),
     getClients(),
-    getClientContacts(),
+    getContacts(),
   ]);
 
   // Legacy keys kept for UI compatibility; to be removed in follow-up refactor

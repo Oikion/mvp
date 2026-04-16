@@ -1,6 +1,27 @@
-import { getClientContacts } from "@/actions/crm/get-client-contacts";
+import { prismadb } from "@/lib/prisma";
+import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 
 export const getContacts = async () => {
-  // Backward compatibility wrapper: returns client contacts in legacy shape
-  return await getClientContacts();
+  const organizationId = await getCurrentOrgIdSafe();
+
+  if (!organizationId) {
+    return [];
+  }
+
+  const data = await prismadb.contact.findMany({
+    where: {
+      organizationId,
+    },
+    include: {
+      assignedAgent: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  });
+
+  return data;
 };
+
