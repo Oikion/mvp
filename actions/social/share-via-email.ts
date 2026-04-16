@@ -156,7 +156,7 @@ async function getEntityDetails(
   switch (entityType) {
     case "property":
       return getPropertyDetails(entityId, organizationId, currentUserId, baseUrl);
-    case "client":
+    case "contact":
       return getClientDetails(entityId, organizationId, currentUserId, baseUrl);
     case "post":
       return getPostDetails(entityId, organizationId, baseUrl);
@@ -202,12 +202,12 @@ export async function shareViaEmail(input: ShareViaEmailInput) {
   const subjectMap = {
     en: {
       property: `${senderName} shared a property with you`,
-      client: `${senderName} shared a client with you`,
+      contact: `${senderName} shared a contact with you`,
       post: `${senderName} shared a post with you`,
     },
     el: {
       property: `Ο/Η ${senderName} μοιράστηκε ένα ακίνητο μαζί σας`,
-      client: `Ο/Η ${senderName} μοιράστηκε έναν πελάτη μαζί σας`,
+      contact: `Ο/Η ${senderName} μοιράστηκε μια επαφή μαζί σας`,
       post: `Ο/Η ${senderName} μοιράστηκε μια δημοσίευση μαζί σας`,
     },
   };

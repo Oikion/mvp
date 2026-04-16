@@ -4,7 +4,7 @@ import { getCurrentUserSafe } from "@/lib/get-current-user";
 import { z } from "zod";
 
 const shareViaEmailSchema = z.object({
-  entityType: z.enum(["property", "client", "post"]),
+  entityType: z.enum(["property", "contact", "post"]),
   entityId: z.string().uuid(),
   recipientEmail: z.string().email(),
   recipientName: z.string().optional(),
@@ -14,7 +14,7 @@ const shareViaEmailSchema = z.object({
 const shareMultipleSchema = z.object({
   entities: z.array(
     z.object({
-      entityType: z.enum(["property", "client", "post"]),
+      entityType: z.enum(["property", "contact", "post"]),
       entityId: z.string().uuid(),
     })
   ).min(1).max(10),

@@ -443,7 +443,10 @@ export async function getDeals(params?: unknown) {
   const parsed = dealQuerySchema.safeParse(params ?? {});
   const filters = parsed.success ? parsed.data : {};
 
-  const where: any = { organizationId };
+  const where: Prisma.DealWhereInput = { organizationId, deletedAt: null };
+  if (filters?.includeDeleted === "true") {
+    delete (where as any).deletedAt;
+  }
   if (filters.stage) where.stage = filters.stage;
   if (filters.dealType) where.dealType = filters.dealType;
   if (filters.propertyId) where.propertyId = filters.propertyId;

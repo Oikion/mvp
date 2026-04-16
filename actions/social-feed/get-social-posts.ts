@@ -170,7 +170,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
         ? prismadb.contact.findMany({ where: { id: { in: linkedContactIds } }, select: { id: true, friendlyId: true } })
         : [],
       linkedRequestIds.length > 0
-        ? prismadb.mandate.findMany({ where: { id: { in: linkedRequestIds } }, select: { id: true, friendlyId: true } })
+        ? prismadb.mandate.findMany({ where: { id: { in: linkedRequestIds }, organizationId }, select: { id: true, friendlyId: true } })
         : [],
     ]);
 

@@ -107,7 +107,7 @@ export async function POST(req: Request) {
         entityExists = !!property;
         entityName = property?.property_name || "Property";
         break;
-      case "CLIENT":
+      case "CONTACT":
         const client = await prismadb.contact.findFirst({
           where: {
             id: entityId,
@@ -203,7 +203,7 @@ export async function POST(req: Request) {
     // Revalidate relevant paths so the recipient sees the shared item
     revalidatePath("/shared-with-me");
     revalidatePath("/mls/properties");
-    revalidatePath("/crm/clients");
+    revalidatePath("/crm/contacts");
 
     return NextResponse.json(share, { status: 201 });
   } catch (error) {

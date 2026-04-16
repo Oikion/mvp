@@ -2,18 +2,18 @@
 
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
+import { requireAction } from "@/lib/permissions/action-guards";
 import { revalidatePath } from "next/cache";
 import { encryptMandateForOrg } from "@/lib/model-encryption";
 import { updateMandateSchema } from "@/lib/validations/mandates";
 import { createChangeLogEntry, diffEntity, REQUEST_WATCHED_FIELDS } from "@/lib/entity-change-log";
 
 export const updateMandate = async (data: any) => {
+  const guard = await requireAction("request:update");
+  if (guard) return guard;
+
   const organizationId = await getCurrentOrgId();
   const user = await getCurrentUser();
-
-  if (!organizationId || !user) {
-    throw new Error("Unauthorized");
-  }
 
   // Validate input against schema
   const parsed = updateMandateSchema.safeParse(data);
