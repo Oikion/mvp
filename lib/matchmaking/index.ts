@@ -101,6 +101,8 @@ export {
 // V2 weights
 export {
   MATCH_WEIGHTS_V2,
+  MATCH_WEIGHTS_V2_BASE_SUM,
+  MATCH_WEIGHTS_V2_FINANCING_BONUS,
   getWeightV2,
 } from "./weights";
 

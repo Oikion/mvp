@@ -320,6 +320,13 @@ export function getMatchQuality(score: number): "excellent" | "good" | "fair" | 
   return "very_poor";
 }
 
+export const MATCH_WEIGHTS_V2_BASE_SUM = Object.values(MATCH_WEIGHTS_V2).reduce(
+  (sum, w) => sum + w,
+  0
+);
+
+export const MATCH_WEIGHTS_V2_FINANCING_BONUS = 5;
+
 /**
  * Check if energy class meets minimum requirement
  */
