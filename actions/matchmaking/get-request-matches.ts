@@ -11,6 +11,7 @@ import type {
   PropertyForMatchingV2,
   MatchAnalytics,
   MatchDistribution,
+  MatchResultV2,
 } from "@/lib/matchmaking";
 import { requireAction } from "@/lib/permissions/action-guards";
 import { decryptRequestForOrg } from "@/lib/model-encryption";
@@ -87,6 +88,88 @@ async function fetchActiveRequests(organizationId: string) {
 }
 
 type RequestRow = Awaited<ReturnType<typeof fetchActiveRequests>>[number];
+
+async function fetchActiveProperties(organizationId: string) {
+  return prismadb.properties.findMany({
+    where: {
+      organizationId,
+      property_status: { in: ["ACTIVE", "PENDING"] },
+      visibility: { not: "HIDDEN" },
+    },
+    select: {
+      id: true,
+      friendlyId: true,
+      property_name: true,
+      price: true,
+      property_type: true,
+      transaction_type: true,
+      property_status: true,
+      area: true,
+      address_city: true,
+      address_state: true,
+      municipality: true,
+      region: true,
+      latitude: true,
+      longitude: true,
+      year_built: true,
+      inside_city_plan: true,
+      bedrooms: true,
+      bathrooms: true,
+      size_net_sqm: true,
+      size_gross_sqm: true,
+      square_feet: true,
+      floor: true,
+      elevator: true,
+      accepts_pets: true,
+      furnished: true,
+      heating_type: true,
+      energy_cert_class: true,
+      condition: true,
+      amenities: true,
+      assigned_to: true,
+      organizationId: true,
+    },
+  });
+}
+
+type PropertyRow = Awaited<ReturnType<typeof fetchActiveProperties>>[number];
+
+function adaptPropertyToV2(p: PropertyRow): PropertyForMatchingV2 {
+  return {
+    id: p.id,
+    property_name: p.property_name,
+    price: p.price != null ? Number(p.price) : null,
+    property_type: p.property_type as PropertyForMatchingV2["property_type"],
+    transaction_type: p.transaction_type as PropertyForMatchingV2["transaction_type"],
+    property_status: p.property_status as PropertyForMatchingV2["property_status"],
+    area: p.area,
+    address_city: p.address_city,
+    address_state: p.address_state,
+    municipality: p.municipality,
+    bedrooms: p.bedrooms,
+    bathrooms: p.bathrooms,
+    size_net_sqm: p.size_net_sqm,
+    size_gross_sqm: p.size_gross_sqm,
+    square_feet: p.square_feet != null ? Number(p.square_feet) : null,
+    floor: p.floor,
+    elevator: p.elevator,
+    accepts_pets: p.accepts_pets,
+    furnished: p.furnished as PropertyForMatchingV2["furnished"],
+    heating_type: p.heating_type as PropertyForMatchingV2["heating_type"],
+    energy_cert_class: p.energy_cert_class as PropertyForMatchingV2["energy_cert_class"],
+    condition: p.condition as PropertyForMatchingV2["condition"],
+    amenities: p.amenities as PropertyForMatchingV2["amenities"],
+    assigned_to: p.assigned_to,
+    organizationId: p.organizationId,
+    latitude: p.latitude ?? null,
+    longitude: p.longitude ?? null,
+    region: p.region ?? null,
+    inside_city_plan: p.inside_city_plan ?? null,
+    year_built: p.year_built ?? null,
+    garden: null,
+    parking: null,
+  };
+}
 
 function extractAreas(areasOfInterest: unknown): string[] {
   if (!areasOfInterest) return [];
@@ -209,8 +292,84 @@ function getEmptyRequestAnalytics(): RequestMatchAnalytics {
 }
 
 // ──────────────────────────────────────────────
-// Main server action
+// Main server actions
 // ──────────────────────────────────────────────
+
+/**
+ * Get all property matches for a specific request (v2 engine).
+ * Returns an array of MatchResultV2 sorted by score descending.
+ */
+export async function getRequestMatches(requestId: string): Promise<MatchResultV2[]> {
+  const guard = await requireAction("matchmaking:view_analytics");
+  if (guard) return [];
+
+  const organizationId = await getCurrentOrgIdSafe();
+  if (!organizationId) return [];
+
+  const [rawRequest, rawProperties] = await Promise.all([
+    prismadb.request.findFirst({
+      where: {
+        id: requestId,
+        organizationId,
+        status: "ACTIVE",
+        draftStatus: { not: true },
+        visibility: { not: "HIDDEN" },
+      },
+      select: {
+        id: true,
+        friendlyId: true,
+        requestType: true,
+        propertyCategory: true,
+        propertyTypes: true,
+        areasOfInterest: true,
+        municipality: true,
+        region: true,
+        centerLatitude: true,
+        centerLongitude: true,
+        radiusKm: true,
+        surfaceMin: true,
+        surfaceMax: true,
+        budgetMin: true,
+        budgetMax: true,
+        bedroomsMin: true,
+        bedroomsMax: true,
+        bathroomsMin: true,
+        bathroomsMax: true,
+        floorMin: true,
+        floorMax: true,
+        constructionYearMin: true,
+        constructionYearMax: true,
+        requiresElevator: true,
+        requiresParking: true,
+        requiresStorage: true,
+        goldenVisaEligible: true,
+        financingStatus: true,
+        timeline: true,
+        amenities: true,
+        expiresAt: true,
+        status: true,
+        assignedAgentId: true,
+        organizationId: true,
+        requestContacts: {
+          select: {
+            contact: { select: { displayName: true } },
+          },
+          take: 1,
+        },
+      },
+    }),
+    fetchActiveProperties(organizationId),
+  ]);
+
+  if (!rawRequest || rawProperties.length === 0) return [];
+
+  const decrypted = await decryptRequestForOrg(rawRequest, organizationId);
+  const request: RequestForMatching = adaptRequestToV2(decrypted as RequestRow);
+  const matchableProperties: PropertyForMatchingV2[] = rawProperties.map(adaptPropertyToV2);
+
+  const allMatches = calculateBatchMatchesV2([request], matchableProperties);
+  return allMatches.sort((a, b) => b.overallScore - a.overallScore);
+}
 
 /**
  * Get request-to-property match analytics for the dashboard.
@@ -224,95 +383,22 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return getEmptyRequestAnalytics();
 
-  const [rawRequests, properties] = await Promise.all([
+  const [rawRequests, rawProperties] = await Promise.all([
     fetchActiveRequests(organizationId),
-    prismadb.properties.findMany({
-      where: {
-        organizationId,
-        property_status: { in: ["ACTIVE", "PENDING"] },
-        visibility: { not: "HIDDEN" },
-      },
-      select: {
-        id: true,
-        friendlyId: true,
-        property_name: true,
-        price: true,
-        property_type: true,
-        transaction_type: true,
-        property_status: true,
-        area: true,
-        address_city: true,
-        address_state: true,
-        municipality: true,
-        region: true,
-        latitude: true,
-        longitude: true,
-        year_built: true,
-        inside_city_plan: true,
-        bedrooms: true,
-        bathrooms: true,
-        size_net_sqm: true,
-        size_gross_sqm: true,
-        square_feet: true,
-        floor: true,
-        elevator: true,
-        accepts_pets: true,
-        furnished: true,
-        heating_type: true,
-        energy_cert_class: true,
-        condition: true,
-        amenities: true,
-        assigned_to: true,
-        organizationId: true,
-      },
-    }),
+    fetchActiveProperties(organizationId),
   ]);
 
   // Decrypt request fields (title/notes are encrypted)
   const decryptedRequests = await Promise.all(
-    rawRequests.map((r) => decryptRequestForOrg(r, organizationId))
+    rawRequests.map((r: RequestRow) => decryptRequestForOrg(r, organizationId))
   );
 
   // Map to v2 matching shapes
   const requests: RequestForMatching[] = decryptedRequests.map(
-    (r) => adaptRequestToV2(r as RequestRow)
+    (r: RequestRow) => adaptRequestToV2(r)
   );
 
-  const matchableProperties: PropertyForMatchingV2[] = properties.map((p) => ({
-    id: p.id,
-    property_name: p.property_name,
-    price: p.price != null ? Number(p.price) : null,
-    property_type: p.property_type as PropertyForMatchingV2["property_type"],
-    transaction_type: p.transaction_type as PropertyForMatchingV2["transaction_type"],
-    property_status: p.property_status as PropertyForMatchingV2["property_status"],
-    area: p.area,
-    address_city: p.address_city,
-    address_state: p.address_state,
-    municipality: p.municipality,
-    bedrooms: p.bedrooms,
-    bathrooms: p.bathrooms,
-    size_net_sqm: p.size_net_sqm,
-    size_gross_sqm: p.size_gross_sqm,
-    square_feet: p.square_feet != null ? Number(p.square_feet) : null,
-    floor: p.floor,
-    elevator: p.elevator,
-    accepts_pets: p.accepts_pets,
-    furnished: p.furnished as PropertyForMatchingV2["furnished"],
-    heating_type: p.heating_type as PropertyForMatchingV2["heating_type"],
-    energy_cert_class: p.energy_cert_class as PropertyForMatchingV2["energy_cert_class"],
-    condition: p.condition as PropertyForMatchingV2["condition"],
-    amenities: p.amenities as PropertyForMatchingV2["amenities"],
-    assigned_to: p.assigned_to,
-    organizationId: p.organizationId,
-    // V2 extended fields
-    latitude: p.latitude ?? null,
-    longitude: p.longitude ?? null,
-    region: p.region ?? null,
-    inside_city_plan: p.inside_city_plan ?? null,
-    year_built: p.year_built ?? null,
-    garden: null,   // Not a field on Properties model
-    parking: null,  // Not a field on Properties model
-  }));
+  const matchableProperties: PropertyForMatchingV2[] = rawProperties.map(adaptPropertyToV2);
 
   if (requests.length === 0 || matchableProperties.length === 0) {
     return {
