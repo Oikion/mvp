@@ -320,6 +320,11 @@ export interface MatchAnalytics {
   totalProperties: number;
   averageMatchScore: number;
   clientsWithMatches: number;  // Clients with at least one match > 50%
+
+  // Request-based stats (v2 engine — used by dashboard summary action)
+  requestsWithMatches?: number;  // Requests with at least one match > threshold
+  totalRequests?: number;        // Total active requests in org
+  unmatchedRequests?: number;    // Requests with no matches above threshold
 }
 
 // ============================================
