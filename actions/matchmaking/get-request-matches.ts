@@ -30,6 +30,41 @@ export interface RequestMatchAnalytics extends MatchAnalytics {
 }
 
 // ──────────────────────────────────────────────
+// Amenity inference helper
+// ──────────────────────────────────────────────
+
+function inferBooleanAmenity(
+  amenities: unknown,
+  keys: string[]
+): boolean | null {
+  if (amenities === null || amenities === undefined) return null;
+
+  if (Array.isArray(amenities)) {
+    const normalized = (amenities as unknown[])
+      .filter((a): a is string => typeof a === "string")
+      .map((a) => a.toLowerCase().replace(/[-\s]/g, "_"));
+    return keys.some((k) => normalized.includes(k.toLowerCase().replace(/[-\s]/g, "_")));
+  }
+
+  if (typeof amenities === "object") {
+    const obj = amenities as Record<string, unknown>;
+    const normalizedKeys = Object.keys(obj).map((k) => k.toLowerCase().replace(/[-\s]/g, "_"));
+    for (const key of keys) {
+      const norm = key.toLowerCase().replace(/[-\s]/g, "_");
+      if (normalizedKeys.includes(norm)) {
+        const rawKey = Object.keys(obj).find(
+          (k) => k.toLowerCase().replace(/[-\s]/g, "_") === norm
+        );
+        return rawKey !== undefined ? obj[rawKey] === true : false;
+      }
+    }
+    return false;
+  }
+
+  return null;
+}
+
+// ──────────────────────────────────────────────
 // Helpers
 // ──────────────────────────────────────────────
 
@@ -68,6 +103,10 @@ async function fetchActiveRequests(organizationId: string) {
       requiresElevator: true,
       requiresParking: true,
       requiresStorage: true,
+      requiresGarden: true,
+      insideCityPlan: true,
+      conditionPreference: true,
+      energyClassMin: true,
       goldenVisaEligible: true,
       financingStatus: true,
       timeline: true,
@@ -165,7 +204,13 @@ function adaptRequestToV2(r: RequestRow): RequestForMatching {
     parkingRequired: r.requiresParking ?? null,
     storageRequired: r.requiresStorage ?? null,
     elevatorRequired: r.requiresElevator ?? null,
-    accessibilityRequired: null, // Not stored as a separate field on Request
+    accessibilityRequired: null,
+    gardenRequired: r.requiresGarden ?? null,
+    insideCityPlanRequired: r.insideCityPlan ?? null,
+
+    // Condition / quality preferences
+    conditionPreferences: (r.conditionPreference ?? null) as RequestForMatching["conditionPreferences"],
+    energyClassMin: (r.energyClassMin ?? null) as RequestForMatching["energyClassMin"],
 
     // Investment criteria
     goldenVisaRequired: r.goldenVisaEligible ?? null,
@@ -175,7 +220,7 @@ function adaptRequestToV2(r: RequestRow): RequestForMatching {
     // Construction
     yearBuiltMin: r.constructionYearMin ?? null,
     yearBuiltMax: r.constructionYearMax ?? null,
-    newConstructionOnly: null, // Not a separate field on Request
+    newConstructionOnly: null,
 
     // Status
     status: r.status ?? "ACTIVE",
@@ -310,8 +355,9 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
     region: p.region ?? null,
     inside_city_plan: p.inside_city_plan ?? null,
     year_built: p.year_built ?? null,
-    garden: null,   // Not a field on Properties model
-    parking: null,  // Not a field on Properties model
+    // garden and parking are inferred from the amenities JSON
+    garden: inferBooleanAmenity(p.amenities, ["garden"]),
+    parking: inferBooleanAmenity(p.amenities, ["parking", "garage", "parking_space"]),
   }));
 
   if (requests.length === 0 || matchableProperties.length === 0) {

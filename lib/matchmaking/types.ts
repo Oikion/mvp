@@ -417,6 +417,14 @@ export interface RequestForMatching {
   yearBuiltMax: number | null;
   newConstructionOnly: boolean | null;
 
+  // Condition / quality preferences
+  conditionPreferences: PropertyCondition[] | null;  // e.g. ["EXCELLENT", "VERY_GOOD"]
+  energyClassMin: EnergyCertClass | null;             // minimum acceptable energy class
+
+  // Feature preferences (non-hard-requirement)
+  gardenRequired: boolean | null;          // null = no preference
+  insideCityPlanRequired: boolean | null;  // null = no preference
+
   // Status
   status: string;  // "ACTIVE" | "PENDING" | "ARCHIVED" etc.
   expires_at: Date | null;

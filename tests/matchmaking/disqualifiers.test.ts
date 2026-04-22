@@ -41,6 +41,10 @@ const baseRequest: RequestForMatching = {
   storageRequired: null,
   elevatorRequired: null,
   accessibilityRequired: null,
+  gardenRequired: null,
+  insideCityPlanRequired: null,
+  conditionPreferences: null,
+  energyClassMin: null,
   // Investment
   goldenVisaRequired: null,
   financingStatus: null,
