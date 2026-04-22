@@ -10,7 +10,8 @@ import {
 import { getOrgMembersFromDb } from "@/lib/org-members";
 import type { EntityType } from "@/lib/entity-session/types";
 
-const VALID_ENTITY_TYPES = new Set(["CLIENT", "PROPERTY", "MANDATE", "TASK"]);
+// "MANDATE" retained for backward compatibility; "REQUEST" is the v2 canonical name.
+const VALID_ENTITY_TYPES = new Set(["CLIENT", "PROPERTY", "REQUEST", "MANDATE", "TASK"]);
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -26,10 +27,12 @@ export async function GET(req: Request) {
     const orgId = await getCurrentOrgId();
 
     const { searchParams } = new URL(req.url);
-    const entityType = searchParams.get("entityType") as EntityType;
+    // Normalize v2 "REQUEST" → legacy "MANDATE" for backward compat with EntityType union
+    const rawEntityType = searchParams.get("entityType");
+    const entityType = (rawEntityType === "REQUEST" ? "MANDATE" : rawEntityType) as EntityType;
     const entityId = searchParams.get("entityId");
 
-    if (!entityType || !entityId || !VALID_ENTITY_TYPES.has(entityType)) {
+    if (!rawEntityType || !entityId || !VALID_ENTITY_TYPES.has(rawEntityType)) {
       return NextResponse.json(
         { error: "entityType and entityId are required" },
         { status: 400 }
@@ -153,13 +156,15 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const {
-      entityType,
+      entityType: rawEntityTypePost,
       entityId,
       megolmSessionId,
       creatorShare,
       orkBackup,
       additionalShares,
     } = body;
+    // Normalize v2 "REQUEST" → legacy "MANDATE" for EntityType compat
+    const entityType = rawEntityTypePost === "REQUEST" ? "MANDATE" : rawEntityTypePost;
 
     if (
       !entityType ||

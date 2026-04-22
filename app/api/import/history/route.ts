@@ -7,6 +7,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { z } from "zod";
+import { ImportEntityType } from "@prisma/client";
+import { requireAction, handleGuardError } from "@/lib/permissions/action-guards";
 import { getImportHistory } from "@/lib/import/history";
 import { recordImport } from "@/lib/import/history";
 
@@ -74,8 +77,19 @@ export async function GET(req: NextRequest) {
  * - result:         Import result summary object
  * - entityIds:      Array of created/updated entity IDs
  */
+const importHistoryBodySchema = z.object({
+  importType: z.nativeEnum(ImportEntityType),
+  sourceFilename: z.string().min(1),
+  rowCount: z.number().int().min(0).optional(),
+  result: z.record(z.unknown()).optional(),
+  entityIds: z.array(z.string()).optional(),
+});
+
 export async function POST(req: NextRequest) {
   try {
+    const guard = await requireAction("import:create");
+    if (guard) return handleGuardError(guard);
+
     const { userId, orgId } = await auth();
 
     if (!userId) {
@@ -93,14 +107,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { importType, sourceFilename, rowCount, result, entityIds } = body;
-
-    if (!importType || !sourceFilename) {
+    const parsed = importHistoryBodySchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "importType and sourceFilename are required" },
+        { error: "Invalid request body", details: parsed.error.flatten() },
         { status: 400 }
       );
     }
+    const { importType, sourceFilename, rowCount, result, entityIds } = parsed.data;
 
     const record = await recordImport({
       orgId,

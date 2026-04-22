@@ -1,7 +1,8 @@
 "use server";
 
 import { prismadb } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getCurrentUser, getCurrentOrgIdSafe } from "@/lib/get-current-user";
+import { decryptAgentContactForOrg } from "@/lib/model-encryption";
 import { revalidatePath } from "next/cache";
 import { SubmissionStatus } from "@prisma/client";
 
@@ -62,15 +63,21 @@ export async function getFormSubmissions(options?: {
     skip: offset,
   });
 
-  const submissions: FormSubmission[] = submissionsRaw.map((s) => ({
-    id: s.id,
-    createdAt: s.createdAt.toISOString(),
-    status: s.status,
-    senderName: s.senderName,
-    senderEmail: s.senderEmail,
-    formData: s.formData as Record<string, any>,
-    notes: s.notes,
-  }));
+  const organizationId = await getCurrentOrgIdSafe();
+
+  const submissions: FormSubmission[] = [];
+  for (const s of submissionsRaw) {
+    const dec = organizationId ? await decryptAgentContactForOrg(s, organizationId) : s;
+    submissions.push({
+      id: dec.id,
+      createdAt: dec.createdAt.toISOString(),
+      status: dec.status,
+      senderName: dec.senderName,
+      senderEmail: dec.senderEmail,
+      formData: dec.formData as Record<string, any>,
+      notes: dec.notes,
+    });
+  }
 
   return {
     submissions,
@@ -106,14 +113,17 @@ export async function getFormSubmission(id: string): Promise<FormSubmission | nu
     return null;
   }
 
+  const organizationId = await getCurrentOrgIdSafe();
+  const dec = organizationId ? await decryptAgentContactForOrg(submission, organizationId) : submission;
+
   return {
-    id: submission.id,
-    createdAt: submission.createdAt.toISOString(),
-    status: submission.status,
-    senderName: submission.senderName,
-    senderEmail: submission.senderEmail,
-    formData: submission.formData as Record<string, any>,
-    notes: submission.notes,
+    id: dec.id,
+    createdAt: dec.createdAt.toISOString(),
+    status: dec.status,
+    senderName: dec.senderName,
+    senderEmail: dec.senderEmail,
+    formData: dec.formData as Record<string, any>,
+    notes: dec.notes,
   };
 }
 

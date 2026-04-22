@@ -1,12 +1,30 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { requireAction, handleGuardError } from "@/lib/permissions/action-guards";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { executeBatchImport } from "@/lib/import/unified-engine";
-import type { ValidatedRow } from "@/lib/import/validation-engine";
 import { recordImport } from "@/lib/import/history";
+
+const MAX_ROWS = 5000;
+
+const validatedRowSchema = z.object({
+  rowIndex: z.number().int().min(0),
+  contactRow: z.record(z.unknown()).nullable(),
+  propertyRow: z.record(z.unknown()).nullable(),
+  requestRow: z.record(z.unknown()).nullable(),
+  hasContact: z.boolean(),
+  hasProperty: z.boolean(),
+  hasRequest: z.boolean(),
+  contactDedupKey: z.string().optional(),
+  propertyDedupKey: z.string().optional(),
+});
 
 export async function POST(req: Request) {
   try {
+    const guard = await requireAction("import:create");
+    if (guard) return handleGuardError(guard);
+
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
 
@@ -20,11 +38,24 @@ export async function POST(req: Request) {
       );
     }
 
-    // Rows arrive as ValidatedRow[] — already validated by /api/import/validate.
-    // Do NOT re-run validateImportData() here — the rows have already been
-    // partitioned into contactRow/propertyRow/requestRow sub-objects, and
-    // partitionRow() would fail to find any field keys in that shape.
-    const validatedRows = rows as ValidatedRow[];
+    if (rows.length > MAX_ROWS) {
+      return NextResponse.json(
+        { error: `Maximum ${MAX_ROWS} rows allowed. You provided ${rows.length}.` },
+        { status: 413 },
+      );
+    }
+
+    // Validate the shape of each row. Rows arrive pre-partitioned from
+    // /api/import/validate — we verify structure without re-running field
+    // validation, since partitionRow() would fail on already-split sub-objects.
+    const parsed = z.array(validatedRowSchema).safeParse(rows);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid row shape", details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
+    const validatedRows = parsed.data as Parameters<typeof executeBatchImport>[0];
 
     const batchResult = await executeBatchImport(
       validatedRows,

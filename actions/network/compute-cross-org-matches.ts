@@ -208,6 +208,11 @@ function adaptRequestToV2(r: NetworkRequest): RequestForMatching {
     yearBuiltMax: r.constructionYearMax ?? null,
     newConstructionOnly: null,
 
+    conditionPreferences: null,
+    energyClassMin: null,
+    gardenRequired: null,
+    insideCityPlanRequired: null,
+
     status: r.status ?? "ACTIVE",
     expires_at: r.expiresAt ?? null,
   };

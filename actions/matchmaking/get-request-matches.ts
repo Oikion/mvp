@@ -213,8 +213,8 @@ function adaptPropertyToV2(p: PropertyRow): PropertyForMatchingV2 {
     region: p.region ?? null,
     inside_city_plan: p.inside_city_plan ?? null,
     year_built: p.year_built ?? null,
-    garden: null,
-    parking: null,
+    garden: inferBooleanAmenity(p.amenities, ["garden", "private_garden"]),
+    parking: inferBooleanAmenity(p.amenities, ["parking", "private_parking", "garage"]),
   };
 }
 

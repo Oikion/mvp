@@ -20,6 +20,7 @@ vi.mock("@/lib/prisma", () => ({
     contact: { updateMany: mockUpdateMany },
     properties: { updateMany: mockUpdateMany },
     mandate: { updateMany: mockUpdateMany },
+    request: { updateMany: mockUpdateMany },
     deal: { updateMany: mockUpdateMany },
     documents: { updateMany: mockUpdateMany },
     calendarEvent: { updateMany: mockUpdateMany },
@@ -35,6 +36,7 @@ vi.mock("@/lib/prisma", () => ({
     clientComment: { updateMany: mockUpdateMany },
     contactComment: { updateMany: mockUpdateMany },
     propertyComment: { updateMany: mockUpdateMany },
+    requestComment: { updateMany: mockUpdateMany },
     mandateComment: { updateMany: mockUpdateMany },
     socialPostComment: { updateMany: mockUpdateMany },
     socialPostLike: { updateMany: mockUpdateMany },
@@ -65,10 +67,10 @@ beforeEach(() => {
   mockFindUnique.mockResolvedValue({ id: "user-1", clerkUserId: "clerk-1" });
   mockIsOrgPersonal.mockResolvedValue(false);
 
-  // Default: transaction returns array of updateMany results
+  // Default: resolve each op in the array (Prisma array-form $transaction passes already-created promises)
   mockTransaction.mockImplementation(async (ops: unknown[]) => {
     if (Array.isArray(ops)) {
-      return ops.map(() => ({ count: 0 }));
+      return Promise.all(ops as Promise<unknown>[]);
     }
     return [];
   });
@@ -112,9 +114,10 @@ describe("handleUserDeparture", () => {
         Array(30).fill({ count: 1 })
       )
       .mockResolvedValueOnce([
-        // Personal data deletion: notifications, invitees
+        // Personal data deletion: notifications, invitees, departureLog.create
         { count: 5 },
         { count: 2 },
+        { id: "dep-1" },
       ]);
 
     const result = await handleUserDeparture(

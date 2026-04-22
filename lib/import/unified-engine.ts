@@ -420,7 +420,8 @@ export async function executeBatchImport(
     organizationId: string;
   }
   interface RequestPropertyLink {
-    mandateId: string;
+    organizationId: string;
+    requestId: string;
     propertyId: string;
   }
   interface RequestContactLink {
@@ -462,7 +463,8 @@ export async function executeBatchImport(
       if (!rpLinkSet.has(key)) {
         rpLinkSet.add(key);
         requestPropertyLinks.push({
-          mandateId: requestUuid,
+          organizationId: orgId,
+          requestId: requestUuid,
           propertyId: propertyUuid,
         });
       }
@@ -518,7 +520,7 @@ export async function executeBatchImport(
       }
 
       if (requestPropertyLinks.length > 0) {
-        await tx.mandate_Properties.createMany({
+        await tx.propertyRequestMatch.createMany({
           data: requestPropertyLinks,
           skipDuplicates: true,
         });

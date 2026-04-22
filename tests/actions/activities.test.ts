@@ -19,6 +19,7 @@ vi.mock("@/lib/prisma", () => ({
 vi.mock("@/lib/get-current-user", () => ({
   getCurrentOrgId: vi.fn(),
   getCurrentUserId: vi.fn(),
+  getCurrentUser: vi.fn().mockResolvedValue({ id: "user-1", name: "Test User", email: "test@example.com" }),
 }));
 vi.mock("@/lib/permissions/action-guards", () => ({
   requireAction: vi.fn(),

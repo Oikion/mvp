@@ -47,6 +47,10 @@ const baseRequest: RequestForMatching = {
   yearBuiltMin: null,
   yearBuiltMax: null,
   newConstructionOnly: null,
+  conditionPreferences: null,
+  energyClassMin: null,
+  gardenRequired: null,
+  insideCityPlanRequired: null,
   status: "ACTIVE",
   expires_at: null,
 };

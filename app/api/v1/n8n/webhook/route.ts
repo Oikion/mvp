@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 
@@ -10,8 +10,17 @@ function verifyWebhookSignature(payload: string, signature: string, secret: stri
   const expectedSignature = createHmac("sha256", secret)
     .update(payload)
     .digest("hex");
-  
-  return signature === expectedSignature || signature === `sha256=${expectedSignature}`;
+
+  // Strip optional "sha256=" prefix before comparing
+  const normalizedSignature = signature.startsWith("sha256=")
+    ? signature.slice(7)
+    : signature;
+
+  // Use timing-safe comparison to prevent timing oracle attacks
+  const sigBuffer = Buffer.from(normalizedSignature, "hex");
+  const expectedBuffer = Buffer.from(expectedSignature, "hex");
+  if (sigBuffer.length !== expectedBuffer.length) return false;
+  return timingSafeEqual(sigBuffer, expectedBuffer);
 }
 
 /**
@@ -80,6 +89,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // SECURITY TODO: This endpoint uses a global HMAC secret that doesn't bind to a specific org.
+    // organizationId from the body is trusted but unverified against the token.
+    // Required fix: migrate to per-org webhook secrets stored in DB, looked up by token/org pair.
+    // Tracking: pre-launch-audit-2026-04-22 finding H-04
     const {
       event,
       organizationId,
@@ -94,6 +107,18 @@ export async function POST(req: NextRequest) {
         { error: "Missing required field: event" },
         { status: 400 }
       );
+    }
+
+    // Verify the organizationId from the body actually exists to prevent
+    // cross-org data injection with a valid global HMAC token.
+    if (organizationId) {
+      const orgSettings = await prismadb.organizationSettings.findUnique({
+        where: { organizationId },
+        select: { id: true },
+      });
+      if (!orgSettings) {
+        return NextResponse.json({ error: "Organization not found" }, { status: 404 });
+      }
     }
 
     // Process the webhook based on event type

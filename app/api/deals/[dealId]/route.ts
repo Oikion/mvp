@@ -139,7 +139,7 @@ export async function PUT(
 
       const [updated] = await prismadb.$transaction([
         prismadb.deal.update({
-          where: { id: dealId },
+          where: { id: dealId, organizationId },
           data: {
             stage: validation.data.toStage,
             ...(validation.data.toStage === "COMPLETED" && { closedAt: new Date() }),
@@ -190,7 +190,7 @@ export async function PUT(
 
     const { id: _, ...updateData } = validation.data;
     const updated = await prismadb.deal.update({
-      where: { id: dealId },
+      where: { id: dealId, organizationId },
       // Zod has already validated the shape; the cast bridges Zod's output
       // (which includes a typed commissionSplit object) to Prisma's
       // DealUpdateInput (which expects InputJsonValue for JSON columns).
@@ -222,7 +222,7 @@ export async function DELETE(
 
     // Soft delete
     await prismadb.deal.update({
-      where: { id: dealId },
+      where: { id: dealId, organizationId },
       data: { deletedAt: new Date() },
     });
 

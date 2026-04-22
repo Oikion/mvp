@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { timingSafeEqual } from "crypto";
+import { timingSafeEqual, createHmac } from "node:crypto";
 import { computeCrossOrgMatches } from "@/actions/network/compute-cross-org-matches";
 
+// Hash both sides to a fixed 32-byte digest so timingSafeEqual always runs
+// regardless of token length, preventing a timing side-channel on secret length.
+const _HMAC_KEY = Buffer.alloc(32);
 function verifyAuthToken(provided: string | null, expected: string | undefined): boolean {
   if (!provided || !expected) return false;
-  const expectedBuffer = Buffer.from(`Bearer ${expected}`);
-  const providedBuffer = Buffer.from(provided);
-  if (expectedBuffer.length !== providedBuffer.length) return false;
-  return timingSafeEqual(expectedBuffer, providedBuffer);
+  const a = createHmac("sha256", _HMAC_KEY).update(`Bearer ${expected}`).digest();
+  const b = createHmac("sha256", _HMAC_KEY).update(provided).digest();
+  return timingSafeEqual(a, b);
 }
 
 /**

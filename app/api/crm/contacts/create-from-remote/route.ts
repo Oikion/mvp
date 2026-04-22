@@ -4,16 +4,17 @@ import { timingSafeEqual } from "crypto";
 import { z } from "zod";
 import { generateFriendlyId } from "@/lib/friendly-id";
 
-const createContactSchema = z.object({
-  name: z.string().min(1).max(200),
-  surname: z.string().min(1).max(200),
-  email: z.string().email().max(320),
-  phone: z.string().min(1).max(50),
-  company: z.string().min(1).max(200),
-  message: z.string().min(1).max(5000),
-  tag: z.string().min(1).max(100),
-  organizationId: z.string().uuid(),
-});
+const createContactSchema = z
+  .object({
+    name: z.string().min(1).max(200),
+    surname: z.string().min(1).max(200),
+    email: z.string().email().max(320),
+    phone: z.string().min(1).max(50),
+    company: z.string().min(1).max(200),
+    message: z.string().min(1).max(5000),
+    tag: z.string().min(1).max(100),
+  })
+  .strict();
 
 export async function POST(req: Request) {
   const apiKey = req.headers.get("OIKION_TOKEN");
@@ -44,7 +45,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const { name, surname, email, phone, company, message, tag, organizationId } = parsed.data;
+  const { name, surname, email, phone, company, message, tag } = parsed.data;
+
+  // TODO: Replace with per-token org mapping stored in the database so that
+  // multiple integrations can each target their own organization without
+  // sharing a single global token. For now we derive the target org from
+  // REMOTE_INTEGRATION_ORG_ID to prevent callers from injecting contacts
+  // into arbitrary organizations.
+  const organizationId = process.env.REMOTE_INTEGRATION_ORG_ID;
+  if (!organizationId) {
+    console.error("[CREATE_FROM_REMOTE] REMOTE_INTEGRATION_ORG_ID env var is not set");
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+  }
 
   try {
     const friendlyId = await generateFriendlyId(prismadb, "Contact", organizationId);

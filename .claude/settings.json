@@ -30,7 +30,9 @@
       "Bash(git merge feature/phase4-activities-templates-calendar --no-ff -m ':*)",
       "Bash(git worktree:*)",
       "Bash(git branch:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(pnpm tsc --noEmit *)",
+      "Bash(pnpm vitest run *)"
     ]
   },
   "model": "sonnet"

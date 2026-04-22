@@ -112,7 +112,7 @@ export async function POST(
 
 /**
  * DELETE /api/documents/[documentId]/link-entities
- * Unlink clients, properties, or mandates FROM a document
+ * Unlink contacts, properties, or requests FROM a document
  */
 export async function DELETE(
   req: Request,
@@ -126,11 +126,15 @@ export async function DELETE(
 
     const clientIds = searchParams.get("clientIds")?.split(",").filter(Boolean) || [];
     const propertyIds = searchParams.get("propertyIds")?.split(",").filter(Boolean) || [];
-    const mandateIds = searchParams.get("mandateIds")?.split(",").filter(Boolean) || [];
+    // Accept both `requestIds` (v2) and legacy `mandateIds` (v1 backward compat)
+    const requestIds =
+      (searchParams.get("requestIds") ?? searchParams.get("mandateIds"))
+        ?.split(",")
+        .filter(Boolean) || [];
 
-    if (clientIds.length === 0 && propertyIds.length === 0 && mandateIds.length === 0) {
+    if (clientIds.length === 0 && propertyIds.length === 0 && requestIds.length === 0) {
       return NextResponse.json(
-        { error: "At least one of clientIds, propertyIds, or mandateIds is required" },
+        { error: "At least one of clientIds, propertyIds, or requestIds is required" },
         { status: 400 }
       );
     }
@@ -155,8 +159,8 @@ export async function DELETE(
     if (propertyIds.length > 0) {
       disconnectData.Properties = { disconnect: propertyIds.map((id) => ({ id })) };
     }
-    if (mandateIds.length > 0) {
-      disconnectData.Requests = { disconnect: mandateIds.map((id) => ({ id })) };
+    if (requestIds.length > 0) {
+      disconnectData.Requests = { disconnect: requestIds.map((id) => ({ id })) };
     }
 
     // Update legacy array fields by removing the IDs
@@ -171,9 +175,9 @@ export async function DELETE(
         (id) => !propertyIds.includes(id)
       );
     }
-    if (mandateIds.length > 0) {
+    if (requestIds.length > 0) {
       updateArrays.linkedMandatesIds = (document.linkedMandatesIds || []).filter(
-        (id) => !mandateIds.includes(id)
+        (id) => !requestIds.includes(id)
       );
     }
 

@@ -162,6 +162,39 @@ Invoke these skills automatically — do not wait to be asked:
 - **TypeScript refactors**: After completing TypeScript changes, invoke `ecc:typescript-reviewer`.
 - **Security-sensitive code**: Any code touching auth, input validation, API routes, or permissions — invoke `ecc:security-reviewer` after completing the work.
 
+## OpenSpace Integration (Procedure Memory)
+
+OpenSpace is connected as an MCP server (`openspace` — tools: `execute_task`, `search_skills`, `fix_skill`, `upload_skill`). It stores and evolves **reusable procedural skills** — multi-step workflows that improve with every use.
+
+### When to search for a skill first (`search_skills`):
+- Before running any multi-step DevOps/database operation (migrations, deploys, resets)
+- Before a complex refactor that touches 5+ files
+- Before setting up integrations (new API routes, Clerk webhooks, Prisma relations)
+- When you've failed on a task once — a tested skill may exist
+
+```
+search_skills(query="prisma migration oikion", source="all")
+```
+
+### When to delegate via `execute_task`:
+- The task requires shell orchestration, file watching, or parallel operations beyond what you can do in-turn
+- You need to run a long-running background process (e.g. build analysis, test suite, log tailing)
+- You tried and produced incorrect results — delegate so OpenSpace can capture the correct pattern
+
+```
+execute_task(task="Run Prisma migration, validate schema, check migration status", search_scope="all")
+```
+
+### After a successful delegation:
+- Check `evolved_skills` in the response — if `upload_ready: true`, ask the user whether to upload it to the community skill store.
+- Do NOT delegate simple single-file edits, translations, or straightforward code generation — handle those directly.
+
+### Recurring Oikion workflows worth delegating (OpenSpace will learn and improve these):
+- `pnpm prisma migrate dev` + validate + status check sequences
+- Full build + type-check + lint passes
+- Branch cleanup and git housekeeping sequences
+- Generating and applying schema diffs across environments
+
 ## Doc-Keeping Standards
 
 - When modifying a feature, check if `docs/`, `docs/architecture/`, or any nested CLAUDE.md references the changed behavior. Update them in the same PR.

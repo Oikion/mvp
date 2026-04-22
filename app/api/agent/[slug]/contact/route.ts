@@ -1,8 +1,8 @@
-// @ts-nocheck
-// TODO: Fix type errors
 import { NextResponse } from "next/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications/notification-service";
+import { encryptAgentContactForOrg } from "@/lib/model-encryption";
 import sendEmail from "@/lib/sendmail";
 import AgentContactFormSubmission from "@/emails/notifications/AgentContactFormSubmission";
 import { render } from "@react-email/render";
@@ -28,6 +28,7 @@ export async function POST(
         email: true,
         name: true,
         userLanguage: true,
+        clerkUserId: true,
       },
     });
 
@@ -36,6 +37,23 @@ export async function POST(
         { error: "Agent not found" },
         { status: 404 }
       );
+    }
+
+    // Resolve the agent's primary (non-personal) organization from Clerk
+    let organizationId: string | null = null;
+    if (user.clerkUserId) {
+      try {
+        const clerk = await clerkClient();
+        const memberships = await clerk.users.getOrganizationMembershipList({
+          userId: user.clerkUserId,
+        });
+        const primaryOrg = memberships.data.find(
+          (m) => (m.organization.publicMetadata as Record<string, unknown>)?.type !== "personal"
+        );
+        organizationId = primaryOrg?.organization?.id ?? null;
+      } catch (err) {
+        console.error("[CONTACT_FORM] Failed to resolve organizationId for agent:", err);
+      }
     }
 
     // Get the agent profile
@@ -65,14 +83,19 @@ export async function POST(
     // Remove privacy consent from stored data
     const { privacyConsent, ...formData } = body;
 
+    // Encrypt PII fields before persisting
+    const encryptedData = organizationId
+      ? await encryptAgentContactForOrg({ senderName, senderEmail, formData }, organizationId)
+      : { senderName, senderEmail, formData };
+
     // Create the submission
     const submission = await prismadb.agentContactSubmission.create({
       data: {
         id: crypto.randomUUID(),
         profileId: profile.id,
-        formData: formData,
-        senderName,
-        senderEmail,
+        formData: encryptedData.formData as object,
+        senderName: encryptedData.senderName,
+        senderEmail: encryptedData.senderEmail,
         status: "NEW",
       },
     });
@@ -80,7 +103,7 @@ export async function POST(
     // Create in-app notification for the agent
     await createNotification({
       userId: user.id,
-      organizationId: "00000000-0000-0000-0000-000000000000", // Default org for public submissions
+      organizationId: organizationId ?? "00000000-0000-0000-0000-000000000000",
       type: "CONTACT_FORM_SUBMISSION",
       title: user.userLanguage === "el" 
         ? "Νέα Υποβολή Φόρμας Επικοινωνίας" 

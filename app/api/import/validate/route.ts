@@ -32,7 +32,13 @@ export async function POST(req: NextRequest) {
     }
 
     const result = validateImportData(rows);
-    return NextResponse.json(result);
+    // Strip rawValue from error objects before returning — fields like primary_phone,
+    // primary_email, and afm (Greek tax ID) would otherwise be echoed back as PII.
+    const safeResult = {
+      ...result,
+      errorRows: result.errorRows.map(({ rawValue: _raw, ...rest }) => rest),
+    };
+    return NextResponse.json(safeResult);
   } catch (error) {
     console.error("[IMPORT_VALIDATE]", error);
     return NextResponse.json(

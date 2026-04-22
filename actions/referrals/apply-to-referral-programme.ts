@@ -112,14 +112,19 @@ export async function verifyActionToken(
 
     const [userId, action, timestamp, signature] = parts;
 
-    // Verify signature
+    // Verify signature using timing-safe comparison to prevent timing oracle attacks
     const payload = `${userId}:${action}:${timestamp}`;
     const expectedSignature = crypto
       .createHmac("sha256", TOKEN_SECRET)
       .update(payload)
       .digest("hex");
 
-    if (signature !== expectedSignature) {
+    const sigBuffer = Buffer.from(signature, "hex");
+    const expectedBuffer = Buffer.from(expectedSignature, "hex");
+    if (
+      sigBuffer.length !== expectedBuffer.length ||
+      !crypto.timingSafeEqual(sigBuffer, expectedBuffer)
+    ) {
       return { valid: false };
     }
 

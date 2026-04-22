@@ -133,7 +133,7 @@ export async function createDeal(
       await tx.dealStageLog.create({
         data: {
           dealId: created.id,
-          fromStage: "INTEREST",
+          fromStage: initialStage,
           toStage: initialStage,
           changedBy: currentUser.id,
           notes: "Deal created",

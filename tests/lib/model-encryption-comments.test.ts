@@ -4,8 +4,10 @@ import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 const TEST_KEY_HEX = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789";
 
 // Mock key management to return a known DEK
+const TEST_DEK = Buffer.from("abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789", "hex");
 vi.mock("@/lib/key-management", () => ({
   getOrgDek: vi.fn().mockResolvedValue(Buffer.from("abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789", "hex")),
+  getOrgDeksForDecryption: vi.fn().mockResolvedValue([Buffer.from("abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789", "hex")]),
 }));
 
 // Mock Redis

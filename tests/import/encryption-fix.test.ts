@@ -165,7 +165,8 @@ describe("requestImportConfig.encryptWithDek — communication_notes", () => {
     const result = requestImportConfig.encryptWithDek(data, FAKE_DEK);
 
     expect(encryptJsonWithKey).toHaveBeenCalledWith(notes, FAKE_DEK);
-    expect(result.communication_notes).toBe(FAKE_ENCRYPTED);
+    // requestImportConfig uses camelCase key to match the Prisma Request model
+    expect(result.communicationNotes).toBe(FAKE_ENCRYPTED);
   });
 
   it("skips communication_notes when null", async () => {

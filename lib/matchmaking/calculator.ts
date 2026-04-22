@@ -27,6 +27,7 @@ import {
   AMENITIES_SCORING,
   INTENT_TO_TRANSACTION,
   PURPOSE_TO_PROPERTY_TYPE,
+  ENERGY_CLASS_RANK,
   meetsEnergyRequirement,
   getWeight,
   getWeightV2,
@@ -884,23 +885,43 @@ function scoreBudgetV2(
     return createScoreV2("BUDGET", weight, 50, "No budgetMax specified");
   }
 
-  // Within budget range
+  // Within budget range — perfect score
   const minOk = budgetMin === null || price >= budgetMin;
   const maxOk = price <= budgetMax;
   if (minOk && maxOk) {
     return createScoreV2("BUDGET", weight, 100, "Price within budget", true);
   }
 
-  // Under budgetMin
+  // Under budgetMin — M-07 fix
+  // For INVESTMENT purpose a below-minimum price is a positive signal (entry point value).
+  // For all other intents a price well below the minimum is a quality/size concern.
   if (budgetMin !== null && price < budgetMin) {
-    return createScoreV2("BUDGET", weight, 80, "Price below budgetMin");
+    const isInvestment = request.purposeOfUse === "INVESTMENT";
+    if (isInvestment) {
+      // Below minimum asking budget = possibly under-priced gem → strong positive
+      return createScoreV2("BUDGET", weight, 90, "Price below budgetMin (investment opportunity)", true);
+    }
+    // Non-investment: mild negative — may indicate smaller/lower-quality property
+    const underPercent = ((budgetMin - price) / budgetMin) * 100;
+    if (underPercent > 40) {
+      return createScoreV2("BUDGET", weight, 60, `Price ${Math.round(underPercent)}% under budgetMin`);
+    }
+    return createScoreV2("BUDGET", weight, 75, `Price ${Math.round(underPercent)}% under budgetMin`);
   }
 
-  // Over budgetMax
+  // Over budgetMax — M-08 fix: linear taper instead of flat 60
   if (price > budgetMax) {
-    const ceiling = budgetMax * 1.15;
-    if (price <= ceiling) {
-      return createScoreV2("BUDGET", weight, 60, "Price slightly over budget (soft zone)");
+    const softCeiling = budgetMax * 1.15; // 15% soft zone
+    if (price <= softCeiling) {
+      // Linear taper: 100 at budgetMax → 40 at softCeiling
+      const overFraction = (price - budgetMax) / (softCeiling - budgetMax); // 0..1
+      const score = Math.round(100 - overFraction * 60); // 100 → 40
+      return createScoreV2(
+        "BUDGET",
+        weight,
+        score,
+        `Price ${Math.round(((price - budgetMax) / budgetMax) * 100)}% over budget (soft zone)`
+      );
     }
     return createScoreV2("BUDGET", weight, 0, "Price over budget ceiling");
   }
@@ -1030,11 +1051,19 @@ function scoreBedroomsV2(
   }
 
   if (maxBedrooms !== null && bedrooms > maxBedrooms) {
-    return createScoreV2("BEDROOMS", weight, 80, `${bedrooms} bedrooms (surplus)`);
+    // Surplus: extra bedrooms are nice-to-have but cost more.
+    // Base 80, taper -10 per bedroom over the max, floor at 40.
+    const surplus = bedrooms - maxBedrooms;
+    const score = Math.max(40, 80 - (surplus - 1) * 10);
+    return createScoreV2("BEDROOMS", weight, score, `${bedrooms} bedrooms (${surplus} over max)`);
   }
 
   if (minBedrooms !== null && bedrooms < minBedrooms) {
-    return createScoreV2("BEDROOMS", weight, 40, `${bedrooms} bedrooms (deficit)`);
+    // Deficit: fewer bedrooms than requested is a meaningful mismatch.
+    // Base 40, taper -20 per bedroom below the min, floor at 0.
+    const deficit = minBedrooms - bedrooms;
+    const score = Math.max(0, 40 - (deficit - 1) * 20);
+    return createScoreV2("BEDROOMS", weight, score, `${bedrooms} bedrooms (${deficit} below min)`);
   }
 
   return createScoreV2("BEDROOMS", weight, 50, "Bedroom fallback");
@@ -1103,15 +1132,45 @@ function scoreFloorV2(
 }
 
 function scoreConditionV2(
-  _request: RequestForMatching,
+  request: RequestForMatching,
   property: PropertyForMatchingV2,
   weight: number
 ): CriterionScore {
-  // RequestForMatching has no condition preference field
+  const prefs = request.conditionPreferences;
+
+  // No preference expressed — neutral
+  if (!prefs || prefs.length === 0) {
+    return createScoreV2("CONDITION", weight, 50, "No condition preference");
+  }
+
+  // No data on the property side
   if (!property.condition) {
     return createScoreV2("CONDITION", weight, 50, "Property condition unknown");
   }
-  return createScoreV2("CONDITION", weight, 50, "No condition preference in request");
+
+  if (prefs.includes(property.condition)) {
+    return createScoreV2("CONDITION", weight, 100, `Condition matches: ${property.condition}`, true);
+  }
+
+  // Partial credit: ordered degradation EXCELLENT > VERY_GOOD > GOOD > NEEDS_RENOVATION
+  const CONDITION_RANK: Record<string, number> = {
+    EXCELLENT: 4,
+    VERY_GOOD: 3,
+    GOOD: 2,
+    NEEDS_RENOVATION: 1,
+  };
+  const propRank = CONDITION_RANK[property.condition] ?? 0;
+  const bestPrefRank = Math.max(...prefs.map((c) => CONDITION_RANK[c] ?? 0));
+
+  if (propRank < bestPrefRank) {
+    // Property is in worse condition than preferred
+    const gap = bestPrefRank - propRank;
+    const score = Math.max(0, 100 - gap * 30); // -30 per step below preferred
+    return createScoreV2("CONDITION", weight, score, `Condition ${property.condition} below preference`);
+  }
+
+  // Property is in better condition than the minimum preferred — still acceptable
+  return createScoreV2("CONDITION", weight, 80, `Condition ${property.condition} exceeds preference`);
 }
 
 function scoreConstructionYearV2(
@@ -1183,16 +1242,43 @@ function scoreElevatorV2(
 }
 
 function scoreGardenV2(
-  _request: RequestForMatching,
+  request: RequestForMatching,
   property: PropertyForMatchingV2,
   weight: number
 ): CriterionScore {
-  // No gardenRequired field on RequestForMatching — neutral scoring.
-  const amenities = amenitySet(property.amenities);
-  if (property.garden === true || amenities.has("garden")) {
-    return createScoreV2("GARDEN", weight, 50, "Garden present (no explicit preference)");
+  const pref = request.gardenRequired;
+
+  // No preference — neutral regardless of garden presence
+  if (pref === null || pref === undefined) {
+    return createScoreV2("GARDEN", weight, 50, "No garden preference");
   }
-  return createScoreV2("GARDEN", weight, 50, "No garden preference in request");
+
+  // Determine whether property has garden via dedicated field or amenities
+  const amenities = amenitySet(property.amenities);
+  const hasGarden = property.garden === true || amenities.has("garden");
+
+  if (!pref) {
+    // Buyer explicitly does NOT want garden (e.g., no maintenance burden)
+    return createScoreV2(
+      "GARDEN",
+      weight,
+      hasGarden ? 40 : 100,
+      hasGarden ? "Has garden (buyer prefers none)" : "No garden (matches preference)",
+      !hasGarden
+    );
+  }
+
+  // Buyer wants garden
+  if (hasGarden) {
+    return createScoreV2("GARDEN", weight, 100, "Has garden (matches preference)", true);
+  }
+
+  // Garden status unknown
+  if (property.garden === null && !amenities.has("garden")) {
+    return createScoreV2("GARDEN", weight, 40, "Garden status unknown (garden required)");
+  }
+
+  return createScoreV2("GARDEN", weight, 0, "No garden (required)");
 }
 
 function scoreAmenitiesV2(
@@ -1220,12 +1306,40 @@ function scoreAmenitiesV2(
 }
 
 function scoreInsideCityPlanV2(
-  _request: RequestForMatching,
-  _property: PropertyForMatchingV2,
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
   weight: number
 ): CriterionScore {
-  // No insideCityPlan field on RequestForMatching.
-  return createScoreV2("INSIDE_CITY_PLAN", weight, 50, "No inside-city-plan preference");
+  const pref = request.insideCityPlanRequired;
+
+  // No preference — neutral
+  if (pref === null || pref === undefined) {
+    return createScoreV2("INSIDE_CITY_PLAN", weight, 50, "No inside-city-plan preference");
+  }
+
+  // No data on property
+  if (property.inside_city_plan === null || property.inside_city_plan === undefined) {
+    return createScoreV2("INSIDE_CITY_PLAN", weight, 50, "Inside-city-plan status unknown");
+  }
+
+  if (pref === property.inside_city_plan) {
+    return createScoreV2(
+      "INSIDE_CITY_PLAN",
+      weight,
+      100,
+      `Inside city plan: ${property.inside_city_plan}`,
+      true
+    );
+  }
+
+  // Mismatch: buyer required inside-plan but property is outside (or vice versa).
+  // This is a soft constraint in Greek RE — penalise but don't disqualify.
+  return createScoreV2(
+    "INSIDE_CITY_PLAN",
+    weight,
+    20,
+    `Inside city plan mismatch (wanted ${pref}, got ${property.inside_city_plan})`
+  );
 }
 
 function scoreGoldenVisaV2(
@@ -1287,21 +1401,68 @@ function scoreBathroomsV2(
 }
 
 function scoreTimelineV2(
-  _request: RequestForMatching,
+  request: RequestForMatching,
   _property: PropertyForMatchingV2,
   weight: number
 ): CriterionScore {
-  // Properties don't expose a timeline — placeholder neutral score.
-  return createScoreV2("TIMELINE", weight, 80, "Timeline placeholder");
+  // Properties don't expose an availability timeline in the current schema.
+  // Score is based solely on the urgency of the request:
+  //   IMMEDIATE    → buyer is highly motivated; any active property is relevant → 100
+  //   THREE_MONTHS → strong signal of near-term intent → 85
+  //   SIX_MONTHS   → moderate → 70
+  //   ONE_YEAR     → low urgency → 55
+  //   FLEXIBLE     → open-ended; property still valid → 60
+  //   null/unknown → no preference → 50 (neutral)
+  const TIMELINE_SCORE: Record<string, number> = {
+    IMMEDIATE: 100,
+    THREE_MONTHS: 85,
+    SIX_MONTHS: 70,
+    ONE_YEAR: 55,
+    FLEXIBLE: 60,
+  };
+  if (!request.timeline) {
+    return createScoreV2("TIMELINE", weight, 50, "Timeline not specified");
+  }
+  const score = TIMELINE_SCORE[request.timeline] ?? 50;
+  return createScoreV2("TIMELINE", weight, score, `Timeline: ${request.timeline}`, score >= 80);
 }
 
 function scoreEnergyClassV2(
-  _request: RequestForMatching,
-  _property: PropertyForMatchingV2,
+  request: RequestForMatching,
+  property: PropertyForMatchingV2,
   weight: number
 ): CriterionScore {
-  // No energyClassMin field on RequestForMatching — neutral.
-  return createScoreV2("ENERGY_CLASS", weight, 50, "No energy-class preference");
+  const minClass = request.energyClassMin;
+
+  if (!minClass) {
+    return createScoreV2("ENERGY_CLASS", weight, 50, "No energy-class preference");
+  }
+  if (!property.energy_cert_class) {
+    return createScoreV2("ENERGY_CLASS", weight, 50, "Energy class unknown");
+  }
+
+  const propRank = ENERGY_CLASS_RANK[property.energy_cert_class] ?? 0;
+  const reqRank = ENERGY_CLASS_RANK[minClass] ?? 0;
+
+  if (propRank >= reqRank) {
+    return createScoreV2(
+      "ENERGY_CLASS",
+      weight,
+      100,
+      `Energy class ${property.energy_cert_class} meets minimum ${minClass}`,
+      true
+    );
+  }
+
+  // Linear penalty: one rank below = 70, two = 40, three or more = 10
+  const gap = reqRank - propRank;
+  const score = Math.max(10, 100 - gap * 30);
+  return createScoreV2(
+    "ENERGY_CLASS",
+    weight,
+    score,
+    `Energy class ${property.energy_cert_class} is ${gap} rank(s) below minimum ${minClass}`
+  );
 }
 
 // ---------------------------------------------------------------------------

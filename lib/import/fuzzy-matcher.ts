@@ -46,11 +46,12 @@ const ENTITY_IDENTIFIER_MAP: Record<string, string> = {
   Πελάτης: "client",
   Ακινήτου: "property",
   Ακίνητο: "property",
-  Εντολής: "mandate",
-  Εντολή: "mandate",
+  Εντολής: "request",
+  Εντολή: "request",
   Client: "client",
   Property: "property",
-  Mandate: "mandate",
+  Mandate: "request",
+  Request: "request",
 };
 
 /**

@@ -97,47 +97,48 @@ export async function handleUserDeparture(
   const { nulledCount } = await nullifyOrgReferences(userId, orgId);
   result.nulledReferences = nulledCount;
 
-  // Step 6: Delete user-personal data for this org
-  const [notifs, invitees] = await prismadb.$transaction([
-    prismadb.notification.deleteMany({
-      where: { userId, organizationId: orgId },
-    }),
-    prismadb.eventInvitee.deleteMany({
-      where: { userId, CalendarEvent: { organizationId: orgId } },
-    }),
-  ]);
-  result.deletedPersonalData = notifs.count + invitees.count;
-
-  // Step 7: Create DepartureLog
+  // Step 6 & 7: Delete user-personal data for this org AND create DepartureLog atomically.
+  // Keeping the audit log inside the same transaction guarantees that if the log insert
+  // fails the cleanup is rolled back (and vice-versa), so we never have a departed user
+  // without an audit trail.
   const userName = await getUserNameSnapshot(userId);
   const departureLogNotes =
     reason === "ACCOUNT_DELETED" && policyApplied === "AGENT"
       ? "Account deletion overrode AGENT policy — data stays with org"
       : null;
 
-  const departureLog = await prismadb.departureLog.create({
-    data: {
-      id: crypto.randomUUID(),
-      organizationId: orgId,
-      userId,
-      userName,
-      reason,
-      policyApplied,
-      migratedEntities: (migrationResult?.migratedEntities ?? {
-        properties: [],
-        clients: [],
-        mandates: [],
-      }) as any,
-      cancelledDeals: (migrationResult?.cancelledDeals ?? []) as any,
-      entityCounts: (migrationResult?.entityCounts ?? {
-        properties: 0,
-        clients: 0,
-        requests: 0,
-        deals: 0,
-      }) as any,
-      notes: departureLogNotes,
-    },
-  });
+  const [notifs, invitees, departureLog] = await prismadb.$transaction([
+    prismadb.notification.deleteMany({
+      where: { userId, organizationId: orgId },
+    }),
+    prismadb.eventInvitee.deleteMany({
+      where: { userId, CalendarEvent: { organizationId: orgId } },
+    }),
+    prismadb.departureLog.create({
+      data: {
+        id: crypto.randomUUID(),
+        organizationId: orgId,
+        userId,
+        userName,
+        reason,
+        policyApplied,
+        migratedEntities: (migrationResult?.migratedEntities ?? {
+          properties: [],
+          clients: [],
+          requests: [],
+        }) as any,
+        cancelledDeals: (migrationResult?.cancelledDeals ?? []) as any,
+        entityCounts: (migrationResult?.entityCounts ?? {
+          properties: 0,
+          clients: 0,
+          requests: 0,
+          deals: 0,
+        }) as any,
+        notes: departureLogNotes,
+      },
+    }),
+  ]);
+  result.deletedPersonalData = notifs.count + invitees.count;
 
   // Step 7b: Send departure email to org owner (fire-and-forget)
   void sendDepartureEmail(orgId, departureLog.id, userName, policyApplied, migrationResult ?? null);

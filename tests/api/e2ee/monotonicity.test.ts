@@ -27,6 +27,13 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 // ---------------------------------------------------------------------------
+// Mock permissions — canPerformAction must pass for route to proceed
+// ---------------------------------------------------------------------------
+vi.mock("@/lib/permissions", () => ({
+  canPerformAction: vi.fn().mockResolvedValue({ allowed: true }),
+}));
+
+// ---------------------------------------------------------------------------
 // Mock auth helpers
 // ---------------------------------------------------------------------------
 vi.mock("@/lib/get-current-user", () => ({

@@ -5,6 +5,7 @@ import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import {
   calculateBatchMatchesV2,
   MATCH_THRESHOLDS,
+  DEFAULT_MIN_MATCH_SCORE,
 } from "@/lib/matchmaking";
 import type {
   RequestForMatching,
@@ -15,6 +16,48 @@ import { requireAction } from "@/lib/permissions/action-guards";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
 import { decryptRequestForOrg } from "@/lib/model-encryption";
 import type { Prisma } from "@prisma/client";
+
+// ──────────────────────────────────────────────
+// Amenity inference helper
+// ──────────────────────────────────────────────
+
+/**
+ * Infer a boolean property feature (e.g. garden, parking) from the amenities JSON.
+ * Supports both array form `["garden", ...]` and object form `{ garden: true, ... }`.
+ * Returns true if any of the provided keys is present and truthy; null if the amenity
+ * field is absent (unknown); false only when the field exists but none of the keys match.
+ */
+function inferBooleanAmenity(
+  amenities: unknown,
+  keys: string[]
+): boolean | null {
+  if (amenities === null || amenities === undefined) return null;
+
+  if (Array.isArray(amenities)) {
+    const normalized = (amenities as unknown[])
+      .filter((a): a is string => typeof a === "string")
+      .map((a) => a.toLowerCase().replace(/[-\s]/g, "_"));
+    return keys.some((k) => normalized.includes(k.toLowerCase().replace(/[-\s]/g, "_")));
+  }
+
+  if (typeof amenities === "object") {
+    const obj = amenities as Record<string, unknown>;
+    const normalizedKeys = Object.keys(obj).map((k) => k.toLowerCase().replace(/[-\s]/g, "_"));
+    for (const key of keys) {
+      const norm = key.toLowerCase().replace(/[-\s]/g, "_");
+      if (normalizedKeys.includes(norm)) {
+        const rawKey = Object.keys(obj).find(
+          (k) => k.toLowerCase().replace(/[-\s]/g, "_") === norm
+        );
+        return rawKey !== undefined ? obj[rawKey] === true : false;
+      }
+    }
+    // Object exists but none of the keys are present → explicitly false
+    return false;
+  }
+
+  return null;
+}
 
 // ──────────────────────────────────────────────
 // Helpers (shared with get-request-matches.ts)
@@ -55,6 +98,10 @@ async function fetchActiveRequests(organizationId: string) {
       requiresElevator: true,
       requiresParking: true,
       requiresStorage: true,
+      requiresGarden: true,
+      insideCityPlan: true,
+      conditionPreference: true,
+      energyClassMin: true,
       goldenVisaEligible: true,
       financingStatus: true,
       timeline: true,
@@ -147,7 +194,13 @@ function adaptRequestToV2(r: RequestRow): RequestForMatching {
     parkingRequired: r.requiresParking ?? null,
     storageRequired: r.requiresStorage ?? null,
     elevatorRequired: r.requiresElevator ?? null,
-    accessibilityRequired: null, // Not stored as a separate field on Request
+    accessibilityRequired: null,
+    gardenRequired: r.requiresGarden ?? null,
+    insideCityPlanRequired: r.insideCityPlan ?? null,
+
+    // Condition / quality preferences
+    conditionPreferences: (r.conditionPreference ?? null) as RequestForMatching["conditionPreferences"],
+    energyClassMin: (r.energyClassMin ?? null) as RequestForMatching["energyClassMin"],
 
     // Investment criteria
     goldenVisaRequired: r.goldenVisaEligible ?? null,
@@ -157,7 +210,7 @@ function adaptRequestToV2(r: RequestRow): RequestForMatching {
     // Construction
     yearBuiltMin: r.constructionYearMin ?? null,
     yearBuiltMax: r.constructionYearMax ?? null,
-    newConstructionOnly: null, // Not a separate field on Request
+    newConstructionOnly: null,
 
     // Status
     status: r.status ?? "ACTIVE",
@@ -238,14 +291,16 @@ async function fetchActiveProperties(organizationId: string): Promise<PropertyFo
     region: p.region ?? null,
     inside_city_plan: p.inside_city_plan ?? null,
     year_built: p.year_built ?? null,
-    garden: null,  // Not a field on Properties model
-    parking: null, // Not a field on Properties model
+    // garden and parking are inferred from the amenities JSON
+    garden: inferBooleanAmenity(p.amenities, ["garden"]),
+    parking: inferBooleanAmenity(p.amenities, ["parking", "garage", "parking_space"]),
   }));
 }
 
 export interface IntraOrgMatchResult {
   upserted: number;
   skipped: number;
+  deleted: number;
   durationMs: number;
 }
 
@@ -275,6 +330,7 @@ export async function runIntraOrgMatches(
     return {
       upserted: 0,
       skipped: 0,
+      deleted: 0,
       durationMs: Date.now() - start,
     };
   }
@@ -296,15 +352,22 @@ export async function runIntraOrgMatches(
   // Run the v2 engine
   const allMatches = calculateBatchMatchesV2(requests, matchableProperties, customWeights ?? undefined);
 
-  // Filter to matches above the FAIR threshold
+  // Partition results: upsert those above threshold, collect pairs that fell below
   const aboveThreshold = allMatches.filter(
     (m) => m.overallScore >= MATCH_THRESHOLDS.FAIR
   );
+  const belowThreshold = allMatches.filter(
+    (m) => m.overallScore < DEFAULT_MIN_MATCH_SCORE
+  );
 
-  // Note: stale matches that now score below threshold are NOT deleted here.
-  // They remain in the DB until a future cleanup cron or the row is updated on next run.
+  // Build the set of (propertyId, requestId) pairs that scored below the minimum
+  // so we can delete stale rows from previous runs.
+  const stalePairs = belowThreshold.map((m) => ({
+    propertyId: m.propertyId,
+    requestId: m.requestId,
+  }));
 
-  // Upsert in batches of 50
+  // Upsert above-threshold matches in batches of 50
   const BATCH_SIZE = 50;
   let upserted = 0;
 
@@ -341,9 +404,40 @@ export async function runIntraOrgMatches(
     upserted += batch.length;
   }
 
+  // Delete stale rows in batches of 50 (rows that now score below DEFAULT_MIN_MATCH_SCORE)
+  let deleted = 0;
+  for (let i = 0; i < stalePairs.length; i += BATCH_SIZE) {
+    const batch = stalePairs.slice(i, i + BATCH_SIZE);
+    const result = await prismadb.propertyRequestMatch.deleteMany({
+      where: {
+        organizationId,
+        OR: batch.map((p) => ({
+          propertyId: p.propertyId,
+          requestId: p.requestId,
+        })),
+      },
+    });
+    deleted += result.count;
+  }
+
+  // Purge rows for properties that are no longer in the active set
+  // (SOLD, OFF_MARKET, WITHDRAWN, etc.) — they were never scored in this run,
+  // so the below-threshold pass above never touched their rows.
+  const activePropertyIds = matchableProperties.map((p) => p.id);
+  if (activePropertyIds.length > 0) {
+    const purgeResult = await prismadb.propertyRequestMatch.deleteMany({
+      where: {
+        organizationId,
+        propertyId: { notIn: activePropertyIds },
+      },
+    });
+    deleted += purgeResult.count;
+  }
+
   return {
     upserted,
-    skipped: allMatches.length - aboveThreshold.length,
+    skipped: allMatches.length - aboveThreshold.length - belowThreshold.length,
+    deleted,
     durationMs: Date.now() - start,
   };
 }

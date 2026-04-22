@@ -67,7 +67,7 @@ describe("updateMandate", () => {
 
   it("includes organizationId in the where clause", async () => {
     const result = await updateMandate({ id: "req-1", notes: "Updated" });
-    expect(result.data).toBeDefined();
+    expect("data" in result ? result.data : undefined).toBeDefined();
     expect(prismadb.request.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ organizationId: "org-test-123" }),

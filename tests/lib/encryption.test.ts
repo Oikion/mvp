@@ -18,7 +18,8 @@ afterAll(() => {
 
 // Mock getOrgDek to return the test key buffer
 vi.mock("@/lib/key-management", () => ({
-  getOrgDek: vi.fn().mockResolvedValue(Buffer.from(TEST_KEY_HEX, "hex")),
+  getOrgDek: vi.fn().mockResolvedValue(Buffer.from("0000000000000000000000000000000000000000000000000000000000000000", "hex")),
+  getOrgDeksForDecryption: vi.fn().mockResolvedValue([Buffer.from("0000000000000000000000000000000000000000000000000000000000000000", "hex")]),
 }));
 
 describe("isEncrypted", () => {
@@ -60,8 +61,12 @@ describe("encrypt / decrypt round-trip", () => {
     expect(decrypt(c2)).toBe(plain);
   });
 
-  it("returns empty string as-is without encrypting", () => {
-    expect(encrypt("")).toBe("");
+  it("encrypts empty strings (M-02: empty string leaks metadata)", () => {
+    // Empty strings are now encrypted — null means "field not set"
+    const cipher = encrypt("");
+    expect(isEncrypted(cipher)).toBe(true);
+    expect(decrypt(cipher)).toBe("");
+    // decrypt of truly empty string returns empty (not in encrypted format)
     expect(decrypt("")).toBe("");
   });
 });

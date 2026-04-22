@@ -41,7 +41,7 @@ const {
         contactProperty: {
           createMany: mockCreateMany,
         },
-        mandate_Properties: {
+        propertyRequestMatch: {
           createMany: mockCreateMany,
         },
         requestContact: {

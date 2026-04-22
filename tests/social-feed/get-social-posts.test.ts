@@ -49,7 +49,7 @@ vi.mock("@/lib/prisma", () => ({
     socialPost: {
       findMany: mockSocialPostFindMany,
     },
-    mandate: {
+    request: {
       findMany: mockMandateFindMany,
     },
     properties: {

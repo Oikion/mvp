@@ -446,8 +446,8 @@ describe("Single entity rows", () => {
     expect(result.validRows[0].hasContact).toBe(false);
     expect(result.validRows[0].hasProperty).toBe(false);
     expect(result.validRows[0].requestRow).not.toBeNull();
-    // Auto-generated title should be "Rent mandate"
-    expect(result.validRows[0].requestRow!.title).toBe("Rent mandate");
+    // Auto-generated title should be "Rent request"
+    expect(result.validRows[0].requestRow!.title).toBe("Rent request");
   });
 });
 
