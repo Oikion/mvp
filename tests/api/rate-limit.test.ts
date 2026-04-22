@@ -32,7 +32,7 @@ describe("run-now org-level rate limit", () => {
   });
 
   it("returns 429 when last org run was within 5 minutes", async () => {
-    const recentDate = new Date(Date.now() - 2 * 60 * 1000); // 2 min ago
+    const recentDate = new Date(Date.now() - RATE_LIMIT_MS / 2); // halfway through window
     (prismadb.propertyRequestMatch.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
       updatedAt: recentDate,
     });
@@ -42,7 +42,7 @@ describe("run-now org-level rate limit", () => {
   });
 
   it("proceeds when last org run was more than 5 minutes ago", async () => {
-    const oldDate = new Date(Date.now() - 6 * 60 * 1000); // 6 min ago
+    const oldDate = new Date(Date.now() - RATE_LIMIT_MS * 1.2); // 20% past window
     (prismadb.propertyRequestMatch.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
       updatedAt: oldDate,
     });
@@ -59,8 +59,7 @@ describe("run-now org-level rate limit", () => {
   });
 
   it("calculates retryAfterSec correctly in 429 response", async () => {
-    const elapsed = 2 * 60 * 1000; // 2 min elapsed
-    const recentDate = new Date(Date.now() - elapsed);
+    const recentDate = new Date(Date.now() - RATE_LIMIT_MS / 2);
     (prismadb.propertyRequestMatch.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
       updatedAt: recentDate,
     });
