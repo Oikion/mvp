@@ -15,10 +15,8 @@ vi.mock("@/actions/matchmaking/compute-intra-org-matches", () => ({
   runIntraOrgMatches: vi.fn().mockResolvedValue({ upserted: 0, skipped: 0, durationMs: 10 }),
 }));
 
-import { POST } from "@/app/api/matchmaking/run-now/route";
+import { POST, RATE_LIMIT_MS } from "@/app/api/matchmaking/run-now/route";
 import { prismadb } from "@/lib/prisma";
-
-const RATE_LIMIT_MS = 5 * 60 * 1000;
 
 function makeRequest(body: Record<string, unknown> = {}) {
   return new Request("http://localhost/api/matchmaking/run-now", {
