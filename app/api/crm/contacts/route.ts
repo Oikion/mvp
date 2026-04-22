@@ -185,7 +185,7 @@ export async function POST(req: Request) {
       },
     });
 
-    notifyContactCreated({
+    void notifyContactCreated({
       entityType: "CONTACT",
       entityId: contact.id,
       entityName: contact.displayName,

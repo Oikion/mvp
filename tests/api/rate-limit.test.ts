@@ -67,7 +67,57 @@ describe("run-now org-level rate limit", () => {
     const res = await POST(makeRequest());
     expect(res.status).toBe(429);
     const body = await res.json();
-    // apiRateLimited returns { error: string } — verify the message contains retry info
     expect(body.error).toMatch(/Rate limited/);
+  });
+});
+
+describe("run-now requestId-level rate limit", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Org-level gate always open for these tests
+    (prismadb.propertyRequestMatch.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+  });
+
+  it("returns 404 when requestId does not belong to the org", async () => {
+    (prismadb.request.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+    const res = await POST(makeRequest({ requestId: "claaaaaaaaaaaaaaaaaaaaaaa" }));
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 429 when request.lastMatchRunAt was within 5 minutes", async () => {
+    const recentDate = new Date(Date.now() - RATE_LIMIT_MS / 2);
+    (prismadb.request.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+      lastMatchRunAt: recentDate,
+    });
+    (prismadb.request.update as ReturnType<typeof vi.fn>).mockResolvedValue({});
+
+    const res = await POST(makeRequest({ requestId: "claaaaaaaaaaaaaaaaaaaaaaa" }));
+    expect(res.status).toBe(429);
+  });
+
+  it("proceeds and updates lastMatchRunAt when request gate is clear", async () => {
+    const oldDate = new Date(Date.now() - RATE_LIMIT_MS * 1.2);
+    (prismadb.request.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+      lastMatchRunAt: oldDate,
+    });
+    (prismadb.request.update as ReturnType<typeof vi.fn>).mockResolvedValue({});
+
+    const res = await POST(makeRequest({ requestId: "claaaaaaaaaaaaaaaaaaaaaaa" }));
+    expect(res.status).toBe(200);
+    expect(prismadb.request.update).toHaveBeenCalledOnce();
+  });
+
+  it("org-level gate blocks requestId path too when org recently ran", async () => {
+    const recentDate = new Date(Date.now() - RATE_LIMIT_MS / 2);
+    // Override: org gate is closed
+    (prismadb.propertyRequestMatch.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+      updatedAt: recentDate,
+    });
+
+    const res = await POST(makeRequest({ requestId: "claaaaaaaaaaaaaaaaaaaaaaa" }));
+    expect(res.status).toBe(429);
+    // request.findFirst should never be reached — org gate fired first
+    expect(prismadb.request.findFirst).not.toHaveBeenCalled();
   });
 });

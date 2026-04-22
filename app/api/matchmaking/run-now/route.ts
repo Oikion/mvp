@@ -26,6 +26,23 @@ export async function POST(req: Request): Promise<Response> {
     if (!parseResult.success) return apiBadRequest("Invalid request body");
     const { requestId } = parseResult.data;
 
+    // Org-level gate: prevent repeated full-org recomputes regardless of requestId.
+    // Uses most-recently-updated PropertyRequestMatch.updatedAt as a proxy timestamp.
+    // Best-effort: if runIntraOrgMatches produces zero upserts, the gate won't advance
+    // and will allow another run immediately. Acceptable tradeoff — avoids a schema change.
+    const lastOrgRun = await prismadb.propertyRequestMatch.findFirst({
+      where: { organizationId },
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true },
+    });
+    if (lastOrgRun?.updatedAt) {
+      const elapsed = Date.now() - lastOrgRun.updatedAt.getTime();
+      if (elapsed < RATE_LIMIT_MS) {
+        const retryAfterSec = Math.ceil((RATE_LIMIT_MS - elapsed) / 1000);
+        return apiRateLimited(`Rate limited. Try again in ${retryAfterSec}s.`);
+      }
+    }
+
     if (requestId) {
       const request = await prismadb.request.findFirst({
         where: { id: requestId, organizationId },
@@ -46,23 +63,6 @@ export async function POST(req: Request): Promise<Response> {
         where: { id: requestId, organizationId },
         data: { lastMatchRunAt: new Date() },
       });
-    } else {
-      // Org-level gate: prevent repeated full-org recomputes (no requestId path only).
-      // Uses most-recently-updated PropertyRequestMatch.updatedAt as a proxy timestamp.
-      // Best-effort: if runIntraOrgMatches produces zero upserts, the gate won't advance
-      // and will allow another run immediately. Acceptable tradeoff — avoids a schema change.
-      const lastOrgRun = await prismadb.propertyRequestMatch.findFirst({
-        where: { organizationId },
-        orderBy: { updatedAt: "desc" },
-        select: { updatedAt: true },
-      });
-      if (lastOrgRun?.updatedAt) {
-        const elapsed = Date.now() - lastOrgRun.updatedAt.getTime();
-        if (elapsed < RATE_LIMIT_MS) {
-          const retryAfterSec = Math.ceil((RATE_LIMIT_MS - elapsed) / 1000);
-          return apiRateLimited(`Rate limited. Try again in ${retryAfterSec}s.`);
-        }
-      }
     }
 
     const result = await runIntraOrgMatches(organizationId);
