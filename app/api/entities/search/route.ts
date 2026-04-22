@@ -1,11 +1,11 @@
 /**
  * Unified Entity Search API
- * 
+ *
  * POST /api/entities/search
- * 
+ *
  * Search across multiple entity types with a single query.
  * Supports multi-field search for each entity type.
- * 
+ *
  * Request body:
  * {
  *   query: string;           // Search query
@@ -17,7 +17,7 @@
  *     eventType?: string;
  *   }
  * }
- * 
+ *
  * Response:
  * {
  *   results: {
@@ -34,7 +34,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { auth } from "@clerk/nextjs/server";
+import { apiUnauthorized, apiForbidden, apiInternalError } from "@/lib/api-response";
 import { searchEntities, type EntityType } from "@/lib/search/entity-search";
 
 const VALID_TYPES: EntityType[] = ["contact", "property", "document", "event", "request", "deal"];
@@ -42,11 +43,11 @@ const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 10;
 
 export async function POST(req: Request) {
-  try {
-    // Authenticate user
-    await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+  const { userId, orgId: organizationId } = await auth();
+  if (!userId) return apiUnauthorized();
+  if (!organizationId) return apiForbidden();
 
+  try {
     const body = await req.json();
     const { query = "", types = [], limit: requestedLimit, filters = {} } = body;
 
@@ -98,32 +99,18 @@ export async function POST(req: Request) {
       headers,
     });
   } catch (error: unknown) {
-    // Handle authentication errors
-    if (error instanceof Error && error.message.includes("not authenticated")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (error instanceof Error && error.message.includes("not associated")) {
-      return NextResponse.json(
-        { error: "No organization context" },
-        { status: 403 }
-      );
-    }
-
-    console.error("[ENTITY_SEARCH_ERROR]", error);
-    return NextResponse.json(
-      { error: "Failed to search entities" },
-      { status: 500 }
-    );
+    console.error("[ENTITY_SEARCH_POST]", error);
+    return apiInternalError("Failed to search entities");
   }
 }
 
 // GET endpoint for simpler queries (via URL params)
 export async function GET(req: Request) {
-  try {
-    await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+  const { userId, orgId: organizationId } = await auth();
+  if (!userId) return apiUnauthorized();
+  if (!organizationId) return apiForbidden();
 
+  try {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q") || "";
     const typesParam = searchParams.get("types") || "contact,property,document,event,request,deal";
@@ -177,14 +164,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(searchResponse, { status: 200, headers });
   } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes("not authenticated")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    console.error("[ENTITY_SEARCH_GET_ERROR]", error);
-    return NextResponse.json(
-      { error: "Failed to search entities" },
-      { status: 500 }
-    );
+    console.error("[ENTITY_SEARCH_GET]", error);
+    return apiInternalError("Failed to search entities");
   }
 }
