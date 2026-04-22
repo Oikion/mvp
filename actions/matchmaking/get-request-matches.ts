@@ -12,9 +12,17 @@ import type {
   MatchAnalytics,
   MatchDistribution,
   MatchResultV2,
+  CriterionScore,
+  PropertyType,
+  PropertyStatus,
 } from "@/lib/matchmaking";
 import { requireAction } from "@/lib/permissions/action-guards";
 import { decryptRequestForOrg } from "@/lib/model-encryption";
+
+/** Converts a 0.0–1.0 Prisma Decimal matchScore to a 0–100 integer. */
+export function convertMatchScore(decimal: number): number {
+  return Math.round(decimal * 100);
+}
 
 /**
  * Request match analytics — same shape as mandate analytics for UI compatibility.
@@ -383,38 +391,60 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return getEmptyRequestAnalytics();
 
-  const [rawRequests, rawProperties] = await Promise.all([
-    fetchActiveRequests(organizationId),
-    fetchActiveProperties(organizationId),
+  const [storedMatches, totalRequests, totalProperties] = await Promise.all([
+    prismadb.propertyRequestMatch.findMany({
+      where: { organizationId },
+      orderBy: { matchScore: "desc" },
+      take: 200,
+      include: {
+        property: {
+          select: {
+            id: true,
+            friendlyId: true,
+            property_name: true,
+            price: true,
+            property_type: true,
+            property_status: true,
+            area: true,
+            address_city: true,
+          },
+        },
+        request: {
+          select: {
+            id: true,
+            friendlyId: true,
+          },
+        },
+      },
+    }),
+    prismadb.request.count({
+      where: {
+        organizationId,
+        status: "ACTIVE",
+        draftStatus: { not: true },
+      },
+    }),
+    prismadb.properties.count({
+      where: {
+        organizationId,
+        property_status: { in: ["ACTIVE", "PENDING"] },
+      },
+    }),
   ]);
 
-  // Decrypt request fields (title/notes are encrypted)
-  const decryptedRequests = await Promise.all(
-    rawRequests.map((r: RequestRow) => decryptRequestForOrg(r, organizationId))
-  );
-
-  // Map to v2 matching shapes
-  const requests: RequestForMatching[] = decryptedRequests.map(
-    (r: RequestRow) => adaptRequestToV2(r)
-  );
-
-  const matchableProperties: PropertyForMatchingV2[] = rawProperties.map(adaptPropertyToV2);
-
-  if (requests.length === 0 || matchableProperties.length === 0) {
+  if (storedMatches.length === 0) {
     return {
       ...getEmptyRequestAnalytics(),
-      totalClients: requests.length,
-      totalProperties: matchableProperties.length,
+      totalClients: totalRequests,
+      totalProperties,
       requestStats: {
-        totalRequests: rawRequests.length,
-        activeRequests: rawRequests.length,
+        totalRequests,
+        activeRequests: totalRequests,
         requestsWithMatches: 0,
         avgMatchScore: 0,
       },
     };
   }
-
-  const allMatches = calculateBatchMatchesV2(requests, matchableProperties);
 
   const matchDistribution: MatchDistribution[] = [
     { range: "0-25%", min: 0, max: 25, count: 0 },
@@ -423,37 +453,109 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
     { range: "71-85%", min: 71, max: 85, count: 0 },
     { range: "86-100%", min: 86, max: 100, count: 0 },
   ];
-  for (const m of allMatches) {
-    const bucket = matchDistribution.find(
-      (d) => m.overallScore >= d.min && m.overallScore <= d.max
-    );
+
+  const requestsWithMatchesSet = new Set<string>();
+  let totalScore = 0;
+
+  for (const m of storedMatches) {
+    const score = convertMatchScore(Number(m.matchScore));
+    totalScore += score;
+    if (score >= MATCH_THRESHOLDS.FAIR) requestsWithMatchesSet.add(m.requestId);
+    const bucket = matchDistribution.find((d) => score >= d.min && score <= d.max);
     if (bucket) bucket.count++;
   }
 
-  const totalMatchPairs = allMatches.length;
-  const averageScore = totalMatchPairs > 0
-    ? Math.round(allMatches.reduce((sum, m) => sum + m.overallScore, 0) / totalMatchPairs)
-    : 0;
+  const averageScore =
+    storedMatches.length > 0
+      ? Math.round(totalScore / storedMatches.length)
+      : 0;
 
-  const requestsWithMatchesSet = new Set(
-    allMatches
-      .filter((m) => m.overallScore >= MATCH_THRESHOLDS.FAIR)
-      .map((m) => m.requestId)
-  );
+  // Top 10 highest-scoring request-property pairs
+  const topMatches = storedMatches.slice(0, 10).map((m) => ({
+    requestId: m.requestId,
+    propertyId: m.propertyId,
+    overallScore: convertMatchScore(Number(m.matchScore)),
+    breakdown: (m.scoreBreakdown as unknown as CriterionScore[]) ?? [],
+    matchedCriteria: 0,
+    totalCriteria: 0,
+    calculatedAt: m.updatedAt,
+    property: {
+      id: m.property.id,
+      friendlyId: m.property.friendlyId ?? m.property.id,
+      property_name: m.property.property_name,
+      price: m.property.price != null ? Number(m.property.price) : null,
+      property_type: m.property.property_type as PropertyType | null,
+      area: m.property.area,
+      address_city: m.property.address_city,
+      property_status: m.property.property_status as PropertyStatus | null,
+      imageUrl: null,
+    },
+    client: {
+      id: m.requestId,
+      friendlyId: m.request.friendlyId ?? m.requestId,
+      client_name: `Request ${m.request.friendlyId ?? m.requestId}`,
+    },
+  }));
+
+  // Hot properties: aggregate by propertyId, count matches above FAIR threshold
+  type PropAcc = {
+    count: number;
+    totalScore: number;
+    topScore: number;
+    prop: (typeof storedMatches)[0]["property"];
+  };
+  const propStats = new Map<string, PropAcc>();
+  for (const m of storedMatches) {
+    const score = convertMatchScore(Number(m.matchScore));
+    if (score < MATCH_THRESHOLDS.FAIR) continue;
+    const existing = propStats.get(m.propertyId);
+    if (existing) {
+      existing.count++;
+      existing.totalScore += score;
+      if (score > existing.topScore) existing.topScore = score;
+    } else {
+      propStats.set(m.propertyId, {
+        count: 1,
+        totalScore: score,
+        topScore: score,
+        prop: m.property,
+      });
+    }
+  }
+  const hotProperties = Array.from(propStats.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+    .map((s) => ({
+      id: s.prop.id,
+      friendlyId: s.prop.friendlyId ?? s.prop.id,
+      property_name: s.prop.property_name,
+      price: s.prop.price != null ? Number(s.prop.price) : null,
+      property_type: s.prop.property_type as PropertyType | null,
+      area: s.prop.area,
+      address_city: s.prop.address_city,
+      property_status: s.prop.property_status as PropertyStatus | null,
+      imageUrl: null,
+      matchCount: s.count,
+      averageMatchScore: Math.round(s.totalScore / s.count),
+      topMatchScore: s.topScore,
+    }));
+
   const requestsWithMatches = requestsWithMatchesSet.size;
 
   return {
-    topMatches: [],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    topMatches: topMatches as any,
     matchDistribution,
     unmatchedClients: [],
-    hotProperties: [],
-    totalClients: requests.length,
-    totalProperties: matchableProperties.length,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hotProperties: hotProperties as any,
+    totalClients: totalRequests,
+    totalProperties,
     averageMatchScore: averageScore,
     clientsWithMatches: requestsWithMatches,
     requestStats: {
-      totalRequests: rawRequests.length,
-      activeRequests: rawRequests.length,
+      totalRequests,
+      activeRequests: totalRequests,
       requestsWithMatches,
       avgMatchScore: averageScore,
     },
