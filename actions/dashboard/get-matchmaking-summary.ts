@@ -1,5 +1,5 @@
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
-import { getMatchAnalytics } from "@/actions/matchmaking";
+import { getRequestMatchAnalytics } from "@/actions/matchmaking";
 
 export interface MatchmakingSummary {
   hotProperties: Array<{
@@ -13,7 +13,7 @@ export interface MatchmakingSummary {
     topMatchScore: number;
   }>;
   topMatches: Array<{
-    clientId: string;
+    requestId: string;
     propertyId: string;
     overallScore: number;
     clientName: string;
@@ -36,7 +36,7 @@ export async function getMatchmakingSummary(): Promise<MatchmakingSummary> {
   }
 
   try {
-    const analytics = await getMatchAnalytics();
+    const analytics = await getRequestMatchAnalytics();
 
     if (!analytics) {
       return {
@@ -61,17 +61,17 @@ export async function getMatchmakingSummary(): Promise<MatchmakingSummary> {
 
     // Map top matches to dashboard format
     const topMatches = (analytics.topMatches || []).slice(0, 5).map((m: any) => ({
-      clientId: m.clientId,
+      requestId: m.requestId,
       propertyId: m.propertyId,
       overallScore: m.overallScore,
       clientName: m.client?.client_name || m.client?.full_name || "Unknown Client",
-      propertyName: m.property?.property_name || "Unknown Property",
+      propertyName: m.property?.property_name ?? "Unknown Property",
     }));
 
     return {
       hotProperties,
       topMatches,
-      totalMatches: analytics.clientsWithMatches || 0,
+      totalMatches: analytics.requestStats?.requestsWithMatches ?? analytics.clientsWithMatches ?? 0,
       averageScore: analytics.averageMatchScore || 0,
     };
   } catch (error) {
