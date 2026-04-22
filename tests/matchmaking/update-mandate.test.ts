@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prismadb: {
     request: {
+      findFirst: vi.fn(),
       update: vi.fn(),
     },
   },
@@ -23,12 +24,10 @@ vi.mock("@/lib/model-encryption", () => ({
     .mockImplementation((data) => Promise.resolve(data)),
 }));
 
-// Stub next/cache to avoid Next.js runtime dependency
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-// Stub createSystemActivity to avoid deep dependency chain
 vi.mock("@/actions/activities", () => ({
   createSystemActivity: vi.fn().mockResolvedValue(undefined),
 }));
@@ -41,18 +40,19 @@ describe("updateMandate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (requireAction as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+    (prismadb.request.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
     (prismadb.request.update as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: "req-1",
     });
   });
 
-  it("checks requests:edit permission first", async () => {
-    await updateMandate({ id: "req-1", title: "Test" });
+  it("checks request:update permission first", async () => {
+    await updateMandate({ id: "req-1", notes: "Test" });
     expect(requireAction).toHaveBeenCalledWith("request:update");
   });
 
   it("calls prismadb.request.update (not mandate)", async () => {
-    await updateMandate({ id: "req-1", title: "Test" });
+    await updateMandate({ id: "req-1", notes: "Test" });
     expect(prismadb.request.update).toHaveBeenCalled();
   });
 
@@ -60,8 +60,18 @@ describe("updateMandate", () => {
     (requireAction as ReturnType<typeof vi.fn>).mockResolvedValue({
       error: "Forbidden",
     });
-    const result = await updateMandate({ id: "req-1", title: "Test" });
+    const result = await updateMandate({ id: "req-1", notes: "Test" });
     expect(result).toEqual({ error: "Forbidden" });
     expect(prismadb.request.update).not.toHaveBeenCalled();
+  });
+
+  it("includes organizationId in the where clause", async () => {
+    const result = await updateMandate({ id: "req-1", notes: "Updated" });
+    expect(result.data).toBeDefined();
+    expect(prismadb.request.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ organizationId: "org-test-123" }),
+      })
+    );
   });
 });
