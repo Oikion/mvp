@@ -471,13 +471,16 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
       : 0;
 
   // Top 10 highest-scoring request-property pairs
-  const topMatches = storedMatches.slice(0, 10).map((m) => ({
+  const topMatches = storedMatches.slice(0, 10).map((m) => {
+    const breakdown = (m.scoreBreakdown as unknown as CriterionScore[]) ?? [];
+    return {
     requestId: m.requestId,
+    clientId: m.requestId,
     propertyId: m.propertyId,
     overallScore: convertMatchScore(Number(m.matchScore)),
-    breakdown: (m.scoreBreakdown as unknown as CriterionScore[]) ?? [],
-    matchedCriteria: 0,
-    totalCriteria: 0,
+    breakdown,
+    matchedCriteria: breakdown.filter((c) => c.score > 0).length,
+    totalCriteria: breakdown.length,
     calculatedAt: m.updatedAt,
     property: {
       id: m.property.id,
@@ -495,7 +498,8 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
       friendlyId: m.request.friendlyId ?? m.requestId,
       client_name: `Request ${m.request.friendlyId ?? m.requestId}`,
     },
-  }));
+  };
+  });
 
   // Hot properties: aggregate by propertyId, count matches above FAIR threshold
   type PropAcc = {
