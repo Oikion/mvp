@@ -189,21 +189,22 @@ describe("calculateMatchScoreV2 — BUDGET", () => {
     expect(budget?.score).toBe(100);
   });
 
-  it("scores 60 when price is in soft-zone above budgetMax (<=1.15x)", () => {
-    // budgetMax = 200_000; 1.15x = 230_000. Use 210_000 which is above 200_000 but within ceiling.
+  it("scores ~80 when price is in soft-zone above budgetMax (<=1.15x)", () => {
+    // budgetMax=200k, softCeiling=230k; price=210k → overFraction=(10k/30k)≈0.333 → 100-0.333*60≈80
     const request: RequestForMatching = { ...baseRequest, budgetMin: null, budgetMax: 200_000 };
     const property: PropertyForMatchingV2 = { ...baseProperty, price: 210_000 };
     const result = calculateMatchScoreV2(request, property);
     const budget = findCriterion(result.breakdown, "BUDGET");
-    expect(budget?.score).toBe(60);
+    expect(budget?.score).toBe(80);
   });
 
-  it("scores 80 when price is under budgetMin", () => {
+  it("scores 75 when price is under budgetMin (non-investment, <40% under)", () => {
+    // price=150k, budgetMin=200k → underPercent=25% → not >40% → score=75
     const request: RequestForMatching = { ...baseRequest, budgetMin: 200_000, budgetMax: 400_000 };
     const property: PropertyForMatchingV2 = { ...baseProperty, price: 150_000 };
     const result = calculateMatchScoreV2(request, property);
     const budget = findCriterion(result.breakdown, "BUDGET");
-    expect(budget?.score).toBe(80);
+    expect(budget?.score).toBe(75);
   });
 
   it("scores 50 (neutral) when property has no price", () => {
@@ -235,20 +236,22 @@ describe("calculateMatchScoreV2 — BEDROOMS", () => {
     expect(b?.score).toBe(100);
   });
 
-  it("scores 40 when bedrooms is below minBedrooms (deficit)", () => {
+  it("scores 20 when bedrooms is below minBedrooms by 2 (deficit=2)", () => {
+    // minBedrooms=3, property=1 → deficit=2 → max(0, 40-(2-1)*20)=20
     const request: RequestForMatching = { ...baseRequest, minBedrooms: 3, maxBedrooms: 4 };
     const property: PropertyForMatchingV2 = { ...baseProperty, bedrooms: 1 };
     const result = calculateMatchScoreV2(request, property);
     const b = findCriterion(result.breakdown, "BEDROOMS");
-    expect(b?.score).toBe(40);
+    expect(b?.score).toBe(20);
   });
 
-  it("scores 80 when bedrooms is above maxBedrooms (surplus)", () => {
+  it("scores 70 when bedrooms is above maxBedrooms by 2 (surplus=2)", () => {
+    // maxBedrooms=2, property=4 → surplus=2 → max(40, 80-(2-1)*10)=70
     const request: RequestForMatching = { ...baseRequest, minBedrooms: 1, maxBedrooms: 2 };
     const property: PropertyForMatchingV2 = { ...baseProperty, bedrooms: 4 };
     const result = calculateMatchScoreV2(request, property);
     const b = findCriterion(result.breakdown, "BEDROOMS");
-    expect(b?.score).toBe(80);
+    expect(b?.score).toBe(70);
   });
 
   it("scores 50 when no preference", () => {
