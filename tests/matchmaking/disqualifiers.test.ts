@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { checkDisqualifiers } from "@/lib/matchmaking/disqualifiers";
-import type { RequestForMatching, PropertyForMatching } from "@/lib/matchmaking/types";
+import type { RequestForMatching, PropertyForMatchingV2 } from "@/lib/matchmaking/types";
 
 // ---------------------------------------------------------------------------
 // Base fixtures — every required field populated with a safe default
@@ -58,12 +58,20 @@ const baseRequest: RequestForMatching = {
   expires_at: null,
 };
 
-const baseProperty: PropertyForMatching = {
+const baseProperty: PropertyForMatchingV2 = {
   id: "prop-1",
   property_name: "Test Property",
   organizationId: "org-1",
   property_status: "ACTIVE",
   transaction_type: "SALE",
+  // V2 extension fields
+  latitude: null,
+  longitude: null,
+  region: null,
+  inside_city_plan: null,
+  year_built: null,
+  garden: null,
+  parking: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -215,6 +223,41 @@ describe("checkDisqualifiers — AREA_HARD_EXCLUSION", () => {
   it("passes when property.area is null but address_city matches a requested area", () => {
     const request = { ...baseRequest, areas: ["Voula"] };
     const property = { ...baseProperty, area: null, address_city: "Voula" };
+    const result = checkDisqualifiers(request, property);
+    expect(result.disqualified).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PROPERTY_TYPE_MISMATCH (4 tests)
+// ---------------------------------------------------------------------------
+
+describe("checkDisqualifiers — PROPERTY_TYPE_MISMATCH", () => {
+  it("disqualifies when property type is not in requested types", () => {
+    const request = { ...baseRequest, propertyTypes: ["APARTMENT", "HOUSE"] };
+    const property = { ...baseProperty, property_type: "WAREHOUSE" as const };
+    const result = checkDisqualifiers(request, property);
+    expect(result.disqualified).toBe(true);
+    expect(result.reason).toBe("PROPERTY_TYPE_MISMATCH");
+  });
+
+  it("passes when property type is in requested types", () => {
+    const request = { ...baseRequest, propertyTypes: ["APARTMENT", "HOUSE"] };
+    const property = { ...baseProperty, property_type: "APARTMENT" as const };
+    const result = checkDisqualifiers(request, property);
+    expect(result.disqualified).toBe(false);
+  });
+
+  it("passes when propertyTypes is empty (no type constraint)", () => {
+    const request = { ...baseRequest, propertyTypes: [] };
+    const property = { ...baseProperty, property_type: "WAREHOUSE" as const };
+    const result = checkDisqualifiers(request, property);
+    expect(result.disqualified).toBe(false);
+  });
+
+  it("passes when property has no type set", () => {
+    const request = { ...baseRequest, propertyTypes: ["APARTMENT"] };
+    const property = { ...baseProperty, property_type: null };
     const result = checkDisqualifiers(request, property);
     expect(result.disqualified).toBe(false);
   });

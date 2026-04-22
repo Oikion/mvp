@@ -1,20 +1,21 @@
 /**
  * Top Entities API
- * 
+ *
  * GET /api/entities/top
- * 
+ *
  * Returns the most recently updated entities for initial display.
  * Used when no search query is provided to populate selectors.
- * 
+ *
  * Query params:
  * - types: comma-separated list (default: "client,property,document,event")
  * - limit: max results per type (default: 10, max: 50)
- * 
+ *
  * Response format matches /api/entities/search for consistency.
  */
 
 import { NextResponse } from "next/server";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { auth } from "@clerk/nextjs/server";
+import { apiUnauthorized, apiForbidden, apiInternalError } from "@/lib/api-response";
 import { getTopEntities, type EntityType } from "@/lib/search/entity-search";
 
 const VALID_TYPES: EntityType[] = ["contact", "property", "document", "event", "request", "deal"];
@@ -22,11 +23,11 @@ const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 10;
 
 export async function GET(req: Request) {
-  try {
-    // Authenticate
-    await getCurrentUser();
-    const organizationId = await getCurrentOrgId();
+  const { userId, orgId: organizationId } = await auth();
+  if (!userId) return apiUnauthorized();
+  if (!organizationId) return apiForbidden();
 
+  try {
     const { searchParams } = new URL(req.url);
     const typesParam = searchParams.get("types") || "contact,property,document,event,request";
     const limitParam = searchParams.get("limit");
@@ -61,21 +62,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(response, { status: 200, headers });
   } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes("not authenticated")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (error instanceof Error && error.message.includes("not associated")) {
-      return NextResponse.json(
-        { error: "No organization context" },
-        { status: 403 }
-      );
-    }
-
-    console.error("[TOP_ENTITIES_ERROR]", error);
-    return NextResponse.json(
-      { error: "Failed to fetch top entities" },
-      { status: 500 }
-    );
+    console.error("[TOP_ENTITIES_GET]", error);
+    return apiInternalError("Failed to fetch top entities");
   }
 }

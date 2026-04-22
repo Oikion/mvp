@@ -5,14 +5,15 @@
  * disqualifier it is excluded entirely from the candidate set.
  *
  * Execution order (short-circuit on first match):
- *   1. ARCHIVED_OR_INACTIVE  — property is not available
- *   2. PURPOSE_MISMATCH      — buy/rent intent conflicts with listing type
- *   3. BUDGET_HARD_FLOOR     — asking price > 115 % of request budgetMax
- *   4. AREA_HARD_EXCLUSION   — property is outside all requested areas
+ *   1. ARCHIVED_OR_INACTIVE   — property is not available
+ *   2. PURPOSE_MISMATCH       — buy/rent intent conflicts with listing type
+ *   3. PROPERTY_TYPE_MISMATCH — property type not in buyer's requested types
+ *   4. BUDGET_HARD_FLOOR      — asking price > 115 % of request budgetMax
+ *   5. AREA_HARD_EXCLUSION    — property is outside all requested areas
  */
 
 import { normalizeLocation } from "./normalizers";
-import type { RequestForMatching, PropertyForMatching } from "./types";
+import type { RequestForMatching, PropertyForMatching, PropertyForMatchingV2 } from "./types";
 
 // ============================================
 // PUBLIC TYPES
@@ -21,6 +22,7 @@ import type { RequestForMatching, PropertyForMatching } from "./types";
 export type DisqualifierReason =
   | "ARCHIVED_OR_INACTIVE"
   | "PURPOSE_MISMATCH"
+  | "PROPERTY_TYPE_MISMATCH"
   | "BUDGET_HARD_FLOOR"
   | "AREA_HARD_EXCLUSION";
 
@@ -94,6 +96,28 @@ function disqualifyPurpose(
     };
   }
 
+  return null;
+}
+
+function disqualifyPropertyType(
+  request: RequestForMatching,
+  property: PropertyForMatchingV2
+): DisqualifierResult | null {
+  const requested = request.propertyTypes;
+  // No constraint if request has no type preference
+  if (!requested || requested.length === 0) return null;
+
+  const actual = property.property_type;
+  // No constraint if property has no type set
+  if (!actual) return null;
+
+  if (!requested.includes(actual)) {
+    return {
+      disqualified: true,
+      reason: "PROPERTY_TYPE_MISMATCH",
+      detail: `Property type "${actual}" is not in requested types [${requested.join(", ")}]`,
+    };
+  }
   return null;
 }
 
@@ -180,14 +204,22 @@ function disqualifyArea(
  * Run all Layer 1 disqualifiers in priority order.
  * Returns on the first failure (short-circuit).
  * Returns `{ disqualified: false }` when all checks pass.
+ *
+ * Execution order:
+ *   1. ARCHIVED_OR_INACTIVE
+ *   2. PURPOSE_MISMATCH
+ *   3. PROPERTY_TYPE_MISMATCH
+ *   4. BUDGET_HARD_FLOOR
+ *   5. AREA_HARD_EXCLUSION
  */
 export function checkDisqualifiers(
   request: RequestForMatching,
-  property: PropertyForMatching
+  property: PropertyForMatchingV2
 ): DisqualifierResult {
   return (
     disqualifyInactive(request, property) ??
     disqualifyPurpose(request, property) ??
+    disqualifyPropertyType(request, property) ??
     disqualifyBudget(request, property) ??
     disqualifyArea(request, property) ??
     { disqualified: false }

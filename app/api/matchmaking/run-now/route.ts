@@ -11,7 +11,7 @@ import {
   apiRateLimited,
 } from "@/lib/api-response";
 
-const RATE_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
+export const RATE_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
 
 const bodySchema = z.object({ requestId: z.string().cuid().optional() }).strict();
 
@@ -25,6 +25,23 @@ export async function POST(req: Request): Promise<Response> {
     const parseResult = bodySchema.safeParse(rawBody);
     if (!parseResult.success) return apiBadRequest("Invalid request body");
     const { requestId } = parseResult.data;
+
+    // Org-level gate: prevent repeated full-org recomputes regardless of requestId.
+    // Uses most-recently-updated PropertyRequestMatch.updatedAt as a proxy timestamp.
+    // Best-effort: if runIntraOrgMatches produces zero upserts, the gate won't advance
+    // and will allow another run immediately. Acceptable tradeoff — avoids a schema change.
+    const lastOrgRun = await prismadb.propertyRequestMatch.findFirst({
+      where: { organizationId },
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true },
+    });
+    if (lastOrgRun?.updatedAt) {
+      const elapsed = Date.now() - lastOrgRun.updatedAt.getTime();
+      if (elapsed < RATE_LIMIT_MS) {
+        const retryAfterSec = Math.ceil((RATE_LIMIT_MS - elapsed) / 1000);
+        return apiRateLimited(`Rate limited. Try again in ${retryAfterSec}s.`);
+      }
+    }
 
     if (requestId) {
       const request = await prismadb.request.findFirst({

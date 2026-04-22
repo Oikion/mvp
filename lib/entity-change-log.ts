@@ -87,7 +87,7 @@ export interface ChangeLogInput {
   organizationId: string;
   entityType: EntityChangeLogType;
   entityId: string;
-  /** DELETED and ARCHIVED exist in the DB enum but are reserved for future tasks — callers may only use these four values via this helper. */
+  /** DELETED and ARCHIVED exist in the DB enum but are reserved for future tasks — callers may only use these five values via this helper. */
   eventType: "CREATED" | "UPDATED" | "LINKED" | "UNLINKED" | "STAGE_CHANGED";
   actorUserId?: string;
   changedFields?: ChangedField[];

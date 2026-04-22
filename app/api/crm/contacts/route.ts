@@ -185,7 +185,7 @@ export async function POST(req: Request) {
       },
     });
 
-    notifyContactCreated({
+    void notifyContactCreated({
       entityType: "CONTACT",
       entityId: contact.id,
       entityName: contact.displayName,
@@ -195,7 +195,7 @@ export async function POST(req: Request) {
       assignedToId: validatedAgent ?? undefined,
     }).catch((err) => console.error("[CONTACTS_POST] notifyContactCreated failed", err));
 
-    createChangeLogEntry({
+    void createChangeLogEntry({
       organizationId,
       entityType: "CONTACT",
       entityId: contact.id,

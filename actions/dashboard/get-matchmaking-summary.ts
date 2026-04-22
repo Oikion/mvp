@@ -1,5 +1,7 @@
+"use server";
+
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
-import { getMatchAnalytics } from "@/actions/matchmaking";
+import { getRequestMatchAnalytics } from "@/actions/matchmaking/get-request-matches";
 
 export interface MatchmakingSummary {
   hotProperties: Array<{
@@ -13,7 +15,7 @@ export interface MatchmakingSummary {
     topMatchScore: number;
   }>;
   topMatches: Array<{
-    clientId: string;
+    requestId: string;
     propertyId: string;
     overallScore: number;
     clientName: string;
@@ -22,6 +24,25 @@ export interface MatchmakingSummary {
   totalMatches: number;
   averageScore: number;
 }
+
+type HotPropertyEntry = {
+  id: string;
+  property_name: string;
+  price: number | null;
+  address_city: string | null;
+  imageUrl?: string | null;
+  matchCount: number;
+  averageMatchScore: number;
+  topMatchScore: number;
+};
+
+type TopMatchEntry = {
+  requestId: string;
+  propertyId: string;
+  overallScore: number;
+  client?: { client_name?: string; full_name?: string | null } | null;
+  property?: { property_name?: string } | null;
+};
 
 export async function getMatchmakingSummary(): Promise<MatchmakingSummary> {
   const organizationId = await getCurrentOrgIdSafe();
@@ -36,7 +57,7 @@ export async function getMatchmakingSummary(): Promise<MatchmakingSummary> {
   }
 
   try {
-    const analytics = await getMatchAnalytics();
+    const analytics = await getRequestMatchAnalytics();
 
     if (!analytics) {
       return {
@@ -47,35 +68,37 @@ export async function getMatchmakingSummary(): Promise<MatchmakingSummary> {
       };
     }
 
-    // Map hot properties to dashboard format
-    const hotProperties = (analytics.hotProperties || []).slice(0, 5).map((p: any) => ({
-      id: p.id,
-      property_name: p.property_name || "Unnamed Property",
-      price: p.price,
-      address_city: p.address_city,
-      image_url: p.image_url,
-      matchCount: p.matchCount || 0,
-      averageMatchScore: p.averageMatchScore || 0,
-      topMatchScore: p.topMatchScore || 0,
-    }));
+    const hotProperties = ((analytics.hotProperties ?? []) as HotPropertyEntry[])
+      .slice(0, 5)
+      .map((p) => ({
+        id: p.id,
+        property_name: p.property_name || "Unnamed Property",
+        price: p.price,
+        address_city: p.address_city,
+        image_url: p.imageUrl ?? null,
+        matchCount: p.matchCount || 0,
+        averageMatchScore: p.averageMatchScore || 0,
+        topMatchScore: p.topMatchScore || 0,
+      }));
 
-    // Map top matches to dashboard format
-    const topMatches = (analytics.topMatches || []).slice(0, 5).map((m: any) => ({
-      clientId: m.clientId,
-      propertyId: m.propertyId,
-      overallScore: m.overallScore,
-      clientName: m.client?.client_name || m.client?.full_name || "Unknown Client",
-      propertyName: m.property?.property_name || "Unknown Property",
-    }));
+    const topMatches = ((analytics.topMatches ?? []) as unknown as TopMatchEntry[])
+      .slice(0, 5)
+      .map((m) => ({
+        requestId: m.requestId,
+        propertyId: m.propertyId,
+        overallScore: m.overallScore,
+        clientName: m.client?.client_name || m.client?.full_name || "Unknown Client",
+        propertyName: m.property?.property_name ?? "Unknown Property",
+      }));
 
     return {
       hotProperties,
       topMatches,
-      totalMatches: analytics.clientsWithMatches || 0,
+      totalMatches: analytics.requestStats.requestsWithMatches ?? 0,
       averageScore: analytics.averageMatchScore || 0,
     };
   } catch (error) {
-    console.error("Failed to fetch matchmaking summary:", error);
+    console.error("[DASHBOARD_MATCHMAKING_SUMMARY]", error);
     return {
       hotProperties: [],
       topMatches: [],

@@ -17,6 +17,7 @@ import { decryptRequestForOrg } from "@/lib/model-encryption";
 import { calculateBatchMatchesV2 } from "@/lib/matchmaking";
 import type { RequestForMatching, PropertyForMatchingV2 } from "@/lib/matchmaking/types";
 import type { OrgNetworkMembership } from "@prisma/client";
+import { inferBooleanAmenity } from "@/lib/matchmaking/amenity-utils";
 
 const BATCH_SIZE = 10;
 const MATCH_TTL_DAYS = 30;
@@ -244,8 +245,8 @@ function adaptPropertyForMatchingV2(p: NetworkProperty): PropertyForMatchingV2 {
     amenities: p.amenities as PropertyForMatchingV2["amenities"],
     assigned_to: p.assigned_to,
     organizationId: p.organizationId,
-    garden: null, // Not a field on Properties model
-    parking: null, // Not a field on Properties model
+    garden: inferBooleanAmenity(p.amenities, ["garden"]),
+    parking: inferBooleanAmenity(p.amenities, ["parking", "garage", "parking_space"]),
   };
 }
 
