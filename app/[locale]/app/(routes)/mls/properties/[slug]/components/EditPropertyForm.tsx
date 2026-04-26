@@ -142,15 +142,47 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Tabs defaultValue="basics" className="w-full">
-          <div className="flex gap-6">
-            {/* Main Content Area */}
-            <div className="flex-1 min-w-0">
+    <div className="flex flex-col h-full">
+      <SheetHeader className="px-6 py-4 border-b">
+        <SheetTitle>{t("PropertyForm.buttons.update")}</SheetTitle>
+      </SheetHeader>
 
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+          <Tabs defaultValue="basics" className="flex flex-1 overflow-hidden">
+            <TabsList className="flex flex-col h-full w-44 shrink-0 rounded-none border-r bg-muted/30 justify-start p-2 gap-1">
+              <TabsTrigger value="basics" className="w-full justify-start">
+                {t("PropertyForm.steps.basics")}
+              </TabsTrigger>
+              <TabsTrigger value="location" className="w-full justify-start">
+                {t("PropertyForm.steps.location")}
+              </TabsTrigger>
+              <TabsTrigger value="surfaces" className="w-full justify-start">
+                {t("PropertyForm.steps.surfaces")}
+              </TabsTrigger>
+              <TabsTrigger value="characteristics" className="w-full justify-start">
+                {t("PropertyForm.steps.characteristics")}
+              </TabsTrigger>
+              <TabsTrigger value="condition" className="w-full justify-start">
+                {t("PropertyForm.steps.condition")}
+              </TabsTrigger>
+              <TabsTrigger value="legal" className="w-full justify-start">
+                {t("PropertyForm.steps.legal")}
+              </TabsTrigger>
+              <TabsTrigger value="amenities" className="w-full justify-start">
+                {t("PropertyForm.steps.amenities")}
+              </TabsTrigger>
+              <TabsTrigger value="pricing" className="w-full justify-start">
+                {t("PropertyForm.steps.pricing")}
+              </TabsTrigger>
+              <TabsTrigger value="media" className="w-full justify-start">
+                {t("PropertyForm.steps.media")}
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Tab 1: Basics */}
-          <TabsContent value="basics" className="space-y-4 mt-4">
+          <TabsContent value="basics" className="mt-0 space-y-4">
             <FormField control={form.control} name="property_name" render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("PropertyForm.fields.propertyName")}</FormLabel>
@@ -231,7 +263,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           </TabsContent>
 
           {/* Tab 2: Location */}
-          <TabsContent value="location" className="space-y-4 mt-4">
+          <TabsContent value="location" className="mt-0 space-y-4">
             <AddressFieldGroup
               control={form.control}
               countryFieldName="country"
@@ -267,7 +299,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           </TabsContent>
 
           {/* Tab 3: Surfaces */}
-          <TabsContent value="surfaces" className="space-y-4 mt-4">
+          <TabsContent value="surfaces" className="mt-0 space-y-4">
             {isResidentialOrCommercial ? (
               <>
                 <div className="grid grid-cols-2 gap-4">
@@ -387,7 +419,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           </TabsContent>
 
           {/* Tab 4: Characteristics */}
-          <TabsContent value="characteristics" className="space-y-4 mt-4">
+          <TabsContent value="characteristics" className="mt-0 space-y-4">
             {isResidentialOrCommercial && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="bedrooms" render={({ field }) => (
@@ -459,7 +491,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           </TabsContent>
 
           {/* Tab 5: Condition */}
-          <TabsContent value="condition" className="space-y-4 mt-4">
+          <TabsContent value="condition" className="mt-0 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="year_built" render={({ field }) => (
                 <FormItem>
@@ -518,7 +550,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           </TabsContent>
 
           {/* Tab 6: Legal */}
-          <TabsContent value="legal" className="space-y-4 mt-4">
+          <TabsContent value="legal" className="mt-0 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="building_permit_no" render={({ field }) => (
                 <FormItem>
@@ -585,7 +617,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           </TabsContent>
 
           {/* Tab 7: Amenities */}
-          <TabsContent value="amenities" className="space-y-4 mt-4">
+          <TabsContent value="amenities" className="mt-0 space-y-4">
             <FormField control={form.control} name="amenities" render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("PropertyForm.fields.amenities")}</FormLabel>
@@ -640,7 +672,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           </TabsContent>
 
           {/* Tab 8: Pricing */}
-          <TabsContent value="pricing" className="space-y-4 mt-4">
+          <TabsContent value="pricing" className="mt-0 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="price" render={({ field }) => (
                 <FormItem>
@@ -706,7 +738,7 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
           </TabsContent>
 
           {/* Tab 9: Media */}
-          <TabsContent value="media" className="space-y-4 mt-4">
+          <TabsContent value="media" className="mt-0 space-y-4">
             <FormField control={form.control} name="virtual_tour_url" render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("PropertyForm.fields.virtualTourUrl")}</FormLabel>
@@ -760,76 +792,17 @@ export function EditPropertyForm({ initialData }: { initialData: Record<string, 
             </div>
           </TabsContent>
 
-              {/* Submit Button */}
-              <div className="flex justify-end pt-4 border-t mt-6">
-                <Button disabled={isLoading} type="submit">
-                  {isLoading ? t("PropertyForm.autosave.saving") : t("PropertyForm.buttons.update")}
-                </Button>
-              </div>
             </div>
 
-            {/* Vertical Sidebar */}
-            <aside className="w-64 flex-shrink-0 border-l bg-sidebar-accent/30 p-4">
-              <TabsList className="flex flex-col h-auto w-full gap-1 bg-transparent p-0">
-                <TabsTrigger 
-                  value="basics" 
-                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
-                >
-                  {t("PropertyForm.steps.basics")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="location" 
-                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
-                >
-                  {t("PropertyForm.steps.location")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="surfaces" 
-                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
-                >
-                  {t("PropertyForm.steps.surfaces")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="characteristics" 
-                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
-                >
-                  {t("PropertyForm.steps.characteristics")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="condition" 
-                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
-                >
-                  {t("PropertyForm.steps.condition")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="legal" 
-                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
-                >
-                  {t("PropertyForm.steps.legal")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="amenities" 
-                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
-                >
-                  {t("PropertyForm.steps.amenities")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="pricing" 
-                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
-                >
-                  {t("PropertyForm.steps.pricing")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="media" 
-                  className="w-full justify-start h-auto py-2.5 px-3 data-[state=active]:bg-sidebar-primary data-[state=active]:text-sidebar-primary-foreground"
-                >
-                  {t("PropertyForm.steps.media")}
-                </TabsTrigger>
-              </TabsList>
-            </aside>
+          </Tabs>
+
+          <div className="flex justify-end gap-2 px-6 py-4 border-t bg-background">
+            <Button disabled={isLoading} type="submit">
+              {isLoading ? t("PropertyForm.autosave.saving") : t("PropertyForm.buttons.update")}
+            </Button>
           </div>
-        </Tabs>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </div>
   );
 }
