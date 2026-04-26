@@ -10,14 +10,13 @@ import {
 import { getOrgMembersFromDb } from "@/lib/org-members";
 import type { EntityType } from "@/lib/entity-session/types";
 
-// "MANDATE" retained for backward compatibility; "REQUEST" is the v2 canonical name.
-const VALID_ENTITY_TYPES = new Set(["CLIENT", "PROPERTY", "REQUEST", "MANDATE", "TASK"]);
+const VALID_ENTITY_TYPES = new Set(["CONTACT", "PROPERTY", "REQUEST", "TASK"]);
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * GET /api/e2ee/entity-sessions?entityType=CLIENT&entityId=xxx
+ * GET /api/e2ee/entity-sessions?entityType=CONTACT&entityId=xxx
  * Get the active session + user's share for an entity.
  * Returns null fields if no session exists (lazy initialization).
  */
@@ -27,9 +26,8 @@ export async function GET(req: Request) {
     const orgId = await getCurrentOrgId();
 
     const { searchParams } = new URL(req.url);
-    // Normalize v2 "REQUEST" → legacy "MANDATE" for backward compat with EntityType union
     const rawEntityType = searchParams.get("entityType");
-    const entityType = (rawEntityType === "REQUEST" ? "MANDATE" : rawEntityType) as EntityType;
+    const entityType = rawEntityType as EntityType;
     const entityId = searchParams.get("entityId");
 
     if (!rawEntityType || !entityId || !VALID_ENTITY_TYPES.has(rawEntityType)) {
@@ -48,7 +46,7 @@ export async function GET(req: Request) {
 
     // NEW-C6: Verify caller has access to the underlying entity
     switch (entityType) {
-      case "CLIENT": {
+      case "CONTACT": {
         const entity = await prismadb.contact.findFirst({
           where: { id: entityId, organizationId: orgId },
           select: { id: true },
@@ -72,7 +70,7 @@ export async function GET(req: Request) {
           );
         break;
       }
-      case "MANDATE": {
+      case "REQUEST": {
         const entity = await prismadb.request.findFirst({
           where: { id: entityId, organizationId: orgId },
           select: { id: true },
@@ -163,8 +161,7 @@ export async function POST(req: Request) {
       orkBackup,
       additionalShares,
     } = body;
-    // Normalize v2 "REQUEST" → legacy "MANDATE" for EntityType compat
-    const entityType = rawEntityTypePost === "REQUEST" ? "MANDATE" : rawEntityTypePost;
+    const entityType = rawEntityTypePost;
 
     if (
       !entityType ||

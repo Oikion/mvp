@@ -10,7 +10,7 @@ export type ActionEntityType = "property" | "contact";
 /**
  * Share entity types for the ShareModal
  */
-export type ShareEntityType = "PROPERTY" | "CLIENT" | "DOCUMENT";
+export type ShareEntityType = "PROPERTY" | "CONTACT" | "DOCUMENT";
 
 /**
  * Data for the entity being acted upon
@@ -115,9 +115,9 @@ export function getShareEntityType(entityType: ActionEntityType): ShareEntityTyp
     case "property":
       return "PROPERTY";
     case "contact":
-      return "CLIENT";
+      return "CONTACT";
     default:
-      return "CLIENT";
+      return "CONTACT";
   }
 }
 

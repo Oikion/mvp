@@ -29,7 +29,7 @@ export default async function SharingHubPage({ params }: SharingHubPageProps) {
     await Promise.all([
       getSharedWithMe(),
       getSharedWithMe("PROPERTY"),
-      getSharedWithMe("CLIENT"),
+      getSharedWithMe("CONTACT"),
       getSharedWithMe("DOCUMENT"),
       getMyShares(),
       getShowcaseProperties(),
@@ -147,7 +147,7 @@ export default async function SharingHubPage({ params }: SharingHubPageProps) {
                   <CardDescription>{t.sections.clients.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <SharedEntitiesList entities={clientsShared} entityType="CLIENT" translations={t} />
+                  <SharedEntitiesList entities={clientsShared} entityType="CONTACT" translations={t} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -298,7 +298,7 @@ export default async function SharingHubPage({ params }: SharingHubPageProps) {
                       <div className="flex items-center gap-3 min-w-0">
                         {share.entityType === "PROPERTY" ? (
                           <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                        ) : share.entityType === "CLIENT" ? (
+                        ) : share.entityType === "CONTACT" ? (
                           <Users className="h-4 w-4 text-muted-foreground shrink-0" />
                         ) : (
                           <FileText className="h-4 w-4 text-muted-foreground shrink-0" />

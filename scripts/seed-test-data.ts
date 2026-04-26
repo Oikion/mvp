@@ -3808,7 +3808,7 @@ async function seedSharedEntities(
     entities.push({ id: uuid(), entityType: "PROPERTY", entityId: alphaPropertyIds[0], sharedById: alpha.primaryUserId, sharedWithId: beta.primaryUserId, permissions: "VIEW_ONLY", message: "For your buyer client", createdAt: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000) });
   }
   if (alphaClientIds[6]) {
-    entities.push({ id: uuid(), entityType: "CLIENT", entityId: alphaClientIds[6], sharedById: alpha.primaryUserId, sharedWithId: beta.primaryUserId, permissions: "VIEW_COMMENT", message: "Shared referral contact", createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000) });
+    entities.push({ id: uuid(), entityType: "CONTACT", entityId: alphaClientIds[6], sharedById: alpha.primaryUserId, sharedWithId: beta.primaryUserId, permissions: "VIEW_COMMENT", message: "Shared referral contact", createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000) });
   }
   if (alphaDocIds[0]) {
     entities.push({ id: uuid(), entityType: "DOCUMENT", entityId: alphaDocIds[0], sharedById: alpha.primaryUserId, sharedWithId: beta.primaryUserId, permissions: "VIEW_ONLY", message: "Contract for review", createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000) });

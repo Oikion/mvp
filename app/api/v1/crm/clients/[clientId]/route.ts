@@ -220,7 +220,7 @@ export const DELETE = withExternalApi(
     }
 
     // Delete contact
-    await deleteEntitySessionsForEntity("CLIENT", existingClient.id);
+    await deleteEntitySessionsForEntity("CONTACT", existingClient.id);
 
     await prismadb.contact.delete({
       where: { id: existingClient.id },

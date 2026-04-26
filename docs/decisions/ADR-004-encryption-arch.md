@@ -626,7 +626,7 @@ enum EncryptionMode {
 ```prisma
 model EntitySession {
   id               String   @id @default(uuid())
-  entityType       String   // "CLIENT" | "PROPERTY" | "MANDATE" | "TASK"
+  entityType       String   // "CONTACT" | "PROPERTY" | "REQUEST" | "TASK"
   entityId         String
   megolmSessionId  String   @unique  // Megolm session identifier (distinct from row id)
   version          Int      @default(1)

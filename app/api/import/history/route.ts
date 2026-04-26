@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
  * Query params:
  * - limit:      Number of records to return (default: 20)
  * - cursor:     Cursor-based pagination token
- * - importType: Filter by entity type (e.g. "CLIENT", "PROPERTY", "MANDATE")
+ * - importType: Filter by entity type (e.g. "CONTACT", "PROPERTY", "REQUEST")
  */
 export async function GET(req: NextRequest) {
   try {
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
  * POST /api/import/history
  *
  * Body:
- * - importType:     Entity type imported (e.g. "CLIENT", "PROPERTY", "MANDATE")
+ * - importType:     Entity type imported (e.g. "CONTACT", "PROPERTY", "REQUEST")
  * - sourceFilename: Original filename of the uploaded file
  * - rowCount:       Number of rows processed
  * - result:         Import result summary object

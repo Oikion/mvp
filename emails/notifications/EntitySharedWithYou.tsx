@@ -11,7 +11,7 @@ import { BaseLayout, EmailBadge, resolveColors } from "../components/BaseLayout"
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://oikion.com";
 
-type EntityType = "PROPERTY" | "CLIENT" | "DOCUMENT";
+type EntityType = "PROPERTY" | "CONTACT" | "DOCUMENT";
 
 interface EntitySharedWithYouEmailProps {
   recipientName: string;
@@ -93,7 +93,7 @@ const getEntityUrl = (type: EntityType, id: string, friendlyId: string | undefin
   switch (type) {
     case "PROPERTY":
       return `${baseUrl}/app/properties/${slug}`;
-    case "CLIENT":
+    case "CONTACT":
       return `${baseUrl}/app/crm/contacts/${slug}`;
     case "DOCUMENT":
       return `${baseUrl}/app/documents/${slug}`;

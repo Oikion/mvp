@@ -12,7 +12,7 @@ import {
 
 // ─── Types ───────────────────────────────────
 
-type EntityType = "CLIENT" | "PROPERTY" | "MANDATE" | "TASK";
+type EntityType = "CONTACT" | "PROPERTY" | "REQUEST" | "TASK";
 
 export type EncryptEntityCommentResult =
   | { ok: true; content: string; entitySessionId: string; messageIndex: number }
@@ -61,7 +61,7 @@ function entityKey(entityType: EntityType, entityId: string): string {
  * Encrypt a comment for an entity.
  * Loads or creates the entity's Megolm outbound session.
  *
- * @param entityType - "CLIENT" | "PROPERTY" | "MANDATE" | "TASK"
+ * @param entityType - "CONTACT" | "PROPERTY" | "REQUEST" | "TASK"
  * @param entityId - The entity's database ID
  * @param plaintext - Comment text to encrypt
  * @param kek - PIN-derived KEK (raw ArrayBuffer)

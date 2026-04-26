@@ -32,7 +32,7 @@ import { useConnections, useShareEntity } from "@/hooks/swr";
 interface ShareModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entityType: "PROPERTY" | "CLIENT" | "DOCUMENT";
+  entityType: "PROPERTY" | "CONTACT" | "DOCUMENT";
   entityId: string;
   entityName: string;
   existingShares?: Array<{ sharedWithId: string }>;

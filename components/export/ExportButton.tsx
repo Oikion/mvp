@@ -377,11 +377,11 @@ export function ExportButton({
       // Record export history if entityId is provided
       if (entityId) {
         try {
-          const entityType = module === "mls" ? "PROPERTY" : module === "crm" ? "CLIENT" : module.toUpperCase();
+          const entityType = module === "mls" ? "PROPERTY" : module === "crm" ? "CONTACT" : module.toUpperCase();
           const isBulk = Array.isArray(entityData) && entityData.length > 1;
-          
+
           await recordExport({
-            entityType: isBulk ? `BULK_${entityType}S` : entityType,
+            entityType: isBulk ? (entityType === "CONTACT" ? "BULK_CONTACTS" : `BULK_${entityType}S`) : entityType,
             entityId: isBulk ? `bulk-${Date.now()}` : entityId,
             entityIds: isBulk && Array.isArray(entityData) 
               ? entityData.map(e => (e as Record<string, unknown>).id as string).filter(Boolean) 

@@ -5,7 +5,7 @@ import { useSWRConfig } from "swr";
 // Types
 // ============================================================
 
-export type ShareEntityType = "PROPERTY" | "CLIENT" | "DOCUMENT";
+export type ShareEntityType = "PROPERTY" | "CONTACT" | "DOCUMENT";
 export type SharePermission = "VIEW_ONLY" | "VIEW_COMMENT";
 
 export interface ShareEntityData {

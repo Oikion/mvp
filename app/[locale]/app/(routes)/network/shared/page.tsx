@@ -19,7 +19,7 @@ export default async function SharedWithMePage({ params }: SharedWithMePageProps
     await Promise.all([
       getSharedWithMe(),
       getSharedWithMe("PROPERTY"),
-      getSharedWithMe("CLIENT"),
+      getSharedWithMe("CONTACT"),
       getSharedWithMe("DOCUMENT"),
     ]);
 
@@ -114,7 +114,7 @@ export default async function SharedWithMePage({ params }: SharedWithMePageProps
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <SharedEntitiesList entities={clientsShared} entityType="CLIENT" translations={t} />
+              <SharedEntitiesList entities={clientsShared} entityType="CONTACT" translations={t} />
             </CardContent>
           </Card>
         </TabsContent>

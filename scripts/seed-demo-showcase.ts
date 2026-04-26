@@ -1336,21 +1336,21 @@ async function seedExportHistory(orgId: string, userIds: Array<{ id: string; nam
       const entityIds = isProperty ? shuffle(propertyIds).slice(0, rand(3, 15)) : shuffle(clientIds).slice(0, rand(3, 10));
       exports.push({
         id: crypto.randomUUID(), organizationId: orgId, userId: pick(userIds).id,
-        entityType: isProperty ? "BULK_PROPERTIES" : "BULK_CLIENTS",
+        entityType: isProperty ? "BULK_PROPERTIES" : "BULK_CONTACTS",
         entityId: `bulk-${createdAt.getTime()}`, entityIds,
         exportFormat: format, exportTemplate: pick(["CMA", "SHORTLIST", "ROI", null]),
-        destination: pick(["client", "xe.gr", "internal", null]),
-        filename: `${isProperty ? "properties" : "clients"}_export.${format}`,
+        destination: pick(["contact", "xe.gr", "internal", null]),
+        filename: `${isProperty ? "properties" : "contacts"}_export.${format}`,
         rowCount: entityIds.length, createdAt,
       });
     } else {
       exports.push({
         id: crypto.randomUUID(), organizationId: orgId, userId: pick(userIds).id,
-        entityType: isProperty ? "PROPERTY" : "CLIENT",
+        entityType: isProperty ? "PROPERTY" : "CONTACT",
         entityId: isProperty ? pick(propertyIds) : pick(clientIds), entityIds: [],
         exportFormat: format, exportTemplate: pick(["CMA", "ROI", null]),
-        destination: pick(["client", "internal", null]),
-        filename: `${isProperty ? "property" : "client"}_${rand(1000, 9999)}.${format}`,
+        destination: pick(["contact", "internal", null]),
+        filename: `${isProperty ? "property" : "contact"}_${rand(1000, 9999)}.${format}`,
         rowCount: 1, createdAt,
       });
     }

@@ -27,7 +27,7 @@ describe("logPiiAccess", () => {
     await logPiiAccess({
       userId: "user-1",
       organizationId: "org-1",
-      entityType: "CLIENT",
+      entityType: "CONTACT",
       entityId: "client-1",
       action: PiiAction.DECRYPT,
       fields: ["client_name", "primary_email"],
@@ -39,7 +39,7 @@ describe("logPiiAccess", () => {
       data: {
         userId: "user-1",
         organizationId: "org-1",
-        entityType: "CLIENT",
+        entityType: "CONTACT",
         entityId: "client-1",
         action: "DECRYPT",
         fields: ["client_name", "primary_email"],
@@ -77,7 +77,7 @@ describe("logPiiAccess", () => {
       logPiiAccess({
         userId: "user-1",
         organizationId: "org-1",
-        entityType: "CLIENT",
+        entityType: "CONTACT",
         entityId: "client-1",
         action: PiiAction.DECRYPT,
         fields: ["client_name"],

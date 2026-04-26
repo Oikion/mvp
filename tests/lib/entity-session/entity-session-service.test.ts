@@ -63,7 +63,7 @@ describe("createEntitySession", () => {
           findFirst: mockTxFindFirst.mockResolvedValue(null),
           create: mockCreate.mockResolvedValue({
             id: "es-1",
-            entityType: "CLIENT",
+            entityType: "CONTACT",
             entityId: "client-1",
             megolmSessionId: "megolm-abc",
             version: 1,
@@ -83,7 +83,7 @@ describe("createEntitySession", () => {
 
   it("creates session + creator share + backup in a transaction", async () => {
     await createEntitySession({
-      entityType: "CLIENT",
+      entityType: "CONTACT",
       entityId: "client-1",
       orgId: "org-1",
       megolmSessionId: "megolm-abc",
@@ -116,7 +116,7 @@ describe("createEntitySession", () => {
 
     await expect(
       createEntitySession({
-        entityType: "CLIENT",
+        entityType: "CONTACT",
         entityId: "client-1",
         orgId: "org-1",
         megolmSessionId: "megolm-abc",
@@ -135,7 +135,7 @@ describe("getActiveEntitySession", () => {
   it("returns active session for entity", async () => {
     const session = {
       id: "es-1",
-      entityType: "CLIENT",
+      entityType: "CONTACT",
       entityId: "client-1",
       megolmSessionId: "megolm-abc",
       version: 1,
@@ -143,12 +143,12 @@ describe("getActiveEntitySession", () => {
     };
     mockFindFirst.mockResolvedValue(session);
 
-    const result = await getActiveEntitySession("CLIENT", "client-1", "org-1");
+    const result = await getActiveEntitySession("CONTACT", "client-1", "org-1");
 
     expect(result).toEqual(session);
     expect(mockFindFirst).toHaveBeenCalledWith({
       where: {
-        entityType: "CLIENT",
+        entityType: "CONTACT",
         entityId: "client-1",
         orgId: "org-1",
         isActive: true,
@@ -170,7 +170,7 @@ describe("getEntitySessionShareForUser", () => {
     // First, getActiveEntitySession is called internally
     mockFindFirst.mockResolvedValue({
       id: "es-1",
-      entityType: "CLIENT",
+      entityType: "CONTACT",
       entityId: "client-1",
       isActive: true,
       shares: [
@@ -183,7 +183,7 @@ describe("getEntitySessionShareForUser", () => {
       ],
     });
 
-    const result = await getEntitySessionShareForUser("CLIENT", "client-1", "user-1", "org-1");
+    const result = await getEntitySessionShareForUser("CONTACT", "client-1", "user-1", "org-1");
 
     expect(result).toBeTruthy();
     expect(result?.encryptedSession).toBe("encrypted-for-user-1");
@@ -196,7 +196,7 @@ describe("getEntitySessionShareForUser", () => {
 
   it("returns null when session belongs to a different org", async () => {
     mockFindFirst.mockResolvedValue(null);
-    const result = await getEntitySessionShareForUser("CLIENT", "client-1", "user-1", "different-org");
+    const result = await getEntitySessionShareForUser("CONTACT", "client-1", "user-1", "different-org");
     expect(result).toBeNull();
     expect(mockFindFirst).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -238,7 +238,7 @@ describe("rotateEntitySession", () => {
 
   it("deactivates old session and creates new one with shares + backup", async () => {
     await rotateEntitySession({
-      entityType: "CLIENT",
+      entityType: "CONTACT",
       entityId: "client-1",
       orgId: "org-1",
       newMegolmSessionId: "megolm-new",
@@ -263,11 +263,11 @@ describe("deleteEntitySessionsForEntity", () => {
   it("deletes all sessions for an entity (cascade deletes shares + backups)", async () => {
     mockDeleteMany.mockResolvedValue({ count: 2 });
 
-    await deleteEntitySessionsForEntity("CLIENT", "client-1");
+    await deleteEntitySessionsForEntity("CONTACT", "client-1");
 
     expect(mockDeleteMany).toHaveBeenCalledWith({
       where: {
-        entityType: "CLIENT",
+        entityType: "CONTACT",
         entityId: "client-1",
       },
     });

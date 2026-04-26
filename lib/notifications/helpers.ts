@@ -122,7 +122,6 @@ export async function notifyEntityShared(payload: SharingNotificationPayload): P
       ? `"${payload.entityName}" - ${payload.message}`
       : `"${payload.entityName}" has been shared with you`,
     entityType: payload.entityType === "PROPERTY" ? "PROPERTY" :
-                payload.entityType === "CLIENT" ? "CONTACT" :
                 payload.entityType === "CONTACT" ? "CONTACT" : "DOCUMENT",
     entityId: payload.entityId,
     actorId: payload.sharedById,

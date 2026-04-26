@@ -43,7 +43,7 @@ interface SharedEntity {
 
 interface SharedEntitiesListProps {
   entities: SharedEntity[];
-  entityType?: "PROPERTY" | "CLIENT" | "DOCUMENT";
+  entityType?: "PROPERTY" | "CONTACT" | "DOCUMENT";
   translations: any;
 }
 
@@ -61,7 +61,7 @@ export function SharedEntitiesList({ entities, entityType, translations: t }: Sh
       <Share2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
     ) : entityType === "PROPERTY" ? (
       <Building2 className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-    ) : entityType === "CLIENT" ? (
+    ) : entityType === "CONTACT" ? (
       <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
     ) : (
       <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
@@ -108,7 +108,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
     switch (entityType) {
       case "PROPERTY":
         return `/app/mls/properties/${entity.friendlyId}`;
-      case "CLIENT":
+      case "CONTACT":
         return `/app/crm/contacts/${entity.friendlyId}`;
       case "DOCUMENT":
         return `/app/documents/${entity.friendlyId}`;
@@ -121,7 +121,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
     switch (entityType) {
       case "PROPERTY":
         return <Building2 className="h-10 w-10 text-primary" />;
-      case "CLIENT":
+      case "CONTACT":
         return <Users className="h-10 w-10 text-success" />;
       case "DOCUMENT":
         return <FileText className="h-10 w-10 text-warning" />;
@@ -172,7 +172,7 @@ function SharedEntityCard({ share, translations: t, dateLocale }: { share: Share
           </div>
         );
 
-      case "CLIENT":
+      case "CONTACT":
         return (
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12">

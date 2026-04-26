@@ -19,11 +19,11 @@ export const dynamic = "force-dynamic";
 // Valid entity types
 const VALID_ENTITY_TYPES: ExportEntityType[] = [
   "PROPERTY",
-  "CLIENT",
+  "CONTACT",
   "CALENDAR",
   "REPORT",
   "BULK_PROPERTIES",
-  "BULK_CLIENTS",
+  "BULK_CONTACTS",
 ];
 
 /**
@@ -100,7 +100,7 @@ export async function GET(
           description: property.description,
         };
       }
-    } else if (upperEntityType === "CLIENT") {
+    } else if (upperEntityType === "CONTACT") {
       const client = await prismadb.contact.findFirst({
         where: { id: entityId, organizationId: orgId },
         select: {

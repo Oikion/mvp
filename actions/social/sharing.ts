@@ -66,7 +66,7 @@ export async function shareEntity(input: ShareEntityInput) {
       entityExists = !!property;
       entityName = property?.property_name || "Property";
       break;
-    case "CLIENT":
+    case "CONTACT":
       const client = await prismadb.contact.findFirst({
         where: {
           id: input.entityId,
@@ -228,7 +228,7 @@ export async function getSharedWithMe(entityType?: SharedEntityType) {
             entity = { ...entity, linkedDocuments: entity.Documents };
           }
           break;
-        case "CLIENT":
+        case "CONTACT":
           entity = await prismadb.contact.findUnique({
             where: { id: share.entityId },
             select: {

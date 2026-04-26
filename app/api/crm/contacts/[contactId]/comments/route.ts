@@ -137,7 +137,7 @@ export async function POST(
       const sessionOwnership = await prismadb.entitySession.findFirst({
         where: {
           id: sid,
-          entityType: "CLIENT",
+          entityType: "CONTACT",
           entityId: contactId,
           orgId: organizationId,
           isActive: true,

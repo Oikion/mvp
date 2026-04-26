@@ -306,7 +306,7 @@ export async function migrateAgentEntities(
 
     // Delete shared entity links
     await tx.sharedEntity.deleteMany({
-      where: { entityType: "CLIENT", entityId: contact.id },
+      where: { entityType: "CONTACT", entityId: contact.id },
     });
 
     const hasAnyDeals = contact.dealParties.length > 0;

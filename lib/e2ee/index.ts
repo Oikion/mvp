@@ -495,7 +495,7 @@ export async function needsGroupRotation(targetId: string): Promise<boolean> {
  * requiring the caller to handle ECIES encryption manually (error-prone, see NM-4).
  */
 export async function initEntitySession(
-  entityType: "CLIENT" | "PROPERTY" | "MANDATE" | "TASK",
+  entityType: "CONTACT" | "PROPERTY" | "REQUEST" | "TASK",
   entityId: string,
 ) {
   assertUnlocked();
@@ -511,7 +511,7 @@ export async function initEntitySession(
  * Mirrors the pattern used by createGroupSession().
  */
 export async function initEntitySessionWithShares(
-  entityType: "CLIENT" | "PROPERTY" | "MANDATE" | "TASK",
+  entityType: "CONTACT" | "PROPERTY" | "REQUEST" | "TASK",
   entityId: string,
   participants: Array<{ userId: string; publicKey: string }>,
 ) {
@@ -543,7 +543,7 @@ export async function importEntitySession(
  * Session must be initialized first via initEntitySession().
  */
 export async function encryptEntityComment(
-  entityType: "CLIENT" | "PROPERTY" | "MANDATE" | "TASK",
+  entityType: "CONTACT" | "PROPERTY" | "REQUEST" | "TASK",
   entityId: string,
   plaintext: string,
 ) {

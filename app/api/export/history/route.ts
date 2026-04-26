@@ -23,18 +23,18 @@ export const dynamic = "force-dynamic";
 // Valid entity types
 const VALID_ENTITY_TYPES: ExportEntityType[] = [
   "PROPERTY",
-  "CLIENT",
+  "CONTACT",
   "CALENDAR",
   "REPORT",
   "BULK_PROPERTIES",
-  "BULK_CLIENTS",
+  "BULK_CONTACTS",
 ];
 
 /**
  * GET /api/export/history
- * 
+ *
  * Query params:
- * - entityType: PROPERTY | CLIENT | CALENDAR | REPORT | BULK_PROPERTIES | BULK_CLIENTS
+ * - entityType: PROPERTY | CONTACT | CALENDAR | REPORT | BULK_PROPERTIES | BULK_CONTACTS
  * - entityId: Optional specific entity ID
  * - limit: Number of records to return (default: 20)
  * - offset: Pagination offset (default: 0)

@@ -285,8 +285,7 @@ export const DELETE = withExternalApi(
     // Decrypt before delete — webhook consumers need plaintext
     const decryptedForWebhook = await decryptContactForOrg(existingContact, context.organizationId);
 
-    // TODO: update to "CONTACT" once EntityType union includes it
-    await deleteEntitySessionsForEntity("CLIENT", existingContact.id);
+    await deleteEntitySessionsForEntity("CONTACT", existingContact.id);
 
     // Soft delete — preserves audit trail
     await prismadb.contact.update({

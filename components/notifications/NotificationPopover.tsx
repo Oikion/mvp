@@ -74,8 +74,8 @@ const getNotificationIcon = (type: string) => {
   if (type.includes("TASK")) {
     return ListTodo;
   }
-  // Client/Account notifications
-  if (type.includes("CLIENT") || type.includes("ACCOUNT")) {
+  // Contact/Account notifications
+  if (type.includes("CONTACT") || type.includes("ACCOUNT")) {
     return Users;
   }
   // Property notifications

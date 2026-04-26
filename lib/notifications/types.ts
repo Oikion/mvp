@@ -88,7 +88,7 @@ export interface SocialNotificationPayload {
  * Entity sharing notification payload
  */
 export interface SharingNotificationPayload {
-  entityType: "PROPERTY" | "CLIENT" | "CONTACT" | "DOCUMENT";
+  entityType: "PROPERTY" | "CONTACT" | "DOCUMENT";
   entityId: string;
   entityName: string;
   sharedById: string;
@@ -115,7 +115,7 @@ export interface CalendarNotificationPayload {
  * Entity creation notification payload
  */
 export interface EntityCreationPayload {
-  entityType: "CLIENT" | "CONTACT" | "PROPERTY";
+  entityType: "CONTACT" | "PROPERTY";
   entityId: string;
   entityName: string;
   creatorId: string;

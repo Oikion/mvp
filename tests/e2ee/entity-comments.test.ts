@@ -25,13 +25,13 @@ describe("Entity Comments E2EE", () => {
 
   it("encrypts and decrypts a comment round-trip", async () => {
     // Initialize the outbound session (simulates the first user who creates the entity session)
-    const { sessionExport } = await initEntitySession("CLIENT", "client-abc", kek);
+    const { sessionExport } = await initEntitySession("CONTACT", "client-abc", kek);
 
     // Import the same session as an inbound (simulates a member receiving the share)
     await importEntitySession(sessionExport, kek);
 
     // Encrypt
-    const encResult = await encryptEntityComment("CLIENT", "client-abc", "Hello E2EE!", kek);
+    const encResult = await encryptEntityComment("CONTACT", "client-abc", "Hello E2EE!", kek);
     expect(encResult.ok).toBe(true);
     if (!encResult.ok) return; // type narrowing
 
@@ -59,7 +59,7 @@ describe("Entity Comments E2EE", () => {
   });
 
   it("returns needsInit when no outbound session exists", async () => {
-    const result = await encryptEntityComment("MANDATE", "mandate-999", "Test", kek);
+    const result = await encryptEntityComment("REQUEST", "request-999", "Test", kek);
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect("needsInit" in result).toBe(true);
@@ -94,12 +94,12 @@ describe("Entity Comments E2EE", () => {
   });
 
   it("encrypts multiple comments in sequence with correct message indices", async () => {
-    const { sessionExport } = await initEntitySession("CLIENT", "client-multi", kek);
+    const { sessionExport } = await initEntitySession("CONTACT", "client-multi", kek);
     await importEntitySession(sessionExport, kek);
 
-    const e0 = await encryptEntityComment("CLIENT", "client-multi", "First", kek);
-    const e1 = await encryptEntityComment("CLIENT", "client-multi", "Second", kek);
-    const e2 = await encryptEntityComment("CLIENT", "client-multi", "Third", kek);
+    const e0 = await encryptEntityComment("CONTACT", "client-multi", "First", kek);
+    const e1 = await encryptEntityComment("CONTACT", "client-multi", "Second", kek);
+    const e2 = await encryptEntityComment("CONTACT", "client-multi", "Third", kek);
 
     expect(e0.ok && e0.messageIndex).toBe(0);
     expect(e1.ok && e1.messageIndex).toBe(1);

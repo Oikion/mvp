@@ -1,5 +1,5 @@
 /** Entity types that support E2EE sessions */
-export type EntityType = "CLIENT" | "PROPERTY" | "MANDATE" | "TASK";
+export type EntityType = "CONTACT" | "PROPERTY" | "REQUEST" | "TASK";
 
 /** Input for creating a new entity session */
 export interface CreateEntitySessionInput {

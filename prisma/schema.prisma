@@ -1527,7 +1527,6 @@ enum SharePermission {
 
 enum SharedEntityType {
   PROPERTY
-  CLIENT
   DOCUMENT
   CONTACT
 }
@@ -2211,11 +2210,11 @@ model ExportHistory {
 
 enum ExportEntityType {
   PROPERTY
-  CLIENT
+  CONTACT
   CALENDAR
   REPORT
   BULK_PROPERTIES
-  BULK_CLIENTS
+  BULK_CONTACTS
 }
 
 // ============================================
@@ -2989,7 +2988,7 @@ model OrgEncryptionKey {
 /// all EntitySession rows matching (entityType, entityId).
 model EntitySession {
   id              String               @id @default(uuid())
-  entityType      String               // "CLIENT" | "PROPERTY" | "MANDATE" | "TASK"
+  entityType      String               // "CONTACT" | "PROPERTY" | "REQUEST" | "TASK"
   entityId        String
   megolmSessionId String               @unique // Megolm session identifier (distinct from row id)
   version         Int                  @default(1)
@@ -3111,7 +3110,7 @@ model PiiAccessLog {
   timestamp      DateTime @default(now())
   userId         String
   organizationId String
-  entityType     String   // "CLIENT" | "PROPERTY" | "MANDATE" | "TASK" | etc.
+  entityType     String   // "CONTACT" | "PROPERTY" | "REQUEST" | "TASK" | etc.
   entityId       String
   action         String   // "DECRYPT" | "EXPORT" | "WEBHOOK_SEND" | "API_RESPONSE"
   fields         String[] // List of field names decrypted, e.g. ["client_name", "primary_email"]

@@ -509,7 +509,7 @@ function getEmailComponent(
       return EntitySharedWithYouEmail({
         recipientName,
         sharedByName: actorName || "Someone",
-        entityType: (metadata?.entityType || "PROPERTY") as "PROPERTY" | "CLIENT" | "DOCUMENT",
+        entityType: (metadata?.entityType || "PROPERTY") as "PROPERTY" | "CONTACT" | "DOCUMENT",
         entityName: entityName || "",
         entityId: entityId || "",
         entityFriendlyId: metadata?.friendlyId,
@@ -522,7 +522,7 @@ function getEmailComponent(
       return EntityShareAcceptedEmail({
         recipientName,
         acceptedByName: actorName || "Someone",
-        entityType: (metadata?.entityType || "PROPERTY") as "PROPERTY" | "CLIENT" | "DOCUMENT",
+        entityType: (metadata?.entityType || "PROPERTY") as "PROPERTY" | "CONTACT" | "DOCUMENT",
         entityName: entityName || "",
         entityId: entityId || "",
         entityFriendlyId: metadata?.friendlyId,

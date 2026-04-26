@@ -141,7 +141,7 @@ export async function POST(req: Request) {
     // Notify organization about new client (only for non-draft clients)
     if (!draft_status) {
       await notifyClientCreated({
-        entityType: "CLIENT",
+        entityType: "CONTACT",
         entityId: newClient.id,
         entityName: client_name,
         creatorId: user.id,
