@@ -96,14 +96,11 @@ export async function POST(
       }
     }
 
-    // Link properties by setting ownerId
+    // Link properties via ContactProperty M2M join table
     if (propertyIds && propertyIds.length > 0) {
-      const result = await prismadb.properties.updateMany({
-        where: {
-          id: { in: propertyIds },
-          organizationId,
-        },
-        data: { ownerId: contactId },
+      const result = await prismadb.contactProperty.createMany({
+        data: propertyIds.map((propertyId) => ({ organizationId, contactId, propertyId })),
+        skipDuplicates: true,
       });
       linkedProperties = result.count;
 
@@ -241,21 +238,16 @@ export async function DELETE(
       }
     }
 
-    // Unlink a property (set ownerId to null, only if current owner matches)
+    // Unlink a property via ContactProperty M2M join table
     if (propertyId) {
       // Fetch label before unlinking
       const unlinkedProperty = await prismadb.properties.findFirst({
-        where: { id: propertyId, organizationId, ownerId: contactId },
+        where: { id: propertyId, organizationId, linkedContacts: { some: { contactId } } },
         select: { id: true, friendlyId: true, property_name: true },
       });
 
-      await prismadb.properties.updateMany({
-        where: {
-          id: propertyId,
-          organizationId,
-          ownerId: contactId,
-        },
-        data: { ownerId: null },
+      await prismadb.contactProperty.deleteMany({
+        where: { contactId, propertyId, organizationId },
       });
 
       if (unlinkedProperty) {

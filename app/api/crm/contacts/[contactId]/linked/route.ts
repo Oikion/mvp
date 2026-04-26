@@ -68,28 +68,6 @@ export async function GET(
       role: rc.role,
     }));
 
-    // Fetch owned properties via Property.ownerId FK
-    const ownedProperties = await prismadb.properties.findMany({
-      where: { ownerId: contactId, organizationId },
-      select: {
-        id: true,
-        friendlyId: true,
-        property_name: true,
-        property_type: true,
-        property_status: true,
-        address_city: true,
-        price: true,
-        bedrooms: true,
-        bathrooms: true,
-      },
-      take: 20,
-      orderBy: { createdAt: "desc" },
-    });
-
-    const properties = ownedProperties.map((p) => ({
-      ...p,
-      price: p.price ? Number(p.price) : undefined,
-    }));
 
     // Fetch linked documents via M2M
     const linkedDocumentsRaw = await prismadb.documents.findMany({
@@ -155,19 +133,22 @@ export async function GET(
             property_name: true,
             property_status: true,
             property_type: true,
+            address_city: true,
             price: true,
+            bedrooms: true,
+            bathrooms: true,
           },
         },
       },
       orderBy: { createdAt: "desc" },
       take: 20,
     });
-    const linkedProperties = linkedPropertiesRaw.map((lp) => ({
+    const properties = linkedPropertiesRaw.map((lp) => ({
       ...lp.property,
       price: lp.property.price ? Number(lp.property.price) : undefined,
     }));
 
-    return NextResponse.json({ requests, properties, linkedProperties, documents, events: allEvents });
+    return NextResponse.json({ requests, properties, documents, events: allEvents });
   } catch (error) {
     console.error("[CONTACT_LINKED_GET]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
