@@ -383,3 +383,8 @@ export type CreateRequestInput = z.infer<typeof createRequestSchema>;
 export type UpdateRequestInput = z.infer<typeof updateRequestSchema>;
 export type RequestQueryParams = z.infer<typeof requestQuerySchema>;
 export type RequestFormValues = z.infer<typeof requestFormSchema>;
+
+export const requestEditFormSchema = requestFormSchema.extend({
+  id: z.string().min(1, "Request ID is required"),
+});
+export type RequestEditFormValues = z.infer<typeof requestEditFormSchema>;

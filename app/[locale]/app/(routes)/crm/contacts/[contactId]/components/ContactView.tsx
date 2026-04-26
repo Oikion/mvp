@@ -32,6 +32,8 @@ import {
   useUnlinkPropertyFromContact,
 } from "@/hooks/swr/useLinkMutations";
 import { LinkEntityDialog } from "@/components/linking/LinkEntityDialog";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { EditContactForm } from "./EditContactForm";
 
 // ── Status colors (consistent with list view — Gestalt: similarity) ──
 const STATUS_COLORS: Record<string, string> = {
@@ -112,6 +114,7 @@ export default function ContactView({ contact }: ContactViewProps) {
   // Dialog state
   const [linkRequestDialogOpen, setLinkRequestDialogOpen] = useState(false);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   // Use SWR data if available, fall back to server-fetched data
   const displayRequests = linkedRequests.length > 0 || isLoadingLinked
@@ -230,11 +233,23 @@ export default function ContactView({ contact }: ContactViewProps) {
           <Button variant="outline" size="sm">
             {t("contacts.view.share")}
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setEditOpen(true)}>
             {t("contacts.view.edit")}
           </Button>
         </div>
       </div>
+
+      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+          <EditContactForm
+            contact={contact}
+            onSuccess={() => {
+              setEditOpen(false);
+              mutateLinked?.();
+            }}
+          />
+        </SheetContent>
+      </Sheet>
 
       {/* ── Main content: 2/3 + 1/3 grid (Gestalt: proximity grouping) ── */}
       <div className="grid gap-6 lg:grid-cols-3">

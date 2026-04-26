@@ -507,6 +507,22 @@
         "submit": "Create Contact",
         "saveDraft": "Save Draft"
       }
+    },
+    "edit": {
+      "title": "Edit Contact",
+      "saving": "Saving…",
+      "save": "Save changes",
+      "tabs": {
+        "basic": "Basic Info",
+        "contact": "Contact Info",
+        "business": "Business",
+        "crm": "Notes",
+        "privacy": "Privacy"
+      },
+      "fields": {
+        "displayName": "Display Name",
+        "status": "Status"
+      }
     }
   }
 }

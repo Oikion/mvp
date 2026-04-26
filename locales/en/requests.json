@@ -269,5 +269,17 @@
     "created": "Request created",
     "createdDesc": "The request has been saved to your organization.",
     "createError": "Failed to create request"
+  },
+  "edit": {
+    "title": "Edit Request",
+    "saving": "Saving…",
+    "save": "Save changes",
+    "tabs": {
+      "basics": "Basics",
+      "budget": "Budget",
+      "criteria": "Criteria",
+      "location": "Location",
+      "notes": "Notes"
+    }
   }
 }

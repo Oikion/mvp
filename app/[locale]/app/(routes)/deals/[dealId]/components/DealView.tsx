@@ -46,8 +46,10 @@ import { getDealKey } from "@/hooks/swr/useDeals";
 import { deleteDeal } from "@/actions/deals";
 import { DEAL_STATUS } from "@/lib/status-mappings";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import DealStagePipeline from "./DealStagePipeline";
 import DealPartiesPanel from "./DealPartiesPanel";
+import { EditDealForm } from "./EditDealForm";
 
 // ── Reusable detail field (mirrors ContactView pattern) ──
 function DetailField({
@@ -172,6 +174,7 @@ export default function DealView({ deal }: DealViewProps) {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const stageCfg = DEAL_STATUS[deal.stage];
   const StageIcon = stageCfg?.icon;
@@ -326,12 +329,7 @@ export default function DealView({ deal }: DealViewProps) {
               variant="outline"
               size="sm"
               leftIcon={<Pencil className="h-4 w-4" />}
-              onClick={() => {
-                // TODO(phase-3): wire to deal edit drawer once it exists.
-                toast.info?.(t("detail.editComingSoon"), {
-                  isTranslationKey: false,
-                });
-              }}
+              onClick={() => setEditOpen(true)}
             >
               {t("detail.edit")}
             </Button>
@@ -349,6 +347,18 @@ export default function DealView({ deal }: DealViewProps) {
           </PermissionGate>
         </div>
       </header>
+
+      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+          <EditDealForm
+            deal={deal}
+            onSuccess={() => {
+              setEditOpen(false);
+              refreshDeal();
+            }}
+          />
+        </SheetContent>
+      </Sheet>
 
       {/* ── Main grid: 2/3 + 1/3 ── */}
       <div className="grid gap-6 lg:grid-cols-3">

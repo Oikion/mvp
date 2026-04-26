@@ -187,7 +187,6 @@
     },
     "backToDeals": "Back to deals",
     "edit": "Edit",
-    "editComingSoon": "Edit coming soon",
     "stagePosition": "Stage {current} of {total}",
     "noParties": "No parties yet",
     "noStageHistory": "No stage history yet",
@@ -214,6 +213,17 @@
       "remove": "Remove"
     },
     "unknownUser": "Unknown user"
+  },
+  "edit": {
+    "title": "Edit Deal",
+    "saving": "Saving…",
+    "save": "Save changes",
+    "tabs": {
+      "basic": "Basic Info",
+      "financial": "Financial",
+      "rental": "Rental",
+      "notes": "Notes"
+    }
   },
   "toast": {
     "created": "Deal created",

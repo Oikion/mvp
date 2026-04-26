@@ -200,3 +200,8 @@ export const dealFormSchema = z.object({
       new Date(data.leaseEndDate) >= new Date(data.leaseStartDate),
     { message: "Lease end date must be on or after lease start date", path: ["leaseEndDate"] }
   );
+
+export const dealEditFormSchema = dealFormSchema.and(
+  z.object({ id: z.string().min(1, "Deal ID is required") })
+);
+export type DealEditFormValues = z.infer<typeof dealEditFormSchema>;

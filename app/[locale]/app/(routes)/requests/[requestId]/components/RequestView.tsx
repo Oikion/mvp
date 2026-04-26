@@ -30,6 +30,8 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/navigation";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { EditRequestForm } from "./EditRequestForm";
 
 // ── Status colors ──
 const STATUS_COLORS: Record<string, string> = {
@@ -114,6 +116,7 @@ export default function RequestView({ request }: RequestViewProps) {
   const { unlinkProperty, isUnlinking: isUnlinkingProperties } = useUnlinkPropertyFromRequest(request.friendlyId);
 
   // Dialog state
+  const [editOpen, setEditOpen] = useState(false);
   const [linkContactDialogOpen, setLinkContactDialogOpen] = useState(false);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
 
@@ -215,9 +218,21 @@ export default function RequestView({ request }: RequestViewProps) {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">{t("view.share")}</Button>
-          <Button size="sm">{t("view.edit")}</Button>
+          <Button size="sm" onClick={() => setEditOpen(true)}>{t("view.edit")}</Button>
         </div>
       </div>
+
+      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+          <EditRequestForm
+            request={request}
+            onSuccess={() => {
+              setEditOpen(false);
+              mutateLinked?.();
+            }}
+          />
+        </SheetContent>
+      </Sheet>
 
       {/* ── Main content: 2/3 + 1/3 grid ── */}
       <div className="grid gap-6 lg:grid-cols-3">
