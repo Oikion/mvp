@@ -60,8 +60,8 @@ export function ConversionExportStep({
   }, [convertedData]);
 
   const generateXml = useCallback(() => {
-    const rootElement = entityType === "properties" ? "properties" : "clients";
-    const itemElement = entityType === "properties" ? "property" : "client";
+    const rootElement = entityType === "properties" ? "properties" : "contacts";
+    const itemElement = entityType === "properties" ? "property" : "contact";
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<${rootElement}>\n`;
 

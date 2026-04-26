@@ -81,6 +81,39 @@
     --info: 217 91% 60%;
     --info-foreground: 0 0% 98%;
 
+    /* ============================================
+       BADGE COLOR TOKENS (OKLCH)
+       Light-mode values — dark overrides in .dark block below.
+       Each pair: -bg (soft tint) / -fg (bold contrast, same hue family).
+       Used exclusively via CVA in badge.tsx.
+       ============================================ */
+    /* Semantic status */
+    --badge-success-bg: oklch(94% 0.07 145);
+    --badge-success-fg: oklch(35% 0.16 145);
+    --badge-warning-bg: oklch(95% 0.08 75);
+    --badge-warning-fg: oklch(38% 0.14 55);
+    --badge-info-bg: oklch(93% 0.06 240);
+    --badge-info-fg: oklch(36% 0.14 240);
+    --badge-destructive-bg: oklch(93% 0.06 15);
+    --badge-destructive-fg: oklch(38% 0.18 15);
+    --badge-purple-bg: oklch(93% 0.06 295);
+    --badge-purple-fg: oklch(38% 0.16 295);
+    --badge-gray-bg: oklch(93% 0.01 240);
+    --badge-gray-fg: oklch(40% 0.02 240);
+    /* Category classifier */
+    --badge-teal-bg: oklch(93% 0.06 185);
+    --badge-teal-fg: oklch(33% 0.14 185);
+    --badge-rose-bg: oklch(93% 0.06 10);
+    --badge-rose-fg: oklch(36% 0.16 10);
+    --badge-amber-bg: oklch(95% 0.09 70);
+    --badge-amber-fg: oklch(36% 0.15 65);
+    --badge-cyan-bg: oklch(93% 0.06 205);
+    --badge-cyan-fg: oklch(33% 0.14 205);
+    --badge-violet-bg: oklch(93% 0.06 280);
+    --badge-violet-fg: oklch(36% 0.16 280);
+    --badge-fuchsia-bg: oklch(93% 0.06 320);
+    --badge-fuchsia-fg: oklch(36% 0.16 320);
+
     --text-primary: 240 10% 3.9%;
     --text-secondary: 240 3.8% 46.1%;
     
@@ -296,6 +329,32 @@
 
     --text-primary: 0 0% 98%;
     --text-secondary: 240 5% 64.9%;
+
+    /* Badge tokens — dark mode overrides */
+    --badge-success-bg: oklch(22% 0.06 145);
+    --badge-success-fg: oklch(72% 0.18 145);
+    --badge-warning-bg: oklch(22% 0.07 65);
+    --badge-warning-fg: oklch(78% 0.16 75);
+    --badge-info-bg: oklch(20% 0.06 240);
+    --badge-info-fg: oklch(72% 0.17 240);
+    --badge-destructive-bg: oklch(20% 0.06 15);
+    --badge-destructive-fg: oklch(72% 0.18 15);
+    --badge-purple-bg: oklch(20% 0.05 295);
+    --badge-purple-fg: oklch(72% 0.17 295);
+    --badge-gray-bg: oklch(22% 0.01 240);
+    --badge-gray-fg: oklch(68% 0.02 240);
+    --badge-teal-bg: oklch(20% 0.05 185);
+    --badge-teal-fg: oklch(70% 0.16 185);
+    --badge-rose-bg: oklch(20% 0.06 10);
+    --badge-rose-fg: oklch(72% 0.18 10);
+    --badge-amber-bg: oklch(22% 0.07 68);
+    --badge-amber-fg: oklch(76% 0.17 72);
+    --badge-cyan-bg: oklch(20% 0.05 205);
+    --badge-cyan-fg: oklch(70% 0.16 205);
+    --badge-violet-bg: oklch(20% 0.05 280);
+    --badge-violet-fg: oklch(72% 0.17 280);
+    --badge-fuchsia-bg: oklch(20% 0.05 320);
+    --badge-fuchsia-fg: oklch(72% 0.16 320);
 
     /* ============================================
        PALETTE COLORS - Dark Theme

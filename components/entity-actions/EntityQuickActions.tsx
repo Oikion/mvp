@@ -24,7 +24,7 @@ import {
 // Types
 // ---------------------------------------------------------------------------
 
-export type EntityType = "client" | "property" | "mandate";
+export type EntityType = "contact" | "property" | "request";
 
 interface EntityQuickActionsProps {
   /** Which entity view this dropdown lives in */

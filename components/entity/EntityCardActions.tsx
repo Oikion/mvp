@@ -39,7 +39,7 @@ export interface CardAction {
  */
 export interface EntityCardActionsProps {
   /** Type of entity */
-  entityType: "property" | "client" | "contact";
+  entityType: "property" | "contact";
   /** ID of the entity */
   entityId: string;
   /** Friendly ID for URL display (falls back to entityId) */
@@ -119,8 +119,6 @@ export function EntityCardActions({
     switch (entityType) {
       case "property":
         return `/app/mls/properties/${entityFriendlyId ?? entityId}`;
-      case "client":
-        return `/app/crm/contacts/${entityFriendlyId ?? entityId}`;
       case "contact":
         return `/app/crm/contacts/${entityFriendlyId ?? entityId}`;
       default:

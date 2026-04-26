@@ -11,6 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ViewToggle } from "@/components/ui/view-toggle";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
@@ -38,26 +39,6 @@ import { useRouter } from "@/navigation";
 import { Link } from "@/navigation";
 import { cn } from "@/lib/utils";
 
-// ── Status badge colors (consistent across list + detail views) ──
-const STATUS_COLORS: Record<string, string> = {
-  LEAD: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  CONTACTED: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400",
-  QUALIFIED: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400",
-  ACTIVE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  UNDER_CONTRACT: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  COMPLETED: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400",
-  ON_HOLD: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  INACTIVE: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  OWNER: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  BUYER: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  TENANT: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
-  SELLER: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400",
-  INVESTOR: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",
-  BROKER: "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-400",
-};
 
 interface ContactsPageViewProps {
   contacts: ContactRow[];
@@ -149,15 +130,13 @@ export default function ContactsPageView({
                   )}
                 </div>
               </div>
-              <Badge
-                className={cn(
-                  "shrink-0 text-[10px] font-medium",
-                  STATUS_COLORS[contact.status] || STATUS_COLORS.LEAD
-                )}
-                variant="secondary"
-              >
-                {t(`contacts.status.${contact.status}` as Parameters<typeof t>[0])}
-              </Badge>
+              <StatusBadge
+                entityType="contact"
+                status={contact.status}
+                showIcon={false}
+                size="sm"
+                className="shrink-0"
+              />
             </div>
 
             {/* Contact info */}
@@ -180,19 +159,16 @@ export default function ContactsPageView({
             {contact.category?.length > 0 && (
               <div className="flex flex-wrap gap-1 pt-1">
                 {(contact.category as string[]).slice(0, 3).map((cat) => (
-                  <Badge
+                  <StatusBadge
                     key={cat}
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] px-1.5 py-0",
-                      CATEGORY_COLORS[cat]
-                    )}
-                  >
-                    {t(`contacts.category.${cat}` as Parameters<typeof t>[0])}
-                  </Badge>
+                    entityType="contact_category"
+                    status={cat}
+                    showIcon={false}
+                    size="sm"
+                  />
                 ))}
                 {contact.category.length > 3 && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  <Badge variant="gray" size="sm">
                     +{contact.category.length - 3}
                   </Badge>
                 )}

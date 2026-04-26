@@ -16,7 +16,7 @@ export interface UpcomingItem {
   priority?: "HIGH" | "MEDIUM" | "LOW";
   status?: string;
   linkedEntity?: {
-    type: "property" | "client";
+    type: "property" | "contact";
     id: string;
     friendlyId: string;
     name: string;
@@ -87,7 +87,7 @@ export async function getUpcomingItems(): Promise<{
         };
       } else if (event.Contacts?.[0]) {
         linkedEntity = {
-          type: "client",
+          type: "contact",
           id: event.Contacts[0].id,
           friendlyId: event.Contacts[0].friendlyId || event.Contacts[0].id,
           name: event.Contacts[0].displayName || "Contact",

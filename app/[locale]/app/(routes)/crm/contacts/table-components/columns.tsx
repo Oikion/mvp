@@ -10,7 +10,6 @@ import {
   DataTableSelectCheckbox,
   DataTableSelectAllCheckbox,
 } from "@/components/ui/data-table/data-table-select-checkbox";
-import { cn } from "@/lib/utils";
 import { ContactRowActions } from "./ContactRowActions";
 import { ClientRowActions } from "./ClientRowActions";
 import { StatusCell } from "./cells/StatusCell";
@@ -18,15 +17,7 @@ import { AssignedUserCell } from "./cells/AssignedUserCell";
 import { NameCell } from "./cells/NameCell";
 import { EmailCell } from "./cells/EmailCell";
 import { PhoneCell } from "./cells/PhoneCell";
-
-const CATEGORY_COLORS: Record<string, string> = {
-  OWNER: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  BUYER: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  TENANT: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400",
-  SELLER: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400",
-  INVESTOR: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",
-  BROKER: "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-400",
-};
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export interface ContactRow {
   id: string;
@@ -151,16 +142,16 @@ export function useContactColumns(
           return (
             <div className="flex flex-wrap gap-1">
               {categories.slice(0, 2).map((cat) => (
-                <Badge
+                <StatusBadge
                   key={cat}
-                  variant="outline"
-                  className={cn("text-[10px] px-1.5 py-0", CATEGORY_COLORS[cat])}
-                >
-                  {t(`contacts.category.${cat}` as Parameters<typeof t>[0])}
-                </Badge>
+                  entityType="contact_category"
+                  status={cat}
+                  showIcon={false}
+                  size="sm"
+                />
               ))}
               {categories.length > 2 && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                <Badge variant="gray" size="sm">
                   +{categories.length - 2}
                 </Badge>
               )}

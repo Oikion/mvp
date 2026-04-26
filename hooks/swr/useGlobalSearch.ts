@@ -23,14 +23,14 @@ interface Relationships {
 
 export interface SearchResult {
   id: string;
-  type: "property" | "client" | "contact" | "document" | "event" | "mandate" | "request";
+  type: "property" | "contact" | "document" | "event" | "request";
   title: string;
   subtitle?: string;
   url: string;
   relationships?: Relationships;
 }
 
-export type SearchEntityType = "property" | "client" | "contact" | "document" | "event" | "mandate" | "request";
+export type SearchEntityType = "property" | "contact" | "document" | "event" | "request";
 
 interface SearchMeta {
   query: string;
@@ -164,7 +164,7 @@ async function searchFetcher([url, body]: [string, SearchRequestBody]): Promise<
     data.clients.forEach((client) => {
       formattedResults.push({
         id: client.id,
-        type: "client",
+        type: "contact",
         title: client.client_name || "Unnamed Client",
         subtitle: client.primary_email || undefined,
         url: `/app/crm/contacts/${client.friendlyId}`,

@@ -5,7 +5,7 @@ import { create } from "zustand";
 /**
  * Entity types that can be used with action modals
  */
-export type ActionEntityType = "property" | "client" | "contact";
+export type ActionEntityType = "property" | "contact";
 
 /**
  * Share entity types for the ShareModal
@@ -114,7 +114,6 @@ export function getShareEntityType(entityType: ActionEntityType): ShareEntityTyp
   switch (entityType) {
     case "property":
       return "PROPERTY";
-    case "client":
     case "contact":
       return "CLIENT";
     default:

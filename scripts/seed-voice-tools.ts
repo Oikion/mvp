@@ -455,7 +455,7 @@ const voiceTools: VoiceToolDefinition[] = [
       properties: {
         entityType: {
           type: "string",
-          enum: ["client", "property", "event", "document"],
+          enum: ["contact", "property", "event", "document"],
           description: "Type of the first entity",
         },
         entityId: {
@@ -468,7 +468,7 @@ const voiceTools: VoiceToolDefinition[] = [
         },
         targetType: {
           type: "string",
-          enum: ["client", "property", "event", "document"],
+          enum: ["contact", "property", "event", "document"],
           description: "Type of the entity to link to",
         },
         targetId: {

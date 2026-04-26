@@ -20,7 +20,7 @@ interface ShareInfo {
 
 interface SharedAccessBannerProps {
   shareInfo: ShareInfo;
-  entityType: "property" | "client";
+  entityType: "property" | "contact";
 }
 
 export function SharedAccessBanner({ shareInfo, entityType: _entityType }: SharedAccessBannerProps) {

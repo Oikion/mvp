@@ -2,7 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 
 export interface ParsedMention {
-  type: "client" | "property" | "event" | "task";
+  type: "contact" | "property" | "event" | "task";
   name: string;
   id?: string;
   originalText: string;
@@ -40,9 +40,9 @@ export function parseMentionsFromText(text: string): ParsedMention[] {
     let type: ParsedMention["type"];
     let name = mentionText;
 
-    if (mentionText.startsWith("client-")) {
-      type = "client";
-      name = mentionText.replace(/^client-/, "");
+    if (mentionText.startsWith("contact-")) {
+      type = "contact";
+      name = mentionText.replace(/^contact-/, "");
     } else if (mentionText.startsWith("property-")) {
       type = "property";
       name = mentionText.replace(/^property-/, "");
@@ -53,7 +53,7 @@ export function parseMentionsFromText(text: string): ParsedMention[] {
       type = "task";
       name = mentionText.replace(/^task-/, "");
     } else {
-      type = "client"; // default
+      type = "contact"; // default
     }
 
     mentions.push({
@@ -85,7 +85,7 @@ export async function resolveMentions(
   };
 
   // Group mentions by type
-  const clientMentions = mentions.filter((m) => m.type === "client");
+  const clientMentions = mentions.filter((m) => m.type === "contact");
   const propertyMentions = mentions.filter((m) => m.type === "property");
   const eventMentions = mentions.filter((m) => m.type === "event");
   const taskMentions = mentions.filter((m) => m.type === "task");

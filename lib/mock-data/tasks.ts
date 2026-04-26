@@ -62,7 +62,7 @@ const TASK_TITLES: Record<string, { en: string[]; el: string[] }> = {
       "Ενημέρωση περιγραφής ακινήτου",
     ],
   },
-  client: {
+  contact: {
     en: [
       "Follow up with client",
       "Send property options to client",
@@ -130,7 +130,7 @@ export function generateMockTasks(
   const tasks: MockTask[] = [];
 
   for (let i = 0; i < count; i++) {
-    const category = f.helpers.arrayElement(["property", "client", "admin"]);
+    const category = f.helpers.arrayElement(["property", "contact", "admin"]);
     const status = f.helpers.arrayElement(TASK_STATUSES);
     const isCompleted = status === "COMPLETED";
     const hasDueDate = f.datatype.boolean(0.8);
@@ -144,7 +144,7 @@ export function generateMockTasks(
       : null;
 
     const hasProperty = category === "property" || f.datatype.boolean(0.3);
-    const hasClient = category === "client" || f.datatype.boolean(0.4);
+    const hasClient = category === "contact" || f.datatype.boolean(0.4);
 
     tasks.push({
       id: `demo_task_${f.string.uuid()}`,

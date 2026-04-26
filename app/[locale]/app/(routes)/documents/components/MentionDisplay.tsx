@@ -30,7 +30,7 @@ export function MentionDisplay({ mentions, className, onMentionClick }: MentionD
           key={`client-${client.id}`}
           variant="outline"
           className="bg-primary/10 text-primary border-primary/30 hover:bg-primary/20 dark:text-primary cursor-pointer"
-          onClick={() => onMentionClick?.("client", client.id)}
+          onClick={() => onMentionClick?.("contact", client.id)}
         >
           <Users className="h-3 w-3 mr-1" />
           {client.name}

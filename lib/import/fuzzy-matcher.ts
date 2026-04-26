@@ -42,13 +42,13 @@ export interface FieldDefinitionWithAliases {
  * Maps a token to an entity name for context-boosted scoring.
  */
 const ENTITY_IDENTIFIER_MAP: Record<string, string> = {
-  Πελάτη: "client",
-  Πελάτης: "client",
+  Πελάτη: "contact",
+  Πελάτης: "contact",
   Ακινήτου: "property",
   Ακίνητο: "property",
   Εντολής: "request",
   Εντολή: "request",
-  Client: "client",
+  Client: "contact",
   Property: "property",
   Mandate: "request",
   Request: "request",

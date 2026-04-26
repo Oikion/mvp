@@ -51,7 +51,6 @@ interface Relationships {
   requests?: { count: number; preview?: RelationshipPreview[] };
   /** @deprecated use requests */
   mandates?: { count: number; preview?: RelationshipPreview[] };
-  client?: { id: string; client_name: string } | null;
 }
 
 type FilterType = "all" | SearchEntityType;
@@ -59,7 +58,6 @@ type FilterType = "all" | SearchEntityType;
 const FILTER_TABS: { value: FilterType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { value: "all", label: "All", icon: Search },
   { value: "property", label: "Properties", icon: Building2 },
-  { value: "client", label: "Clients", icon: User },
   { value: "request", label: "Requests", icon: ScrollText },
   { value: "contact", label: "Contacts", icon: Users },
   { value: "document", label: "Documents", icon: FileText },
@@ -213,10 +211,7 @@ export function GlobalSearch() {
     switch (type) {
       case "property":
         return Building2;
-      case "client":
-        return User;
       case "request":
-      case "mandate":
         return ScrollText;
       case "contact":
         return Users;
@@ -233,10 +228,7 @@ export function GlobalSearch() {
     switch (type) {
       case "property":
         return t("GlobalSearch.types.property");
-      case "client":
-        return t("GlobalSearch.types.client");
       case "request":
-      case "mandate":
         return t("GlobalSearch.types.request");
       case "contact":
         return t("GlobalSearch.types.contact");
@@ -268,9 +260,8 @@ export function GlobalSearch() {
     if (relationships.clients?.count) total += relationships.clients.count;
     if (relationships.properties?.count) total += relationships.properties.count;
     if (relationships.events?.count) total += relationships.events.count;
-    const reqRel = relationships.requests ?? relationships.mandates;
+    const reqRel = relationships.requests;
     if (reqRel?.count) total += reqRel.count;
-    if (relationships.client) total += 1;
     return total;
   };
 
@@ -319,7 +310,7 @@ export function GlobalSearch() {
       );
     }
 
-    const reqRelBadge = relationships.requests ?? relationships.mandates;
+    const reqRelBadge = relationships.requests;
     if (reqRelBadge?.count && reqRelBadge.count > 0) {
       badges.push(
         <Badge
@@ -329,19 +320,6 @@ export function GlobalSearch() {
         >
           <ScrollText className="h-2.5 w-2.5" />
           {reqRelBadge.count}
-        </Badge>
-      );
-    }
-
-    if (relationships.client) {
-      badges.push(
-        <Badge
-          key="client"
-          variant="outline"
-          className="text-[10px] px-1.5 py-0 h-4 gap-0.5"
-        >
-          <User className="h-2.5 w-2.5" />
-          {relationships.client.client_name}
         </Badge>
       );
     }

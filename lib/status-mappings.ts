@@ -47,16 +47,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type BadgeVariant =
-  | "default"
-  | "secondary"
-  | "destructive"
-  | "outline"
-  | "success"
-  | "warning"
-  | "info"
-  | "purple"
-  | "gray";
+export type { BadgeVariant } from "@/components/ui/badge";
 
 export interface StatusConfig {
   variant: BadgeVariant;
@@ -178,7 +169,7 @@ export const CONTACT_STATUS: Record<string, StatusConfig> = {
     label: "On Hold",
   },
   INACTIVE: {
-    variant: "secondary",
+    variant: "gray",
     icon: UserMinus,
     label: "Inactive",
   },
@@ -454,9 +445,61 @@ export const REQUEST_STATUS: Record<string, StatusConfig> = {
     label: "Closed",
   },
   PAUSED: {
-    variant: "secondary",
+    variant: "gray",
     icon: Pause,
     label: "Paused",
+  },
+};
+
+/**
+ * Contact Category Configuration (role/classifier badges)
+ */
+export const CONTACT_CATEGORY: Record<string, StatusConfig> = {
+  OWNER: {
+    variant: "amber",
+    label: "Owner",
+  },
+  BUYER: {
+    variant: "teal",
+    label: "Buyer",
+  },
+  TENANT: {
+    variant: "cyan",
+    label: "Tenant",
+  },
+  SELLER: {
+    variant: "rose",
+    label: "Seller",
+  },
+  INVESTOR: {
+    variant: "violet",
+    label: "Investor",
+  },
+  BROKER: {
+    variant: "fuchsia",
+    label: "Broker",
+  },
+};
+
+/**
+ * Priority Configuration
+ */
+export const PRIORITY_STATUS: Record<string, StatusConfig> = {
+  LOW: {
+    variant: "gray",
+    label: "Low",
+  },
+  MEDIUM: {
+    variant: "warning",
+    label: "Medium",
+  },
+  HIGH: {
+    variant: "amber",
+    label: "High",
+  },
+  CRITICAL: {
+    variant: "destructive",
+    label: "Critical",
   },
 };
 
@@ -502,6 +545,7 @@ export const STATUS_CONFIGS = {
   property: PROPERTY_STATUS,
   client: CLIENT_STATUS,
   contact: CONTACT_STATUS,
+  contact_category: CONTACT_CATEGORY,
   request: REQUEST_STATUS,
   deal: DEAL_STATUS,
   showing: SHOWING_STATUS,
@@ -509,6 +553,7 @@ export const STATUS_CONFIGS = {
   campaign: CAMPAIGN_STATUS,
   social: SOCIAL_STATUS,
   publish: PUBLISH_STATUS,
+  priority: PRIORITY_STATUS,
   generic: GENERIC_STATUS,
 } as const;
 

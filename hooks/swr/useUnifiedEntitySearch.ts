@@ -18,7 +18,7 @@ import { useMemo } from "react";
 // Types
 // ============================================
 
-export type EntityType = "client" | "contact" | "property" | "document" | "event" | "mandate" | "request" | "deal";
+export type EntityType = "contact" | "property" | "document" | "event" | "request" | "deal";
 
 export interface EntitySearchResult {
   value: string;
@@ -60,11 +60,11 @@ export interface UseUnifiedEntitySearchOptions {
    * Optional type-specific filters
    */
   filters?: {
-    clientStatus?: string;
+    contactStatus?: string;
     propertyStatus?: string;
     documentType?: string;
     eventType?: string;
-    mandateStatus?: string;
+    requestStatus?: string;
   };
   
   /**
@@ -89,8 +89,8 @@ async function entitySearchFetcher(url: string): Promise<EntitySearchResponse> {
   if (res.status === 429) {
     console.warn("[EntitySearch] Rate limited, returning empty results");
     return {
-      results: { client: [], contact: [], property: [], document: [], event: [], mandate: [], request: [], deal: [] },
-      timing: { total: 0, perType: { client: 0, contact: 0, property: 0, document: 0, event: 0, mandate: 0, request: 0, deal: 0 } },
+      results: { contact: [], property: [], document: [], event: [], request: [], deal: [] },
+      timing: { total: 0, perType: { contact: 0, property: 0, document: 0, event: 0, request: 0, deal: 0 } },
     };
   }
 
@@ -110,7 +110,7 @@ export function useUnifiedEntitySearch(
   options: UseUnifiedEntitySearchOptions = {}
 ) {
   const {
-    types = ["client", "contact", "property", "document", "event", "mandate", "request"],
+    types = ["contact", "property", "document", "event", "request"],
     limit = 10,
     debounceMs = 300,
     filters = {},
@@ -132,11 +132,11 @@ export function useUnifiedEntitySearch(
     const typesParam = types.join(",");
     const filterParams = new URLSearchParams();
     
-    if (filters.clientStatus) filterParams.set("clientStatus", filters.clientStatus);
+    if (filters.contactStatus) filterParams.set("contactStatus", filters.contactStatus);
     if (filters.propertyStatus) filterParams.set("propertyStatus", filters.propertyStatus);
     if (filters.documentType) filterParams.set("documentType", filters.documentType);
     if (filters.eventType) filterParams.set("eventType", filters.eventType);
-    if (filters.mandateStatus) filterParams.set("mandateStatus", filters.mandateStatus);
+    if (filters.requestStatus) filterParams.set("requestStatus", filters.requestStatus);
 
     const filterString = filterParams.toString();
     const filterSuffix = filterString ? `&${filterString}` : "";
@@ -184,13 +184,12 @@ export function useUnifiedEntitySearch(
   const groupedResults = useMemo(() => {
     if (!data?.results) {
       return {
-        client: [],
         contact: [],
         property: [],
         document: [],
         event: [],
-        mandate: [],
         request: [],
+        deal: [],
       };
     }
     return data.results;
@@ -226,13 +225,13 @@ export function useUnifiedEntitySearch(
 // ============================================
 
 /**
- * Hook for searching only clients
+ * @deprecated Use useContactSearch instead
  */
 export function useClientSearch(
   query: string,
   options: Omit<UseUnifiedEntitySearchOptions, "types"> = {}
 ) {
-  return useUnifiedEntitySearch(query, { ...options, types: ["client"] });
+  return useUnifiedEntitySearch(query, { ...options, types: ["contact"] });
 }
 
 /**

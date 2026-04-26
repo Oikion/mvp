@@ -82,7 +82,7 @@ export function ClientSelector({
   return (
     <UnifiedEntitySelector
       mode="multi"
-      entityTypes={["client"]}
+      entityTypes={["contact"]}
       value={value}
       onChange={(val) => onChange(val as string[])}
       placeholder={placeholder}
@@ -90,7 +90,7 @@ export function ClientSelector({
       disabled={disabled}
       emptyMessage={emptyMessage}
       className={className}
-      filters={statusFilter ? { clientStatus: statusFilter } : undefined}
+      filters={statusFilter ? { contactStatus: statusFilter } : undefined}
       showSubtitles
       maxSelections={10}
       createNewLabel={createNewLabel}
@@ -157,7 +157,7 @@ export function SingleClientSelector({
   return (
     <UnifiedEntitySelector
       mode="single"
-      entityTypes={["client"]}
+      entityTypes={["contact"]}
       value={value}
       onChange={(val) => onChange(val as string)}
       placeholder={placeholder}
@@ -165,7 +165,7 @@ export function SingleClientSelector({
       disabled={disabled}
       required={required}
       className={className}
-      filters={statusFilter ? { clientStatus: statusFilter } : undefined}
+      filters={statusFilter ? { contactStatus: statusFilter } : undefined}
       showSubtitles
     />
   );

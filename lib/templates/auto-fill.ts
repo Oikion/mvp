@@ -34,7 +34,7 @@ export function autoFillPlaceholders(
       case "property":
         entity = context.property as Record<string, unknown> | null;
         break;
-      case "client":
+      case "contact":
         entity = context.client as Record<string, unknown> | null;
         break;
       case "agent":

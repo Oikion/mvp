@@ -6,8 +6,8 @@
  *
  * @example
  * ```typescript
- * // For clients
- * const { comments, addComment, deleteComment } = useEntityComments("client", clientId);
+ * // For contacts
+ * const { comments, addComment, deleteComment } = useEntityComments("contact", contactId);
  *
  * // For properties
  * const { comments, addComment, deleteComment } = useEntityComments("property", propertyId);
@@ -24,7 +24,7 @@ import useSWRMutation from "swr/mutation";
 /**
  * Supported entity types for comments
  */
-export type CommentableEntityType = "client" | "property";
+export type CommentableEntityType = "contact" | "property";
 
 /**
  * Standard comment structure
@@ -73,7 +73,7 @@ interface UseEntityCommentsOptions {
  */
 function getCommentsEndpoint(entityType: CommentableEntityType, entityId: string): string {
   switch (entityType) {
-    case "client":
+    case "contact":
       return `/api/crm/contacts/${entityId}/comments`;
     case "property":
       return `/api/mls/properties/${entityId}/comments`;
@@ -97,7 +97,7 @@ export function getEntityCommentsKey(entityType: CommentableEntityType, entityId
 /**
  * Hook to manage comments for an entity
  *
- * @param entityType - Type of entity ("client" | "property")
+ * @param entityType - Type of entity ("contact" | "property")
  * @param entityId - ID of the entity
  * @param options - Hook options
  *

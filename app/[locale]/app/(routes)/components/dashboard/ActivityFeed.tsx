@@ -27,7 +27,7 @@ const getActivityIcon = (type: ActivityItem["type"]) => {
   switch (type) {
     case "property":
       return <Home className="h-4 w-4" />;
-    case "client":
+    case "contact":
       return <Users className="h-4 w-4" />;
     case "document":
       return <FileText className="h-4 w-4" />;
@@ -57,7 +57,7 @@ const getActivityHref = (activity: ActivityItem, locale: string): string => {
   switch (activity.type) {
     case "property":
       return `/${locale}/app/mls/properties/${activity.entityFriendlyId ?? activity.entityId}`;
-    case "client":
+    case "contact":
       return `/${locale}/app/crm/contacts/${activity.entityFriendlyId ?? activity.entityId}`;
     case "document":
       return `/${locale}/app/documents?id=${activity.entityFriendlyId ?? activity.entityId}`;

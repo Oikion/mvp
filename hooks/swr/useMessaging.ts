@@ -74,7 +74,7 @@ export interface Message {
     userId: string;
   }>;
   entityAttachment?: {
-    type: "property" | "client" | "contact" | "document" | "event" | "mandate" | "request" | "deal";
+    type: "property" | "contact" | "document" | "event" | "request" | "deal";
     id: string;
     friendlyId: string;
     title: string;
@@ -347,7 +347,7 @@ export function useSendMessage(params?: { channelId?: string; conversationId?: s
       }>;
       mentions?: string[];
       entityAttachment?: {
-        type: "property" | "client" | "contact" | "document" | "event" | "mandate" | "request" | "deal";
+        type: "property" | "contact" | "document" | "event" | "request" | "deal";
         id: string;
         title: string;
         subtitle?: string;

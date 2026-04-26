@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -35,17 +36,6 @@ import { LinkEntityDialog } from "@/components/linking/LinkEntityDialog";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { EditContactForm } from "./EditContactForm";
 
-// ── Status colors (consistent with list view — Gestalt: similarity) ──
-const STATUS_COLORS: Record<string, string> = {
-  LEAD: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  CONTACTED: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400",
-  QUALIFIED: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400",
-  ACTIVE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  UNDER_CONTRACT: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  COMPLETED: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400",
-  ON_HOLD: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  INACTIVE: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-};
 
 // ── Reusable detail field (Nielsen #8: Aesthetic and minimalist design) ──
 function DetailField({
@@ -219,15 +209,13 @@ export default function ContactView({ contact }: ContactViewProps) {
               </p>
             </div>
           </div>
-          <Badge
-            className={cn(
-              "ml-2",
-              STATUS_COLORS[contact.status] || STATUS_COLORS.LEAD
-            )}
-            variant="secondary"
-          >
-            {t(`contacts.status.${contact.status}` as Parameters<typeof t>[0])}
-          </Badge>
+          <StatusBadge
+            entityType="contact"
+            status={contact.status}
+            showIcon={false}
+            size="sm"
+            className="ml-2"
+          />
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
@@ -495,14 +483,12 @@ export default function ContactView({ contact }: ContactViewProps) {
               <DetailField
                 label={t("contacts.view.status")}
                 value={
-                  <Badge
-                    className={cn(
-                      STATUS_COLORS[contact.status] || STATUS_COLORS.LEAD
-                    )}
-                    variant="secondary"
-                  >
-                    {t(`contacts.status.${contact.status}` as Parameters<typeof t>[0])}
-                  </Badge>
+                  <StatusBadge
+                    entityType="contact"
+                    status={contact.status}
+                    showIcon={false}
+                    size="sm"
+                  />
                 }
               />
               <DetailField
@@ -511,9 +497,13 @@ export default function ContactView({ contact }: ContactViewProps) {
                   contact.category?.length > 0 ? (
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {(contact.category as string[]).map((cat) => (
-                        <Badge key={cat} variant="outline" className="text-xs">
-                          {t(`contacts.category.${cat}` as Parameters<typeof t>[0])}
-                        </Badge>
+                        <StatusBadge
+                          key={cat}
+                          entityType="contact_category"
+                          status={cat}
+                          showIcon={false}
+                          size="sm"
+                        />
                       ))}
                     </div>
                   ) : null

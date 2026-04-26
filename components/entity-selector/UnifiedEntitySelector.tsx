@@ -125,10 +125,11 @@ export interface UnifiedEntitySelectorProps {
    * Optional type-specific filters
    */
   filters?: {
-    clientStatus?: string;
+    contactStatus?: string;
     propertyStatus?: string;
     documentType?: string;
     eventType?: string;
+    requestStatus?: string;
   };
 
   /**
@@ -180,9 +181,9 @@ const ENTITY_CONFIG: Record<
     colorClass: string;
   }
 > = {
-  client: {
-    icon: Users,
-    label: "Clients",
+  contact: {
+    icon: UserCircle,
+    label: "Contacts",
     colorClass: "text-primary",
   },
   property: {
@@ -200,24 +201,11 @@ const ENTITY_CONFIG: Record<
     label: "Events",
     colorClass: "text-purple-500",
   },
-  mandate: {
-    icon: ScrollText,
-    label: "Mandates",
-    colorClass: "text-orange-500",
-  },
-  // v2.0 Phase 1: Contacts (replaces Clients)
-  contact: {
-    icon: UserCircle,
-    label: "Contacts",
-    colorClass: "text-primary",
-  },
-  // v2.0 Phase 2: Requests (replaces Mandates as demand-side entities)
   request: {
     icon: ClipboardList,
     label: "Requests",
     colorClass: "text-orange-500",
   },
-  // v2.0 Phase 3: Deals
   deal: {
     icon: Handshake,
     label: "Deals",

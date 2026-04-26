@@ -644,7 +644,7 @@ async function purgeOrgData(orgId: string, orgUsers: Array<{ id: string; name: s
   const orgFilteredTables = [
     "exportHistory", "agentHours", "propertyShowing", "marketingSpend",
     "documents", "deal", "crm_Accounts_Tasks",
-    "socialPost", "mandate", "calendarEvent",
+    "socialPost", "calendarEvent",
     "properties", "clients",
   ];
 
@@ -1074,7 +1074,7 @@ async function seedSocialPosts(
       const cId = pick(clientIds);
       content = pick(POST_TEMPLATES.client).replace("{area}", pick(ALL_AREAS).area);
       linkedEntityId = cId;
-      linkedEntityType = "client";
+      linkedEntityType = "contact";
       linkedEntityTitle = clientNames.get(cId) || "Client";
     } else {
       content = pick(POST_TEMPLATES.text).replace("{area}", pick(ALL_AREAS).area);

@@ -127,7 +127,7 @@ interface LinkedEntitiesPanelProps {
   maxHeight?: string;
   showAddButton?: boolean;
   entitySourceId?: string;
-  entitySourceType?: "client" | "property";
+  entitySourceType?: "contact" | "property";
 }
 
 function PropertyCard({

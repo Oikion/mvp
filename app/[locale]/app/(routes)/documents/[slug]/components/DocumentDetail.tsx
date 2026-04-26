@@ -393,7 +393,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
       <LinkEntityDialog
         open={linkClientDialogOpen}
         onOpenChange={setLinkClientDialogOpen}
-        entityType="client"
+        entityType="contact"
         sourceId={document.id}
         sourceType="document"
         alreadyLinkedIds={clients.map((c) => c.id)}

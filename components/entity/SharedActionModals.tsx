@@ -151,7 +151,7 @@ export function SharedActionModals() {
             <EventCreateFormContent
               propertyId={entityData.entityType === "property" ? entityData.entityId : undefined}
               clientId={
-                entityData.entityType === "client" || entityData.entityType === "contact"
+                entityData.entityType === "contact"
                   ? entityData.entityId
                   : undefined
               }

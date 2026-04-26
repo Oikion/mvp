@@ -11,7 +11,7 @@ import { Building2, User, Calendar, FileText, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RelationshipBadgeProps {
-  type: "client" | "property" | "event" | "document";
+  type: "contact" | "property" | "event" | "document";
   count: number;
   preview?: { id: string; name: string }[];
   onClick?: () => void;
@@ -19,14 +19,14 @@ interface RelationshipBadgeProps {
 }
 
 const iconMap = {
-  client: User,
+  contact: User,
   property: Building2,
   event: Calendar,
   document: FileText,
 };
 
 const labelMap = {
-  client: "client",
+  contact: "contact",
   property: "property",
   event: "event",
   document: "document",
@@ -130,7 +130,7 @@ export function RelationshipBadges({
       <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
       {clients && clients.count > 0 && (
         <RelationshipBadge
-          type="client"
+          type="contact"
           count={clients.count}
           preview={clients.preview}
           onClick={onClientClick}

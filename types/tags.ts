@@ -2,7 +2,7 @@
 // Tag Types - Single Source of Truth
 // ============================================
 
-export type EntityType = "property" | "client" | "document" | "event" | "user" | "task" | "deal";
+export type EntityType = "property" | "contact" | "document" | "event" | "user" | "task" | "deal";
 
 export interface Tag {
   id: string;

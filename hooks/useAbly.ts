@@ -569,7 +569,7 @@ export function useAblyNotifications(params: {
 export interface SocialPost {
   id: string;
   slug?: string | null;
-  type: "property" | "client" | "text";
+  type: "property" | "contact" | "text";
   content: string;
   timestamp: string;
   author: {
@@ -581,7 +581,7 @@ export interface SocialPost {
   };
   linkedEntity?: {
     id: string;
-    type: "property" | "client";
+    type: "property" | "contact";
     title: string;
     subtitle?: string;
     image?: string;

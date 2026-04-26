@@ -149,4 +149,4 @@ export function getRoleDisplayName(role: OrgRole | ClerkOrgRole): string {
 /**
  * Entity types that can have assigned agents
  */
-export type AssignableEntityType = "property" | "client" | "document" | "event" | "task";
+export type AssignableEntityType = "property" | "contact" | "document" | "event" | "task";

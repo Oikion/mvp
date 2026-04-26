@@ -253,12 +253,12 @@ export interface TransitionValidationResult {
  * Validate any status transition
  */
 export function validateStatusTransition<T extends string>(
-  entityType: "client" | "property" | "deal" | "deal-stage",
+  entityType: "contact" | "property" | "deal" | "deal-stage",
   from: T,
   to: T
 ): TransitionValidationResult {
   switch (entityType) {
-    case "client":
+    case "contact":
       return {
         valid: isValidClientTransition(from as ClientStatus, to as ClientStatus),
         error: isValidClientTransition(from as ClientStatus, to as ClientStatus)

@@ -322,6 +322,37 @@ module.exports = {
 					'solid-fg': 'hsl(var(--palette-rose-solid-fg))',
 					border: 'hsl(var(--palette-rose-border))'
 				}
+			},
+			/* ============================================
+			   BADGE COLOR TOKENS
+			   Raw var() — no hsl() wrapper — so OKLCH values
+			   stored in CSS variables pass through to the browser natively.
+			   ============================================ */
+			badge: {
+				'success-bg': 'var(--badge-success-bg)',
+				'success-fg': 'var(--badge-success-fg)',
+				'warning-bg': 'var(--badge-warning-bg)',
+				'warning-fg': 'var(--badge-warning-fg)',
+				'info-bg': 'var(--badge-info-bg)',
+				'info-fg': 'var(--badge-info-fg)',
+				'destructive-bg': 'var(--badge-destructive-bg)',
+				'destructive-fg': 'var(--badge-destructive-fg)',
+				'purple-bg': 'var(--badge-purple-bg)',
+				'purple-fg': 'var(--badge-purple-fg)',
+				'gray-bg': 'var(--badge-gray-bg)',
+				'gray-fg': 'var(--badge-gray-fg)',
+				'teal-bg': 'var(--badge-teal-bg)',
+				'teal-fg': 'var(--badge-teal-fg)',
+				'rose-bg': 'var(--badge-rose-bg)',
+				'rose-fg': 'var(--badge-rose-fg)',
+				'amber-bg': 'var(--badge-amber-bg)',
+				'amber-fg': 'var(--badge-amber-fg)',
+				'cyan-bg': 'var(--badge-cyan-bg)',
+				'cyan-fg': 'var(--badge-cyan-fg)',
+				'violet-bg': 'var(--badge-violet-bg)',
+				'violet-fg': 'var(--badge-violet-fg)',
+				'fuchsia-bg': 'var(--badge-fuchsia-bg)',
+				'fuchsia-fg': 'var(--badge-fuchsia-fg)',
 			}
 		},
   		boxShadow: {

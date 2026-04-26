@@ -95,7 +95,7 @@ export const ClientCard = memo(function ClientCard({ data }: ClientCardProps) {
         {/* Actions menu */}
         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
           <EntityCardActions
-            entityType="client"
+            entityType="contact"
             entityId={data.id}
             entityName={data.name}
             viewHref={`/app/crm/contacts/${data.friendlyId}`}

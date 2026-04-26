@@ -66,7 +66,7 @@ const AccountsView = ({ data = [], crmData }: any) => {
       if (rows.length === 1) {
         const row = rows[0];
         openDeleteModal({
-          entityType: "client",
+          entityType: "contact",
           entityId: row.original.id,
           entityName: row.original.name || "Client",
           onDelete: async () => {

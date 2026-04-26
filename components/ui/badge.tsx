@@ -3,21 +3,10 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-/**
- * Badge variants using semantic color tokens from the design system.
- * These colors are defined in tailwind.config.js and support dark mode automatically.
- *
- * Semantic variants:
- * - success: Positive states (completed, active, approved)
- * - warning: Caution states (pending, attention needed)
- * - info: Informational states (new, in progress)
- * - destructive: Negative states (error, declined, deleted)
- *
- * Size variants:
- * - sm: Compact badges for tight spaces
- * - default: Standard badge size
- * - lg: Larger badges for emphasis
- */
+// CONSTRAINT: Do not render badge colors outside this CVA definition.
+// Use <StatusBadge entityType="..." status="..." /> for all entity statuses.
+// Use <Badge variant="..."> only with the typed BadgeVariant union.
+// Never use raw Tailwind color classes (bg-blue-*, text-rose-*) on badge elements.
 const badgeVariants = cva(
   "inline-flex items-center whitespace-nowrap rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
@@ -26,22 +15,33 @@ const badgeVariants = cva(
         default:
           "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-badge-gray-bg text-badge-gray-fg border-badge-gray-fg/20",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+          "border-transparent bg-badge-destructive-bg text-badge-destructive-fg border-badge-destructive-fg/20",
         outline: "text-foreground",
-        // Semantic color variants using design system tokens
         success:
-          "border-transparent bg-success/15 text-success hover:bg-success/25",
+          "border-transparent bg-badge-success-bg text-badge-success-fg border-badge-success-fg/20",
         warning:
-          "border-transparent bg-warning/15 text-warning hover:bg-warning/25",
+          "border-transparent bg-badge-warning-bg text-badge-warning-fg border-badge-warning-fg/20",
         info:
-          "border-transparent bg-info/15 text-info hover:bg-info/25",
-        // Accent variant for special highlighting (using purple)
+          "border-transparent bg-badge-info-bg text-badge-info-fg border-badge-info-fg/20",
         purple:
-          "border-transparent bg-purple-500/15 text-purple-600 hover:bg-purple-500/25 dark:text-purple-400",
+          "border-transparent bg-badge-purple-bg text-badge-purple-fg border-badge-purple-fg/20",
         gray:
-          "border-transparent bg-muted text-muted-foreground hover:bg-muted/80",
+          "border-transparent bg-badge-gray-bg text-badge-gray-fg border-badge-gray-fg/20",
+        // Category classifier variants
+        teal:
+          "border-transparent bg-badge-teal-bg text-badge-teal-fg border-badge-teal-fg/20",
+        rose:
+          "border-transparent bg-badge-rose-bg text-badge-rose-fg border-badge-rose-fg/20",
+        amber:
+          "border-transparent bg-badge-amber-bg text-badge-amber-fg border-badge-amber-fg/20",
+        cyan:
+          "border-transparent bg-badge-cyan-bg text-badge-cyan-fg border-badge-cyan-fg/20",
+        violet:
+          "border-transparent bg-badge-violet-bg text-badge-violet-fg border-badge-violet-fg/20",
+        fuchsia:
+          "border-transparent bg-badge-fuchsia-bg text-badge-fuchsia-fg border-badge-fuchsia-fg/20",
       },
       size: {
         sm: "px-2 py-0.5 text-[10px]",
@@ -65,5 +65,7 @@ function Badge({ className, variant, size, ...props }: Readonly<BadgeProps>) {
     <div className={cn(badgeVariants({ variant, size }), className)} {...props} />
   )
 }
+
+export type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>["variant"]>
 
 export { Badge, badgeVariants }

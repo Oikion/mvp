@@ -5,7 +5,7 @@ import useSWR from "swr";
 /**
  * Entity types that support name fetching
  */
-export type EntityType = "property" | "client" | "event" | "document" | "task" | "import";
+export type EntityType = "property" | "contact" | "event" | "document" | "task" | "import";
 
 /**
  * Entity name response from API
@@ -27,7 +27,7 @@ async function fetchEntityName(
     // Use different endpoints based on entity type
     const endpoints: Record<EntityType, string> = {
       property: `/api/mls/properties/${entityId}/name`,
-      client: `/api/crm/contacts/${entityId}/name`,
+      contact: `/api/crm/contacts/${entityId}/name`,
       event: `/api/calendar/events/${entityId}/name`,
       document: `/api/documents/${entityId}/name`,
       task: `/api/crm/tasks/${entityId}/name`,
@@ -103,8 +103,8 @@ export function useEntityName(
 export function detectEntityType(parentSegment: string): EntityType | null {
   const segmentToType: Record<string, EntityType> = {
     properties: "property",
-    clients: "client",
-    accounts: "client", // Alias
+    clients: "contact",
+    accounts: "contact", // Alias
     events: "event",
     documents: "document",
     tasks: "task",

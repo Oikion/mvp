@@ -11,7 +11,7 @@ import {
 
 export interface ActivityItem {
   id: string;
-  type: "property" | "client" | "document" | "event";
+  type: "property" | "contact" | "document" | "event";
   action: "created" | "updated" | "deleted";
   title: string;
   description?: string;
@@ -116,7 +116,7 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
     const assignedUser = (client as any).assignedAgent;
     activities.push({
       id: `client-${client.id}`,
-      type: "client",
+      type: "contact",
       action: isUpdated ? "updated" : "created",
       title: client.displayName || "Unnamed Contact",
       description: (client as any).description || undefined,

@@ -200,3 +200,39 @@ execute_task(task="Run Prisma migration, validate schema, check migration status
 - When modifying a feature, check if `docs/`, `docs/architecture/`, or any nested CLAUDE.md references the changed behavior. Update them in the same PR.
 - Create an ADR (`docs/architecture/decisions/`) for: data model changes, new third-party integrations, auth/encryption/permission changes.
 - See `docs/MAINTENANCE.md` for the quarterly review checklist.
+
+## Memory System
+
+This project uses **file-based memory only** at `~/.claude/projects/-Users-stapo-Desktop-Oikion-MVP/memory/`. MEMORY.md is the index; topic files hold the detail.
+
+- **Never use ECC graph memory tools** (`create_entities`, `create_relations`, `search_nodes`, `add_observations`, etc.). These conflict with file-based memory and are dormant.
+- When remembering something new, write a file to the memory directory and add a one-line pointer to MEMORY.md.
+- Before acting on a memory that references a specific file or function, verify it still exists — memories can become stale.
+
+## Observability — PostHog & Sentry
+
+PostHog and Sentry MCP tools are available and should be used proactively, not reactively.
+
+**PostHog** — invoke before assuming how users behave:
+- When a feature decision depends on adoption or usage patterns, query PostHog first.
+- When fixing a bug that might affect a funnel, check the relevant event counts.
+- When the user asks "is X being used?" — don't guess, query PostHog.
+
+**Sentry** — invoke before assuming the cause of an error:
+- When a reported bug could have a traceback in Sentry, fetch it before diagnosing.
+- After deploying a fix for a recurring error, verify the Sentry issue is resolving.
+- When the user mentions a crash or exception by description, search Sentry for matching issues.
+
+Both tools require authentication via their respective MCP servers. Prefer real data over assumptions.
+
+## Development Workflow
+
+Follow this sequence for any non-trivial feature or bug fix:
+
+1. **Plan** (for features > 2 files): Use `feature-dev:code-explorer` to understand the existing surface, then `feature-dev:code-architect` to design the implementation. Do not start coding until you have a clear blueprint.
+2. **Implement**: Write the code following the patterns in the relevant domain CLAUDE.md.
+3. **Review**: Run `ecc:code-reviewer` (or domain-specific: `ecc:typescript-reviewer`, `ecc:security-reviewer`) after any significant change.
+4. **UI check**: Run `impeccable:critique` after modifying any `.tsx` component.
+5. **Commit**: Only when the user explicitly asks. Commit to `staging`; only commit to `main` when the user says "commit to main so we prepare for production".
+
+**Skip planning for**: single-file fixes, translation additions, schema-only changes, config tweaks.

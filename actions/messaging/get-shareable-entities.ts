@@ -13,9 +13,9 @@ export interface ShareableProperty {
   image?: string;
 }
 
-export interface ShareableClient {
+export interface ShareableContact {
   id: string;
-  type: "client";
+  type: "contact";
   title: string;
   subtitle?: string;
 }
@@ -39,7 +39,7 @@ export interface ShareableEvent {
 
 export interface ShareableEntities {
   properties: ShareableProperty[];
-  clients: ShareableClient[];
+  clients: ShareableContact[];
   documents: ShareableDocument[];
   events: ShareableEvent[];
 }
@@ -135,7 +135,7 @@ export async function getShareableEntities(): Promise<ShareableEntities> {
       })),
       clients: clients.map((c) => ({
         id: c.id,
-        type: "client" as const,
+        type: "contact" as const,
         title: c.displayName || "Unnamed Contact",
         subtitle: c.status || undefined,
       })),
@@ -164,7 +164,7 @@ export async function getShareableEntities(): Promise<ShareableEntities> {
  * Get a specific entity's details for sharing preview
  */
 export async function getEntityDetails(
-  entityType: "property" | "client" | "document" | "event",
+  entityType: "property" | "contact" | "document" | "event",
   entityId: string
 ): Promise<{
   success: boolean;
@@ -216,7 +216,7 @@ export async function getEntityDetails(
           },
         };
       }
-      case "client": {
+      case "contact": {
         const client = await prisma.contact.findUnique({
           where: { id: entityId },
           select: {
@@ -225,12 +225,12 @@ export async function getEntityDetails(
             status: true,
           },
         });
-        if (!client) return { success: false, error: "Client not found" };
+        if (!client) return { success: false, error: "Contact not found" };
         return {
           success: true,
           entity: {
             id: client.id,
-            type: "client",
+            type: "contact",
             title: client.displayName || "Unnamed Contact",
             subtitle: client.status || undefined,
             metadata: {

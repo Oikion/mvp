@@ -6,7 +6,7 @@ import { decryptRequestForOrg } from "@/lib/model-encryption";
 /**
  * Entity types that can be searched
  */
-type SearchEntityType = "property" | "client" | "contact" | "document" | "event" | "mandate" | "request";
+type SearchEntityType = "property" | "contact" | "document" | "event" | "request";
 
 /**
  * Request body for search
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     const body: SearchRequestBody = await req.json();
 
     const query = body.query?.trim();
-    const types = body.types || ["property", "client", "contact", "document", "event", "request"];
+    const types = body.types || ["property", "contact", "document", "event", "request"];
     const page = Math.max(1, body.page || 1);
     const limit = Math.min(100, Math.max(1, body.limit || 50));
     const includeRelationships = body.includeRelationships !== false;
@@ -131,8 +131,8 @@ export async function POST(req: Request) {
       countPromises.push(Promise.resolve(0));
     }
 
-    // Clients/Contacts search (now unified Contact model)
-    if (types.includes("client")) {
+    // Contacts search
+    if (types.includes("contact")) {
       const clientWhere = {
         OR: [
           { displayName: { contains: query, mode: "insensitive" as const } },
@@ -162,29 +162,9 @@ export async function POST(req: Request) {
       countPromises.push(Promise.resolve(0));
     }
 
-    // Contacts search (legacy — now same as client search, return empty to avoid duplicates)
-    if (types.includes("contact")) {
-      const contactWhere = {
-        OR: [
-          { firstName: { contains: query, mode: "insensitive" as const } },
-          { lastName: { contains: query, mode: "insensitive" as const } },
-          { email: { contains: query, mode: "insensitive" as const } },
-        ],
-      };
-
-      searchPromises.push(
-        db.contact.findMany({
-          where: contactWhere,
-          take: limit,
-          skip,
-          orderBy: { updatedAt: "desc" },
-        }).catch(() => [])
-      );
-      countPromises.push(db.contact.count({ where: contactWhere }).catch(() => 0));
-    } else {
-      searchPromises.push(Promise.resolve([]));
-      countPromises.push(Promise.resolve(0));
-    }
+    // contacts slot kept for response shape compatibility; results are served via the clients slot above
+    searchPromises.push(Promise.resolve([]));
+    countPromises.push(Promise.resolve(0));
 
     // Documents search
     if (types.includes("document")) {
@@ -250,8 +230,7 @@ export async function POST(req: Request) {
     }
 
     // Requests search (encrypted title — fetch, decrypt, filter in-memory)
-    // Accept both "request" (new) and "mandate" (backward compat) as type values
-    if (types.includes("request") || types.includes("mandate")) {
+    if (types.includes("request")) {
       const mandateWhere: any = {};
 
       // We can only filter by plaintext fields at DB level

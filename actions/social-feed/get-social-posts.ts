@@ -151,13 +151,11 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
     const linkedPropertyIds = filteredPosts
       .filter((p) => p.linkedEntityId && p.linkedEntityType === "property")
       .map((p) => p.linkedEntityId!);
-    // Accept both "contact" (new) and "client" (legacy) stored values
     const linkedContactIds = filteredPosts
-      .filter((p) => p.linkedEntityId && (p.linkedEntityType === "contact" || p.linkedEntityType === "client"))
+      .filter((p) => p.linkedEntityId && p.linkedEntityType === "contact")
       .map((p) => p.linkedEntityId!);
-    // Accept both "request" (new) and "mandate" (legacy) stored values
     const linkedRequestIds = filteredPosts
-      .filter((p) => p.linkedEntityId && (p.linkedEntityType === "request" || p.linkedEntityType === "mandate"))
+      .filter((p) => p.linkedEntityId && p.linkedEntityType === "request")
       .map((p) => p.linkedEntityId!);
 
     const friendlyIdMap = new Map<string, string>();
@@ -181,7 +179,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
     return filteredPosts.map((post) => ({
       id: post.id,
       slug: post.slug,
-      type: (post.postType === "client" ? "contact" : post.postType === "mandate" ? "request" : post.postType) as "property" | "contact" | "request" | "document" | "text",
+      type: post.postType as "property" | "contact" | "request" | "document" | "text",
       content: post.content || "",
       timestamp: post.createdAt.toISOString(),
       author: {
@@ -195,7 +193,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
       linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
         id: post.linkedEntityId,
         friendlyId: friendlyIdMap.get(post.linkedEntityId) || post.linkedEntityId,
-        type: (post.linkedEntityType === "client" ? "contact" : post.linkedEntityType === "mandate" ? "request" : post.linkedEntityType) as "property" | "contact" | "request" | "document",
+        type: post.linkedEntityType as "property" | "contact" | "request" | "document",
         title: post.linkedEntityTitle || "Untitled",
         subtitle: post.linkedEntitySubtitle || undefined,
         metadata: post.linkedEntityMetadata as Record<string, any> || undefined,

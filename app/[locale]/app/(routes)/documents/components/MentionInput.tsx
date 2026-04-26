@@ -24,10 +24,10 @@ import { cn } from "@/lib/utils";
 import { useUnifiedEntitySearch, type EntitySearchResult } from "@/hooks/swr/useUnifiedEntitySearch";
 
 // Supported entity types for mentions
-type MentionEntityType = "client" | "property" | "event" | "task" | "document";
+type MentionEntityType = "contact" | "property" | "event" | "task" | "document";
 
 // Ordered list of entity types for rendering
-const ENTITY_TYPE_ORDER: MentionEntityType[] = ["client", "property", "document", "event", "task"];
+const ENTITY_TYPE_ORDER: MentionEntityType[] = ["contact", "property", "document", "event", "task"];
 
 // Entity configuration for consistent styling
 const ENTITY_CONFIG: Record<MentionEntityType, {
@@ -35,10 +35,10 @@ const ENTITY_CONFIG: Record<MentionEntityType, {
   colorClass: string;
   label: string;
 }> = {
-  client: {
+  contact: {
     icon: Users,
     colorClass: "text-primary",
-    label: "Clients",
+    label: "Contacts",
   },
   property: {
     icon: Home,
@@ -65,7 +65,7 @@ const ENTITY_CONFIG: Record<MentionEntityType, {
 export interface MentionOption {
   id: string;
   name: string;
-  type: "client" | "property" | "event" | "task";
+  type: "contact" | "property" | "event" | "task";
 }
 
 interface MentionInputProps {
@@ -127,7 +127,7 @@ export function MentionInput({
     isLoading: isSearchLoading,
     isSearching,
   } = useUnifiedEntitySearch(searchQuery, {
-    types: ["client", "property", "document", "event"],
+    types: ["contact", "property", "document", "event"],
     limit: currentLimit,
     enabled: isOpen,
     debounceMs: 150,

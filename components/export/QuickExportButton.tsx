@@ -29,7 +29,7 @@ import { toast } from "sonner";
 // ============================================
 
 export type QuickExportType = "xe-xml" | "spitogatos-csv" | "pdf-flyer" | "copy-link";
-export type EntityType = "property" | "client";
+export type EntityType = "property" | "contact";
 
 export interface QuickExportButtonProps {
   /** Type of entity to export */
@@ -69,7 +69,7 @@ const EXPORT_ICONS: Record<QuickExportType, React.ReactNode> = {
 
 const DEFAULT_OPTIONS: Record<EntityType, QuickExportType[]> = {
   property: ["xe-xml", "spitogatos-csv", "pdf-flyer", "copy-link"],
-  client: ["pdf-flyer", "copy-link"],
+  contact: ["pdf-flyer", "copy-link"],
 };
 
 // ============================================
@@ -117,8 +117,8 @@ export function QuickExportButton({
     switch (entityType) {
       case "property":
         return `${baseUrl}/${locale}/property/${entityId}`;
-      case "client":
-        return `${baseUrl}/${locale}/client/${entityId}`;
+      case "contact":
+        return `${baseUrl}/${locale}/contact/${entityId}`;
       default:
         return `${baseUrl}/${locale}/${entityType}/${entityId}`;
     }

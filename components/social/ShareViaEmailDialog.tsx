@@ -17,7 +17,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { Mail, Loader2, Building2, User, FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-type ShareEntityType = "property" | "client" | "post";
+type ShareEntityType = "property" | "contact" | "post";
 
 interface ShareViaEmailDialogProps {
   readonly open: boolean;
@@ -43,7 +43,7 @@ export function ShareViaEmailDialog({
 
   const entityIcons = {
     property: Building2,
-    client: User,
+    contact: User,
     post: FileText,
   };
 

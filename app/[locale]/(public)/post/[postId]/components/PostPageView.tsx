@@ -33,7 +33,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
     switch (type) {
       case "property":
         return <Building2 className="h-4 w-4" />;
-      case "client":
+      case "contact":
         return <User className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
@@ -44,7 +44,7 @@ export function PostPageView({ post, locale }: PostPageViewProps) {
     switch (type) {
       case "property":
         return "bg-primary/10 text-primary border-primary/20";
-      case "client":
+      case "contact":
         return "bg-success/10 text-success border-success/20";
       default:
         return "bg-gray-500/10 text-muted-foreground border-gray-500/20";

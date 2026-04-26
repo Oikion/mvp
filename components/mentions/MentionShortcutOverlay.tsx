@@ -113,13 +113,13 @@ export function MentionShortcutOverlay() {
 
   // Map MentionCategory to UnifiedEntityType
   const categoryToEntityType: Record<MentionCategory, UnifiedEntityType> = {
-    clients: "client",
+    clients: "contact",
     properties: "property",
     documents: "document",
   };
 
   // Get the entity type for current category
-  const currentEntityType = activeCategory ? categoryToEntityType[activeCategory] : "client";
+  const currentEntityType = activeCategory ? categoryToEntityType[activeCategory] : "contact";
 
   // Use unified entity search - fetches from the optimized API with caching
   const {

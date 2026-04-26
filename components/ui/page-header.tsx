@@ -270,7 +270,7 @@ export function PageActions({
  * <DetailHeader
  *   title={client.name}
  *   subtitle={client.email}
- *   status={<StatusBadge entityType="client" status={client.status} />}
+ *   status={<StatusBadge entityType="contact" status={client.status} />}
  *   actions={
  *     <>
  *       <Button variant="outline">Edit</Button>

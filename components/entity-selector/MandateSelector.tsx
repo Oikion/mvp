@@ -35,7 +35,7 @@ export function MandateSelector({
   return (
     <UnifiedEntitySelector
       mode="multi"
-      entityTypes={["mandate"]}
+      entityTypes={["request"]}
       value={value}
       onChange={(val) => onChange(val as string[])}
       placeholder={placeholder}

@@ -778,12 +778,12 @@ async function seedSocialPosts(
       linkedEntityType = "property";
       linkedEntityTitle = property.property_name;
     } else if (typeRoll < 0.60 && clients.length > 0) {
-      postType = "client";
+      postType = "contact";
       const client = pick(clients);
       const template = pick(POST_TEMPLATES.client);
       content = template.replace("{area}", pick(ALL_AREAS).area);
       linkedEntityId = client.id;
-      linkedEntityType = "client";
+      linkedEntityType = "contact";
       linkedEntityTitle = client.client_name;
     } else {
       postType = "text";

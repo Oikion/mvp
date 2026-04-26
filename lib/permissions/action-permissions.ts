@@ -510,7 +510,7 @@ export const ALL_ACTIONS: ActionPermission[] = Object.values(ACTION_MODULES).fla
  */
 export interface ActionContext {
   /** The type of entity being acted upon */
-  entityType?: "property" | "client" | "contact" | "request" | "document" | "event" | "task" | "deal" | "showing" | "post";
+  entityType?: "property" | "contact" | "request" | "document" | "event" | "task" | "deal" | "showing" | "post";
   /** The ID of the entity */
   entityId?: string;
   /** The user ID of the entity owner (assigned_to, created_by, etc.) */

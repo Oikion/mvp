@@ -48,7 +48,7 @@ export interface FilterConfig {
  */
 export interface EntityPageViewProps<TAgency, TShared> {
   /** Type of entity for translations */
-  entityType: "property" | "client";
+  entityType: "property" | "contact";
   /** Agency items data */
   agencyItems: TAgency[];
   /** Shared items data */

@@ -4,7 +4,7 @@ import { getCurrentOrgId } from "@/lib/get-current-user";
 export interface MentionOption {
   id: string;
   name: string;
-  type: "client" | "property" | "event" | "task";
+  type: "contact" | "property" | "event" | "task";
 }
 
 export async function getMentionOptions(): Promise<{
@@ -72,7 +72,7 @@ export async function getMentionOptions(): Promise<{
     clients: clients.map((c) => ({
       id: c.id,
       name: c.displayName,
-      type: "client" as const,
+      type: "contact" as const,
     })),
     properties: properties.map((p) => ({
       id: p.id,

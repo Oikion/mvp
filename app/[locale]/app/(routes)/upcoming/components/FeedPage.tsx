@@ -33,7 +33,7 @@ export interface UpcomingItem {
   priority?: "HIGH" | "MEDIUM" | "LOW";
   status?: string;
   linkedEntity?: {
-    type: "property" | "client";
+    type: "property" | "contact";
     id: string;
     friendlyId: string;
     name: string;

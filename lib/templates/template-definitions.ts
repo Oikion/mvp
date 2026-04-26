@@ -6,7 +6,7 @@ export interface TemplatePlaceholder {
   labelEl: string;
   type: "text" | "date" | "number" | "currency" | "boolean" | "select";
   required: boolean;
-  autoFillFrom?: "property" | "client" | "agent" | "organization";
+  autoFillFrom?: "property" | "contact" | "agent" | "organization";
   autoFillField?: string;
   options?: { value: string; labelEn: string; labelEl: string }[];
   defaultValue?: string;
@@ -41,7 +41,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Ονοματεπώνυμο Ιδιοκτήτη",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "client_name",
       },
       {
@@ -50,7 +50,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Αριθμός Ταυτότητας/Διαβατηρίου",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "id_doc",
       },
       {
@@ -59,7 +59,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "ΑΦΜ Ιδιοκτήτη",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "afm",
       },
       {
@@ -68,7 +68,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Διεύθυνση Ιδιοκτήτη",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "billing_street",
       },
       {
@@ -77,7 +77,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Τηλέφωνο Ιδιοκτήτη",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "primary_phone",
       },
       {
@@ -86,7 +86,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Email Ιδιοκτήτη",
         type: "text",
         required: false,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "primary_email",
       },
       // Property Details
@@ -263,7 +263,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Ονοματεπώνυμο Εκμισθωτή",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "client_name",
       },
       {
@@ -272,7 +272,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Αριθμός Ταυτότητας Εκμισθωτή",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "id_doc",
       },
       {
@@ -281,7 +281,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "ΑΦΜ Εκμισθωτή",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "afm",
       },
       {
@@ -290,7 +290,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Διεύθυνση Εκμισθωτή",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "billing_street",
       },
       {
@@ -299,7 +299,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Τηλέφωνο Εκμισθωτή",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "primary_phone",
       },
       // Tenant Details
@@ -492,7 +492,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Ονοματεπώνυμο Εκμισθωτή/Πωλητή",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "client_name",
       },
       {
@@ -501,7 +501,7 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
         labelEl: "Τηλέφωνο Εκμισθωτή/Πωλητή",
         type: "text",
         required: true,
-        autoFillFrom: "client",
+        autoFillFrom: "contact",
         autoFillField: "primary_phone",
       },
       {

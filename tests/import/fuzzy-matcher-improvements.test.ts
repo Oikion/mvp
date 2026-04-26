@@ -3,9 +3,9 @@ import { findBestMatch, type FieldDefinitionWithAliases } from "@/lib/import/fuz
 
 // Sample field definitions for testing - include entity property
 const SAMPLE_FIELDS: FieldDefinitionWithAliases[] = [
-  { key: "client_name", entity: "client", required: true, group: "contact", aliases: ["Όνομα", "Ονοματεπώνυμο", "name", "full_name"] },
-  { key: "primary_email", entity: "client", required: false, group: "contact", aliases: ["Email", "Ηλ. Ταχυδρομείο", "email_address"] },
-  { key: "primary_phone", entity: "client", required: false, group: "contact", aliases: ["Τηλέφωνο", "Κινητό", "phone", "mobile"] },
+  { key: "client_name", entity: "contact", required: true, group: "contact", aliases: ["Όνομα", "Ονοματεπώνυμο", "name", "full_name"] },
+  { key: "primary_email", entity: "contact", required: false, group: "contact", aliases: ["Email", "Ηλ. Ταχυδρομείο", "email_address"] },
+  { key: "primary_phone", entity: "contact", required: false, group: "contact", aliases: ["Τηλέφωνο", "Κινητό", "phone", "mobile"] },
   { key: "property_name", entity: "property", required: true, group: "basic", aliases: ["Τίτλος Ακινήτου", "listing_title", "title"] },
   { key: "primary_email", entity: "property", required: false, group: "contact", aliases: ["property_email", "listing_email"] },
   { key: "price", entity: "property", required: false, group: "financial", aliases: ["Τιμή", "asking_price", "cost"] },

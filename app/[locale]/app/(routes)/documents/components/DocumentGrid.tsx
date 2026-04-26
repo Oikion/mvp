@@ -29,7 +29,7 @@ interface Document {
 interface MentionOption {
   id: string;
   name: string;
-  type: "client" | "property" | "event" | "task";
+  type: "contact" | "property" | "event" | "task";
 }
 
 interface DocumentGridProps {

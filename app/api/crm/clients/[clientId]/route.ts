@@ -112,7 +112,7 @@ export async function PUT(
     // Permission check: Users need client:update permission (with ownership check)
     const updateCheck = await canPerformActionOnEntity(
       "client:update",
-      "client",
+      "contact",
       existingClient.id,
       existingClient.assignedAgentId
     );

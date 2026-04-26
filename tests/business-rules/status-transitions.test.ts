@@ -259,13 +259,13 @@ describe("Status Transition Rules", () => {
 
   describe("Generic validateStatusTransition", () => {
     it("should validate client transitions correctly", () => {
-      const result = validateStatusTransition("client", "LEAD", "ACTIVE");
+      const result = validateStatusTransition("contact", "LEAD", "ACTIVE");
       expect(result.valid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
     it("should return error for invalid client transition", () => {
-      const result = validateStatusTransition("client", "LEAD", "CONVERTED");
+      const result = validateStatusTransition("contact", "LEAD", "CONVERTED");
       expect(result.valid).toBe(false);
       expect(result.error).toBeDefined();
     });
@@ -281,7 +281,7 @@ describe("Status Transition Rules", () => {
     });
 
     it("should return valid next statuses", () => {
-      const result = validateStatusTransition("client", "LEAD", "CONVERTED");
+      const result = validateStatusTransition("contact", "LEAD", "CONVERTED");
       expect(result.validNextStatuses).toContain("ACTIVE");
       expect(result.validNextStatuses).toContain("LOST");
     });

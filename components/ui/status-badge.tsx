@@ -22,7 +22,7 @@ import {
  * <StatusBadge entityType="property" status="ACTIVE" />
  *
  * // With custom label override
- * <StatusBadge entityType="client" status="LEAD" label="New Lead" />
+ * <StatusBadge entityType="contact" status="LEAD" label="New Lead" />
  *
  * // Without icon
  * <StatusBadge entityType="job" status="running" showIcon={false} />

@@ -43,9 +43,9 @@ interface Entity {
 interface LinkEntityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entityType: "property" | "client" | "contact" | "document" | "request";
+  entityType: "property" | "contact" | "document" | "request";
   sourceId: string;
-  sourceType: "client" | "contact" | "property" | "document" | "request";
+  sourceType: "contact" | "property" | "document" | "request";
   alreadyLinkedIds?: string[];
   onLink: (entityIds: string[]) => Promise<void>;
   onCreate?: () => void;
@@ -75,11 +75,10 @@ export function LinkEntityDialog({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const iconMap = { property: Building2, client: User, contact: UserCircle, document: FileText, request: ClipboardList };
-  const Icon = iconMap[entityType];
+  const iconMap = { property: Building2, contact: UserCircle, document: FileText, request: ClipboardList };
+  const Icon = iconMap[entityType as keyof typeof iconMap];
   const defaultTitleMap: Record<string, string> = {
     property: t("dialogs.linkProperties"),
-    client: t("dialogs.linkClients"),
     contact: t("dialogs.linkContacts"),
     document: t("dialogs.linkDocuments"),
     request: t("dialogs.linkRequests"),
@@ -87,7 +86,6 @@ export function LinkEntityDialog({
   const defaultTitle = defaultTitleMap[entityType];
   const defaultDescriptionMap: Record<string, string> = {
     property: t("placeholders.searchProperties"),
-    client: t("placeholders.searchClients"),
     contact: t("placeholders.searchContacts"),
     document: t("placeholders.searchDocuments"),
     request: t("placeholders.searchRequests"),

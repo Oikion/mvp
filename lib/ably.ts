@@ -207,7 +207,7 @@ export interface AblySocialPostEvent {
   post: {
     id: string;
     slug?: string;
-    type: "property" | "client" | "text";
+    type: "property" | "contact" | "text";
     content: string;
     timestamp: string;
     author: {
@@ -219,7 +219,7 @@ export interface AblySocialPostEvent {
     };
     linkedEntity?: {
       id: string;
-      type: "property" | "client";
+      type: "property" | "contact";
       title: string;
       subtitle?: string;
       image?: string;

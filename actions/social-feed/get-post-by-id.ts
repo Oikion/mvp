@@ -145,7 +145,7 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
           select: { friendlyId: true },
         });
         linkedEntityFriendlyId = prop?.friendlyId ?? undefined;
-      } else if (post.linkedEntityType === "contact" || post.linkedEntityType === "client") {
+      } else if (post.linkedEntityType === "contact") {
         const client = await prismadb.contact.findUnique({
           where: { id: post.linkedEntityId },
           select: { friendlyId: true },
@@ -161,7 +161,7 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
   const postData: PostWithAuthor = {
     id: post.id,
     slug: post.slug,
-    type: (post.postType === "client" ? "contact" : post.postType === "mandate" ? "request" : post.postType) as "property" | "contact" | "request" | "document" | "text",
+    type: post.postType as "property" | "contact" | "request" | "document" | "text",
     content: post.content,
     timestamp: post.createdAt.toISOString(),
     author: {
@@ -174,7 +174,7 @@ export async function getPostById(idOrSlug: string): Promise<GetPostResult> {
     linkedEntity: post.linkedEntityId && post.linkedEntityType ? {
       id: post.linkedEntityId,
       friendlyId: linkedEntityFriendlyId || post.linkedEntityId,
-      type: (post.linkedEntityType === "client" ? "contact" : post.linkedEntityType === "mandate" ? "request" : post.linkedEntityType) as "property" | "contact" | "request" | "document",
+      type: post.linkedEntityType as "property" | "contact" | "request" | "document",
       title: post.linkedEntityTitle || "",
       subtitle: post.linkedEntitySubtitle || undefined,
       metadata: post.linkedEntityMetadata as Record<string, any> | undefined,

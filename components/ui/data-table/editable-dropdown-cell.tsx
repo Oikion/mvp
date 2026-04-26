@@ -7,14 +7,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface DropdownOption {
   value: string;
   label: string;
-  variant?: string;
+  variant?: BadgeVariant;
   icon?: LucideIcon;
 }
 
@@ -38,7 +38,7 @@ export const EditableDropdownCell = ({
   const currentValue = value || "";
   const currentOption = options.find((o) => o.value === currentValue);
   const displayLabel = currentOption?.label || placeholder;
-  const displayVariant = currentOption?.variant || "secondary";
+  const displayVariant: BadgeVariant = currentOption?.variant ?? "gray";
   const DisplayIcon = currentOption?.icon;
 
   const handleValueChange = async (newValue: string) => {
@@ -57,7 +57,7 @@ export const EditableDropdownCell = ({
       onClick={(e) => e.stopPropagation()}
     >
       <Badge
-        variant={displayVariant as any}
+        variant={displayVariant}
         className="hover:opacity-80 transition-opacity"
       >
         {DisplayIcon && <DisplayIcon className="mr-1 h-3 w-3" />}
@@ -91,7 +91,7 @@ export const EditableDropdownCell = ({
             >
               {opt.variant && !Icon && (
                 <Badge
-                  variant={opt.variant as any}
+                  variant={opt.variant}
                   className="mr-2 w-2 h-2 rounded-full p-0"
                 />
               )}

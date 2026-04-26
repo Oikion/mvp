@@ -699,7 +699,7 @@ export default function PropertyView({
         <LinkEntityDialog
           open={linkClientDialogOpen}
           onOpenChange={setLinkClientDialogOpen}
-          entityType="client"
+          entityType="contact"
           sourceId={data.id}
           sourceType="property"
           alreadyLinkedIds={clients.map((c) => c.id)}
@@ -714,8 +714,8 @@ export default function PropertyView({
             setAutoLinkNewClient(true);
             setCreateClientOpen(true);
           }}
-          title="Link Clients to Property"
-          description="Select clients who are interested in or viewing this property."
+          title="Link Contacts to Property"
+          description="Select contacts who are interested in or viewing this property."
         />
       )}
 

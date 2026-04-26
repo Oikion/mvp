@@ -32,7 +32,7 @@ export interface QuickAction {
 /**
  * Entity types supported by the unified row actions
  */
-export type EntityType = "property" | "client" | "contact" | "event" | "task" | "employee" | "user" | "mandate" | "request" | "document";
+export type EntityType = "property" | "contact" | "event" | "task" | "employee" | "user" | "request" | "document";
 
 /**
  * Props for the unified DataTableRowActions component
@@ -118,15 +118,12 @@ export function DataTableRowActions<TData extends { id?: string }>({
     switch (entityType) {
       case "property":
         return "/app/mls";
-      case "client":
-        return "/app/crm";
       case "contact":
         return "/app/crm/contacts";
       case "event":
         return "/app/calendar/events";
       case "task":
         return "/app/crm/tasks/viewtask";
-      case "mandate":
       case "request":
         return "/app/requests";
       case "employee":
@@ -167,12 +164,8 @@ export function DataTableRowActions<TData extends { id?: string }>({
     if (typeof onDelete !== "function") return;
     
     // Map EntityType to ActionEntityType (only some types support modals)
-    const actionEntityType: ActionEntityType = 
-      entityType === "property" ? "property" :
-      entityType === "client" ? "client" :
-      entityType === "contact" ? "contact" :
-      "client"; // Default fallback
-    
+    const actionEntityType: ActionEntityType = entityType === "property" ? "property" : "contact";
+
     openDeleteModal({
       entityType: actionEntityType,
       entityId,
@@ -184,12 +177,8 @@ export function DataTableRowActions<TData extends { id?: string }>({
 
   // Handle schedule - open shared modal
   const handleScheduleClick = () => {
-    const actionEntityType: ActionEntityType = 
-      entityType === "property" ? "property" :
-      entityType === "client" ? "client" :
-      entityType === "contact" ? "contact" :
-      "client";
-    
+    const actionEntityType: ActionEntityType = entityType === "property" ? "property" : "contact";
+
     openScheduleModal({
       entityType: actionEntityType,
       entityId,
@@ -200,11 +189,8 @@ export function DataTableRowActions<TData extends { id?: string }>({
 
   // Handle share - open shared modal
   const handleShareClick = () => {
-    const actionEntityType: ActionEntityType = 
-      entityType === "property" ? "property" :
-      entityType === "client" ? "client" :
-      "client";
-    
+    const actionEntityType: ActionEntityType = entityType === "property" ? "property" : "contact";
+
     openShareModal({
       entityType: actionEntityType,
       entityId,
@@ -217,8 +203,8 @@ export function DataTableRowActions<TData extends { id?: string }>({
   const showView = onView !== false;
   const showEdit = onEdit !== false && typeof onEdit !== "undefined";
   const showDelete = typeof onDelete === "function";
-  const showScheduleAction = onSchedule && (entityType === "property" || entityType === "client" || entityType === "contact");
-  const showShareAction = onShare && (entityType === "property" || entityType === "client");
+  const showScheduleAction = onSchedule && (entityType === "property" || entityType === "contact");
+  const showShareAction = onShare && entityType === "property";
 
   // Check if we need separators
   const hasStandardActions = showView || showEdit;
