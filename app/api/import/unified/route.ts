@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { requireAction, handleGuardError } from "@/lib/permissions/action-guards";
 import { invalidateCache } from "@/lib/cache-invalidate";
-import { executeBatchImport } from "@/lib/import/unified-engine";
+import { executeBatchImport, type ImportEngineOptions } from "@/lib/import/unified-engine";
 import { recordImport } from "@/lib/import/history";
 
 const MAX_ROWS = 5000;
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const organizationId = await getCurrentOrgId();
 
     const body = await req.json();
-    const { rows, assignedTo, importHistoryId, sourceFilename } = body;
+    const { rows, assignedTo, importHistoryId, sourceFilename, options } = body;
 
     if (!Array.isArray(rows) || rows.length === 0) {
       return NextResponse.json(
@@ -57,11 +57,20 @@ export async function POST(req: Request) {
     }
     const validatedRows = parsed.data as Parameters<typeof executeBatchImport>[0];
 
+    const engineOptions: ImportEngineOptions = {
+      autoCreateRequests: typeof options?.autoCreateRequests === "boolean"
+        ? options.autoCreateRequests
+        : true,
+      importBatchId: importHistoryId ?? undefined,
+      importFilename: sourceFilename ?? undefined,
+    };
+
     const batchResult = await executeBatchImport(
       validatedRows,
       organizationId,
       user.id,
       assignedTo ?? null,
+      engineOptions,
     );
 
     // Record or update import history

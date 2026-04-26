@@ -1,0 +1,6 @@
+title,transaction_type,property_type,status,budget_min,budget_max,size_min_sqm,size_max_sqm,bedrooms_min,bedrooms_max,bathrooms_min,floor_min,floor_max,elevator,parking,areas_of_interest,condition,energy_cert_min,year_built_min,year_built_max,notes,timeline
+Αναζήτηση Γλυφάδα,SALE,APARTMENT,ACTIVE,240000,310000,80,100,2,3,,,,true,true,Γλυφάδα,,,,,"Θέλω οπωσδήποτε ασανσέρ και parking.",IMMEDIATE
+Αναζήτηση Κηφισιά,SALE,HOUSE,ACTIVE,480000,620000,180,220,3,,,,,,,Κηφισιά,,,,,"Μεγάλος κήπος επιθυμητός.",ONE_THREE_MONTHS
+Αναζήτηση Θεσσαλονίκη,SALE,APARTMENT,ACTIVE,150000,200000,65,85,2,,,,,,,Θεσσαλονίκη,,,,,"Κοντά σε ΑΠΘ ή Αριστοτέλους.",THREE_SIX_MONTHS
+Αναζήτηση Ενοικίαση Κολωνάκι,RENTAL,APARTMENT,ACTIVE,900,1200,60,80,,,,,, true,,Κολωνάκι,,,,,"Επαγγελματίας. Χρειάζεται ασανσέρ.",IMMEDIATE
+Αναζήτηση Γλυφάδα-Αθήνα,SALE,APARTMENT,ACTIVE,270000,330000,85,110,2,,,,, true,,"Γλυφάδα,Αθήνα",,,,,"Ευέλικτος ως προς περιοχή.",ONE_THREE_MONTHS

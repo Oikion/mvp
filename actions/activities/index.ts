@@ -3,7 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { requireAction, requireActionOnEntity } from "@/lib/permissions/action-guards";
-import { encryptActivityForOrg, decryptActivityForOrg } from "@/lib/model-encryption";
+import { encryptActivityForOrg, decryptActivityForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { createActivitySchema, updateActivitySchema } from "@/lib/validations/activities";
 import { serializePrisma } from "@/lib/prisma-serialize";
 import { actionSuccess, actionError, actionNotFound, actionValidationError, type ActionResponse } from "@/lib/action-response";
@@ -31,6 +31,7 @@ export async function createActivity(input: unknown): Promise<ActionResponse<unk
       : clientInput
   );
   if (!parsed.success) {
+    console.error("[ACTIVITY_CREATE_VALIDATION]", JSON.stringify(parsed.error.flatten()));
     return actionValidationError("Validation failed", parsed.error.flatten().fieldErrors);
   }
 
@@ -200,7 +201,7 @@ export async function listActivities(
           select: { id: true, document_name: true },
         },
         RelatedContact: {
-          select: { id: true, firstName: true, lastName: true },
+          select: { id: true, displayName: true, firstName: true, lastName: true },
         },
         RelatedProperty: {
           select: { id: true, property_name: true, friendlyId: true },
@@ -213,7 +214,18 @@ export async function listActivities(
       activities.map((a) => decryptActivityForOrg(a, organizationId))
     );
 
-    return actionSuccess(serializePrisma(decrypted));
+    // Decrypt RelatedContact firstName/lastName — these are contact PII fields
+    // encrypted with the org DEK. decryptContactForOrg uses isEncrypted() guards
+    // so it is safe to call even if values are already plaintext.
+    const decryptedWithContacts = await Promise.all(
+      decrypted.map(async (a) => {
+        if (!a.RelatedContact) return a;
+        const decryptedContact = await decryptContactForOrg(a.RelatedContact, organizationId);
+        return { ...a, RelatedContact: decryptedContact };
+      })
+    );
+
+    return actionSuccess(serializePrisma(decryptedWithContacts));
   } catch (error) {
     console.error("[ACTIVITY_LIST]", error);
     return actionError("Failed to list activities", error as Error);

@@ -9,6 +9,7 @@ import { generateFriendlyId } from "@/lib/friendly-id";
 import { createRequestSchema, type CreateRequestInput } from "@/lib/validations/requests";
 import { actionSuccess, actionError, actionValidationError, type ActionResponse } from "@/lib/action-response";
 import { revalidatePath } from "next/cache";
+import { logEntityCreated, logEntityLinkedSymmetric } from "@/lib/activity-logger";
 
 /**
  * Creates a new request in the current organization.
@@ -156,6 +157,7 @@ export async function createRequest(
     });
 
     // If a contactId was provided, verify it belongs to this org then link
+    let linkedContactId: string | null = null;
     if (input.contactId) {
       const contact = await prismadb.contact.findFirst({
         where: { id: input.contactId, organizationId },
@@ -168,6 +170,33 @@ export async function createRequest(
             requestId: request.id,
             contactId: contact.id,
           },
+        });
+        linkedContactId = contact.id;
+      }
+    }
+
+    // Activity log — fire-and-forget. Skip when draft.
+    if (!request.draftStatus) {
+      void logEntityCreated({
+        organizationId,
+        parentType: "REQUEST",
+        parentId: request.id,
+        createdByUserId: user.id,
+        source: "manual",
+      });
+
+      if (linkedContactId) {
+        void logEntityLinkedSymmetric({
+          organizationId,
+          aType: "REQUEST",
+          aId: request.id,
+          aLabel: "Request",
+          aUrl: `/app/requests/${request.id}`,
+          bType: "CONTACT",
+          bId: linkedContactId,
+          bLabel: "Contact",
+          bUrl: `/app/crm/contacts/${linkedContactId}`,
+          createdByUserId: user.id,
         });
       }
     }

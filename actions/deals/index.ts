@@ -23,10 +23,61 @@ import {
 import {
   isValidDealStageTransition,
   getDealStageTransitionError,
+  isValidDealStageManualSet,
 } from "@/lib/validations/status-transitions";
-import type { Deal, DealParty, DealStageLog } from "@prisma/client";
+import type { Deal, DealParty, DealStage, DealStageLog } from "@prisma/client";
 import { serializeDealForClient } from "@/lib/deals/serialize";
 import { createChangeLogEntry } from "@/lib/entity-change-log";
+import { decryptContactForOrg } from "@/lib/model-encryption";
+import {
+  logEntityCreated,
+  logEntityUpdated,
+  logEntityLinked,
+  logEntityLinkedSymmetric,
+  logEntityUnlinkedSymmetric,
+  logStageChanged,
+  type FieldChange,
+} from "@/lib/activity-logger";
+
+// Safelist of non-encrypted Deal fields tracked by activity logging.
+// Keep in sync with the Activity Log spec.
+const DEAL_TRACKED_FIELDS = [
+  "stage",
+  "dealValue",
+  "expectedCloseDate",
+  "assignedToUserId",
+  "propertyId",
+  "requestId",
+] as const;
+
+type DealTrackedField = (typeof DEAL_TRACKED_FIELDS)[number];
+
+function diffDealFields(
+  before: Record<string, unknown>,
+  after: Record<string, unknown>
+): FieldChange[] {
+  const changes: FieldChange[] = [];
+  for (const field of DEAL_TRACKED_FIELDS) {
+    const oldVal = before[field as DealTrackedField];
+    const newVal = after[field as DealTrackedField];
+    const oldStr =
+      oldVal === null || oldVal === undefined
+        ? null
+        : oldVal instanceof Date
+          ? oldVal.toISOString()
+          : String(oldVal);
+    const newStr =
+      newVal === null || newVal === undefined
+        ? null
+        : newVal instanceof Date
+          ? newVal.toISOString()
+          : String(newVal);
+    if (oldStr !== newStr) {
+      changes.push({ field, from: oldStr, to: newStr });
+    }
+  }
+  return changes;
+}
 
 // ============================================
 // Deal CRUD
@@ -58,17 +109,19 @@ export async function createDeal(
   // SECURITY: Validate property belongs to the org
   const property = await prismadb.properties.findFirst({
     where: { id: data.propertyId, organizationId },
-    select: { id: true, property_name: true },
+    select: { id: true, property_name: true, friendlyId: true },
   });
   if (!property) return actionNotFound("Property");
 
   // Validate optional references
+  let requestRef: { id: string; friendlyId: string | null } | null = null;
   if (data.requestId) {
     const request = await prismadb.request.findFirst({
       where: { id: data.requestId, organizationId },
-      select: { id: true },
+      select: { id: true, friendlyId: true },
     });
     if (!request) return actionNotFound("Request");
+    requestRef = request;
   }
 
   if (data.notaryContactId) {
@@ -143,6 +196,42 @@ export async function createDeal(
       return created;
     });
 
+    // Activity logging — fire-and-forget AFTER the transaction commits.
+    // Never await; failures must not affect the create response.
+    void logEntityCreated({
+      organizationId,
+      parentType: "DEAL",
+      parentId: deal.id,
+      createdByUserId: currentUser?.id,
+      source: "manual",
+    });
+
+    if (deal.propertyId) {
+      void logEntityLinked({
+        organizationId,
+        fromType: "DEAL",
+        fromId: deal.id,
+        toType: "PROPERTY",
+        toId: deal.propertyId,
+        toLabel: property.property_name ?? "Property",
+        toUrl: `/app/mls/properties/${property.friendlyId ?? property.id}`,
+        createdByUserId: currentUser?.id,
+      });
+    }
+
+    if (deal.requestId && requestRef) {
+      void logEntityLinked({
+        organizationId,
+        fromType: "DEAL",
+        fromId: deal.id,
+        toType: "REQUEST",
+        toId: deal.requestId,
+        toLabel: "Request",
+        toUrl: `/app/requests/${requestRef.friendlyId ?? requestRef.id}`,
+        createdByUserId: currentUser?.id,
+      });
+    }
+
     revalidatePath("/deals");
     return actionSuccess(serializeDealForClient(deal));
   } catch (error) {
@@ -161,6 +250,7 @@ export async function updateDeal(
   if (guard) return guard;
 
   const organizationId = await getCurrentOrgId();
+  const currentUser = await getCurrentUser();
 
   const validation = updateDealSchema.safeParse(input);
   if (!validation.success) {
@@ -172,10 +262,21 @@ export async function updateDeal(
 
   const { id, ...data } = validation.data;
 
-  // TOCTOU-safe: always include organizationId in where
+  // TOCTOU-safe: always include organizationId in where.
+  // Select the safelist of tracked fields so we can diff post-update.
+  // Note: of the spec safelist [stage, dealValue, expectedCloseDate,
+  // assignedToUserId, propertyId, requestId] only stage / propertyId /
+  // requestId exist on the Deal model today; the others are reserved for
+  // future schema extensions and will simply produce no diff entries.
   const existing = await prismadb.deal.findFirst({
     where: { id, organizationId },
-    select: { id: true, listingAgentId: true },
+    select: {
+      id: true,
+      listingAgentId: true,
+      stage: true,
+      propertyId: true,
+      requestId: true,
+    },
   });
   if (!existing) return actionNotFound("Deal");
 
@@ -212,6 +313,22 @@ export async function updateDeal(
         ...(data.closedAt !== undefined && { closedAt: data.closedAt }),
       },
     });
+
+    // Activity logging — diff the safelist and emit UPDATED if any changed.
+    // Fire-and-forget; never block the update response.
+    const changes = diffDealFields(
+      existing as Record<string, unknown>,
+      deal as Record<string, unknown>
+    );
+    if (changes.length > 0) {
+      void logEntityUpdated({
+        organizationId,
+        parentType: "DEAL",
+        parentId: deal.id,
+        createdByUserId: currentUser?.id,
+        changes,
+      });
+    }
 
     revalidatePath("/deals");
     revalidatePath(`/deals/${deal.friendlyId}`);
@@ -329,12 +446,121 @@ export async function advanceDealStage(
       },
     });
 
+    // Additional Activity-Log emission — runs alongside EntityChangeLog so
+    // both the legacy changelog and the new Activity feed stay populated.
+    void logStageChanged({
+      organizationId,
+      dealId,
+      fromStage: deal.stage,
+      toStage,
+      notes: notes ?? undefined,
+      changedByUserId: currentUser?.id,
+    });
+
     revalidatePath("/deals");
     revalidatePath(`/deals/${dealId}`);
     return actionSuccess(serializeDealForClient(updated));
   } catch (error) {
     console.error("[DEAL_ADVANCE_STAGE]", error);
     return actionError("Failed to advance deal stage");
+  }
+}
+
+/**
+ * Manually set a deal to any non-terminal stage (free traversal).
+ *
+ * Unlike `advanceDealStage`, this action allows jumping to ANY non-terminal stage —
+ * forward OR backward — enabling agents to correct mistakes or reflect real-world
+ * deal state. Terminal stages (COMPLETED, FALLEN_THROUGH) are blocked; use the
+ * dedicated paths for those.
+ *
+ * Creates a `DealStageLog` entry atomically and fires a changelog event.
+ */
+export async function setDealStage(
+  dealId: string,
+  toStage: DealStage,
+  notes?: string
+): Promise<ActionResponse<Deal>> {
+  const guard = await requireAction("deal:advance_stage");
+  if (guard) return guard;
+
+  const organizationId = await getCurrentOrgId();
+  const currentUser = await getCurrentUser();
+
+  const deal = await prismadb.deal.findFirst({
+    where: { id: dealId, organizationId },
+    select: { id: true, stage: true, friendlyId: true },
+  });
+  if (!deal) return actionNotFound("Deal");
+
+  if (!isValidDealStageManualSet(deal.stage, toStage)) {
+    if (toStage === "COMPLETED" || toStage === "FALLEN_THROUGH") {
+      return actionError(
+        `Cannot manually set deal to "${toStage}". Use the dedicated action for terminal stages.`
+      );
+    }
+    return actionError(
+      `Deal is in a terminal stage and cannot be moved.`
+    );
+  }
+
+  // No-op if already at the target stage
+  if (deal.stage === toStage) {
+    const current = await prismadb.deal.findUniqueOrThrow({
+      where: { id: deal.id },
+    });
+    return actionSuccess(serializeDealForClient(current));
+  }
+
+  const trimmedNotes = notes?.trim() || undefined;
+
+  try {
+    const [updated] = await prismadb.$transaction([
+      prismadb.deal.update({
+        where: { id: deal.id },
+        data: { stage: toStage },
+      }),
+      prismadb.dealStageLog.create({
+        data: {
+          dealId: deal.id,
+          fromStage: deal.stage,
+          toStage,
+          changedBy: currentUser.id,
+          notes: trimmedNotes ?? null,
+        },
+      }),
+    ]);
+
+    void createChangeLogEntry({
+      organizationId,
+      entityType: "DEAL",
+      entityId: deal.id,
+      eventType: "STAGE_CHANGED",
+      actorUserId: currentUser.id,
+      stageTransition: {
+        fromStage: deal.stage,
+        toStage,
+        notes: trimmedNotes,
+      },
+    });
+
+    // Additional Activity-Log emission. The no-op short-circuit above
+    // guarantees deal.stage !== toStage by the time we reach this point.
+    void logStageChanged({
+      organizationId,
+      dealId: deal.id,
+      fromStage: deal.stage,
+      toStage,
+      notes: trimmedNotes,
+      changedByUserId: currentUser?.id,
+    });
+
+    revalidatePath("/deals");
+    revalidatePath(`/deals/${deal.friendlyId}`);
+    return actionSuccess(serializeDealForClient(updated));
+  } catch (error) {
+    console.error("[DEAL_SET_STAGE]", error);
+    return actionError("Failed to set deal stage");
   }
 }
 
@@ -362,16 +588,18 @@ export async function addDealParty(
   }
 
   const { dealId, contactId, role, notes } = validation.data;
+  const currentUser = await getCurrentUser();
 
-  // Validate deal + contact belong to org
+  // Validate deal + contact belong to org. Selectors widened so we have
+  // labels for the symmetric activity-log entry without an extra round-trip.
   const [deal, contact] = await Promise.all([
     prismadb.deal.findFirst({
       where: { id: dealId, organizationId },
-      select: { id: true },
+      select: { id: true, title: true },
     }),
     prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true },
+      select: { id: true, displayName: true, friendlyId: true },
     }),
   ]);
   if (!deal) return actionNotFound("Deal");
@@ -386,6 +614,20 @@ export async function addDealParty(
         role,
         notes: notes ?? null,
       },
+    });
+
+    // Activity logging — bilateral LINKED entry on both DEAL and CONTACT.
+    void logEntityLinkedSymmetric({
+      organizationId,
+      aType: "DEAL",
+      aId: dealId,
+      aLabel: deal.title ?? "Deal",
+      aUrl: `/app/deals/${dealId}`,
+      bType: "CONTACT",
+      bId: contactId,
+      bLabel: contact.displayName ?? "Contact",
+      bUrl: `/app/crm/contacts/${contact.friendlyId ?? contactId}`,
+      createdByUserId: currentUser?.id,
     });
 
     revalidatePath(`/deals/${dealId}`);
@@ -409,15 +651,39 @@ export async function removeDealParty(
   if (guard) return guard;
 
   const organizationId = await getCurrentOrgId();
+  const currentUser = await getCurrentUser();
 
+  // Selector widened to include contact info + deal title so we can emit
+  // a symmetric UNLINKED activity entry without an additional round-trip.
   const party = await prismadb.dealParty.findFirst({
     where: { id: partyId, organizationId },
-    select: { id: true, dealId: true },
+    select: {
+      id: true,
+      dealId: true,
+      contactId: true,
+      contact: { select: { displayName: true, friendlyId: true } },
+      deal: { select: { title: true } },
+    },
   });
   if (!party) return actionNotFound("Deal party");
 
   try {
     await prismadb.dealParty.delete({ where: { id: partyId } });
+
+    // Activity logging — bilateral UNLINKED on both DEAL and CONTACT.
+    void logEntityUnlinkedSymmetric({
+      organizationId,
+      aType: "DEAL",
+      aId: party.dealId,
+      aLabel: party.deal?.title ?? "Deal",
+      aUrl: `/app/deals/${party.dealId}`,
+      bType: "CONTACT",
+      bId: party.contactId,
+      bLabel: party.contact?.displayName ?? "Contact",
+      bUrl: `/app/crm/contacts/${party.contact?.friendlyId ?? party.contactId}`,
+      createdByUserId: currentUser?.id,
+    });
+
     revalidatePath(`/deals/${party.dealId}`);
     return actionSuccess({ id: partyId });
   } catch (error) {
@@ -602,9 +868,26 @@ export async function getDeal(
 
   if (!deal) return actionNotFound("Deal");
 
+  // Decrypt encrypted contact fields that Prisma returns raw from the DB
+  const [decryptedParties, decryptedNotary] = await Promise.all([
+    Promise.all(
+      deal.dealParties.map(async (party) => ({
+        ...party,
+        contact: party.contact
+          ? await decryptContactForOrg(party.contact, organizationId)
+          : null,
+      }))
+    ),
+    deal.notaryContact
+      ? decryptContactForOrg(deal.notaryContact, organizationId)
+      : null,
+  ]);
+
   return actionSuccess(
     serializeDealForClient({
       ...deal,
+      dealParties: decryptedParties,
+      notaryContact: decryptedNotary,
       isListingAgent: deal.listingAgentId === currentUser.id,
       isBuyerAgent: deal.buyerAgentId === currentUser.id,
       isProposer: deal.proposedById === currentUser.id,

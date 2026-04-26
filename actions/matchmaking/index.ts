@@ -1,10 +1,9 @@
-"use server";
-
 /**
  * Matchmaking Server Actions — v2 barrel
  *
  * Centralises all matchmaking exports so callers import from
  * "@/actions/matchmaking" rather than deep-linking individual files.
+ * Individual action files carry their own "use server" directive.
  */
 
 // ── v2: Request-based matching ─────────────────────────────────────────────

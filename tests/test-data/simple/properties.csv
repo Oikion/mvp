@@ -1,0 +1,4 @@
+property_name,transaction_type,property_type,status,price,area,address_city,bedrooms,bathrooms,size_net_sqm,floor,elevator,parking,garden,condition,energy_cert_class,year_built,inside_city_plan,notes
+Διαμέρισμα Κολωνάκι,SALE,APARTMENT,ACTIVE,320000,Κολωνάκι,Αθήνα,2,1,85,3,true,true,false,VERY_GOOD,C,2005,true,Βεράντα με θέα. Διαθέτει θέση parking στο υπόγειο.
+Μονοκατοικία Βούλα,SALE,HOUSE,ACTIVE,820000,Βούλα,Αθήνα,4,2,220,,false,true,true,EXCELLENT,B,2012,true,Ανεξάρτητη με κήπο και πισίνα. Εκτεταμένη αυλή.
+Διαμέρισμα Παγκράτι,SALE,APARTMENT,ACTIVE,195000,Παγκράτι,Αθήνα,1,1,65,2,false,false,false,GOOD,D,2000,true,Ήσυχη γειτονιά. Χωρίς ασανσέρ.

@@ -109,7 +109,7 @@ function contactDedupKey(row: Record<string, unknown>): string {
   const phone = String(row.primary_phone ?? "")
     .trim()
     .replace(/\D/g, "");
-  const email = String(row.primary_email ?? "").trim().toLowerCase();
+  const email = String(row.contact_primary_email ?? "").trim().toLowerCase();
   const name = String(row.contact_name ?? "").trim().toLowerCase();
   if (phone) return `phone:${phone}`;
   if (email) return `email:${email}`;
@@ -168,7 +168,7 @@ export function validateImportData(
       isNonEmpty(rawContactRow.contact_name) ||
       (!fileHasContactNameColumn &&
         (isNonEmpty(rawContactRow.primary_phone) ||
-          isNonEmpty(rawContactRow.primary_email)));
+          isNonEmpty(rawContactRow.contact_primary_email)));
 
     const hasProperty = isNonEmpty(propertyRow.property_name);
 

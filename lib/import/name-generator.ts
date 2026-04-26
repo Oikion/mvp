@@ -89,7 +89,7 @@ export function generateClientName(clientRow: Record<string, unknown>): string {
     return `Contact (${p})`;
   }
 
-  const email = clientRow["primary_email"];
+  const email = clientRow["contact_primary_email"];
   if (email && typeof email === "string" && email.trim()) {
     return `Contact (${email.trim()})`;
   }

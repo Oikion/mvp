@@ -6,6 +6,57 @@ import { updateContactSchema } from "@/lib/validations/contacts";
 import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { isFriendlyId } from "@/lib/friendly-id";
 import { createChangeLogEntry, diffEntity, CONTACT_WATCHED_FIELDS } from "@/lib/entity-change-log";
+import { logEntityUpdated, type FieldChange } from "@/lib/activity-logger";
+
+// Activity Log safelist — non-encrypted fields only.
+// PII fields (firstName, lastName, displayName, email, phones, taxId, etc.) are encrypted and NEVER tracked here.
+const CONTACT_ACTIVITY_SAFELIST = [
+  "status",
+  "contactType",
+  "clientType",
+  "source",
+  "leadScore",
+  "visibilityState",
+  "assignedToUserId",
+  "tags",
+] as const;
+
+// Map safelist → actual Prisma column names on the Contact model
+const CONTACT_ACTIVITY_FIELD_MAP: Record<string, string> = {
+  status: "status",
+  contactType: "category",
+  clientType: "category",
+  source: "source",
+  leadScore: "leadScore",
+  visibilityState: "visibility",
+  assignedToUserId: "assignedAgentId",
+  tags: "tags",
+};
+
+function stringifyValue(v: unknown): string | null {
+  if (v === null || v === undefined) return null;
+  if (Array.isArray(v)) return JSON.stringify(v);
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+
+function computeContactActivityChanges(
+  before: Record<string, unknown>,
+  after: Record<string, unknown>
+): FieldChange[] {
+  const changes: FieldChange[] = [];
+  for (const safelistKey of CONTACT_ACTIVITY_SAFELIST) {
+    const dbKey = CONTACT_ACTIVITY_FIELD_MAP[safelistKey];
+    if (!dbKey) continue;
+    if (!(dbKey in after)) continue;
+    const fromVal = stringifyValue(before[dbKey]);
+    const toVal = stringifyValue(after[dbKey]);
+    if (fromVal !== toVal) {
+      changes.push({ field: safelistKey, from: fromVal, to: toVal });
+    }
+  }
+  return changes;
+}
 
 export async function GET(
   req: Request,
@@ -109,7 +160,7 @@ export async function PUT(
 
     const { id, ...data } = validation.data;
 
-    // Verify ownership — also capture watched fields for changelog diff
+    // Verify ownership — also capture watched fields for changelog diff + activity log
     const existing = await prismadb.contact.findFirst({
       where: { id, organizationId },
       select: {
@@ -122,6 +173,8 @@ export async function PUT(
         doNotContact: true,
         allowMarketing: true,
         gdprConsentGiven: true,
+        leadScore: true,
+        tags: true,
       },
     });
 
@@ -158,6 +211,21 @@ export async function PUT(
         actorUserId: user.id,
         changedFields,
       }).catch((err) => console.error("[CONTACT_UPDATED_LOG]", err));
+    }
+
+    // Activity Log — diff against safelist (non-encrypted fields only) and emit UPDATED
+    const activityChanges = computeContactActivityChanges(
+      existing as Record<string, unknown>,
+      updated as Record<string, unknown>
+    );
+    if (activityChanges.length > 0) {
+      void logEntityUpdated({
+        organizationId,
+        parentType: "CONTACT",
+        parentId: updated.id,
+        createdByUserId: user.id,
+        changes: activityChanges,
+      });
     }
 
     return NextResponse.json({ data: updated });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { convertMatchScore } from "@/actions/matchmaking/get-request-matches";
+import { convertMatchScore } from "@/lib/matchmaking";
 
 describe("convertMatchScore", () => {
   it("converts Decimal 0.75 to integer 75", () => {

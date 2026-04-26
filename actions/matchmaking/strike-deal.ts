@@ -13,6 +13,10 @@ import {
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { z } from "zod";
 import type { Deal } from "@prisma/client";
+import {
+  logEntityCreated,
+  logEntityLinked,
+} from "@/lib/activity-logger";
 
 const strikeDealSchema = z
   .object({
@@ -65,17 +69,19 @@ export async function strikeDeal(
 
   const { propertyId, requestId, parties } = validation.data;
 
-  // SECURITY: Validate property belongs to the org
+  // SECURITY: Validate property belongs to the org. Selector widened with
+  // friendlyId so we can build the activity-log target URL without a second
+  // round-trip after the transaction commits.
   const property = await prismadb.properties.findFirst({
     where: { id: propertyId, organizationId },
-    select: { id: true, property_name: true },
+    select: { id: true, property_name: true, friendlyId: true },
   });
   if (!property) return actionNotFound("Property");
 
   // SECURITY: Validate request belongs to the org
   const request = await prismadb.request.findFirst({
     where: { id: requestId, organizationId },
-    select: { id: true },
+    select: { id: true, friendlyId: true },
   });
   if (!request) return actionNotFound("Request");
 
@@ -130,6 +136,40 @@ export async function strikeDeal(
       });
 
       return deal;
+    });
+
+    // Activity logging — fire-and-forget AFTER the transaction commits.
+    // Reminder: Matchmaking "Matches" itself is a separate module and must
+    // NOT appear in the Activity Log; we only log the resulting Deal create
+    // and its property/request links here.
+    void logEntityCreated({
+      organizationId,
+      parentType: "DEAL",
+      parentId: result.id,
+      createdByUserId: currentUser?.id,
+      source: "manual",
+    });
+
+    void logEntityLinked({
+      organizationId,
+      fromType: "DEAL",
+      fromId: result.id,
+      toType: "PROPERTY",
+      toId: propertyId,
+      toLabel: property.property_name ?? "Property",
+      toUrl: `/app/mls/properties/${property.friendlyId ?? property.id}`,
+      createdByUserId: currentUser?.id,
+    });
+
+    void logEntityLinked({
+      organizationId,
+      fromType: "DEAL",
+      fromId: result.id,
+      toType: "REQUEST",
+      toId: requestId,
+      toLabel: "Request",
+      toUrl: `/app/requests/${request.friendlyId ?? request.id}`,
+      createdByUserId: currentUser?.id,
     });
 
     return actionSuccess({ deal: result, friendlyId: result.friendlyId ?? result.id });

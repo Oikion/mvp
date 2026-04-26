@@ -13,7 +13,15 @@ export type ActivityKind =
   | "TASK"
   | "SHOWING"
   | "DOCUMENT"
-  | "OTHER";
+  | "OTHER"
+  // System-generated kinds (Activity Log v2)
+  | "CREATED"
+  | "UPDATED"
+  | "LINKED"
+  | "UNLINKED"
+  | "STAGE_CHANGED"
+  | "CALENDAR_EVENT_ADDED"
+  | "CALENDAR_EVENT_REMOVED";
 
 export type ActivityDirection = "INBOUND" | "OUTBOUND" | "INTERNAL";
 
@@ -67,6 +75,7 @@ export interface Activity {
   relatedContactId: string | null;
   relatedPropertyId: string | null;
   deletedAt: string | null;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
   CreatedBy: ActivityUser | null;

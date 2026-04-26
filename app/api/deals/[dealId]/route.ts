@@ -15,6 +15,49 @@ import {
 } from "@/lib/validations/status-transitions";
 import { serializeDealForClient } from "@/lib/deals/serialize";
 import { createChangeLogEntry } from "@/lib/entity-change-log";
+import {
+  logEntityUpdated,
+  logStageChanged,
+  type FieldChange,
+} from "@/lib/activity-logger";
+
+// Safelist of non-encrypted Deal fields tracked by Activity Log UPDATED
+// entries. Mirrors the safelist in actions/deals/index.ts.
+const DEAL_TRACKED_FIELDS = [
+  "stage",
+  "dealValue",
+  "expectedCloseDate",
+  "assignedToUserId",
+  "propertyId",
+  "requestId",
+] as const;
+
+function diffDealFields(
+  before: Record<string, unknown>,
+  after: Record<string, unknown>
+): FieldChange[] {
+  const changes: FieldChange[] = [];
+  for (const field of DEAL_TRACKED_FIELDS) {
+    const oldVal = before[field];
+    const newVal = after[field];
+    const oldStr =
+      oldVal === null || oldVal === undefined
+        ? null
+        : oldVal instanceof Date
+          ? oldVal.toISOString()
+          : String(oldVal);
+    const newStr =
+      newVal === null || newVal === undefined
+        ? null
+        : newVal instanceof Date
+          ? newVal.toISOString()
+          : String(newVal);
+    if (oldStr !== newStr) {
+      changes.push({ field, from: oldStr, to: newStr });
+    }
+  }
+  return changes;
+}
 
 export async function GET(
   req: Request,
@@ -115,6 +158,15 @@ export async function PUT(
     const { dealId } = await props.params;
     const body = await req.json();
 
+    // Resolve internal Users.id from Clerk userId once for activity logging.
+    // Deal FK columns reference Users.id (CUID); the Clerk userId would
+    // otherwise produce dangling actor references in Activity rows.
+    const internalUser = await prismadb.users.findFirst({
+      where: { clerkUserId: userId },
+      select: { id: true },
+    });
+    const actorUserId = internalUser?.id;
+
     // Check if this is a stage advance or a general update
     if (body.toStage) {
       // Stage advance
@@ -173,6 +225,17 @@ export async function PUT(
         },
       });
 
+      // Additional Activity-Log emission alongside EntityChangeLog so the
+      // new Activity feed reflects API-driven stage transitions too.
+      void logStageChanged({
+        organizationId,
+        dealId,
+        fromStage: deal.stage,
+        toStage: validation.data.toStage,
+        notes: validation.data.notes ?? undefined,
+        changedByUserId: actorUserId,
+      });
+
       return apiSuccess(serializeDealForClient(updated));
     }
 
@@ -182,9 +245,16 @@ export async function PUT(
       return apiBadRequest("Validation failed", validation.error.flatten().fieldErrors);
     }
 
+    // Pre-fetch the safelist of tracked fields so we can diff post-update
+    // and emit an Activity-Log UPDATED entry.
     const deal = await prismadb.deal.findFirst({
       where: { id: dealId, organizationId },
-      select: { id: true },
+      select: {
+        id: true,
+        stage: true,
+        propertyId: true,
+        requestId: true,
+      },
     });
     if (!deal) return apiNotFound("Deal");
 
@@ -196,6 +266,21 @@ export async function PUT(
       // DealUpdateInput (which expects InputJsonValue for JSON columns).
       data: updateData as Prisma.DealUpdateInput,
     });
+
+    // Activity logging — diff the safelist; emit UPDATED only on real changes.
+    const changes = diffDealFields(
+      deal as Record<string, unknown>,
+      updated as Record<string, unknown>
+    );
+    if (changes.length > 0) {
+      void logEntityUpdated({
+        organizationId,
+        parentType: "DEAL",
+        parentId: dealId,
+        createdByUserId: actorUserId,
+        changes,
+      });
+    }
 
     return apiSuccess(serializeDealForClient(updated));
   } catch (error) {

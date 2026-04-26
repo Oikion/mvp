@@ -2,6 +2,7 @@
 
 import { QuickLogActivity } from "@/components/activity/QuickLogActivity";
 import { ActivityFeed } from "@/components/activity/ActivityFeed";
+import { useActivities } from "@/hooks/swr/useActivities";
 import type { ActivityParentType } from "@/hooks/swr/useActivities";
 
 interface EntityActivityPanelProps {
@@ -20,12 +21,21 @@ export function EntityActivityPanel({
   parentId,
   onSuccess,
 }: EntityActivityPanelProps) {
+  // Share the same SWR cache key that ActivityFeed uses so that calling
+  // refresh() here revalidates the feed immediately after a new entry is logged.
+  const { refresh } = useActivities({ parentType, parentId, unified: true });
+
+  const handleSuccess = () => {
+    refresh();
+    onSuccess?.();
+  };
+
   return (
     <div className="space-y-4">
       <QuickLogActivity
         parentType={parentType}
         parentId={parentId}
-        onSuccess={onSuccess}
+        onSuccess={handleSuccess}
       />
       <ActivityFeed parentType={parentType} parentId={parentId} unified />
     </div>

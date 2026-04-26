@@ -450,7 +450,11 @@ function FieldCombobox({
                       <CommandGroup heading={ENTITY_LABELS[entityKey] ?? entityKey}>
                         {Object.entries(groupsForEntity).map(([groupKey, fields]) =>
                           fields.map((field) =>
-                            renderFieldItem(field, [fieldsDict.groups[groupKey] || groupKey])
+                            renderFieldItem(field, [
+                              fieldsDict.groups[`${entityKey}_${groupKey}`] ||
+                              fieldsDict.groups[groupKey] ||
+                              groupKey,
+                            ])
                           )
                         )}
                       </CommandGroup>

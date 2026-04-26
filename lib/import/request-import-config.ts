@@ -27,6 +27,11 @@ const ENCRYPTED_STRING_FIELDS = ["title", "notes"] as const;
 // Local helpers
 // ---------------------------------------------------------------------------
 
+function mapTransactionTypeToRequestType(txType?: string | null): "BUY" | "RENT" {
+  if (txType === "RENTAL" || txType === "SHORT_TERM") return "RENT";
+  return "BUY"; // SALE, EXCHANGE, AUCTION → BUY
+}
+
 function toNumber(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value === "number") return value;
@@ -106,8 +111,8 @@ export const requestImportConfig: ImportEntityConfig<RequestImportData> = {
       // Core (encrypted string, nullable)
       title: e("title") ?? item.title ?? null,
 
-      // Required enum — fallback to "BUY" (requestType has no DB default)
-      requestType: item.transaction_type ?? "BUY",
+      // Required enum — map CSV transaction_type to DB requestType
+      requestType: mapTransactionTypeToRequestType(item.transaction_type),
 
       // propertyTypes is PropertyType[] array — wrap single CSV value
       propertyTypes: item.property_type ? [item.property_type] : [],

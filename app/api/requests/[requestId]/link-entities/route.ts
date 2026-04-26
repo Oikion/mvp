@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { canPerformAction } from "@/lib/permissions";
+import { logEntityLinkedSymmetric, logEntityUnlinkedSymmetric } from "@/lib/activity-logger";
 
 export async function POST(
   req: Request,
@@ -51,6 +52,24 @@ export async function POST(
         skipDuplicates: true,
       });
       linkedContacts = result.count;
+
+      // Activity log — symmetric link for each contact (fire-and-forget).
+      // Labels stay generic because Request.title and Contact.displayName
+      // are encrypted at rest.
+      for (const contactId of contactIds) {
+        void logEntityLinkedSymmetric({
+          organizationId,
+          aType: "REQUEST",
+          aId: request.id,
+          aLabel: "Request",
+          aUrl: `/app/requests/${request.id}`,
+          bType: "CONTACT",
+          bId: contactId,
+          bLabel: "Contact",
+          bUrl: `/app/crm/contacts/${contactId}`,
+          createdByUserId: userId,
+        });
+      }
     }
 
     if (propertyIds && propertyIds.length > 0) {
@@ -126,6 +145,20 @@ export async function DELETE(
           requestId: request.id,
           contactId,
         },
+      });
+
+      // Activity log — symmetric unlink (fire-and-forget).
+      void logEntityUnlinkedSymmetric({
+        organizationId,
+        aType: "REQUEST",
+        aId: request.id,
+        aLabel: "Request",
+        aUrl: `/app/requests/${request.id}`,
+        bType: "CONTACT",
+        bId: contactId,
+        bLabel: "Contact",
+        bUrl: `/app/crm/contacts/${contactId}`,
+        createdByUserId: userId,
       });
     }
 

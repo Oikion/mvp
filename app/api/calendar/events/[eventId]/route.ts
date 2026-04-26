@@ -15,6 +15,10 @@ import { prismaForOrg } from "@/lib/tenant";
 import { format } from "date-fns";
 import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
 import { encryptCalendarEventForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
+import {
+  logCalendarEventAdded,
+  logCalendarEventRemoved,
+} from "@/lib/activity-logger";
 
 /**
  * Create notifications for calendar event update
@@ -281,11 +285,18 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Resolve friendlyId to the actual event (and get UUID for updates)
+    // Resolve friendlyId to the actual event (and get UUID for updates).
+    // Also capture currently-linked contacts so the activity log can diff
+    // before/after the `set:` write.
     const existingEvent = await prismadb.calendarEvent.findFirst({
       where: {
         friendlyId: eventId,
         organizationId: currentOrgId,
+      },
+      include: {
+        Contacts: { select: { id: true } },
+        Properties: { select: { id: true } },
+        Requests: { select: { id: true } },
       },
     });
 
@@ -297,6 +308,15 @@ export async function PUT(
     }
 
     const resolvedId = existingEvent.id;
+    const beforeContactIds = new Set(
+      (existingEvent.Contacts ?? []).map((c) => c.id)
+    );
+    const beforePropertyIds = new Set(
+      (existingEvent.Properties ?? []).map((p) => p.id)
+    );
+    const beforeRequestIds = new Set(
+      (existingEvent.Requests ?? []).map((r) => r.id)
+    );
 
     // Check permissions using UUID
     const canEdit = await canEditEvent(resolvedId);
@@ -471,10 +491,172 @@ export async function PUT(
         crm_Accounts_Tasks: true,
         Contacts: true,
         Properties: true,
+        Requests: { select: { id: true } },
         Documents: true,
         CalendarReminder: true,
       },
     });
+
+    // Activity Log — emit CALENDAR_EVENT_ADDED / REMOVED for each Contact
+    // whose link changed. PUT uses `set:` semantics, so we diff the
+    // before/after contact id sets captured above.
+    const resolvedContactIdsForActivity =
+      contactIds !== undefined ? contactIds : clientIdsOld;
+    if (resolvedContactIdsForActivity !== undefined) {
+      const afterContactIds = new Set<string>(
+        ((event as any).Contacts ?? []).map((c: any) => c.id)
+      );
+      const addedContactIds = Array.from(afterContactIds).filter(
+        (cid) => !beforeContactIds.has(cid)
+      );
+      const removedContactIds = Array.from(beforeContactIds).filter(
+        (cid) => !afterContactIds.has(cid)
+      );
+
+      if (addedContactIds.length > 0 || removedContactIds.length > 0) {
+        const decryptedForActivity = await decryptCalendarEventForOrg(
+          event,
+          currentOrgId
+        );
+        const eventTitleForActivity =
+          (decryptedForActivity as any).title ?? "Event";
+        const eventTypeForActivity =
+          (decryptedForActivity as any).eventType ?? "EVENT";
+        const startTimeForActivity =
+          event.startTime instanceof Date
+            ? event.startTime.toISOString()
+            : new Date(event.startTime).toISOString();
+
+        for (const contactId of addedContactIds) {
+          void logCalendarEventAdded({
+            organizationId: currentOrgId,
+            parentType: "CONTACT",
+            parentId: contactId,
+            eventId: resolvedId,
+            eventTitle: eventTitleForActivity,
+            eventType: eventTypeForActivity,
+            startTime: startTimeForActivity,
+            actorUserId: currentUser.id,
+          });
+        }
+        for (const contactId of removedContactIds) {
+          void logCalendarEventRemoved({
+            organizationId: currentOrgId,
+            parentType: "CONTACT",
+            parentId: contactId,
+            eventId: resolvedId,
+            eventTitle: eventTitleForActivity,
+            actorUserId: currentUser.id,
+          });
+        }
+      }
+    }
+
+    // Activity Log — emit CALENDAR_EVENT_ADDED / REMOVED for each Property
+    // whose link changed. Decrypt the event title once for the body text.
+    if (propertyIds !== undefined) {
+      const afterPropertyIds = new Set<string>(
+        (event.Properties ?? []).map((p: any) => p.id)
+      );
+      const addedPropertyIds = Array.from(afterPropertyIds).filter(
+        (pid) => !beforePropertyIds.has(pid)
+      );
+      const removedPropertyIds = Array.from(beforePropertyIds).filter(
+        (pid) => !afterPropertyIds.has(pid)
+      );
+
+      if (addedPropertyIds.length > 0 || removedPropertyIds.length > 0) {
+        const decryptedForActivity = await decryptCalendarEventForOrg(
+          event,
+          currentOrgId
+        );
+        const eventTitleForActivity =
+          (decryptedForActivity as any).title ?? "Event";
+        const eventTypeForActivity =
+          (decryptedForActivity as any).eventType ?? "EVENT";
+        const startTimeForActivity =
+          event.startTime instanceof Date
+            ? event.startTime.toISOString()
+            : new Date(event.startTime).toISOString();
+
+        for (const propertyId of addedPropertyIds) {
+          void logCalendarEventAdded({
+            organizationId: currentOrgId,
+            parentType: "PROPERTY",
+            parentId: propertyId,
+            eventId: resolvedId,
+            eventTitle: eventTitleForActivity,
+            eventType: eventTypeForActivity,
+            startTime: startTimeForActivity,
+            actorUserId: currentUser.id,
+          });
+        }
+        for (const propertyId of removedPropertyIds) {
+          void logCalendarEventRemoved({
+            organizationId: currentOrgId,
+            parentType: "PROPERTY",
+            parentId: propertyId,
+            eventId: resolvedId,
+            eventTitle: eventTitleForActivity,
+            actorUserId: currentUser.id,
+          });
+        }
+      }
+    }
+
+    // Activity Log — emit CALENDAR_EVENT_ADDED / REMOVED for each Request
+    // whose link changed. Mirrors the Property branch above.
+    const resolvedRequestIdsForActivity =
+      requestIds !== undefined ? requestIds : mandateIdsOld;
+    if (resolvedRequestIdsForActivity !== undefined) {
+      const afterRequestIds = new Set<string>(
+        ((event as any).Requests ?? []).map((r: any) => r.id)
+      );
+      const addedRequestIds = Array.from(afterRequestIds).filter(
+        (rid) => !beforeRequestIds.has(rid)
+      );
+      const removedRequestIds = Array.from(beforeRequestIds).filter(
+        (rid) => !afterRequestIds.has(rid)
+      );
+
+      if (addedRequestIds.length > 0 || removedRequestIds.length > 0) {
+        const decryptedForActivity = await decryptCalendarEventForOrg(
+          event,
+          currentOrgId
+        );
+        const eventTitleForActivity =
+          (decryptedForActivity as any).title ?? "Event";
+        const eventTypeForActivity =
+          (decryptedForActivity as any).eventType ?? "EVENT";
+        const startTimeForActivity =
+          event.startTime instanceof Date
+            ? event.startTime.toISOString()
+            : new Date(event.startTime).toISOString();
+
+        for (const requestId of addedRequestIds) {
+          void logCalendarEventAdded({
+            organizationId: currentOrgId,
+            parentType: "REQUEST",
+            parentId: requestId,
+            eventId: resolvedId,
+            eventTitle: eventTitleForActivity,
+            eventType: eventTypeForActivity,
+            startTime: startTimeForActivity,
+            actorUserId: currentUser.id,
+          });
+        }
+        for (const requestId of removedRequestIds) {
+          void logCalendarEventRemoved({
+            organizationId: currentOrgId,
+            parentType: "REQUEST",
+            parentId: requestId,
+            eventId: resolvedId,
+            eventTitle: eventTitleForActivity,
+            actorUserId: currentUser.id,
+          });
+        }
+      }
+    }
 
     // Handle reminders
     if (reminderMinutes !== undefined && Array.isArray(reminderMinutes)) {
@@ -542,6 +724,9 @@ export async function DELETE(
         Properties: {
           select: { id: true, property_name: true },
         },
+        Requests: {
+          select: { id: true },
+        },
       },
     });
 
@@ -573,6 +758,55 @@ export async function DELETE(
 
     // Cancel all reminders (they will be cascade deleted, but cancel them first)
     await cancelAllRemindersForEvent(resolvedId);
+
+    // Activity Log — emit CALENDAR_EVENT_REMOVED for each linked Contact,
+    // Property, and Request BEFORE the event row is deleted (so the event
+    // is still queryable). Decrypt title once and reuse.
+    const linkedContacts = event.Contacts ?? [];
+    const linkedProperties = event.Properties ?? [];
+    const linkedRequests = (event as any).Requests ?? [];
+    if (
+      linkedContacts.length > 0 ||
+      linkedProperties.length > 0 ||
+      linkedRequests.length > 0
+    ) {
+      const decryptedForActivity = await decryptCalendarEventForOrg(
+        event,
+        currentOrgId
+      );
+      const eventTitleForActivity =
+        (decryptedForActivity as any).title ?? "Event";
+      for (const linkedContact of linkedContacts) {
+        void logCalendarEventRemoved({
+          organizationId: currentOrgId,
+          parentType: "CONTACT",
+          parentId: linkedContact.id,
+          eventId: resolvedId,
+          eventTitle: eventTitleForActivity,
+          actorUserId: currentUser.id,
+        });
+      }
+      for (const linkedProp of linkedProperties) {
+        void logCalendarEventRemoved({
+          organizationId: currentOrgId,
+          parentType: "PROPERTY",
+          parentId: linkedProp.id,
+          eventId: resolvedId,
+          eventTitle: eventTitleForActivity,
+          actorUserId: currentUser.id,
+        });
+      }
+      for (const linkedReq of linkedRequests as Array<{ id: string }>) {
+        void logCalendarEventRemoved({
+          organizationId: currentOrgId,
+          parentType: "REQUEST",
+          parentId: linkedReq.id,
+          eventId: resolvedId,
+          eventTitle: eventTitleForActivity,
+          actorUserId: currentUser.id,
+        });
+      }
+    }
 
     // Delete event (reminders cascade delete)
     await prismadb.calendarEvent.delete({

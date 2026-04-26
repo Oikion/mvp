@@ -1,0 +1,254 @@
+================================================================================
+COMPLEX TIER — EXPECTED IMPORT & MATCHMAKING RESULTS
+================================================================================
+
+SECTION 1: CONTACT IMPORT
+--------------------------------------------------------------------------------
+Expected: All 7 rows import successfully.
+
+  C9   Παπαδόπουλος Κώστας    → BUYER    / ACTIVE
+  C10  Σταματίου Ελένη        → INVESTOR / ACTIVE
+  C11  Βασιλείου Νίκος        → BUYER    / ACTIVE
+  C12  Κωνσταντίνου Μαρία     → RENTER   / ACTIVE
+  C13  Ανδρέου Δημήτρης       → BUYER    / ACTIVE
+  C14  Λαζαρίδης Γιώργης      → BUYER    / ACTIVE
+  C15  Μαυρίδου Σοφία         → INVESTOR / ACTIVE
+
+SECTION 2: PROPERTY IMPORT
+--------------------------------------------------------------------------------
+Expected: All 7 rows import successfully.
+
+  P9   Διαμέρισμα Μαρούσι Α     → APARTMENT / SALE   / ACTIVE   / 460,000€ / 115sqm / 3bed / elev+park
+  P10  Διαμέρισμα Νέα Σμύρνη    → APARTMENT / SALE   / ACTIVE   / 225,000€ / 85sqm  / 2bed / elev
+  P11  Μονοκατοικία Βούλα        → HOUSE     / SALE   / ACTIVE   / 690,000€ / 165sqm / 3bed / elev+park+garden
+  P12  Διαμέρισμα Αθήνα Αρχ.    → APARTMENT / SALE   / ARCHIVED / 310,000€ / 98sqm  / 2bed
+  P13  Διαμέρισμα Αθήνα Ενοικ.  → APARTMENT / RENTAL / ACTIVE   / 1,350€   / 75sqm  / 2bed / elev
+  P14  Διαμέρισμα Μαρούσι Β     → APARTMENT / SALE   / ACTIVE   / 430,000€ / 110sqm / 3bed / elev+park
+  P15  Διαμέρισμα Γαλάτσι       → APARTMENT / SALE   / ACTIVE   / 205,000€ / 82sqm  / 2bed / elev (NO park)
+
+SECTION 3: REQUEST IMPORT
+--------------------------------------------------------------------------------
+Expected: All 8 rows pass schema validation.
+
+  R9   Αναζήτηση Μαρούσι Α        → SALE/BUY / APARTMENT / 420k–500k / 100–130sqm / min 3bed / elev+park / [Μαρούσι]
+  R10  Αναζήτηση Νέα Σμύρνη       → SALE/BUY / APARTMENT / 180k–250k / 75–100sqm  / min 2bed / elev       / [Νέα Σμύρνη]
+  R11  Αναζήτηση Βούλα             → SALE/BUY / HOUSE     / 600k–800k / 150–200sqm / min 3bed / elev+park  / [Βούλα]
+  R12  Αναζήτηση Μαρούσι Β        → SALE/BUY / APARTMENT / 400k–550k / 105–140sqm / 3–4bed  / elev        / [Μαρούσι]
+  R13  Αναζήτηση Ενοικίαση Αθήνα  → RENTAL/RENT / APARTMENT / 1200–1500 / 65–90sqm / (any bed) / elev / [Αθήνα]
+  R14  Αναζήτηση Ενοικίαση Παγκρ. → RENTAL/RENT / APARTMENT / 1000–1300 / 60–80sqm / (any bed) / elev / [Παγκράτι]
+  R15  Αναζήτηση Μαρούσι-Γαλάτσι  → SALE/BUY / APARTMENT / 170k–220k / 70–95sqm  / min 2bed / park       / [Μαρούσι,Γαλάτσι]
+  R16  Αναζήτηση Αθήνα Χαμηλό Bdg → SALE/BUY / APARTMENT / 180k–190k / 60–80sqm  / min 1bed              / [Αθήνα]
+
+  Note: SALE/RENTAL in CSV → BUY/RENT in DB (mapTransactionTypeToRequestType).
+
+SECTION 4: MATCHMAKING — REQUEST × PROPERTY MATRIX
+--------------------------------------------------------------------------------
+Layer 1 Disqualifier execution order (pipeline — first match wins):
+  1. ARCHIVED_OR_INACTIVE  (property_status ∉ {ACTIVE, PENDING})
+  2. PURPOSE_MISMATCH      (BUY ↔ SALE/EXCHANGE/AUCTION; RENT ↔ RENTAL/SHORT_TERM)
+  3. PROPERTY_TYPE_MISMATCH (property_type ∉ request.propertyTypes[])
+  4. BUDGET_HARD_FLOOR     (price > round(budgetMax × 1.15))
+  5. AREA_HARD_EXCLUSION   (no bidirectional substring match after normalisation)
+
+BUDGET_HARD_FLOOR values per request:
+  R9:  round(500k × 1.15) = 575,000
+  R10: round(250k × 1.15) = 287,500
+  R11: round(800k × 1.15) = 920,000
+  R12: round(550k × 1.15) = 632,500
+  R13: round(1500 × 1.15) = 1,725
+  R14: round(1300 × 1.15) = 1,495
+  R15: round(220k × 1.15) = 253,000
+  R16: round(190k × 1.15) = 218,500
+
+  ┌──────┬──────────────┬──────────────┬──────────────┬──────────────┬──────────────┬──────────────┬──────────────┐
+  │      │ P9  Μαρούσι Α │ P10 Ν.Σμύρνη │ P11 Βούλα    │ P12 Αρχ.Αθήνα│ P13 Ενοικ.   │ P14 Μαρούσι Β│ P15 Γαλάτσι  │
+  │      │ APT/SALE/460k │ APT/SALE/225k│ HSE/SALE/690k│ APT/SALE/ARC │ APT/RENT/1350│ APT/SALE/430k│ APT/SALE/205k│
+  ├──────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
+  │  R9  │ ✅ 85 EXCL   │ ❌ AREA      │ ❌ AREA      │ ❌ ARCHIVED  │ ❌ PURPOSE   │ ✅ 85 EXCL   │ ❌ AREA      │
+  │BUY/Μ.│              │ N.Σμ∉[Μαρ]  │ Βούλα∉[Μαρ] │ step 1       │ step 2       │              │ Γαλ∉[Μαρ]   │
+  ├──────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
+  │ R10  │ ❌ BUDGET    │ ✅ 83 GOOD   │ ❌ TYPE      │ ❌ ARCHIVED  │ ❌ PURPOSE   │ ❌ BUDGET    │ ❌ AREA      │
+  │BUY/Ν.│ 460k>287.5k  │              │ HSE∉[APT]   │ step 1       │ step 2       │ 430k>287.5k  │ Γαλ∉[Ν.Σμ]  │
+  ├──────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
+  │ R11  │ ❌ TYPE      │ ❌ TYPE      │ ✅ 85 EXCL   │ ❌ ARCHIVED  │ ❌ PURPOSE   │ ❌ TYPE      │ ❌ TYPE      │
+  │BUY/Β.│ APT∉[HSE]   │ APT∉[HSE]   │              │ step 1       │ step 2       │ APT∉[HSE]   │ APT∉[HSE]   │
+  ├──────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
+  │ R12  │ ✅ 83 GOOD   │ ❌ AREA      │ ❌ TYPE      │ ❌ ARCHIVED  │ ❌ PURPOSE   │ ✅ 83 GOOD   │ ❌ AREA      │
+  │BUY/Μ.│              │ N.Σμ∉[Μαρ]  │ HSE∉[APT]   │ step 1       │ step 2       │              │ Γαλ∉[Μαρ]   │
+  ├──────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
+  │ R13  │ ❌ PURPOSE   │ ❌ PURPOSE   │ ❌ PURPOSE   │ ❌ ARCHIVED  │ ✅ 79 GOOD   │ ❌ PURPOSE   │ ❌ PURPOSE   │
+  │RENT/Α│ step 2       │ step 2       │ step 2       │ step 1       │              │ step 2       │ step 2       │
+  ├──────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
+  │ R14  │ ❌ PURPOSE   │ ❌ PURPOSE   │ ❌ PURPOSE   │ ❌ ARCHIVED  │ ❌ AREA      │ ❌ PURPOSE   │ ❌ PURPOSE   │
+  │RENT/Π│ step 2       │ step 2       │ step 2       │ step 1       │ Αθ∉[Παγκρ]  │ step 2       │ step 2       │
+  ├──────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
+  │ R15  │ ❌ BUDGET    │ ❌ AREA      │ ❌ TYPE      │ ❌ ARCHIVED  │ ❌ PURPOSE   │ ❌ BUDGET    │ ✅ 80 GOOD   │
+  │BUY/MG│ 460k>253k    │ N.Σμ∉[M,G]  │ HSE∉[APT]   │ step 1       │ step 2       │ 430k>253k    │ park miss→80 │
+  ├──────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┼──────────────┤
+  │ R16  │ ❌ BUDGET    │ ❌ BUDGET    │ ❌ TYPE      │ ❌ ARCHIVED  │ ❌ PURPOSE   │ ❌ BUDGET    │ ❌ AREA      │
+  │BUY/Α │ 460k>218.5k  │ 225k>218.5k  │ HSE∉[APT]   │ step 1       │ step 2       │ 430k>218.5k  │ Γαλ∉[Αθ]    │
+  └──────┴──────────────┴──────────────┴──────────────┴──────────────┴──────────────┴──────────────┴──────────────┘
+
+  8 qualifying matches total.
+  R14 and R16 have zero matches (designed to demonstrate distinct zero-match patterns).
+
+SCORE BREAKDOWNS (qualifying pairs only):
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R9 × P9 = 85 (EXCELLENT)   [Μαρούσι Α request × Μαρούσι Α property]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    460k within [420k,500k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Μαρούσι exact match
+  BEDROOMS           8    100     8.00    3 ≥ min=3
+  SIZE               7    100     7.00    115sqm within [100,130]
+  ELEVATOR           3    100     3.00    both true
+  PARKING            4    100     4.00    both true
+  (12 no-pref @50) 38     50    19.00    all other 12 criteria
+  ──────────────────────────────────────
+  rawSum = 85.00  →  overallScore = 85  →  EXCELLENT ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R9 × P14 = 85 (EXCELLENT)  [Μαρούσι Α request × Μαρούσι Β property]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    430k within [420k,500k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Μαρούσι exact match
+  BEDROOMS           8    100     8.00    3 ≥ min=3
+  SIZE               7    100     7.00    110sqm within [100,130]
+  ELEVATOR           3    100     3.00    both true
+  PARKING            4    100     4.00    both true
+  (12 no-pref @50) 38     50    19.00    all other 12 criteria
+  ──────────────────────────────────────
+  rawSum = 85.00  →  overallScore = 85  →  EXCELLENT ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R10 × P10 = 83 (GOOD)      [Νέα Σμύρνη request × Νέα Σμύρνη property]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    225k within [180k,250k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Νέα Σμύρνη exact match
+  BEDROOMS           8    100     8.00    2 ≥ min=2
+  SIZE               7    100     7.00    85sqm within [75,100]
+  ELEVATOR           3    100     3.00    both true
+  (13 no-pref @50) 42     50    21.00    all other 13 criteria (incl. PARKING=4)
+  ──────────────────────────────────────
+  rawSum = 83.00  →  overallScore = 83  →  GOOD ✅
+  Note: R10 does not specify parking. P10.parking=false has no effect on score.
+  Note: P9 and P14 both fail BUDGET_HARD_FLOOR (460k/430k > 287.5k) — step 4
+        fires before AREA would also fail (Μαρούσι ∉ [Νέα Σμύρνη]).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R11 × P11 = 85 (EXCELLENT)  [Βούλα HOUSE request × Βούλα HOUSE property]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    690k within [600k,800k]
+  PROPERTY_TYPE     12    100    12.00    HOUSE in [HOUSE]
+  LOCATION          12    100    12.00    Βούλα exact match
+  BEDROOMS           8    100     8.00    3 ≥ min=3
+  SIZE               7    100     7.00    165sqm within [150,200]
+  ELEVATOR           3    100     3.00    both true
+  PARKING            4    100     4.00    both true
+  (12 no-pref @50) 38     50    19.00    all other 12 criteria
+  ──────────────────────────────────────
+  rawSum = 85.00  →  overallScore = 85  →  EXCELLENT ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R12 × P9 = 83 (GOOD)       [Μαρούσι Β request × Μαρούσι Α property]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    460k within [400k,550k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Μαρούσι exact match
+  BEDROOMS           8    100     8.00    3 within [3,4]
+  SIZE               7    100     7.00    115sqm within [105,140]
+  ELEVATOR           3    100     3.00    both true
+  (13 no-pref @50) 42     50    21.00    all other 13 criteria (incl. PARKING=4)
+  ──────────────────────────────────────
+  rawSum = 83.00  →  overallScore = 83  →  GOOD ✅
+  Note: R12 does not specify parking. P9.parking=true has no effect on score.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R12 × P14 = 83 (GOOD)      [Μαρούσι Β request × Μαρούσι Β property]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    430k within [400k,550k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Μαρούσι exact match
+  BEDROOMS           8    100     8.00    3 within [3,4]
+  SIZE               7    100     7.00    110sqm within [105,140]
+  ELEVATOR           3    100     3.00    both true
+  (13 no-pref @50) 42     50    21.00    all other 13 criteria
+  ──────────────────────────────────────
+  rawSum = 83.00  →  overallScore = 83  →  GOOD ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R13 × P13 = 79 (GOOD)      [Ενοικίαση Αθήνα request × Ενοικίαση property]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    1350 within [1200,1500]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Αθήνα exact match
+  SIZE               7    100     7.00    75sqm within [65,90]
+  ELEVATOR           3    100     3.00    both true
+  (14 no-pref @50) 50     50    25.00    all other 14 criteria
+  ──────────────────────────────────────
+  rawSum = 79.00  →  overallScore = 79  →  GOOD ✅
+  Note: R13 specifies no bedrooms. Lower specified-weight sum (54 vs 62/66) means
+        more weight defaults to no-pref@50, driving score to 79 not 85.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R15 × P15 = 80 (GOOD)      [Μαρούσι-Γαλάτσι multi-area × Γαλάτσι property]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    205k within [170k,220k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Γαλάτσι ∈ [Μαρούσι,Γαλάτσι] (token match)
+  BEDROOMS           8    100     8.00    2 ≥ min=2
+  SIZE               7    100     7.00    82sqm within [70,95]
+  PARKING            4      0     0.00    R15 requires parking=true; P15.parking=false
+  (13 no-pref @50) 41     50    20.50    all other 13 criteria (incl. ELEVATOR=3)
+  ──────────────────────────────────────
+  rawSum = 79.50  →  overallScore = 80  →  GOOD ✅
+  Note: R15 specifies parking=T but not elevator. P15.elevator=true has no effect.
+        Parking miss drops score from ~84 to 80.
+  Note: P9 and P14 (both Μαρούσι) pass LOCATION (Μαρούσι ∈ [Μαρούσι,Γαλάτσι])
+        but both fail BUDGET_HARD_FLOOR (460k/430k > round(220k×1.15)=253k).
+        This demonstrates multi-area matching AND budget ceiling in the same pair.
+
+ZERO-MATCH ANALYSIS
+--------------------------------------------------------------------------------
+R14 — Ενοικίαση Παγκράτι (0 matches)
+  P9–P11,P14–P15: PURPOSE_MISMATCH (all SALE ↔ RENT)
+  P12:            ARCHIVED_OR_INACTIVE (step 1)
+  P13:            PURPOSE matches (both RENT), TYPE matches (APT) — but
+                  area=Αθήνα ∉ [Παγκράτι] → AREA_HARD_EXCLUSION (step 5)
+  Teaching point: demonstrates that a RENT request can still hit AREA exclusion
+                  when the only RENT property is in a different neighbourhood.
+
+R16 — Αθήνα Χαμηλό Budget (0 matches)
+  P12:   ARCHIVED_OR_INACTIVE (step 1)
+  P13:   PURPOSE_MISMATCH (step 2)
+  P11:   PROPERTY_TYPE_MISMATCH (HOUSE ∉ [APARTMENT], step 3)
+  P9:    BUDGET_HARD_FLOOR (460k > 218.5k, step 4)
+  P10:   BUDGET_HARD_FLOOR (225k > 218.5k, step 4)
+  P14:   BUDGET_HARD_FLOOR (430k > 218.5k, step 4)
+  P15:   price=205k < 218.5k → passes BUDGET; but area=Γαλάτσι ∉ [Αθήνα]
+         → AREA_HARD_EXCLUSION (step 5)
+  Teaching point: demonstrates the complete disqualifier pipeline hitting all
+                  5 steps across the 7 properties; P15 alone reaches step 5.
+
+================================================================================
+SUMMARY: 8 matches qualify across 6 of 8 requests (R14, R16 = zero matches).
+         Key scenarios exercised:
+           • Two properties in same area → two requests each match both (4 pairs)
+           • Multi-area token matching: Γαλάτσι ∈ [Μαρούσι,Γαλάτσι]
+           • ARCHIVED property: disqualifies at step 1 for all 8 requests
+           • RENTAL property: demonstrates PURPOSE_MISMATCH for BUY requests
+           • BUDGET_HARD_FLOOR before AREA: pipeline order observable in R10/R15
+           • Parking miss: drops R15×P15 from expected ~84 to 80
+           • Sparse request (R13, 5 criteria): ceiling at 79 not 85
+================================================================================

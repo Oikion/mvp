@@ -19,7 +19,7 @@ import {
   Globe,
   RefreshCw,
 } from "lucide-react";
-import type { RequestMatchAnalytics } from "@/actions/matchmaking/get-request-matches";
+import type { RequestMatchAnalytics } from "@/actions/matchmaking/types";
 import type { PersistedMatchItem } from "@/actions/matchmaking/get-persisted-matches";
 import type { CrossOrgMatchSummary } from "@/actions/network/get-cross-org-matches";
 import { triggerIntraOrgMatches } from "@/actions/matchmaking/compute-intra-org-matches";

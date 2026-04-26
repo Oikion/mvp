@@ -46,6 +46,7 @@ export const PREFIX_STRIP_MAP: Record<string, string> = {
   request_notes: "notes",
   contact_description: "description",
   contact_visibility: "visibility",
+  contact_primary_email: "primary_email",
   request_visibility: "visibility",
 };
 
@@ -99,6 +100,7 @@ const PROPERTY_OMIT_KEYS = new Set<string>(["id"]);
 const CONTACT_KEY_RENAMES: Record<string, string> = {
   description: "contact_description",
   visibility: "contact_visibility",
+  primary_email: "contact_primary_email",
 };
 
 // ---------------------------------------------------------------------------
@@ -183,7 +185,7 @@ export const REQUEST_FIELD_KEYS = new Set(
 export const CONTACT_TRIGGER_KEYS = new Set([
   "contact_name",
   "primary_phone",
-  "primary_email",
+  "contact_primary_email",
 ]);
 
 /**

@@ -8,6 +8,43 @@ import { updateRequestSchema, type UpdateRequestInput } from "@/lib/validations/
 import { actionSuccess, actionError, actionValidationError, type ActionResponse } from "@/lib/action-response";
 import { revalidatePath } from "next/cache";
 import { createSystemActivity } from "@/actions/activities";
+import { logEntityCreated, logEntityUpdated, type FieldChange } from "@/lib/activity-logger";
+
+// Safelist of non-encrypted Request fields tracked by the activity log.
+const REQUEST_TRACKED_TO_COLUMN: Record<string, string> = {
+  status: "status",
+  purpose: "propertyCategory",
+  propertyTypes: "propertyTypes",
+  budgetMin: "budgetMin",
+  budgetMax: "budgetMax",
+  timeline: "timeline",
+  assignedToUserId: "assignedAgentId",
+  visibilityState: "visibility",
+};
+
+function serializeValue(v: unknown): string | null {
+  if (v === null || v === undefined) return null;
+  if (Array.isArray(v)) return JSON.stringify(v);
+  if (v instanceof Date) return v.toISOString();
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+
+function diffTrackedFields(
+  oldRecord: Record<string, unknown>,
+  newPayload: Record<string, unknown>
+): FieldChange[] {
+  const changes: FieldChange[] = [];
+  for (const [trackedName, col] of Object.entries(REQUEST_TRACKED_TO_COLUMN)) {
+    if (!(col in newPayload)) continue;
+    const before = serializeValue(oldRecord[col]);
+    const after = serializeValue(newPayload[col]);
+    if (before !== after) {
+      changes.push({ field: trackedName, from: before, to: after });
+    }
+  }
+  return changes;
+}
 
 /**
  * Updates an existing request. Encrypts sensitive fields.
@@ -36,10 +73,20 @@ export async function updateRequest(
 
   const data = validation.data;
 
-  // Fetch existing status before update (for system activity body)
+  // Fetch existing tracked fields before update (for activity diffing)
   const existing = await prismadb.request.findFirst({
     where: { id: requestId, organizationId },
-    select: { status: true },
+    select: {
+      status: true,
+      propertyCategory: true,
+      propertyTypes: true,
+      budgetMin: true,
+      budgetMax: true,
+      timeline: true,
+      assignedAgentId: true,
+      visibility: true,
+      draftStatus: true,
+    },
   });
 
   try {
@@ -71,6 +118,38 @@ export async function updateRequest(
         kind: "OTHER",
         body: `Status changed from ${existing.status} to ${String(data.status)}`,
       });
+    }
+
+    // Activity log — fire-and-forget. Suppressed for drafts. Promotion from
+    // draft → non-draft emits CREATED instead of UPDATED.
+    if (existing) {
+      const wasDraft = existing.draftStatus === true;
+      const isDraftAfter = updated.draftStatus === true;
+
+      if (wasDraft && !isDraftAfter) {
+        void logEntityCreated({
+          organizationId,
+          parentType: "REQUEST",
+          parentId: requestId,
+          createdByUserId: user.id,
+          source: "manual",
+        });
+      } else if (!wasDraft && !isDraftAfter) {
+        const changes = diffTrackedFields(
+          existing as unknown as Record<string, unknown>,
+          data as unknown as Record<string, unknown>
+        );
+        if (changes.length > 0) {
+          void logEntityUpdated({
+            organizationId,
+            parentType: "REQUEST",
+            parentId: requestId,
+            createdByUserId: user.id,
+            changes,
+          });
+        }
+      }
+      // else: update on a draft (still draft) — suppressed.
     }
 
     revalidatePath("/requests");

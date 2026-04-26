@@ -10,6 +10,7 @@ import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 import { encryptPropertyForOrg } from "@/lib/model-encryption";
 import { validateAssignedTo } from "@/lib/validate-assigned-to";
 import { createChangeLogEntry, diffEntity, PROPERTY_WATCHED_FIELDS } from "@/lib/entity-change-log";
+import { logEntityCreated, logEntityUpdated } from "@/lib/activity-logger";
 
 const PROPERTY_ENCRYPTED_FIELDS = ["primary_email", "communication_notes"] as const;
 
@@ -278,6 +279,7 @@ export async function POST(req: Request) {
     }
 
     let property;
+    let isDraftPromotion = false;
 
     if (id) {
       // Update existing draft/property
@@ -292,10 +294,24 @@ export async function POST(req: Request) {
         );
       }
 
+      // Detect draft promotion: was a draft, now being saved as non-draft
+      isDraftPromotion =
+        existingProperty.draft_status === true && data.draft_status === false;
+
       property = await prismadb.properties.update({
         where: { id },
         data,
       });
+
+      if (isDraftPromotion) {
+        void logEntityCreated({
+          organizationId,
+          parentType: "PROPERTY",
+          parentId: property.id,
+          createdByUserId: user.id,
+          source: "manual",
+        });
+      }
     } else {
       // Create new property with friendly ID
       const friendlyId = await generateFriendlyId(prismadb, "Properties", organizationId);
@@ -313,6 +329,18 @@ export async function POST(req: Request) {
         eventType: "CREATED",
         actorUserId: user.id,
       }).catch((err) => console.error("[PROPERTY_CREATED_LOG]", err));
+
+      // Activity log: only emit CREATED for non-draft new properties.
+      // Drafts created via this endpoint (rare) are suppressed.
+      if (!data.draft_status) {
+        void logEntityCreated({
+          organizationId,
+          parentType: "PROPERTY",
+          parentId: property.id,
+          createdByUserId: user.id,
+          source: "manual",
+        });
+      }
     }
 
     await invalidateCache([
@@ -442,6 +470,21 @@ export async function PUT(req: Request) {
         actorUserId: user.id,
         changedFields,
       }).catch((err) => console.error("[PROPERTY_UPDATED_LOG]", err));
+
+      // Activity log mirrors the changelog — suppress for drafts.
+      if (!updatedProperty.draft_status) {
+        void logEntityUpdated({
+          organizationId,
+          parentType: "PROPERTY",
+          parentId: id,
+          createdByUserId: user.id,
+          changes: changedFields.map((c) => ({
+            field: c.field,
+            from: c.from === null || c.from === undefined ? null : String(c.from),
+            to: c.to === null || c.to === undefined ? null : String(c.to),
+          })),
+        });
+      }
     }
 
     await invalidateCache([

@@ -1,0 +1,253 @@
+================================================================================
+MODERATE TIER — EXPECTED IMPORT & MATCHMAKING RESULTS
+================================================================================
+
+SECTION 1: CONTACT IMPORT (contacts.csv)
+--------------------------------------------------------------------------------
+Expected: All 5 rows import successfully.
+
+  C4  Αλεξίου Δημήτριος     → BUYER    / ACTIVE
+  C5  Μιχαηλίδου Σοφία      → INVESTOR / ACTIVE
+  C6  Παπαδάκης Νίκος        → BUYER    / ACTIVE
+  C7  Γεωργίου Άννα          → RENTER   / ACTIVE
+  C8  Τσιώτης Παναγιώτης     → SELLER   / ACTIVE
+
+SECTION 2: PROPERTY IMPORT (properties.csv)
+--------------------------------------------------------------------------------
+Expected: All 5 rows import successfully.
+
+  P4  Διαμέρισμα Γλυφάδα          → APARTMENT / SALE    / ACTIVE  / 280,000€  / 90sqm  / 2bed / elevator+parking
+  P5  Μονοκατοικία Κηφισιά         → HOUSE     / SALE    / ACTIVE  / 550,000€  / 200sqm / 4bed / parking+garden
+  P6  Διαμέρισμα Θεσσαλονίκη       → APARTMENT / SALE    / ACTIVE  / 180,000€  / 75sqm  / 2bed / no elevator/parking
+  P7  Διαμέρισμα Κολωνάκι Ενοικίαση → APARTMENT / RENTAL  / ACTIVE  / 1,100€/mo / 70sqm  / 2bed / elevator
+  P8  Διαμέρισμα Γλυφάδα Β         → APARTMENT / SALE    / PENDING / 295,000€  / 95sqm  / 2bed / elevator, NO parking
+
+  Note: P8 is PENDING — not ACTIVE. Layer 1 step 1 (ARCHIVED_OR_INACTIVE) only
+  disqualifies ARCHIVED and INACTIVE status. PENDING passes and participates
+  in matchmaking normally.
+
+SECTION 3: REQUEST IMPORT (requests.csv)
+--------------------------------------------------------------------------------
+Expected: All 5 rows pass schema validation.
+requestType mapping (after transaction_type→requestType fix):
+  SALE/EXCHANGE/AUCTION → BUY
+  RENTAL/SHORT_TERM     → RENT
+
+  R4  Αναζήτηση Γλυφάδα              → BUY / APARTMENT / 240k–310k / 80–100sqm / 2–3bed / elevator+parking / [Γλυφάδα]
+  R5  Αναζήτηση Κηφισιά              → BUY / HOUSE     / 480k–620k / 180–220sqm / min 3bed / [Κηφισιά]
+  R6  Αναζήτηση Θεσσαλονίκη          → BUY / APARTMENT / 150k–200k / 65–85sqm / min 2bed / [Θεσσαλονίκη]
+  R7  Αναζήτηση Ενοικίαση Κολωνάκι  → RENT / APARTMENT / 900–1200 / 60–80sqm / elevator / [Κολωνάκι]
+  R8  Αναζήτηση Γλυφάδα-Αθήνα       → BUY / APARTMENT / 270k–330k / 85–110sqm / min 2bed / elevator / [Γλυφάδα,Αθήνα]
+
+  Note: R5 does not specify PARKING. R7 does not specify BEDROOMS or PARKING.
+  R8 does not specify PARKING. These omissions drive score differences in the
+  matchmaking section below.
+
+  Note: R8 areas_of_interest is a comma-separated quoted field: "Γλυφάδα,Αθήνα".
+  The import normalizer splits on commas within the field value, yielding two
+  distinct area tokens: [Γλυφάδα, Αθήνα]. Either token matching property.area
+  satisfies the AREA_HARD_EXCLUSION check.
+
+SECTION 4: UNIFIED IMPORT (unified-import.csv)
+--------------------------------------------------------------------------------
+The unified CSV demonstrates multi-entity rows, contact deduplication, and
+property-only rows. It partially overlaps with contacts.csv + properties.csv +
+requests.csv (uses Μιχαηλίδου, Αλεξίου, Γεωργίου and their related properties/
+requests). It should be imported independently, not layered on top.
+
+Row 1 — Contact + Property:
+  Contact:  Μιχαηλίδου Σοφία (INVESTOR/ACTIVE) → created
+  Property: Μονοκατοικία Κηφισιά (SALE/HOUSE/ACTIVE/550,000€) → created
+  Link: property assigned to Μιχαηλίδου
+
+Row 2 — Contact (dedup) + Request:
+  Contact:  Μιχαηλίδου Σοφία — email s.michailidou@example.com matches Row 1
+            → DEDUPLICATED: no new contact record. Linked to existing record.
+  Request:  Αναζήτηση Κηφισιά (BUY/HOUSE/480k–620k) → created
+  Link: request assigned to existing Μιχαηλίδου contact
+
+Row 3 — Contact + Request:
+  Contact:  Αλεξίου Δημήτριος (BUYER/ACTIVE) → created
+  Request:  Αναζήτηση Γλυφάδα (BUY/APARTMENT/240k–310k) → created
+  Link: request assigned to Αλεξίου
+
+Row 4 — Contact + Request:
+  Contact:  Γεωργίου Άννα (RENTER/ACTIVE) → created
+  Request:  Αναζήτηση Ενοικίαση Κολωνάκι (RENT/APARTMENT/900–1200) → created
+  Link: request assigned to Γεωργίου
+
+Row 5 — Property only (no contact, no request):
+  Contact:  none
+  Property: Διαμέρισμα Θεσσαλονίκη (SALE/APARTMENT/ACTIVE/180,000€) → created
+  No contact or request link.
+
+Summary of unified import results:
+  Contacts created: 3 (Μιχαηλίδου, Αλεξίου, Γεωργίου) — Row 2 deduped
+  Properties created: 2 (Μονοκατοικία Κηφισιά, Διαμέρισμα Θεσσαλονίκη)
+  Requests created: 3 (Κηφισιά, Γλυφάδα, Κολωνάκι)
+
+SECTION 5: MATCHMAKING — REQUEST × PROPERTY MATRIX (5×5)
+--------------------------------------------------------------------------------
+Layer 1 Disqualifier execution order:
+  1. ARCHIVED_OR_INACTIVE  (property_status ∉ {ACTIVE, PENDING})
+  2. PURPOSE_MISMATCH      (BUY↔SALE/EXCHANGE/AUCTION; RENT↔RENTAL/SHORT_TERM)
+  3. PROPERTY_TYPE_MISMATCH (property_type ∉ request.propertyTypes[])
+  4. BUDGET_HARD_FLOOR     (price > round(budgetMax × 1.15))
+  5. AREA_HARD_EXCLUSION   (no bidirectional substring match after normalisation)
+
+  ┌──────┬───────────────────────┬───────────────────────┬───────────────────────┬───────────────────────┬───────────────────────┐
+  │      │ P4 Γλυφ(APT/280k)    │ P5 Κηφισ(HOUSE/550k) │ P6 Θεσσ(APT/180k)    │ P7 Κολων(APT/RENT)   │ P8 Γλυφ(APT/295k/P) │
+  ├──────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │  R4  │ ✅ SCORE=85 EXCELLENT │ ❌ TYPE_MISMATCH      │ ❌ AREA_EXCLUSION     │ ❌ PURPOSE_MISMATCH   │ ✅ SCORE=81 GOOD      │
+  │Γλυφ  │                       │ HOUSE ∉ [APARTMENT]   │ Θεσσαλον ∉ [Γλυφάδα] │ BUY≠RENTAL            │ PENDING passes L1     │
+  ├──────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │  R5  │ ❌ TYPE_MISMATCH      │ ✅ SCORE=82 GOOD      │ ❌ TYPE_MISMATCH      │ ❌ PURPOSE_MISMATCH   │ ❌ TYPE_MISMATCH      │
+  │Κηφισ │ APARTMENT ∉ [HOUSE]   │                       │ APARTMENT ∉ [HOUSE]   │ BUY≠RENTAL            │ APARTMENT ∉ [HOUSE]   │
+  ├──────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │  R6  │ ❌ AREA_EXCLUSION     │ ❌ TYPE_MISMATCH      │ ✅ SCORE=82 GOOD      │ ❌ PURPOSE_MISMATCH   │ ❌ AREA_EXCLUSION     │
+  │Θεσσ  │ Γλυφάδα ∉ [Θεσσαλον] │ HOUSE ∉ [APARTMENT]   │                       │ BUY≠RENTAL            │ Γλυφάδα ∉ [Θεσσαλον]  │
+  ├──────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │  R7  │ ❌ PURPOSE_MISMATCH   │ ❌ PURPOSE_MISMATCH   │ ❌ PURPOSE_MISMATCH   │ ✅ SCORE=79 GOOD      │ ❌ PURPOSE_MISMATCH   │
+  │Κολων │ RENT≠SALE             │ RENT≠SALE             │ RENT≠SALE             │ RENTAL satisfies RENT │ RENT≠SALE             │
+  ├──────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │  R8  │ ✅ SCORE=83 GOOD      │ ❌ TYPE_MISMATCH      │ ❌ AREA_EXCLUSION     │ ❌ PURPOSE_MISMATCH   │ ✅ SCORE=83 GOOD      │
+  │Γλυφ+ │ Γλυφάδα∈[Γλυφ,Αθήν]  │ HOUSE ∉ [APARTMENT]   │ Θεσσαλον∉[Γλυφ,Αθήν] │ BUY≠RENTAL            │ Γλυφάδα∈[Γλυφ,Αθήν]  │
+  │Αθήνα │                       │                       │                       │                       │                       │
+  └──────┴───────────────────────┴───────────────────────┴───────────────────────┴───────────────────────┴───────────────────────┘
+
+SCORE BREAKDOWNS (qualifying pairs only):
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R4 × P4 = 85 (EXCELLENT)
+  R4: BUY/APARTMENT / budget=[240k,310k] / size=[80,100] / beds=[2,3] / elev=T / parking=T / areas=[Γλυφάδα]
+  P4: SALE/APARTMENT/ACTIVE / 280k / 90sqm / 2bed / floor=4 / elev=T / parking=T / Γλυφάδα
+
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    280k within [240k,310k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Γλυφάδα exact match
+  BEDROOMS           8    100     8.00    2 within [2,3]
+  SIZE               7    100     7.00    90sqm within [80,100]
+  ELEVATOR           3    100     3.00    both true
+  PARKING            4    100     4.00    both true
+  (7 no-pref @50)   38     50    19.00    remaining criteria
+  ─────────────────────────────────────────────
+  rawSum = 85.00  →  overallScore = 85  →  EXCELLENT ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R4 × P8 = 81 (GOOD)
+  P8: SALE/APARTMENT/PENDING / 295k / 95sqm / 2bed / floor=3 / elev=T / parking=F / Γλυφάδα
+
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    295k within [240k,310k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Γλυφάδα exact match
+  BEDROOMS           8    100     8.00    2 within [2,3]
+  SIZE               7    100     7.00    95sqm within [80,100]
+  ELEVATOR           3    100     3.00    both true
+  PARKING            4      0     0.00    request=true, property=false → miss
+  (7 no-pref @50)   38     50    19.00    remaining criteria
+  ─────────────────────────────────────────────
+  rawSum = 81.00  →  overallScore = 81  →  GOOD ✅
+  Note: Only the PARKING criterion separates R4×P8 from R4×P4 (85→81).
+  An agent should flag this: client requires parking but the property has none.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R5 × P5 = 82 (GOOD)
+  R5: BUY/HOUSE / budget=[480k,620k] / size=[180,220] / beds=[3,∞) / areas=[Κηφισιά]
+  P5: SALE/HOUSE/ACTIVE / 550k / 200sqm / 4bed / elev=F / parking=T / garden=T / Κηφισιά
+
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    550k within [480k,620k]
+  PROPERTY_TYPE     12    100    12.00    HOUSE in [HOUSE]
+  LOCATION          12    100    12.00    Κηφισιά exact match
+  BEDROOMS           8    100     8.00    min=3, actual=4, no max → 100
+  SIZE               7    100     7.00    200sqm within [180,220]
+  (14 no-pref @50)  45     50    22.50    R5 specifies no elevator/parking
+  ─────────────────────────────────────────────
+  rawSum = 81.50  →  overallScore = 82  →  GOOD ✅
+  Note: R5 does not specify elevator or parking preferences. Both are treated
+  as no-preference, contributing 50 to the weighted sum at their weights.
+  This is intentional: the request "Μεγάλος κήπος επιθυμητός" text note
+  expresses a preference for garden but no boolean field captures it.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R6 × P6 = 82 (GOOD)
+  R6: BUY/APARTMENT / budget=[150k,200k] / size=[65,85] / beds=[2,∞) / areas=[Θεσσαλονίκη]
+  P6: SALE/APARTMENT/ACTIVE / 180k / 75sqm / 2bed / floor=2 / elev=F / parking=F / Θεσσαλονίκη
+
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    180k within [150k,200k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Θεσσαλονίκη exact match
+  BEDROOMS           8    100     8.00    min=2, actual=2 → 100
+  SIZE               7    100     7.00    75sqm within [65,85]
+  (14 no-pref @50)  45     50    22.50    remaining criteria
+  ─────────────────────────────────────────────
+  rawSum = 81.50  →  overallScore = 82  →  GOOD ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R7 × P7 = 79 (GOOD)
+  R7: RENT/APARTMENT / budget=[900,1200] / size=[60,80] / elevator=T / areas=[Κολωνάκι]
+  P7: RENTAL/APARTMENT/ACTIVE / 1100€/mo / 70sqm / 2bed / floor=3 / elev=T / parking=F / Κολωνάκι
+
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    1100 within [900,1200]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Κολωνάκι exact match
+  SIZE               7    100     7.00    70sqm within [60,80]
+  ELEVATOR           3    100     3.00    both true
+  (15 no-pref @50)  50     50    25.00    R7 has no beds/parking pref
+  ─────────────────────────────────────────────
+  rawSum = 79.00  →  overallScore = 79  →  GOOD ✅
+  Note: R7 specifies neither BEDROOMS nor PARKING. Both are no-preference.
+  The lower score (79 vs R4's 85) is entirely due to fewer specified criteria.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R8 × P4 = 83 (GOOD)
+  R8: BUY/APARTMENT / budget=[270k,330k] / size=[85,110] / beds=[2,∞) / elevator=T / areas=[Γλυφάδα,Αθήνα]
+  P4: SALE/APARTMENT/ACTIVE / 280k / 90sqm / 2bed / floor=4 / elev=T / parking=T / Γλυφάδα
+
+  Area check: Γλυφάδα ∈ [Γλυφάδα, Αθήνα] → PASS
+
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    280k within [270k,330k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Γλυφάδα in [Γλυφάδα, Αθήνα]
+  BEDROOMS           8    100     8.00    min=2, actual=2 → 100
+  SIZE               7    100     7.00    90sqm within [85,110]
+  ELEVATOR           3    100     3.00    both true
+  (13 no-pref @50)  42     50    21.00    R8 omits PARKING preference
+  ─────────────────────────────────────────────
+  rawSum = 83.00  →  overallScore = 83  →  GOOD ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+R8 × P8 = 83 (GOOD)
+  P8: SALE/APARTMENT/PENDING / 295k / 95sqm / 2bed / floor=3 / elev=T / parking=F / Γλυφάδα
+
+  Area check: Γλυφάδα ∈ [Γλυφάδα, Αθήνα] → PASS
+
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    295k within [270k,330k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Γλυφάδα in [Γλυφάδα, Αθήνα]
+  BEDROOMS           8    100     8.00    min=2, actual=2 → 100
+  SIZE               7    100     7.00    95sqm within [85,110]
+  ELEVATOR           3    100     3.00    both true
+  (13 no-pref @50)  42     50    21.00    R8 omits PARKING preference
+  ─────────────────────────────────────────────
+  rawSum = 83.00  →  overallScore = 83  →  GOOD ✅
+  Note: P8 has parking=false, but since R8 does not express a parking preference,
+  the criterion defaults to no-preference (score 50). Compare R4×P8 (81) where
+  R4 does specify parking=true — the miss costs 4 weighted points.
+
+================================================================================
+SUMMARY: 7 qualifying matches (one R4 matches two properties: P4+P8; R8 also
+         matches two: P4+P8). Disqualifiers are clean and predictable.
+         Key teaching points:
+         — R4 vs R8 with P8: PARKING preference = 4-point score gap (81 vs 83)
+         — R5/R6 score 82 (not 85) because fewer criteria are specified
+         — R7 is the only RENT request; all other requests are BUY
+         — PENDING status (P8) does not disqualify — only ARCHIVED/INACTIVE does
+         — R8's multi-area field demonstrates comma-separated area normalisation
+================================================================================

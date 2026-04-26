@@ -1,0 +1,6 @@
+contact_name,primary_email,primary_phone,contact_category,contact_status
+Αλεξίου Δημήτριος,d.alexiou@example.com,+30 210 4567890,BUYER,ACTIVE
+Μιχαηλίδου Σοφία,s.michailidou@example.com,+30 210 5678901,INVESTOR,ACTIVE
+Παπαδάκης Νίκος,n.papadakis@example.com,+30 210 6789012,BUYER,ACTIVE
+Γεωργίου Άννα,a.georgiou@example.com,+30 210 7890123,RENTER,ACTIVE
+Τσιώτης Παναγιώτης,p.tsiotis@example.com,+30 210 8901234,SELLER,ACTIVE

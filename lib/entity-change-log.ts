@@ -26,7 +26,7 @@ export const CONTACT_WATCHED_FIELDS = [
 
 export const PROPERTY_WATCHED_FIELDS = [
   "property_status",
-  "assignedToUserId",
+  "assigned_to",
   "visibility",
   "price",
   "property_type",

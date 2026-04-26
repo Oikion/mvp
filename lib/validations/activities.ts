@@ -23,6 +23,14 @@ export const activityKindSchema = z.enum([
   "SHOWING",
   "DOCUMENT",
   "OTHER",
+  // System-generated kinds (Activity Log v2)
+  "CREATED",
+  "UPDATED",
+  "LINKED",
+  "UNLINKED",
+  "STAGE_CHANGED",
+  "CALENDAR_EVENT_ADDED",
+  "CALENDAR_EVENT_REMOVED",
 ]);
 
 export const activityDirectionSchema = z.enum([
@@ -71,8 +79,8 @@ export const createActivitySchema = z
     durationMin: z.coerce.number().int().min(0).optional(),
 
     // Rich linking (optional)
-    relatedDocumentId: z.string().optional(),           // UUID (Documents model uses UUID, not CUID)
-    relatedContactId: z.string().cuid().optional(),
+    relatedDocumentId: z.string().optional(),            // UUID (Documents model uses UUID, not CUID)
+    relatedContactId: z.string().uuid().optional(),     // UUID (Contact model uses UUID, not CUID)
     relatedPropertyId: z.string().optional(),           // UUID (Properties model uses UUID, not CUID)
   })
   .strict();

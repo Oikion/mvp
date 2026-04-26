@@ -11,6 +11,7 @@
 import { prismadb } from "@/lib/prisma";
 import { generateFriendlyIds, type EntityType } from "@/lib/friendly-id";
 import { getOrgDek } from "@/lib/key-management";
+import { logEntityCreated } from "@/lib/activity-logger";
 import {
   UNIFIED_FIELD_DEFINITIONS,
   stripEntityPrefix,
@@ -39,6 +40,15 @@ export interface BatchImportResult {
   };
   errors: Array<{ rowIndex: number; entity: string; error: string }>;
   skippedCount: number;
+}
+
+export interface ImportEngineOptions {
+  /** When false, request rows are skipped even if present. Defaults to true. */
+  autoCreateRequests?: boolean;
+  /** Import batch ID (from ImportHistory) — written into activity metadata as targetUrl. */
+  importBatchId?: string;
+  /** Original filename shown in the activity body. */
+  importFilename?: string;
 }
 
 
@@ -85,7 +95,7 @@ function contactDedupKeyFromRow(row: Record<string, unknown>): string {
   const phone = String(row.primary_phone ?? "")
     .trim()
     .replace(/\D/g, "");
-  const email = String(row.primary_email ?? "").trim().toLowerCase();
+  const email = String(row.contact_primary_email ?? "").trim().toLowerCase();
   const name = String(row.contact_name ?? "").trim().toLowerCase();
   if (phone) return `phone:${phone}`;
   if (email) return `email:${email}`;
@@ -115,6 +125,7 @@ export async function executeBatchImport(
   orgId: string,
   userId: string,
   assignedTo?: string | null,
+  options?: ImportEngineOptions,
 ): Promise<BatchImportResult> {
   const errors: BatchImportResult["errors"] = [];
   let skippedCount = 0;
@@ -351,7 +362,7 @@ export async function executeBatchImport(
     }
 
     // --- REQUEST ---
-    if (row.hasRequest && row.requestRow) {
+    if (row.hasRequest && row.requestRow && options?.autoCreateRequests !== false) {
       try {
         const requestUuid = crypto.randomUUID();
         const requestRowData = { ...row.requestRow };
@@ -536,7 +547,46 @@ export async function executeBatchImport(
     { timeout: 15000 },
   );
 
-  // 5. Assemble typed result
+  // 5. Fire-and-forget activity log — one CREATED entry per entity, after commit
+  const importBatchId = options?.importBatchId;
+  const importFilename = options?.importFilename;
+  void Promise.allSettled([
+    ...contactsToCreate.map((c) =>
+      logEntityCreated({
+        organizationId: orgId,
+        parentType: "CONTACT",
+        parentId: c.uuid,
+        createdByUserId: userId,
+        source: "import",
+        importBatchId,
+        importFilename,
+      }),
+    ),
+    ...propertiesToCreate.map((p) =>
+      logEntityCreated({
+        organizationId: orgId,
+        parentType: "PROPERTY",
+        parentId: p.uuid,
+        createdByUserId: userId,
+        source: "import",
+        importBatchId,
+        importFilename,
+      }),
+    ),
+    ...requestsToCreate.map((r) =>
+      logEntityCreated({
+        organizationId: orgId,
+        parentType: "REQUEST",
+        parentId: r.uuid,
+        createdByUserId: userId,
+        source: "import",
+        importBatchId,
+        importFilename,
+      }),
+    ),
+  ]);
+
+  // 6. Assemble typed result
   const result: BatchImportResult = {
     contacts: contactsToCreate.map((c) => ({
       uuid: c.uuid,

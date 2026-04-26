@@ -1,5 +1,3 @@
-"use server";
-
 // Re-export from the canonical dashboard action location.
 export {
   getMatchmakingSummary,

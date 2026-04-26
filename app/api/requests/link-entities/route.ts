@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
+import { logEntityLinkedSymmetric, logEntityUnlinkedSymmetric } from "@/lib/activity-logger";
 
 /**
  * POST /api/requests/link-entities
@@ -86,6 +87,26 @@ export async function POST(req: Request) {
       });
 
       links.push(contactLinks);
+
+      // Activity log — symmetric link for each contact (fire-and-forget).
+      // Labels stay generic because Request.title and Contact.displayName are
+      // encrypted at rest.
+      if (organizationId) {
+        for (const contactId of contactIds as string[]) {
+          void logEntityLinkedSymmetric({
+            organizationId,
+            aType: "REQUEST",
+            aId: requestId,
+            aLabel: "Request",
+            aUrl: `/app/requests/${requestId}`,
+            bType: "CONTACT",
+            bId: contactId,
+            bLabel: "Contact",
+            bUrl: `/app/crm/contacts/${contactId}`,
+            createdByUserId: user?.id,
+          });
+        }
+      }
     }
 
     await invalidateCache([`request:${requestId}`, "requests:list"]);
@@ -149,6 +170,24 @@ export async function DELETE(req: Request) {
           contactId: { in: contactIds },
         },
       });
+
+      // Activity log — symmetric unlink for each contact (fire-and-forget).
+      if (organizationId) {
+        for (const contactId of contactIds) {
+          void logEntityUnlinkedSymmetric({
+            organizationId,
+            aType: "REQUEST",
+            aId: requestId,
+            aLabel: "Request",
+            aUrl: `/app/requests/${requestId}`,
+            bType: "CONTACT",
+            bId: contactId,
+            bLabel: "Contact",
+            bUrl: `/app/crm/contacts/${contactId}`,
+            createdByUserId: user?.id,
+          });
+        }
+      }
     }
 
     await invalidateCache([`request:${requestId}`, "requests:list"]);
@@ -244,6 +283,25 @@ export async function PUT(req: Request) {
       });
 
       links.push(contactLinks);
+
+      // Activity log — symmetric link for each request (fire-and-forget).
+      if (organizationId) {
+        for (const reqId of requestIds as string[]) {
+          void logEntityLinkedSymmetric({
+            organizationId,
+            aType: "REQUEST",
+            aId: reqId,
+            aLabel: "Request",
+            aUrl: `/app/requests/${reqId}`,
+            bType: "CONTACT",
+            bId: contactId,
+            bLabel: "Contact",
+            bUrl: `/app/crm/contacts/${contactId}`,
+            createdByUserId: user?.id,
+          });
+        }
+      }
+
       await invalidateCache([`contact:${contactId}`, "contacts:list"]);
     }
 

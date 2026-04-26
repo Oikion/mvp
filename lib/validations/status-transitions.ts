@@ -218,6 +218,24 @@ export function isDealStageTerminal(stage: DealStage): boolean {
   return DEAL_STAGE_TRANSITIONS[stage]?.length === 0;
 }
 
+/**
+ * Validate a manual stage set — allows free traversal between any non-terminal stages.
+ *
+ * Rules:
+ * - `from` must not be a terminal stage (COMPLETED / FALLEN_THROUGH can't be undone).
+ * - `to` must not be COMPLETED or FALLEN_THROUGH (those require the dedicated paths).
+ * - Same-stage is always valid (no-op).
+ *
+ * Use this for UI-driven "jump to any stage" actions. Keep `isValidDealStageTransition`
+ * for automated/sequential pipeline advancement.
+ */
+export function isValidDealStageManualSet(from: DealStage, to: DealStage): boolean {
+  if (from === to) return true;
+  if (isDealStageTerminal(from)) return false;
+  if (to === "COMPLETED" || to === "FALLEN_THROUGH") return false;
+  return true;
+}
+
 // =============================================================================
 // Generic Transition Helpers
 // =============================================================================

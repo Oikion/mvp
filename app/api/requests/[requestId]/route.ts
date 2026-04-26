@@ -5,6 +5,78 @@ import { getCurrentUser } from "@/lib/get-current-user";
 import { canPerformAction } from "@/lib/permissions";
 import { updateRequestSchema } from "@/lib/validations/requests";
 import { encryptRequestForOrg, decryptRequestForOrg, decryptContactForOrg } from "@/lib/model-encryption";
+import { logEntityCreated, logEntityUpdated, type FieldChange } from "@/lib/activity-logger";
+
+// Safelist of non-encrypted Request fields tracked by the activity log.
+const REQUEST_TRACKED_FIELDS = [
+  "status",
+  "purpose",
+  "propertyTypes",
+  "areas",
+  "budgetMin",
+  "budgetMax",
+  "timeline",
+  "assignedToUserId",
+  "visibilityState",
+] as const;
+
+// Maps tracked-field name to the actual Prisma column on Request.
+// `purpose`, `areas`, `assignedToUserId`, `visibilityState` are external-facing
+// names; map them to the underlying schema columns.
+const TRACKED_TO_COLUMN: Record<string, string> = {
+  status: "status",
+  purpose: "propertyCategory",
+  propertyTypes: "propertyTypes",
+  areas: "areasOfInterest", // encrypted — listed for completeness, filtered out below
+  budgetMin: "budgetMin",
+  budgetMax: "budgetMax",
+  timeline: "timeline",
+  assignedToUserId: "assignedAgentId",
+  visibilityState: "visibility",
+};
+
+// Encrypted columns that must NEVER be tracked.
+const REQUEST_ENCRYPTED_COLUMNS = new Set([
+  "title",
+  "notes",
+  "locationDisplayName",
+  "communicationNotes",
+  "areasOfInterest",
+]);
+
+/**
+ * Serialize a value into a string suitable for the `from`/`to` slots on a
+ * FieldChange. Arrays serialize as JSON to preserve element order/comparison.
+ */
+function serializeValue(v: unknown): string | null {
+  if (v === null || v === undefined) return null;
+  if (Array.isArray(v)) return JSON.stringify(v);
+  if (v instanceof Date) return v.toISOString();
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+
+/**
+ * Diff old vs. new tracked-field values into FieldChange entries.
+ * Skips encrypted columns and any field not present in the new payload.
+ */
+function diffTrackedFields(
+  oldRecord: Record<string, unknown>,
+  newPayload: Record<string, unknown>
+): FieldChange[] {
+  const changes: FieldChange[] = [];
+  for (const trackedName of REQUEST_TRACKED_FIELDS) {
+    const col = TRACKED_TO_COLUMN[trackedName];
+    if (!col || REQUEST_ENCRYPTED_COLUMNS.has(col)) continue;
+    if (!(col in newPayload)) continue;
+    const before = serializeValue(oldRecord[col]);
+    const after = serializeValue(newPayload[col]);
+    if (before !== after) {
+      changes.push({ field: trackedName, from: before, to: after });
+    }
+  }
+  return changes;
+}
 
 export async function GET(
   req: Request,
@@ -125,10 +197,22 @@ export async function PUT(
       ? await encryptRequestForOrg(toEncrypt, organizationId)
       : {};
 
-    // Look up the real ID first to apply TOCTOU-safe update
+    // Look up the real ID + tracked fields for diffing.
+    // Inline select keeps Prisma's type inference precise.
     const existing = await prismadb.request.findFirst({
       where: { friendlyId: requestId, organizationId },
-      select: { id: true },
+      select: {
+        id: true,
+        draftStatus: true,
+        status: true,
+        propertyCategory: true,
+        propertyTypes: true,
+        budgetMin: true,
+        budgetMax: true,
+        timeline: true,
+        assignedAgentId: true,
+        visibility: true,
+      },
     });
 
     if (!existing) {
@@ -143,6 +227,36 @@ export async function PUT(
         updatedBy: user.id,
       },
     });
+
+    // Activity log — fire-and-forget. Suppressed for drafts. Promotion from
+    // draft → non-draft emits CREATED instead of UPDATED.
+    const wasDraft = existing.draftStatus === true;
+    const isDraftAfter = updated.draftStatus === true;
+
+    if (wasDraft && !isDraftAfter) {
+      void logEntityCreated({
+        organizationId,
+        parentType: "REQUEST",
+        parentId: existing.id,
+        createdByUserId: user.id,
+        source: "manual",
+      });
+    } else if (!wasDraft && !isDraftAfter) {
+      const changes = diffTrackedFields(
+        existing as unknown as Record<string, unknown>,
+        data as unknown as Record<string, unknown>
+      );
+      if (changes.length > 0) {
+        void logEntityUpdated({
+          organizationId,
+          parentType: "REQUEST",
+          parentId: existing.id,
+          createdByUserId: user.id,
+          changes,
+        });
+      }
+    }
+    // else: update on a draft (draftStatus stays true) — suppressed.
 
     return NextResponse.json(updated);
   } catch (error) {

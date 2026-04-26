@@ -131,6 +131,7 @@ export {
   normalizeAmenityKey,
   parseAmenityPreferences,
   getPropertySizeSqm,
+  convertMatchScore,
   getBudgetRange,
   isPriceInBudget,
   normalizeLocation,

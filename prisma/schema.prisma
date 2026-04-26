@@ -4002,6 +4002,14 @@ enum ActivityKind {
   SHOWING
   DOCUMENT
   OTHER
+  // System-generated activity kinds (Activity Log v2)
+  CREATED
+  UPDATED
+  LINKED
+  UNLINKED
+  STAGE_CHANGED
+  CALENDAR_EVENT_ADDED
+  CALENDAR_EVENT_REMOVED
 }
 
 enum ActivityDirection {
@@ -4037,6 +4045,7 @@ model Activity {
   relatedDocumentId  String?
   relatedContactId   String?
   relatedPropertyId  String?
+  metadata         Json?
   deletedAt        DateTime?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt

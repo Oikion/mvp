@@ -17,7 +17,6 @@ import {
   Building2,
   Target,
   TrendingUp,
-  CheckCircle2,
   ArrowRight,
   Bed,
   MapPin,
@@ -28,7 +27,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
-import type { RequestMatchAnalytics } from "@/actions/matchmaking/get-request-matches";
+import type { RequestMatchAnalytics } from "@/actions/matchmaking/types";
 import type { PersistedMatchItem } from "@/actions/matchmaking/get-persisted-matches";
 import { MatchScoreBreakdown } from "./MatchScoreBreakdown";
 
@@ -63,38 +62,6 @@ export function RequestMatchesTab({
   isRunning,
 }: Props) {
   const t = useTranslations("matchmaking");
-  const { requestStats } = analytics;
-
-  const statsCards = [
-    {
-      title: t("requestMatches.stats.totalRequests"),
-      value: requestStats.totalRequests,
-      icon: FileText,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
-    },
-    {
-      title: t("requestMatches.stats.activeRequests"),
-      value: requestStats.activeRequests,
-      icon: CheckCircle2,
-      color: "text-success",
-      bgColor: "bg-success/10",
-    },
-    {
-      title: t("requestMatches.stats.requestsWithMatches"),
-      value: requestStats.requestsWithMatches,
-      icon: Target,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-    },
-    {
-      title: t("requestMatches.stats.avgMatchScore"),
-      value: `${requestStats.avgMatchScore}%`,
-      icon: TrendingUp,
-      color: "text-warning",
-      bgColor: "bg-warning/10",
-    },
-  ];
 
   return (
     <div className="space-y-6">
@@ -112,25 +79,6 @@ export function RequestMatchesTab({
           </Button>
         </div>
       )}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsCards.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
       {/* Top Request-Property Matches */}
       <Card>

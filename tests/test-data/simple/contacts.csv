@@ -1,0 +1,4 @@
+contact_name,primary_email,primary_phone,contact_category,contact_status
+Παπαδόπουλος Γεώργιος,gpapadopoulos@example.com,+30 210 1234567,BUYER,ACTIVE
+Ζαχαρία Μαρία,mzacharia@example.com,+30 210 2345678,SELLER,ACTIVE
+Κωνσταντινίδου Ελένη,ekonstantinidou@example.com,+30 210 3456789,BUYER,LEAD

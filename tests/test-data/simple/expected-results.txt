@@ -1,0 +1,100 @@
+================================================================================
+SIMPLE TIER — EXPECTED IMPORT & MATCHMAKING RESULTS
+================================================================================
+
+SECTION 1: CONTACT IMPORT
+--------------------------------------------------------------------------------
+Expected: All 3 rows import successfully.
+
+  C1  Παπαδόπουλος Γεώργιος  → BUYER / ACTIVE
+  C2  Ζαχαρία Μαρία          → SELLER / ACTIVE
+  C3  Κωνσταντινίδου Ελένη   → BUYER / LEAD
+
+SECTION 2: PROPERTY IMPORT
+--------------------------------------------------------------------------------
+Expected: All 3 rows import successfully.
+
+  P1  Διαμέρισμα Κολωνάκι    → APARTMENT / SALE / ACTIVE / 320,000€ / 85sqm / 2bed
+  P2  Μονοκατοικία Βούλα      → HOUSE     / SALE / ACTIVE / 820,000€ / 220sqm / 4bed
+  P3  Διαμέρισμα Παγκράτι     → APARTMENT / SALE / ACTIVE / 195,000€ / 65sqm  / 1bed
+
+SECTION 3: REQUEST IMPORT
+--------------------------------------------------------------------------------
+Expected: All 3 rows pass schema validation and import with correct requestType mapping.
+  SALE → requestType=BUY  (via mapTransactionTypeToRequestType in request-import-config.ts)
+
+  R1  Αναζήτηση Διαμέρισμα Κολωνάκι → SALE / APARTMENT / 250k–380k / 70–110sqm / 2–3bed / elevator+parking / [Κολωνάκι]
+  R2  Αναζήτηση Σπίτι Βούλα          → SALE / HOUSE     / 700k–900k / 180–260sqm / min 3bed / parking / [Βούλα]
+  R3  Αναζήτηση Διαμέρισμα Παγκράτι  → SALE / APARTMENT / 160k–230k / 55–80sqm  / min 2bed / [Παγκράτι]
+
+SECTION 4: MATCHMAKING — REQUEST × PROPERTY MATRIX
+--------------------------------------------------------------------------------
+NOTE: All 3 requests import with requestType=BUY (SALE→BUY via mapper).
+      All 3 properties are SALE → PURPOSE_MISMATCH check passes for all.
+      Layer 1 Disqualifier execution order:
+        1. ARCHIVED_OR_INACTIVE  (property_status ∉ {ACTIVE, PENDING})
+        2. PURPOSE_MISMATCH      (BUY ↔ SALE, RENT ↔ RENTAL/SHORT_TERM)
+        3. PROPERTY_TYPE_MISMATCH (property_type ∉ request.propertyTypes[])
+        4. BUDGET_HARD_FLOOR     (price > round(budgetMax × 1.15))
+        5. AREA_HARD_EXCLUSION   (no bidirectional substring match after normalisation)
+
+  ┌──────┬──────────────────────────────────────┬──────────────────────────────────────┬──────────────────────────────────────┐
+  │      │ P1 Κολωνάκι (APARTMENT/320k/2bed)    │ P2 Βούλα (HOUSE/820k/4bed)           │ P3 Παγκράτι (APARTMENT/195k/1bed)    │
+  ├──────┼──────────────────────────────────────┼──────────────────────────────────────┼──────────────────────────────────────┤
+  │  R1  │ ✅ SCORE=85 EXCELLENT                │ ❌ AREA_HARD_EXCLUSION               │ ❌ AREA_HARD_EXCLUSION              │
+  │Κολων.│ All 7 specified criteria = 100       │ Βούλα ∉ [Κολωνάκι]                  │ Παγκράτι ∉ [Κολωνάκι]                 │
+  ├──────┼──────────────────────────────────────┼──────────────────────────────────────┼──────────────────────────────────────┤
+  │  R2  │ ❌ PROPERTY_TYPE_MISMATCH            │ ✅ SCORE=84 GOOD                     │ ❌ AREA_HARD_EXCLUSION              │
+  │Βούλα │ APARTMENT ∉ [HOUSE]                  │ All 6 specified criteria = 100       │ Παγκράτι ∉ [Βούλα]                   │
+  │      │                                      │ Bedrooms: min=3, actual=4 → 100      │                                      │
+  ├──────┼──────────────────────────────────────┼──────────────────────────────────────┼──────────────────────────────────────┤
+  │  R3  │ ❌ AREA_HARD_EXCLUSION               │ ❌ AREA_HARD_EXCLUSION               │ ✅ SCORE=77 GOOD                    │
+  │Παγκρ.│ Κολωνάκι ∉ [Παγκράτι]               │ Βούλα ∉ [Παγκράτι]                  │ Bedrooms: min=2, actual=1 → deficit=1. │
+  │      │                                      │                                      │ Score=40 → weighted=3.20             │
+  └──────┴──────────────────────────────────────┴──────────────────────────────────────┴──────────────────────────────────────┘
+
+SCORE BREAKDOWNS (only qualifying pairs):
+
+R1 × P1 = 85 (EXCELLENT)
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    320k within [250k,380k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Κολωνάκι exact match
+  BEDROOMS           8    100     8.00    2 within [2,3]
+  SIZE               7    100     7.00    85sqm within [70,110]
+  PARKING            4    100     4.00    both true
+  ELEVATOR           3    100     3.00    both true
+  (12 no-pref @50)  52     50    19.00    all other criteria
+  ──────────────────────────────────────
+  rawSum = 85.00  →  overallScore = 85  →  EXCELLENT ✅
+
+R2 × P2 = 84 (GOOD)
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    820k within [700k,900k]
+  PROPERTY_TYPE     12    100    12.00    HOUSE in [HOUSE]
+  LOCATION          12    100    12.00    Βούλα exact match
+  BEDROOMS           8    100     8.00    min=3, actual=4, no max → 100
+  SIZE               7    100     7.00    220sqm within [180,260]
+  PARKING            4    100     4.00    both true
+  (13 no-pref @50)  53     50    20.50    all other criteria
+  ──────────────────────────────────────
+  rawSum = 83.50  →  overallScore = 84  →  GOOD ✅
+
+R3 × P3 = 77 (GOOD)
+  Criterion       Weight  Score  Weighted  Reason
+  BUDGET            20    100    20.00    195k within [160k,230k]
+  PROPERTY_TYPE     12    100    12.00    APARTMENT in [APARTMENT]
+  LOCATION          12    100    12.00    Παγκράτι exact match
+  BEDROOMS           8     40     3.20    deficit=1 (need≥2, has 1) → max(0,40-(1-1)×20)=40
+  SIZE               7    100     7.00    65sqm within [55,80]
+  (14 no-pref @50)  56     50    23.00    all other criteria (incl. PARKING=4, ELEVATOR=3)
+  ──────────────────────────────────────
+  rawSum = 77.20  →  overallScore = 77  →  GOOD ✅
+  Note: bedroom deficit drives the score down from ~82 to 77. An agent should flag
+  this: the client wants ≥2 bedrooms but the property only has 1.
+
+================================================================================
+SUMMARY: 3 matches pass Layer 1 (one per request×property diagonal).
+         Disqualifiers cleanly isolate each request to its intended property.
+         R3×P3 demonstrates the bedroom-deficit penalty in the scoring layer.
+================================================================================

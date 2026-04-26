@@ -53,7 +53,7 @@
     },
     "quickStats": {
       "excellentMatches": "Excellent Matches",
-      "clientsNeedProperties": "Clients Need Properties",
+      "clientsNeedProperties": "Requests Need Properties",
       "highDemandProperties": "High Demand Properties",
       "persistedMatches": "Saved Matches"
     }
@@ -91,12 +91,12 @@
     "viewProperty": "View Property"
   },
   "unmatchedClients": {
-    "title": "Clients Without Good Matches",
-    "description": "These clients have no properties matching their criteria above 50%",
-    "allClientsMatched": "All clients have good matches!",
-    "allClientsMatchedDesc": "Every active client has at least one property matching above 50%.",
-    "needsAttention": "clients need attention",
-    "attentionDesc": "These clients have no properties matching their preferences above 50%. Consider expanding their search criteria or adding new properties.",
+    "title": "Requests Without Good Matches",
+    "description": "These requests have no properties matching their criteria above 50%",
+    "allClientsMatched": "All requests have good matches!",
+    "allClientsMatchedDesc": "Every active request has at least one property matching above 50%.",
+    "needsAttention": "requests need attention",
+    "attentionDesc": "These requests have no properties matching their preferences above 50%. Consider expanding their search criteria or adding new properties.",
     "bestMatch": "Best match",
     "review": "Review"
   },

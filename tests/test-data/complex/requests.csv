@@ -1,0 +1,9 @@
+title,transaction_type,property_type,status,budget_min,budget_max,size_min_sqm,size_max_sqm,bedrooms_min,bedrooms_max,bathrooms_min,floor_min,floor_max,elevator,parking,areas_of_interest,condition,energy_cert_min,year_built_min,year_built_max,notes,timeline
+Αναζήτηση Μαρούσι Α,SALE,APARTMENT,ACTIVE,420000,500000,100,130,3,,,,,true,true,Μαρούσι,,,,,Κοντά στο μετρό.,SIX_TWELVE_MONTHS
+Αναζήτηση Νέα Σμύρνη,SALE,APARTMENT,ACTIVE,180000,250000,75,100,2,,,,, true,,Νέα Σμύρνη,,,,,Ήσυχη γειτονιά.,ONE_THREE_MONTHS
+Αναζήτηση Βούλα,SALE,HOUSE,ACTIVE,600000,800000,150,200,3,,,,,true,true,Βούλα,,,,,Κοντά στη θάλασσα.,SIX_TWELVE_MONTHS
+Αναζήτηση Μαρούσι Β,SALE,APARTMENT,ACTIVE,400000,550000,105,140,3,4,,,, true,,Μαρούσι,,,,,Ευέλικτος ως προς τιμή.,THREE_SIX_MONTHS
+Αναζήτηση Ενοικίαση Αθήνα,RENTAL,APARTMENT,ACTIVE,1200,1500,65,90,,,,,,true,,Αθήνα,,,,,Επαγγελματίας.,IMMEDIATE
+Αναζήτηση Ενοικίαση Παγκράτι,RENTAL,APARTMENT,ACTIVE,1000,1300,60,80,,,,,,true,,Παγκράτι,,,,,Κεντρική περιοχή.,IMMEDIATE
+Αναζήτηση Μαρούσι-Γαλάτσι,SALE,APARTMENT,ACTIVE,170000,220000,70,95,2,,,,,,true,"Μαρούσι,Γαλάτσι",,,,,Ευέλικτος ως προς περιοχή.,ONE_THREE_MONTHS
+Αναζήτηση Αθήνα Χαμηλό Budget,SALE,APARTMENT,ACTIVE,180000,190000,60,80,1,,,,,,,Αθήνα,,,,,Πολύ περιορισμένος προϋπολογισμός.,THREE_SIX_MONTHS

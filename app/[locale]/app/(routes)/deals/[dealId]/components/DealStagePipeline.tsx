@@ -39,7 +39,7 @@ import {
   GitBranch,
   Loader2,
 } from "lucide-react";
-import { advanceDealStage } from "@/actions/deals";
+import { advanceDealStage, setDealStage } from "@/actions/deals";
 import { useAppToast } from "@/hooks/use-app-toast";
 import {
   DEAL_STAGE_ORDER,
@@ -55,6 +55,129 @@ interface DealStageLogEntry {
   readonly toStage: DealStage;
   readonly changedAt: string | Date;
 }
+
+// ─── StageItem ────────────────────────────────────────────────────────────────
+
+interface StageItemProps {
+  readonly stage: DealStage;
+  readonly idx: number;
+  readonly currentIdx: number;
+  readonly isCurrent: boolean;
+  readonly isClickable: boolean;
+  readonly stageName: string;
+  readonly stageDesc: string;
+  readonly positionLabel: string;
+  readonly advanceLabel: string;
+  readonly onSelect: (stage: DealStage) => void;
+}
+
+/** Renders one step bubble + label in the horizontal pipeline track. */
+function StageItem({
+  stage,
+  idx,
+  currentIdx,
+  isCurrent,
+  isClickable,
+  stageName,
+  stageDesc,
+  positionLabel,
+  advanceLabel,
+  onSelect,
+}: StageItemProps) {
+  const cfg = DEAL_STATUS[stage];
+  const Icon = cfg?.icon;
+  const isCompleted = currentIdx >= 0 && idx < currentIdx;
+  const isFuture = currentIdx >= 0 ? idx > currentIdx : true;
+  const isLast = idx === DEAL_STAGE_ORDER.length - 1;
+
+  function renderIcon() {
+    if (isCompleted) {
+      return <Check className="h-4 w-4" aria-hidden="true" />;
+    }
+    if (Icon) {
+      return (
+        <Icon
+          className={cn(
+            "h-4 w-4",
+            cfg?.animate && isCurrent && "motion-safe:animate-spin",
+            isFuture && "opacity-60"
+          )}
+          aria-hidden="true"
+        />
+      );
+    }
+    return <span className="text-xs font-semibold">{idx + 1}</span>;
+  }
+
+  const circle = (
+    <div
+      className={cn(
+        "flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors",
+        isCompleted && "border-primary bg-primary text-primary-foreground",
+        isCurrent &&
+          "border-primary bg-primary/15 text-primary ring-2 ring-primary/30",
+        isFuture &&
+          "border-dashed border-muted-foreground/40 bg-background text-muted-foreground/60"
+      )}
+    >
+      {renderIcon()}
+    </div>
+  );
+
+  const label = (
+    <span
+      className={cn(
+        "text-[11px] font-medium text-center leading-tight max-w-[88px]",
+        isCurrent ? "text-foreground" : "text-muted-foreground"
+      )}
+    >
+      {stageName}
+    </span>
+  );
+
+  const itemClasses = cn(
+    "flex flex-col items-center gap-1.5 min-w-[88px] px-2 py-1 rounded-md",
+    isCurrent && "scale-105",
+    isClickable &&
+      "cursor-pointer hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors"
+  );
+
+  return (
+    <li className="flex items-center">
+      {isClickable ? (
+        <button
+          type="button"
+          className={itemClasses}
+          onClick={() => onSelect(stage)}
+          aria-label={`${advanceLabel}: ${stageDesc}`}
+        >
+          {circle}
+          {label}
+        </button>
+      ) : (
+        <div
+          className={itemClasses}
+          aria-current={isCurrent ? "step" : undefined}
+          aria-label={`${positionLabel}: ${stageName} — ${stageDesc}`}
+        >
+          {circle}
+          {label}
+        </div>
+      )}
+      {!isLast && (
+        <ChevronRight
+          className={cn(
+            "h-4 w-4 mx-0.5 shrink-0",
+            isCompleted ? "text-primary" : "text-muted-foreground/40"
+          )}
+          aria-hidden="true"
+        />
+      )}
+    </li>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface DealStagePipelineProps {
   readonly dealId: string;
@@ -114,11 +237,18 @@ export default function DealStagePipeline({
     setIsSubmitting(true);
     try {
       const trimmedNotes = (requiredNotes ?? notes).trim();
-      const result = await advanceDealStage({
-        dealId,
-        toStage,
-        notes: trimmedNotes || undefined,
-      });
+      // FALLEN_THROUGH uses the sequential action (it stores fallenThroughReason
+      // on the deal row). All other stages use setDealStage for free traversal.
+      let result;
+      if (toStage === "FALLEN_THROUGH") {
+        result = await advanceDealStage({
+          dealId,
+          toStage,
+          notes: trimmedNotes || undefined,
+        });
+      } else {
+        result = await setDealStage(dealId, toStage, trimmedNotes || undefined);
+      }
       if (!result.success) {
         toast.error(result.error || t("toast.stageError"), {
           isTranslationKey: false,
@@ -157,83 +287,35 @@ export default function DealStagePipeline({
         >
           <ol className="flex min-w-max items-center gap-1">
             {DEAL_STAGE_ORDER.map((stage, idx) => {
-              const cfg = DEAL_STATUS[stage];
-              const Icon = cfg?.icon;
               const isCurrent = stage === currentStage;
-              const isCompleted =
-                currentIdx >= 0 && idx < currentIdx;
-              const isFuture =
-                currentIdx >= 0 ? idx > currentIdx : true;
-              const stageName = t(`stage.${stage}`);
-              const stageDesc = t(`stageDescription.${stage}`);
-              const positionLabel = t("detail.stagePosition", {
-                current: idx + 1,
-                total: DEAL_STAGE_ORDER.length,
-              });
+              // Clickable: agent can act, deal is not terminal, target is not
+              // current, and target is not a terminal stage itself.
+              const isClickable =
+                canAdvance &&
+                !isTerminal &&
+                !isCurrent &&
+                stage !== "COMPLETED" &&
+                stage !== "FALLEN_THROUGH";
 
               return (
-                <li key={stage} className="flex items-center">
-                  <div
-                    className={cn(
-                      "flex flex-col items-center gap-1.5 min-w-[88px] px-2 py-1 rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
-                      isCurrent && "scale-105"
-                    )}
-                    aria-current={isCurrent ? "step" : undefined}
-                    aria-label={`${positionLabel}: ${stageName} — ${stageDesc}`}
-                  >
-                    <div
-                      className={cn(
-                        "flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors",
-                        isCompleted &&
-                          "border-primary bg-primary text-primary-foreground",
-                        isCurrent &&
-                          "border-primary bg-primary/15 text-primary ring-2 ring-primary/30",
-                        isFuture &&
-                          "border-dashed border-muted-foreground/40 bg-background text-muted-foreground/60"
-                      )}
-                    >
-                      {isCompleted ? (
-                        <Check className="h-4 w-4" aria-hidden="true" />
-                      ) : Icon ? (
-                        <Icon
-                          className={cn(
-                            "h-4 w-4",
-                            cfg?.animate &&
-                              isCurrent &&
-                              "motion-safe:animate-spin",
-                            isFuture && "opacity-60"
-                          )}
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <span className="text-xs font-semibold">
-                          {idx + 1}
-                        </span>
-                      )}
-                    </div>
-                    <span
-                      className={cn(
-                        "text-[11px] font-medium text-center leading-tight max-w-[88px]",
-                        isCurrent
-                          ? "text-foreground"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {t(`stage.${stage}`)}
-                    </span>
-                  </div>
-                  {idx < DEAL_STAGE_ORDER.length - 1 && (
-                    <ChevronRight
-                      className={cn(
-                        "h-4 w-4 mx-0.5 shrink-0",
-                        isCompleted
-                          ? "text-primary"
-                          : "text-muted-foreground/40"
-                      )}
-                      aria-hidden="true"
-                    />
-                  )}
-                </li>
+                <StageItem
+                  key={stage}
+                  stage={stage}
+                  idx={idx}
+                  currentIdx={currentIdx}
+                  isCurrent={isCurrent}
+                  isClickable={isClickable}
+                  stageName={t(`stage.${stage}`)}
+                  stageDesc={t(`stageDescription.${stage}`)}
+                  positionLabel={t("detail.stagePosition", {
+                    current: idx + 1,
+                    total: DEAL_STAGE_ORDER.length,
+                  })}
+                  advanceLabel={t("detail.advanceTo", {
+                    stage: t(`stage.${stage}`),
+                  })}
+                  onSelect={setPendingStage}
+                />
               );
             })}
           </ol>

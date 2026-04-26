@@ -163,6 +163,7 @@ interface ImportWizardStepsProps {
       assignedTo?: string | null;
       importHistoryId?: string;
       sourceFilename?: string;
+      autoCreateRequests?: boolean;
     },
     signal?: AbortSignal,
   ) => Promise<ImportResult>;
@@ -222,6 +223,7 @@ export function ImportWizardSteps({
   const fileHashRef = useRef("");
   const [parsedData, setParsedData] = useState<Record<string, unknown>[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [autoCreateRequests, setAutoCreateRequests] = useState(true);
 
   // ── Step 1: Mapping ──
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
@@ -524,6 +526,7 @@ export function ImportWizardSteps({
           {
             assignedTo: assignedTo ?? undefined,
             sourceFilename: file?.name,
+            autoCreateRequests,
           },
           controller.signal,
         );
@@ -561,6 +564,7 @@ export function ImportWizardSteps({
     onImport,
     assignedTo,
     file,
+    autoCreateRequests,
     dict.errors.serverError,
   ]);
 
@@ -758,6 +762,8 @@ export function ImportWizardSteps({
             currentFile={file}
             entityType={entityType}
             unifiedMode={true}
+            autoCreateRequests={autoCreateRequests}
+            onAutoCreateRequestsChange={setAutoCreateRequests}
           />
         );
       case 1: // Mapping

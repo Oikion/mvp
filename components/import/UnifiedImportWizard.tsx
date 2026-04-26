@@ -126,7 +126,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
   const handleImport = useCallback(
     async (
       data: Record<string, unknown>[],
-      signalOrOptions?: AbortSignal | { assignedTo?: string | null; importHistoryId?: string; sourceFilename?: string },
+      signalOrOptions?: AbortSignal | { assignedTo?: string | null; importHistoryId?: string; sourceFilename?: string; autoCreateRequests?: boolean },
       signal?: AbortSignal,
     ): Promise<ImportResult> => {
       // Disambiguate the overloaded second argument
@@ -146,6 +146,9 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
             assignedTo: options?.assignedTo ?? null,
             importHistoryId: options?.importHistoryId ?? undefined,
             sourceFilename: options?.sourceFilename ?? "import.csv",
+            options: {
+              autoCreateRequests: options?.autoCreateRequests ?? true,
+            },
           }),
           signal: resolvedSignal,
         });

@@ -406,10 +406,17 @@ async function searchRequests(
     take: fetchLimit,
   });
 
-  // Decrypt encrypted fields
+  // Decrypt encrypted fields (request fields + nested contact displayName)
   const decrypted = await Promise.all(
     requests.map(async (r) => {
       const dec = await decryptRequestForOrg(r, organizationId);
+      const firstContactEntry = dec.requestContacts?.[0];
+      if (firstContactEntry?.contact) {
+        firstContactEntry.contact = await decryptContactForOrg(
+          firstContactEntry.contact,
+          organizationId
+        );
+      }
       return dec;
     })
   );
@@ -444,7 +451,7 @@ async function searchRequests(
 
     return {
       value: req.id,
-      label: `${req.friendlyId} — ${(req as any).requestContacts?.[0]?.contact?.displayName || "Unknown"}`,
+      label: `${req.friendlyId} — ${req.requestContacts?.[0]?.contact?.displayName || "Unknown"}`,
       type: "request" as const,
       metadata: {
         subtitle: subtitleParts.join(" · ") || undefined,

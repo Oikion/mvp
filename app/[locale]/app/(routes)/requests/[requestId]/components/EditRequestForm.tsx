@@ -178,7 +178,7 @@ export function EditRequestForm({ request, onSuccess }: EditRequestFormProps) {
                           <SelectContent>
                             {REQUEST_TYPE_OPTIONS.map((v) => (
                               <SelectItem key={v} value={v}>
-                                {t(`type.${v}` as Parameters<typeof t>[0])}
+                                {t(`requestType.${v}` as Parameters<typeof t>[0])}
                               </SelectItem>
                             ))}
                           </SelectContent>

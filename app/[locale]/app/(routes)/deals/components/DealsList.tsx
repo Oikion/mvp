@@ -43,7 +43,7 @@ export function DealsList({ data, toolbarRight, onRefresh, users = [] }: Readonl
     <DataTable
       data={data}
       columns={columns}
-      searchKey="name"
+      searchKey="title"
       onRowOpen={(row) => router.push(`/app/deals/${row.original.friendlyId}`)}
       toolbarRight={toolbarRight}
     />

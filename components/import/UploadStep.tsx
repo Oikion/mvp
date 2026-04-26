@@ -4,13 +4,14 @@ import { useCallback, useState, useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import { Workbook, type Cell, type Worksheet } from "exceljs";
 import { XMLParser } from "fast-xml-parser";
-import { Upload, FileText, X, Download, AlertCircle, AlertTriangle, Info, ExternalLink } from "lucide-react";
+import { Upload, FileText, X, Download, AlertCircle, AlertTriangle, Info, ExternalLink, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Link } from "@/navigation";
 import { propertyImportFieldDefinitions } from "@/lib/import/property-import-schema";
 import { contactImportFieldDefinitions } from "@/lib/import/contact-import-schema";
@@ -26,6 +27,8 @@ interface UploadStepProps {
     readonly removeFile: string;
     readonly downloadTemplate: string;
     readonly templateDescription: string;
+    readonly autoCreateRequestsLabel?: string;
+    readonly autoCreateRequestsDescription?: string;
   };
   readonly errorsDict: {
     readonly fileRequired: string;
@@ -43,6 +46,8 @@ interface UploadStepProps {
   readonly currentFile: File | null;
   readonly entityType: "contact" | "property" | "request";
   readonly unifiedMode?: boolean;
+  readonly autoCreateRequests?: boolean;
+  readonly onAutoCreateRequestsChange?: (value: boolean) => void;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -454,6 +459,8 @@ export function UploadStep({
   currentFile,
   entityType,
   unifiedMode,
+  autoCreateRequests = true,
+  onAutoCreateRequestsChange,
 }: UploadStepProps) {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -996,6 +1003,29 @@ export function UploadStep({
             <X className="h-4 w-4 mr-1" aria-hidden="true" />
             {dict.removeFile}
           </Button>
+        </div>
+      )}
+
+      {/* Auto-create requests toggle (unified mode only) */}
+      {unifiedMode && onAutoCreateRequestsChange && (
+        <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center gap-3">
+            <Wand2 className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-sm">
+                {dict.autoCreateRequestsLabel ?? "Auto-create requests"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {dict.autoCreateRequestsDescription ?? "Automatically generate a request for each imported property"}
+              </p>
+            </div>
+          </div>
+          <Switch
+            id="auto-create-requests"
+            checked={autoCreateRequests}
+            onCheckedChange={onAutoCreateRequestsChange}
+            aria-label={dict.autoCreateRequestsLabel ?? "Auto-create requests"}
+          />
         </div>
       )}
 

@@ -19,6 +19,7 @@ import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { AddressFieldGroup } from "@/components/form/AddressFieldGroup";
 import { useOrgUsers } from "@/hooks/swr/useOrgUsers";
 import { PropertyImageUploader } from "@/components/property-images/PropertyImageUploader";
+import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 type FormValues = PropertyEditFormValues;
 

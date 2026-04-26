@@ -1,0 +1,6 @@
+contact_name,primary_email,primary_phone,contact_category,contact_status,property_name,transaction_type,property_type,status,price,area,address_city,bedrooms,bathrooms,size_net_sqm,floor,elevator,parking,garden,notes,request_transaction_type,request_property_type,request_status,budget_min,budget_max,size_min_sqm,size_max_sqm,bedrooms_min,bedrooms_max,request_elevator,areas_of_interest,request_notes,timeline
+Μιχαηλίδου Σοφία,s.michailidou@example.com,+30 210 5678901,INVESTOR,ACTIVE,Μονοκατοικία Κηφισιά,SALE,HOUSE,ACTIVE,550000,Κηφισιά,Αθήνα,4,2,200,,false,true,true,Ανεξάρτητη κατοικία με κήπο.,,,,,,,,,,,,,
+Μιχαηλίδου Σοφία,s.michailidou@example.com,+30 210 5678901,INVESTOR,ACTIVE,,,,,,,,,,,,,,,,,SALE,HOUSE,ACTIVE,480000,620000,180,220,3,,,Κηφισιά,Μεγάλος κήπος επιθυμητός.,ONE_THREE_MONTHS
+Αλεξίου Δημήτριος,d.alexiou@example.com,+30 210 4567890,BUYER,ACTIVE,,,,,,,,,,,,,,,,,SALE,APARTMENT,ACTIVE,240000,310000,80,100,2,3,true,Γλυφάδα,Ασανσέρ απαραίτητο.,IMMEDIATE
+Γεωργίου Άννα,a.georgiou@example.com,+30 210 7890123,RENTER,ACTIVE,,,,,,,,,,,,,,,,,RENTAL,APARTMENT,ACTIVE,900,1200,60,80,,,true,Κολωνάκι,Επαγγελματίας. Χρειάζεται ασανσέρ.,IMMEDIATE
+,,,,,Διαμέρισμα Θεσσαλονίκη,SALE,APARTMENT,ACTIVE,180000,Θεσσαλονίκη,Θεσσαλονίκη,2,1,75,2,false,false,false,Κεντρική τοποθεσία κοντά σε ΑΠΘ.,,,,,,,,,,,,,

@@ -9,6 +9,7 @@ import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encrypti
 import { validateAssignedTo } from "@/lib/validate-assigned-to";
 import { notifyContactCreated } from "@/lib/notifications";
 import { createChangeLogEntry } from "@/lib/entity-change-log";
+import { logEntityCreated } from "@/lib/activity-logger";
 
 export async function GET(req: Request) {
   try {
@@ -202,6 +203,15 @@ export async function POST(req: Request) {
       eventType: "CREATED",
       actorUserId: userId,
     }).catch((err) => console.error("[CONTACT_CREATED_LOG]", err));
+
+    // Activity Log — fire-and-forget (separate from EntityChangeLog above)
+    void logEntityCreated({
+      organizationId,
+      parentType: "CONTACT",
+      parentId: contact.id,
+      createdByUserId: user.id,
+      source: "manual",
+    });
 
     return NextResponse.json({ data: contact }, { status: 201 });
   } catch (error) {

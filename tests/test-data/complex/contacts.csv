@@ -1,0 +1,8 @@
+contact_name,primary_email,primary_phone,contact_category,contact_status
+Παπαδόπουλος Κώστας,k.papadopoulos@example.com,+30 210 1111111,BUYER,ACTIVE
+Σταματίου Ελένη,e.stamatiou@example.com,+30 210 2222222,INVESTOR,ACTIVE
+Βασιλείου Νίκος,n.vasiliou@example.com,+30 210 3333333,BUYER,ACTIVE
+Κωνσταντίνου Μαρία,m.konstantinou@example.com,+30 210 4444444,RENTER,ACTIVE
+Ανδρέου Δημήτρης,d.andreou@example.com,+30 210 5555555,BUYER,ACTIVE
+Λαζαρίδης Γιώργης,g.lazaridis@example.com,+30 210 6666666,BUYER,ACTIVE
+Μαυρίδου Σοφία,s.mavridou@example.com,+30 210 7777777,INVESTOR,ACTIVE

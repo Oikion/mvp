@@ -3,6 +3,10 @@ import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { canPerformAction } from "@/lib/permissions";
 import { createChangeLogEntry } from "@/lib/entity-change-log";
+import {
+  logEntityLinkedSymmetric,
+  logEntityUnlinkedSymmetric,
+} from "@/lib/activity-logger";
 
 export async function POST(
   req: Request,
@@ -24,7 +28,7 @@ export async function POST(
     // Verify the contact belongs to this org
     const contact = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true },
+      select: { id: true, friendlyId: true },
     });
 
     if (!contact) {
@@ -39,6 +43,10 @@ export async function POST(
 
     let linkedRequests = 0;
     let linkedProperties = 0;
+
+    // Activity Log — contact label/URL precomputed (displayName is encrypted; use friendlyId)
+    const contactLabel = contact.friendlyId ?? "Contact";
+    const contactUrl = `/app/crm/contacts/${contactId}`;
 
     // Link requests via RequestContact join table
     if (requestIds && requestIds.length > 0) {
@@ -71,6 +79,20 @@ export async function POST(
             label: req.friendlyId ?? req.id,
           },
         }).catch((err) => console.error("[CONTACT_LINKED_LOG]", err));
+
+        // Activity Log — symmetric Contact ↔ Request link
+        void logEntityLinkedSymmetric({
+          organizationId,
+          aType: "CONTACT",
+          aId: contactId,
+          aLabel: contactLabel,
+          aUrl: contactUrl,
+          bType: "REQUEST",
+          bId: req.id,
+          bLabel: req.friendlyId ?? "Request",
+          bUrl: `/app/requests/${req.id}`,
+          createdByUserId: userId,
+        });
       }
     }
 
@@ -104,6 +126,20 @@ export async function POST(
             label: prop.property_name ?? prop.friendlyId ?? prop.id,
           },
         }).catch((err) => console.error("[CONTACT_LINKED_LOG]", err));
+
+        // Activity Log — symmetric Contact ↔ Property link
+        void logEntityLinkedSymmetric({
+          organizationId,
+          aType: "CONTACT",
+          aId: contactId,
+          aLabel: contactLabel,
+          aUrl: contactUrl,
+          bType: "PROPERTY",
+          bId: prop.id,
+          bLabel: prop.property_name ?? prop.friendlyId ?? "Property",
+          bUrl: `/app/mls/properties/${prop.friendlyId ?? prop.id}`,
+          createdByUserId: userId,
+        });
       }
     }
 
@@ -137,12 +173,15 @@ export async function DELETE(
     // Verify the contact belongs to this org
     const contact = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true },
+      select: { id: true, friendlyId: true },
     });
 
     if (!contact) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
+
+    const contactLabel = contact.friendlyId ?? "Contact";
+    const contactUrl = `/app/crm/contacts/${contactId}`;
 
     const { searchParams } = new URL(req.url);
     const requestId = searchParams.get("requestId");
@@ -185,6 +224,20 @@ export async function DELETE(
             label: unlinkedRequest.friendlyId ?? unlinkedRequest.id,
           },
         }).catch((err) => console.error("[CONTACT_UNLINKED_LOG]", err));
+
+        // Activity Log — symmetric Contact ↔ Request unlink
+        void logEntityUnlinkedSymmetric({
+          organizationId,
+          aType: "CONTACT",
+          aId: contactId,
+          aLabel: contactLabel,
+          aUrl: contactUrl,
+          bType: "REQUEST",
+          bId: unlinkedRequest.id,
+          bLabel: unlinkedRequest.friendlyId ?? "Request",
+          bUrl: `/app/requests/${unlinkedRequest.id}`,
+          createdByUserId: userId,
+        });
       }
     }
 
@@ -219,6 +272,20 @@ export async function DELETE(
             label: unlinkedProperty.property_name ?? unlinkedProperty.friendlyId ?? unlinkedProperty.id,
           },
         }).catch((err) => console.error("[CONTACT_UNLINKED_LOG]", err));
+
+        // Activity Log — symmetric Contact ↔ Property unlink
+        void logEntityUnlinkedSymmetric({
+          organizationId,
+          aType: "CONTACT",
+          aId: contactId,
+          aLabel: contactLabel,
+          aUrl: contactUrl,
+          bType: "PROPERTY",
+          bId: unlinkedProperty.id,
+          bLabel: unlinkedProperty.property_name ?? unlinkedProperty.friendlyId ?? "Property",
+          bUrl: `/app/mls/properties/${unlinkedProperty.friendlyId ?? unlinkedProperty.id}`,
+          createdByUserId: userId,
+        });
       }
     }
 

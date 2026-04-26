@@ -10,8 +10,7 @@ import {
   apiBadRequest,
   apiRateLimited,
 } from "@/lib/api-response";
-
-export const RATE_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
+import { MATCHMAKING_RATE_LIMIT_MS } from "@/lib/matchmaking-constants";
 
 const bodySchema = z.object({ requestId: z.string().cuid().optional() }).strict();
 
@@ -37,8 +36,8 @@ export async function POST(req: Request): Promise<Response> {
     });
     if (lastOrgRun?.updatedAt) {
       const elapsed = Date.now() - lastOrgRun.updatedAt.getTime();
-      if (elapsed < RATE_LIMIT_MS) {
-        const retryAfterSec = Math.ceil((RATE_LIMIT_MS - elapsed) / 1000);
+      if (elapsed < MATCHMAKING_RATE_LIMIT_MS) {
+        const retryAfterSec = Math.ceil((MATCHMAKING_RATE_LIMIT_MS - elapsed) / 1000);
         return apiRateLimited(`Rate limited. Try again in ${retryAfterSec}s.`);
       }
     }
@@ -53,8 +52,8 @@ export async function POST(req: Request): Promise<Response> {
 
       if (request.lastMatchRunAt) {
         const elapsed = Date.now() - request.lastMatchRunAt.getTime();
-        if (elapsed < RATE_LIMIT_MS) {
-          const retryAfterSec = Math.ceil((RATE_LIMIT_MS - elapsed) / 1000);
+        if (elapsed < MATCHMAKING_RATE_LIMIT_MS) {
+          const retryAfterSec = Math.ceil((MATCHMAKING_RATE_LIMIT_MS - elapsed) / 1000);
           return apiRateLimited(`Rate limited. Try again in ${retryAfterSec}s.`);
         }
       }

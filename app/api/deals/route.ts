@@ -11,6 +11,10 @@ import {
 import { createDealSchema, dealQuerySchema } from "@/lib/validations/deals";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { serializeDealForClient } from "@/lib/deals/serialize";
+import {
+  logEntityCreated,
+  logEntityLinked,
+} from "@/lib/activity-logger";
 
 export async function GET(req: Request) {
   try {
@@ -86,14 +90,36 @@ export async function POST(req: Request) {
 
     const data = validation.data;
 
-    // Validate property belongs to org
+    // Resolve internal Users.id from Clerk userId. The Deal FK columns
+    // (proposedById, etc.) reference Users.id (CUID), not the Clerk userId
+    // — see file header comment in actions/deals/index.ts. We capture the
+    // internal id here so activity logging records the actor correctly.
+    const internalUser = await prismadb.users.findFirst({
+      where: { clerkUserId: userId },
+      select: { id: true },
+    });
+    const actorUserId = internalUser?.id;
+
+    // Validate property belongs to org. Selector widened with friendlyId
+    // for activity-log target URL construction.
     const property = await prismadb.properties.findFirst({
       where: { id: data.propertyId, organizationId },
-      select: { id: true, property_name: true },
+      select: { id: true, property_name: true, friendlyId: true },
     });
     if (!property) {
       return apiBadRequest("Property not found or access denied");
     }
+
+    // Resolve optional request reference up front so we can log a LINKED
+    // activity for it after create. Note: this route does NOT validate the
+    // request belongs to the org today (pre-existing gap); we only fetch
+    // it for activity-log labeling and skip logging if the lookup misses.
+    const requestRef = data.requestId
+      ? await prismadb.request.findFirst({
+          where: { id: data.requestId, organizationId },
+          select: { id: true, friendlyId: true },
+        })
+      : null;
 
     const friendlyId = await generateFriendlyId(prismadb, "Deal", organizationId);
 
@@ -132,6 +158,41 @@ export async function POST(req: Request) {
         notes: "Deal created via API",
       },
     });
+
+    // Activity logging — fire-and-forget after DB writes.
+    void logEntityCreated({
+      organizationId,
+      parentType: "DEAL",
+      parentId: deal.id,
+      createdByUserId: actorUserId,
+      source: "manual",
+    });
+
+    if (deal.propertyId) {
+      void logEntityLinked({
+        organizationId,
+        fromType: "DEAL",
+        fromId: deal.id,
+        toType: "PROPERTY",
+        toId: deal.propertyId,
+        toLabel: property.property_name ?? "Property",
+        toUrl: `/app/mls/properties/${property.friendlyId ?? property.id}`,
+        createdByUserId: actorUserId,
+      });
+    }
+
+    if (deal.requestId && requestRef) {
+      void logEntityLinked({
+        organizationId,
+        fromType: "DEAL",
+        fromId: deal.id,
+        toType: "REQUEST",
+        toId: deal.requestId,
+        toLabel: "Request",
+        toUrl: `/app/requests/${requestRef.friendlyId ?? requestRef.id}`,
+        createdByUserId: actorUserId,
+      });
+    }
 
     return apiCreated(serializeDealForClient(deal));
   } catch (error) {

@@ -1,0 +1,4 @@
+title,transaction_type,property_type,status,budget_min,budget_max,size_min_sqm,size_max_sqm,bedrooms_min,bedrooms_max,bathrooms_min,floor_min,floor_max,elevator,parking,areas_of_interest,condition,energy_cert_min,year_built_min,year_built_max,notes,timeline
+Αναζήτηση Διαμέρισμα Κολωνάκι,SALE,APARTMENT,ACTIVE,250000,380000,70,110,2,3,,,,true,true,Κολωνάκι,,,,,"Χρειάζομαι ασανσέρ και parking. Επείγον.",IMMEDIATE
+Αναζήτηση Σπίτι Βούλα,SALE,HOUSE,ACTIVE,700000,900000,180,260,3,,,,,false,true,Βούλα,,,,,"Μεγάλος κήπος επιθυμητός.",ONE_THREE_MONTHS
+Αναζήτηση Διαμέρισμα Παγκράτι,SALE,APARTMENT,ACTIVE,160000,230000,55,80,2,,,,,,,Παγκράτι,,,,,"Πρώτη κατοικία για νέο ζευγάρι.",THREE_SIX_MONTHS

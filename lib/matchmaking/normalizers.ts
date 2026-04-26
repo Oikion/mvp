@@ -297,6 +297,15 @@ export function getPropertySizeSqm(property: PropertyForMatching): number | null
 }
 
 // ============================================
+// MATCH SCORE NORMALIZATION
+// ============================================
+
+/** Converts a 0.0–1.0 Prisma Decimal matchScore to a 0–100 integer. */
+export function convertMatchScore(decimal: number): number {
+  return Math.round(decimal * 100);
+}
+
+// ============================================
 // BUDGET NORMALIZATION
 // ============================================
 

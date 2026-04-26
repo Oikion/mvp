@@ -4,12 +4,12 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import {
   calculateBatchMatchesV2,
+  convertMatchScore,
   MATCH_THRESHOLDS,
 } from "@/lib/matchmaking";
 import type {
   RequestForMatching,
   PropertyForMatchingV2,
-  MatchAnalytics,
   MatchDistribution,
   MatchResultV2,
   CriterionScore,
@@ -18,25 +18,7 @@ import type {
 } from "@/lib/matchmaking";
 import { requireAction } from "@/lib/permissions/action-guards";
 import { decryptRequestForOrg } from "@/lib/model-encryption";
-
-/** Converts a 0.0–1.0 Prisma Decimal matchScore to a 0–100 integer. */
-export function convertMatchScore(decimal: number): number {
-  return Math.round(decimal * 100);
-}
-
-/**
- * Request match analytics — same shape as mandate analytics for UI compatibility.
- */
-export interface RequestMatchStats {
-  totalRequests: number;
-  activeRequests: number;
-  requestsWithMatches: number;
-  avgMatchScore: number;
-}
-
-export interface RequestMatchAnalytics extends MatchAnalytics {
-  requestStats: RequestMatchStats;
-}
+import type { RequestMatchStats, RequestMatchAnalytics } from "./types";
 
 // ──────────────────────────────────────────────
 // Amenity inference helper
@@ -436,9 +418,9 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) return getEmptyRequestAnalytics();
 
-  const [storedMatches, totalRequests, totalProperties] = await Promise.all([
+  const [storedMatches, activeRequests, totalProperties] = await Promise.all([
     prismadb.propertyRequestMatch.findMany({
-      where: { organizationId },
+      where: { organizationId, OR: [{ matchScore: { gte: 0.5 } }, { matchScore: null }] },
       orderBy: { matchScore: "desc" },
       take: 200,
       include: {
@@ -462,12 +444,13 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
         },
       },
     }),
-    prismadb.request.count({
+    prismadb.request.findMany({
       where: {
         organizationId,
         status: "ACTIVE",
         draftStatus: { not: true },
       },
+      select: { id: true, friendlyId: true },
     }),
     prismadb.properties.count({
       where: {
@@ -476,6 +459,7 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
       },
     }),
   ]);
+  const totalRequests = activeRequests.length;
 
   if (storedMatches.length === 0) {
     return {
@@ -503,7 +487,7 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
   let totalScore = 0;
 
   for (const m of storedMatches) {
-    const score = convertMatchScore(Number(m.matchScore));
+    const score = m.matchScore != null ? convertMatchScore(Number(m.matchScore)) : 0;
     totalScore += score;
     if (score >= MATCH_THRESHOLDS.FAIR) requestsWithMatchesSet.add(m.requestId);
     const bucket = matchDistribution.find((d) => score >= d.min && score <= d.max);
@@ -522,7 +506,7 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
     requestId: m.requestId,
     clientId: m.requestId,
     propertyId: m.propertyId,
-    overallScore: convertMatchScore(Number(m.matchScore)),
+    overallScore: m.matchScore != null ? convertMatchScore(Number(m.matchScore)) : 0,
     breakdown,
     matchedCriteria: breakdown.filter((c) => c.score > 0).length,
     totalCriteria: breakdown.length,
@@ -555,7 +539,7 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
   };
   const propStats = new Map<string, PropAcc>();
   for (const m of storedMatches) {
-    const score = convertMatchScore(Number(m.matchScore));
+    const score = m.matchScore != null ? convertMatchScore(Number(m.matchScore)) : 0;
     if (score < MATCH_THRESHOLDS.FAIR) continue;
     const existing = propStats.get(m.propertyId);
     if (existing) {
@@ -591,11 +575,19 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
 
   const requestsWithMatches = requestsWithMatchesSet.size;
 
+  const unmatchedClients = activeRequests
+    .filter((r) => !requestsWithMatchesSet.has(r.id))
+    .map((r) => ({
+      id: r.id,
+      friendlyId: r.friendlyId ?? r.id,
+      client_name: `Request ${r.friendlyId ?? r.id}`,
+    }));
+
   return {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     topMatches: topMatches as any,
     matchDistribution,
-    unmatchedClients: [],
+    unmatchedClients,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     hotProperties: hotProperties as any,
     totalClients: totalRequests,

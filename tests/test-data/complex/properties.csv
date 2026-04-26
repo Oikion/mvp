@@ -1,0 +1,8 @@
+property_name,transaction_type,property_type,status,price,area,address_city,bedrooms,bathrooms,size_net_sqm,floor,elevator,parking,garden,condition,energy_cert_class,year_built,inside_city_plan,notes
+Διαμέρισμα Μαρούσι Α,SALE,APARTMENT,ACTIVE,460000,Μαρούσι,Αθήνα,3,2,115,5,true,true,false,GOOD,B,2016,true,Φωτεινό διαμέρισμα με πάρκινγκ και αποθήκη.
+Διαμέρισμα Νέα Σμύρνη,SALE,APARTMENT,ACTIVE,225000,Νέα Σμύρνη,Αθήνα,2,1,85,3,true,false,false,GOOD,C,2010,true,Εύκολη πρόσβαση στο μετρό. Χωρίς θέση πάρκινγκ.
+Μονοκατοικία Βούλα,SALE,HOUSE,ACTIVE,690000,Βούλα,Αθήνα,3,2,165,,true,true,true,VERY_GOOD,B,2018,true,Διώροφη κατοικία με κήπο και BBQ. Κοντά σε παραλία.
+Διαμέρισμα Αθήνα Αρχειοθετημένο,SALE,APARTMENT,ARCHIVED,310000,Αθήνα,Αθήνα,2,1,98,4,true,true,false,GOOD,C,2013,true,Αρχειοθετήθηκε — δεν διατίθεται πλέον.
+Διαμέρισμα Αθήνα Ενοικίαση,RENTAL,APARTMENT,ACTIVE,1350,Αθήνα,Αθήνα,2,1,75,3,true,false,false,VERY_GOOD,C,2011,true,Πλήρως επιπλωμένο. Ιδανικό για επαγγελματίες.
+Διαμέρισμα Μαρούσι Β,SALE,APARTMENT,ACTIVE,430000,Μαρούσι,Αθήνα,3,1,110,3,true,true,false,GOOD,B,2014,true,Ανακαινισμένο. Κοντά στο μετρό Μαρούσι.
+Διαμέρισμα Γαλάτσι,SALE,APARTMENT,ACTIVE,205000,Γαλάτσι,Αθήνα,2,1,82,2,true,false,false,GOOD,C,2008,true,Ήσυχη γειτονιά. Κοντά σε σχολεία και MMM.

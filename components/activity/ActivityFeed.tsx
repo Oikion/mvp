@@ -10,7 +10,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { FileText, User, Building2, Plus, GitCommitHorizontal, LinkIcon, Unlink, GitBranch } from "lucide-react";
+import { FileText, User, Building2, Plus, GitCommitHorizontal, LinkIcon, Unlink, GitBranch, CalendarPlus, CalendarX } from "lucide-react";
 
 interface ActivityFeedProps {
   parentType: ActivityParentType;
@@ -27,8 +27,9 @@ interface ActivityEntry {
   subject?: string | null;
   body?: string | null;
   occurredAt: string;
+  metadata?: Record<string, unknown> | null;
   CreatedBy?: { id: string; firstName?: string | null; lastName?: string | null } | null;
-  RelatedContact?: { id: string; firstName?: string | null; lastName?: string | null } | null;
+  RelatedContact?: { id: string; displayName?: string | null; firstName?: string | null; lastName?: string | null } | null;
   RelatedProperty?: { id: string; property_name?: string | null; friendlyId?: string | null } | null;
   RelatedDocument?: { id: string; document_name?: string | null } | null;
 }
@@ -83,6 +84,23 @@ const CHANGELOG_ICONS = {
   UNLINKED: Unlink,
   STAGE_CHANGED: GitBranch,
 } as const;
+
+// ─── System activity kinds (compact row, not full card) ────────────────────────
+
+const SYSTEM_KINDS = new Set([
+  "CREATED", "UPDATED", "LINKED", "UNLINKED", "STAGE_CHANGED",
+  "CALENDAR_EVENT_ADDED", "CALENDAR_EVENT_REMOVED",
+]);
+
+const SYSTEM_KIND_ICONS: Record<string, React.ElementType> = {
+  CREATED: Plus,
+  UPDATED: GitCommitHorizontal,
+  LINKED: LinkIcon,
+  UNLINKED: Unlink,
+  STAGE_CHANGED: GitBranch,
+  CALENDAR_EVENT_ADDED: CalendarPlus,
+  CALENDAR_EVENT_REMOVED: CalendarX,
+};
 
 // ─── Empty state mapping ──────────────────────────────────────────────────────
 
@@ -189,6 +207,45 @@ function ChangelogRow({
   );
 }
 
+// ─── System activity row (compact — mirrors ChangelogRow style) ──────────────
+
+function SystemActivityRow({
+  activity,
+  dateLocale,
+}: Readonly<{
+  activity: ActivityEntry;
+  dateLocale: Locale;
+}>) {
+  const Icon = SYSTEM_KIND_ICONS[activity.kind] ?? GitCommitHorizontal;
+  const targetUrl = typeof activity.metadata?.targetUrl === "string" ? activity.metadata.targetUrl : null;
+  const actor = [activity.CreatedBy?.firstName, activity.CreatedBy?.lastName].filter(Boolean).join(" ") || "System";
+
+  const label = <span className="text-sm text-foreground">{activity.body ?? activity.kind.toLowerCase()}</span>;
+
+  return (
+    <li className="relative py-1.5 flex items-start gap-2">
+      <span
+        className="absolute -left-[0.8125rem] flex h-4 w-4 items-center justify-center rounded-full bg-background ring-2 ring-border"
+        aria-hidden
+      />
+      <Icon className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" aria-hidden />
+      <div className="flex flex-col gap-0.5 min-w-0">
+        {targetUrl ? (
+          <Link href={targetUrl} className="hover:underline">{label}</Link>
+        ) : (
+          label
+        )}
+        <span className="text-xs text-muted-foreground">
+          {actor} ·{" "}
+          <time dateTime={activity.occurredAt}>
+            {formatDistanceToNow(new Date(activity.occurredAt), { addSuffix: true, locale: dateLocale })}
+          </time>
+        </span>
+      </div>
+    </li>
+  );
+}
+
 // ─── Activity row (existing treatment) ───────────────────────────────────────
 
 function ActivityRow({
@@ -230,7 +287,7 @@ function ActivityRow({
               <Link href={`/app/crm/contacts/${activity.RelatedContact.id}`}>
                 <Badge variant="secondary" className="flex items-center gap-1 text-xs font-normal hover:bg-accent transition-colors cursor-pointer">
                   <User className="h-3 w-3 shrink-0" aria-hidden />
-                  {[activity.RelatedContact.firstName, activity.RelatedContact.lastName].filter(Boolean).join(" ") || activity.RelatedContact.id}
+                  {activity.RelatedContact.displayName || [activity.RelatedContact.firstName, activity.RelatedContact.lastName].filter(Boolean).join(" ") || activity.RelatedContact.id}
                 </Badge>
               </Link>
             )}
@@ -294,6 +351,8 @@ export function ActivityFeed({ parentType, parentId, unified = false }: Readonly
       {feed.map((entry) =>
         entry._source === "changelog" ? (
           <ChangelogRow key={entry.id} entry={normalizeChangelogEntry(entry)} t={t} dateLocale={dateLocale} />
+        ) : SYSTEM_KINDS.has(entry.kind) ? (
+          <SystemActivityRow key={entry.id} activity={entry} dateLocale={dateLocale} />
         ) : (
           <ActivityRow key={entry.id} activity={entry} t={t} dateLocale={dateLocale} />
         )

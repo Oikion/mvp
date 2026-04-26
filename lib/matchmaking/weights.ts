@@ -104,7 +104,7 @@ export const MATCH_THRESHOLDS = {
 /**
  * Default minimum score to consider a match "viable"
  */
-export const DEFAULT_MIN_MATCH_SCORE = 40;
+export const DEFAULT_MIN_MATCH_SCORE = 50;
 
 /**
  * Default limit for match results

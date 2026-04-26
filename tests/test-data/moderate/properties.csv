@@ -1,0 +1,6 @@
+property_name,transaction_type,property_type,status,price,area,address_city,bedrooms,bathrooms,size_net_sqm,floor,elevator,parking,garden,condition,energy_cert_class,year_built,inside_city_plan,notes
+Διαμέρισμα Γλυφάδα,SALE,APARTMENT,ACTIVE,280000,Γλυφάδα,Αθήνα,2,1,90,4,true,true,false,GOOD,C,2008,true,Φωτεινό διαμέρισμα με θέα στη θάλασσα.
+Μονοκατοικία Κηφισιά,SALE,HOUSE,ACTIVE,550000,Κηφισιά,Αθήνα,4,2,200,,false,true,true,EXCELLENT,B,2015,true,Ανεξάρτητη κατοικία με κήπο και bbq χώρο.
+Διαμέρισμα Θεσσαλονίκη,SALE,APARTMENT,ACTIVE,180000,Θεσσαλονίκη,Θεσσαλονίκη,2,1,75,2,false,false,false,GOOD,D,2001,true,Κεντρική τοποθεσία κοντά σε ΑΠΘ.
+Διαμέρισμα Κολωνάκι Ενοικίαση,RENTAL,APARTMENT,ACTIVE,1100,Κολωνάκι,Αθήνα,2,1,70,3,true,false,false,VERY_GOOD,C,2010,true,Πλήρως επιπλωμένο. Ιδανικό για επαγγελματίες.
+Διαμέρισμα Γλυφάδα Β,SALE,APARTMENT,PENDING,295000,Γλυφάδα,Αθήνα,2,1,95,3,true,false,false,GOOD,C,2012,true,Υπό προσύμφωνο. Δεν διαθέτει θέση parking.
