@@ -267,7 +267,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
             {/* Right column: Linked entities */}
             <div className="space-y-4">
               <LinkedEntitiesPanel
-                type="clients"
+                type="contacts"
                 entities={clients}
                 isLoading={isLinkedLoading}
                 onLinkEntity={() => setLinkClientDialogOpen(true)}

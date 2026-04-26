@@ -49,6 +49,7 @@ interface LinkedClient {
   id: string;
   friendlyId: string;
   client_name: string;
+  displayName?: string;
   client_type?: string;
   client_status?: string;
   primary_email?: string;
@@ -228,7 +229,7 @@ function ClientCard({
           <User className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm truncate">{client.client_name}</h4>
+          <h4 className="font-medium text-sm truncate">{client.displayName || client.client_name}</h4>
           {client.primary_email && (
             <p className="text-xs text-muted-foreground truncate">
               {client.primary_email}

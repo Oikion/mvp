@@ -907,7 +907,7 @@ export function PropertyViewEditable({
       {/* Linked Entities Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <LinkedEntitiesPanel
-          type="clients"
+          type="contacts"
           entities={clients as unknown as Array<{ id: string; friendlyId: string; client_name: string; client_type?: string; client_status?: string; primary_email?: string; primary_phone?: string; intent?: string; assigned_to_user?: { id: string; name: string }; }>}
           isLoading={isLoadingLinked || isLinking || isUnlinking}
           onLinkEntity={isReadOnly ? undefined : () => setLinkClientDialogOpen(true)}
