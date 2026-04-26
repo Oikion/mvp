@@ -211,6 +211,11 @@ export function useAblyChannel(
   const channelRef = useRef<AblyRealtimeChannel | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const attachPromiseRef = useRef<Promise<void> | null>(null);
+  // Monotonically increasing counter: each new mount gets a unique generation.
+  // Ably channel objects are singletons (same name → same object), so we cannot
+  // use object-reference equality to tell whether a stale cleanup should detach.
+  // Comparing captured generation vs. current generation solves the race.
+  const generationRef = useRef(0);
 
   useEffect(() => {
     if (!channelName || !credentials?.tokenRequest) {
@@ -218,26 +223,25 @@ export function useAblyChannel(
     }
 
     let mounted = true;
+    const generation = ++generationRef.current;
 
     (async () => {
       try {
         const client = await getAblyClient(credentials.tokenRequest, credentials.userId);
-        
+
         if (!mounted) return;
-        
+
         const channel = client.channels.get(channelName);
         channelRef.current = channel;
 
-        // Store the attach promise so we can wait for it in cleanup
         attachPromiseRef.current = channel.attach();
         await attachPromiseRef.current;
-        
-        if (mounted && channelRef.current === channel) {
+
+        if (mounted && generation === generationRef.current) {
           setIsSubscribed(true);
         }
       } catch (err) {
         console.error("[ABLY] Failed to attach to channel:", err);
-        // Don't block the UI on Ably errors
         if (mounted) {
           setIsSubscribed(false);
         }
@@ -247,38 +251,33 @@ export function useAblyChannel(
     return () => {
       mounted = false;
       setIsSubscribed(false);
-      
-      // Detach channel asynchronously to avoid blocking cleanup
-      // Wait for attach to complete first to prevent "Channel detached" errors
+
       const channelToDetach = channelRef.current;
       const attachPromise = attachPromiseRef.current;
-      
+      const capturedGeneration = generation;
+
       if (channelToDetach) {
-        // Start async cleanup but don't block
         Promise.resolve(attachPromise)
+          .then(() => new Promise<void>(resolve => setTimeout(resolve, 50)))
           .then(() => {
-            // Small delay to ensure attach is fully complete
-            return new Promise(resolve => setTimeout(resolve, 50));
-          })
-          .then(() => {
-            // Only detach if this is still the current channel
-            if (channelToDetach === channelRef.current) {
+            // Skip if a newer mount has since taken over this channel name.
+            // This is the critical guard: without it, the old cleanup would
+            // detach the channel that the new mount just attached (because
+            // Ably reuses the same object for the same channel name).
+            if (capturedGeneration === generationRef.current) {
               return channelToDetach.detach();
             }
           })
           .catch(() => {
-            // Ignore all errors - channel might already be detached or failed
-            // This prevents "Channel detached" errors from propagating as unhandled rejections
+            // Ignore — channel may already be detached or the connection closed
           })
           .finally(() => {
-            // Clear refs only if this is still the current channel
-            if (channelToDetach === channelRef.current) {
+            if (capturedGeneration === generationRef.current) {
               channelRef.current = null;
               attachPromiseRef.current = null;
             }
           });
       } else {
-        // No channel to detach, just clear refs
         channelRef.current = null;
         attachPromiseRef.current = null;
       }
