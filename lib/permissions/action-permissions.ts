@@ -274,6 +274,15 @@ export type ImportAction =
   | "import:hard_delete";
 
 // =============================================================================
+// ARCHIVE MODULE
+// =============================================================================
+
+export type ArchiveAction =
+  | "archive:view"
+  | "archive:restore"
+  | "archive:purge";
+
+// =============================================================================
 // UNION TYPE - ALL ACTION PERMISSIONS
 // =============================================================================
 
@@ -297,7 +306,8 @@ export type ActionPermission =
   | N8nAction
   | NotificationAction
   | ReferralAction
-  | ImportAction;
+  | ImportAction
+  | ArchiveAction;
 
 // =============================================================================
 // ACTION CATEGORIES BY MODULE
@@ -491,6 +501,11 @@ export const ACTION_MODULES = {
     "import:delete_own",
     "import:delete_any",
     "import:hard_delete",
+  ] as const,
+  archive: [
+    "archive:view",
+    "archive:restore",
+    "archive:purge",
   ] as const,
 } as const;
 
@@ -720,6 +735,11 @@ export const ACTION_DESCRIPTIONS: Record<ActionPermission, string> = {
   "import:delete_own": "Delete own import jobs",
   "import:delete_any": "Delete any import job in the organization",
   "import:hard_delete": "Permanently delete import records and rollback data",
+
+  // Archive actions
+  "archive:view": "View archived (soft-deleted) entities",
+  "archive:restore": "Restore archived entities back to active state",
+  "archive:purge": "Permanently delete archived entities (irreversible)",
 };
 
 /**
