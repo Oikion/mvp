@@ -214,6 +214,11 @@ const VIEWER_PERMISSIONS: RoleActionPermissions = {
   "import:delete_own": "none",
   "import:delete_any": "none",
   "import:hard_delete": "none",
+
+  // Archive - No access
+  "archive:view": "none",
+  "archive:restore": "none",
+  "archive:purge": "none",
 };
 
 /**
@@ -408,6 +413,11 @@ const MEMBER_PERMISSIONS: RoleActionPermissions = {
   "import:delete_own": "own",
   "import:delete_any": "none",
   "import:hard_delete": "none",
+
+  // Archive - No access
+  "archive:view": "none",
+  "archive:restore": "none",
+  "archive:purge": "none",
 };
 
 /**
@@ -602,6 +612,11 @@ const LEAD_PERMISSIONS: RoleActionPermissions = {
   "import:delete_own": "all",
   "import:delete_any": "all",
   "import:hard_delete": "none",
+
+  // Archive - No access
+  "archive:view": "none",
+  "archive:restore": "none",
+  "archive:purge": "none",
 };
 
 /**
@@ -796,6 +811,11 @@ const OWNER_PERMISSIONS: RoleActionPermissions = {
   "import:delete_own": "all",
   "import:delete_any": "all",
   "import:hard_delete": "all",
+
+  // Archive - Owner only
+  "archive:view": "all",
+  "archive:restore": "all",
+  "archive:purge": "all",
 };
 
 /**

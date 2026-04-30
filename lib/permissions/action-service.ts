@@ -48,6 +48,7 @@ export const MODULE_RESOURCE_PATHS: Record<string, string> = {
   notification: "notifications",
   referral: "referrals",
   import: "import",
+  archive: "archive",
 };
 
 // =============================================================================
