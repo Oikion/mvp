@@ -37,7 +37,7 @@ const TRACKED_TO_COLUMN: Record<string, string> = {
 
 // Encrypted columns that must NEVER be tracked.
 const REQUEST_ENCRYPTED_COLUMNS = new Set([
-  "title",
+  "name",
   "notes",
   "locationDisplayName",
   "communicationNotes",
@@ -293,12 +293,12 @@ export async function DELETE(
 
     await prismadb.request.update({
       where: { id: existing.id, organizationId },
-      data: { deletedAt: new Date() },
+      data: { archivedAt: new Date(), archivedBy: userId },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[REQUEST_DELETE]", error);
+    console.error("[REQUEST_ARCHIVE]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

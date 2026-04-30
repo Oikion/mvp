@@ -245,6 +245,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Permission denied" }, { status: 403 });
     }
 
+    const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const { contactId } = await params;
 
@@ -257,15 +258,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
-    // Soft delete — organizationId prevents cross-org deletion
     await prismadb.contact.update({
       where: { id: contactId, organizationId },
-      data: { deletedAt: new Date() },
+      data: { archivedAt: new Date(), archivedBy: user.id },
     });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("[CONTACT_DELETE]", error);
-    return NextResponse.json({ error: "Failed to delete contact" }, { status: 500 });
+    console.error("[CONTACT_ARCHIVE]", error);
+    return NextResponse.json({ error: "Failed to archive contact" }, { status: 500 });
   }
 }

@@ -305,15 +305,14 @@ export async function DELETE(
     });
     if (!deal) return apiNotFound("Deal");
 
-    // Soft delete
     await prismadb.deal.update({
       where: { id: dealId, organizationId },
-      data: { deletedAt: new Date() },
+      data: { archivedAt: new Date(), archivedBy: userId },
     });
 
     return new Response(null, { status: 204 });
   } catch (error) {
-    console.error("[DEAL_DELETE]", error);
-    return apiInternalError("Failed to delete deal", error);
+    console.error("[DEAL_ARCHIVE]", error);
+    return apiInternalError("Failed to archive deal", error);
   }
 }
