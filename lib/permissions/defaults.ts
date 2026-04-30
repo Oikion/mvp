@@ -19,6 +19,9 @@ export const DEFAULT_PERMISSIONS: Record<OrgRole, PermissionConfig> = {
     canTransferOwnership: true,
     canViewAnalytics: true,
     canManageIntegrations: true,
+    canViewArchive: true,
+    canRestoreArchived: true,
+    canPermanentDelete: true,
   },
   [OrgRole.LEAD]: {
     canViewAllModules: true,
@@ -33,6 +36,9 @@ export const DEFAULT_PERMISSIONS: Record<OrgRole, PermissionConfig> = {
     canTransferOwnership: false,
     canViewAnalytics: true,
     canManageIntegrations: false,
+    canViewArchive: false,
+    canRestoreArchived: false,
+    canPermanentDelete: false,
   },
   [OrgRole.MEMBER]: {
     canViewAllModules: true,
@@ -47,6 +53,9 @@ export const DEFAULT_PERMISSIONS: Record<OrgRole, PermissionConfig> = {
     canTransferOwnership: false,
     canViewAnalytics: false,
     canManageIntegrations: false,
+    canViewArchive: false,
+    canRestoreArchived: false,
+    canPermanentDelete: false,
   },
   [OrgRole.VIEWER]: {
     canViewAllModules: false, // Restricted to permitted modules only
@@ -61,6 +70,9 @@ export const DEFAULT_PERMISSIONS: Record<OrgRole, PermissionConfig> = {
     canTransferOwnership: false,
     canViewAnalytics: false,
     canManageIntegrations: false,
+    canViewArchive: false,
+    canRestoreArchived: false,
+    canPermanentDelete: false,
   },
 };
 
@@ -80,6 +92,7 @@ export const ALL_MODULES: ModuleId[] = [
   "employees",
   "admin",
   "network",
+  "archive",
 ];
 
 /**
@@ -110,6 +123,7 @@ export const RESTRICTED_MODULES: Record<ModuleId, keyof PermissionConfig | null>
   employees: "canInviteUsers", // Need invite permission to see employees
   admin: "canManageRoles", // Need role management to access admin
   network: null, // No special permission needed — gated by org-level feature flag
+  archive: "canViewArchive",
 };
 
 /**
@@ -150,6 +164,9 @@ export const PERMISSION_DESCRIPTIONS: Record<keyof PermissionConfig, string> = {
   canTransferOwnership: "Transfer organization ownership to another user",
   canViewAnalytics: "View reports and analytics",
   canManageIntegrations: "Manage API keys and webhooks",
+  canViewArchive: "Access the archive section to view soft-deleted entities",
+  canRestoreArchived: "Restore archived entities back to active state",
+  canPermanentDelete: "Permanently delete archived entities (irreversible)",
 };
 
 /**
@@ -169,4 +186,5 @@ export const MODULE_DISPLAY_NAMES: Record<ModuleId, string> = {
   employees: "Team Members",
   admin: "Admin Settings",
   network: "Network",
+  archive: "Archive",
 };

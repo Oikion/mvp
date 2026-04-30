@@ -20,7 +20,10 @@ export type PermissionKey =
   | "canRemoveUsers"
   | "canTransferOwnership"
   | "canViewAnalytics"
-  | "canManageIntegrations";
+  | "canManageIntegrations"
+  | "canViewArchive"
+  | "canRestoreArchived"
+  | "canPermanentDelete";
 
 /**
  * Permission configuration object
@@ -44,7 +47,8 @@ export type ModuleId =
   | "social"
   | "employees"
   | "admin"
-  | "network";
+  | "network"
+  | "archive";
 
 /**
  * User permission context - combines role, org permissions, and module access
