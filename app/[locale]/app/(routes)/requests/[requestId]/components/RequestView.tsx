@@ -32,6 +32,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { EditRequestForm } from "./EditRequestForm";
+import RequestComments from "./RequestComments";
 
 // ── Status colors ──
 const STATUS_COLORS: Record<string, string> = {
@@ -96,6 +97,7 @@ interface RequestViewProps {
 
 export default function RequestView({ request }: RequestViewProps) {
   const t = useTranslations("requests");
+  const tCommon = useTranslations("common");
   const tActivities = useTranslations("activities");
   const { toast } = useAppToast();
 
@@ -316,6 +318,19 @@ export default function RequestView({ request }: RequestViewProps) {
               </CardContent>
             </Card>
           )}
+
+          {/* Comments */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                {tCommon("comments")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RequestComments requestId={request.friendlyId} />
+            </CardContent>
+          </Card>
 
         </div>
 

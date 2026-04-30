@@ -21,8 +21,8 @@ import {
   useUnlinkRequestFromDocument,
 } from "@/hooks/swr/useLinkMutations";
 import { format } from "date-fns";
-import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { QuickAddClient } from "@/app/[locale]/app/(routes)/crm/components/QuickAddClient";
 import { QuickAddProperty } from "@/app/[locale]/app/(routes)/mls/components/QuickAddProperty";
 import { QuickAddRequest } from "@/app/[locale]/app/(routes)/requests/components/QuickAddRequest";
@@ -55,6 +55,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
   const router = useRouter();
   const t = useTranslations("documents");
   const tCommon = useTranslations("common");
+  const { toast } = useAppToast();
   const [linkEnabled, setLinkEnabled] = useState(document.linkEnabled || false);
   const [passwordProtected, setPasswordProtected] = useState(document.passwordProtected || false);
   const [expiresAt, setExpiresAt] = useState<Date | null>(document.expiresAt ? new Date(document.expiresAt) : null);
@@ -88,37 +89,37 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
 
   const handleLinkClients = async (clientIds: string[]) => {
     await linkClients(clientIds);
-    toast.success(tCommon("toast.createSuccess"));
+    toast.success("createSuccess");
     await mutateLinked();
   };
 
   const handleUnlinkClient = async (clientId: string) => {
     await unlinkClient(clientId);
-    toast.success(tCommon("toast.deleteSuccess"));
+    toast.success("deleteSuccess");
     await mutateLinked();
   };
 
   const handleLinkProperties = async (propertyIds: string[]) => {
     await linkProperties(propertyIds);
-    toast.success(tCommon("toast.createSuccess"));
+    toast.success("createSuccess");
     await mutateLinked();
   };
 
   const handleUnlinkProperty = async (propertyId: string) => {
     await unlinkProperty(propertyId);
-    toast.success(tCommon("toast.deleteSuccess"));
+    toast.success("deleteSuccess");
     await mutateLinked();
   };
 
   const handleLinkRequests = async (requestIds: string[]) => {
     await linkRequests(requestIds);
-    toast.success(tCommon("toast.createSuccess"));
+    toast.success("createSuccess");
     await mutateLinked();
   };
 
   const handleUnlinkRequest = async (requestId: string) => {
     await unlinkRequest(requestId);
-    toast.success(tCommon("toast.deleteSuccess"));
+    toast.success("deleteSuccess");
     await mutateLinked();
   };
 
@@ -128,13 +129,13 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
     });
 
     if (!response.ok) {
-      toast.error("Failed to enable sharing");
+      toast.error("updateFailed");
       return;
     }
 
     await response.json();
     setLinkEnabled(true);
-    toast.success("Sharing enabled");
+    toast.success("updateSuccess");
   };
 
   const handleShareSettingsUpdate = async (updates: {
@@ -155,7 +156,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
     });
 
     if (!response.ok) {
-      toast.error("Failed to update share settings");
+      toast.error("updateFailed");
       return;
     }
 
@@ -163,7 +164,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
     if (updates.passwordProtected !== undefined) setPasswordProtected(updates.passwordProtected);
     if (updates.expiresAt !== undefined) setExpiresAt(updates.expiresAt);
 
-    toast.success("Share settings updated");
+    toast.success("updateSuccess");
   };
 
   const handleDownload = () => {
@@ -180,7 +181,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
           <h1 className="text-3xl font-bold">{document.document_name}</h1>
           {document.createdAt && (
             <p className="text-muted-foreground mt-1">
-              Created {format(new Date(document.createdAt), "MMM d, yyyy")}
+              {t("detail.createdDate")} {format(new Date(document.createdAt), "MMM d, yyyy")}
             </p>
           )}
         </div>
@@ -198,6 +199,13 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
           )}
           <Button
             variant="outline"
+            leftIcon={<Share2 className="h-4 w-4" />}
+            onClick={() => setShareModalOpen(true)}
+          >
+            {t("share")}
+          </Button>
+          <Button
+            variant="outline"
             leftIcon={<Download className="h-4 w-4" />}
             onClick={handleDownload}
           >
@@ -208,9 +216,9 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
 
       <Tabs defaultValue={activeTab} className="w-full">
         <TabsList className="inline-grid grid-cols-3">
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="share">Share</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="details">{t("detail.tabs.details")}</TabsTrigger>
+          <TabsTrigger value="share">{t("detail.tabs.share")}</TabsTrigger>
+          <TabsTrigger value="analytics">{t("detail.tabs.analytics")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="space-y-4">
@@ -219,19 +227,19 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
             <div className="lg:col-span-2 space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Document Information</CardTitle>
+                  <CardTitle>{t("detail.documentInformation")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {document.description && (
                     <div>
-                      <h3 className="font-semibold mb-2">Description</h3>
+                      <h3 className="font-semibold mb-2">{t("detail.description")}</h3>
                       <p className="text-muted-foreground">{document.description}</p>
                     </div>
                   )}
 
                   {document.created_by && (
                     <div>
-                      <h3 className="font-semibold mb-2">Created By</h3>
+                      <h3 className="font-semibold mb-2">{t("detail.createdBy")}</h3>
                       <p className="text-muted-foreground">
                         {document.created_by.name || document.created_by.email}
                       </p>
@@ -240,7 +248,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
 
                   {document.assigned_to_user && (
                     <div>
-                      <h3 className="font-semibold mb-2">Assigned To</h3>
+                      <h3 className="font-semibold mb-2">{t("detail.assignedTo")}</h3>
                       <p className="text-muted-foreground">
                         {document.assigned_to_user.name || document.assigned_to_user.email}
                       </p>
@@ -298,8 +306,8 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
                 <div className="flex items-center gap-3">
                   <Users className="h-5 w-5 text-primary" />
                   <div>
-                    <CardTitle className="text-lg">Share with Connections</CardTitle>
-                    <CardDescription>Send this document to agents in your network</CardDescription>
+                    <CardTitle className="text-lg">{t("detail.shareWithConnections")}</CardTitle>
+                    <CardDescription>{t("detail.shareWithConnectionsDescription")}</CardDescription>
                   </div>
                 </div>
                 <Button
@@ -307,7 +315,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
                   leftIcon={<Share2 className="h-4 w-4" />}
                   onClick={() => setShareModalOpen(true)}
                 >
-                  Share
+                  {t("share")}
                 </Button>
               </div>
             </CardHeader>
@@ -315,8 +323,8 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
 
           <Card>
             <CardHeader>
-              <CardTitle>Public Link Settings</CardTitle>
-              <CardDescription>Generate a shareable link for anyone</CardDescription>
+              <CardTitle>{t("detail.publicLinkSettings")}</CardTitle>
+              <CardDescription>{t("detail.publicLinkSettingsDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
               <ShareSettings
@@ -345,17 +353,17 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
         <TabsContent value="analytics" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>View Analytics</CardTitle>
+              <CardTitle>{t("detail.viewAnalytics")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="font-semibold mb-2">Total Views</h3>
+                <h3 className="font-semibold mb-2">{t("detail.totalViews")}</h3>
                 <p className="text-2xl font-bold">{document.viewsCount || 0}</p>
               </div>
 
               {document.lastViewedAt && (
                 <div>
-                  <h3 className="font-semibold mb-2">Last Viewed</h3>
+                  <h3 className="font-semibold mb-2">{t("detail.lastViewed")}</h3>
                   <p className="text-muted-foreground">
                     {format(new Date(document.lastViewedAt), "MMM d, yyyy 'at' h:mm a")}
                   </p>
@@ -364,7 +372,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
 
               {document.views && document.views.length > 0 && (
                 <div>
-                  <h3 className="font-semibold mb-2">Recent Views</h3>
+                  <h3 className="font-semibold mb-2">{t("detail.recentViews")}</h3>
                   <div className="space-y-2">
                     {document.views.map((view) => (
                       <div
@@ -373,7 +381,7 @@ export function DocumentDetail({ document, activeTab = "details" }: DocumentDeta
                       >
                         <div>
                           <p className="text-sm font-medium">
-                            {view.viewerUser?.name || view.viewerUser?.email || "Anonymous"}
+                            {view.viewerUser?.name || view.viewerUser?.email || t("detail.anonymous")}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {format(new Date(view.viewedAt), "MMM d, yyyy 'at' h:mm a")}

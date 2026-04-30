@@ -179,6 +179,25 @@
       "cancel": "Cancel"
     }
   },
+  "Filters": {
+    "title": "Filters",
+    "status": "Status",
+    "urgency": "Urgency",
+    "requestType": "Request Type",
+    "propertyType": "Property Type",
+    "budgetRange": "Budget Range",
+    "linkedStatus": "Link Status",
+    "linked": "Linked",
+    "unlinked": "Unlinked",
+    "all": "All",
+    "assignedTo": "Assigned To",
+    "anyone": "Anyone",
+    "min": "Min",
+    "max": "Max",
+    "clear": "Clear",
+    "apply": "Apply",
+    "resetFilters": "Reset Filters"
+  },
   "view": {
     "backToRequests": "Back to requests",
     "edit": "Edit",
@@ -237,7 +256,14 @@
     "linkContacts": "Link Contacts",
     "linkContactsDescription": "Select contacts to associate with this request.",
     "linkProperties": "Link Properties",
-    "linkPropertiesDescription": "Select properties to match with this request."
+    "linkPropertiesDescription": "Select properties to match with this request.",
+    "commentPlaceholder": "Add a comment… (Cmd+Enter to post)",
+    "postComment": "Post",
+    "noComments": "No comments yet",
+    "deleteCommentTitle": "Delete comment?",
+    "deleteCommentDescription": "This action cannot be undone.",
+    "commentFailed": "Failed to post comment",
+    "deleteCommentFailed": "Failed to delete comment"
   },
   "emptyState": {
     "noRequests": "No requests yet",

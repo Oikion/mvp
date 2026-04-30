@@ -179,6 +179,25 @@
       "cancel": "Ακύρωση"
     }
   },
+  "Filters": {
+    "title": "Φίλτρα",
+    "status": "Κατάσταση",
+    "urgency": "Επείγον",
+    "requestType": "Τύπος Αιτήματος",
+    "propertyType": "Τύπος Ακινήτου",
+    "budgetRange": "Εύρος Προϋπολογισμού",
+    "linkedStatus": "Κατάσταση Σύνδεσης",
+    "linked": "Συνδεδεμένο",
+    "unlinked": "Μη Συνδεδεμένο",
+    "all": "Όλα",
+    "assignedTo": "Ανατεθειμένο σε",
+    "anyone": "Οποιονδήποτε",
+    "min": "Ελάχ.",
+    "max": "Μέγ.",
+    "clear": "Καθαρισμός",
+    "apply": "Εφαρμογή",
+    "resetFilters": "Επαναφορά Φίλτρων"
+  },
   "view": {
     "backToRequests": "Πίσω στα αιτήματα",
     "edit": "Επεξεργασία",
@@ -237,7 +256,14 @@
     "linkContacts": "Σύνδεση Επαφών",
     "linkContactsDescription": "Επιλέξτε επαφές για σύνδεση με αυτό το αίτημα.",
     "linkProperties": "Σύνδεση Ακινήτων",
-    "linkPropertiesDescription": "Επιλέξτε ακίνητα για αντιστοίχιση με αυτό το αίτημα."
+    "linkPropertiesDescription": "Επιλέξτε ακίνητα για αντιστοίχιση με αυτό το αίτημα.",
+    "commentPlaceholder": "Προσθέστε σχόλιο… (Cmd+Enter για αποστολή)",
+    "postComment": "Αποστολή",
+    "noComments": "Δεν υπάρχουν σχόλια ακόμα",
+    "deleteCommentTitle": "Διαγραφή σχολίου;",
+    "deleteCommentDescription": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "commentFailed": "Αποτυχία αποστολής σχολίου",
+    "deleteCommentFailed": "Αποτυχία διαγραφής σχολίου"
   },
   "emptyState": {
     "noRequests": "Δεν υπάρχουν αιτήματα",

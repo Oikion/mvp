@@ -23,6 +23,13 @@ export async function POST(
       return NextResponse.json({ error: updateCheck.reason || "Permission denied" }, { status: 403 });
     }
 
+    // Resolve local DB user ID (FK target) from Clerk user ID
+    const dbUser = await prismadb.users.findFirst({
+      where: { clerkUserId: userId },
+      select: { id: true },
+    });
+    const actorUserId = dbUser?.id;
+
     const { contactId } = await params;
 
     // Verify the contact belongs to this org
@@ -71,7 +78,7 @@ export async function POST(
           entityType: "CONTACT",
           entityId: contactId,
           eventType: "LINKED",
-          actorUserId: userId,
+          actorUserId,
           linkTarget: {
             type: "REQUEST",
             id: req.id,
@@ -91,7 +98,7 @@ export async function POST(
           bId: req.id,
           bLabel: req.friendlyId ?? "Request",
           bUrl: `/app/requests/${req.id}`,
-          createdByUserId: userId,
+          createdByUserId: actorUserId,
         });
       }
     }
@@ -115,7 +122,7 @@ export async function POST(
           entityType: "CONTACT",
           entityId: contactId,
           eventType: "LINKED",
-          actorUserId: userId,
+          actorUserId,
           linkTarget: {
             type: "PROPERTY",
             id: prop.id,
@@ -135,7 +142,7 @@ export async function POST(
           bId: prop.id,
           bLabel: prop.property_name ?? prop.friendlyId ?? "Property",
           bUrl: `/app/mls/properties/${prop.friendlyId ?? prop.id}`,
-          createdByUserId: userId,
+          createdByUserId: actorUserId,
         });
       }
     }
@@ -164,6 +171,13 @@ export async function DELETE(
     if (!updateCheck.allowed) {
       return NextResponse.json({ error: updateCheck.reason || "Permission denied" }, { status: 403 });
     }
+
+    // Resolve local DB user ID (FK target) from Clerk user ID
+    const dbUser = await prismadb.users.findFirst({
+      where: { clerkUserId: userId },
+      select: { id: true },
+    });
+    const actorUserId = dbUser?.id;
 
     const { contactId } = await params;
 
@@ -213,7 +227,7 @@ export async function DELETE(
           entityType: "CONTACT",
           entityId: contactId,
           eventType: "UNLINKED",
-          actorUserId: userId,
+          actorUserId,
           linkTarget: {
             type: "REQUEST",
             id: unlinkedRequest.id,
@@ -233,7 +247,7 @@ export async function DELETE(
           bId: unlinkedRequest.id,
           bLabel: unlinkedRequest.friendlyId ?? "Request",
           bUrl: `/app/requests/${unlinkedRequest.id}`,
-          createdByUserId: userId,
+          createdByUserId: actorUserId,
         });
       }
     }
@@ -256,7 +270,7 @@ export async function DELETE(
           entityType: "CONTACT",
           entityId: contactId,
           eventType: "UNLINKED",
-          actorUserId: userId,
+          actorUserId,
           linkTarget: {
             type: "PROPERTY",
             id: unlinkedProperty.id,
@@ -276,7 +290,7 @@ export async function DELETE(
           bId: unlinkedProperty.id,
           bLabel: unlinkedProperty.property_name ?? unlinkedProperty.friendlyId ?? "Property",
           bUrl: `/app/mls/properties/${unlinkedProperty.friendlyId ?? unlinkedProperty.id}`,
-          createdByUserId: userId,
+          createdByUserId: actorUserId,
         });
       }
     }

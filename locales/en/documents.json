@@ -32,7 +32,29 @@
   },
   "edit": "Edit",
   "download": "Download",
+  "share": "Share",
   "documentPreview": "Document Preview",
+  "detail": {
+    "tabs": {
+      "details": "Details",
+      "share": "Share",
+      "analytics": "Analytics"
+    },
+    "documentInformation": "Document Information",
+    "description": "Description",
+    "createdBy": "Created By",
+    "assignedTo": "Assigned To",
+    "createdDate": "Created",
+    "shareWithConnections": "Share with Connections",
+    "shareWithConnectionsDescription": "Send this document to agents in your network",
+    "publicLinkSettings": "Public Link Settings",
+    "publicLinkSettingsDescription": "Generate a shareable link for anyone",
+    "viewAnalytics": "View Analytics",
+    "totalViews": "Total Views",
+    "lastViewed": "Last Viewed",
+    "recentViews": "Recent Views",
+    "anonymous": "Anonymous"
+  },
   "documentGrid": {
     "documentsCount": "{count} document",
     "documentsCountPlural": "{count} documents",

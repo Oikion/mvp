@@ -19,7 +19,7 @@ export const getContact = async (contactId: string) => {
   const data = await prismadb.contact.findFirst({
     where: {
       organizationId,
-      friendlyId: contactId,
+      OR: [{ friendlyId: contactId }, { id: contactId }],
     },
     include: {
       assignedAgent: { select: { name: true, id: true } },

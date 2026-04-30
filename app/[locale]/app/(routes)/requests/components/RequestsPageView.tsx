@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ViewToggle } from "@/components/ui/view-toggle";
-import { DataTable } from "@/components/ui/data-table/data-table";
+import { RequestDataTable } from "../table-components/data-table";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
 import { GridToolbar, type GridFilter } from "@/components/ui/grid-toolbar";
 import { ExportButton } from "@/components/export";
@@ -280,13 +280,13 @@ export default function RequestsPageView({
               <p className="text-sm mt-1">{t("emptyState.createFirst")}</p>
             </div>
           ) : view === "list" ? (
-            <DataTable
+            <RequestDataTable
               data={requests}
               columns={columns}
-              searchKey="title"
-              searchPlaceholder={t("searchPlaceholder")}
-              onRowOpen={(row) => router.push(`/app/requests/${row.original.friendlyId ?? row.original.id}`)}
+              users={users ?? []}
+              getRowHref={(row: any) => `/app/requests/${row.friendlyId ?? row.id}`}
               toolbarRight={<ViewToggle view={view} setView={setView} />}
+              onRefresh={handleRefresh}
             />
           ) : (
             <div className="space-y-4">

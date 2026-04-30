@@ -32,7 +32,29 @@
   },
   "edit": "Επεξεργασία",
   "download": "Λήψη",
+  "share": "Κοινοποίηση",
   "documentPreview": "Προεπισκόπηση Εγγράφου",
+  "detail": {
+    "tabs": {
+      "details": "Λεπτομέρειες",
+      "share": "Κοινοποίηση",
+      "analytics": "Αναλυτικά"
+    },
+    "documentInformation": "Πληροφορίες Εγγράφου",
+    "description": "Περιγραφή",
+    "createdBy": "Δημιουργήθηκε από",
+    "assignedTo": "Ανατέθηκε σε",
+    "createdDate": "Δημιουργία",
+    "shareWithConnections": "Κοινοποίηση με Συνδέσεις",
+    "shareWithConnectionsDescription": "Στείλτε αυτό το έγγραφο σε συνεργάτες του δικτύου σας",
+    "publicLinkSettings": "Ρυθμίσεις Δημόσιου Συνδέσμου",
+    "publicLinkSettingsDescription": "Δημιουργήστε έναν κοινόχρηστο σύνδεσμο για οποιονδήποτε",
+    "viewAnalytics": "Αναλυτικά Προβολών",
+    "totalViews": "Συνολικές Προβολές",
+    "lastViewed": "Τελευταία Προβολή",
+    "recentViews": "Πρόσφατες Προβολές",
+    "anonymous": "Ανώνυμος"
+  },
   "documentGrid": {
     "documentsCount": "{count} έγγραφο",
     "documentsCountPlural": "{count} έγγραφα",

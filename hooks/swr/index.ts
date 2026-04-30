@@ -72,7 +72,7 @@ export type { ContactComment } from "./useContactComments";
 export { useRequests } from "./useRequests";
 export type { RequestOption } from "./useRequests";
 export { useRequest } from "./useRequest";
-export { useRequestComments } from "./useRequestComments";
+export { useRequestComments, useAddRequestComment, useDeleteRequestComment } from "./useRequestComments";
 
 // v2.0 Deal hooks (Phase 3)
 export { useDeals, useDeal, getDealsKey, getDealKey } from "./useDeals";

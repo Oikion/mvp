@@ -17,7 +17,7 @@ export function RequestRowActions({ row }: RequestRowActionsProps) {
   const data = row.original;
 
   const handleDelete = async () => {
-    await axios.delete(`/api/requests/${data.id}`);
+    await axios.delete(`/api/requests/${data.friendlyId}`);
   };
 
   return (
