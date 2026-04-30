@@ -1,0 +1,45 @@
+{
+  "title": "Archive",
+  "overview": {
+    "title": "Archive Overview",
+    "description": "View and manage soft-deleted records",
+    "stats": {
+      "properties": "Archived Properties",
+      "contacts": "Archived Contacts",
+      "requests": "Archived Requests",
+      "deals": "Archived Deals",
+      "events": "Archived Events",
+      "documents": "Archived Documents"
+    }
+  },
+  "actions": {
+    "restore": "Restore",
+    "purge": "Delete Permanently",
+    "restoreConfirm": "Restore this item?",
+    "purgeConfirm": "This action cannot be undone. Permanently delete this item?",
+    "purgeButton": "Delete permanently",
+    "cancelButton": "Cancel"
+  },
+  "cascade": {
+    "title": "Archive linked records?",
+    "willArchive": "{count, plural, one {# linked record} other {# linked records}} will also be archived.",
+    "willUnlink": "{count, plural, one {# related record} other {# related records}} will be unlinked (not archived).",
+    "archiveAll": "Archive linked records",
+    "archiveOnly": "Archive this item only"
+  },
+  "empty": "No archived items",
+  "pages": {
+    "properties": "Archived Properties",
+    "contacts": "Archived Contacts",
+    "requests": "Archived Requests",
+    "deals": "Archived Deals",
+    "events": "Archived Events",
+    "documents": "Archived Documents"
+  },
+  "table": {
+    "name": "Name",
+    "archivedAt": "Archived On",
+    "archivedBy": "Archived By",
+    "actions": "Actions"
+  }
+}

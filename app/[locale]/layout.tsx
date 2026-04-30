@@ -58,6 +58,7 @@ import cookiesEn from "@/locales/en/cookies.json";
 import docsEn from "@/locales/en/docs.json";
 import activitiesEn from "@/locales/en/activities.json";
 import documentTemplatesEn from "@/locales/en/document-templates.json";
+import archiveEn from "@/locales/en/archive.json";
 
 import commonEl from "@/locales/el/common.json";
 import rootEl from "@/locales/el/root.json";
@@ -104,6 +105,7 @@ import cookiesEl from "@/locales/el/cookies.json";
 import docsEl from "@/locales/el/docs.json";
 import activitiesEl from "@/locales/el/activities.json";
 import documentTemplatesEl from "@/locales/el/document-templates.json";
+import archiveEl from "@/locales/el/archive.json";
 
 const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const metadataBaseUrl = new URL(appBaseUrl);
@@ -170,6 +172,7 @@ function getLocales(locale: string) {
     messages.docs = docsEl;
     messages.activities = activitiesEl;
     messages["document-templates"] = documentTemplatesEl;
+    messages.archive = archiveEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -225,6 +228,7 @@ function getLocales(locale: string) {
     messages.docs = docsEn;
     messages.activities = activitiesEn;
     messages["document-templates"] = documentTemplatesEn;
+    messages.archive = archiveEn;
   }
 
   if (Object.keys(messages).length === 0) {

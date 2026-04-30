@@ -44,6 +44,7 @@ import landingEn from "./locales/en/landing.json";
 import docsEn from "./locales/en/docs.json";
 import activitiesEn from "./locales/en/activities.json";
 import documentTemplatesEn from "./locales/en/document-templates.json";
+import archiveEn from "./locales/en/archive.json";
 
 import commonEl from "./locales/el/common.json";
 import rootEl from "./locales/el/root.json";
@@ -88,6 +89,7 @@ import landingEl from "./locales/el/landing.json";
 import docsEl from "./locales/el/docs.json";
 import activitiesEl from "./locales/el/activities.json";
 import documentTemplatesEl from "./locales/el/document-templates.json";
+import archiveEl from "./locales/el/archive.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -142,6 +144,7 @@ function loadMessages(locale: string) {
     messages.docs = docsEl;
     messages.activities = activitiesEl;
     messages["document-templates"] = documentTemplatesEl;
+    messages.archive = archiveEl;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEl);
     // Also keep it nested for namespace access (useTranslations("notifications"))
@@ -198,6 +201,7 @@ function loadMessages(locale: string) {
     messages.docs = docsEn;
     messages.activities = activitiesEn;
     messages["document-templates"] = documentTemplatesEn;
+    messages.archive = archiveEn;
     // Spread notifications contents directly into messages (for backward compatibility)
     Object.assign(messages, notificationsEn);
     // Also keep it nested for namespace access (useTranslations("notifications"))
