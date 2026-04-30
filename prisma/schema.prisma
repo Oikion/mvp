@@ -81,6 +81,8 @@ enum SubmissionStatus {
 model CalendarEvent {
   id                 String               @id @default(uuid())
   friendlyId         String
+  archivedAt         DateTime?
+  archivedBy         String?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime
   calendarEventId    Int                  @unique
@@ -122,6 +124,8 @@ model CalendarEvent {
   @@index([friendlyId])
   @@index([organizationId])
   @@index([startTime])
+  @@index([archivedAt])
+  @@index([organizationId, archivedAt])
 }
 
 model CalendarReminder {
@@ -199,9 +203,11 @@ model Deal {
   marketingSpendId String?     // Link to marketing spend
 
   // ── Audit & lifecycle ──
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime? // v2.0: soft delete
+  archivedAt DateTime?
+  archivedBy String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime? // v2.0: soft delete
 
   // ── Relations ──
   listingAgent  Users?     @relation("Deal_listingAgentToUsers", fields: [listingAgentId], references: [id], onDelete: SetNull)
@@ -238,6 +244,8 @@ model Deal {
   @@index([deletedAt])
   @@index([organizationId, stage])
   @@index([organizationId, createdAt])
+  @@index([archivedAt])
+  @@index([organizationId, archivedAt])
   @@map("deals")
 }
 
@@ -280,6 +288,8 @@ model DocumentView {
 model Documents {
   id                                             String               @id @default(uuid())
   friendlyId                                     String
+  archivedAt                                     DateTime?
+  archivedBy                                     String?
   date_created                                   DateTime?            @default(now())
   createdAt                                      DateTime?            @default(now())
   last_updated                                   DateTime?
@@ -337,6 +347,8 @@ model Documents {
   @@index([linkEnabled])
   @@index([organizationId])
   @@index([shareableLink])
+  @@index([archivedAt])
+  @@index([organizationId, archivedAt])
 }
 
 model Documents_Types {
@@ -535,6 +547,8 @@ model ProfileShowcaseProperty {
 model Properties {
   id                     String               @id @default(uuid())
   friendlyId             String
+  archivedAt             DateTime?
+  archivedBy             String?
   createdAt              DateTime             @default(now())
   createdBy              String?
   updatedAt              DateTime?
@@ -649,6 +663,8 @@ model Properties {
   @@index([property_status])
   @@index([saleDate])
   @@index([xePublished])
+  @@index([archivedAt])
+  @@index([organizationId, archivedAt])
 }
 
 model PropertyImage {
@@ -3493,6 +3509,8 @@ model Contact {
   // ── Audit & lifecycle ──
   createdBy  String?
   updatedBy  String?
+  archivedAt DateTime?
+  archivedBy String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   deletedAt  DateTime? // soft delete
@@ -3532,6 +3550,8 @@ model Contact {
   @@index([referredById])
   @@index([organizationId, status])
   @@index([organizationId, createdAt])
+  @@index([archivedAt])
+  @@index([organizationId, archivedAt])
   @@map("contacts")
 }
 
@@ -3736,8 +3756,8 @@ model Request {
   timeline  Timeline?
   expiresAt DateTime?
 
-  // ── Title & Notes (encrypted) ──
-  title              String? // Human-readable title for the search brief (encrypted)
+  // ── Name & Notes (encrypted) ──
+  name               String? // Human-readable name for the search brief (encrypted)
   notes              String?
   communicationNotes Json?
 
@@ -3746,11 +3766,13 @@ model Request {
   draftStatus Boolean?       @default(false)
 
   // ── Audit & lifecycle ──
-  createdBy String?
-  updatedBy String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime? // soft delete
+  createdBy  String?
+  updatedBy  String?
+  archivedAt DateTime?
+  archivedBy String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime? // soft delete
 
   // ── Migration traceability ──
   legacyMandateId String? // maps back to Mandate.id for FK rewiring
@@ -3779,6 +3801,8 @@ model Request {
   @@index([legacyMandateId])
   @@index([organizationId, status])
   @@index([organizationId, requestType])
+  @@index([archivedAt])
+  @@index([organizationId, archivedAt])
   @@map("requests")
 }
 
