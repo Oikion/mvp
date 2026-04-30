@@ -3,7 +3,6 @@ import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
-import { deleteFromBlob } from "@/lib/vercel-blob";
 import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
 
 export async function GET(
@@ -65,16 +64,12 @@ export async function DELETE(
   }
 
   try {
-    await getCurrentUser();
+    const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
 
-    // Get the property to check ownership
     const property = await prismaTenant.properties.findFirst({
-      where: {
-        organizationId,
-        friendlyId: propertyId,
-      },
+      where: { organizationId, friendlyId: propertyId },
       select: { id: true, assigned_to: true },
     });
 
@@ -82,7 +77,6 @@ export async function DELETE(
       return NextResponse.json({ error: "Property not found" }, { status: 404 });
     }
 
-    // Permission check: Users need property:delete permission (with ownership check)
     const deleteCheck = await canPerformActionOnEntity(
       "property:delete",
       "property",
@@ -96,30 +90,11 @@ export async function DELETE(
       );
     }
 
-    // Delete property images from blob storage before deleting the property
-    // (DB records cascade-delete automatically via onDelete: Cascade)
-    try {
-      const images = await prismaTenant.propertyImage.findMany({
-        where: { propertyId: property.id },
-        select: { url: true },
-      });
-
-      for (const image of images) {
-        try {
-          await deleteFromBlob(image.url);
-        } catch (blobErr) {
-          // Log but don't block property deletion if blob cleanup fails
-          console.error("[PROPERTY_DELETE] Failed to delete blob:", image.url, blobErr);
-        }
-      }
-    } catch (err) {
-      console.error("[PROPERTY_DELETE] Failed to fetch images for cleanup:", err);
-    }
-
     await deleteEntitySessionsForEntity("PROPERTY", property.id);
 
-    await prismaTenant.properties.delete({
-      where: { id: property.id },
+    await prismaTenant.properties.update({
+      where: { id: property.id, organizationId },
+      data: { archivedAt: new Date(), archivedBy: currentUser.id },
     });
 
     await invalidateCache([
@@ -127,11 +102,11 @@ export async function DELETE(
       `property:${propertyId}`,
     ]);
 
-    return NextResponse.json({ message: "Property deleted" }, { status: 200 });
+    return NextResponse.json({ message: "Property archived" }, { status: 200 });
   } catch (error) {
-    console.error("[PROPERTY_DELETE]", error);
+    console.error("[PROPERTY_ARCHIVE]", error);
     return NextResponse.json(
-      { error: "Failed to delete property" },
+      { error: "Failed to archive property" },
       { status: 500 }
     );
   }
