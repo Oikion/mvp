@@ -357,22 +357,62 @@ export async function deleteImportBatch(
     throw new Error("Import record not found or access denied");
   }
 
-  // 2. Read resultDetails to get typed entity arrays
-  // Support both new keys (contacts/requests) and legacy keys (clients/mandates)
+  // 2. Resolve entity IDs — primary source is typed resultDetails arrays;
+  //    fall back to the flat entityIds[] field when resultDetails is absent
+  //    (e.g. if recordImport failed silently after the import completed).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const details = existing.resultDetails as (StoredResultDetails & Record<string, any>) | null;
 
-  const allContactIds: string[] =
+  let allContactIds: string[] =
     (details?.contacts ?? details?.clients)?.map((c: { uuid: string }) => c.uuid) ?? [];
-  const allPropertyIds: string[] = details?.properties?.map((p) => p.uuid) ?? [];
-  const allRequestIds: string[] =
+  let allPropertyIds: string[] =
+    details?.properties?.map((p: { uuid: string }) => p.uuid) ?? [];
+  let allRequestIds: string[] =
     (details?.requests ?? details?.mandates)?.map((m: { uuid: string }) => m.uuid) ?? [];
+
+  // Fallback: resultDetails absent — classify the flat entityIds[] by querying each table
+  const hasNoDetails =
+    allContactIds.length === 0 && allPropertyIds.length === 0 && allRequestIds.length === 0;
+
+  if (hasNoDetails && existing.entityIds.length > 0) {
+    console.warn(
+      "[deleteImportBatch] resultDetails missing — falling back to entityIds classification",
+      { id, orgId, entityIdCount: existing.entityIds.length },
+    );
+    const [foundContacts, foundProperties, foundRequests] = await Promise.all([
+      prismadb.contact.findMany({
+        where: { id: { in: existing.entityIds }, organizationId: orgId },
+        select: { id: true },
+      }),
+      prismadb.properties.findMany({
+        where: { id: { in: existing.entityIds }, organizationId: orgId },
+        select: { id: true },
+      }),
+      prismadb.request.findMany({
+        where: { id: { in: existing.entityIds }, organizationId: orgId },
+        select: { id: true },
+      }),
+    ]);
+    allContactIds = foundContacts.map((c) => c.id);
+    allPropertyIds = foundProperties.map((p) => p.id);
+    allRequestIds = foundRequests.map((r) => r.id);
+  }
+
+  if (allContactIds.length === 0 && allPropertyIds.length === 0 && allRequestIds.length === 0) {
+    console.warn("[deleteImportBatch] No entity IDs resolved — nothing to delete", { id, orgId });
+  }
 
   // 3. Filter to requested entity types
   const wantAll = entityTypes === "all";
-  const wantContacts = wantAll || (entityTypes as string[]).includes("contacts") || (entityTypes as string[]).includes("clients");
+  const wantContacts =
+    wantAll ||
+    (entityTypes as string[]).includes("contacts") ||
+    (entityTypes as string[]).includes("clients");
   const wantProperties = wantAll || (entityTypes as string[]).includes("properties");
-  const wantRequests = wantAll || (entityTypes as string[]).includes("requests") || (entityTypes as string[]).includes("mandates");
+  const wantRequests =
+    wantAll ||
+    (entityTypes as string[]).includes("requests") ||
+    (entityTypes as string[]).includes("mandates");
 
   const contactIds = wantContacts ? allContactIds : [];
   const propertyIds = wantProperties ? allPropertyIds : [];
@@ -387,11 +427,17 @@ export async function deleteImportBatch(
   // 4. Wrap in transaction
   await prismadb.$transaction(
     async (tx) => {
-      // 4a. Delete junction links first (avoid FK constraint failures)
-      //     ContactProperty: where contactId OR propertyId is in delete set
-      // (client_Properties and mandate_Clients tables removed — no M2M junction needed)
+      // 4a. Remove deals linked to the properties being deleted.
+      //     Deal.propertyId has no onDelete clause (PostgreSQL defaults to RESTRICT),
+      //     so we must delete Deal rows before their property. Cascades from Deal
+      //     handle DealParty and DealStageLog; PropertyShowing.dealId SetNulls.
+      if (propertyIds.length > 0) {
+        await tx.deal.deleteMany({
+          where: { propertyId: { in: propertyIds }, organizationId: orgId },
+        });
+      }
 
-      // 4b. Delete entities
+      // 4b. Delete entities (M2M junction rows cascade automatically)
       if (requestIds.length > 0) {
         const { count } = await tx.request.deleteMany({
           where: { id: { in: requestIds }, organizationId: orgId },
@@ -413,7 +459,16 @@ export async function deleteImportBatch(
         deletedCounts.properties = count;
       }
 
-      // 4c. Determine new status and update resultDetails
+      // 4c. Clean up EntityChangeLog entries. entityId is a plain String with no FK,
+      //     so deleted entities otherwise leave orphaned audit rows indefinitely.
+      const allDeletedIds = [...contactIds, ...propertyIds, ...requestIds];
+      if (allDeletedIds.length > 0) {
+        await tx.entityChangeLog.deleteMany({
+          where: { entityId: { in: allDeletedIds }, organizationId: orgId },
+        });
+      }
+
+      // 4d. Determine new status and update resultDetails
       const remainingContacts = wantContacts ? [] : (details?.contacts ?? details?.clients ?? []);
       const remainingProperties = wantProperties ? [] : (details?.properties ?? []);
       const remainingRequests = wantRequests ? [] : (details?.requests ?? details?.mandates ?? []);
@@ -425,7 +480,7 @@ export async function deleteImportBatch(
 
       const newStatus: ImportStatus = anyRemaining ? "PARTIALLY_DELETED" : "BATCH_DELETED";
 
-      const updatedResultDetails: StoredResultDetails = {
+      const updatedResultDetails = {
         contacts: remainingContacts,
         properties: remainingProperties,
         requests: remainingRequests,
@@ -433,6 +488,12 @@ export async function deleteImportBatch(
           contactProperty: 0,
           requestProperty: 0,
           requestContact: 0,
+        },
+        deletedAt: new Date().toISOString(),
+        deletedCounts: {
+          contacts: deletedCounts.contacts,
+          properties: deletedCounts.properties,
+          requests: deletedCounts.requests,
         },
       };
 

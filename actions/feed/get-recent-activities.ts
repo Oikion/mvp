@@ -2,6 +2,7 @@
 
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { prismaForOrg } from "@/lib/tenant";
+import { prismadb } from "@/lib/prisma";
 import {
   decryptPropertyForOrg,
   decryptContactForOrg,
@@ -11,7 +12,7 @@ import {
 
 export interface ActivityItem {
   id: string;
-  type: "property" | "contact" | "document" | "event";
+  type: "property" | "contact" | "document" | "event" | "import";
   action: "created" | "updated" | "deleted";
   title: string;
   description?: string;
@@ -37,10 +38,10 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
 
   // 30-day cutoff to bound all queries
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const perType = Math.floor(limit / 4);
+  const perType = Math.floor(limit / 5);
 
-  // Run all four queries concurrently (fixes sequential execution)
-  const [properties, clients, documents, events] = await Promise.all([
+  // Run all five queries concurrently
+  const [properties, clients, documents, events, imports] = await Promise.all([
     prisma.properties.findMany({
       take: perType,
       where: { createdAt: { gte: thirtyDaysAgo } },
@@ -76,6 +77,29 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
       where: { createdAt: { gte: thirtyDaysAgo } },
       orderBy: { createdAt: "desc" },
     }).catch(() => [] as Awaited<ReturnType<typeof prisma.calendarEvent.findMany>>),
+    // ImportHistory is not in TENANT_MODELS so use prismadb with explicit org filter.
+    // Fetch recent completed imports plus all deleted imports (deleted timestamp lives
+    // inside resultDetails.deletedAt — no updatedAt column on the model).
+    prismadb.importHistory.findMany({
+      where: {
+        organizationId: orgId,
+        importPhase: "COMPLETE",
+        OR: [
+          { createdAt: { gte: thirtyDaysAgo } },
+          { status: { in: ["BATCH_DELETED", "PARTIALLY_DELETED"] } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take: perType * 4,
+      select: {
+        id: true,
+        sourceFilename: true,
+        createdCount: true,
+        status: true,
+        createdAt: true,
+        resultDetails: true,
+      },
+    }),
   ]);
 
   // Decrypt all entity types concurrently
@@ -174,6 +198,45 @@ export async function getRecentActivities(limit: number = 50): Promise<ActivityI
         endTime: event.endTime instanceof Date ? event.endTime.toISOString() : event.endTime,
         location: event.location,
       },
+    });
+  }
+
+  for (const imp of imports) {
+    const isDeleted = imp.status === "BATCH_DELETED" || imp.status === "PARTIALLY_DELETED";
+    const details = imp.resultDetails as Record<string, any> | null;
+    const deletedAt: string | undefined = details?.deletedAt;
+
+    // For deleted batches without a stored deletedAt (pre-fix records), skip — we
+    // can't determine when the deletion happened so showing createdAt would mislead.
+    if (isDeleted && !deletedAt) continue;
+
+    // Filter deleted batches whose deletion falls outside the 30-day window.
+    if (isDeleted && deletedAt && new Date(deletedAt) < thirtyDaysAgo) continue;
+
+    const timestamp = isDeleted && deletedAt ? deletedAt : imp.createdAt.toISOString();
+
+    const deletedCounts = details?.deletedCounts as
+      | { contacts: number; properties: number; requests: number }
+      | undefined;
+
+    const descriptionParts: string[] = [];
+    if (isDeleted && deletedCounts) {
+      if (deletedCounts.contacts > 0) descriptionParts.push(`${deletedCounts.contacts} contacts`);
+      if (deletedCounts.properties > 0) descriptionParts.push(`${deletedCounts.properties} properties`);
+      if (deletedCounts.requests > 0) descriptionParts.push(`${deletedCounts.requests} requests`);
+    } else if (!isDeleted && imp.createdCount > 0) {
+      descriptionParts.push(`${imp.createdCount} records`);
+    }
+
+    activities.push({
+      id: `import-${imp.id}`,
+      type: "import",
+      action: isDeleted ? "deleted" : "created",
+      title: imp.sourceFilename,
+      description: descriptionParts.length > 0 ? descriptionParts.join(", ") : undefined,
+      timestamp,
+      entityId: imp.id,
+      metadata: { status: imp.status },
     });
   }
 

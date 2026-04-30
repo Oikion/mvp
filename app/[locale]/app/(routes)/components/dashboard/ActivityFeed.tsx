@@ -15,6 +15,7 @@ import {
   FileText,
   Calendar,
   Activity,
+  Upload,
 } from "lucide-react";
 import moment from "moment";
 import type { ActivityItem } from "@/actions/feed/get-recent-activities";
@@ -33,6 +34,8 @@ const getActivityIcon = (type: ActivityItem["type"]) => {
       return <FileText className="h-4 w-4" />;
     case "event":
       return <Calendar className="h-4 w-4" />;
+    case "import":
+      return <Upload className="h-4 w-4" />;
     default:
       return <Activity className="h-4 w-4" />;
   }
@@ -63,6 +66,8 @@ const getActivityHref = (activity: ActivityItem, locale: string): string => {
       return `/${locale}/app/documents?id=${activity.entityFriendlyId ?? activity.entityId}`;
     case "event":
       return `/${locale}/app/calendar/events/${activity.entityFriendlyId ?? activity.entityId}`;
+    case "import":
+      return `/${locale}/app/import/${activity.entityId}`;
     default:
       return `/${locale}/app`;
   }
