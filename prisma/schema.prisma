@@ -82,7 +82,7 @@ model CalendarEvent {
   id                 String               @id @default(uuid())
   friendlyId         String
   archivedAt         DateTime?
-  archivedBy         String?
+  archivedBy         String?              // Clerk userId of the actor
   createdAt          DateTime             @default(now())
   updatedAt          DateTime
   calendarEventId    Int                  @unique
@@ -288,9 +288,9 @@ model DocumentView {
 model Documents {
   id                                             String               @id @default(uuid())
   friendlyId                                     String
-  archivedAt                                     DateTime?
-  archivedBy                                     String?
   date_created                                   DateTime?            @default(now())
+  archivedAt                                     DateTime?
+  archivedBy                                     String?              // Clerk userId of the actor
   createdAt                                      DateTime?            @default(now())
   last_updated                                   DateTime?
   updatedAt                                      DateTime?
@@ -548,7 +548,7 @@ model Properties {
   id                     String               @id @default(uuid())
   friendlyId             String
   archivedAt             DateTime?
-  archivedBy             String?
+  archivedBy             String?              // Clerk userId of the actor
   createdAt              DateTime             @default(now())
   createdBy              String?
   updatedAt              DateTime?
