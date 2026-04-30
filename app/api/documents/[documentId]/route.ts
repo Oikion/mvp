@@ -4,7 +4,6 @@ import { getDocument } from "@/actions/documents/get-document";
 import { prismadb } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { mergeDocumentMentions } from "@/actions/documents/parse-mentions";
-import { deleteFromBlob } from "@/lib/vercel-blob";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
 
@@ -135,7 +134,7 @@ export async function DELETE(
     const permissionError = await requireCanModify();
     if (permissionError) return permissionError;
 
-    await getCurrentUser();
+    const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const params = await props.params;
 
@@ -147,24 +146,16 @@ export async function DELETE(
       return new NextResponse("Document not found", { status: 404 });
     }
 
-    // Delete file from Vercel Blob
-    try {
-      await deleteFromBlob(document.document_file_url);
-    } catch (error) {
-      console.error("Error deleting blob:", error);
-      // Continue with document deletion even if blob deletion fails
-    }
-
-    // Delete document
-    await prismadb.documents.delete({
-      where: { id: params.documentId },
+    await prismadb.documents.update({
+      where: { id: params.documentId, organizationId },
+      data: { archivedAt: new Date(), archivedBy: user.id },
     });
 
     await invalidateCache(["documents"]);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[DOCUMENT_DELETE]", error);
+    console.error("[DOCUMENT_ARCHIVE]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
 }

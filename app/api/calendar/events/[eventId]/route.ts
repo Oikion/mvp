@@ -189,7 +189,7 @@ export async function GET(
           },
         },
         Requests: {
-          select: { id: true, title: true, friendlyId: true, status: true },
+          select: { id: true, name: true, friendlyId: true, status: true },
         },
         CalendarReminder: {
           orderBy: {
@@ -759,67 +759,19 @@ export async function DELETE(
     // Cancel all reminders (they will be cascade deleted, but cancel them first)
     await cancelAllRemindersForEvent(resolvedId);
 
-    // Activity Log — emit CALENDAR_EVENT_REMOVED for each linked Contact,
-    // Property, and Request BEFORE the event row is deleted (so the event
-    // is still queryable). Decrypt title once and reuse.
-    const linkedContacts = event.Contacts ?? [];
-    const linkedProperties = event.Properties ?? [];
-    const linkedRequests = (event as any).Requests ?? [];
-    if (
-      linkedContacts.length > 0 ||
-      linkedProperties.length > 0 ||
-      linkedRequests.length > 0
-    ) {
-      const decryptedForActivity = await decryptCalendarEventForOrg(
-        event,
-        currentOrgId
-      );
-      const eventTitleForActivity =
-        (decryptedForActivity as any).title ?? "Event";
-      for (const linkedContact of linkedContacts) {
-        void logCalendarEventRemoved({
-          organizationId: currentOrgId,
-          parentType: "CONTACT",
-          parentId: linkedContact.id,
-          eventId: resolvedId,
-          eventTitle: eventTitleForActivity,
-          actorUserId: currentUser.id,
-        });
-      }
-      for (const linkedProp of linkedProperties) {
-        void logCalendarEventRemoved({
-          organizationId: currentOrgId,
-          parentType: "PROPERTY",
-          parentId: linkedProp.id,
-          eventId: resolvedId,
-          eventTitle: eventTitleForActivity,
-          actorUserId: currentUser.id,
-        });
-      }
-      for (const linkedReq of linkedRequests as Array<{ id: string }>) {
-        void logCalendarEventRemoved({
-          organizationId: currentOrgId,
-          parentType: "REQUEST",
-          parentId: linkedReq.id,
-          eventId: resolvedId,
-          eventTitle: eventTitleForActivity,
-          actorUserId: currentUser.id,
-        });
-      }
-    }
-
-    // Delete event (reminders cascade delete)
-    await prismadb.calendarEvent.delete({
+    // Archive event (reminders remain; they will be inert on an archived event)
+    await prismadb.calendarEvent.update({
       where: { id: resolvedId },
+      data: { archivedAt: new Date(), archivedBy: currentUser.id },
     });
 
     return NextResponse.json({
-      message: "Event deleted successfully",
+      message: "Event archived",
     });
   } catch (error: any) {
-    console.error("[CALENDAR_EVENTS_DELETE]", error);
+    console.error("[CALENDAR_EVENTS_ARCHIVE]", error);
     return NextResponse.json(
-      { error: "Failed to delete event" },
+      { error: "Failed to archive event" },
       { status: 500 }
     );
   }
