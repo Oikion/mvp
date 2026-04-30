@@ -87,6 +87,7 @@ export const GET = withExternalApi(
         doy: true,
         vatNumber: true,
         addresses: true,
+        archivedAt: true,
         createdAt: true,
         updatedAt: true,
         assignedAgent: {
@@ -97,6 +98,10 @@ export const GET = withExternalApi(
 
     if (!contact) {
       return createApiErrorResponse("Contact not found", 404);
+    }
+
+    if (contact.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
     }
 
     const decrypted = await decryptContactForOrg(contact, context.organizationId);
@@ -162,6 +167,10 @@ export const PUT = withExternalApi(
 
     if (!existingContact) {
       return createApiErrorResponse("Contact not found", 404);
+    }
+
+    if (existingContact.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
     }
 
     // Decrypt existing record for webhook plaintext fallbacks
@@ -282,18 +291,22 @@ export const DELETE = withExternalApi(
       return createApiErrorResponse("Contact not found", 404);
     }
 
-    // Decrypt before delete — webhook consumers need plaintext
+    if (existingContact.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
+    }
+
+    // Decrypt before archiving — webhook consumers need plaintext
     const decryptedForWebhook = await decryptContactForOrg(existingContact, context.organizationId);
 
     await deleteEntitySessionsForEntity("CONTACT", existingContact.id);
 
-    // Soft delete — preserves audit trail
+    // Archive — preserves audit trail
     await prismadb.contact.update({
       where: { id: existingContact.id },
-      data: { deletedAt: new Date() },
+      data: { archivedAt: new Date(), archivedBy: context.createdById },
     });
 
-    dispatchContactWebhook(context.organizationId, "contact.deleted", {
+    dispatchContactWebhook(context.organizationId, "contact.archived", {
       id: decryptedForWebhook.id,
       displayName: decryptedForWebhook.displayName,
       email: decryptedForWebhook.email,
@@ -303,7 +316,7 @@ export const DELETE = withExternalApi(
     }).catch(console.error);
 
     return createApiSuccessResponse({
-      message: "Contact deleted successfully",
+      message: "Contact archived successfully",
       contactId,
     });
   },

@@ -111,6 +111,7 @@ export const GET = withExternalApi(
         accepts_pets: true,
         min_lease_months: true,
         monthly_common_charges: true,
+        archivedAt: true,
         createdAt: true,
         updatedAt: true,
         Users_Properties_assigned_toToUsers: {
@@ -132,6 +133,10 @@ export const GET = withExternalApi(
 
     if (!property) {
       return createApiErrorResponse("Property not found", 404);
+    }
+
+    if (property.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
     }
 
     return createApiSuccessResponse({
@@ -218,6 +223,10 @@ export const PUT = withExternalApi(
 
     if (!existingProperty) {
       return createApiErrorResponse("Property not found", 404);
+    }
+
+    if (existingProperty.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
     }
 
     const body = await req.json();
@@ -328,20 +337,25 @@ export const DELETE = withExternalApi(
       return createApiErrorResponse("Property not found", 404);
     }
 
-    // Delete property
+    if (existingProperty.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
+    }
+
+    // Archive property — invalidate entity sessions, then soft-archive
     await deleteEntitySessionsForEntity("PROPERTY", existingProperty.id);
 
-    await prismadb.properties.delete({
+    await prismadb.properties.update({
       where: { id: existingProperty.id },
+      data: { archivedAt: new Date(), archivedBy: context.createdById },
     });
 
     // Dispatch webhook
-    dispatchPropertyWebhook(context.organizationId, "property.deleted", existingProperty).catch(
+    dispatchPropertyWebhook(context.organizationId, "property.archived", existingProperty).catch(
       console.error
     );
 
     return createApiSuccessResponse({
-      message: "Property deleted successfully",
+      message: "Property archived successfully",
       propertyId,
     });
   },

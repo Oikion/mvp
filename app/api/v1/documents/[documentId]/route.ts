@@ -40,6 +40,7 @@ export const GET = withExternalApi(
         viewsCount: true,
         lastViewedAt: true,
         created_by_user: true,
+        archivedAt: true,
         createdAt: true,
         updatedAt: true,
         Users_Documents_created_by_userToUsers: {
@@ -56,6 +57,10 @@ export const GET = withExternalApi(
 
     if (!document) {
       return createApiErrorResponse("Document not found", 404);
+    }
+
+    if (document.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
     }
 
     return createApiSuccessResponse({
@@ -105,6 +110,10 @@ export const PUT = withExternalApi(
 
     if (!existingDocument) {
       return createApiErrorResponse("Document not found", 404);
+    }
+
+    if (existingDocument.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
     }
 
     const body = await req.json();
@@ -192,18 +201,21 @@ export const DELETE = withExternalApi(
       return createApiErrorResponse("Document not found", 404);
     }
 
-    // Delete document
-    await prismadb.documents.delete({
-      where: { id: documentId },
+    if (existingDocument.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
+    }
+
+    await prismadb.documents.update({
+      where: { id: existingDocument.id },
+      data: { archivedAt: new Date(), archivedBy: context.createdById },
     });
 
-    // Dispatch webhook
-    dispatchDocumentWebhook(context.organizationId, "document.deleted", existingDocument).catch(
+    dispatchDocumentWebhook(context.organizationId, "document.archived", existingDocument).catch(
       console.error
     );
 
     return createApiSuccessResponse({
-      message: "Document deleted successfully",
+      message: "Document archived successfully",
       documentId,
     });
   },

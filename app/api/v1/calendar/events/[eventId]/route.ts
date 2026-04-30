@@ -43,6 +43,7 @@ export const GET = withExternalApi(
         assignedUserId: true,
         reminderMinutes: true,
         recurrenceRule: true,
+        archivedAt: true,
         createdAt: true,
         updatedAt: true,
         Contacts: {
@@ -59,6 +60,10 @@ export const GET = withExternalApi(
 
     if (!event) {
       return createApiErrorResponse("Event not found", 404);
+    }
+
+    if (event.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
     }
 
     return createApiSuccessResponse({
@@ -107,6 +112,10 @@ export const PUT = withExternalApi(
 
     if (!existingEvent) {
       return createApiErrorResponse("Event not found", 404);
+    }
+
+    if (existingEvent.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
     }
 
     const resolvedId = existingEvent.id;
@@ -236,23 +245,22 @@ export const DELETE = withExternalApi(
       return createApiErrorResponse("Event not found", 404);
     }
 
-    // Update status to cancelled instead of hard delete
-    const event = await prismadb.calendarEvent.update({
+    if (existingEvent.archivedAt) {
+      return createApiErrorResponse("This resource has been archived and is no longer available.", 410);
+    }
+
+    await prismadb.calendarEvent.update({
       where: { id: existingEvent.id },
-      data: {
-        status: "cancelled",
-        updatedAt: new Date(),
-      },
+      data: { archivedAt: new Date(), archivedBy: context.createdById },
     });
 
-    // Dispatch webhook
-    dispatchCalendarWebhook(context.organizationId, "calendar.event.cancelled", event).catch(
+    dispatchCalendarWebhook(context.organizationId, "calendar.event.archived", existingEvent).catch(
       console.error
     );
 
     return createApiSuccessResponse({
-      message: "Event cancelled successfully",
-      eventId: event.id,
+      message: "Event archived successfully",
+      eventId: existingEvent.id,
     });
   },
   { requiredScopes: [API_SCOPES.CALENDAR_WRITE] }
