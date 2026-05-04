@@ -19,6 +19,7 @@ export const getContacts = async (): Promise<ContactWithAgent[]> => {
     const data = await prismadb.contact.findMany({
       where: {
         organizationId,
+        archivedAt: null,
       },
       include: {
         assignedAgent: {

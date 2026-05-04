@@ -292,9 +292,9 @@ export function validateImportData(
       // Normalize enums (must happen before title generation for tx_type lookup)
       const normalized = normalizeRequestEnums(requestRow);
 
-      // Inject auto-generated title BEFORE safeParse
-      const title = generateRequestTitle(normalized, clientName, propertyName);
-      normalized.title = title;
+      // Inject auto-generated name BEFORE safeParse
+      const name = generateRequestTitle(normalized, clientName, propertyName);
+      normalized.name = name;
 
       // Validate with Zod — use parsed.data for proper types
       const parsed = requestImportSchema.safeParse(normalized);

@@ -56,9 +56,9 @@ const nullableNum = (constraints?: { min?: number; int?: boolean }) => {
 
 const requestFieldsSchema = z.object({
   // Identification
-  // Required at the schema level so client forms must provide a title, even
-  // though the DB column (`requests.title`) is nullable for legacy rows.
-  title: z.string().trim().min(1, "Title is required").max(200),
+  // Required at the schema level so client forms must provide a name, even
+  // though the DB column (`requests.name`) is nullable for legacy rows.
+  name: z.string().trim().min(1, "Name is required").max(200),
 
   // Classification
   requestType: requestTypeSchema,
@@ -299,10 +299,10 @@ export const requestQuerySchema = z.object({
 // =============================================================================
 
 export const requestFormSchema = z.object({
-  // Title — required at the UI level so users can't advance past step 1
+  // Name — required at the UI level so users can't advance past step 1
   // without naming the request. Mirrors the server-side requirement in
   // `createRequestSchema` / `requestFieldsSchema`.
-  title: z.string().trim().min(1, "Title is required").max(200),
+  name: z.string().trim().min(1, "Name is required").max(200),
 
   // Optional contact link (can be linked later via RequestContact join table)
   contactId: z.string().optional(),

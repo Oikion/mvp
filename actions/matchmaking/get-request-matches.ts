@@ -464,6 +464,11 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
   if (storedMatches.length === 0) {
     return {
       ...getEmptyRequestAnalytics(),
+      unmatchedClients: activeRequests.map((r) => ({
+        id: r.id,
+        friendlyId: r.friendlyId ?? r.id,
+        client_name: `Request ${r.friendlyId ?? r.id}`,
+      })),
       totalClients: totalRequests,
       totalProperties,
       requestStats: {

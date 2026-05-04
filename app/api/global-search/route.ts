@@ -253,10 +253,10 @@ export async function POST(req: Request) {
           );
           const searchTerm = query.toLowerCase();
           const filtered = decrypted.filter((r: any) => {
-            const title = (r.title || "").toLowerCase();
+            const name = (r.name || "").toLowerCase();
             const fid = (r.friendlyId || "").toLowerCase();
             const txType = (r.requestType || "").toLowerCase();
-            return title.includes(searchTerm) || fid.includes(searchTerm) || txType.includes(searchTerm);
+            return name.includes(searchTerm) || fid.includes(searchTerm) || txType.includes(searchTerm);
           });
           return filtered.slice(skip, skip + limit);
         }).catch(() => [])
@@ -265,7 +265,7 @@ export async function POST(req: Request) {
       countPromises.push(
         db.request.findMany({
           where: mandateWhere,
-          select: { id: true, title: true, friendlyId: true, requestType: true },
+          select: { id: true, name: true, friendlyId: true, requestType: true },
           take: 500,
         }).then(async (requests: any[]) => {
           const decrypted = await Promise.all(
@@ -273,10 +273,10 @@ export async function POST(req: Request) {
           );
           const searchTerm = query.toLowerCase();
           return decrypted.filter((r: any) => {
-            const title = (r.title || "").toLowerCase();
+            const name = (r.name || "").toLowerCase();
             const fid = (r.friendlyId || "").toLowerCase();
             const txType = (r.requestType || "").toLowerCase();
-            return title.includes(searchTerm) || fid.includes(searchTerm) || txType.includes(searchTerm);
+            return name.includes(searchTerm) || fid.includes(searchTerm) || txType.includes(searchTerm);
           }).length;
         }).catch(() => 0)
       );

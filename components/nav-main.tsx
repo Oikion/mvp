@@ -8,6 +8,7 @@ import {
   Wrench,
   Globe2,
   Building2,
+  Archive,
   Pin,
   PinOff,
   type LucideIcon
@@ -47,6 +48,7 @@ interface NavMainItem {
   items?: {
     title: string
     url: string
+    badge?: string
   }[]
   badge?: string
   badgeClassName?: string // Custom className for badge styling (e.g., gradients)
@@ -134,6 +136,20 @@ const getCategoryStyle = (label: string): CategoryStyle => {
       iconColor: "text-muted-foreground dark:text-muted-foreground",
       hoverBg: "hover:bg-slate-500/10",
       activeBorder: "border-l-slate-500",
+    },
+    // English
+    "Archive": {
+      icon: Archive,
+      iconColor: "text-amber-500 dark:text-amber-400",
+      hoverBg: "hover:bg-amber-500/10",
+      activeBorder: "border-l-amber-500",
+    },
+    // Greek
+    "Αρχείο": {
+      icon: Archive,
+      iconColor: "text-amber-500 dark:text-amber-400",
+      hoverBg: "hover:bg-amber-500/10",
+      activeBorder: "border-l-amber-500",
     },
   }
 
@@ -232,6 +248,14 @@ function NavMainMenuItem({
                       <SidebarMenuSubButton asChild isActive={isSubItemActive}>
                         <Link href={subItem.url} prefetch={true}>
                           <span>{subItem.title}</span>
+                          {subItem.badge != null && (
+                            <Badge
+                              variant="secondary"
+                              className="ml-auto text-[10px] py-0 px-1.5 h-4 min-w-4 font-medium tabular-nums"
+                            >
+                              {subItem.badge}
+                            </Badge>
+                          )}
                         </Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>

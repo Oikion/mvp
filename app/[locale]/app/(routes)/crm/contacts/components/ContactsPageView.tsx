@@ -38,6 +38,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/navigation";
 import { Link } from "@/navigation";
 import { cn } from "@/lib/utils";
+import { SharedActionModals } from "@/components/entity";
 
 
 interface ContactsPageViewProps {
@@ -396,6 +397,8 @@ export default function ContactsPageView({
           />
         </SheetContent>
       </Sheet>
+
+      <SharedActionModals />
     </Tabs>
   );
 }

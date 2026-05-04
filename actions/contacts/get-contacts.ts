@@ -17,7 +17,7 @@ export const getContacts = async () => {
   if (!organizationId) return [];
 
   const data = await prismadb.contact.findMany({
-    where: { organizationId },
+    where: { organizationId, archivedAt: null },
     select: {
       id: true,
       friendlyId: true,

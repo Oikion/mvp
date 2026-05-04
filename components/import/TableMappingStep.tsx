@@ -663,16 +663,23 @@ export function TableMappingStep({
   // Re-compute entity assignments whenever fieldMapping or matchResults change
   // (auto-matcher populates these after file upload, so the initial useState is always empty)
   const prevMappingRef = useRef<Record<string, string>>({});
+  // Write-ahead log: entity selections the user made that must survive the next effect run.
+  // handleEntityChange writes here synchronously; the effect merges and clears it.
+  const pendingEntityOverrides = useRef<Record<string, EntityType>>({});
   useEffect(() => {
     // Only re-initialize when fieldMapping actually changes (not on every render)
     const mappingStr = JSON.stringify(fieldMapping);
     if (mappingStr !== JSON.stringify(prevMappingRef.current)) {
       prevMappingRef.current = fieldMapping;
       const computed = initializeColumnEntities(csvHeaders, fieldMapping, matchResults, fieldDefinitions);
+      // Merge any pending user entity overrides so they aren't clobbered
+      const overrides = pendingEntityOverrides.current;
+      const merged = Object.keys(overrides).length > 0 ? { ...computed, ...overrides } : computed;
+      pendingEntityOverrides.current = {};
       if (!externalColumnEntities) {
-        setInternalColumnEntities(computed);
+        setInternalColumnEntities(merged);
       } else if (onColumnEntitiesChange) {
-        onColumnEntitiesChange(computed);
+        onColumnEntitiesChange(merged);
       }
     }
   }, [csvHeaders, fieldMapping, matchResults, fieldDefinitions, externalColumnEntities, onColumnEntitiesChange]);
@@ -746,10 +753,23 @@ export function TableMappingStep({
     });
   }, [fieldMapping, fieldDefinitions]);
 
-  // Per-entity required fields (unified mode)
+  // Entities that have at least one field already mapped by the user
+  const entitiesWithMappedFields = useMemo(() => {
+    const entities = new Set<string>();
+    for (const target of Object.values(fieldMapping)) {
+      if (!target) continue;
+      const def = fieldDefinitions.find((f) => f.key === target);
+      const entity = (def as any)?.entity;
+      if (entity) entities.add(entity);
+    }
+    return entities;
+  }, [fieldMapping, fieldDefinitions]);
+
+  // Per-entity required fields (unified mode) — only shown for entities with at least one mapped field
   const missingRequiredByEntity = useMemo(() => {
     const result: Record<string, FieldDefinitionWithAliases[]> = {};
     for (const entity of ["contact", "property", "request"]) {
+      if (!entitiesWithMappedFields.has(entity)) continue;
       const entityRequired = fieldDefinitions.filter(
         (f) => f.required && (f as any).entity === entity
       );
@@ -759,7 +779,7 @@ export function TableMappingStep({
       }
     }
     return result;
-  }, [fieldDefinitions, mappedFields]);
+  }, [fieldDefinitions, mappedFields, entitiesWithMappedFields]);
 
   // ------ Entity counts for summary bar ------
   const entityCounts = useMemo(() => {
@@ -785,8 +805,12 @@ export function TableMappingStep({
       const newEntities = { ...columnEntities, [header]: newEntity as EntityType };
       setColumnEntities(newEntities);
 
-      // Clear field mapping when entity changes (fields differ per entity)
+      // Clear field mapping when entity changes (fields differ per entity).
+      // Clearing the mapping triggers the re-init useEffect which would overwrite
+      // the entity the user just selected. We record it as a pending override so
+      // the effect merges it back instead of reverting to the inferred value.
       if (fieldMapping[header]) {
+        pendingEntityOverrides.current[header] = newEntity as EntityType;
         onMappingChange(header, "");
       }
 

@@ -16,6 +16,10 @@ export type { Notification } from "./useNotifications";
 export { useNotificationCounts, getCountForPage } from "./useNotificationCounts";
 export type { NotificationCountsResponse } from "./useNotificationCounts";
 
+// Archive Counts (for sidebar sub-item badges)
+export { useArchiveCounts } from "./useArchiveCounts";
+export type { ArchiveCountsResponse } from "./useArchiveCounts";
+
 // Infinite Notifications (for NotificationCenter with Load More)
 export { useInfiniteNotifications } from "./useInfiniteNotifications";
 

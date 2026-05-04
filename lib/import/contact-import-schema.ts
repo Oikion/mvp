@@ -1,13 +1,19 @@
 import { z } from "zod";
 import { zBoolean } from "./zod-helpers";
 
-// Enum values matching Prisma schema
+// Enum values matching Prisma ContactCategory
 export const ContactCategoryEnum = z.enum([
+  "OWNER",
   "BUYER",
+  "TENANT",
   "SELLER",
-  "RENTER",
   "INVESTOR",
-  "REFERRAL_PARTNER",
+  "BROKER",
+  "COLLEAGUE",
+  "NOTARY",
+  "LAWYER",
+  "ACCOUNTANT",
+  "OTHER",
 ]);
 
 export const ContactStatusEnum = z.enum([
@@ -192,7 +198,7 @@ export const contactImportFieldDefinitions: readonly ContactFieldDefinition[] = 
     required: false,
     group: "classification",
     aliases: ["client_type", "type", "customer_type", "typos_pelati", "Τύπος Πελάτη", "Κατηγορία"],
-    description: "Contact type/category (BUYER, SELLER, RENTER, INVESTOR)"
+    description: "Contact category (OWNER, BUYER, TENANT, SELLER, INVESTOR, BROKER, COLLEAGUE, NOTARY, LAWYER, ACCOUNTANT, OTHER)"
   },
   {
     key: "contact_status",

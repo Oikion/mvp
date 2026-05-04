@@ -376,12 +376,12 @@ export async function executeBatchImport(
             requestRowData.budget_max = row.propertyRow.price;
         }
 
-        // The requestRow from validation already has normalized enums and title.
-        // If title is missing, generate it now.
-        if (!requestRowData.title) {
+        // The requestRow from validation already has normalized enums and name.
+        // If name is missing, generate it now.
+        if (!requestRowData.name) {
           const contactName = rowClientName.get(row.rowIndex) ?? null;
           const propertyName = rowPropertyName.get(row.rowIndex) ?? null;
-          requestRowData.title = generateRequestTitle(
+          requestRowData.name = generateRequestTitle(
             requestRowData,
             contactName,
             propertyName,

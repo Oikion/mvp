@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
     // Apply search filter if provided
     if (searchQuery) {
       whereClause.OR = [
-        { title: { contains: searchQuery, mode: "insensitive" } },
+        { name: { contains: searchQuery, mode: "insensitive" } },
       ];
     }
 
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         createdAt: true,
-        title: true,
+        name: true,
         requestType: true,
         propertyCategory: true,
         status: true,

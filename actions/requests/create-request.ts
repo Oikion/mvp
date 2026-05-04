@@ -54,7 +54,7 @@ export async function createRequest(
     // Encrypt sensitive fields
     const encrypted = await encryptRequestForOrg(
       {
-        title: data.title,
+        name: data.name,
         notes: data.notes ?? null,
         locationDisplayName: data.locationDisplayName ?? null,
         communicationNotes: data.communicationNotes ?? null,
@@ -70,8 +70,8 @@ export async function createRequest(
         createdBy: user.id,
         updatedBy: user.id,
 
-        // Title (encrypted)
-        title: encrypted.title,
+        // Name (encrypted)
+        name: encrypted.name,
 
         assignedAgentId: data.assignedAgentId ?? null,
 

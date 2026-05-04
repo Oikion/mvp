@@ -54,7 +54,7 @@ export async function POST(req: Request) {
 
     const {
       id,
-      title,
+      name,
       requestType,
       propertyCategory,
       propertyTypes,
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     };
 
     // String fields - convert empty strings to null
-    if (title !== undefined) data.title = nullIfEmpty(title) || "Draft Request";
+    if (name !== undefined) data.name = nullIfEmpty(name) || "Draft Request";
     if (locationDisplayName !== undefined) data.locationDisplayName = nullIfEmpty(locationDisplayName);
     if (municipality !== undefined) data.municipality = nullIfEmpty(municipality);
     if (region !== undefined) data.region = nullIfEmpty(region);
@@ -251,7 +251,7 @@ export async function POST(req: Request) {
 
     // Encrypt sensitive fields with per-org DEK
     const encryptableFields: Record<string, unknown> = {};
-    if (data.title !== undefined) encryptableFields.title = data.title;
+    if (data.name !== undefined) encryptableFields.name = data.name;
     if (data.notes !== undefined) encryptableFields.notes = data.notes;
     if (data.locationDisplayName !== undefined) encryptableFields.locationDisplayName = data.locationDisplayName;
     if (data.communicationNotes !== undefined) encryptableFields.communicationNotes = data.communicationNotes;
@@ -289,8 +289,8 @@ export async function POST(req: Request) {
       data.friendlyId = requestFriendlyId;
 
       // Set minimum required fields for draft
-      if (!data.title) {
-        data.title = "Draft Request";
+      if (!data.name) {
+        data.name = "Draft Request";
       }
 
       // requestType is required by schema — default to BUY for drafts if not provided

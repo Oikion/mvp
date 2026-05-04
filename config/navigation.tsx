@@ -18,7 +18,7 @@ import { SocialFeedIcon } from "@/components/ui/SocialFeedIcon"
 import { UsersIcon } from "@/components/ui/UsersIcon"
 import { ShieldIcon } from "@/components/ui/ShieldIcon"
 import { MessageCircleIcon } from "@/components/ui/MessageCircleIcon"
-import { Target, Upload, BookOpen } from "lucide-react"
+import { Target, Upload, BookOpen, Archive } from "lucide-react"
 import { type ModuleId } from "@/lib/permissions/types"
 import { type ActionPermission } from "@/lib/permissions/action-permissions"
 import { isRouteActive } from "@/lib/navigation/route-utils"
@@ -28,7 +28,7 @@ export interface NavItem {
   url: string
   icon: any
   isActive?: boolean
-  items?: { title: string; url: string }[]
+  items?: { title: string; url: string; badge?: string }[]
   moduleId?: ModuleId // For permission-based filtering
   badge?: string // Optional badge text (e.g., "1.0", "New", "Beta")
   badgeClassName?: string // Custom className for badge styling (e.g., gradients)
@@ -59,6 +59,7 @@ interface NavigationConfigProps {
   isPersonalWorkspace?: boolean
   accessibleModules?: ModuleId[] // Modules the user can access
   accessibleActions?: ActionPermission[] // Actions the user can perform
+  archiveCounts?: { properties: number; contacts: number; requests: number; deals: number; documents: number; events: number } | null
 }
 
 export function getNavigationConfig({
@@ -71,6 +72,7 @@ export function getNavigationConfig({
   isPersonalWorkspace = false,
   accessibleModules,
   accessibleActions,
+  archiveCounts,
 }: NavigationConfigProps) {
   const categories = dict.navigation.ModuleMenu.categories || {
     overview: "Overview",
@@ -78,6 +80,7 @@ export function getNavigationConfig({
     network: "Network",
     tools: "Tools",
     organization: "Organization",
+    archive: "Archive",
   }
 
   // Helper to check if user can access a module
@@ -297,6 +300,22 @@ export function getNavigationConfig({
     }] : []),
   ]
 
+  // Archive - soft-deleted records, OWNER-only
+  const archiveItems: NavItem[] = canAction("archive:view") ? [{
+    title: dict.navigation.ModuleMenu.archive || "Archive",
+    url: "/app/archive",
+    icon: Archive,
+    isActive: isRouteActive(pathname, "/app/archive", locale),
+    items: [
+      { title: dict.navigation.ModuleMenu.mls?.title || "Properties", url: "/app/archive/properties", badge: archiveCounts?.properties != null ? String(archiveCounts.properties) : undefined },
+      { title: dict.navigation.ModuleMenu.crm?.title || "Contacts", url: "/app/archive/contacts", badge: archiveCounts?.contacts != null ? String(archiveCounts.contacts) : undefined },
+      { title: dict.navigation.ModuleMenu.requests?.title || "Requests", url: "/app/archive/requests", badge: archiveCounts?.requests != null ? String(archiveCounts.requests) : undefined },
+      { title: dict.navigation.ModuleMenu.deals?.title || "Deals", url: "/app/archive/deals", badge: archiveCounts?.deals != null ? String(archiveCounts.deals) : undefined },
+      { title: dict.navigation.ModuleMenu.documents || "Documents", url: "/app/archive/documents", badge: archiveCounts?.documents != null ? String(archiveCounts.documents) : undefined },
+      { title: dict.navigation.ModuleMenu.calendar || "Events", url: "/app/archive/events", badge: archiveCounts?.events != null ? String(archiveCounts.events) : undefined },
+    ],
+  }] : []
+
   // Filter out empty groups
   const navGroups: NavGroup[] = [
     { label: categories.overview, items: overviewItems },
@@ -305,6 +324,8 @@ export function getNavigationConfig({
     { label: categories.network, items: networkItems },
     // Only include Organization group if it has items
     ...(organizationItems.length > 0 ? [{ label: categories.organization, items: organizationItems }] : []),
+    // Only include Archive group if user can access it (OWNER-only)
+    ...(archiveItems.length > 0 ? [{ label: categories.archive, items: archiveItems }] : []),
   ].filter(group => group.items.length > 0)
 
   const navSecondaryItems: NavSecondaryItem[] = [

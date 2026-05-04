@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { canPerformAction } from "@/lib/permissions";
+import { decryptContactForOrg, decryptRequestForOrg } from "@/lib/model-encryption";
 
 import type { ArchivableEntityType } from "./archive-entity";
 
@@ -11,6 +12,23 @@ export interface ArchivedEntityRow {
   label: string;
   archivedAt: Date;
   archivedBy: string | null;
+}
+
+async function resolveUserNames(
+  rows: { archivedBy: string | null }[],
+  organizationId: string
+): Promise<Map<string, string>> {
+  const ids = Array.from(
+    new Set(rows.map((r) => r.archivedBy).filter((id): id is string => !!id))
+  );
+  if (ids.length === 0) return new Map();
+
+  const users = await prismadb.users.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, name: true, email: true },
+  });
+
+  return new Map(users.map((u) => [u.id, u.name ?? u.email]));
 }
 
 export async function getArchivedEntities(
@@ -32,12 +50,13 @@ export async function getArchivedEntities(
           select: { id: true, property_name: true, archivedAt: true, archivedBy: true },
           orderBy: { archivedAt: "desc" },
         });
+        const userMap = await resolveUserNames(rows, organizationId);
         return {
           data: rows.map((r) => ({
             id: r.id,
             label: r.property_name ?? r.id,
             archivedAt: r.archivedAt!,
-            archivedBy: r.archivedBy,
+            archivedBy: r.archivedBy ? (userMap.get(r.archivedBy) ?? r.archivedBy) : null,
           })),
         };
       }
@@ -47,27 +66,44 @@ export async function getArchivedEntities(
           select: { id: true, displayName: true, archivedAt: true, archivedBy: true },
           orderBy: { archivedAt: "desc" },
         });
+        const userMap = await resolveUserNames(rows, organizationId);
+        const decrypted = await Promise.all(
+          rows.map((r) =>
+            decryptContactForOrg({ id: r.id, displayName: r.displayName } as any, organizationId)
+          )
+        );
         return {
-          data: rows.map((r) => ({
+          data: rows.map((r, i) => ({
             id: r.id,
-            label: r.displayName ?? r.id,
+            label: (decrypted[i] as any).displayName ?? r.id,
             archivedAt: r.archivedAt!,
-            archivedBy: r.archivedBy,
+            archivedBy: r.archivedBy ? (userMap.get(r.archivedBy) ?? r.archivedBy) : null,
           })),
         };
       }
       case "request": {
         const rows = await prismadb.request.findMany({
           where,
-          select: { id: true, name: true, archivedAt: true, archivedBy: true },
+          select: { id: true, friendlyId: true, name: true, archivedAt: true, archivedBy: true },
           orderBy: { archivedAt: "desc" },
         });
+        const userMap = await resolveUserNames(rows, organizationId);
+        const decrypted = await Promise.all(
+          rows.map((r) =>
+            r.name
+              ? decryptRequestForOrg({ id: r.id, name: r.name } as any, organizationId)
+              : Promise.resolve(null)
+          )
+        );
         return {
-          data: rows.map((r) => ({
+          data: rows.map((r, i) => ({
             id: r.id,
-            label: r.name ?? r.id,
+            label:
+              r.friendlyId ??
+              (decrypted[i] as any)?.name ??
+              r.id,
             archivedAt: r.archivedAt!,
-            archivedBy: r.archivedBy,
+            archivedBy: r.archivedBy ? (userMap.get(r.archivedBy) ?? r.archivedBy) : null,
           })),
         };
       }
@@ -77,12 +113,13 @@ export async function getArchivedEntities(
           select: { id: true, friendlyId: true, archivedAt: true, archivedBy: true },
           orderBy: { archivedAt: "desc" },
         });
+        const userMap = await resolveUserNames(rows, organizationId);
         return {
           data: rows.map((r) => ({
             id: r.id,
             label: r.friendlyId ?? r.id,
             archivedAt: r.archivedAt!,
-            archivedBy: r.archivedBy,
+            archivedBy: r.archivedBy ? (userMap.get(r.archivedBy) ?? r.archivedBy) : null,
           })),
         };
       }
@@ -92,12 +129,13 @@ export async function getArchivedEntities(
           select: { id: true, title: true, archivedAt: true, archivedBy: true },
           orderBy: { archivedAt: "desc" },
         });
+        const userMap = await resolveUserNames(rows, organizationId);
         return {
           data: rows.map((r) => ({
             id: r.id,
             label: r.title ?? r.id,
             archivedAt: r.archivedAt!,
-            archivedBy: r.archivedBy,
+            archivedBy: r.archivedBy ? (userMap.get(r.archivedBy) ?? r.archivedBy) : null,
           })),
         };
       }
@@ -107,12 +145,13 @@ export async function getArchivedEntities(
           select: { id: true, document_name: true, archivedAt: true, archivedBy: true },
           orderBy: { archivedAt: "desc" },
         });
+        const userMap = await resolveUserNames(rows, organizationId);
         return {
           data: rows.map((r) => ({
             id: r.id,
             label: r.document_name ?? r.id,
             archivedAt: r.archivedAt!,
-            archivedBy: r.archivedBy,
+            archivedBy: r.archivedBy ? (userMap.get(r.archivedBy) ?? r.archivedBy) : null,
           })),
         };
       }

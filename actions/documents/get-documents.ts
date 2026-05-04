@@ -26,6 +26,7 @@ export async function getDocuments(filters?: DocumentFilters) {
   // Build organization filter - Documents have organizationId directly
   const orgFilter = {
     organizationId,
+    archivedAt: null,
   };
 
   // Build additional filters

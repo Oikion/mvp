@@ -346,7 +346,7 @@ export async function migrateAgentEntities(
         friendlyId: request.friendlyId,
         organizationId: personalOrgId,
         assignedAgentId: userId,
-        title: reEncrypted.title,
+        name: reEncrypted.name,
         notes: reEncrypted.notes,
         communicationNotes: reEncrypted.communicationNotes as any,
         requestType: request.requestType,
@@ -382,7 +382,7 @@ export async function migrateAgentEntities(
     await tx.requestComment.deleteMany({ where: { requestId: request.id } });
     await tx.request.delete({ where: { id: request.id } });
 
-    migratedRequests.push({ id: newRequestId, title: request.title ?? "" });
+    migratedRequests.push({ id: newRequestId, title: request.name ?? "" });
   }
 
   return {

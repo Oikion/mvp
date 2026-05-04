@@ -5,7 +5,8 @@
       "coreBusiness": "Core Business",
       "network": "Network",
       "tools": "Tools",
-      "organization": "Organization"
+      "organization": "Organization",
+      "archive": "Archive"
     },
     "dashboard": "Dashboard",
     "chatGPT": "ChatGPT",

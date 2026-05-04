@@ -18,7 +18,7 @@ export const getRequests = async () => {
   if (!organizationId) return [];
 
   const data = await prismadb.request.findMany({
-    where: { organizationId },
+    where: { organizationId, archivedAt: null },
     select: {
       id: true,
       friendlyId: true,

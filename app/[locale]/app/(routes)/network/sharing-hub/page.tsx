@@ -258,7 +258,7 @@ export default async function SharingHubPage({ params }: SharingHubPageProps) {
                       <div className="flex items-center gap-3 min-w-0">
                         <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{m.title ?? "Request"}</p>
+                          <p className="text-sm font-medium truncate">{m.name ?? "Request"}</p>
                           {m.requestType && (
                             <p className="text-xs text-muted-foreground truncate">{m.requestType}</p>
                           )}

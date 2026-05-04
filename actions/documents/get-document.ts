@@ -46,7 +46,7 @@ export async function getDocument(documentId: string, organizationId: string) {
         select: {
           id: true,
           friendlyId: true,
-          title: true,
+          name: true,
           requestType: true,
           status: true,
           urgency: true,

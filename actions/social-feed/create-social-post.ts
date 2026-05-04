@@ -127,11 +127,11 @@ export async function createSocialPost(input: CreateSocialPostInput): Promise<Cr
     } else if (type === "request") {
       const request = await prisma.request.findUnique({
         where: { id: linkedEntityId },
-        select: { title: true, requestType: true, propertyCategory: true },
+        select: { name: true, requestType: true, propertyCategory: true },
       });
 
       if (request) {
-        linkedEntityTitle = request.title || "Unnamed Request";
+        linkedEntityTitle = request.name || "Unnamed Request";
         linkedEntityMetadata = {
           transactionType: request.requestType,
           propertyType: request.propertyCategory,

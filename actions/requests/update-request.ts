@@ -92,6 +92,7 @@ export async function updateRequest(
   try {
     // Encrypt sensitive fields if present
     const toEncrypt: Record<string, unknown> = {};
+    if ("name" in data) toEncrypt.name = data.name ?? null;
     if ("notes" in data) toEncrypt.notes = data.notes ?? null;
     if ("locationDisplayName" in data) toEncrypt.locationDisplayName = data.locationDisplayName ?? null;
     if ("communicationNotes" in data) toEncrypt.communicationNotes = data.communicationNotes ?? null;

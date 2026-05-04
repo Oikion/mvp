@@ -105,7 +105,7 @@ interface DealLinkedProperty {
 interface DealLinkedRequest {
   readonly id: string;
   readonly friendlyId?: string | null;
-  readonly title?: string | null;
+  readonly name?: string | null;
   readonly requestType?: string | null;
   readonly status?: string | null;
 }
@@ -250,7 +250,7 @@ export default function DealView({ deal }: DealViewProps) {
         {
           id: deal.request.id,
           friendlyId: deal.request.friendlyId,
-          title: deal.request.title,
+          title: deal.request.name,
           requestType: deal.request.requestType,
           status: deal.request.status,
         },

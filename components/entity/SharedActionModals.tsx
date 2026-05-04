@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
+import { Link } from "@/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,7 +80,7 @@ export function SharedActionModals() {
     try {
       await entityData.onDelete();
       toast.success(t("success"), {
-        description: `${entityData.entityName} ${t("delete").toLowerCase()}d successfully`,
+        description: `${entityData.entityName} ${t("archived").toLowerCase()} successfully`,
       });
       closeModal();
       entityData.onActionComplete?.();
@@ -115,9 +116,24 @@ export function SharedActionModals() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteConfirmation.title")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("deleteConfirmation.description")}
-              {entityData?.entityName && ` "${entityData.entityName}" will be permanently deleted.`}
+            <AlertDialogDescription asChild>
+              <div className="space-y-1">
+                <p>
+                  {t("deleteConfirmation.archiveNotice", {
+                    entityName: entityData?.entityName ?? "",
+                  })}
+                </p>
+                <p>
+                  {t("deleteConfirmation.description")}{" "}
+                  <Link
+                    href="/app/archive"
+                    className="underline underline-offset-2 hover:text-foreground transition-colors"
+                    onClick={() => closeModal()}
+                  >
+                    {t("deleteConfirmation.archivePage")}
+                  </Link>
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

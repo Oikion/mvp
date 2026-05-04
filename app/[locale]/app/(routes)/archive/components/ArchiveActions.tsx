@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import {
 import { restoreEntity } from "@/actions/archive/restore-entity";
 import { purgeEntity } from "@/actions/archive/purge-entity";
 import type { ArchivableEntityType } from "@/actions/archive/archive-entity";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 interface ArchiveActionsProps {
   entityType: ArchivableEntityType;
@@ -34,16 +35,17 @@ export default function ArchiveActions({
   onSuccess,
 }: ArchiveActionsProps) {
   const t = useTranslations("archive");
+  const { toast } = useAppToast();
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   function handleRestore() {
     startTransition(async () => {
       const result = await restoreEntity(entityType, id);
       if (result.success) {
+        toast.success("restoreSuccess");
         onSuccess();
       } else {
-        setError(result.error ?? t("actions.restore"));
+        toast.error("restoreFailed");
       }
     });
   }
@@ -52,17 +54,16 @@ export default function ArchiveActions({
     startTransition(async () => {
       const result = await purgeEntity(entityType, id);
       if (result.success) {
+        toast.success("purgeSuccess");
         onSuccess();
       } else {
-        setError(result.error ?? t("actions.purge"));
+        toast.error("purgeFailed");
       }
     });
   }
 
   return (
     <div className="flex items-center gap-2">
-      {error && <span className="text-xs text-destructive">{error}</span>}
-
       {canRestore && (
         <Button
           variant="outline"

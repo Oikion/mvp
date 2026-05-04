@@ -3,7 +3,7 @@
 import { Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import axios from "axios";
+import { archiveEntity } from "@/actions/archive/archive-entity";
 
 import { DataTableRowActions } from "@/components/ui/data-table/data-table-row-actions";
 import RightViewModalNoTrigger from "@/components/modals/right-view-notrigger";
@@ -20,7 +20,8 @@ export function PropertyRowActions({ row }: PropertyRowActionsProps) {
   const [editOpen, setEditOpen] = useState(false);
 
   const handleDelete = async () => {
-    await axios.delete(`/api/mls/properties/${data.id}`);
+    const result = await archiveEntity("property", data.id);
+    if (!result.success) throw new Error(result.error);
   };
 
   return (

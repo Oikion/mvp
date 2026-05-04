@@ -21,7 +21,7 @@ import { coerceDate } from "./zod-helpers";
  * of REQUEST_ENCRYPTED_STRING_FIELDS in lib/model-encryption.ts.
  * Note: "locationDisplayName" is omitted because it has no CSV source field.
  */
-const ENCRYPTED_STRING_FIELDS = ["title", "notes"] as const;
+const ENCRYPTED_STRING_FIELDS = ["name", "notes"] as const;
 
 // ---------------------------------------------------------------------------
 // Local helpers
@@ -109,7 +109,7 @@ export const requestImportConfig: ImportEntityConfig<RequestImportData> = {
       organizationId: orgId,
 
       // Core (encrypted string, nullable)
-      title: e("title") ?? item.title ?? null,
+      name: e("name") ?? item.name ?? null,
 
       // Required enum — map CSV transaction_type to DB requestType
       requestType: mapTransactionTypeToRequestType(item.transaction_type),

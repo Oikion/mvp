@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import { archiveEntity } from "@/actions/archive/archive-entity";
 import { DataTableRowActions, QuickAction } from "@/components/ui/data-table/data-table-row-actions";
 import {
   Sheet,
@@ -30,12 +30,11 @@ export function ContactRowActions({ row }: ContactRowActionsProps) {
   const data = row.original;
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   
-  const contactName = data.first_name 
-    ? `${data.first_name} ${data.last_name || ""}`.trim()
-    : t("unnamed");
+  const contactName = (data.displayName as string | undefined)?.trim() || t("unnamed");
 
   const handleDelete = async () => {
-    await axios.delete(`/api/crm/contacts/${data.id}`);
+    const result = await archiveEntity("contact", data.id);
+    if (!result.success) throw new Error(result.error);
   };
 
   // Custom action to open edit sheet inline (contact-specific behavior)

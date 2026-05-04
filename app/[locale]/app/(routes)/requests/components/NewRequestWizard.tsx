@@ -54,7 +54,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
   const form = useForm<RequestFormValues>({
     resolver: zodResolver(requestFormSchema),
     defaultValues: {
-      title: "",
+      name: "",
       contactId: "",
       requestType: "BUY",
       propertyCategory: null,
@@ -105,7 +105,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
 
   // Step field groups for validation (1-indexed)
   const stepFields: Record<number, (keyof RequestFormValues)[]> = {
-    1: ["title", "requestType", "propertyCategory", "urgency"],
+    1: ["name", "requestType", "propertyCategory", "urgency"],
     2: ["locationDisplayName", "municipality", "region", "surfaceMin", "surfaceMax", "plotSizeMin", "plotSizeMax"],
     3: ["budgetMin", "budgetMax", "bedroomsMin", "bedroomsMax", "bathroomsMin", "bathroomsMax", "floorMin", "floorMax", "groundFloorOnly", "constructionYearMin", "constructionYearMax"],
     4: ["requiresElevator", "requiresParking", "requiresStorage", "requiresGarden", "petFriendly", "requiresAC", "insideCityPlan", "legalizationOk"],
@@ -130,7 +130,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
       const toNum = (v: unknown) => (v !== "" && v != null ? Number(v) : null);
 
       const result = await createRequest(({
-        title: values.title.trim(),
+        name: values.name.trim(),
         contactId: values.contactId,
         requestType: values.requestType,
         propertyCategory: values.propertyCategory || null,
@@ -201,7 +201,7 @@ export function NewRequestWizard({ users, onFinish }: NewRequestWizardProps) {
           <div className="space-y-4">
             <FormField
               control={form.control}
-              name="title"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel required>{t("wizard.fields.title")}</FormLabel>

@@ -29,7 +29,7 @@ import { normalizePath } from "@/lib/navigation/route-utils"
 import { useWorkspaceContext } from "@/hooks/use-workspace-context"
 import { type ModuleId } from "@/lib/permissions/types"
 import { type ActionPermission } from "@/lib/permissions/action-permissions"
-import { useNotificationCounts } from "@/hooks/swr"
+import { useNotificationCounts, useArchiveCounts } from "@/hooks/swr"
 
 interface AppSidebarProps {
   modules: any
@@ -100,6 +100,9 @@ export function AppSidebar({
     refreshInterval: 30000,
   })
 
+  const canViewArchive = accessibleActions?.includes("archive:view" as any) ?? false
+  const { counts: archiveCounts } = useArchiveCounts(canViewArchive)
+
   const { navGroups, navSecondaryItems } = React.useMemo(
     () =>
       getNavigationConfig({
@@ -112,8 +115,9 @@ export function AppSidebar({
         isPersonalWorkspace,
         accessibleModules,
         accessibleActions,
+        archiveCounts,
       }),
-    [pathname, locale, modules, dict, isPlatformAdmin, isPersonalWorkspace, accessibleModules, accessibleActions]
+    [pathname, locale, modules, dict, isPlatformAdmin, isPersonalWorkspace, accessibleModules, accessibleActions, archiveCounts]
   )
 
   return (

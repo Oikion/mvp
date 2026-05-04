@@ -1,0 +1,28 @@
+import { z } from "zod";
+
+// We're keeping a simple non-relational schema here.
+// IRL, you will have a schema for your data models.
+export const accountSchema = z.object({
+  //TODO: fix all the types and nullable
+  id: z.string(),
+  friendlyId: z.string().optional(),
+  createdAt: z.date().optional(),
+  name: z.string(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  assigned_to_user: z.object({
+    id: z.string().optional(),
+    name: z.string().optional(),
+    email: z.string().optional(),
+  }).nullable().optional(),
+  contacts: z
+    .array(
+      z.object({
+        first_name: z.string().optional(),
+        last_name: z.string(),
+      })
+    )
+    .optional(),
+});
+
+export type Account = z.infer<typeof accountSchema>;

@@ -29,7 +29,7 @@ export interface PersistedMatchItem {
   request: {
     id: string;
     friendlyId: string | null;
-    title: string | null;
+    name: string | null;
     requestContacts: {
       contact: {
         id: string;
@@ -90,7 +90,7 @@ export async function getPersistedMatches(): Promise<PersistedMatchItem[]> {
         select: {
           id: true,
           friendlyId: true,
-          title: true,
+          name: true,
           requestContacts: {
             select: {
               contact: {
@@ -135,7 +135,7 @@ export async function getPersistedMatches(): Promise<PersistedMatchItem[]> {
     request: {
       id: row.request.id,
       friendlyId: row.request.friendlyId,
-      title: row.request.title,
+      name: row.request.name,
       requestContacts: row.request.requestContacts,
     },
   }));

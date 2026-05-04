@@ -369,7 +369,8 @@ export const legalizationStatusMap: EnumMapping = {
 };
 
 /**
- * Client Type mappings
+ * Client Type mappings (legacy — for old ClientType enum: BUYER/SELLER/RENTER/INVESTOR/REFERRAL_PARTNER)
+ * Do NOT use for ContactCategory — use contactCategoryMap instead.
  */
 export const clientTypeMap: EnumMapping = {
   // English variations
@@ -394,6 +395,52 @@ export const clientTypeMap: EnumMapping = {
   "μισθωτής": "RENTER",
   "επενδυτής": "INVESTOR",
   "συνεργάτης": "REFERRAL_PARTNER",
+};
+
+/**
+ * Contact Category mappings (ContactCategory enum: OWNER/BUYER/TENANT/SELLER/INVESTOR/BROKER/COLLEAGUE/NOTARY/LAWYER/ACCOUNTANT/OTHER)
+ */
+export const contactCategoryMap: EnumMapping = {
+  // English variations
+  "buyer": "BUYER",
+  "purchaser": "BUYER",
+  "seller": "SELLER",
+  "vendor": "SELLER",
+  "owner": "OWNER",
+  "landlord": "OWNER",
+  "renter": "TENANT",
+  "tenant": "TENANT",
+  "lessee": "TENANT",
+  "investor": "INVESTOR",
+  "broker": "BROKER",
+  "agent": "BROKER",
+  "colleague": "COLLEAGUE",
+  "co-worker": "COLLEAGUE",
+  "coworker": "COLLEAGUE",
+  "notary": "NOTARY",
+  "lawyer": "LAWYER",
+  "attorney": "LAWYER",
+  "solicitor": "LAWYER",
+  "accountant": "ACCOUNTANT",
+  "other": "OTHER",
+  // Legacy values kept for backward compatibility
+  "referral partner": "COLLEAGUE",
+  "referral_partner": "COLLEAGUE",
+  "partner": "COLLEAGUE",
+  // Greek translations
+  "αγοραστής": "BUYER",
+  "πωλητής": "SELLER",
+  "ιδιοκτήτης": "OWNER",
+  "ενοικιαστής": "TENANT",
+  "μισθωτής": "TENANT",
+  "επενδυτής": "INVESTOR",
+  "μεσίτης": "BROKER",
+  "συνεργάτης": "COLLEAGUE",
+  "συνάδελφος": "COLLEAGUE",
+  "συμβολαιογράφος": "NOTARY",
+  "δικηγόρος": "LAWYER",
+  "λογιστής": "ACCOUNTANT",
+  "άλλο": "OTHER",
 };
 
 /**
@@ -693,10 +740,10 @@ export const propertyEnumMappings = {
  * All client enum mappings
  */
 export const clientEnumMappings = {
-  client_type: clientTypeMap,   // legacy key (kept for backward compat)
-  contact_type: clientTypeMap,  // new key after contact rename
+  client_type: clientTypeMap,          // legacy key (kept for backward compat with old CSV templates)
+  contact_type: contactCategoryMap,    // ContactCategory enum — TENANT not RENTER, no REFERRAL_PARTNER
   client_status: clientStatusMap,
-  contact_status: clientStatusMap, // new key after contact rename
+  contact_status: clientStatusMap,
   person_type: personTypeMap,
   lead_source: leadSourceMap,
   visibility: itemVisibilityMap,

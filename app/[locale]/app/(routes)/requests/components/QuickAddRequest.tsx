@@ -34,7 +34,7 @@ import { useRouter } from "next/navigation";
 import { useAppToast } from "@/hooks/use-app-toast";
 
 const quickAddSchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(200),
+  name: z.string().trim().min(1, "Name is required").max(200),
   contactId: z.string().optional(),
   requestType: z.enum(["BUY", "RENT"]),
   budgetMin: z.union([z.literal(""), z.coerce.number().min(0)]).optional(),
@@ -69,7 +69,7 @@ export function QuickAddRequest({
   const form = useForm<QuickAddFormValues>({
     resolver: zodResolver(quickAddSchema),
     defaultValues: {
-      title: "",
+      name: "",
       contactId: "",
       requestType: "BUY",
       budgetMin: "",
@@ -81,7 +81,7 @@ export function QuickAddRequest({
 
   const onSubmit = async (values: QuickAddFormValues) => {
     const result = await createRequest({
-      title: values.title.trim(),
+      name: values.name.trim(),
       contactId: values.contactId,
       requestType: values.requestType,
       budgetMin: typeof values.budgetMin === "number" ? values.budgetMin : null,
@@ -118,7 +118,7 @@ export function QuickAddRequest({
             {/* Title — required, first field so it's the most prominent */}
             <FormField
               control={form.control}
-              name="title"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("quickAdd.titleLabel")}</FormLabel>

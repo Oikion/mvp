@@ -28,7 +28,7 @@ export const getProperties = async () => {
   const canViewAll = permissionLevel === "all";
   
   const data = await prismadb.properties.findMany({
-    where: { organizationId },
+    where: { organizationId, archivedAt: null },
     take: 500,
     include: {
       Users_Properties_assigned_toToUsers: { select: { name: true } },

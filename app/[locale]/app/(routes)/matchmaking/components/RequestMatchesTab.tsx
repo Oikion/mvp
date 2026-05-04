@@ -37,6 +37,8 @@ interface Props {
   locale: string;
   onRunNow?: () => void;
   isRunning?: boolean;
+  isCoolingDown?: boolean;
+  cooldownMinutesLeft?: number;
 }
 
 function getScoreColor(score: number): string {
@@ -60,6 +62,8 @@ export function RequestMatchesTab({
   locale,
   onRunNow,
   isRunning,
+  isCoolingDown,
+  cooldownMinutesLeft,
 }: Props) {
   const t = useTranslations("matchmaking");
 
@@ -67,15 +71,24 @@ export function RequestMatchesTab({
     <div className="space-y-6">
       {/* Action bar */}
       {onRunNow && (
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center gap-2">
+          {isCoolingDown && cooldownMinutesLeft !== undefined && (
+            <span className="text-xs text-muted-foreground">
+              {t("requestMatches.runNow.cooldown", { minutes: cooldownMinutesLeft })}
+            </span>
+          )}
           <Button
             variant="outline"
             size="sm"
             onClick={onRunNow}
-            disabled={isRunning}
+            disabled={isRunning || isCoolingDown}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRunning ? "animate-spin" : ""}`} />
-            {isRunning ? t("requestMatches.runNow.running") : t("requestMatches.runNow.label")}
+            {isRunning
+              ? t("requestMatches.runNow.running")
+              : isCoolingDown
+              ? t("requestMatches.runNow.cooldownLabel")
+              : t("requestMatches.runNow.label")}
           </Button>
         </div>
       )}

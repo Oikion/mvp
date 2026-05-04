@@ -220,7 +220,7 @@ export function FeedPage({
                     leftIcon={<Users className="h-4 w-4" />}
                     asChild
                   >
-                    <Link href="/app/connections">
+                    <Link href="/app/network/profile?tab=connections">
                       {t.empty?.findConnections || "Find Connections"}
                     </Link>
                   </Button>

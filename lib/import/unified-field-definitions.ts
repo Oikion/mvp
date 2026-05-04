@@ -7,7 +7,7 @@
  * the contact `description` field to `contact_description`.
  *
  * IDs are omitted from all three entities — the engine generates them.
- * The request `title` field is omitted — the engine auto-generates it.
+ * The request `name` field is omitted — the engine auto-generates it.
  */
 
 import { propertyImportFieldDefinitions } from "./property-import-schema";
@@ -86,8 +86,8 @@ const REQUEST_KEY_RENAMES: Record<string, string> = {
 
 /** Request keys that are omitted entirely from the unified array. */
 const REQUEST_OMIT_KEYS = new Set<string>([
-  "id",    // engine generates IDs
-  "title", // engine auto-generates request titles
+  "id",   // engine generates IDs
+  "name", // engine auto-generates request names
 ]);
 
 /** Contact keys that are omitted entirely. */

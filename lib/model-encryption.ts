@@ -419,7 +419,7 @@ export async function decryptMandateCommentForOrg<T extends MessageWithContent>(
 // ─────────────────────────────────────────────
 
 const REQUEST_ENCRYPTED_STRING_FIELDS = [
-  "title",
+  "name",
   "notes",
   "locationDisplayName",
 ] as const;

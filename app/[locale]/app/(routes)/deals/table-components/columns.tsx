@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import type { DealRow } from "../components/DealsList";
+import { DealRowActions } from "./DealRowActions";
 
 function formatPrice(value: number | string | null | undefined): string {
   if (value == null || value === "") return "—";
@@ -18,7 +19,7 @@ function formatPrice(value: number | string | null | undefined): string {
 }
 
 export function useDealColumns(
-  _onRefresh?: () => void,
+  onRefresh?: () => void,
   _users?: { id: string; name: string | null }[]
 ): ColumnDef<DealRow>[] {
   return [
@@ -91,6 +92,12 @@ export function useDealColumns(
         );
       },
       enableSorting: false,
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => <DealRowActions row={row} onRefresh={onRefresh} />,
+      enableSorting: false,
+      enableHiding: false,
     },
   ];
 }

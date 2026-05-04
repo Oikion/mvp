@@ -57,7 +57,7 @@
   },
   "quickAdd": {
     "title": "Quick Add Request",
-    "titleLabel": "Title",
+    "titleLabel": "Name",
     "titlePlaceholder": "e.g. Buyer looking for 3-bed in Kolonaki",
     "contactLabel": "Contact",
     "contactPlaceholder": "Select contact",
@@ -89,7 +89,7 @@
       "preferences": "Timeline, financing, agent, and notes"
     },
     "fields": {
-      "title": "Title",
+      "title": "Name",
       "titlePlaceholder": "e.g. Buyer looking for 3-bed in Kolonaki",
       "contact": "Contact",
       "contactPlaceholder": "Select a contact",
@@ -275,7 +275,7 @@
     "upTo": "Up to"
   },
   "table": {
-    "title": "Title",
+    "title": "Name",
     "requestType": "Type",
     "budget": "Budget",
     "status": "Status",

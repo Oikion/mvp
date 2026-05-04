@@ -396,7 +396,7 @@ function EntityStep({
         };
       case "requests":
         return {
-          fields: ["title", "mandate_transaction_type", "budget_min"] as const,
+          fields: ["title", "transaction_type", "budget_min"] as const,
           labels: ["Title", "Transaction Type", "Budget"],
           crossEntityLabel: "Contact",
           crossEntityKey: "linkedClient" as const,

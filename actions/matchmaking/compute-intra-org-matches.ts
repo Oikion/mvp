@@ -15,6 +15,7 @@ import type {
 import { requireAction } from "@/lib/permissions/action-guards";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/action-response";
 import { decryptRequestForOrg } from "@/lib/model-encryption";
+import { MATCHMAKING_RATE_LIMIT_MS } from "@/lib/matchmaking-constants";
 import type { Prisma } from "@prisma/client";
 
 // ──────────────────────────────────────────────
@@ -457,6 +458,25 @@ export async function triggerIntraOrgMatches(): Promise<ActionResponse<IntraOrgM
   const organizationId = await getCurrentOrgIdSafe();
   if (!organizationId) {
     return actionError("Organization not found", "NOT_FOUND");
+  }
+
+  // Enforce the same rate limit as the API route — prevents the manual trigger
+  // from bypassing the cooldown by calling the server action directly.
+  const lastOrgRun = await prismadb.propertyRequestMatch.findFirst({
+    where: { organizationId },
+    orderBy: { updatedAt: "desc" },
+    select: { updatedAt: true },
+  });
+  if (lastOrgRun?.updatedAt) {
+    const elapsed = Date.now() - lastOrgRun.updatedAt.getTime();
+    if (elapsed < MATCHMAKING_RATE_LIMIT_MS) {
+      const retryAfterSec = Math.ceil((MATCHMAKING_RATE_LIMIT_MS - elapsed) / 1000);
+      const retryAfterMin = Math.ceil(retryAfterSec / 60);
+      return actionError(
+        `Rate limited. Try again in ${retryAfterMin} minute${retryAfterMin !== 1 ? "s" : ""}.`,
+        "RATE_LIMITED"
+      );
+    }
   }
 
   try {

@@ -212,12 +212,14 @@ export function DataTableRowActions<TData extends { id?: string }>({
   const hasCustomActions = customActions.length > 0;
 
   return (
+    // Stop all click events (including React portal bubbling from menu items)
+    // from reaching the table row's navigation handler.
+    <div onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
-          onClick={(e) => e.stopPropagation()}
         >
           <MoreHorizontal className="h-4 w-4" />
           <span className="sr-only">{t("actions")}</span>
@@ -294,6 +296,7 @@ export function DataTableRowActions<TData extends { id?: string }>({
         )}
       </DropdownMenuContent>
     </DropdownMenu>
+    </div>
   );
 }
 

@@ -33,7 +33,7 @@ export async function getMyNetworkItems() {
       select: {
         id: true,
         friendlyId: true,
-        title: true,
+        name: true,
         visibility: true,
         status: true,
         requestType: true,

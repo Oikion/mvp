@@ -664,7 +664,7 @@ export function ImportWizardSteps({
           return hasContactTrigger || hasPropertyTrigger || hasRequestTrigger;
         }
         case 2: // Validation
-          return !isValidating;
+          return !isValidating && validationResult !== null;
         case 3: // Review
           return (validationResult?.validRows ?? []).length > 0;
         case 4: // Importing (auto-transition, no user action needed)
@@ -686,7 +686,7 @@ export function ImportWizardSteps({
         return requiredFields.every((rf) => mappedFields.includes(rf.key));
       }
       case 2: // Validation
-        return true;
+        return validData.length > 0 || validationErrors.length > 0;
       case 3: // Review
         return validData.length > 0;
       case 4: // Complete
@@ -705,6 +705,7 @@ export function ImportWizardSteps({
     validationResult,
     fieldDefinitions,
     validData.length,
+    validationErrors.length,
   ]);
 
   // ── Reset wizard ──────────────────────────────────────────────────────────

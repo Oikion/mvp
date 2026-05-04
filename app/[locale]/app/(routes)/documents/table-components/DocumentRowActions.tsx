@@ -3,7 +3,7 @@
 import { Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { DataTableRowActions } from "@/components/ui/data-table/data-table-row-actions";
-import axios from "axios";
+import { archiveEntity } from "@/actions/archive/archive-entity";
 
 interface DocumentRowActionsProps {
   row: Row<any>;
@@ -14,7 +14,8 @@ export function DocumentRowActions({ row }: DocumentRowActionsProps) {
   const data = row.original;
 
   const handleDelete = async () => {
-    await axios.delete(`/api/documents/${data.id}`);
+    const result = await archiveEntity("document", data.id);
+    if (!result.success) throw new Error(result.error);
   };
 
   return (

@@ -27,6 +27,7 @@ import type { Prisma } from "@prisma/client";
 // Prisma 7: JsonValue is accessed via the `Prisma` namespace.
 type JsonValue = Prisma.JsonValue;
 import type { MentionData } from "./MentionDisplay";
+import { archiveEntity } from "@/actions/archive/archive-entity";
 
 interface Document {
   id: string;
@@ -137,17 +138,11 @@ export default function DocumentsPageView({
 
   const handleDelete = useCallback(
     async (id: string) => {
-      if (!confirm(t("documentGrid.deleteConfirm"))) return;
-
-      const response = await fetch(`/api/documents/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
+      const result = await archiveEntity("document", id);
+      if (!result.success) {
         toast.error(t("documentGrid.failedToDelete"));
         return;
       }
-
       toast.success(t("documentGrid.documentDeleted"));
       router.refresh();
     },

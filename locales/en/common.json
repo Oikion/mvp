@@ -50,6 +50,7 @@
   "actions": "Actions",
   "edit": "Edit",
   "delete": "Delete",
+  "archived": "Archived",
   "download": "Download",
   "share": "Share",
   "scheduleEvent": "Schedule Event",
@@ -64,7 +65,9 @@
   "unnamed": "Unnamed",
   "deleteConfirmation": {
     "title": "Are you sure?",
-    "description": "This action cannot be undone."
+    "description": "This action cannot be undone.",
+    "archiveNotice": "{entityName} will be archived and removed from the active list.",
+    "archivePage": "Archive page"
   },
   "locationSearch": {
     "placeholder": "Search for a location...",
@@ -161,7 +164,11 @@
     "invitationFailed": "Failed to join the organization. Please try again.",
     "invitationExpired": "This invitation has expired",
     "consentFailed": "Failed to record consent. Please try again.",
-    "policyLoadFailed": "Could not load organization policy. Please try again."
+    "policyLoadFailed": "Could not load organization policy. Please try again.",
+    "purgeSuccess": "Permanently deleted successfully",
+    "purgeFailed": "Failed to permanently delete. Please try again.",
+    "restoreSuccess": "Restored successfully",
+    "restoreFailed": "Failed to restore. Please try again."
   },
   "buttons": {
     "create": "Create",

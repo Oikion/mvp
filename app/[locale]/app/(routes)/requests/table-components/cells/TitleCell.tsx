@@ -17,7 +17,7 @@ export const TitleCell = ({ requestId, value }: TitleCellProps) => {
   const t = useTranslations("requests");
 
   const handleSave = async (newValue: string) => {
-    const result = await updateRequest(requestId, { title: newValue });
+    const result = await updateRequest(requestId, { name: newValue });
     if (!result.success) throw new Error(result.error);
     toast.success(tCommon("toast.updateSuccess"));
     router.refresh();

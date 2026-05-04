@@ -194,7 +194,7 @@ describe("requestImportConfig.encryptWithDek — communication_notes", () => {
     const { encryptJsonWithKey } = await import("@/lib/model-encryption");
     vi.mocked(encryptJsonWithKey).mockClear();
 
-    const data: Record<string, unknown> = { title: "Buy apartment" };
+    const data: Record<string, unknown> = { name: "Buy apartment" };
     requestImportConfig.encryptWithDek(data, FAKE_DEK);
 
     expect(encryptJsonWithKey).not.toHaveBeenCalled();

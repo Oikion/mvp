@@ -2,7 +2,7 @@
 
 import { Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import { archiveEntity } from "@/actions/archive/archive-entity";
 import { DataTableRowActions } from "@/components/ui/data-table/data-table-row-actions";
 import { useTranslations } from "next-intl";
 import type { RequestRow } from "./columns";
@@ -17,7 +17,8 @@ export function RequestRowActions({ row }: RequestRowActionsProps) {
   const data = row.original;
 
   const handleDelete = async () => {
-    await axios.delete(`/api/requests/${data.friendlyId}`);
+    const result = await archiveEntity("request", data.id);
+    if (!result.success) throw new Error(result.error);
   };
 
   return (

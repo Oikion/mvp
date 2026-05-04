@@ -59,7 +59,11 @@ export type ToastKey =
   | "invitationFailed"
   | "invitationExpired"
   | "consentFailed"
-  | "policyLoadFailed";
+  | "policyLoadFailed"
+  | "purgeSuccess"
+  | "purgeFailed"
+  | "restoreSuccess"
+  | "restoreFailed";
 
 export interface ToastOptions {
   /**

@@ -36,7 +36,7 @@ import { updateRequest } from "@/actions/requests/update-request";
 interface EditRequestFormProps {
   request: {
     id: string;
-    title?: string | null;
+    name?: string | null;
     requestType?: string | null;
     urgency?: string | null;
     budgetMin?: number | null;
@@ -76,7 +76,7 @@ export function EditRequestForm({ request, onSuccess }: EditRequestFormProps) {
     resolver: zodResolver(requestEditFormSchema),
     defaultValues: {
       id: request.id,
-      title: request.title ?? "",
+      name: request.name ?? "",
       requestType: (request.requestType as RequestEditFormValues["requestType"]) ?? "BUY",
       urgency: (request.urgency as RequestEditFormValues["urgency"]) ?? null,
       budgetMin: request.budgetMin ?? "",
@@ -151,7 +151,7 @@ export function EditRequestForm({ request, onSuccess }: EditRequestFormProps) {
               <TabsContent value="basics" className="mt-0 space-y-4">
                 <FormField
                   control={form.control}
-                  name="title"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("wizard.fields.title")} *</FormLabel>

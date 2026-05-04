@@ -413,7 +413,7 @@ export function EventDetailView({ event: initialEvent, defaultEditOpen = false }
                         <div className="flex items-center gap-3 w-full">
                           <LinkIcon className="h-4 w-4 text-muted-foreground" />
                           <div className="flex-1 text-left">
-                            <p className="font-medium">{request.title}</p>
+                            <p className="font-medium">{request.name}</p>
                             {request.status && (
                               <p className="text-xs text-muted-foreground">{request.status}</p>
                             )}

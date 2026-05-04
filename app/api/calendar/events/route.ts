@@ -167,6 +167,7 @@ export async function GET(req: Request) {
     // Fetch events from database
     const eventWhere: any = {
       organizationId: currentOrgId,
+      archivedAt: null,
       ...(startTime && endTime
         ? {
             startTime: {

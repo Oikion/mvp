@@ -239,7 +239,7 @@ export function UnifiedImportWizard({ dict, locale, returnUrl }: Readonly<Unifie
 
   return (
     <ImportWizardSteps
-      entityType="property"
+      entityType="contact"
       dict={dict.ImportWizard}
       fieldsDict={fieldsDict}
       fieldDefinitions={UNIFIED_FIELD_DEFINITIONS}

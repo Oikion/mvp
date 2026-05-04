@@ -75,7 +75,7 @@ export async function GET(
           select: {
             id: true,
             friendlyId: true,
-            title: true,
+            name: true,
             requestType: true,
             status: true,
             urgency: true,

@@ -709,7 +709,7 @@ export async function getDeals(params?: unknown) {
   const parsed = dealQuerySchema.safeParse(params ?? {});
   const filters = parsed.success ? parsed.data : {};
 
-  const where: Prisma.DealWhereInput = { organizationId, deletedAt: null };
+  const where: Prisma.DealWhereInput = { organizationId, deletedAt: null, archivedAt: null };
   if (filters?.includeDeleted === "true") {
     delete (where as any).deletedAt;
   }
@@ -813,6 +813,7 @@ export async function getDeal(
         select: {
           id: true,
           friendlyId: true,
+          name: true,
           requestType: true,
           status: true,
           locationDisplayName: true,
