@@ -109,7 +109,12 @@ const CONTACT_KEY_RENAMES: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 const REQUEST_EXTRA_ALIASES: Record<string, string[]> = {
-  request_transaction_type: ["request_transaction", "buyer_intent"],
+  request_transaction_type: ["request_transaction", "buyer_intent", "mandate_transaction_type"],
+  request_property_type: ["mandate_property_type"],
+  request_municipality: ["mandate_municipality"],
+  request_notes: ["mandate_notes"],
+  request_status: ["mandate_status"],
+  request_visibility: ["mandate_visibility", "mandate_oratotita"],
 };
 
 // ---------------------------------------------------------------------------

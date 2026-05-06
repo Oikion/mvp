@@ -17,12 +17,17 @@ import {
   Shield,
   Tag,
   MessageSquare,
+  Globe,
 } from "lucide-react";
+import { ItemVisibilitySelector } from "@/components/ItemVisibilitySelector";
+import { ItemVisibility } from "@prisma/client";
+import { updateContactVisibility } from "@/actions/contacts";
 import { useTranslations } from "next-intl";
 import { Link } from "@/navigation";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { LinkedEntitiesPanel } from "@/components/linking/LinkedEntitiesPanel";
+import { GenerateRequestSuggestion } from "./GenerateRequestSuggestion";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { EntityActivityPanel } from "@/components/activity/EntityActivityPanel";
 import { useContactLinked } from "@/hooks/swr/useContactLinked";
@@ -100,6 +105,20 @@ export default function ContactView({ contact }: ContactViewProps) {
   const { unlinkRequest, isUnlinking: isUnlinkingRequests } = useUnlinkRequestFromContact(contact.id);
   const { linkProperties, isLinking: isLinkingProperties } = useLinkPropertiesToContact(contact.id);
   const { unlinkProperty, isUnlinking: isUnlinkingProperties } = useUnlinkPropertyFromContact(contact.id);
+
+  const [visibility, setVisibility] = useState<ItemVisibility>(contact.visibility || "PRIVATE");
+
+  const handleVisibilityChange = async (newVisibility: ItemVisibility) => {
+    const prev = visibility;
+    setVisibility(newVisibility);
+    const result = await updateContactVisibility(contact.id, newVisibility);
+    if (!result.success) {
+      setVisibility(prev);
+      toast.error("updateFailed");
+    } else {
+      toast.success("updateSuccess");
+    }
+  };
 
   // Dialog state
   const [linkRequestDialogOpen, setLinkRequestDialogOpen] = useState(false);
@@ -521,10 +540,6 @@ export default function ContactView({ contact }: ContactViewProps) {
                 label={t("contacts.view.assignedTo")}
                 value={contact.assignedAgent?.name}
               />
-              <DetailField
-                label={t("contacts.view.visibility")}
-                value={contact.visibility}
-              />
               <Separator />
               <DetailField
                 label={t("contacts.view.created")}
@@ -549,7 +564,7 @@ export default function ContactView({ contact }: ContactViewProps) {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Calendar className="h-4 w-4" aria-hidden="true" />
+                <Shield className="h-4 w-4" aria-hidden="true" />
                 {t("contacts.view.gdprConsent")}
               </CardTitle>
             </CardHeader>
@@ -593,6 +608,22 @@ export default function ContactView({ contact }: ContactViewProps) {
             </CardContent>
           </Card>
 
+          {/* Visibility */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Globe className="h-4 w-4" aria-hidden="true" />
+                {t("contacts.view.visibility")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <ItemVisibilitySelector
+                value={visibility}
+                onChange={handleVisibilityChange}
+              />
+            </CardContent>
+          </Card>
+
           {/* Tags Card */}
           {contact.tags?.length > 0 && (
             <Card>
@@ -613,6 +644,16 @@ export default function ContactView({ contact }: ContactViewProps) {
               </CardContent>
             </Card>
           )}
+
+          {/* Suggest auto-generation when buyer/tenant has linked properties but no requests */}
+          {(contact.category as string[])?.some((c) => c === "BUYER" || c === "TENANT") &&
+            displayProperties.length > 0 &&
+            displayRequests.length === 0 && (
+              <GenerateRequestSuggestion
+                contactId={contact.id}
+                linkedPropertyCount={displayProperties.length}
+              />
+            )}
 
           {/* Linked Requests */}
           <LinkedEntitiesPanel

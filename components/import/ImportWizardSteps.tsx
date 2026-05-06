@@ -223,7 +223,8 @@ export function ImportWizardSteps({
   const fileHashRef = useRef("");
   const [parsedData, setParsedData] = useState<Record<string, unknown>[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
-  const [autoCreateRequests, setAutoCreateRequests] = useState(true);
+  const [autoCreateRequests, setAutoCreateRequests] = useState(false);
+  const [hasRequestColumns, setHasRequestColumns] = useState(false);
 
   // ── Step 1: Mapping ──
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
@@ -300,8 +301,17 @@ export function ImportWizardSteps({
       // Convert match results to field mapping
       const autoMapping = matchResultsToMapping(results);
       setFieldMapping(autoMapping);
+
+      // Detect whether any mapped column resolves to a request-entity field.
+      // Auto-enable request creation when request columns are detected; force off when not.
+      if (unifiedMode && requestFieldKeys) {
+        const mappedFields = Object.values(autoMapping);
+        const detected = mappedFields.some((f) => requestFieldKeys.has(f));
+        setHasRequestColumns(detected);
+        setAutoCreateRequests(detected);
+      }
     },
-    [fieldDefinitionsWithAliases],
+    [fieldDefinitionsWithAliases, unifiedMode, requestFieldKeys],
   );
 
   const handleFileHash = useCallback((hash: string) => {
@@ -765,6 +775,7 @@ export function ImportWizardSteps({
             unifiedMode={true}
             autoCreateRequests={autoCreateRequests}
             onAutoCreateRequestsChange={setAutoCreateRequests}
+            hasRequestColumns={hasRequestColumns}
           />
         );
       case 1: // Mapping

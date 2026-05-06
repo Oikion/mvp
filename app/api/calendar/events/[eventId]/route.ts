@@ -672,9 +672,12 @@ export async function PUT(
       }
     }
 
+    // Decrypt before passing to notifications so titles are human-readable
+    const decryptedForUpdateNotif = await decryptCalendarEventForOrg(event, currentOrgId);
+
     // Create notifications for event update (async, non-blocking)
     createUpdateNotifications(
-      event,
+      decryptedForUpdateNotif,
       currentOrgId,
       currentUser.id,
       currentUser.name || currentUser.email
@@ -748,9 +751,12 @@ export async function DELETE(
       );
     }
 
+    // Decrypt before passing to notifications so titles are human-readable
+    const decryptedForCancelNotif = await decryptCalendarEventForOrg(event, currentOrgId);
+
     // Create cancellation notifications before deleting (async, non-blocking)
     createCancellationNotifications(
-      event,
+      decryptedForCancelNotif,
       currentOrgId,
       currentUser.id,
       currentUser.name || currentUser.email

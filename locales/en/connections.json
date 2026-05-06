@@ -25,7 +25,7 @@
   },
   "search": {
     "title": "Find Agents",
-    "description": "Search for agents to connect with and expand your network",
+    "description": "Discover agents and expand your network",
     "placeholder": "Search by name or email...",
     "searching": "Searching...",
     "noResults": "No agents found matching your search.",

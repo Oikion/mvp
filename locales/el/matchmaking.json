@@ -40,8 +40,8 @@
     },
     "tabs": {
       "overview": "Επισκόπηση",
-      "requests": "Αιτήματα",
-      "matches": "Κορυφαία Matches",
+      "matches": "Matches",
+      "topMatches": "Κορυφαία Matches",
       "unmatched": "Χρειάζονται Προσοχή",
       "hot": "Hot Ακίνητα"
     },
@@ -70,11 +70,14 @@
       "description": "Τα καλύτερα ζευγάρια από την τελευταία εκτέλεση αντιστοίχισης",
       "noMatches": "Δεν υπάρχουν αποθηκευμένα matches ακόμα.",
       "noMatchesHint": "Εκτελέστε αντιστοίχιση τώρα για να δημιουργηθούν και αποθηκευτούν τα κορυφαία matches.",
-      "viewRequest": "Προβολή Αιτήματος"
+      "viewRequest": "Προβολή Αιτήματος",
+      "viewMatch": "Προβολή Match"
     },
     "runNow": {
       "label": "Εκτέλεση Αντιστοίχισης",
-      "running": "Εκτελείται..."
+      "running": "Εκτελείται...",
+      "cooldown": "Επόμενη εκτέλεση σε {minutes, plural, one {# λεπτό} other {# λεπτά}}",
+      "cooldownLabel": "Αναμονή..."
     },
     "distribution": {
       "title": "Κατανομή Βαθμολογίας Match",
@@ -148,7 +151,15 @@
       "pet_friendly": "Δεκτά Κατοικίδια",
       "heating": "Θέρμανση",
       "energy_class": "Ενεργειακή Κλάση",
-      "parking": "Πάρκινγκ"
+      "parking": "Πάρκινγκ",
+      "construction_year": "Έτος Κατασκευής",
+      "storage": "Αποθήκη",
+      "garden": "Κήπος",
+      "inside_city_plan": "Εντός Σχεδίου",
+      "golden_visa": "Golden Visa",
+      "financing_type": "Τύπος Χρηματοδότησης",
+      "bathrooms": "Μπάνια",
+      "timeline": "Χρονοδιάγραμμα"
     }
   },
   "preferences": {
@@ -185,6 +196,56 @@
     "selectRequired": "Επιλέξτε απαραίτητες παροχές",
     "preferredAmenities": "Επιθυμητές παροχές (προαιρετικές)",
     "selectPreferred": "Επιλέξτε επιθυμητές παροχές"
+  },
+  "matchDetail": {
+    "notFound": "Το match δεν βρέθηκε",
+    "notFoundDesc": "Αυτό το match μπορεί να έχει διαγραφεί ή να μην έχετε πρόσβαση.",
+    "backToMatches": "Επιστροφή στο Matchmaking",
+    "overallScore": "Συνολική Βαθμολογία Match",
+    "propertyCard": "Ακίνητο",
+    "requestCard": "Αίτημα",
+    "budget": "Προϋπολογισμός",
+    "bedrooms": "Υπνοδωμάτια",
+    "areas": "Περιοχές",
+    "contactsSection": "Επαφές & Ανάλυση Βαθμολογίας",
+    "contactsSectionDesc": "Όλες οι επαφές που συνδέονται με αυτό το αίτημα — επιλέξτε ποιους να συμπεριλάβετε στη συμφωνία",
+    "noContacts": "Δεν υπάρχουν επαφές συνδεδεμένες με αυτό το αίτημα",
+    "noContactsHint": "Προσθέστε επαφές στο αίτημα για να δημιουργήσετε συμφωνία.",
+    "disqualified": "Αποκλεισμένο",
+    "disqualifiedReason": "Λόγος",
+    "createDeal": "Δημιουργία Συμφωνίας",
+    "createDealDesc": "Επιλέξτε επαφές και ρόλους, στη συνέχεια δημιουργήστε μια συμφωνία που συνδέει αυτό το ακίνητο και το αίτημα.",
+    "selectedContacts": "Επιλεγμένες επαφές",
+    "roleLabel": "Ρόλος",
+    "submit": "Δημιουργία Συμφωνίας",
+    "submitting": "Δημιουργία...",
+    "cancel": "Ακύρωση",
+    "noneSelected": "Επιλέξτε τουλάχιστον μία επαφή για να δημιουργήσετε συμφωνία.",
+    "scoreBreakdownTitle": "Ανάλυση Βαθμολογίας Match",
+    "matchQuality": "Ποιότητα αντιστοίχισης",
+    "matchStatus": "Κατάσταση",
+    "sqm": "τ.μ.",
+    "forSale": "Προς πώληση",
+    "forRent": "Προς ενοικίαση",
+    "matchScoreLabel": "αντιστοίχιση",
+    "viewProperty": "Προβολή ακινήτου",
+    "viewRequest": "Προβολή αιτήματος",
+    "qualityExcellent": "Εξαιρετική αντιστοίχιση",
+    "qualityGood": "Καλή αντιστοίχιση",
+    "qualityWeak": "Αδύναμη αντιστοίχιση",
+    "confirmDealTitle": "Δημιουργία συμφωνίας;",
+    "confirmDealDesc": "Θα δημιουργηθεί συμφωνία που θα συνδέει το ακίνητο και το αίτημα με τα επιλεγμένα μέρη. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "confirmDealParties": "Μέρη που θα προστεθούν",
+    "confirmDealOwner": "Ιδιοκτήτης ακινήτου (αυτόματα ως Πωλητής)",
+    "confirmDealProceed": "Δημιουργία συμφωνίας",
+    "confirmDealCancel": "Ακύρωση",
+    "status": {
+      "ACTIVE": "Ενεργό",
+      "ARCHIVED": "Αρχειοθετημένο",
+      "PENDING": "Σε αναμονή",
+      "EXPIRED": "Ληγμένο",
+      "INACTIVE": "Ανενεργό"
+    }
   },
   "strikeDeal": {
     "button": "Σύναψη Συμφωνίας",

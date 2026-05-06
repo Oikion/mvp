@@ -36,6 +36,7 @@ interface ReplyInfo {
 interface MessageComposerProps {
   channelId?: string;
   conversationId?: string;
+  isGroupConversation?: boolean;
   credentials?: MessagingCredentials;
   placeholder?: string;
   disabled?: boolean;
@@ -50,6 +51,7 @@ const QUICK_EMOJIS = ["👍", "❤️", "😂", "🎉", "🤔", "👀", "🙏", 
 export function MessageComposer({
   channelId,
   conversationId,
+  isGroupConversation = false,
   credentials,
   placeholder = "Type a message...",
   disabled = false,
@@ -59,6 +61,7 @@ export function MessageComposer({
 }: MessageComposerProps) {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [sharedEntity, setSharedEntity] = useState<SharedEntity | null>(null);
@@ -148,6 +151,44 @@ export function MessageComposer({
       if (onSend) {
         await onSend(message, attachments);
       } else {
+        // Upload file attachments first
+        let uploadedAttachments: Array<{
+          fileName: string;
+          fileSize: number;
+          fileType: string;
+          url: string;
+        }> = [];
+
+        if (attachments.length > 0) {
+          setIsUploadingFiles(true);
+          try {
+            const uploads = await Promise.all(
+              attachments.map(async (file) => {
+                const formData = new FormData();
+                formData.append("file", file);
+                const res = await fetch("/api/messaging/attachments", {
+                  method: "POST",
+                  body: formData,
+                });
+                if (!res.ok) {
+                  const err = await res.json().catch(() => ({}));
+                  throw new Error(err.error || "Failed to upload file");
+                }
+                const data = await res.json();
+                return {
+                  fileName: data.attachment.name,
+                  fileSize: data.attachment.size,
+                  fileType: data.attachment.type,
+                  url: data.attachment.url,
+                };
+              })
+            );
+            uploadedAttachments = uploads;
+          } finally {
+            setIsUploadingFiles(false);
+          }
+        }
+
         // Encrypt message if E2EE is unlocked
         let content = message;
         let e2eeFields: {
@@ -159,7 +200,7 @@ export function MessageComposer({
 
         if (isUnlocked && message.trim()) {
           try {
-            if (conversationId) {
+            if (conversationId && !isGroupConversation) {
               // 1:1 DM — Double Ratchet
               const encrypted = await encryptDM(conversationId, message);
               content = JSON.stringify(encrypted);
@@ -168,9 +209,10 @@ export function MessageComposer({
                 previousChainLen: encrypted.header.previousChainLength,
                 messageIndex: encrypted.header.messageNumber,
               };
-            } else if (channelId) {
-              // Group/Channel — Megolm
-              const encrypted = await encryptGroup(channelId, message);
+            } else if (channelId || (conversationId && isGroupConversation)) {
+              // Group channel or group DM — Megolm
+              const sessionKey = channelId ?? conversationId!;
+              const encrypted = await encryptGroup(sessionKey, message);
               content = JSON.stringify(encrypted);
               e2eeFields = {
                 sessionId: encrypted.sessionId,
@@ -189,6 +231,7 @@ export function MessageComposer({
           content,
           parentId: replyTo?.messageId,
           ...e2eeFields,
+          attachments: uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
           entityAttachment: sharedEntity ? {
             type: sharedEntity.type,
             id: sharedEntity.id,
@@ -256,7 +299,7 @@ export function MessageComposer({
   };
 
   const isDisabled = disabled || !credentials?.userId;
-  const canSend = (message.trim() || attachments.length > 0 || sharedEntity) && !isSending && !isDisabled;
+  const canSend = (message.trim() || attachments.length > 0 || sharedEntity) && !isSending && !isUploadingFiles && !isDisabled;
 
   return (
     <div className="border-t p-4 bg-background">
@@ -419,7 +462,7 @@ export function MessageComposer({
           size="icon"
           className="h-10 w-10"
         >
-          {isSending ? (
+          {isSending || isUploadingFiles ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Send className="h-4 w-4" />

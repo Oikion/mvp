@@ -12,7 +12,6 @@ import {
 } from "@/lib/action-response";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { z } from "zod";
-import type { Deal } from "@prisma/client";
 import {
   logEntityCreated,
   logEntityLinked,
@@ -50,7 +49,7 @@ export type StrikeDealInput = z.infer<typeof strikeDealSchema>;
 
 export async function strikeDeal(
   input: unknown
-): Promise<ActionResponse<{ deal: Deal; friendlyId: string }>> {
+): Promise<ActionResponse<{ friendlyId: string }>> {
   const guard1 = await requireAction("deal:create");
   if (guard1) return guard1;
   const guard2 = await requireAction("deal:manage_parties");
@@ -172,7 +171,9 @@ export async function strikeDeal(
       createdByUserId: currentUser?.id,
     });
 
-    return actionSuccess({ deal: result, friendlyId: result.friendlyId ?? result.id });
+    // Return only the scalar fields the client needs — never pass the full
+    // Prisma Deal object across the RSC boundary (contains Decimal fields).
+    return actionSuccess({ friendlyId: result.friendlyId ?? result.id });
   } catch (error) {
     console.error("[STRIKE_DEAL]", error);
     return actionError("Failed to create deal");

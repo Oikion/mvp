@@ -586,7 +586,7 @@ function FindAgentsSection({ translations: t }: { translations: Record<string, a
         <div className="py-12 text-center">
           <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground">
-            {query ? (t.search?.noResults || "No agents found matching your search.") : (t.search?.emptyPrompt || "Search for agents to connect with.")}
+            {t.search?.noResults || "No agents found matching your search."}
           </p>
         </div>
       ) : (
@@ -860,7 +860,7 @@ export function ConnectionsTab({
               {t.search?.title || "Find Agents"}
             </CardTitle>
             <CardDescription>
-              {t.search?.description || "Search for agents to connect with and expand your network"}
+              {t.search?.description || "Discover agents and expand your network"}
             </CardDescription>
           </CardHeader>
           <CardContent>

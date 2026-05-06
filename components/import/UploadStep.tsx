@@ -48,6 +48,7 @@ interface UploadStepProps {
   readonly unifiedMode?: boolean;
   readonly autoCreateRequests?: boolean;
   readonly onAutoCreateRequestsChange?: (value: boolean) => void;
+  readonly hasRequestColumns?: boolean;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -348,9 +349,9 @@ const UNIFIED_TEMPLATE_HEADERS = [
   "property_name", "property_type", "transaction_type", "price",
   "address_street", "address_city", "municipality", "bedrooms", "bathrooms",
   "size_net_sqm",
-  // Mandate
-  "budget_min", "budget_max", "mandate_transaction_type",
-  "mandate_municipality", "size_min_sqm", "size_max_sqm",
+  // Request
+  "budget_min", "budget_max", "request_transaction_type",
+  "request_municipality", "size_min_sqm", "size_max_sqm",
   "bedrooms_min", "bedrooms_max", "urgency", "timeline",
 ];
 
@@ -459,8 +460,9 @@ export function UploadStep({
   currentFile,
   entityType,
   unifiedMode,
-  autoCreateRequests = true,
+  autoCreateRequests = false,
   onAutoCreateRequestsChange,
+  hasRequestColumns = false,
 }: UploadStepProps) {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -1006,8 +1008,8 @@ export function UploadStep({
         </div>
       )}
 
-      {/* Auto-create requests toggle (unified mode only) */}
-      {unifiedMode && onAutoCreateRequestsChange && (
+      {/* Auto-create requests toggle — only shown when the file contains request columns */}
+      {unifiedMode && onAutoCreateRequestsChange && hasRequestColumns && (
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div className="flex items-center gap-3">
             <Wand2 className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />

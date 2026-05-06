@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgIdSafe } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
+import { decryptRequestForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 
 export interface PersistedMatchItem {
   id: string;
@@ -56,7 +57,7 @@ export async function getPersistedMatches(): Promise<PersistedMatchItem[]> {
     where: {
       organizationId,
       status: { not: "DISMISSED" },
-      OR: [{ matchScore: { gte: 0.5 } }, { matchScore: null }],
+      matchScore: { gte: 0.5 },
     },
     orderBy: { matchScore: "desc" },
     take: 20,
@@ -108,35 +109,67 @@ export async function getPersistedMatches(): Promise<PersistedMatchItem[]> {
     },
   });
 
-  return rows.map((row) => ({
-    id: row.id,
-    propertyId: row.propertyId,
-    requestId: row.requestId,
-    matchScore: row.matchScore == null ? 0 : Number(row.matchScore) * 100,
-    scoreBreakdown: row.scoreBreakdown as Record<string, unknown> | null,
-    status: row.status,
-    property: {
-      id: row.property.id,
-      friendlyId: row.property.friendlyId,
-      property_name: row.property.property_name,
-      price: row.property.price == null ? null : Number(row.property.price),
-      bedrooms: row.property.bedrooms,
-      area: row.property.area,
-      address_city: row.property.address_city,
-      owner: row.property.owner
-        ? {
-            id: row.property.owner.id,
-            displayName: row.property.owner.displayName,
-            firstName: row.property.owner.firstName,
-            lastName: row.property.owner.lastName,
-          }
-        : null,
-    },
-    request: {
-      id: row.request.id,
-      friendlyId: row.request.friendlyId,
-      name: row.request.name,
-      requestContacts: row.request.requestContacts,
-    },
-  }));
+  const decrypted = await Promise.all(
+    rows.map(async (row) => {
+      const decryptedRequest = await decryptRequestForOrg(
+        { name: row.request.name },
+        organizationId
+      );
+
+      const decryptedContacts = await Promise.all(
+        row.request.requestContacts.map(async (rc) => {
+          const decryptedContact = await decryptContactForOrg(
+            {
+              displayName: rc.contact.displayName,
+              firstName: rc.contact.firstName,
+              lastName: rc.contact.lastName,
+            },
+            organizationId
+          );
+          return {
+            contact: {
+              id: rc.contact.id,
+              displayName: decryptedContact.displayName ?? null,
+              firstName: decryptedContact.firstName ?? null,
+              lastName: decryptedContact.lastName ?? null,
+            },
+          };
+        })
+      );
+
+      return {
+        id: row.id,
+        propertyId: row.propertyId,
+        requestId: row.requestId,
+        matchScore: row.matchScore == null ? 0 : Number(row.matchScore) * 100,
+        scoreBreakdown: row.scoreBreakdown as Record<string, unknown> | null,
+        status: row.status,
+        property: {
+          id: row.property.id,
+          friendlyId: row.property.friendlyId,
+          property_name: row.property.property_name,
+          price: row.property.price == null ? null : Number(row.property.price),
+          bedrooms: row.property.bedrooms,
+          area: row.property.area,
+          address_city: row.property.address_city,
+          owner: row.property.owner
+            ? {
+                id: row.property.owner.id,
+                displayName: row.property.owner.displayName,
+                firstName: row.property.owner.firstName,
+                lastName: row.property.owner.lastName,
+              }
+            : null,
+        },
+        request: {
+          id: row.request.id,
+          friendlyId: row.request.friendlyId,
+          name: decryptedRequest.name ?? null,
+          requestContacts: decryptedContacts,
+        },
+      };
+    })
+  );
+
+  return decrypted;
 }

@@ -85,7 +85,12 @@
     "suggestedAgents": "Προτεινόμενοι Πράκτορες",
     "suggestedAgencies": "Προτεινόμενα Γραφεία",
     "seeAllAgents": "Δείτε όλους",
-    "seeAllAgencies": "Δείτε όλα"
+    "seeAllAgencies": "Δείτε όλα",
+    "emptyTitle": "Αναπτύξτε το δίκτυό σας",
+    "emptyDescription": "Συνδεθείτε με πράκτορες για να δείτε τις καταχωρίσεις τους και να συνεργαστείτε σε deals.",
+    "findAgents": "Εύρεση Πρακτόρων",
+    "followBack": "Ακολουθήστε πίσω",
+    "viewProfile": "Προβολή"
   },
   "realtime": {
     "connected": "Ζωντανά",

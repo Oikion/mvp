@@ -462,9 +462,12 @@ export async function POST(req: Request) {
       await createRemindersForEvent(event.id, reminderMinutes, organizationId);
     }
 
+    // Decrypt before passing to notifications so titles are human-readable
+    const decryptedForNotifications = await decryptCalendarEventForOrg(event, organizationId);
+
     // Create notifications for linked entities (async, non-blocking)
     createEventNotifications(
-      event,
+      decryptedForNotifications,
       organizationId,
       currentUser.id,
       currentUser.name || currentUser.email,

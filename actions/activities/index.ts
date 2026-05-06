@@ -3,7 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { requireAction, requireActionOnEntity } from "@/lib/permissions/action-guards";
-import { encryptActivityForOrg, decryptActivityForOrg, decryptContactForOrg } from "@/lib/model-encryption";
+import { encryptActivityForOrg, decryptActivityForOrg, decryptContactForOrg, decryptCalendarEventForOrg } from "@/lib/model-encryption";
 import { createActivitySchema, updateActivitySchema } from "@/lib/validations/activities";
 import { serializePrisma } from "@/lib/prisma-serialize";
 import { actionSuccess, actionError, actionNotFound, actionValidationError, type ActionResponse } from "@/lib/action-response";
@@ -152,6 +152,34 @@ export async function deleteActivity(id: string): Promise<ActionResponse> {
  * List activities for a given parent entity.
  * Results are decrypted and serialized before returning.
  */
+// For CALENDAR_EVENT_ADDED/REMOVED the body is stored as a sentence embedding the
+// (possibly encrypted) event title. isEncrypted() cannot detect ciphertext embedded
+// inside a sentence so decryptActivityForOrg leaves body untouched. We decrypt only
+// metadata.eventTitle here and leave body reconstruction to the UI layer — the UI
+// reads metadata directly and can format a locale-aware label from it.
+async function patchCalendarActivityBodies<T extends { kind: string; metadata?: unknown }>(
+  activities: T[],
+  organizationId: string
+): Promise<T[]> {
+  const calendarKinds = new Set(["CALENDAR_EVENT_ADDED", "CALENDAR_EVENT_REMOVED"]);
+  return Promise.all(
+    activities.map(async (a) => {
+      if (!calendarKinds.has(a.kind)) return a;
+      const meta = a.metadata as Record<string, unknown> | null | undefined;
+      const rawTitle = meta?.eventTitle as string | null | undefined;
+      if (!rawTitle) return a;
+      const { title: decryptedTitle } = await decryptCalendarEventForOrg(
+        { title: rawTitle },
+        organizationId
+      );
+      return {
+        ...a,
+        metadata: { ...(meta ?? {}), eventTitle: decryptedTitle ?? rawTitle },
+      };
+    })
+  );
+}
+
 // Maps ActivityParentType enum values to their Prisma model delegate names
 const PARENT_TYPE_TO_MODEL: Record<string, string> = {
   CONTACT: "contact",
@@ -214,11 +242,15 @@ export async function listActivities(
       activities.map((a) => decryptActivityForOrg(a, organizationId))
     );
 
+    // Patch body/metadata.eventTitle for calendar activities (body is a sentence
+    // containing a possibly-encrypted title substring — isEncrypted() misses it).
+    const decryptedCalendar = await patchCalendarActivityBodies(decrypted, organizationId);
+
     // Decrypt RelatedContact firstName/lastName — these are contact PII fields
     // encrypted with the org DEK. decryptContactForOrg uses isEncrypted() guards
     // so it is safe to call even if values are already plaintext.
     const decryptedWithContacts = await Promise.all(
-      decrypted.map(async (a) => {
+      decryptedCalendar.map(async (a) => {
         if (!a.RelatedContact) return a;
         const decryptedContact = await decryptContactForOrg(a.RelatedContact, organizationId);
         return { ...a, RelatedContact: decryptedContact };

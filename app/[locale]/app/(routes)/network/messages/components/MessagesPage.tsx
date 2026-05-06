@@ -492,6 +492,7 @@ export function MessagesPage({ dict, locale }: MessagesPageProps) {
             <MessageComposer
               channelId={selectedChannelId || undefined}
               conversationId={selectedConversationId || undefined}
+              isGroupConversation={selectedConversation?.isGroup ?? false}
               credentials={credentials}
               placeholder={
                 selectedChannel

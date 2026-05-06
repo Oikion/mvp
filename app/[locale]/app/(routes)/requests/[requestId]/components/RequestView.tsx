@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,11 @@ import {
   Building2,
   MessageSquare,
   MapPin,
+  Globe,
 } from "lucide-react";
+import { ItemVisibilitySelector } from "@/components/ItemVisibilitySelector";
+import { ItemVisibility } from "@prisma/client";
+import { updateRequestVisibility } from "@/actions/requests";
 import { useTranslations } from "next-intl";
 import { Link } from "@/navigation";
 import { format } from "date-fns";
@@ -117,8 +121,31 @@ export default function RequestView({ request }: RequestViewProps) {
   const { linkProperties, isLinking: isLinkingProperties } = useLinkPropertiesToRequest(request.friendlyId);
   const { unlinkProperty, isUnlinking: isUnlinkingProperties } = useUnlinkPropertyFromRequest(request.friendlyId);
 
+  const [visibility, setVisibility] = useState<ItemVisibility>(request.visibility || "PRIVATE");
+
+  const handleVisibilityChange = async (newVisibility: ItemVisibility) => {
+    const prev = visibility;
+    setVisibility(newVisibility);
+    const result = await updateRequestVisibility(request.id, newVisibility);
+    if (!result.success) {
+      setVisibility(prev);
+      toast.error("updateFailed");
+    } else {
+      toast.success("updateSuccess");
+    }
+  };
+
   // Dialog state
   const [editOpen, setEditOpen] = useState(false);
+  const isFormDirtyRef = useRef(false);
+
+  const handleSheetClose = (open: boolean) => {
+    if (!open && isFormDirtyRef.current) {
+      const confirmed = window.confirm(t("edit.unsavedChangesPrompt" as Parameters<typeof t>[0]));
+      if (!confirmed) return;
+    }
+    setEditOpen(open);
+  };
   const [linkContactDialogOpen, setLinkContactDialogOpen] = useState(false);
   const [linkPropertyDialogOpen, setLinkPropertyDialogOpen] = useState(false);
 
@@ -224,11 +251,13 @@ export default function RequestView({ request }: RequestViewProps) {
         </div>
       </div>
 
-      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+      <Sheet open={editOpen} onOpenChange={handleSheetClose}>
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
           <EditRequestForm
             request={request}
+            onDirtyChange={(dirty) => { isFormDirtyRef.current = dirty; }}
             onSuccess={() => {
+              isFormDirtyRef.current = false;
               setEditOpen(false);
               mutateLinked?.();
             }}
@@ -365,7 +394,6 @@ export default function RequestView({ request }: RequestViewProps) {
               <DetailField label={t("view.propertyCategory")} value={request.propertyCategory ? t(`propertyPurpose.${request.propertyCategory}` as Parameters<typeof t>[0]) : null} />
               <DetailField label={t("view.timeline")} value={request.timeline ? t(`timeline.${request.timeline}` as Parameters<typeof t>[0]) : null} />
               <DetailField label={t("view.assignedTo")} value={request.assignedAgent?.name} />
-              <DetailField label={t("view.visibility")} value={request.visibility} />
               <Separator />
               <DetailField
                 label={t("view.created")}
@@ -374,6 +402,22 @@ export default function RequestView({ request }: RequestViewProps) {
               <DetailField
                 label={t("view.updated")}
                 value={request.updatedAt ? format(new Date(request.updatedAt), "dd/MM/yyyy HH:mm") : null}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Visibility */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Globe className="h-4 w-4" aria-hidden="true" />
+                {t("view.visibility")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <ItemVisibilitySelector
+                value={visibility}
+                onChange={handleVisibilityChange}
               />
             </CardContent>
           </Card>

@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Building2,
@@ -637,8 +636,8 @@ export function LinkedEntitiesPanel({
             {empty}
           </div>
         ) : (
-          <ScrollArea style={{ maxHeight }} className="pr-4">
-            <div className="space-y-2">
+          <div style={{ maxHeight, overflowY: "auto" }} className="pr-1">
+            <div className="space-y-2 pr-2">
               {type === "properties" &&
                 (entities as LinkedProperty[]).map((property) => (
                   <PropertyCard
@@ -692,7 +691,7 @@ export function LinkedEntitiesPanel({
                   />
                 ))}
             </div>
-          </ScrollArea>
+          </div>
         )}
       </CardContent>
     </Card>

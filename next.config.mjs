@@ -45,9 +45,9 @@ const nextConfig = {
 
   // Performance optimizations for dev mode
   experimental: {
-    // Enable Turbopack FS cache in dev for faster restarts
-    // Cache significantly improves startup time after the first run
-    turbopackFileSystemCacheForDev: true,
+    // Turbopack FS cache disabled — the RocksDB-based SST cache corrupts when
+    // .next is partially wiped (orphaned .meta files reference missing .sst files).
+    // turbopackFileSystemCacheForDev: true,
 
     // Optimize package imports - reduces bundle size and compilation time
     // This tree-shakes unused exports from large packages, significantly reducing compilation overhead

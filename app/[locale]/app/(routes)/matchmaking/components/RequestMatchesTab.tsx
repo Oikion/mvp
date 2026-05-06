@@ -13,22 +13,28 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   FileText,
   Building2,
   Target,
-  TrendingUp,
   ArrowRight,
   Bed,
   MapPin,
-  Info,
   AlertTriangle,
   BarChart3,
-  Euro,
   RefreshCw,
+  ChevronDown,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import type { RequestMatchAnalytics } from "@/actions/matchmaking/types";
 import type { PersistedMatchItem } from "@/actions/matchmaking/get-persisted-matches";
+import type { CriterionScore } from "@/lib/matchmaking";
 import { MatchScoreBreakdown } from "./MatchScoreBreakdown";
 
 interface Props {
@@ -106,7 +112,7 @@ export function RequestMatchesTab({
         </CardHeader>
         <CardContent>
           <TopRequestMatchesGrid
-            matches={analytics.topMatches}
+            matches={persistedMatches}
             locale={locale}
           />
         </CardContent>
@@ -176,7 +182,7 @@ function TopRequestMatchesGrid({
   matches,
   locale,
 }: {
-  matches: RequestMatchAnalytics["topMatches"];
+  matches: PersistedMatchItem[];
   locale: string;
 }) {
   const t = useTranslations("matchmaking");
@@ -195,7 +201,7 @@ function TopRequestMatchesGrid({
     <div className="space-y-4">
       {matches.map((match) => (
         <div
-          key={`${match.clientId}-${match.propertyId}`}
+          key={match.id}
           className="flex flex-col md:flex-row items-start md:items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
         >
           {/* Request Info */}
@@ -207,84 +213,82 @@ function TopRequestMatchesGrid({
             </Avatar>
             <div className="min-w-0">
               <Link
-                href={`/${locale}/app/requests/${match.client?.friendlyId ?? match.clientId}`}
+                href={`/${locale}/app/matchmaking/matches/${match.id}`}
                 className="font-medium hover:text-primary truncate block"
               >
-                {(match.client as any)?.displayName ?? (match.client as any)?.client_name ?? match.clientId}
+                {match.request.name ?? match.requestId}
               </Link>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {(match.client as any)?.status && (
-                  <Badge variant="outline" className="text-xs">
-                    {(match.client as any).status}
-                  </Badge>
+              <div className="text-xs text-muted-foreground">
+                {match.request.requestContacts.length > 0 && (
+                  <span>
+                    {match.request.requestContacts
+                      .map((rc) =>
+                        rc.contact.displayName ??
+                        [rc.contact.firstName, rc.contact.lastName].filter(Boolean).join(" ") ??
+                        ""
+                      )
+                      .filter(Boolean)
+                      .join(", ")}
+                  </span>
                 )}
               </div>
             </div>
           </div>
 
           {/* Match Score */}
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center gap-1 shrink-0">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-help">
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${getScoreColor(match.overallScore)}`}
-                    >
-                      {Math.round(match.overallScore)}%
-                    </div>
-                    <Info className="h-4 w-4 text-muted-foreground" />
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold cursor-help ${getScoreColor(match.matchScore)}`}
+                  >
+                    {Math.round(match.matchScore)}%
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="w-80 p-0">
-                  <MatchScoreBreakdown breakdown={match.breakdown} />
-                </TooltipContent>
+                {match.scoreBreakdown && (
+                  <TooltipContent side="top" className="p-0 w-72" sideOffset={8}>
+                    <MatchScoreBreakdown
+                      breakdown={match.scoreBreakdown as unknown as CriterionScore[]}
+                      maxItems={5}
+                    />
+                  </TooltipContent>
+                )}
               </Tooltip>
             </TooltipProvider>
-            <span className="text-xs text-muted-foreground">
-              {match.matchedCriteria}/{match.totalCriteria} {t("topMatches.criteria")}
-            </span>
           </div>
 
           {/* Arrow */}
-          <ArrowRight className="h-5 w-5 text-muted-foreground hidden md:block" />
+          <ArrowRight className="h-5 w-5 text-muted-foreground hidden md:block shrink-0" />
 
           {/* Property Info */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="h-10 w-10 rounded bg-muted flex items-center justify-center overflow-hidden">
-              {(match.property as any).imageUrl ? (
-                <img
-                  src={(match.property as any).imageUrl}
-                  alt={(match.property as any).property_name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <Building2 className="h-5 w-5 text-muted-foreground" />
-              )}
+            <div className="h-10 w-10 rounded bg-muted flex items-center justify-center shrink-0">
+              <Building2 className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="min-w-0">
               <Link
-                href={`/${locale}/app/mls/properties/${match.property?.friendlyId ?? match.propertyId}`}
+                href={`/${locale}/app/mls/properties/${match.property.friendlyId ?? match.propertyId}`}
                 className="font-medium hover:text-primary truncate block"
               >
-                {(match.property as any).property_name}
+                {match.property.property_name}
               </Link>
               <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-                {(match.property as any).bedrooms && (
+                {match.property.bedrooms && (
                   <span className="flex items-center gap-1">
                     <Bed className="h-3 w-3" />
-                    {(match.property as any).bedrooms}
+                    {match.property.bedrooms}
                   </span>
                 )}
-                {((match.property as any).area || (match.property as any).address_city) && (
+                {(match.property.area || match.property.address_city) && (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
-                    {(match.property as any).area || (match.property as any).address_city}
+                    {match.property.area || match.property.address_city}
                   </span>
                 )}
-                {(match.property as any).price && (
+                {match.property.price && (
                   <span className="font-medium text-foreground">
-                    {formatPrice((match.property as any).price)}
+                    {formatPrice(match.property.price)}
                   </span>
                 )}
               </div>
@@ -292,17 +296,35 @@ function TopRequestMatchesGrid({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/app/requests/${match.client?.friendlyId ?? match.clientId}`}>
-                {t("requestMatches.topMatches.viewRequest")}
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" asChild>
+              <Link href={`/${locale}/app/matchmaking/matches/${match.id}`}>
+                {t("requestMatches.topMatches.viewMatch")}
               </Link>
             </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/app/mls/properties/${match.property?.friendlyId ?? match.propertyId}`}>
-                {t("topMatches.viewProperty")}
-              </Link>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="px-2">
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href={`/${locale}/app/requests/${match.request.friendlyId ?? match.requestId}`} className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    {t("requestMatches.topMatches.viewRequest")}
+                    <ExternalLink className="h-3 w-3 ml-auto text-muted-foreground" />
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/${locale}/app/mls/properties/${match.property.friendlyId ?? match.propertyId}`} className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    {t("topMatches.viewProperty")}
+                    <ExternalLink className="h-3 w-3 ml-auto text-muted-foreground" />
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       ))}

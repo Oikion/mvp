@@ -34,9 +34,11 @@ export const PersonTypeEnum = z.enum([
 export const LeadSourceEnum = z.enum([
   "REFERRAL",
   "WEB",
-  "PORTAL",
+  "PORTAL_LEAD",
   "WALK_IN",
-  "SOCIAL",
+  "COLD_CALL",
+  "SOCIAL_MEDIA",
+  "OTHER",
 ]);
 
 export const ItemVisibilityEnum = z.enum([
@@ -359,7 +361,7 @@ export const contactImportFieldDefinitions: readonly ContactFieldDefinition[] = 
     required: false, 
     group: "other", 
     aliases: ["source", "how_found", "referral_source", "pigi_epafis"],
-    description: "Lead source (REFERRAL, WEB, PORTAL, etc.)"
+    description: "Lead source (REFERRAL, WEB, PORTAL_LEAD, WALK_IN, COLD_CALL, SOCIAL_MEDIA, OTHER)"
   },
   { 
     key: "gdpr_consent", 

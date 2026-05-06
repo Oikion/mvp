@@ -6,6 +6,16 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { ItemVisibility } from "@prisma/client";
 
+// Visibility level colors — consolidated here for OKLCH token migration.
+// When tokens are available, replace these hex values with var(--color-visibility-*).
+const VIS_COLORS = {
+  hidden:  "#9ca3af", // gray-400
+  private: "#6b7280", // gray-500
+  secure:  "#3b82f6", // blue-500
+  // PUBLIC uses hsl(var(--primary)) for the committed state;
+  // drag interpolation holds at 'secure' to avoid a mismatch on snap.
+} as const;
+
 const OPTION_STYLES: {
   value: ItemVisibility;
   icon: React.ElementType;
@@ -18,21 +28,21 @@ const OPTION_STYLES: {
     icon: EyeOff,
     tKey: "hidden",
     color: "text-muted-foreground",
-    trackColor: "#9ca3af",
+    trackColor: VIS_COLORS.hidden,
   },
   {
     value: "PRIVATE",
     icon: Lock,
     tKey: "private",
     color: "text-muted-foreground",
-    trackColor: "#6b7280",
+    trackColor: VIS_COLORS.private,
   },
   {
     value: "SECURE",
     icon: Shield,
     tKey: "secure",
     color: "text-blue-500",
-    trackColor: "#3b82f6",
+    trackColor: VIS_COLORS.secure,
   },
   {
     value: "PUBLIC",
@@ -65,11 +75,13 @@ function lerpColor(a: string, b: string, t: number): string {
   return `rgb(${r},${g},${bl})`;
 }
 
-// Resolve the thumb color at a continuous position 0–3
+// Resolve the thumb color at a continuous position 0–3 (drag-phase only).
+// Holds at VIS_COLORS.secure for the PUBLIC zone — the committed snap
+// transitions to hsl(var(--primary)) via the CSS background-color transition.
 function thumbColorAt(pos: number): string {
-  if (pos <= 1) return lerpColor("#9ca3af", "#6b7280", pos);
-  if (pos <= 2) return lerpColor("#6b7280", "#3b82f6", pos - 1);
-  return lerpColor("#3b82f6", "#22c55e", pos - 2);
+  if (pos <= 1) return lerpColor(VIS_COLORS.hidden, VIS_COLORS.private, pos);
+  if (pos <= 2) return lerpColor(VIS_COLORS.private, VIS_COLORS.secure, pos - 1);
+  return VIS_COLORS.secure;
 }
 
 interface ItemVisibilitySelectorProps {
@@ -155,23 +167,36 @@ export function ItemVisibilitySelector({
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          {/* Ghost gradient track (full width, faint) */}
+          {/* Ghost track (full width, faint) — sits behind fill */}
           <div
-            className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full pointer-events-none"
-            style={{
-              background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
-              opacity: 0.2,
-            }}
+            className="absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full pointer-events-none overflow-hidden"
+            style={{ background: "hsl(var(--muted-foreground) / 0.15)" }}
           />
-          {/* Filled progress track — same coordinate space as thumb */}
+          {/* Filled progress track — clip container keeps gradient anchored to track bounds */}
           <div
-            className="absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full pointer-events-none"
-            style={{
-              width: `${pct}%`,
-              background: "linear-gradient(to right, #9ca3af 0%, #6b7280 33%, #3b82f6 67%, hsl(var(--primary)) 100%)",
-              transition: isDragging ? "none" : "width 300ms cubic-bezier(0.34,1.56,0.64,1)",
-            }}
-          />
+            className="absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full pointer-events-none overflow-hidden"
+          >
+            <div
+              className="absolute inset-y-0 left-0 rounded-full"
+              style={{
+                width: `${pct}%`,
+                background: `linear-gradient(to right, ${VIS_COLORS.hidden} 0%, ${VIS_COLORS.private} 33%, ${VIS_COLORS.secure} 67%, hsl(var(--primary)) 100%)`,
+                transition: isDragging ? "none" : "width 300ms cubic-bezier(0.25, 1, 0.5, 1)",
+              }}
+            />
+          </div>
+          {/* Snap tick marks — positioned over track, inset so they sit at stop centers */}
+          {([0, 1, 2, 3] as const).map((i) => (
+            <div
+              key={i}
+              className="absolute top-1/2 h-1.5 w-1.5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              style={{
+                left: `${(i / 3) * 100}%`,
+                backgroundColor: i <= liveIdx ? "transparent" : "hsl(var(--muted-foreground) / 0.35)",
+                transition: "background-color 120ms ease",
+              }}
+            />
+          ))}
           {/* Thumb */}
           <div
             className="absolute top-1/2 h-5 w-5 rounded-full border-2 shadow-md pointer-events-none"
@@ -182,20 +207,9 @@ export function ItemVisibilitySelector({
               borderColor: "hsl(var(--background))",
               transition: isDragging
                 ? "transform 80ms ease, background-color 80ms ease"
-                : "left 300ms cubic-bezier(0.34,1.56,0.64,1), background-color 200ms ease, transform 150ms ease",
+                : "left 300ms cubic-bezier(0.25, 1, 0.5, 1), background-color 200ms ease, transform 150ms ease",
             }}
           />
-          {/* Snap tick marks */}
-          {[0, 33.33, 66.67, 100].map((p, i) => (
-            <div
-              key={i}
-              className="absolute top-1/2 h-1.5 w-1.5 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-              style={{
-                left: `${p}%`,
-                backgroundColor: i <= liveIdx ? "transparent" : "hsl(var(--muted-foreground) / 0.3)",
-              }}
-            />
-          ))}
         </div>
       </div>
 

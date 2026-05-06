@@ -248,7 +248,6 @@ export function FeedPage({
           <FeedDiscoverySidebar
             agents={suggestedAgents}
             agencies={suggestedAgencies}
-            t={dict}
           />
         </div>
 
@@ -257,7 +256,6 @@ export function FeedPage({
           <FeedDiscoverySidebar
             agents={suggestedAgents}
             agencies={suggestedAgencies}
-            t={dict}
           />
         </div>
       </div>

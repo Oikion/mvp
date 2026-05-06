@@ -33,9 +33,9 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!content || typeof content !== "string") {
+    if (typeof content !== "string" || (!content.trim() && !attachments?.length)) {
       return NextResponse.json(
-        { error: "Message content is required" },
+        { error: "Message content or attachments are required" },
         { status: 400 }
       );
     }

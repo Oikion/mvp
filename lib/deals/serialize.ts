@@ -57,14 +57,21 @@ export function serializeDealForClient<T extends Record<string, unknown>>(
     }
   }
 
-  // `property` relation has a Decimal `price` column
+  // `property` relation has Decimal columns: price, size_net_sqm, size_gross_sqm
   const property = result.property as Record<string, unknown> | null | undefined;
   if (property && typeof property === "object") {
     result.property = {
       ...property,
-      price: decToNumber(
-        property.price as Prisma.Decimal | number | null | undefined
-      ),
+      price: decToNumber(property.price as Prisma.Decimal | number | null | undefined),
+      ...("size_net_sqm" in property && {
+        size_net_sqm: decToNumber(property.size_net_sqm as Prisma.Decimal | number | null | undefined),
+      }),
+      ...("size_gross_sqm" in property && {
+        size_gross_sqm: decToNumber(property.size_gross_sqm as Prisma.Decimal | number | null | undefined),
+      }),
+      ...("square_feet" in property && {
+        square_feet: decToNumber(property.square_feet as Prisma.Decimal | number | null | undefined),
+      }),
     };
   }
 

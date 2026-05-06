@@ -187,9 +187,9 @@ export function MatchmakingDashboard({
                 <BarChart3 className="h-4 w-4 shrink-0" />
                 {t("dashboard.tabs.overview")}
               </TabsTrigger>
-              <TabsTrigger value="requests">
+              <TabsTrigger value="matches">
                 <FileText className="h-4 w-4 shrink-0" />
-                {t("dashboard.tabs.requests")}
+                {t("dashboard.tabs.matches")}
               </TabsTrigger>
               <TabsTrigger value="unmatched">
                 <AlertCircle className="h-4 w-4 shrink-0" />
@@ -253,7 +253,7 @@ export function MatchmakingDashboard({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card
                   className="cursor-pointer hover:border-primary transition-colors"
-                  onClick={() => setActiveTab("requests")}
+                  onClick={() => setActiveTab("matches")}
                 >
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
@@ -291,7 +291,7 @@ export function MatchmakingDashboard({
 
                 <Card
                   className="cursor-pointer hover:border-primary transition-colors"
-                  onClick={() => setActiveTab("requests")}
+                  onClick={() => setActiveTab("matches")}
                 >
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
@@ -310,8 +310,8 @@ export function MatchmakingDashboard({
               </div>
             </TabsContent>
 
-            {/* Requests Tab */}
-            <TabsContent value="requests">
+            {/* Matches Tab */}
+            <TabsContent value="matches">
               <RequestMatchesTab
                 analytics={requestAnalytics}
                 persistedMatches={persistedMatches}

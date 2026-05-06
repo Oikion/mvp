@@ -24,7 +24,9 @@ import {
   MapPin,
   BedDouble,
   User,
+  Sparkles,
 } from "lucide-react";
+import { AutoGenerateRequestsDialog } from "./AutoGenerateRequestsDialog";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/navigation";
 import { Link } from "@/navigation";
@@ -66,6 +68,7 @@ export default function RequestsPageView({
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [wizardOpen, setWizardOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [autoGenOpen, setAutoGenOpen] = useState(false);
   const t = useTranslations("requests");
   const tCommon = useTranslations("common");
   const router = useRouter();
@@ -256,6 +259,10 @@ export default function RequestsPageView({
               <Button variant="ghost" size="sm" onClick={() => setQuickAddOpen(true)}>
                 + {t("quickAdd.title")}
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setAutoGenOpen(true)}>
+                <Sparkles className="h-4 w-4 mr-1" aria-hidden="true" />
+                {t("autoGenerate.pageButtonLabel")}
+              </Button>
               <ExportButton module="requests" variant="outline" size="sm" />
               <Button variant="outline" size="sm" asChild>
                 <Link href="/app/import/add">
@@ -348,6 +355,9 @@ export default function RequestsPageView({
           />
         </SheetContent>
       </Sheet>
+
+      {/* Auto-generate requests dialog */}
+      <AutoGenerateRequestsDialog open={autoGenOpen} onOpenChange={setAutoGenOpen} />
 
       {/* Shared modals for delete, share, schedule actions */}
       <SharedActionModals />

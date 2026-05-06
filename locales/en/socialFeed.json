@@ -85,7 +85,12 @@
     "suggestedAgents": "Suggested Agents",
     "suggestedAgencies": "Suggested Agencies",
     "seeAllAgents": "See all",
-    "seeAllAgencies": "See all"
+    "seeAllAgencies": "See all",
+    "emptyTitle": "Grow your network",
+    "emptyDescription": "Connect with agents to see their listings and collaborate on deals.",
+    "findAgents": "Find Agents",
+    "followBack": "Follow back",
+    "viewProfile": "View"
   },
   "realtime": {
     "connected": "Live",

@@ -40,8 +40,8 @@
     },
     "tabs": {
       "overview": "Overview",
-      "requests": "Requests",
-      "matches": "Top Matches",
+      "matches": "Matches",
+      "topMatches": "Top Matches",
       "unmatched": "Needs Attention",
       "hot": "Hot Properties"
     },
@@ -70,11 +70,14 @@
       "description": "Best matching request-property pairs from the last matching run",
       "noMatches": "No saved matches yet.",
       "noMatchesHint": "Run matching now to generate and save the top matches.",
-      "viewRequest": "View Request"
+      "viewRequest": "View Request",
+      "viewMatch": "View Match"
     },
     "runNow": {
       "label": "Run Matching Now",
-      "running": "Running..."
+      "running": "Running...",
+      "cooldown": "Next run available in {minutes, plural, one {# min} other {# min}}",
+      "cooldownLabel": "Cooling down..."
     },
     "distribution": {
       "title": "Match Score Distribution",
@@ -148,7 +151,15 @@
       "pet_friendly": "Pet Friendly",
       "heating": "Heating",
       "energy_class": "Energy Class",
-      "parking": "Parking"
+      "parking": "Parking",
+      "construction_year": "Construction Year",
+      "storage": "Storage",
+      "garden": "Garden",
+      "inside_city_plan": "Inside City Plan",
+      "golden_visa": "Golden Visa",
+      "financing_type": "Financing Type",
+      "bathrooms": "Bathrooms",
+      "timeline": "Timeline"
     }
   },
   "preferences": {
@@ -185,6 +196,56 @@
     "selectRequired": "Select required amenities",
     "preferredAmenities": "Preferred amenities (optional)",
     "selectPreferred": "Select preferred amenities"
+  },
+  "matchDetail": {
+    "notFound": "Match not found",
+    "notFoundDesc": "This match may have been deleted or you may not have access.",
+    "backToMatches": "Back to Matchmaking",
+    "overallScore": "Overall Match Score",
+    "propertyCard": "Property",
+    "requestCard": "Request",
+    "budget": "Budget",
+    "bedrooms": "Bedrooms",
+    "areas": "Areas",
+    "contactsSection": "Contacts & Score Breakdown",
+    "contactsSectionDesc": "All contacts linked to this request — select who to include in the deal",
+    "noContacts": "No contacts linked to this request",
+    "noContactsHint": "Add contacts to the request to be able to create a deal.",
+    "disqualified": "Disqualified",
+    "disqualifiedReason": "Reason",
+    "createDeal": "Create Deal",
+    "createDealDesc": "Select contacts and roles, then create a deal linking this property and request.",
+    "selectedContacts": "Selected contacts",
+    "roleLabel": "Role",
+    "submit": "Create Deal",
+    "submitting": "Creating...",
+    "cancel": "Cancel",
+    "noneSelected": "Select at least one contact to create a deal.",
+    "scoreBreakdownTitle": "Match Score Breakdown",
+    "matchQuality": "Match quality",
+    "matchStatus": "Status",
+    "sqm": "sqm",
+    "forSale": "For sale",
+    "forRent": "For rent",
+    "matchScoreLabel": "match",
+    "viewProperty": "View property",
+    "viewRequest": "View request",
+    "qualityExcellent": "Excellent fit",
+    "qualityGood": "Good fit",
+    "qualityWeak": "Weak fit",
+    "confirmDealTitle": "Create deal?",
+    "confirmDealDesc": "This will create a deal linking the property and request with the selected parties. This action cannot be undone.",
+    "confirmDealParties": "Parties to be added",
+    "confirmDealOwner": "Property owner (auto-added as Seller)",
+    "confirmDealProceed": "Create deal",
+    "confirmDealCancel": "Cancel",
+    "status": {
+      "ACTIVE": "Active",
+      "ARCHIVED": "Archived",
+      "PENDING": "Pending",
+      "EXPIRED": "Expired",
+      "INACTIVE": "Inactive"
+    }
   },
   "strikeDeal": {
     "button": "Strike a Deal",
