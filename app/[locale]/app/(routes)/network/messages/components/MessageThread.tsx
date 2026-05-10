@@ -8,6 +8,7 @@ import {
   Building2,
   Calendar,
   Check,
+  ClipboardList,
   Copy,
   ExternalLink,
   FileText,
@@ -51,7 +52,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useAblyConnection, useAblyMessages } from "@/hooks/useAbly";
-import { useAddReaction, useDeleteMessage, useEditMessage, useMessages } from "@/hooks/swr/useMessaging";
+import { useAddReaction, useDeleteMessage, useEditMessage, useMarkAsRead, useMessages } from "@/hooks/swr/useMessaging";
 import { useE2EE } from "@/hooks/useE2EE";
 import { usePresence, toPresenceBorder } from "@/hooks/use-presence";
 
@@ -77,6 +78,8 @@ function getEntityIcon(type: string) {
       return <User className="h-4 w-4" />;
     case "document":
       return <FileText className="h-4 w-4" />;
+    case "request":
+      return <ClipboardList className="h-4 w-4" />;
     case "event":
       return <Calendar className="h-4 w-4" />;
     default:
@@ -85,12 +88,14 @@ function getEntityIcon(type: string) {
 }
 
 // Get entity link path
-function getEntityPath(type: string, id: string, locale: string, friendlyId: string) {
+function getEntityPath(type: string, id: string, locale: string, friendlyId: string | null) {
   switch (type) {
     case "property":
-      return `/${locale}/app/mls/properties/${friendlyId}`;
+      return `/${locale}/app/mls/properties/${friendlyId ?? id}`;
     case "contact":
       return `/${locale}/app/crm/contacts/${id}`;
+    case "request":
+      return `/${locale}/app/requests/${id}`;
     case "document":
       return `/${locale}/app/documents/${id}`;
     case "event":
@@ -109,6 +114,8 @@ function getEntityColors(type: string) {
       return "bg-success/10 text-success border-success/20";
     case "document":
       return "bg-warning/10 text-warning border-warning/20";
+    case "request":
+      return "bg-orange-500/10 text-orange-600 border-orange-500/20";
     case "event":
       return "bg-purple-500/10 text-purple-600 border-purple-500/20";
     default:
@@ -202,6 +209,25 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
     [rawMessages, decryptedContent],
   );
 
+  // Read tracking — mark all messages as read when thread opens, and on each new arrival
+  const { markAsRead } = useMarkAsRead();
+  const hasMarkedInitialRead = useRef(false);
+  const isMarkingRef = useRef(false);
+
+  // Reset MUST be declared before the fire effect — React runs setup in declaration order,
+  // so this guarantees the flag is cleared before the fire effect checks it on channel switch.
+  useEffect(() => {
+    hasMarkedInitialRead.current = false;
+  }, [channelId, conversationId]);
+
+  // Mark all current messages as read on mount (Discord-style: opening the thread reads it)
+  useEffect(() => {
+    if (isLoading || rawMessages.length === 0) return;
+    if (hasMarkedInitialRead.current) return;
+    hasMarkedInitialRead.current = true;
+    markAsRead({ channelId, conversationId }).catch(() => {});
+  }, [isLoading, rawMessages.length, channelId, conversationId, markAsRead]);
+
   // Reaction hook
   const { addReaction, isAdding: isAddingReaction } = useAddReaction();
 
@@ -277,14 +303,16 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
     organizationId: credentials?.organizationId,
     credentials,
     onNewMessage: () => {
-      // Revalidate messages on new message (handled by hook)
+      // Thread is open — mark the new message as read. Guard prevents concurrent
+      // burst calls when multiple messages arrive within the same event loop tick.
+      if (isMarkingRef.current) return;
+      isMarkingRef.current = true;
+      markAsRead({ channelId, conversationId })
+        .catch(() => {})
+        .finally(() => { isMarkingRef.current = false; });
     },
-    onMessageEdit: () => {
-      // Revalidate on edit (handled by hook)
-    },
-    onMessageDelete: () => {
-      // Revalidate on delete (handled by hook)
-    },
+    onMessageEdit: () => {},
+    onMessageDelete: () => {},
   });
 
   // Ably connection status
@@ -369,7 +397,7 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
             </div>
 
             {/* Messages */}
-            <div className="space-y-4">
+            <div className="space-y-0.5">
               {group.messages.map((message, msgIndex) => {
                 const isCurrentUser = message.senderId === credentials?.userId;
                 const showAvatar =
@@ -384,7 +412,7 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                     <ContextMenuTrigger asChild>
                       <div
                         className={cn(
-                          "flex gap-3 group",
+                          "flex gap-2 group items-end",
                           isCurrentUser && "flex-row-reverse"
                         )}
                       >
@@ -529,6 +557,8 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                               locale,
                               message.entityAttachment.friendlyId
                             )}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="block mt-2"
                           >
                             <div
@@ -576,14 +606,6 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                                       )}
                                     >
                                       {message.entityAttachment.subtitle}
-                                    </p>
-                                  )}
-                                  {typeof message.entityAttachment.metadata?.price === 'number' && (
-                                    <p className="text-xs font-medium mt-1">
-                                      €
-                                      {Number(
-                                        message.entityAttachment.metadata.price
-                                      ).toLocaleString()}
                                     </p>
                                   )}
                                 </div>
@@ -656,80 +678,92 @@ export function MessageThread({ channelId, conversationId, credentials, onReply,
                         )}
                       </div>
 
-                      {/* Message actions (shown on hover) */}
-                      <div className={cn(
-                        "flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity",
-                        isCurrentUser && "flex-row-reverse"
-                      )}>
-                        {/* Reaction picker */}
-                        <Popover 
-                          open={openReactionPicker === message.id} 
-                          onOpenChange={(open) => setOpenReactionPicker(open ? message.id : null)}
-                        >
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                              <Smile className="h-3 w-3" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent 
-                            className="w-auto p-2" 
-                            align={isCurrentUser ? "end" : "start"}
-                            side="top"
-                          >
-                            <div className="flex gap-1 flex-wrap max-w-[200px]">
-                              {REACTION_EMOJIS.map((emoji) => (
-                                <button
-                                  key={emoji}
-                                  onClick={() => handleReaction(message.id, emoji)}
-                                  disabled={isAddingReaction}
-                                  className="text-lg hover:bg-accent rounded p-1 transition-colors"
-                                >
-                                  {emoji}
-                                </button>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6"
-                          onClick={() => onReply?.(message.id, message.content, senderDisplayName)}
-                          title="Reply"
-                        >
-                          <MessageSquare className="h-3 w-3" />
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                              <MoreHorizontal className="h-3 w-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align={isCurrentUser ? "end" : "start"}>
-                            <DropdownMenuItem onClick={() => handleCopy(message.content)}>
-                              <Copy className="h-4 w-4 mr-2" />
-                              Copy text
-                            </DropdownMenuItem>
-                            {isCurrentUser && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleStartEdit(message)}>
-                                  <Pencil className="h-4 w-4 mr-2" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => handleDelete(message.id)}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
                     </div>
+
+                  {/* Inline action icons — appear to the side of the bubble on hover */}
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mb-0.5">
+                    {/* React */}
+                    <Popover
+                      open={openReactionPicker === message.id}
+                      onOpenChange={(open) => setOpenReactionPicker(open ? message.id : null)}
+                    >
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          title="React"
+                        >
+                          <Smile className="h-3.5 w-3.5" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-auto p-2"
+                        align={isCurrentUser ? "end" : "start"}
+                        side="top"
+                      >
+                        <div className="flex gap-1 flex-wrap max-w-[200px]">
+                          {REACTION_EMOJIS.map((emoji) => (
+                            <button
+                              key={emoji}
+                              onClick={() => handleReaction(message.id, emoji)}
+                              disabled={isAddingReaction}
+                              className="text-lg hover:bg-accent rounded p-1 transition-colors"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* Reply */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      title="Reply"
+                      onClick={() => onReply?.(message.id, message.content, senderDisplayName)}
+                    >
+                      <Reply className="h-3.5 w-3.5" />
+                    </Button>
+
+                    {/* More (copy / edit / delete) */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          title="More"
+                        >
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align={isCurrentUser ? "end" : "start"}>
+                        <DropdownMenuItem onClick={() => handleCopy(message.content)}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy text
+                        </DropdownMenuItem>
+                        {isCurrentUser && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleStartEdit(message)}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(message.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                   </div>
                     </ContextMenuTrigger>
                     

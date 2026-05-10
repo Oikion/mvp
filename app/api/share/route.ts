@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
-import { SharedEntityType, SharePermission } from "@prisma/client";
-import { revalidatePath } from "next/cache";
-import { notifyEntityShared } from "@/lib/notifications/helpers";
+import { SharedEntityType } from "@prisma/client";
+import { shareEntity } from "@/actions/social/sharing";
 
 export async function GET(req: Request) {
   try {
@@ -67,146 +66,35 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const currentUser = await getCurrentUser();
     const body = await req.json();
-
     const { entityType, entityId, sharedWithId, permissions, message } = body;
 
-    // Validate required fields
     if (!entityType || !entityId || !sharedWithId) {
       return new NextResponse("Missing required fields", { status: 400 });
     }
 
-    if (currentUser.id === sharedWithId) {
-      return new NextResponse("Cannot share with yourself", { status: 400 });
+    const VALID_ENTITY_TYPES: SharedEntityType[] = ["PROPERTY", "CONTACT", "DOCUMENT"];
+    if (!VALID_ENTITY_TYPES.includes(entityType)) {
+      return new NextResponse("Invalid entity type", { status: 400 });
     }
 
-    // Get current organization
-    let organizationId: string | null = null;
-    try {
-      organizationId = await getCurrentOrgId();
-    } catch {
-      // User might not be in an org
-    }
-
-    // Verify entity ownership - user must be assigned OR be in the same organization
-    let entityExists = false;
-    let entityName = "";
-    switch (entityType as SharedEntityType) {
-      case "PROPERTY":
-        const property = await prismadb.properties.findFirst({
-          where: {
-            id: entityId,
-            OR: [
-              { assigned_to: currentUser.id },
-              ...(organizationId ? [{ organizationId }] : []),
-            ],
-          },
-          select: { id: true, property_name: true },
-        });
-        entityExists = !!property;
-        entityName = property?.property_name || "Property";
-        break;
-      case "CONTACT":
-        const client = await prismadb.contact.findFirst({
-          where: {
-            id: entityId,
-            OR: [
-              { assignedAgentId: currentUser.id },
-              ...(organizationId ? [{ organizationId }] : []),
-            ],
-          },
-          select: { id: true, displayName: true },
-        });
-        entityExists = !!client;
-        entityName = client?.displayName || "Client";
-        break;
-      case "DOCUMENT":
-        const document = await prismadb.documents.findFirst({
-          where: {
-            id: entityId,
-            OR: [
-              { created_by_user: currentUser.id },
-              { assigned_user: currentUser.id },
-            ],
-          },
-          select: { id: true, document_name: true },
-        });
-        entityExists = !!document;
-        entityName = document?.document_name || "Document";
-        break;
-    }
-
-    if (!entityExists) {
-      return new NextResponse("Entity not found or no permission", { status: 404 });
-    }
-
-    // Verify the recipient is a connection
-    const connection = await prismadb.agentConnection.findFirst({
-      where: {
-        OR: [
-          {
-            followerId: currentUser.id,
-            followingId: sharedWithId,
-            status: "ACCEPTED",
-          },
-          {
-            followerId: sharedWithId,
-            followingId: currentUser.id,
-            status: "ACCEPTED",
-          },
-        ],
-      },
-    });
-
-    if (!connection) {
-      return new NextResponse("You can only share with connections", { status: 403 });
-    }
-
-    // Check if already shared
-    const existingShare = await prismadb.sharedEntity.findFirst({
-      where: { entityType, entityId, sharedWithId },
-    });
-
-    if (existingShare) {
-      return new NextResponse("Already shared with this user", { status: 400 });
-    }
-
-    const share = await prismadb.sharedEntity.create({
-      data: {
-        id: crypto.randomUUID(),
-        entityType: entityType as SharedEntityType,
-        entityId,
-        sharedById: currentUser.id,
-        sharedWithId,
-        permissions: (permissions as SharePermission) || "VIEW_COMMENT",
-        message: message || null,
-      },
-    });
-
-    // Send notification
-    try {
-      await notifyEntityShared({
-        entityType: entityType as SharedEntityType,
-        entityId,
-        entityName,
-        sharedById: currentUser.id,
-        sharedByName: currentUser.name || currentUser.email || "Someone",
-        sharedWithId,
-        organizationId: organizationId || "",
-        message: message || undefined,
-      });
-    } catch (notifyError) {
-      console.error("Failed to send share notification:", notifyError);
-    }
-
-    // Revalidate relevant paths so the recipient sees the shared item
-    revalidatePath("/shared-with-me");
-    revalidatePath("/mls/properties");
-    revalidatePath("/crm/contacts");
-
+    const share = await shareEntity({ entityType, entityId, sharedWithId, permissions, message });
     return NextResponse.json(share, { status: 201 });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes("cannot share with yourself")) {
+        return new NextResponse(error.message, { status: 400 });
+      }
+      if (error.message.includes("only share with your connections")) {
+        return new NextResponse(error.message, { status: 403 });
+      }
+      if (error.message.includes("already shared")) {
+        return new NextResponse(error.message, { status: 400 });
+      }
+      if (error.message.includes("not found") || error.message.includes("permission")) {
+        return new NextResponse(error.message, { status: 404 });
+      }
+    }
     console.error("[SHARE_POST]", error);
     return new NextResponse("Internal error", { status: 500 });
   }

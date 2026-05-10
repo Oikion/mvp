@@ -31,7 +31,7 @@ describe("logPiiAccess", () => {
       entityId: "client-1",
       action: PiiAction.DECRYPT,
       fields: ["client_name", "primary_email"],
-      source: "GET /api/crm/clients/[id]",
+      source: "GET /api/crm/contacts/[contactId]",
     });
 
     expect(mockCreate).toHaveBeenCalledOnce();
@@ -43,7 +43,7 @@ describe("logPiiAccess", () => {
         entityId: "client-1",
         action: "DECRYPT",
         fields: ["client_name", "primary_email"],
-        source: "GET /api/crm/clients/[id]",
+        source: "GET /api/crm/contacts/[contactId]",
         ipAddress: undefined,
       },
     });

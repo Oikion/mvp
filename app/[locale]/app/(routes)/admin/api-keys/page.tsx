@@ -536,7 +536,7 @@ export default function ApiKeysPage() {
               Include your API key in the Authorization header:
             </p>
             <pre className="bg-muted p-3 rounded-md text-sm overflow-x-auto">
-{`curl -X GET "${typeof window !== "undefined" ? window.location.origin : ""}/api/v1/crm/clients" \\
+{`curl -X GET "${typeof window !== "undefined" ? window.location.origin : ""}/api/v1/crm/contacts" \\
   -H "Authorization: Bearer oik_your_api_key_here" \\
   -H "Content-Type: application/json"`}
             </pre>
@@ -549,7 +549,7 @@ export default function ApiKeysPage() {
                 <code>/api/v1/calendar/events</code>
               </div>
               <div className="bg-muted p-2 rounded">
-                <code>/api/v1/crm/clients</code>
+                <code>/api/v1/crm/contacts</code>
               </div>
               <div className="bg-muted p-2 rounded">
                 <code>/api/v1/crm/tasks</code>

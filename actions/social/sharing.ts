@@ -56,6 +56,7 @@ export async function shareEntity(input: ShareEntityInput) {
       const property = await prismadb.properties.findFirst({
         where: {
           id: input.entityId,
+          visibility: { not: "HIDDEN" },
           OR: [
             { assigned_to: currentUser.id },
             { organizationId },
@@ -70,6 +71,7 @@ export async function shareEntity(input: ShareEntityInput) {
       const client = await prismadb.contact.findFirst({
         where: {
           id: input.entityId,
+          visibility: { not: "HIDDEN" },
           OR: [
             { assignedAgentId: currentUser.id },
             { organizationId },
@@ -93,6 +95,21 @@ export async function shareEntity(input: ShareEntityInput) {
       });
       entityExists = !!document;
       entityName = document?.document_name || "Document";
+      break;
+    case "REQUEST":
+      const request = await prismadb.request.findFirst({
+        where: {
+          id: input.entityId,
+          visibility: { not: "HIDDEN" },
+          OR: [
+            { assignedAgentId: currentUser.id },
+            { organizationId },
+          ],
+        },
+        select: { id: true, friendlyId: true },
+      });
+      entityExists = !!request;
+      entityName = request?.friendlyId || "Request";
       break;
   }
 
@@ -249,6 +266,20 @@ export async function getSharedWithMe(entityType?: SharedEntityType) {
               document_file_mimeType: true,
               document_file_url: true,
               description: true,
+            },
+          });
+          break;
+        case "REQUEST":
+          entity = await prismadb.request.findUnique({
+            where: { id: share.entityId },
+            select: {
+              id: true,
+              friendlyId: true,
+              requestType: true,
+              status: true,
+              budgetMin: true,
+              budgetMax: true,
+              locationDisplayName: true,
             },
           });
           break;

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { notifyConnectionAccepted } from "@/lib/notifications";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 import { canPerformAction } from "@/lib/permissions/action-service";
 
 export async function PUT(
@@ -52,7 +53,7 @@ export async function PUT(
         requesterId: connection.followerId,
         requesterName: currentUser.name || currentUser.email || "Someone",
         targetId: currentUser.id,
-        organizationId: "00000000-0000-0000-0000-000000000000",
+        organizationId: SYSTEM_ORG_ID,
       });
     }
 

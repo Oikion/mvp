@@ -151,8 +151,7 @@ export async function finalizeOrganizationSetup(
 
   // 8. Update Clerk org metadata to mark as agency
   try {
-    await clerk.organizations.updateOrganization({
-      organizationId: orgId,
+    await clerk.organizations.updateOrganizationMetadata(orgId, {
       publicMetadata: { type: "agency" },
     });
   } catch (err) {
@@ -163,6 +162,13 @@ export async function finalizeOrganizationSetup(
     warnings.push("Failed to update organization type metadata");
   }
 
+  // Wizard roles → Clerk role keys (org:admin/org:agent don't exist in this project)
+  const WIZARD_ROLE_TO_CLERK: Record<string, string> = {
+    ADMIN: "org:lead",
+    AGENT: "org:member",
+    VIEWER: "org:viewer",
+  };
+
   // 9. Send invitations (best-effort)
   if (validated.teammates.length > 0) {
     const inviteResults = await Promise.allSettled(
@@ -170,7 +176,7 @@ export async function finalizeOrganizationSetup(
         clerk.organizations.createOrganizationInvitation({
           organizationId: orgId,
           emailAddress: t.email,
-          role: `org:${t.role.toLowerCase()}`,
+          role: WIZARD_ROLE_TO_CLERK[t.role] ?? "org:member",
           inviterUserId: userId,
         })
       )

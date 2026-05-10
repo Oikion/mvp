@@ -3,6 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { createNotification, createNotificationsForUsers } from "@/actions/notifications/create-notification";
 import { getCurrentOrgId } from "@/lib/get-current-user";
+import { clerkClient } from "@clerk/nextjs/server";
 
 /**
  * Create a notification for a new message
@@ -17,8 +18,6 @@ export async function notifyNewMessage(params: {
   messagePreview: string;
 }): Promise<boolean> {
   try {
-    const organizationId = await getCurrentOrgId();
-
     // Don't notify the sender
     if (params.recipientUserId === params.senderUserId) {
       return true;
@@ -34,6 +33,29 @@ export async function notifyNewMessage(params: {
       return true;
     }
 
+    // Resolve the recipient's primary org so the notification lands in their
+    // partition, not the sender's. For same-org messages this is a no-op.
+    let recipientOrgId: string | undefined;
+    try {
+      const recipientUser = await prismadb.users.findUnique({
+        where: { id: params.recipientUserId },
+        select: { clerkUserId: true },
+      });
+      if (recipientUser?.clerkUserId) {
+        const clerk = await clerkClient();
+        const memberships = await clerk.users.getOrganizationMembershipList({
+          userId: recipientUser.clerkUserId,
+        });
+        const primaryOrg = memberships.data.find(
+          m => (m.organization.publicMetadata as Record<string, unknown>)?.type !== "personal"
+        );
+        recipientOrgId = primaryOrg?.organization?.id;
+      }
+    } catch {
+      // Fall back to getCurrentOrgId (sender's org) — notification will be in sender's partition
+      recipientOrgId = await getCurrentOrgId();
+    }
+
     const isChannel = !!params.channelId;
     const title = isChannel
       ? `New message in #${params.channelName || "channel"}`
@@ -45,6 +67,7 @@ export async function notifyNewMessage(params: {
 
     await createNotification({
       userId: params.recipientUserId,
+      organizationId: recipientOrgId,
       type: isChannel ? "CHANNEL_MESSAGE" : "MESSAGE_RECEIVED",
       title,
       message,

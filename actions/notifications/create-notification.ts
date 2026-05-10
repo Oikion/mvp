@@ -7,6 +7,7 @@ import { prismadb } from "@/lib/prisma";
 
 export interface CreateNotificationParams {
   userId: string;
+  organizationId?: string; // explicit override — use when creating notifications for cross-org recipients
   type: string;
   title: string;
   message: string;
@@ -19,7 +20,7 @@ export interface CreateNotificationParams {
 
 export async function createNotification(params: CreateNotificationParams) {
   try {
-    const organizationId = await getCurrentOrgId();
+    const organizationId = params.organizationId ?? await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
 
     // Generate friendly ID

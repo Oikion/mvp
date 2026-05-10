@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { notifyConnectionRequest } from "@/lib/notifications";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 import { canPerformAction } from "@/lib/permissions/action-service";
 
 export async function GET(req: Request) {
@@ -148,7 +149,7 @@ export async function POST(req: Request) {
           requesterId: currentUser.id,
           requesterName: currentUser.name || currentUser.email || "Someone",
           targetId: targetUserId,
-          organizationId: "00000000-0000-0000-0000-000000000000",
+          organizationId: SYSTEM_ORG_ID,
         });
 
         return NextResponse.json(updated);
@@ -171,7 +172,7 @@ export async function POST(req: Request) {
       requesterId: currentUser.id,
       requesterName: currentUser.name || currentUser.email || "Someone",
       targetId: targetUserId,
-      organizationId: "00000000-0000-0000-0000-000000000000",
+      organizationId: SYSTEM_ORG_ID,
     });
 
     return NextResponse.json(connection, { status: 201 });

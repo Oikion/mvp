@@ -190,34 +190,47 @@ export function NewAccountForm({ industries, users, onFinish }: Props) {
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
+
+    const clientTypeToCategory: Record<string, string> = {
+      BUYER: "BUYER", SELLER: "SELLER", RENTER: "TENANT",
+      INVESTOR: "INVESTOR", REFERRAL_PARTNER: "BROKER",
+    };
+    const clientStatusMap: Record<string, string> = {
+      LEAD: "LEAD", ACTIVE: "ACTIVE", INACTIVE: "INACTIVE",
+      CONVERTED: "COMPLETED", LOST: "INACTIVE",
+    };
+    const category = data.client_type
+      ? [clientTypeToCategory[data.client_type] ?? "BUYER"]
+      : ["BUYER"];
+    const status = data.client_status
+      ? clientStatusMap[data.client_status] ?? "LEAD"
+      : "LEAD";
+    const billingFields = [
+      data.billing_street, data.billing_city, data.billing_postal_code,
+    ].some(Boolean);
+    const addresses = billingFields
+      ? [{ type: "billing" as const, street: data.billing_street || undefined, city: data.billing_city || undefined, postalCode: data.billing_postal_code || undefined, municipality: data.billing_municipality || undefined, country: data.billing_country || "GR" }]
+      : undefined;
+
     try {
-      // Create the client first
-      const clientResponse = await axios.post("/api/crm/clients", {
-        client_name: data.client_name,
-        primary_email: data.primary_email || undefined,
-        office_phone: data.office_phone || undefined,
-        client_type: data.client_type || undefined,
-        client_status: data.client_status || "LEAD",
-        company_id: data.company_id || undefined,
-        vat: data.vat || undefined,
-        website: data.website && data.website.length > 0 ? data.website : undefined,
-        fax: data.fax || undefined,
-        billing_street: data.billing_street || undefined,
-        billing_city: data.billing_city || undefined,
-        billing_state: data.billing_state || undefined,
-        billing_postal_code: data.billing_postal_code || undefined,
-        billing_country: data.billing_country || undefined,
-        description: data.description || undefined,
-        assigned_to: data.assigned_to,
-        member_of: data.member_of || undefined,
+      const clientResponse = await axios.post("/api/crm/contacts", {
+        displayName: data.client_name,
+        email: data.primary_email || undefined,
+        officePhone: data.office_phone || undefined,
+        category,
+        status,
+        companyId: data.company_id || undefined,
+        taxId: data.vat || undefined,
+        addresses,
+        notes: data.description || undefined,
+        assignedAgentId: data.assigned_to,
       });
 
-      const clientId = clientResponse.data.newClient.id;
+      const clientId = clientResponse.data.data.id;
 
       // Link properties if any are selected
       if (data.propertyIds && data.propertyIds.length > 0) {
-        await axios.post("/api/crm/clients/link-properties", {
-          clientId,
+        await axios.post(`/api/crm/contacts/${clientId}/link-properties`, {
           propertyIds: data.propertyIds,
         });
       }

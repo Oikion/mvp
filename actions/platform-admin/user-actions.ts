@@ -9,6 +9,7 @@ import { handleUserDeparture } from "@/lib/user-departure";
 import { Resend } from "resend";
 import { z } from "zod";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 
 // Validation schemas
 const warningSchema = z.object({
@@ -25,9 +26,6 @@ const deleteSchema = z.object({
   userId: z.string().min(1),
   reason: z.string().min(10, "Reason must be at least 10 characters").max(1000),
 });
-
-// System-level organization ID for platform admin notifications
-const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
 
 // Initialize Resend if available
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -76,7 +74,7 @@ export async function sendUserWarning(userId: string, reason: string): Promise<A
       data: {
         id: notificationId,
         userId: user.id,
-        organizationId: "00000000-0000-0000-0000-000000000000", // System-level notification
+        organizationId: SYSTEM_ORG_ID,
         type: "ACCOUNT_WARNING",
         title: "Account Warning",
         message: sanitizedReason,
@@ -173,7 +171,7 @@ export async function suspendUser(userId: string, reason: string): Promise<Actio
       data: {
         id: notificationId,
         userId: user.id,
-        organizationId: "00000000-0000-0000-0000-000000000000",
+        organizationId: SYSTEM_ORG_ID,
         type: "ACCOUNT_SUSPENSION",
         title: "Account Suspended",
         message: `Your account has been suspended. Reason: ${sanitizedReason}`,
@@ -272,7 +270,7 @@ export async function unsuspendUser(userId: string, note?: string): Promise<Acti
       data: {
         id: notificationId,
         userId: user.id,
-        organizationId: "00000000-0000-0000-0000-000000000000",
+        organizationId: SYSTEM_ORG_ID,
         type: "ACCOUNT_UNSUSPENSION",
         title: "Account Restored",
         message: "Your account has been restored and you can now access the platform.",

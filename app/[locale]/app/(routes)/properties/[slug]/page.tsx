@@ -6,7 +6,7 @@ import { getSharedProperty } from "@/actions/mls/get-shared-property";
 type ShareInfo = NonNullable<Awaited<ReturnType<typeof getSharedProperty>>>["_shareInfo"] | null;
 import { getCurrentUser } from "@/lib/get-current-user";
 import { PropertyViewEditable } from "./components/PropertyViewEditable";
-import { SharedAccessBanner } from "../../mls/properties/[slug]/components/SharedAccessBanner";
+import { SharedAccessBanner } from "@/components/shared/SharedAccessBanner";
 
 export default async function PropertyDetailPage({
   params,

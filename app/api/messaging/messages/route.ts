@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
@@ -5,7 +6,7 @@ import { getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { encryptMessageForOrg, decryptMessageForOrg } from "@/lib/model-encryption";
 import { notifyNewMessage, notifyMention } from "@/actions/messaging/notifications";
-import { publishToChannel, getChannelName, getConversationChannelName } from "@/lib/ably";
+import { publishToChannel, getChannelName, getConversationChannelName, getUserChannelName } from "@/lib/ably";
 
 /**
  * POST /api/messaging/messages
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { channelId, conversationId, content, parentId, attachments, mentions } = body;
+    const { channelId, conversationId, content, parentId, attachments, mentions, entityAttachment } = body;
 
     if (!channelId && !conversationId) {
       return NextResponse.json(
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (typeof content !== "string" || (!content.trim() && !attachments?.length)) {
+    if (typeof content !== "string" || (!content.trim() && !attachments?.length && !entityAttachment)) {
       return NextResponse.json(
         { error: "Message content or attachments are required" },
         { status: 400 }
@@ -42,10 +43,17 @@ export async function POST(req: Request) {
 
     const organizationId = await getCurrentOrgId();
 
-    // Get sender info
+    // Get sender info (avatar/profile needed for recipient-side optimistic render)
     const sender = await prismadb.users.findUnique({
       where: { clerkUserId: userId },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        email: true,
+        username: true,
+        AgentProfile: { select: { visibility: true, slug: true } },
+      },
     });
 
     if (!sender) {
@@ -90,13 +98,17 @@ export async function POST(req: Request) {
       }
     }
 
+    let conversationScope: string = "ORG";
+    let conversationParticipantIds: string[] = [];
     if (conversationId) {
+      // Security: verify participant membership (not org ownership — DMs are cross-org)
       const conversation = await prismadb.conversation.findFirst({
-        where: {
-          id: conversationId,
-          organizationId, // ← CRITICAL: Verify tenant ownership
+        where: { id: conversationId },
+        select: {
+          id: true,
+          scope: true,
+          participants: { where: { leftAt: null }, select: { userId: true } },
         },
-        select: { id: true },
       });
 
       if (!conversation) {
@@ -106,17 +118,10 @@ export async function POST(req: Request) {
         );
       }
 
-      // Verify user is a participant
-      const participant = await prismadb.conversationParticipant.findUnique({
-        where: {
-          conversationId_userId: {
-            conversationId,
-            userId: sender.id,
-          },
-        },
-      });
+      conversationScope = conversation.scope;
+      conversationParticipantIds = conversation.participants.map(p => p.userId);
 
-      if (!participant || participant.leftAt) {
+      if (!conversationParticipantIds.includes(sender.id)) {
         return NextResponse.json(
           { error: "You are not a participant of this conversation" },
           { status: 403 }
@@ -140,11 +145,77 @@ export async function POST(req: Request) {
       );
     }
 
-    if (mentions && mentions.length > 50) {
-      return NextResponse.json(
-        { error: "Maximum 50 mentions per message" },
-        { status: 400 }
-      );
+    if (mentions !== undefined) {
+      if (!Array.isArray(mentions) || !mentions.every((m: unknown) => typeof m === "string")) {
+        return NextResponse.json({ error: "Invalid mentions format" }, { status: 400 });
+      }
+      if (mentions.length > 50) {
+        return NextResponse.json({ error: "Maximum 50 mentions per message" }, { status: 400 });
+      }
+    }
+
+    // Validate and gate entity attachment
+    const VALID_LINKED_ENTITY_TYPES = ["PROPERTY", "CONTACT", "REQUEST", "DOCUMENT"] as const;
+    type LinkedEntityType = (typeof VALID_LINKED_ENTITY_TYPES)[number];
+
+    let validatedEntityAttachment: {
+      linkedEntityId: string;
+      linkedEntityType: LinkedEntityType;
+      linkedEntityTitle?: string;
+      linkedEntitySubtitle?: string;
+      linkedEntityFriendlyId?: string;
+    } | null = null;
+
+    if (entityAttachment) {
+      // Normalize lowercase client EntityType ("property") to uppercase Prisma enum ("PROPERTY")
+      const normalizedType = typeof entityAttachment.type === "string"
+        ? entityAttachment.type.toUpperCase()
+        : entityAttachment.type;
+
+      if (
+        typeof entityAttachment !== "object" ||
+        typeof entityAttachment.id !== "string" ||
+        !VALID_LINKED_ENTITY_TYPES.includes(normalizedType)
+      ) {
+        return NextResponse.json({ error: "Invalid entity attachment" }, { status: 400 });
+      }
+
+      // SECURITY: Verify entity belongs to sender's org AND is not HIDDEN.
+      // Both checks are required: visibility alone doesn't enforce org ownership.
+      const entityType: LinkedEntityType = normalizedType as LinkedEntityType;
+      if (entityType === "PROPERTY") {
+        const prop = await prismadb.properties.findFirst({
+          where: { id: entityAttachment.id, organizationId, visibility: { not: "HIDDEN" } },
+          select: { id: true },
+        });
+        if (!prop) return NextResponse.json({ error: "Entity not shareable" }, { status: 403 });
+      } else if (entityType === "CONTACT") {
+        const contact = await prismadb.contact.findFirst({
+          where: { id: entityAttachment.id, organizationId, visibility: { not: "HIDDEN" } },
+          select: { id: true },
+        });
+        if (!contact) return NextResponse.json({ error: "Entity not shareable" }, { status: 403 });
+      } else if (entityType === "REQUEST") {
+        const request = await prismadb.request.findFirst({
+          where: { id: entityAttachment.id, organizationId, visibility: { not: "HIDDEN" } },
+          select: { id: true },
+        });
+        if (!request) return NextResponse.json({ error: "Entity not shareable" }, { status: 403 });
+      } else if (entityType === "DOCUMENT") {
+        const document = await prismadb.documents.findFirst({
+          where: { id: entityAttachment.id, organizationId },
+          select: { id: true },
+        });
+        if (!document) return NextResponse.json({ error: "Entity not shareable" }, { status: 403 });
+      }
+
+      validatedEntityAttachment = {
+        linkedEntityId: entityAttachment.id,
+        linkedEntityType: entityType,
+        linkedEntityTitle: typeof entityAttachment.title === "string" ? entityAttachment.title : undefined,
+        linkedEntitySubtitle: typeof entityAttachment.subtitle === "string" ? entityAttachment.subtitle : undefined,
+        linkedEntityFriendlyId: typeof entityAttachment.friendlyId === "string" ? entityAttachment.friendlyId : undefined,
+      };
     }
 
     // Encrypt message content before DB write so Prisma Accelerate and the
@@ -166,6 +237,7 @@ export async function POST(req: Request) {
         content: encryptedContent ?? content,
         contentType: "TEXT",
         parentId,
+        ...(validatedEntityAttachment ?? {}),
         attachments: attachments?.length
           ? {
               create: attachments.map((att: { fileName: string; fileSize: number; fileType: string; url: string }) => ({
@@ -205,125 +277,187 @@ export async function POST(req: Request) {
       });
     }
 
-    // Emit Ably event for real-time update
+    // Grant VIEW_ONLY access to all current conversation participants when an
+    // entity is attached. Future participants see a "Request Access" prompt.
+    // skipDuplicates handles re-sharing the same entity in the same conversation.
+    if (validatedEntityAttachment?.linkedEntityId && conversationParticipantIds.length > 0) {
+      const entityType = validatedEntityAttachment.linkedEntityType as "PROPERTY" | "CONTACT" | "DOCUMENT" | "REQUEST";
+      const entityId = validatedEntityAttachment.linkedEntityId;
+      const recipients = conversationParticipantIds.filter(uid => uid !== sender.id);
+
+      if (recipients.length > 0) {
+        await prismadb.sharedEntity.createMany({
+          data: recipients.map(uid => ({
+            id: crypto.randomUUID(),
+            entityType,
+            entityId,
+            sharedById: sender.id,
+            sharedWithId: uid,
+            permissions: "VIEW_ONLY",
+          })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
+    // Emit Ably event for real-time update.
+    // We include the plaintext content and sender metadata so the recipient can
+    // render the message immediately (optimistic insert) without a round-trip.
+    // The DB encryption is at-rest protection; Ably uses TLS the same as HTTP.
     try {
-      const ablyChannelName = channelId
-        ? getChannelName(organizationId, channelId)
-        : getConversationChannelName(organizationId, conversationId!);
-      
-      // SECURITY: Don't send message content or attachments through Ably.
-      // Subscribers refetch via API using the message ID.
-      const published = await publishToChannel(ablyChannelName, "message:new", {
+      const senderProfileSlug =
+        sender?.AgentProfile?.visibility === "PUBLIC"
+          ? (sender?.AgentProfile?.slug ?? sender?.username ?? null)
+          : null;
+
+      const ablyPayload = {
         id: message.id,
+        content, // plaintext — same value returned to the sender in the HTTP response
+        contentType: "TEXT",
         senderId: message.senderId,
+        senderName: sender?.name ?? null,
+        senderAvatar: sender?.avatar ?? null,
+        senderEmail: sender?.email ?? null,
+        senderProfileSlug,
         channelId: message.channelId,
         conversationId: message.conversationId,
-        parentId: message.parentId,
+        parentId: message.parentId ?? null,
         createdAt: message.createdAt,
-      });
-      
-      if (!published) {
-        console.warn("[MESSAGING] Ably not configured - message created but not delivered in real-time");
+        attachments: message.attachments,
+        linkedEntityId: message.linkedEntityId ?? null,
+        linkedEntityType: message.linkedEntityType?.toLowerCase() ?? null,
+        linkedEntityTitle: message.linkedEntityTitle ?? null,
+        linkedEntitySubtitle: message.linkedEntitySubtitle ?? null,
+        linkedEntityFriendlyId: message.linkedEntityFriendlyId ?? null,
+      };
+
+      if (channelId) {
+        // Org-scoped channel: use org-namespaced channel name
+        await publishToChannel(getChannelName(organizationId, channelId), "message:new", ablyPayload);
+      } else if (conversationScope === "PERSONAL" || conversationScope === "SHARED") {
+        // Cross-org DMs: publish to each participant's personal user channel.
+        // The org-scoped conversation channel is not accessible across orgs.
+        await Promise.all(
+          conversationParticipantIds.map(uid =>
+            publishToChannel(getUserChannelName(uid), "message:new", ablyPayload)
+          )
+        );
+      } else {
+        // ORG-scoped conversation
+        const published = await publishToChannel(
+          getConversationChannelName(organizationId, conversationId!),
+          "message:new",
+          ablyPayload
+        );
+        if (!published) {
+          console.warn("[MESSAGING] Ably not configured - message created but not delivered in real-time");
+        }
       }
     } catch (error) {
       console.error("[MESSAGING] Failed to publish to Ably:", error);
       // Message is already created in DB, continue without real-time notification
     }
 
-    // Send notifications (with organization verification)
-    if (channelId) {
-      // Get channel members to notify
-      const channel = await prismadb.channel.findFirst({
-        where: { 
-          id: channelId,
-          organizationId, // ← SECURITY: Verify channel belongs to user's org
-        },
-        include: {
-          members: {
-            where: { userId: { not: sender.id } },
-            select: { userId: true },
-            take: 100, // ← SECURITY: Limit to prevent DoS (batch notifications if needed)
-          },
-        },
-      });
-
-      if (channel) {
-        // PERFORMANCE: Batch notification creation to avoid overwhelming the system
-        const notificationPromises = channel.members.map((member) =>
-          notifyNewMessage({
-            recipientUserId: member.userId,
-            senderUserId: sender.id,
-            senderName: sender.name || "Unknown",
-            channelId,
-            channelName: channel.name,
-            // SECURITY: Do not store plaintext message content in the
-            // Notification table — it would bypass message encryption.
-            messagePreview: "New message",
-          })
-        );
-        
-        // Send notifications in parallel with error handling
-        await Promise.allSettled(notificationPromises).catch((err) => {
-          console.error("[MESSAGING] Notification batch error:", err);
-        });
-      }
-    } else if (conversationId) {
-      // Get conversation participants to notify
-      const participants = await prismadb.conversationParticipant.findMany({
-        where: {
-          conversationId,
-          userId: { not: sender.id },
-          leftAt: null,
-        },
-        select: { userId: true },
-        take: 50, // ← SECURITY: Limit to prevent DoS
-      });
-
-      // PERFORMANCE: Batch notification creation
-      const notificationPromises = participants.map((participant) =>
-        notifyNewMessage({
-          recipientUserId: participant.userId,
-          senderUserId: sender.id,
-          senderName: sender.name || "Unknown",
-          conversationId,
-          messagePreview: "New message",
-        })
-      );
-      
-      // Send notifications in parallel with error handling
-      await Promise.allSettled(notificationPromises).catch((err) => {
-        console.error("[MESSAGING] Notification batch error:", err);
-      });
-    }
-
-    // Send mention notifications
-    if (mentions?.length) {
-      await notifyMention({
-        mentionedUserIds: mentions,
-        senderUserId: sender.id,
-        senderName: sender.name || "Unknown",
-        channelId,
-        conversationId,
-        messagePreview: "You were mentioned in a message",
-      });
-    }
-
-    // Return plaintext content — the sender already knows it.
-    return NextResponse.json({
+    // Return plaintext content immediately — the sender already knows it.
+    // Notifications are dispatched after the response via after() to avoid
+    // blocking the critical path on Clerk API calls (~400-600ms per recipient).
+    const responsePayload = {
       success: true,
       message: {
         id: message.id,
         content,
         contentType: message.contentType,
         senderId: message.senderId,
+        senderName: sender.name ?? null,
         channelId: message.channelId,
         conversationId: message.conversationId,
         parentId: message.parentId,
+        threadCount: 0,
+        isEdited: false,
         attachments: message.attachments,
         mentions: message.mentions,
+        reactions: message.reactions.map((r) => ({ emoji: r.emoji, userId: r.userId })),
         createdAt: message.createdAt,
+        entityAttachment: validatedEntityAttachment ? {
+          id: validatedEntityAttachment.linkedEntityId,
+          type: validatedEntityAttachment.linkedEntityType.toLowerCase(),
+          title: validatedEntityAttachment.linkedEntityTitle ?? null,
+          subtitle: validatedEntityAttachment.linkedEntitySubtitle ?? null,
+          friendlyId: validatedEntityAttachment.linkedEntityFriendlyId ?? null,
+        } : undefined,
       },
-    }, { status: 201 });
+    };
+
+    // Fire notifications after the response is sent — these involve Clerk API
+    // calls per recipient which would otherwise block the sender for 400-1000ms.
+    const messagePreview = validatedEntityAttachment?.linkedEntityTitle
+      ? `Shared: ${validatedEntityAttachment.linkedEntityTitle}`
+      : content.trim().slice(0, 80) || "New message";
+
+    after(async () => {
+      try {
+        if (channelId) {
+          const channel = await prismadb.channel.findFirst({
+            where: { id: channelId, organizationId },
+            include: {
+              members: {
+                where: { userId: { not: sender.id } },
+                select: { userId: true },
+                take: 100,
+              },
+            },
+          });
+
+          if (channel) {
+            await Promise.allSettled(
+              channel.members.map((member) =>
+                notifyNewMessage({
+                  recipientUserId: member.userId,
+                  senderUserId: sender.id,
+                  senderName: sender.name || "Unknown",
+                  channelId,
+                  channelName: channel.name,
+                  messagePreview,
+                })
+              )
+            );
+          }
+        } else if (conversationId) {
+          const participants = await prismadb.conversationParticipant.findMany({
+            where: { conversationId, userId: { not: sender.id }, leftAt: null },
+            select: { userId: true },
+            take: 50,
+          });
+
+          await Promise.allSettled(
+            participants.map((participant) =>
+              notifyNewMessage({
+                recipientUserId: participant.userId,
+                senderUserId: sender.id,
+                senderName: sender.name || "Unknown",
+                conversationId,
+                messagePreview,
+              })
+            )
+          );
+        }
+
+        if (mentions?.length) {
+          await notifyMention({
+            mentionedUserIds: mentions,
+            senderUserId: sender.id,
+            senderName: sender.name || "Unknown",
+            channelId,
+            conversationId,
+            messagePreview: "You were mentioned in a message",
+          });
+        }
+      } catch (err) {
+        console.error("[MESSAGING] Post-response notification error:", err);
+      }
+    });
+
+    return NextResponse.json(responsePayload, { status: 201 });
   } catch (error) {
     console.error("[API] Send message error:", error);
     return NextResponse.json(
@@ -408,15 +542,17 @@ export async function GET(req: Request) {
       }
     }
 
+    // When fetching conversation messages, we skip the org filter — the
+    // participant membership check is the security gate, and cross-org DMs
+    // have participants from multiple orgs.
+    let skipOrgFilterForMessages = false;
     if (conversationId) {
+      // Security: participant membership is the correct gate for conversation access
       const participant = await prismadb.conversationParticipant.findFirst({
         where: {
           conversationId,
           userId: currentUser.id,
           leftAt: null,
-          conversation: {
-            organizationId, // ← Verify conversation belongs to user's org
-          },
         },
       });
 
@@ -426,6 +562,7 @@ export async function GET(req: Request) {
           { status: 403 }
         );
       }
+      skipOrgFilterForMessages = true;
     }
 
 
@@ -472,11 +609,12 @@ export async function GET(req: Request) {
       }
     }
 
-    // Build where clause
+    // Build where clause. For conversations the participant check already
+    // established access — skip the org filter. For channels, org filter stays.
     const whereClause: Record<string, unknown> = {
-      organizationId, // ← SECURITY: Always filter by organization
+      ...(skipOrgFilterForMessages ? {} : { organizationId }),
       isDeleted: false,
-      parentId: parentId || null, // Fetch thread replies or top-level messages
+      parentId: parentId || null,
     };
 
     // For thread replies, use parent's channelId/conversationId if not provided
@@ -552,8 +690,10 @@ export async function GET(req: Request) {
 
     // Decrypt message content before returning to the client.
     // DEK is cached in Redis so this doesn't create N key-fetches.
+    // Decrypt each message with its own org's DEK, not the requester's org.
+    // Cross-org DM messages are encrypted with the sender's org key.
     const decryptedMessages = await Promise.all(
-      messages.map((msg) => decryptMessageForOrg(msg, organizationId))
+      messages.map((msg) => decryptMessageForOrg(msg, msg.organizationId))
     );
 
     const formattedMessages = decryptedMessages.reverse().map((msg) => {
@@ -579,13 +719,20 @@ export async function GET(req: Request) {
         attachments: msg.attachments,
         reactions: msg.reactions,
         mentions: msg.mentions,
+        entityAttachment: msg.linkedEntityId ? {
+          id: msg.linkedEntityId,
+          type: msg.linkedEntityType?.toLowerCase(),
+          title: msg.linkedEntityTitle ?? null,
+          subtitle: msg.linkedEntitySubtitle ?? null,
+          friendlyId: msg.linkedEntityFriendlyId ?? null,
+        } : undefined,
       };
     });
 
     // Format parent message if fetching thread (decrypt first)
     let formattedParent = undefined;
     if (parentMessage) {
-      const decryptedParent = await decryptMessageForOrg(parentMessage, organizationId);
+      const decryptedParent = await decryptMessageForOrg(parentMessage, parentMessage.organizationId);
       const parentAgentProfile = decryptedParent.sender?.AgentProfile;
       const parentProfileSlug = parentAgentProfile?.visibility === "PUBLIC"
         ? (parentAgentProfile.slug || decryptedParent.sender?.username)
@@ -607,6 +754,13 @@ export async function GET(req: Request) {
         attachments: decryptedParent.attachments,
         reactions: decryptedParent.reactions,
         mentions: decryptedParent.mentions,
+        entityAttachment: decryptedParent.linkedEntityId ? {
+          id: decryptedParent.linkedEntityId,
+          type: decryptedParent.linkedEntityType?.toLowerCase() ?? null,
+          title: decryptedParent.linkedEntityTitle ?? null,
+          subtitle: decryptedParent.linkedEntitySubtitle ?? null,
+          friendlyId: decryptedParent.linkedEntityFriendlyId ?? null,
+        } : undefined,
       };
     }
 

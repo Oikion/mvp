@@ -458,7 +458,7 @@ export function ApiKeysClient() {
             <h4 className="font-medium mb-2">Authentication</h4>
             <p className="text-sm text-muted-foreground mb-2">Include your API key in the Authorization header:</p>
             <pre className="bg-muted p-3 rounded-md text-sm overflow-x-auto whitespace-pre-wrap">
-{`curl -X GET "${typeof window !== "undefined" ? window.location.origin : ""}/api/v1/crm/clients" \\
+{`curl -X GET "${typeof window !== "undefined" ? window.location.origin : ""}/api/v1/crm/contacts" \\
   -H "Authorization: Bearer oik_your_api_key_here" \\
   -H "Content-Type: application/json"`}
             </pre>
@@ -467,7 +467,7 @@ export function ApiKeysClient() {
             <h4 className="font-medium mb-2">Available Endpoints</h4>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="bg-muted p-2 rounded"><code>/api/v1/calendar/events</code></div>
-              <div className="bg-muted p-2 rounded"><code>/api/v1/crm/clients</code></div>
+              <div className="bg-muted p-2 rounded"><code>/api/v1/crm/contacts</code></div>
               <div className="bg-muted p-2 rounded"><code>/api/v1/crm/tasks</code></div>
               <div className="bg-muted p-2 rounded"><code>/api/v1/mls/properties</code></div>
               <div className="bg-muted p-2 rounded"><code>/api/v1/documents</code></div>

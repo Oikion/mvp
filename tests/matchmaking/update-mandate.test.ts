@@ -32,11 +32,11 @@ vi.mock("@/actions/activities", () => ({
   createSystemActivity: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { updateMandate } from "@/actions/mandates/update-mandate";
+import { updateRequest } from "@/actions/requests/update-request";
 import { prismadb } from "@/lib/prisma";
 import { requireAction } from "@/lib/permissions/action-guards";
 
-describe("updateMandate", () => {
+describe("updateRequest", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (requireAction as ReturnType<typeof vi.fn>).mockResolvedValue(null);
@@ -47,12 +47,12 @@ describe("updateMandate", () => {
   });
 
   it("checks request:update permission first", async () => {
-    await updateMandate({ id: "req-1", notes: "Test" });
+    await updateRequest("req-1", { notes: "Test" });
     expect(requireAction).toHaveBeenCalledWith("request:update");
   });
 
-  it("calls prismadb.request.update (not mandate)", async () => {
-    await updateMandate({ id: "req-1", notes: "Test" });
+  it("calls prismadb.request.update", async () => {
+    await updateRequest("req-1", { notes: "Test" });
     expect(prismadb.request.update).toHaveBeenCalled();
   });
 
@@ -60,13 +60,13 @@ describe("updateMandate", () => {
     (requireAction as ReturnType<typeof vi.fn>).mockResolvedValue({
       error: "Forbidden",
     });
-    const result = await updateMandate({ id: "req-1", notes: "Test" });
+    const result = await updateRequest("req-1", { notes: "Test" });
     expect(result).toEqual({ error: "Forbidden" });
     expect(prismadb.request.update).not.toHaveBeenCalled();
   });
 
   it("includes organizationId in the where clause", async () => {
-    const result = await updateMandate({ id: "req-1", notes: "Updated" });
+    const result = await updateRequest("req-1", { notes: "Updated" });
     expect("data" in result ? result.data : undefined).toBeDefined();
     expect(prismadb.request.update).toHaveBeenCalledWith(
       expect.objectContaining({

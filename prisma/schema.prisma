@@ -1437,6 +1437,7 @@ enum NotificationCategory {
   ORGANIZATION_INVITE
   CONTACT_CREATED
   CONTACT_ASSIGNED
+  ENTITY_ACCESS_REQUESTED
 }
 
 enum NotificationEntityType {
@@ -1455,6 +1456,7 @@ enum NotificationEntityType {
   CHANNEL
   CONTACT_SUBMISSION
   CONTACT
+  REQUEST
 }
 
 enum NotificationType {
@@ -1545,6 +1547,7 @@ enum SharedEntityType {
   PROPERTY
   DOCUMENT
   CONTACT
+  REQUEST
 }
 
 enum TemplateType {
@@ -2383,6 +2386,13 @@ model Message {
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
 
+  // Entity reference — set when the message is an entity share
+  linkedEntityId         String?
+  linkedEntityType       String? // "PROPERTY" | "CONTACT" | "REQUEST" | "DOCUMENT"
+  linkedEntityTitle      String?
+  linkedEntitySubtitle   String?
+  linkedEntityFriendlyId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -2408,6 +2418,7 @@ model Message {
   // Composite indexes for common query patterns (message listing + unread counts)
   @@index([channelId, isDeleted, createdAt])
   @@index([conversationId, isDeleted, createdAt])
+  @@index([linkedEntityId])
 }
 
 enum MessageContentType {

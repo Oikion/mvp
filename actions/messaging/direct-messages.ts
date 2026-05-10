@@ -4,6 +4,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { requireAction } from "@/lib/permissions";
+import { decryptMessageForOrg } from "@/lib/model-encryption";
 // E2EE: server no longer decrypts messages — clients decrypt locally
 
 /**
@@ -60,7 +61,8 @@ export async function startDirectMessage(targetUserId: string): Promise<{
     const conversation = await prismadb.conversation.create({
       data: {
         id: conversationId,
-        organizationId,
+        organizationId: null, // PERSONAL DMs are not org-scoped; cross-org connections must be able to participate
+        scope: "PERSONAL",
         isGroup: false,
         createdById: currentUser.id,
         participants: {
@@ -132,7 +134,9 @@ export async function getUserConversations(): Promise<{
 
     const conversations = await prismadb.conversation.findMany({
       where: {
-        organizationId,
+        // Participant membership is the security gate for conversations.
+        // ORG-scoped conversations use org isolation at channel level;
+        // PERSONAL/SHARED DMs are cross-org and have no org filter.
         participants: {
           some: {
             userId: currentUser.id,
@@ -153,6 +157,7 @@ export async function getUserConversations(): Promise<{
             content: true,
             senderId: true,
             createdAt: true,
+            organizationId: true, // needed to decrypt with the sender's org DEK
           },
         },
       },
@@ -220,13 +225,26 @@ export async function getUserConversations(): Promise<{
         ? new Date(currentUserParticipant.mutedUntil) > new Date()
         : false;
 
+      // Decrypt lastMessage with its own org's DEK (cross-org DMs use sender's key)
+      let lastMessageContent: string | undefined;
+      if (conv.messages[0]) {
+        try {
+          const decrypted = await decryptMessageForOrg(conv.messages[0], conv.messages[0].organizationId);
+          lastMessageContent = decrypted.content ?? undefined;
+        } catch {
+          lastMessageContent = undefined;
+        }
+      }
+
       return {
         id: conv.id,
         name: displayName,
         isGroup: conv.isGroup,
         type,
         participants: enrichedParticipants,
-        lastMessage: conv.messages[0] ? { ...conv.messages[0], senderId: conv.messages[0].senderId ?? "" } : undefined,
+        lastMessage: conv.messages[0]
+          ? { content: lastMessageContent ?? "", senderId: conv.messages[0].senderId ?? "", createdAt: conv.messages[0].createdAt }
+          : undefined,
         unreadCount: unreadMap.get(conv.id) ?? 0,
         isMuted,
       };

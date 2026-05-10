@@ -79,9 +79,11 @@ function AddressDisplay({ address }: { address: any }) {
 
 interface ContactViewProps {
   contact: any;
+  isReadOnly?: boolean;
+  sharePermission?: "VIEW_ONLY" | "VIEW_COMMENT" | null;
 }
 
-export default function ContactView({ contact }: ContactViewProps) {
+export default function ContactView({ contact, isReadOnly = false, sharePermission = null }: ContactViewProps) {
   const t = useTranslations("crm");
   const tActivities = useTranslations("activities");
   const { toast } = useAppToast();
@@ -236,27 +238,31 @@ export default function ContactView({ contact }: ContactViewProps) {
             className="ml-2"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            {t("contacts.view.share")}
-          </Button>
-          <Button size="sm" onClick={() => setEditOpen(true)}>
-            {t("contacts.view.edit")}
-          </Button>
-        </div>
+        {!isReadOnly && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm">
+              {t("contacts.view.share")}
+            </Button>
+            <Button size="sm" onClick={() => setEditOpen(true)}>
+              {t("contacts.view.edit")}
+            </Button>
+          </div>
+        )}
       </div>
 
-      <Sheet open={editOpen} onOpenChange={setEditOpen}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
-          <EditContactForm
-            contact={contact}
-            onSuccess={() => {
-              setEditOpen(false);
-              mutateLinked?.();
-            }}
-          />
-        </SheetContent>
-      </Sheet>
+      {!isReadOnly && (
+        <Sheet open={editOpen} onOpenChange={setEditOpen}>
+          <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+            <EditContactForm
+              contact={contact}
+              onSuccess={() => {
+                setEditOpen(false);
+                mutateLinked?.();
+              }}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
 
       {/* ── Main content: 2/3 + 1/3 grid (Gestalt: proximity grouping) ── */}
       <div className="grid gap-6 lg:grid-cols-3">
@@ -608,21 +614,23 @@ export default function ContactView({ contact }: ContactViewProps) {
             </CardContent>
           </Card>
 
-          {/* Visibility */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Globe className="h-4 w-4" aria-hidden="true" />
-                {t("contacts.view.visibility")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <ItemVisibilitySelector
-                value={visibility}
-                onChange={handleVisibilityChange}
-              />
-            </CardContent>
-          </Card>
+          {/* Visibility — only editable by owner org */}
+          {!isReadOnly && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Globe className="h-4 w-4" aria-hidden="true" />
+                  {t("contacts.view.visibility")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <ItemVisibilitySelector
+                  value={visibility}
+                  onChange={handleVisibilityChange}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Tags Card */}
           {contact.tags?.length > 0 && (
@@ -660,9 +668,9 @@ export default function ContactView({ contact }: ContactViewProps) {
             type="requests"
             entities={displayRequests}
             isLoading={isLoadingLinked || isLinkingRequests || isUnlinkingRequests}
-            onLinkEntity={() => setLinkRequestDialogOpen(true)}
-            onUnlinkEntity={handleUnlinkRequest}
-            showAddButton={true}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkRequestDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkRequest}
+            showAddButton={!isReadOnly}
           />
 
           {/* Linked Properties (owned) */}
@@ -670,9 +678,9 @@ export default function ContactView({ contact }: ContactViewProps) {
             type="properties"
             entities={displayProperties}
             isLoading={isLoadingLinked || isLinkingProperties || isUnlinkingProperties}
-            onLinkEntity={() => setLinkPropertyDialogOpen(true)}
-            onUnlinkEntity={handleUnlinkProperty}
-            showAddButton={true}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkPropertyDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkProperty}
+            showAddButton={!isReadOnly}
           />
 
           {/* Calendar Events */}

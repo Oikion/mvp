@@ -23,6 +23,7 @@ export interface SocialPost {
     avatar?: string;
     username?: string | null;
     organizationName?: string;
+    organizationId?: string;
     visibility?: "PRIVATE" | "SECURE" | "PUBLIC";
   };
   linkedEntity?: {
@@ -93,11 +94,21 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
     const visibleUserIds = new Set(visibleProfiles.map((p) => p.userId));
     const visibilityMap = new Map(visibleProfiles.map((p) => [p.userId, p.visibility]));
 
-    // Fetch social posts from the database
-    // SECURITY: Filter by organizationId for tenant isolation
-    const posts = await prismadb.socialPost.findMany({
+    // Build the full set of author IDs whose posts this user may see:
+    //   1. Own posts — always visible
+    //   2. Posts from ACCEPTED connections (cross-org included)
+    //   3. Posts from agents with PUBLIC or SECURE profiles
+    // SECURITY: Posts are public content within the Polis network. The author-ID
+    // allowlist is the security gate — not an org boundary.
+    const authorIdsToShow = new Set<string>([
+      currentUser.id,
+      ...Array.from(connectedUserIds),
+      ...Array.from(visibleUserIds),
+    ]);
+
+    const filteredPosts = await prismadb.socialPost.findMany({
       where: {
-        organizationId, // Tenant isolation
+        authorId: { in: Array.from(authorIdsToShow) },
       },
       take: limit,
       orderBy: { createdAt: "desc" },
@@ -129,24 +140,6 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
       },
     });
 
-    // Filter posts based on visibility:
-    // 1. Own posts - always visible
-    // 2. Posts from PUBLIC/SECURE profiles - visible (user is authenticated)
-    // 3. Posts from connections - visible regardless of profile visibility
-    // PERSONAL profiles hide all posts from non-connections
-    const filteredPosts = posts.filter((post) => {
-      // Own posts always visible
-      if (post.authorId && post.authorId === currentUser.id) return true;
-
-      // Posts from connections are always visible
-      if (post.authorId && connectedUserIds.has(post.authorId)) return true;
-
-      // Posts from PUBLIC or SECURE profiles (authenticated user can see)
-      if (post.authorId && visibleUserIds.has(post.authorId)) return true;
-      
-      return false;
-    });
-
     // Batch-fetch friendlyIds for linked entities
     const linkedPropertyIds = filteredPosts
       .filter((p) => p.linkedEntityId && p.linkedEntityType === "property")
@@ -168,7 +161,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
         ? prismadb.contact.findMany({ where: { id: { in: linkedContactIds } }, select: { id: true, friendlyId: true } })
         : [],
       linkedRequestIds.length > 0
-        ? prismadb.request.findMany({ where: { id: { in: linkedRequestIds }, organizationId }, select: { id: true, friendlyId: true } })
+        ? prismadb.request.findMany({ where: { id: { in: linkedRequestIds } }, select: { id: true, friendlyId: true } })
         : [],
     ]);
 
@@ -188,6 +181,7 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
         avatar: post.Users?.avatar || undefined,
         username: post.Users?.username || null,
         organizationName: undefined,
+        organizationId: post.organizationId,
         visibility: (post.Users?.AgentProfile?.visibility as "PRIVATE" | "SECURE" | "PUBLIC") || "PRIVATE",
       },
       linkedEntity: post.linkedEntityId && post.linkedEntityType ? {

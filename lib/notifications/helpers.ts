@@ -8,6 +8,7 @@
 
 import { createNotification, createBulkNotifications, notifyOrganization } from "./notification-service";
 import { sendNotificationEmail, sendNotificationEmailToUsers } from "./email-service";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 import { prismadb } from "@/lib/prisma";
 import {
   SocialNotificationPayload,
@@ -17,6 +18,7 @@ import {
   ConnectionNotificationPayload,
   TaskNotificationPayload,
   CalendarNotificationPayload,
+  EntityAccessRequestPayload,
 } from "./types";
 
 // ============================================
@@ -103,8 +105,6 @@ export async function notifyPostCommented(
 // SHARING NOTIFICATIONS
 // ============================================
 
-// System-level organization ID for cross-organization notifications
-const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
 
 /**
  * Notify user when something is shared with them
@@ -122,7 +122,8 @@ export async function notifyEntityShared(payload: SharingNotificationPayload): P
       ? `"${payload.entityName}" - ${payload.message}`
       : `"${payload.entityName}" has been shared with you`,
     entityType: payload.entityType === "PROPERTY" ? "PROPERTY" :
-                payload.entityType === "CONTACT" ? "CONTACT" : "DOCUMENT",
+                payload.entityType === "CONTACT" ? "CONTACT" :
+                payload.entityType === "REQUEST" ? "REQUEST" : "DOCUMENT",
     entityId: payload.entityId,
     actorId: payload.sharedById,
     actorName: payload.sharedByName,
@@ -142,6 +143,35 @@ export async function notifyEntityShared(payload: SharingNotificationPayload): P
     metadata: {
       entityType: payload.entityType,
       shareMessage: payload.message,
+    },
+  });
+}
+
+// ============================================
+// ENTITY ACCESS REQUEST NOTIFICATIONS
+// ============================================
+
+/**
+ * Notify the entity owner when someone requests access to their entity.
+ * The owner can then decide to grant access via shareEntity().
+ */
+export async function notifyEntityAccessRequested(payload: EntityAccessRequestPayload): Promise<void> {
+  const entityTypeLabel = payload.entityType.charAt(0) + payload.entityType.slice(1).toLowerCase();
+
+  await createNotification({
+    userId: payload.ownerId,
+    organizationId: payload.ownerOrganizationId,
+    type: "ENTITY_ACCESS_REQUESTED",
+    title: `${payload.requesterName} requested access to your ${entityTypeLabel}`,
+    message: `"${payload.entityName}" — access request from ${payload.requesterName}`,
+    entityType: payload.entityType as any,
+    entityId: payload.entityId,
+    actorId: payload.requesterId,
+    actorName: payload.requesterName,
+    metadata: {
+      entityName: payload.entityName,
+      entityType: payload.entityType,
+      requesterId: payload.requesterId,
     },
   });
 }

@@ -97,9 +97,11 @@ function BoolField({ label, value, t }: { label: string; value: boolean | null |
 
 interface RequestViewProps {
   request: any;
+  isReadOnly?: boolean;
+  sharePermission?: "VIEW_ONLY" | "VIEW_COMMENT" | null;
 }
 
-export default function RequestView({ request }: RequestViewProps) {
+export default function RequestView({ request, isReadOnly = false, sharePermission: _sharePermission = null }: RequestViewProps) {
   const t = useTranslations("requests");
   const tCommon = useTranslations("common");
   const tActivities = useTranslations("activities");
@@ -245,10 +247,12 @@ export default function RequestView({ request }: RequestViewProps) {
             {t(`status.${request.status}` as Parameters<typeof t>[0])}
           </Badge>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">{t("view.share")}</Button>
-          <Button size="sm" onClick={() => setEditOpen(true)}>{t("view.edit")}</Button>
-        </div>
+        {!isReadOnly && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm">{t("view.share")}</Button>
+            <Button size="sm" onClick={() => setEditOpen(true)}>{t("view.edit")}</Button>
+          </div>
+        )}
       </div>
 
       <Sheet open={editOpen} onOpenChange={handleSheetClose}>
@@ -406,30 +410,32 @@ export default function RequestView({ request }: RequestViewProps) {
             </CardContent>
           </Card>
 
-          {/* Visibility */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Globe className="h-4 w-4" aria-hidden="true" />
-                {t("view.visibility")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <ItemVisibilitySelector
-                value={visibility}
-                onChange={handleVisibilityChange}
-              />
-            </CardContent>
-          </Card>
+          {/* Visibility — only editable by owner org */}
+          {!isReadOnly && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Globe className="h-4 w-4" aria-hidden="true" />
+                  {t("view.visibility")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <ItemVisibilitySelector
+                  value={visibility}
+                  onChange={handleVisibilityChange}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Linked Contacts */}
           <LinkedEntitiesPanel
             type="contacts"
             entities={displayContacts}
             isLoading={isLoadingLinked || isLinkingContacts || isUnlinkingContacts}
-            onLinkEntity={() => setLinkContactDialogOpen(true)}
-            onUnlinkEntity={handleUnlinkContact}
-            showAddButton={true}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkContactDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkContact}
+            showAddButton={!isReadOnly}
           />
 
           {/* Linked Property Matches */}
@@ -437,9 +443,9 @@ export default function RequestView({ request }: RequestViewProps) {
             type="properties"
             entities={displayProperties}
             isLoading={isLoadingLinked || isLinkingProperties || isUnlinkingProperties}
-            onLinkEntity={() => setLinkPropertyDialogOpen(true)}
-            onUnlinkEntity={handleUnlinkProperty}
-            showAddButton={true}
+            onLinkEntity={isReadOnly ? undefined : () => setLinkPropertyDialogOpen(true)}
+            onUnlinkEntity={isReadOnly ? undefined : handleUnlinkProperty}
+            showAddButton={!isReadOnly}
           />
 
           {/* Calendar Events */}

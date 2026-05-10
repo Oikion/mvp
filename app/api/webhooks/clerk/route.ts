@@ -9,6 +9,7 @@ import { syncUserToMessaging, disableUserMessaging } from "@/actions/messaging";
 import { prismadb } from "@/lib/prisma";
 import { createClerkClient } from "@clerk/backend";
 import { randomUUID } from "crypto";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 
 export async function POST(req: Request) {
   // Get the Svix headers for verification
@@ -221,9 +222,6 @@ export async function POST(req: Request) {
 
       // If the user exists in our database, create an in-app notification
       if (invitedUser) {
-        // Use system org ID for invitations since user isn't part of the org yet
-        const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
-        
         await prismadb.notification.create({
           data: {
             id: randomUUID(),

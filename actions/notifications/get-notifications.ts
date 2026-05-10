@@ -5,9 +5,7 @@ import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { NotificationCategory, Prisma } from "@prisma/client";
 import { requireAction } from "@/lib/permissions/action-guards";
 import { cacheGet, cacheSet } from "@/lib/redis";
-
-// System-level organization ID for platform admin notifications
-const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 
 export async function getNotifications(options?: {
   limit?: number;

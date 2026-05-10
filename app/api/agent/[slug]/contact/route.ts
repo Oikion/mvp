@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications/notification-service";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 import { encryptAgentContactForOrg } from "@/lib/model-encryption";
 import sendEmail from "@/lib/sendmail";
 import AgentContactFormSubmission from "@/emails/notifications/AgentContactFormSubmission";
@@ -103,7 +104,7 @@ export async function POST(
     // Create in-app notification for the agent
     await createNotification({
       userId: user.id,
-      organizationId: organizationId ?? "00000000-0000-0000-0000-000000000000",
+      organizationId: organizationId ?? SYSTEM_ORG_ID,
       type: "CONTACT_FORM_SUBMISSION",
       title: user.userLanguage === "el" 
         ? "Νέα Υποβολή Φόρμας Επικοινωνίας" 

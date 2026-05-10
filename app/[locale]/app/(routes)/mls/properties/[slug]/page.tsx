@@ -3,7 +3,7 @@ import { getProperty } from "@/actions/mls/get-property";
 import { getSharedProperty } from "@/actions/mls/get-shared-property";
 import { getCurrentUser } from "@/lib/get-current-user";
 import PropertyView from "./components/PropertyView";
-import { SharedAccessBanner } from "./components/SharedAccessBanner";
+import { SharedAccessBanner } from "@/components/shared/SharedAccessBanner";
 
 type ShareInfo = NonNullable<Awaited<ReturnType<typeof getSharedProperty>>>["_shareInfo"] | null;
 

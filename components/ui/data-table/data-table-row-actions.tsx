@@ -189,7 +189,10 @@ export function DataTableRowActions<TData extends { id?: string }>({
 
   // Handle share - open shared modal
   const handleShareClick = () => {
-    const actionEntityType: ActionEntityType = entityType === "property" ? "property" : "contact";
+    const SHAREABLE_ACTION_TYPES: ActionEntityType[] = ["property", "contact", "document"];
+    const actionEntityType: ActionEntityType = SHAREABLE_ACTION_TYPES.includes(entityType as ActionEntityType)
+      ? (entityType as ActionEntityType)
+      : "contact";
 
     openShareModal({
       entityType: actionEntityType,
@@ -204,7 +207,8 @@ export function DataTableRowActions<TData extends { id?: string }>({
   const showEdit = onEdit !== false && typeof onEdit !== "undefined";
   const showDelete = typeof onDelete === "function";
   const showScheduleAction = onSchedule && (entityType === "property" || entityType === "contact");
-  const showShareAction = onShare && entityType === "property";
+  const SHAREABLE_ENTITY_TYPES: EntityType[] = ["property", "contact", "document"];
+  const showShareAction = onShare && SHAREABLE_ENTITY_TYPES.includes(entityType);
 
   // Check if we need separators
   const hasStandardActions = showView || showEdit;

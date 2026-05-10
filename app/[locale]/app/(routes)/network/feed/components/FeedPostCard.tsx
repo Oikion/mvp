@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useOrganization } from "@clerk/nextjs";
 import { formatDistanceToNow } from "date-fns";
 import type { Locale } from "date-fns/locale";
 import {
@@ -29,6 +30,7 @@ import { Link } from "@/navigation";
 import { AttachmentList } from "@/components/attachments";
 import { FeedPostEngagement } from "./FeedPostEngagement";
 import { FeedCommentThread } from "./FeedCommentThread";
+import { RequestAccessButton } from "@/components/shared/RequestAccessButton";
 
 type ProfileVisibility = "PRIVATE" | "SECURE" | "PUBLIC";
 
@@ -52,6 +54,7 @@ export interface SocialPost {
     avatar?: string;
     username?: string | null;
     organizationName?: string;
+    organizationId?: string;
     visibility?: ProfileVisibility;
   } | null;
   linkedEntity?: {
@@ -91,6 +94,15 @@ export function FeedPostCard({
   const [commentCount, setCommentCount] = useState(post.comments);
   const [showComments, setShowComments] = useState(false);
   const { getUserStatus } = usePresence();
+  const { organization } = useOrganization();
+
+  // True when the post's owning org differs from the viewer's active org.
+  // Cross-org viewers see non-clickable entity teasers + "Request Access" button.
+  const isCrossOrg = !!(
+    post.author?.organizationId &&
+    organization?.id &&
+    post.author.organizationId !== organization.id
+  );
 
   const getActionText = (type: string) => {
     switch (type) {
@@ -263,67 +275,94 @@ export function FeedPostCard({
         )}
 
         {/* Linked Entity Embed Card */}
-        {post.linkedEntity && (
-          <Link href={getEntityLink()}>
-            <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors mt-2">
-              <div className="flex items-start gap-3">
-                {post.linkedEntity.image ? (
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
-                    <img
-                      src={post.linkedEntity.image}
-                      alt=""
-                      className="h-full w-full object-cover"
+        {post.linkedEntity && (() => {
+          const entityCardContent = (
+            <div className="flex items-start gap-3">
+              {post.linkedEntity.image ? (
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
+                  <img
+                    src={post.linkedEntity.image}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div
+                  className={`rounded-full p-2.5 shrink-0 ${getPostColor(post.linkedEntity.type)}`}
+                >
+                  {getPostIcon(post.linkedEntity.type)}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {post.linkedEntity.type === "contact"
+                      ? t?.badges?.contact || t?.badges?.client || "Contact"
+                      : post.linkedEntity.type === "property"
+                        ? t?.badges?.property || "Property"
+                        : post.linkedEntity.type === "request"
+                          ? t?.badges?.request || "Request"
+                          : post.linkedEntity.type}
+                  </Badge>
+                  {isCrossOrg && (
+                    <Badge variant="secondary" className="text-xs">
+                      {t?.post?.crossOrgRestricted || "Cross-org"}
+                    </Badge>
+                  )}
+                </div>
+                <h4 className="font-medium mt-1 truncate text-sm">
+                  {post.linkedEntity.title}
+                </h4>
+                {post.linkedEntity.subtitle && (
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">
+                    {post.linkedEntity.subtitle}
+                  </p>
+                )}
+                {post.linkedEntity.metadata?.price && (
+                  <p className="text-sm font-semibold text-primary mt-1">
+                    &euro;{post.linkedEntity.metadata.price.toLocaleString()}
+                  </p>
+                )}
+                {post.linkedEntity.type === "request" &&
+                  (post.linkedEntity.metadata?.budgetMin ||
+                    post.linkedEntity.metadata?.budgetMax) && (
+                    <p className="text-sm font-semibold text-warning mt-1">
+                      &euro;
+                      {post.linkedEntity.metadata.budgetMin?.toLocaleString() ||
+                        "0"}
+                      {post.linkedEntity.metadata.budgetMax
+                        ? ` – €${post.linkedEntity.metadata.budgetMax.toLocaleString()}`
+                        : "+"}
+                    </p>
+                  )}
+                {isCrossOrg && (
+                  <div className="mt-2">
+                    <RequestAccessButton
+                      entityType={post.linkedEntity.type.toUpperCase() as "PROPERTY" | "CONTACT" | "DOCUMENT" | "REQUEST"}
+                      entityId={post.linkedEntity.id}
                     />
                   </div>
-                ) : (
-                  <div
-                    className={`rounded-full p-2.5 shrink-0 ${getPostColor(post.linkedEntity.type)}`}
-                  >
-                    {getPostIcon(post.linkedEntity.type)}
-                  </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs capitalize">
-                      {post.linkedEntity.type === "contact"
-                        ? t?.badges?.contact || t?.badges?.client || "Contact"
-                        : post.linkedEntity.type === "property"
-                          ? t?.badges?.property || "Property"
-                          : post.linkedEntity.type === "request"
-                            ? t?.badges?.request || "Request"
-                            : post.linkedEntity.type}
-                    </Badge>
-                  </div>
-                  <h4 className="font-medium mt-1 truncate text-sm">
-                    {post.linkedEntity.title}
-                  </h4>
-                  {post.linkedEntity.subtitle && (
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">
-                      {post.linkedEntity.subtitle}
-                    </p>
-                  )}
-                  {post.linkedEntity.metadata?.price && (
-                    <p className="text-sm font-semibold text-primary mt-1">
-                      &euro;{post.linkedEntity.metadata.price.toLocaleString()}
-                    </p>
-                  )}
-                  {post.linkedEntity.type === "request" &&
-                    (post.linkedEntity.metadata?.budgetMin ||
-                      post.linkedEntity.metadata?.budgetMax) && (
-                      <p className="text-sm font-semibold text-warning mt-1">
-                        &euro;
-                        {post.linkedEntity.metadata.budgetMin?.toLocaleString() ||
-                          "0"}
-                        {post.linkedEntity.metadata.budgetMax
-                          ? ` – €${post.linkedEntity.metadata.budgetMax.toLocaleString()}`
-                          : "+"}
-                      </p>
-                    )}
-                </div>
               </div>
             </div>
-          </Link>
-        )}
+          );
+
+          if (isCrossOrg) {
+            return (
+              <div className="border rounded-lg p-4 bg-muted/30 mt-2">
+                {entityCardContent}
+              </div>
+            );
+          }
+
+          return (
+            <Link href={getEntityLink()}>
+              <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors mt-2">
+                {entityCardContent}
+              </div>
+            </Link>
+          );
+        })()}
 
         {/* Engagement Bar */}
         <FeedPostEngagement

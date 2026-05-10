@@ -1,0 +1,31 @@
+client_name,primary_phone,primary_email,client_type,budget_min,budget_max,request_transaction_type,mandate_property_type,urgency,timeline,size_min_sqm,size_max_sqm,bedrooms_min,bedrooms_max,areas_of_interest
+Ηλίας Ξανθόπουλος,6992844715,iliaxanth5000@outlook.com,BUYER,182000,325000,BUY,APARTMENT,MEDIUM,IMMEDIATE,68,118,1,3,Γλυφάδα
+Ευγενία Σκυλλάκης,6943481104,eygeskyl5001@outlook.com,BUYER,206500,368750,BUY,APARTMENT,HIGH,THREE_SIX_MONTHS,85,135,2,4,"""Γλυφάδα,Βούλα"""
+Μαρίνα Ζάχος,6968611187,marizacho5002@gmail.com,BUYER,161000,287500,BUY,APARTMENT,HIGH,ONE_THREE_MONTHS,62,112,1,3,Βούλα
+Ρούσσος Σπυρόπουλος,6931395968,roysspyr5003@hotmail.com,BUYER,192500,343750,BUY,APARTMENT,CRITICAL,THREE_SIX_MONTHS,78,128,2,4,"""Βούλα,Βουλιαγμένη"""
+Γιάννης Τριανταφύλλου,6923441699,giantria5004@email.gr,BUYER,364000,650000,BUY,HOUSE,CRITICAL,IMMEDIATE,165,215,3,5,"""Βουλιαγμένη,Κολωνάκι"""
+Δάφνη Τριανταφύλλου,6985533525,dafntria5005@yahoo.gr,BUYER,294000,525000,BUY,APARTMENT,CRITICAL,IMMEDIATE,80,130,1,3,Κολωνάκι
+Γεωργία Οικονόμου,6918457264,georoiko5006@yahoo.gr,BUYER,406000,725000,BUY,APARTMENT,CRITICAL,THREE_SIX_MONTHS,125,175,2,4,"""Κολωνάκι,Παγκράτι"""
+Θεμιστοκλής Δαμιανός,6953670977,themidami5007@yahoo.gr,BUYER,101500,181250,BUY,APARTMENT,HIGH,THREE_SIX_MONTHS,32,82,0,2,Παγκράτι
+Αρετή Πέτρου,6985725030,aretpetr5008@outlook.com,BUYER,136500,243750,BUY,APARTMENT,MEDIUM,THREE_SIX_MONTHS,55,105,1,3,"""Παγκράτι,Κουκάκι"""
+Λάμπρος Σταμούλης,6949525505,lampstam5009@gmail.com,BUYER,115499,206250,BUY,APARTMENT,CRITICAL,IMMEDIATE,38,88,0,2,Κουκάκι
+Αθηνά Ζάχος,6973776320,athinzacho5010@gmail.com,BUYER,154000,275000,BUY,APARTMENT,HIGH,IMMEDIATE,62,112,1,3,"""Κουκάκι,Κηφισιά"""
+Μαρία Μαυρίδης,6994256464,marimayr5011@outlook.com,BUYER,199500,356250,BUY,APARTMENT,CRITICAL,ONE_THREE_MONTHS,90,140,2,4,Κηφισιά
+Λάμπρος Τσόπελας,6936814622,lamptsop5012@hotmail.com,BUYER,336000,600000,BUY,HOUSE,MEDIUM,THREE_SIX_MONTHS,175,225,3,5,"""Κηφισιά,Χαλάνδρι"""
+Ξανθή Καλαντζής,6954193624,xanthkala5013@email.gr,BUYER,122499,218750,BUY,APARTMENT,HIGH,THREE_SIX_MONTHS,58,108,1,3,Χαλάνδρι
+Αφροδίτη Κοντού,6947165442,afrokont5014@hotmail.com,BUYER,150500,268750,BUY,APARTMENT,CRITICAL,IMMEDIATE,75,125,2,4,"""Χαλάνδρι,Νέα Σμύρνη"""
+Ορέστης Πέτρου,6946132699,orespetr5015@yahoo.gr,BUYER,108500,193750,BUY,APARTMENT,MEDIUM,THREE_SIX_MONTHS,52,102,1,3,Νέα Σμύρνη
+Αλεξάνδρα Οικονόμου,6961500099,alexoiko5016@outlook.com,BUYER,129499,231250,BUY,APARTMENT,CRITICAL,IMMEDIATE,70,120,2,4,"""Νέα Σμύρνη,Παλαιό Φάληρο"""
+Γεωργία Κοντού,6934682401,georkont5017@outlook.com,BUYER,136500,243750,BUY,APARTMENT,MEDIUM,ONE_THREE_MONTHS,65,115,1,3,Παλαιό Φάληρο
+Χρήστος Κοντού,6911175231,chriskont5018@gmail.com,BUYER,217000,387500,BUY,MAISONETTE,HIGH,THREE_SIX_MONTHS,110,160,2,4,"""Παλαιό Φάληρο,Αγία Παρασκευή"""
+Χαρά Κοντού,6920243885,charakont5019@outlook.com,BUYER,122499,218750,BUY,APARTMENT,MEDIUM,THREE_SIX_MONTHS,60,110,1,3,"""Αγία Παρασκευή,Γλυφάδα"""
+Χαρά Σκυλλάκης,6933576467,charaskyl5120@email.gr,RENTER,1050,1750,RENT,APARTMENT,MEDIUM,ONE_THREE_MONTHS,65,100,1,3,"""Κολωνάκι,Παγκράτι"""
+Πέτρος Σταμούλης,6964733941,petrstam5121@gmail.com,RENTER,600,1000,RENT,APARTMENT,MEDIUM,IMMEDIATE,35,70,0,2,Παγκράτι
+Κλεοπάτρα Μανωλάς,6979704349,kleomano5122@hotmail.com,RENTER,712,1187,RENT,APARTMENT,HIGH,IMMEDIATE,53,88,1,3,"""Παγκράτι,Κουκάκι"""
+Ρένα Πέτρου,6984604923,renapetr5123@gmail.com,RENTER,637,1062,RENT,APARTMENT,HIGH,ONE_THREE_MONTHS,40,75,0,2,Κουκάκι
+Αλέξανδρος Στεφανίδης,6988192742,alexstef5124@yahoo.gr,RENTER,787,1312,RENT,APARTMENT,MEDIUM,IMMEDIATE,55,90,1,3,"""Κουκάκι,Χαλάνδρι"""
+Ξανθή Σκυλλάκης,6916460234,xanthskyl5125@email.gr,RENTER,562,937,RENT,APARTMENT,HIGH,ONE_THREE_MONTHS,33,68,0,2,Χαλάνδρι
+Ρούσσος Δαμιανός,6952541467,roysdami5126@hotmail.com,RENTER,675,1125,RENT,APARTMENT,MEDIUM,ONE_THREE_MONTHS,50,85,1,3,"""Χαλάνδρι,Νέα Σμύρνη"""
+Ηλίας Δαμιανός,6943164401,iliadami5127@outlook.com,RENTER,585,975,RENT,APARTMENT,HIGH,IMMEDIATE,37,72,0,2,"""Νέα Σμύρνη,Γλυφάδα"""
+Ιφιγένεια Σκυλλάκης,6913400748,ifigskyl5128@outlook.com,RENTER,712,1187,RENT,APARTMENT,HIGH,IMMEDIATE,55,90,1,3,"""Γλυφάδα,Μαρούσι"""
+Κλεοπάτρα Κυριακίδης,6926745710,kleokyri5129@hotmail.com,RENTER,525,875,RENT,APARTMENT,MEDIUM,ONE_THREE_MONTHS,30,65,0,2,"""Μαρούσι,Γλυφάδα"""

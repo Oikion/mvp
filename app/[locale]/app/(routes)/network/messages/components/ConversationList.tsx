@@ -134,9 +134,9 @@ export function ConversationList({
                 )}
               </div>
 
-              {/* Unread badge */}
+              {/* Unread badge — destructive matches nav sidebar and notification bell */}
               {item.unreadCount && item.unreadCount > 0 && (
-                <Badge className="h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] px-1.5">
+                <Badge variant="destructive" className="h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] px-1.5">
                   {item.unreadCount > 99 ? "99+" : item.unreadCount}
                 </Badge>
               )}

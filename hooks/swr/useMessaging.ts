@@ -1,7 +1,6 @@
-// @ts-nocheck
-// TODO: Fix type errors
 import useSWR, { useSWRConfig } from "swr";
 import useSWRMutation from "swr/mutation";
+import { useCallback } from "react";
 import { ChannelType } from "@prisma/client";
 import type { TokenRequest } from "ably";
 
@@ -74,12 +73,11 @@ export interface Message {
     userId: string;
   }>;
   entityAttachment?: {
-    type: "property" | "contact" | "document" | "event" | "request" | "deal";
+    type: "property" | "contact" | "document" | "request";
     id: string;
-    friendlyId: string;
-    title: string;
-    subtitle?: string;
-    metadata?: Record<string, unknown>;
+    friendlyId: string | null;
+    title: string | null;
+    subtitle?: string | null;
   };
 }
 
@@ -91,7 +89,7 @@ interface ConversationsResponse {
   conversations: Conversation[];
 }
 
-interface MessagesResponse {
+export interface MessagesResponse {
   messages: Message[];
   hasMore: boolean;
   nextCursor?: string;
@@ -255,7 +253,9 @@ export function useMessages(params: {
     fetcher,
     {
       revalidateOnMount: true,
-      revalidateOnFocus: false,
+      // revalidateOnFocus ensures the thread catches up even when Ably misses an event,
+      // matching the same safety net that useConversations already has.
+      revalidateOnFocus: true,
       refreshInterval: params.refreshInterval || 0,
     }
   );
@@ -347,11 +347,11 @@ export function useSendMessage(params?: { channelId?: string; conversationId?: s
       }>;
       mentions?: string[];
       entityAttachment?: {
-        type: "property" | "contact" | "document" | "event" | "request" | "deal";
+        type: "property" | "contact" | "document" | "request";
         id: string;
+        friendlyId?: string;
         title: string;
         subtitle?: string;
-        metadata?: Record<string, unknown>;
       };
     }
   >(
@@ -373,16 +373,30 @@ export function useSendMessage(params?: { channelId?: string; conversationId?: s
       return res.json();
     },
     {
-      onSuccess: (data, key, config) => {
-        // Revalidate messages for the channel/conversation
-        const queryParams = new URLSearchParams();
-        const channelId = data?.message?.channelId || params?.channelId;
-        const conversationId = data?.message?.conversationId || params?.conversationId;
-        if (channelId) queryParams.set("channelId", channelId);
-        if (conversationId) queryParams.set("conversationId", conversationId);
-        globalMutate(`/api/messaging/messages?${queryParams.toString()}`);
+      onSuccess: (data) => {
+        const channelId = (data?.message?.channelId ?? params?.channelId) ?? undefined;
+        const conversationId = (data?.message?.conversationId ?? params?.conversationId) ?? undefined;
+        const cacheKey = getMessagesKey({ channelId, conversationId });
 
-        // If this is a reply to a thread, also revalidate the thread
+        if (cacheKey && data?.message) {
+          // Directly insert the new message into the SWR cache.
+          // This makes the sender's message appear instantly without waiting
+          // for the Ably message:new event to trigger a full refetch.
+          // The { revalidate: false } prevents a redundant GET — Ably handles
+          // live delivery for other participants.
+          globalMutate<MessagesResponse>(
+            cacheKey,
+            (current) => {
+              if (!current) return current;
+              const alreadyPresent = current.messages.some((m) => m.id === data.message.id);
+              if (alreadyPresent) return current;
+              return { ...current, messages: [...current.messages, data.message] };
+            },
+            { revalidate: false }
+          );
+        }
+
+        // Revalidate thread if this is a reply
         const parentId = data?.message?.parentId;
         if (parentId) {
           globalMutate(getThreadMessagesKey(parentId));
@@ -700,8 +714,9 @@ export function useMarkAsRead() {
     }
   );
 
-  // Wrap trigger to provide optimistic update
-  const markAsRead = async (arg: { channelId?: string; conversationId?: string }) => {
+  // Wrap trigger to provide optimistic update.
+  // useCallback gives a stable reference so callers can safely include it in useEffect dep arrays.
+  const markAsRead = useCallback(async (arg: { channelId?: string; conversationId?: string }) => {
     // Optimistically update unread count to 0 immediately
     if (arg.channelId) {
       globalMutate<ChannelsResponse>(
@@ -734,7 +749,10 @@ export function useMarkAsRead() {
     }
 
     try {
-      return await trigger(arg);
+      const result = await trigger(arg);
+      // Revalidate the notification counts so the nav badge drops immediately
+      globalMutate("/api/notifications/counts");
+      return result;
     } catch (err) {
       // Roll back on error by revalidating
       if (arg.channelId) {
@@ -745,7 +763,7 @@ export function useMarkAsRead() {
       }
       throw err;
     }
-  };
+  }, [trigger, globalMutate]);
 
   return {
     markAsRead,
@@ -991,14 +1009,12 @@ export function useLeaveChannel() {
   // Wrap trigger to provide optimistic update
   const leaveChannel = async (arg: { channelId: string }) => {
     // Optimistically remove channel from list immediately
-    globalMutate<{ channels: unknown[] }>(
+    globalMutate<ChannelsResponse>(
       "/api/messaging/channels",
       (currentData) => {
         if (!currentData) return currentData;
         return {
-          channels: currentData.channels.filter(
-            (c: { id?: string }) => c.id !== arg.channelId
-          ),
+          channels: currentData.channels.filter((c) => c.id !== arg.channelId),
         };
       },
       { revalidate: false }

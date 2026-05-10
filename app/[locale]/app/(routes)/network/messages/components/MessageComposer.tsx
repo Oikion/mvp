@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { useAblyMessages } from "@/hooks/useAbly";
+import { useAblyPublish } from "@/hooks/useAbly";
 import { useSendMessage } from "@/hooks/swr/useMessaging";
 import { useE2EE } from "@/hooks/useE2EE";
 import { ShareEntityDialog } from "./ShareEntityDialog";
@@ -82,31 +82,37 @@ export function MessageComposer({
     [user?.firstName, user?.fullName, user?.username]
   );
 
-  // Ably for typing indicators
-  const { sendTyping } = useAblyMessages({
-    channelId,
-    conversationId,
-    organizationId: credentials?.organizationId,
-    credentials,
-  });
+  // Publish-only Ably hook for typing indicators.
+  // Using useAblyPublish (not useAblyMessages) so this component never manages
+  // the channel lifecycle — only MessageThread owns attach/detach.
+  const ablyChannelName = credentials?.organizationId && (channelId || conversationId)
+    ? channelId
+      ? `org:${credentials.organizationId}:channel:${channelId}`
+      : `org:${credentials.organizationId}:conversation:${conversationId}`
+    : null;
+  const { publish: ablyPublish } = useAblyPublish(ablyChannelName, credentials);
+
+  const sendTyping = useCallback(async (isTypingNow: boolean, userName?: string) => {
+    if (credentials?.userId) {
+      await ablyPublish("typing", { userId: credentials.userId, userName, isTyping: isTypingNow });
+    }
+  }, [ablyPublish, credentials?.userId]);
 
   // Handle typing indicator
   const handleTypingStart = useCallback(() => {
     if (!typingEnabled) return;
     if (!isTyping) {
       setIsTyping(true);
-      sendTyping(true, displayName);
+      void sendTyping(true, displayName);
     }
 
-    // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set timeout to stop typing indicator after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-      sendTyping(false, displayName);
+      void sendTyping(false, displayName);
     }, 3000);
   }, [isTyping, sendTyping, typingEnabled, displayName]);
 
@@ -122,9 +128,6 @@ export function MessageComposer({
   // Handle entity share
   const handleEntityShare = useCallback((entity: SharedEntity) => {
     setSharedEntity(entity);
-    // Optionally add a message about the shared entity
-    const entityLabel = entity.type.charAt(0).toUpperCase() + entity.type.slice(1);
-    setMessage(`📎 Sharing ${entityLabel}: ${entity.title}`);
   }, []);
 
   // Remove shared entity
@@ -144,7 +147,7 @@ export function MessageComposer({
     }
     if (isTyping && typingEnabled) {
       setIsTyping(false);
-      sendTyping(false, displayName);
+      void sendTyping(false, displayName);
     }
 
     try {
@@ -233,11 +236,11 @@ export function MessageComposer({
           ...e2eeFields,
           attachments: uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
           entityAttachment: sharedEntity ? {
-            type: sharedEntity.type,
+            type: sharedEntity.type as "property" | "contact" | "document" | "request",
             id: sharedEntity.id,
+            friendlyId: sharedEntity.friendlyId,
             title: sharedEntity.title,
             subtitle: sharedEntity.subtitle,
-            metadata: sharedEntity.metadata,
           } : undefined,
         });
       }
@@ -305,7 +308,7 @@ export function MessageComposer({
     <div className="border-t p-4 bg-background">
       {/* Reply preview */}
       {replyTo && (
-        <div className="flex items-center gap-2 mb-3 p-2 bg-muted/50 border-l-2 border-primary rounded-r-lg">
+        <div className="flex items-center gap-2 mb-3 p-2 bg-primary/5 border border-primary/20 rounded-lg">
           <Reply className="h-4 w-4 text-primary flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-primary">

@@ -18,7 +18,7 @@ import { SocialFeedIcon } from "@/components/ui/SocialFeedIcon"
 import { UsersIcon } from "@/components/ui/UsersIcon"
 import { ShieldIcon } from "@/components/ui/ShieldIcon"
 import { MessageCircleIcon } from "@/components/ui/MessageCircleIcon"
-import { Target, Upload, BookOpen, Archive } from "lucide-react"
+import { Target, Upload, BookOpen } from "lucide-react"
 import { type ModuleId } from "@/lib/permissions/types"
 import { type ActionPermission } from "@/lib/permissions/action-permissions"
 import { isRouteActive } from "@/lib/navigation/route-utils"
@@ -301,20 +301,14 @@ export function getNavigationConfig({
   ]
 
   // Archive - soft-deleted records, OWNER-only
-  const archiveItems: NavItem[] = canAction("archive:view") ? [{
-    title: dict.navigation.ModuleMenu.archive || "Archive",
-    url: "/app/archive",
-    icon: Archive,
-    isActive: isRouteActive(pathname, "/app/archive", locale),
-    items: [
-      { title: dict.navigation.ModuleMenu.mls?.title || "Properties", url: "/app/archive/properties", badge: archiveCounts?.properties != null ? String(archiveCounts.properties) : undefined },
-      { title: dict.navigation.ModuleMenu.crm?.title || "Contacts", url: "/app/archive/contacts", badge: archiveCounts?.contacts != null ? String(archiveCounts.contacts) : undefined },
-      { title: dict.navigation.ModuleMenu.requests?.title || "Requests", url: "/app/archive/requests", badge: archiveCounts?.requests != null ? String(archiveCounts.requests) : undefined },
-      { title: dict.navigation.ModuleMenu.deals?.title || "Deals", url: "/app/archive/deals", badge: archiveCounts?.deals != null ? String(archiveCounts.deals) : undefined },
-      { title: dict.navigation.ModuleMenu.documents || "Documents", url: "/app/archive/documents", badge: archiveCounts?.documents != null ? String(archiveCounts.documents) : undefined },
-      { title: dict.navigation.ModuleMenu.calendar || "Events", url: "/app/archive/events", badge: archiveCounts?.events != null ? String(archiveCounts.events) : undefined },
-    ],
-  }] : []
+  const archiveItems: NavItem[] = canAction("archive:view") ? [
+    { title: dict.navigation.ModuleMenu.mls?.title || "Properties", url: "/app/archive/properties", icon: HouseIcon, isActive: isRouteActive(pathname, "/app/archive/properties", locale), badge: archiveCounts?.properties != null ? String(archiveCounts.properties) : undefined },
+    { title: dict.navigation.ModuleMenu.crm?.title || "Contacts", url: "/app/archive/contacts", icon: ContactRoundIcon, isActive: isRouteActive(pathname, "/app/archive/contacts", locale), badge: archiveCounts?.contacts != null ? String(archiveCounts.contacts) : undefined },
+    { title: dict.navigation.ModuleMenu.requests?.title || "Requests", url: "/app/archive/requests", icon: ClipboardListIcon, isActive: isRouteActive(pathname, "/app/archive/requests", locale), badge: archiveCounts?.requests != null ? String(archiveCounts.requests) : undefined },
+    { title: dict.navigation.ModuleMenu.deals?.title || "Deals", url: "/app/archive/deals", icon: HandCoinsIcon, isActive: isRouteActive(pathname, "/app/archive/deals", locale), badge: archiveCounts?.deals != null ? String(archiveCounts.deals) : undefined },
+    { title: dict.navigation.ModuleMenu.documents || "Documents", url: "/app/archive/documents", icon: FileTextIcon, isActive: isRouteActive(pathname, "/app/archive/documents", locale), badge: archiveCounts?.documents != null ? String(archiveCounts.documents) : undefined },
+    { title: dict.navigation.ModuleMenu.calendar || "Events", url: "/app/archive/events", icon: CalendarIcon, isActive: isRouteActive(pathname, "/app/archive/events", locale), badge: archiveCounts?.events != null ? String(archiveCounts.events) : undefined },
+  ] : []
 
   // Filter out empty groups
   const navGroups: NavGroup[] = [

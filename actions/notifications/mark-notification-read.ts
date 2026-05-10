@@ -3,9 +3,7 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentOrgId, getCurrentUser } from "@/lib/get-current-user";
 import { requireAction } from "@/lib/permissions/action-guards";
-
-// System-level organization ID for platform admin notifications
-const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 
 export async function markNotificationRead(notificationId: string) {
   try {

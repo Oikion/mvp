@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -89,18 +89,19 @@ export function PropertyInquirySheet({
     },
   });
 
-  // Update form when user loads
-  if (isLoaded && user && !form.getValues("name")) {
-    form.setValue("name", user.fullName || "");
-    form.setValue("email", user.primaryEmailAddress?.emailAddress || "");
-  }
+  useEffect(() => {
+    if (isLoaded && user && !form.getValues("name")) {
+      form.setValue("name", user.fullName || "");
+      form.setValue("email", user.primaryEmailAddress?.emailAddress || "");
+    }
+  }, [isLoaded, user, form]);
 
   const onSubmit = async (data: InquiryFormData) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/agent/${agentUsername}/inquiry`, {
+      const response = await fetch(`/api/agent/${agentUsername}/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -160,7 +161,7 @@ export function PropertyInquirySheet({
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6" noValidate>
               {/* Contact Information */}
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-foreground">

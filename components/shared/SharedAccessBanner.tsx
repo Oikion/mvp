@@ -20,7 +20,7 @@ interface ShareInfo {
 
 interface SharedAccessBannerProps {
   shareInfo: ShareInfo;
-  entityType: "property" | "contact";
+  entityType: "property" | "contact" | "request";
 }
 
 export function SharedAccessBanner({ shareInfo, entityType: _entityType }: SharedAccessBannerProps) {
@@ -63,7 +63,7 @@ export function SharedAccessBanner({ shareInfo, entityType: _entityType }: Share
               {formatDistanceToNow(new Date(shareInfo.sharedAt), { addSuffix: true })}
             </span>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarImage src={shareInfo.sharedBy?.avatar || ""} />
@@ -89,4 +89,3 @@ export function SharedAccessBanner({ shareInfo, entityType: _entityType }: Share
     </Card>
   );
 }
-

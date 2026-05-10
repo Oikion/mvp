@@ -11,12 +11,10 @@ import AccountWarning from "@/emails/admin/AccountWarning";
 import AccountSuspension from "@/emails/admin/AccountSuspension";
 import AccountDeletion from "@/emails/admin/AccountDeletion";
 import { EMAIL_CONFIG } from "@/lib/resend-segments";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 
 // Initialize Resend if available
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
-// System-level organization ID for platform admin notifications
-const SYSTEM_ORG_ID = "00000000-0000-0000-0000-000000000000";
 
 // Validation schemas
 const orgActionSchema = z.object({

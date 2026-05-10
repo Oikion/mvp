@@ -88,7 +88,7 @@ export interface SocialNotificationPayload {
  * Entity sharing notification payload
  */
 export interface SharingNotificationPayload {
-  entityType: "PROPERTY" | "CONTACT" | "DOCUMENT";
+  entityType: "PROPERTY" | "CONTACT" | "DOCUMENT" | "REQUEST";
   entityId: string;
   entityName: string;
   sharedById: string;
@@ -162,6 +162,16 @@ export interface TaskNotificationPayload {
   actorName: string;
   recipientId: string;
   organizationId: string;
+}
+
+export interface EntityAccessRequestPayload {
+  entityType: "PROPERTY" | "CONTACT" | "DOCUMENT" | "REQUEST";
+  entityId: string;
+  entityName: string;
+  requesterId: string;
+  requesterName: string;
+  ownerId: string;
+  ownerOrganizationId: string;
 }
 
 

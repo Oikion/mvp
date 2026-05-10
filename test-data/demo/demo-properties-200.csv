@@ -1,0 +1,201 @@
+property_name,property_type,transaction_type,price,size_net_sqm,bedrooms,bathrooms,floor,area,address_city,heating_type,condition,year_built,energy_cert_class,elevator,inside_city_plan,parking,garden
+Apartment Γλυφάδα #001,APARTMENT,SALE,260000,88,2,1,1,Γλυφάδα,Αθήνα,AUTONOMOUS,EXCELLENT,2002,B,false,true,false,false
+Apartment Γλυφάδα #002,APARTMENT,SALE,295000,105,3,2,5,Γλυφάδα,Αθήνα,HEAT_PUMP,EXCELLENT,2016,B,true,true,false,false
+Apartment Βούλα #003,APARTMENT,SALE,230000,82,2,1,2,Βούλα,Αθήνα,NATURAL_GAS,EXCELLENT,2003,C,false,true,false,false
+Apartment Βούλα #004,APARTMENT,SALE,275000,98,3,2,3,Βούλα,Αθήνα,AUTONOMOUS,EXCELLENT,1995,A,true,true,true,false
+House Βουλιαγμένη #005,HOUSE,SALE,520000,185,4,2,0,Βουλιαγμένη,Αθήνα,NATURAL_GAS,GOOD,1999,C,false,true,true,true
+Apartment Κολωνάκι #006,APARTMENT,SALE,420000,100,2,1,5,Κολωνάκι,Αθήνα,HEAT_PUMP,EXCELLENT,1996,C,true,true,false,false
+Apartment Κολωνάκι #007,APARTMENT,SALE,580000,145,3,2,6,Κολωνάκι,Αθήνα,NATURAL_GAS,EXCELLENT,2006,B,true,true,false,false
+Apartment Παγκράτι #008,APARTMENT,SALE,145000,52,1,1,1,Παγκράτι,Αθήνα,AUTONOMOUS,EXCELLENT,2008,A,false,true,false,false
+Apartment Παγκράτι #009,APARTMENT,SALE,195000,75,2,1,6,Παγκράτι,Αθήνα,HEAT_PUMP,VERY_GOOD,1997,B,true,true,true,false
+Apartment Κουκάκι #010,APARTMENT,SALE,165000,58,1,1,1,Κουκάκι,Αθήνα,HEAT_PUMP,EXCELLENT,2000,A,false,true,false,false
+Apartment Κουκάκι #011,APARTMENT,SALE,220000,82,2,1,3,Κουκάκι,Αθήνα,NATURAL_GAS,VERY_GOOD,1995,C,true,true,false,false
+Apartment Κηφισιά #012,APARTMENT,SALE,285000,110,3,2,3,Κηφισιά,Αθήνα,NATURAL_GAS,EXCELLENT,2015,A,true,true,false,false
+House Κηφισιά #013,HOUSE,SALE,480000,195,4,2,0,Κηφισιά,Αθήνα,HEAT_PUMP,VERY_GOOD,2020,B,false,true,false,true
+Apartment Χαλάνδρι #014,APARTMENT,SALE,175000,78,2,1,6,Χαλάνδρι,Αθήνα,AUTONOMOUS,EXCELLENT,1993,A,true,true,true,false
+Apartment Χαλάνδρι #015,APARTMENT,SALE,215000,95,3,2,1,Χαλάνδρι,Αθήνα,NATURAL_GAS,VERY_GOOD,2018,C,false,true,true,false
+Apartment Νέα Σμύρνη #016,APARTMENT,SALE,155000,72,2,1,5,Νέα Σμύρνη,Αθήνα,HEAT_PUMP,VERY_GOOD,1991,B,true,true,true,false
+Apartment Νέα Σμύρνη #017,APARTMENT,SALE,185000,90,3,2,4,Νέα Σμύρνη,Αθήνα,NATURAL_GAS,VERY_GOOD,2018,A,true,true,true,false
+Apartment Παλαιό Φάληρο #018,APARTMENT,SALE,195000,85,2,1,1,Παλαιό Φάληρο,Αθήνα,NATURAL_GAS,VERY_GOOD,1990,C,false,true,true,false
+Maisonette Παλαιό Φάληρο #019,MAISONETTE,SALE,310000,130,3,2,0,Παλαιό Φάληρο,Αθήνα,HEAT_PUMP,GOOD,2023,B,false,true,true,true
+Apartment Αγία Παρασκευή #020,APARTMENT,SALE,175000,80,2,1,4,Αγία Παρασκευή,Αθήνα,AUTONOMOUS,GOOD,2020,C,true,true,false,false
+Apartment Κολωνάκι #021,APARTMENT,RENTAL,1400,80,2,1,6,Κολωνάκι,Αθήνα,NATURAL_GAS,GOOD,1999,C,true,true,true,false
+Apartment Παγκράτι #022,APARTMENT,RENTAL,800,50,1,1,1,Παγκράτι,Αθήνα,HEAT_PUMP,GOOD,2020,A,false,true,false,false
+Apartment Παγκράτι #023,APARTMENT,RENTAL,950,68,2,1,2,Παγκράτι,Αθήνα,NATURAL_GAS,EXCELLENT,2005,B,false,true,false,false
+Apartment Κουκάκι #024,APARTMENT,RENTAL,850,55,1,1,3,Κουκάκι,Αθήνα,AUTONOMOUS,EXCELLENT,2014,C,true,true,false,false
+Apartment Κουκάκι #025,APARTMENT,RENTAL,1050,70,2,1,2,Κουκάκι,Αθήνα,NATURAL_GAS,EXCELLENT,2018,B,false,true,true,false
+Apartment Χαλάνδρι #026,APARTMENT,RENTAL,750,48,1,1,4,Χαλάνδρι,Αθήνα,AUTONOMOUS,VERY_GOOD,2021,B,true,true,true,false
+Apartment Χαλάνδρι #027,APARTMENT,RENTAL,900,65,2,1,1,Χαλάνδρι,Αθήνα,AUTONOMOUS,VERY_GOOD,1990,B,false,true,true,false
+Apartment Νέα Σμύρνη #028,APARTMENT,RENTAL,780,52,1,1,5,Νέα Σμύρνη,Αθήνα,NATURAL_GAS,GOOD,2022,C,true,true,true,false
+Apartment Γλυφάδα #029,APARTMENT,RENTAL,950,70,2,1,6,Γλυφάδα,Αθήνα,NATURAL_GAS,GOOD,2013,B,true,true,true,false
+Apartment Μαρούσι #030,APARTMENT,RENTAL,700,45,1,1,2,Μαρούσι,Αθήνα,HEAT_PUMP,VERY_GOOD,2020,B,false,true,false,false
+Maisonette Ηλιούπολη #031,MAISONETTE,SALE,135542,148,5,2,0,Ηλιούπολη,Αθήνα,CENTRAL,GOOD,2005,B,false,false,false,true
+Apartment Ηλιούπολη #032,APARTMENT,SALE,153032,106,3,1,6,Ηλιούπολη,Αθήνα,NATURAL_GAS,EXCELLENT,1982,B,true,true,false,false
+Maisonette Νέα Ερυθραία #033,MAISONETTE,SALE,397174,247,0,1,0,Νέα Ερυθραία,Αθήνα,HEAT_PUMP,FAIR,1999,A+,false,false,true,true
+Apartment Παγκράτι #034,APARTMENT,RENTAL,2007,256,0,1,7,Παγκράτι,Αθήνα,NATURAL_GAS,FAIR,2016,A,true,true,true,false
+Land Μαρούσι #035,LAND,RENTAL,1741,293,2,1,6,Μαρούσι,Αθήνα,NATURAL_GAS,GOOD,1987,C,true,true,false,false
+Maisonette Γλυφάδα #036,MAISONETTE,SALE,252446,297,3,1,4,Γλυφάδα,Αθήνα,NATURAL_GAS,FAIR,1982,B,true,true,false,true
+House Ελληνικό #037,HOUSE,RENTAL,771,126,5,2,8,Ελληνικό,Αθήνα,CENTRAL,FAIR,2015,D,true,true,false,true
+Maisonette Πετράλωνα #038,MAISONETTE,RENTAL,1668,248,5,2,8,Πετράλωνα,Αθήνα,AUTONOMOUS,GOOD,2003,C,true,true,true,true
+Apartment Μαρούσι #039,APARTMENT,SALE,325703,137,0,1,4,Μαρούσι,Αθήνα,CENTRAL,VERY_GOOD,1979,B,true,true,false,false
+Office Νέα Ερυθραία #040,OFFICE,RENTAL,566,266,2,1,1,Νέα Ερυθραία,Αθήνα,NATURAL_GAS,FAIR,2017,D,false,false,false,false
+Studio Βουλιαγμένη #041,STUDIO,RENTAL,1089,59,5,2,6,Βουλιαγμένη,Αθήνα,CENTRAL,GOOD,2005,C,true,true,true,false
+House Ζωγράφου #042,HOUSE,SALE,181338,150,3,1,5,Ζωγράφου,Αθήνα,NATURAL_GAS,FAIR,2019,C,true,false,true,true
+Maisonette Γλυφάδα #043,MAISONETTE,SALE,219043,123,1,1,8,Γλυφάδα,Αθήνα,AUTONOMOUS,EXCELLENT,1997,C,true,true,false,true
+Apartment Κηφισιά #044,APARTMENT,RENTAL,2232,37,2,1,5,Κηφισιά,Αθήνα,NATURAL_GAS,GOOD,1972,D,true,true,false,false
+Apartment Άλιμος #045,APARTMENT,RENTAL,1760,189,5,2,7,Άλιμος,Αθήνα,CENTRAL,FAIR,1974,C,true,false,false,false
+Apartment Κουκάκι #046,APARTMENT,SALE,276473,293,0,1,2,Κουκάκι,Αθήνα,HEAT_PUMP,GOOD,1975,C,false,true,true,false
+Land Νέα Ερυθραία #047,LAND,SALE,393574,185,2,1,3,Νέα Ερυθραία,Αθήνα,HEAT_PUMP,FAIR,2005,C,true,false,true,false
+Land Νέο Ψυχικό #048,LAND,SALE,493657,159,1,1,0,Νέο Ψυχικό,Αθήνα,AUTONOMOUS,GOOD,1994,C,false,true,false,false
+Studio Κολωνάκι #049,STUDIO,SALE,889292,263,4,2,7,Κολωνάκι,Αθήνα,NATURAL_GAS,EXCELLENT,1990,B,true,false,true,false
+Apartment Νέο Ψυχικό #050,APARTMENT,RENTAL,1592,68,0,1,3,Νέο Ψυχικό,Αθήνα,HEAT_PUMP,VERY_GOOD,2023,D,true,true,true,false
+Office Πετράλωνα #051,OFFICE,RENTAL,2299,257,5,2,1,Πετράλωνα,Αθήνα,HEAT_PUMP,VERY_GOOD,2015,A+,false,true,true,false
+Apartment Ψυχικό #052,APARTMENT,SALE,373319,71,2,1,3,Ψυχικό,Αθήνα,HEAT_PUMP,GOOD,1998,C,true,false,false,false
+House Νέα Σμύρνη #053,HOUSE,SALE,242105,95,5,2,8,Νέα Σμύρνη,Αθήνα,AUTONOMOUS,EXCELLENT,2018,D,true,false,true,true
+Office Ηλιούπολη #054,OFFICE,SALE,203768,89,4,2,4,Ηλιούπολη,Αθήνα,AUTONOMOUS,GOOD,1988,C,true,true,false,false
+Office Μαρούσι #055,OFFICE,RENTAL,563,115,3,1,8,Μαρούσι,Αθήνα,HEAT_PUMP,VERY_GOOD,2020,A,true,false,false,false
+Apartment Αργυρούπολη #056,APARTMENT,SALE,227813,107,0,1,1,Αργυρούπολη,Αθήνα,HEAT_PUMP,EXCELLENT,2004,A+,false,false,true,false
+Apartment Γλυφάδα #057,APARTMENT,RENTAL,2018,211,5,2,3,Γλυφάδα,Αθήνα,NATURAL_GAS,GOOD,1980,D,true,true,true,false
+Office Άλιμος #058,OFFICE,SALE,180941,127,0,1,0,Άλιμος,Αθήνα,AUTONOMOUS,FAIR,1988,C,false,false,true,false
+Apartment Βούλα #059,APARTMENT,SALE,524399,204,3,1,5,Βούλα,Αθήνα,NATURAL_GAS,VERY_GOOD,1976,D,true,true,true,false
+House Νέα Ερυθραία #060,HOUSE,SALE,456268,191,2,1,2,Νέα Ερυθραία,Αθήνα,CENTRAL,FAIR,2021,C,false,true,false,true
+Apartment Εκάλη #061,APARTMENT,SALE,658133,258,1,1,4,Εκάλη,Αθήνα,CENTRAL,GOOD,2000,A,true,true,false,false
+Office Αγία Παρασκευή #062,OFFICE,SALE,282656,90,4,2,2,Αγία Παρασκευή,Αθήνα,CENTRAL,FAIR,2022,A+,false,true,true,false
+Land Βούλα #063,LAND,RENTAL,656,73,5,2,0,Βούλα,Αθήνα,AUTONOMOUS,FAIR,2022,D,false,false,false,false
+Studio Βύρωνας #064,STUDIO,SALE,213791,168,0,1,8,Βύρωνας,Αθήνα,NATURAL_GAS,FAIR,1993,C,true,true,true,false
+Studio Βύρωνας #065,STUDIO,RENTAL,2255,103,2,1,7,Βύρωνας,Αθήνα,AUTONOMOUS,FAIR,1995,C,true,true,true,false
+Apartment Ελληνικό #066,APARTMENT,RENTAL,1901,298,1,1,2,Ελληνικό,Αθήνα,NATURAL_GAS,GOOD,2006,A,false,false,true,false
+Land Ζωγράφου #067,LAND,SALE,223099,55,2,1,3,Ζωγράφου,Αθήνα,AUTONOMOUS,GOOD,1986,A,true,true,true,false
+Land Φιλοθέη #068,LAND,SALE,571521,233,2,1,7,Φιλοθέη,Αθήνα,AUTONOMOUS,GOOD,2011,A+,true,true,true,false
+Studio Ηλιούπολη #069,STUDIO,RENTAL,2199,169,2,1,8,Ηλιούπολη,Αθήνα,HEAT_PUMP,FAIR,2011,A,true,true,false,false
+Land Καλλιθέα #070,LAND,SALE,167720,227,2,1,3,Καλλιθέα,Αθήνα,CENTRAL,FAIR,2022,C,true,true,false,false
+Maisonette Γαλάτσι #071,MAISONETTE,RENTAL,513,106,4,2,7,Γαλάτσι,Αθήνα,AUTONOMOUS,VERY_GOOD,2002,A,true,false,false,true
+Apartment Νέα Ερυθραία #072,APARTMENT,SALE,302500,95,2,1,3,Νέα Ερυθραία,Αθήνα,AUTONOMOUS,GOOD,2000,B,true,false,false,false
+Apartment Παγκράτι #073,APARTMENT,RENTAL,830,245,5,2,0,Παγκράτι,Αθήνα,NATURAL_GAS,VERY_GOOD,2006,A+,false,false,true,false
+Land Κηφισιά #074,LAND,RENTAL,580,110,4,2,0,Κηφισιά,Αθήνα,NATURAL_GAS,VERY_GOOD,2003,B,false,true,true,false
+Land Ζωγράφου #075,LAND,RENTAL,2182,78,2,1,3,Ζωγράφου,Αθήνα,HEAT_PUMP,GOOD,2000,C,true,true,true,false
+Maisonette Μοσχάτο #076,MAISONETTE,RENTAL,792,128,4,2,8,Μοσχάτο,Αθήνα,CENTRAL,GOOD,1999,A,true,false,true,true
+Maisonette Βουλιαγμένη #077,MAISONETTE,SALE,538635,43,0,1,3,Βουλιαγμένη,Αθήνα,HEAT_PUMP,FAIR,2022,C,true,true,true,true
+Maisonette Εκάλη #078,MAISONETTE,RENTAL,1728,292,0,1,1,Εκάλη,Αθήνα,NATURAL_GAS,EXCELLENT,2008,C,false,false,true,true
+Land Βύρωνας #079,LAND,RENTAL,1383,250,4,2,5,Βύρωνας,Αθήνα,HEAT_PUMP,EXCELLENT,1984,D,true,true,false,false
+Studio Αγία Παρασκευή #080,STUDIO,RENTAL,2359,85,5,2,6,Αγία Παρασκευή,Αθήνα,HEAT_PUMP,VERY_GOOD,2019,B,true,true,true,false
+Studio Γλυφάδα #081,STUDIO,RENTAL,1336,131,2,1,0,Γλυφάδα,Αθήνα,AUTONOMOUS,EXCELLENT,2003,C,false,true,false,false
+Apartment Αργυρούπολη #082,APARTMENT,RENTAL,2147,244,2,1,5,Αργυρούπολη,Αθήνα,HEAT_PUMP,EXCELLENT,2011,A,true,false,false,false
+Office Βούλα #083,OFFICE,RENTAL,1367,222,4,2,4,Βούλα,Αθήνα,HEAT_PUMP,GOOD,2005,A,true,false,false,false
+House Εκάλη #084,HOUSE,RENTAL,1636,164,3,1,4,Εκάλη,Αθήνα,HEAT_PUMP,FAIR,2017,B,true,true,true,true
+Apartment Ζωγράφου #085,APARTMENT,SALE,202643,117,5,2,1,Ζωγράφου,Αθήνα,HEAT_PUMP,VERY_GOOD,2020,C,false,true,true,false
+Maisonette Εκάλη #086,MAISONETTE,RENTAL,510,109,0,1,7,Εκάλη,Αθήνα,AUTONOMOUS,FAIR,1974,C,true,true,true,true
+Apartment Αγία Παρασκευή #087,APARTMENT,RENTAL,577,231,5,2,6,Αγία Παρασκευή,Αθήνα,CENTRAL,FAIR,2015,D,true,false,true,false
+Office Βύρωνας #088,OFFICE,SALE,178924,259,3,1,0,Βύρωνας,Αθήνα,CENTRAL,VERY_GOOD,1982,D,false,true,true,false
+Apartment Άλιμος #089,APARTMENT,RENTAL,573,157,2,1,0,Άλιμος,Αθήνα,CENTRAL,VERY_GOOD,2019,A+,false,true,false,false
+Maisonette Ελληνικό #090,MAISONETTE,SALE,293637,300,1,1,0,Ελληνικό,Αθήνα,CENTRAL,EXCELLENT,2016,A+,false,false,false,true
+Office Αγία Παρασκευή #091,OFFICE,SALE,214322,134,4,2,7,Αγία Παρασκευή,Αθήνα,AUTONOMOUS,GOOD,1986,C,true,true,false,false
+Apartment Κουκάκι #092,APARTMENT,RENTAL,648,185,4,2,5,Κουκάκι,Αθήνα,CENTRAL,EXCELLENT,2004,C,true,false,false,false
+Maisonette Ηλιούπολη #093,MAISONETTE,SALE,257631,159,3,1,5,Ηλιούπολη,Αθήνα,HEAT_PUMP,GOOD,2007,D,true,true,false,true
+House Νέο Ψυχικό #094,HOUSE,SALE,460630,147,5,2,3,Νέο Ψυχικό,Αθήνα,CENTRAL,GOOD,2003,C,true,false,true,true
+Office Ηλιούπολη #095,OFFICE,SALE,175079,82,2,1,6,Ηλιούπολη,Αθήνα,NATURAL_GAS,GOOD,2000,A+,true,true,false,false
+Studio Νέα Ερυθραία #096,STUDIO,SALE,315831,132,5,2,7,Νέα Ερυθραία,Αθήνα,NATURAL_GAS,VERY_GOOD,1986,A,true,true,true,false
+Office Νέα Ερυθραία #097,OFFICE,SALE,406660,89,1,1,1,Νέα Ερυθραία,Αθήνα,HEAT_PUMP,EXCELLENT,2009,D,false,true,true,false
+House Παγκράτι #098,HOUSE,RENTAL,1145,175,3,1,7,Παγκράτι,Αθήνα,CENTRAL,VERY_GOOD,1995,C,true,true,true,true
+Studio Φιλοθέη #099,STUDIO,SALE,550777,51,4,2,8,Φιλοθέη,Αθήνα,NATURAL_GAS,GOOD,1999,C,true,true,false,false
+Land Χαλάνδρι #100,LAND,SALE,163098,142,5,2,6,Χαλάνδρι,Αθήνα,CENTRAL,FAIR,1993,A+,true,false,false,false
+Studio Εκάλη #101,STUDIO,SALE,648658,276,2,1,5,Εκάλη,Αθήνα,HEAT_PUMP,GOOD,1997,A,true,true,false,false
+Office Ηλιούπολη #102,OFFICE,SALE,205703,178,3,1,7,Ηλιούπολη,Αθήνα,NATURAL_GAS,VERY_GOOD,2006,C,true,false,true,false
+Apartment Μοσχάτο #103,APARTMENT,RENTAL,1052,256,1,1,6,Μοσχάτο,Αθήνα,NATURAL_GAS,VERY_GOOD,2000,A,true,true,true,false
+Maisonette Νέα Σμύρνη #104,MAISONETTE,SALE,305321,196,4,2,7,Νέα Σμύρνη,Αθήνα,AUTONOMOUS,GOOD,1995,B,true,true,true,true
+Apartment Φιλοθέη #105,APARTMENT,SALE,549843,84,5,2,7,Φιλοθέη,Αθήνα,CENTRAL,GOOD,1993,B,true,false,false,false
+Apartment Αγία Παρασκευή #106,APARTMENT,SALE,186781,136,2,1,8,Αγία Παρασκευή,Αθήνα,CENTRAL,VERY_GOOD,1990,B,true,false,false,false
+Land Βύρωνας #107,LAND,SALE,211605,230,0,1,4,Βύρωνας,Αθήνα,NATURAL_GAS,GOOD,1980,D,true,false,false,false
+Land Νέα Σμύρνη #108,LAND,RENTAL,1670,71,3,1,1,Νέα Σμύρνη,Αθήνα,NATURAL_GAS,VERY_GOOD,1990,B,false,true,false,false
+House Ηλιούπολη #109,HOUSE,RENTAL,1820,173,3,1,7,Ηλιούπολη,Αθήνα,HEAT_PUMP,GOOD,1996,D,true,true,true,true
+Apartment Κολωνάκι #110,APARTMENT,RENTAL,980,163,5,2,1,Κολωνάκι,Αθήνα,HEAT_PUMP,VERY_GOOD,1976,A,false,true,true,false
+Studio Παγκράτι #111,STUDIO,SALE,136911,77,3,1,1,Παγκράτι,Αθήνα,NATURAL_GAS,GOOD,1975,C,false,false,false,false
+Apartment Γλυφάδα #112,APARTMENT,SALE,328989,99,3,1,2,Γλυφάδα,Αθήνα,AUTONOMOUS,FAIR,1972,A,false,false,false,false
+Office Χαλάνδρι #113,OFFICE,SALE,282471,174,4,2,8,Χαλάνδρι,Αθήνα,NATURAL_GAS,GOOD,2007,A,true,false,false,false
+Land Αργυρούπολη #114,LAND,RENTAL,2296,257,4,2,8,Αργυρούπολη,Αθήνα,CENTRAL,FAIR,2000,B,true,false,true,false
+Apartment Γαλάτσι #115,APARTMENT,SALE,130352,246,2,1,4,Γαλάτσι,Αθήνα,AUTONOMOUS,VERY_GOOD,1970,B,true,false,true,false
+House Αγία Παρασκευή #116,HOUSE,SALE,295272,286,0,1,7,Αγία Παρασκευή,Αθήνα,HEAT_PUMP,GOOD,2021,A+,true,true,true,true
+Apartment Γαλάτσι #117,APARTMENT,RENTAL,1265,245,1,1,8,Γαλάτσι,Αθήνα,NATURAL_GAS,GOOD,1980,C,true,false,false,false
+Maisonette Μοσχάτο #118,MAISONETTE,SALE,134469,251,0,1,3,Μοσχάτο,Αθήνα,CENTRAL,FAIR,1988,C,true,false,false,true
+Apartment Νέα Σμύρνη #119,APARTMENT,SALE,187816,183,1,1,1,Νέα Σμύρνη,Αθήνα,HEAT_PUMP,GOOD,1987,C,false,false,false,false
+House Νέα Ερυθραία #120,HOUSE,SALE,299770,46,0,1,2,Νέα Ερυθραία,Αθήνα,CENTRAL,EXCELLENT,1978,B,false,false,false,true
+Apartment Ζωγράφου #121,APARTMENT,SALE,111822,42,1,1,7,Ζωγράφου,Αθήνα,HEAT_PUMP,VERY_GOOD,1989,B,true,true,false,false
+Land Παλαιό Φάληρο #122,LAND,SALE,246572,109,0,1,0,Παλαιό Φάληρο,Αθήνα,AUTONOMOUS,GOOD,2004,C,false,true,true,false
+Office Νέα Ερυθραία #123,OFFICE,SALE,420056,97,0,1,3,Νέα Ερυθραία,Αθήνα,NATURAL_GAS,GOOD,2017,C,true,true,true,false
+Land Παλαιό Φάληρο #124,LAND,SALE,296613,141,5,2,7,Παλαιό Φάληρο,Αθήνα,CENTRAL,GOOD,1990,D,true,true,true,false
+Studio Ζωγράφου #125,STUDIO,RENTAL,750,281,2,1,4,Ζωγράφου,Αθήνα,AUTONOMOUS,VERY_GOOD,2012,B,true,true,true,false
+Land Βουλιαγμένη #126,LAND,SALE,740277,120,0,1,4,Βουλιαγμένη,Αθήνα,HEAT_PUMP,FAIR,2020,A+,true,true,true,false
+Studio Φιλοθέη #127,STUDIO,RENTAL,1473,114,5,2,5,Φιλοθέη,Αθήνα,NATURAL_GAS,EXCELLENT,2001,A,true,true,false,false
+Land Βύρωνας #128,LAND,SALE,102834,113,2,1,8,Βύρωνας,Αθήνα,HEAT_PUMP,EXCELLENT,1984,A,true,true,false,false
+Maisonette Γαλάτσι #129,MAISONETTE,RENTAL,895,228,0,1,5,Γαλάτσι,Αθήνα,AUTONOMOUS,VERY_GOOD,2001,B,true,false,false,true
+House Πετράλωνα #130,HOUSE,RENTAL,1927,132,3,1,2,Πετράλωνα,Αθήνα,CENTRAL,FAIR,2016,B,false,true,false,true
+Studio Μοσχάτο #131,STUDIO,RENTAL,828,114,0,1,7,Μοσχάτο,Αθήνα,CENTRAL,GOOD,1999,B,true,true,false,false
+Apartment Ζωγράφου #132,APARTMENT,SALE,181229,157,2,1,5,Ζωγράφου,Αθήνα,HEAT_PUMP,EXCELLENT,1982,D,true,false,false,false
+Studio Βύρωνας #133,STUDIO,SALE,175352,200,2,1,6,Βύρωνας,Αθήνα,AUTONOMOUS,GOOD,2003,A+,true,false,true,false
+Office Φιλοθέη #134,OFFICE,SALE,393658,138,0,1,1,Φιλοθέη,Αθήνα,AUTONOMOUS,GOOD,1972,A,false,false,false,false
+Maisonette Ελληνικό #135,MAISONETTE,RENTAL,1777,166,5,2,0,Ελληνικό,Αθήνα,AUTONOMOUS,GOOD,1970,A,false,true,false,true
+Apartment Μοσχάτο #136,APARTMENT,SALE,204991,66,5,2,5,Μοσχάτο,Αθήνα,HEAT_PUMP,FAIR,2022,D,true,true,true,false
+Studio Μοσχάτο #137,STUDIO,SALE,169339,71,0,1,4,Μοσχάτο,Αθήνα,AUTONOMOUS,EXCELLENT,1976,A,true,false,true,false
+Maisonette Πετράλωνα #138,MAISONETTE,SALE,170625,162,4,2,2,Πετράλωνα,Αθήνα,HEAT_PUMP,FAIR,2017,D,false,true,false,true
+Maisonette Ελληνικό #139,MAISONETTE,RENTAL,1862,88,3,1,2,Ελληνικό,Αθήνα,HEAT_PUMP,VERY_GOOD,2002,C,false,true,true,true
+Studio Πετράλωνα #140,STUDIO,SALE,212359,201,2,1,5,Πετράλωνα,Αθήνα,HEAT_PUMP,GOOD,2022,D,true,false,false,false
+Apartment Άλιμος #141,APARTMENT,RENTAL,1617,227,1,1,8,Άλιμος,Αθήνα,HEAT_PUMP,GOOD,1998,B,true,true,true,false
+Apartment Ζωγράφου #142,APARTMENT,SALE,178087,300,0,1,2,Ζωγράφου,Αθήνα,CENTRAL,GOOD,1984,A+,false,true,false,false
+Office Κολωνάκι #143,OFFICE,RENTAL,2184,296,2,1,8,Κολωνάκι,Αθήνα,NATURAL_GAS,FAIR,1976,C,true,true,false,false
+Apartment Αγία Παρασκευή #144,APARTMENT,SALE,224465,162,2,1,3,Αγία Παρασκευή,Αθήνα,AUTONOMOUS,GOOD,2006,B,true,true,true,false
+Apartment Ζωγράφου #145,APARTMENT,RENTAL,1164,123,3,1,7,Ζωγράφου,Αθήνα,CENTRAL,FAIR,1972,A+,true,false,false,false
+Office Ψυχικό #146,OFFICE,SALE,455316,257,2,1,6,Ψυχικό,Αθήνα,AUTONOMOUS,EXCELLENT,2010,A,true,false,false,false
+House Φιλοθέη #147,HOUSE,RENTAL,584,111,2,1,5,Φιλοθέη,Αθήνα,NATURAL_GAS,FAIR,1979,D,true,true,false,true
+Office Παλαιό Φάληρο #148,OFFICE,RENTAL,1678,81,4,2,3,Παλαιό Φάληρο,Αθήνα,HEAT_PUMP,GOOD,1979,B,true,true,false,false
+Maisonette Ψυχικό #149,MAISONETTE,RENTAL,2026,239,0,1,4,Ψυχικό,Αθήνα,HEAT_PUMP,EXCELLENT,2019,C,true,false,true,true
+Apartment Βύρωνας #150,APARTMENT,SALE,168308,284,1,1,6,Βύρωνας,Αθήνα,NATURAL_GAS,FAIR,1985,A,true,true,false,false
+Maisonette Βύρωνας #151,MAISONETTE,SALE,184749,80,4,2,1,Βύρωνας,Αθήνα,CENTRAL,GOOD,1992,C,false,true,false,true
+Studio Αγία Παρασκευή #152,STUDIO,RENTAL,549,121,2,1,5,Αγία Παρασκευή,Αθήνα,NATURAL_GAS,FAIR,1998,C,true,true,true,false
+Land Νέα Ερυθραία #153,LAND,SALE,301784,78,5,2,1,Νέα Ερυθραία,Αθήνα,NATURAL_GAS,EXCELLENT,2023,A,false,true,true,false
+Land Χαλάνδρι #154,LAND,SALE,239984,276,3,1,0,Χαλάνδρι,Αθήνα,NATURAL_GAS,GOOD,1983,A,false,false,false,false
+Maisonette Πετράλωνα #155,MAISONETTE,RENTAL,1994,44,1,1,6,Πετράλωνα,Αθήνα,AUTONOMOUS,FAIR,1986,D,true,true,true,true
+Apartment Γλυφάδα #156,APARTMENT,RENTAL,1765,62,2,1,7,Γλυφάδα,Αθήνα,HEAT_PUMP,EXCELLENT,2012,A+,true,true,false,false
+Apartment Νέο Ψυχικό #157,APARTMENT,SALE,462649,229,1,1,8,Νέο Ψυχικό,Αθήνα,HEAT_PUMP,EXCELLENT,2008,B,true,false,true,false
+Apartment Εκάλη #158,APARTMENT,RENTAL,2479,46,3,1,0,Εκάλη,Αθήνα,CENTRAL,VERY_GOOD,1991,C,false,true,false,false
+Apartment Ζωγράφου #159,APARTMENT,SALE,145453,215,5,2,5,Ζωγράφου,Αθήνα,CENTRAL,GOOD,2021,A,true,true,false,false
+Office Μαρούσι #160,OFFICE,SALE,295474,150,2,1,2,Μαρούσι,Αθήνα,NATURAL_GAS,GOOD,1975,C,false,false,false,false
+Land Κουκάκι #161,LAND,RENTAL,2287,151,5,2,6,Κουκάκι,Αθήνα,NATURAL_GAS,VERY_GOOD,1997,C,true,true,false,false
+Studio Παλαιό Φάληρο #162,STUDIO,SALE,214200,105,5,2,8,Παλαιό Φάληρο,Αθήνα,CENTRAL,VERY_GOOD,2014,A,true,false,true,false
+Office Νέα Σμύρνη #163,OFFICE,SALE,312027,115,4,2,5,Νέα Σμύρνη,Αθήνα,AUTONOMOUS,EXCELLENT,1981,C,true,true,true,false
+Apartment Ζωγράφου #164,APARTMENT,SALE,215360,245,3,1,4,Ζωγράφου,Αθήνα,CENTRAL,GOOD,1979,D,true,true,true,false
+Apartment Κηφισιά #165,APARTMENT,SALE,570854,171,4,2,3,Κηφισιά,Αθήνα,NATURAL_GAS,FAIR,2013,A,true,true,false,false
+Land Ψυχικό #166,LAND,SALE,350300,275,4,2,5,Ψυχικό,Αθήνα,HEAT_PUMP,VERY_GOOD,2000,C,true,true,true,false
+Apartment Νέα Ερυθραία #167,APARTMENT,SALE,434218,173,0,1,6,Νέα Ερυθραία,Αθήνα,NATURAL_GAS,VERY_GOOD,2018,D,true,true,true,false
+Maisonette Εκάλη #168,MAISONETTE,RENTAL,1503,201,5,2,7,Εκάλη,Αθήνα,HEAT_PUMP,VERY_GOOD,2019,C,true,true,false,true
+House Ζωγράφου #169,HOUSE,SALE,180151,54,5,2,8,Ζωγράφου,Αθήνα,HEAT_PUMP,EXCELLENT,2022,C,true,true,true,true
+Studio Κουκάκι #170,STUDIO,SALE,150289,233,4,2,8,Κουκάκι,Αθήνα,CENTRAL,EXCELLENT,1998,A,true,true,false,false
+Office Βύρωνας #171,OFFICE,SALE,155469,251,1,1,4,Βύρωνας,Αθήνα,NATURAL_GAS,FAIR,1999,A+,true,false,false,false
+Land Ψυχικό #172,LAND,RENTAL,731,104,1,1,6,Ψυχικό,Αθήνα,HEAT_PUMP,GOOD,1971,B,true,true,false,false
+Land Καλλιθέα #173,LAND,SALE,215677,81,3,1,4,Καλλιθέα,Αθήνα,NATURAL_GAS,GOOD,2015,D,true,false,true,false
+Apartment Ψυχικό #174,APARTMENT,RENTAL,1420,220,5,2,1,Ψυχικό,Αθήνα,HEAT_PUMP,FAIR,2016,D,false,false,true,false
+Studio Μαρούσι #175,STUDIO,SALE,161509,206,1,1,2,Μαρούσι,Αθήνα,NATURAL_GAS,VERY_GOOD,2019,A,false,false,true,false
+House Νέα Σμύρνη #176,HOUSE,SALE,256983,127,2,1,1,Νέα Σμύρνη,Αθήνα,AUTONOMOUS,VERY_GOOD,2009,A,false,true,true,true
+Maisonette Παλαιό Φάληρο #177,MAISONETTE,SALE,302475,287,0,1,3,Παλαιό Φάληρο,Αθήνα,HEAT_PUMP,VERY_GOOD,1999,C,true,true,false,true
+Studio Ψυχικό #178,STUDIO,RENTAL,513,177,1,1,8,Ψυχικό,Αθήνα,NATURAL_GAS,VERY_GOOD,1979,A+,true,true,false,false
+Apartment Φιλοθέη #179,APARTMENT,SALE,649698,187,4,2,5,Φιλοθέη,Αθήνα,AUTONOMOUS,EXCELLENT,1996,A+,true,true,true,false
+House Ελληνικό #180,HOUSE,RENTAL,1853,125,5,2,7,Ελληνικό,Αθήνα,AUTONOMOUS,FAIR,1975,B,true,true,false,true
+Maisonette Αγία Παρασκευή #181,MAISONETTE,SALE,353821,68,3,1,4,Αγία Παρασκευή,Αθήνα,AUTONOMOUS,GOOD,2014,A,true,true,false,true
+Maisonette Κουκάκι #182,MAISONETTE,RENTAL,929,142,5,2,0,Κουκάκι,Αθήνα,AUTONOMOUS,EXCELLENT,2000,C,false,false,false,true
+Studio Νέα Σμύρνη #183,STUDIO,SALE,208068,216,4,2,2,Νέα Σμύρνη,Αθήνα,HEAT_PUMP,FAIR,2003,C,false,false,false,false
+Office Παγκράτι #184,OFFICE,SALE,289752,183,1,1,3,Παγκράτι,Αθήνα,AUTONOMOUS,EXCELLENT,1999,A+,true,false,true,false
+Office Ζωγράφου #185,OFFICE,SALE,204800,247,4,2,6,Ζωγράφου,Αθήνα,CENTRAL,EXCELLENT,2005,B,true,false,true,false
+Land Κολωνάκι #186,LAND,SALE,645307,69,2,1,4,Κολωνάκι,Αθήνα,CENTRAL,GOOD,2019,C,true,true,true,false
+House Ελληνικό #187,HOUSE,SALE,243821,49,5,2,2,Ελληνικό,Αθήνα,CENTRAL,VERY_GOOD,2013,B,false,true,false,true
+Apartment Γαλάτσι #188,APARTMENT,RENTAL,778,114,3,1,7,Γαλάτσι,Αθήνα,HEAT_PUMP,FAIR,2020,B,true,true,true,false
+Studio Μοσχάτο #189,STUDIO,SALE,174048,196,5,2,8,Μοσχάτο,Αθήνα,NATURAL_GAS,FAIR,2006,A+,true,false,false,false
+Office Γαλάτσι #190,OFFICE,SALE,98678,178,1,1,0,Γαλάτσι,Αθήνα,NATURAL_GAS,GOOD,2006,C,false,false,false,false
+Studio Εκάλη #191,STUDIO,SALE,1188047,196,2,1,0,Εκάλη,Αθήνα,AUTONOMOUS,GOOD,2001,C,false,true,false,false
+Office Παλαιό Φάληρο #192,OFFICE,SALE,216659,189,4,2,2,Παλαιό Φάληρο,Αθήνα,AUTONOMOUS,EXCELLENT,2019,B,false,true,true,false
+Studio Παλαιό Φάληρο #193,STUDIO,SALE,369459,291,3,1,2,Παλαιό Φάληρο,Αθήνα,HEAT_PUMP,VERY_GOOD,2016,B,false,false,false,false
+House Βύρωνας #194,HOUSE,SALE,195857,299,0,1,2,Βύρωνας,Αθήνα,AUTONOMOUS,VERY_GOOD,1999,D,false,true,true,true
+House Κολωνάκι #195,HOUSE,SALE,441305,274,2,1,0,Κολωνάκι,Αθήνα,CENTRAL,EXCELLENT,1971,C,false,false,false,true
+Apartment Αργυρούπολη #196,APARTMENT,SALE,182574,181,1,1,4,Αργυρούπολη,Αθήνα,HEAT_PUMP,FAIR,2012,B,true,true,false,false
+Apartment Κηφισιά #197,APARTMENT,SALE,310010,298,0,1,1,Κηφισιά,Αθήνα,CENTRAL,VERY_GOOD,2005,C,false,true,false,false
+Land Κηφισιά #198,LAND,SALE,550984,122,1,1,1,Κηφισιά,Αθήνα,CENTRAL,GOOD,2004,C,false,true,true,false
+Apartment Κηφισιά #199,APARTMENT,SALE,276453,231,0,1,0,Κηφισιά,Αθήνα,HEAT_PUMP,EXCELLENT,1981,C,false,false,false,false
+House Άλιμος #200,HOUSE,SALE,217118,75,1,1,7,Άλιμος,Αθήνα,AUTONOMOUS,FAIR,2022,A,true,false,false,true

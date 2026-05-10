@@ -60,7 +60,7 @@ export function ClientRowActions({ row }: ClientRowActionsProps) {
         entityType="client"
         entityId={data.id}
         entityName={data.name || data.client_name}
-        onView={() => router.push(`/app/crm/clients/${data.friendlyId}`)}
+        onView={() => router.push(`/app/crm/contacts/${data.friendlyId}`)}
         onEdit={() => setEditOpen(true)}
         onDelete={handleDelete}
         onSchedule={true}

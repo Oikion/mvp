@@ -24,7 +24,7 @@ import {
   Building2,
   User,
   FileText,
-  Calendar,
+  ClipboardList,
   Search,
   Loader2,
   Share2,
@@ -41,9 +41,10 @@ export type { EntityType } from "@/hooks/swr/useUnifiedEntitySearch";
 export interface SharedEntity {
   id: string;
   type: EntityType;
+  friendlyId?: string;
   title: string;
   subtitle?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown>; // display-only, not sent to API
 }
 
 interface ShareEntityDialogProps {
@@ -67,7 +68,7 @@ export function ShareEntityDialog({
     isLoading,
     isSearching,
   } = useUnifiedEntitySearch(searchQuery, {
-    types: ["contact", "property", "document", "event"],
+    types: ["contact", "property", "document", "request"],
     limit: 20,
     enabled: open,
     debounceMs: 200,
@@ -78,6 +79,7 @@ export function ShareEntityDialog({
     (result: EntitySearchResult): SharedEntity => ({
       id: result.value,
       type: result.type,
+      friendlyId: result.metadata.friendlyId as string | undefined,
       title: result.label,
       subtitle: result.metadata.subtitle as string | undefined,
       metadata: result.metadata,
@@ -101,9 +103,9 @@ export function ShareEntityDialog({
     [groupedResults.document, transformToShareable]
   );
   
-  const filteredEvents = useMemo(
-    () => (groupedResults.event || []).map(transformToShareable),
-    [groupedResults.event, transformToShareable]
+  const filteredRequests = useMemo(
+    () => (groupedResults.request || []).map(transformToShareable),
+    [groupedResults.request, transformToShareable]
   );
 
   // Reset state when dialog closes
@@ -137,30 +139,11 @@ export function ShareEntityDialog({
         return <User className="h-4 w-4" />;
       case "document":
         return <FileText className="h-4 w-4" />;
-      case "event":
-        return <Calendar className="h-4 w-4" />;
+      case "request":
+        return <ClipboardList className="h-4 w-4" />;
     }
   };
 
-  const formatEventTime = (startTime: string, endTime?: string) => {
-    const start = new Date(startTime);
-    const options: Intl.DateTimeFormatOptions = {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    };
-    const startStr = start.toLocaleDateString(undefined, options);
-    if (endTime) {
-      const end = new Date(endTime);
-      const endStr = end.toLocaleTimeString(undefined, {
-        hour: "numeric",
-        minute: "2-digit",
-      });
-      return `${startStr} - ${endStr}`;
-    }
-    return startStr;
-  };
 
   const renderEntityList = (
     items: SharedEntity[],
@@ -209,14 +192,7 @@ export function ShareEntityDialog({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{item.title}</p>
-                {item.type === "event" && item.metadata?.startTime ? (
-                  <p className="text-sm text-muted-foreground truncate">
-                    {formatEventTime(
-                      item.metadata.startTime as string,
-                      item.metadata.endTime as string | undefined
-                    )}
-                  </p>
-                ) : item.subtitle ? (
+                {item.subtitle ? (
                   <p className="text-sm text-muted-foreground truncate">
                     {item.subtitle}
                   </p>
@@ -246,7 +222,7 @@ export function ShareEntityDialog({
             Share in Chat
           </DialogTitle>
           <DialogDescription>
-            Select a property, contact, document, or event to share
+            Select a property, contact, document, or request to share
           </DialogDescription>
         </DialogHeader>
 
@@ -279,9 +255,9 @@ export function ShareEntityDialog({
               <FileText className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Docs</span>
             </TabsTrigger>
-            <TabsTrigger value="event">
-              <Calendar className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Events</span>
+            <TabsTrigger value="request">
+              <ClipboardList className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Requests</span>
             </TabsTrigger>
           </TabsList>
 
@@ -295,8 +271,8 @@ export function ShareEntityDialog({
             <TabsContent value="document" className="m-0">
               {renderEntityList(filteredDocuments, "document")}
             </TabsContent>
-            <TabsContent value="event" className="m-0">
-              {renderEntityList(filteredEvents, "event")}
+            <TabsContent value="request" className="m-0">
+              {renderEntityList(filteredRequests, "request")}
             </TabsContent>
           </ScrollArea>
         </Tabs>

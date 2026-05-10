@@ -3,8 +3,9 @@
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { generateFriendlyId } from "@/lib/friendly-id";
-import { MessageContentType } from "@prisma/client";
+import { MessageContentType, NotificationCategory } from "@prisma/client";
 import { requireAction } from "@/lib/permissions";
+import { cacheDel } from "@/lib/redis";
 // E2EE: Server is now a pass-through relay. Client encrypts/decrypts.
 
 /**
@@ -530,7 +531,30 @@ export async function markAsRead(params: {
   error?: string;
 }> {
   try {
+    if (!params.channelId && !params.conversationId) {
+      return { success: false, error: "channelId or conversationId is required" };
+    }
+
     const currentUser = await getCurrentUser();
+
+    // Verify the caller is a member/participant before any write — applies regardless
+    // of whether specific messageIds were supplied, so the membership gate cannot be
+    // bypassed by passing an explicit messageIds array with a foreign channelId.
+    if (params.channelId) {
+      const membership = await prismadb.channelMember.findUnique({
+        where: { channelId_userId: { channelId: params.channelId, userId: currentUser.id } },
+        select: { channelId: true },
+      });
+      if (!membership) return { success: false, error: "Not a member of this channel" };
+    }
+
+    if (params.conversationId) {
+      const participant = await prismadb.conversationParticipant.findFirst({
+        where: { conversationId: params.conversationId, userId: currentUser.id, leftAt: null },
+        select: { conversationId: true },
+      });
+      if (!participant) return { success: false, error: "Not a participant of this conversation" };
+    }
 
     let messageIds = params.messageIds;
 
@@ -575,6 +599,31 @@ export async function markAsRead(params: {
         },
         data: { lastReadAt: new Date() },
       });
+    }
+
+    // Clear matching Notification rows so the nav badge drops immediately.
+    // CHANNEL_MESSAGE and MESSAGE_RECEIVED types share the same entityId (channelId/conversationId).
+    const entityId = params.channelId ?? params.conversationId;
+    if (entityId) {
+      const organizationId = await getCurrentOrgId();
+      await prismadb.notification.updateMany({
+        where: {
+          userId: currentUser.id,
+          organizationId,
+          read: false,
+          entityId,
+          type: {
+            in: [
+              NotificationCategory.CHANNEL_MESSAGE,
+              NotificationCategory.MESSAGE_RECEIVED,
+              NotificationCategory.MESSAGE_MENTION,
+            ],
+          },
+        },
+        data: { read: true, readAt: new Date() },
+      });
+      // Bust the 15-second notification-count Redis cache for this user
+      await cacheDel(`oik:notif:${organizationId}:${currentUser.id}`);
     }
 
     return { success: true };

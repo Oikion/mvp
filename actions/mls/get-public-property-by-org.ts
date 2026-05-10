@@ -2,6 +2,7 @@
 
 import { prismadb } from "@/lib/prisma";
 import { createClerkClient } from "@clerk/backend";
+import { SYSTEM_ORG_ID } from "@/lib/sharing/constants";
 
 /**
  * Get organization by slug from Clerk
@@ -190,7 +191,7 @@ export async function getOrganizationsWithPublicProperties() {
         visibility: "PUBLIC",
         property_status: "ACTIVE",
         organizationId: {
-          not: "00000000-0000-0000-0000-000000000000",
+          not: SYSTEM_ORG_ID,
         },
       },
     });

@@ -181,31 +181,27 @@ export function UpdateAccountForm({
   const onSubmit = async (data: NewAccountFormValues) => {
     setIsLoading(true);
     try {
-      await axios.put("/api/crm/clients", {
-        id: data.id,
-        client_name: data.name,
-        primary_email: data.email,
-        office_phone: data.office_phone,
-        website: data.website,
-        fax: data.fax,
-        company_id: data.company_id,
-        vat: data.vat,
-        billing_street: data.billing_street,
-        billing_postal_code: data.billing_postal_code,
-        billing_city: data.billing_city || data.billing_municipality || "",
-        billing_state: data.billing_state || data.billing_area || "",
-        billing_country: data.billing_country || "GR",
-        billing_municipality: data.billing_municipality || data.billing_city || "",
-        billing_area: data.billing_area || data.billing_state || "",
-        shipping_street: data.shipping_street,
-        shipping_postal_code: data.shipping_postal_code,
-        shipping_city: data.shipping_city,
-        shipping_state: data.shipping_state,
-        shipping_country: data.shipping_country,
-        description: data.description,
-        assigned_to: data.assigned_to,
-        client_status: data.status?.toUpperCase() || undefined,
-        member_of: data.member_of,
+      const clientStatusMap: Record<string, string> = {
+        LEAD: "LEAD", ACTIVE: "ACTIVE", INACTIVE: "INACTIVE",
+        CONVERTED: "COMPLETED", LOST: "INACTIVE",
+      };
+      const billingFields = [data.billing_street, data.billing_city, data.billing_postal_code].some(Boolean);
+      const shippingFields = [data.shipping_street, data.shipping_city, data.shipping_postal_code].some(Boolean);
+      const addresses = [
+        ...(billingFields ? [{ type: "billing" as const, street: data.billing_street || undefined, city: data.billing_city || data.billing_municipality || undefined, postalCode: data.billing_postal_code || undefined, municipality: data.billing_municipality || undefined, country: data.billing_country || "GR" }] : []),
+        ...(shippingFields ? [{ type: "shipping" as const, street: data.shipping_street || undefined, city: data.shipping_city || undefined, postalCode: data.shipping_postal_code || undefined, country: data.shipping_country || "GR" }] : []),
+      ];
+      const rawStatus = data.status?.toUpperCase();
+      await axios.put(`/api/crm/contacts/${data.id}`, {
+        displayName: data.name,
+        email: data.email || undefined,
+        officePhone: data.office_phone || undefined,
+        companyId: data.company_id || undefined,
+        taxId: data.vat || undefined,
+        ...(addresses.length > 0 && { addresses }),
+        notes: data.description || undefined,
+        assignedAgentId: data.assigned_to || undefined,
+        ...(rawStatus && { status: clientStatusMap[rawStatus] ?? rawStatus }),
       });
       toast.success("Success", { description: "Client updated successfully", isTranslationKey: false });
     } catch (error: any) {

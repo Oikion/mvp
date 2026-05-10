@@ -59,8 +59,9 @@ export async function getShareableEntities(): Promise<ShareableEntities> {
   const prisma = prismaForOrg(orgId);
 
   try {
-    // Fetch properties
+    // Fetch properties — exclude HIDDEN entities from the picker
     const properties = await prisma.properties.findMany({
+      where: { visibility: { not: "HIDDEN" } },
       take: 50,
       orderBy: { createdAt: "desc" },
       select: {
@@ -73,8 +74,9 @@ export async function getShareableEntities(): Promise<ShareableEntities> {
       },
     });
 
-    // Fetch clients
+    // Fetch clients — exclude HIDDEN entities from the picker
     const clients = await prisma.contact.findMany({
+      where: { visibility: { not: "HIDDEN" } },
       take: 50,
       orderBy: { createdAt: "desc" },
       select: {

@@ -1,11 +1,11 @@
-// @ts-nocheck
-// TODO: Fix type errors
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSWRConfig } from "swr";
+import type { TokenRequest as AblyTokenRequest } from "ably";
 import type { MessagingCredentials } from "./swr/useMessaging";
 import { getMessagesKey } from "./swr/useMessaging";
+import type { Message, MessagesResponse } from "./swr/useMessaging";
 
 // Types for Ably (to avoid importing at module level)
 interface AblyRealtimeChannel {
@@ -81,7 +81,7 @@ async function getAblyClient(initialTokenRequest: unknown, userId?: string): Pro
           // For subsequent auths (token refresh), fetch fresh credentials
           if (isFirstAuth && initialTokenRequest) {
             isFirstAuth = false;
-            callback(null, initialTokenRequest as Ably.TokenRequest);
+            callback(null, initialTokenRequest as AblyTokenRequest);
             return;
           }
 
@@ -96,7 +96,7 @@ async function getAblyClient(initialTokenRequest: unknown, userId?: string): Pro
             console.error("[ABLY] Credentials API error:", errorMessage);
             // If unauthorized, don't throw - just return null to allow graceful degradation
             if (response.status === 401) {
-              callback(new Error("Unauthorized"), null);
+              callback("Unauthorized", null);
               return;
             }
             throw new Error(errorMessage);
@@ -107,15 +107,17 @@ async function getAblyClient(initialTokenRequest: unknown, userId?: string): Pro
             throw new Error("No token request in response");
           }
           
-          callback(null, data.tokenRequest as Ably.TokenRequest);
+          callback(null, data.tokenRequest as AblyTokenRequest);
         } catch (error) {
           console.error("[ABLY] Auth callback failed:", error);
-          callback(error instanceof Error ? error : new Error("Authentication failed"), null);
+          callback(error instanceof Error ? error.message : "Authentication failed", null);
         }
       },
-      disconnectedRetryTimeout: 5000,
-      suspendedRetryTimeout: 15000,
-      // Allow connection to degrade gracefully
+      // In dev, Turbopack/HMR can cause frequent disconnects. Low retry timeout
+      // (1s) keeps the gap between drop and reconnect short. Production
+      // connections stay alive and never hit this path.
+      disconnectedRetryTimeout: 1000,
+      suspendedRetryTimeout: 10000,
       closeOnUnload: true,
     });
 
@@ -148,9 +150,15 @@ export function useAblyConnection(credentials?: MessagingCredentials) {
   const [connectionState, setConnectionState] = useState<string>("initialized");
   const [error, setError] = useState<Error | null>(null);
   const clientRef = useRef<AblyRealtime | null>(null);
+  const credentialsRef = useRef(credentials);
+  credentialsRef.current = credentials;
+
+  // Only retrigger on user identity change — token refresh is handled by authCallback.
+  const credUserId = credentials?.userId;
+  const hasToken = !!credentials?.tokenRequest;
 
   useEffect(() => {
-    if (!credentials?.tokenRequest) {
+    if (!hasToken) {
       return;
     }
 
@@ -158,14 +166,18 @@ export function useAblyConnection(credentials?: MessagingCredentials) {
 
     (async () => {
       try {
-        const client = await getAblyClient(credentials.tokenRequest, credentials.userId);
-        
+        const creds = credentialsRef.current!;
+        const client = await getAblyClient(creds.tokenRequest, creds.userId);
+
         if (!mounted) return;
-        
+
         clientRef.current = client;
 
         const handleStateChange = (stateChange: { current: string; reason?: { message: string } }) => {
           if (!mounted) return;
+          if (process.env.NODE_ENV === "development") {
+            console.log(`[ABLY] connection → ${stateChange.current}`, stateChange.reason?.message ?? "");
+          }
           setConnectionState(stateChange.current);
           if (stateChange.reason) {
             setError(new Error(stateChange.reason.message));
@@ -175,6 +187,9 @@ export function useAblyConnection(credentials?: MessagingCredentials) {
         };
 
         client.connection.on(handleStateChange);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`[ABLY] initial state: ${client.connection.state}`);
+        }
         setConnectionState(client.connection.state);
 
         // Connect if not already connected
@@ -191,7 +206,7 @@ export function useAblyConnection(credentials?: MessagingCredentials) {
     return () => {
       mounted = false;
     };
-  }, [credentials?.tokenRequest]);
+  }, [credUserId, hasToken]);
 
   return {
     connectionState,
@@ -217,8 +232,19 @@ export function useAblyChannel(
   // Comparing captured generation vs. current generation solves the race.
   const generationRef = useRef(0);
 
+  // Keep credentials accessible inside the effect without listing the whole
+  // object as a dep. Token requests change on every SWR revalidation (new nonce),
+  // but the Ably client's authCallback handles token refresh transparently —
+  // we only need to reattach when the channel name or user identity changes.
+  const credentialsRef = useRef(credentials);
+  credentialsRef.current = credentials;
+
+  // Stable primitive: only retrigger channel attachment when the user identity
+  // changes (genuine reconnect), not when the token request object reference changes.
+  const credUserId = credentials?.userId;
+
   useEffect(() => {
-    if (!channelName || !credentials?.tokenRequest) {
+    if (!channelName || !credentialsRef.current?.tokenRequest) {
       return;
     }
 
@@ -227,7 +253,8 @@ export function useAblyChannel(
 
     (async () => {
       try {
-        const client = await getAblyClient(credentials.tokenRequest, credentials.userId);
+        const creds = credentialsRef.current!;
+        const client = await getAblyClient(creds.tokenRequest, creds.userId);
 
         if (!mounted) return;
 
@@ -282,7 +309,7 @@ export function useAblyChannel(
         attachPromiseRef.current = null;
       }
     };
-  }, [channelName, credentials?.tokenRequest, credentials?.userId]);
+  }, [channelName, credUserId]);
 
   const publish = useCallback(async (eventName: string, data: unknown) => {
     if (channelRef.current && isSubscribed) {
@@ -312,9 +339,15 @@ interface AblyMessageEvent {
   message: {
     id: string;
     content: string;
+    contentType?: string;
     senderId: string;
-    channelId?: string;
-    conversationId?: string;
+    senderName?: string | null;
+    senderAvatar?: string | null;
+    senderEmail?: string | null;
+    senderProfileSlug?: string | null;
+    channelId?: string | null;
+    conversationId?: string | null;
+    parentId?: string | null;
     createdAt: string;
     attachments?: Array<{
       id: string;
@@ -323,6 +356,11 @@ interface AblyMessageEvent {
       fileType: string;
       url: string;
     }>;
+    linkedEntityId?: string | null;
+    linkedEntityType?: string | null;
+    linkedEntityTitle?: string | null;
+    linkedEntitySubtitle?: string | null;
+    linkedEntityFriendlyId?: string | null;
   };
 }
 
@@ -335,6 +373,34 @@ interface AblyTypingEvent {
 export interface TypingUser {
   userId: string;
   userName: string;
+}
+
+/**
+ * Lightweight hook for publishing to an Ably channel without managing
+ * channel lifecycle (no attach/detach). Safe to use in components that
+ * only need to publish (e.g. typing indicators in MessageComposer) without
+ * risking detaching the channel that a sibling subscriber depends on.
+ */
+export function useAblyPublish(
+  channelName: string | null,
+  credentials?: MessagingCredentials
+) {
+  const publish = useCallback(
+    async (eventName: string, data: unknown) => {
+      if (!channelName || !credentials?.tokenRequest) return;
+      try {
+        const client = await getAblyClient(credentials.tokenRequest, credentials.userId);
+        const channel = client.channels.get(channelName);
+        await channel.publish(eventName, data);
+      } catch (err) {
+        if (err instanceof Error && err.message.includes("detached")) return;
+        throw err;
+      }
+    },
+    [channelName, credentials?.userId]
+  );
+
+  return { publish };
 }
 
 /**
@@ -353,76 +419,198 @@ export function useAblyMessages(params: {
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const typingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
-  // Build channel name
-  const ablyChannelName = params.organizationId && (params.channelId || params.conversationId)
-    ? params.channelId
-      ? `org:${params.organizationId}:channel:${params.channelId}`
-      : `org:${params.organizationId}:conversation:${params.conversationId}`
+  // Extract primitives so effect deps stay stable across renders.
+  // Callback refs let handlers always call the latest version without
+  // being listed as deps (avoids re-subscribing on every render).
+  const { channelId, conversationId, organizationId } = params;
+  const credUserId = params.credentials?.userId;
+  const onNewMessageRef = useRef(params.onNewMessage);
+  const onMessageEditRef = useRef(params.onMessageEdit);
+  const onMessageDeleteRef = useRef(params.onMessageDelete);
+  // Keep refs current on every render without triggering effects
+  onNewMessageRef.current = params.onNewMessage;
+  onMessageEditRef.current = params.onMessageEdit;
+  onMessageDeleteRef.current = params.onMessageDelete;
+
+  // Build org-scoped channel name (works for same-org conversations and all channels)
+  const ablyChannelName = organizationId && (channelId || conversationId)
+    ? channelId
+      ? `org:${organizationId}:channel:${channelId}`
+      : `org:${organizationId}:conversation:${conversationId}`
     : null;
+
+  // User-level channel for cross-org DM delivery (always in token capabilities)
+  const userChannelName = credUserId ? `user:${credUserId}` : null;
 
   const { channel, isSubscribed, publish } = useAblyChannel(
     ablyChannelName,
     params.credentials
   );
 
-  // Subscribe to message events
+  // Secondary subscription: personal user channel catches messages from cross-org connections
+  const { channel: userChannel, isSubscribed: userChannelSubscribed } = useAblyChannel(
+    userChannelName,
+    params.credentials
+  );
+
+  // Subscribe to user-channel events for cross-org DMs.
+  useEffect(() => {
+    if (!userChannel || !userChannelSubscribed || !conversationId) return;
+
+    const handleUserChannelMessage = (message: { data: unknown }) => {
+      const data = message.data as AblyMessageEvent["message"];
+      if (data.conversationId !== conversationId) return;
+      onNewMessageRef.current?.(data);
+      const key = getMessagesKey({ conversationId });
+      if (key && data.content != null) {
+        mutate<MessagesResponse>(
+          key,
+          (current) => {
+            if (!current) return current;
+            if (current.messages.some((m) => m.id === data.id)) return current;
+            const optimistic: Message = {
+              id: data.id,
+              content: data.content,
+              contentType: data.contentType ?? "TEXT",
+              senderId: data.senderId,
+              senderName: data.senderName ?? null,
+              senderAvatar: data.senderAvatar ?? null,
+              senderEmail: data.senderEmail ?? null,
+              senderProfileSlug: data.senderProfileSlug ?? null,
+              channelId: data.channelId ?? null,
+              conversationId: data.conversationId ?? null,
+              parentId: data.parentId ?? null,
+              threadCount: 0,
+              isEdited: false,
+              createdAt: new Date(data.createdAt),
+              attachments: data.attachments ?? [],
+              reactions: [],
+              mentions: [],
+              entityAttachment: data.linkedEntityId ? {
+                id: data.linkedEntityId,
+                type: data.linkedEntityType as "property" | "contact" | "document" | "request",
+                title: data.linkedEntityTitle ?? null,
+                subtitle: data.linkedEntitySubtitle ?? null,
+                friendlyId: data.linkedEntityFriendlyId ?? null,
+              } : undefined,
+            };
+            return { ...current, messages: [...current.messages, optimistic] };
+          },
+          { revalidate: true }
+        );
+      } else {
+        mutate(key);
+      }
+      // Refresh sidebar unread counts for the DM list
+      mutate("/api/messaging/conversations");
+    };
+
+    const handleUserChannelEdit = (message: { data: unknown }) => {
+      const data = message.data as AblyMessageEvent["message"];
+      if (data.conversationId !== conversationId) return;
+      onMessageEditRef.current?.(data);
+      mutate(getMessagesKey({ conversationId }));
+    };
+
+    const handleUserChannelDelete = (message: { data: unknown }) => {
+      const data = message.data as { id: string; conversationId?: string };
+      if (data.conversationId !== conversationId) return;
+      onMessageDeleteRef.current?.(data.id);
+      mutate(getMessagesKey({ conversationId }));
+    };
+
+    userChannel.subscribe("message:new", handleUserChannelMessage);
+    userChannel.subscribe("message:edited", handleUserChannelEdit);
+    userChannel.subscribe("message:deleted", handleUserChannelDelete);
+
+    return () => {
+      userChannel.unsubscribe("message:new", handleUserChannelMessage);
+      userChannel.unsubscribe("message:edited", handleUserChannelEdit);
+      userChannel.unsubscribe("message:deleted", handleUserChannelDelete);
+    };
+  }, [userChannel, userChannelSubscribed, conversationId, mutate]);
+
+  // Subscribe to message events on the org-scoped channel
   useEffect(() => {
     if (!channel || !isSubscribed) return;
 
-    // Handler for new messages (API publishes as "message:new")
     const handleNewMessage = (message: { data: unknown }) => {
       const data = message.data as AblyMessageEvent["message"];
-      params.onNewMessage?.(data);
-      // Revalidate SWR cache
-      mutate(getMessagesKey({ 
-        channelId: params.channelId, 
-        conversationId: params.conversationId 
-      }));
+      onNewMessageRef.current?.(data);
+      const key = getMessagesKey({ channelId, conversationId });
+      if (key && data.content != null) {
+        // Optimistic insert: recipient sees the message immediately, same as the sender.
+        // { revalidate: true } runs a background fetch to reconcile (reactions, etc.).
+        mutate<MessagesResponse>(
+          key,
+          (current) => {
+            if (!current) return current;
+            if (current.messages.some((m) => m.id === data.id)) return current;
+            const optimistic: Message = {
+              id: data.id,
+              content: data.content,
+              contentType: data.contentType ?? "TEXT",
+              senderId: data.senderId,
+              senderName: data.senderName ?? null,
+              senderAvatar: data.senderAvatar ?? null,
+              senderEmail: data.senderEmail ?? null,
+              senderProfileSlug: data.senderProfileSlug ?? null,
+              channelId: data.channelId ?? null,
+              conversationId: data.conversationId ?? null,
+              parentId: data.parentId ?? null,
+              threadCount: 0,
+              isEdited: false,
+              createdAt: new Date(data.createdAt),
+              attachments: data.attachments ?? [],
+              reactions: [],
+              mentions: [],
+              entityAttachment: data.linkedEntityId ? {
+                id: data.linkedEntityId,
+                type: data.linkedEntityType as "property" | "contact" | "document" | "request",
+                title: data.linkedEntityTitle ?? null,
+                subtitle: data.linkedEntitySubtitle ?? null,
+                friendlyId: data.linkedEntityFriendlyId ?? null,
+              } : undefined,
+            };
+            return { ...current, messages: [...current.messages, optimistic] };
+          },
+          { revalidate: true }
+        );
+      } else {
+        mutate(key);
+      }
+      // Refresh sidebar unread counts — a new message may raise the badge on another channel
+      mutate("/api/messaging/channels");
+      mutate("/api/messaging/conversations");
     };
 
-    // Handler for edited messages (API publishes as "message:edited")
     const handleEditedMessage = (message: { data: unknown }) => {
       const data = message.data as AblyMessageEvent["message"];
-      params.onMessageEdit?.(data);
-      mutate(getMessagesKey({ 
-        channelId: params.channelId, 
-        conversationId: params.conversationId 
-      }));
+      onMessageEditRef.current?.(data);
+      mutate(getMessagesKey({ channelId, conversationId }));
     };
 
-    // Handler for deleted messages (API publishes as "message:deleted")
     const handleDeletedMessage = (message: { data: unknown }) => {
       const data = message.data as { id: string };
-      params.onMessageDelete?.(data.id);
-      mutate(getMessagesKey({ 
-        channelId: params.channelId, 
-        conversationId: params.conversationId 
-      }));
+      onMessageDeleteRef.current?.(data.id);
+      mutate(getMessagesKey({ channelId, conversationId }));
     };
 
     const handleTyping = (message: { data: unknown }) => {
       const data = message.data as AblyTypingEvent;
 
-      // Ignore own typing events
-      if (data.userId === params.credentials?.userId) return;
+      if (data.userId === credUserId) return;
 
-      // Clear existing timeout for this user
       const existingTimeout = typingTimeoutsRef.current.get(data.userId);
-      if (existingTimeout) {
-        clearTimeout(existingTimeout);
-      }
+      if (existingTimeout) clearTimeout(existingTimeout);
 
       const typingUser: TypingUser = { userId: data.userId, userName: data.userName || "Someone" };
 
       if (data.isTyping) {
-        setTypingUsers(prev => {
-          if (!prev.some(u => u.userId === data.userId)) {
-            return [...prev, typingUser];
-          }
-          return prev;
-        });
+        setTypingUsers(prev =>
+          prev.some(u => u.userId === data.userId) ? prev : [...prev, typingUser]
+        );
 
-        // Auto-clear after 5 seconds
         const timeout = setTimeout(() => {
           setTypingUsers(prev => prev.filter(u => u.userId !== data.userId));
           typingTimeoutsRef.current.delete(data.userId);
@@ -434,7 +622,6 @@ export function useAblyMessages(params: {
       }
     };
 
-    // Subscribe to the exact event names the API publishes
     channel.subscribe("message:new", handleNewMessage);
     channel.subscribe("message:edited", handleEditedMessage);
     channel.subscribe("message:deleted", handleDeletedMessage);
@@ -445,22 +632,16 @@ export function useAblyMessages(params: {
       channel.unsubscribe("message:edited", handleEditedMessage);
       channel.unsubscribe("message:deleted", handleDeletedMessage);
       channel.unsubscribe("typing", handleTyping);
-      // Clear all typing timeouts
       typingTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
       typingTimeoutsRef.current.clear();
     };
-  }, [channel, isSubscribed, params, mutate]);
+  }, [channel, isSubscribed, channelId, conversationId, credUserId, mutate]);
 
-  // Send typing indicator
   const sendTyping = useCallback(async (isTyping: boolean, userName?: string) => {
-    if (params.credentials?.userId) {
-      await publish("typing", {
-        userId: params.credentials.userId,
-        userName,
-        isTyping,
-      });
+    if (credUserId) {
+      await publish("typing", { userId: credUserId, userName, isTyping });
     }
-  }, [publish, params.credentials?.userId]);
+  }, [publish, credUserId]);
 
   return {
     isSubscribed,
@@ -527,35 +708,54 @@ export function useAblyNotifications(params: {
   onConversationCreated?: (data: { id: string; isGroup: boolean; name?: string; entityType?: string; entityId?: string }) => void;
 }) {
   const { mutate } = useSWRConfig();
-  const userChannelName = params.userId ? `user:${params.userId}` : null;
 
-  const { channel, isSubscribed } = useAblyChannel(
-    userChannelName,
-    params.credentials
-  );
+  const { userId, credentials } = params;
+  const userChannelName = userId ? `user:${userId}` : null;
+
+  const onMentionRef = useRef(params.onMention);
+  const onConversationCreatedRef = useRef(params.onConversationCreated);
+  onMentionRef.current = params.onMention;
+  onConversationCreatedRef.current = params.onConversationCreated;
+
+  const { channel, isSubscribed } = useAblyChannel(userChannelName, credentials);
 
   useEffect(() => {
     if (!channel || !isSubscribed) return;
 
     const handleMention = (message: { data: unknown }) => {
-      params.onMention?.(message.data as { messageId: string; senderId: string; channelId?: string; conversationId?: string });
+      onMentionRef.current?.(message.data as { messageId: string; senderId: string; channelId?: string; conversationId?: string });
+      // A mention creates a Notification row — refresh the nav badge count
+      mutate("/api/notifications/counts");
     };
 
     const handleConversationCreated = (message: { data: unknown }) => {
       const data = message.data as { id: string; isGroup: boolean; name?: string; entityType?: string; entityId?: string };
-      params.onConversationCreated?.(data);
-      // Revalidate conversations list
+      onConversationCreatedRef.current?.(data);
       mutate("/api/messaging/conversations");
+    };
+
+    // New message on the personal channel: update the DM sidebar immediately,
+    // then revalidate the nav notification count after a short delay so we don't
+    // race against markAsRead clearing the same Notification rows when the thread is open.
+    const handleNewMessageNotification = () => {
+      mutate("/api/messaging/conversations");
+      // Delay gives markAsRead time to complete before we re-fetch counts.
+      // If the thread is closed, the badge appears ~1.5s after the message arrives
+      // (still well within user perception). If the thread is open, markAsRead will
+      // have already called mutate("/api/notifications/counts") by then.
+      setTimeout(() => mutate("/api/notifications/counts"), 1500);
     };
 
     channel.subscribe("mention", handleMention);
     channel.subscribe("conversation:created", handleConversationCreated);
+    channel.subscribe("message:new", handleNewMessageNotification);
 
     return () => {
       channel.unsubscribe("mention", handleMention);
       channel.unsubscribe("conversation:created", handleConversationCreated);
+      channel.unsubscribe("message:new", handleNewMessageNotification);
     };
-  }, [channel, isSubscribed, params, mutate]);
+  }, [channel, isSubscribed, mutate]);
 
   return {
     isSubscribed,
@@ -660,8 +860,24 @@ export function useAblyFeed(params: {
   onCommentAdded?: (data: { postId: string; comment: SocialCommentEvent["comment"]; newCommentCount: number }) => void;
   onCommentDeleted?: (data: { postId: string; commentId: string; newCommentCount: number }) => void;
 }) {
-  const feedChannelName = params.organizationId
-    ? `org:${params.organizationId}:social-feed`
+  // Extract primitive and store callbacks in refs so the effect deps stay stable.
+  // Without this, passing an inline params object causes re-subscription every render.
+  const { organizationId } = params;
+  const onPostCreatedRef = useRef(params.onPostCreated);
+  const onPostDeletedRef = useRef(params.onPostDeleted);
+  const onPostNotificationRef = useRef(params.onPostNotification);
+  const onPostLikedRef = useRef(params.onPostLiked);
+  const onCommentAddedRef = useRef(params.onCommentAdded);
+  const onCommentDeletedRef = useRef(params.onCommentDeleted);
+  onPostCreatedRef.current = params.onPostCreated;
+  onPostDeletedRef.current = params.onPostDeleted;
+  onPostNotificationRef.current = params.onPostNotification;
+  onPostLikedRef.current = params.onPostLiked;
+  onCommentAddedRef.current = params.onCommentAdded;
+  onCommentDeletedRef.current = params.onCommentDeleted;
+
+  const feedChannelName = organizationId
+    ? `org:${organizationId}:social-feed`
     : null;
 
   const { channel, isSubscribed, publish } = useAblyChannel(
@@ -678,26 +894,25 @@ export function useAblyFeed(params: {
 
       switch (data.type) {
         case "created":
-          // New slim payload — notify consumer to refetch from API
-          params.onPostNotification?.({
+          onPostNotificationRef.current?.({
             id: data.post.id,
             authorId: data.post.authorId,
             type: data.post.type,
           });
           // Legacy full-payload fallback (client-side optimistic publishes)
           if ("author" in data.post) {
-            params.onPostCreated?.(data.post as unknown as SocialPost);
+            onPostCreatedRef.current?.(data.post as unknown as SocialPost);
           }
           break;
         case "deleted":
-          params.onPostDeleted?.(data.post.id);
+          onPostDeletedRef.current?.(data.post.id);
           break;
       }
     };
 
     const handleLike = (message: { data: unknown }) => {
       const data = message.data as SocialLikeEvent;
-      params.onPostLiked?.({
+      onPostLikedRef.current?.({
         postId: data.postId,
         userId: data.userId,
         newLikeCount: data.newLikeCount,
@@ -707,11 +922,11 @@ export function useAblyFeed(params: {
 
     const handleComment = (message: { data: unknown }) => {
       const data = message.data as SocialCommentEvent;
-      
+
       switch (data.type) {
         case "added":
           if (data.comment) {
-            params.onCommentAdded?.({
+            onCommentAddedRef.current?.({
               postId: data.postId,
               comment: data.comment,
               newCommentCount: data.newCommentCount,
@@ -720,7 +935,7 @@ export function useAblyFeed(params: {
           break;
         case "deleted":
           if (data.commentId) {
-            params.onCommentDeleted?.({
+            onCommentDeletedRef.current?.({
               postId: data.postId,
               commentId: data.commentId,
               newCommentCount: data.newCommentCount,
@@ -739,7 +954,7 @@ export function useAblyFeed(params: {
       channel.unsubscribe("like", handleLike);
       channel.unsubscribe("comment", handleComment);
     };
-  }, [channel, isSubscribed, params]);
+  }, [channel, isSubscribed]);
 
   // Publish functions for client-side updates (optimistic)
   const publishPostCreated = useCallback(async (post: SocialPost) => {
