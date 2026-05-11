@@ -35,6 +35,8 @@ const isPublicRoute = createRouteMatcher([
   "/:locale/app/access(.*)",
   // App access verify API (public — called before authentication)
   "/api/app-access(.*)",
+  // Staging passcode verify API (public — called before authentication and before Clerk session)
+  "/api/staging-access(.*)",
   // API webhooks (public)
   "/api/webhooks(.*)",
 ]);

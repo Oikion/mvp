@@ -1,6 +1,6 @@
 {
   "name": "oikion",
-  "version": "1.0.0-pre-release",
+  "version": "pre-release_0.0.0",
   "private": true,
   "packageManager": "pnpm@10.5.0",
   "scripts": {
@@ -201,6 +201,11 @@
     "@eslint/eslintrc": "^3.3.3",
     "@next/eslint-plugin-next": "^16.1.6",
     "@oikion/eslint-plugin-design-system": "file:./eslint-rules",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.8",
+    "@semantic-release/release-notes-generator": "^14.1.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/html2canvas": "^1.0.0",
     "@types/imap": "^0.8.42",
@@ -215,6 +220,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.6.2",
     "prisma": "^7.6.0",
+    "semantic-release": "^25.0.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.6.3",
