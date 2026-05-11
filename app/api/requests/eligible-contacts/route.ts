@@ -58,11 +58,11 @@ export async function GET() {
     const allPropertyIds = Array.from(
       new Set(linkedPropertyRows.map((r) => r.propertyId))
     );
-    const activeProps = await prismadb.property.findMany({
-      where: { id: { in: allPropertyIds }, organizationId, deletedAt: null },
+    const activeProps = await prismadb.properties.findMany({
+      where: { id: { in: allPropertyIds }, organizationId, archivedAt: null },
       select: { id: true },
     });
-    const activePropertyIds = new Set(activeProps.map((p) => p.id));
+    const activePropertyIds = new Set(activeProps.map((p: { id: string }) => p.id));
 
     const countMap = new Map<string, number>();
     for (const row of linkedPropertyRows) {

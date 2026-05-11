@@ -32,7 +32,7 @@ export interface QuickAction {
 /**
  * Entity types supported by the unified row actions
  */
-export type EntityType = "property" | "contact" | "event" | "task" | "employee" | "user" | "request" | "document";
+export type EntityType = "property" | "contact" | "event" | "task" | "employee" | "user" | "request" | "document" | "deal";
 
 /**
  * Props for the unified DataTableRowActions component

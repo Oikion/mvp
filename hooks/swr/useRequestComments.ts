@@ -55,7 +55,7 @@ export function useAddRequestComment(requestId: string | null) {
 }
 
 export function useDeleteRequestComment(requestId: string | null) {
-  const { mutate } = useSWR(
+  const { mutate } = useSWR<{ id: string }[]>(
     requestId ? `/api/requests/${requestId}/comments` : null,
     fetcher,
     { revalidateOnFocus: false }
@@ -67,10 +67,8 @@ export function useDeleteRequestComment(requestId: string | null) {
       method: "DELETE",
     });
     if (!res.ok) throw new Error("Failed to delete comment");
-    await mutate((current: unknown[] | undefined) =>
-      Array.isArray(current)
-        ? current.filter((c: { id: string }) => c.id !== commentId)
-        : [],
+    await mutate(
+      (current) => (current ?? []).filter((c) => c.id !== commentId),
       false
     );
   };

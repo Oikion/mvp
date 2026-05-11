@@ -4,7 +4,7 @@
     "description": "Send {entityType} details to anyone via email",
     "entityTypes": {
       "property": "property",
-      "client": "client",
+      "contact": "contact",
       "post": "post"
     },
     "form": {

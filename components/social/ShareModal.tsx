@@ -116,7 +116,7 @@ export function ShareModal({
 
   const entityTypeLabels = {
     PROPERTY: "property",
-    CLIENT: "contact",
+    CONTACT: "contact",
     DOCUMENT: "document",
   };
 

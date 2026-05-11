@@ -47,7 +47,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type { BadgeVariant } from "@/components/ui/badge";
+import type { BadgeVariant } from "@/components/ui/badge";
+export type { BadgeVariant };
 
 export interface StatusConfig {
   variant: BadgeVariant;

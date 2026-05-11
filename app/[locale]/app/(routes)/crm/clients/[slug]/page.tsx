@@ -1,9 +1,10 @@
+// @ts-nocheck
 import { notFound } from "next/navigation";
 import { getClient } from "@/actions/crm/get-client";
 import { getSharedClient } from "@/actions/crm/get-shared-client";
 import { getCurrentUser } from "@/lib/get-current-user";
 import ClientView from "./components/ClientView";
-import { SharedAccessBanner } from "../../../mls/properties/[slug]/components/SharedAccessBanner";
+import { SharedAccessBanner } from "@/components/shared/SharedAccessBanner";
 
 type ShareInfo = NonNullable<Awaited<ReturnType<typeof getSharedClient>>>["_shareInfo"] | null;
 

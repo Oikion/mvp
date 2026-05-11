@@ -15,7 +15,7 @@ export async function DELETE(
 
     const { requestId, commentId } = await params;
 
-    const deleteCheck = await canPerformAction("request:delete_comment");
+    const deleteCheck = await canPerformAction("request:delete");
     if (!deleteCheck.allowed) {
       return NextResponse.json({ error: "Permission denied" }, { status: 403 });
     }
@@ -39,13 +39,13 @@ export async function DELETE(
 
     // Only the comment author or org owners/admins may delete
     const currentUser = await prismadb.users.findFirst({
-      where: { clerkUserId: userId, organizationId },
-      select: { id: true, role: true },
+      where: { clerkUserId: userId },
+      select: { id: true, is_account_admin: true, is_admin: true },
     });
     const canDelete =
       comment.userId === currentUser?.id ||
-      currentUser?.role === "ORG_OWNER" ||
-      currentUser?.role === "ADMIN";
+      currentUser?.is_account_admin === true ||
+      currentUser?.is_admin === true;
 
     if (!canDelete) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

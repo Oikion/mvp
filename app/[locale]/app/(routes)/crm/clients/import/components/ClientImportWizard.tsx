@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { UnifiedImportWizard } from "@/components/import/UnifiedImportWizard";

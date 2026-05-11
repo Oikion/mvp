@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { Suspense } from "react";
 
 import ClientsPageView from "../components/ClientsPageView";

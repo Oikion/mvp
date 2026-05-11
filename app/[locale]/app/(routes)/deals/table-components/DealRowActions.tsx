@@ -27,7 +27,7 @@ export function DealRowActions({ row, onRefresh }: Readonly<DealRowActionsProps>
       row={row}
       entityType="deal"
       entityId={data.id}
-      entityName={data.title ?? t("pageTitle")}
+      entityName={data.title ?? t("title")}
       onView={() => router.push(`/app/deals/${data.friendlyId ?? data.id}`)}
       onDelete={handleDelete}
       onSchedule={true}

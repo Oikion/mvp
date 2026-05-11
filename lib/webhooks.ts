@@ -11,10 +11,12 @@ export const WEBHOOK_EVENTS = {
   CONTACT_CREATED: "contact.created",
   CONTACT_UPDATED: "contact.updated",
   CONTACT_DELETED: "contact.deleted",
+  CONTACT_ARCHIVED: "contact.archived",
   // Property events
   PROPERTY_CREATED: "property.created",
   PROPERTY_UPDATED: "property.updated",
   PROPERTY_DELETED: "property.deleted",
+  PROPERTY_ARCHIVED: "property.archived",
   // Task events
   TASK_CREATED: "task.created",
   TASK_UPDATED: "task.updated",
@@ -24,10 +26,12 @@ export const WEBHOOK_EVENTS = {
   CALENDAR_EVENT_CREATED: "calendar.event.created",
   CALENDAR_EVENT_UPDATED: "calendar.event.updated",
   CALENDAR_EVENT_CANCELLED: "calendar.event.cancelled",
+  CALENDAR_EVENT_ARCHIVED: "calendar.event.archived",
   // Document events
   DOCUMENT_UPLOADED: "document.uploaded",
   DOCUMENT_SHARED: "document.shared",
   DOCUMENT_DELETED: "document.deleted",
+  DOCUMENT_ARCHIVED: "document.archived",
   // Deal events
   DEAL_CREATED: "deal.created",
   DEAL_UPDATED: "deal.updated",
@@ -47,9 +51,11 @@ export const WEBHOOK_EVENT_DESCRIPTIONS: Record<WebhookEvent, string> = {
   "contact.created": "Triggered when a new contact is created",
   "contact.updated": "Triggered when a contact is updated",
   "contact.deleted": "Triggered when a contact is deleted",
+  "contact.archived": "Triggered when a contact is archived",
   "property.created": "Triggered when a new property is created",
   "property.updated": "Triggered when a property is updated",
   "property.deleted": "Triggered when a property is deleted",
+  "property.archived": "Triggered when a property is archived",
   "task.created": "Triggered when a new task is created",
   "task.updated": "Triggered when a task is updated",
   "task.completed": "Triggered when a task is marked as completed",
@@ -57,9 +63,11 @@ export const WEBHOOK_EVENT_DESCRIPTIONS: Record<WebhookEvent, string> = {
   "calendar.event.created": "Triggered when a calendar event is created",
   "calendar.event.updated": "Triggered when a calendar event is updated",
   "calendar.event.cancelled": "Triggered when a calendar event is cancelled",
+  "calendar.event.archived": "Triggered when a calendar event is archived",
   "document.uploaded": "Triggered when a document is uploaded",
   "document.shared": "Triggered when a document is shared",
   "document.deleted": "Triggered when a document is deleted",
+  "document.archived": "Triggered when a document is archived",
   "deal.created": "Triggered when a new deal is created",
   "deal.updated": "Triggered when a deal is updated",
   "deal.completed": "Triggered when a deal is completed",
@@ -497,7 +505,7 @@ export async function dispatchClientWebhook(
  */
 export async function dispatchContactWebhook(
   organizationId: string,
-  event: "contact.created" | "contact.updated" | "contact.deleted",
+  event: "contact.created" | "contact.updated" | "contact.deleted" | "contact.archived",
   contact: {
     id: string;
     displayName: string;
@@ -524,7 +532,7 @@ export async function dispatchContactWebhook(
  */
 export async function dispatchPropertyWebhook(
   organizationId: string,
-  event: "property.created" | "property.updated" | "property.deleted",
+  event: "property.created" | "property.updated" | "property.deleted" | "property.archived",
   property: {
     id: string;
     property_name: string;
@@ -578,7 +586,7 @@ export async function dispatchTaskWebhook(
  */
 export async function dispatchCalendarWebhook(
   organizationId: string,
-  event: "calendar.event.created" | "calendar.event.updated" | "calendar.event.cancelled",
+  event: "calendar.event.created" | "calendar.event.updated" | "calendar.event.cancelled" | "calendar.event.archived",
   calendarEvent: {
     id: string;
     title?: string | null;
@@ -605,7 +613,7 @@ export async function dispatchCalendarWebhook(
  */
 export async function dispatchDocumentWebhook(
   organizationId: string,
-  event: "document.uploaded" | "document.shared" | "document.deleted",
+  event: "document.uploaded" | "document.shared" | "document.deleted" | "document.archived",
   document: {
     id: string;
     document_name: string;

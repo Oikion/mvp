@@ -26,7 +26,7 @@ interface EntityShareAcceptedEmailProps {
 
 const entityIcons: Record<EntityType, string> = {
   PROPERTY: "🏠",
-  CLIENT: "👤",
+  CONTACT: "👤",
   DOCUMENT: "📄",
 };
 
@@ -45,7 +45,7 @@ const translations = {
     footerNote: "Manage your notification preferences in settings.",
     entityTypes: {
       PROPERTY: { name: "Property" },
-      CLIENT: { name: "Client" },
+      CONTACT: { name: "Contact" },
       DOCUMENT: { name: "Document" },
     },
   },
@@ -63,7 +63,7 @@ const translations = {
     footerNote: "Διαχειριστείτε τις προτιμήσεις ειδοποιήσεων στις ρυθμίσεις.",
     entityTypes: {
       PROPERTY: { name: "Ακίνητο" },
-      CLIENT: { name: "Πελάτης" },
+      CONTACT: { name: "Επαφή" },
       DOCUMENT: { name: "Έγγραφο" },
     },
   },
@@ -81,7 +81,7 @@ const translations = {
     footerNote: "Spravujte své preference oznámení v nastavení.",
     entityTypes: {
       PROPERTY: { name: "Nemovitost" },
-      CLIENT: { name: "Klient" },
+      CONTACT: { name: "Klient" },
       DOCUMENT: { name: "Dokument" },
     },
   },

@@ -4,7 +4,7 @@
     "description": "Στείλτε λεπτομέρειες {entityType} σε οποιονδήποτε μέσω email",
     "entityTypes": {
       "property": "ακινήτου",
-      "client": "πελάτη",
+      "contact": "πελάτη",
       "post": "δημοσίευσης"
     },
     "form": {

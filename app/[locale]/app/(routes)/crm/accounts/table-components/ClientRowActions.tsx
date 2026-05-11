@@ -57,7 +57,7 @@ export function ClientRowActions({ row }: ClientRowActionsProps) {
 
       <DataTableRowActions
         row={row}
-        entityType="client"
+        entityType="contact"
         entityId={data.id}
         entityName={data.name || data.client_name}
         onView={() => router.push(`/app/crm/contacts/${data.friendlyId}`)}

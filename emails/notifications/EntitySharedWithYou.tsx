@@ -27,7 +27,7 @@ interface EntitySharedWithYouEmailProps {
 
 const entityIcons: Record<EntityType, string> = {
   PROPERTY: "🏠",
-  CLIENT: "👤",
+  CONTACT: "👤",
   DOCUMENT: "📄",
 };
 
@@ -46,7 +46,7 @@ const translations = {
     footerNote: "Manage your notification preferences in settings.",
     entityTypes: {
       PROPERTY: { badge: "Property Shared", name: "Property" },
-      CLIENT: { badge: "Client Shared", name: "Client" },
+      CONTACT: { badge: "Contact Shared", name: "Contact" },
       DOCUMENT: { badge: "Document Shared", name: "Document" },
     },
   },
@@ -64,7 +64,7 @@ const translations = {
     footerNote: "Διαχειριστείτε τις προτιμήσεις ειδοποιήσεων στις ρυθμίσεις.",
     entityTypes: {
       PROPERTY: { badge: "Κοινοποίηση Ακινήτου", name: "Ακίνητο" },
-      CLIENT: { badge: "Κοινοποίηση Πελάτη", name: "Πελάτης" },
+      CONTACT: { badge: "Κοινοποίηση Επαφής", name: "Επαφή" },
       DOCUMENT: { badge: "Κοινοποίηση Εγγράφου", name: "Έγγραφο" },
     },
   },
@@ -82,7 +82,7 @@ const translations = {
     footerNote: "Spravujte své preference oznámení v nastavení.",
     entityTypes: {
       PROPERTY: { badge: "Nemovitost Sdílena", name: "Nemovitost" },
-      CLIENT: { badge: "Klient Sdílen", name: "Klient" },
+      CONTACT: { badge: "Kontakt Sdílen", name: "Kontakt" },
       DOCUMENT: { badge: "Dokument Sdílen", name: "Dokument" },
     },
   },
