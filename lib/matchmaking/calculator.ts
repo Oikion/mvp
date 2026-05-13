@@ -1407,18 +1407,16 @@ function scoreTimelineV2(
 ): CriterionScore {
   // Properties don't expose an availability timeline in the current schema.
   // Score is based solely on the urgency of the request:
-  //   IMMEDIATE    → buyer is highly motivated; any active property is relevant → 100
-  //   THREE_MONTHS → strong signal of near-term intent → 85
-  //   SIX_MONTHS   → moderate → 70
-  //   ONE_YEAR     → low urgency → 55
-  //   FLEXIBLE     → open-ended; property still valid → 60
-  //   null/unknown → no preference → 50 (neutral)
+  //   IMMEDIATE         → buyer is highly motivated; any active property is relevant → 100
+  //   ONE_THREE_MONTHS  → strong signal of near-term intent → 85
+  //   THREE_SIX_MONTHS  → moderate → 70
+  //   SIX_PLUS_MONTHS   → low urgency but still active → 55
+  //   null/unknown      → no preference → 50 (neutral)
   const TIMELINE_SCORE: Record<string, number> = {
     IMMEDIATE: 100,
-    THREE_MONTHS: 85,
-    SIX_MONTHS: 70,
-    ONE_YEAR: 55,
-    FLEXIBLE: 60,
+    ONE_THREE_MONTHS: 85,
+    THREE_SIX_MONTHS: 70,
+    SIX_PLUS_MONTHS: 55,
   };
   if (!request.timeline) {
     return createScoreV2("TIMELINE", weight, 50, "Timeline not specified");

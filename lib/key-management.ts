@@ -37,6 +37,15 @@ interface CacheEntry {
 const DEK_CACHE_TTL_MS = 30 * 1000; // 30 seconds
 const dekCache = new Map<string, CacheEntry>();
 
+// Cache for inactive (previous) DEK versions — these change only on key rotation,
+// so a 5-minute TTL is safe and eliminates the N×DB-hit pattern in list endpoints.
+interface InactiveDeksEntry {
+  deks: Buffer[];
+  expiresAt: number;
+}
+const INACTIVE_DEKS_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const inactiveDeksCache = new Map<string, InactiveDeksEntry>();
+
 function getCached(orgId: string): Buffer | null {
   const entry = dekCache.get(orgId);
   if (!entry) return null;
@@ -57,6 +66,7 @@ function setCache(orgId: string, dek: Buffer): void {
  */
 async function clearCache(orgId: string): Promise<void> {
   dekCache.delete(orgId);
+  inactiveDeksCache.delete(orgId);
   await cacheDel(`oik:dek:${orgId}`);
 }
 
@@ -200,17 +210,23 @@ export async function getOrgDeksForDecryption(orgId: string): Promise<Buffer[]> 
     console.warn(`[key-management] getOrgDeksForDecryption: failed to load active DEK for org ${orgId}`);
   }
 
-  // Previous (inactive) versions — fetch from DB, newest first
+  // Previous (inactive) versions — check in-process cache first (only changes on key rotation)
+  const cached = inactiveDeksCache.get(orgId);
+  if (cached && Date.now() < cached.expiresAt) {
+    return [...deks, ...cached.deks];
+  }
+
   const inactiveRows = await prismadb.orgEncryptionKey.findMany({
     where: { organizationId: orgId, isActive: false },
     orderBy: { keyVersion: "desc" },
     select: { encryptedDek: true, keyVersion: true },
   });
 
+  const inactiveDeks: Buffer[] = [];
   for (const row of inactiveRows) {
     try {
       const dekHex = decrypt(row.encryptedDek);
-      deks.push(Buffer.from(dekHex, "hex"));
+      inactiveDeks.push(Buffer.from(dekHex, "hex"));
     } catch {
       // Master key cannot decrypt this DEK version — skip it silently
       // (can happen if SECRETS_ENCRYPTION_KEY was rotated between DEK generation and now)
@@ -220,7 +236,8 @@ export async function getOrgDeksForDecryption(orgId: string): Promise<Buffer[]> 
     }
   }
 
-  return deks;
+  inactiveDeksCache.set(orgId, { deks: inactiveDeks, expiresAt: Date.now() + INACTIVE_DEKS_TTL_MS });
+  return [...deks, ...inactiveDeks];
 }
 
 /**

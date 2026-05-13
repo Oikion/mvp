@@ -362,7 +362,7 @@ export interface MatchOptions {
 // ============================================
 
 export type FinancingStatus = "CASH" | "MORTGAGE" | "MIXED" | "UNSPECIFIED";
-export type Timeline = "IMMEDIATE" | "THREE_MONTHS" | "SIX_MONTHS" | "ONE_YEAR" | "FLEXIBLE";
+export type Timeline = "IMMEDIATE" | "ONE_THREE_MONTHS" | "THREE_SIX_MONTHS" | "SIX_PLUS_MONTHS";
 
 /**
  * Request (demand-side) data needed for v2 matching calculations.

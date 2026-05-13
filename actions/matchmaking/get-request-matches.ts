@@ -420,7 +420,7 @@ export async function getRequestMatchAnalytics(): Promise<RequestMatchAnalytics>
 
   const [storedMatches, activeRequests, totalProperties] = await Promise.all([
     prismadb.propertyRequestMatch.findMany({
-      where: { organizationId, OR: [{ matchScore: { gte: 0.5 } }, { matchScore: null }] },
+      where: { organizationId, matchScore: { gte: 0.5 } },
       orderBy: { matchScore: "desc" },
       take: 200,
       include: {

@@ -90,22 +90,26 @@ export async function GET(req: Request) {
     const results = hasMore ? requests.slice(0, limit) : requests;
     const nextCursor = hasMore ? results[results.length - 1].id : null;
 
-    // Decrypt fields
-    const decrypted = [];
-    for (const request of results) {
-      try {
-        const decReq = await decryptRequestForOrg(request, organizationId);
-        // Decrypt linked contacts
-        const decContacts = [];
-        for (const rc of request.requestContacts) {
-          const decContact = await decryptContactForOrg(rc.contact, organizationId);
-          decContacts.push({ ...rc, contact: decContact });
+    // Decrypt fields in parallel — eliminates N sequential DB roundtrips for DEK fetches
+    const decrypted = (await Promise.all(
+      results.map(async (request) => {
+        try {
+          const [decReq, decContactPairs] = await Promise.all([
+            decryptRequestForOrg(request, organizationId),
+            Promise.all(
+              request.requestContacts.map(async (rc) => {
+                const decContact = await decryptContactForOrg(rc.contact, organizationId);
+                return { ...rc, contact: decContact };
+              })
+            ),
+          ]);
+          return { ...decReq, requestContacts: decContactPairs };
+        } catch (err) {
+          console.error(`[REQUESTS_GET] Failed to decrypt request ${request.id}:`, err);
+          return null;
         }
-        decrypted.push({ ...decReq, requestContacts: decContacts });
-      } catch (err) {
-        console.error(`[REQUESTS_GET] Failed to decrypt request ${request.id}:`, err);
-      }
-    }
+      })
+    )).filter((r): r is NonNullable<typeof r> => r !== null);
 
     // Post-decrypt search filtering (encrypted fields can't be searched in DB)
     let filtered = decrypted;

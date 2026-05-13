@@ -74,15 +74,17 @@ export async function GET(req: Request) {
     const results = hasMore ? contacts.slice(0, limit) : contacts;
     const nextCursor = hasMore ? results[results.length - 1].id : null;
 
-    // Decrypt PII fields
-    const decrypted = [];
-    for (const contact of results) {
-      try {
-        decrypted.push(await decryptContactForOrg(contact, organizationId));
-      } catch (err) {
-        console.error(`[CONTACTS_GET] Failed to decrypt contact ${contact.id}:`, err);
-      }
-    }
+    // Decrypt PII fields in parallel — eliminates N sequential DB roundtrips for DEK fetches
+    const decrypted = (await Promise.all(
+      results.map(async (contact) => {
+        try {
+          return await decryptContactForOrg(contact, organizationId);
+        } catch (err) {
+          console.error(`[CONTACTS_GET] Failed to decrypt contact ${contact.id}:`, err);
+          return null;
+        }
+      })
+    )).filter((c): c is NonNullable<typeof c> => c !== null);
 
     // Filter by search (post-decrypt since names are encrypted)
     let filtered = decrypted;
