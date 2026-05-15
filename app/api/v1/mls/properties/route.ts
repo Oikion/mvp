@@ -113,10 +113,14 @@ export const GET = withExternalApi(
     if (filters.minPrice || filters.maxPrice) {
       where.price = {};
       if (filters.minPrice) {
-        (where.price as Record<string, number>).gte = parseInt(filters.minPrice, 10);
+        const min = Number(filters.minPrice);
+        if (isNaN(min) || min < 0) return createApiErrorResponse("Invalid minPrice: must be a non-negative number", 400);
+        (where.price as Record<string, number>).gte = min;
       }
       if (filters.maxPrice) {
-        (where.price as Record<string, number>).lte = parseInt(filters.maxPrice, 10);
+        const max = Number(filters.maxPrice);
+        if (isNaN(max) || max < 0) return createApiErrorResponse("Invalid maxPrice: must be a non-negative number", 400);
+        (where.price as Record<string, number>).lte = max;
       }
     }
 
@@ -226,31 +230,31 @@ export const POST = withExternalApi(
         createdBy: context.createdById,
         updatedBy: context.createdById,
         property_name: v.name,
-        property_type: v.type || null,
-        property_status: v.status || "ACTIVE",
-        transaction_type: v.transactionType || null,
-        price: v.price || null,
-        price_type: v.priceType || null,
-        address_street: v.addressStreet || null,
-        address_city: v.addressCity || null,
-        address_state: v.addressState || null,
-        address_zip: v.addressZip || null,
-        bedrooms: v.bedrooms || null,
-        bathrooms: v.bathrooms || null,
-        size_net_sqm: v.sizeNetSqm || null,
-        size_gross_sqm: v.sizeGrossSqm || null,
-        floor: v.floor || null,
-        floors_total: v.floorsTotal || null,
-        year_built: v.yearBuilt || null,
-        condition: v.condition || null,
-        heating_type: v.heatingType || null,
-        energy_cert_class: v.energyCertClass || null,
-        elevator: v.elevator || null,
-        amenities: v.amenities || undefined,
-        description: v.description || null,
-        assigned_to: v.assignedTo || null,
-        is_exclusive: v.isExclusive || false,
-        visibility: v.portalVisibility || "PRIVATE",
+        property_type: v.type ?? null,
+        property_status: v.status ?? "ACTIVE",
+        transaction_type: v.transactionType ?? null,
+        price: v.price ?? null,
+        price_type: v.priceType ?? null,
+        address_street: v.addressStreet ?? null,
+        address_city: v.addressCity ?? null,
+        address_state: v.addressState ?? null,
+        address_zip: v.addressZip ?? null,
+        bedrooms: v.bedrooms ?? null,
+        bathrooms: v.bathrooms ?? null,
+        size_net_sqm: v.sizeNetSqm ?? null,
+        size_gross_sqm: v.sizeGrossSqm ?? null,
+        floor: v.floor ?? null,
+        floors_total: v.floorsTotal ?? null,
+        year_built: v.yearBuilt ?? null,
+        condition: v.condition ?? null,
+        heating_type: v.heatingType ?? null,
+        energy_cert_class: v.energyCertClass ?? null,
+        elevator: v.elevator ?? null,
+        amenities: v.amenities ?? undefined,
+        description: v.description ?? null,
+        assigned_to: v.assignedTo ?? null,
+        is_exclusive: v.isExclusive ?? false,
+        visibility: v.portalVisibility ?? "PRIVATE",
         draft_status: false,
       },
       select: {

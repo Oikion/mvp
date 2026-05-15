@@ -69,7 +69,12 @@ export async function POST(req: NextRequest) {
     
     // Get raw body for signature verification
     const rawBody = await req.text();
-    const body = JSON.parse(rawBody);
+    let body: Record<string, unknown>;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json({ error: "Invalid request body: must be valid JSON" }, { status: 400 });
+    }
 
     // Verify signature - always required now that secret must be configured
     const signature = req.headers.get("x-n8n-signature") || 
@@ -94,14 +99,12 @@ export async function POST(req: NextRequest) {
     // organizationId from the body is trusted but unverified against the token.
     // Required fix: migrate to per-org webhook secrets stored in DB, looked up by token/org pair.
     // Tracking: pre-launch-audit-2026-04-22 finding H-04
-    const {
-      event,
-      organizationId,
-      workflowId,
-      executionId,
-      data,
-      timestamp,
-    } = body;
+    const event = body.event as string | undefined;
+    const organizationId = body.organizationId as string | undefined;
+    const workflowId = body.workflowId as string | undefined;
+    const executionId = body.executionId as string | undefined;
+    const data = (body.data ?? {}) as Record<string, unknown>;
+    const timestamp = body.timestamp as string | undefined;
 
     if (!event) {
       return NextResponse.json(
@@ -110,9 +113,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify the organizationId from the body actually exists to prevent
-    // cross-org data injection with a valid global HMAC token.
-    if (organizationId) {
+    // Require and verify organizationId for all mutation events.
+    // health.check is the only event that can proceed without it.
+    if (event !== "health.check") {
+      if (!organizationId) {
+        return NextResponse.json({ error: "Missing required field: organizationId" }, { status: 400 });
+      }
       const orgSettings = await prismadb.organizationSettings.findUnique({
         where: { organizationId },
         select: { id: true },
@@ -122,26 +128,29 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // organizationId presence is verified above for all non-health events
+    const orgId = organizationId!;
+
     // Process the webhook based on event type
     switch (event) {
       case "workflow.completed":
-        await handleWorkflowCompleted(organizationId, workflowId, executionId, data);
+        await handleWorkflowCompleted(orgId, workflowId ?? "", executionId ?? "", data);
         break;
 
       case "workflow.error":
-        await handleWorkflowError(organizationId, workflowId, executionId, data);
+        await handleWorkflowError(orgId, workflowId ?? "", executionId ?? "", data);
         break;
 
       case "content.created":
-        await handleContentCreated(organizationId, data);
+        await handleContentCreated(orgId, data);
         break;
 
       case "content.published":
-        await handleContentPublished(organizationId, data);
+        await handleContentPublished(orgId, data);
         break;
 
       case "metrics.sync":
-        await handleMetricsSync(organizationId, data);
+        await handleMetricsSync(orgId, data);
         break;
 
       case "health.check":
@@ -179,10 +188,7 @@ async function handleWorkflowCompleted(
   executionId: string,
   data: Record<string, unknown>
 ) {
-  console.log(`[N8N_WEBHOOK] Workflow completed: ${workflowId}`, {
-    organizationId,
-    executionId,
-  });
+  console.log(`[N8N_WEBHOOK] Workflow completed: ${workflowId}`, { executionId });
 
   // You could store workflow execution history here if needed
   // Or trigger follow-up actions based on the workflow output
@@ -197,11 +203,7 @@ async function handleWorkflowError(
   executionId: string,
   data: Record<string, unknown>
 ) {
-  console.error(`[N8N_WEBHOOK] Workflow error: ${workflowId}`, {
-    organizationId,
-    executionId,
-    error: data?.error,
-  });
+  console.error(`[N8N_WEBHOOK] Workflow error: ${workflowId}`, { executionId });
 
   // Update any related records to show failure status
   if (data?.blogPostId) {
@@ -247,7 +249,7 @@ async function handleContentCreated(
 ) {
   // SECURITY: Do not log the full `data` payload — it may contain entity
   // names or PII from n8n workflows. Log only the event type and org.
-  console.log(`[N8N_WEBHOOK] Content created`, { organizationId, type: data.type, id: data.id });
+  console.log(`[N8N_WEBHOOK] Content created`, { type: data.type });
 
   // Content is already created via API endpoints
   // This event can be used for notifications or logging
@@ -260,7 +262,7 @@ async function handleContentPublished(
   organizationId: string,
   data: Record<string, unknown>
 ) {
-  console.log(`[N8N_WEBHOOK] Content published`, { organizationId, type: data.type, id: data.id });
+  console.log(`[N8N_WEBHOOK] Content published`, { type: data.type });
 
   // Update content status if needed
   const { type, id } = data;
@@ -294,7 +296,7 @@ async function handleMetricsSync(
   organizationId: string,
   data: Record<string, unknown>
 ) {
-  console.log(`[N8N_WEBHOOK] Metrics sync`, { organizationId, postId: data.postId, platform: data.platform });
+  console.log(`[N8N_WEBHOOK] Metrics sync`, { platform: data.platform });
 
   const { postId, platform, metrics } = data;
 
