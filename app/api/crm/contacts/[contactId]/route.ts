@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { canPerformAction } from "@/lib/permissions";
+import { isDemoOrg } from "@/lib/demo/demo-guard";
 import { updateContactSchema } from "@/lib/validations/contacts";
 import { encryptContactForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { isFriendlyId } from "@/lib/friendly-id";
@@ -248,6 +249,10 @@ export async function DELETE(
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const { contactId } = await params;
+
+    if (await isDemoOrg(organizationId)) {
+      return NextResponse.json({ success: true });
+    }
 
     const existing = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },

@@ -6,6 +6,7 @@ import { Prisma } from "@prisma/client";
 import { mergeDocumentMentions } from "@/actions/documents/parse-mentions";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { requireCanModify, checkAssignedToChange } from "@/lib/permissions/guards";
+import { isDemoOrg } from "@/lib/demo/demo-guard";
 
 export async function GET(
   req: Request,
@@ -137,6 +138,10 @@ export async function DELETE(
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const params = await props.params;
+
+    if (await isDemoOrg(organizationId)) {
+      return NextResponse.json({ success: true });
+    }
 
     const document = await prismadb.documents.findFirst({
       where: { id: params.documentId, organizationId },

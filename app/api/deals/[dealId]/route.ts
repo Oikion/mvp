@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
+import { isDemoOrg } from "@/lib/demo/demo-guard";
 import {
   apiSuccess,
   apiUnauthorized,
@@ -298,6 +300,10 @@ export async function DELETE(
     if (!userId || !organizationId) return apiUnauthorized();
 
     const { dealId } = await props.params;
+
+    if (await isDemoOrg(organizationId)) {
+      return NextResponse.json({ success: true });
+    }
 
     const deal = await prismadb.deal.findFirst({
       where: { id: dealId, organizationId },

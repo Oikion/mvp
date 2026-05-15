@@ -5,6 +5,7 @@ import { requireAction, handleGuardError } from "@/lib/permissions/action-guards
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { executeBatchImport, type ImportEngineOptions } from "@/lib/import/unified-engine";
 import { recordImport } from "@/lib/import/history";
+import { isDemoOrg } from "@/lib/demo/demo-guard";
 
 const MAX_ROWS = 5000;
 
@@ -27,6 +28,10 @@ export async function POST(req: Request) {
 
     const user = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
+
+    if (await isDemoOrg(organizationId)) {
+      return NextResponse.json({ success: true, imported: 12, skipped: 0, errors: [] });
+    }
 
     const body = await req.json();
     const { rows, assignedTo, importHistoryId, sourceFilename, options } = body;

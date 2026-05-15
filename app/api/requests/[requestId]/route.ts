@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { canPerformAction } from "@/lib/permissions";
+import { isDemoOrg } from "@/lib/demo/demo-guard";
 import { updateRequestSchema } from "@/lib/validations/requests";
 import { encryptRequestForOrg, decryptRequestForOrg, decryptContactForOrg } from "@/lib/model-encryption";
 import { logEntityCreated, logEntityUpdated, type FieldChange } from "@/lib/activity-logger";
@@ -279,6 +280,10 @@ export async function DELETE(
     const deleteCheck = await canPerformAction("request:delete");
     if (!deleteCheck.allowed) {
       return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+    }
+
+    if (await isDemoOrg(organizationId)) {
+      return NextResponse.json({ success: true });
     }
 
     // Resolve friendlyId → id, then soft-delete

@@ -4,6 +4,7 @@ import { prismaForOrg } from "@/lib/tenant";
 import { invalidateCache } from "@/lib/cache-invalidate";
 import { canPerformAction, canPerformActionOnEntity } from "@/lib/permissions";
 import { deleteEntitySessionsForEntity } from "@/lib/entity-session/entity-session-service";
+import { isDemoOrg } from "@/lib/demo/demo-guard";
 
 export async function GET(
   _req: Request,
@@ -67,6 +68,10 @@ export async function DELETE(
     const currentUser = await getCurrentUser();
     const organizationId = await getCurrentOrgId();
     const prismaTenant = prismaForOrg(organizationId);
+
+    if (await isDemoOrg(organizationId)) {
+      return NextResponse.json({ success: true });
+    }
 
     const property = await prismaTenant.properties.findFirst({
       where: { organizationId, friendlyId: propertyId },
