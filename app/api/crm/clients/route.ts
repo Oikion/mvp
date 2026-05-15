@@ -7,6 +7,7 @@ import {
   ClientStatus,
   LeadSource,
 } from "@prisma/client";
+import { z } from "zod";
 import { prismadb } from "@/lib/prisma";
 import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { invalidateCache } from "@/lib/cache-invalidate";
@@ -284,7 +285,13 @@ export async function GET(req: Request) {
     const minimal = searchParams.get("minimal") === "true";
 
     const where: Record<string, unknown> = { organizationId };
-    if (status) where.status = status;
+    if (status) {
+      const statusValidation = z.nativeEnum(ContactStatus).safeParse(status);
+      if (!statusValidation.success) {
+        return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
+      }
+      where.status = statusValidation.data;
+    }
 
     if (minimal) {
       const contacts = await prismadb.contact.findMany({

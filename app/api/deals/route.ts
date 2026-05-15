@@ -111,16 +111,26 @@ export async function POST(req: Request) {
       return apiBadRequest("Property not found or access denied");
     }
 
-    // Resolve optional request reference up front so we can log a LINKED
-    // activity for it after create. Note: this route does NOT validate the
-    // request belongs to the org today (pre-existing gap); we only fetch
-    // it for activity-log labeling and skip logging if the lookup misses.
+    // Resolve optional request reference — also validates it belongs to the org.
     const requestRef = data.requestId
       ? await prismadb.request.findFirst({
           where: { id: data.requestId, organizationId },
           select: { id: true, friendlyId: true },
         })
       : null;
+
+    // Validate notary contact belongs to org if provided (Contact has organizationId).
+    // listingAgentId/buyerAgentId reference Users which has no organizationId — org
+    // membership is enforced by Clerk at the session level.
+    if (data.notaryContactId) {
+      const notaryExists = await prismadb.contact.findFirst({
+        where: { id: data.notaryContactId, organizationId },
+        select: { id: true },
+      });
+      if (!notaryExists) {
+        return apiBadRequest("Notary contact not found or access denied");
+      }
+    }
 
     const friendlyId = await generateFriendlyId(prismadb, "Deal", organizationId);
 
