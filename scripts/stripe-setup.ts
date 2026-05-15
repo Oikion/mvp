@@ -1,3 +1,15 @@
+/**
+ * One-time Stripe setup script for Oikion hybrid billing model.
+ * Creates two products (Pro, Business) with 4 prices each:
+ * base (flat rate) + seat overage, monthly + yearly.
+ *
+ * Run once per Stripe account:
+ *   STRIPE_API_KEY=sk_test_... pnpm tsx scripts/stripe-setup.ts
+ *
+ * Paste the printed price IDs into .env.local.
+ * Re-running is safe — existing products are skipped.
+ */
+
 import Stripe from "stripe";
 
 async function main() {
@@ -5,9 +17,21 @@ async function main() {
     apiVersion: "2024-12-18.acacia",
   });
 
+  // Verify API key is valid before doing anything
+  const account = await stripe.accounts.retrieve();
+  console.log(`Stripe account: ${account.id} (${account.country ?? "unknown country"})\n`);
+
   console.log("Creating Stripe products and prices...\n");
 
   // ── Pro Product ──────────────────────────────────────
+  const existingProducts = await stripe.products.list({ limit: 100, active: true });
+
+  const existingPro = existingProducts.data.find((p) => p.name === "Oikion Pro");
+  if (existingPro) {
+    console.warn("⚠️  'Oikion Pro' already exists — skipping creation. Delete it in Stripe dashboard first to re-run.");
+    process.exit(0);
+  }
+
   const pro = await stripe.products.create({
     name: "Oikion Pro",
     description: "Real estate agency platform — Pro tier",
