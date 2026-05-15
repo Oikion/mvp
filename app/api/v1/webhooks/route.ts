@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import { API_SCOPES } from "@/lib/api-auth";
 import {
   withExternalApi,
@@ -10,9 +11,16 @@ import {
   createWebhookEndpoint,
   listWebhookEndpoints,
   ALL_WEBHOOK_EVENTS,
+  WEBHOOK_EVENTS,
   WEBHOOK_EVENT_DESCRIPTIONS,
   WebhookEvent,
 } from "@/lib/webhooks";
+
+const createWebhookApiSchema = z.object({
+  name: z.string().min(1, "name is required").max(255),
+  url: z.string().url("url must be a valid URL"),
+  events: z.array(z.nativeEnum(WEBHOOK_EVENTS)).min(1, "events must be a non-empty array"),
+}).strict();
 
 /**
  * GET /api/v1/webhooks
@@ -51,45 +59,19 @@ export const POST = withExternalApi(
   async (req: NextRequest, context: ExternalApiContext) => {
     const body = await req.json();
 
-    const { name, url, events } = body;
-
-    // Validate required fields
-    if (!name) {
-      return createApiErrorResponse("Missing required field: name", 400);
+    const parsed = createWebhookApiSchema.safeParse(body);
+    if (!parsed.success) {
+      const details = Object.entries(parsed.error.flatten().fieldErrors)
+        .map(([k, v]) => `${k}: ${(v ?? []).join(", ")}`)
+        .join("; ");
+      return createApiErrorResponse(`Validation failed: ${details}`, 400);
     }
 
-    if (!url) {
-      return createApiErrorResponse("Missing required field: url", 400);
-    }
-
-    // Validate URL format
-    try {
-      new URL(url);
-    } catch {
-      return createApiErrorResponse("Invalid URL format", 400);
-    }
+    const { name, url, events } = parsed.data;
 
     // Validate HTTPS for production
     if (process.env.NODE_ENV === "production" && !url.startsWith("https://")) {
       return createApiErrorResponse("Webhook URL must use HTTPS in production", 400);
-    }
-
-    if (!events || !Array.isArray(events) || events.length === 0) {
-      return createApiErrorResponse(
-        "Missing required field: events (must be a non-empty array)",
-        400
-      );
-    }
-
-    // Validate events
-    const invalidEvents = events.filter(
-      (event: string) => !ALL_WEBHOOK_EVENTS.includes(event as WebhookEvent)
-    );
-    if (invalidEvents.length > 0) {
-      return createApiErrorResponse(
-        `Invalid events: ${invalidEvents.join(", ")}. Valid events are: ${ALL_WEBHOOK_EVENTS.join(", ")}`,
-        400
-      );
     }
 
     // Create webhook endpoint

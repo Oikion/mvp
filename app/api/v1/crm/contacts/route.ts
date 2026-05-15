@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { ContactStatus, ContactSource, PersonType, Language, ItemVisibility } from "@prisma/client";
+import { ContactStatus, ContactSource, ContactCategory, PersonType, Language, ItemVisibility } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
 import {
@@ -63,7 +63,9 @@ export const GET = withExternalApi(
     }
 
     if (filters.category) {
-      where.category = { has: filters.category };
+      const categoryParsed = z.nativeEnum(ContactCategory).safeParse(filters.category);
+      if (!categoryParsed.success) return createApiErrorResponse(`Invalid category: ${filters.category}`, 400);
+      where.category = { has: categoryParsed.data };
     }
 
     if (filters.assignedAgentId) {
@@ -168,14 +170,12 @@ export const POST = withExternalApi(
 
     const v = parsed.data;
 
-    // Verify assignedAgentId user exists before writing
+    // Verify assignedAgentId user exists AND belongs to this organization
     if (v.assignedAgentId) {
-      const userExists = await prismadb.users.findFirst({
-        where: { id: v.assignedAgentId },
-        select: { id: true },
-      });
-      if (!userExists) {
-        return createApiErrorResponse("assignedAgentId: user not found", 400);
+      const { validateOrgUser } = await import("@/lib/external-api-middleware");
+      const userCheck = await validateOrgUser(v.assignedAgentId, context.organizationId);
+      if (!userCheck.valid) {
+        return createApiErrorResponse(`assignedAgentId: ${userCheck.error}`, 400);
       }
     }
 

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { ContactStatus, ContactSource, PersonType, Language } from "@prisma/client";
+import { ContactStatus, ContactSource, ContactCategory, PersonType, Language } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
 import {
@@ -54,7 +54,9 @@ export const GET = withExternalApi(
     }
 
     if (filters.type) {
-      where.category = filters.type;
+      const typeParsed = z.nativeEnum(ContactCategory).safeParse(filters.type);
+      if (!typeParsed.success) return createApiErrorResponse(`Invalid type: ${filters.type}`, 400);
+      where.category = { has: typeParsed.data };
     }
 
     if (filters.assignedTo) {
@@ -142,14 +144,12 @@ export const POST = withExternalApi(
 
     const v = parsed.data;
 
-    // Verify assignedTo user exists before writing
+    // Verify assignedTo user exists AND belongs to this organization
     if (v.assignedTo) {
-      const userExists = await prismadb.users.findFirst({
-        where: { id: v.assignedTo },
-        select: { id: true },
-      });
-      if (!userExists) {
-        return createApiErrorResponse("assignedTo: user not found", 400);
+      const { validateOrgUser } = await import("@/lib/external-api-middleware");
+      const userCheck = await validateOrgUser(v.assignedTo, context.organizationId);
+      if (!userCheck.valid) {
+        return createApiErrorResponse(`assignedTo: ${userCheck.error}`, 400);
       }
     }
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { validateApiKey, hasScope, logApiRequest, ApiScope } from "@/lib/api-auth";
 import { rateLimit, getApiKeyRateLimitIdentifier } from "@/lib/rate-limit";
+import { prismadb } from "@/lib/prisma";
 import {
   parsePaginationParams as parseSharedPaginationParams,
   createExternalPaginatedResponse,
@@ -319,6 +321,41 @@ export function createPaginatedApiResponse<T>(
 // Re-export pagination types and constants for convenience
 export type { PaginationParams, ExternalPaginatedResponse };
 export { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE };
+
+/**
+ * Verify that a user ID exists AND is a member of the given organization.
+ * Uses DB lookup to get the Clerk user ID, then Clerk membership API to verify.
+ * Call before persisting any external-caller-supplied user reference (assignedTo, assignedAgentId).
+ */
+export async function validateOrgUser(
+  userId: string,
+  organizationId: string
+): Promise<{ valid: boolean; error?: string }> {
+  const user = await prismadb.users.findFirst({
+    where: { id: userId },
+    select: { id: true, clerkUserId: true },
+  });
+
+  if (!user) return { valid: false, error: "user not found" };
+  if (!user.clerkUserId) return { valid: false, error: "user account not fully configured" };
+
+  try {
+    const clerk = await clerkClient();
+    const memberships = await clerk.organizations.getOrganizationMembershipList({
+      organizationId,
+    });
+    const isMember = memberships.data.some(
+      (m) => m.publicUserData?.userId === user.clerkUserId
+    );
+    if (!isMember) {
+      return { valid: false, error: "user is not a member of this organization" };
+    }
+  } catch {
+    return { valid: false, error: "could not verify organization membership" };
+  }
+
+  return { valid: true };
+}
 
 /**
  * Parse filter parameters from request

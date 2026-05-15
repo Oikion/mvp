@@ -206,14 +206,12 @@ export const POST = withExternalApi(
 
     const v = parsed.data;
 
-    // Verify assignedTo user exists before writing
+    // Verify assignedTo user exists AND belongs to this organization
     if (v.assignedTo) {
-      const userExists = await prismadb.users.findFirst({
-        where: { id: v.assignedTo },
-        select: { id: true },
-      });
-      if (!userExists) {
-        return createApiErrorResponse("assignedTo: user not found", 400);
+      const { validateOrgUser } = await import("@/lib/external-api-middleware");
+      const userCheck = await validateOrgUser(v.assignedTo, context.organizationId);
+      if (!userCheck.valid) {
+        return createApiErrorResponse(`assignedTo: ${userCheck.error}`, 400);
       }
     }
 
