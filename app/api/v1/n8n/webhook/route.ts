@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, createHash, timingSafeEqual } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 
@@ -16,11 +16,12 @@ function verifyWebhookSignature(payload: string, signature: string, secret: stri
     ? signature.slice(7)
     : signature;
 
-  // Use timing-safe comparison to prevent timing oracle attacks
-  const sigBuffer = Buffer.from(normalizedSignature, "hex");
-  const expectedBuffer = Buffer.from(expectedSignature, "hex");
-  if (sigBuffer.length !== expectedBuffer.length) return false;
-  return timingSafeEqual(sigBuffer, expectedBuffer);
+  // Hash both to SHA256 before comparing so timingSafeEqual always runs on
+  // equal-length (32-byte) buffers regardless of the caller-supplied signature length.
+  // This eliminates the length-distinguishing oracle that a short-circuit would create.
+  const a = createHash("sha256").update(normalizedSignature).digest();
+  const b = createHash("sha256").update(expectedSignature).digest();
+  return timingSafeEqual(a, b);
 }
 
 /**
@@ -152,7 +153,7 @@ export async function POST(req: NextRequest) {
         });
 
       default:
-        console.log(`[N8N_WEBHOOK] Unknown event type: ${event}`, body);
+        console.log(`[N8N_WEBHOOK] Unknown event type: ${event}`);
     }
 
     return NextResponse.json({
@@ -181,7 +182,6 @@ async function handleWorkflowCompleted(
   console.log(`[N8N_WEBHOOK] Workflow completed: ${workflowId}`, {
     organizationId,
     executionId,
-    data,
   });
 
   // You could store workflow execution history here if needed
@@ -201,7 +201,6 @@ async function handleWorkflowError(
     organizationId,
     executionId,
     error: data?.error,
-    data,
   });
 
   // Update any related records to show failure status
@@ -295,7 +294,7 @@ async function handleMetricsSync(
   organizationId: string,
   data: Record<string, unknown>
 ) {
-  console.log(`[N8N_WEBHOOK] Metrics sync`, { organizationId, data });
+  console.log(`[N8N_WEBHOOK] Metrics sync`, { organizationId, postId: data.postId, platform: data.platform });
 
   const { postId, platform, metrics } = data;
 

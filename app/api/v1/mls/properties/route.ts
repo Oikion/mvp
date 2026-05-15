@@ -80,15 +80,21 @@ export const GET = withExternalApi(
     };
 
     if (filters.status) {
-      where.property_status = filters.status;
+      const parsed = z.nativeEnum(PropertyStatus).safeParse(filters.status);
+      if (!parsed.success) return createApiErrorResponse(`Invalid status: ${filters.status}`, 400);
+      where.property_status = parsed.data;
     }
 
     if (filters.type) {
-      where.property_type = filters.type;
+      const parsed = z.nativeEnum(PropertyType).safeParse(filters.type);
+      if (!parsed.success) return createApiErrorResponse(`Invalid type: ${filters.type}`, 400);
+      where.property_type = parsed.data;
     }
 
     if (filters.transactionType) {
-      where.transaction_type = filters.transactionType;
+      const parsed = z.nativeEnum(TransactionType).safeParse(filters.transactionType);
+      if (!parsed.success) return createApiErrorResponse(`Invalid transactionType: ${filters.transactionType}`, 400);
+      where.transaction_type = parsed.data;
     }
 
     if (filters.assignedTo) {
@@ -199,6 +205,17 @@ export const POST = withExternalApi(
     }
 
     const v = parsed.data;
+
+    // Verify assignedTo user exists before writing
+    if (v.assignedTo) {
+      const userExists = await prismadb.users.findFirst({
+        where: { id: v.assignedTo },
+        select: { id: true },
+      });
+      if (!userExists) {
+        return createApiErrorResponse("assignedTo: user not found", 400);
+      }
+    }
 
     // Generate friendly ID
     const friendlyId = await generateFriendlyId(prismadb, "Properties", context.organizationId);

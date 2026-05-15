@@ -1,4 +1,6 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
+import { ContactStatus, ContactSource, PersonType, Language } from "@prisma/client";
 import { prismadb } from "@/lib/prisma";
 import { API_SCOPES } from "@/lib/api-auth";
 import {
@@ -12,6 +14,24 @@ import {
 import { generateFriendlyId } from "@/lib/friendly-id";
 import { dispatchClientWebhook } from "@/lib/webhooks";
 import { decryptContactForOrg, encryptContactForOrg } from "@/lib/model-encryption";
+
+const createClientApiSchema = z.object({
+  name: z.string().min(1, "name is required").max(255),
+  email: z.string().email().optional().nullable(),
+  phone: z.string().max(50).optional().nullable(),
+  secondaryEmail: z.string().email().optional().nullable(),
+  secondaryPhone: z.string().max(50).optional().nullable(),
+  status: z.nativeEnum(ContactStatus).optional(),
+  type: z.string().optional().nullable(),
+  personType: z.nativeEnum(PersonType).optional().nullable(),
+  assignedTo: z.string().min(1).optional().nullable(),
+  companyName: z.string().max(255).optional().nullable(),
+  language: z.nativeEnum(Language).optional().nullable(),
+  leadSource: z.nativeEnum(ContactSource).optional().nullable(),
+  gdprConsent: z.boolean().optional(),
+  allowMarketing: z.boolean().optional(),
+  description: z.string().optional().nullable(),
+}).strict();
 
 /**
  * GET /api/v1/crm/clients
@@ -28,7 +48,9 @@ export const GET = withExternalApi(
     };
 
     if (filters.status) {
-      where.status = filters.status;
+      const statusParsed = z.nativeEnum(ContactStatus).safeParse(filters.status);
+      if (!statusParsed.success) return createApiErrorResponse(`Invalid status: ${filters.status}`, 400);
+      where.status = statusParsed.data;
     }
 
     if (filters.type) {
@@ -110,48 +132,46 @@ export const POST = withExternalApi(
   async (req: NextRequest, context: ExternalApiContext) => {
     const body = await req.json();
 
-    const {
-      name,
-      email,
-      phone,
-      secondaryEmail,
-      secondaryPhone,
-      status,
-      type,
-      personType,
-      assignedTo,
-      companyName,
-      language,
-      leadSource,
-      gdprConsent,
-      allowMarketing,
-      description,
-    } = body;
+    const parsed = createClientApiSchema.safeParse(body);
+    if (!parsed.success) {
+      const details = Object.entries(parsed.error.flatten().fieldErrors)
+        .map(([k, v]) => `${k}: ${(v ?? []).join(", ")}`)
+        .join("; ");
+      return createApiErrorResponse(`Validation failed: ${details}`, 400);
+    }
 
-    // Validate required fields
-    if (!name) {
-      return createApiErrorResponse("Missing required field: name", 400);
+    const v = parsed.data;
+
+    // Verify assignedTo user exists before writing
+    if (v.assignedTo) {
+      const userExists = await prismadb.users.findFirst({
+        where: { id: v.assignedTo },
+        select: { id: true },
+      });
+      if (!userExists) {
+        return createApiErrorResponse("assignedTo: user not found", 400);
+      }
     }
 
     // Generate friendly ID
     const friendlyId = await generateFriendlyId(prismadb, "Contact", context.organizationId);
 
     const rawData = {
-      displayName: name,
-      email: email || null,
-      primaryPhone: phone || null,
-      secondaryEmail: secondaryEmail || null,
-      secondaryPhone: secondaryPhone || null,
-      status: status || "LEAD",
-      category: type || null,
-      isCompany: personType === "company",
-      assignedAgentId: assignedTo || null,
-      companyName: companyName || null,
-      languagePreference: language || null,
-      source: leadSource || null,
-      gdprConsentGiven: gdprConsent || false,
-      allowMarketing: allowMarketing || false,
-      description: description || null,
+      displayName: v.name,
+      email: v.email ?? null,
+      primaryPhone: v.phone ?? null,
+      secondaryEmail: v.secondaryEmail ?? null,
+      secondaryPhone: v.secondaryPhone ?? null,
+      status: v.status ?? "LEAD",
+      category: v.type ? [v.type as import("@prisma/client").ContactCategory] : [],
+      isCompany: v.personType === "COMPANY",
+      assignedAgentId: v.assignedTo ?? null,
+      companyName: v.companyName ?? null,
+      languagePreference: v.language ?? null,
+      source: v.leadSource ?? null,
+      gdprConsentGiven: v.gdprConsent ?? false,
+      allowMarketing: v.allowMarketing ?? false,
+      description: v.description ?? null,
     };
 
     const encrypted = await encryptContactForOrg(rawData, context.organizationId);

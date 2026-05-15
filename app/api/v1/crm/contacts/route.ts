@@ -57,7 +57,9 @@ export const GET = withExternalApi(
     };
 
     if (filters.status) {
-      where.status = filters.status;
+      const statusParsed = z.nativeEnum(ContactStatus).safeParse(filters.status);
+      if (!statusParsed.success) return createApiErrorResponse(`Invalid status: ${filters.status}`, 400);
+      where.status = statusParsed.data;
     }
 
     if (filters.category) {
@@ -165,6 +167,17 @@ export const POST = withExternalApi(
     }
 
     const v = parsed.data;
+
+    // Verify assignedAgentId user exists before writing
+    if (v.assignedAgentId) {
+      const userExists = await prismadb.users.findFirst({
+        where: { id: v.assignedAgentId },
+        select: { id: true },
+      });
+      if (!userExists) {
+        return createApiErrorResponse("assignedAgentId: user not found", 400);
+      }
+    }
 
     const friendlyId = await generateFriendlyId(prismadb, "Contact", context.organizationId);
 
