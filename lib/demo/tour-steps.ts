@@ -1,20 +1,22 @@
 export interface TourStep {
   /** CSS selector for the highlighted element. Omit for full-screen steps. */
-  element?: string;
-  popover: {
-    title: string;
-    description: string;
-    side?: "top" | "bottom" | "left" | "right";
+  readonly element?: string;
+  readonly popover: {
+    readonly title: string;
+    readonly description: string;
+    readonly side?: "top" | "bottom" | "left" | "right";
   };
 }
 
 /**
  * Steps where the user must complete an action before Next is enabled.
  * 0-indexed — matches the array index in getTourSteps().
+ * Step 9 (import-execute-btn) is intentionally excluded: TourController
+ * auto-advances after the demo guard intercepts the import click.
  */
 export const ACTION_REQUIRED_STEPS = [4, 5, 8] as const;
 
-const steps_el: TourStep[] = [
+const stepsEl: TourStep[] = [
   // Chapter 1 — Orientation (steps 0–2, observational)
   {
     element: "[data-tour='sidebar-nav']",
@@ -50,6 +52,7 @@ const steps_el: TourStep[] = [
     },
   },
   {
+    // ACTION_REQUIRED_STEPS[0] — index 4
     element: "[data-tour='first-contact-row']",
     popover: {
       title: "Επαφές — κάνε κλικ για να ανοίξεις",
@@ -58,6 +61,7 @@ const steps_el: TourStep[] = [
     },
   },
   {
+    // ACTION_REQUIRED_STEPS[1] — index 5
     element: "[data-tour='contact-edit-btn']",
     popover: {
       title: "Επεξεργασία επαφής",
@@ -83,6 +87,7 @@ const steps_el: TourStep[] = [
     },
   },
   {
+    // ACTION_REQUIRED_STEPS[2] — index 8
     element: "[data-tour='import-upload-zone']",
     popover: {
       title: "Ανέβασε το αρχείο σου",
@@ -91,6 +96,7 @@ const steps_el: TourStep[] = [
     },
   },
   {
+    // index 9 — not action-required; TourController auto-advances after demo guard intercepts
     element: "[data-tour='import-execute-btn']",
     popover: {
       title: "Εκτέλεση εισαγωγής",
@@ -108,15 +114,15 @@ const steps_el: TourStep[] = [
     },
   },
   {
-    // no element — full-screen completion overlay
+    // index 11 — no element, full-screen completion overlay
     popover: {
-      title: "Ολοκλήρωσες τον οδηγό! 🎉",
+      title: "Ολοκλήρωσες τον οδηγό!",
       description: "Τώρα μπορείς να εξερευνήσεις ελεύθερα τον demo χώρο σου ή να δημιουργήσεις τον πραγματικό σου οργανισμό.",
     },
   },
 ];
 
-const steps_en: TourStep[] = [
+const stepsEn: TourStep[] = [
   // Chapter 1 — Orientation (steps 0–2, observational)
   {
     element: "[data-tour='sidebar-nav']",
@@ -152,6 +158,7 @@ const steps_en: TourStep[] = [
     },
   },
   {
+    // ACTION_REQUIRED_STEPS[0] — index 4
     element: "[data-tour='first-contact-row']",
     popover: {
       title: "Contacts — click to open",
@@ -160,6 +167,7 @@ const steps_en: TourStep[] = [
     },
   },
   {
+    // ACTION_REQUIRED_STEPS[1] — index 5
     element: "[data-tour='contact-edit-btn']",
     popover: {
       title: "Edit a contact",
@@ -185,6 +193,7 @@ const steps_en: TourStep[] = [
     },
   },
   {
+    // ACTION_REQUIRED_STEPS[2] — index 8
     element: "[data-tour='import-upload-zone']",
     popover: {
       title: "Upload your file",
@@ -193,6 +202,7 @@ const steps_en: TourStep[] = [
     },
   },
   {
+    // index 9 — not action-required; TourController auto-advances after demo guard intercepts
     element: "[data-tour='import-execute-btn']",
     popover: {
       title: "Run the import",
@@ -210,14 +220,14 @@ const steps_en: TourStep[] = [
     },
   },
   {
-    // no element — full-screen completion overlay
+    // index 11 — no element, full-screen completion overlay
     popover: {
-      title: "Tour complete! 🎉",
+      title: "Tour complete!",
       description: "You can now explore your demo workspace freely, or create your real agency to get started.",
     },
   },
 ];
 
-export function getTourSteps(locale: string): TourStep[] {
-  return locale === "el" ? steps_el : steps_en;
+export function getTourSteps(locale: "el" | "en"): TourStep[] {
+  return locale === "el" ? stepsEl : stepsEn;
 }
