@@ -42,18 +42,18 @@
   "perMonth": "/mo",
   "perYear": "/yr",
   "perSeat": "/seat",
-  "proFeatures": [
-    "MLS property listings",
-    "CRM contacts & requests",
-    "Matchmaking",
-    "Calendar & events",
-    "Documents",
-    "Import & Export"
-  ],
-  "businessFeatures": [
-    "Everything in Pro",
-    "Agency network access",
-    "Advanced analytics",
-    "External API access"
-  ]
+  "proFeatures": {
+    "mls": "MLS property listings",
+    "crm": "CRM contacts & requests",
+    "matchmaking": "Matchmaking",
+    "calendar": "Calendar & events",
+    "documents": "Documents",
+    "importExport": "Import & Export"
+  },
+  "businessFeatures": {
+    "everything": "Everything in Pro",
+    "network": "Agency network access",
+    "analytics": "Advanced analytics",
+    "api": "External API access"
+  }
 }

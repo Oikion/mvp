@@ -37,7 +37,7 @@ export function hasFeature(
 ): boolean {
   if (!hasActiveSubscription(sub) || !sub || sub.plan === "FREE") return false;
   const config = getPlanConfig(sub.plan);
-  return config?.features.includes(feature) ?? false;
+  return (config?.features as readonly string[] | undefined)?.includes(feature) ?? false;
 }
 
 /**

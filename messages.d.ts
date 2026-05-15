@@ -49,6 +49,7 @@ import type cookiesEn from "./locales/en/cookies.json";
 import type activitiesEn from "./locales/en/activities.json";
 import type documentTemplatesEn from "./locales/en/document-templates.json";
 import type archiveEn from "./locales/en/archive.json";
+import type billingEn from "./locales/en/billing.json";
 
 // Mirrors the runtime shape built by loadMessages() in i18n.ts and
 // getLocales() in app/[locale]/layout.tsx.
@@ -108,6 +109,7 @@ type AppMessages = typeof commonEn &
     activities: typeof activitiesEn;
     "document-templates": typeof documentTemplatesEn;
     archive: typeof archiveEn;
+    billing: typeof billingEn;
   };
 
 declare module "next-intl" {
