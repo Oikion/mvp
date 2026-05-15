@@ -2,8 +2,8 @@
 import { getStripeClient } from "@/lib/stripe";
 import { prismadb } from "@/lib/prisma";
 import { getPlanConfig } from "@/lib/billing/plans";
+import { getClerkClient } from "@/lib/clerk";
 import type { SubscriptionPlan } from "@prisma/client";
-import { createClerkClient } from "@clerk/backend";
 
 /**
  * Gets or creates a Stripe customer record for the org.
@@ -28,21 +28,23 @@ export async function createOrRetrieveCustomer(
     metadata: { organizationId },
   });
 
-  await prismadb.orgSubscription.create({
-    data: {
-      organizationId,
-      stripeCustomerId: customer.id,
-    },
+  // Upsert prevents a unique-constraint crash if two requests race past the findUnique above.
+  // update: {} is a deliberate no-op — we preserve the winner's stripeCustomerId and accept
+  // that our newly created Stripe customer becomes an orphan in the rare concurrent case.
+  const sub = await prismadb.orgSubscription.upsert({
+    where: { organizationId },
+    create: { organizationId, stripeCustomerId: customer.id },
+    update: {},
   });
 
-  return customer.id;
+  return sub.stripeCustomerId;
 }
 
 /**
  * Returns the current member count for a Clerk org.
  */
 export async function getOrgMemberCount(organizationId: string): Promise<number> {
-  const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+  const clerk = await getClerkClient();
   const memberships = await clerk.organizations.getOrganizationMembershipList({
     organizationId,
     limit: 500,
@@ -84,14 +86,21 @@ export async function syncSeatQuantity(organizationId: string): Promise<void> {
 
   if (newOverage === sub.overageSeats) return;
 
+  // Compare-and-swap: only update if overageSeats still matches the value we read.
+  // If a concurrent request already incremented it, count === 0 and we skip the Stripe call,
+  // preventing duplicate proration invoices from back-to-back membership webhooks.
+  const updated = await prismadb.orgSubscription.updateMany({
+    where: { organizationId, overageSeats: sub.overageSeats },
+    data: { overageSeats: newOverage },
+  });
+
+  if (updated.count === 0) return;
+
   const stripe = getStripeClient();
+  // proration_behavior: "always_invoice" immediately charges/credits the prorated amount
+  // rather than rolling it into the next billing cycle, keeping Stripe and DB in sync.
   await stripe.subscriptionItems.update(sub.stripeSeatItemId, {
     quantity: newOverage,
     proration_behavior: "always_invoice",
-  });
-
-  await prismadb.orgSubscription.update({
-    where: { organizationId },
-    data: { overageSeats: newOverage },
   });
 }
