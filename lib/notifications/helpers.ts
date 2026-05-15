@@ -795,6 +795,138 @@ function formatDate(date: Date): string {
   });
 }
 
+// ============================================
+// REQUEST NOTIFICATIONS
+// ============================================
+
+/**
+ * Notify org when a new request is created, and assignee if different from actor
+ */
+export async function notifyRequestCreated(payload: {
+  requestId: string;
+  requestFriendlyId: string;
+  requestType: string;
+  organizationId: string;
+  actorId: string;
+  actorName: string;
+  assignedAgentId?: string | null;
+}): Promise<void> {
+  // Notify org (excluding actor)
+  void notifyOrganization(
+    payload.organizationId,
+    payload.actorId,
+    "REQUEST_CREATED",
+    "New request created",
+    `${payload.actorName} created a new ${payload.requestType} request`,
+    {
+      entityType: "REQUEST",
+      entityId: payload.requestId,
+      actorId: payload.actorId,
+      actorName: payload.actorName,
+      metadata: { requestFriendlyId: payload.requestFriendlyId, requestType: payload.requestType },
+    }
+  ).catch((err) => console.error("[REQUEST_CREATED_NOTIFY]", err));
+
+  // Notify the assignee separately if they're different from actor
+  if (payload.assignedAgentId && payload.assignedAgentId !== payload.actorId) {
+    await createNotification({
+      userId: payload.assignedAgentId,
+      organizationId: payload.organizationId,
+      type: "REQUEST_ASSIGNED",
+      title: "Request assigned to you",
+      message: `${payload.actorName} assigned a ${payload.requestType} request to you`,
+      entityType: "REQUEST",
+      entityId: payload.requestId,
+      actorId: payload.actorId,
+      actorName: payload.actorName,
+      metadata: { requestFriendlyId: payload.requestFriendlyId },
+    });
+  }
+}
+
+/**
+ * Notify assignee when a request status changes
+ */
+export async function notifyRequestStatusChanged(payload: {
+  requestId: string;
+  requestFriendlyId: string;
+  fromStatus: string;
+  toStatus: string;
+  organizationId: string;
+  actorId: string;
+  actorName: string;
+  assignedAgentId?: string | null;
+}): Promise<void> {
+  const recipientIds: string[] = [];
+  if (payload.assignedAgentId && payload.assignedAgentId !== payload.actorId) {
+    recipientIds.push(payload.assignedAgentId);
+  }
+  if (recipientIds.length === 0) return;
+
+  await createBulkNotifications({
+    userIds: recipientIds,
+    organizationId: payload.organizationId,
+    type: "REQUEST_STATUS_CHANGED",
+    title: "Request status changed",
+    message: `${payload.actorName} changed request status from ${payload.fromStatus} to ${payload.toStatus}`,
+    entityType: "REQUEST",
+    entityId: payload.requestId,
+    actorId: payload.actorId,
+    actorName: payload.actorName,
+    metadata: {
+      requestFriendlyId: payload.requestFriendlyId,
+      fromStatus: payload.fromStatus,
+      toStatus: payload.toStatus,
+    },
+  });
+}
+
+// ============================================
+// COMMENT NOTIFICATIONS
+// ============================================
+
+/**
+ * Notify entity assignee when a comment is added
+ */
+export async function notifyCommentAdded(payload: {
+  entityType: "PROPERTY" | "CONTACT" | "REQUEST" | "DEAL";
+  entityId: string;
+  entityName: string;
+  commentPreview: string; // truncated to 100 chars
+  organizationId: string;
+  actorId: string;
+  actorName: string;
+  assigneeId?: string | null;
+}): Promise<void> {
+  if (payload.assigneeId === payload.actorId || !payload.assigneeId) return;
+
+  const categoryMap: Record<string, string> = {
+    PROPERTY: "COMMENT_ADDED_PROPERTY",
+    CONTACT: "COMMENT_ADDED_CONTACT",
+    REQUEST: "COMMENT_ADDED_REQUEST",
+    DEAL: "COMMENT_ADDED_DEAL",
+  };
+
+  const notifType = categoryMap[payload.entityType] as any;
+  if (!notifType) return;
+
+  await createNotification({
+    userId: payload.assigneeId,
+    organizationId: payload.organizationId,
+    type: notifType,
+    title: `New comment on ${payload.entityType.toLowerCase()}`,
+    message: `${payload.actorName} commented on "${payload.entityName}": ${payload.commentPreview}`,
+    entityType: payload.entityType as any,
+    entityId: payload.entityId,
+    actorId: payload.actorId,
+    actorName: payload.actorName,
+    metadata: {
+      entityName: payload.entityName,
+      commentPreview: payload.commentPreview,
+    },
+  });
+}
+
 
 
 

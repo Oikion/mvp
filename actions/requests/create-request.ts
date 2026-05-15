@@ -10,6 +10,7 @@ import { createRequestSchema, type CreateRequestInput } from "@/lib/validations/
 import { actionSuccess, actionError, actionValidationError, type ActionResponse } from "@/lib/action-response";
 import { revalidatePath } from "next/cache";
 import { logEntityCreated, logEntityLinkedSymmetric } from "@/lib/activity-logger";
+import { notifyRequestCreated } from "@/lib/notifications/helpers";
 
 /**
  * Creates a new request in the current organization.
@@ -173,6 +174,19 @@ export async function createRequest(
         });
         linkedContactId = contact.id;
       }
+    }
+
+    // Notification — fire-and-forget. Skip when draft.
+    if (!request.draftStatus) {
+      void notifyRequestCreated({
+        requestId: request.id,
+        requestFriendlyId: request.friendlyId!,
+        requestType: data.requestType,
+        organizationId,
+        actorId: user.id,
+        actorName: user.name ?? user.email ?? "Someone",
+        assignedAgentId: data.assignedAgentId ?? null,
+      }).catch((err) => console.error("[REQUEST_CREATE_NOTIFY]", err));
     }
 
     // Activity log — fire-and-forget. Skip when draft.

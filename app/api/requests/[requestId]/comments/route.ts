@@ -4,6 +4,7 @@ import { prismadb } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { canPerformAction } from "@/lib/permissions";
 import { encryptRequestCommentForOrg, decryptRequestCommentForOrg } from "@/lib/model-encryption";
+import { notifyCommentAdded } from "@/lib/notifications/helpers";
 
 export async function GET(
   req: Request,
@@ -79,7 +80,7 @@ export async function POST(
     // Resolve friendlyId → id
     const request = await prismadb.request.findFirst({
       where: { friendlyId: requestId, organizationId },
-      select: { id: true },
+      select: { id: true, assignedAgentId: true, friendlyId: true },
     });
     if (!request) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -108,6 +109,18 @@ export async function POST(
         user: { select: { id: true, name: true, email: true } },
       },
     });
+
+    // Notify assignee — fire-and-forget
+    void notifyCommentAdded({
+      entityType: "REQUEST",
+      entityId: request.id,
+      entityName: request.friendlyId ?? "Request",
+      commentPreview: body.content.trim().slice(0, 100) + (body.content.trim().length > 100 ? "…" : ""),
+      organizationId,
+      actorId: user.id,
+      actorName: user.name ?? user.email ?? "Someone",
+      assigneeId: request.assignedAgentId ?? null,
+    }).catch((err) => console.error("[REQUEST_COMMENT_NOTIFY]", err));
 
     // Return decrypted content, not ciphertext
     const decrypted = await decryptRequestCommentForOrg(comment, organizationId);

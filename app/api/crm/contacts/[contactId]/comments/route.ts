@@ -9,6 +9,7 @@ import {
 import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
 import { EncryptionMode } from "@prisma/client";
 import { z } from "zod";
+import { notifyCommentAdded } from "@/lib/notifications/helpers";
 
 const commentSchema = z.object({
   content: z.string().min(1).max(5000),
@@ -110,7 +111,7 @@ export async function POST(
     // Verify contact belongs to org
     const contact = await prismadb.contact.findFirst({
       where: { id: contactId, organizationId },
-      select: { id: true },
+      select: { id: true, displayName: true, assignedAgentId: true },
     });
 
     if (!contact) {
@@ -219,6 +220,18 @@ export async function POST(
         },
       },
     });
+
+    // Notify assignee — fire-and-forget
+    void notifyCommentAdded({
+      entityType: "CONTACT",
+      entityId: contactId,
+      entityName: contact.displayName ?? "Contact",
+      commentPreview: content.slice(0, 100) + (content.length > 100 ? "…" : ""),
+      organizationId,
+      actorId: user.id,
+      actorName: user.name ?? user.email ?? "Someone",
+      assigneeId: contact.assignedAgentId ?? null,
+    }).catch((err) => console.error("[CONTACT_COMMENT_NOTIFY]", err));
 
     // For Standard orgs, decrypt before returning to client
     const responseComment = isE2EE

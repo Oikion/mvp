@@ -9,6 +9,8 @@ import { actionSuccess, actionError, actionValidationError, type ActionResponse 
 import { revalidatePath } from "next/cache";
 import { createSystemActivity } from "@/actions/activities";
 import { logEntityCreated, logEntityUpdated, type FieldChange } from "@/lib/activity-logger";
+import { notifyRequestStatusChanged } from "@/lib/notifications/helpers";
+import { createNotification } from "@/lib/notifications/notification-service";
 
 // Safelist of non-encrypted Request fields tracked by the activity log.
 const REQUEST_TRACKED_TO_COLUMN: Record<string, string> = {
@@ -73,7 +75,7 @@ export async function updateRequest(
 
   const data = validation.data;
 
-  // Fetch existing tracked fields before update (for activity diffing)
+  // Fetch existing tracked fields before update (for activity diffing and notifications)
   const existing = await prismadb.request.findFirst({
     where: { id: requestId, organizationId },
     select: {
@@ -86,6 +88,7 @@ export async function updateRequest(
       assignedAgentId: true,
       visibility: true,
       draftStatus: true,
+      friendlyId: true,
     },
   });
 
@@ -119,6 +122,38 @@ export async function updateRequest(
         kind: "OTHER",
         body: `Status changed from ${existing.status} to ${String(data.status)}`,
       });
+
+      void notifyRequestStatusChanged({
+        requestId,
+        requestFriendlyId: updated.friendlyId ?? existing.friendlyId ?? requestId,
+        fromStatus: existing.status,
+        toStatus: String(data.status),
+        organizationId,
+        actorId: user.id,
+        actorName: user.name ?? user.email ?? "Someone",
+        assignedAgentId: updated.assignedAgentId,
+      }).catch((err) => console.error("[REQUEST_STATUS_NOTIFY]", err));
+    }
+
+    // Notify new assignee if assignedAgentId changed
+    if (
+      "assignedAgentId" in data &&
+      data.assignedAgentId &&
+      data.assignedAgentId !== existing?.assignedAgentId &&
+      data.assignedAgentId !== user.id
+    ) {
+      void createNotification({
+        userId: data.assignedAgentId,
+        organizationId,
+        type: "REQUEST_ASSIGNED",
+        title: "Request assigned to you",
+        message: `${user.name ?? user.email ?? "Someone"} assigned a request to you`,
+        entityType: "REQUEST",
+        entityId: requestId,
+        actorId: user.id,
+        actorName: user.name ?? user.email ?? "Someone",
+        metadata: { requestId },
+      }).catch((err) => console.error("[REQUEST_ASSIGN_NOTIFY]", err));
     }
 
     // Activity log — fire-and-forget. Suppressed for drafts. Promotion from

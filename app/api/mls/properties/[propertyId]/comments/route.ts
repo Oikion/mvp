@@ -4,6 +4,7 @@ import { getCurrentUser, getCurrentOrgId } from "@/lib/get-current-user";
 import { encryptPropertyCommentForOrg, decryptPropertyCommentForOrg } from "@/lib/model-encryption";
 import { getOrgEncryptionMode } from "@/lib/entity-session/encryption-mode";
 import { EncryptionMode } from "@prisma/client";
+import { notifyCommentAdded } from "@/lib/notifications/helpers";
 
 /**
  * GET /api/mls/properties/[propertyId]/comments
@@ -145,12 +146,13 @@ export async function POST(
         id: propertyId,
         organizationId,
       },
-      select: { id: true, organizationId: true, property_name: true },
+      select: { id: true, organizationId: true, property_name: true, assigned_to: true },
     });
 
     let canComment = !!property; // Org members can always comment
     let propertyName = property?.property_name;
     let propertyOrgId = property?.organizationId ?? organizationId;
+    let propertyAssignedTo = property?.assigned_to ?? null;
 
     if (!canComment) {
       // Check if shared with VIEW_COMMENT permission
@@ -166,13 +168,16 @@ export async function POST(
 
       if (share) {
         canComment = true;
-        // Fetch property name and owning org for notification and DEK selection
+        // Fetch property name, assignee, and owning org for notification and DEK selection
         const sharedProperty = await prismadb.properties.findUnique({
           where: { id: propertyId },
-          select: { property_name: true, organizationId: true },
+          select: { property_name: true, organizationId: true, assigned_to: true },
         });
         propertyName = sharedProperty?.property_name;
-        if (sharedProperty) propertyOrgId = sharedProperty.organizationId;
+        if (sharedProperty) {
+          propertyOrgId = sharedProperty.organizationId;
+          propertyAssignedTo = sharedProperty.assigned_to ?? null;
+        }
       }
     }
 
@@ -287,6 +292,18 @@ export async function POST(
         },
       },
     });
+
+    // Notify assignee — fire-and-forget
+    void notifyCommentAdded({
+      entityType: "PROPERTY",
+      entityId: propertyId,
+      entityName: propertyName ?? "Property",
+      commentPreview: content.slice(0, 100) + (content.length > 100 ? "…" : ""),
+      organizationId: propertyOrgId,
+      actorId: user.id,
+      actorName: user.name ?? user.email ?? "Someone",
+      assigneeId: propertyAssignedTo,
+    }).catch((err) => console.error("[PROPERTY_COMMENT_NOTIFY]", err));
 
     const responseComment = isE2EE
       ? comment
