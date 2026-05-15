@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 
 import { ReservedNameType } from "@prisma/client";
+import { clerkClient } from "@clerk/nextjs/server";
 
 import { trackReferral } from "@/actions/referrals/track-referral";
+import { createDemoOrgForUser } from "@/lib/demo/create-demo-org";
 import { getCurrentUser } from "@/lib/get-current-user";
 import { prismadb } from "@/lib/prisma";
 import { isReservedName } from "@/lib/reserved-names";
@@ -246,6 +248,26 @@ export async function completeOnboarding(
         // Don't fail onboarding if referral tracking fails
         console.error("Failed to track referral:", referralError);
       }
+    }
+
+    // Create demo org and record tourStep in Clerk metadata
+    try {
+      if (!user.clerkUserId) throw new Error("clerkUserId is null — cannot create demo org");
+      const demoLocale = params.language === "el" ? "el" : "en";
+      const { demoOrgId } = await createDemoOrgForUser(user.clerkUserId, demoLocale);
+      const clerk = await clerkClient();
+      const clerkUser = await clerk.users.getUser(user.clerkUserId);
+      const existingMeta = (clerkUser.publicMetadata ?? {}) as Record<string, unknown>;
+      await clerk.users.updateUser(user.clerkUserId, {
+        publicMetadata: {
+          ...existingMeta,
+          demoOrgId,
+          tourStep: 0,
+        },
+      });
+    } catch (demoError) {
+      // Demo org creation is non-blocking — log but don't fail onboarding
+      console.error("[COMPLETE_ONBOARDING_DEMO]", demoError);
     }
 
     // Revalidate paths
