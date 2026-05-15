@@ -746,14 +746,26 @@ export function useAblyNotifications(params: {
       setTimeout(() => mutate("/api/notifications/counts"), 1500);
     };
 
+    const handleNotificationNew = (_message: { data: unknown }) => {
+      // Invalidate all notification SWR keys so the bell updates instantly
+      mutate(
+        (key: unknown) =>
+          typeof key === "string" && key.startsWith("/api/notifications"),
+        undefined,
+        { revalidate: true }
+      );
+    };
+
     channel.subscribe("mention", handleMention);
     channel.subscribe("conversation:created", handleConversationCreated);
     channel.subscribe("message:new", handleNewMessageNotification);
+    channel.subscribe("notification:new", handleNotificationNew);
 
     return () => {
       channel.unsubscribe("mention", handleMention);
       channel.unsubscribe("conversation:created", handleConversationCreated);
       channel.unsubscribe("message:new", handleNewMessageNotification);
+      channel.unsubscribe("notification:new", handleNotificationNew);
     };
   }, [channel, isSubscribed, mutate]);
 

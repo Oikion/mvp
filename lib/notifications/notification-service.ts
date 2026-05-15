@@ -22,7 +22,7 @@ export async function createNotification(
   input: CreateNotificationInput
 ): Promise<void> {
   try {
-    await prismadb.notification.create({
+    const notification = await prismadb.notification.create({
       data: {
         id: randomUUID(),
         userId: input.userId,
@@ -41,6 +41,19 @@ export async function createNotification(
 
     // Invalidate cached notification counts for the recipient
     await cacheDel(`oik:notif:${input.organizationId}:${input.userId}`);
+
+    // Fire-and-forget Ably push — never throws
+    try {
+      const { publishToChannel } = await import("@/lib/ably");
+      await publishToChannel(`user:${input.userId}`, "notification:new", {
+        notificationId: notification.id,
+        category: notification.type,
+        entityType: notification.entityType ?? null,
+        entityId: notification.entityId ?? null,
+      });
+    } catch {
+      // Ably failure is non-critical — notification is already persisted
+    }
   } catch (error) {
     console.error("[NOTIFICATION_SERVICE] Failed to create notification:", error);
     // Don't throw - notifications are non-critical
@@ -85,6 +98,23 @@ export async function createBulkNotifications(
         cacheDel(`oik:notif:${input.organizationId}:${userId}`)
       )
     );
+
+    // Fire-and-forget Ably push to all recipients — never throws
+    try {
+      const { publishToChannel } = await import("@/lib/ably");
+      await Promise.all(
+        uniqueUserIds.map((userId) =>
+          publishToChannel(`user:${userId}`, "notification:new", {
+            notificationId: null,
+            category: input.type,
+            entityType: input.entityType ?? null,
+            entityId: input.entityId ?? null,
+          })
+        )
+      );
+    } catch {
+      // Non-critical
+    }
   } catch (error) {
     console.error("[NOTIFICATION_SERVICE] Failed to create bulk notifications:", error);
     // Don't throw - notifications are non-critical

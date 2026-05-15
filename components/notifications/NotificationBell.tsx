@@ -11,7 +11,7 @@ export function NotificationBell() {
   const { unreadCount, isLoading, mutate } = useNotifications({
     limit: 0,
     unreadOnly: true,
-    refreshInterval: 30000, // Poll every 30 seconds
+    refreshInterval: 120000, // Fallback poll every 2 minutes (Ably push handles instant updates)
   });
 
   return (
