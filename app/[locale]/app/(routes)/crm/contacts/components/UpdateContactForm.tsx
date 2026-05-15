@@ -100,7 +100,7 @@ export function UpdateContactForm({ initialData, setOpen }: NewTaskFormProps) {
   const onSubmit = async (data: NewAccountFormValues) => {
     setIsLoading(true);
     try {
-      await axios.put("/api/crm/contacts", data);
+      await axios.put(`/api/crm/contacts/${data.id}`, data);
       toast.success("Success", { description: "Contact updated successfully", isTranslationKey: false });
     } catch (error: any) {
       toast.error("Error", { description: error?.response?.data, isTranslationKey: false });
