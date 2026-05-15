@@ -41,7 +41,11 @@ export async function POST(req: NextRequest) {
     const maxLen = Math.max(code.length, submitted.length);
     const a = Buffer.from(code.padEnd(maxLen, "\0"), "utf8");
     const b = Buffer.from(submitted.padEnd(maxLen, "\0"), "utf8");
-    matches = code.length === submitted.length && timingSafeEqual(a, b);
+    // Evaluate both checks independently so timingSafeEqual always runs — short-circuiting
+    // `length === length && timingSafeEqual(...)` would leak secret length via timing.
+    const lengthMatch = code.length === submitted.length;
+    const bufferMatch = timingSafeEqual(a, b);
+    matches = lengthMatch && bufferMatch;
   } catch {
     matches = false;
   }
