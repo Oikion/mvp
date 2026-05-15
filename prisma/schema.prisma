@@ -1443,19 +1443,19 @@ enum NotificationCategory {
   CONTACT_CREATED
   CONTACT_ASSIGNED
   ENTITY_ACCESS_REQUESTED
-  // Requests (currently missing)
+  // Requests
   REQUEST_CREATED
   REQUEST_ASSIGNED
   REQUEST_STATUS_CHANGED
-  // Showings (currently missing)
+  // Showings
   SHOWING_SCHEDULED
   SHOWING_CONFIRMED
   SHOWING_CANCELLED
   SHOWING_COMPLETED
   SHOWING_NO_SHOW
-  // Deal stage (explicit)
+  // Deal stage
   DEAL_STAGE_CHANGED
-  // Comments (currently missing)
+  // Comments
   COMMENT_ADDED_PROPERTY
   COMMENT_ADDED_CONTACT
   COMMENT_ADDED_REQUEST
@@ -4375,6 +4375,7 @@ model NotificationDeliveryLog {
   @@index([notificationId])
   @@index([channel, status])
   @@index([recipient, channel, createdAt])
+  @@map("notification_delivery_logs")
 }
 
 enum DeliveryChannel {
