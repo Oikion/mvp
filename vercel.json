@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/intra-org-matches",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-demo-orgs",
+      "schedule": "30 3 * * *"
     }
   ]
 }
