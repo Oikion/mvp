@@ -17,6 +17,7 @@ interface DemoModeContextValue {
   completeTour: () => void;
   skipTour: () => void;
   markActionComplete: (step: number) => void;
+  isActionComplete: (step: number) => boolean;
 }
 
 const DemoModeContext = createContext<DemoModeContextValue>({
@@ -26,6 +27,7 @@ const DemoModeContext = createContext<DemoModeContextValue>({
   completeTour: () => {},
   skipTour: () => {},
   markActionComplete: () => {},
+  isActionComplete: () => false,
 });
 
 export function useDemoMode(): DemoModeContextValue {
@@ -75,6 +77,10 @@ export function DemoModeProvider({
     completedActions.current.add(step);
   }, []);
 
+  const isActionComplete = useCallback((step: number): boolean => {
+    return completedActions.current.has(step);
+  }, []);
+
   const value = useMemo<DemoModeContextValue>(
     () => ({
       isDemoMode,
@@ -83,8 +89,9 @@ export function DemoModeProvider({
       completeTour,
       skipTour,
       markActionComplete,
+      isActionComplete,
     }),
-    [isDemoMode, tourStep, advanceTour, completeTour, skipTour, markActionComplete]
+    [isDemoMode, tourStep, advanceTour, completeTour, skipTour, markActionComplete, isActionComplete]
   );
 
   return (

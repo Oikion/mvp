@@ -8,7 +8,7 @@ import { getTourSteps, ACTION_REQUIRED_STEPS } from "@/lib/demo/tour-steps";
 import type { Config, Driver, DriveStep } from "driver.js";
 
 export function TourController() {
-  const { isDemoMode, tourStep, advanceTour, completeTour, skipTour, markActionComplete } =
+  const { isDemoMode, tourStep, advanceTour, completeTour, skipTour, markActionComplete, isActionComplete } =
     useDemoMode();
   const locale = useLocale() as "el" | "en";
   const pathname = usePathname();
@@ -41,7 +41,9 @@ export function TourController() {
         })),
         onNextClick: (_el, _step, { driver: d }) => {
           const current = d.getActiveIndex() ?? 0;
-          const isActionRequired = (ACTION_REQUIRED_STEPS as readonly number[]).includes(current);
+          const isActionRequired =
+            (ACTION_REQUIRED_STEPS as readonly number[]).includes(current) &&
+            !isActionComplete(current);
           if (isActionRequired) {
             const btn = document.querySelector(".driver-popover-next-btn") as HTMLElement | null;
             btn?.classList.add("animate-shake");
