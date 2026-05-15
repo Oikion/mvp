@@ -12,6 +12,10 @@ export async function POST(req: NextRequest) {
 
   // Gate disabled — grant access immediately
   if (!code || !secret) {
+    if (code && !secret) {
+      console.error("[STAGING_ACCESS] STAGING_PASSCODE_SECRET is not configured");
+      return NextResponse.json({ error: "Staging gate misconfigured" }, { status: 503 });
+    }
     return NextResponse.json({ success: true });
   }
 

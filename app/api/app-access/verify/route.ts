@@ -12,7 +12,10 @@ export async function POST(req: NextRequest) {
 
   // Gate disabled — grant access immediately
   if (!code || !secret) {
-    console.warn("[APP_ACCESS] Gate disabled — APP_ACCESS_CODE:", !!code, "APP_ACCESS_COOKIE_SECRET:", !!secret);
+    if (code && !secret) {
+      console.error("[APP_ACCESS] APP_ACCESS_COOKIE_SECRET is not configured");
+      return NextResponse.json({ error: "Access gate misconfigured" }, { status: 503 });
+    }
     return NextResponse.json({ success: true });
   }
 

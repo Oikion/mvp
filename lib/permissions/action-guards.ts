@@ -82,9 +82,18 @@ export async function requireAction(
       code: "FORBIDDEN",
     };
   }
-  
-  // If ownership check is required but no context provided, 
-  // we return null here and let the caller handle ownership verification
+
+  // When the action is scoped to "own" entities, entity context is required.
+  // Callers must use requireActionOnEntity() instead of requireAction() for
+  // ownership-restricted actions — otherwise the ownership check is silently skipped.
+  if (result.requiresOwnership) {
+    return {
+      success: false,
+      error: `Action "${action}" requires entity ownership context. Use requireActionOnEntity() instead.`,
+      code: "FORBIDDEN",
+    };
+  }
+
   return null;
 }
 

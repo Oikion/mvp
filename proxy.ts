@@ -33,12 +33,17 @@ const isPublicRoute = createRouteMatcher([
   "/:locale/app/pending(.*)",
   // App access gate page (public — users need to reach this without Clerk auth)
   "/:locale/app/access(.*)",
+  // Staging passcode gate page (public — users need to reach this before Clerk auth)
+  "/:locale/staging-access(.*)",
   // App access verify API (public — called before authentication)
   "/api/app-access(.*)",
   // Staging passcode verify API (public — called before authentication and before Clerk session)
   "/api/staging-access(.*)",
   // API webhooks (public)
   "/api/webhooks(.*)",
+  // Infrastructure endpoints (public — no auth required)
+  "/api/health(.*)",
+  "/api/cron(.*)",
 ]);
 
 // Define Clerk organization routes that should redirect to custom onboarding
@@ -91,8 +96,10 @@ const isAppAccessApiRoute = createRouteMatcher([
 const isStagingGatePage = createRouteMatcher([
   "/:locale/staging-access(.*)",
 ]);
-const isStagingAccessApiRoute = createRouteMatcher([
+const isStagingExemptApiRoute = createRouteMatcher([
   "/api/staging-access(.*)",
+  "/api/health(.*)",
+  "/api/cron(.*)",
 ]);
 
 
@@ -172,11 +179,11 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   if (
     process.env.STAGING_PASSCODE &&
     !isStagingGatePage(req) &&
-    !isStagingAccessApiRoute(req) &&
+    !isStagingExemptApiRoute(req) &&
     !pathname.startsWith("/_next") &&
     !pathname.includes("/_next/") &&
     !pathname.startsWith("/__nextjs") &&
-    !/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|map|json|lottie|mp4)$/i.test(pathname)
+    !/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|map|lottie|mp4)$/i.test(pathname)
   ) {
     const stagingCookie = req.cookies.get("oik_staging")?.value;
     if (!verifyStagingCookie(stagingCookie)) {
@@ -259,60 +266,43 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   // These routes require special admin privileges beyond normal authentication
   // EXCEPTION: access-denied page must be accessible to non-admins (to show the error)
   if (isPlatformAdminRoute(req) && !isPlatformAdminAccessDenied(req)) {
-    const authResult = await auth();
-    
-    // Must be authenticated first
-    if (!authResult.userId) {
-      const pathLocale = pathname.split("/")[1];
-      const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
-      const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
-        ? (pathLocale as "en" | "el")
-        : "el";
-      const signInUrl = new URL(`/${locale}/app/sign-in`, req.url);
-      return NextResponse.redirect(signInUrl);
-    }
-    
-    // Check if user is a platform admin
-    const isAdmin = await checkPlatformAdmin(authResult.userId);
-    
-    if (!isAdmin) {
-      // For API routes, return 403 JSON response
-      if (pathname.startsWith("/api/platform-admin")) {
-        return NextResponse.json(
-          { 
-            error: 'Forbidden',
-            message: 'Platform admin access required'
-          },
-          { status: 403 }
-        );
+    const isAdminApiRoute = pathname.startsWith("/api/platform-admin");
+
+    // CSRF protection for admin API mutations — runs before the expensive Clerk API call
+    if (isAdminApiRoute && ["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
+      const origin = req.headers.get("origin");
+      const host = req.headers.get("host");
+      if (origin && host) {
+        try {
+          const originHost = new URL(origin).host;
+          if (originHost !== host) {
+            return NextResponse.json(
+              { error: "Forbidden", message: "Origin mismatch" },
+              { status: 403 }
+            );
+          }
+        } catch {
+          return NextResponse.json(
+            { error: "Forbidden", message: "Invalid origin" },
+            { status: 403 }
+          );
+        }
       }
-      
-      // For page routes, redirect to access denied page
-      const pathLocale = pathname.split("/")[1];
-      const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
-      const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
-        ? (pathLocale as "en" | "el")
-        : "el";
-      
-      // Redirect to home with access denied message
-      // The platform admin pages will handle showing proper access denied UI
-      const accessDeniedUrl = new URL(`/${locale}/app/platform-admin/access-denied`, req.url);
-      return NextResponse.redirect(accessDeniedUrl);
     }
-    
-    // Admin verified - apply strict rate limiting for admin API routes
-    if (pathname.startsWith("/api/platform-admin")) {
+
+    // Rate limit BEFORE the Clerk API call to avoid amplifying expensive lookups under DoS
+    if (isAdminApiRoute) {
       const identifier = getRateLimitIdentifier(req);
       const rateLimitResult = await rateLimit(identifier, 'strict');
-      
+
       if (!rateLimitResult.success) {
         return NextResponse.json(
-          { 
+          {
             error: 'Too Many Requests',
             message: 'Rate limit exceeded. Please try again later.',
             retryAfter: Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
           },
-          { 
+          {
             status: 429,
             headers: {
               'X-RateLimit-Limit': rateLimitResult.limit.toString(),
@@ -323,20 +313,64 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
           }
         );
       }
-      
+
+      // Store rate limit headers to attach later after admin check succeeds
+      const rlHeaders = {
+        'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+        'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+      };
+
+      // Auth + admin check (after rate limiting)
+      const authResult = await auth();
+      if (!authResult.userId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const isAdmin = await checkPlatformAdmin(authResult.userId);
+      if (!isAdmin) {
+        return NextResponse.json(
+          { error: 'Forbidden', message: 'Platform admin access required' },
+          { status: 403 }
+        );
+      }
+
       const response = NextResponse.next();
-      response.headers.set('X-RateLimit-Limit', rateLimitResult.limit.toString());
-      response.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
-      response.headers.set('X-RateLimit-Reset', rateLimitResult.reset.toString());
+      Object.entries(rlHeaders).forEach(([k, v]) => response.headers.set(k, v));
       return response;
     }
-    
+
+    // Page routes — auth + admin check
+    const authResult = await auth();
+
+    if (!authResult.userId) {
+      const pathLocale = pathname.split("/")[1];
+      const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
+      const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
+        ? (pathLocale as "en" | "el")
+        : "el";
+      const signInUrl = new URL(`/${locale}/app/sign-in`, req.url);
+      return NextResponse.redirect(signInUrl);
+    }
+
+    const isAdmin = await checkPlatformAdmin(authResult.userId);
+
+    if (!isAdmin) {
+      const pathLocale = pathname.split("/")[1];
+      const localeCodes = availableLocales.map((l) => l.code) as readonly ("en" | "el")[];
+      const locale: "en" | "el" = (pathLocale && localeCodes.includes(pathLocale as "en" | "el"))
+        ? (pathLocale as "en" | "el")
+        : "el";
+      const accessDeniedUrl = new URL(`/${locale}/app/platform-admin/access-denied`, req.url);
+      return NextResponse.redirect(accessDeniedUrl);
+    }
+
     // For platform admin page routes, continue to intl middleware
     const intlResponse = intlMiddleware(req);
     if (intlResponse && (intlResponse.status === 307 || intlResponse.status === 308)) {
       return intlResponse;
     }
-    
+
     const response = NextResponse.next();
     if (intlResponse) {
       intlResponse.cookies.getAll().forEach((cookie) => {
@@ -604,7 +638,7 @@ export const config = {
     // 
     // IMPORTANT: The negative lookahead must be comprehensive to avoid
     // middleware running on HMR/hot-reload paths which would slow down development
-    "/((?!_next|__nextjs|[a-z]{2}/_next|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|map|json)$).*)",
+    "/((?!_next|__nextjs|[a-z]{2}/_next|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|map)$).*)",
   ],
 };
 
