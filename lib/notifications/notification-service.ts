@@ -6,6 +6,7 @@
 import { randomUUID } from "crypto";
 import { prismadb } from "@/lib/prisma";
 import { cacheDel } from "@/lib/redis";
+import { publishToChannel } from "@/lib/ably";
 import {
   CreateNotificationInput,
   CreateBulkNotificationInput,
@@ -44,7 +45,6 @@ export async function createNotification(
 
     // Fire-and-forget Ably push — never throws
     try {
-      const { publishToChannel } = await import("@/lib/ably");
       await publishToChannel(`user:${input.userId}`, "notification:new", {
         notificationId: notification.id,
         category: notification.type,
@@ -101,11 +101,10 @@ export async function createBulkNotifications(
 
     // Fire-and-forget Ably push to all recipients — never throws
     try {
-      const { publishToChannel } = await import("@/lib/ably");
       await Promise.all(
         uniqueUserIds.map((userId) =>
           publishToChannel(`user:${userId}`, "notification:new", {
-            notificationId: null,
+            notificationId: null, // createMany() returns only {count}, not individual IDs — consumers must handle null
             category: input.type,
             entityType: input.entityType ?? null,
             entityId: input.entityId ?? null,
