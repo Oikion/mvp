@@ -434,7 +434,8 @@ export async function notifyDealStageChanged(payload: {
     },
   });
 
-  // Email — respects user preferences via sendNotificationEmailToUsers
+  // Email is intentionally fire-and-forget — failures are non-critical and
+  // caught here so they don't surface through the outer .catch() at the call site.
   sendNotificationEmailToUsers(recipientIds, "DEAL_STAGE_CHANGED", {
     actorName: payload.actorName,
     actorId: payload.actorId,

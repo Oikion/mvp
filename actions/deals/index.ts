@@ -239,12 +239,12 @@ export async function createDeal(
       currentUser.id, // exclude actor
       "DEAL_PROPOSED",
       "New deal proposed",
-      `${currentUser.name ?? "Someone"} proposed a deal for ${property.property_name ?? "a property"}`,
+      `${currentUser.name ?? currentUser.email ?? "Someone"} proposed a deal for ${property.property_name ?? "a property"}`,
       {
         entityType: "DEAL",
         entityId: deal.id,
         actorId: currentUser.id,
-        actorName: currentUser.name ?? undefined,
+        actorName: currentUser.name ?? currentUser.email ?? "Someone",
         metadata: { dealTitle: deal.title, propertyName: property.property_name },
       }
     ).catch((err) => console.error("[DEAL_CREATE_NOTIFY]", err));
@@ -677,12 +677,12 @@ export async function addDealParty(
       currentUser.id,
       "DEAL_UPDATED",
       "Deal party added",
-      `${currentUser.name ?? "Someone"} added ${contact.displayName ?? "a contact"} as a party to deal "${deal.title ?? "a deal"}"`,
+      `${currentUser.name ?? currentUser.email ?? "Someone"} added ${contact.displayName ?? "a contact"} as a party to deal "${deal.title ?? "a deal"}"`,
       {
         entityType: "DEAL",
         entityId: dealId,
         actorId: currentUser.id,
-        actorName: currentUser.name ?? undefined,
+        actorName: currentUser.name ?? currentUser.email ?? "Someone",
         metadata: { contactName: contact.displayName, role },
       }
     ).catch((err) => console.error("[DEAL_PARTY_NOTIFY]", err));
