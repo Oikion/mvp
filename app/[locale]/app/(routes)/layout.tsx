@@ -33,6 +33,9 @@ import {
 import { getUserPermissionContext } from "@/lib/permissions/service"
 import { getAccessibleActionsForUser } from "@/lib/permissions/action-service"
 import { isOrgPersonal } from "@/lib/personal-workspace-guard"
+import { DemoModeProvider } from "@/components/demo/DemoModeProvider"
+import { DemoBanner } from "@/components/demo/DemoBanner"
+import { TourController } from "@/components/demo/TourController"
 
 export default async function AppLayout({
   children,
@@ -41,7 +44,9 @@ export default async function AppLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { userId, orgId } = await getAuth();
+  const { userId, orgId, sessionClaims } = await getAuth();
+  const clerkMeta = sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+  const tourStep = typeof clerkMeta?.tourStep === "number" ? clerkMeta.tourStep : -1;
   const { locale } = await params;
 
   if (!userId) {
@@ -181,6 +186,7 @@ export default async function AppLayout({
   }
 
   return (
+    <DemoModeProvider initialTourStep={tourStep}>
     <AppProviders initialLayoutPreference={user.layoutPreference}>
       <SkipLink />
       <div className="flex h-screen w-full overflow-hidden">
@@ -202,6 +208,7 @@ export default async function AppLayout({
             pinnedNavUrls={user.pinnedNavUrls ?? []}
           />
           <SidebarInset className="flex flex-col h-screen overflow-hidden bg-surface-2">
+            <TourController />
             <header className="flex h-16 shrink-0 items-center gap-2 justify-between">
               <div className="flex items-center gap-2 px-4">
                 <SidebarTrigger className="-ml-1" />
@@ -214,6 +221,7 @@ export default async function AppLayout({
                 <NotificationBell />
               </div>
             </header>
+            <DemoBanner />
             <main
               id="main-content"
               tabIndex={-1}
@@ -239,5 +247,6 @@ export default async function AppLayout({
         </SidebarProvider>
       </div>
     </AppProviders>
+    </DemoModeProvider>
   );
 }

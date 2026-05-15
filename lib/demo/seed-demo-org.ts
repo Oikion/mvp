@@ -1,4 +1,5 @@
 import { prismadb } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import {
   encryptContactForOrg,
   encryptPropertyForOrg,
@@ -318,7 +319,7 @@ export async function seedDemoOrg(
 
     // 5. Properties
     await db.properties.createMany({
-      data: encryptedProperties,
+      data: encryptedProperties as unknown as Prisma.PropertiesCreateManyInput[],
     });
 
     // 6. Requests
