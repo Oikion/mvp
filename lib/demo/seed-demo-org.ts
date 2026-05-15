@@ -173,8 +173,12 @@ const CONTACT_COMMENT_EN = [
 // ─────────────────────────────────────────────
 
 function pickN<T>(arr: T[], n: number): T[] {
-  const shuffled = [...arr].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, n);
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
 }
 
 // ─────────────────────────────────────────────
@@ -189,6 +193,7 @@ export async function seedDemoOrg(
   if (!orgId) {
     throw new Error("[seed-demo-org] seedDemoOrg: orgId is required");
   }
+  if (!userId) throw new Error("[seed-demo-org] seedDemoOrg: userId is required");
 
   const isEl = locale === "el";
   const contactPool = isEl ? CONTACT_POOL_EL : CONTACT_POOL_EN;
@@ -210,7 +215,7 @@ export async function seedDemoOrg(
     displayName: `${person.firstName} ${person.lastName}`,
     firstName: person.firstName,
     lastName: person.lastName,
-    email: `${person.firstName.toLowerCase()}.${person.lastName.toLowerCase()}@example.com`,
+    email: `demo.contact${i}@example.com`,
     category: contactCategories[i % 3],
     status: "ACTIVE" as const,
     createdBy: userId,

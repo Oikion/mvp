@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prismadb: {
     $transaction: vi.fn(async (fn) => fn(mockTx)),
-    organizationSettings: { upsert: vi.fn() },
   },
 }));
 
@@ -29,6 +28,7 @@ const mockTx = {
 
 import { seedDemoOrg } from "@/lib/demo/seed-demo-org";
 import { prismadb } from "@/lib/prisma";
+import { encryptContactForOrg, encryptPropertyForOrg, encryptRequestForOrg } from "@/lib/model-encryption";
 
 describe("seedDemoOrg", () => {
   beforeEach(() => {
@@ -94,6 +94,26 @@ describe("seedDemoOrg", () => {
   it("throws when orgId is empty", async () => {
     await expect(seedDemoOrg("", "user_1", "el")).rejects.toThrow(
       "[seed-demo-org] seedDemoOrg: orgId is required"
+    );
+  });
+
+  it("throws when userId is empty", async () => {
+    await expect(seedDemoOrg("org_test", "", "en")).rejects.toThrow("userId is required");
+  });
+
+  it("calls all three encryption functions with correct counts", async () => {
+    await seedDemoOrg("org_test", "user_test", "en");
+    expect(encryptContactForOrg).toHaveBeenCalledTimes(8);
+    expect(encryptPropertyForOrg).toHaveBeenCalledTimes(7);
+    expect(encryptRequestForOrg).toHaveBeenCalledTimes(3);
+  });
+
+  it("creates a General channel in English locale", async () => {
+    await seedDemoOrg("org_test", "user_test", "en");
+    expect(mockTx.channel.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ name: "General", slug: "general" }),
+      })
     );
   });
 });
