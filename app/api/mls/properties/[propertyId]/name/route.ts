@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Fix type errors
 import { NextResponse } from "next/server";
 import { prismadb } from "@/lib/prisma";
 import { requireAuth, requireOrg, handleGuardError } from "@/lib/permissions/action-guards";
@@ -35,15 +33,14 @@ export async function GET(
 
     const { organizationId } = orgResult;
 
-    // Fetch only the name field for performance
-    const property = await prismadb.property.findFirst({
+    const property = await prismadb.properties.findFirst({
       where: {
         id: propertyId,
         organizationId,
       },
       select: {
         id: true,
-        title: true,
+        property_name: true,
       },
     });
 
@@ -56,7 +53,7 @@ export async function GET(
 
     return NextResponse.json({
       id: property.id,
-      name: property.title || "Untitled Property",
+      name: property.property_name || "Untitled Property",
     });
   } catch (error) {
     console.error("[API] Error fetching property name:", error);

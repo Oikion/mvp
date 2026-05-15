@@ -22,12 +22,13 @@ export async function GET(req: Request) {
     if (!userId || !organizationId) return apiUnauthorized();
 
     const { searchParams } = new URL(req.url);
-    const stage = searchParams.get("stage");
-    const dealType = searchParams.get("dealType");
-    const search = searchParams.get("search");
-    const limit = searchParams.get("limit");
+    const queryValidation = dealQuerySchema.safeParse(Object.fromEntries(searchParams));
+    if (!queryValidation.success) {
+      return apiBadRequest("Invalid query parameters", queryValidation.error.flatten().fieldErrors);
+    }
+    const { stage, dealType, search, limit } = queryValidation.data;
 
-    const where: any = { organizationId };
+    const where: Record<string, unknown> = { organizationId };
     if (stage) where.stage = stage;
     if (dealType) where.dealType = dealType;
     if (search) {
@@ -65,7 +66,7 @@ export async function GET(req: Request) {
         _count: { select: { stageLogs: true } },
       },
       orderBy: { createdAt: "desc" },
-      take: limit ? Math.min(parseInt(limit, 10), 100) : 50,
+      take: limit ?? 50,
     });
 
     // Flatten Prisma Decimal columns so the JSON response carries plain
