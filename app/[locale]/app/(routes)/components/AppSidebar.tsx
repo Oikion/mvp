@@ -147,7 +147,7 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent data-tour="sidebar-nav">
         <NavMain
           groups={navGroups}
           pathname={normalizePath(pathname, locale)}

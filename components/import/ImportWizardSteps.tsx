@@ -1030,6 +1030,7 @@ export function ImportWizardSteps({
           onClick={handleNextClick}
           disabled={!canProceed()}
           className="gap-2"
+          data-tour="import-execute-btn"
         >
           {dict.buttons.import}
           <ArrowRight className="w-4 h-4" />

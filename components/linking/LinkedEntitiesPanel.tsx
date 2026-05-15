@@ -125,6 +125,7 @@ interface LinkedEntitiesPanelProps {
   emptyMessage?: string;
   maxHeight?: string;
   showAddButton?: boolean;
+  linkEntityBtnDataTour?: string;
   entitySourceId?: string;
   entitySourceType?: "contact" | "property";
 }
@@ -559,6 +560,7 @@ export function LinkedEntitiesPanel({
   emptyMessage,
   maxHeight = "400px",
   showAddButton = true,
+  linkEntityBtnDataTour,
 }: LinkedEntitiesPanelProps) {
   const t = useTranslations("common");
 
@@ -617,7 +619,12 @@ export function LinkedEntitiesPanel({
               </Button>
             )}
             {showAddButton && onLinkEntity && (
-              <Button variant="outline" size="sm" onClick={onLinkEntity}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onLinkEntity}
+                {...(linkEntityBtnDataTour ? { "data-tour": linkEntityBtnDataTour } : {})}
+              >
                 <Plus className="h-3 w-3 mr-1" />
                 {t("linkedEntities.link")}
               </Button>

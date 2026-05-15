@@ -945,7 +945,7 @@ export function UploadStep({
       )}
 
       {/* Dropzone */}
-      <Card {...getRootProps()} className={dropzoneClass}>
+      <Card {...getRootProps()} className={dropzoneClass} data-tour="import-upload-zone">
         <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
           <input {...getInputProps()} />
 

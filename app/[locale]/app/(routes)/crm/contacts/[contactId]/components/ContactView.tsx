@@ -243,7 +243,7 @@ export default function ContactView({ contact, isReadOnly = false, sharePermissi
             <Button variant="outline" size="sm">
               {t("contacts.view.share")}
             </Button>
-            <Button size="sm" onClick={() => setEditOpen(true)}>
+            <Button size="sm" onClick={() => setEditOpen(true)} data-tour="contact-edit-btn">
               {t("contacts.view.edit")}
             </Button>
           </div>
@@ -671,6 +671,7 @@ export default function ContactView({ contact, isReadOnly = false, sharePermissi
             onLinkEntity={isReadOnly ? undefined : () => setLinkRequestDialogOpen(true)}
             onUnlinkEntity={isReadOnly ? undefined : handleUnlinkRequest}
             showAddButton={!isReadOnly}
+            linkEntityBtnDataTour="link-entity-btn"
           />
 
           {/* Linked Properties (owned) */}

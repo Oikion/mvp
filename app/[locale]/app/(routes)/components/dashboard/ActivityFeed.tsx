@@ -79,7 +79,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities }) => {
   const locale = useLocale();
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col" data-tour="oikosync-feed">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 shrink-0">
         <div className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-muted-foreground" />
@@ -100,11 +100,12 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities }) => {
         ) : (
           <ScrollArea className="h-full max-h-[320px]">
             <div className="space-y-3 pr-4">
-              {activities.map((activity) => (
+              {activities.map((activity, index) => (
                 <Link
                   key={activity.id}
                   href={getActivityHref(activity, locale)}
                   className="flex items-start gap-3 rounded-lg p-2 -mx-2 hover:bg-muted/50 transition-colors"
+                  {...(index === 0 ? { "data-tour": "first-message" } : {})}
                 >
                   <div className="mt-0.5 rounded-full bg-muted p-2 shrink-0">
                     {getActivityIcon(activity.type)}

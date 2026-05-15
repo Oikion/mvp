@@ -200,7 +200,12 @@ function NavMainMenuItem({
           onMouseLeave={() => iconRef.current?.stopAnimation?.()}
         >
           {/* prefetch=true enables eager prefetching for faster navigation */}
-          <Link href={item.url} prefetch={true}>
+          <Link
+            href={item.url}
+            prefetch={true}
+            {...(item.url.includes("/crm") ? { "data-tour": "crm-nav" } : {})}
+            {...(item.url.includes("/import") ? { "data-tour": "import-nav" } : {})}
+          >
             <item.icon
               ref={iconRef}
               size={16}

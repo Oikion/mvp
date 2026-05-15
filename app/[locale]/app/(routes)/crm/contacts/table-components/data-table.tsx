@@ -101,11 +101,12 @@ export function ContactDataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row, rowIndex) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className={getRowHref ? "cursor-pointer" : undefined}
+                  {...(rowIndex === 0 ? { "data-tour": "first-contact-row" } : {})}
                   onClick={getRowHref ? (e: React.MouseEvent) => {
                     const target = e.target as HTMLElement;
                     if (target.closest('button, a, input, select, textarea, [role="combobox"], [role="menuitem"], [data-radix-collection-item]')) return;
