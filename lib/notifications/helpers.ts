@@ -391,6 +391,62 @@ export async function notifyDealStatusChanged(payload: DealNotificationPayload):
   });
 }
 
+/**
+ * Notify relevant agents when a deal advances through the pipeline.
+ * Sends to listingAgentId + buyerAgentId, excluding the actor.
+ */
+export async function notifyDealStageChanged(payload: {
+  dealId: string;
+  dealTitle: string;
+  fromStage: string;
+  toStage: string;
+  organizationId: string;
+  actorId: string;
+  actorName: string;
+  listingAgentId?: string | null;
+  buyerAgentId?: string | null;
+}): Promise<void> {
+  // Collect unique recipient IDs, excluding the actor
+  const recipientIds = Array.from(new Set([
+    payload.listingAgentId,
+    payload.buyerAgentId,
+  ].filter((id): id is string => !!id && id !== payload.actorId)));
+
+  if (recipientIds.length === 0) return;
+
+  const title = `Deal stage updated`;
+  const message = `${payload.actorName} moved "${payload.dealTitle}" from ${payload.fromStage} to ${payload.toStage}`;
+
+  await createBulkNotifications({
+    userIds: recipientIds,
+    organizationId: payload.organizationId,
+    type: "DEAL_STAGE_CHANGED",
+    title,
+    message,
+    entityType: "DEAL",
+    entityId: payload.dealId,
+    actorId: payload.actorId,
+    actorName: payload.actorName,
+    metadata: {
+      dealTitle: payload.dealTitle,
+      fromStage: payload.fromStage,
+      toStage: payload.toStage,
+    },
+  });
+
+  // Email — respects user preferences via sendNotificationEmailToUsers
+  sendNotificationEmailToUsers(recipientIds, "DEAL_STAGE_CHANGED", {
+    actorName: payload.actorName,
+    actorId: payload.actorId,
+    entityId: payload.dealId,
+    metadata: {
+      dealTitle: payload.dealTitle,
+      fromStage: payload.fromStage,
+      toStage: payload.toStage,
+    },
+  }).catch((err) => console.error("[DEAL_STAGE_NOTIFICATION]", err));
+}
+
 // ============================================
 // CONNECTION NOTIFICATIONS
 // ============================================

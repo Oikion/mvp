@@ -38,6 +38,8 @@ import {
   logStageChanged,
   type FieldChange,
 } from "@/lib/activity-logger";
+import { notifyDealStageChanged } from "@/lib/notifications/helpers";
+import { notifyOrganization } from "@/lib/notifications/notification-service";
 
 // Safelist of non-encrypted Deal fields tracked by activity logging.
 // Keep in sync with the Activity Log spec.
@@ -232,6 +234,21 @@ export async function createDeal(
       });
     }
 
+    void notifyOrganization(
+      organizationId,
+      currentUser.id, // exclude actor
+      "DEAL_PROPOSED",
+      "New deal proposed",
+      `${currentUser.name ?? "Someone"} proposed a deal for ${property.property_name ?? "a property"}`,
+      {
+        entityType: "DEAL",
+        entityId: deal.id,
+        actorId: currentUser.id,
+        actorName: currentUser.name ?? undefined,
+        metadata: { dealTitle: deal.title, propertyName: property.property_name },
+      }
+    ).catch((err) => console.error("[DEAL_CREATE_NOTIFY]", err));
+
     revalidatePath("/deals");
     return actionSuccess(serializeDealForClient(deal));
   } catch (error) {
@@ -399,7 +416,7 @@ export async function advanceDealStage(
 
   const deal = await prismadb.deal.findFirst({
     where: { id: dealId, organizationId },
-    select: { id: true, stage: true },
+    select: { id: true, stage: true, title: true, listingAgentId: true, buyerAgentId: true, friendlyId: true },
   });
   if (!deal) return actionNotFound("Deal");
 
@@ -457,6 +474,18 @@ export async function advanceDealStage(
       changedByUserId: currentUser?.id,
     });
 
+    void notifyDealStageChanged({
+      dealId,
+      dealTitle: deal.title ?? deal.friendlyId ?? dealId,
+      fromStage: deal.stage,
+      toStage,
+      organizationId,
+      actorId: currentUser.id,
+      actorName: currentUser.name ?? currentUser.email ?? "Someone",
+      listingAgentId: deal.listingAgentId,
+      buyerAgentId: deal.buyerAgentId,
+    }).catch((err) => console.error("[DEAL_ADVANCE_STAGE_NOTIFY]", err));
+
     revalidatePath("/deals");
     revalidatePath(`/deals/${dealId}`);
     return actionSuccess(serializeDealForClient(updated));
@@ -489,7 +518,7 @@ export async function setDealStage(
 
   const deal = await prismadb.deal.findFirst({
     where: { id: dealId, organizationId },
-    select: { id: true, stage: true, friendlyId: true },
+    select: { id: true, stage: true, title: true, listingAgentId: true, buyerAgentId: true, friendlyId: true },
   });
   if (!deal) return actionNotFound("Deal");
 
@@ -554,6 +583,18 @@ export async function setDealStage(
       notes: trimmedNotes,
       changedByUserId: currentUser?.id,
     });
+
+    void notifyDealStageChanged({
+      dealId: deal.id,
+      dealTitle: deal.title ?? deal.friendlyId ?? deal.id,
+      fromStage: deal.stage,
+      toStage,
+      organizationId,
+      actorId: currentUser.id,
+      actorName: currentUser.name ?? currentUser.email ?? "Someone",
+      listingAgentId: deal.listingAgentId,
+      buyerAgentId: deal.buyerAgentId,
+    }).catch((err) => console.error("[DEAL_SET_STAGE_NOTIFY]", err));
 
     revalidatePath("/deals");
     revalidatePath(`/deals/${deal.friendlyId}`);
@@ -629,6 +670,22 @@ export async function addDealParty(
       bUrl: `/app/crm/contacts/${contact.friendlyId ?? contactId}`,
       createdByUserId: currentUser?.id,
     });
+
+    // Notify the deal's agents that a new party was added
+    void notifyOrganization(
+      organizationId,
+      currentUser.id,
+      "DEAL_UPDATED",
+      "Deal party added",
+      `${currentUser.name ?? "Someone"} added ${contact.displayName ?? "a contact"} as a party to deal "${deal.title ?? "a deal"}"`,
+      {
+        entityType: "DEAL",
+        entityId: dealId,
+        actorId: currentUser.id,
+        actorName: currentUser.name ?? undefined,
+        metadata: { contactName: contact.displayName, role },
+      }
+    ).catch((err) => console.error("[DEAL_PARTY_NOTIFY]", err));
 
     revalidatePath(`/deals/${dealId}`);
     return actionSuccess(party);
