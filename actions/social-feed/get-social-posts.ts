@@ -155,13 +155,13 @@ export async function getSocialPosts(limit: number = 50): Promise<SocialPost[]> 
 
     const [linkedProps, linkedContacts, linkedRequests] = await Promise.all([
       linkedPropertyIds.length > 0
-        ? prismadb.properties.findMany({ where: { id: { in: linkedPropertyIds } }, select: { id: true, friendlyId: true } })
+        ? prismadb.properties.findMany({ where: { organizationId, id: { in: linkedPropertyIds } }, select: { id: true, friendlyId: true } })
         : [],
       linkedContactIds.length > 0
-        ? prismadb.contact.findMany({ where: { id: { in: linkedContactIds } }, select: { id: true, friendlyId: true } })
+        ? prismadb.contact.findMany({ where: { organizationId, id: { in: linkedContactIds } }, select: { id: true, friendlyId: true } })
         : [],
       linkedRequestIds.length > 0
-        ? prismadb.request.findMany({ where: { id: { in: linkedRequestIds } }, select: { id: true, friendlyId: true } })
+        ? prismadb.request.findMany({ where: { organizationId, id: { in: linkedRequestIds } }, select: { id: true, friendlyId: true } })
         : [],
     ]);
 

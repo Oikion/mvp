@@ -137,8 +137,8 @@ describe("Contact deduplication", () => {
 
   it("deduplicates contacts by email when phone is absent", () => {
     const result = validateImportData([
-      { contact_name: "Alice", primary_email: "alice@test.com" },
-      { contact_name: "Alice Copy", primary_email: "alice@test.com" },
+      { contact_name: "Alice", contact_primary_email: "alice@test.com" },
+      { contact_name: "Alice Copy", contact_primary_email: "alice@test.com" },
     ]);
 
     expect(result.entitySummary.contacts.total).toBe(2);
@@ -180,8 +180,8 @@ describe("Contact deduplication", () => {
 
   it("email dedup is case-insensitive", () => {
     const result = validateImportData([
-      { contact_name: "Alice", primary_email: "Alice@Test.COM" },
-      { contact_name: "Alice2", primary_email: "alice@test.com" },
+      { contact_name: "Alice", contact_primary_email: "Alice@Test.COM" },
+      { contact_name: "Alice2", contact_primary_email: "alice@test.com" },
     ]);
 
     expect(result.entitySummary.contacts.unique).toBe(1);
@@ -401,9 +401,9 @@ describe("Mixed entity rows", () => {
     expect(result.validRows).toHaveLength(1);
     const mandateRow = result.validRows[0].requestRow;
     expect(mandateRow).not.toBeNull();
-    // The title should be auto-generated (e.g. "Buy Apartment")
-    expect(mandateRow!.title).toBeTruthy();
-    expect(typeof mandateRow!.title).toBe("string");
+    // The name should be auto-generated (e.g. "Buy Apartment")
+    expect(mandateRow!.name).toBeTruthy();
+    expect(typeof mandateRow!.name).toBe("string");
   });
 });
 
@@ -534,7 +534,7 @@ describe("contactDedupKey priority", () => {
 
     // Row with email and contact_name but no phone
     const resultEmailName = validateImportData([
-      { contact_name: "Bob", primary_email: "bob@test.com" },
+      { contact_name: "Bob", contact_primary_email: "bob@test.com" },
     ]);
     expect(resultEmailName.validRows).toHaveLength(1);
     expect(resultEmailName.validRows[0].contactDedupKey).toMatch(/^email:/);
