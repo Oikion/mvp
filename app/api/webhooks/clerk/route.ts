@@ -4,6 +4,7 @@ import { WebhookEvent } from "@clerk/nextjs/server";
 import { syncClerkUser } from "@/lib/clerk-sync";
 import { restorePersonalWorkspaceIfNeeded } from "@/lib/personal-workspace-guard";
 import { handleUserDeparture } from "@/lib/user-departure";
+import { syncSeatQuantity } from "@/lib/billing/helpers";
 import { deleteOrgData } from "@/lib/delete-org-data";
 import { syncUserToMessaging, disableUserMessaging } from "@/actions/messaging";
 import { prismadb } from "@/lib/prisma";
@@ -183,7 +184,29 @@ export async function POST(req: Request) {
         } else {
           console.warn(`[WEBHOOK] No DB user found for clerk ID ${clerkUserId} during membership removal`);
         }
+
+        // Sync seat count after member removal (non-blocking)
+        syncSeatQuantity(orgId).catch((err) => {
+          console.error(`[WEBHOOK] Seat sync after departure failed for org ${orgId}:`, err);
+        });
       }
+    }
+  }
+
+  // Handle membership creation — sync seat quantity for billing
+  if (eventType === "organizationMembership.created") {
+    const data = evt.data as {
+      organization?: { id: string; public_metadata?: Record<string, unknown> };
+    };
+
+    const orgId = data.organization?.id;
+    const orgMetadata = data.organization?.public_metadata;
+
+    // Skip personal workspaces — they don't have billing subscriptions
+    if (orgId && orgMetadata?.type !== "personal") {
+      syncSeatQuantity(orgId).catch((err) => {
+        console.error(`[WEBHOOK] Seat sync failed for org ${orgId}:`, err);
+      });
     }
   }
 
