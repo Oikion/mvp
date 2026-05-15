@@ -344,8 +344,12 @@ The user's `publicMetadata.demoOrgId` becomes stale after purge. This is harmles
 
 ---
 
+## Resolved Decisions
+
+- **Demo org name**: Realistic and random — pick from a small pool of plausible Greek real estate agency names (e.g. "Αθηναϊκή Κτηματομεσιτική", "Aegean Properties", "Αττική Real Estate", "Μεσογειακή Ακίνητα"). `seedDemoOrg` selects one at random from the pool. The Clerk org is renamed to match (using `clerkClient.organizations.updateOrganization`).
+- **Seed contact names**: Fictional Greek names (e.g. Νίκος Παπαδόπουλος, Ελένη Κωνσταντίνου, Γιώργος Αλεξίου). A fixed pool of 12 names is defined in `lib/demo/seed-demo-org.ts`; the seeder picks 8 at random so each user's sandbox feels distinct.
+- **Tour restart**: Out of scope — can be added as a `/settings` toggle later.
+
 ## Open Questions
 
-- **Demo org name localisation**: "Demo Agency" (en) / "Demo Οργανισμός" (el) — confirm naming with product.
-- **Seed data names**: Should contacts use fictional Greek names (e.g. Νίκος Παπαδόπουλος) or generic placeholders? Fictional names are more realistic; confirm.
-- **Tour restart**: Should users be able to restart the tour after completing it? (Not in scope for this spec — can be added as a settings toggle later.)
+None.
