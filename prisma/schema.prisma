@@ -4324,7 +4324,5 @@ model OrgSubscription {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 
-  @@index([organizationId])
-  @@index([stripeCustomerId])
-  @@index([stripeSubscriptionId])
+  @@map("org_subscriptions")
 }
