@@ -90,6 +90,8 @@ import docsEl from "./locales/el/docs.json";
 import activitiesEl from "./locales/el/activities.json";
 import documentTemplatesEl from "./locales/el/document-templates.json";
 import archiveEl from "./locales/el/archive.json";
+import billingEn from "./locales/en/billing.json";
+import billingEl from "./locales/el/billing.json";
 
 function loadMessages(locale: string) {
   const messages: Record<string, any> = {};
@@ -150,6 +152,7 @@ function loadMessages(locale: string) {
     // Also keep it nested for namespace access (useTranslations("notifications"))
     messages.notifications = notificationsEl;
     messages.Notifications = notificationsEl; // Capital N for compatibility
+    messages.billing = billingEl;
   } else {
     // Default to English
     messages.RootLayout = rootEn;
@@ -207,6 +210,7 @@ function loadMessages(locale: string) {
     // Also keep it nested for namespace access (useTranslations("notifications"))
     messages.notifications = notificationsEn;
     messages.Notifications = notificationsEn; // Capital N for compatibility
+    messages.billing = billingEn;
   }
 
   return messages;

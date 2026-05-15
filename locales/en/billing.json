@@ -1,0 +1,59 @@
+{
+  "title": "Billing",
+  "currentPlan": "Current Plan",
+  "plan": {
+    "free": "Free",
+    "pro": "Pro",
+    "business": "Business"
+  },
+  "status": {
+    "active": "Active",
+    "trialing": "Trial",
+    "past_due": "Past Due",
+    "canceled": "Canceled",
+    "inactive": "Inactive",
+    "unpaid": "Unpaid"
+  },
+  "cycle": {
+    "monthly": "Monthly",
+    "yearly": "Yearly"
+  },
+  "seats": {
+    "label": "Team Seats",
+    "included": "{count} included",
+    "used": "{used} of {total} used",
+    "overage": "{count} extra seat",
+    "overage_plural": "{count} extra seats"
+  },
+  "renewal": "Renews on {date}",
+  "cancelAt": "Cancels on {date}",
+  "upgradeTitle": "Upgrade your plan",
+  "upgradeDescription": "Unlock more features and seats for your team.",
+  "actions": {
+    "upgrade": "Upgrade",
+    "manage": "Manage Billing",
+    "portal": "Open Billing Portal",
+    "upgrading": "Redirecting to checkout…",
+    "managing": "Opening portal…"
+  },
+  "success": "Subscription activated! Welcome to {plan}.",
+  "canceled": "Checkout canceled. No changes were made.",
+  "pastDueNotice": "Your payment is past due. Please update your payment method to keep your subscription active.",
+  "perMonth": "/mo",
+  "perYear": "/yr",
+  "perSeat": "/seat",
+  "proFeatures": [
+    "MLS property listings",
+    "CRM contacts & requests",
+    "Matchmaking",
+    "Calendar & events",
+    "Documents",
+    "Import & Export"
+  ],
+  "businessFeatures": [
+    "Everything in Pro",
+    "Agency network access",
+    "Advanced analytics",
+    "External API access"
+  ]
+}
