@@ -4285,3 +4285,46 @@ model WeightCalibrationReport {
   @@index([computedAt])
   @@map("weight_calibration_reports")
 }
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum SubscriptionStatus {
+  INACTIVE
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+model OrgSubscription {
+  id                   String             @id @default(cuid())
+  organizationId       String             @unique
+  stripeCustomerId     String             @unique
+  stripeSubscriptionId String?            @unique
+  stripeBaseItemId     String?
+  stripeSeatItemId     String?
+  plan                 SubscriptionPlan   @default(FREE)
+  billingCycle         BillingCycle?
+  status               SubscriptionStatus @default(INACTIVE)
+  seatAllowance        Int                @default(0)
+  overageSeats         Int                @default(0)
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([organizationId])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+}
