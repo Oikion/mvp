@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useDemoMode } from "@/components/demo/DemoModeProvider";
 import { getTourSteps, ACTION_REQUIRED_STEPS } from "@/lib/demo/tour-steps";
-import type { Config, Driver, DriveStep } from "driver.js";
+import type { Config, Driver } from "driver.js";
 
 export function TourController() {
   const { isDemoMode, tourStep, advanceTour, completeTour, skipTour, markActionComplete, isActionComplete } =
