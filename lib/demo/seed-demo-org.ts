@@ -251,9 +251,11 @@ export async function seedDemoOrg(
     };
   });
 
-  const encryptedProperties = await Promise.all(
-    propertiesRaw.map((p) => encryptPropertyForOrg(p, orgId))
-  );
+  // encryptPropertyForOrg is a no-op here — seed data has no primary_email or
+  // communication_notes. The cast silences the constraint mismatch.
+  const encryptedProperties = (await Promise.all(
+    propertiesRaw.map((p) => encryptPropertyForOrg(p as never, orgId))
+  )) as unknown as typeof propertiesRaw;
 
   // ── Encrypt all requests BEFORE transaction ───────────────────────────────
   const requestsRaw = REQUEST_SEED.map((r, i) => ({
@@ -272,9 +274,11 @@ export async function seedDemoOrg(
     friendlyId: `DEMO-R${String(i + 1).padStart(3, "0")}`,
   }));
 
-  const encryptedRequests = await Promise.all(
-    requestsRaw.map((r) => encryptRequestForOrg(r, orgId))
-  );
+  // encryptRequestForOrg is a no-op here — seed data has no name/notes/locationDisplayName.
+  // The cast silences the constraint mismatch.
+  const encryptedRequests = (await Promise.all(
+    requestsRaw.map((r) => encryptRequestForOrg(r as never, orgId))
+  )) as unknown as typeof requestsRaw;
 
   // ── Transaction ───────────────────────────────────────────────────────────
   await prismadb.$transaction(async (tx) => {
