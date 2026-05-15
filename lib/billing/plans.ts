@@ -7,7 +7,7 @@ export const PLAN_CONFIGS = {
     seatAllowance: 5,
     features: [
       "mls", "crm", "matchmaking", "calendar", "documents", "import", "export",
-    ] as string[],
+    ],
     priceIds: {
       baseMonthly: process.env.STRIPE_PRO_BASE_MONTHLY_ID ?? "",
       baseYearly: process.env.STRIPE_PRO_BASE_YEARLY_ID ?? "",
@@ -27,7 +27,7 @@ export const PLAN_CONFIGS = {
     features: [
       "mls", "crm", "matchmaking", "calendar", "documents", "import", "export",
       "network", "advanced_analytics", "api_access",
-    ] as string[],
+    ],
     priceIds: {
       baseMonthly: process.env.STRIPE_BUSINESS_BASE_MONTHLY_ID ?? "",
       baseYearly: process.env.STRIPE_BUSINESS_BASE_YEARLY_ID ?? "",
@@ -45,24 +45,33 @@ export const PLAN_CONFIGS = {
 
 export type PlanKey = keyof typeof PLAN_CONFIGS;
 
-/** Returns base price ID for a given plan + billing cycle. */
+/** Returns base price ID for a given plan + billing cycle. Throws if not configured. */
 export function getBasePriceId(plan: PlanKey, cycle: BillingCycle): string {
-  return cycle === "MONTHLY"
-    ? PLAN_CONFIGS[plan].priceIds.baseMonthly
-    : PLAN_CONFIGS[plan].priceIds.baseYearly;
+  const id =
+    cycle === "MONTHLY"
+      ? PLAN_CONFIGS[plan].priceIds.baseMonthly
+      : PLAN_CONFIGS[plan].priceIds.baseYearly;
+  if (!id) throw new Error(`Stripe base price ID not configured for ${plan} ${cycle}`);
+  return id;
 }
 
-/** Returns per-seat overage price ID for a given plan + billing cycle. */
+/** Returns per-seat overage price ID for a given plan + billing cycle. Throws if not configured. */
 export function getSeatPriceId(plan: PlanKey, cycle: BillingCycle): string {
-  return cycle === "MONTHLY"
-    ? PLAN_CONFIGS[plan].priceIds.seatMonthly
-    : PLAN_CONFIGS[plan].priceIds.seatYearly;
+  const id =
+    cycle === "MONTHLY"
+      ? PLAN_CONFIGS[plan].priceIds.seatMonthly
+      : PLAN_CONFIGS[plan].priceIds.seatYearly;
+  if (!id) throw new Error(`Stripe seat price ID not configured for ${plan} ${cycle}`);
+  return id;
 }
 
 /** Returns PLAN_CONFIGS entry if plan is PRO or BUSINESS, null for FREE. */
 export function getPlanConfig(plan: SubscriptionPlan) {
   if (plan === "FREE") return null;
-  return PLAN_CONFIGS[plan as PlanKey];
+  if (plan !== "PRO" && plan !== "BUSINESS") {
+    throw new Error(`Unknown subscription plan: ${plan}`);
+  }
+  return PLAN_CONFIGS[plan];
 }
 
 export const PLAN_RANK: Record<SubscriptionPlan, number> = {
