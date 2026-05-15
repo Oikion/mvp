@@ -2922,6 +2922,9 @@ model OrganizationSettings {
   updatedAt DateTime @updatedAt
   createdBy String? // User who created these settings
 
+  // Demo sandbox flag — set true for auto-generated onboarding demo orgs
+  isDemo Boolean @default(false)
+
   // Data Ownership Policy
   dataOwnershipMode      DataOwnershipMode @default(AGENCY)
   dataOwnershipSetAt     DateTime?
