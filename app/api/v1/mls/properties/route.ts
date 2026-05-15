@@ -110,14 +110,14 @@ export const GET = withExternalApi(
     }
 
     // Price range filter
-    if (filters.minPrice || filters.maxPrice) {
+    if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
       where.price = {};
-      if (filters.minPrice) {
+      if (filters.minPrice !== undefined) {
         const min = Number(filters.minPrice);
         if (isNaN(min) || min < 0) return createApiErrorResponse("Invalid minPrice: must be a non-negative number", 400);
         (where.price as Record<string, number>).gte = min;
       }
-      if (filters.maxPrice) {
+      if (filters.maxPrice !== undefined) {
         const max = Number(filters.maxPrice);
         if (isNaN(max) || max < 0) return createApiErrorResponse("Invalid maxPrice: must be a non-negative number", 400);
         (where.price as Record<string, number>).lte = max;
@@ -196,7 +196,10 @@ export const GET = withExternalApi(
  */
 export const POST = withExternalApi(
   async (req: NextRequest, context: ExternalApiContext) => {
-    const body = await req.json();
+    let body: unknown;
+    try { body = await req.json(); } catch {
+      return createApiErrorResponse("Invalid request body: must be valid JSON", 400);
+    }
 
     // Validate input with Zod — rejects unknown fields and validates all enums
     const parsed = createPropertyApiSchema.safeParse(body);

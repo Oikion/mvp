@@ -1,7 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, createHash, timingSafeEqual } from "crypto";
+import { z } from "zod";
 import { prismadb } from "@/lib/prisma";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
+
+const webhookBodySchema = z.object({
+  event: z.string().max(100),
+  organizationId: z.string().optional(),
+  workflowId: z.string().optional(),
+  executionId: z.string().optional(),
+  timestamp: z.string().optional(),
+  data: z.object({
+    blogPostId: z.string().optional(),
+    socialPostId: z.string().optional(),
+    campaignId: z.string().optional(),
+    postId: z.string().optional(),
+    type: z.string().optional(),
+    id: z.string().optional(),
+    platform: z.string().optional(),
+    error: z.string().optional(),
+    metrics: z.object({
+      likes: z.number().int().nonnegative().optional(),
+      comments: z.number().int().nonnegative().optional(),
+      shares: z.number().int().nonnegative().optional(),
+      impressions: z.number().int().nonnegative().optional(),
+      reach: z.number().int().nonnegative().optional(),
+      engagementRate: z.number().nonnegative().optional(),
+    }).optional(),
+  }).optional(),
+}).strict();
+
+type WebhookData = NonNullable<z.infer<typeof webhookBodySchema>["data"]>;
 
 /**
  * Verify n8n webhook signature
@@ -62,7 +91,7 @@ export async function POST(req: NextRequest) {
     if (!webhookSecret) {
       console.error("[N8N_WEBHOOK] Missing N8N_WEBHOOK_SECRET environment variable");
       return NextResponse.json(
-        { error: "Webhook not configured", message: "N8N_WEBHOOK_SECRET must be set" },
+        { error: "Webhook endpoint is not configured" },
         { status: 503 }
       );
     }
@@ -99,19 +128,13 @@ export async function POST(req: NextRequest) {
     // organizationId from the body is trusted but unverified against the token.
     // Required fix: migrate to per-org webhook secrets stored in DB, looked up by token/org pair.
     // Tracking: pre-launch-audit-2026-04-22 finding H-04
-    const event = body.event as string | undefined;
-    const organizationId = body.organizationId as string | undefined;
-    const workflowId = body.workflowId as string | undefined;
-    const executionId = body.executionId as string | undefined;
-    const data = (body.data ?? {}) as Record<string, unknown>;
-    const timestamp = body.timestamp as string | undefined;
-
-    if (!event) {
-      return NextResponse.json(
-        { error: "Missing required field: event" },
-        { status: 400 }
-      );
+    const parsed = webhookBodySchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
     }
+
+    const { event, organizationId, workflowId, executionId, timestamp } = parsed.data;
+    const data = parsed.data.data ?? {};
 
     // Require and verify organizationId for all mutation events.
     // health.check is the only event that can proceed without it.
@@ -183,107 +206,79 @@ export async function POST(req: NextRequest) {
  * Handle workflow completion event
  */
 async function handleWorkflowCompleted(
-  organizationId: string,
+  _organizationId: string,
   workflowId: string,
   executionId: string,
-  data: Record<string, unknown>
+  _data: WebhookData
 ) {
   console.log(`[N8N_WEBHOOK] Workflow completed: ${workflowId}`, { executionId });
-
-  // You could store workflow execution history here if needed
-  // Or trigger follow-up actions based on the workflow output
 }
 
-/**
- * Handle workflow error event
- */
 async function handleWorkflowError(
   organizationId: string,
   workflowId: string,
   executionId: string,
-  data: Record<string, unknown>
+  data: WebhookData
 ) {
   console.error(`[N8N_WEBHOOK] Workflow error: ${workflowId}`, { executionId });
 
-  // Update any related records to show failure status
-  if (data?.blogPostId) {
+  if (data.blogPostId) {
     await prismadb.blogPost.updateMany({
-      where: { 
-        id: data.blogPostId as string,
-        organizationId,
-      },
-      data: { status: "DRAFT" }, // Revert to draft on error
+      where: { id: data.blogPostId, organizationId },
+      data: { status: "DRAFT" },
     });
   }
 
-  if (data?.socialPostId) {
+  if (data.socialPostId) {
     await prismadb.socialPostLog.updateMany({
-      where: {
-        id: data.socialPostId as string,
-        organizationId,
-      },
+      where: { id: data.socialPostId, organizationId },
       data: {
         status: "FAILED",
-        errorMessage: data?.error as string || "Workflow execution failed",
+        errorMessage: data.error ?? "Workflow execution failed",
       },
     });
   }
 
-  if (data?.campaignId) {
+  if (data.campaignId) {
     await prismadb.newsletterCampaign.updateMany({
-      where: {
-        id: data.campaignId as string,
-        organizationId,
-      },
+      where: { id: data.campaignId, organizationId },
       data: { status: "FAILED" },
     });
   }
 }
 
-/**
- * Handle content creation event
- */
 async function handleContentCreated(
-  organizationId: string,
-  data: Record<string, unknown>
+  _organizationId: string,
+  data: WebhookData
 ) {
-  // SECURITY: Do not log the full `data` payload — it may contain entity
-  // names or PII from n8n workflows. Log only the event type and org.
   console.log(`[N8N_WEBHOOK] Content created`, { type: data.type });
-
-  // Content is already created via API endpoints
-  // This event can be used for notifications or logging
 }
 
-/**
- * Handle content published event
- */
 async function handleContentPublished(
   organizationId: string,
-  data: Record<string, unknown>
+  data: WebhookData
 ) {
   console.log(`[N8N_WEBHOOK] Content published`, { type: data.type });
 
-  // Update content status if needed
   const { type, id } = data;
 
   if (type === "blog" && id) {
     await prismadb.blogPost.updateMany({
-      where: { id: id as string, organizationId },
+      where: { id, organizationId },
       data: { status: "PUBLISHED", publishedAt: new Date() },
     });
   }
 
   if (type === "social" && id) {
     await prismadb.socialPostLog.updateMany({
-      where: { id: id as string, organizationId },
+      where: { id, organizationId },
       data: { status: "POSTED", postedAt: new Date() },
     });
   }
 
   if (type === "newsletter" && id) {
     await prismadb.newsletterCampaign.updateMany({
-      where: { id: id as string, organizationId },
+      where: { id, organizationId },
       data: { status: "SENT", sentAt: new Date() },
     });
   }
@@ -294,35 +289,23 @@ async function handleContentPublished(
  */
 async function handleMetricsSync(
   organizationId: string,
-  data: Record<string, unknown>
+  data: WebhookData
 ) {
   console.log(`[N8N_WEBHOOK] Metrics sync`, { platform: data.platform });
 
-  const { postId, platform, metrics } = data;
+  const { postId, metrics } = data;
 
   if (!postId || !metrics) return;
 
-  const metricsData = metrics as {
-    likes?: number;
-    comments?: number;
-    shares?: number;
-    impressions?: number;
-    reach?: number;
-    engagementRate?: number;
-  };
-
   await prismadb.socialPostLog.updateMany({
-    where: {
-      id: postId as string,
-      organizationId,
-    },
+    where: { id: postId, organizationId },
     data: {
-      likes: metricsData.likes ?? undefined,
-      comments: metricsData.comments ?? undefined,
-      shares: metricsData.shares ?? undefined,
-      impressions: metricsData.impressions ?? undefined,
-      reach: metricsData.reach ?? undefined,
-      engagementRate: metricsData.engagementRate ?? undefined,
+      likes: metrics.likes ?? undefined,
+      comments: metrics.comments ?? undefined,
+      shares: metrics.shares ?? undefined,
+      impressions: metrics.impressions ?? undefined,
+      reach: metrics.reach ?? undefined,
+      engagementRate: metrics.engagementRate ?? undefined,
       lastSyncedAt: new Date(),
     },
   });

@@ -341,12 +341,11 @@ export async function validateOrgUser(
 
   try {
     const clerk = await clerkClient();
-    const memberships = await clerk.organizations.getOrganizationMembershipList({
-      organizationId,
+    // Query from user side — a user belongs to very few orgs, so no pagination issues.
+    const memberships = await clerk.users.getOrganizationMembershipList({
+      userId: user.clerkUserId,
     });
-    const isMember = memberships.data.some(
-      (m) => m.publicUserData?.userId === user.clerkUserId
-    );
+    const isMember = memberships.data.some((m) => m.organization.id === organizationId);
     if (!isMember) {
       return { valid: false, error: "user is not a member of this organization" };
     }

@@ -157,7 +157,10 @@ export const GET = withExternalApi(
  */
 export const POST = withExternalApi(
   async (req: NextRequest, context: ExternalApiContext) => {
-    const body = await req.json();
+    let body: unknown;
+    try { body = await req.json(); } catch {
+      return createApiErrorResponse("Invalid request body: must be valid JSON", 400);
+    }
 
     const parsed = createContactApiSchema.safeParse(body);
     if (!parsed.success) {
