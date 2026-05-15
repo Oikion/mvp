@@ -100,6 +100,11 @@ const isStagingExemptApiRoute = createRouteMatcher([
   "/api/staging-access(.*)",
   "/api/health(.*)",
   "/api/cron(.*)",
+  // External machine-originated traffic must bypass the staging cookie gate —
+  // webhooks (Clerk, Stripe, Resend, etc.) and the app-access verify endpoint
+  // never carry a staging cookie and must not be redirected to the gate page.
+  "/api/webhooks(.*)",
+  "/api/app-access(.*)",
 ]);
 
 
@@ -268,11 +273,18 @@ const proxy = clerkMiddleware(async (auth, req: NextRequest) => {
   if (isPlatformAdminRoute(req) && !isPlatformAdminAccessDenied(req)) {
     const isAdminApiRoute = pathname.startsWith("/api/platform-admin");
 
-    // CSRF protection for admin API mutations — runs before the expensive Clerk API call
+    // CSRF protection for admin API mutations — runs before the expensive Clerk API call.
+    // Admin routes are browser-only, so Origin is required; requests lacking it are rejected.
     if (isAdminApiRoute && ["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
       const origin = req.headers.get("origin");
       const host = req.headers.get("host");
-      if (origin && host) {
+      if (!origin) {
+        return NextResponse.json(
+          { error: "Forbidden", message: "Origin header required" },
+          { status: 403 }
+        );
+      }
+      if (host) {
         try {
           const originHost = new URL(origin).host;
           if (originHost !== host) {
