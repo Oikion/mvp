@@ -520,6 +520,7 @@ model Notification {
   actorId        String?
   actorName      String?
   Users          Users                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveryLogs   NotificationDeliveryLog[]
 
   @@index([actorId])
   @@index([createdAt])
@@ -830,11 +831,15 @@ model UserNotificationSettings {
   dealsInAppEnabled     Boolean  @default(true)
   documentsEmailEnabled Boolean  @default(true)
   documentsInAppEnabled Boolean  @default(true)
-  systemEmailEnabled    Boolean  @default(true)
-  systemInAppEnabled    Boolean  @default(true)
-  createdAt             DateTime @default(now())
+  systemEmailEnabled    Boolean         @default(true)
+  systemInAppEnabled    Boolean         @default(true)
+  unsubscribeToken      String?         @unique
+  quietHoursStart       Int?
+  quietHoursEnd         Int?
+  notificationDigest    DigestFrequency @default(INSTANT)
+  createdAt             DateTime        @default(now())
   updatedAt             DateTime
-  Users                 Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Users                 Users           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -1438,6 +1443,25 @@ enum NotificationCategory {
   CONTACT_CREATED
   CONTACT_ASSIGNED
   ENTITY_ACCESS_REQUESTED
+  // Requests (currently missing)
+  REQUEST_CREATED
+  REQUEST_ASSIGNED
+  REQUEST_STATUS_CHANGED
+  // Showings (currently missing)
+  SHOWING_SCHEDULED
+  SHOWING_CONFIRMED
+  SHOWING_CANCELLED
+  SHOWING_COMPLETED
+  SHOWING_NO_SHOW
+  // Deal stage (explicit)
+  DEAL_STAGE_CHANGED
+  // Comments (currently missing)
+  COMMENT_ADDED_PROPERTY
+  COMMENT_ADDED_CONTACT
+  COMMENT_ADDED_REQUEST
+  COMMENT_ADDED_DEAL
+  // Bulk operations
+  BULK_ARCHIVE_COMPLETED
 }
 
 enum NotificationEntityType {
@@ -4326,4 +4350,49 @@ model OrgSubscription {
 
   @@index([organizationId])
   @@map("org_subscriptions")
+}
+
+// ============================================
+// NOTIFICATION DELIVERY LOG
+// ============================================
+
+model NotificationDeliveryLog {
+  id             String          @id @default(cuid())
+  notificationId String?
+  channel        DeliveryChannel
+  recipient      String
+  status         DeliveryStatus  @default(PENDING)
+  attempts       Int             @default(0)
+  lastAttemptAt  DateTime?
+  nextRetryAt    DateTime?
+  externalId     String?
+  error          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  Notification   Notification?   @relation(fields: [notificationId], references: [id], onDelete: SetNull)
+
+  @@index([notificationId])
+  @@index([channel, status])
+  @@index([recipient, channel, createdAt])
+}
+
+enum DeliveryChannel {
+  EMAIL
+  IN_APP
+  ABLY_PUSH
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  BOUNCED
+  DELIVERED
+}
+
+enum DigestFrequency {
+  INSTANT
+  DAILY_DIGEST
+  WEEKLY_DIGEST
 }
